@@ -13,12 +13,6 @@ void Game::Update()
 	gEngine->Update();
 }
 
-void Game::Update()
-{
-
-	gEngine->Update();
-}
-
 void Game::Render()
 {
 	gEngine->Render();

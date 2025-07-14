@@ -1,6 +1,6 @@
 #pragma once
 
-class SwapChain;
+#include "SwapChain.h"
 class Device;
 
 class GraphicsCommandQueue

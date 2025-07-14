@@ -44,4 +44,5 @@ void SwapChain::CreateSwapChain(const WindowInfo& info, ComPtr<IDXGIFactory> dxg
 
 	dxgi->MakeWindowAssociation(info.Hwnd, DXGI_MWA_NO_ALT_ENTER);	// alt + enter 전체화면 금지
 
+
 }

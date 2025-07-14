@@ -18,15 +18,15 @@ enum
 	RENDER_TARGET_GROUP_COUNT = static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::END)
 };
 
-struct RenderTarget
+struct RenderTargetStruct
 {
-	shared_ptr<Texture> target;
-	float clearColor[4];
+	shared_ptr<Texture> Target;
+	float ClearColor[4];
 };
 class RenderTarget
 {
 public:
-	void Create(RENDER_TARGET_GROUP_TYPE groupType, vector<RenderTarget>& rtVec, shared_ptr<Texture> dsTexture);
+	void Create(RENDER_TARGET_GROUP_TYPE groupType, vector<RenderTargetStruct>& rtVec, shared_ptr<Texture> dsTexture);
 
 	void OMSetRenderTargets(uint32 count, uint32 offset);
 	void OMSetRenderTargets();
@@ -34,24 +34,24 @@ public:
 	void ClearRenderTargetView(uint32 index);
 	void ClearRenderTargetView();
 
-	shared_ptr<Texture> GetRTTexture(uint32 index) { return _rtVec[index].target; }
-	shared_ptr<Texture> GetDSTexture() { return _dsTexture; }
+	shared_ptr<Texture> GetRTTexture(uint32 index) { return mRenderTargetVec[index].Target; }
+	shared_ptr<Texture> GetDSTexture() { return mDepthStencilTexture; }
 
 	void WaitTargetToResource();
 	void WaitResourceToTarget();
 private:
-	RENDER_TARGET_GROUP_TYPE		_groupType;
-	vector<RenderTarget>			_rtVec;	//G_BUFFER 텍스쳐
-	uint32							_rtCount;
-	shared_ptr<Texture>				_dsTexture;
-	ComPtr<ID3D12DescriptorHeap>	_rtvHeap;
+	RENDER_TARGET_GROUP_TYPE		mRenderTargetType;
+	uint32							mRenderTargetCount;
+	vector<RenderTargetStruct>		mRenderTargetVec;	//G_BUFFER 텍스쳐
+	ComPtr<ID3D12DescriptorHeap>	mRenderTargetHeap;
+
+	shared_ptr<Texture>				mDepthStencilTexture;
+private:
+	uint32							mRtvHeapSize;
+	D3D12_CPU_DESCRIPTOR_HANDLE		mRtvHeapBegin;
+	D3D12_CPU_DESCRIPTOR_HANDLE		mDsvHeapBegin;
 
 private:
-	uint32							_rtvHeapSize;
-	D3D12_CPU_DESCRIPTOR_HANDLE		_rtvHeapBegin;
-	D3D12_CPU_DESCRIPTOR_HANDLE		_dsvHeapBegin;
-
-private:
-	D3D12_RESOURCE_BARRIER			_targetToResource[8];	//타켓에서 리소스로 넘어갈때의 베리어
-	D3D12_RESOURCE_BARRIER			_resourceToTarget[8];	//리소스에서 랜더타켓으로 변환시 넘어가는 베리어
+	D3D12_RESOURCE_BARRIER			mTargetToResource[8];	//타켓에서 리소스로 넘어갈때의 베리어
+	D3D12_RESOURCE_BARRIER			mResourceToTarget[8];	//리소스에서 랜더타켓으로 변환시 넘어가는 베리어
 };

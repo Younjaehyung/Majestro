@@ -2,4 +2,4 @@
 #include "EnginePch.h"
 #include "Engine.h"
 
-std::unique_ptr<Engine> g_Engine = make_unique<Engine>();
+std::unique_ptr<Engine> gEngine = make_unique<Engine>();

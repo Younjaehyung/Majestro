@@ -10,23 +10,29 @@
     <Filter Include="Engine\DirectX">
       <UniqueIdentifier>{7d3501dc-6631-40d9-b78e-da3d206e4665}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Object">
-      <UniqueIdentifier>{5f424f74-620e-485f-a6d1-91c4def384a4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Object\Component">
-      <UniqueIdentifier>{daa85ef4-ecaa-4e67-992c-5da448148f64}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Object\Resource">
-      <UniqueIdentifier>{5d37619e-7af7-4b04-b518-ecab98bd7447}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Object\Resource\Graphics">
-      <UniqueIdentifier>{5b5686a6-c2b7-42e4-a687-849a9730b40b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine\Manager">
       <UniqueIdentifier>{e25be560-227f-4c1a-8f97-0c430f065a4b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Engine\Manager\Iinput">
       <UniqueIdentifier>{bc1eefe5-0ee2-4cf9-b26a-fbc8ace41920}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World">
+      <UniqueIdentifier>{5f424f74-620e-485f-a6d1-91c4def384a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component">
+      <UniqueIdentifier>{daa85ef4-ecaa-4e67-992c-5da448148f64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource">
+      <UniqueIdentifier>{5d37619e-7af7-4b04-b518-ecab98bd7447}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Graphics">
+      <UniqueIdentifier>{5b5686a6-c2b7-42e4-a687-849a9730b40b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System">
+      <UniqueIdentifier>{c2a51ae1-8858-420d-b3a2-ac8b9c3a5ad0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Entity">
+      <UniqueIdentifier>{9ed7b76a-a24c-4b47-9856-c3bea6ef160f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -76,16 +82,16 @@
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
       <Filter>Engine\Manager\Iinput</Filter>
@@ -93,22 +99,45 @@
     <ClInclude Include="RootSignature.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Entity.h">
-      <Filter>Object</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>Object</Filter>
-    </ClInclude>
     <ClInclude Include="Prefab.h">
-      <Filter>Object\Resource</Filter>
+      <Filter>World\Resource</Filter>
     </ClInclude>
     <ClInclude Include="Component.h">
-      <Filter>Object\Component</Filter>
+      <Filter>World\Component</Filter>
     </ClInclude>
     <ClInclude Include="SimpleMath.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h" />
+    <ClInclude Include="System.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>World\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>World\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentPool.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemManager.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="EventManager.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -154,16 +183,16 @@
       <Filter>Engine\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Shader.cpp">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
-      <Filter>Object\Resource\Graphics</Filter>
+      <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
       <Filter>Engine\Manager\Iinput</Filter>
@@ -171,22 +200,45 @@
     <ClCompile Include="RootSignature.cpp">
       <Filter>Engine\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Entity.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>Object</Filter>
-    </ClCompile>
     <ClCompile Include="Prefab.cpp">
-      <Filter>Object\Resource</Filter>
+      <Filter>World\Resource</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
-      <Filter>Object\Component</Filter>
+      <Filter>World\Component</Filter>
     </ClCompile>
     <ClCompile Include="SimpleMath.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="System.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>World\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>World\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentPool.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemManager.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="EventManager.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

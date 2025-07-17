@@ -109,7 +109,7 @@ inline OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::SHADER;
 	else if (std::is_same_v<T, Texture>)
 		return OBJECT_TYPE::TEXTURE;
-	else if (std::is_convertible_v<T, Component>)
+	else if (std::is_convertible_v<T, BaseComponent>)
 		return OBJECT_TYPE::COMPONENT;
 	else
 		return OBJECT_TYPE::NONE;

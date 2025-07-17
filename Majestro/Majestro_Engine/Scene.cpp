@@ -1,52 +1,29 @@
 #include "pch.h"
 #include "Scene.h"
-
-#include "GameObject.h"
-#include "Camera.h"
 #include "Engine.h"
-#include "ConstantBuffer.h"
-#include "Light.h"
-#include "Resources.h"
+#include "RenderManager.h"
+#include "World.h"
+#include "Component.h"
 
-void Scene::Awake()
+
+#include "Prefab.h"
+//#include "Camera.h"
+//
+//#include "ConstantBuffer.h"
+//#include "Light.h"
+//#include "Resources.h"
+
+
+void Scene::Initialize()
 {
-	for (const shared_ptr<GameObject>& gameObject : _gameObjects)
-	{
-		gameObject->Awake();
-	}
+	mWorld->Awake();
 }
 
-void Scene::Start()
+void Scene::Update(float deltaTime)
 {
-	for (const shared_ptr<GameObject>& gameObject : _gameObjects)
-	{
-		gameObject->Start();
-	}
+	mWorld->Update(deltaTime);
 }
 
-void Scene::Update()
-{
-	for (const shared_ptr<GameObject>& gameObject : _gameObjects)
-	{
-		gameObject->Update();
-	}
-}
-
-void Scene::LateUpdate()
-{
-	for (const shared_ptr<GameObject>& gameObject : _gameObjects)
-	{
-		gameObject->LateUpdate();
-	}
-}
-
-void Scene::FinalUpdate()
-{
-	for (const shared_ptr<GameObject>& gameObject : _gameObjects)
-	{
-		gameObject->FinalUpdate();
-	}
-}
 
 void Scene::Render()
 {
@@ -92,24 +69,24 @@ void Scene::ClearRTV()
 {
 	//CommandQueue의 RT이 이리로 옮겨짐
 	// SwapChain Group 초기화
-	int8 backIndex = GEngine->GetSwapChain()->GetBackBufferIndex();
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->ClearRenderTargetView(backIndex);
+	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->ClearRenderTargetView(backIndex);
 
 	// Shadow Group 초기화
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->ClearRenderTargetView();
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->ClearRenderTargetView();
 
 	// Deferred Group 초기화
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->ClearRenderTargetView();
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->ClearRenderTargetView();
 
 	// Lighting Group 초기화
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->ClearRenderTargetView();
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->ClearRenderTargetView();
 
 
 }
 
 void Scene::RenderShadow()
 {
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->OMSetRenderTargets();
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->OMSetRenderTargets();
 
 	for (auto& light : _lights)
 	{

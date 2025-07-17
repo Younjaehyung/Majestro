@@ -8,12 +8,11 @@ void SceneManager::Initialize()
 
 void SceneManager::Update(float deltaTime)
 {
-	if (_activeScene == nullptr)
+	if (mActiveScene == nullptr)
 		return;
 
-	_activeScene->Update(deltaTime);
-	_activeScene->LateUpdate(deltaTime);
-	_activeScene->FinalUpdate(deltaTime);
+	mActiveScene->Update(deltaTime);
+
 }
 
 void SceneManager::LoadScene(wstring sceneName)
@@ -21,16 +20,16 @@ void SceneManager::LoadScene(wstring sceneName)
 	// TODO : 기존 Scene 정리
 	// TODO : 파일에서 Scene 정보 로드
 
-	_activeScene = LoadTestScene();
+	mActiveScene = LoadTestScene();
 
-	_activeScene->Awake();
-	_activeScene->Start();
+	mActiveScene->Awake();
+	mActiveScene->Start();
 }
 
 void SceneManager::Render()
 {
-	if (_activeScene)
-		_activeScene->Render();
+	if (mActiveScene)
+		mActiveScene->Render();
 
 
 }

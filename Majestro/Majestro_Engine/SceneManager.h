@@ -15,19 +15,19 @@ private:
 	std::vector<Scene*> mScene;
 
 	void LoadScene(wstring sceneName);
-	void Render();
+
 
 	void SetLayerName(uint8 index, const wstring& name);
 	const wstring& IndexToLayerName(uint8 index) { return _layerNames[index]; }
 	uint8 LayerNameToIndex(const wstring& name);
 public:
-	shared_ptr<Scene> GetActiveScene() { return _activeScene; }
+	shared_ptr<Scene> GetActiveScene() { return mActiveScene; }
 
 private:
 	shared_ptr<Scene> LoadTestScene();
 
 private:
-	shared_ptr<Scene> _activeScene;
+	shared_ptr<Scene> mActiveScene;
 
 	//layer를 양쪽에서 찾을 수 있게 매핑
 	array<wstring, MAX_LAYER> _layerNames;

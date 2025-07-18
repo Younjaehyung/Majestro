@@ -42,12 +42,17 @@ public:
         for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
     }
 
+    void Render() {
+        for (auto& sys : mRenderSystems)        sys->Update();
+    }
+
     void Shutdown() {
         for (auto& sys : mAwakeSystems)         sys->Shutdown();
         for (auto& sys : mStartSystems)         sys->Shutdown();
         for (auto& sys : mUpdateSystems)        sys->Shutdown();
         for (auto& sys : mLateUpdateSystems)    sys->Shutdown();
         for (auto& sys : mFinalUpdateSystems)   sys->Shutdown();
+        for (auto& sys : mRenderSystems)        sys->Shutdown();
 
 
 
@@ -56,6 +61,7 @@ public:
         mUpdateSystems.clear();
         mUpdateSystems.clear();
         mFinalUpdateSystems.clear();
+        mRenderSystems.clear();
 
         mSystemMap.clear();
     }
@@ -64,6 +70,7 @@ private:
     World* mWorld;
     EventManager* mEventManager;
     std::vector<std::unique_ptr<System>> mSystems;
+
     std::unordered_map<size_t, System*> mSystemMap;
 
     std::vector<std::unique_ptr<System>> mAwakeSystems;
@@ -71,7 +78,7 @@ private:
     std::vector<std::unique_ptr<System>> mUpdateSystems;
     std::vector<std::unique_ptr<System>> mLateUpdateSystems;
     std::vector<std::unique_ptr<System>> mFinalUpdateSystems;
-
+    std::vector<std::unique_ptr<System>> mRenderSystems;
 
 };
 

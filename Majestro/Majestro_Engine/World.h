@@ -9,6 +9,7 @@ class World {
 public:
     World() : mNextEntityID(1) {}
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
+    void Render() { mSystemManager->Render(); }
 public:
 
     // 엔티티 생성

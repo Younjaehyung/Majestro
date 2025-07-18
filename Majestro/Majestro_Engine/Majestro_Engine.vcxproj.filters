@@ -34,6 +34,9 @@
     <Filter Include="World\Entity">
       <UniqueIdentifier>{9ed7b76a-a24c-4b47-9856-c3bea6ef160f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Graphics\Shader">
+      <UniqueIdentifier>{a87ffd82-97ab-44cf-a036-614ab1754d04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -244,5 +247,37 @@
     <None Include="SimpleMath.inl">
       <Filter>Utils</Filter>
     </None>
+    <None Include="..\Resources\Shader\default2.hlsli">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Resources\Shader\compute.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\deferred.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\lighting.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\params.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\shadow.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\skybox.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\utils.fx">
+      <Filter>World\Resource\Graphics\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -15,22 +15,19 @@ void SceneManager::Update(float deltaTime)
 
 }
 
+void SceneManager::Render()
+{
+	mActiveScene->Render();
+}
+
 void SceneManager::LoadScene(wstring sceneName)
 {
 	// TODO : 기존 Scene 정리
 	// TODO : 파일에서 Scene 정보 로드
 
-	mActiveScene = LoadTestScene();
+	//mActiveScene = LoadTestScene();
 
-	mActiveScene->Awake();
-	mActiveScene->Start();
-}
-
-void SceneManager::Render()
-{
-	if (mActiveScene)
-		mActiveScene->Render();
-
+	//mActiveScene->Initialize();
 
 }
 

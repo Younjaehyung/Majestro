@@ -1,9 +1,11 @@
 #pragma once
+#include "Object.h"
 
 using ComponentTypeID = size_t;
 
-class BaseComponent {
+class BaseComponent : public Object {
 public:
+    BaseComponent();
     virtual ~BaseComponent() = default;
     virtual std::unique_ptr<BaseComponent> Clone() const = 0;
 };

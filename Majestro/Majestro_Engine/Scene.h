@@ -10,22 +10,11 @@ public:
 	void Initialize();
 
 	void Update(float deltaTime);
-
-	void ClearRTV();
-	void RenderShadow();
-	void RenderDeferred();
-
-
-	void RenderLights();
-	void RenderFinal();
-
-	void RenderForward();
-
+	void Render();
 
 	const shared_ptr<class World>& GetWorld() { return mWorld; }
 
-private:
-	void PushLightData();
+
 
 private:
 

@@ -16,15 +16,19 @@ Engine::~Engine() = default;
 void Engine::Initialize(const WindowInfo& info)
 {
 	mRenderManager = make_unique<RenderManager>();
-	mRenderManager->Initialize(info);
-
+	mResourceManager = make_unique<ResourceManager>();
 	mSceneManager = make_unique<SceneManager>();
+	mInputManager = make_unique<InputManager>();
+
+	
+	mRenderManager->Initialize(info);
+	mResourceManager->Initialize();
+
+
+	
 	mSceneManager->Initialize();
 
-	mResourceManager = make_unique<ResourceManager>();
-
-
-	mInputManager = make_unique<InputManager>();
+	
 	mInputManager->Initialize(info.Hwnd);
 
 	mTimer = make_unique<Timer>();

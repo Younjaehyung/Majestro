@@ -2,6 +2,7 @@
 #include "RenderSystem.h"
 #include "Engine.h"
 #include "RenderManager.h"
+#include "ResourceManager.h"
 #include "World.h"
 #include "RenderComponent.h"
 
@@ -28,6 +29,19 @@ void RenderSystem::Update(float deltaTime)
 
 void RenderSystem::PushLightData()
 {
+	//LightParams lightParams = {};
+
+	//for (auto& light : _lights)
+	//{
+	//	const LightInfo& lightInfo = light->GetLightInfo();
+
+	//	light->SetLightIndex(lightParams.lightCount);	//자기가 몇번째 light인지 확인
+
+	//	lightParams.lights[lightParams.lightCount] = lightInfo;
+	//	lightParams.lightCount++;
+	//}
+
+	//CONST_BUFFER(CONSTANT_BUFFER_TYPE::GLOBAL)->SetGraphicsGlobalData(&lightParams, sizeof(lightParams));
 }
 
 void RenderSystem::ClearRTV()
@@ -51,59 +65,59 @@ void RenderSystem::ClearRTV()
 
 void RenderSystem::RenderShadow()
 {
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->OMSetRenderTargets();
+	//RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->OMSetRenderTargets();
 
-	for (auto& light : mWorld->GetEntitiesWithComponent<RenderComponent>())
-	{
-		if (light->GetLightType() != LIGHT_TYPE::DIRECTIONAL_LIGHT)
-			continue;
+	//for (auto& light : mWorld->GetEntitiesWithComponent<RenderComponent>())
+	//{
+	//	if (light->GetLightType() != LIGHT_TYPE::DIRECTIONAL_LIGHT)
+	//		continue;
 
-		light->RenderShadow();
-	}
+	//	light->RenderShadow();
+	//}
 
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->WaitTargetToResource();
+	//RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->WaitTargetToResource();
 }
 
 void RenderSystem::RenderDeferred()
 {
-	// Deferred OMSet
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->OMSetRenderTargets();
-
-	shared_ptr<Camera> mainCamera = _cameras[0];	//처음 추가된 카메라를 메인카메라로 임시 설정함
-	mainCamera->SortGameObject();
-	mainCamera->Render_Deferred();	//1pass
-
-	//리소스용도와 출력용도를 나누기 위해 
-	//타켓에서 리소스로
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->WaitTargetToResource();
-
+//	// Deferred OMSet
+//	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->OMSetRenderTargets();
+//
+//	shared_ptr<Camera> mainCamera = _cameras[0];	//처음 추가된 카메라를 메인카메라로 임시 설정함
+//	mainCamera->SortGameObject();
+//	mainCamera->Render_Deferred();	//1pass
+//
+//	//리소스용도와 출력용도를 나누기 위해 
+//	//타켓에서 리소스로
+//	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->WaitTargetToResource();
+//
 }
 
 void RenderSystem::RenderLights()
 {
-	shared_ptr<Camera> mainCamera = _cameras[0];
-	Camera::S_MatView = mainCamera->GetViewMatrix();
-	Camera::S_MatProjection = mainCamera->GetProjectionMatrix();
+	//shared_ptr<Camera> mainCamera = _cameras[0];
+	//Camera::S_MatView = mainCamera->GetViewMatrix();
+	//Camera::S_MatProjection = mainCamera->GetProjectionMatrix();
 
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->OMSetRenderTargets();
+	//GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->OMSetRenderTargets();
 
-	// 광원을 그린다.
-	// 광원을 기준으로 나머지 객체들을 그린다
+	//// 광원을 그린다.
+	//// 광원을 기준으로 나머지 객체들을 그린다
 
-	for (auto& light : _lights)
-	{
-		light->Render();
-	}
+	//for (auto& light : _lights)
+	//{
+	//	light->Render();
+	//}
 
-	//리소스에서 타켓으로
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->WaitTargetToResource();
+	////리소스에서 타켓으로
+	//GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->WaitTargetToResource();
 }
 
 void RenderSystem::RenderFinal()
 {
 	// Swapchain OMSet
-	int8 backIndex = GEngine->GetSwapChain()->GetBackBufferIndex();
-	GEngine->GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->OMSetRenderTargets(1, backIndex);
+	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->OMSetRenderTargets(1, backIndex);
 
 	RESOURCEMANAGER.Get<Material>(L"Final")->PushGraphicsData();
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
@@ -111,18 +125,18 @@ void RenderSystem::RenderFinal()
 
 void RenderSystem::RenderForward()
 {
-	shared_ptr<Camera> mainCamera = _cameras[0];
-	mainCamera->Render_Forward();	//메인 카메라는 Deferred후 forward 
+	//shared_ptr<Camera> mainCamera = _cameras[0];
+	//mainCamera->Render_Forward();	//메인 카메라는 Deferred후 forward 
 
 
-	//나머지는 바로 forward
+	////나머지는 바로 forward
 
-	for (auto& camera : _cameras)
-	{
-		if (camera == mainCamera)
-			continue;
+	//for (auto& camera : _cameras)
+	//{
+	//	if (camera == mainCamera)
+	//		continue;
 
-		camera->SortGameObject();
-		camera->Render_Forward();
-	}
+	//	camera->SortGameObject();
+	//	camera->Render_Forward();
+	//}
 }

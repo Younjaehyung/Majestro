@@ -33,13 +33,13 @@ public:
 	ID3D12DescriptorHeap* GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
 
 public:
-	shared_ptr< Device>					GetDevice()				{ return mDevice; }
-	shared_ptr< GraphicsCommandQueue>	GetGraphicsCmdQueue()	{ return mGraphicsCommandQueue; }
+	shared_ptr<Device>					GetDevice()				{ return mDevice; }
+	shared_ptr<GraphicsCommandQueue>	GetGraphicsCmdQueue()	{ return mGraphicsCommandQueue; }
 	//shared_ptr< ComputeCommandQueue>	GetComputeCmdQueue()	{ return mComputeCmdQueue; }
 
-	shared_ptr< SwapChain>				GetSwapChain()			{ return mSwapChain; }
+	shared_ptr<SwapChain>				GetSwapChain()			{ return mSwapChain; }
 	
-	shared_ptr< GraphicsDescriptorHeap> GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
+	shared_ptr<GraphicsDescriptorHeap> GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
 	//shared_ptr< ComputeDescriptorHeap>	GetComputeDescHeap()	{ return mComputeDescHeap; }
 
 

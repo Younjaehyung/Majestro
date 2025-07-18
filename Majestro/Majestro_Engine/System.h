@@ -6,7 +6,8 @@ class World;
 class System{
 public:
     virtual ~System() = default;
-    virtual void Update(float deltaTime) = 0;
+    virtual void Update(float deltaTime) = 0;   //Logic¿ë
+    virtual void Update() = 0;                  //Render¿ë
     virtual void Initialize() {}
     virtual void Shutdown() {}
 

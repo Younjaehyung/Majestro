@@ -43,7 +43,7 @@ using namespace Microsoft::WRL;
 #include <DirectXTex/DirectXTex.inl>
 
 #ifdef _DEBUG
-#pragma comment(lib, "DirectXTex\\DirectXTex_debug.lib")
+#pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")
 #else
 #pragma comment(lib, "DirectXTex\\DirectXTex.lib")
 #endif

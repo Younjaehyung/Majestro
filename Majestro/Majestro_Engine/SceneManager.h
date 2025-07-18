@@ -24,7 +24,7 @@ public:
 	shared_ptr<Scene> GetActiveScene() { return mActiveScene; }
 
 private:
-	shared_ptr<Scene> LoadTestScene();
+//	shared_ptr<Scene> LoadTestScene();
 
 private:
 	shared_ptr<Scene> mActiveScene;

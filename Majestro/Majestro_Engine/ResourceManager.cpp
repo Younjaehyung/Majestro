@@ -8,6 +8,8 @@ void ResourceManager::Initialize()
 {
 	CreateDefaultShader();
 	CreateDefaultMaterial();
+
+	RENDERMANAGER.CreateRenderTargetGroups();
 }
 
 shared_ptr<Mesh> ResourceManager::LoadPointMesh()
@@ -270,6 +272,13 @@ shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& na
 
 void ResourceManager::CreateDefaultShader()
 {
+	std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges =
+	{
+		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CBV_REGISTER_COUNT - 1, 1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
+		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRV_REGISTER_COUNT, 0), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+	};
+
+
 	// Skybox
 	{
 		ShaderInfo info =
@@ -280,7 +289,12 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->GetRootSignature()->AddCBV(0);
+		shader->GetRootSignature()->AddTable(ranges);
+		shader->GetRootSignature()->CreateGraphicsRootSignature();
 		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\skybox.fx", info);
+
+
 		Add<Shader>(L"Skybox", shader);
 	}
 

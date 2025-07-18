@@ -1,9 +1,8 @@
 #pragma once
 class Device
 {
-
 public:
-	
+
 	void Initialize();
 
 	ComPtr<IDXGIFactory> GetDXGI() { return mDXGIFactory; }

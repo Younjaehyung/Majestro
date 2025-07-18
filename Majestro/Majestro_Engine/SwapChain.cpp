@@ -29,7 +29,7 @@ void SwapChain::CreateSwapChain(const WindowInfo& info, ComPtr<IDXGIFactory> dxg
 	SWAP_CHAIN_DESC.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;			// 버퍼의 디스플레이 형식(RGBA32비트형식)
 	SWAP_CHAIN_DESC.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	SWAP_CHAIN_DESC.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	SWAP_CHAIN_DESC.SampleDesc.Count = 4; // 멀티 샘플링
+	SWAP_CHAIN_DESC.SampleDesc.Count = 1; // 멀티 샘플링 금지
 	SWAP_CHAIN_DESC.SampleDesc.Quality = 0;
 	SWAP_CHAIN_DESC.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // 후면 버퍼에 렌더링할 것 
 	SWAP_CHAIN_DESC.BufferCount = SWAP_CHAIN_BUFFER_COUNT; // 전면+후면 버퍼
@@ -40,7 +40,9 @@ void SwapChain::CreateSwapChain(const WindowInfo& info, ComPtr<IDXGIFactory> dxg
 
 	
 
-	dxgi->CreateSwapChain(cmdQueue.Get(), &SWAP_CHAIN_DESC, &mSwapChain);	//스왑체인 만들기
+	HRESULT hResult =  dxgi->CreateSwapChain(cmdQueue.Get(), &SWAP_CHAIN_DESC, &mSwapChain);	//스왑체인 만들기
+
+
 
 	dxgi->MakeWindowAssociation(info.Hwnd, DXGI_MWA_NO_ALT_ENTER);	// alt + enter 전체화면 금지
 

@@ -13,15 +13,20 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mScissorRect = CD3DX12_RECT(0, 0, info.Width, info.Height);	//사각형 생성
 
 	mDevice->Initialize();
+
+
+
 	mGraphicsCommandQueue->Initialize(mDevice->GetDevice(), mSwapChain);
 	//_computeCmdQueue->Init(_device->GetDevice());
+
 	mSwapChain->Initialize(info, mDevice->GetDevice(), mDevice->GetDXGI(), mGraphicsCommandQueue->GetCommandQueue());
 
-	
+
+
 	mGraphicsDescHeap->Initialize(256);
 	//_computeDescHeap->Initialize();
 
-	CreateRenderTargetGroups();
+	//CreateRenderTargetGroups();
 }
 
 void RenderManager::Update()

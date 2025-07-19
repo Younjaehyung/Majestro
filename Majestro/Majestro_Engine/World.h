@@ -7,7 +7,8 @@
 
 class World {
 public:
-    World() : mNextEntityID(1) {}
+    World() : mNextEntityID(1) {
+    }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
 public:
@@ -68,7 +69,7 @@ private:
     std::unordered_map<ComponentTypeID, std::unique_ptr<BaseComponentPool>> mComponentPools;
 
     // System
-    shared_ptr<class SystemManager>		mSystemManager;
+    std::shared_ptr<SystemManager>		mSystemManager = std::make_shared< SystemManager>(this);
 
 
     void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID) {
@@ -80,30 +81,6 @@ private:
     }
 };
 
-
-
-Entity World::CreateEntity() {
-    EntityID id = mNextEntityID++;
-    mEntities.emplace_back(id);
-    return Entity(id);
-}
-
-void World::DestroyEntity(Entity entity) {
-    EntityID id = entity.GetID();
-    if (id == NULL_ENTITY) return;
-
-    // 모든 컴포넌트 풀에서 해당 엔티티의 컴포넌트 제거
-    for (auto& [typeID, pool] : mComponentPools) {
-        RemoveComponentFromPool(id, typeID);
-    }
-
-    // 엔티티 목록에서 제거
-    mEntities.erase(
-        std::remove_if(mEntities.begin(), mEntities.end(),
-            [id](const Entity& e) { return e.GetID() == id; }),
-        mEntities.end()
-    );
-}
 
 
 template<typename T, typename... Args>
@@ -200,10 +177,4 @@ const ComponentPool<T>& World::GetComponentPool() const {
 
     assert(it != mComponentPools.end() && "Component pool not found");
     return *static_cast<const ComponentPool<T>*>(it->second.get());
-}
-
-void World::Clear() {
-    mEntities.clear();
-    mComponentPools.clear();
-    mNextEntityID = 1;
 }

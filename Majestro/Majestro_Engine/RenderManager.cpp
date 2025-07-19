@@ -3,6 +3,8 @@
 #include "Engine.h"
 #include "SceneManager.h"
 #include "ResourceManager.h"
+#include "Buffer.h"
+
 
 
 void RenderManager::Initialize(const WindowInfo& info)
@@ -26,7 +28,13 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mGraphicsDescHeap->Initialize(256);
 	//_computeDescHeap->Initialize();
 
-	//CreateRenderTargetGroups();
+	CreateConstantBuffer(CBV_REGISTER::b0, sizeof(LightParams), 1);	//LightParams(50) 정보 넘김
+	CreateConstantBuffer(CBV_REGISTER::b1, sizeof(CameraParams), 1);	//LightParams(50) 정보 넘김
+	//CreateConstantBuffer(CBV_REGISTER::b1, sizeof(TransformParams), 256);	//TransformParams 256개 생성
+	CreateConstantBuffer(CBV_REGISTER::b2, sizeof(MaterialParams), 256);	//MaterialParams 256개 생성
+
+
+	CreateRenderTargetGroups();
 }
 
 void RenderManager::Update()
@@ -142,4 +150,14 @@ void RenderManager::CreateRenderTargetGroups()
 		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)] = make_shared<RenderTarget>();
 		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)]->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
 	}
+}
+
+void RenderManager::CreateConstantBuffer(CBV_REGISTER reg, uint32 bufferSize, uint32 count)
+{
+	uint8 typeInt = static_cast<uint8>(reg);
+	assert(mConstantBuffer.size() == typeInt);
+
+	shared_ptr<ConstantBuffer> buffer = make_shared<ConstantBuffer>();
+	buffer->Initialize(reg, bufferSize, count);
+	mConstantBuffer.push_back(buffer);
 }

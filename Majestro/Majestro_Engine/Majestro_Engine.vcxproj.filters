@@ -120,9 +120,6 @@
     <ClInclude Include="Object.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="World.h">
-      <Filter>World</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentPool.h">
       <Filter>World\Component</Filter>
     </ClInclude>
@@ -140,6 +137,9 @@
     </ClInclude>
     <ClInclude Include="RenderComponent.h">
       <Filter>World\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -221,9 +221,6 @@
     <ClCompile Include="Object.cpp">
       <Filter>World\Resource</Filter>
     </ClCompile>
-    <ClCompile Include="World.cpp">
-      <Filter>World</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentPool.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
@@ -241,6 +238,9 @@
     </ClCompile>
     <ClCompile Include="RenderComponent.cpp">
       <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

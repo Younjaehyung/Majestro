@@ -11,6 +11,45 @@
 class SceneManager;
 
 
+enum class LIGHT_TYPE : uint8
+{
+	DIRECTIONAL_LIGHT,
+	POINT_LIGHT,
+	SPOT_LIGHT,
+};
+
+struct LightColor	//빛의 3개 속성
+{
+	Vec4	diffuse;
+	Vec4	ambient;
+	Vec4	specular;
+};
+
+struct LightInfo	//빛과 관련된 정보
+{
+	LightColor	color;
+	Vec4		position;	//DIRECTIONAL_LIGHT은 사실상 필요 없음
+	Vec4		direction;	//POINT_LIGHT은 사실상 필요 없음
+	int32		lightType;	//LIGHT_TYPE
+	float		range;
+	float		angle;
+	int32		padding;	//데이터 사이즈용 padding
+};
+
+struct LightParams
+{
+	uint32		lightCount;
+	Vec3		padding;	//데이터 사이즈용 padding
+	LightInfo	lights[50];
+};
+
+struct CameraParams {
+	Matrix MatView;
+	Matrix MatProjection;
+	Matrix MatViewInv;				// view의 역행렬
+	Matrix MatProjectionInv;		// Projection의 역행렬	(사용은 선택)
+};
+
 class RenderManager
 {
 public:
@@ -23,12 +62,11 @@ public:
 
 	void ResizeWindow(int32 width, int32 height);
 
-	void CreateRenderTargetGroups();
+	
 
 	const WindowInfo& GetWindow() { return mWindow; }
 public:
 
-	SceneManager& GetSceneManager() { return *mSceneManager; }
 
 	ID3D12DescriptorHeap* GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
 
@@ -44,11 +82,18 @@ public:
 
 
 	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_BUFFER_TYPE type) { return mConstantBuffer[static_cast<uint8>(type)]; }
+	vector<shared_ptr<ConstantBuffer>>& GetConstantBuffers() { return mConstantBuffer; }
 	shared_ptr<RenderTarget> GetRTGroup(RENDER_TARGET_GROUP_TYPE type) { return mRenderTargetGroups[static_cast<uint8>(type)]; }
 
 private:
+	void CreateRenderTargetGroups();
+	void CreateConstantBuffer(CBV_REGISTER reg, uint32 bufferSize, uint32 count);	//버퍼 생성
 
-	unique_ptr<SceneManager> mSceneManager;
+private:
+	// buffer
+	ComPtr<ID3D12Resource>	LIghtBuffer;
+	ComPtr<ID3D12Resource>	ObjectBuffer;
+	ComPtr<ID3D12Resource>	MaterialBuffer;
 
 private:
 	shared_ptr<Device>					mDevice						= make_shared<Device>();

@@ -9,7 +9,7 @@ void ResourceManager::Initialize()
 	CreateDefaultShader();
 	CreateDefaultMaterial();
 
-	RENDERMANAGER.CreateRenderTargetGroups();
+	//RENDERMANAGER.CreateRenderTargetGroups();
 }
 
 shared_ptr<Mesh> ResourceManager::LoadPointMesh()

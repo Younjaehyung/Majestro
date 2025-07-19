@@ -140,3 +140,16 @@ void RenderSystem::RenderForward()
 	//	camera->Render_Forward();
 	//}
 }
+
+// 의사코드
+// 1. 모든 랜더컴포넌트 보유 오브젝트 프러스텀 컬링
+//	1- 2.	컬링 결과가 TRUE면 : VISIBLE TRUE
+//				SETSTRUCTUEDBUFFER_GPU리소스버퍼에 값 갱신
+//				memcpy(&visibleGpuData[visibleCount++], &allGpuData[i], sizeof(GPUData));
+// 
+//			컬링 결과가 FALSE면 : VISIBLE FALSE
+//	
+// 2. SETSTRUCTUEDBUFFER(); 
+// 3. VISBLE값이 TRUE인 OBJECT만
+//	3-2. 인덱스값을 CB에 넣어서 모든 오브젝트 랜더링 시작
+

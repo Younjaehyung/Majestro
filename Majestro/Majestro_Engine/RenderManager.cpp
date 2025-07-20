@@ -85,6 +85,7 @@ void RenderManager::CreateRenderTargetGroups()
 			ComPtr<ID3D12Resource> resource;
 			mSwapChain->GetSwapChain()->GetBuffer(i, IID_PPV_ARGS(&resource));	//SwapChainBuffer를 가져옴
 			rtVec[i].Target = RESOURCEMANAGER.CreateTextureFromResource(name, resource);	//SwapChainBuffer을 이용해서 Texutre 생성
+				//SwapChainBuffer을 이용해서 Texutre 생성
 		}
 
 		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)] = make_shared<RenderTarget>();

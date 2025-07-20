@@ -1,10 +1,13 @@
 #pragma once
+#include "World.h"
 #include "System.h"
 
 class RenderSystem	: public System
 {
 public:
-	void Update(float deltaTime);
+	RenderSystem(World* world) : System::System(world) {};
+
+	void Update();
 
 	
 

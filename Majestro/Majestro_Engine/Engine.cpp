@@ -24,13 +24,10 @@ void Engine::Initialize(const WindowInfo& info)
 	mRenderManager->Initialize(info);
 	mResourceManager->Initialize();
 
-
-	
 	mSceneManager->Initialize();
 
 	
 	mInputManager->Initialize(info.Hwnd);
-
 	mTimer = make_unique<Timer>();
 	
 }

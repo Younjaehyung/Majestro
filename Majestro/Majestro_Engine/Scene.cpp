@@ -16,7 +16,7 @@
 
 void Scene::Initialize()
 {
-	
+
 	//mWorld->Awake();
 }
 

@@ -6,9 +6,10 @@
 #include "World.h"
 #include "RenderComponent.h"
 
-void RenderSystem::Update(float deltaTime)
-{
 
+
+void RenderSystem::Update()
+{
 	PushLightData();
 
 	ClearRTV();
@@ -23,7 +24,6 @@ void RenderSystem::Update(float deltaTime)
 	RenderFinal();	//2pass
 
 	RenderForward();
-
 
 }
 
@@ -119,8 +119,8 @@ void RenderSystem::RenderFinal()
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->OMSetRenderTargets(1, backIndex);
 
-	RESOURCEMANAGER.Get<Material>(L"Final")->PushGraphicsData();
-	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
+	//RESOURCEMANAGER.Get<Material>(L"Final")->PushGraphicsData();
+	//RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 }
 
 void RenderSystem::RenderForward()

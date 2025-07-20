@@ -5,6 +5,8 @@
 void SceneManager::Initialize()
 {
 	mActiveScene = make_shared<Scene>();
+	mActiveScene->Initialize();
+
 }
 
 void SceneManager::Update(float deltaTime)

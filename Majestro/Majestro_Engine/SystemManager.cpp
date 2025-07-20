@@ -1,9 +1,10 @@
 #include "pch.h"
 #include "SystemManager.h"
-
+#include "RenderSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
+    RegisterSystem<RenderSystem>();
 }
 
 SystemManager::~SystemManager()
@@ -20,6 +21,7 @@ void SystemManager::Update(float deltaTime) {
 
 void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
+    GetSystem<RenderSystem>()->Update();
 }
 
 void SystemManager::Shutdown() {

@@ -6,10 +6,21 @@
 #include "World.h"
 #include "RenderComponent.h"
 
+#include "TagComponent.h"
 
+
+void RenderSystem::Initialize()
+{
+	// 1번 초기화
+	mRenderComponentPool = &(mWorld->GetComponentPool<RenderComponent>());
+}
 
 void RenderSystem::Update()
 {
+
+
+	mWorld->GetComponentPool<RenderComponent>();
+
 	PushLightData();
 
 	ClearRTV();
@@ -91,6 +102,99 @@ void RenderSystem::RenderDeferred()
 //	//타켓에서 리소스로
 //	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->WaitTargetToResource();
 //
+	
+	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	// Find Main Camera.
+
+
+	if (camera.empty()) {
+		return;
+	}
+
+
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->OMSetRenderTargets();
+
+	// 1. 쉐이더 배치 처리
+
+
+	auto& shaderMap = RESOURCEMANAGER.GetAllResources<Shader>();
+
+	for (auto& [key, object] : shaderMap)
+	{
+		shared_ptr<Shader> shader = static_pointer_cast<Shader>(object);
+		// 이제 shader로 원하는 작업 수행 가능
+
+		shader->Update();
+
+		for (int i = 0; i < mRenderComponentPool->Size(); ++i) {
+
+			if (IsCulled(mRenderComponentPool->GetComponent(i)->GetLayerIndex()))
+				continue;
+			if(IsFrustumCulled( ))
+
+
+			//인스턴싱 구조 생각하기
+		}
+		mRenderComponentPool->GetComponent(i)->mMaterial->PushGraphicsData();
+		mRenderComponentPool->GetComponent(i)->mMesh->Render();
+
+		
+	}
+
+
+
+	_vecForward.clear();
+	_vecDeferred.clear();
+	_vecParticle.clear();
+
+
+
+	for (auto& gameObject : gameObjects)
+	{
+		if (gameObject->GetMeshRenderer() == nullptr && gameObject->GetParticleSystem() == nullptr)
+			continue;
+
+		if (IsCulled(gameObject->GetLayerIndex()))
+			continue;
+
+		if (gameObject->GetCheckFrustum())
+		{
+			if (_frustum.ContainsSphere(
+				gameObject->GetTransform()->GetWorldPosition(),
+				gameObject->GetTransform()->GetBoundingSphereRadius()) == false)
+			{
+				continue;
+			}
+		}
+
+		if (gameObject->GetMeshRenderer())
+		{
+			SHADER_TYPE shaderType = gameObject->GetMeshRenderer()->GetMaterial()->GetShader()->GetShaderType();
+			switch (shaderType)
+			{
+			case SHADER_TYPE::DEFERRED:
+				_vecDeferred.push_back(gameObject);
+				break;
+			case SHADER_TYPE::FORWARD:
+				_vecForward.push_back(gameObject);
+				break;
+			}
+		}
+		else
+		{
+			_vecParticle.push_back(gameObject);
+		}
+	}
+
+
+
+	S_MatView = _matView;
+	S_MatProjection = _matProjection;
+
+	GET_SINGLE(InstancingManager)->Render(_vecDeferred);
+
+
+	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->WaitTargetToResource();
 }
 
 void RenderSystem::RenderLights()
@@ -140,6 +244,16 @@ void RenderSystem::RenderForward()
 	//	camera->Render_Forward();
 	//}
 }
+
+bool RenderSystem::IsFrustumCulled()
+{
+
+
+	return false;
+}
+
+void RenderSystem::IsCulled()
+bool IsCulled(uint8 layer) { return (_cullingMask & (1 << layer)) != 0; }
 
 // 의사코드
 // 1. 모든 랜더컴포넌트 보유 오브젝트 프러스텀 컬링

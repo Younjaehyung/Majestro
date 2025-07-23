@@ -12,6 +12,14 @@ void ResourceManager::Initialize()
 	//RENDERMANAGER.CreateRenderTargetGroups();
 }
 
+std::map<wstring, shared_ptr<Shader>>& ResourceManager::GetAllShaderResources()
+{
+	
+		//OBJECT_TYPE objectType = GetObjectType<Shader>();
+		//return mResources[static_cast<uint8>(objectType)];
+	
+}
+
 shared_ptr<Mesh> ResourceManager::LoadPointMesh()
 {
 	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Point");

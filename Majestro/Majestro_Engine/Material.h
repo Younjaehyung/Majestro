@@ -40,7 +40,8 @@ public:
 
 	shared_ptr<Shader> GetShader() { return mShader; }
 
-	void SetShader(shared_ptr<Shader> shader) { mShader = shader; }
+	void SetShader(shared_ptr<Shader> shader) { mShader = shader; }	// 지울 예정
+	void SetShader(uint32 shader);
 	void SetInt(uint8 index, int32 value) { mParams.SetInt(index, value); }
 	void SetFloat(uint8 index, float value) { mParams.SetFloat(index, value); }
 	void SetTexture(uint8 index, shared_ptr<Texture> texture)
@@ -59,7 +60,9 @@ public:
 
 	shared_ptr<Material> Clone();
 private:
-	shared_ptr<Shader>	mShader;	//쉐이더
+	uint32 mShaderID;
+
+	shared_ptr<Shader>	mShader;	//쉐이더 지울 예정
 	MaterialParams		mParams;	//머테리얼 parm
 	array<shared_ptr<Texture>, MATERIAL_TEXTURE_COUNT> mTextures;	//텍스쳐들
 };

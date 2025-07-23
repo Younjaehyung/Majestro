@@ -14,6 +14,12 @@ Material::~Material()
 
 }
 
+void Material::SetShader(uint32 shader)
+{
+ mShaderID = shader; 
+
+}
+
 void Material::PushGraphicsData()
 {
 	// CBV 업로드

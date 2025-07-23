@@ -5,6 +5,7 @@
 
 // ���� include
 #include <windows.h>
+#include <iostream>
 #include <tchar.h>
 #include <memory>
 #include <string>
@@ -41,6 +42,10 @@ using namespace Microsoft::WRL;
 
 #include <DirectXTex/DirectXTex.h>
 #include <DirectXTex/DirectXTex.inl>
+
+// DEBUG
+
+#pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")

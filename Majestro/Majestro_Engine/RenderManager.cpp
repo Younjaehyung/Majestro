@@ -4,7 +4,8 @@
 #include "SceneManager.h"
 #include "ResourceManager.h"
 #include "Buffer.h"
-
+#include "LightComponent.h"
+#include "CameraComponent.h"
 
 
 void RenderManager::Initialize(const WindowInfo& info)

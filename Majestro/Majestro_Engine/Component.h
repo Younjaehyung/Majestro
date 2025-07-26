@@ -8,6 +8,7 @@ public:
     BaseComponent();
     virtual ~BaseComponent() = default;
     virtual std::unique_ptr<BaseComponent> Clone() const = 0;
+
 };
 
 template<typename T>

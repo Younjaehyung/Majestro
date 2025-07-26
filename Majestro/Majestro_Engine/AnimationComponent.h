@@ -1,5 +1,7 @@
 #pragma once
-class AnimationComponent
+#include "Component.h"
+
+class AnimationComponent : public Component<AnimationComponent>
 {
 public:
 };

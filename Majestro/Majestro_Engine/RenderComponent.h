@@ -16,7 +16,7 @@ union InstanceID
 };
 
 
-class RenderComponent
+class RenderComponent : public Component<RenderComponent>
 {
 public:
 	uint8 GetLayerIndex() { return _layerIndex; }

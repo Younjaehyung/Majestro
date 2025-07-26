@@ -144,7 +144,6 @@
     <ClInclude Include="TagComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Instancing.h" />
     <ClInclude Include="TransformComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
@@ -155,6 +154,8 @@
       <Filter>World\Component</Filter>
     </ClInclude>
     <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="Archetype.h" />
+    <ClInclude Include="ParticleComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -259,7 +260,6 @@
     <ClCompile Include="TagComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="Instancing.cpp" />
     <ClCompile Include="TransformComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
@@ -270,6 +270,8 @@
       <Filter>World\Component</Filter>
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="Archetype.cpp" />
+    <ClCompile Include="ParticleComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

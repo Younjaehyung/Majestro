@@ -176,6 +176,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="Archetype.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
@@ -190,11 +191,11 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="Instancing.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="RenderComponent.h" />
@@ -218,6 +219,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="Archetype.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
@@ -231,11 +233,11 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="Instancing.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

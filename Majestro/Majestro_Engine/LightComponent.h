@@ -1,5 +1,4 @@
-#pragma once
-
+#include "Component.h"
 
 enum class LIGHT_TYPE : uint8
 {
@@ -36,11 +35,12 @@ struct LightParams
 };
 
 
-class LightComponent
+
+class LightComponent : public Component<LightComponent>
 {
 public:
+	void SetLightIndex(int8 index) { _lightIndex = index; }
 
-		bool GetCheckFrustum() { return _checkFrustum; }
 
 public:
 

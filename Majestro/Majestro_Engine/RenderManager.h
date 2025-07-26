@@ -11,45 +11,6 @@
 class SceneManager;
 
 
-enum class LIGHT_TYPE : uint8
-{
-	DIRECTIONAL_LIGHT,
-	POINT_LIGHT,
-	SPOT_LIGHT,
-};
-
-struct LightColor	//빛의 3개 속성
-{
-	Vec4	diffuse;
-	Vec4	ambient;
-	Vec4	specular;
-};
-
-struct LightInfo	//빛과 관련된 정보
-{
-	LightColor	color;
-	Vec4		position;	//DIRECTIONAL_LIGHT은 사실상 필요 없음
-	Vec4		direction;	//POINT_LIGHT은 사실상 필요 없음
-	int32		lightType;	//LIGHT_TYPE
-	float		range;
-	float		angle;
-	int32		padding;	//데이터 사이즈용 padding
-};
-
-struct LightParams
-{
-	uint32		lightCount;
-	Vec3		padding;	//데이터 사이즈용 padding
-	LightInfo	lights[50];
-};
-
-struct CameraParams {
-	Matrix MatView;
-	Matrix MatProjection;
-	Matrix MatViewInv;				// view의 역행렬
-	Matrix MatProjectionInv;		// Projection의 역행렬	(사용은 선택)
-};
-
 class RenderManager
 {
 public:
@@ -57,7 +18,7 @@ public:
 	void Update();
 
 	void StartRender();
-	void Render();
+	void Render() {};
 	void EndRender();
 
 	void ResizeWindow(int32 width, int32 height);

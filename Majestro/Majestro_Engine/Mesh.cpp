@@ -53,12 +53,13 @@ void Mesh::CreateVertexBuffer(const vector<Vertex>& buffer)
 
 void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 {
-	_indexCount = static_cast<uint32>(buffer.size());
-	uint32 bufferSize = _indexCount * sizeof(uint32);
+	uint32 indexCount = static_cast<uint32>(buffer.size());
+	uint32 bufferSize = indexCount * sizeof(uint32);
 
 	D3D12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);	//버퍼타입 : UPLOAD
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
+	ComPtr<ID3D12Resource> indexBuffer;
 	//VRAM(Upload)에 인덱스버퍼 생성
 	DEVICE->CreateCommittedResource(
 		&heapProperty,
@@ -66,19 +67,19 @@ void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 		&desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&_indexBuffer));
+		IID_PPV_ARGS(&indexBuffer));
 
 
 	void* indexDataBuffer = nullptr;
 	CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
-	_indexBuffer->Map(0, &readRange, &indexDataBuffer);
+	indexBuffer->Map(0, &readRange, &indexDataBuffer);
 	::memcpy(indexDataBuffer, &buffer[0], bufferSize);
-	_indexBuffer->Unmap(0, nullptr);
+	indexBuffer->Unmap(0, nullptr);
 
-
-	_indexBufferView.BufferLocation = _indexBuffer->GetGPUVirtualAddress();	// GPU VRAM의 주소를 지정
-	_indexBufferView.Format = DXGI_FORMAT_R32_UINT; // 정점 1개 크기
-	_indexBufferView.SizeInBytes = bufferSize;	// 버퍼의 크기	
+	D3D12_INDEX_BUFFER_VIEW	indexBufferView;
+	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();	// GPU VRAM의 주소를 지정
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT; // 정점 1개 크기
+	indexBufferView.SizeInBytes = bufferSize;	// 버퍼의 크기	
 }
 
 void Mesh::Render(uint32 instanceCount, uint32 idx)

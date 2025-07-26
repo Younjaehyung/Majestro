@@ -1,3 +1,7 @@
+#pragma once
+
+#include "Component.h"
+
 enum class PROJECTION_TYPE
 {
 	PERSPECTIVE, // 원근 투영
@@ -15,6 +19,15 @@ enum PLANE_TYPE : uint8
 
 	PLANE_END
 };
+
+
+struct CameraParams {
+	Matrix MatView;
+	Matrix MatProjection;
+	Matrix MatViewInv;				// view의 역행렬
+	Matrix MatProjectionInv;		// Projection의 역행렬	(사용은 선택)
+};
+
 
 struct Frustum {
 	array<Vec4, PLANE_END> _planes;
@@ -62,9 +75,12 @@ struct Frustum {
 	}
 };
 
-class CameraComponent
+class CameraComponent : public Component<CameraComponent>
 {
 public:
+	Matrix& GetViewMatrix() { return _matView; }
+	Matrix& GetProjectionMatrix() { return _matProjection; }
+
 
 	PROJECTION_TYPE _type = PROJECTION_TYPE::PERSPECTIVE;
 

@@ -175,8 +175,10 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationComponent.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentPool.h" />
@@ -189,6 +191,7 @@
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="Instancing.h" />
+    <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Object.h" />
@@ -210,11 +213,14 @@
     <ClInclude Include="TagComponent.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentPool.cpp" />
@@ -226,6 +232,7 @@
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Instancing.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Object.cpp" />
@@ -252,6 +259,7 @@
     <ClCompile Include="TagComponent.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>

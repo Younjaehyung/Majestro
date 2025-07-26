@@ -81,13 +81,13 @@ void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 	_indexBufferView.SizeInBytes = bufferSize;	// 버퍼의 크기	
 }
 
-void Mesh::Render(uint32 instanceCount)
+void Mesh::Render(uint32 instanceCount, uint32 idx)
 {
 	//Input Assembler (IA)
 	//GRAPHICS_CMD_LIST->IASetPrimitiveTopology ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );	//type : 삼각형 설정
 	GRAPHICS_CMD_LIST->IASetVertexBuffers(0, 1, &_vertexBufferView); // Slot: (0~15) _vertexBufferView를 이용해서 데이터 세부사항 설명
 	//버텍스 정보 넘김
-	GRAPHICS_CMD_LIST->IASetIndexBuffer(&_indexBufferView);	//인덱스 정보 넘김
+	GRAPHICS_CMD_LIST->IASetIndexBuffer(& _vecIndexInfo[idx].bufferView);	//인덱스 정보 넘김
 
 
 	//TO-DO
@@ -105,18 +105,18 @@ void Mesh::Render(uint32 instanceCount)
 	//테이블 힙에서 레지스터로 값전달
 
 	//CMD_LIST->DrawInstanced ( _vertexCount , 1 , 0 , 0 );	// 버텍스 버퍼로 그림을 그려라
-	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_indexCount, instanceCount, 0, 0, 0);	//인덱스로 그림을 그려라
+	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, instanceCount, 0, 0, 0);	//인덱스로 그림을 그려라
 }
 
-void Mesh::Render(shared_ptr<InstancingBuffer>& buffer)
+void Mesh::Render(shared_ptr<class InstancingBuffer>& buffer, uint32 idx)
 {
 	//buffer을 1개 이상 넣음
 
 	D3D12_VERTEX_BUFFER_VIEW bufferViews[] = { _vertexBufferView, buffer->GetBufferView() };
 	GRAPHICS_CMD_LIST->IASetVertexBuffers(0, 2, bufferViews);
-	GRAPHICS_CMD_LIST->IASetIndexBuffer(&_indexBufferView);
+	GRAPHICS_CMD_LIST->IASetIndexBuffer(&_vecIndexInfo[idx].bufferView);
 
 	gEngine->GetRenderManager().GetGraphicsDescHeap()->CommitTable();
 
-	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_indexCount, buffer->GetCount(), 0, 0, 0);
+	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, buffer->GetCount(), 0, 0, 0);
 }

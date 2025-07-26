@@ -2,6 +2,7 @@
 #include "Material.h"
 #include "Engine.h"
 #include "RenderManager.h"
+#include "ResourceManager.h"
 #include "Shader.h"
 
 Material::Material() : Object(OBJECT_TYPE::MATERIAL)
@@ -14,11 +15,6 @@ Material::~Material()
 
 }
 
-void Material::SetShader(uint32 shader)
-{
- mShaderID = shader; 
-
-}
 
 void Material::PushGraphicsData()
 {
@@ -80,4 +76,14 @@ shared_ptr<Material> Material::Clone()
 	material->mTextures = mTextures;
 
 	return material;
+}
+
+void Material::SetShader(std::wstring shaderID)
+{
+
+	shared_ptr<Shader> shader = RESOURCEMANAGER.Get<Shader>(shaderID);
+	mShaderID = shaderID;
+	
+
+
 }

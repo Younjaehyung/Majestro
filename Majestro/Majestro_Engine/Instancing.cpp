@@ -6,7 +6,7 @@
 #include "TransformComponent.h"
 #include "CameraComponent.h"
 
-void InstancingManager::Render(vector<shared_ptr<GameObject>>& gameObjects)
+void InstancingManager::Render(unordered_map<std::wstring&, std::vector<Entity>>& gameObjects)
 {
 	map<uint64, vector<shared_ptr<GameObject>>> cache;
 

@@ -20,7 +20,7 @@ public:
     
     // 특정 컴포넌트를 가진 모든 엔티티 가져오기
     template<typename T>
-    std::vector<Entity> GetEntitiesWithComponent() const;
+    std::vector<Entity>& GetEntitiesWithComponent() const;
 
     // 여러 컴포넌트를 모두 가진 엔티티들 가져오기
     template<typename T1, typename T2, typename... Rest>
@@ -126,18 +126,20 @@ bool World::HasComponent(Entity entity) const {
 }
 
 template<typename T>
-std::vector<Entity> World::GetEntitiesWithComponent() const {
+std::vector<Entity>& World::GetEntitiesWithComponent() const {
     const auto& pool = GetComponentPool<T>();
     const auto& entityIDs = pool.GetEntities();
 
-    std::vector<Entity> result;
-    result.reserve(entityIDs.size());
+    return pool.GetEntities();
 
-    for (EntityID id : entityIDs) {
-        result.emplace_back(id);
-    }
+    //std::vector<Entity> result;
+    //result.reserve(entityIDs.size());
 
-    return result;
+    //for (EntityID id : entityIDs) {
+    //    result.emplace_back(id);
+    //}
+
+    //return result;
 }
 
 

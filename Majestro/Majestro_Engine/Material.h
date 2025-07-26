@@ -23,7 +23,7 @@ struct MaterialParams
 	void SetVec4(uint8 index, Vec4 value) { Vec4Params[index] = value; }
 	void SetMatrix(uint8 index, Matrix& value) { MatrixParams[index] = value; }
 
-	array<int32, MATERIAL_INT_COUNT> IntParams;	//array : vector와 비슷하지만 고정된 배열로. 디버깅하기 용이함
+	array<int32, MATERIAL_INT_COUNT> IntParams;
 	array<float, MATERIAL_FLOAT_COUNT> FloatParams;
 	array<int32, MATERIAL_TEXTURE_COUNT> TexOnParams;
 	array<Vec2, MATERIAL_VECTOR2_COUNT> Vec2Params;
@@ -39,9 +39,10 @@ public:
 	virtual ~Material();
 
 	shared_ptr<Shader> GetShader() { return mShader; }
+	wstring& GetShaderID() { return mShaderID; }
 
 	void SetShader(shared_ptr<Shader> shader) { mShader = shader; }	// 지울 예정
-	void SetShader(uint32 shader);
+	
 	void SetInt(uint8 index, int32 value) { mParams.SetInt(index, value); }
 	void SetFloat(uint8 index, float value) { mParams.SetFloat(index, value); }
 	void SetTexture(uint8 index, shared_ptr<Texture> texture)
@@ -59,10 +60,15 @@ public:
 	void Dispatch(uint32 x, uint32 y, uint32 z);
 
 	shared_ptr<Material> Clone();
+
+
+	void SetShader(std::wstring);
 private:
-	uint32 mShaderID;
+	wstring mShaderID;
 
 	shared_ptr<Shader>	mShader;	//쉐이더 지울 예정
 	MaterialParams		mParams;	//머테리얼 parm
 	array<shared_ptr<Texture>, MATERIAL_TEXTURE_COUNT> mTextures;	//텍스쳐들
 };
+
+

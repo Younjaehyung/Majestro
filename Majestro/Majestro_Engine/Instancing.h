@@ -7,7 +7,7 @@ class InstancingManager
 {
 
 public:
-	void Render(vector<shared_ptr<GameObject>>& gameObjects);
+	void Render(unordered_map<std::wstring&, std::vector<Entity>>& gameObjects);
 
 	void ClearBuffer();
 	void Clear() { _buffers.clear(); }

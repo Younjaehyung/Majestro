@@ -102,3 +102,4 @@ private:
     std::unordered_map<EntityID, size_t> mEntityToIndex; // 엔티티 -> 인덱스
     std::vector<EntityID> mIndexToEntity;                // 인덱스 -> 엔티티
 };
+

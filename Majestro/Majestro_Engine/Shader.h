@@ -1,8 +1,9 @@
 #pragma once
 #include "Object.h"
 #include "RootSignature.h"
+#include "Entity.h"
 class DescriptorHeap;
-
+class Entity;
 
 enum class SHADER_TYPE : uint8
 {
@@ -69,8 +70,11 @@ public:
 
 	shared_ptr< RootSignature>			GetRootSignature() { return mRootSignature; }
 
+	void PushBackEntity(Entity entityID) { mEntity.push_back(entityID); }
+
 	static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetTopologyType(D3D_PRIMITIVE_TOPOLOGY topology);
 	
+
 private:
 	void CreateShader(const wstring& path, const string& name, const string& version, ComPtr<ID3DBlob>& blob, D3D12_SHADER_BYTECODE& shaderByteCode);
 	void CreateVertexShader(const wstring& path, const string& name, const string& version);
@@ -99,6 +103,6 @@ private:
 	D3D12_COMPUTE_PIPELINE_STATE_DESC   _computePipelineDesc = {};
 
 
-	
+	vector<Entity> mEntity;
 };
 

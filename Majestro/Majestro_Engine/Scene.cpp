@@ -4,7 +4,7 @@
 #include "RenderManager.h"
 #include "World.h"
 #include "Component.h"
-
+#include "TagComponent.h"
 
 #include "Prefab.h"
 //#include "Camera.h"
@@ -16,6 +16,8 @@
 
 void Scene::Initialize()
 {
+	Entity testCamera =  mWorld->CreateEntity();
+	mWorld->AddComponent<MainCameraComponent>(testCamera);
 
 	//mWorld->Awake();
 }

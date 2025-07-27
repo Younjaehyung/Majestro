@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Shader.h"
 #include "Engine.h"
+#include "ResourceManager.h"
 #include "RenderManager.h"
 #include "DescriptorHeap.h"
 
@@ -50,7 +51,7 @@ void Shader::CreateGraphicsShader(const wstring& path, ShaderInfo info, const st
 	};
 
 	mGraphicsPipelineDesc.InputLayout = { desc, _countof(desc) };
-	mGraphicsPipelineDesc.pRootSignature = mRootSignature->GetGraphicsRootSignature().Get();
+	mGraphicsPipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get();
 
 	mGraphicsPipelineDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	mGraphicsPipelineDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -177,17 +178,17 @@ void Shader::CreateGraphicsShader(const wstring& path, ShaderInfo info, const st
 	DEVICE->CreateGraphicsPipelineState(&mGraphicsPipelineDesc, IID_PPV_ARGS(&mPipelineState));
 }
 
-//
-//void Shader::CreateComputeShader(const wstring& path, const string& name, const string& version)
-//{
-//	_info.shaderType = SHADER_TYPE::COMPUTE;
-//
-//	CreateShader(path, name, version, _csBlob, _computePipelineDesc.CS);
-//	_computePipelineDesc.pRootSignature = COMPUTE_ROOT_SIGNATURE.Get();
-//
-//	HRESULT hr = DEVICE->CreateComputePipelineState(&_computePipelineDesc, IID_PPV_ARGS(&mPipelineState));
-//	assert(SUCCEEDED(hr));
-//}
+
+void Shader::CreateComputeShader(const wstring& path, const string& name, const string& version)
+{
+	_info.shaderType = SHADER_TYPE::COMPUTE;
+
+	CreateShader(path, name, version, _csBlob, _computePipelineDesc.CS);
+	_computePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->GetRootSignature().Get();
+
+	HRESULT hr = DEVICE->CreateComputePipelineState(&_computePipelineDesc, IID_PPV_ARGS(&mPipelineState));
+	assert(SUCCEEDED(hr));
+}
 
 
 void Shader::Update()
@@ -197,7 +198,7 @@ void Shader::Update()
 	}
 	else {
 		GRAPHICS_CMD_LIST->IASetPrimitiveTopology(_info.topology);
-		GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetGraphicsRootSignature().Get());
+		
 		GRAPHICS_CMD_LIST->SetPipelineState(mPipelineState.Get());
 	}
 }

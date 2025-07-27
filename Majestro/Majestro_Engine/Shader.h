@@ -62,13 +62,11 @@ public:
 
 
 	void CreateGraphicsShader(const wstring& path, ShaderInfo info = ShaderInfo(), const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
-	//void CreateComputeShader(const wstring& path, const string& name, const string& version);
+	void CreateComputeShader(const wstring& path, const string& name, const string& version);
 
 	void Update();
 
 	SHADER_TYPE GetShaderType() { return _info.shaderType; }
-
-	shared_ptr< RootSignature>			GetRootSignature() { return mRootSignature; }
 
 	void PushBackEntity(Entity entityID) { mEntity.push_back(entityID); }
 
@@ -85,7 +83,7 @@ private:
 
 private:
 
-	shared_ptr<RootSignature>			mRootSignature = make_shared<RootSignature>();
+	
 	ShaderInfo _info;
 	ComPtr<ID3D12PipelineState>			mPipelineState;
 	

@@ -16,6 +16,16 @@ Material::~Material()
 }
 
 
+void Material::SetShader(std::wstring name)
+{
+	{ mShaderID = name; }
+	{ mShader = RESOURCEMANAGER.Get<Shader>(name); }
+	assert(mShader != nullptr);
+	
+
+}
+
+
 void Material::PushGraphicsData()
 {
 	// CBV 업로드
@@ -70,20 +80,22 @@ void Material::Dispatch(uint32 x, uint32 y, uint32 z)
 shared_ptr<Material> Material::Clone()
 {
 	shared_ptr<Material> material = make_shared<Material>();
-
-	material->SetShader(mShader);
+	
+	material->SetShader(mShaderID);
 	material->mParams = mParams;
 	material->mTextures = mTextures;
 
 	return material;
 }
+//
+//void Material::SetShader(std::wstring shaderID)
+//{
+//
+//	shared_ptr<Shader> shader = RESOURCEMANAGER.Get<Shader>(shaderID);
+//	mShaderID = shaderID;
+//	
+//
+//
+//}
 
-void Material::SetShader(std::wstring shaderID)
-{
 
-	shared_ptr<Shader> shader = RESOURCEMANAGER.Get<Shader>(shaderID);
-	mShaderID = shaderID;
-	
-
-
-}

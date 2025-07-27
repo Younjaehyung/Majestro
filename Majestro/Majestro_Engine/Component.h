@@ -3,7 +3,7 @@
 
 using ComponentTypeID = size_t;
 
-class BaseComponent : public Object {
+class BaseComponent{
 public:
     BaseComponent();
     virtual ~BaseComponent() = default;

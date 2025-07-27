@@ -5,6 +5,7 @@
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
     RegisterSystem<RenderSystem>();
+
 }
 
 SystemManager::~SystemManager()

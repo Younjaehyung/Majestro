@@ -34,7 +34,7 @@ public:
 		return mResources[static_cast<uint8>(objectType)];
 	}
 
-	std::map<wstring, shared_ptr<Shader>>& GetAllShaderResources();
+	
 
 	shared_ptr<Mesh> LoadPointMesh();
 	shared_ptr<Mesh> LoadRectangleMesh();
@@ -123,7 +123,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::SHADER;
 	else if (std::is_same_v<T, Texture>)
 		return OBJECT_TYPE::TEXTURE;
-
+	else if (std::is_same_v<T, RootSignature>)
+		return OBJECT_TYPE::ROOTSIGNATURE;
 	else
 		return OBJECT_TYPE::NONE;
 }

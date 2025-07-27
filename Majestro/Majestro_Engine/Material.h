@@ -41,8 +41,9 @@ public:
 	shared_ptr<Shader> GetShader() { return mShader; }
 	wstring& GetShaderID() { return mShaderID; }
 
-	void SetShader(shared_ptr<Shader> shader) { mShader = shader; }	// 지울 예정
-	
+
+	void SetShader(std::wstring name);
+
 	void SetInt(uint8 index, int32 value) { mParams.SetInt(index, value); }
 	void SetFloat(uint8 index, float value) { mParams.SetFloat(index, value); }
 	void SetTexture(uint8 index, shared_ptr<Texture> texture)
@@ -62,7 +63,7 @@ public:
 	shared_ptr<Material> Clone();
 
 
-	void SetShader(std::wstring);
+	
 private:
 	wstring mShaderID;
 

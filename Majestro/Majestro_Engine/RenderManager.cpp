@@ -6,6 +6,7 @@
 #include "Buffer.h"
 #include "LightComponent.h"
 #include "CameraComponent.h"
+#include "TransformComponent.h"
 
 
 void RenderManager::Initialize(const WindowInfo& info)
@@ -30,8 +31,8 @@ void RenderManager::Initialize(const WindowInfo& info)
 	//_computeDescHeap->Initialize();
 
 	CreateConstantBuffer(CBV_REGISTER::b0, sizeof(LightParams), 1);	//LightParams(50) 정보 넘김
-	CreateConstantBuffer(CBV_REGISTER::b1, sizeof(CameraParams), 1);	//LightParams(50) 정보 넘김
-	//CreateConstantBuffer(CBV_REGISTER::b1, sizeof(TransformParams), 256);	//TransformParams 256개 생성
+	//CreateConstantBuffer(CBV_REGISTER::b1, sizeof(CameraParams), 1);	//LightParams(50) 정보 넘김
+	CreateConstantBuffer(CBV_REGISTER::b1, sizeof(TransformParams), 256);	//TransformParams 256개 생성
 	CreateConstantBuffer(CBV_REGISTER::b2, sizeof(MaterialParams), 256);	//MaterialParams 256개 생성
 
 

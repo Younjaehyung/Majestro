@@ -5,8 +5,8 @@ enum class CONSTANT_BUFFER_TYPE : uint8
 {
 	GLOBAL,
 	TRANSFORM,
-	CAMERA,
 	MATERIAL,
+	
 	END
 };
 

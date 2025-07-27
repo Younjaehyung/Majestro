@@ -4,6 +4,10 @@
 #include "RenderManager.h"
 
 
+RootSignature::RootSignature() : Object(OBJECT_TYPE::ROOTSIGNATURE)
+{
+}
+
 uint32 RootSignature::AddCBV(uint32 registerNum, uint32 space, D3D12_SHADER_VISIBILITY visibility)
 {
 	CD3DX12_ROOT_PARAMETER param;
@@ -84,36 +88,39 @@ ComPtr<ID3D12RootSignature> RootSignature::CreateGraphicsRootSignature()
 	}
 
 	
-	hr = DEVICE->CreateRootSignature(0, sigBlob->GetBufferPointer(), sigBlob->GetBufferSize(), IID_PPV_ARGS(&mGraphicsRootSignature));
+	hr = DEVICE->CreateRootSignature(0, sigBlob->GetBufferPointer(), sigBlob->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
 	if (FAILED(hr)) return nullptr;
 
 
-	return mGraphicsRootSignature;
+	return mRootSignature;
 }
 
-void RootSignature::CreateGraphicsRootSignature(uint8 num)
+ComPtr<ID3D12RootSignature> RootSignature::CreateComputeRootSignature()
 {
-	mSamplerDesc = CD3DX12_STATIC_SAMPLER_DESC(0);//샘플러 생성
+	CD3DX12_ROOT_SIGNATURE_DESC desc(
+		static_cast<UINT>(mRootParameters.size()),
+		mRootParameters.data(),
+		static_cast<UINT>(mSamplers.size()),
+		mSamplers.data(),
+		D3D12_ROOT_SIGNATURE_FLAG_NONE
+	);
 
-
-	CD3DX12_DESCRIPTOR_RANGE ranges[] =
+	ComPtr<ID3DBlob> sigBlob;
+	ComPtr<ID3DBlob> errBlob;
+	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &sigBlob, &errBlob);
+	if (FAILED(hr))
 	{
-		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CBV_REGISTER_COUNT - 1, 1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
-		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRV_REGISTER_COUNT, 0), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
-	};
-
-	CD3DX12_ROOT_PARAMETER param[2];	//DescriptorTable 생성
-	param[0].InitAsConstantBufferView(static_cast<uint32>(CBV_REGISTER::b0));	//b0 레지스터 전역으로 활용
-	param[1].InitAsDescriptorTable(_countof(ranges), ranges);	//DescriptorTable 크기 지정
+		if (errBlob) ::OutputDebugStringA((char*)errBlob->GetBufferPointer());
+		return nullptr;
+	}
 
 
-	D3D12_ROOT_SIGNATURE_DESC sigDesc = CD3DX12_ROOT_SIGNATURE_DESC(_countof(param), param, 1, &mSamplerDesc);	//샘플러
-	sigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // 입력 조립기 단계
+	hr = DEVICE->CreateRootSignature(0, sigBlob->GetBufferPointer(), sigBlob->GetBufferSize(), IID_PPV_ARGS(&mRootSignature));
+	if (FAILED(hr)) return nullptr;
 
-	ComPtr<ID3DBlob> blobSignature;
-	ComPtr<ID3DBlob> blobError;
-	::D3D12SerializeRootSignature(&sigDesc, D3D_ROOT_SIGNATURE_VERSION_1, &blobSignature, &blobError);
-	DEVICE->CreateRootSignature(0, blobSignature->GetBufferPointer(), blobSignature->GetBufferSize(), IID_PPV_ARGS(&mGraphicsRootSignature));
+
+	
+	return mRootSignature;
 }
 
 

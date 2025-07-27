@@ -28,6 +28,7 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update()
 {
+	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get());
 
 	PushLightData();
 

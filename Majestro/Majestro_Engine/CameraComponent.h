@@ -33,31 +33,31 @@ struct Frustum {
 	array<Vec4, PLANE_END> _planes;
 
 
-	//void FinalUpdate()
-	//{
-	//	Matrix matViewInv = Camera::S_MatView.Invert();
-	//	Matrix matProjectionInv = Camera::S_MatProjection.Invert();
-	//	Matrix matInv = matProjectionInv * matViewInv;
+	void FinalUpdate(Matrix S_MatView, Matrix S_MatProjection)
+	{
+		Matrix matViewInv = S_MatView.Invert();
+		Matrix matProjectionInv = S_MatProjection.Invert();
+		Matrix matInv = matProjectionInv * matViewInv;
 
-	//	vector<Vec3> worldPos =
-	//	{
-	//		::XMVector3TransformCoord(Vec3(-1.f, 1.f, 0.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(1.f, 1.f, 0.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(1.f, -1.f, 0.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(-1.f, -1.f, 0.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(-1.f, 1.f, 1.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(1.f, 1.f, 1.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(1.f, -1.f, 1.f), matInv),
-	//		::XMVector3TransformCoord(Vec3(-1.f, -1.f, 1.f), matInv)
-	//	};
+		vector<Vec3> worldPos =
+		{
+			::XMVector3TransformCoord(Vec3(-1.f, 1.f, 0.f), matInv),
+			::XMVector3TransformCoord(Vec3(1.f, 1.f, 0.f), matInv),
+			::XMVector3TransformCoord(Vec3(1.f, -1.f, 0.f), matInv),
+			::XMVector3TransformCoord(Vec3(-1.f, -1.f, 0.f), matInv),
+			::XMVector3TransformCoord(Vec3(-1.f, 1.f, 1.f), matInv),
+			::XMVector3TransformCoord(Vec3(1.f, 1.f, 1.f), matInv),
+			::XMVector3TransformCoord(Vec3(1.f, -1.f, 1.f), matInv),
+			::XMVector3TransformCoord(Vec3(-1.f, -1.f, 1.f), matInv)
+		};
 
-	//	_planes[PLANE_FRONT] = ::XMPlaneFromPoints(worldPos[0], worldPos[1], worldPos[2]); // CW
-	//	_planes[PLANE_BACK] = ::XMPlaneFromPoints(worldPos[4], worldPos[7], worldPos[5]); // CCW
-	//	_planes[PLANE_UP] = ::XMPlaneFromPoints(worldPos[4], worldPos[5], worldPos[1]); // CW
-	//	_planes[PLANE_DOWN] = ::XMPlaneFromPoints(worldPos[7], worldPos[3], worldPos[6]); // CCW
-	//	_planes[PLANE_LEFT] = ::XMPlaneFromPoints(worldPos[4], worldPos[0], worldPos[7]); // CW
-	//	_planes[PLANE_RIGHT] = ::XMPlaneFromPoints(worldPos[5], worldPos[6], worldPos[1]); // CCW
-	//}
+		_planes[PLANE_FRONT] = ::XMPlaneFromPoints(worldPos[0], worldPos[1], worldPos[2]); // CW
+		_planes[PLANE_BACK] = ::XMPlaneFromPoints(worldPos[4], worldPos[7], worldPos[5]); // CCW
+		_planes[PLANE_UP] = ::XMPlaneFromPoints(worldPos[4], worldPos[5], worldPos[1]); // CW
+		_planes[PLANE_DOWN] = ::XMPlaneFromPoints(worldPos[7], worldPos[3], worldPos[6]); // CCW
+		_planes[PLANE_LEFT] = ::XMPlaneFromPoints(worldPos[4], worldPos[0], worldPos[7]); // CW
+		_planes[PLANE_RIGHT] = ::XMPlaneFromPoints(worldPos[5], worldPos[6], worldPos[1]); // CCW
+	}
 
 	bool ContainsSphere(const Vec3& pos, float radius)
 	{
@@ -81,11 +81,20 @@ public:
 	Matrix& GetViewMatrix() { return _matView; }
 	Matrix& GetProjectionMatrix() { return _matProjection; }
 
+	void SetNear(float value) { _near = value; }
+	void SetFar(float value) { _far = value; }
+	void SetFOV(float value) { _fov = value; }
+	void SetScale(float value) { _scale = value; }
+	void SetWidth(float value) { _width = value; }
+	void SetHeight(float value) { _height = value; }
 
+
+
+	void FinalUpdate(Matrix mat);
 	PROJECTION_TYPE _type = PROJECTION_TYPE::PERSPECTIVE;
 
 	float _near = 1.f;
-	float _far = 1000.f;
+	float _far = 10000.f;
 	float _fov = XM_PI / 4.f;
 	float _scale = 1.f;
 	float _width = 0.f;

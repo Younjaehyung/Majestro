@@ -17,6 +17,7 @@ public:
 	float GetTimeElapsed();
 	float GetTotalTime();
 
+
 private:
 	double							mTimeScale;
 	float							mTimeElapsed;
@@ -36,5 +37,5 @@ private:
 	unsigned long					mFramesPerSecond;
 	float							mFPSTimeElapsed;
 
-	bool							mStopped;
+	bool							mStopped = false;
 };

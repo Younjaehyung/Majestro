@@ -13,12 +13,20 @@ struct TransformParams {
 class TransformComponent : public Component<TransformComponent>
 {
 public:
+	TransformComponent(){}
+	TransformComponent(Vec3 position, Vec3 scale): _localPosition(position), _localScale(scale){}
+
 
 	Vec3 GetWorldPosition() { return mWorldPosition; }
 	float GetBoundingSphereRadius() { return mBoundingSphere.Radius; }
 	const Matrix& GetLocalToWorldMatrix() { return _matWorld; }
 
 	void SetLocalScale(const Vec3& scale) { _localScale = scale; }
+
+	void LookAt(const Vec3 dir);
+	bool CloseEnough(const float& a, const float& b, const float& epsilon = std::numeric_limits<float>::epsilon());
+	Vec3 DecomposeRotationMatrix(const Matrix& rotation);
+	void FinalUpdate();
 public:
 
 	Vec3 _localPosition = {};

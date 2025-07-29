@@ -19,7 +19,7 @@ public:
 	void Initialize(const WindowInfo& info);
 	void Update();
 	void Render();
-
+	void ShowFps();
 public:
 	RenderManager&		GetRenderManager()		{ return *mRenderManager; }
 	SceneManager&		GetSceneManager()		{ return *mSceneManager; }
@@ -36,5 +36,5 @@ private:
 	unique_ptr<Timer>			mTimer;
 
 
-	
+	HWND mHwnd;
 };

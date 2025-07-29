@@ -15,20 +15,27 @@
 
 RenderSystem::RenderSystem(World* world) : System::System(world)
 {
-
+	mCamera = nullptr;
 }
 
 void RenderSystem::Initialize()
 {
 	// 1번 초기화
 	mRenderComponentPool = &(mWorld->GetComponentPool<RenderComponent>());
-
+	mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 
 }
 
 void RenderSystem::Update()
 {
-	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get());
+	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());
+
+
+	if (1) {	// Find Main Camera.
+		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+		mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
+
+	}
 
 	PushLightData();
 
@@ -42,7 +49,7 @@ void RenderSystem::Update()
 
 	RenderFinal();	//2pass
 
-	RenderForward();
+	//RenderForward();
 
 }
 
@@ -81,6 +88,7 @@ void RenderSystem::ClearRTV()
 	// Lighting Group 초기화
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->ClearRenderTargetView();
 
+	ClearBuffer();
 
 }
 
@@ -107,53 +115,46 @@ void RenderSystem::RenderShadow()
 
 void RenderSystem::RenderDeferred()
 {
-
-	if (1) {	// Find Main Camera.
-		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
-		mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-	}
+	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
 
 
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->OMSetRenderTargets();
 
-	// 1. 쉐이더 배치 처리
 
-	for (auto& [shader, vec] : shaderBatches)
-		vec.clear(); // vector의 capacity는 유지됨
+	for (auto& entityID : mRenderComponentPool->GetEntities()) {
+		RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
+		if (renderEntity->IsVisibility())
+			continue;
 
-
-
-	auto& shaderMap = RESOURCEMANAGER.GetAllResources<Shader>();
-	for (auto& [key, object] : shaderMap)
-	{
-
-
-		for (auto& entityID : mRenderComponentPool->GetEntities()) {
-			RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
-			if (renderEntity->IsVisibility())
-				continue;
-
-			if (IsCustomCulled(renderEntity->GetLayerIndex()))
-				continue;
+	/*	if (IsCustomCulled(renderEntity->GetLayerIndex()))
+			continue;*/
 			
-			if (IsFrustumCulled()) {
-				if (mCamera->_frustum.ContainsSphere(
-					mWorld->GetComponent<TransformComponent>(entityID)->GetWorldPosition(),
-					mWorld->GetComponent<TransformComponent>(entityID)->GetBoundingSphereRadius()) == false)
-				{
-					continue;
-				}
+		if (IsFrustumCulled()) {
+			if (mCamera->_frustum.ContainsSphere(
+				mWorld->GetComponent<TransformComponent>(entityID)->GetWorldPosition(),
+				mWorld->GetComponent<TransformComponent>(entityID)->GetBoundingSphereRadius()) == false)
+			{
+				continue;
 			}
-			
-			shaderBatches[renderEntity->mMaterial->GetShaderID()].push_back(entityID);
-
-			//인스턴싱 구조 생각하기
 		}
+			
+		uint8 typeID = static_cast<uint8>(renderEntity->mMaterials[0]->GetShader()->GetShaderType());
+
+		shaderBatches[typeID][renderEntity->mMaterials[0]->GetShaderID()].push_back(entityID);
+
+		//인스턴싱 구조 생각하기
+	}
 
 		
+	
+
+	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::DEFERRED)]) {
+
+		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
+		InstancingRender(vec);
 	}
-	wstring name = L"Defferd";
-	InstancingRender(shaderBatches[name]);
+	
 
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->WaitTargetToResource();
 }
@@ -230,29 +231,38 @@ void RenderSystem::RenderFinal()
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->OMSetRenderTargets(1, backIndex);
 
+	
 	RESOURCEMANAGER.Get<Material>(L"Final")->PushGraphicsData();
+	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 }
 
 void RenderSystem::RenderForward()
 {
-	wstring name{ L"Forward" };
-	InstancingRender(shaderBatches[name]);
+	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::FORWARD)]) {
 
+		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
+		InstancingRender(vec);
+	}
 	
-	name = L"Particle";
-	for (auto& gameObject : shaderBatches[name])
-	{
-		ParticleComponent* particleComponent = mWorld->GetComponent<ParticleComponent>(gameObject);
+	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::PARTICLE)]) {
 
-		PushTransformData(mWorld->GetComponent<TransformComponent>(gameObject));
+		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
 
-		particleComponent->_particleBuffer->PushGraphicsData(SRV_REGISTER::t9);
-		particleComponent->_material->SetFloat(0, particleComponent->_startScale);
-		particleComponent->_material->SetFloat(1, particleComponent->_endScale);
-		particleComponent->_material->PushGraphicsData();
 
-		particleComponent->_mesh->Render(particleComponent->_maxParticle);
+		for (auto& particle : vec)
+		{
+			ParticleComponent* particleComponent = mWorld->GetComponent<ParticleComponent>(particle);
+
+			PushTransformData(mWorld->GetComponent<TransformComponent>(particle));
+
+			particleComponent->_particleBuffer->PushGraphicsData(SRV_REGISTER::t9);
+			particleComponent->_material->SetFloat(0, particleComponent->_startScale);
+			particleComponent->_material->SetFloat(1, particleComponent->_endScale);
+			particleComponent->_material->PushGraphicsData();
+
+			particleComponent->_mesh->Render(particleComponent->_maxParticle);
+		}
 	}
 
 	//나머지는 바로 forward
@@ -286,15 +296,13 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);;
 		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);;
 		
-		
-		shaderBatches[L"Shadow"].clear();
 
 		//if (gameObject->IsStatic())	//정적 물체인지 동적물체인지 확인해서 그림자 최적화
 		//	continue;
 
 
-		if (IsCustomCulled(renderComponent->GetLayerIndex()))
-			continue;
+		//if (IsCustomCulled(renderComponent->GetLayerIndex()))
+		//	continue;
 
 		if (renderComponent->_checkFrustum)
 		{
@@ -305,56 +313,66 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 				continue;
 			}
 		}
-
-		shaderBatches[L"Shadow"].push_back(gameObject);
+		
+		shaderBatches[static_cast<uint8>(SHADER_TYPE::SHADOW)][renderComponent->mMaterials[0]->GetShaderID()].push_back(gameObject);
 
 
 	}
 
-
-	for (auto& shadow : shaderBatches[L"Shadow"])
+	mCamera = cameraComponent;
+	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::SHADOW)])
 	{
-		transformComponent = mWorld->GetComponent<TransformComponent>(shadow);;
-		renderComponent = mWorld->GetComponent<RenderComponent>(shadow);;
+		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
+		for (auto& shadow : vec) {
+			
 
-		PushTransformData(transformComponent);
+			transformComponent = mWorld->GetComponent<TransformComponent>(shadow);;
+			renderComponent = mWorld->GetComponent<RenderComponent>(shadow);;
 
-		RESOURCEMANAGER.Get<Material>(L"Shadow")->PushGraphicsData();
-		renderComponent->mMesh->Render();
+			PushTransformData(transformComponent);
+
+			RESOURCEMANAGER.Get<Material>(L"Shadow")->PushGraphicsData();
+			renderComponent->mMesh->Render();
+		}
 	}
 }
 
 void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 {
-	map<uint64, vector<Entity>> cache;
+
 
 	
 
-		for (Entity& gameObject : gameObjects)
-		{
-			const uint64 instanceId = mWorld->GetComponent<RenderComponent>(gameObject)->GetInstanceID();
-			cache[instanceId].push_back(gameObject);
-		}
+	for (Entity& gameObject : gameObjects)
+	{
+		const uint64 instanceId = mWorld->GetComponent<RenderComponent>(gameObject)->GetInstanceID();
+		cache[instanceId].push_back(gameObject);
+	}
 
 	
 
-	for (auto& pair : cache)
+	for (auto& pair : cache)	// 같은 머테리얼을 가진것 끼리 분류
 	{
 		Entity entity0 = pair.second[0];
+
+		
+		ComponentPool<TransformComponent>& tobject = mWorld->GetComponentPool<TransformComponent>();
 
 		RenderComponent* object = mRenderComponentPool->GetComponent(entity0.GetID());
 		if (pair.second.size() == 1)
 		{
+			tobject.GetComponent(entity0.GetID())->FinalUpdate();
 			Render(entity0);
 			
 		}
 		else
 		{
 			const uint64 instanceId = pair.first;
-			ComponentPool<TransformComponent>& tobject = mWorld->GetComponentPool<TransformComponent>();
+			
 
 			for (const Entity& gameObject : pair.second)
 			{
+				tobject.GetComponent(gameObject.GetID())->FinalUpdate();
 				InstancingParams params;
 				params.matWorld = tobject.GetComponent(gameObject.GetID())->GetLocalToWorldMatrix();
 				params.matWV = params.matWorld * mCamera->_matView;
@@ -375,6 +393,7 @@ void RenderSystem::AddParam(uint64 instanceId, InstancingParams& data)
 		if (_buffers.find(instanceId) == _buffers.end())
 			_buffers[instanceId] = make_shared<InstancingBuffer>();
 
+
 		_buffers[instanceId]->AddData(data);
 	
 }
@@ -392,11 +411,33 @@ void RenderSystem::PushTransformData(TransformComponent* transformComponent)
 	CONST_BUFFER(CONSTANT_BUFFER_TYPE::TRANSFORM)->PushGraphicsData(&transformParams, sizeof(transformParams));
 }
 
+void RenderSystem::ClearBuffer()
+{
+	for (auto& pair : _buffers)
+	{
+		shared_ptr<InstancingBuffer>& buffer = pair.second;
+		buffer->Clear();
+	}
+
+	for (auto& shaderGroup : shaderBatches) {
+
+		for (auto& [shaderID, vec] : shaderGroup) {
+			vec.clear(); // vector의 capacity는 유지됨
+		}
+	}
+
+	 for (auto& [ID, vec] : cache) {
+	 	vec.clear();
+	 }
+
+}
+
+
 void RenderSystem::Render(Entity entity)
 {
 	RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
 	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-	AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
+	//AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
 
 	for (uint32 i = 0; i < renderComponent->mMaterials.size(); i++)
 	{
@@ -407,11 +448,11 @@ void RenderSystem::Render(Entity entity)
 
 		PushTransformData(transformComponent);
 
-		if (animationComponent)
-		{
-			//GetAnimator()->PushData();
-			material->SetInt(1, 1);
-		}
+		//if (animationComponent)
+		//{
+		//	//GetAnimator()->PushData();
+		//	material->SetInt(1, 1);
+		//}
 
 		material->PushGraphicsData();
 		renderComponent->mMesh->Render(1, i);

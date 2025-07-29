@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "SystemManager.h"
 #include "RenderSystem.h"
+#include "CameraSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
     RegisterSystem<RenderSystem>();
+    RegisterSystem<CameraSystem>();
 
 }
 
@@ -18,6 +20,8 @@ void SystemManager::Update(float deltaTime) {
     for (auto& sys : mUpdateSystems)       sys->Update(deltaTime);
     for (auto& sys : mLateUpdateSystems)   sys->Update(deltaTime);
     for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
+
+    GetSystem<CameraSystem>()->Update();
 }
 
 void SystemManager::Render() {
@@ -37,7 +41,6 @@ void SystemManager::Shutdown() {
 
     mAwakeSystems.clear();
     mStartSystems.clear();
-    mUpdateSystems.clear();
     mUpdateSystems.clear();
     mFinalUpdateSystems.clear();
     mRenderSystems.clear();

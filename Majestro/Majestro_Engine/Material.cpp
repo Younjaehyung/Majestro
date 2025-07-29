@@ -42,7 +42,10 @@ void Material::PushGraphicsData()
 	}
 
 	// 파이프라인 세팅
+
 	mShader->Update();
+
+
 }
 
 void Material::PushComputeData()

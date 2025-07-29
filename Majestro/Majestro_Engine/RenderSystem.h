@@ -3,6 +3,7 @@
 #include "System.h"
 #include "ComponentPool.h"
 #include "Buffer.h"
+#include "Shader.h"
 
 class CameraComponent;
 class RenderComponent;
@@ -49,19 +50,23 @@ private:
 	void InstancingRender(vector<Entity>& gameObjects);
 	void AddParam(uint64 instanceId, InstancingParams& data);
 	void PushTransformData(TransformComponent* transformComponent);
+	void ClearBuffer();
+
 
 	void Render(Entity entity);
 	void Render(Entity entity, shared_ptr<InstancingBuffer>& buffer);
 private:
 	CameraComponent* mCamera;
 	uint32 mCullingMask = 0;
+	shared_ptr<RootSignature>mRootSignature;
 
 	ComponentPool<RenderComponent>* mRenderComponentPool;
-	map<uint64/*instanceId*/, shared_ptr<InstancingBuffer>> _buffers;
+	unordered_map<uint64/*instanceId*/, shared_ptr<InstancingBuffer>> _buffers;
 
 
-	unordered_map<std::wstring, std::vector<Entity>> shaderBatches;
-	 
+	//unordered_map<std::wstring, std::vector<Entity>> shaderBatches;
+	unordered_map<uint64, vector<Entity>> cache;
+	array<unordered_map<std::wstring, std::vector<Entity>>, static_cast<uint8>(SHADER_TYPE::END)> shaderBatches;
 private:
 	
 };

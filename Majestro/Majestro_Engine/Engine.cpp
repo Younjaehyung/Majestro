@@ -30,6 +30,7 @@ void Engine::Initialize(const WindowInfo& info)
 	mInputManager->Initialize(info.Hwnd);
 	mTimer = make_unique<Timer>();
 	
+	mHwnd = info.Hwnd;
 }
 
 void Engine::Update()
@@ -45,6 +46,17 @@ void Engine::Render()
 	mRenderManager->StartRender();
 	mSceneManager->Render();
 	mRenderManager->EndRender();
+
+	ShowFps();
 }
 
 
+void Engine::ShowFps()
+{
+	uint32 fps = mTimer->GetFrameRate();
+
+	WCHAR text[100] = L"";
+	::wsprintf(text, L"FPS : %d", fps);
+
+	::SetWindowText(mHwnd, text);
+}

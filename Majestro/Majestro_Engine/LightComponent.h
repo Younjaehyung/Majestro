@@ -40,6 +40,19 @@ class LightComponent : public Component<LightComponent>
 {
 public:
 	void SetLightIndex(int8 index) { _lightIndex = index; }
+	LIGHT_TYPE GetLightType() { return static_cast<LIGHT_TYPE>(mLightInfo.LightType); }
+
+	const LightInfo& GetLightInfo() { return mLightInfo; }
+
+	void SetLightDirection(Vec3 direction);	//빛의 방향과 Transform의 방향의 동기화를 위한 함수
+
+	void SetDiffuse(const Vec3& diffuse) { mLightInfo.color.diffuse = diffuse; }
+	void SetAmbient(const Vec3& ambient) { mLightInfo.color.ambient = ambient; }
+	void SetSpecular(const Vec3& specular) { mLightInfo.color.specular = specular; }
+
+	void SetLightType(LIGHT_TYPE type);
+	void SetLightRange(float range) { mLightInfo.range = range; }
+	void SetLightAngle(float angle) { mLightInfo.angle = angle; }
 
 
 public:

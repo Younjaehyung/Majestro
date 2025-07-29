@@ -23,9 +23,8 @@ void Scene::Initialize()
 {
 	Entity testCamera = mWorld->CreateEntity();
 	mWorld->AddComponent<MainCameraComponent>(testCamera);
-
 	mWorld->AddComponent<CameraComponent>(testCamera);
-	mWorld->AddComponent<TransformComponent>(testCamera, Vec3(0.f, 0.f, 0.f), Vec3(0.f, 0.f, 0.f));
+	mWorld->AddComponent<TransformComponent>(testCamera);
 
 	Entity testEntity = mWorld->CreateEntity();
 	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.LoadSphereMesh();

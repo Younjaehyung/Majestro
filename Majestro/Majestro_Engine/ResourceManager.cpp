@@ -10,6 +10,7 @@ void ResourceManager::Initialize()
 	CreateDefaultMaterial();
 
 	LoadRectangleMesh();
+	LoadSphereMesh();
 	//RENDERMANAGER.CreateRenderTargetGroups();
 }
 

@@ -97,8 +97,8 @@ public:
 	float _far = 10000.f;
 	float _fov = XM_PI / 4.f;
 	float _scale = 1.f;
-	float _width = 0.f;
-	float _height = 0.f;
+	float _width = 1200.f;
+	float _height = 800.f;
 
 	Matrix _matView = {};
 	Matrix _matProjection = {};

@@ -5,8 +5,9 @@
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
-    RegisterSystem<RenderSystem>();
     RegisterSystem<CameraSystem>();
+    RegisterSystem<RenderSystem>();
+    
 
 }
 

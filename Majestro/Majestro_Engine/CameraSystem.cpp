@@ -10,10 +10,10 @@ CameraSystem::CameraSystem(World* world) : System(world)
 void CameraSystem::Initialize()
 {
 }
-
+	
 void CameraSystem::Update()
 {
-	std::vector entitys{ mWorld->GetEntitiesWithComponents<CameraComponent, TransformComponent>() };
+	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<CameraComponent, TransformComponent>() };
 
 	for (auto& entity : entitys) {
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);

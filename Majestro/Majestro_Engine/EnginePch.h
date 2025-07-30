@@ -86,8 +86,8 @@ struct Vertex {
 };
 
 enum class CBV_REGISTER :uint8 {
-	b0,
-	b1,
+	b0,	// rootConstant용 (INDEX ID)
+	b1, 
 	b2,
 	b3,
 	b4,
@@ -124,6 +124,25 @@ enum class UAV_REGISTER : uint8
 	END,
 };
 
+enum class CONSTANT_INDEX : uint8
+{ // b레지스터
+	CBV_CAMERA_INDEX = static_cast<uint8>(CBV_REGISTER::b1),
+	CBV_ETC_INDEX,
+
+	CBV_INDEX_END
+};
+
+enum class STRUTURED_INDEX : uint8
+{ // t레지스터
+	SRV_LIGHT_INDEX,
+	SRV_TRANSFROM_INDEX,
+	SRV_MATERIALS_INDEX,
+	SRV_BONE_INDEX,
+	/*SRV_BONE_INDEX*/,
+
+	SRV_INDEX_END
+};
+
 enum {
 	SWAP_CHAIN_BUFFER_COUNT = 2	//더블버퍼링 버퍼 개수
 	, CBV_REGISTER_COUNT = CBV_REGISTER::END
@@ -135,15 +154,18 @@ enum {
 	, GROUP_COUNT = 3
 };
 
-enum {
-	SRV_LIGHT_INDEX,
-	SRV_TRANSFROM_INDEX,
-	SRV_MATERIALS_INDEX,
-	SRV_BONE_INDEX,
-	SRV_BONE_INDEX,
 
-	SRV_INDEX_END
+enum class mRootParmetersIndex : uint8
+{
+	CONSTANT,
+	TABLE,
+	SAMPLER,
+	/*TABLE(UAV),*/
+
+	END
 };
+
+
 
 struct WindowInfo {
 	HWND	Hwnd;		//출력 윈도우 핸들

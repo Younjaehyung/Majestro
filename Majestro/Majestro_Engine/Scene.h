@@ -18,9 +18,6 @@ public:
 
 private:
 
-	vector<shared_ptr<class Camera>>	_cameras;
-	vector<shared_ptr<class Light>>		_lights;
-
 	shared_ptr<World>				mWorld = make_shared<World>();
 
 };

@@ -63,10 +63,10 @@ void RenderSystem::PushLightData()
 	{
 		
 
-		light.SetLightIndex(lightParams.lightCount);	//자기가 몇번째 light인지 확인
+		light.SetLightIndex(lightParams.LightCount);	//자기가 몇번째 light인지 확인
 
-		lightParams.lights[lightParams.lightCount] = light.mLightInfo;
-		lightParams.lightCount++;
+		lightParams.Lights[lightParams.LightCount] = light.mLightInfo;
+		lightParams.LightCount++;
 	}
 
 	CONST_BUFFER(CONSTANT_BUFFER_TYPE::GLOBAL)->SetGraphicsGlobalData(&lightParams, sizeof(lightParams));
@@ -131,7 +131,7 @@ void RenderSystem::RenderDeferred()
 			continue;*/
 			
 		if (IsFrustumCulled()) {
-			if (mCamera->_frustum.ContainsSphere(
+			if (mCamera->mFrustum.ContainsSphere(
 				mWorld->GetComponent<TransformComponent>(entityID)->GetWorldPosition(),
 				mWorld->GetComponent<TransformComponent>(entityID)->GetBoundingSphereRadius()) == false)
 			{
@@ -183,7 +183,7 @@ void RenderSystem::RenderLights()
 		
 		LightComponent* lightComponent =  mWorld->GetComponent<LightComponent>(light);
 
-		assert(lightComponent->_lightIndex >= 0);
+		assert(lightComponent->mLightIndex >= 0);
 
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(light);
 		PushTransformData(transformComponent);
@@ -191,21 +191,21 @@ void RenderSystem::RenderLights()
 		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
 		{
 			shared_ptr<Texture> shadowTex =RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
-			lightComponent->_lightMaterial->SetTexture(2, shadowTex);
+			lightComponent->mLightMaterial->SetTexture(2, shadowTex);
 
 			CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(light);
 
 			Matrix matVP = cameraComponent->GetViewMatrix() * cameraComponent->GetProjectionMatrix();
-			lightComponent->_lightMaterial->SetMatrix(0, matVP);
+			lightComponent->mLightMaterial->SetMatrix(0, matVP);
 		}
 		else
 		{
-			float scale = 2 * lightComponent->mLightInfo.range;
+			float scale = 2 * lightComponent->mLightInfo.Range;
 			transformComponent ->SetLocalScale(Vec3(scale, scale, scale));
 		}
 
-		lightComponent->_lightMaterial->SetInt(0, lightComponent->_lightIndex);
-		lightComponent->_lightMaterial->PushGraphicsData();
+		lightComponent->mLightMaterial->SetInt(0, lightComponent->mLightIndex);
+		lightComponent->mLightMaterial->PushGraphicsData();
 
 		//switch (static_cast<LIGHT_TYPE>(_lightInfo.lightType))
 		//{
@@ -216,7 +216,7 @@ void RenderSystem::RenderLights()
 		//	break;
 		//}
 
-		lightComponent->_volumeMesh->Render();
+		lightComponent->mVolumeMesh->Render();
 	}
 
 
@@ -304,9 +304,9 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 		//if (IsCustomCulled(renderComponent->GetLayerIndex()))
 		//	continue;
 
-		if (renderComponent->_checkFrustum)
+		if (renderComponent->mCheckFrustum)
 		{
-			if (cameraComponent->_frustum.ContainsSphere(
+			if (cameraComponent->mFrustum.ContainsSphere(
 				transformComponent->GetWorldPosition(),
 				transformComponent->GetBoundingSphereRadius()) == false)
 			{
@@ -375,8 +375,8 @@ void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 				tobject.GetComponent(gameObject.GetID())->FinalUpdate();
 				InstancingParams params;
 				params.matWorld = tobject.GetComponent(gameObject.GetID())->GetLocalToWorldMatrix();
-				params.matWV = params.matWorld * mCamera->_matView;
-				params.matWVP = params.matWorld * mCamera->_matView * mCamera->_matProjection;
+				params.matWV = params.matWorld * mCamera->mView;
+				params.matWVP = params.matWorld * mCamera->mView * mCamera->mProjection;
 
 				AddParam(instanceId, params);
 			}
@@ -401,12 +401,12 @@ void RenderSystem::AddParam(uint64 instanceId, InstancingParams& data)
 void RenderSystem::PushTransformData(TransformComponent* transformComponent)
 {
 	TransformParams transformParams = {};
-	transformParams.matWorld = transformComponent->_matWorld;
-	transformParams.matView = mCamera->_matView;
-	transformParams.matProjection = mCamera->_matProjection;
-	transformParams.matWV = transformComponent->_matWorld * mCamera->_matView;
-	transformParams.matWVP = transformComponent->_matWorld * mCamera->_matView * mCamera->_matProjection;
-	transformParams.matViewInv = mCamera->_matView.Invert();
+	transformParams.matWorld = transformComponent->mWorldMatrix;
+	transformParams.matView = mCamera->mView;
+	transformParams.matProjection = mCamera->mProjection;
+	transformParams.matWV = transformComponent->mWorldMatrix * mCamera->mView;
+	transformParams.matWVP = transformComponent->mWorldMatrix * mCamera->mView * mCamera->mProjection;
+	transformParams.matViewInv = mCamera->mView.Invert();
 
 	CONST_BUFFER(CONSTANT_BUFFER_TYPE::TRANSFORM)->PushGraphicsData(&transformParams, sizeof(transformParams));
 }

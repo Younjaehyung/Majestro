@@ -20,17 +20,17 @@ ConstantBuffer::~ConstantBuffer()
 
 
 
-void ConstantBuffer::CreateConstantView(CBV_REGISTER reg, uint32 size, uint32 count)
+void ConstantBuffer::CreateConstantView(CONSTANT_INDEX type,uint32 size)
 {
-	mRootParmetersIndex = static_cast<uint8>(reg);
+	mRootParmetersIndex =t ype;
 
 	// 상수 버퍼는 256 바이트 배수로 만들어야 한다
 	// 0 256 512 768
 	mElementSize = (size + 255) & ~255;
-	mElementCount = count;
+
 
 	CreateBuffer();
-	CreateView();
+	CreateView(type);
 }
 
 void ConstantBuffer::CreateBuffer()
@@ -56,16 +56,21 @@ void ConstantBuffer::CreateBuffer()
 	// the resource while it is in use by the GPU (so we must use synchronization techniques).
 }
 
-void ConstantBuffer::CreateView(STRUCTURED_BUFFER_TYPE)
+void ConstantBuffer::CreateView(CONSTANT_INDEX type)
 {
+	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	
+	mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
+	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, static_cast<uint64>(type) * mHandleIncrementSize);
+	
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc {};
+		cbvDesc.BufferLocation = mCbvBuffer->GetGPUVirtualAddress();
+		cbvDesc.SizeInBytes = mElementSize;   // CB size is required to be 256-byte aligned.
 
+	DEVICE->CreateConstantBufferView(&cbvDesc, mCpuHandleBegin);
+	
 }
 
-
-void ConstantBuffer::Clear()
-{
-	mCurrentIndex = 0;
-}
 
 void ConstantBuffer::PushComputeData(void* buffer, uint32 size)
 {
@@ -94,36 +99,16 @@ D3D12_CPU_DESCRIPTOR_HANDLE ConstantBuffer::GetCpuHandle(uint32 index)
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(mCpuHandleBegin, index * mHandleIncrementSize);
 }
 
-void ConstantBuffer::PushRootConstant(void* buffer)
+
+void ConstantBuffer::PushData(void* buffer, uint32 size)
 {
 
-	GRAPHICS_CMD_LIST->SetComputeRoot32BitConstant();
-}
-
-void ConstantBuffer::PushRootDescriptor(void* buffer, uint32 size)
-{
-	assert(mElementSize == ((size + 255) & ~255));
-	::memcpy(&mMappedBuffer[0], buffer, size);	//b0에 데이터를 넣어라(데이터가 1개만 전역이니)
-	GRAPHICS_CMD_LIST->SetGraphicsRootConstantBufferView(0, GetGpuVirtualAddress(0));
-}
-
-void ConstantBuffer::PushDescriptorTable(void* buffer, uint32 size)
-{
-	assert(mCurrentIndex < mElementCount);	//디버깅 코드(데이터와 버퍼크기의 오버플로우 체크)
 	assert(mElementSize == ((size + 255) & ~255));	//디버깅 코드(엉뚱한 데이터 확인용)
 
 
-	::memcpy(&mMappedBuffer[mCurrentIndex * mElementSize], buffer, size);	//버퍼에 데이터 전달(복사(즉시))
+	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 	// CPU → Upload Heap
 
-//D3D12_GPU_VIRTUAL_ADDRESS address = GetGpuVirtualAddress ( _currentIndex );	//CMD을 이용하여 레지스터에 버퍼주소값 전달
-//CMD_LIST->SetGraphicsRootConstantBufferView ( rootParamIndex , address );	//rootSignature의 레지스터 번호 전달
-
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = GetCpuHandle(mCurrentIndex);
-
-	gEngine->GetRenderManager().GetGraphicsDescHeap()->SetCBV(cpuHandle, mRootParmetersIndex);
-
-	mCurrentIndex++;
 }
 
 

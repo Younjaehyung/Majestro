@@ -64,27 +64,32 @@ private:
 	ComPtr<ID3D12Resource>	MaterialBuffer;
 
 private:
-	shared_ptr<Device>					mDevice						= make_shared<Device>();
-	shared_ptr<GraphicsCommandQueue>	mGraphicsCommandQueue		= make_shared<GraphicsCommandQueue>();
+	// DX12
+	shared_ptr<Device>							mDevice						= make_shared<Device>();
+	shared_ptr<GraphicsCommandQueue>			mGraphicsCommandQueue		= make_shared<GraphicsCommandQueue>();
 	
-	shared_ptr<SwapChain>				mSwapChain					= make_shared<SwapChain>();
-	shared_ptr<GraphicsDescriptorHeap>	mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
+	shared_ptr<SwapChain>						mSwapChain					= make_shared<SwapChain>();
+	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
 
-	vector<shared_ptr<ConstantBuffer>>		mConstantBuffer;	// 0: Camera 나머지 : 추후 추가될 constantBuffer용
 
-	vector< shared_ptr<ShaderResourceBuffer>> mTextureBuffer;	// 머티리얼을 위한 텍스쳐 버퍼
+	// ResourceBuffer
+	vector<shared_ptr<ConstantBuffer>>							mConstantBuffer;	// 0: Camera 나머지 : 추후 추가될 constantBuffer용
 
-	array< vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT> mDynamicStructuredBuffer;	// 프레임 리소스를 위한 GROUP_COUNT만큼의 동적 버퍼
-	vector<shared_ptr<StructuredBuffer>> mStaticStructuredBuffer;	// 머티리얼, 본 계층을 위한 정적 버퍼
+	vector< shared_ptr<ShaderResourceBuffer>>					mTextureBuffer;	// 머티리얼을 위한 텍스쳐 버퍼
+
+	array< vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>	mDynamicStructuredBuffer;	// 프레임 리소스를 위한 GROUP_COUNT만큼의 동적 버퍼
+	vector<shared_ptr<StructuredBuffer>>						mStaticStructuredBuffer;	// 머티리얼, 본 계층을 위한 정적 버퍼
 
 	
 
 	//shared_ptr<ComputeDescriptorHeap> _computeDescHeap = make_shared<ComputeDescriptorHeap>();
 	//shared_ptr<ComputeCommandQueue>		mComputeCmdQueue	= make_shared<ComputeCommandQueue>();
 
+	// RenderTarget
 	array<shared_ptr<RenderTarget>, RENDER_TARGET_GROUP_COUNT> mRenderTargetGroups;
 private:
+	uint8			mGroupIndex;	// 프레임리소스 그룹 인덱스
 
 	WindowInfo		mWindow;
 	D3D12_VIEWPORT	mViewport{};

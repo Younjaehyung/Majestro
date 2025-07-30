@@ -14,14 +14,14 @@ class TransformComponent : public Component<TransformComponent>
 {
 public:
 	TransformComponent(){}
-	TransformComponent(Vec3 position, Vec3 scale): _localPosition(position), _localScale(scale){}
+	TransformComponent(Vec3 position, Vec3 scale): mLocalPosition(position), mLocalScale(scale){}
 
 
 	Vec3 GetWorldPosition() { return mWorldPosition; }
 	float GetBoundingSphereRadius() { return mBoundingSphere.Radius; }
-	const Matrix& GetLocalToWorldMatrix() { return _matWorld; }
+	const Matrix& GetLocalToWorldMatrix() { return mWorldMatrix; }
 
-	void SetLocalScale(const Vec3& scale) { _localScale = scale; }
+	void SetLocalScale(const Vec3& scale) { mLocalScale = scale; }
 
 	void LookAt(const Vec3 dir);
 	bool CloseEnough(const float& a, const float& b, const float& epsilon = std::numeric_limits<float>::epsilon());
@@ -29,12 +29,12 @@ public:
 	void FinalUpdate();
 public:
 
-	Vec3 _localPosition = {};
-	Vec3 _localRotation = {};
-	Vec3 _localScale = { 1.f, 1.f, 1.f };
+	Vec3 mLocalPosition = {};
+	Vec3 mLocalRotation = {};
+	Vec3 mLocalScale = { 1.f, 1.f, 1.f };
 
-	Matrix _matLocal = {};
-	Matrix _matWorld = {};
+	Matrix mLocalMatrix = {};
+	Matrix mWorldMatrix = {};
 
 	BoundingSphere mBoundingSphere;
 	Vec3 mWorldPosition;

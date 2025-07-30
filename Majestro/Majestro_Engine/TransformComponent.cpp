@@ -21,7 +21,7 @@ void TransformComponent::LookAt(const Vec3 dir)
 	matrix.Up(up);
 	matrix.Backward(front);
 
-	_localRotation = DecomposeRotationMatrix(matrix);
+	mLocalRotation = DecomposeRotationMatrix(matrix);
 }
 
 bool TransformComponent::CloseEnough(const float& a, const float& b, const float& epsilon)
@@ -79,14 +79,14 @@ Vec3 TransformComponent::DecomposeRotationMatrix(const Matrix& rotation)
 void TransformComponent::FinalUpdate()
 {
 	
-		Matrix matScale = Matrix::CreateScale(_localScale);
-		Matrix matRotation = Matrix::CreateRotationX(_localRotation.x);
-		matRotation *= Matrix::CreateRotationY(_localRotation.y);
-		matRotation *= Matrix::CreateRotationZ(_localRotation.z);
-		Matrix matTranslation = Matrix::CreateTranslation(_localPosition);
+		Matrix matScale = Matrix::CreateScale(mLocalScale);
+		Matrix matRotation = Matrix::CreateRotationX(mLocalRotation.x);
+		matRotation *= Matrix::CreateRotationY(mLocalRotation.y);
+		matRotation *= Matrix::CreateRotationZ(mLocalRotation.z);
+		Matrix matTranslation = Matrix::CreateTranslation(mLocalPosition);
 
-		_matLocal = matScale * matRotation * matTranslation;
-		_matWorld = _matLocal;
+		mLocalMatrix = matScale * matRotation * matTranslation;
+		mWorldMatrix = mLocalMatrix;
 
 		//shared_ptr<Transform> parent = GetParent().lock();
 		//if (parent != nullptr)

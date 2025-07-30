@@ -11,5 +11,5 @@ uint64 RenderComponent::GetInstanceID()
 
 	//uint64 id = (_mesh->GetID() << 32) | _material->GetID();
 	InstanceID instanceID{ mMesh->GetID(), mMaterials[0]->GetID() };
-	return instanceID.id;
+	return instanceID.ID;
 }

@@ -3,15 +3,15 @@
 
 void CameraComponent::FinalUpdate(Matrix mat)
 {
-	_matView = mat;
+	mView = mat;
 
 
 
-	if (_type == PROJECTION_TYPE::PERSPECTIVE)
-		_matProjection = ::XMMatrixPerspectiveFovLH(_fov, _width / _height, _near, _far);
+	if (mCameraType == PROJECTION_TYPE::PERSPECTIVE)
+		mProjection = ::XMMatrixPerspectiveFovLH(mFov, mWidth / mHeight, mNear, mFar);
 	else
-		_matProjection = ::XMMatrixOrthographicLH(_width * _scale, _height * _scale, _near, _far);
+		mProjection = ::XMMatrixOrthographicLH(mWidth * mScale, mHeight * mScale, mNear, mFar);
 
 
-	_frustum.FinalUpdate(_matView, _matProjection);
+	mFrustum.FinalUpdate(mView, mProjection);
 }

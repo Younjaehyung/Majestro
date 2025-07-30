@@ -3,7 +3,7 @@
 
 enum class CONSTANT_BUFFER_TYPE : uint8
 {
-	GLOBAL,	// Camera, Light
+	GLOBAL,	// Camera
 	TRANSFORM,	// 삭제
 	MATERIAL,
 	
@@ -36,10 +36,7 @@ public:
 	ConstantBuffer();
 	~ConstantBuffer();
 
-	void CreateConstantView(CBV_REGISTER reg, uint32 size, uint32 count);					// RootDescriptor용
-
-	//매 프레임마다 작동하는 함수
-	void Clear();
+	void CreateConstantView(CONSTANT_INDEX type, uint32 size);					// RootDescriptor용
 
 	void PushComputeData(void* buffer, uint32 size);
 	//글로벌로 설정되어 한번만 작동하는 함수
@@ -48,14 +45,11 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress(uint32 index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(uint32 index);
 
-
-	void PushRootConstant(void* buffer);					// RootConstant용
-	void PushRootDescriptor(void* buffer, uint32 size);		// RootDescriptor용
-	void PushDescriptorTable(void* buffer, uint32 size);	// TableDescriptor용
+	void PushData(void* buffer, uint32 size);	// TableDescriptor용
 
 private:
 	void CreateBuffer();
-	void CreateView(STRUCTURED_BUFFER_TYPE);
+	void CreateView(CONSTANT_INDEX);
 private:
 
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼
@@ -65,17 +59,13 @@ private:
 
 
 	D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
+	uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
 
-	// ComPtr<ID3D12DescriptorHeap>		mCbvHeap;
-	// D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
-	// uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
-
-
-	uint32					mCurrentIndex = 0;	// 모든buffer의 인덱스
-	uint8					mRootParmetersIndex = {};			// RootParmetersIndex번호
+	CONSTANT_INDEX			mRootParmetersIndex = {};			// RootParmetersIndex번호
 };
 
 class ShaderResourceBuffer {
+public:
 
 };
 

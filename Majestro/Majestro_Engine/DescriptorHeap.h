@@ -23,7 +23,9 @@ private:
 	uint64					mHandleSize = 0;	//핸들 사이즈
 	uint64					mGroupSize = 0;	//힙 그룹별(핸들 * 그룹내 갯수) 사이즈
 	uint64					mGroupCount = 0; //힙 그룹별 카운터
-
+	
+	
+	uint64					mTextureGroupIndex = 0; //힙 Texture 시작 index
 	uint32					mCurrentGroupIndex = 0;
 };
 

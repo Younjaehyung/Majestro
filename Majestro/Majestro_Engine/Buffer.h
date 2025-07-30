@@ -3,16 +3,32 @@
 
 enum class CONSTANT_BUFFER_TYPE : uint8
 {
-	GLOBAL,
-	TRANSFORM,
+	GLOBAL,	// Camera, Light
+	TRANSFORM,	// 삭제
 	MATERIAL,
 	
 	END
 };
 
+enum class  STRUCTURED_BUFFER_TYPE : uint8	// 추후 추가 예정
+{
+	GLOBAL,
+	LIGHT,
+	TRANSFORM,
+	MATERIAL,
+	TEXTURE,
+	BONE,
+	PARTICLE,
+
+
+	END
+};
+
 enum
 {
-	CONSTANT_BUFFER_COUNT = static_cast<uint8>(CONSTANT_BUFFER_TYPE::END)
+	CONSTANT_BUFFER_COUNT = static_cast<uint8>(CONSTANT_BUFFER_TYPE::END),
+	STRUCTURED_BUFFER_COUNT = static_cast<uint8>(STRUCTURED_BUFFER_TYPE::END)
+
 };
 
 class ConstantBuffer {
@@ -20,42 +36,48 @@ public:
 	ConstantBuffer();
 	~ConstantBuffer();
 
-	void Initialize(CBV_REGISTER reg, uint32 size, uint32 count);
+	void CreateConstantView(CBV_REGISTER reg, uint32 size, uint32 count);					// RootDescriptor용
 
 	//매 프레임마다 작동하는 함수
 	void Clear();
-	void PushGraphicsData(void* buffer, uint32 size);
+
 	void PushComputeData(void* buffer, uint32 size);
 	//글로벌로 설정되어 한번만 작동하는 함수
-	void SetGraphicsGlobalData(void* buffer, uint32 size);
+
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress(uint32 index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(uint32 index);
 
+
+	void PushRootConstant(void* buffer);					// RootConstant용
+	void PushRootDescriptor(void* buffer, uint32 size);		// RootDescriptor용
+	void PushDescriptorTable(void* buffer, uint32 size);	// TableDescriptor용
+
 private:
 	void CreateBuffer();
-	void CreateView();
+	void CreateView(STRUCTURED_BUFFER_TYPE);
 private:
+
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼
 	BYTE*					mMappedBuffer = nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
 	uint32					mElementSize = 0;	//모든buffer의 Size
 	uint32					mElementCount = 0;	//모든buffer의 카운터
 
 
-	ComPtr<ID3D12DescriptorHeap>		mCbvHeap;
 	D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
-	uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
+
+	// ComPtr<ID3D12DescriptorHeap>		mCbvHeap;
+	// D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
+	// uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
 
 
-	uint32					mCurrentIndex = 0;	//모든buffer의 인덱스
-	CBV_REGISTER			mReg = {};
+	uint32					mCurrentIndex = 0;	// 모든buffer의 인덱스
+	uint8					mRootParmetersIndex = {};			// RootParmetersIndex번호
 };
 
-
-class TextureBuffer {
+class ShaderResourceBuffer {
 
 };
-
 
 class StructuredBuffer
 {
@@ -69,7 +91,7 @@ public:
 	void PushComputeSRVData(SRV_REGISTER reg);
 	void PushComputeUAVData(UAV_REGISTER reg);
 
-	ComPtr<ID3D12DescriptorHeap> GetSRV() { return mSrvHeap; }
+	ComPtr<ID3D12DescriptorHeap> GetSRV() { return mCbvSrvHeap; }
 	ComPtr<ID3D12DescriptorHeap> GetUAV() { return mUavHeap; }
 
 	void SetResourceState(D3D12_RESOURCE_STATES state) { mResourceState = state; }
@@ -78,7 +100,7 @@ public:
 
 private:
 	ComPtr<ID3D12Resource>			mBuffer;
-	ComPtr<ID3D12DescriptorHeap>	mSrvHeap;
+	ComPtr<ID3D12DescriptorHeap>	mCbvSrvHeap;
 	ComPtr<ID3D12DescriptorHeap>	mUavHeap;
 
 	uint32						mElementSize = 0;

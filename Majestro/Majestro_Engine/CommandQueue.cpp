@@ -53,8 +53,6 @@ void GraphicsCommandQueue::RenderBegin()
 
 	gEngine->GetRenderManager().GetConstantBuffer(CONSTANT_BUFFER_TYPE::TRANSFORM)->Clear();	//버퍼 클리어
 	gEngine->GetRenderManager().GetConstantBuffer(CONSTANT_BUFFER_TYPE::MATERIAL)->Clear();	//버퍼 클리어
-	//gEngine->GetRenderManager().GetConstantBuffers()[0]->Clear();
-
 
 	gEngine->GetRenderManager().GetGraphicsDescHeap()->Clear();	//테이블힙 클리어
 

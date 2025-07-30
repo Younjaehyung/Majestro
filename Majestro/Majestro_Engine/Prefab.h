@@ -1,5 +1,7 @@
 #pragma once
-class Prefab
+#include "Object.h"
+
+class Prefab : public Object
 {
 public:
 };

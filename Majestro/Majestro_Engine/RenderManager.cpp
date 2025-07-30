@@ -30,10 +30,21 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mGraphicsDescHeap->Initialize(256);
 	//_computeDescHeap->Initialize();
 
-	CreateConstantBuffer(CBV_REGISTER::b0, sizeof(LightParams), 1);	//LightParams(50) 정보 넘김
-	//CreateConstantBuffer(CBV_REGISTER::b1, sizeof(CameraParams), 1);	//LightParams(50) 정보 넘김
-	CreateConstantBuffer(CBV_REGISTER::b1, sizeof(TransformParams), 256);	//TransformParams 256개 생성
-	CreateConstantBuffer(CBV_REGISTER::b2, sizeof(MaterialParams), 256);	//MaterialParams 256개 생성
+	// CreateConstantBuffer(CBV_REGISTER::b0, sizeof(LightParams), 1);	//LightParams(50) 정보 넘김
+
+	// CreateConstantBuffer(CBV_REGISTER::b1, sizeof(TransformParams), 256);	//TransformParams 256개 생성
+	// CreateConstantBuffer(CBV_REGISTER::b2, sizeof(MaterialParams), 256);	//MaterialParams 256개 생성
+
+
+	CreateConstantBuffer(0,sizeof(CameraParams), GROUP_COUNT);	// deltaTime이나 totaltime/ Camera 같은 전역
+
+	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
+	CreateStructuredBuffer(sizeof(LightParams), 1000 );	
+	CreateStructuredBuffer(sizeof(TransformParams),1000 );
+	CreateStructuredBuffer(sizeof(MaterialParams),1000 );
+
+	//CreateStructuredBuffer(sizeof(BoneParams), );
+	//CreateStructuredBuffer(sizeof(PARTICLEParams), );
 
 
 	CreateRenderTargetGroups();
@@ -161,6 +172,18 @@ void RenderManager::CreateConstantBuffer(CBV_REGISTER reg, uint32 bufferSize, ui
 	assert(mConstantBuffer.size() == typeInt);
 
 	shared_ptr<ConstantBuffer> buffer = make_shared<ConstantBuffer>();
-	buffer->Initialize(reg, bufferSize, count);
+	buffer->CreateConstantView(reg, bufferSize, count);
 	mConstantBuffer.push_back(buffer);
 }
+
+void RenderManager::CreateStructuredBuffer(uint32 elementSize, uint32 elementCount)
+{
+
+	for (int i = 0; i < GROUP_COUNT; ++i) {
+		shared_ptr<StructuredBuffer> buffer = make_shared<StructuredBuffer>();
+		buffer->Initialize(elementSize, elementCount);
+		mDynamicStructuredBuffer[GROUP_COUNT].push_back(buffer);
+	}
+	
+}
+

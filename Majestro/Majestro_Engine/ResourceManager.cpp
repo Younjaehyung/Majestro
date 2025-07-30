@@ -11,7 +11,7 @@ void ResourceManager::Initialize()
 
 	LoadRectangleMesh();
 	LoadSphereMesh();
-	//RENDERMANAGER.CreateRenderTargetGroups();
+
 }
 
 

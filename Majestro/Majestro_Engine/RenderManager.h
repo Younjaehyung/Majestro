@@ -38,15 +38,19 @@ public:
 
 	shared_ptr<SwapChain>				GetSwapChain()			{ return mSwapChain; }
 	
-	shared_ptr<GraphicsDescriptorHeap> GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
+	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
+
 	//shared_ptr< ComputeDescriptorHeap>	GetComputeDescHeap()	{ return mComputeDescHeap; }
 
 
-	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_BUFFER_TYPE type) { return mConstantBuffer[static_cast<uint8>(type)]; }
-	vector<shared_ptr<ConstantBuffer>>& GetConstantBuffers() { return mConstantBuffer; }	
+
+
+	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_BUFFER_TYPE type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)]; }
+	array < vector<shared_ptr<ConstantBuffer>>,GROUP_COUNT>& GetConstantBuffers() { return mConstantBuffer; }
 	
-	shared_ptr<StructuredBuffer> GetStructuredBuffer(CONSTANT_BUFFER_TYPE type) { return mConstantBuffer[static_cast<uint8>(type)]; }
-	vector<shared_ptr<StructuredBuffer>>& GetStructuredBuffer() { return mConstantBuffer; }
+	shared_ptr<StructuredBuffer> GetStructuredBuffer(CONSTANT_BUFFER_TYPE type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }
+	array < vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>& GetStructuredBuffer() { return mDynamicStructuredBuffer; }
+
 
 
 
@@ -54,14 +58,12 @@ public:
 
 private:
 	void CreateRenderTargetGroups();
-	void CreateConstantBuffer(CBV_REGISTER reg, uint32 bufferSize, uint32 count);	//Constant버퍼 생성 (
-	void CreateStructuredBuffer(uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
+	void CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize);	//Constant버퍼 생성 (
+	void CreateStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
 
 private:
-	// buffer
-	ComPtr<ID3D12Resource>	LIghtBuffer;
-	ComPtr<ID3D12Resource>	ObjectBuffer;
-	ComPtr<ID3D12Resource>	MaterialBuffer;
+	uint8			mFrameResourceIndex;	// 프레임리소스 그룹 인덱스
+	
 
 private:
 	// DX12
@@ -74,9 +76,9 @@ private:
 
 
 	// ResourceBuffer
-	vector<shared_ptr<ConstantBuffer>>							mConstantBuffer;	// 0: Camera 나머지 : 추후 추가될 constantBuffer용
-
-	vector< shared_ptr<ShaderResourceBuffer>>					mTextureBuffer;	// 머티리얼을 위한 텍스쳐 버퍼
+	array< vector<shared_ptr<ConstantBuffer>>, GROUP_COUNT>		mConstantBuffer;	// 0: Camera 나머지 : 추후 추가될 constantBuffer용
+								
+	vector< shared_ptr<TextureBuffer>>					mTextureBuffer;	// 머티리얼을 위한 텍스쳐 버퍼
 
 	array< vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>	mDynamicStructuredBuffer;	// 프레임 리소스를 위한 GROUP_COUNT만큼의 동적 버퍼
 	vector<shared_ptr<StructuredBuffer>>						mStaticStructuredBuffer;	// 머티리얼, 본 계층을 위한 정적 버퍼
@@ -89,7 +91,6 @@ private:
 	// RenderTarget
 	array<shared_ptr<RenderTarget>, RENDER_TARGET_GROUP_COUNT> mRenderTargetGroups;
 private:
-	uint8			mGroupIndex;	// 프레임리소스 그룹 인덱스
 
 	WindowInfo		mWindow;
 	D3D12_VIEWPORT	mViewport{};

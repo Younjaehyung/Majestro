@@ -132,16 +132,27 @@ enum class CONSTANT_INDEX : uint8
 	CBV_INDEX_END
 };
 
-enum class STRUTURED_INDEX : uint8
+enum class STRUCTURED_INDEX : uint8
 { // t레지스터
 	SRV_LIGHT_INDEX,
 	SRV_TRANSFROM_INDEX,
 	SRV_MATERIALS_INDEX,
 	SRV_BONE_INDEX,
-	/*SRV_BONE_INDEX*/,
+	SRV_PARTICLE_INDEX,
+	UAV_PARTICLE_INDEX,
+	/*SRV_BONE_INDEX, */
 
 	SRV_INDEX_END
 };
+
+enum class TEXTURE_INDEX : uint8
+{ // t레지스터
+	TEXTURE_INDEX = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END),
+
+
+	TEXTURE_INDEX_END
+};
+
 
 enum {
 	SWAP_CHAIN_BUFFER_COUNT = 2	//더블버퍼링 버퍼 개수

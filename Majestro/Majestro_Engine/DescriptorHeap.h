@@ -14,6 +14,8 @@ public:
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(CBV_REGISTER reg);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(SRV_REGISTER reg);
+
+	uint32& GetLastIndex() { return mLastIndex; }
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint8 reg);
 
@@ -25,7 +27,8 @@ private:
 	uint64					mGroupCount = 0; //힙 그룹별 카운터
 	
 	
-	uint64					mTextureGroupIndex = 0; //힙 Texture 시작 index
+	uint32					mTextureGroupIndex = static_cast<uint32>(TEXTURE_INDEX::TEXTURE_INDEX); //힙 Texture 시작 index
+	uint32					mLastIndex = 0; //힙 Texture 시작 index
 	uint32					mCurrentGroupIndex = 0;
 };
 

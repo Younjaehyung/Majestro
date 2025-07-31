@@ -23,6 +23,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle() { return mSrvHeapBegin; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle() { return mUavHeapBegin; }
 
+	ScratchImage& GetOriginalImage() { return mOriginalImage; }
 	ComPtr<ID3D12Resource> GetTex2D() { return mImage; }
 	ComPtr<ID3D12DescriptorHeap> GetSRV() { return mSrvHeap; }
 	ComPtr<ID3D12DescriptorHeap> GetRTV() { return mRtvHeap; }
@@ -31,6 +32,8 @@ public:
 public:
 	float GetWidth() { return static_cast<float>(mDescription.Width); }
 	float GetHeight() { return static_cast<float>(mDescription.Height); }
+
+	
 
 private:
 	ScratchImage			 		mOriginalImage;

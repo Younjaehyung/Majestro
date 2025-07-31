@@ -26,17 +26,30 @@ void Scene::Initialize()
 	mWorld->AddComponent<CameraComponent>(testCamera);
 	mWorld->AddComponent<TransformComponent>(testCamera);
 
-	Entity testEntity = mWorld->CreateEntity();
+
+
+	Entity testEntity = mWorld->CreateEntity();	// ÇÊ¼ö
+
 	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.LoadSphereMesh();
 	shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"GameObject");
 	std::vector<shared_ptr<Material>> materials;
 	materials.push_back(material);
+
 	TransformComponent t{};
 	t.mLocalScale = { 100.f, 100.f, 100.f };
 	t.mLocalPosition = {0.f, 0.f, 500.f};
 
+
+
+
 	mWorld->AddComponent<TransformComponent>(testEntity, t);
 	mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
+
+	
+
+
+
+
 
 	Entity testlight = mWorld->CreateEntity();
 

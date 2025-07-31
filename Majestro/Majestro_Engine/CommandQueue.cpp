@@ -51,9 +51,6 @@ void GraphicsCommandQueue::RenderBegin()
 	//더블버퍼링을 위해 기존의 출력되던 버퍼를 후방버퍼로 바꾸겠다
 
 
-	gEngine->GetRenderManager().GetConstantBuffer(CONSTANT_BUFFER_TYPE::TRANSFORM)->Clear();	//버퍼 클리어
-	gEngine->GetRenderManager().GetConstantBuffer(CONSTANT_BUFFER_TYPE::MATERIAL)->Clear();	//버퍼 클리어
-
 	gEngine->GetRenderManager().GetGraphicsDescHeap()->Clear();	//테이블힙 클리어
 
 

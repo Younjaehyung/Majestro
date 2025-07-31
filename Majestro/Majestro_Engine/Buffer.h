@@ -54,8 +54,7 @@ private:
 
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼
 	BYTE*					mMappedBuffer = nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
-	uint32					mElementSize = 0;	//모든buffer의 Size
-	uint32					mElementCount = 0;	//모든buffer의 카운터
+	uint32					mElementSize = 0;	//buffer의 Size
 
 
 	D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
@@ -64,10 +63,6 @@ private:
 	CONSTANT_INDEX			mRootParmetersIndex = {};			// RootParmetersIndex번호
 };
 
-class ShaderResourceBuffer {
-public:
-
-};
 
 class StructuredBuffer
 {
@@ -75,34 +70,59 @@ public:
 	StructuredBuffer();
 	~StructuredBuffer();
 
-	void Initialize(uint32 elementSize, uint32 elementCount);
 
-	void PushGraphicsData(SRV_REGISTER reg);
-	void PushComputeSRVData(SRV_REGISTER reg);
+	void CreateStructuredView(STRUCTURED_INDEX type,uint32 elementSize, uint32 elementCount);
+
+	void PushGraphicsData(void* buffer, uint32 size);
+	void PushComputeSRVData(SRV_REGISTER reg);	// 추후 수정
 	void PushComputeUAVData(UAV_REGISTER reg);
 
-	ComPtr<ID3D12DescriptorHeap> GetSRV() { return mCbvSrvHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetUAV() { return mUavHeap; }
+
 
 	void SetResourceState(D3D12_RESOURCE_STATES state) { mResourceState = state; }
 	D3D12_RESOURCE_STATES GetResourceState() { return mResourceState; }
 	ComPtr<ID3D12Resource> GetBuffer() { return mBuffer; }
-
+private:
+	void CreateBuffer();
+	void CreateView(STRUCTURED_INDEX);
 private:
 	ComPtr<ID3D12Resource>			mBuffer;
-	ComPtr<ID3D12DescriptorHeap>	mCbvSrvHeap;
-	ComPtr<ID3D12DescriptorHeap>	mUavHeap;
+	BYTE*							mMappedBuffer	= nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
 
 	uint32						mElementSize = 0;
 	uint32						mElementCount = 0;
+
 	D3D12_RESOURCE_STATES		mResourceState = {};
 
+	STRUCTURED_INDEX				mRootParmetersIndex = {};
 private:
-	D3D12_CPU_DESCRIPTOR_HANDLE mSrvHeapBegin = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE mUavHeapBegin = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mSrvCpuHandleBegin = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mUavCpuHandleBegin = {};
+
 };
 
 
+class TextureBuffer {
+public:
+	TextureBuffer();
+	~TextureBuffer();
+public:
+
+	void CreateTextureBuffer(shared_ptr<Texture> texture, D3D12_SRV_DIMENSION viewDimension = D3D12_SRV_DIMENSION_TEXTURE2D );
+
+private:
+	//ComPtr<ID3D12Resource>			mBuffer;	// 텍스쳐 리소스는 texture에서 관리
+
+	uint32						mElementSize = 0;
+	uint32						mElementCount = 0;
+
+	D3D12_RESOURCE_STATES		mResourceState = {};
+
+	STRUCTURED_INDEX			mRootParmetersIndex = {};
+private:
+	D3D12_CPU_DESCRIPTOR_HANDLE mCpuHandleBegin = {};
+
+};
 
 struct InstancingParams
 {

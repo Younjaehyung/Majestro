@@ -26,11 +26,12 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 
 
-	mGraphicsDescHeap->Initialize(GROUP_COUNT);
+	mGraphicsDescHeap->Initialize(FRAMEGROUP_COUNT);
 
 	CreateConstantBuffer(CONSTANT_INDEX::CBV_CAMERA_INDEX, sizeof(CameraParams));	// deltaTime이나 totaltime/ Camera 같은 전역
 
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
+
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, sizeof(LightParams), 1000 );
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_TRANSFROM_INDEX, sizeof(TransformParams), 5000 );
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams),1000 );
@@ -163,7 +164,7 @@ void RenderManager::CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize)
 	//uint8 typeInt = static_cast<uint8>(reg);
 	//assert(mConstantBuffer.size() == typeInt);
 
-	for (int i = 0; i < GROUP_COUNT; ++i) {
+	for (int i = 0; i < FRAMEGROUP_COUNT; ++i) {
 		shared_ptr<ConstantBuffer> buffer = make_shared<ConstantBuffer>();
 		buffer->CreateConstantView(i,type, bufferSize);
 		mConstantBuffer[i].push_back(buffer);
@@ -174,7 +175,7 @@ void RenderManager::CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize)
 void RenderManager::CreateStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
 {
 
-	for (int i = 0; i < GROUP_COUNT; ++i) {
+	for (int i = 0; i < FRAMEGROUP_COUNT; ++i) {
 		shared_ptr<StructuredBuffer> buffer = make_shared<StructuredBuffer>();
 		buffer->CreateUploadStructuredView(i,type, elementSize, elementCount);
 		mDynamicStructuredBuffer[i].push_back(buffer);

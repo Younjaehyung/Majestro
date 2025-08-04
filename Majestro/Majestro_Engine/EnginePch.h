@@ -117,14 +117,12 @@ enum class RCONSTANT_INDEX : uint8		//rootConstant
 { // b레지스터
 	RCONSTANT_INDEX_PARM,	// 랜더링 파라미터 b0
 
-
-
 	RCONSTANT_INDEX_END
 };
 
 
 enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
-{ // b레지스터
+{ // b레지스터 (암묵적 space0)
 	CBV_CAMERA_INDEX = static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END),	// 카메라 파라미터 b1
 
 	CBV_INDEX_END
@@ -132,20 +130,23 @@ enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
 
 
 enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
-{ // t레지스터
+{ // t레지스터 space 0 
+	GBUFFER_SHADOW_INDEX,
+	
 	GBUFFER_POSITION_INDEX,
 	GBUFFER_NORMAL_INDEX,
 	GBUFFER_ALBEDO_INDEX,
-	GBUFFER_MRT_INDEX,
-	GBUFFER_DEPTH_INDEX,
-	GBUFFER_SHADOW_INDEX,
+
+	GBUFFER_DIFFUSE_INDEX,
+	GBUFFER_SPECULAR_INDEX,
+	
 
 
 	GBUFFER_INDEX_END
 };
 
 enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
-{ // t레지스터
+{ // t레지스터 space 1
 	SRV_LIGHT_INDEX,
 	SRV_TRANSFROM_INDEX,
 	SRV_MATERIALS_INDEX,
@@ -158,32 +159,54 @@ enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
 };
 
 enum class TEXTURE_INDEX : uint8		//DescriptorTable SRV(TEXTURE)
-{ // t레지스터
-	TEXTURE_INDEX = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END),
-	
+{ // t레지스터 space 2
+	TEXTURE_INDEX,
 
 	TEXTURE_INDEX_END
 };
 
 
+enum {	// space 번호
+	GBUFFER_SPACE = 0
+	, STRUCTURED_SPACE = 1
+	, TEXTURE_SPACE = 2
+
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		이 곳에는 DescriptorHeap기준 세팅시 Group별로 부여된							  //
+//		위치 인덱스를 정의 해둠.															  
+////////////////////////////////////////////////////////////////////////////////////////////
+
 enum {
-	SWAP_CHAIN_BUFFER_COUNT = 2	// 더블버퍼링 버퍼 개수
-	, GROUP_COUNT = 2			// 추후 프레임리소스 선택시 3으로 변경할것.
+
+
+	, SWAP_CHAIN_BUFFER_COUNT = 2	// 더블버퍼링 버퍼 개수
+	, FRAMEGROUP_COUNT = 2			// 추후 프레임리소스 선택시 3으로 변경할것.
 
 
 	, TEXTURE_DESCRIPTOR_COUNT = 1000	// texture(descriptors) 개수
 
+
+	, GBUFFER_INDEX_START = 0
 	, GBUFFER_INDEX_COUNT = static_cast<uint8>(GBUFFER_INDEX::GBUFFER_INDEX_END)
+	
+	, CONSTANT_INDEX_START = (GBUFFER_INDEX_COUNT)*FRAMEGROUP_COUNT
 	, CONSTANT_INDEX_COUNT = static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END) - 1
+
+
+	, STRUCTURED_INDEX_START = (CONSTANT_INDEX_COUNT+ GBUFFER_INDEX_COUNT) * FRAMEGROUP_COUNT
 	, STRUCTURED_INDEX_COUNT = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END)
+	
+	, GROUP_COUNT = GBUFFER_INDEX_COUNT + CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT
+
+	, TEXTURE_INDEX_START = GROUP_COUNT*FRAMEGROUP_COUNT
 	, TEXTURE_INDEX_COUNT = TEXTURE_DESCRIPTOR_COUNT
+	, TEXTURE_COUNT = TEXTURE_DESCRIPTOR_COUNT
+	
 
-	, GROUP_TABLE_COUNT = GBUFFER_INDEX_COUNT + CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT
-
-	, TEXTURE_TABLE_COUNT = TEXTURE_INDEX_COUNT
-	, ALL_TABLE_COUNT = GBUFFER_INDEX_COUNT + CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT + TEXTURE_INDEX_COUNT
+	, ALL_DESCRIPTOR_COUNT = FRAMEGROUP_COUNT* (CONSTANT_INDEX_COUNT + GBUFFER_INDEX_COUNT + STRUCTURED_INDEX_COUNT) + TEXTURE_INDEX_COUNT
 };
-
 
 
 

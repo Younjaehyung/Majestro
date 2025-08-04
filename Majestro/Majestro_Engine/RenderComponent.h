@@ -19,7 +19,7 @@ struct DataIndex {
 
 
 	uint32 MaterialsIndexStart;
-	uint32 MaterialsIndexEnd;
+	uint32 MaterialsIndexSize;
 	uint32 TransformIndex;
 };
 

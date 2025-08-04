@@ -45,7 +45,7 @@ public:
 
 
 
-	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_INDEX type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)]; }
+	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_INDEX type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)- static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END)]; }
 	array < vector<shared_ptr<ConstantBuffer>>,GROUP_COUNT>& GetConstantBuffers() { return mConstantBuffer; }
 	
 	shared_ptr<StructuredBuffer> GetStructuredBuffer(STRUCTURED_INDEX type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }

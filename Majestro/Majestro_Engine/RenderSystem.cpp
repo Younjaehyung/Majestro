@@ -34,7 +34,7 @@ void RenderSystem::Update()
 
 
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable();
-	//RENDERMANAGER.GetGraphicsDescHeap()->CommitTexutreTable();	// 텍스쳐버퍼 set
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTexutreTable();	// 텍스쳐버퍼 set
 
 	if (1) {	// Find Main Camera.
 		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };

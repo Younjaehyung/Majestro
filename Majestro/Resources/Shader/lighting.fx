@@ -43,8 +43,9 @@ VS_OUT VS_DirLight(VS_IN input)
 PS_OUT PS_DirLight(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
-
-    float3 viewPos = g_tex_0.Sample(g_sam_0, input.uv).xyz;
+    int index = Materials[GlobalParams.MaterialsIndexStart];
+    
+    float3 viewPos = TextureMaps[index].Sample(g_sam_0, input.uv).xyz;
     if (viewPos.z <= 0.f)   //DirLight의 영역에 카메라에 있는지에 따라 출력할지 아닐지 정함
         clip(-1);   //clip에 값이 0보다 작으면 종료하게 됨
 

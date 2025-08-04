@@ -70,7 +70,6 @@ public:
 
 	SHADER_TYPE GetShaderType() { return _info.shaderType; }
 
-	void PushBackEntity(Entity entityID) { mEntity.push_back(entityID); }
 
 	static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetTopologyType(D3D_PRIMITIVE_TOPOLOGY topology);
 	
@@ -102,7 +101,5 @@ private:
 	ComPtr<ID3DBlob>					_csBlob;
 	D3D12_COMPUTE_PIPELINE_STATE_DESC   _computePipelineDesc = {};
 
-
-	vector<Entity> mEntity;
 };
 

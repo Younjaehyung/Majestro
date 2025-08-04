@@ -5,15 +5,6 @@
 #include "utils.fx"
 
 
-struct Particle
-{
-    float3 worldPos;
-    float curTime;  //경과시간
-    float3 worldDir;
-    float lifeTime; //유지시간
-    int alive;  //랜더링유무용
-    float3 padding; 
-};
 
 StructuredBuffer<Particle> g_data : register(t9);   //compute를 통해 계산된 결과가 들어옴
 
@@ -42,7 +33,7 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
 
-    float3 worldPos = mul(float4(input.pos, 1.f), g_matWorld).xyz;
+    float3 worldPos = mul(float4(input.pos, 1.f), Particle[].).xyz;
     worldPos += g_data[input.id].worldPos;
 
     output.viewPos = mul(float4(worldPos, 1.f), g_matView);
@@ -136,15 +127,15 @@ void CS_Main(int3 threadIndex : SV_DispatchThreadID)
     if (threadIndex.x >= g_int_0)
         return;
 
-    int maxCount = g_int_0;
-    int addCount = g_int_1;
-    int frameNumber = g_int_2;
-    float deltaTime = g_vec2_1.x;
-    float accTime = g_vec2_1.y;
-    float minLifeTime = g_vec4_0.x;
-    float maxLifeTime = g_vec4_0.y;
-    float minSpeed = g_vec4_0.z;
-    float maxSpeed = g_vec4_0.w;
+    int maxCount = Particle[threadIndex.x].maxCount;
+    int addCount = Particle[threadIndex.x].addCount;
+    int frameNumber = Particle[threadIndex.x].frameNumber;
+    float deltaTime = Particle[threadIndex.x].deltaTime;
+    float accTime = Particle[threadIndex.x].accTime;
+    float minLifeTime = Particle[threadIndex.x].minLifeTime;
+    float maxLifeTime = Particle[threadIndex.x].maxLifeTime;
+    float minSpeed = Particle[threadIndex.x].minSpeed;
+    float maxSpeed = Particle[threadIndex.x].maxSpeed;
 
     g_shared[0].addCount = addCount;
     GroupMemoryBarrierWithGroupSync();  //임계영역 보호를 위한 barrier (동기화)

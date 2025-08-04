@@ -13,7 +13,7 @@ Texture::~Texture()
 
 void Texture::Load(const wstring& path)
 {
-	// ���� Ȯ���� ���
+
 	wstring ext = std::filesystem::path(path).extension();
 
 	if (ext == L".dds" || ext == L".DDS")

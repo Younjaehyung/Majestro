@@ -8,7 +8,7 @@ public:
 	void Clear();
 
 
-	void CommitTable();
+	void CommitTable(uint8 type);
 	void CommitTexutreTable();
 
 	ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() { return mDescHeap; }
@@ -27,7 +27,7 @@ private:
 	
 	
 	uint32					mTextureGroupIndex = static_cast<uint32>(TEXTURE_INDEX::TEXTURE_INDEX); //힙 Texture 시작 index
-	uint32					mLastIndex = GROUP_TABLE_COUNT; //힙 Texture 시작 index
+	uint32					mLastIndex = static_cast<uint32>(TEXTURE_INDEX_START); //힙 Texture 시작 index
 	uint32					mCurrentGroupIndex = 0;
 };
 

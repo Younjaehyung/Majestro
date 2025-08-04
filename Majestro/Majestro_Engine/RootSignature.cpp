@@ -50,6 +50,9 @@ uint32 RootSignature::AddTable(const std::vector<CD3DX12_DESCRIPTOR_RANGE>& rang
 	mRootParameters.push_back(param);
 
 	return static_cast<uint32_t>(mRootParameters.size() - 1);
+
+
+
 }
 
 

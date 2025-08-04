@@ -28,18 +28,22 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update()
 {
-	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());
+	mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
+	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+
+
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable();
+	//RENDERMANAGER.GetGraphicsDescHeap()->CommitTexutreTable();	// 텍스쳐버퍼 set
 
 	if (1) {	// Find Main Camera.
 		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 		mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
 
 	}
+	ClearRTV();
 
 	PushLightData();
-
-	ClearRTV();
 
 	RenderShadow();
 
@@ -49,27 +53,8 @@ void RenderSystem::Update()
 
 	RenderFinal();	//2pass
 
-	//RenderForward();
+	RenderForward();
 
-}
-
-void RenderSystem::PushLightData()
-{
-	LightParams lightParams = {};
-
-	ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
-
-	for (auto& light : lightComponents)
-	{
-		
-
-		light.SetLightIndex(lightParams.LightCount);	//자기가 몇번째 light인지 확인
-
-		lightParams.Lights[lightParams.LightCount] = light.mLightInfo;
-		lightParams.LightCount++;
-	}
-
-	CONST_BUFFER(CONSTANT_BUFFER_TYPE::GLOBAL)->SetGraphicsGlobalData(&lightParams, sizeof(lightParams));
 }
 
 void RenderSystem::ClearRTV()
@@ -89,8 +74,110 @@ void RenderSystem::ClearRTV()
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->ClearRenderTargetView();
 
 	ClearBuffer();
+	// 추후 lightvector관련들 clear도 모두 확인할껏.
+}
+
+
+void RenderSystem::PushLightData()
+{
+	LightParams lightParams = {};
+	MaterialParams materialParams = {};
+	TransformParams transformParams = {};
+	
+	const vector<Entity>& entities = mWorld->GetEntitiesWithComponent<LightComponent>();
+	ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
+	for (auto& entity : entities)
+	{
+		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(entity);
+		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
+		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
+
+		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
+		{
+			shared_ptr<Texture> shadowTex = RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
+			renderComponent->mMaterials[0]->SetTexture(2, shadowTex);
+				
+
+			Matrix matVP = cameraComponent->GetViewMatrix() * cameraComponent->GetProjectionMatrix();
+			renderComponent->mMaterials[0]->SetMatrix(0, matVP);
+		}
+		else
+		{
+			float scale = 2 * lightComponent->mLightInfo.Range;
+			transformComponent->SetLocalScale(Vec3(scale, scale, scale));
+		}
+		PushTransformData(transformComponent);
+		PushMaterialData(renderComponent);
+
+		mLightVector.push_back(lightParams);
+
+	}
+
+	RENDERMANAGER.GetStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, mFrameCount)->
+		PushGraphicsData(mLightVector.data(), static_cast<uint32>(mLightVector.size()) * static_cast<uint32>(sizeof(LightParams)));
+
+
 
 }
+
+void RenderSystem::PushObjectData()
+{
+	TransformComponent* transformComponent;
+	RenderComponent* renderComponent;
+	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
+
+	DataIndex dataParam{};
+
+	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
+	{
+		const uint64 instanceId = mWorld->GetComponent<RenderComponent>(gameObject)->GetInstanceID();
+		mMaterialObjectBatch[instanceId].push_back(gameObject);
+	}
+
+
+	for (auto& pair : mMaterialObjectBatch)		// renderComponent내부에 현재 몇번째 인덱스를 참조해야하는지 표기.
+	{
+		Entity entity0 = pair.second[0];
+		uint32 matrialIndexStart = static_cast<uint32>(mMaterialVector.size());	// 머티리얼 시작인덱스
+
+		if (pair.second.size() == 1)
+		{
+			transformComponent = mWorld->GetComponent<TransformComponent>(entity0);;
+			renderComponent = mWorld->GetComponent<RenderComponent>(entity0);;
+
+			PushTransformData(transformComponent);		// 트랜스폼 갱신
+			PushMaterialData(renderComponent);			// 머티리얼 갱신
+			dataParam = { matrialIndexStart, static_cast<uint32>(renderComponent->mMaterials.size()), static_cast<uint32>(mTransformVector.size()-1) };
+			// 트랜스폼 위치. 머티리얼시작~끝 위치 표기
+		}
+		else
+		{
+			const uint64 instanceId = pair.first;
+			renderComponent = mWorld->GetComponent<RenderComponent>(pair.second[0]);;
+			PushMaterialData(renderComponent);		// 머티리얼 갱신
+
+			for (const Entity& gameObject : pair.second)
+			{
+				transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);;
+				
+
+				PushTransformData(transformComponent);		// 트랜스폼 갱신
+				
+				dataParam = { matrialIndexStart, static_cast<uint32>(renderComponent->mMaterials.size()), static_cast<uint32>(mTransformVector.size()-1) };
+				// 트랜스폼 위치. 머티리얼시작~끝(같은 위치) 위치 표기
+			}
+
+			
+		}
+	
+	}
+
+		
+}
+
+
+
 
 void RenderSystem::RenderShadow()
 {
@@ -109,6 +196,7 @@ void RenderSystem::RenderShadow()
 
 		RenderShadowCamera(light, lightComponent, cameraComponent);
 	}
+
 
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->WaitTargetToResource();
 }
@@ -176,49 +264,16 @@ void RenderSystem::RenderLights()
 	//}
 
 	auto lights = 
-	mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent, CameraComponent>();
+	mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent, CameraComponent, RenderComponent>();
 
 	for(auto& light : lights)
 	{
 		
-		LightComponent* lightComponent =  mWorld->GetComponent<LightComponent>(light);
+		RenderComponent* lightComponent =  mWorld->GetComponent<RenderComponent>(light);
 
-		assert(lightComponent->mLightIndex >= 0);
 
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(light);
-		PushTransformData(transformComponent);
-
-		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
-		{
-			shared_ptr<Texture> shadowTex =RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
-			lightComponent->mLightMaterial->SetTexture(2, shadowTex);
-
-			CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(light);
-
-			Matrix matVP = cameraComponent->GetViewMatrix() * cameraComponent->GetProjectionMatrix();
-			lightComponent->mLightMaterial->SetMatrix(0, matVP);
-		}
-		else
-		{
-			float scale = 2 * lightComponent->mLightInfo.Range;
-			transformComponent ->SetLocalScale(Vec3(scale, scale, scale));
-		}
-
-		lightComponent->mLightMaterial->SetInt(0, lightComponent->mLightIndex);
-		lightComponent->mLightMaterial->PushGraphicsData();
-
-		//switch (static_cast<LIGHT_TYPE>(_lightInfo.lightType))
-		//{
-		//case LIGHT_TYPE::POINT_LIGHT:
-		//case LIGHT_TYPE::SPOT_LIGHT:
-		//	float scale = 2 * _lightInfo.range;
-		//	GetTransform()->SetLocalScale(Vec3(scale, scale, scale));	//빛의 영역을 설정
-		//	break;
-		//}
-
-		lightComponent->mVolumeMesh->Render();
+		lightComponent->mMesh->Render();
 	}
-
 
 
 	////리소스에서 타켓으로
@@ -232,8 +287,9 @@ void RenderSystem::RenderFinal()
 	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->OMSetRenderTargets(1, backIndex);
 
 	
-	RESOURCEMANAGER.Get<Material>(L"Final")->PushGraphicsData();
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
+	RESOURCEMANAGER.Get<Material>(L"Final");
+	
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 }
 
@@ -242,7 +298,17 @@ void RenderSystem::RenderForward()
 	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::FORWARD)]) {
 
 		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
-		InstancingRender(vec);
+		for (auto& v : vec) {
+			RenderComponent* r = mWorld->GetComponent<RenderComponent>(v);
+
+			GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,3,&(r->mdataIndex),0);
+
+			for (int i = 0; i < r->mMaterials.size(); ++i) {
+				r->mMesh->Render(1,i);
+			}
+			
+		}
+
 	}
 	
 	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::PARTICLE)]) {
@@ -253,13 +319,9 @@ void RenderSystem::RenderForward()
 		for (auto& particle : vec)
 		{
 			ParticleComponent* particleComponent = mWorld->GetComponent<ParticleComponent>(particle);
+			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(particle);
 
-			PushTransformData(mWorld->GetComponent<TransformComponent>(particle));
-
-			particleComponent->_particleBuffer->PushGraphicsData(SRV_REGISTER::t9);
-			particleComponent->_material->SetFloat(0, particleComponent->_startScale);
-			particleComponent->_material->SetFloat(1, particleComponent->_endScale);
-			particleComponent->_material->PushGraphicsData();
+	
 
 			particleComponent->_mesh->Render(particleComponent->_maxParticle);
 		}
@@ -288,7 +350,8 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 {
 	TransformComponent* transformComponent;
 	RenderComponent* renderComponent;
-
+	RENDERMANAGER.GetConstantBuffer(CONSTANT_INDEX::CBV_CAMERA_INDEX, mFrameCount)->PushData(&cameraComponent->mCameraParams,sizeof(CameraParams));
+	// 추후 CBV 중복 삽입 문제 있나 확인해보기
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
 	for (const EntityID& gameObject : gameObjects)
 	{
@@ -320,19 +383,19 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 	}
 
 	mCamera = cameraComponent;
+
 	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::SHADOW)])
 	{
 		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
 		for (auto& shadow : vec) {
+
+			renderComponent = mWorld->GetComponent<RenderComponent>(shadow);
+			for (int i = 0; i < renderComponent->mMaterials.size(); ++i) {
+
+				GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,3, &renderComponent->mdataIndex,0);
+				renderComponent->mMesh->Render(1,i);
+			}
 			
-
-			transformComponent = mWorld->GetComponent<TransformComponent>(shadow);;
-			renderComponent = mWorld->GetComponent<RenderComponent>(shadow);;
-
-			PushTransformData(transformComponent);
-
-			RESOURCEMANAGER.Get<Material>(L"Shadow")->PushGraphicsData();
-			renderComponent->mMesh->Render();
 		}
 	}
 }
@@ -341,62 +404,32 @@ void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 {
 
 
-	
-
-	for (Entity& gameObject : gameObjects)
-	{
-		const uint64 instanceId = mWorld->GetComponent<RenderComponent>(gameObject)->GetInstanceID();
-		cache[instanceId].push_back(gameObject);
-	}
-
-	
-
-	for (auto& pair : cache)	// 같은 머테리얼을 가진것 끼리 분류
+	for (auto& pair : mMaterialObjectBatch)	// 같은 머테리얼을 가진것 끼리 분류
 	{
 		Entity entity0 = pair.second[0];
 
-		
-		ComponentPool<TransformComponent>& tobject = mWorld->GetComponentPool<TransformComponent>();
-
 		RenderComponent* object = mRenderComponentPool->GetComponent(entity0.GetID());
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(object->mdataIndex), 0);
+
 		if (pair.second.size() == 1)
 		{
-			tobject.GetComponent(entity0.GetID())->FinalUpdate();
-			Render(entity0);
 			
+			for (int i = 0; i < object->mMaterials.size(); ++i) {
+				object->mMesh->Render(1, i);
+			}
 		}
 		else
 		{
 			const uint64 instanceId = pair.first;
-			
 
-			for (const Entity& gameObject : pair.second)
-			{
-				tobject.GetComponent(gameObject.GetID())->FinalUpdate();
-				InstancingParams params;
-				params.matWorld = tobject.GetComponent(gameObject.GetID())->GetLocalToWorldMatrix();
-				params.matWV = params.matWorld * mCamera->mView;
-				params.matWVP = params.matWorld * mCamera->mView * mCamera->mProjection;
-
-				AddParam(instanceId, params);
+			for (int i = 0; i < object->mMaterials.size(); ++i) {
+				object->mMesh->Render(static_cast<uint32>(pair.second.size()), i);
 			}
-
-			shared_ptr<InstancingBuffer>& buffer = _buffers[instanceId];
-			Render(entity0, buffer);
+			
 		}
 	}
 }
 
-void RenderSystem::AddParam(uint64 instanceId, InstancingParams& data)
-{
-
-		if (_buffers.find(instanceId) == _buffers.end())
-			_buffers[instanceId] = make_shared<InstancingBuffer>();
-
-
-		_buffers[instanceId]->AddData(data);
-	
-}
 
 void RenderSystem::PushTransformData(TransformComponent* transformComponent)
 {
@@ -408,16 +441,22 @@ void RenderSystem::PushTransformData(TransformComponent* transformComponent)
 	transformParams.matWVP = transformComponent->mWorldMatrix * mCamera->mView * mCamera->mProjection;
 	transformParams.matViewInv = mCamera->mView.Invert();
 
-	CONST_BUFFER(CONSTANT_BUFFER_TYPE::TRANSFORM)->PushGraphicsData(&transformParams, sizeof(transformParams));
+	mTransformVector.push_back(transformParams);
+
+}
+
+void RenderSystem::PushMaterialData(RenderComponent* renderComponent)
+{
+	for (auto& material : renderComponent->mMaterials) {
+		mMaterialVector.push_back(material->GetParams());
+	}
+
+	
 }
 
 void RenderSystem::ClearBuffer()
 {
-	for (auto& pair : _buffers)
-	{
-		shared_ptr<InstancingBuffer>& buffer = pair.second;
-		buffer->Clear();
-	}
+
 
 	for (auto& shaderGroup : shaderBatches) {
 
@@ -426,64 +465,65 @@ void RenderSystem::ClearBuffer()
 		}
 	}
 
-	 for (auto& [ID, vec] : cache) {
+	 for (auto& [ID, vec] : mMaterialObjectBatch) {
 	 	vec.clear();
 	 }
 
+	 mLightVector.clear();
+	 mTransformVector.clear();
+	 mMaterialVector.clear();
 }
 
-
-void RenderSystem::Render(Entity entity)
-{
-	RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
-	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-	//AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
-
-	for (uint32 i = 0; i < renderComponent->mMaterials.size(); i++)
-	{
-		shared_ptr<Material>& material = renderComponent->mMaterials[i];
-
-		if (material == nullptr || material->GetShader() == nullptr)
-			continue;
-
-		PushTransformData(transformComponent);
-
-		//if (animationComponent)
-		//{
-		//	//GetAnimator()->PushData();
-		//	material->SetInt(1, 1);
-		//}
-
-		material->PushGraphicsData();
-		renderComponent->mMesh->Render(1, i);
-	}
-}
-
-void RenderSystem::Render(Entity entity,shared_ptr<InstancingBuffer>& buffer)
-{
-	RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
-	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-	AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
-
-	for (uint32 i = 0; i < renderComponent->mMaterials.size(); i++)
-	{
-		shared_ptr<Material>& material = renderComponent->mMaterials[i];
-
-		if (material == nullptr || material->GetShader() == nullptr)
-			continue;
-
-		buffer->PushData();
-
-		if (animationComponent)
-		{
-			//animationComponent->PushData();
-			material->SetInt(1, 1);
-		}
-
-		material->PushGraphicsData();
-		renderComponent->mMesh->Render(buffer, i);
-	}
-}
+//
+//void RenderSystem::Render(Entity entity)
+//{
+//	RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
+//	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+//	//AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
+//
+//	for (uint32 i = 0; i < renderComponent->mMaterials.size(); i++)
+//	{
+//		shared_ptr<Material>& material = renderComponent->mMaterials[i];
+//
+//		if (material == nullptr || material->GetShader() == nullptr)
+//			continue;
+//
+//		//if (animationComponent)
+//		//{
+//		//	//GetAnimator()->PushData();
+//		//	material->SetInt(1, 1);
+//		//}
+//
+//		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &renderComponent->mdataIndex, 0);
+//		renderComponent->mMesh->Render(1, i);
+//	}
+//}
+//
+//void RenderSystem::Render(Entity entity,shared_ptr<InstancingBuffer>& buffer)
+//{
+//	RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
+//	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+//	AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
+//
+//	for (uint32 i = 0; i < renderComponent->mMaterials.size(); i++)
+//	{
+//		shared_ptr<Material>& material = renderComponent->mMaterials[i];
+//
+//		if (material == nullptr || material->GetShader() == nullptr)
+//			continue;
+//
+//		buffer->PushData();
+//
+//		if (animationComponent)
+//		{
+//			//animationComponent->PushData();
+//			material->SetInt(1, 1);
+//		}
+//
+//		material->PushGraphicsData();
+//		renderComponent->mMesh->Render(buffer, i);
+//	}
+//}
 
 
 // 의사코드

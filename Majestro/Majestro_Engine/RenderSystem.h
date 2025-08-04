@@ -22,15 +22,15 @@ public:
 	void MainUpdate() {};
 	void PostUpdate() {};
 
-	//void SetMainCamera();
-private:
 	
-
-	void PushLightData(); //clear
-
+private: // RenderPass
 	void ClearRTV();	//clear
 
-	void RenderShadow();	//clear
+	void PushLightData(); //clear
+	void PushObjectData(); 
+
+
+	void RenderShadow();	
 
 	void RenderDeferred();	//
 
@@ -41,39 +41,46 @@ private:
 	void RenderForward();
 
 
-private:
+private: // Culling
 	bool IsCustomCulled(uint8 layer) { return (mCullingMask & (1 << layer)) != 0; }
 	bool IsFrustumCulled();
 
-	void RenderShadowCamera(Entity&, LightComponent*, CameraComponent*);
 
-	void InstancingRender(vector<Entity>& gameObjects);
-	void AddParam(uint64 instanceId, InstancingParams& data);
+private: // Push&Clear Data
 	void PushTransformData(TransformComponent* transformComponent);
+	void PushMaterialData(RenderComponent* renderComponent);
 	void ClearBuffer();
 
+private: // Render
+	void RenderShadowCamera(Entity&, LightComponent*, CameraComponent*);
 
-	void Render(Entity entity);
-	void Render(Entity entity, shared_ptr<InstancingBuffer>& buffer);
+//	void Render(Entity entity);
+//	void Render(Entity entity, shared_ptr<InstancingBuffer>& buffer);
+	void InstancingRender(vector<Entity>& gameObjects);
+	
 private:
+	uint8 mFrameCount = 0;
+
 	CameraComponent* mCamera;
 	uint32 mCullingMask = 0;
+
+	
 
 	shared_ptr<RootSignature>mRootSignature;
 	ComponentPool<RenderComponent>* mRenderComponentPool;
 	
-
-	unordered_map<uint64/*instanceId*/, shared_ptr<InstancingBuffer>> _buffers;
-	unordered_map<uint64, vector<Entity>> cache;
+private:
+	// 배치 버퍼
+	unordered_map<uint64, vector<Entity>> mMaterialObjectBatch;
 	array<unordered_map<std::wstring, std::vector<Entity>>, static_cast<uint8>(SHADER_TYPE::END)> shaderBatches;
 private:
-	
-
 
 	// RenderManager의 structuerdBuffer로 복사할 데이터들
-	std::vector<struct LightParams>		mLightformVector;
+	std::vector<struct LightParams>		mLightVector;
 	std::vector<struct TransformParams>	mTransformVector;
 	std::vector<struct MaterialParams>	mMaterialVector;
 
+	// lightRenderPASS 때 사용될 vector
+	std::vector<struct MaterialParams>	mLightCulling;
 };
 

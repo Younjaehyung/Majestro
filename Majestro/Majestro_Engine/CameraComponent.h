@@ -109,5 +109,5 @@ public:
 
 
 	uint32 mCullingMask = 0;	//어떤 레이어를 랜더링할건지 비트로 계산
-
+	CameraParams mCameraParams;
 };

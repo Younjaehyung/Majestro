@@ -18,11 +18,11 @@ void Shader::CreateGraphicsShader(const wstring& path, ShaderInfo info, const st
 
 	_info = info;
 
-	CreateVertexShader(path, vs, "vs_5_0");
-	CreatePixelShader(path, ps, "ps_5_0");
+	CreateVertexShader(path, vs, "vs_5_1");
+	CreatePixelShader(path, ps, "ps_5_1");
 
 	if (gs.empty() == false)
-		CreateGeometryShader(path, gs, "gs_5_0");
+		CreateGeometryShader(path, gs, "gs_5_1");
 
 	D3D12_INPUT_ELEMENT_DESC desc[] =
 	{

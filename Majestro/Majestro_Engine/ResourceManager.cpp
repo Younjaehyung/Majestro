@@ -282,36 +282,42 @@ void ResourceManager::CreateDefaultShader()
 	{
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges =
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CBV_REGISTER_COUNT - 1, 1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRV_REGISTER_COUNT, 0), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CONSTANT_INDEX_COUNT, 1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  STRUCTURED_INDEX_COUNT, 0), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,   -1, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_INDEX)), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 		};
 
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges2 =
+		{
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,   -1, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_INDEX)), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+		};
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddCBV(0);
+		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddConstant(0,3);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges);
+		//RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges2);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->CreateGraphicsRootSignature();
 
 	}
 
 	// ComputeRootSignature
-	{
-		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges =
-		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CBV_REGISTER_COUNT, 0), // b0~b4
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, SRV_REGISTER_COUNT, 0), // t0~t9
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, UAV_REGISTER_COUNT, 0), // u0~u4
-		};
+	//{
+	//	std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges =
+	//	{
+	//		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV,  static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END), 0), // b0~b4
+	//		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END), 0), // t0~t9
+	//		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,  static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END), 0), // u0~u4
+	//	};
 
-		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
+	//	shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
-		Add<RootSignature>(L"ComputeRootSignature", rootSignature);
-		RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->AddTable(ranges);
-		RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->CreateGraphicsRootSignature();
+	//	Add<RootSignature>(L"ComputeRootSignature", rootSignature);
+	//	RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->AddTable(ranges);
+	//	RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->CreateGraphicsRootSignature();
 
-	}
+	//}
 
 
 	// Skybox
@@ -414,12 +420,12 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Final", shader);
 	}
 
-	// Compute Shader
-	{
-		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateComputeShader(L"..\\Resources\\Shader\\compute.fx", "CS_Main", "cs_5_0");
-		Add<Shader>(L"ComputeShader", shader);
-	}
+	//// Compute Shader
+	//{
+	//	shared_ptr<Shader> shader = make_shared<Shader>();
+	//	shader->CreateComputeShader(L"..\\Resources\\Shader\\compute.fx", "CS_Main", "cs_5_0");
+	//	Add<Shader>(L"ComputeShader", shader);
+	//}
 
 	// Particle
 	{
@@ -437,12 +443,12 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Particle", shader);
 	}
 
-	// ComputeParticle
-	{
-		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateComputeShader(L"..\\Resources\\Shader\\particle.fx", "CS_Main", "cs_5_0");
-		Add<Shader>(L"ComputeParticle", shader);
-	}
+	//// ComputeParticle
+	//{
+	//	shared_ptr<Shader> shader = make_shared<Shader>();
+	//	shader->CreateComputeShader(L"..\\Resources\\Shader\\particle.fx", "CS_Main", "cs_5_0");
+	//	Add<Shader>(L"ComputeParticle", shader);
+	//}
 
 	// Shadow
 	{
@@ -504,30 +510,30 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Final", material);
 	}
 
-	// Compute Shader
-	{
+	//// Compute Shader
+	//{
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"ComputeShader");
-		Add<Material>(L"ComputeShader", material);
-	}
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"ComputeShader");
+	//	Add<Material>(L"ComputeShader", material);
+	//}
 
-	// Particle
-	{
+	//// Particle
+	//{
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"Particle");
-		Add<Material>(L"Particle", material);
-	}
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"Particle");
+	//	Add<Material>(L"Particle", material);
+	//}
 
-	// ComputeParticle
-	{
+	//// ComputeParticle
+	//{
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"ComputeParticle");
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"ComputeParticle");
 
-		Add<Material>(L"ComputeParticle", material);
-	}
+	//	Add<Material>(L"ComputeParticle", material);
+	//}
 
 	// GameObject
 	{

@@ -8,7 +8,6 @@
 #include "CameraComponent.h"
 #include "TransformComponent.h"
 
-
 void RenderManager::Initialize(const WindowInfo& info)
 {
 	mWindow = info;
@@ -33,7 +32,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, sizeof(LightParams), 1000 );
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_TRANSFROM_INDEX, sizeof(LightParams), 1000 );
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_TRANSFROM_INDEX, sizeof(TransformParams), 5000 );
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams),1000 );
 
 	//CreateStructuredBuffer(sizeof(BoneParams), );
@@ -166,7 +165,7 @@ void RenderManager::CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize)
 
 	for (int i = 0; i < GROUP_COUNT; ++i) {
 		shared_ptr<ConstantBuffer> buffer = make_shared<ConstantBuffer>();
-		buffer->CreateConstantView(type, bufferSize);
+		buffer->CreateConstantView(i,type, bufferSize);
 		mConstantBuffer[i].push_back(buffer);
 	}
 	
@@ -177,7 +176,7 @@ void RenderManager::CreateStructuredBuffer(STRUCTURED_INDEX type, uint32 element
 
 	for (int i = 0; i < GROUP_COUNT; ++i) {
 		shared_ptr<StructuredBuffer> buffer = make_shared<StructuredBuffer>();
-		buffer->CreateStructuredView(type, elementSize, elementCount);
+		buffer->CreateUploadStructuredView(i,type, elementSize, elementCount);
 		mDynamicStructuredBuffer[i].push_back(buffer);
 	}
 	

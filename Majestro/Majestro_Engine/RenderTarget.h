@@ -23,6 +23,7 @@ struct RenderTargetStruct
 	shared_ptr<Texture> Target;
 	float ClearColor[4] = {0.0f,0.0f ,0.0f ,0.0f };
 };
+
 class RenderTarget
 {
 public:
@@ -43,7 +44,9 @@ private:
 	RENDER_TARGET_GROUP_TYPE		mRenderTargetType;
 	uint32							mRenderTargetCount;
 	vector<RenderTargetStruct>		mRenderTargetVec;	//G_BUFFER 텍스쳐
+
 	ComPtr<ID3D12DescriptorHeap>	mRenderTargetHeap;
+	ComPtr<ID3D12DescriptorHeap>	mDepthStencilHeap;
 
 	shared_ptr<Texture>				mDepthStencilTexture;
 private:

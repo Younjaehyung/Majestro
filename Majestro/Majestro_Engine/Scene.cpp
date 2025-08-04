@@ -28,7 +28,7 @@ void Scene::Initialize()
 
 
 
-	Entity testEntity = mWorld->CreateEntity();	// ÇÊ¼ö
+	Entity testEntity = mWorld->CreateEntity();	// ï¿½Ê¼ï¿½
 
 	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.LoadSphereMesh();
 	shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"GameObject");
@@ -45,10 +45,6 @@ void Scene::Initialize()
 	mWorld->AddComponent<TransformComponent>(testEntity, t);
 	mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 
-	
-
-
-
 
 
 	Entity testlight = mWorld->CreateEntity();
@@ -58,27 +54,16 @@ void Scene::Initialize()
 	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };
 	l.mLightInfo.Color.Diffuse = { Vec3(1.f, 1.f, 1.f) };
 	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.SetLightType(LIGHT_TYPE::DIRECTIONAL_LIGHT) ;
 	l.SetLightDirection(Vec3(0, -1, 1.f));
 
-	mWorld->AddComponent<LightComponent>(testlight, l);
+	LightFactory::CreateLight(mWorld,LIGHT_TYPE::DIRECTIONAL_LIGHT,l);
 
-	TransformComponent t2{};
-	t2.mLocalPosition = { 0, 1000, 500 };
-	Vec3 a = Vec3(0, -1.f, 1.f);
-	a.Normalize();
-	t2.LookAt (a);
+	//Particle
+	//particleComponent->_particleBuffer->PushGraphicsData(SRV_REGISTER::t9);
+	//particleComponent->_material->SetFloat(0, particleComponent->_startScale);
+	//particleComponent->_material->SetFloat(1, particleComponent->_endScale);
+	//particleComponent->_material->PushGraphicsData();
 
-	mWorld->AddComponent<TransformComponent>(testlight, t2);
-
-	CameraComponent t3{};
-		t3.SetScale(1.f);
-		t3.SetFar(10000.f);
-		t3.SetWidth(4096);
-		t3.SetHeight(4096);
-
-
-	mWorld->AddComponent<CameraComponent>(testlight,t3);
 	//TransformComponent t;
 
 
@@ -103,44 +88,3 @@ void Scene::Render()
 }
 
 
-//
-//
-//
-//void Scene::AddGameObject(shared_ptr<GameObject> gameObject)
-//{
-//	if (gameObject->GetCamera() != nullptr)
-//	{
-//		_cameras.push_back(gameObject->GetCamera());
-//	}
-//	else if (gameObject->GetLight() != nullptr)
-//	{
-//		_lights.push_back(gameObject->GetLight());
-//	}
-//
-//
-//	_gameObjects.push_back(gameObject);
-//}
-//
-//void Scene::RemoveGameObject(shared_ptr<GameObject> gameObject)
-//{
-//
-//	if (gameObject->GetCamera())
-//	{
-//		auto findIt = std::find(_cameras.begin(), _cameras.end(), gameObject->GetCamera());
-//		if (findIt != _cameras.end())
-//			_cameras.erase(findIt);
-//	}
-//	else if (gameObject->GetLight())
-//	{
-//		auto findIt = std::find(_lights.begin(), _lights.end(), gameObject->GetLight());
-//		if (findIt != _lights.end())
-//			_lights.erase(findIt);
-//	}
-//
-//	auto findIt = std::find(_gameObjects.begin(), _gameObjects.end(), gameObject);
-//	if (findIt != _gameObjects.end())
-//	{
-//		_gameObjects.erase(findIt);
-//	}
-//}
-//

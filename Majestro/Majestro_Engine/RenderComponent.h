@@ -15,11 +15,19 @@ union InstanceID
 	uint64 ID;
 };
 
+struct DataIndex {
+
+
+	uint32 MaterialsIndexStart;
+	uint32 MaterialsIndexEnd;
+	uint32 TransformIndex;
+};
 
 class RenderComponent : public Component<RenderComponent>
 {
 public:
-	RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>> materials) : mMesh(mesh) , mMaterials(materials) {}
+	RenderComponent();
+	RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>> materials);
 	uint8 GetLayerIndex() { return mLayerIndex; }
 	bool IsVisibility() { return mVisibility; }
 	uint64 GetInstanceID();
@@ -34,9 +42,13 @@ public:
 	vector<shared_ptr<Material>> mMaterials;
 
 
-
-
-
 	bool mVisibility;
+
+public:
+
+	DataIndex mdataIndex;
+
+public:
+	uint8 mBufferIndex = 0;
 };
 

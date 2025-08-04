@@ -85,54 +85,66 @@ struct Vertex {
 	Vec3 tangent;
 };
 
-enum class CBV_REGISTER :uint8 {
-	b0,	// rootConstant용 (INDEX ID)
-	b1, 
-	b2,
-	b3,
-	b4,
-
-	END
-};
-
-enum class SRV_REGISTER :uint8 {
-	t0 = static_cast<uint8>(CBV_REGISTER::END),
-	t1,
-	t2,
-	t3,
-	t4,
-	t5,
-	t6,
-	t7,
-	t8,
-	t9,
-
-	END
+struct WindowInfo {
+	HWND	Hwnd;		//출력 윈도우 핸들
+	int32	Width;		//너비
+	int32	Height;	//높이
+	bool	ScreenState;	//전체,창 모드
 };
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//		이 곳에는 RootSignature기준 세팅시 ROOT_PARAMETER로 부여된						  //
+//		reg의 번호를 정의 해둠.															  //
+//		RootConstant와 DescriptorTable만을 사용함.
+////////////////////////////////////////////////////////////////////////////////////////////
 
-//compute 쉐이더용
-enum class UAV_REGISTER : uint8
+
+
+enum class mRootParmetersIndex : uint8
 {
-	u0 = static_cast<uint8>(SRV_REGISTER::END),
-	u1,
-	u2,
-	u3,
-	u4,
+	CONSTANT,		//	[0]
+	TABLE_GROUP,	//	[1]
+	TABLE_TEXTURE,	//	[2]
+	SAMPLER,		//	[3]
 
-	END,
+
+	END
 };
 
-enum class CONSTANT_INDEX : uint8
+
+enum class RCONSTANT_INDEX : uint8		//rootConstant
 { // b레지스터
-	CBV_CAMERA_INDEX = static_cast<uint8>(CBV_REGISTER::b1),
-	CBV_ETC_INDEX,
+	RCONSTANT_INDEX_PARM,	// 랜더링 파라미터 b0
+
+
+
+	RCONSTANT_INDEX_END
+};
+
+
+enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
+{ // b레지스터
+	CBV_CAMERA_INDEX = static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END),	// 카메라 파라미터 b1
 
 	CBV_INDEX_END
 };
 
-enum class STRUCTURED_INDEX : uint8
+
+enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
+{ // t레지스터
+	GBUFFER_POSITION_INDEX,
+	GBUFFER_NORMAL_INDEX,
+	GBUFFER_ALBEDO_INDEX,
+	GBUFFER_MRT_INDEX,
+	GBUFFER_DEPTH_INDEX,
+	GBUFFER_SHADOW_INDEX,
+
+
+	GBUFFER_INDEX_END
+};
+
+enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
 { // t레지스터
 	SRV_LIGHT_INDEX,
 	SRV_TRANSFROM_INDEX,
@@ -145,45 +157,41 @@ enum class STRUCTURED_INDEX : uint8
 	SRV_INDEX_END
 };
 
-enum class TEXTURE_INDEX : uint8
+enum class TEXTURE_INDEX : uint8		//DescriptorTable SRV(TEXTURE)
 { // t레지스터
 	TEXTURE_INDEX = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END),
-
+	
 
 	TEXTURE_INDEX_END
 };
 
 
 enum {
-	SWAP_CHAIN_BUFFER_COUNT = 2	//더블버퍼링 버퍼 개수
-	, CBV_REGISTER_COUNT = CBV_REGISTER::END
-	, SRV_REGISTER_COUNT = static_cast<uint8>(SRV_REGISTER::END) - CBV_REGISTER_COUNT
-	, CBV_SRV_REGISTER_COUNT = CBV_REGISTER_COUNT + SRV_REGISTER_COUNT	//CBV,SRV의 레지스터 개수
-	,UAV_REGISTER_COUNT = static_cast<uint8>(UAV_REGISTER::END) - CBV_SRV_REGISTER_COUNT
-	, TEXTURE_DESCRIPTOR_COUNT =	4000	// texture(descriptors) 개수
-	,TOTAL_REGISTER_COUNT = CBV_SRV_REGISTER_COUNT + UAV_REGISTER_COUNT	//총 레지스터 개수
-	, GROUP_COUNT = 3
-};
+	SWAP_CHAIN_BUFFER_COUNT = 2	// 더블버퍼링 버퍼 개수
+	, GROUP_COUNT = 2			// 추후 프레임리소스 선택시 3으로 변경할것.
 
 
-enum class mRootParmetersIndex : uint8
-{
-	CONSTANT,
-	TABLE,
-	SAMPLER,
-	/*TABLE(UAV),*/
+	, TEXTURE_DESCRIPTOR_COUNT = 1000	// texture(descriptors) 개수
 
-	END
+	, GBUFFER_INDEX_COUNT = static_cast<uint8>(GBUFFER_INDEX::GBUFFER_INDEX_END)
+	, CONSTANT_INDEX_COUNT = static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END) - 1
+	, STRUCTURED_INDEX_COUNT = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END)
+	, TEXTURE_INDEX_COUNT = TEXTURE_DESCRIPTOR_COUNT
+
+	, GROUP_TABLE_COUNT = GBUFFER_INDEX_COUNT + CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT
+
+	, TEXTURE_TABLE_COUNT = TEXTURE_INDEX_COUNT
+	, ALL_TABLE_COUNT = GBUFFER_INDEX_COUNT + CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT + TEXTURE_INDEX_COUNT
 };
 
 
 
-struct WindowInfo {
-	HWND	Hwnd;		//출력 윈도우 핸들
-	int32	Width;		//너비
-	int32	Height;	//높이
-	bool	ScreenState;	//전체,창 모드
-};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		이 곳에는 개발시 빠르게 전역매니저로 접근 가능한								  //
+//		Helper 매크로 함수들을 정의 해둠.
+////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -205,4 +213,5 @@ extern unique_ptr<class Engine> gEngine;
 
 #define DELTA_TIME		gEngine->GetTimer().GetTimeElapsed()
 
-#define CONST_BUFFER(type) gEngine->GetRenderManager().GetConstantBuffer(type)
+#define CONST_BUFFER(type,count) gEngine->GetRenderManager().GetConstantBuffer(type,count)
+#define STRUCT_BUFFER(type,count) gEngine->GetRenderManager().GetStructuredBuffer(type,count)

@@ -25,27 +25,35 @@ public:
 
 	ScratchImage& GetOriginalImage() { return mOriginalImage; }
 	ComPtr<ID3D12Resource> GetTex2D() { return mImage; }
-	ComPtr<ID3D12DescriptorHeap> GetSRV() { return mSrvHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetRTV() { return mRtvHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetDSV() { return mDsvHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetUAV() { return mUavHeap; }
+
 public:
 	float GetWidth() { return static_cast<float>(mDescription.Width); }
 	float GetHeight() { return static_cast<float>(mDescription.Height); }
 
-	
 
+	void SetRtvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mRtvHeapBegin = handle; }
+	void SetDsvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mDsvHeapBegin = handle; }
+
+	uint32 SetSrvIndex(uint32 index) { mSrvIndex = index; }
+	uint32 GetSrvIndex() { return mSrvIndex; }
+
+	uint32 SetUavIndex(uint32 index) { mUavIndex = index; }
+	uint32 GetUavIndex() { return mUavIndex; }
 private:
 	ScratchImage			 		mOriginalImage;
 	D3D12_RESOURCE_DESC				mDescription;
+
 	ComPtr<ID3D12Resource>			mImage;
 
-	ComPtr<ID3D12DescriptorHeap>	mSrvHeap;	//리소스 이미지
-	ComPtr<ID3D12DescriptorHeap>	mRtvHeap;
-	ComPtr<ID3D12DescriptorHeap>	mDsvHeap;
-	ComPtr<ID3D12DescriptorHeap>	mUavHeap;
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE		mSrvHeapBegin = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE		mUavHeapBegin = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE		mRtvHeapBegin = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE		mDsvHeapBegin = {};
+
+private:
+	uint32 mSrvIndex{};
+	uint32 mUavIndex{};
+
 };
 

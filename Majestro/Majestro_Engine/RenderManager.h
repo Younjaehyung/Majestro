@@ -45,14 +45,14 @@ public:
 
 
 
-	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_BUFFER_TYPE type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)]; }
+	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_INDEX type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)]; }
 	array < vector<shared_ptr<ConstantBuffer>>,GROUP_COUNT>& GetConstantBuffers() { return mConstantBuffer; }
 	
-	shared_ptr<StructuredBuffer> GetStructuredBuffer(CONSTANT_BUFFER_TYPE type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }
+	shared_ptr<StructuredBuffer> GetStructuredBuffer(STRUCTURED_INDEX type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }
 	array < vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>& GetStructuredBuffer() { return mDynamicStructuredBuffer; }
 
 
-
+	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
 
 	shared_ptr<RenderTarget> GetRTGroup(RENDER_TARGET_GROUP_TYPE type) { return mRenderTargetGroups[static_cast<uint8>(type)]; }
 
@@ -77,8 +77,6 @@ private:
 
 	// ResourceBuffer
 	array< vector<shared_ptr<ConstantBuffer>>, GROUP_COUNT>		mConstantBuffer;	// 0: Camera 나머지 : 추후 추가될 constantBuffer용
-								
-	vector< shared_ptr<TextureBuffer>>					mTextureBuffer;	// 머티리얼을 위한 텍스쳐 버퍼
 
 	array< vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>	mDynamicStructuredBuffer;	// 프레임 리소스를 위한 GROUP_COUNT만큼의 동적 버퍼
 	vector<shared_ptr<StructuredBuffer>>						mStaticStructuredBuffer;	// 머티리얼, 본 계층을 위한 정적 버퍼

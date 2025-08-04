@@ -11,28 +11,42 @@ void RenderTarget::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<RenderTarge
 	mRenderTargetCount = static_cast<uint32>(rtVec.size());
 	mDepthStencilTexture = dsTexture;
 
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	heapDesc.NumDescriptors = mRenderTargetCount;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	heapDesc.NodeMask = 0;
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc1 {};
+	heapDesc1.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	heapDesc1.NumDescriptors = mRenderTargetCount;
+	heapDesc1.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	heapDesc1.NodeMask = 0;
 
-	DEVICE->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&mRenderTargetHeap));
+	DEVICE->CreateDescriptorHeap(&heapDesc1, IID_PPV_ARGS(&mRenderTargetHeap));
+
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc2 = {};
+	heapDesc2.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	heapDesc2.NumDescriptors = 1;
+	heapDesc2.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	heapDesc2.NodeMask = 0;
+	DEVICE->CreateDescriptorHeap(&heapDesc2, IID_PPV_ARGS(&mDepthStencilHeap));
 
 	mRtvHeapSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	mRtvHeapBegin = mRenderTargetHeap->GetCPUDescriptorHandleForHeapStart();
-	mDsvHeapBegin = mDepthStencilTexture->GetDSV()->GetCPUDescriptorHandleForHeapStart();
+	mDsvHeapBegin = mDepthStencilHeap->GetCPUDescriptorHandleForHeapStart();
+
+	
+		DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, mDsvHeapBegin);
+		dsTexture->SetDsvHandle(mDsvHeapBegin);
 
 	for (uint32  i = 0; i < mRenderTargetCount; i++)
 	{
-		uint32 destSize = 1;
-		D3D12_CPU_DESCRIPTOR_HANDLE destHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(mRtvHeapBegin, i * mRtvHeapSize);
 
-		uint32 srcSize = 1;
-		ComPtr<ID3D12DescriptorHeap> srcRtvHeapBegin = mRenderTargetVec[i].Target->GetRTV();
-		D3D12_CPU_DESCRIPTOR_HANDLE srcHandle = srcRtvHeapBegin->GetCPUDescriptorHandleForHeapStart();
 
-		DEVICE->CopyDescriptors(1, &destHandle, &destSize, 1, &srcHandle, &srcSize, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapBegin = mRenderTargetHeap->GetCPUDescriptorHandleForHeapStart();
+		D3D12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvHeapBegin, i * mRtvHeapSize);
+
+		rtVec[i].Target->SetRtvHandle(handle);
+
+
+		DEVICE->CreateRenderTargetView(rtVec[i].Target->GetTex2D().Get(), nullptr, handle);
+
+		
 	}
 
 	//create시 베리어 생성

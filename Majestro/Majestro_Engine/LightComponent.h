@@ -1,4 +1,5 @@
 #include "Component.h"
+class World;
 
 enum class LIGHT_TYPE : uint8
 {
@@ -14,7 +15,7 @@ struct LightColor	//빛의 3개 속성
 	Vec4	Specular;
 };
 
-struct LightInfo	//빛과 관련된 정보
+struct LightParams	//빛과 관련된 정보
 {
 	LightColor	Color;
 	Vec4		Position;	//DIRECTIONAL_LIGHT은 사실상 필요 없음
@@ -25,15 +26,11 @@ struct LightInfo	//빛과 관련된 정보
 	int32		Padding;	//데이터 사이즈용 padding
 };
 
-struct LightParams
+class LightFactory
 {
-	uint32		LightCount;
-	Vec3		Padding;	//데이터 사이즈용 padding
-	LightInfo	Lights[50];
-
-
+public:
+	static Entity CreateLight(shared_ptr<World>, LIGHT_TYPE type,class LightComponent& l);
 };
-
 
 
 class LightComponent : public Component<LightComponent>
@@ -42,7 +39,7 @@ public:
 	void SetLightIndex(int8 index) { mLightIndex = index; }
 	LIGHT_TYPE GetLightType() { return static_cast<LIGHT_TYPE>(mLightInfo.LightType); }
 
-	const LightInfo& GetLightInfo() { return mLightInfo; }
+	const LightParams& GetLightInfo() { return mLightInfo; }
 
 	void SetLightDirection(Vec3 direction);	//빛의 방향과 Transform의 방향의 동기화를 위한 함수
 
@@ -50,7 +47,7 @@ public:
 	void SetAmbient(const Vec3& ambient) { mLightInfo.Color.Ambient = ambient; }
 	void SetSpecular(const Vec3& specular) { mLightInfo.Color.Specular = specular; }
 
-	void SetLightType(LIGHT_TYPE type);
+	//void SetLightType(LIGHT_TYPE type);
 	void SetLightRange(float range) { mLightInfo.Range = range; }
 	void SetLightAngle(float angle) { mLightInfo.Angle = angle; }
 
@@ -60,11 +57,11 @@ public:
 
 	bool mStaticLight = true; //정적물체인지 동적 물체인지 확인
 
-	LightInfo mLightInfo = {};
+	LightParams mLightInfo = {};
 
 	int8 mLightIndex = -1;
-	shared_ptr<class Mesh> mVolumeMesh;
-	shared_ptr<class Material> mLightMaterial;
+	//shared_ptr<class Mesh> mVolumeMesh;
+	//shared_ptr<class Material> mLightMaterial;
 
 
 };

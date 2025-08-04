@@ -26,28 +26,6 @@ void Material::SetShader(std::wstring name)
 }
 
 
-void Material::PushGraphicsData()
-{
-	// CBV 업로드
-	CONST_BUFFER(CONSTANT_BUFFER_TYPE::MATERIAL)->PushGraphicsData(&mParams, sizeof(mParams));
-
-	// SRV 업로드
-	for (size_t i = 0; i < mTextures.size(); i++)
-	{
-		if (mTextures[i] == nullptr)
-			continue;
-
-		SRV_REGISTER reg = SRV_REGISTER(static_cast<int8>(SRV_REGISTER::t0) + i);
-		Graphics_DescHeap->SetSRV(mTextures[i]->GetSRVHandle(), reg);
-	}
-
-	// 파이프라인 세팅
-
-	mShader->Update();
-
-
-}
-
 void Material::PushComputeData()
 {
 	//// CBV 업로드

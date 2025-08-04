@@ -56,14 +56,14 @@ public:
 	void SetVec4(uint8 index, Vec4 value) { mParams.SetVec4(index, value); }
 	void SetMatrix(uint8 index, Matrix& value) { mParams.SetMatrix(index, value); }
 
-	void PushGraphicsData();
+
 	void PushComputeData();
 	void Dispatch(uint32 x, uint32 y, uint32 z);
 
 	shared_ptr<Material> Clone();
 
 
-	
+	MaterialParams& GetParams() { return mParams; }
 private:
 	wstring mShaderID;
 

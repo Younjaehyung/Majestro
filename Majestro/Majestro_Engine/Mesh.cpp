@@ -117,6 +117,8 @@ void Mesh::Render(uint32 instanceCount, uint32 idx)
 	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, instanceCount, 0, 0, 0);	//인덱스로 그림을 그려라
 }
 
+
+
 void Mesh::Render(shared_ptr<class InstancingBuffer>& buffer, uint32 idx)
 {
 	//buffer을 1개 이상 넣음

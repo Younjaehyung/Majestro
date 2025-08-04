@@ -1,42 +1,12 @@
 #pragma once
 
 
-enum class CONSTANT_BUFFER_TYPE : uint8
-{
-	GLOBAL,	// Camera
-	TRANSFORM,	// 삭제
-	MATERIAL,
-	
-	END
-};
-
-enum class  STRUCTURED_BUFFER_TYPE : uint8	// 추후 추가 예정
-{
-	GLOBAL,
-	LIGHT,
-	TRANSFORM,
-	MATERIAL,
-	TEXTURE,
-	BONE,
-	PARTICLE,
-
-
-	END
-};
-
-enum
-{
-	CONSTANT_BUFFER_COUNT = static_cast<uint8>(CONSTANT_BUFFER_TYPE::END),
-	STRUCTURED_BUFFER_COUNT = static_cast<uint8>(STRUCTURED_BUFFER_TYPE::END)
-
-};
-
 class ConstantBuffer {
 public:
 	ConstantBuffer();
 	~ConstantBuffer();
 
-	void CreateConstantView(CONSTANT_INDEX type, uint32 size);					// RootDescriptor용
+	void CreateConstantView(uint8 frameCount,CONSTANT_INDEX type, uint32 size);					// RootDescriptor용
 
 	void PushComputeData(void* buffer, uint32 size);
 	//글로벌로 설정되어 한번만 작동하는 함수
@@ -56,11 +26,12 @@ private:
 	BYTE*					mMappedBuffer = nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
 	uint32					mElementSize = 0;	//buffer의 Size
 
-
+	
 	D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
 	uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
 
-	CONSTANT_INDEX			mRootParmetersIndex = {};			// RootParmetersIndex번호
+	CONSTANT_INDEX			mConstantIndex = {};			// CONSTANT Type
+	uint8					mFrameCount = 0;
 };
 
 
@@ -71,11 +42,12 @@ public:
 	~StructuredBuffer();
 
 
-	void CreateStructuredView(STRUCTURED_INDEX type,uint32 elementSize, uint32 elementCount);
+	void CreateUploadStructuredView(uint8 frameCount, STRUCTURED_INDEX type,uint32 elementSize, uint32 elementCount);
+	void CreateDefaultStructuredView(uint8 frameCount, STRUCTURED_INDEX type,uint32 elementSize, uint32 elementCount);
 
 	void PushGraphicsData(void* buffer, uint32 size);
-	void PushComputeSRVData(SRV_REGISTER reg);	// 추후 수정
-	void PushComputeUAVData(UAV_REGISTER reg);
+	void PushComputeSRVData(void* buffer, uint32 size);	// 추후 수정
+	void PushComputeUAVData(void* buffer, uint32 size);
 
 
 
@@ -83,7 +55,8 @@ public:
 	D3D12_RESOURCE_STATES GetResourceState() { return mResourceState; }
 	ComPtr<ID3D12Resource> GetBuffer() { return mBuffer; }
 private:
-	void CreateBuffer();
+	void CreateUploadBuffer();
+	void CreateDefaultBuffer();
 	void CreateView(STRUCTURED_INDEX);
 private:
 	ComPtr<ID3D12Resource>			mBuffer;
@@ -94,35 +67,14 @@ private:
 
 	D3D12_RESOURCE_STATES		mResourceState = {};
 
-	STRUCTURED_INDEX				mRootParmetersIndex = {};
+	STRUCTURED_INDEX			mSructuredIndex = {}; // Sructured Type
+	uint8						mFrameCount = 0;
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE mSrvCpuHandleBegin = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mUavCpuHandleBegin = {};
 
 };
 
-
-class TextureBuffer {
-public:
-	TextureBuffer();
-	~TextureBuffer();
-public:
-
-	void CreateTextureBuffer(shared_ptr<Texture> texture, D3D12_SRV_DIMENSION viewDimension = D3D12_SRV_DIMENSION_TEXTURE2D );
-
-private:
-	//ComPtr<ID3D12Resource>			mBuffer;	// 텍스쳐 리소스는 texture에서 관리
-
-	uint32						mElementSize = 0;
-	uint32						mElementCount = 0;
-
-	D3D12_RESOURCE_STATES		mResourceState = {};
-
-	STRUCTURED_INDEX			mRootParmetersIndex = {};
-private:
-	D3D12_CPU_DESCRIPTOR_HANDLE mCpuHandleBegin = {};
-
-};
 
 struct InstancingParams
 {

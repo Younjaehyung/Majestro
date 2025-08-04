@@ -19,10 +19,11 @@ ConstantBuffer::~ConstantBuffer()
 	}
 }
 
-void ConstantBuffer::CreateConstantView(CONSTANT_INDEX type,uint32 size)
+void ConstantBuffer::CreateConstantView(uint8 frameCount, CONSTANT_INDEX type,uint32 size)
 {
-	mRootParmetersIndex =type;
-
+	mConstantIndex = type;
+	mFrameCount = frameCount;
+	
 	// 상수 버퍼는 256 바이트 배수로 만들어야 한다
 	// 0 256 512 768
 	mElementSize = (size + 255) & ~255;
@@ -60,7 +61,7 @@ void ConstantBuffer::CreateView(CONSTANT_INDEX type)
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 	
 	mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
-	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, static_cast<uint32>(type) * mHandleIncrementSize);
+	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin,( (static_cast<uint32>(mFrameCount)*GROUP_COUNT) +static_cast<uint32>(type) )* mHandleIncrementSize);
 	
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc {};
 		cbvDesc.BufferLocation = mCbvBuffer->GetGPUVirtualAddress();
@@ -121,20 +122,36 @@ StructuredBuffer::~StructuredBuffer()
 {
 }
 
-void StructuredBuffer::CreateStructuredView(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
+void StructuredBuffer::CreateUploadStructuredView(uint8 frameCount, STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
 {
-	mRootParmetersIndex = type;
-
+	mSructuredIndex = type;
+	mFrameCount = frameCount;
 	mElementSize = elementSize;		// 구조체 크기
 	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
-	mResourceState = D3D12_RESOURCE_STATE_COMMON;
+
 	
 	//GPU에 원하는 버퍼 생성
 
-	CreateBuffer();
+	CreateUploadBuffer();
 	CreateView(type);
 
 	
+}
+
+void StructuredBuffer::CreateDefaultStructuredView(uint8 frameCount, STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
+{
+	mSructuredIndex = type;
+	mFrameCount = frameCount;
+	mElementSize = elementSize;		// 구조체 크기
+	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
+	mResourceState = D3D12_RESOURCE_STATE_COMMON;
+
+	//GPU에 원하는 버퍼 생성
+
+	CreateDefaultBuffer();
+	CreateView(type);
+
+
 }
 
 void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
@@ -142,19 +159,39 @@ void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
 	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
-void StructuredBuffer::PushComputeSRVData(SRV_REGISTER reg)
+void StructuredBuffer::PushComputeSRVData(void* buffer, uint32 size)
 {
-	//gEngine->GetComputeDescHeap()->SetSRV(_srvHeapBegin, reg);
+	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
-void StructuredBuffer::PushComputeUAVData(UAV_REGISTER reg)
+void StructuredBuffer::PushComputeUAVData(void* buffer, uint32 size)
 {
-	//gEngine->GetComputeDescHeap()->SetUAV(mUavHeapBegin, reg);
+	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
-void StructuredBuffer::CreateBuffer()
+void StructuredBuffer::CreateUploadBuffer()
 {
 
+	// Buffer
+	{
+		uint64 bufferSize = static_cast<uint64>(mElementSize) * mElementCount;
+		D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, D3D12_RESOURCE_FLAG_NONE);
+		D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+
+		DEVICE->CreateCommittedResource(
+			&heapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&mBuffer));
+	}
+	mBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedBuffer));
+}
+
+void StructuredBuffer::CreateDefaultBuffer()
+{
+	// 추후 upload < = > default copy만들기
 	// Buffer
 	{
 		uint64 bufferSize = static_cast<uint64>(mElementSize) * mElementCount;
@@ -179,7 +216,7 @@ void StructuredBuffer::CreateView(STRUCTURED_INDEX type)
 
 	uint32 mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
 
-	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, static_cast<uint32>(type) * mHandleIncrementSize);
+	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type)) * static_cast<uint32>(type) * mHandleIncrementSize);
 
 	switch (type) {
 	case STRUCTURED_INDEX::SRV_PARTICLE_INDEX:	// Particle일시 UAV용도 생성
@@ -211,73 +248,6 @@ void StructuredBuffer::CreateView(STRUCTURED_INDEX type)
 		DEVICE->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSrvCpuHandleBegin);
 
 }
-//////////////////////////////////////////////////////////////////////////////////
-
-
-
-TextureBuffer::TextureBuffer()
-{
-}
-
-TextureBuffer::~TextureBuffer()
-{
-}
-
-void TextureBuffer::CreateTextureBuffer(shared_ptr<Texture> texture, D3D12_SRV_DIMENSION viewDimension)
-{
-
-	UINT mipLevels = 1;	// 임시 밈맵
-
-	// Texture에 대한 SRV 서술자 설정
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // 기본 매핑 (RGBA -> RGBA)
-	srvDesc.Format = texture->GetOriginalImage().GetMetadata().format; // 텍스처의 실제 포맷
-
-	// ViewDimension에 따라 다른 구조체 필드를 설정
-	srvDesc.ViewDimension = viewDimension;
-
-	switch (viewDimension)
-	{
-	case D3D12_SRV_DIMENSION_TEXTURE2D:
-		srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
-		srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
-		srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
-		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
-		break;
-	case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
-		srvDesc.Texture2DArray.MostDetailedMip = 0;
-		srvDesc.Texture2DArray.MipLevels = mipLevels;
-		srvDesc.Texture2DArray.FirstArraySlice = 0;
-		srvDesc.Texture2DArray.ArraySize = texture->GetTex2D()->GetDesc().DepthOrArraySize; // 배열 크기
-		srvDesc.Texture2DArray.PlaneSlice = 0;
-		srvDesc.Texture2DArray.ResourceMinLODClamp = 0.0f;
-		break;
-	case D3D12_SRV_DIMENSION_TEXTURECUBE:
-		srvDesc.TextureCube.MostDetailedMip = 0;
-		srvDesc.TextureCube.MipLevels = mipLevels;
-		srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
-		break;
-		// 다른 텍스처 차원에 대한 case 추가 (3D, CubeArray 등)
-	default:
-		// 지원하지 않는 차원에 대한 오류 처리
-		break;
-	}
-
-
-	D3D12_CPU_DESCRIPTOR_HANDLE heapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-	uint32& lastIndex = RENDERMANAGER.GetGraphicsDescHeap()->GetLastIndex();
-
-	uint32 handleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
-
-	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(heapHandleBegin, lastIndex * handleIncrementSize);
-	lastIndex++;
-
-	// SRV 생성
-	DEVICE->CreateShaderResourceView(texture->GetTex2D().Get(), &srvDesc, mCpuHandleBegin);
-}
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////////
 

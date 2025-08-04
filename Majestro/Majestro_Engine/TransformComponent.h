@@ -41,5 +41,8 @@ public:
 
 	Entity mParent;
 	vector<Entity> mChild;
+
+public:
+	uint8 mBufferIndex = 0;
 };
 	

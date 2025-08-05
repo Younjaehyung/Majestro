@@ -9,10 +9,9 @@ struct VS_IN
     float2 uv : TEXCOORD;
     float3 normal : NORMAL;
     float3 tangent : TANGENT;
-
-    row_major matrix matWorld : W;
-    row_major matrix matWV : WV;
-    row_major matrix matWVP : WVP;
+    float4 weight : BONEWEIGHT;
+    float4 indices : BONEINDICES;
+    
     uint instanceID : SV_InstanceID;
 };
 
@@ -30,26 +29,19 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0;
 
-    if (g_int_0 == 1)
-    {
-        output.pos = mul(float4(input.pos, 1.f), input.matWVP);
-        output.uv = input.uv;
+    uint objectIndex = GlobalParams.ObjectIndex;
+    
+    
+    output.pos = mul(float4(input.pos, 1.f), Objects[objectIndex].MatWorld);
+    output.uv = input.uv;
 
-        output.viewPos = mul(float4(input.pos, 1.f), input.matWV).xyz;
-        output.viewNormal = normalize(mul(float4(input.normal, 0.f), input.matWV).xyz);
-        output.viewTangent = normalize(mul(float4(input.tangent, 0.f), input.matWV).xyz);
-        output.viewBinormal = normalize(cross(output.viewTangent, output.viewNormal));
-    }
-    else
-    {
-        output.pos = mul(float4(input.pos, 1.f), g_matWVP);
-        output.uv = input.uv;
-
-        output.viewPos = mul(float4(input.pos, 1.f), g_matWV).xyz;
-        output.viewNormal = normalize(mul(float4(input.normal, 0.f), g_matWV).xyz);
-        output.viewTangent = normalize(mul(float4(input.tangent, 0.f), g_matWV).xyz);
-        output.viewBinormal = normalize(cross(output.viewTangent, output.viewNormal));
-    }
+    matrix WV = mul(output.pos, CameraParams.MatView);
+    
+    output.viewPos = mul(float4(input.pos, 1.f), WV).xyz;
+    output.viewNormal = normalize(mul(float4(input.normal, 0.f), WV).xyz);
+    output.viewTangent = normalize(mul(float4(input.tangent, 0.f), WV).xyz);
+    output.viewBinormal = normalize(cross(output.viewTangent, output.viewNormal));
+    
 
     return output;
 }
@@ -64,25 +56,63 @@ struct PS_OUT
 PS_OUT PS_Main(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
+    
+    uint objectIndex = GlobalParams.ObjectIndex;
+    int materialIndex = GlobalParams.MaterialsIndex;
+    MATERIALINFO materials = Materials[materialIndex];
 
-    float4 color = float4(1.f, 1.f, 1.f, 1.f);
-    if (g_tex_on_0)
-        color = g_tex_0.Sample(g_sam_0, input.uv);
+    float color = materials.Diffuse;
+    
+    
+       // 다중 텍스처링
+        if (materials.DiffuseMap0Index >= 0)
+        {
+        // 텍스처 배열에서 인덱스에 해당하는 텍스처를 샘플링
+            float4 texColor0 = TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv);
+            color *= texColor0;
+        }
+    
+        if (materials.DiffuseMap1Index >= 0)
+        {
+        // 샘플링 후 블렌딩 (선형 보간)
+            float4 texColor1 = TextureMaps[materials.DiffuseMap1Index].Sample(g_sam_0, input.uv);
+        // alpha값을 사용하여 블렌딩
+            color = lerp(color, texColor1, texColor1.a);
+        }
+    
+        if (materials.DiffuseMap2Index >= 0)
+        {
 
-    float3 viewNormal = input.viewNormal;
-    if (g_tex_on_1)
-    {
+            float4 texColor1 = TextureMaps[materials.DiffuseMap2Index].Sample(g_sam_0, input.uv);
+
+            color = lerp(color, texColor1, texColor1.a);
+        }
+    
+        if (materials.DiffuseMap3Index >= 0)
+        {
+
+            float4 texColor1 = TextureMaps[materials.DiffuseMap3Index].Sample(g_sam_0, input.uv);
+
+            color = lerp(color, texColor1, texColor1.a);
+        }
+    
+    
+        float3 viewNormal = input.viewNormal;
+        if (materials.NormalMapIndex >= 0)
+        {
         // [0,255] 범위에서 [0,1]로 변환
-        float3 tangentSpaceNormal = g_tex_1.Sample(g_sam_0, input.uv).xyz;
+            float3 tangentSpaceNormal = TextureMaps[materials.NormalMapIndex].Sample(g_sam_0, input.uv).xyz;
         // [0,1] 범위에서 [-1,1]로 변환
-        tangentSpaceNormal = (tangentSpaceNormal - 0.5f) * 2.f;
-        float3x3 matTBN = { input.viewTangent, input.viewBinormal, input.viewNormal };
-        viewNormal = normalize(mul(tangentSpaceNormal, matTBN));
-    }
+            tangentSpaceNormal = (tangentSpaceNormal - 0.5f) * 2.f;
+            float3x3 matTBN = { input.viewTangent, input.viewBinormal, input.viewNormal };
+            viewNormal = normalize(mul(tangentSpaceNormal, matTBN));
+        }
+    
 
     output.position = float4(input.viewPos.xyz, 0.f);
     output.normal = float4(viewNormal.xyz, 0.f);
     output.color = color;
+
 
     return output;
 }

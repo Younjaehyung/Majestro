@@ -1,15 +1,6 @@
 #include "Entity.h"
 #include "Component.h"
 
-struct TransformParams {
-	Matrix matWorld;
-	Matrix matView;
-	Matrix matProjection;
-	Matrix matWV;
-	Matrix matWVP;
-	Matrix matViewInv;
-};
-
 class TransformComponent : public Component<TransformComponent>
 {
 public:

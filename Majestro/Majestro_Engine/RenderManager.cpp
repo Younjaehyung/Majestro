@@ -33,7 +33,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, sizeof(LightParams), 1000 );
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_TRANSFROM_INDEX, sizeof(TransformParams), 5000 );
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX, sizeof(ObjectParams), 5000 );
 	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams),1000 );
 
 	//CreateStructuredBuffer(sizeof(BoneParams), );

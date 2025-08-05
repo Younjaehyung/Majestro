@@ -86,20 +86,6 @@ void ConstantBuffer::PushComputeData(void* buffer, uint32 size)
 }
 
 
-
-D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGpuVirtualAddress(uint32 index)
-{
-	D3D12_GPU_VIRTUAL_ADDRESS objCBAddress = mCbvBuffer->GetGPUVirtualAddress();
-	objCBAddress += index * mElementSize;
-	return objCBAddress;
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE ConstantBuffer::GetCpuHandle(uint32 index)
-{
-	return CD3DX12_CPU_DESCRIPTOR_HANDLE(mCpuHandleBegin, index * mHandleIncrementSize);
-}
-
-
 void ConstantBuffer::PushData(void* buffer, uint32 size)
 {
 

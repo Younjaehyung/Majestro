@@ -298,9 +298,6 @@
     <None Include="SimpleMath.inl">
       <Filter>Utils</Filter>
     </None>
-    <None Include="..\Resources\Shader\default2.hlsli">
-      <Filter>World\Resource\Shader</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\compute.fx">

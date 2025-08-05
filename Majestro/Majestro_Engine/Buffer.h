@@ -11,10 +11,6 @@ public:
 	void PushComputeData(void* buffer, uint32 size);
 	//글로벌로 설정되어 한번만 작동하는 함수
 
-
-	D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress(uint32 index);
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(uint32 index);
-
 	void PushData(void* buffer, uint32 size);	// TableDescriptor용
 
 private:

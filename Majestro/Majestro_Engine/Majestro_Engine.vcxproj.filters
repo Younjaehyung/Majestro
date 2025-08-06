@@ -310,33 +310,54 @@
     <None Include="SimpleMath.inl">
       <Filter>Utils</Filter>
     </None>
-    <None Include="..\Resources\Shader\deferred_vertex.hlsli">
-      <Filter>World\Resource\Shader\Deferred</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\Resources\Shader\utils.fx">
+    <FxCompile Include="..\Resources\Shader\utils.hlsli">
       <Filter>World\Resource\Shader\Utils</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\shadow.fx">
+    <FxCompile Include="..\Resources\Shader\params.hlsli">
+      <Filter>World\Resource\Shader\Utils</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\deferred_PS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\deferred.fx">
+    <FxCompile Include="..\Resources\Shader\lighting_PS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\forward.fx">
+    <FxCompile Include="..\Resources\Shader\lighting_VS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\shadow_PS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\shadow_VS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_PS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\lighting.fx">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+    <FxCompile Include="..\Resources\Shader\forward_VS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\params.fx">
-      <Filter>World\Resource\Shader\Utils</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\particle.fx">
+    <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
       <Filter>World\Resource\Shader\Particle</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\skybox.fx">
+    <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
+      <Filter>World\Resource\Shader\Particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
+      <Filter>World\Resource\Shader\Particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
+      <Filter>World\Resource\Shader\Particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\deferred_VS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\skybox_PS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\skybox_VS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
   </ItemGroup>

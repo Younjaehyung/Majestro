@@ -1,5 +1,3 @@
-#ifndef _PARAMS_FX_
-#define _PARAMS_FX_
 
 struct LightColor
 {
@@ -155,5 +153,3 @@ TextureCube SkyBoxMaps[16] : register(t1, space2);
 
 
 SamplerState g_sam_0 : register(s0);
-
-#endif

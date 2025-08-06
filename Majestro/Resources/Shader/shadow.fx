@@ -17,8 +17,9 @@ struct VS_OUT
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
-
-    output.pos = mul(float4(input.pos, 1.f), g_matWVP);
+    int index = GlobalParams.ObjectIndex;
+   
+    output.pos = mul(float4(input.pos, 1.f), mul(Objects[index].MatWorld, mul(PassParams.MatView, PassParams.MatProjection)));
     output.clipPos = output.pos;
 
     return output;

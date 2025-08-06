@@ -17,27 +17,34 @@ struct LIGHTINFO
     float	    range;
     float	    angle;
     int  	    padding;
-};
-
-struct TRANSFORM
-{
-        //row_major: 행렬접근순서를 다렉기준으로 정의함
+    
+    
     matrix MatWorld;
     matrix MatView;
-    matrix g_matProjection;
-
+    matrix MatProjection;
+    matrix MatViewInv;
+    matrix MatProjectionInv;
     
-    
-    matrix g_matViewInv;
+    int MaterialsIndex;
 };
 
 struct OBJECTINFO
 {
     matrix MatWorld;
     
-    uint MaterialInfoIndex;
+    int MaterialInfoIndex;
     
-    
+    int IsParticleSystem; // Object가 아니라 파티클이면 1
+};
+
+struct ComputeShared
+{
+    int addCount;
+};
+
+struct PARTICLESHARED
+{
+    int TextureIndex;
 };
 
 struct PARTICLE
@@ -55,12 +62,15 @@ struct PARTICLE
     float minSpeed ;
     float maxSpeed ;
 
+    
     float3 worldPos;
     float curTime; //경과시간
     float3 worldDir;
     float lifeTime; //유지시간
     int alive; //랜더링유무용
-    float3 padding;
+
+    float EndScale;
+    float StartScale;
 };
 
 struct MATERIALINFO
@@ -87,25 +97,31 @@ struct MATERIALINFO
 
 struct PASSINFO
 {
+    matrix MatView;
+    matrix MatProjection;
+    Matrix MatViewInv; // view의 역행렬
+    Matrix MatProjectionInv; // Projection의 역행렬	(사용은 선택)
+    
+    float2 ScreenSize;
+    float2 Padding;
+    
     int LightsCount;
     int SkyBoxIndex;
 };
 
 struct GLOBAL_PARAMS
 {
+
     uint ObjectIndex;
-    uint MaterialsIndex;
-   
-};
+    uint LightIndex;    //light가 아니면 쓰지 말것.
+    uint ParticleIndex; //Particle가 아니면 쓰지 말것.
 
-struct CAMERA_PARAMS
-{
-    Matrix MatView;
-    Matrix MatProjection;
-    Matrix MatViewInv; // view의 역행렬
-    Matrix MatProjectionInv; // Projection의 역행렬	(사용은 선택)
 };
-
+/*
+	
+	SHADOW, // SHADOW
+	G_BUFFER, // POSITION, NORMAL, COLOR 
+	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////
 Texture2D<float4> Gbuffer[6] : register(t0, space0);
  ///////////////////////////////////////////////////////////////////
@@ -113,20 +129,30 @@ Texture2D<float4> Gbuffer[6] : register(t0, space0);
 
  ///////////////////////////GROUP///////////////////////////////////
 ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space1);
-ConstantBuffer<CAMERA_PARAMS> CameraParams : register(b1, space1);
-ConstantBuffer<PASSINFO> PassParams : register(b5, space1);
+ConstantBuffer<PASSINFO> PassParams : register(b1, space1);
 
 StructuredBuffer<LIGHTINFO> Lights : register(t0, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t1, space1);
 StructuredBuffer<MATERIALINFO> Materials : register(t2, space1);
-StructuredBuffer<PARTICLE> Particle : register(t3, space1);
+
+
 //StructuredBuffer<Matrix> g_mat_bone : register(t4);
+ ///////////////////////////////////////////////////////////////////
+StructuredBuffer<PARTICLE> Particle : register(t3, space1);
+StructuredBuffer<PARTICLESHARED> ParticleShared : register(t4, space1);
+
+
+ ////////////////////////////////UAV////////////////////////////////
+RWStructuredBuffer<PARTICLE> RWParticle : register(u0,space0); //compute Shader 결과값 저장
+RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space0); //공유 전역변수
  ///////////////////////////////////////////////////////////////////
 
  ////////////////////////////TEXTURE////////////////////////////////
 Texture2D<float4> TextureMaps[] : register(t0, space2);
-// TextureCube SkyBoxMaps[16] : register(t1, space2);
+TextureCube SkyBoxMaps[16] : register(t1, space2);
  ///////////////////////////////////////////////////////////////////
+
+
 
 SamplerState g_sam_0 : register(s0);
 

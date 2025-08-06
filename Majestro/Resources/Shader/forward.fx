@@ -32,7 +32,7 @@ VS_OUT VS_Main(VS_IN input)
     output.pos = mul(float4(input.pos, 1.f), Objects[objectIndex].MatWorld);
     output.uv = input.uv;
 
-    matrix WV = mul(output.pos, CameraParams.MatView);
+    matrix WV = mul(output.pos, PassParams.MatView);
     
     output.viewPos = mul(float4(input.pos, 1.f), WV).xyz;
     output.viewNormal = normalize(mul(float4(input.normal, 0.f), WV).xyz);
@@ -46,7 +46,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 {
 
     uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = GlobalParams.MaterialsIndex;
+    int materialIndex = Objects[GlobalParams.ObjectIndex].MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
     float4 color = materials.Diffuse;
@@ -134,8 +134,8 @@ VS_TEX_OUT VS_Tex(VS_TEX_IN input)
     VS_TEX_OUT output = (VS_TEX_OUT) 0;
 
     uint objectIndex = GlobalParams.ObjectIndex;
-    matrix view = CameraParams.MatView;
-    matrix projection = CameraParams.MatProjection;
+    matrix view = PassParams.MatView;
+    matrix projection = PassParams.MatProjection;
     matrix WVP = mul(mul(Objects[objectIndex].MatWorld, view), projection);
     
     output.pos = mul(float4(input.pos, 1.f), WVP);
@@ -147,7 +147,7 @@ VS_TEX_OUT VS_Tex(VS_TEX_IN input)
 float4 PS_Tex(VS_TEX_OUT input) : SV_Target
 {
     float4 color = float4(1.f, 1.f, 1.f, 1.f);
-    int materialIndex = GlobalParams.MaterialsIndex;
+    int materialIndex = Objects[GlobalParams.ObjectIndex].MaterialInfoIndex;
     
     MATERIALINFO materials = Materials[materialIndex];
     

@@ -40,6 +40,18 @@
     <Filter Include="Utils\UITools">
       <UniqueIdentifier>{1eabffd8-9ecb-476b-97df-1f2f68729020}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\Deferred">
+      <UniqueIdentifier>{9ff8d14e-9792-4fb6-a3c3-3635c6b5f956}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\Forward">
+      <UniqueIdentifier>{3b49f856-69bf-46ec-ad1b-9d94e8c31bb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\Particle">
+      <UniqueIdentifier>{041f38b3-62c6-49d0-bcc3-60abc1d8a57b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\Utils">
+      <UniqueIdentifier>{06defce9-15b0-49a7-8794-682af45355e5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -298,34 +310,34 @@
     <None Include="SimpleMath.inl">
       <Filter>Utils</Filter>
     </None>
+    <None Include="..\Resources\Shader\deferred_vertex.hlsli">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\Resources\Shader\compute.fx">
-      <Filter>World\Resource\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\deferred.fx">
-      <Filter>World\Resource\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\forward.fx">
-      <Filter>World\Resource\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\lighting.fx">
-      <Filter>World\Resource\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\params.fx">
-      <Filter>World\Resource\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\particle.fx">
-      <Filter>World\Resource\Shader</Filter>
+    <FxCompile Include="..\Resources\Shader\utils.fx">
+      <Filter>World\Resource\Shader\Utils</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\shadow.fx">
-      <Filter>World\Resource\Shader</Filter>
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\deferred.fx">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward.fx">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\lighting.fx">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\params.fx">
+      <Filter>World\Resource\Shader\Utils</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle.fx">
+      <Filter>World\Resource\Shader\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\skybox.fx">
-      <Filter>World\Resource\Shader</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\utils.fx">
-      <Filter>World\Resource\Shader</Filter>
+      <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

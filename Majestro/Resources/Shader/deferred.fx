@@ -35,7 +35,7 @@ VS_OUT VS_Main(VS_IN input)
     output.pos = mul(float4(input.pos, 1.f), Objects[objectIndex].MatWorld);
     output.uv = input.uv;
 
-    matrix WV = mul(output.pos, CameraParams.MatView);
+    matrix WV = mul(output.pos, PassParams.MatView);
     
     output.viewPos = mul(float4(input.pos, 1.f), WV).xyz;
     output.viewNormal = normalize(mul(float4(input.normal, 0.f), WV).xyz);
@@ -58,7 +58,7 @@ PS_OUT PS_Main(VS_OUT input)
     PS_OUT output = (PS_OUT) 0;
     
     uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = GlobalParams.MaterialsIndex;
+    int materialIndex = Objects[objectIndex].MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
     float color = materials.Diffuse;

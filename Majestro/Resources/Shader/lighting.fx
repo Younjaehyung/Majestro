@@ -43,24 +43,28 @@ VS_OUT VS_DirLight(VS_IN input)
 PS_OUT PS_DirLight(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
-    int index = Materials[GlobalParams.MaterialsIndexStart];
+    int index = GlobalParams.LightIndex;
+    LIGHTINFO light = Lights[index];
+    MATERIALINFO material = Materials[light.MaterialsIndex];
     
-    float3 viewPos = TextureMaps[index].Sample(g_sam_0, input.uv).xyz;
+    float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
     if (viewPos.z <= 0.f)   //DirLight의 영역에 카메라에 있는지에 따라 출력할지 아닐지 정함
         clip(-1);   //clip에 값이 0보다 작으면 종료하게 됨
 
-    float3 viewNormal = g_tex_1.Sample(g_sam_0, input.uv).xyz;
+    float3 viewNormal = Gbuffer[2].Sample(g_sam_0, input.uv).xyz;
 
-    LightColor color = CalculateLightColor(g_int_0, viewNormal, viewPos);
+    LightColor color = CalculateLightColor(index, viewNormal, viewPos);
     
     
     
     // 그림자
     if (length(color.diffuse) != 0)
     {
-        matrix shadowCameraVP = g_mat_0;
+        
+        
+        matrix shadowCameraVP = mul(light.MatView, light.MatProjection);
 
-        float4 worldPos = mul(float4(viewPos.xyz, 1.f), g_matViewInv);
+        float4 worldPos = mul(float4(viewPos.xyz, 1.f), light.MatViewInv);
         float4 shadowClipPos = mul(worldPos, shadowCameraVP);
         float depth = shadowClipPos.z / shadowClipPos.w;
 
@@ -72,7 +76,7 @@ PS_OUT PS_DirLight(VS_OUT input)
 
         if (0 < uv.x && uv.x < 1 && 0 < uv.y && uv.y < 1)
         {
-            float shadowDepth = g_tex_2.Sample(g_sam_0, uv).x;
+            float shadowDepth = Gbuffer[0].Sample(g_sam_0, uv).x;
             if (shadowDepth > 0 && depth > shadowDepth + 0.00001f)
             {
                 color.diffuse *= 0.5f;
@@ -99,7 +103,10 @@ VS_OUT VS_PointLight(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0;
 
-    output.pos = mul(float4(input.pos, 1.f), g_matWVP);
+    LIGHTINFO light = Lights[GlobalParams.LightIndex];
+    
+    
+    output.pos = mul(float4(input.pos, 1.f), mul(light.MatWorld, mul(PassParams.MatView, PassParams.MatProjection)));
     output.uv = input.uv;
 
     return output;
@@ -110,20 +117,20 @@ PS_OUT PS_PointLight(VS_OUT input)
     PS_OUT output = (PS_OUT) 0;
 
     // input.pos = SV_Position = Screen 좌표 (정규화 되고 변환되었기 때문에 좌표계가 픽셀좌표계로 변환되어있음)
-    float2 uv = float2(input.pos.x / g_vec2_0.x, input.pos.y / g_vec2_0.y);
-    float3 viewPos = g_tex_0.Sample(g_sam_0, uv).xyz;
+    float2 uv = float2(input.pos.x / PassParams.ScreenSize.x, input.pos.y / PassParams.ScreenSize.y);
+    float3 viewPos = Gbuffer[1].Sample(g_sam_0, uv).xyz;
     if (viewPos.z <= 0.f)
         clip(-1);
 
-    int lightIndex = g_int_0;
-    float3 viewLightPos = mul(float4(g_light[lightIndex].position.xyz, 1.f), g_matView).xyz; //position: 빛의 원래 좌표   
+    int lightIndex = GlobalParams.LightIndex;
+    float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz; //position: 빛의 원래 좌표   
     float distance = length(viewPos - viewLightPos);
-    if (distance > g_light[lightIndex].range)   // 원래좌표와 빛의 좌표를 이용해서 구 내부인지 확인
+    if (distance > Lights[lightIndex].range)   // 원래좌표와 빛의 좌표를 이용해서 구 내부인지 확인
         clip(-1);
 
-    float3 viewNormal = g_tex_1.Sample(g_sam_0, uv).xyz;
+    float3 viewNormal = Gbuffer[2].Sample(g_sam_0, uv).xyz;
 
-    LightColor color = CalculateLightColor(g_int_0, viewNormal, viewPos);
+    LightColor color = CalculateLightColor(lightIndex, viewNormal, viewPos);
 
     output.diffuse = color.diffuse + color.ambient;
     output.specular = color.specular;
@@ -151,12 +158,12 @@ float4 PS_Final(VS_OUT input) : SV_Target
 {
     float4 output = (float4) 0;
 
-    float4 lightPower = g_tex_1.Sample(g_sam_0, input.uv);
+    float4 lightPower = Gbuffer[4].Sample(g_sam_0, input.uv);
     if (lightPower.x == 0.f && lightPower.y == 0.f && lightPower.z == 0.f)
         clip(-1);
 
-    float4 color = g_tex_0.Sample(g_sam_0, input.uv);
-    float4 specular = g_tex_2.Sample(g_sam_0, input.uv);
+    float4 color = Gbuffer[3].Sample(g_sam_0, input.uv);
+    float4 specular = Gbuffer[5].Sample(g_sam_0, input.uv);
 
     output = (color * lightPower) + specular;
     return output;

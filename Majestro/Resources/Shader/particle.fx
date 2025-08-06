@@ -6,8 +6,6 @@
 
 
 
-StructuredBuffer<Particle> g_data : register(t9);   //compute를 통해 계산된 결과가 들어옴
-
 struct VS_IN
 {
     float3 pos : POSITION;
@@ -33,10 +31,10 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
 
-    float3 worldPos = mul(float4(input.pos, 1.f), Particle[].).xyz;
-    worldPos += g_data[input.id].worldPos;
+    float3 worldPos = mul(float4(input.pos, 1.f), Objects[GlobalParams.ObjectIndex].MatWorld).xyz;
+    worldPos += RWParticle[input.id].worldPos;
 
-    output.viewPos = mul(float4(worldPos, 1.f), g_matView);
+    output.viewPos = mul(float4(worldPos, 1.f), PassParams.MatView);
     output.uv = input.uv;
     output.id = input.id;
 
@@ -60,11 +58,11 @@ void GS_Main(point VS_OUT input[1], inout TriangleStream<GS_OUT> outputStream)
 
     VS_OUT vtx = input[0];
     uint id = (uint) vtx.id;
-    if (0 == g_data[id].alive)
+    if (0 == Particle[id].alive)
         return;
 
-    float ratio = g_data[id].curTime / g_data[id].lifeTime;
-    float scale = ((g_float_1 - g_float_0) * ratio + g_float_0) / 2.f;
+    float ratio = Particle[id].curTime / Particle[id].lifeTime;
+    float scale = ((Particle[id].EndScale - Particle[id].StartScale) * ratio + Particle[id].StartScale) / 2.f;
 
     // View Space
     output[0].position = vtx.viewPos + float4(-scale, scale, 0.f, 0.f);
@@ -73,10 +71,10 @@ void GS_Main(point VS_OUT input[1], inout TriangleStream<GS_OUT> outputStream)
     output[3].position = vtx.viewPos + float4(-scale, -scale, 0.f, 0.f);
 
     // Projection Space
-    output[0].position = mul(output[0].position, g_matProjection);
-    output[1].position = mul(output[1].position, g_matProjection);
-    output[2].position = mul(output[2].position, g_matProjection);
-    output[3].position = mul(output[3].position, g_matProjection);
+    output[0].position = mul(output[0].position, PassParams.MatProjection);
+    output[1].position = mul(output[1].position, PassParams.MatProjection);
+    output[2].position = mul(output[2].position, PassParams.MatProjection);
+    output[3].position = mul(output[3].position, PassParams.MatProjection);
 
     output[0].uv = float2(0.f, 0.f);
     output[1].uv = float2(1.f, 0.f);
@@ -101,20 +99,13 @@ void GS_Main(point VS_OUT input[1], inout TriangleStream<GS_OUT> outputStream)
 
 float4 PS_Main(GS_OUT input) : SV_Target
 {
-    return g_tex_0.Sample(g_sam_0, input.uv);
+    return TextureMaps[ParticleShared[GlobalParams.ParticleIndex].TextureIndex].Sample(g_sam_0, input.uv);
 }
 
-struct ComputeShared
-{
-    int addCount;
-    float3 padding;
-};
 
 
 
 
-RWStructuredBuffer<Particle> g_particle : register(u0); //compute Shader 결과값 저장
-RWStructuredBuffer<ComputeShared> g_shared : register(u1);  //공유 전역변수
 
 // CS_Main
 // g_vec2_1 : DeltaTime / AccTime
@@ -124,7 +115,7 @@ RWStructuredBuffer<ComputeShared> g_shared : register(u1);  //공유 전역변�
 [numthreads(1024, 1, 1)]
 void CS_Main(int3 threadIndex : SV_DispatchThreadID)
 {
-    if (threadIndex.x >= g_int_0)
+    if (threadIndex.x >= Particle[threadIndex.x].maxCount)
         return;
 
     int maxCount = Particle[threadIndex.x].maxCount;
@@ -137,33 +128,33 @@ void CS_Main(int3 threadIndex : SV_DispatchThreadID)
     float minSpeed = Particle[threadIndex.x].minSpeed;
     float maxSpeed = Particle[threadIndex.x].maxSpeed;
 
-    g_shared[0].addCount = addCount;
+    RWParticleShared[GlobalParams.ParticleIndex].addCount = addCount;
     GroupMemoryBarrierWithGroupSync();  //임계영역 보호를 위한 barrier (동기화)
 
-    if (g_particle[threadIndex.x].alive == 0)
+    if (RWParticle[threadIndex.x].alive == 0)
     {
         while (true)
         {
-            int remaining = g_shared[0].addCount;
+            int remaining = RWParticleShared[GlobalParams.ParticleIndex].addCount;
             if (remaining <= 0)
                 break;
 
             int expected = remaining;
             int desired = remaining - 1;
             int originalValue;
-            InterlockedCompareExchange(g_shared[0].addCount, expected, desired, originalValue); //임계영역
+            InterlockedCompareExchange(RWParticleShared[GlobalParams.ParticleIndex].addCount, expected, desired, originalValue); //임계영역
                                                                                                 //한번에 한번만 실행함
                                                                                                 //if (addCount == expected )addCount = desired
                                                                                                 // originalValue = addCount
             
             if (originalValue == expected)
             {
-                g_particle[threadIndex.x].alive = 1;
+                RWParticle[threadIndex.x].alive = 1;
                 break;
             }
         }
 
-        if (g_particle[threadIndex.x].alive == 1)
+        if (RWParticle[threadIndex.x].alive == 1)
         {
             float x = ((float) threadIndex.x / (float) maxCount) + accTime;
 
@@ -182,24 +173,24 @@ void CS_Main(int3 threadIndex : SV_DispatchThreadID)
             // [0~1] -> [-1~1]
             float3 dir = (noise - 0.5f) * 2.f;
 
-            g_particle[threadIndex.x].worldDir = normalize(dir);
-            g_particle[threadIndex.x].worldPos = (noise.xyz - 0.5f) * 25;
-            g_particle[threadIndex.x].lifeTime = ((maxLifeTime - minLifeTime) * noise.x) + minLifeTime;
-            g_particle[threadIndex.x].curTime = 0.f;
+            RWParticle[threadIndex.x].worldDir = normalize(dir);
+            RWParticle[threadIndex.x].worldPos = (noise.xyz - 0.5f) * 25;
+            RWParticle[threadIndex.x].lifeTime = ((maxLifeTime - minLifeTime) * noise.x) + minLifeTime;
+            RWParticle[threadIndex.x].curTime = 0.f;
         }
     }
     else
     {
-        g_particle[threadIndex.x].curTime += deltaTime;
-        if (g_particle[threadIndex.x].lifeTime < g_particle[threadIndex.x].curTime)
+        RWParticle[threadIndex.x].curTime += deltaTime;
+        if (RWParticle[threadIndex.x].lifeTime < RWParticle[threadIndex.x].curTime)
         {
-            g_particle[threadIndex.x].alive = 0;
+            RWParticle[threadIndex.x].alive = 0;
             return;
         }
 
-        float ratio = g_particle[threadIndex.x].curTime / g_particle[threadIndex.x].lifeTime;
+        float ratio = RWParticle[threadIndex.x].curTime / RWParticle[threadIndex.x].lifeTime;
         float speed = (maxSpeed - minSpeed) * ratio + minSpeed;
-        g_particle[threadIndex.x].worldPos += g_particle[threadIndex.x].worldDir * speed * deltaTime;
+        RWParticle[threadIndex.x].worldPos += RWParticle[threadIndex.x].worldDir * speed * deltaTime;
     }
 }
 

@@ -30,8 +30,7 @@ struct LIGHTINFO
 struct OBJECTINFO
 {
     matrix MatWorld;
-    
-    int MaterialInfoIndex;
+
     
     int IsParticleSystem; // Object가 아니라 파티클이면 1
 };
@@ -112,6 +111,8 @@ struct GLOBAL_PARAMS
 {
 
     uint ObjectIndex;
+    int MaterialInfoIndex;
+    
     uint LightIndex;    //light가 아니면 쓰지 말것.
     uint ParticleIndex; //Particle가 아니면 쓰지 말것.
 

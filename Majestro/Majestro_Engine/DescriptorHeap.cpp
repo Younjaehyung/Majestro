@@ -38,12 +38,14 @@ void GraphicsDescriptorHeap::CommitTable(uint8 type)
 	if (type == GBUFFER_INDEX_START) {
 		tableBegin = 0;
 	}
-	else if (type == GROUP_INDEX_ST) {
-
+	else if (type == GROUP_START) {
+		tableBegin = (static_cast<uint32>(frameCount)* GROUP_COUNT )+GROUP_START;
+	}
+	else if (type == TEXTURE_INDEX_START) {
+		tableBegin = ;
 	}
 
-
-	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, static_cast<uint32>(type) *static_cast<uint32>(frameCount) * DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, tableBegin ** DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(1, handle);
 	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
 

@@ -23,10 +23,10 @@ PS_OUT PS_Main(VS_OUT input)
     PS_OUT output = (PS_OUT) 0;
     
     uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = Objects[objectIndex].MaterialInfoIndex;
+    int materialIndex = GlobalParams.MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
-    float color = materials.Diffuse;
+    float4 color = materials.Diffuse;
     
     
        // 다중 텍스처링

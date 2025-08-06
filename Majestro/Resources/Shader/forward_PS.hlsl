@@ -17,7 +17,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 {
 
     uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = Objects[GlobalParams.ObjectIndex].MaterialInfoIndex;
+    int materialIndex = GlobalParams.MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
     float4 color = materials.Diffuse;

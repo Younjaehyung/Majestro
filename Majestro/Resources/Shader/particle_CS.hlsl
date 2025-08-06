@@ -1,6 +1,6 @@
 
-#include "params.hlsli"
-#include "utils.hlsli"
+#include "params.hlsl"
+#include "utils.hlsl"
 
 // CS_Main
 // g_vec2_1 : DeltaTime / AccTime

@@ -9,15 +9,15 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 	mGroupCount = count;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};	//DESCRIPTOR HEAP 세팅
-	desc.NumDescriptors = count * GROUP_TABLE_COUNT + TEXTURE_TABLE_COUNT;	//b0로 전역이기에 1개를 뺌
+	desc.NumDescriptors = count * GROUP_COUNT + UAV_INDEX_COUNT + TEXTURE_COUNT;	//b0로 전역이기에 1개를 뺌
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;	
 
 	DEVICE->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&mDescHeap));	//DESCRIPTOR 힙(테이블) 생성
 
 	mHandleSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	mGroupSize = mHandleSize * (GROUP_TABLE_COUNT);	//b0로 전역이기에 1개를 뺌
-	mTextureGroupIndex = mGroupCount * (GROUP_TABLE_COUNT);	// mTextureGroupIndex의 시작 위치
+	mGroupSize = mHandleSize * (desc.NumDescriptors);	//b0로 전역이기에 1개를 뺌
+	mTextureGroupIndex = GROUP_COUNT * count + UAV_INDEX_COUNT;	// mTextureGroupIndex의 시작 위치
 }
 
 void GraphicsDescriptorHeap::Clear()

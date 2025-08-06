@@ -312,19 +312,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\Resources\Shader\utils.hlsli">
+    <FxCompile Include="..\Resources\Shader\utils.hlsl">
       <Filter>World\Resource\Shader\Utils</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\params.hlsli">
+    <FxCompile Include="..\Resources\Shader\params.hlsl">
       <Filter>World\Resource\Shader\Utils</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\deferred_PS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\lighting_PS.hlsl">
+    <FxCompile Include="..\Resources\Shader\lighting_point_PS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\lighting_VS.hlsl">
+    <FxCompile Include="..\Resources\Shader\lighting_point_VS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\shadow_PS.hlsl">
@@ -358,6 +358,24 @@
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\skybox_VS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\lighting_dir_PS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\lighting_dir_VS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\final_PS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\final_VS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\texture_PS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\texture_VS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
   </ItemGroup>

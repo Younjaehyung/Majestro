@@ -1,5 +1,5 @@
 
-#include "params.hlsli"
+#include "params.hlsl"
 
 
 struct VS_OUT

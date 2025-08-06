@@ -1,5 +1,8 @@
+#ifndef _UTILS_HLSL_
+#define _UTILS_HLSL_
 
-#include "params.hlsli"
+
+#include "params.hlsl"
 
 LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos)
 {
@@ -78,3 +81,5 @@ float Rand(float2 co)
     
     //frac : 소수점 추출
 }
+
+#endif

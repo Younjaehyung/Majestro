@@ -1,6 +1,11 @@
 
-#include "params.hlsli"
+#include "params.hlsl"
 
+
+struct VS_IN
+{
+    float3 pos : POSITION;
+};
 
 struct VS_OUT
 {
@@ -8,7 +13,13 @@ struct VS_OUT
     float4 clipPos : POSITION;
 };
 
-float4 PS_Main(VS_OUT input) : SV_Target
+VS_OUT VS_Main(VS_IN input)
 {
-    return float4(input.clipPos.z / input.clipPos.w, 0.f, 0.f, 0.f);
+    VS_OUT output = (VS_OUT) 0.f;
+    int index = GlobalParams.ObjectIndex;
+   
+    output.pos = mul(float4(input.pos, 1.f), mul(Objects[index].MatWorld, mul(PassParams.MatView, PassParams.MatProjection)));
+    output.clipPos = output.pos;
+
+    return output;
 }

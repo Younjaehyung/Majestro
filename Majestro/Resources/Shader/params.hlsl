@@ -1,4 +1,5 @@
-
+#ifndef _PARAMS_HLSL_
+#define _PARAMS_HLSL_
 struct LightColor
 {
     float4      diffuse;
@@ -146,10 +147,12 @@ RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space0); //ê³µì
  ///////////////////////////////////////////////////////////////////
 
  ////////////////////////////TEXTURE////////////////////////////////
-Texture2D<float4> TextureMaps[] : register(t0, space2);
+Texture2D<float4> TextureMaps[1000] : register(t0, space2);
 TextureCube SkyBoxMaps[16] : register(t1, space2);
  ///////////////////////////////////////////////////////////////////
 
 
 
 SamplerState g_sam_0 : register(s0);
+
+#endif

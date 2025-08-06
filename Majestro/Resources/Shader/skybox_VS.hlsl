@@ -1,5 +1,5 @@
 
-#include "params.hlsli"
+#include "params.hlsl"
 
 struct VS_IN
 {
@@ -26,10 +26,4 @@ VS_OUT VS_Main(VS_IN input)
     output.uv = input.uv;
 
     return output;
-}
-
-float4 PS_Main(VS_OUT input) : SV_Target
-{
-    float4 color = TextureMaps[PassParams.SkyBoxIndex].Sample(g_sam_0, input.uv);
-    return color;
 }

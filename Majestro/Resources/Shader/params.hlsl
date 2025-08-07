@@ -74,11 +74,10 @@ struct PARTICLE
 struct MATERIALINFO
 {
     float4 Diffuse;
-    
     float3 Emission;
-
     float Metallic;
     float Roughness;
+    
     uint OcclusionMask;
     uint AlphaTest;
     
@@ -117,8 +116,12 @@ struct GLOBAL_PARAMS
     uint ParticleIndex; //Particle가 아니면 쓰지 말것.
 
 };
-/*
+
 	
+ ///////////////////////////GLOBAL_PARAMS/////////////////////////////
+ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
+///////////////////////////////////////////////////////////////////
+/*
 	SHADOW, // SHADOW
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
@@ -128,28 +131,24 @@ Texture2D<float4> Gbuffer[6] : register(t0, space0);
 
 
  ///////////////////////////GROUP///////////////////////////////////
-ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space1);
-ConstantBuffer<PASSINFO> PassParams : register(b1, space1);
+ConstantBuffer<PASSINFO> PassParams : register(b0, space1);
 
 StructuredBuffer<LIGHTINFO> Lights : register(t0, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t1, space1);
 StructuredBuffer<MATERIALINFO> Materials : register(t2, space1);
-
-
 //StructuredBuffer<Matrix> g_mat_bone : register(t4);
  ///////////////////////////////////////////////////////////////////
-StructuredBuffer<PARTICLE> Particle : register(t3, space1);
-StructuredBuffer<PARTICLESHARED> ParticleShared : register(t4, space1);
 
-
- ////////////////////////////////UAV////////////////////////////////
-RWStructuredBuffer<PARTICLE> RWParticle : register(u0,space0); //compute Shader 결과값 저장
-RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space0); //공유 전역변수
+ ///////////////////////////PARTICLE///////////////////////////////////
+StructuredBuffer<PARTICLESHARED> ParticleShared : register(t0, space2); // 속성값 (SRV)
+StructuredBuffer<PARTICLE> Particle : register(t1, space2);     //compute Shader 결과값 읽기
+RWStructuredBuffer<PARTICLE> RWParticle : register(u0,space2); //compute Shader 결과값 쓰기
+RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //공유 전역변수
  ///////////////////////////////////////////////////////////////////
 
  ////////////////////////////TEXTURE////////////////////////////////
-Texture2D<float4> TextureMaps[1000] : register(t0, space2);
-TextureCube SkyBoxMaps[16] : register(t1, space2);
+TextureCube SkyBoxMaps[16] : register(t0, space3);
+Texture2D<float4> TextureMaps[] : register(t1, space3);
  ///////////////////////////////////////////////////////////////////
 
 

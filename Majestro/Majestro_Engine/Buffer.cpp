@@ -61,7 +61,7 @@ void ConstantBuffer::CreateView(CONSTANT_INDEX type)
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 	
 	mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
-	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * CONSTANT_INDEX_COUNT) + static_cast<uint32>(type) + CONSTANT_INDEX_START) * mHandleIncrementSize);
+	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + CONSTANT_INDEX_START) * mHandleIncrementSize);
 	
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc {};
 		cbvDesc.BufferLocation = mCbvBuffer->GetGPUVirtualAddress();
@@ -202,26 +202,26 @@ void StructuredBuffer::CreateView(STRUCTURED_INDEX type)	// STRUCTURED_INDEX_COU
 
 	uint32 mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
 
-	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * STRUCTURED_INDEX_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START)* mHandleIncrementSize);
+	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START)* mHandleIncrementSize);
 
-	switch (type) {	//추후 살펴볼것
+	//switch (type) {	//추후 살펴볼것
 
 
-	case STRUCTURED_INDEX::SRV_PARTICLE_INDEX:	// Particle일시 UAV용도 생성
-		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-		uavDesc.Buffer.FirstElement = 0;
-		uavDesc.Buffer.NumElements = mElementCount;
-		uavDesc.Buffer.StructureByteStride = mElementSize;
-		uavDesc.Buffer.CounterOffsetInBytes = 0;
-		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+	//case STRUCTURED_INDEX::SRV_PARTICLE_INDEX:	// Particle일시 UAV용도 생성
+	//	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	//	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+	//	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+	//	uavDesc.Buffer.FirstElement = 0;
+	//	uavDesc.Buffer.NumElements = mElementCount;
+	//	uavDesc.Buffer.StructureByteStride = mElementSize;
+	//	uavDesc.Buffer.CounterOffsetInBytes = 0;
+	//	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-		mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * STRUCTURED_INDEX_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START) * mHandleIncrementSize);
+	//	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * STRUCTURED_INDEX_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START) * mHandleIncrementSize);
 
-		DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mSrvCpuHandleBegin);
-		break;
-	}
+	//	DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mSrvCpuHandleBegin);
+	//	break;
+	//}
 
 	// 기본 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};

@@ -24,23 +24,31 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 	mSwapChain->Initialize(info, mDevice->GetDevice(), mDevice->GetDXGI(), mGraphicsCommandQueue->GetCommandQueue());
 
-
+	
 
 	mGraphicsDescHeap->Initialize(FRAMEGROUP_COUNT);
 
-	CreateConstantBuffer(CONSTANT_INDEX::CBV_CAMERA_INDEX, sizeof(CameraParams));	// deltaTime이나 totaltime/ Camera 같은 전역
+	CreateBuffer_View();
+
+	CreateRenderTargetGroups();
+}
+
+void RenderManager::CreateBuffer_View()
+{
+
+	CreateConstantBuffer(CONSTANT_INDEX::CBV_PASSINFO_INDEX, sizeof(PassInfo));	// deltaTime이나 totaltime/ Camera 같은 전역
 
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, sizeof(LightParams), 1000 );
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX, sizeof(ObjectParams), 5000 );
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams),1000 );
-
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, sizeof(LightParams), 1000);
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX, sizeof(ObjectParams), 5000);
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams), 1000);
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams), 1000);
+	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams), 1000);
 	//CreateStructuredBuffer(sizeof(BoneParams), );
 	//CreateStructuredBuffer(sizeof(PARTICLEParams), );
 
 
-	CreateRenderTargetGroups();
 }
 
 void RenderManager::Update()

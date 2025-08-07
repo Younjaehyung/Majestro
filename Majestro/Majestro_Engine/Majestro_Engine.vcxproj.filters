@@ -168,7 +168,6 @@
     <ClInclude Include="CameraComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Archetype.h" />
     <ClInclude Include="AnimationComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
@@ -179,7 +178,9 @@
     <ClInclude Include="CameraSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
-    <ClInclude Include="TransformSystem.h" />
+    <ClInclude Include="TransformSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -293,7 +294,6 @@
     <ClCompile Include="CameraComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="Archetype.cpp" />
     <ClCompile Include="AnimationComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
@@ -304,7 +304,9 @@
     <ClCompile Include="CameraSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
-    <ClCompile Include="TransformSystem.cpp" />
+    <ClCompile Include="TransformSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

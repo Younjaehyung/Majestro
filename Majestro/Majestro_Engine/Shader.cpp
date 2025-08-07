@@ -13,16 +13,17 @@ Shader::~Shader()
 {
 }
 
-void Shader::CreateGraphicsShader(const wstring& path, ShaderInfo info, const string& vs, const string& ps, const string& gs)
+void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const string& vs, const string& ps, const string& gs)
 {
 
-	_info = info;
+	mInfo = info;
 
-	CreateVertexShader(path, vs, "vs_5_1");
-	CreatePixelShader(path, ps, "ps_5_1");
+
+	CreateVertexShader(path.VS, vs, "vs_5_1");
+	CreatePixelShader(path.PS, ps, "ps_5_1");
 
 	if (gs.empty() == false)
-		CreateGeometryShader(path, gs, "gs_5_1");
+		CreateGeometryShader(path.GS, gs, "gs_5_1");
 
 	D3D12_INPUT_ELEMENT_DESC desc[] =
 	{
@@ -163,14 +164,14 @@ void Shader::CreateGraphicsShader(const wstring& path, ShaderInfo info, const st
 }
 
 
-void Shader::CreateComputeShader(const wstring& path, const string& name, const string& version)
+void Shader::CreateComputeShader(const ShaderPath& path, const string& name, const string& version)
 {
-	_info.shaderType = SHADER_TYPE::COMPUTE;
+	mInfo.shaderType = SHADER_TYPE::COMPUTE;
 
-	CreateShader(path, name, version, _csBlob, _computePipelineDesc.CS);
-	_computePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->GetRootSignature().Get();
+	CreateShader(path.CS, name, version, mCsBlob, mComputePipelineDesc.CS);
+	mComputePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->GetRootSignature().Get();
 
-	HRESULT hr = DEVICE->CreateComputePipelineState(&_computePipelineDesc, IID_PPV_ARGS(&mPipelineState));
+	HRESULT hr = DEVICE->CreateComputePipelineState(&mComputePipelineDesc, IID_PPV_ARGS(&mPipelineState));
 	assert(SUCCEEDED(hr));
 }
 
@@ -181,7 +182,7 @@ void Shader::Update()
 		//COMPUTE_CMD_LIST->SetPipelineState(_pipelineState.Get());
 	}
 	else {
-		GRAPHICS_CMD_LIST->IASetPrimitiveTopology(_info.topology);
+		GRAPHICS_CMD_LIST->IASetPrimitiveTopology(mInfo.topology);
 		
 		GRAPHICS_CMD_LIST->SetPipelineState(mPipelineState.Get());
 	}

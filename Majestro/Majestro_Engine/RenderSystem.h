@@ -64,7 +64,7 @@ private:
 	CameraComponent* mCamera;
 	uint32 mCullingMask = 0;
 
-	
+	//static_cast<float>(window.Width), static_cast<float>(window.Height)
 
 	shared_ptr<RootSignature>mRootSignature;
 	ComponentPool<RenderComponent>* mRenderComponentPool;

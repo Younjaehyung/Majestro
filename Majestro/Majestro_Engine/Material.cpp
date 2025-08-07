@@ -25,38 +25,42 @@ void Material::SetShader(std::wstring name)
 
 }
 
-
-void Material::PushComputeData()
+void Material::SetTexture(shared_ptr<Texture> mImageMapIndex, uint8 texturetype)
 {
-	//// CBV 업로드
-	//CONST_BUFFER(CONSTANT_BUFFER_TYPE::MATERIAL)->PushComputeData(&mParams, sizeof(mParams));
+	switch (texturetype)
+	{
+	case DIFFUSEMAP0INDEX:
+		mParams.DiffuseMap0Index = mImageMapIndex->GetImageIndex();
+		break;
+	case DIFFUSEMAP1INDEX:
+		mParams.DiffuseMap1Index = mImageMapIndex->GetImageIndex();
+		break;
+	case DIFFUSEMAP2INDEX:
+		mParams.DiffuseMap2Index = mImageMapIndex->GetImageIndex();
+		break;
+	case DIFFUSEMAP3INDEX:
+		mParams.DiffuseMap3Index = mImageMapIndex->GetImageIndex();
+		break;
+	case NORMALMAPINDEX:
+		mParams.NormalMapIndex = mImageMapIndex->GetImageIndex();
+		break;
+	case EMISSIVEMAPINDEX:
+		mParams.EmissiveMapIndex = mImageMapIndex->GetImageIndex();
+		break;
+	case METALLICMAPINDEX:
+		mParams.MetallicMapIndex = mImageMapIndex->GetImageIndex();
+		break;
+	case OCCLUSIONMAPINDEX:
+		mParams.OcclusionMapIndex = mImageMapIndex->GetImageIndex();
+		break;
 
-	//// SRV 업로드
-	//for (size_t i = 0; i < mTextures.size(); i++)
-	//{
-	//	if (mTextures[i] == nullptr)
-	//		continue;
+	default:
+		
+		break;
+	}
 
-	//	SRV_REGISTER reg = SRV_REGISTER(static_cast<int8>(SRV_REGISTER::t0) + i);
-	//	GEngine->GetComputeDescHeap()->SetSRV(mTextures[i]->GetSRVHandle(), reg);
-	//}
-
-	//// 파이프라인 세팅
-	//mShader->Update();
 }
 
-void Material::Dispatch(uint32 x, uint32 y, uint32 z)
-{
-	// CBV + SRV + SetPipelineState
-	//PushComputeData();
-
-	// SetDescriptorHeaps + SetComputeRootDescriptorTable
-	//GEngine->GetComputeDescHeap()->CommitTable();
-
-	//COMPUTE_CMD_LIST->Dispatch(x, y, z);
-
-	//GEngine->GetComputeCmdQueue()->FlushComputeCommandQueue();
-}
 
 shared_ptr<Material> Material::Clone()
 {

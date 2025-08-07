@@ -105,6 +105,8 @@ enum class mRootParmetersIndex : uint8
 {
 	CONSTANT,		//	[0]
 	TABLE_GROUP,	//	[1]
+	SRV_PARTICLE,
+	TABLE_PARTICLE,	//	[1]
 	TABLE_TEXTURE,	//	[2]
 	SAMPLER,		//	[3]
 
@@ -120,14 +122,6 @@ enum class RCONSTANT_INDEX : uint8		//rootConstant
 	RCONSTANT_INDEX_END
 };
 
-
-enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
-{ // b레지스터 (암묵적 space0)
-	CBV_CAMERA_INDEX = static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END),	// 카메라 파라미터 b1
-	CBV_PASSINFO_INDEX,	// 카메라 파라미터 b1
-
-	CBV_INDEX_END
-};
 
 
 enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
@@ -146,6 +140,16 @@ enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
 	GBUFFER_INDEX_END
 };
 
+
+enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
+{ // b레지스터 (암묵적 space0)
+	CBV_PASSINFO_INDEX = static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END),	// PASS 파라미터 b1
+
+
+	CBV_INDEX_END
+};
+
+
 enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
 { // t레지스터 space 1
 	SRV_LIGHT_INDEX,
@@ -159,15 +163,26 @@ enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
 	SRV_INDEX_END
 };
 
-enum class UAV_INDEX : uint8
+enum class PARTICLE_SYSTEM : uint8		//PARTICLE SYSTEM
+{ // t레지스터 space 2
+	SRV_PARTICLE_SYSTEM_INDEX,	// 파티클 system view
+
+	SRV_PARTICLE_SYSTEM_END
+};
+
+
+enum class PARTICLE_INDEX : uint8
 {
-	UAV_PARTICLE_INDEX,
-	UAV_TEXTURE_INDEX,
-	UAV_INDEX_END
+	// t레지스터 space 2
+	SRV_PARTICLE_INDEX,			// 파티클 읽기 view
+	UAV_PARTICLE_INDEX,			// 파티클 쓰기 view
+	UAV_PARTICLE_SHARED_INDEX,	// 파티클 shared view 
+	PARTICLE_INDEX_END
 };
 
 enum class TEXTURE_INDEX : uint8		//DescriptorTable SRV(TEXTURE)
-{ // t레지스터 space 2
+{ // t레지스터 space 3
+	TEXTURE_CUBE_INDEX,
 	TEXTURE_INDEX,
 
 	TEXTURE_INDEX_END
@@ -177,7 +192,8 @@ enum class TEXTURE_INDEX : uint8		//DescriptorTable SRV(TEXTURE)
 enum {	// space 번호
 	GBUFFER_SPACE = 0
 	, STRUCTURED_SPACE = 1
-	, TEXTURE_SPACE = 2
+	, PARTICLE_SPACE = 2
+	, TEXTURE_SPACE = 3
 
 };
 
@@ -186,6 +202,60 @@ enum {	// space 번호
 //		위치 인덱스를 정의 해둠.															  
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+#pragma region DescriptorHeap
+
+////////////////////////////
+///  G-BUFFER
+///  0
+///  1
+///  2
+///  3
+///	 4
+///  5
+////////////////////////////
+///  CBV
+///  0
+///  SRV
+///	 0
+///  1
+///  2
+///  3
+///  4
+////////////////////////////
+///  CBV
+///  0
+///  SRV
+///	 0
+///  1
+///  2
+///  3
+///  4
+///////////////////////////////
+///  CBV
+///  0
+///  SRV
+///	 0
+///  1
+///  2
+///  3
+///  4
+///////////////////////////////
+///  Particle_SYSTEM
+///  0 - 	SRV_PARTICLE_SYSTEM_INDEX,	// 파티클 system view
+/// ///////////////////////////////
+///  Particle
+///  0 - 	SRV_PARTICLE_INDEX,			// 파티클1 읽기 view
+///  1 - 	UAV_PARTICLE_INDEX,			// 파티클1 쓰기 view
+///  2 - 	UAV_PARTICLE_SHARED_INDEX,	// 파티클1 shared view 
+///  3 -	SRV_PARTICLE_INDEX,			// 파티클2 읽기 view
+///  4 -	UAV_PARTICLE_INDEX,			// 파티클2 쓰기 view
+///  5 -	UAV_PARTICLE_SHARED_INDEX,	// 파티클2 shared view
+///////////////////////////////
+/// TEXTURE
+/// 0 ..1000(~999)
+//////////////////////////////////
+#pragma endregion
+
 enum {
 
 
@@ -193,35 +263,39 @@ enum {
 	, FRAMEGROUP_COUNT = 2			// 추후 프레임리소스 선택시 3으로 변경할것.
 
 
-	, TEXTURE_SRV_COUNT = 1000	// texture(SRV) 개수
-	, TEXTURE_UAV_COUNT = 1000	// texture(UAV) 개수
-
+	, TEXTURE_SRV_COUNT = 1024	// texture(SRV) 개수
+	, TEXTURE_UAV_COUNT = 1024	// texture(UAV) 개수
+	, TEXTURE_CUBE_COUNT = 16	// texture(CUBE) 개수
 
 	, GBUFFER_INDEX_START = 0
 	, GBUFFER_INDEX_COUNT = static_cast<uint8>(GBUFFER_INDEX::GBUFFER_INDEX_END)
-	
-	, GROUP_START = (GBUFFER_INDEX_COUNT)
+
+
 
 	, CONSTANT_INDEX_START = (GBUFFER_INDEX_COUNT)
 	, CONSTANT_INDEX_COUNT = static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END) - 1
 
 
-	, STRUCTURED_INDEX_START = (CONSTANT_INDEX_COUNT+ GBUFFER_INDEX_COUNT) * FRAMEGROUP_COUNT
+	, STRUCTURED_INDEX_START = CONSTANT_INDEX_START + CONSTANT_INDEX_COUNT
 	, STRUCTURED_INDEX_COUNT = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END)
+
+	, GROUP_START = GBUFFER_INDEX_START + GBUFFER_INDEX_COUNT
+	, GROUP_COUNT = CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT
+
+	, PARTICLE_SYSTEM_START = GROUP_START + (GROUP_COUNT * FRAMEGROUP_COUNT)
+	, PARTICLE_SYSTEM_COUNT = static_cast<uint8>(PARTICLE_SYSTEM::SRV_PARTICLE_SYSTEM_END)
+
+	, PARTICLE_INDEX_START = PARTICLE_SYSTEM_START + PARTICLE_SYSTEM_COUNT
+	, PARTICLE_SYSTEM_COUNT = 1// 파티클 시스템 종류 개수
+	, PARTICLE_INDEX_COUNT = (static_cast<uint8>(PARTICLE_INDEX::PARTICLE_INDEX_END)* PARTICLE_SYSTEM_COUNT)	//UAV_TEXTURE + UAV_STRUCTURED(1)
+
+	, TEXTURE_INDEX_START = PARTICLE_INDEX_START + PARTICLE_INDEX_COUNT
+	, TEXTURE_INDEX_COUNT = TEXTURE_SRV_COUNT + TEXTURE_CUBE_COUNT
+
 	
 
-	, GROUP_COUNT = GBUFFER_INDEX_COUNT + CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT
 
-	, UAV_INDEX_START = GROUP_COUNT * FRAMEGROUP_COUNT
-	, UAV_INDEX_COUNT = TEXTURE_UAV_COUNT + 1		//UAV_TEXTURE + UAV_STRUCTURED(1)
-
-	, TEXTURE_INDEX_START = UAV_INDEX_START + UAV_INDEX_COUNT
-	, TEXTURE_INDEX_COUNT = TEXTURE_SRV_COUNT
-	, TEXTURE_COUNT = TEXTURE_SRV_COUNT
-	
-
-
-	, ALL_DESCRIPTOR_COUNT = FRAMEGROUP_COUNT* (CONSTANT_INDEX_COUNT + GBUFFER_INDEX_COUNT + STRUCTURED_INDEX_COUNT) + TEXTURE_INDEX_COUNT
+	, ALL_DESCRIPTOR_COUNT = GBUFFER_INDEX_COUNT + (GROUP_COUNT * FRAMEGROUP_COUNT)+ PARTICLE_SYSTEM_COUNT + PARTICLE_INDEX_COUNT + TEXTURE_INDEX_COUNT
 };
 
 

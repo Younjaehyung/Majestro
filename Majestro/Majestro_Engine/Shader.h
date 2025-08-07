@@ -56,6 +56,14 @@ struct ShaderInfo
 	//D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 };
 
+struct ShaderPath {
+	wstring VS = L"";
+	wstring PS = L"";
+	wstring CS = L"";
+	wstring GS = L"";
+
+};
+
 class Shader : public Object
 {
 public:
@@ -63,12 +71,12 @@ public:
 	virtual ~Shader();
 
 
-	void CreateGraphicsShader(const wstring& path, ShaderInfo info = ShaderInfo(), const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
-	void CreateComputeShader(const wstring& path, const string& name, const string& version);
+	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(), const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
+	void CreateComputeShader(const ShaderPath& path, const string& name, const string& version = "cs_5_1");
 
 	void Update();
 
-	SHADER_TYPE GetShaderType() { return _info.shaderType; }
+	SHADER_TYPE GetShaderType() { return mInfo.shaderType; }
 
 
 	static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetTopologyType(D3D_PRIMITIVE_TOPOLOGY topology);
@@ -85,7 +93,7 @@ private:
 private:
 
 	
-	ShaderInfo _info;
+	ShaderInfo mInfo;
 	ComPtr<ID3D12PipelineState>			mPipelineState;
 	
 
@@ -98,8 +106,8 @@ private:
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC  mGraphicsPipelineDesc = {};
 
 	// ComputeShader
-	ComPtr<ID3DBlob>					_csBlob;
-	D3D12_COMPUTE_PIPELINE_STATE_DESC   _computePipelineDesc = {};
+	ComPtr<ID3DBlob>					mCsBlob;
+	D3D12_COMPUTE_PIPELINE_STATE_DESC   mComputePipelineDesc = {};
 
 };
 

@@ -54,6 +54,7 @@ private:
 	void CreateUploadBuffer();
 	void CreateDefaultBuffer();
 	void CreateView(STRUCTURED_INDEX);
+	void CreateView(STRUCTURED_INDEX);
 private:
 	ComPtr<ID3D12Resource>			mBuffer;
 	BYTE*							mMappedBuffer	= nullptr;	//cpu쪽과 메모리 연결을 위한 포인터

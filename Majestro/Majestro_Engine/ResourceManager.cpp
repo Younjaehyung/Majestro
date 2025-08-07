@@ -295,19 +295,27 @@ void ResourceManager::CreateDefaultShader()
 		
 		};
 
-
-		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges2 =	// texture- buffer
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges2 =	// particle- buffer
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,   -1, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_INDEX),2), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1,static_cast<uint8>(PARTICLE_INDEX::SRV_PARTICLE_INDEX) ,2),
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2, static_cast<uint8>(PARTICLE_INDEX::UAV_PARTICLE_INDEX),2),
+		};
+
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// texture- buffer
+		{
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  - 1, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 		};
 
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddConstant(0,3);
+		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddConstant(0,5);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges0);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges1);
+		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSRV(0,2);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges2);
+		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges3);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->CreateGraphicsRootSignature();
 
@@ -326,7 +334,7 @@ void ResourceManager::CreateDefaultShader()
 
 	//	Add<RootSignature>(L"ComputeRootSignature", rootSignature);
 	//	RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->AddTable(ranges);
-	//	RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->CreateGraphicsRootSignature();
+	//	RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->CreateComputeRootSignature();
 
 	//}
 
@@ -340,11 +348,14 @@ void ResourceManager::CreateDefaultShader()
 			DEPTH_STENCIL_TYPE::LESS_EQUAL
 		};
 
-		 
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\skybox_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\skybox_PS.hlsl"
+		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
 
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\skybox.fx", info);
+		shader->CreateGraphicsShader(shaderPath, info);
 
 		Add<Shader>(L"Skybox", shader);
 	}
@@ -356,8 +367,13 @@ void ResourceManager::CreateDefaultShader()
 			SHADER_TYPE::DEFERRED
 		};
 
+		ShaderPath shaderPath{
+		.VS = L"..\\Resources\\Shader\\deferred_VS.hlsl",
+		.PS = L"..\\Resources\\Shader\\deferred_PS.hlsl"
+		};
+
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\deferred.fx", info);
+		shader->CreateGraphicsShader(shaderPath, info);
 		Add<Shader>(L"Deferred", shader);
 	}
 
@@ -367,9 +383,12 @@ void ResourceManager::CreateDefaultShader()
 		{
 			SHADER_TYPE::FORWARD,
 		};
-
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\forward_PS.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\forward.fx", info);
+		shader->CreateGraphicsShader(shaderPath, info);
 		Add<Shader>(L"Forward", shader);
 	}
 
@@ -381,9 +400,12 @@ void ResourceManager::CreateDefaultShader()
 			RASTERIZER_TYPE::CULL_NONE,
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE
 		};
-
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\texture_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\texture_PS.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\forward.fx", info, "VS_Tex", "PS_Tex");
+		shader->CreateGraphicsShader(shaderPath, info, "VS_Tex", "PS_Tex");
 		Add<Shader>(L"Texture", shader);
 	}
 
@@ -396,9 +418,12 @@ void ResourceManager::CreateDefaultShader()
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 			BLEND_TYPE::ONE_TO_ONE_BLEND
 		};
-
+		ShaderPath shaderPath{
+		.VS = L"..\\Resources\\Shader\\lighting_dir_VS.hlsl",
+		.PS = L"..\\Resources\\Shader\\lighting_dir_PS.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\lighting.fx", info, "VS_DirLight", "PS_DirLight");
+		shader->CreateGraphicsShader(shaderPath, info, "VS_DirLight", "PS_DirLight");
 		Add<Shader>(L"DirLight", shader);
 	}
 
@@ -411,9 +436,12 @@ void ResourceManager::CreateDefaultShader()
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 			BLEND_TYPE::ONE_TO_ONE_BLEND
 		};
-
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\lighting_point_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\lighting_point_PS.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\lighting.fx", info, "VS_PointLight", "PS_PointLight");
+		shader->CreateGraphicsShader(shaderPath, info, "VS_PointLight", "PS_PointLight");
 		Add<Shader>(L"PointLight", shader);
 	}
 
@@ -425,16 +453,22 @@ void ResourceManager::CreateDefaultShader()
 			RASTERIZER_TYPE::CULL_BACK,
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};
-
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final.hlsl",
+			.PS = L"..\\Resources\\Shader\\final.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\lighting.fx", info, "VS_Final", "PS_Final");
+		shader->CreateGraphicsShader(shaderPath, info, "VS_Final", "PS_Final");
 		Add<Shader>(L"Final", shader);
 	}
 
-	//// Compute Shader
+	// Compute Shader (프로젝트 제외함)
 	//{
+	//	ShaderPath shaderPath{
+	//		.CS = L"..\\Resources\\Shader\\compute.hlsl",
+	//	};
 	//	shared_ptr<Shader> shader = make_shared<Shader>();
-	//	shader->CreateComputeShader(L"..\\Resources\\Shader\\compute.fx", "CS_Main", "cs_5_0");
+	//	shader->CreateComputeShader(shaderPath, "CS_Main");
 	//	Add<Shader>(L"ComputeShader", shader);
 	//}
 
@@ -448,18 +482,26 @@ void ResourceManager::CreateDefaultShader()
 			BLEND_TYPE::ALPHA_BLEND,
 			D3D_PRIMITIVE_TOPOLOGY_POINTLIST
 		};
-
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\particle_CS.hlsl",
+			.PS = L"..\\Resources\\Shader\\particle_PS.hlsl"
+			.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\particle.fx", info, "VS_Main", "PS_Main", "GS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main", "GS_Main");
 		Add<Shader>(L"Particle", shader);
 	}
 
-	//// ComputeParticle
-	//{
-	//	shared_ptr<Shader> shader = make_shared<Shader>();
-	//	shader->CreateComputeShader(L"..\\Resources\\Shader\\particle.fx", "CS_Main", "cs_5_0");
-	//	Add<Shader>(L"ComputeParticle", shader);
-	//}
+	// ComputeParticle
+	{
+	 	ShaderPath shaderPath{
+			.CS = L"..\\Resources\\Shader\\particle_CS.hlsl",
+		};
+	 
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateComputeShader(shaderPath, "CS_Main");
+		Add<Shader>(L"ComputeParticle", shader);
+	}
 
 	// Shadow
 	{
@@ -469,9 +511,12 @@ void ResourceManager::CreateDefaultShader()
 			RASTERIZER_TYPE::CULL_BACK,
 			DEPTH_STENCIL_TYPE::LESS,
 		};
-
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\shadow_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\shadow_PS.hlsl"
+		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(L"..\\Resources\\Shader\\shadow.fx", info);
+		shader->CreateGraphicsShader(shaderPath, info);
 		Add<Shader>(L"Shadow", shader);
 	}
 }
@@ -485,66 +530,70 @@ void ResourceManager::CreateDefaultMaterial()
 		material->SetShader(L"Skybox");
 		Add<Material>(L"Skybox", material);
 	}
-
+	
+	// 추후 주석된 부분은 GBUFFER전용 생성으로 폐기 예정임.
 	// DirLight
-	{
+	//{
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"DirLight");
-		material->SetTexture(0, Get<Texture>(L"PositionTarget"));
-		material->SetTexture(1, Get<Texture>(L"NormalTarget"));
-		Add<Material>(L"DirLight", material);
-	}
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"DirLight");
+	//	material->SetTexture(Get<Texture>(L"PositionTarget"), );
+	//	material->SetTexture(1, Get<Texture>(L"NormalTarget"));
+	//	Add<Material>(L"DirLight", material);
+	//}
 
 	// PointLight
-	{
-		const WindowInfo& window = RENDERMANAGER.GetWindow();
-		Vec2 resolution = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
+	//{
+	//	const WindowInfo& window = RENDERMANAGER.GetWindow();
+	//	Vec2 resolution = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
 
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"PointLight");
-		material->SetTexture(0, Get<Texture>(L"PositionTarget"));
-		material->SetTexture(1, Get<Texture>(L"NormalTarget"));
-		material->SetVec2(0, resolution);
-		Add<Material>(L"PointLight", material);
-	}
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"PointLight");
+	//	material->SetTexture(0, Get<Texture>(L"PositionTarget"));
+	//	material->SetTexture(1, Get<Texture>(L"NormalTarget"));
+	//	material->SetVec2(0, resolution);
+	//	Add<Material>(L"PointLight", material);
+	//}
 
 	// Final
-	{
+	//{
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"Final");
-		material->SetTexture(0, Get<Texture>(L"DiffuseTarget"));
-		material->SetTexture(1, Get<Texture>(L"DiffuseLightTarget"));
-		material->SetTexture(2, Get<Texture>(L"SpecularLightTarget"));
-		Add<Material>(L"Final", material);
-	}
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"Final");
+	//	material->SetTexture(0, Get<Texture>(L"DiffuseTarget"));
+	//	material->SetTexture(1, Get<Texture>(L"DiffuseLightTarget"));
+	//	material->SetTexture(2, Get<Texture>(L"SpecularLightTarget"));
+	//	Add<Material>(L"Final", material);
+	//}
+	  
 
-	//// Compute Shader
+	//////
+	//// Compute Shader (프로젝트 제외함)
 	//{
 
 	//	shared_ptr<Material> material = make_shared<Material>();
 	//	material->SetShader(L"ComputeShader");
 	//	Add<Material>(L"ComputeShader", material);
 	//}
+	////////
 
-	//// Particle
-	//{
+	// Particle
+	{
 
-	//	shared_ptr<Material> material = make_shared<Material>();
-	//	material->SetShader(L"Particle");
-	//	Add<Material>(L"Particle", material);
-	//}
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"Particle");
+		Add<Material>(L"Particle", material);
+	}
 
-	//// ComputeParticle
-	//{
+	// ComputeParticle
+	{
 
-	//	shared_ptr<Material> material = make_shared<Material>();
-	//	material->SetShader(L"ComputeParticle");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"ComputeParticle");
 
-	//	Add<Material>(L"ComputeParticle", material);
-	//}
+		Add<Material>(L"ComputeParticle", material);
+	}
 
 	// GameObject
 	{
@@ -553,16 +602,16 @@ void ResourceManager::CreateDefaultMaterial()
 		shared_ptr<Texture> texture2 = Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Deferred");
-		material->SetTexture(0, texture);
-		material->SetTexture(1, texture2);
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+		material->SetTexture(texture, NORMALMAPINDEX);
 		Add<Material>(L"GameObject", material);
 	}
 
-	// Shadow
-	{
+	//// Shadow
+	//{
 
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"Shadow");
-		Add<Material>(L"Shadow", material);
-	}
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"Shadow");
+	//	Add<Material>(L"Shadow", material);
+	//}
 }

@@ -39,6 +39,9 @@ public:
 
 	uint32 SetUavIndex(uint32 index) { mUavIndex = index; }
 	uint32 GetUavIndex() { return mUavIndex; }
+
+	uint32 SetImageIndex(uint32 index) { mImageMapIndex = index; }
+	uint32 GetImageIndex() { return mImageMapIndex; }
 private:
 	ScratchImage			 		mOriginalImage;
 	D3D12_RESOURCE_DESC				mDescription;
@@ -55,5 +58,6 @@ private:
 	uint32 mSrvIndex{};
 	uint32 mUavIndex{};
 
+	uint32 mImageMapIndex{};
 };
 

@@ -10,11 +10,12 @@
 
 class SceneManager;
 
-
 class RenderManager
 {
 public:
 	void Initialize(const WindowInfo& info);
+	void CreateBuffer_View();
+
 	void Update();
 
 	void StartRender();

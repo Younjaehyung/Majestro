@@ -31,8 +31,6 @@ struct OBJECTINFO
 {
     matrix MatWorld;
 
-    
-    int IsParticleSystem; // Object가 아니라 파티클이면 1
 };
 
 struct ComputeShared

@@ -7,6 +7,7 @@
 #include "LightComponent.h"
 #include "CameraComponent.h"
 #include "TransformComponent.h"
+#include "ParticleComponent.h"
 
 void RenderManager::Initialize(const WindowInfo& info)
 {
@@ -28,26 +29,61 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 	mGraphicsDescHeap->Initialize(FRAMEGROUP_COUNT);
 
-	CreateBuffer_View();
+	CreateGroup();
+	CreateParticle();
 
 	CreateRenderTargetGroups();
 }
 
-void RenderManager::CreateBuffer_View()
+void RenderManager::CreateGlobal()
 {
 
-	CreateConstantBuffer(CONSTANT_INDEX::CBV_PASSINFO_INDEX, sizeof(PassInfo));	// deltaTime이나 totaltime/ Camera 같은 전역
+}
 
+void RenderManager::CreateGroup()
+{
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, sizeof(LightParams), 1000);
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX, sizeof(ObjectParams), 5000);
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams), 1000);
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams), 1000);
-	CreateStructuredBuffer(STRUCTURED_INDEX::SRV_MATERIALS_INDEX, sizeof(MaterialParams), 1000);
-	//CreateStructuredBuffer(sizeof(BoneParams), );
-	//CreateStructuredBuffer(sizeof(PARTICLEParams), );
 
+	uint8 i = 0;
+	for (GroupBuffer& group : mGroupBuffer) {
+		group.PassInfo = make_shared<ConstantBuffer>();
+		group.PassInfo->CreateBuffer(sizeof(PassParams));
+		group.PassInfo->CreateView(i, CONSTANT_INDEX::CBV_PASSINFO_INDEX);
+
+		group.LightInfo = make_shared<StructuredBuffer>();
+		group.LightInfo->CreateUploadBuffer(1000, sizeof(LightParams));
+		group.LightInfo->CreateSrvView(i, STRUCTURED_INDEX::SRV_LIGHT_INDEX);
+
+
+		group.ObjectInfo = make_shared<StructuredBuffer>();
+		group.ObjectInfo->CreateUploadBuffer(5000, sizeof(ObjectParams));
+		group.ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX);
+
+		group.MaterialInfo = make_shared<StructuredBuffer>();
+		group.MaterialInfo->CreateUploadBuffer(sizeof(MaterialParams));
+		group.MaterialInfo->CreateSrvView(1000, STRUCTURED_INDEX::SRV_MATERIALS_INDEX);
+
+		i++;
+	}
+
+}
+
+void RenderManager::CreateParticle()
+{
+	for (ParticleBuffer& group : mParticleBuffer) {
+		group.Particle = make_shared<StructuredBuffer>();
+		group.Particle->CreateDefaultBuffer(sizeof(ParticleParms), PARTICLE_COUNT);
+		group.Particle->CreateSrvView(i, PARTICLE_INDEX::SRV_PARTICLE_INDEX);
+		group.Particle->CreateUavView(i, PARTICLE_INDEX::UAV_PARTICLE_INDEX);
+		
+
+		group.RWParticleShared = make_shared<StructuredBuffer>();
+		group.RWParticleShared->CreateDefaultBuffer(1, sizeof(uint32));
+		group.RWParticleShared->CreateUavView(i, PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX);
+
+		i++;
+	}
 
 }
 
@@ -180,14 +216,4 @@ void RenderManager::CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize)
 	
 }
 
-void RenderManager::CreateStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
-{
-
-	for (int i = 0; i < FRAMEGROUP_COUNT; ++i) {
-		shared_ptr<StructuredBuffer> buffer = make_shared<StructuredBuffer>();
-		buffer->CreateUploadStructuredView(i,type, elementSize, elementCount);
-		mDynamicStructuredBuffer[i].push_back(buffer);
-	}
-	
-}
 

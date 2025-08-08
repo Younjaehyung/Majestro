@@ -8,6 +8,7 @@ ConstantBuffer::ConstantBuffer()
 {
 }
 
+
 ConstantBuffer::~ConstantBuffer()
 {
 	if (mCbvBuffer)
@@ -19,22 +20,10 @@ ConstantBuffer::~ConstantBuffer()
 	}
 }
 
-void ConstantBuffer::CreateConstantView(uint8 frameCount, CONSTANT_INDEX type,uint32 size)
+void ConstantBuffer::CreateBuffer(uint32 size)
 {
-	mConstantIndex = type;
-	mFrameCount = frameCount;
-	
-	// 상수 버퍼는 256 바이트 배수로 만들어야 한다
-	// 0 256 512 768
 	mElementSize = (size + 255) & ~255;
 
-
-	CreateBuffer();
-	CreateView(type);
-}
-
-void ConstantBuffer::CreateBuffer()
-{
 	//GPU에서 사용할 버퍼 생성
 	uint32 bufferSize = mElementSize;
 	D3D12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);	//버퍼 타입(UPLOAD) : CPU에서 VRAM으로 접근가능 메모리
@@ -56,12 +45,15 @@ void ConstantBuffer::CreateBuffer()
 	// the resource while it is in use by the GPU (so we must use synchronization techniques).
 }
 
-void ConstantBuffer::CreateView(CONSTANT_INDEX type)
+void ConstantBuffer::CreateView(uint8 frameCount,CONSTANT_INDEX type)
 {
+	mConstantIndex = type;
+	mFrameCount = frameCount;
+
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 	
 	mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
-	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + CONSTANT_INDEX_START) * mHandleIncrementSize);
+	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(mConstantIndex) + CONSTANT_INDEX_START) * mHandleIncrementSize);
 	
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc {};
 		cbvDesc.BufferLocation = mCbvBuffer->GetGPUVirtualAddress();
@@ -108,37 +100,7 @@ StructuredBuffer::~StructuredBuffer()
 {
 }
 
-void StructuredBuffer::CreateUploadStructuredView(uint8 frameCount, STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
-{
-	mSructuredIndex = type;
-	mFrameCount = frameCount;
-	mElementSize = elementSize;		// 구조체 크기
-	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
 
-	
-	//GPU에 원하는 버퍼 생성
-
-	CreateUploadBuffer();
-	CreateView(type);
-
-	
-}
-
-void StructuredBuffer::CreateDefaultStructuredView(uint8 frameCount, STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount)
-{
-	mSructuredIndex = type;
-	mFrameCount = frameCount;
-	mElementSize = elementSize;		// 구조체 크기
-	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
-	mResourceState = D3D12_RESOURCE_STATE_COMMON;
-
-	//GPU에 원하는 버퍼 생성
-
-	CreateDefaultBuffer();
-	CreateView(type);
-
-
-}
 
 void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
 {
@@ -155,9 +117,11 @@ void StructuredBuffer::PushComputeUAVData(void* buffer, uint32 size)
 	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
-void StructuredBuffer::CreateUploadBuffer()
+void StructuredBuffer::CreateUploadBuffer(uint32 elementSize, uint32 elementCount)
 {
 
+	mElementSize = elementSize;		// 구조체 크기
+	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
 	// Buffer
 	{
 		uint64 bufferSize = static_cast<uint64>(mElementSize) * mElementCount;
@@ -175,8 +139,12 @@ void StructuredBuffer::CreateUploadBuffer()
 	mBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedBuffer));
 }
 
-void StructuredBuffer::CreateDefaultBuffer()
+void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCount)
 {
+
+	mElementSize = elementSize;		// 구조체 크기
+	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
+
 	// 추후 upload < = > default copy만들기
 	// Buffer
 	{
@@ -192,11 +160,13 @@ void StructuredBuffer::CreateDefaultBuffer()
 			nullptr,
 			IID_PPV_ARGS(&mBuffer));
 	}
-	mBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedBuffer));
+	
 }
 
-void StructuredBuffer::CreateView(STRUCTURED_INDEX type)	// STRUCTURED_INDEX_COUNT용도
+void StructuredBuffer::CreateSrvView(uint8 frameCount, STRUCTURED_INDEX type)	// STRUCTURED_INDEX_COUNT용도
 {
+	mSrvIndex = type;
+	mFrameCount = frameCount;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 
@@ -204,24 +174,6 @@ void StructuredBuffer::CreateView(STRUCTURED_INDEX type)	// STRUCTURED_INDEX_COU
 
 	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START)* mHandleIncrementSize);
 
-	//switch (type) {	//추후 살펴볼것
-
-
-	//case STRUCTURED_INDEX::SRV_PARTICLE_INDEX:	// Particle일시 UAV용도 생성
-	//	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-	//	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-	//	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-	//	uavDesc.Buffer.FirstElement = 0;
-	//	uavDesc.Buffer.NumElements = mElementCount;
-	//	uavDesc.Buffer.StructureByteStride = mElementSize;
-	//	uavDesc.Buffer.CounterOffsetInBytes = 0;
-	//	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-
-	//	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * STRUCTURED_INDEX_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START) * mHandleIncrementSize);
-
-	//	DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mSrvCpuHandleBegin);
-	//	break;
-	//}
 
 	// 기본 
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -237,6 +189,36 @@ void StructuredBuffer::CreateView(STRUCTURED_INDEX type)	// STRUCTURED_INDEX_COU
 
 }
 
+
+void StructuredBuffer::CreateUavView(uint8 frameCount, PARTICLE_INDEX type)	// STRUCTURED_INDEX_COUNT용도
+{
+	mUavIndex = type;
+	mFrameCount = frameCount;
+
+	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+
+	uint32 mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
+
+	//mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START) * mHandleIncrementSize);
+	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + PARTICLE_INDEX_START) * mHandleIncrementSize);
+
+
+
+		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+		uavDesc.Buffer.FirstElement = 0;
+		uavDesc.Buffer.NumElements = mElementCount;
+		uavDesc.Buffer.StructureByteStride = mElementSize;
+		uavDesc.Buffer.CounterOffsetInBytes = 0;
+		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+
+		DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mUavCpuHandleBegin);
+
+
+
+}
 //////////////////////////////////////////////////////////////////////////////////
 
 InstancingBuffer::InstancingBuffer()

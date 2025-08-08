@@ -29,3 +29,29 @@ public:
 	float				_endScale = 5.f;
 };
 
+
+struct ParticleParms
+{
+    int Index;
+    Matrix MatWorld;
+
+    int maxCount;
+    int addCount;
+    int frameNumber;
+    float deltaTime;
+    float accTime;
+    float minLifeTime;
+    float maxLifeTime;
+    float minSpeed;
+    float maxSpeed;
+
+
+    Vec3 worldPos;
+    float curTime; //경과시간
+    Vec3 worldDir;
+    float lifeTime; //유지시간
+    int alive; //랜더링유무용
+
+    float EndScale;
+    float StartScale;
+};

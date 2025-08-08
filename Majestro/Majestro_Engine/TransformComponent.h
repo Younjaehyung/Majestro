@@ -1,6 +1,10 @@
 #include "Entity.h"
 #include "Component.h"
 
+struct ObjectParams {
+	Matrix MatWorld;
+};
+
 class TransformComponent : public Component<TransformComponent>
 {
 public:

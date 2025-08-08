@@ -4,18 +4,17 @@
 class ConstantBuffer {
 public:
 	ConstantBuffer();
-	~ConstantBuffer();
 
-	void CreateConstantView(uint8 frameCount,CONSTANT_INDEX type, uint32 size);					// RootDescriptor용
+	~ConstantBuffer();
 
 	void PushComputeData(void* buffer, uint32 size);
 	//글로벌로 설정되어 한번만 작동하는 함수
 
 	void PushData(void* buffer, uint32 size);	// TableDescriptor용
 
-private:
-	void CreateBuffer();
-	void CreateView(CONSTANT_INDEX);
+
+	void CreateBuffer(uint32 size);
+	void CreateView(uint8 frameCount, CONSTANT_INDEX type);
 private:
 
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼
@@ -38,8 +37,7 @@ public:
 	~StructuredBuffer();
 
 
-	void CreateUploadStructuredView(uint8 frameCount, STRUCTURED_INDEX type,uint32 elementSize, uint32 elementCount);
-	void CreateDefaultStructuredView(uint8 frameCount, STRUCTURED_INDEX type,uint32 elementSize, uint32 elementCount);
+
 
 	void PushGraphicsData(void* buffer, uint32 size);
 	void PushComputeSRVData(void* buffer, uint32 size);	// 추후 수정
@@ -50,11 +48,12 @@ public:
 	void SetResourceState(D3D12_RESOURCE_STATES state) { mResourceState = state; }
 	D3D12_RESOURCE_STATES GetResourceState() { return mResourceState; }
 	ComPtr<ID3D12Resource> GetBuffer() { return mBuffer; }
-private:
-	void CreateUploadBuffer();
-	void CreateDefaultBuffer();
-	void CreateView(STRUCTURED_INDEX);
-	void CreateView(STRUCTURED_INDEX);
+
+	void CreateUploadBuffer(uint32 elementSize, uint32 elementCount);
+	void CreateDefaultBuffer(uint32 elementSize, uint32 elementCount);
+
+	void CreateSrvView(uint8 frameCount, STRUCTURED_INDEX type);
+	void CreateUavView(uint8 frameCount, PARTICLE_INDEX type);
 private:
 	ComPtr<ID3D12Resource>			mBuffer;
 	BYTE*							mMappedBuffer	= nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
@@ -62,9 +61,10 @@ private:
 	uint32						mElementSize = 0;
 	uint32						mElementCount = 0;
 
-	D3D12_RESOURCE_STATES		mResourceState = {};
+	D3D12_RESOURCE_STATES		mResourceState = D3D12_RESOURCE_STATE_COMMON;
 
-	STRUCTURED_INDEX			mSructuredIndex = {}; // Sructured Type
+	STRUCTURED_INDEX			mSrvIndex = {}; // Sructured Type
+	PARTICLE_INDEX				mUavIndex = {}; // Sructured Type
 	uint8						mFrameCount = 0;
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE mSrvCpuHandleBegin = {};

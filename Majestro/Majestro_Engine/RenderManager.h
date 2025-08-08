@@ -10,11 +10,30 @@
 
 class SceneManager;
 
+
+struct GroupBuffer {
+	shared_ptr<ConstantBuffer> PassInfo;
+	shared_ptr<StructuredBuffer> LightInfo;
+	shared_ptr<StructuredBuffer> ObjectInfo;
+	shared_ptr<StructuredBuffer> MaterialInfo;
+
+};
+
+struct ParticleBuffer {
+	
+	shared_ptr<StructuredBuffer> Particle;
+	shared_ptr<StructuredBuffer> RWParticleShared;//공유 전역변수
+};
+
+
 class RenderManager
 {
 public:
 	void Initialize(const WindowInfo& info);
-	void CreateBuffer_View();
+
+	void CreateGlobal();
+	void CreateGroup();
+	void CreateParticle();
 
 	void Update();
 
@@ -46,11 +65,11 @@ public:
 
 
 
-	shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_INDEX type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)- static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END)]; }
-	array < vector<shared_ptr<ConstantBuffer>>,GROUP_COUNT>& GetConstantBuffers() { return mConstantBuffer; }
-	
-	shared_ptr<StructuredBuffer> GetStructuredBuffer(STRUCTURED_INDEX type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }
-	array < vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>& GetStructuredBuffer() { return mDynamicStructuredBuffer; }
+	//shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_INDEX type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)- static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END)]; }
+	//array < vector<shared_ptr<ConstantBuffer>>,GROUP_COUNT>& GetConstantBuffers() { return mConstantBuffer; }
+	//
+	//shared_ptr<StructuredBuffer> GetStructuredBuffer(STRUCTURED_INDEX type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }
+	//array < vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>& GetStructuredBuffer() { return mDynamicStructuredBuffer; }
 
 
 	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
@@ -60,7 +79,8 @@ public:
 private:
 	void CreateRenderTargetGroups();
 	void CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize);	//Constant버퍼 생성 (
-	void CreateStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
+	void CreateUploadStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
+	void CreateDefaultStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
 
 private:
 	uint8			mFrameResourceIndex;	// 프레임리소스 그룹 인덱스
@@ -77,12 +97,13 @@ private:
 
 
 	// ResourceBuffer
-	array< vector<shared_ptr<ConstantBuffer>>, GROUP_COUNT>		mConstantBuffer;	// 0: Camera 나머지 : 추후 추가될 constantBuffer용
 
-	array< vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>	mDynamicStructuredBuffer;	// 프레임 리소스를 위한 GROUP_COUNT만큼의 동적 버퍼
-	vector<shared_ptr<StructuredBuffer>>						mStaticStructuredBuffer;	// 머티리얼, 본 계층을 위한 정적 버퍼
 
-	
+	array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;
+
+	array< shared_ptr<StructuredBuffer>, FRAMEGROUP_COUNT>			mParticleShared; // 속성값(SRV)								
+	array< ParticleBuffer, PARTICLE_GROUP_COUNT>				mParticleBuffer;
+
 
 	//shared_ptr<ComputeDescriptorHeap> _computeDescHeap = make_shared<ComputeDescriptorHeap>();
 	//shared_ptr<ComputeCommandQueue>		mComputeCmdQueue	= make_shared<ComputeCommandQueue>();

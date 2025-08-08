@@ -10,6 +10,19 @@ class RenderComponent;
 class LightComponent;
 class TransformComponent;
 
+struct PassParams
+{
+	Matrix MatView;
+	Matrix MatProjection;
+	Matrix MatViewInv; // view의 역행렬
+	Matrix MatProjectionInv; // Projection의 역행렬	(사용은 선택)
+
+	Vec2 ScreenSize;
+	Vec2 Padding;
+
+	int LightsCount;
+	int SkyBoxIndex;
+};
 
 class RenderSystem	: public System
 {

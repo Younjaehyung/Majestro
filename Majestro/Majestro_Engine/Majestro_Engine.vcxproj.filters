@@ -181,6 +181,7 @@
     <ClInclude Include="TransformSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
+    <ClInclude Include="ParticleSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -305,6 +306,9 @@
       <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="TransformSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
   </ItemGroup>

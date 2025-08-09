@@ -24,6 +24,14 @@ struct LightParams	//빛과 관련된 정보
 	float		Range;
 	float		Angle;
 	int32		Padding;	//데이터 사이즈용 padding
+
+	Matrix MatWorld;
+	Matrix MatView;
+	Matrix MatProjection;
+	Matrix MatViewInv;
+	Matrix MatProjectionInv;
+
+	int MaterialsIndex;
 };
 
 class LightFactory

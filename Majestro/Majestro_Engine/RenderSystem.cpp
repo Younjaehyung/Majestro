@@ -23,7 +23,7 @@ void RenderSystem::Initialize()
 	// 1번 초기화
 	mRenderComponentPool = &(mWorld->GetComponentPool<RenderComponent>());
 	mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
-
+	
 }
 
 void RenderSystem::Update()
@@ -32,9 +32,12 @@ void RenderSystem::Update()
 
 	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
 
+	// Table 바인딩
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,0,GBUFFER_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,1,GROUP_START,GROUP_COUNT);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,2,PARTICLE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,3,TEXTURE_INDEX_START);
 
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable();
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTexutreTable();	// 텍스쳐버퍼 set
 
 	if (1) {	// Find Main Camera.
 		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
@@ -82,10 +85,12 @@ void RenderSystem::PushLightData()
 {
 	LightParams lightParams = {};
 	MaterialParams materialParams = {};
-	TransformParams transformParams = {};
-	
+
+	// light Component 추출
 	const vector<Entity>& entities = mWorld->GetEntitiesWithComponent<LightComponent>();
 	ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
+
+	// push 시작 (vector에 값 밀어 넣기)
 	for (auto& entity : entities)
 	{
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -96,7 +101,7 @@ void RenderSystem::PushLightData()
 		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
 		{
 			shared_ptr<Texture> shadowTex = RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
-			renderComponent->mMaterials[0]->SetTexture(2, shadowTex);
+			renderComponent->mMaterials[0]->SetTexture(shadowTex, DIFFUSEMAP0INDEX);
 				
 
 			Matrix matVP = cameraComponent->GetViewMatrix() * cameraComponent->GetProjectionMatrix();
@@ -107,18 +112,26 @@ void RenderSystem::PushLightData()
 			float scale = 2 * lightComponent->mLightInfo.Range;
 			transformComponent->SetLocalScale(Vec3(scale, scale, scale));
 		}
-		PushTransformData(transformComponent);
-		PushMaterialData(renderComponent);
+		lightParams.Color;
+		lightParams.Position;
+		lightParams.Direction;
+		lightParams.LightType;	
+		lightParams.Range; 
+		lightParams.Angle;
+		lightParams.Padding;	mLightVector.push_back(lightParams);
 
-		mLightVector.push_back(lightParams);
+		lightParams.MatWorld;
+		lightParams.MatView;
+		lightParams.MatProjection;
+		lightParams.MatViewInv;
+		lightParams.MatProjectionInv;
 
-	}
+		lightParams.MaterialsIndex;
 
-	RENDERMANAGER.GetStructuredBuffer(STRUCTURED_INDEX::SRV_LIGHT_INDEX, mFrameCount)->
-		PushGraphicsData(mLightVector.data(), static_cast<uint32>(mLightVector.size()) * static_cast<uint32>(sizeof(LightParams)));
-
+	}		
 
 
+	int MaterialsIndex;
 }
 
 void RenderSystem::PushObjectData()
@@ -431,17 +444,24 @@ void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 }
 
 
-void RenderSystem::PushTransformData(TransformComponent* transformComponent)
+void RenderSystem::PushPassData()
 {
-	TransformParams transformParams = {};
-	transformParams.matWorld = transformComponent->mWorldMatrix;
-	transformParams.matView = mCamera->mView;
-	transformParams.matProjection = mCamera->mProjection;
-	transformParams.matWV = transformComponent->mWorldMatrix * mCamera->mView;
-	transformParams.matWVP = transformComponent->mWorldMatrix * mCamera->mView * mCamera->mProjection;
-	transformParams.matViewInv = mCamera->mView.Invert();
+	PassParams passParams{};
+	passParams.MatView = mCamera->mView;
+	passParams.MatProjection = mCamera->mProjection;
+	passParams.MatViewInv = mCamera->mView.Invert();
+	passParams.MatProjectionInv = mCamera->mProjection.Invert();
 
-	mTransformVector.push_back(transformParams);
+	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
+
+}
+
+void RenderSystem::PushObjectData(TransformComponent* transformComponent)
+{
+	
+	objectParams.MatWorld = transformComponent->mWorldMatrix;
+
+	mTransformVector.push_back(objectParams);
 
 }
 

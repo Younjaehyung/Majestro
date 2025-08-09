@@ -31,9 +31,6 @@ class RenderManager
 public:
 	void Initialize(const WindowInfo& info);
 
-	void CreateGlobal();
-	void CreateGroup();
-	void CreateParticle();
 
 	void Update();
 
@@ -73,18 +70,19 @@ public:
 
 
 	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
+	uint8 GetFrameCurrIndex() {return mFrameCurrIndex;}
 
 	shared_ptr<RenderTarget> GetRTGroup(RENDER_TARGET_GROUP_TYPE type) { return mRenderTargetGroups[static_cast<uint8>(type)]; }
 
 private:
 	void CreateRenderTargetGroups();
-	void CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize);	//Constant버퍼 생성 (
-	void CreateUploadStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
-	void CreateDefaultStructuredBuffer(STRUCTURED_INDEX type, uint32 elementSize, uint32 elementCount);	//Structure버퍼 생성
 
+	void CreateGlobal();
+	void CreateGroup();
+	void CreateParticle();
 private:
-	uint8			mFrameResourceIndex;	// 프레임리소스 그룹 인덱스
-	
+	uint8			mFrameResourceIndex;	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
+	uint8			mFrameCurrIndex;		// 현재 GPU로 보낸 Index
 
 private:
 	// DX12

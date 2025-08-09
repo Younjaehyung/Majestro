@@ -9,7 +9,7 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 	mGroupCount = count;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};	//DESCRIPTOR HEAP 세팅
-	desc.NumDescriptors = count * GROUP_COUNT + UAV_INDEX_COUNT + TEXTURE_COUNT;	//b0로 전역이기에 1개를 뺌
+	desc.NumDescriptors = ALL_DESCRIPTOR_COUNT;	//b0로 전역이기에 1개를 뺌
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;	
 
@@ -17,7 +17,8 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 
 	mHandleSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	mGroupSize = mHandleSize * (desc.NumDescriptors);	//b0로 전역이기에 1개를 뺌
-	mTextureGroupIndex = GROUP_COUNT * count + UAV_INDEX_COUNT;	// mTextureGroupIndex의 시작 위치
+	mTextureGroupIndex = static_cast<uint32>(TEXTURE_INDEX::TEXTURE_INDEX);	// mTextureGroupIndex의 시작 위치
+	mLastIndex = mTextureGroupIndex;
 }
 
 void GraphicsDescriptorHeap::Clear()
@@ -27,37 +28,18 @@ void GraphicsDescriptorHeap::Clear()
 
 
 
-void GraphicsDescriptorHeap::CommitTable(uint8 type)
+void GraphicsDescriptorHeap::CommitTable(uint32 frameCount,uint32 signautreNum,uint32 tableBegin, uint32 tableGroupSize)
 {
 
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetGPUDescriptorHandleForHeapStart();
-	uint8 frameCount = RENDERMANAGER.GetFrameResourceIndex();
-	uint32 tableBegin;
 
-	// 추후
-	if (type == GBUFFER_INDEX_START) {
-		tableBegin = 0;
-	}
-	else if (type == GROUP_START) {
-		tableBegin = (static_cast<uint32>(frameCount)* GROUP_COUNT )+GROUP_START;
-	}
-	else if (type == TEXTURE_INDEX_START) {
-		tableBegin = ;
-	}
-
-	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, tableBegin ** DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(1, handle);
+	// 만약 tableGroupSize가 0 이면 이것은 프레임리소스를 사용안한다고 간주하게됨. 
+	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle,  tableBegin +( frameCount * tableGroupSize)+ DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(signautreNum, handle);
 	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
 
 }
 
-void GraphicsDescriptorHeap::CommitTexutreTable()
-{
-	D3D12_GPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetGPUDescriptorHandleForHeapStart();
-	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, mTextureGroupIndex * DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(2, handle);
-	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
-}
 
 D3D12_CPU_DESCRIPTOR_HANDLE GraphicsDescriptorHeap::GetCPUHandle(uint8 reg)
 {

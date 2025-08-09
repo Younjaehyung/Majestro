@@ -311,6 +311,7 @@ extern unique_ptr<class Engine> gEngine;
 
 #define DEVICE	 gEngine->GetRenderManager().GetDevice()->GetDevice()
 #define GRAPHICS_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue ( )->GetGraphicsCmdList ( )
+#define RESOURCE_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetResourceCmdList()
 #define Graphics_DescHeap gEngine->GetRenderManager().GetGraphicsDescHeap()
 //#define COMPUTE_CMD_LIST gEngine->GetRenderManager().GetComputeCmdQueue ( )->GetComputeCmdList ( )
 
@@ -318,7 +319,7 @@ extern unique_ptr<class Engine> gEngine;
 //define COMPUTE_ROOT_SIGNATURE gEngine->GetRenderManager()->GetRootSignature()->GetComputeRootSignature()
 
 
-#define RESOURCE_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetResourceCmdList()
+
 
 #define DELTA_TIME		gEngine->GetTimer().GetTimeElapsed()
 

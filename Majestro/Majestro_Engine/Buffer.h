@@ -14,7 +14,7 @@ public:
 
 
 	void CreateBuffer(uint32 size);
-	void CreateView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount);
+	void CreateView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
 private:
 
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼

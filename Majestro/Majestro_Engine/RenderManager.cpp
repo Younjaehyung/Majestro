@@ -4,6 +4,7 @@
 #include "SceneManager.h"
 #include "ResourceManager.h"
 #include "Buffer.h"
+#include "RenderSystem.h"
 #include "LightComponent.h"
 #include "CameraComponent.h"
 #include "TransformComponent.h"
@@ -49,20 +50,24 @@ void RenderManager::CreateGroup()
 	for (GroupBuffer& group : mGroupBuffer) {
 		group.PassInfo = make_shared<ConstantBuffer>();
 		group.PassInfo->CreateBuffer(sizeof(PassParams));
-		group.PassInfo->CreateView(i, CONSTANT_INDEX::CBV_PASSINFO_INDEX);
+		group.PassInfo->CreateView(i,CONSTANT_INDEX_START , static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX),GROUP_COUNT);
 
 		group.LightInfo = make_shared<StructuredBuffer>();
 		group.LightInfo->CreateUploadBuffer(1000, sizeof(LightParams));
-		group.LightInfo->CreateSrvView(i, STRUCTURED_INDEX::SRV_LIGHT_INDEX);
+		group.LightInfo->CreateSrvView(i,STRUCTURED_INDEX_START , static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
 
 
 		group.ObjectInfo = make_shared<StructuredBuffer>();
 		group.ObjectInfo->CreateUploadBuffer(5000, sizeof(ObjectParams));
-		group.ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX);
+		group.ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 		group.MaterialInfo = make_shared<StructuredBuffer>();
-		group.MaterialInfo->CreateUploadBuffer(sizeof(MaterialParams));
-		group.MaterialInfo->CreateSrvView(1000, STRUCTURED_INDEX::SRV_MATERIALS_INDEX);
+		group.MaterialInfo->CreateUploadBuffer(1000,sizeof(MaterialParams));
+		group.MaterialInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
+		
+		group.MaterialInfo = make_shared<StructuredBuffer>();
+		group.MaterialInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(ParticleParms));
+		group.MaterialInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
 
 		i++;
 	}
@@ -202,18 +207,3 @@ void RenderManager::CreateRenderTargetGroups()
 		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)]->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
 	}
 }
-
-void RenderManager::CreateConstantBuffer(CONSTANT_INDEX type, uint32 bufferSize)
-{
-	//uint8 typeInt = static_cast<uint8>(reg);
-	//assert(mConstantBuffer.size() == typeInt);
-
-	for (int i = 0; i < FRAMEGROUP_COUNT; ++i) {
-		shared_ptr<ConstantBuffer> buffer = make_shared<ConstantBuffer>();
-		buffer->CreateConstantView(i,type, bufferSize);
-		mConstantBuffer[i].push_back(buffer);
-	}
-	
-}
-
-

@@ -14,7 +14,7 @@ public:
 
 
 	void CreateBuffer(uint32 size);
-	void CreateView(uint8 frameCount, CONSTANT_INDEX type);
+	void CreateView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount);
 private:
 
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼
@@ -25,7 +25,9 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
 	uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
 
-	CONSTANT_INDEX			mConstantIndex = {};			// CONSTANT Type
+	uint32					mGroupIndex = {};
+	uint32					mStartIndex = {};
+	uint32					mConstantIndex = {};			// CONSTANT Type
 	uint8					mFrameCount = 0;
 };
 
@@ -37,35 +39,45 @@ public:
 	~StructuredBuffer();
 
 
+public:
 
+	void PushGraphicsData(void* buffer, uint32 size);	// upload / default memcpy
+	void PushDefaultToData(void* buffer, uint32 size);	// default to upload memcpy (dummy);
 
-	void PushGraphicsData(void* buffer, uint32 size);
 	void PushComputeSRVData(void* buffer, uint32 size);	// 추후 수정
 	void PushComputeUAVData(void* buffer, uint32 size);
 
-
+public:
 
 	void SetResourceState(D3D12_RESOURCE_STATES state) { mResourceState = state; }
 	D3D12_RESOURCE_STATES GetResourceState() { return mResourceState; }
 	ComPtr<ID3D12Resource> GetBuffer() { return mBuffer; }
+public:
 
 	void CreateUploadBuffer(uint32 elementSize, uint32 elementCount);
 	void CreateDefaultBuffer(uint32 elementSize, uint32 elementCount);
 
-	void CreateSrvView(uint8 frameCount, STRUCTURED_INDEX type);
-	void CreateUavView(uint8 frameCount, PARTICLE_INDEX type);
+
+	void CreateSrvView(uint8 frameCount, uint32 startIndex ,uint32 type, uint32 groupCount=0);
+
+	void CreateUavView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
 private:
-	ComPtr<ID3D12Resource>			mBuffer;
+	ComPtr<ID3D12Resource>			mBuffer;		// upload / default buffer
+	ComPtr<ID3D12Resource>			mDummyBuffer;	// default to upload buffer (dummy);
+
 	BYTE*							mMappedBuffer	= nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
 
-	uint32						mElementSize = 0;
-	uint32						mElementCount = 0;
+	uint32						mElementSize = 0;	// 원소 하나 크기
+	uint32						mElementCount = 0;	// 전체 원소 개수
 
 	D3D12_RESOURCE_STATES		mResourceState = D3D12_RESOURCE_STATE_COMMON;
 
-	STRUCTURED_INDEX			mSrvIndex = {}; // Sructured Type
-	PARTICLE_INDEX				mUavIndex = {}; // Sructured Type
+	uint32						mGroupIndex = {};
+	uint32						mStartIndex = {};
+	uint32						mSrvIndex = {}; // Sructured Type
+	uint32						mUavIndex = {}; // Sructured Type
 	uint8						mFrameCount = 0;
+
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE mSrvCpuHandleBegin = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mUavCpuHandleBegin = {};

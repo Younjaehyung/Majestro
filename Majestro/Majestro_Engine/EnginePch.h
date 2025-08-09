@@ -142,8 +142,8 @@ enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
 
 
 enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
-{ // b레지스터 (암묵적 space0)
-	CBV_PASSINFO_INDEX = static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END),	// PASS 파라미터 b1
+{ // b레지스터 (암묵적 space1)
+	CBV_PASSINFO_INDEX ,	// PASS 파라미터 b0
 
 
 	CBV_INDEX_END
@@ -155,19 +155,13 @@ enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
 	SRV_LIGHT_INDEX,
 	SRV_OBJECTINFO_INDEX,
 	SRV_MATERIALS_INDEX,
+	SRV_PARTICLE_INDEX,	// 파티클 system view
 	//SRV_BONE_INDEX,
 	//SRV_PARTICLE_INDEX,
 	//UAV_PARTICLE_INDEX,
 	/*SRV_BONE_INDEX, */
 
 	SRV_INDEX_END
-};
-
-enum class PARTICLE_SYSTEM : uint8		//PARTICLE SYSTEM
-{ // t레지스터 space 2
-	SRV_PARTICLE_SYSTEM_INDEX,	// 파티클 system view
-
-	SRV_PARTICLE_SYSTEM_END
 };
 
 
@@ -239,9 +233,7 @@ enum {	// space 번호
 ///  2
 ///  3
 ///  4
-///////////////////////////////
-///  Particle_SYSTEM (rootDescriptor)
-///  0 - 	SRV_PARTICLE_SYSTEM_INDEX,	// 파티클 system view
+
 /// ///////////////////////////////
 ///  Particle
 ///  0 - 	SRV_PARTICLE_INDEX,			// 파티클1 읽기 view
@@ -277,7 +269,7 @@ enum {
 
 
 	, CONSTANT_INDEX_START = (GBUFFER_INDEX_COUNT)
-	, CONSTANT_INDEX_COUNT = static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END) - 1
+	, CONSTANT_INDEX_COUNT = static_cast<uint8>(CONSTANT_INDEX::CBV_INDEX_END)
 
 
 	, STRUCTURED_INDEX_START = CONSTANT_INDEX_START + CONSTANT_INDEX_COUNT

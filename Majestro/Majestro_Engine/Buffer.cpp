@@ -45,15 +45,19 @@ void ConstantBuffer::CreateBuffer(uint32 size)
 	// the resource while it is in use by the GPU (so we must use synchronization techniques).
 }
 
-void ConstantBuffer::CreateView(uint8 frameCount,CONSTANT_INDEX type)
+void ConstantBuffer::CreateView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
+	assert(mElementSize != 0);
+
 	mConstantIndex = type;
 	mFrameCount = frameCount;
+	mStartIndex = startIndex;
+	mGroupIndex = groupCount;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 	
 	mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
-	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(mConstantIndex) + CONSTANT_INDEX_START) * mHandleIncrementSize);
+	mCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * groupCount) + mConstantIndex + startIndex) * mHandleIncrementSize);
 	
 	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc {};
 		cbvDesc.BufferLocation = mCbvBuffer->GetGPUVirtualAddress();
@@ -107,6 +111,28 @@ void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
 	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
+void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
+{
+	// UpdateSubresources로 업로드 (버퍼는 1 서브리소스)
+	D3D12_SUBRESOURCE_DATA sub{};
+	sub.pData = buffer;
+	sub.RowPitch = static_cast<LONG_PTR>(size);
+	sub.SlicePitch = static_cast<LONG_PTR>(size);
+
+	UpdateSubresources(RESOURCE_CMD_LIST.Get(), mBuffer.Get(), mDummyBuffer.Get(), 0, 0, 1, &sub);
+
+	// 상태로 전환
+	if (mResourceState != D3D12_RESOURCE_STATE_COPY_DEST)
+	{
+		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			mBuffer.Get(),
+			D3D12_RESOURCE_STATE_COPY_DEST,
+			mResourceState);
+		RESOURCE_CMD_LIST->ResourceBarrier(1, &barrier);
+	}
+
+}
+
 void StructuredBuffer::PushComputeSRVData(void* buffer, uint32 size)
 {
 	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
@@ -147,7 +173,7 @@ void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCou
 
 	// 추후 upload < = > default copy만들기
 	// Buffer
-	{
+	
 		uint64 bufferSize = static_cast<uint64>(mElementSize) * mElementCount;
 		D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 		D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
@@ -159,63 +185,81 @@ void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCou
 			mResourceState,
 			nullptr,
 			IID_PPV_ARGS(&mBuffer));
-	}
 	
+	
+
+		// 2-1) Upload Heap 리소스 생성
+	CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+
+		DEVICE->CreateCommittedResource(
+			&uploadHeapProps,
+			D3D12_HEAP_FLAG_NONE,
+			&desc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&mDummyBuffer);
+
+
 }
 
-void StructuredBuffer::CreateSrvView(uint8 frameCount, STRUCTURED_INDEX type)	// STRUCTURED_INDEX_COUNT용도
+
+void StructuredBuffer::CreateSrvView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
+	assert(mElementSize != 0);
+	mGroupIndex = groupCount;
 	mSrvIndex = type;
 	mFrameCount = frameCount;
+	mStartIndex = startIndex;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 
 	uint32 mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
 
-	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START)* mHandleIncrementSize);
+	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * groupCount) + type + startIndex) * mHandleIncrementSize);
 
 
 	// 기본 
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-		srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-		srvDesc.Buffer.FirstElement = 0;
-		srvDesc.Buffer.NumElements = mElementCount;
-		srvDesc.Buffer.StructureByteStride = mElementSize;
-		srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = mElementCount;
+	srvDesc.Buffer.StructureByteStride = mElementSize;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-		DEVICE->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSrvCpuHandleBegin);
-
+	DEVICE->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSrvCpuHandleBegin);
 }
 
-
-void StructuredBuffer::CreateUavView(uint8 frameCount, PARTICLE_INDEX type)	// STRUCTURED_INDEX_COUNT용도
+void StructuredBuffer::CreateUavView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
+	assert(mElementSize!=0);
+
+	mGroupIndex = groupCount;
 	mUavIndex = type;
 	mFrameCount = frameCount;
+	mStartIndex = startIndex;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mHeapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 
 	uint32 mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
 
 	//mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START) * mHandleIncrementSize);
-	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + PARTICLE_INDEX_START) * mHandleIncrementSize);
+	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * groupCount) + type + mStartIndex) * mHandleIncrementSize);
 
 
 
-		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-		uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-		uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-		uavDesc.Buffer.FirstElement = 0;
-		uavDesc.Buffer.NumElements = mElementCount;
-		uavDesc.Buffer.StructureByteStride = mElementSize;
-		uavDesc.Buffer.CounterOffsetInBytes = 0;
-		uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+	uavDesc.Buffer.FirstElement = 0;
+	uavDesc.Buffer.NumElements = mElementCount;
+	uavDesc.Buffer.StructureByteStride = mElementSize;
+	uavDesc.Buffer.CounterOffsetInBytes = 0;
+	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
 
-		DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mUavCpuHandleBegin);
-
+	DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mUavCpuHandleBegin);
 
 
 }

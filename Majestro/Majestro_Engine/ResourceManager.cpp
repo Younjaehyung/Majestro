@@ -290,15 +290,15 @@ void ResourceManager::CreateDefaultShader()
 
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges1 =	// group- buffer
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CONSTANT_INDEX_COUNT, 1,1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CONSTANT_INDEX_COUNT, 0,1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  STRUCTURED_INDEX_COUNT, 0,1), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 		
 		};
 
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges2 =	// particle- buffer
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1,static_cast<uint8>(PARTICLE_INDEX::SRV_PARTICLE_INDEX) ,2),
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2, static_cast<uint8>(PARTICLE_INDEX::UAV_PARTICLE_INDEX),2),
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1,0 ,2),
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2,0,2),
 		};
 
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// texture- buffer
@@ -310,10 +310,9 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddConstant(0,5);
+		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddConstant(0,4);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges0);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges1);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSRV(0,2);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges2);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges3);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));

@@ -134,12 +134,12 @@ ConstantBuffer<PASSINFO> PassParams : register(b0, space1);
 StructuredBuffer<LIGHTINFO> Lights : register(t0, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t1, space1);
 StructuredBuffer<MATERIALINFO> Materials : register(t2, space1);
+StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
 //StructuredBuffer<Matrix> g_mat_bone : register(t4);
  ///////////////////////////////////////////////////////////////////
 
  ///////////////////////////PARTICLE///////////////////////////////////
-StructuredBuffer<PARTICLESHARED> ParticleShared : register(t0, space2); // 속성값 (SRV)
-StructuredBuffer<PARTICLE> Particle : register(t1, space2);     //compute Shader 결과값 읽기
+StructuredBuffer<PARTICLE> Particle : register(t0, space2);     //compute Shader 결과값 읽기
 RWStructuredBuffer<PARTICLE> RWParticle : register(u0,space2); //compute Shader 결과값 쓰기
 RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //공유 전역변수
  ///////////////////////////////////////////////////////////////////

@@ -16,6 +16,7 @@ struct GroupBuffer {
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
 	shared_ptr<StructuredBuffer> MaterialInfo;
+	shared_ptr<StructuredBuffer> ParticleInfo;
 
 };
 
@@ -57,22 +58,16 @@ public:
 	
 	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
 
-	//shared_ptr< ComputeDescriptorHeap>	GetComputeDescHeap()	{ return mComputeDescHeap; }
 
-
-
-
-	//shared_ptr<ConstantBuffer> GetConstantBuffer(CONSTANT_INDEX type, uint8 count ) { return mConstantBuffer[count][static_cast<uint8>(type)- static_cast<uint8>(RCONSTANT_INDEX::RCONSTANT_INDEX_END)]; }
-	//array < vector<shared_ptr<ConstantBuffer>>,GROUP_COUNT>& GetConstantBuffers() { return mConstantBuffer; }
-	//
-	//shared_ptr<StructuredBuffer> GetStructuredBuffer(STRUCTURED_INDEX type, uint8 count) { return mDynamicStructuredBuffer[count][static_cast<uint8>(type)]; }
-	//array < vector<shared_ptr<StructuredBuffer>>, GROUP_COUNT>& GetStructuredBuffer() { return mDynamicStructuredBuffer; }
+	array <GroupBuffer, FRAMEGROUP_COUNT>& GetGroupBuffer() { return mGroupBuffer; }
+	array <  ParticleBuffer, PARTICLE_GROUP_COUNT>& GetConstantBuffers() { return mParticleBuffer; }
+	
 
 
 	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
 	uint8 GetFrameCurrIndex() {return mFrameCurrIndex;}
 
-	shared_ptr<RenderTarget> GetRTGroup(RENDER_TARGET_GROUP_TYPE type) { return mRenderTargetGroups[static_cast<uint8>(type)]; }
+	shared_ptr<RenderTarget> GetRTGroup(RENDER_TARGET_GROUP_TYPE type) { return mGBufferTarget; }
 
 private:
 	void CreateRenderTargetGroups();
@@ -93,21 +88,12 @@ private:
 	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
 
-
+private:
 	// ResourceBuffer
+	array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;						
+	array< ParticleBuffer, PARTICLE_GROUP_COUNT>					mParticleBuffer;
 
-
-	array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;
-
-	array< shared_ptr<StructuredBuffer>, FRAMEGROUP_COUNT>			mParticleShared; // 속성값(SRV)								
-	array< ParticleBuffer, PARTICLE_GROUP_COUNT>				mParticleBuffer;
-
-
-	//shared_ptr<ComputeDescriptorHeap> _computeDescHeap = make_shared<ComputeDescriptorHeap>();
-	//shared_ptr<ComputeCommandQueue>		mComputeCmdQueue	= make_shared<ComputeCommandQueue>();
-
-	// RenderTarget
-	array<shared_ptr<RenderTarget>, RENDER_TARGET_GROUP_COUNT> mRenderTargetGroups;
+	shared_ptr<RenderTarget> mGBufferTarget = make_shared<RenderTarget>();
 private:
 
 	WindowInfo		mWindow;

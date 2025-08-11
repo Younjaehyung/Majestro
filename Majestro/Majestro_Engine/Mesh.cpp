@@ -99,20 +99,6 @@ void Mesh::Render(uint32 instanceCount, uint32 idx)
 	GRAPHICS_CMD_LIST->IASetIndexBuffer(& _vecIndexInfo[idx].bufferView);	//인덱스 정보 넘김
 
 
-	//TO-DO
-	// 1 - buffer에 데이터 세팅 (즉시 - device)
-	// 2 - TableDescHeap에다가 CBV 전달
-	// 3 - 모든 세팅이 끝났으면 TableDescHeap 커밋
-	//CMD_LIST->SetGraphicsRootConstantBufferView ( );
-
-
-
-
-	//cpuDesc=> gpuDesc로 버퍼(테이블힙)에 값 전달
-
-	gEngine->GetRenderManager().GetGraphicsDescHeap()->CommitTable();
-	//테이블 힙에서 레지스터로 값전달
-
 	//CMD_LIST->DrawInstanced ( _vertexCount , 1 , 0 , 0 );	// 버텍스 버퍼로 그림을 그려라
 	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, instanceCount, 0, 0, 0);	//인덱스로 그림을 그려라
 }
@@ -127,7 +113,6 @@ void Mesh::Render(shared_ptr<class InstancingBuffer>& buffer, uint32 idx)
 	GRAPHICS_CMD_LIST->IASetVertexBuffers(0, 2, bufferViews);
 	GRAPHICS_CMD_LIST->IASetIndexBuffer(&_vecIndexInfo[idx].bufferView);
 
-	gEngine->GetRenderManager().GetGraphicsDescHeap()->CommitTable();
 
 	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, buffer->GetCount(), 0, 0, 0);
 }

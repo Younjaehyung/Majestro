@@ -26,7 +26,7 @@ PS_OUT PS_DirLight(VS_OUT input)
     PS_OUT output = (PS_OUT) 0;
     int index = GlobalParams.LightIndex;
     LIGHTINFO light = Lights[index];
-    MATERIALINFO material = Materials[light.MaterialsIndex];
+
     
     float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
     if (viewPos.z <= 0.f)   //DirLight의 영역에 카메라에 있는지에 따라 출력할지 아닐지 정함

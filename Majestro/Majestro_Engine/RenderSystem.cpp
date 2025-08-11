@@ -5,9 +5,7 @@
 #include "ResourceManager.h"
 #include "World.h"
 #include "RenderComponent.h"
-#include "LightComponent.h"
 #include "CameraComponent.h"
-#include "TransformComponent.h"
 #include "AnimationComponent.h"
 #include "ParticleComponent.h"
 #include "TagComponent.h"
@@ -39,16 +37,18 @@ void RenderSystem::Update()
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,3,TEXTURE_INDEX_START);
 
 
+
 	if (1) {	// Find Main Camera.
 		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 		mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-
 	}
+
 	ClearRTV();
 
 	PushLightData();
 
-	RenderShadow();
+	PushObjectData();
+	// RenderShadow();
 
 	RenderDeferred();
 
@@ -101,32 +101,29 @@ void RenderSystem::PushLightData()
 		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
 		{
 			shared_ptr<Texture> shadowTex = RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
-			renderComponent->mMaterials[0]->SetTexture(shadowTex, DIFFUSEMAP0INDEX);
-				
-
-			Matrix matVP = cameraComponent->GetViewMatrix() * cameraComponent->GetProjectionMatrix();
-			renderComponent->mMaterials[0]->SetMatrix(0, matVP);
+			renderComponent->mMaterials[0]->SetTexture(shadowTex, DIFFUSEMAP2INDEX);
 		}
 		else
 		{
 			float scale = 2 * lightComponent->mLightInfo.Range;
 			transformComponent->SetLocalScale(Vec3(scale, scale, scale));
 		}
-		lightParams.Color;
-		lightParams.Position;
-		lightParams.Direction;
-		lightParams.LightType;	
-		lightParams.Range; 
-		lightParams.Angle;
-		lightParams.Padding;	mLightVector.push_back(lightParams);
+		lightParams = {};
 
-		lightParams.MatWorld;
-		lightParams.MatView;
-		lightParams.MatProjection;
-		lightParams.MatViewInv;
-		lightParams.MatProjectionInv;
+		lightParams.Color = lightComponent->mLightInfo.Color;
+		lightParams.Position = lightComponent->mLightInfo.Position;
+		lightParams.Direction = lightComponent->mLightInfo.Direction;
+		lightParams.LightType = lightComponent->mLightInfo.LightType;
+		lightParams.Range = lightComponent->mLightInfo.Range;
+		lightParams.Angle = lightComponent->mLightInfo.Angle;
 
-		lightParams.MaterialsIndex;
+		lightParams.MatWorld = transformComponent->mWorldMatrix;
+		lightParams.MatView = cameraComponent->mCameraParams.MatProjection;
+		lightParams.MatProjection = cameraComponent->mCameraParams.MatProjection;
+		lightParams.MatViewInv = cameraComponent->mCameraParams.MatViewInv;
+		lightParams.MatProjectionInv = cameraComponent->mCameraParams.MatProjectionInv;
+
+		mLightVector.push_back(lightParams);
 
 	}		
 
@@ -159,7 +156,7 @@ void RenderSystem::PushObjectData()
 			transformComponent = mWorld->GetComponent<TransformComponent>(entity0);;
 			renderComponent = mWorld->GetComponent<RenderComponent>(entity0);;
 
-			PushTransformData(transformComponent);		// 트랜스폼 갱신
+			PushObjectData(transformComponent);		// 트랜스폼 갱신
 			PushMaterialData(renderComponent);			// 머티리얼 갱신
 			dataParam = { matrialIndexStart, static_cast<uint32>(renderComponent->mMaterials.size()), static_cast<uint32>(mTransformVector.size()-1) };
 			// 트랜스폼 위치. 머티리얼시작~끝 위치 표기
@@ -175,7 +172,7 @@ void RenderSystem::PushObjectData()
 				transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);;
 				
 
-				PushTransformData(transformComponent);		// 트랜스폼 갱신
+				PushObjectData(transformComponent);		// 트랜스폼 갱신
 				
 				dataParam = { matrialIndexStart, static_cast<uint32>(renderComponent->mMaterials.size()), static_cast<uint32>(mTransformVector.size()-1) };
 				// 트랜스폼 위치. 머티리얼시작~끝(같은 위치) 위치 표기
@@ -443,6 +440,13 @@ void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 	}
 }
 
+
+void RenderSystem::PushGBuffer()
+{
+	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(0, gpuStart);
+
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount][];
+}
 
 void RenderSystem::PushPassData()
 {

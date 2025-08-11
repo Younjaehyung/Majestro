@@ -4,16 +4,14 @@
 #include "RenderManager.h"
 
 
-void RenderTarget::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<RenderTargetStruct>& rtVec, shared_ptr<Texture> dsTexture)
+void RenderTarget::Initialize(shared_ptr<Texture> dsTexture)
 {
-	mRenderTargetType = groupType;
-	mRenderTargetVec = rtVec;
-	mRenderTargetCount = static_cast<uint32>(rtVec.size());
+	mRenderTargetCount = 5;
 	mDepthStencilTexture = dsTexture;
 
-	D3D12_DESCRIPTOR_HEAP_DESC heapDesc1 {};
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc1{};
 	heapDesc1.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	heapDesc1.NumDescriptors = mRenderTargetCount;
+	heapDesc1.NumDescriptors = 5;
 	heapDesc1.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	heapDesc1.NodeMask = 0;
 
@@ -30,24 +28,30 @@ void RenderTarget::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<RenderTarge
 	mRtvHeapBegin = mRenderTargetHeap->GetCPUDescriptorHandleForHeapStart();
 	mDsvHeapBegin = mDepthStencilHeap->GetCPUDescriptorHandleForHeapStart();
 
-	
-		DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, mDsvHeapBegin);
-		dsTexture->SetDsvHandle(mDsvHeapBegin);
 
-	for (uint32  i = 0; i < mRenderTargetCount; i++)
-	{
+	DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, mDsvHeapBegin);
+	dsTexture->SetDsvHandle(mDsvHeapBegin);
+
+	
+}
+
+void RenderTarget::Create(RENDER_TARGET_GROUP_TYPE groupType, RenderTargetStruct& rtVec, uint8 type)
+{
+	mRenderTargetType = groupType;
+	mRenderTargetVec.push_back(rtVec);
+	
 
 
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapBegin = mRenderTargetHeap->GetCPUDescriptorHandleForHeapStart();
 		D3D12_CPU_DESCRIPTOR_HANDLE handle = CD3DX12_CPU_DESCRIPTOR_HANDLE(rtvHeapBegin, i * mRtvHeapSize);
 
-		rtVec[i].Target->SetRtvHandle(handle);
+		rtVec.Target->SetRtvHandle(handle);
 
 
 		DEVICE->CreateRenderTargetView(rtVec[i].Target->GetTex2D().Get(), nullptr, handle);
 
-		
-	}
+	
+
 
 	//create시 베리어 생성
 	for (uint32  i = 0; i < mRenderTargetCount; ++i)

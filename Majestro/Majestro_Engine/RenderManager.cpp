@@ -65,9 +65,9 @@ void RenderManager::CreateGroup()
 		group.MaterialInfo->CreateUploadBuffer(1000,sizeof(MaterialParams));
 		group.MaterialInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
 		
-		group.MaterialInfo = make_shared<StructuredBuffer>();
-		group.MaterialInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(ParticleParms));
-		group.MaterialInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
+		group.ParticleInfo = make_shared<StructuredBuffer>();
+		group.ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(ParticleParms));
+		group.ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
 
 		i++;
 	}
@@ -79,15 +79,14 @@ void RenderManager::CreateParticle()
 	for (ParticleBuffer& group : mParticleBuffer) {
 		group.Particle = make_shared<StructuredBuffer>();
 		group.Particle->CreateDefaultBuffer(sizeof(ParticleParms), PARTICLE_COUNT);
-		group.Particle->CreateSrvView(i, PARTICLE_INDEX::SRV_PARTICLE_INDEX);
-		group.Particle->CreateUavView(i, PARTICLE_INDEX::UAV_PARTICLE_INDEX);
+		group.Particle->CreateSrvView(0, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX));
+		group.Particle->CreateUavView(0, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX));
 		
 
 		group.RWParticleShared = make_shared<StructuredBuffer>();
 		group.RWParticleShared->CreateDefaultBuffer(1, sizeof(uint32));
-		group.RWParticleShared->CreateUavView(i, PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX);
+		group.RWParticleShared->CreateUavView(0, PARTICLE_INDEX_START, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX));
 
-		i++;
 	}
 
 }
@@ -143,8 +142,8 @@ void RenderManager::CreateRenderTargetGroups()
 				//SwapChainBuffer을 이용해서 Texutre 생성
 		}
 
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)] = make_shared<RenderTarget>();
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)]->Create(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN, rtVec, dsTexture);
+		
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN, rtVec, dsTexture);
 	}
 	//======공용=======
 	// Shadow Group
@@ -161,8 +160,8 @@ void RenderManager::CreateRenderTargetGroups()
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)] = make_shared<RenderTarget>();
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)]->Create(RENDER_TARGET_GROUP_TYPE::SHADOW, rtVec, shadowDepthTexture);
+		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)] = make_shared<RenderTarget>();
+		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)]->Create(RENDER_TARGET_GROUP_TYPE::SHADOW, rtVec, shadowDepthTexture);
 	}
 
 	// Deferred Group
@@ -184,8 +183,8 @@ void RenderManager::CreateRenderTargetGroups()
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)] = make_shared<RenderTarget>();
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)]->Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, rtVec, dsTexture);
+		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)] = make_shared<RenderTarget>();
+		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)]->Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, rtVec, dsTexture);
 	}
 
 
@@ -203,7 +202,10 @@ void RenderManager::CreateRenderTargetGroups()
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)] = make_shared<RenderTarget>();
-		mRenderTargetGroups[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)]->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
+		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)] = make_shared<RenderTarget>();
+		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)]->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
 	}
+
+
+
 }

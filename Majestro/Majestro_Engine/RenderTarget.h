@@ -27,7 +27,9 @@ struct RenderTargetStruct
 class RenderTarget
 {
 public:
-	void Create(RENDER_TARGET_GROUP_TYPE groupType, vector<RenderTargetStruct>& rtVec, shared_ptr<Texture> dsTexture);
+	void Initialize(shared_ptr<Texture> dsTexture);
+	void Create(RENDER_TARGET_GROUP_TYPE groupType, RenderTargetStruct& rtVec, uint8 type);
+	
 
 	void OMSetRenderTargets(uint32 count, uint32 offset);
 	void OMSetRenderTargets();

@@ -4,11 +4,12 @@
 #include "ComponentPool.h"
 #include "Buffer.h"
 #include "Shader.h"
+#include "TransformComponent.h"
+#include "LightComponent.h"
 
 class CameraComponent;
 class RenderComponent;
-class LightComponent;
-class TransformComponent;
+
 
 struct PassParams
 {
@@ -60,6 +61,7 @@ private: // Culling
 
 
 private: // Push&Clear Data
+	void PushGBuffer();
 	void PushPassData();
 	void PushObjectData(TransformComponent* transformComponent);
 	void PushMaterialData(RenderComponent* renderComponent);
@@ -93,8 +95,8 @@ private:	// 배치 버퍼
 private:
 
 	// RenderManager의 structuerdBuffer로 복사할 데이터들
-	std::vector<struct LightParams>		mLightVector;
-	std::vector<struct ObjectParams>	mTransformVector;
+	std::vector< LightParams>		mLightVector;
+	std::vector< ObjectParams>	mTransformVector;
 	std::vector<struct MaterialParams>	mMaterialVector;
 	std::vector<struct PatricleParams>	mPatricleVector;
 

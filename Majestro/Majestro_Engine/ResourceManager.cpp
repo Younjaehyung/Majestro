@@ -483,7 +483,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\particle_CS.hlsl",
-			.PS = L"..\\Resources\\Shader\\particle_PS.hlsl"
+			.PS = L"..\\Resources\\Shader\\particle_PS.hlsl",
 			.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();

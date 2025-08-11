@@ -31,7 +31,17 @@ struct LightParams	//빛과 관련된 정보
 	Matrix MatViewInv;
 	Matrix MatProjectionInv;
 
-	int MaterialsIndex;
+};
+
+struct LightInfo	//빛과 관련된 정보
+{
+	LightColor	Color;
+	Vec4		Position;	//DIRECTIONAL_LIGHT은 사실상 필요 없음
+	Vec4		Direction;	//POINT_LIGHT은 사실상 필요 없음
+	int32		LightType;	//LIGHT_TYPE
+	float		Range;
+	float		Angle;
+
 };
 
 class LightFactory
@@ -47,7 +57,6 @@ public:
 	void SetLightIndex(int8 index) { mLightIndex = index; }
 	LIGHT_TYPE GetLightType() { return static_cast<LIGHT_TYPE>(mLightInfo.LightType); }
 
-	const LightParams& GetLightInfo() { return mLightInfo; }
 
 	void SetLightDirection(Vec3 direction);	//빛의 방향과 Transform의 방향의 동기화를 위한 함수
 
@@ -60,12 +69,14 @@ public:
 	void SetLightAngle(float angle) { mLightInfo.Angle = angle; }
 
 
+	
+
 public:
 
 
 	bool mStaticLight = true; //정적물체인지 동적 물체인지 확인
 
-	LightParams mLightInfo = {};
+	LightInfo mLightInfo = {};
 
 	int8 mLightIndex = -1;
 	//shared_ptr<class Mesh> mVolumeMesh;

@@ -256,19 +256,19 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags,bool createSRVUAV, Vec4 clearColor)
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
-	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, clearColor);
+	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, createSRVUAV,clearColor);
 	Add(name, texture);
 
 	return texture;
 }
 
-shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& name, ComPtr<ID3D12Resource> tex2D)
+shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& name, ComPtr<ID3D12Resource> tex2D, bool createSRVUAV)
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
-	texture->CreateFromResource(tex2D);
+	texture->CreateFromResource(tex2D , createSRVUAV);
 	Add(name, texture);
 
 	return texture;

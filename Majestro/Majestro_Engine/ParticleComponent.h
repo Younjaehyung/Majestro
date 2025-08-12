@@ -30,7 +30,7 @@ public:
 };
 
 
-struct ParticleParms
+struct PatricleParams
 {
     int Index;
     Matrix MatWorld;

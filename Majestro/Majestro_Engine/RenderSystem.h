@@ -4,11 +4,11 @@
 #include "ComponentPool.h"
 #include "Buffer.h"
 #include "Shader.h"
-#include "TransformComponent.h"
 #include "LightComponent.h"
+#include "TransformComponent.h"
 
-class CameraComponent;
-class RenderComponent;
+struct MaterialParams;
+struct PatricleParams;
 
 
 struct PassParams
@@ -61,14 +61,14 @@ private: // Culling
 
 
 private: // Push&Clear Data
-	void PushGBuffer();
+	void PushGBufferData();
 	void PushPassData();
-	void PushObjectData(TransformComponent* transformComponent);
-	void PushMaterialData(RenderComponent* renderComponent);
+	void PushObjectData( TransformComponent* transformComponent);
+	void PushMaterialData(class RenderComponent* renderComponent);
 	void ClearBuffer();
 
 private: // Render
-	void RenderShadowCamera(Entity&, LightComponent*, CameraComponent*);
+	void RenderShadowCamera(Entity&, LightComponent*, class CameraComponent*);
 
 //	void Render(Entity entity);
 //	void Render(Entity entity, shared_ptr<InstancingBuffer>& buffer);
@@ -78,7 +78,7 @@ private:
 	uint8 mFrameCount = 0;
 
 	Entity				mCameraID;
-	CameraComponent*	mCamera;
+	class CameraComponent*	mCamera;
 	uint32				mCullingMask = 0;
 
 
@@ -95,13 +95,13 @@ private:	// 배치 버퍼
 private:
 
 	// RenderManager의 structuerdBuffer로 복사할 데이터들
-	std::vector< LightParams>		mLightVector;
-	std::vector< ObjectParams>	mTransformVector;
-	std::vector<struct MaterialParams>	mMaterialVector;
-	std::vector<struct PatricleParams>	mPatricleVector;
+	std::vector<LightParams>		mLightVector;
+	std::vector<ObjectParams>		mObjectVector;
+	std::vector<MaterialParams>	mMaterialVector;
+	std::vector<PatricleParams>	mPatricleVector;
 
 	// lightRenderPASS 때 사용될 vector
-	std::vector<struct MaterialParams>	mLightCulling;
+	std::vector< MaterialParams>	mLightCulling;
 
 private:
 	// 변수 재사용을 막기 위해 둔 Dummy Parms

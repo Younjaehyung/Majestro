@@ -5,9 +5,9 @@
 #include "ResourceManager.h"
 #include "Buffer.h"
 #include "RenderSystem.h"
-#include "LightComponent.h"
 #include "CameraComponent.h"
 #include "TransformComponent.h"
+#include "LightComponent.h"
 #include "ParticleComponent.h"
 
 void RenderManager::Initialize(const WindowInfo& info)
@@ -66,7 +66,7 @@ void RenderManager::CreateGroup()
 		group.MaterialInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
 		
 		group.ParticleInfo = make_shared<StructuredBuffer>();
-		group.ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(ParticleParms));
+		group.ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(PatricleParams));
 		group.ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
 
 		i++;
@@ -78,7 +78,7 @@ void RenderManager::CreateParticle()
 {
 	for (ParticleBuffer& group : mParticleBuffer) {
 		group.Particle = make_shared<StructuredBuffer>();
-		group.Particle->CreateDefaultBuffer(sizeof(ParticleParms), PARTICLE_COUNT);
+		group.Particle->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
 		group.Particle->CreateSrvView(0, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX));
 		group.Particle->CreateUavView(0, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX));
 		
@@ -128,9 +128,70 @@ void RenderManager::CreateRenderTargetGroups()
 		CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
+	mGBufferTarget->Initialize(dsTexture);
+	RenderTargetStruct dummyRT{};
+
+	//======공용=======
+	// Shadow Group
+	{
+
+		dummyRT = { RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
+			DXGI_FORMAT_R32_TYPELESS, 4096, 4096,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL,0) };
+
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN, dummyRT, 0);
+	}
+
+	// Deferred Group
+	{
+		vector<RenderTargetStruct> rtVec(RENDER_TARGET_G_BUFFER_GROUP_MEMBER_COUNT);
+
+		dummyRT = { RESOURCEMANAGER.CreateTexture(L"PositionTarget",
+			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0) };
+
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, dummyRT, 1);
+
+		dummyRT = { RESOURCEMANAGER.CreateTexture(L"NormalTarget",
+			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0) };
+
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, dummyRT, 2);
+
+		dummyRT = { RESOURCEMANAGER.CreateTexture(L"DiffuseTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0)};
+
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, dummyRT, 3);
+
+
+	}
+
+
+	// Lighting Group
+	{
+		dummyRT = { RESOURCEMANAGER.CreateTexture(L"DiffuseLightTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0)};
+
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, dummyRT, 4);
+
+		dummyRT = { RESOURCEMANAGER.CreateTexture(L"SpecularLightTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0) };
+
+		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, dummyRT, 5);
+
+	}
+
 	// SwapChain Group
 	{
-		vector<RenderTargetStruct> rtVec(SWAP_CHAIN_BUFFER_COUNT);
 
 		for (uint32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
 		{
@@ -138,74 +199,11 @@ void RenderManager::CreateRenderTargetGroups()
 
 			ComPtr<ID3D12Resource> resource;
 			mSwapChain->GetSwapChain()->GetBuffer(i, IID_PPV_ARGS(&resource));	//SwapChainBuffer를 가져옴
-			rtVec[i].Target = RESOURCEMANAGER.CreateTextureFromResource(name, resource);	//SwapChainBuffer을 이용해서 Texutre 생성
-				//SwapChainBuffer을 이용해서 Texutre 생성
+			//SwapChainBuffer을 이용해서 Texutre 생성
+			dummyRT = { RESOURCEMANAGER.CreateTextureFromResource(name, resource) };
+			mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN, dummyRT, i + 6);
 		}
 
-		
-		mGBufferTarget->Create(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN, rtVec, dsTexture);
 	}
-	//======공용=======
-	// Shadow Group
-	{
-		vector<RenderTargetStruct> rtVec(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
-
-		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"ShadowTarget",
-			DXGI_FORMAT_R32_FLOAT, 4096, 4096,	//32bit R값으로 세팅함
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
-		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
-			DXGI_FORMAT_D32_FLOAT, 4096, 4096,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-
-		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)] = make_shared<RenderTarget>();
-		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)]->Create(RENDER_TARGET_GROUP_TYPE::SHADOW, rtVec, shadowDepthTexture);
-	}
-
-	// Deferred Group
-	{
-		vector<RenderTargetStruct> rtVec(RENDER_TARGET_G_BUFFER_GROUP_MEMBER_COUNT);
-
-		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PositionTarget",
-			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
-		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"NormalTarget",
-			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
-		rtVec[2].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseTarget",
-			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
-		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)] = make_shared<RenderTarget>();
-		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)]->Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, rtVec, dsTexture);
-	}
-
-
-	// Lighting Group
-	{
-		vector<RenderTargetStruct> rtVec(RENDER_TARGET_LIGHTING_GROUP_MEMBER_COUNT);
-
-		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseLightTarget",
-			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
-		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"SpecularLightTarget",
-			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
-		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)] = make_shared<RenderTarget>();
-		mGBufferTarget[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)]->Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
-	}
-
-
 
 }

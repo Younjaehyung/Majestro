@@ -67,7 +67,7 @@ public:
 	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
 	uint8 GetFrameCurrIndex() {return mFrameCurrIndex;}
 
-	shared_ptr<RenderTarget> GetRTGroup(RENDER_TARGET_GROUP_TYPE type) { return mGBufferTarget; }
+	shared_ptr<RenderTarget> GetRTGroup() { return mGBufferTarget; }
 
 private:
 	void CreateRenderTargetGroups();

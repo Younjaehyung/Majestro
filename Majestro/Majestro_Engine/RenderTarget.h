@@ -31,8 +31,8 @@ public:
 	void Create(RENDER_TARGET_GROUP_TYPE groupType, RenderTargetStruct& rtVec, uint8 type);
 	
 
-	void OMSetRenderTargets(uint32 count, uint32 offset);
-	void OMSetRenderTargets();
+	void OMSetRenderTargets(uint8 type,uint32 count, uint32 offset);
+	void OMSetRenderTargets(uint8 type);
 
 	void ClearRenderTargetView(uint32 index);
 	void ClearRenderTargetView();
@@ -42,10 +42,14 @@ public:
 
 	void WaitTargetToResource();
 	void WaitResourceToTarget();
+public:
+	
+
 private:
+	vector<RenderTargetStruct>		mRenderTargetVec;
 	RENDER_TARGET_GROUP_TYPE		mRenderTargetType;
 	uint32							mRenderTargetCount;
-	vector<RenderTargetStruct>		mRenderTargetVec;	//G_BUFFER 텍스쳐
+		//G_BUFFER 텍스쳐
 
 	ComPtr<ID3D12DescriptorHeap>	mRenderTargetHeap;
 	ComPtr<ID3D12DescriptorHeap>	mDepthStencilHeap;
@@ -57,6 +61,8 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE		mDsvHeapBegin;
 
 private:
+	int i = 0;
+
 	D3D12_RESOURCE_BARRIER			mTargetToResource[8];	//타켓에서 리소스로 넘어갈때의 베리어
 	D3D12_RESOURCE_BARRIER			mResourceToTarget[8];	//리소스에서 랜더타켓으로 변환시 넘어가는 베리어
 };

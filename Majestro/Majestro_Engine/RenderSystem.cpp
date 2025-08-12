@@ -126,7 +126,7 @@ void RenderSystem::PushLightData()
 		mLightVector.push_back(lightParams);
 
 	}		
-
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].LightInfo->PushGraphicsData(mLightVector.data(),sizeof(LightParams)*mLightVector.size());
 
 	int MaterialsIndex;
 }
@@ -158,8 +158,7 @@ void RenderSystem::PushObjectData()
 
 			PushObjectData(transformComponent);		// 트랜스폼 갱신
 			PushMaterialData(renderComponent);			// 머티리얼 갱신
-			dataParam = { matrialIndexStart, static_cast<uint32>(renderComponent->mMaterials.size()), static_cast<uint32>(mTransformVector.size()-1) };
-			// 트랜스폼 위치. 머티리얼시작~끝 위치 표기
+
 		}
 		else
 		{
@@ -170,20 +169,18 @@ void RenderSystem::PushObjectData()
 			for (const Entity& gameObject : pair.second)
 			{
 				transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);;
-				
-
 				PushObjectData(transformComponent);		// 트랜스폼 갱신
-				
-				dataParam = { matrialIndexStart, static_cast<uint32>(renderComponent->mMaterials.size()), static_cast<uint32>(mTransformVector.size()-1) };
-				// 트랜스폼 위치. 머티리얼시작~끝(같은 위치) 위치 표기
+
 			}
 
-			
 		}
-	
+
 	}
 
-		
+
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mObjectVector.data(),sizeof(objectParams)*mObjectVector.size());
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mMaterialVector.data(), sizeof(MaterialParams) * mMaterialVector.size());
+
 }
 
 
@@ -192,7 +189,7 @@ void RenderSystem::PushObjectData()
 void RenderSystem::RenderShadow()
 {
 
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->OMSetRenderTargets();
+	RENDERMANAGER.GetRTGroup()->OMSetRenderTargets(2);
 
 	LightComponent* lightComponent;
 	CameraComponent* cameraComponent;
@@ -208,7 +205,7 @@ void RenderSystem::RenderShadow()
 	}
 
 
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->WaitTargetToResource();
+	RENDERMANAGER.GetRTGroup()->WaitTargetToResource();
 }
 
 void RenderSystem::RenderDeferred()
@@ -360,7 +357,7 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 {
 	TransformComponent* transformComponent;
 	RenderComponent* renderComponent;
-	RENDERMANAGER.GetConstantBuffer(CONSTANT_INDEX::CBV_CAMERA_INDEX, mFrameCount)->PushData(&cameraComponent->mCameraParams,sizeof(CameraParams));
+	
 	// 추후 CBV 중복 삽입 문제 있나 확인해보기
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
 	for (const EntityID& gameObject : gameObjects)
@@ -440,12 +437,10 @@ void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 	}
 }
 
-
-void RenderSystem::PushGBuffer()
+void RenderSystem::PushGBufferData()
 {
-	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(0, gpuStart);
-
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount][];
+	RESOURCEMANAGER.Get<Texture>(L"SpecularLightTarget")->get;
+	GRAPHICS_CMD_LIST->des
 }
 
 void RenderSystem::PushPassData()
@@ -457,7 +452,9 @@ void RenderSystem::PushPassData()
 	passParams.MatProjectionInv = mCamera->mProjection.Invert();
 
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
-
+	
+	
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].PassInfo->PushData(&passParams,sizeof(PassParams));
 }
 
 void RenderSystem::PushObjectData(TransformComponent* transformComponent)
@@ -465,8 +462,7 @@ void RenderSystem::PushObjectData(TransformComponent* transformComponent)
 	
 	objectParams.MatWorld = transformComponent->mWorldMatrix;
 
-	mTransformVector.push_back(objectParams);
-
+	mObjectVector.push_back(objectParams);
 }
 
 void RenderSystem::PushMaterialData(RenderComponent* renderComponent)
@@ -494,7 +490,7 @@ void RenderSystem::ClearBuffer()
 	 }
 
 	 mLightVector.clear();
-	 mTransformVector.clear();
+	 mObjectVector.clear();
 	 mMaterialVector.clear();
 }
 

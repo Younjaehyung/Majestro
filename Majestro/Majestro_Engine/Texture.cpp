@@ -86,7 +86,7 @@ void Texture::Load(const wstring& path)
 
 void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV ,Vec4 clearColor)
 {
 	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height);
 	mDescription.Flags = resFlags;
@@ -124,21 +124,18 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 
 
 	
-	CreateFromResource(mImage);
+	CreateFromResource(mImage, createSRVUAV);
 	
 	
 }
 
-void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D)
+void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV)
 {
 	mImage = tex2D;
 
 	mDescription = tex2D->GetDesc();
 
-
-	if (mDescription.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL ||
-		mDescription.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
-	{
+	if (!createSRVUAV) {
 		return;
 	}
 

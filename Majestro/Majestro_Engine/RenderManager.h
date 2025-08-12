@@ -57,18 +57,21 @@ public:
 	shared_ptr<SwapChain>				GetSwapChain()			{ return mSwapChain; }
 	
 	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
+	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()			{ return mRenderTargetHeap; }
 
+public:
 
 	array <GroupBuffer, FRAMEGROUP_COUNT>& GetGroupBuffer() { return mGroupBuffer; }
-	array <  ParticleBuffer, PARTICLE_GROUP_COUNT>& GetConstantBuffers() { return mParticleBuffer; }
+	array <ParticleBuffer, PARTICLE_GROUP_COUNT>& GetConstantBuffers() { return mParticleBuffer; }
+
+	array <RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>& GetRenderTargetGroup() { return mRenderTargetGroup; }
 	
 
-
+public:
 	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
 	uint8 GetFrameCurrIndex() {return mFrameCurrIndex;}
 
-	shared_ptr<RenderTarget> GetRTGroup() { return mGBufferTarget; }
-
+	
 private:
 	void CreateRenderTargetGroups();
 
@@ -87,13 +90,15 @@ private:
 	shared_ptr<SwapChain>						mSwapChain					= make_shared<SwapChain>();
 	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
-
+	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
+	
+	
 private:
 	// ResourceBuffer
 	array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;						
 	array< ParticleBuffer, PARTICLE_GROUP_COUNT>					mParticleBuffer;
 
-	shared_ptr<RenderTarget> mGBufferTarget = make_shared<RenderTarget>();
+	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:
 
 	WindowInfo		mWindow;

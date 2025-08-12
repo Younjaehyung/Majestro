@@ -45,7 +45,7 @@ void GraphicsCommandQueue::RenderBegin()
 	int8 backIndex = mSwapChain->GetBackBufferIndex();
 
 	D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		gEngine->GetRenderManager().GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
+		RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
 		D3D12_RESOURCE_STATE_PRESENT, 
 		D3D12_RESOURCE_STATE_RENDER_TARGET); 
 	//더블버퍼링을 위해 기존의 출력되던 버퍼를 후방버퍼로 바꾸겠다
@@ -68,7 +68,7 @@ void GraphicsCommandQueue::RenderEnd()
 		int8 backIndex = mSwapChain->GetBackBufferIndex();
 
 		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			gEngine->GetRenderManager().GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
+			RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
 			D3D12_RESOURCE_STATE_RENDER_TARGET, 
 			D3D12_RESOURCE_STATE_PRESENT); 
 

@@ -33,6 +33,7 @@ public:
 
 	void SetRtvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mRtvHeapBegin = handle; }
 	void SetDsvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mDsvHeapBegin = handle; }
+	void SetSrvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mSrvHeapBegin = handle; }
 
 	uint32 SetSrvIndex(uint32 index) { mSrvIndex = index; }
 	uint32 GetSrvIndex() { return mSrvIndex; }

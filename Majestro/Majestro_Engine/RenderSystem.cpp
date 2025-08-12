@@ -65,16 +65,16 @@ void RenderSystem::ClearRTV()
 	//CommandQueue의 RT이 이리로 옮겨짐
 	// SwapChain Group 초기화
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->ClearRenderTargetView(backIndex);
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].ClearRenderTargetView(backIndex);
 
-	// Shadow Group 초기화
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SHADOW)->ClearRenderTargetView();
+	// Shadow Group 초기화 
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].ClearRenderTargetView();
 
-	// Deferred Group 초기화
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->ClearRenderTargetView();
+	// Deferred Group 초기화 
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].ClearRenderTargetView();
 
-	// Lighting Group 초기화
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->ClearRenderTargetView();
+	// Lighting Group 초기화 
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].ClearRenderTargetView();
 
 	ClearBuffer();
 	// 추후 lightvector관련들 clear도 모두 확인할껏.
@@ -189,8 +189,7 @@ void RenderSystem::PushObjectData()
 void RenderSystem::RenderShadow()
 {
 
-	RENDERMANAGER.GetRTGroup()->OMSetRenderTargets(2);
-
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].OMSetRenderTargets();
 	LightComponent* lightComponent;
 	CameraComponent* cameraComponent;
 
@@ -205,7 +204,7 @@ void RenderSystem::RenderShadow()
 	}
 
 
-	RENDERMANAGER.GetRTGroup()->WaitTargetToResource();
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].WaitTargetToResource();
 }
 
 void RenderSystem::RenderDeferred()
@@ -213,9 +212,7 @@ void RenderSystem::RenderDeferred()
 	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
 
-
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->OMSetRenderTargets();
-
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].OMSetRenderTargets();
 
 	for (auto& entityID : mRenderComponentPool->GetEntities()) {
 		RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
@@ -250,8 +247,8 @@ void RenderSystem::RenderDeferred()
 		InstancingRender(vec);
 	}
 	
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].WaitTargetToResource();
 
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::G_BUFFER)->WaitTargetToResource();
 }
 
 void RenderSystem::RenderLights()
@@ -259,8 +256,8 @@ void RenderSystem::RenderLights()
 
 	//Camera::S_MatView = mCamera->GetViewMatrix();
 	//Camera::S_MatProjection = mCamera->GetProjectionMatrix();
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].OMSetRenderTargets();
 
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->OMSetRenderTargets();
 
 	//// 광원을 그린다.
 	//// 광원을 기준으로 나머지 객체들을 그린다
@@ -282,16 +279,18 @@ void RenderSystem::RenderLights()
 		lightComponent->mMesh->Render();
 	}
 
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].WaitTargetToResource();
 
 	////리소스에서 타켓으로
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::LIGHTING)->WaitTargetToResource();
+
 }
 
 void RenderSystem::RenderFinal()
 {
 	// Swapchain OMSet
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-	RENDERMANAGER.GetRTGroup(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)->OMSetRenderTargets(1, backIndex);
+
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].OMSetRenderTargets(1, backIndex);
 
 	
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
@@ -439,8 +438,7 @@ void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 
 void RenderSystem::PushGBufferData()
 {
-	RESOURCEMANAGER.Get<Texture>(L"SpecularLightTarget")->get;
-	GRAPHICS_CMD_LIST->des
+
 }
 
 void RenderSystem::PushPassData()

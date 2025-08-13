@@ -52,16 +52,16 @@ Entity LightFactory::CreateLight(shared_ptr<World> world, LIGHT_TYPE type , Ligh
 	{
 	case LIGHT_TYPE::DIRECTIONAL_LIGHT:
 		r.mMesh		= RESOURCEMANAGER.Get<Mesh>(L"Rectangle");
-		r.mMaterials[0] = RESOURCEMANAGER.Get<Material>(L"DirLight");
+		r.mMaterials.emplace_back(RESOURCEMANAGER.Get<Material>(L"DirLight"));
 
 		break;
 	case LIGHT_TYPE::POINT_LIGHT:
 		r.mMesh		= RESOURCEMANAGER.Get<Mesh>(L"Sphere");
-		r.mMaterials[0] = RESOURCEMANAGER.Get<Material>(L"PointLight");
+		r.mMaterials.emplace_back(RESOURCEMANAGER.Get<Material>(L"PointLight"));
 		break;
 	case LIGHT_TYPE::SPOT_LIGHT:
 		r.mMesh		= RESOURCEMANAGER.Get<Mesh>(L"Sphere");
-		r.mMaterials[0] = RESOURCEMANAGER.Get<Material>(L"PointLight");
+		r.mMaterials.emplace_back(RESOURCEMANAGER.Get<Material>(L"PointLight"));
 		break;
 	}
 
@@ -71,7 +71,7 @@ Entity LightFactory::CreateLight(shared_ptr<World> world, LIGHT_TYPE type , Ligh
 	c.SetHeight(4096);
 
 
-	t.mLocalPosition = { l.mLightInfo.Position };
+	t.mLocalPosition = { Vec3(l.mLightInfo.Position) };
 	t.LookAt(Vec3(l.mLightInfo.Direction));
 
 	world->AddComponent<LightComponent>(entity, l);

@@ -146,7 +146,7 @@ RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //ê³µì
 
  ////////////////////////////TEXTURE////////////////////////////////
 TextureCube SkyBoxMaps[16] : register(t0, space3);
-Texture2D<float4> TextureMaps[1024] : register(t1, space3);
+Texture2D<float4> TextureMaps[1024] : register(t16, space3);
  ///////////////////////////////////////////////////////////////////
 
 

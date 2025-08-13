@@ -186,7 +186,7 @@ void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCou
 			nullptr,
 			IID_PPV_ARGS(&mBuffer));
 	
-	
+	desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, D3D12_RESOURCE_FLAG_NONE);
 
 		// 2-1) Upload Heap 리소스 생성
 	CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);

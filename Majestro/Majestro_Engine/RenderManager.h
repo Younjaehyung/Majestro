@@ -32,7 +32,6 @@ class RenderManager
 public:
 	void Initialize(const WindowInfo& info);
 
-
 	void Update();
 
 	void StartRender();
@@ -41,12 +40,7 @@ public:
 
 	void ResizeWindow(int32 width, int32 height);
 
-	
-
 	const WindowInfo& GetWindow() { return mWindow; }
-public:
-
-
 	ID3D12DescriptorHeap* GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
 
 public:

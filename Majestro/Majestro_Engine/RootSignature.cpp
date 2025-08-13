@@ -6,6 +6,7 @@
 
 RootSignature::RootSignature() : Object(OBJECT_TYPE::ROOTSIGNATURE)
 {
+	mRanges.reserve(20);
 }
 
 uint32 RootSignature::AddCBV(uint32 registerNum, uint32 space, D3D12_SHADER_VISIBILITY visibility)

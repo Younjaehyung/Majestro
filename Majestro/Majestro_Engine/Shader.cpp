@@ -166,13 +166,14 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 
 void Shader::CreateComputeShader(const ShaderPath& path, const string& name, const string& version)
 {
-	mInfo.shaderType = SHADER_TYPE::COMPUTE;
+	// 추후 수정
+	//mInfo.shaderType = SHADER_TYPE::COMPUTE;
 
-	CreateShader(path.CS, name, version, mCsBlob, mComputePipelineDesc.CS);
-	mComputePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->GetRootSignature().Get();
+	//CreateShader(path.CS, name, version, mCsBlob, mComputePipelineDesc.CS);
+	//mComputePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->GetRootSignature().Get();
 
-	HRESULT hr = DEVICE->CreateComputePipelineState(&mComputePipelineDesc, IID_PPV_ARGS(&mPipelineState));
-	assert(SUCCEEDED(hr));
+	//HRESULT hr = DEVICE->CreateComputePipelineState(&mComputePipelineDesc, IID_PPV_ARGS(&mPipelineState));
+	//assert(SUCCEEDED(hr));
 }
 
 

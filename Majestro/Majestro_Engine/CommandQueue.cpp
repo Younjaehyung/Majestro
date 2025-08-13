@@ -53,10 +53,6 @@ void GraphicsCommandQueue::RenderBegin()
 
 	gEngine->GetRenderManager().GetGraphicsDescHeap()->Clear();	//테이블힙 클리어
 
-
-
-	ID3D12DescriptorHeap* descHeap = gEngine->GetRenderManager().GetLegacyGraphicsDescriptorHeap();
-	mCommandList->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//SetGraphicsRootDescriptorTable와 거의 세트임. (1.선택후 2.명령어로 보내기.)
 
 	mCommandList->ResourceBarrier(1, &barrier);

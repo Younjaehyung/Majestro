@@ -4,7 +4,7 @@
 
 Object::Object(OBJECT_TYPE type) : mObjectType(type)
 {
-	static uint32 idGenerator = 1;
+	static uint32 idGenerator = 0;
 	mId = idGenerator;
 	idGenerator++;
 }

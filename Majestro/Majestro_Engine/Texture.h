@@ -35,31 +35,31 @@ public:
 	void SetDsvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mDsvHeapBegin = handle; }
 	void SetSrvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mSrvHeapBegin = handle; }
 
-	uint32 SetSrvIndex(uint32 index) { mSrvIndex = index; }
+	void SetSrvIndex(uint32 index) { mSrvIndex = index; }
 	uint32 GetSrvIndex() { return mSrvIndex; }
 
-	uint32 SetUavIndex(uint32 index) { mUavIndex = index; }
+	void SetUavIndex(uint32 index) { mUavIndex = index; }
 	uint32 GetUavIndex() { return mUavIndex; }
 
-	uint32 SetImageIndex(uint32 index) { mImageMapIndex = index; }
+	void SetImageIndex(uint32 index) { mImageMapIndex = index; }
 	uint32 GetImageIndex() { return mImageMapIndex; }
 private:
 	ScratchImage			 		mOriginalImage;
-	D3D12_RESOURCE_DESC				mDescription;
+	D3D12_RESOURCE_DESC				mDescription{};
 
 	ComPtr<ID3D12Resource>			mImage;
 
 private:
-	D3D12_CPU_DESCRIPTOR_HANDLE		mSrvHeapBegin = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE		mUavHeapBegin = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE		mRtvHeapBegin = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE		mDsvHeapBegin = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE		mSrvHeapBegin{};
+	D3D12_CPU_DESCRIPTOR_HANDLE		mUavHeapBegin{};
+	D3D12_CPU_DESCRIPTOR_HANDLE		mRtvHeapBegin{};
+	D3D12_CPU_DESCRIPTOR_HANDLE		mDsvHeapBegin{};
 
 private:
 	uint32 mSrvIndex{};
 	uint32 mUavIndex{};
 
-	uint32 mImageMapIndex{};
-
+	uint32 mImageMapIndex{};						// Root Signautre 내에 몇번째 인덱스인지
+	static 	uint32			mTextureCount;			// Root Signautre 내에 textureMap 개수
 };
 

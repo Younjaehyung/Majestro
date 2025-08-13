@@ -68,7 +68,7 @@ void RenderManager::CreateGroup()
 		
 		group.ParticleInfo = make_shared<StructuredBuffer>();
 		group.ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(PatricleParams));
-		group.ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
+		group.ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
 		i++;
 	}
@@ -127,7 +127,7 @@ void RenderManager::CreateRenderTargetGroups()
 	shared_ptr<Texture> dsTexture = gEngine->GetResourceManager().CreateTexture(L"DepthStencil",
 		DXGI_FORMAT_D32_FLOAT, mWindow.Width, mWindow.Height,
 		CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0);
 
 	// SwapChain Group
 	{
@@ -154,7 +154,7 @@ void RenderManager::CreateRenderTargetGroups()
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"ShadowTarget",
 			DXGI_FORMAT_R32_FLOAT, 4096, 4096,	//32bit R값으로 세팅함
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
 
 		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
 			DXGI_FORMAT_D32_FLOAT, 4096, 4096,
@@ -253,13 +253,16 @@ void RenderManager::CreateRenderTargetGroups()
 				// 지원하지 않는 차원에 대한 오류 처리
 				break;
 			}
-			D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = RENDERMANAGER.GetRenderTargetHeap()->GetDsvHeapBegin();
+			D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mGraphicsDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 			uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (i ) * srvSize);
 			DEVICE->CreateShaderResourceView(renderTarget.Target->GetTex2D().Get(), &srvDesc, srvhandle);
 			renderTarget.Target->SetSrvHandle(srvhandle);
+			i++;
 		}
+
+
 	}
 
 }

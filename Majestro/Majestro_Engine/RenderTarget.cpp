@@ -63,13 +63,13 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		target.mHeapBegin=rtvhandle;
 
 		if (groupType == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN) {
-			DEVICE->CreateDepthStencilView(target.Target->GetTex2D().Get(), nullptr, dsvhandle);
+			DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
 			RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
 		}
 
 		if (mDepthStencilTexture == nullptr) {
 			mDepthStencilTexture = dsTexture;
-			DEVICE->CreateDepthStencilView(target.Target->GetTex2D().Get(), nullptr, dsvhandle);
+			DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
 			RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
 		}
 

@@ -9,7 +9,7 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 	mGroupCount = count;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};	//DESCRIPTOR HEAP 세팅
-	desc.NumDescriptors = ALL_DESCRIPTOR_COUNT;	//b0로 전역이기에 1개를 뺌
+	desc.NumDescriptors = ALL_DESCRIPTOR_COUNT+100;	//b0로 전역이기에 1개를 뺌
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;	
 
@@ -34,7 +34,7 @@ void GraphicsDescriptorHeap::CommitTable(uint32 frameCount,uint32 signautreNum,u
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetGPUDescriptorHandleForHeapStart();
 
 	// 만약 tableGroupSize가 0 이면 이것은 프레임리소스를 사용안한다고 간주하게됨. 
-	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle,  tableBegin +( frameCount * tableGroupSize)+ DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, ( tableBegin +( frameCount * tableGroupSize))* DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(signautreNum, handle);
 	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
 

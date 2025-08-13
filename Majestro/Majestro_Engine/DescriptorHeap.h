@@ -26,6 +26,7 @@ private:
 
 	uint32					mTextureGroupIndex = static_cast<uint32>(TEXTURE_INDEX::TEXTURE_INDEX); //힙 Texture 시작 index
 	uint32					mLastIndex = static_cast<uint32>(TEXTURE_INDEX_START); //힙 Texture 마지막 index
+
 	uint32					mCurrentGroupIndex = 0;
 };
 

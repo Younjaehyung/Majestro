@@ -30,11 +30,14 @@ void RenderSystem::Update()
 
 	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
 
+	ID3D12DescriptorHeap* descHeap = gEngine->GetRenderManager().GetLegacyGraphicsDescriptorHeap();
+	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+
 	// Table 바인딩
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,0,GBUFFER_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,1,GROUP_START,GROUP_COUNT);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,2,PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,3,TEXTURE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,1,GBUFFER_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,2,GROUP_START,GROUP_COUNT);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,3,PARTICLE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,4,TEXTURE_INDEX_START);
 
 
 
@@ -101,7 +104,7 @@ void RenderSystem::PushLightData()
 		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
 		{
 			shared_ptr<Texture> shadowTex = RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
-			renderComponent->mMaterials[0]->SetTexture(shadowTex, DIFFUSEMAP2INDEX);
+			//renderComponent->mMaterials[0]->SetTexture(shadowTex, DIFFUSEMAP2INDEX);
 		}
 		else
 		{
@@ -126,9 +129,8 @@ void RenderSystem::PushLightData()
 		mLightVector.push_back(lightParams);
 
 	}		
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].LightInfo->PushGraphicsData(mLightVector.data(),sizeof(LightParams)*mLightVector.size());
-
-	int MaterialsIndex;
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].LightInfo->PushGraphicsData(mLightVector.data(), static_cast<uint32>(sizeof(LightParams)*mLightVector.size()));
+	
 }
 
 void RenderSystem::PushObjectData()
@@ -141,6 +143,10 @@ void RenderSystem::PushObjectData()
 
 	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
 	{
+		if (mWorld->GetComponent<LightComponent>(gameObject)) {
+			continue;
+		}
+
 		const uint64 instanceId = mWorld->GetComponent<RenderComponent>(gameObject)->GetInstanceID();
 		mMaterialObjectBatch[instanceId].push_back(gameObject);
 	}
@@ -178,8 +184,8 @@ void RenderSystem::PushObjectData()
 	}
 
 
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mObjectVector.data(),sizeof(objectParams)*mObjectVector.size());
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mMaterialVector.data(), sizeof(MaterialParams) * mMaterialVector.size());
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mMaterialVector.data(), static_cast<uint32>(sizeof(MaterialParams) * mMaterialVector.size()));
 
 }
 
@@ -218,7 +224,9 @@ void RenderSystem::RenderDeferred()
 		RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
 		if (renderEntity->IsVisibility())
 			continue;
-
+		if (mWorld->GetComponent<LightComponent>(entityID)) {
+			continue;
+		}
 	/*	if (IsCustomCulled(renderEntity->GetLayerIndex()))
 			continue;*/
 			
@@ -231,8 +239,8 @@ void RenderSystem::RenderDeferred()
 			}
 		}
 			
-		uint8 typeID = static_cast<uint8>(renderEntity->mMaterials[0]->GetShader()->GetShaderType());
-
+		//uint8 typeID = static_cast<uint8>(renderEntity->mMaterials[0]->GetShader()->GetShaderType());
+		uint8 typeID = 0;
 		shaderBatches[typeID][renderEntity->mMaterials[0]->GetShaderID()].push_back(entityID);
 
 		//인스턴싱 구조 생각하기
@@ -466,7 +474,7 @@ void RenderSystem::PushObjectData(TransformComponent* transformComponent)
 void RenderSystem::PushMaterialData(RenderComponent* renderComponent)
 {
 	for (auto& material : renderComponent->mMaterials) {
-		mMaterialVector.push_back(material->GetParams());
+	//	mMaterialVector.push_back(material->GetParams());
 	}
 
 	

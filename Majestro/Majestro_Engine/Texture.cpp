@@ -3,8 +3,11 @@
 #include "Engine.h"
 #include "RenderManager.h"
 
+uint32 Texture::mTextureCount = 0;
+
 Texture::Texture() : Object(OBJECT_TYPE::TEXTURE)
 {
+	
 }
 
 Texture::~Texture()
@@ -111,6 +114,7 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 		pOptimizedClearValue = &optimizedClearValue;
 	}
 
+
 	// Create Texture2D
 	HRESULT hr = DEVICE->CreateCommittedResource(
 		&heapProperty,
@@ -189,6 +193,8 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 	// SRV 생성
 	DEVICE->CreateShaderResourceView(mImage.Get(), &srvDesc, mSrvHeapBegin);
 
+	mImageMapIndex = mTextureCount;
+	mTextureCount++;
 
 	// UAV
 	if (mDescription.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)

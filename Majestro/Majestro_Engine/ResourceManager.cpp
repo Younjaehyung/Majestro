@@ -304,7 +304,7 @@ void ResourceManager::CreateDefaultShader()
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// texture- buffer
 		{
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  - 1, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_SRV_COUNT, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX)+ TEXTURE_CUBE_COUNT,3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 		};
 
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
@@ -317,7 +317,7 @@ void ResourceManager::CreateDefaultShader()
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges3);
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
 		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->CreateGraphicsRootSignature();
-
+		shared_ptr<RootSignature> rootSignature2 = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
 	// ComputeRootSignature
@@ -453,8 +453,8 @@ void ResourceManager::CreateDefaultShader()
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};
 		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\final.hlsl",
-			.PS = L"..\\Resources\\Shader\\final.hlsl"
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\final_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, "VS_Final", "PS_Final");
@@ -482,7 +482,7 @@ void ResourceManager::CreateDefaultShader()
 			D3D_PRIMITIVE_TOPOLOGY_POINTLIST
 		};
 		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\particle_CS.hlsl",
+			.VS = L"..\\Resources\\Shader\\particle_VS.hlsl",
 			.PS = L"..\\Resources\\Shader\\particle_PS.hlsl",
 			.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
 		};
@@ -531,40 +531,40 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 	
 	// 추후 주석된 부분은 GBUFFER전용 생성으로 폐기 예정임.
-	// DirLight
-	//{
+	 //DirLight
+	{
 
-	//	shared_ptr<Material> material = make_shared<Material>();
-	//	material->SetShader(L"DirLight");
-	//	material->SetTexture(Get<Texture>(L"PositionTarget"), );
-	//	material->SetTexture(1, Get<Texture>(L"NormalTarget"));
-	//	Add<Material>(L"DirLight", material);
-	//}
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"DirLight");
+		//material->SetTexture(Get<Texture>(L"PositionTarget"), );
+		//material->SetTexture(1, Get<Texture>(L"NormalTarget"));
+		Add<Material>(L"DirLight", material);
+	}
 
 	// PointLight
-	//{
-	//	const WindowInfo& window = RENDERMANAGER.GetWindow();
-	//	Vec2 resolution = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
+	{
+		const WindowInfo& window = RENDERMANAGER.GetWindow();
+		Vec2 resolution = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
 
 
-	//	shared_ptr<Material> material = make_shared<Material>();
-	//	material->SetShader(L"PointLight");
-	//	material->SetTexture(0, Get<Texture>(L"PositionTarget"));
-	//	material->SetTexture(1, Get<Texture>(L"NormalTarget"));
-	//	material->SetVec2(0, resolution);
-	//	Add<Material>(L"PointLight", material);
-	//}
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"PointLight");
+		//material->SetTexture(0, Get<Texture>(L"PositionTarget"));
+		//material->SetTexture(1, Get<Texture>(L"NormalTarget"));
+		//material->SetVec2(0, resolution);
+		Add<Material>(L"PointLight", material);
+	}
 
 	// Final
-	//{
+	{
 
-	//	shared_ptr<Material> material = make_shared<Material>();
-	//	material->SetShader(L"Final");
-	//	material->SetTexture(0, Get<Texture>(L"DiffuseTarget"));
-	//	material->SetTexture(1, Get<Texture>(L"DiffuseLightTarget"));
-	//	material->SetTexture(2, Get<Texture>(L"SpecularLightTarget"));
-	//	Add<Material>(L"Final", material);
-	//}
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"Final");
+		//material->SetTexture(0, Get<Texture>(L"DiffuseTarget"));
+		//material->SetTexture(1, Get<Texture>(L"DiffuseLightTarget"));
+		//material->SetTexture(2, Get<Texture>(L"SpecularLightTarget"));
+		Add<Material>(L"Final", material);
+	}
 	  
 
 	//////

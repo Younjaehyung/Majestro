@@ -27,7 +27,7 @@ void Scene::Initialize()
 	mWorld->AddComponent<TransformComponent>(testCamera);
 
 
-
+	/////////////////////////////////////////////////////////////////////
 	Entity testEntity = mWorld->CreateEntity();	// �ʼ�
 
 	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.LoadSphereMesh();
@@ -46,9 +46,7 @@ void Scene::Initialize()
 	mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 
 
-
-	Entity testlight = mWorld->CreateEntity();
-
+	/////////////////////////////////////////////////////////////////////////
 	LightComponent l{};
 	l.mLightInfo.Position = {Vec3(0, 1000, 500)};
 	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };

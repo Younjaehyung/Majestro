@@ -51,21 +51,17 @@ void RenderManager::CreateGroup()
 	for (GroupBuffer& group : mGroupBuffer) {
 		group.PassInfo = make_shared<ConstantBuffer>();
 		group.PassInfo->CreateBuffer(sizeof(PassParams));
-		group.PassInfo->CreateView(i,CONSTANT_INDEX_START , static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX),GROUP_COUNT);
+		group.PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
 
 		group.LightInfo = make_shared<StructuredBuffer>();
 		group.LightInfo->CreateUploadBuffer(1000, sizeof(LightParams));
-		group.LightInfo->CreateSrvView(i,STRUCTURED_INDEX_START , static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
+		group.LightInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
 
 
 		group.ObjectInfo = make_shared<StructuredBuffer>();
 		group.ObjectInfo->CreateUploadBuffer(5000, sizeof(ObjectParams));
 		group.ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
-		group.MaterialInfo = make_shared<StructuredBuffer>();
-		group.MaterialInfo->CreateUploadBuffer(1000,sizeof(MaterialParams));
-		group.MaterialInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_MATERIALS_INDEX), GROUP_COUNT);
-		
 		group.ParticleInfo = make_shared<StructuredBuffer>();
 		group.ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(PatricleParams));
 		group.ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
@@ -73,8 +69,10 @@ void RenderManager::CreateGroup()
 		i++;
 	}
 
+	mMaterialBuffer = make_shared<StructuredBuffer>();
+	mMaterialBuffer->CreateDefaultBuffer(128, sizeof(MaterialParams));
+	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX), 0);
 }
-
 void RenderManager::CreateParticle()
 {
 	for (ParticleBuffer& group : mParticleBuffer) {

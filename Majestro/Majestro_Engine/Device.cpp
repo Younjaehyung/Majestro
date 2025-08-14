@@ -19,7 +19,7 @@ void Device::Initialize()
 	// bindless check (Tier 2/3)
 	D3D12_FEATURE_DATA_D3D12_OPTIONS opt{};
 	if (SUCCEEDED(mDXDevice.Get()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &opt, sizeof(opt))))
-		cout<<opt.ResourceBindingTier;
+		cout << opt.ResourceBindingTier << "TIER" << '\n';
 
 
 

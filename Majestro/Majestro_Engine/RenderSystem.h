@@ -10,6 +10,14 @@
 struct MaterialParams;
 struct PatricleParams;
 
+struct RenderParams {
+	uint32 ObjectIndex{};
+	uint32 MaterialInfoIndex;
+
+	uint32 LightIndex;    //light가 아니면 쓰지 말것.
+	uint32 ParticleIndex; //Particle가 아니면 쓰지 말것.
+};
+
 
 struct PassParams
 {
@@ -21,8 +29,8 @@ struct PassParams
 	Vec2 ScreenSize;
 	Vec2 Padding;
 
-	int LightsCount;
-	int SkyBoxIndex;
+	uint32 LightsCount{};
+	uint32 SkyBoxIndex{};
 };
 
 class RenderSystem	: public System
@@ -38,21 +46,16 @@ public:
 
 	
 private: // RenderPass
+
+
 	void ClearRTV();	//clear
 
-	void PushLightData(); //clear
-	void PushObjectData(); 
+	void PushData();
 
+	void DefferdRendering();
+	void ForwardRendering();
+	void ParticleRendering();
 
-	void RenderShadow();	
-
-	void RenderDeferred();	//
-
-	void RenderLights();
-
-	void RenderFinal();	//2pass //clear
-
-	void RenderForward();
 
 
 private: // Culling
@@ -61,29 +64,46 @@ private: // Culling
 
 
 private: // Push&Clear Data
-	void PushGBufferData();
+	void PushMaterialData();
+
+	void SetTable();
 	void PushPassData();
-	void PushObjectData( TransformComponent* transformComponent);
-	void PushMaterialData(class RenderComponent* renderComponent);
+	void PushGBufferData();
+	void PushObjectData();
+	void PushLightData();
 	void ClearBuffer();
 
 private: // Render
-	void RenderShadowCamera(Entity&, LightComponent*, class CameraComponent*);
 
-//	void Render(Entity entity);
-//	void Render(Entity entity, shared_ptr<InstancingBuffer>& buffer);
+	void RenderShadowCamera(Entity&, LightComponent*, class CameraComponent*,class RenderComponent*);
 	void InstancingRender(vector<Entity>& gameObjects);
-	
+
+
+	// deferred
+	void RenderShadow();
+
+	void RenderGBuffer();
+
+	void RenderLights();
+
+	void RenderFinal();	//2pass //clear
+
+	// forward
+	void RenderForward();
+
+	// particle
+	void RenderingParticle();
+
 private:
-	uint8 mFrameCount = 0;
+	uint32 mFrameCount = 0;
 
 	Entity				mCameraID;
-	class CameraComponent*	mCamera;
+	class CameraComponent* mCamera{};
 	uint32				mCullingMask = 0;
 
 
 	shared_ptr<RootSignature>		mRootSignature;
-	ComponentPool<RenderComponent>* mRenderComponentPool;
+	ComponentPool<RenderComponent>* mRenderComponentPool=nullptr;
 	
 private:	// 배치 버퍼
 
@@ -93,19 +113,19 @@ private:	// 배치 버퍼
 	// 쉐이더 타입별로 | 쉐이더 종류별로 분류	(쉐이더 배치)
 	array<unordered_map<std::wstring, std::vector<Entity>>, static_cast<uint8>(SHADER_TYPE::END)> shaderBatches;
 private:
-
+	std::vector<Entity>				mDummyVector;
 	// RenderManager의 structuerdBuffer로 복사할 데이터들
+
 	std::vector<LightParams>		mLightVector;
 	std::vector<ObjectParams>		mObjectVector;
-	std::vector<MaterialParams>	mMaterialVector;
-	std::vector<PatricleParams>	mPatricleVector;
-
-	// lightRenderPASS 때 사용될 vector
-	std::vector< MaterialParams>	mLightCulling;
+	std::vector<MaterialParams>		mMaterialVector;
+	std::vector<PatricleParams>		mPatricleVector;
 
 private:
 	// 변수 재사용을 막기 위해 둔 Dummy Parms
-	ObjectParams objectParams = {};
-	LightParams	lightParams = {};
+	PassParams passParams{};
+	ObjectParams objectParams{};
+	LightParams	lightParams{};
+	RenderParams	renderParams{};
 };
 

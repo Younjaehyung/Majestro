@@ -14,7 +14,7 @@ public:
 
 
 	void CreateBuffer(uint32 size);
-	void CreateView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
+	void CreateView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
 private:
 
 	ComPtr<ID3D12Resource>	mCbvBuffer;	//GPU버퍼
@@ -28,7 +28,7 @@ private:
 	uint32					mGroupIndex = {};
 	uint32					mStartIndex = {};
 	uint32					mConstantIndex = {};			// CONSTANT Type
-	uint8					mFrameCount = 0;
+	uint32					mFrameCount = 0;
 };
 
 
@@ -58,9 +58,9 @@ public:
 	void CreateDefaultBuffer(uint32 elementSize, uint32 elementCount);
 
 
-	void CreateSrvView(uint8 frameCount, uint32 startIndex ,uint32 type, uint32 groupCount=0);
+	void CreateSrvView(uint32 frameCount, uint32 startIndex ,uint32 type, uint32 groupCount=0);
 
-	void CreateUavView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
+	void CreateUavView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
 private:
 	ComPtr<ID3D12Resource>			mBuffer;		// upload / default buffer
 	ComPtr<ID3D12Resource>			mDummyBuffer;	// default to upload buffer (dummy);
@@ -76,7 +76,7 @@ private:
 	uint32						mStartIndex = {};
 	uint32						mSrvIndex = {}; // Sructured Type
 	uint32						mUavIndex = {}; // Sructured Type
-	uint8						mFrameCount = 0;
+	uint32						mFrameCount = 0;
 
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE mSrvCpuHandleBegin = {};

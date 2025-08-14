@@ -83,11 +83,11 @@ public:
 	RENDER_TARGET_GROUP_TYPE GetGroupType() { return mGroupType; }
 
 private:
-	vector<RenderTarget>			mRenderTargets;
+	vector<RenderTarget>			mRenderTargets{};
 	shared_ptr<Texture>				mDepthStencilTexture;
 	
-	RENDER_TARGET_GROUP_TYPE		mGroupType;
-	uint32							mRenderTargetCount;
+	RENDER_TARGET_GROUP_TYPE		mGroupType{};
+	uint32							mRenderTargetCount{};
 
 	D3D12_CPU_DESCRIPTOR_HANDLE		mRTHeapBegin{};
 	D3D12_CPU_DESCRIPTOR_HANDLE		mDSHeapBegin{};

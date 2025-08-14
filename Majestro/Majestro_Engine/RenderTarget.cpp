@@ -104,7 +104,7 @@ void RenderTargetGroup::OMSetRenderTargets(uint32 count, uint32 offset)
 	uint32 size = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(mRTHeapBegin, offset * size);
-	GRAPHICS_CMD_LIST->OMSetRenderTargets(count, &rtvHandle, FALSE/*1개*/, &mDSHeapBegin);
+	GRAPHICS_CMD_LIST->OMSetRenderTargets(count, &rtvHandle, FALSE/*once*/, &mDSHeapBegin);
 }
 
 void RenderTargetGroup::OMSetRenderTargets()
@@ -115,7 +115,8 @@ void RenderTargetGroup::OMSetRenderTargets()
 	GRAPHICS_CMD_LIST->RSSetViewports(1, &vp);
 	GRAPHICS_CMD_LIST->RSSetScissorRects(1, &rect);
 
-	GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE/*다중*/, &mDSHeapBegin);
+	GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE/*multi*/, &mDSHeapBegin);
+
 }
 
 void RenderTargetGroup::ClearRenderTargetView(uint32 index)

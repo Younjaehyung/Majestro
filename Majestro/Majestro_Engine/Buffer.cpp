@@ -45,8 +45,9 @@ void ConstantBuffer::CreateBuffer(uint32 size)
 	// the resource while it is in use by the GPU (so we must use synchronization techniques).
 }
 
-void ConstantBuffer::CreateView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
+void ConstantBuffer::CreateView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
+
 	assert(mElementSize != 0);
 
 	mConstantIndex = type;
@@ -84,7 +85,6 @@ void ConstantBuffer::PushComputeData(void* buffer, uint32 size)
 
 void ConstantBuffer::PushData(void* buffer, uint32 size)
 {
-
 	assert(mElementSize == ((size + 255) & ~255));	//디버깅 코드(엉뚱한 데이터 확인용)
 
 
@@ -203,7 +203,7 @@ void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCou
 }
 
 
-void StructuredBuffer::CreateSrvView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
+void StructuredBuffer::CreateSrvView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
 	assert(mElementSize != 0);
 	mGroupIndex = groupCount;
@@ -231,7 +231,7 @@ void StructuredBuffer::CreateSrvView(uint8 frameCount, uint32 startIndex, uint32
 	DEVICE->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSrvCpuHandleBegin);
 }
 
-void StructuredBuffer::CreateUavView(uint8 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
+void StructuredBuffer::CreateUavView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
 	assert(mElementSize!=0);
 

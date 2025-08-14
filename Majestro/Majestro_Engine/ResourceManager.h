@@ -51,6 +51,7 @@ public:
 
 
 private:
+	void CreateDefaultRootSignature();
 	void CreateDefaultShader();	//기본적인 공통쉐이더를 공통적으로 적용하기 위한 코드
 	void CreateDefaultMaterial();
 

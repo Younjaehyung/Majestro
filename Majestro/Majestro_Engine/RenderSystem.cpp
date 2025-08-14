@@ -3,8 +3,10 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
+#include "Material.h"
 #include "World.h"
 #include "RenderComponent.h"
+#include "RenderTarget.h"
 #include "CameraComponent.h"
 #include "AnimationComponent.h"
 #include "ParticleComponent.h"
@@ -21,51 +23,68 @@ void RenderSystem::Initialize()
 	// 1번 초기화
 	mRenderComponentPool = &(mWorld->GetComponentPool<RenderComponent>());
 	mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
-	
+
+	// immutability Data
+	PushMaterialData();
 }
 
 void RenderSystem::Update()
 {
-	mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
-	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
-
-	ID3D12DescriptorHeap* descHeap = gEngine->GetRenderManager().GetLegacyGraphicsDescriptorHeap();
-	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
-
-	// Table 바인딩
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,1,GBUFFER_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,2,GROUP_START,GROUP_COUNT);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,3,PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount,4,TEXTURE_INDEX_START);
-
-
-
-	if (1) {	// Find Main Camera.
-		std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
-		mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-	}
+	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
+	
+	SetTable();
 
 	ClearRTV();
 
-	PushLightData();
+	PushData();
 
-	PushObjectData();
-	// RenderShadow();
+	DefferdRendering();
 
-	RenderDeferred();
+	ForwardRendering();
 
-	RenderLights();
+	ParticleRendering();
 
-	RenderFinal();	//2pass
 
-	RenderForward();
 
 }
 
+
+void RenderSystem::PushData()
+{
+
+	PushPassData();
+	PushGBufferData();
+	PushObjectData();
+	PushLightData();
+
+}
+
+void RenderSystem::DefferdRendering()
+{
+	RenderShadow();
+
+	RenderGBuffer();
+
+	RenderLights();
+
+	RenderFinal();
+}
+
+void RenderSystem::ForwardRendering()
+{
+	RenderForward();
+}
+
+void RenderSystem::ParticleRendering()
+{
+	RenderingParticle();
+}
+
+
 void RenderSystem::ClearRTV()
 {
-	//CommandQueue의 RT이 이리로 옮겨짐
 	// SwapChain Group 초기화
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].ClearRenderTargetView(backIndex);
@@ -83,12 +102,82 @@ void RenderSystem::ClearRTV()
 	// 추후 lightvector관련들 clear도 모두 확인할껏.
 }
 
+void RenderSystem::ClearBuffer()
+{
+
+	for (auto& shaderGroup : shaderBatches) {
+
+		for (auto& [shaderID, vec] : shaderGroup) {
+			vec.clear(); // vector의 capacity는 유지됨
+		}
+	}
+
+	for (auto& [ID, vec] : mMaterialObjectBatch) {
+		vec.clear();
+	}
+
+	mLightVector.clear();
+	mObjectVector.clear();
+	mDummyVector.clear();
+
+}
+
+
+
+void RenderSystem::SetTable()
+{
+	mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
+
+	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+
+	ID3D12DescriptorHeap* descHeap = gEngine->GetRenderManager().GetLegacyGraphicsDescriptorHeap();
+	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+
+	// Table 바인딩
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 1, GBUFFER_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 3, PARTICLE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 4, TEXTURE_MATERIALS_INDEX_START);
+
+}
+
+void RenderSystem::PushPassData()
+{
+	passParams = {};
+	passParams.MatView = mCamera->mView;
+	passParams.MatProjection = mCamera->mProjection;
+	passParams.MatViewInv = mCamera->mView.Invert();
+	passParams.MatProjectionInv = mCamera->mProjection.Invert();
+	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
+
+
+	RENDERMANAGER.GetGroupBuffer()[mFrameCount].PassInfo->PushData(&passParams, sizeof(PassParams));
+}
+
+
+void RenderSystem::PushGBufferData()
+{
+
+}
+
+void RenderSystem::PushMaterialData()
+{
+
+	uint32 index{};
+	for (auto& materials : RESOURCEMANAGER.GetAllResources<Material>()) {
+		shared_ptr<Material> material=dynamic_pointer_cast<Material>(materials.second);
+		material->SetIndex(index);
+		mMaterialVector.emplace_back(material->GetParams());
+		index++;
+	}
+	RENDERMANAGER.GetMaterialBuffers()->PushDefaultToData(mMaterialVector.data(), mMaterialVector.size() * sizeof(MaterialParams));
+
+}
+
+
 
 void RenderSystem::PushLightData()
 {
-	LightParams lightParams = {};
-	MaterialParams materialParams = {};
-
 	// light Component 추출
 	const vector<Entity>& entities = mWorld->GetEntitiesWithComponent<LightComponent>();
 	ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
@@ -101,16 +190,7 @@ void RenderSystem::PushLightData()
 		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 
-		if (static_cast<LIGHT_TYPE>(lightComponent->mLightInfo.LightType) == LIGHT_TYPE::DIRECTIONAL_LIGHT)
-		{
-			shared_ptr<Texture> shadowTex = RESOURCEMANAGER.Get<Texture>(L"ShadowTarget");
-			//renderComponent->mMaterials[0]->SetTexture(shadowTex, DIFFUSEMAP2INDEX);
-		}
-		else
-		{
-			float scale = 2 * lightComponent->mLightInfo.Range;
-			transformComponent->SetLocalScale(Vec3(scale, scale, scale));
-		}
+
 		lightParams = {};
 
 		lightParams.Color = lightComponent->mLightInfo.Color;
@@ -121,7 +201,7 @@ void RenderSystem::PushLightData()
 		lightParams.Angle = lightComponent->mLightInfo.Angle;
 
 		lightParams.MatWorld = transformComponent->mWorldMatrix;
-		lightParams.MatView = cameraComponent->mCameraParams.MatProjection;
+		lightParams.MatView = cameraComponent->mCameraParams.MatView;
 		lightParams.MatProjection = cameraComponent->mCameraParams.MatProjection;
 		lightParams.MatViewInv = cameraComponent->mCameraParams.MatViewInv;
 		lightParams.MatProjectionInv = cameraComponent->mCameraParams.MatProjectionInv;
@@ -139,8 +219,6 @@ void RenderSystem::PushObjectData()
 	RenderComponent* renderComponent;
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
 
-	DataIndex dataParam{};
-
 	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
 	{
 		if (mWorld->GetComponent<LightComponent>(gameObject)) {
@@ -151,42 +229,25 @@ void RenderSystem::PushObjectData()
 		mMaterialObjectBatch[instanceId].push_back(gameObject);
 	}
 
+	uint32 index{};
+	for (auto& materialObjects : mMaterialObjectBatch){
 
-	for (auto& pair : mMaterialObjectBatch)		// renderComponent내부에 현재 몇번째 인덱스를 참조해야하는지 표기.
-	{
-		Entity entity0 = pair.second[0];
-		uint32 matrialIndexStart = static_cast<uint32>(mMaterialVector.size());	// 머티리얼 시작인덱스
+		for (auto& objects : materialObjects.second) {
 
-		if (pair.second.size() == 1)
-		{
-			transformComponent = mWorld->GetComponent<TransformComponent>(entity0);;
-			renderComponent = mWorld->GetComponent<RenderComponent>(entity0);;
+			transformComponent = mWorld->GetComponent<TransformComponent>(objects);;
+			renderComponent = mWorld->GetComponent<RenderComponent>(objects);;
 
-			PushObjectData(transformComponent);		// 트랜스폼 갱신
-			PushMaterialData(renderComponent);			// 머티리얼 갱신
 
-		}
-		else
-		{
-			const uint64 instanceId = pair.first;
-			renderComponent = mWorld->GetComponent<RenderComponent>(pair.second[0]);;
-			PushMaterialData(renderComponent);		// 머티리얼 갱신
-
-			for (const Entity& gameObject : pair.second)
-			{
-				transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);;
-				PushObjectData(transformComponent);		// 트랜스폼 갱신
-
-			}
-
+			objectParams.MatWorld = transformComponent->mWorldMatrix;
+			mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
+			
+			renderComponent->mObjectIndex = index;
+			index++;
 		}
 
 	}
 
-
 	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mMaterialVector.data(), static_cast<uint32>(sizeof(MaterialParams) * mMaterialVector.size()));
-
 }
 
 
@@ -198,27 +259,27 @@ void RenderSystem::RenderShadow()
 	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].OMSetRenderTargets();
 	LightComponent* lightComponent;
 	CameraComponent* cameraComponent;
+	RenderComponent* renderComponent;
 
-	for (auto& light : mWorld->GetEntitiesWithComponents<LightComponent,CameraComponent>())
+	for (auto& light : mWorld->GetEntitiesWithComponents<LightComponent,CameraComponent,RenderComponent>())
 	{
 		lightComponent = mWorld->GetComponent<LightComponent>(light);
 		cameraComponent = mWorld->GetComponent<CameraComponent>(light);
+		renderComponent = mWorld->GetComponent<RenderComponent>(light);
 		if (lightComponent->mLightInfo.LightType != static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
 			continue;
 
-		RenderShadowCamera(light, lightComponent, cameraComponent);
+		RenderShadowCamera(light, lightComponent, cameraComponent, renderComponent);
 	}
 
 
 	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].WaitTargetToResource();
 }
 
-void RenderSystem::RenderDeferred()
+void RenderSystem::RenderGBuffer()
 {
-	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
-	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-
 	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].OMSetRenderTargets();
+
 
 	for (auto& entityID : mRenderComponentPool->GetEntities()) {
 		RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
@@ -239,18 +300,12 @@ void RenderSystem::RenderDeferred()
 			}
 		}
 			
-		//uint8 typeID = static_cast<uint8>(renderEntity->mMaterials[0]->GetShader()->GetShaderType());
-		uint8 typeID = 0;
-		shaderBatches[typeID][renderEntity->mMaterials[0]->GetShaderID()].push_back(entityID);
+		shaderBatches[static_cast<uint8>(SHADER_TYPE::DEFERRED)][renderEntity->mMaterials[0]->GetShaderID()].push_back(entityID);
 
-		//인스턴싱 구조 생각하기
 	}
 
-		
-	
 
 	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::DEFERRED)]) {
-
 		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
 		InstancingRender(vec);
 	}
@@ -261,9 +316,6 @@ void RenderSystem::RenderDeferred()
 
 void RenderSystem::RenderLights()
 {
-
-	//Camera::S_MatView = mCamera->GetViewMatrix();
-	//Camera::S_MatProjection = mCamera->GetProjectionMatrix();
 	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].OMSetRenderTargets();
 
 
@@ -283,13 +335,13 @@ void RenderSystem::RenderLights()
 		
 		RenderComponent* lightComponent =  mWorld->GetComponent<RenderComponent>(light);
 
+		RESOURCEMANAGER.Get<Shader>(lightComponent->mMaterials[0]->GetShaderID())->Update();
+
 
 		lightComponent->mMesh->Render();
 	}
-
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].WaitTargetToResource();
-
 	////리소스에서 타켓으로
+	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].WaitTargetToResource();
 
 }
 
@@ -312,35 +364,10 @@ void RenderSystem::RenderForward()
 	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::FORWARD)]) {
 
 		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
-		for (auto& v : vec) {
-			RenderComponent* r = mWorld->GetComponent<RenderComponent>(v);
-
-			GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,3,&(r->mdataIndex),0);
-
-			for (int i = 0; i < r->mMaterials.size(); ++i) {
-				r->mMesh->Render(1,i);
-			}
-			
-		}
+		InstancingRender(vec);
 
 	}
 	
-	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::PARTICLE)]) {
-
-		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
-
-
-		for (auto& particle : vec)
-		{
-			ParticleComponent* particleComponent = mWorld->GetComponent<ParticleComponent>(particle);
-			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(particle);
-
-	
-
-			particleComponent->_mesh->Render(particleComponent->_maxParticle);
-		}
-	}
-
 	//나머지는 바로 forward
 
 	//for (auto& camera : _cameras)
@@ -353,6 +380,27 @@ void RenderSystem::RenderForward()
 	//}
 }
 
+void RenderSystem::RenderingParticle()
+{
+
+	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::PARTICLE)]) {
+
+		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
+
+
+		for (auto& particle : vec)
+		{
+			ParticleComponent* particleComponent = mWorld->GetComponent<ParticleComponent>(particle);
+			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(particle);
+
+
+
+			particleComponent->_mesh->Render(particleComponent->_maxParticle);
+		}
+	}
+
+}
+
 bool RenderSystem::IsFrustumCulled()
 {
 	
@@ -360,145 +408,110 @@ bool RenderSystem::IsFrustumCulled()
 	return false;
 }
 
-void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightComponent, CameraComponent* cameraComponent)
+void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent)
 {
 	TransformComponent* transformComponent;
-	RenderComponent* renderComponent;
+	RenderComponent* objectRenderComponent;
 	
-	// 추후 CBV 중복 삽입 문제 있나 확인해보기
-	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
-	for (const EntityID& gameObject : gameObjects)
+	
+	RESOURCEMANAGER.Get<Shader>(L"Shadow")->Update();
+
+	for ( const auto& gameObjects : mMaterialObjectBatch)
 	{
-		
-		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);;
-		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);;
-		
-
-		//if (gameObject->IsStatic())	//정적 물체인지 동적물체인지 확인해서 그림자 최적화
-		//	continue;
-
-
-		//if (IsCustomCulled(renderComponent->GetLayerIndex()))
-		//	continue;
-
-		if (renderComponent->mCheckFrustum)
-		{
-			if (cameraComponent->mFrustum.ContainsSphere(
-				transformComponent->GetWorldPosition(),
-				transformComponent->GetBoundingSphereRadius()) == false)
-			{
-				continue;
-			}
+		if (gameObjects.second.empty()) {
+			continue;
 		}
-		
-		shaderBatches[static_cast<uint8>(SHADER_TYPE::SHADOW)][renderComponent->mMaterials[0]->GetShaderID()].push_back(gameObject);
 
+		for (const auto& gameObject : gameObjects.second) {
 
-	}
-
-	mCamera = cameraComponent;
-
-	for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::SHADOW)])
-	{
-		RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
-		for (auto& shadow : vec) {
-
-			renderComponent = mWorld->GetComponent<RenderComponent>(shadow);
-			for (int i = 0; i < renderComponent->mMaterials.size(); ++i) {
-
-				GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,3, &renderComponent->mdataIndex,0);
-				renderComponent->mMesh->Render(1,i);
-			}
 			
+
+			transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+			objectRenderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+
+
+			//if (gameObject->IsStatic())	//정적 물체인지 동적물체인지 확인해서 그림자 최적화
+			//	continue;
+
+
+			//if (IsCustomCulled(renderComponent->GetLayerIndex()))
+			//	continue;
+
+			if (objectRenderComponent->mCheckFrustum)
+			{
+				if (cameraComponent->mFrustum.ContainsSphere(
+					transformComponent->GetWorldPosition(),
+					transformComponent->GetBoundingSphereRadius()) == false)
+				{
+					continue;
+				}
+
+			}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
+			mDummyVector.push_back(gameObject);
+
 		}
+
+		if (mDummyVector.empty()) {
+			continue;
+		}
+
+		InstancingRender(mDummyVector);
+
 	}
+
 }
 
 void RenderSystem::InstancingRender(vector<Entity>& gameObjects)
 {
+	Entity entity0 = gameObjects[0];
 
+	RenderComponent* objectRender;
+	wstring	shaderID{L""};
 
-	for (auto& pair : mMaterialObjectBatch)	// 같은 머테리얼을 가진것 끼리 분류
+	if (gameObjects.size() == 1)
 	{
-		Entity entity0 = pair.second[0];
-
-		RenderComponent* object = mRenderComponentPool->GetComponent(entity0.GetID());
-		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(object->mdataIndex), 0);
-
-		if (pair.second.size() == 1)
-		{
 			
-			for (int i = 0; i < object->mMaterials.size(); ++i) {
-				object->mMesh->Render(1, i);
+		objectRender = mRenderComponentPool->GetComponent(entity0.GetID());
+
+		for (int i = 0; i < objectRender->mMaterials.size(); ++i) {
+			
+
+			renderParams = { objectRender->mObjectIndex ,objectRender->mMaterials[i]->GetIndex()};
+
+			if (shaderID != objectRender->mMaterials[i]->GetShaderID()) {
+				shaderID = objectRender->mMaterials[i]->GetShaderID();
+				RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
+			}
+
+			GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 4, &(renderParams), 0);
+			objectRender->mMesh->Render(1, i);
+		}
+	}
+	else
+	{	
+		for (auto& entity : gameObjects) {
+			objectRender = mRenderComponentPool->GetComponent(entity.GetID());
+			for (int i = 0; i < objectRender->mMaterials.size(); ++i) {
+
+
+				renderParams = { objectRender->mObjectIndex ,objectRender->mMaterials[i]->GetIndex() };
+			
+				if (shaderID != objectRender->mMaterials[i]->GetShaderID()) {
+					shaderID = objectRender->mMaterials[i]->GetShaderID();
+					RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
+				}
+
+				
+				GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 4, &(renderParams), 0);
+
+				objectRender->mMesh->Render(static_cast<uint32>(gameObjects.size()), i);
 			}
 		}
-		else
-		{
-			const uint64 instanceId = pair.first;
-
-			for (int i = 0; i < object->mMaterials.size(); ++i) {
-				object->mMesh->Render(static_cast<uint32>(pair.second.size()), i);
-			}
-			
-		}
 	}
-}
-
-void RenderSystem::PushGBufferData()
-{
-
-}
-
-void RenderSystem::PushPassData()
-{
-	PassParams passParams{};
-	passParams.MatView = mCamera->mView;
-	passParams.MatProjection = mCamera->mProjection;
-	passParams.MatViewInv = mCamera->mView.Invert();
-	passParams.MatProjectionInv = mCamera->mProjection.Invert();
-
-	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
-	
-	
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].PassInfo->PushData(&passParams,sizeof(PassParams));
-}
-
-void RenderSystem::PushObjectData(TransformComponent* transformComponent)
-{
-	
-	objectParams.MatWorld = transformComponent->mWorldMatrix;
-
-	mObjectVector.push_back(objectParams);
-}
-
-void RenderSystem::PushMaterialData(RenderComponent* renderComponent)
-{
-	for (auto& material : renderComponent->mMaterials) {
-	//	mMaterialVector.push_back(material->GetParams());
-	}
-
 	
 }
 
-void RenderSystem::ClearBuffer()
-{
-
-
-	for (auto& shaderGroup : shaderBatches) {
-
-		for (auto& [shaderID, vec] : shaderGroup) {
-			vec.clear(); // vector의 capacity는 유지됨
-		}
-	}
-
-	 for (auto& [ID, vec] : mMaterialObjectBatch) {
-	 	vec.clear();
-	 }
-
-	 mLightVector.clear();
-	 mObjectVector.clear();
-	 mMaterialVector.clear();
-}
 
 //
 //void RenderSystem::Render(Entity entity)

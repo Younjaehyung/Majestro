@@ -15,7 +15,6 @@ struct GroupBuffer {
 	shared_ptr<ConstantBuffer> PassInfo;
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
-	shared_ptr<StructuredBuffer> MaterialInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;
 
 };
@@ -57,13 +56,13 @@ public:
 
 	array <GroupBuffer, FRAMEGROUP_COUNT>& GetGroupBuffer() { return mGroupBuffer; }
 	array <ParticleBuffer, PARTICLE_GROUP_COUNT>& GetConstantBuffers() { return mParticleBuffer; }
-
+	shared_ptr<StructuredBuffer>& GetMaterialBuffers() { return mMaterialBuffer; }
 	array <RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>& GetRenderTargetGroup() { return mRenderTargetGroup; }
 	
 
 public:
-	uint8 GetFrameResourceIndex() {return mFrameResourceIndex;}
-	uint8 GetFrameCurrIndex() {return mFrameCurrIndex;}
+	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
+	uint32 GetFrameCurrIndex() {return mFrameCurrIndex;}
 
 	
 private:
@@ -73,8 +72,8 @@ private:
 	void CreateGroup();
 	void CreateParticle();
 private:
-	uint8			mFrameResourceIndex;	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
-	uint8			mFrameCurrIndex;		// 현재 GPU로 보낸 Index
+	uint32			mFrameResourceIndex{};	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
+	uint32			mFrameCurrIndex{};		// 현재 GPU로 보낸 Index
 
 private:
 	// DX12
@@ -91,7 +90,7 @@ private:
 	// ResourceBuffer
 	array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;						
 	array< ParticleBuffer, PARTICLE_GROUP_COUNT>					mParticleBuffer;
-
+	shared_ptr<StructuredBuffer>									mMaterialBuffer;
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:
 

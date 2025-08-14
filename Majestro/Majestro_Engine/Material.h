@@ -57,8 +57,12 @@ public:
 
 	shared_ptr<Material> Clone();
 	MaterialParams& GetParams() { return mParams; }
+
+	uint32 GetIndex() { return mStructuredBufferIndex; }
+	void SetIndex(uint32 index) { mStructuredBufferIndex = index; }
 private:
-	wstring mShaderID;
+	wstring				mShaderID;
+	uint32				mStructuredBufferIndex{};
 	shared_ptr<Shader>	mShader;	//쉐이더 지울 예정
 	MaterialParams		mParams{};	//머테리얼 parm
 	array<shared_ptr<Texture>, MATERIAL_TEXTURE_COUNT> mTextures;	//텍스쳐들

@@ -115,14 +115,20 @@ T* World::GetComponent(Entity entity) {
 
 template<typename T>
 const T* World::GetComponent(Entity entity) const {
-    const auto& pool = GetComponentPool<T>();
-    return pool.GetComponent(entity.GetID());
+    ComponentTypeID typeID = T::GetTypeID();
+    auto it = mComponentPools.find(typeID);
+    if (it == mComponentPools.end()) return nullptr; // 안전하게 nullptr
+    const auto* pool = static_cast<const ComponentPool<T>*>(it->second.get());
+    return pool->GetComponent(entity.GetID());
 }
 
 template<typename T>
 bool World::HasComponent(Entity entity) const {
-    const auto& pool = GetComponentPool<T>();
-    return pool.HasComponent(entity.GetID());
+    ComponentTypeID typeID = T::GetTypeID();
+    auto it = mComponentPools.find(typeID);
+    if (it == mComponentPools.end()) return false; // 풀이 없으면 false
+    const auto* pool = static_cast<const ComponentPool<T>*>(it->second.get());
+    return pool->HasComponent(entity.GetID());
 }
 
 template<typename T>

@@ -108,7 +108,7 @@ struct GLOBAL_PARAMS
 {
 
     uint ObjectIndex;
-    int MaterialInfoIndex;
+    uint MaterialInfoIndex;
     
     uint LightIndex;    //light가 아니면 쓰지 말것.
     uint ParticleIndex; //Particle가 아니면 쓰지 말것.
@@ -133,8 +133,7 @@ ConstantBuffer<PASSINFO> PassParams : register(b0, space1);
 
 StructuredBuffer<LIGHTINFO> Lights : register(t0, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t1, space1);
-StructuredBuffer<MATERIALINFO> Materials : register(t2, space1);
-StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
+StructuredBuffer<PARTICLESHARED> ParticleShared : register(t2, space1); // 속성값 (SRV)
 //StructuredBuffer<Matrix> g_mat_bone : register(t4);
  ///////////////////////////////////////////////////////////////////
 
@@ -145,8 +144,9 @@ RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //공�
  ///////////////////////////////////////////////////////////////////
 
  ////////////////////////////TEXTURE////////////////////////////////
-TextureCube SkyBoxMaps[16] : register(t0, space3);
-Texture2D<float4> TextureMaps[1024] : register(t16, space3);
+StructuredBuffer<MATERIALINFO> Materials : register(t0, space3);
+TextureCube SkyBoxMaps[16] : register(t1, space3);
+Texture2D<float4> TextureMaps[1024] : register(t17, space3);
  ///////////////////////////////////////////////////////////////////
 
 

@@ -37,7 +37,7 @@ private:
 	// 큐의 순서부여 후 어디까지 할지 정함
 	// CPU / GPU 동기화를 위한 간단한 도구
 	ComPtr<ID3D12Fence>					mFence;
-	uint32								mFenceValue = 0;
+	uint64								mFenceValue = 0;
 	HANDLE								mFenceEvent = INVALID_HANDLE_VALUE;
 
 	shared_ptr<SwapChain>		mSwapChain;

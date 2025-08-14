@@ -8,8 +8,6 @@
 
 RenderComponent::RenderComponent()
 {
-	shared_ptr<Material> material = make_shared<Material>();
-	mMaterials.push_back(material);
 }
 
 RenderComponent::RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>> materials) : mMesh(mesh), mMaterials(materials)

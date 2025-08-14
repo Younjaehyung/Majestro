@@ -6,6 +6,7 @@
 
 void ResourceManager::Initialize()
 {
+	CreateDefaultRootSignature();
 	CreateDefaultShader();
 	CreateDefaultMaterial();
 
@@ -274,9 +275,9 @@ shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& na
 	return texture;
 }
 
-void ResourceManager::CreateDefaultShader()
+void ResourceManager::CreateDefaultRootSignature()
 {
-	
+
 
 	// GraphicsRootSignature
 	{
@@ -292,7 +293,7 @@ void ResourceManager::CreateDefaultShader()
 		{
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CONSTANT_INDEX_COUNT, 0,1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  STRUCTURED_INDEX_COUNT, 0,1), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
-		
+
 		};
 
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges2 =	// particle- buffer
@@ -303,23 +304,23 @@ void ResourceManager::CreateDefaultShader()
 
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// texture- buffer
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_SRV_COUNT, static_cast<uint8>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX)+ TEXTURE_CUBE_COUNT,3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_SRV_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX) + TEXTURE_CUBE_COUNT,3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 		};
 
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddConstant(0,4);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges0);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges1);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges2);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddTable(ranges3);
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
-		RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->CreateGraphicsRootSignature();
-		shared_ptr<RootSignature> rootSignature2 = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
-	}
+		rootSignature->AddConstant(0, 4);
+		rootSignature->AddTable(ranges0);
+		rootSignature->AddTable(ranges1);
+		rootSignature->AddTable(ranges2);
+		rootSignature->AddTable(ranges3);
+		rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
+		rootSignature->CreateGraphicsRootSignature();
 
+	}
 	// ComputeRootSignature
 	//{
 	//	std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges =
@@ -337,6 +338,11 @@ void ResourceManager::CreateDefaultShader()
 
 	//}
 
+}
+
+void ResourceManager::CreateDefaultShader()
+{
+	
 
 	// Skybox
 	{
@@ -602,7 +608,7 @@ void ResourceManager::CreateDefaultMaterial()
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Deferred");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-		material->SetTexture(texture, NORMALMAPINDEX);
+		material->SetTexture(texture2, NORMALMAPINDEX);
 		Add<Material>(L"GameObject", material);
 	}
 

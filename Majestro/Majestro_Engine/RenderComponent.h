@@ -15,13 +15,6 @@ union InstanceID
 	uint64 ID;
 };
 
-struct DataIndex {
-
-
-	uint32 MaterialsIndexStart;
-	uint32 MaterialsIndexSize;
-	uint32 TransformIndex;
-};
 
 class RenderComponent : public Component<RenderComponent>
 {
@@ -41,14 +34,8 @@ public:
 	shared_ptr<Mesh> mMesh;
 	vector<shared_ptr<Material>> mMaterials;
 
-
+	uint32	mObjectIndex{};
 	bool mVisibility;
 
-public:
-
-	DataIndex mdataIndex;
-
-public:
-	uint8 mBufferIndex = 0;
 };
 

@@ -21,33 +21,18 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 	mLastIndex = mTextureGroupIndex;
 }
 
-void GraphicsDescriptorHeap::Clear()
-{
-	mCurrentGroupIndex = 0;
-}
-
-
 
 void GraphicsDescriptorHeap::CommitTable(uint32 frameCount,uint32 signautreNum,uint32 tableBegin, uint32 tableGroupSize)
 {
 
+
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetGPUDescriptorHandleForHeapStart();
 
 	// 만약 tableGroupSize가 0 이면 이것은 프레임리소스를 사용안한다고 간주하게됨. 
-	handle = CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, ( tableBegin +( frameCount * tableGroupSize))* DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	handle.ptr += static_cast<uint64>(( tableBegin +( frameCount * tableGroupSize))* mHandleSize);
 	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(signautreNum, handle);
 	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
 
+
+
 }
-
-
-D3D12_CPU_DESCRIPTOR_HANDLE GraphicsDescriptorHeap::GetCPUHandle(uint8 reg)
-{
-	assert(reg > 0);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetCPUDescriptorHandleForHeapStart();
-	handle.ptr += mCurrentGroupIndex * mGroupSize;	//그룹 사이즈 이동
-	handle.ptr += (reg - 1) * mHandleSize;	//레지스터(핸들) 이동 , b0은 전역으로 활용하고 b1부터 사용하기에 1개를 뺌
-	return handle;
-}
-

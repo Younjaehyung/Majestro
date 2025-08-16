@@ -47,19 +47,19 @@ void RenderManager::CreateGroup()
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 
 
-	uint8 i = 0;
+	uint32 i = 0;
 	for (GroupBuffer& group : mGroupBuffer) {
 		group.PassInfo = make_shared<ConstantBuffer>();
 		group.PassInfo->CreateBuffer(sizeof(PassParams));
 		group.PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
 
 		group.LightInfo = make_shared<StructuredBuffer>();
-		group.LightInfo->CreateUploadBuffer(1000, sizeof(LightParams));
+		group.LightInfo->CreateUploadBuffer(64, sizeof(LightParams));
 		group.LightInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
 
 
 		group.ObjectInfo = make_shared<StructuredBuffer>();
-		group.ObjectInfo->CreateUploadBuffer(5000, sizeof(ObjectParams));
+		group.ObjectInfo->CreateUploadBuffer(4096, sizeof(ObjectParams));
 		group.ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 		group.ParticleInfo = make_shared<StructuredBuffer>();
@@ -74,17 +74,18 @@ void RenderManager::CreateGroup()
 	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX), 0);
 }
 void RenderManager::CreateParticle()
-{
+{	// 추후 수정 바람
+	uint32 i = 0;
 	for (ParticleBuffer& group : mParticleBuffer) {
 		group.Particle = make_shared<StructuredBuffer>();
 		group.Particle->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
-		group.Particle->CreateSrvView(0, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX));
-		group.Particle->CreateUavView(0, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX));
+		group.Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX),256);
+		group.Particle->CreateUavView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX), 256);
 		
 
 		group.RWParticleShared = make_shared<StructuredBuffer>();
 		group.RWParticleShared->CreateDefaultBuffer(1, sizeof(uint32));
-		group.RWParticleShared->CreateUavView(0, PARTICLE_INDEX_START, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX));
+		group.RWParticleShared->CreateUavView(i, PARTICLE_INDEX_START, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX), 256);
 
 	}
 

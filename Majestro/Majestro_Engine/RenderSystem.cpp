@@ -26,6 +26,7 @@ void RenderSystem::Initialize()
 
 	// immutability Data
 	PushMaterialData();
+	gEngine->GetRenderManager().GetGraphicsCmdQueue()->FlushResourceCommandQueue();
 }
 
 void RenderSystem::Update()
@@ -149,6 +150,7 @@ void RenderSystem::PushPassData()
 	passParams.MatViewInv = mCamera->mView.Invert();
 	passParams.MatProjectionInv = mCamera->mProjection.Invert();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
+
 
 
 	RENDERMANAGER.GetGroupBuffer()[mFrameCount].PassInfo->PushData(&passParams, sizeof(PassParams));

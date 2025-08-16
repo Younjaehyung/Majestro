@@ -12,17 +12,17 @@ class SceneManager;
 
 
 struct GroupBuffer {
-	shared_ptr<ConstantBuffer> PassInfo;
-	shared_ptr<StructuredBuffer> LightInfo;
-	shared_ptr<StructuredBuffer> ObjectInfo;
-	shared_ptr<StructuredBuffer> ParticleInfo;
+	shared_ptr<ConstantBuffer> PassInfo{};
+	shared_ptr<StructuredBuffer> LightInfo{};
+	shared_ptr<StructuredBuffer> ObjectInfo{};
+	shared_ptr<StructuredBuffer> ParticleInfo{};
 
 };
 
 struct ParticleBuffer {
 	
-	shared_ptr<StructuredBuffer> Particle;
-	shared_ptr<StructuredBuffer> RWParticleShared;//공유 전역변수
+	shared_ptr<StructuredBuffer> Particle{};
+	shared_ptr<StructuredBuffer> RWParticleShared{};//공유 전역변수
 };
 
 
@@ -54,10 +54,10 @@ public:
 
 public:
 
-	array <GroupBuffer, FRAMEGROUP_COUNT>& GetGroupBuffer() { return mGroupBuffer; }
-	array <ParticleBuffer, PARTICLE_GROUP_COUNT>& GetConstantBuffers() { return mParticleBuffer; }
-	shared_ptr<StructuredBuffer>& GetMaterialBuffers() { return mMaterialBuffer; }
-	array <RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>& GetRenderTargetGroup() { return mRenderTargetGroup; }
+	array <GroupBuffer, FRAMEGROUP_COUNT>&					GetGroupBuffer()		{ return mGroupBuffer; }
+	array <ParticleBuffer, PARTICLE_GROUP_COUNT>&			GetParticleBuffers()	{ return mParticleBuffer; }
+	shared_ptr<StructuredBuffer>&							GetMaterialBuffers()	{ return mMaterialBuffer; }
+	array <RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>&	GetRenderTargetGroup()	{ return mRenderTargetGroup; }
 	
 
 public:

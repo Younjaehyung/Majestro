@@ -51,8 +51,6 @@ void GraphicsCommandQueue::RenderBegin()
 	//더블버퍼링을 위해 기존의 출력되던 버퍼를 후방버퍼로 바꾸겠다
 
 
-	gEngine->GetRenderManager().GetGraphicsDescHeap()->Clear();	//테이블힙 클리어
-
 	//SetGraphicsRootDescriptorTable와 거의 세트임. (1.선택후 2.명령어로 보내기.)
 
 	mCommandList->ResourceBarrier(1, &barrier);

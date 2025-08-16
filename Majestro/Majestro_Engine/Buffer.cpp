@@ -85,6 +85,7 @@ void ConstantBuffer::PushComputeData(void* buffer, uint32 size)
 
 void ConstantBuffer::PushData(void* buffer, uint32 size)
 {
+	int mElementSizes = mElementSize;
 	assert(mElementSize == ((size + 255) & ~255));	//디버깅 코드(엉뚱한 데이터 확인용)
 
 

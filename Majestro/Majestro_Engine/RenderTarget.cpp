@@ -77,7 +77,7 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		
 	}
 
-	mRenderTargets.insert(mRenderTargets.begin(), rtStru.begin(), rtStru.end());
+	mRenderTargets.insert(mRenderTargets.end(), rtStru.begin(), rtStru.end());
 
 	//create시 베리어 생성
 	for (uint32 i = 0; i < rtStru.size(); ++i)

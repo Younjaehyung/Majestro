@@ -88,7 +88,7 @@ void ConstantBuffer::PushComputeData(void* buffer, uint32 size)
 
 void ConstantBuffer::PushData(void* buffer, uint32 size)
 {
-	cout << mGroupIndex << endl;
+
 	assert(mElementSize == ((size + 255) & ~255));	//디버깅 코드(엉뚱한 데이터 확인용)
 
 	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))

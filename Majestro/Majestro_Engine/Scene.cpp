@@ -47,6 +47,20 @@ void Scene::Initialize()
 
 
 	/////////////////////////////////////////////////////////////////////////
+	Entity testEntity5 = mWorld->CreateEntity();	// �ʼ�
+
+
+	TransformComponent ts{};
+	ts.mLocalScale = { 100.f, 100.f, 100.f };
+	ts.mLocalPosition = { 50.f, -10.f, 500.f };
+
+
+
+
+	mWorld->AddComponent<TransformComponent>(testEntity5, ts);
+	mWorld->AddComponent<RenderComponent>(testEntity5, sphereMesh, materials);
+
+	/////////////////////////////////////////////////////////////////////////
 	LightComponent l{};
 	l.mLightInfo.Position = {Vec3(0, 1000, 500)};
 	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };

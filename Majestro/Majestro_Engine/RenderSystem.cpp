@@ -25,7 +25,7 @@ void RenderSystem::Initialize()
 	mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 
 	// immutability Data
-	//PushMaterialData();
+	PushMaterialData();
 
 }
 
@@ -35,17 +35,17 @@ void RenderSystem::Update()
 	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
 
-	//ClearRTV();
+	ClearRTV();
 
-	//SetTable();
+	SetTable();
 
 	PushData();
 
-	//DefferdRendering();
+	DefferdRendering();
 
-	//ForwardRendering();
+	ForwardRendering();
 
-	//ParticleRendering();
+	ParticleRendering();
 
 
 
@@ -56,9 +56,9 @@ void RenderSystem::PushData()
 {
 
 	PushPassData();
-	//PushGBufferData();
-	//PushObjectData();
-	//PushLightData();
+	PushGBufferData();
+	PushObjectData();
+	PushLightData();
 
 }
 
@@ -149,16 +149,16 @@ void RenderSystem::SetTable()
 void RenderSystem::PushPassData()
 {
 	
-	passParams.MatView = mCamera->mView;
-	passParams.MatProjection = mCamera->mProjection;
-	passParams.MatViewInv = mCamera->mView.Invert();
-	passParams.MatProjectionInv = mCamera->mProjection.Invert();
+	passParams.MatView = mCamera->mView.Transpose();
+	passParams.MatProjection = mCamera->mProjection.Transpose();
+	passParams.MatViewInv = mCamera->mView.Invert().Transpose();
+	passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
 
 
 	shared_ptr<GroupBuffer> a = RENDERMANAGER.GetGroupBuffer(mFrameCount);
 	a->PassInfo->PushData(&passParams, sizeof(PassParams));
-	a->PassInfo->PushData(&passParams, sizeof(PassParams));
+
 }
 
 
@@ -207,11 +207,11 @@ void RenderSystem::PushLightData()
 		lightParams.Range = lightComponent->mLightInfo.Range;
 		lightParams.Angle = lightComponent->mLightInfo.Angle;
 
-		lightParams.MatWorld = transformComponent->mWorldMatrix;
-		lightParams.MatView = cameraComponent->mCameraParams.MatView;
-		lightParams.MatProjection = cameraComponent->mCameraParams.MatProjection;
-		lightParams.MatViewInv = cameraComponent->mCameraParams.MatViewInv;
-		lightParams.MatProjectionInv = cameraComponent->mCameraParams.MatProjectionInv;
+		lightParams.MatWorld = transformComponent->mWorldMatrix.Transpose();;
+		lightParams.MatView = cameraComponent->mCameraParams.MatView.Transpose();
+		lightParams.MatProjection = cameraComponent->mCameraParams.MatProjection.Transpose();
+		lightParams.MatViewInv = cameraComponent->mCameraParams.MatViewInv.Transpose();
+		lightParams.MatProjectionInv = cameraComponent->mCameraParams.MatProjectionInv.Transpose();
 
 		mLightVector.push_back(lightParams);
 
@@ -241,11 +241,12 @@ void RenderSystem::PushObjectData()
 
 		for (auto& objects : materialObjects.second) {
 
-			transformComponent = mWorld->GetComponent<TransformComponent>(objects);;
-			renderComponent = mWorld->GetComponent<RenderComponent>(objects);;
+			transformComponent = mWorld->GetComponent<TransformComponent>(objects);
+			transformComponent ->FinalUpdate();
+			renderComponent = mWorld->GetComponent<RenderComponent>(objects);
 
 
-			objectParams.MatWorld = transformComponent->mWorldMatrix;
+			objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 			mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
 			
 			renderComponent->mObjectIndex = index;

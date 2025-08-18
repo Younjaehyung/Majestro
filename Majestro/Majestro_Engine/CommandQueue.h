@@ -12,11 +12,14 @@ public:
 	void WaitForGpuComplete();	//fence 기다림 용도 함수
 	void FlushResourceCommandQueue();	//리소스 로딩용 CMD실행 함수
 
+
 	void RenderBegin();
 	void RenderEnd();
 
 	void CreateCommandQueue();
 
+
+	D3D12_RESOURCE_BARRIER&			  GetBarrier() { return mBarrier; }
 	ComPtr<ID3D12CommandQueue>		  GetCommandQueue() { return mCommandQueue; }
 	ComPtr<ID3D12GraphicsCommandList> GetGraphicsCmdList() { return mCommandList; }
 	ComPtr<ID3D12GraphicsCommandList> GetResourceCmdList() { return	mResourceCommandList; }
@@ -40,6 +43,7 @@ private:
 	uint64								mFenceValue = 0;
 	HANDLE								mFenceEvent = INVALID_HANDLE_VALUE;
 
+	D3D12_RESOURCE_BARRIER		mBarrier;
 	shared_ptr<SwapChain>		mSwapChain;
 	ComPtr<ID3D12Device>		mDevice;
 };

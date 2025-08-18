@@ -12,17 +12,17 @@ class SceneManager;
 
 
 struct GroupBuffer {
-	shared_ptr<ConstantBuffer> PassInfo{};
-	shared_ptr<StructuredBuffer> LightInfo{};
-	shared_ptr<StructuredBuffer> ObjectInfo{};
-	shared_ptr<StructuredBuffer> ParticleInfo{};
+	shared_ptr<ConstantBuffer> PassInfo;
+	shared_ptr<StructuredBuffer> LightInfo;
+	shared_ptr<StructuredBuffer> ObjectInfo;
+	shared_ptr<StructuredBuffer> ParticleInfo;
 
 };
 
 struct ParticleBuffer {
 	
-	shared_ptr<StructuredBuffer> Particle{};
-	shared_ptr<StructuredBuffer> RWParticleShared{};//공유 전역변수
+	shared_ptr<StructuredBuffer> Particle;
+	shared_ptr<StructuredBuffer> RWParticleShared;//공유 전역변수
 };
 
 
@@ -54,11 +54,14 @@ public:
 
 public:
 
-	array <GroupBuffer, FRAMEGROUP_COUNT>&					GetGroupBuffer()		{ return mGroupBuffer; }
-	array <ParticleBuffer, PARTICLE_GROUP_COUNT>&			GetParticleBuffers()	{ return mParticleBuffer; }
+	shared_ptr<GroupBuffer>	&			GetGroupBuffer(uint32 frame)		{ return mGroupBuffer[frame]; }
+	shared_ptr<ParticleBuffer>&			GetParticleBuffers(uint32 group)	{ return mParticleBuffer[group]; }
+
+
+
 	shared_ptr<StructuredBuffer>&							GetMaterialBuffers()	{ return mMaterialBuffer; }
-	array <RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>&	GetRenderTargetGroup()	{ return mRenderTargetGroup; }
-	
+
+	RenderTargetGroup&										GetRenderTargetGroup(uint8 type) { return mRenderTargetGroup[type]; }
 
 public:
 	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
@@ -84,12 +87,17 @@ private:
 	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
 	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
-	
-	
+
+
 private:
-	// ResourceBuffer
-	array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;						
-	array< ParticleBuffer, PARTICLE_GROUP_COUNT>					mParticleBuffer;
+
+
+	array <shared_ptr<GroupBuffer>, FRAMEGROUP_COUNT>						mGroupBuffer;
+	array <shared_ptr<ParticleBuffer>, PARTICLE_GROUP_COUNT>				 mParticleBuffer;
+
+	//array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;						
+	//array< ParticleBuffer, PARTICLE_GROUP_COUNT>					mParticleBuffer;
+
 	shared_ptr<StructuredBuffer>									mMaterialBuffer;
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:

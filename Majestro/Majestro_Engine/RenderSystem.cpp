@@ -25,8 +25,8 @@ void RenderSystem::Initialize()
 	mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 
 	// immutability Data
-	PushMaterialData();
-	gEngine->GetRenderManager().GetGraphicsCmdQueue()->FlushResourceCommandQueue();
+	//PushMaterialData();
+
 }
 
 void RenderSystem::Update()
@@ -34,18 +34,18 @@ void RenderSystem::Update()
 
 	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-	
-	SetTable();
 
-	ClearRTV();
+	//ClearRTV();
+
+	//SetTable();
 
 	PushData();
 
-	DefferdRendering();
+	//DefferdRendering();
 
-	ForwardRendering();
+	//ForwardRendering();
 
-	ParticleRendering();
+	//ParticleRendering();
 
 
 
@@ -56,9 +56,9 @@ void RenderSystem::PushData()
 {
 
 	PushPassData();
-	PushGBufferData();
-	PushObjectData();
-	PushLightData();
+	//PushGBufferData();
+	//PushObjectData();
+	//PushLightData();
 
 }
 
@@ -87,17 +87,19 @@ void RenderSystem::ParticleRendering()
 void RenderSystem::ClearRTV()
 {
 	// SwapChain Group 초기화
-	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].ClearRenderTargetView(backIndex);
+	uint8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
 
 	// Shadow Group 초기화 
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].ClearRenderTargetView();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
 
 	// Deferred Group 초기화 
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].ClearRenderTargetView();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).ClearRenderTargetView();
 
 	// Lighting Group 초기화 
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].ClearRenderTargetView();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).ClearRenderTargetView();
+
+
 
 	ClearBuffer();
 	// 추후 lightvector관련들 clear도 모두 확인할껏.
@@ -116,7 +118,7 @@ void RenderSystem::ClearBuffer()
 	for (auto& [ID, vec] : mMaterialObjectBatch) {
 		vec.clear();
 	}
-
+	//passParams = {};
 	mLightVector.clear();
 	mObjectVector.clear();
 	mDummyVector.clear();
@@ -134,6 +136,8 @@ void RenderSystem::SetTable()
 	ID3D12DescriptorHeap* descHeap = gEngine->GetRenderManager().GetLegacyGraphicsDescriptorHeap();
 	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
+
+
 	// Table 바인딩
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 1, GBUFFER_INDEX_START);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
@@ -144,7 +148,7 @@ void RenderSystem::SetTable()
 
 void RenderSystem::PushPassData()
 {
-	passParams = {};
+	
 	passParams.MatView = mCamera->mView;
 	passParams.MatProjection = mCamera->mProjection;
 	passParams.MatViewInv = mCamera->mView.Invert();
@@ -152,8 +156,9 @@ void RenderSystem::PushPassData()
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
 
 
-
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].PassInfo->PushData(&passParams, sizeof(PassParams));
+	shared_ptr<GroupBuffer> a = RENDERMANAGER.GetGroupBuffer(mFrameCount);
+	a->PassInfo->PushData(&passParams, sizeof(PassParams));
+	a->PassInfo->PushData(&passParams, sizeof(PassParams));
 }
 
 
@@ -172,7 +177,7 @@ void RenderSystem::PushMaterialData()
 		mMaterialVector.emplace_back(material->GetParams());
 		index++;
 	}
-	RENDERMANAGER.GetMaterialBuffers()->PushDefaultToData(mMaterialVector.data(), mMaterialVector.size() * sizeof(MaterialParams));
+	RENDERMANAGER.GetMaterialBuffers()->PushDefaultToData(mMaterialVector.data(), static_cast<uint32>( mMaterialVector.size() * sizeof(MaterialParams)));
 
 }
 
@@ -211,7 +216,7 @@ void RenderSystem::PushLightData()
 		mLightVector.push_back(lightParams);
 
 	}		
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].LightInfo->PushGraphicsData(mLightVector.data(), static_cast<uint32>(sizeof(LightParams)*mLightVector.size()));
+	RENDERMANAGER.GetGroupBuffer(mFrameCount)->LightInfo->PushGraphicsData(mLightVector.data(), static_cast<uint32>(sizeof(LightParams)*mLightVector.size()));
 	
 }
 
@@ -249,7 +254,7 @@ void RenderSystem::PushObjectData()
 
 	}
 
-	RENDERMANAGER.GetGroupBuffer()[mFrameCount].ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
+	RENDERMANAGER.GetGroupBuffer(mFrameCount)->ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
 }
 
 
@@ -258,7 +263,7 @@ void RenderSystem::PushObjectData()
 void RenderSystem::RenderShadow()
 {
 
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].OMSetRenderTargets();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).OMSetRenderTargets();
 	LightComponent* lightComponent;
 	CameraComponent* cameraComponent;
 	RenderComponent* renderComponent;
@@ -275,12 +280,12 @@ void RenderSystem::RenderShadow()
 	}
 
 
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)].WaitTargetToResource();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).WaitTargetToResource();
 }
 
 void RenderSystem::RenderGBuffer()
 {
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].OMSetRenderTargets();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).OMSetRenderTargets();
 
 
 	for (auto& entityID : mRenderComponentPool->GetEntities()) {
@@ -312,13 +317,13 @@ void RenderSystem::RenderGBuffer()
 		InstancingRender(vec);
 	}
 	
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].WaitTargetToResource();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).WaitTargetToResource();
 
 }
 
 void RenderSystem::RenderLights()
 {
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].OMSetRenderTargets();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).OMSetRenderTargets();
 
 
 	//// 광원을 그린다.
@@ -343,7 +348,7 @@ void RenderSystem::RenderLights()
 		lightComponent->mMesh->Render();
 	}
 	////리소스에서 타켓으로
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].WaitTargetToResource();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).WaitTargetToResource();
 
 }
 
@@ -352,7 +357,7 @@ void RenderSystem::RenderFinal()
 	// Swapchain OMSet
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
-	RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].OMSetRenderTargets(1, backIndex);
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
 	
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();

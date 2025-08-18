@@ -25,7 +25,7 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE			mCpuHandleBegin = {};	//시작 DESCRIPTOR테이블 핸들
 	uint32								mHandleIncrementSize = 0;	//한 DESCRIPTOR테이블당 크기
 
-	uint32					mGroupIndex = {};
+	uint32					mGroupIndex = {10};
 	uint32					mStartIndex = {};
 	uint32					mConstantIndex = {};			// CONSTANT Type
 	uint32					mFrameCount = 0;

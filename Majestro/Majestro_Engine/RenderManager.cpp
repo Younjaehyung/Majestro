@@ -32,7 +32,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mRenderTargetHeap->Initialize();
 
 	CreateGroup();
-	CreateParticle();
+	//CreateParticle();
 
 	CreateRenderTargetGroups();
 }
@@ -48,45 +48,49 @@ void RenderManager::CreateGroup()
 
 
 	uint32 i = 0;
-	for (GroupBuffer& group : mGroupBuffer) {
-		group.PassInfo = make_shared<ConstantBuffer>();
-		group.PassInfo->CreateBuffer(sizeof(PassParams));
-		group.PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
+	for (shared_ptr<GroupBuffer>& group : mGroupBuffer) {
+		group = make_shared<GroupBuffer>();
 
-		group.LightInfo = make_shared<StructuredBuffer>();
-		group.LightInfo->CreateUploadBuffer(64, sizeof(LightParams));
-		group.LightInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
+		group->PassInfo = make_shared<ConstantBuffer>();
+		group->PassInfo->CreateBuffer(sizeof(PassParams));
+		group->PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
+
+		//group->LightInfo = make_shared<StructuredBuffer>();
+		//group->LightInfo->CreateUploadBuffer(64, sizeof(LightParams));
+		//group->LightInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
 
 
-		group.ObjectInfo = make_shared<StructuredBuffer>();
-		group.ObjectInfo->CreateUploadBuffer(4096, sizeof(ObjectParams));
-		group.ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
+		//group->ObjectInfo = make_shared<StructuredBuffer>();
+		//group->ObjectInfo->CreateUploadBuffer(2048, sizeof(ObjectParams));
+		//group->ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
-		group.ParticleInfo = make_shared<StructuredBuffer>();
-		group.ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(PatricleParams));
-		group.ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
+		//group->ParticleInfo = make_shared<StructuredBuffer>();
+		//group->ParticleInfo->CreateDefaultBuffer(PARTICLE_COUNT, sizeof(PatricleParams));
+		//group->ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
 		i++;
 	}
 
-	mMaterialBuffer = make_shared<StructuredBuffer>();
+	/*mMaterialBuffer = make_shared<StructuredBuffer>();
 	mMaterialBuffer->CreateDefaultBuffer(128, sizeof(MaterialParams));
-	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX), 0);
+	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX), 0);*/
 }
 void RenderManager::CreateParticle()
 {	// 추후 수정 바람
 	uint32 i = 0;
-	for (ParticleBuffer& group : mParticleBuffer) {
-		group.Particle = make_shared<StructuredBuffer>();
-		group.Particle->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
-		group.Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX),256);
-		group.Particle->CreateUavView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX), 256);
+	for (shared_ptr<ParticleBuffer>& group : mParticleBuffer) {
+		group = make_shared<ParticleBuffer>();
+
+		group->Particle = make_shared<StructuredBuffer>();
+		group->Particle->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
+		group->Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX),256);
+		group->Particle->CreateUavView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX), 256);
 		
 
-		group.RWParticleShared = make_shared<StructuredBuffer>();
-		group.RWParticleShared->CreateDefaultBuffer(1, sizeof(uint32));
-		group.RWParticleShared->CreateUavView(i, PARTICLE_INDEX_START, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX), 256);
-
+		group->RWParticleShared = make_shared<StructuredBuffer>();
+		group->RWParticleShared->CreateDefaultBuffer(1, sizeof(uint32));
+		group->RWParticleShared->CreateUavView(i, PARTICLE_INDEX_START, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX), 256);
+		
 	}
 
 }

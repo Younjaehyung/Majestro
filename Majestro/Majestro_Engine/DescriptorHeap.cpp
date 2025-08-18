@@ -9,7 +9,7 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 	mGroupCount = count;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};	//DESCRIPTOR HEAP 세팅
-	desc.NumDescriptors = ALL_DESCRIPTOR_COUNT+100;	//b0로 전역이기에 1개를 뺌
+	desc.NumDescriptors = 2048;	//b0로 전역이기에 1개를 뺌
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;	
 
@@ -17,7 +17,7 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 
 	mHandleSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	mGroupSize = mHandleSize * (desc.NumDescriptors);	//b0로 전역이기에 1개를 뺌
-	mTextureGroupIndex = static_cast<uint32>(TEXTURE_INDEX::TEXTURE_INDEX);	// mTextureGroupIndex의 시작 위치
+	mTextureGroupIndex = TEXTURE_INDEX_START;	// mTextureGroupIndex의 시작 위치
 	mLastIndex = mTextureGroupIndex;
 }
 

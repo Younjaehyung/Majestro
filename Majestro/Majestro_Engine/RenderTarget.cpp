@@ -62,13 +62,9 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		target.Target->SetRtvHandle(rtvhandle);
 		target.mHeapBegin=rtvhandle;
 
-		if (groupType == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN) {
-			DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
-			RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
-		}
 
-		if (mDepthStencilTexture == nullptr) {
-			mDepthStencilTexture = dsTexture;
+		mDepthStencilTexture = dsTexture;
+		if (mDepthStencilTexture) {
 			DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
 			RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
 		}
@@ -77,7 +73,11 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		
 	}
 
-	mRenderTargets.insert(mRenderTargets.end(), rtStru.begin(), rtStru.end());
+	//mRenderTargets.insert(mRenderTargets.end(), rtStru.begin(), rtStru.end());
+	for (uint32 i = 0; i < rtStru.size(); ++i) {
+		mRenderTargets.push_back(rtStru[i]);
+	}
+
 
 	//create시 베리어 생성
 	for (uint32 i = 0; i < rtStru.size(); ++i)

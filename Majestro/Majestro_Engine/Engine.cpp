@@ -35,6 +35,7 @@ void Engine::Initialize(const WindowInfo& info)
 
 void Engine::Update()
 {
+	
 	mTimer->Tick();
 	mInputManager->Update();
 	mSceneManager->Update(mTimer->GetTimeElapsed());
@@ -45,6 +46,7 @@ void Engine::Render()
 {
 	mRenderManager->StartRender();
 	mSceneManager->Render();
+
 	mRenderManager->EndRender();
 
 	ShowFps();

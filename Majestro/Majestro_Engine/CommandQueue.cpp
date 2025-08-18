@@ -2,6 +2,7 @@
 #include "CommandQueue.h"
 #include "Engine.h"
 #include "RenderManager.h"
+#include "ResourceManager.h"
 #include "Buffer.h"
 #include "SwapChain.h"
 
@@ -42,31 +43,30 @@ void GraphicsCommandQueue::RenderBegin()
 	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
 	// 기존 정보들 클리어
 
-	int8 backIndex = mSwapChain->GetBackBufferIndex();
+	uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
-	D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
+	mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
 		D3D12_RESOURCE_STATE_PRESENT, 
 		D3D12_RESOURCE_STATE_RENDER_TARGET); 
 	//더블버퍼링을 위해 기존의 출력되던 버퍼를 후방버퍼로 바꾸겠다
 
-
-	//SetGraphicsRootDescriptorTable와 거의 세트임. (1.선택후 2.명령어로 보내기.)
-
-	mCommandList->ResourceBarrier(1, &barrier);
+		//SetGraphicsRootDescriptorTable와 거의 세트임. (1.선택후 2.명령어로 보내기.)
+	D3D12_RESOURCE_BARRIER barrier = gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetBarrier();
+	GRAPHICS_CMD_LIST->ResourceBarrier(1, &barrier);
 }
 
 void GraphicsCommandQueue::RenderEnd()
 {
 	
-		int8 backIndex = mSwapChain->GetBackBufferIndex();
+		uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
-		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			RENDERMANAGER.GetRenderTargetGroup()[static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
+		mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
 			D3D12_RESOURCE_STATE_RENDER_TARGET, 
 			D3D12_RESOURCE_STATE_PRESENT); 
 
-		mCommandList->ResourceBarrier(1, &barrier);
+		mCommandList->ResourceBarrier(1, &mBarrier);
 		mCommandList->Close();
 		// 명령어들을 큐에 넣고 close을 한 다음에 실행하게 되는데 Reset하면 알아서 Open이 됨
 

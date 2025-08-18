@@ -6,11 +6,14 @@
 
 ConstantBuffer::ConstantBuffer()
 {
+
 }
 
 
 ConstantBuffer::~ConstantBuffer()
 {
+	cout << "delete buffer" << endl;
+
 	if (mCbvBuffer)
 	{
 		if (mCbvBuffer != nullptr)
@@ -85,11 +88,10 @@ void ConstantBuffer::PushComputeData(void* buffer, uint32 size)
 
 void ConstantBuffer::PushData(void* buffer, uint32 size)
 {
-	int mElementSizes = mElementSize;
+	cout << mGroupIndex << endl;
 	assert(mElementSize == ((size + 255) & ~255));	//디버깅 코드(엉뚱한 데이터 확인용)
 
-
-	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
+	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 	// CPU → Upload Heap
 
 }
@@ -109,39 +111,83 @@ StructuredBuffer::~StructuredBuffer()
 
 void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
 {
-	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
+	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
 void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 {
-	// UpdateSubresources로 업로드 (버퍼는 1 서브리소스)
-	D3D12_SUBRESOURCE_DATA sub{};
-	sub.pData = buffer;
-	sub.RowPitch = static_cast<LONG_PTR>(size);
-	sub.SlicePitch = static_cast<LONG_PTR>(size);
+	ComPtr<ID3D12Resource> readBuffer = nullptr;
+	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size, D3D12_RESOURCE_FLAG_NONE);
+	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
-	UpdateSubresources(RESOURCE_CMD_LIST.Get(), mBuffer.Get(), mDummyBuffer.Get(), 0, 0, 1, &sub);
+	DEVICE->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&readBuffer));
 
-	// 상태로 전환
-	if (mResourceState != D3D12_RESOURCE_STATE_COPY_DEST)
+
+	uint8* dataBegin = nullptr;
+	D3D12_RANGE readRange{ 0, 0 };
+	readBuffer->Map(0, &readRange, reinterpret_cast<void**>(&dataBegin));
+	memcpy(dataBegin, buffer, size);
+
+	// Common -> Copy
 	{
-		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			mBuffer.Get(),
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			mResourceState);
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(mBuffer.Get(),
+			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+
 		RESOURCE_CMD_LIST->ResourceBarrier(1, &barrier);
 	}
 
+	RESOURCE_CMD_LIST->CopyBufferRegion(mBuffer.Get(), 0, readBuffer.Get(), 0, size);
+
+	// Copy -> Common
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(mBuffer.Get(),
+			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+		RESOURCE_CMD_LIST->ResourceBarrier(1, &barrier);
+	}
+
+	gEngine->GetRenderManager().GetGraphicsCmdQueue()->FlushResourceCommandQueue();
+
+	mResourceState = D3D12_RESOURCE_STATE_COMMON;
 }
+
+//
+//
+//	// UpdateSubresources로 업로드 (버퍼는 1 서브리소스)
+//	D3D12_SUBRESOURCE_DATA sub{};
+//	sub.pData = buffer;
+//	sub.RowPitch = static_cast<LONG_PTR>(size);
+//	sub.SlicePitch = static_cast<LONG_PTR>(size);
+//
+//	UpdateSubresources(RESOURCE_CMD_LIST.Get(), mBuffer.Get(), mDummyBuffer.Get(), 0, 0, 1, &sub);
+//
+//	// 상태로 전환
+//	if (mResourceState != D3D12_RESOURCE_STATE_COPY_DEST)
+//	{
+//		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+//			mBuffer.Get(),
+//			D3D12_RESOURCE_STATE_COPY_DEST,
+//			mResourceState);
+//		RESOURCE_CMD_LIST->ResourceBarrier(1, &barrier);
+//	}
+//
+//	gEngine->GetRenderManager().GetGraphicsCmdQueue()->FlushResourceCommandQueue();
+//
+//}
 
 void StructuredBuffer::PushComputeSRVData(void* buffer, uint32 size)
 {
-	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
+	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
 void StructuredBuffer::PushComputeUAVData(void* buffer, uint32 size)
 {
-	::memcpy(&mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
+	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
 void StructuredBuffer::CreateUploadBuffer(uint32 elementSize, uint32 elementCount)

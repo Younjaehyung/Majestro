@@ -60,6 +60,25 @@ void Scene::Initialize()
 	mWorld->AddComponent<TransformComponent>(testEntity5, ts);
 	mWorld->AddComponent<RenderComponent>(testEntity5, sphereMesh, materials);
 
+	// 한 번에 32x32 = 1024개 스폰 (간격, 스케일은 취향대로)
+	const int NX = 120;
+	const int NZ = 120;
+	const float SPACING = 12.f;
+
+
+		for (int x = 0; x < NX; ++x)
+		{
+			Entity e = mWorld->CreateEntity();
+
+			TransformComponent t{};
+			t.mLocalScale = { 100.f, 100.f, 100.f };
+			t.mLocalPosition = { -350.f + x * SPACING, -10.f, 500.f };
+
+			mWorld->AddComponent<TransformComponent>(e, t);
+			mWorld->AddComponent<RenderComponent>(e, sphereMesh, materials);
+		}
+	
+
 	/////////////////////////////////////////////////////////////////////////
 	LightComponent l{};
 	l.mLightInfo.Position = {Vec3(0, 1000, 500)};

@@ -5,12 +5,16 @@ struct VS_IN
 {
     float3 pos : POSITION;
     float2 uv : TEXCOORD;
+    
+    uint instanceID : SV_InstanceID;
 };
 
 struct VS_OUT
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
+    
+    uint instanceID : InstanceID;
 };
 
 // [Point Light]
@@ -24,7 +28,12 @@ VS_OUT VS_PointLight(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0;
 
-    LIGHTINFO light = Lights[GlobalParams.LightIndex];
+    output.instanceID = input.instanceID;
+
+    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    
+    
+    LIGHTINFO light = Lights[Instance.LightIndex];
     
     
     output.pos = mul(float4(input.pos, 1.f), mul(light.MatWorld, mul(PassParams.MatView, PassParams.MatProjection)));

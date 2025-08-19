@@ -5,12 +5,15 @@ struct VS_OUT
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
+    uint instanceID : InstanceID;
+    
 };
 
 struct PS_OUT
 {
     float4 diffuse : SV_Target0;
     float4 specular : SV_Target1;
+    
 };
 
 // [Directional Light]
@@ -24,7 +27,12 @@ struct PS_OUT
 PS_OUT PS_DirLight(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
-    int index = GlobalParams.LightIndex;
+
+    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    
+    
+    int index = Instance.LightIndex;
+    
     LIGHTINFO light = Lights[index];
 
     

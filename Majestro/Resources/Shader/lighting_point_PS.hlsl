@@ -5,6 +5,8 @@ struct VS_OUT
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
+    
+    uint instanceID : InstanceID;
 };
 
 struct PS_OUT
@@ -24,14 +26,15 @@ struct PS_OUT
 PS_OUT PS_PointLight(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
-
+    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    
     // input.pos = SV_Position = Screen 좌표 (정규화 되고 변환되었기 때문에 좌표계가 픽셀좌표계로 변환되어있음)
     float2 uv = float2(input.pos.x / PassParams.ScreenSize.x, input.pos.y / PassParams.ScreenSize.y);
     float3 viewPos = Gbuffer[1].Sample(g_sam_0, uv).xyz;
     if (viewPos.z <= 0.f)
         clip(-1);
 
-    int lightIndex = GlobalParams.LightIndex;
+    int lightIndex = Instance.LightIndex;
     float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz; //position: 빛의 원래 좌표   
     float distance = length(viewPos - viewLightPos);
     if (distance > Lights[lightIndex].range)   // 원래좌표와 빛의 좌표를 이용해서 구 내부인지 확인

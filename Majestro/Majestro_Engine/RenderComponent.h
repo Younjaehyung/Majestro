@@ -36,7 +36,7 @@ public:
 	vector<shared_ptr<Material>> mMaterials;
 
 	uint32	mObjectIndex{};
-	bool mVisibility;
+	bool mVisibility{true};
 
 };
 

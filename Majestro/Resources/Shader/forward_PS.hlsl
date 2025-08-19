@@ -10,14 +10,18 @@ struct VS_OUT
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;   //T
     float3 viewBinormal : BINORMAL; //B
+    
+    uint instanceID : InstanceID;
 };
 
 
 float4 PS_Main(VS_OUT input) : SV_Target
 {
-
-    uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = GlobalParams.MaterialInfoIndex;
+ 
+    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    
+    uint objectIndex = Instance.ObjectIndex;
+    int materialIndex = Instance.MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
     float4 color = materials.Diffuse;

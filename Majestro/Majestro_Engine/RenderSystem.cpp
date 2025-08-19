@@ -46,9 +46,9 @@ void RenderSystem::Update()
 
 	DefferdRendering();
 
-	ForwardRendering();
+	//ForwardRendering();
 
-	ParticleRendering();
+	//ParticleRendering();
 
 
 
@@ -62,7 +62,7 @@ void RenderSystem::PushData()
 	PushObjectData();
 	PushLightData();
 
-	PushGBufferData();
+	//PushGBufferData();
 
 	PushInstanceData();
 }
@@ -117,9 +117,10 @@ void RenderSystem::ClearBuffer()
 
 	mDeferredDrawItems.clear();
 	mDeferredDrawBatchs.clear();
+	mInstanceVector.clear();
 	//passParams = {};
 
-	mInstanceVector.clear();
+	
 	mLightVector.clear();
 	mObjectVector.clear();
 	mDummyVector.clear();
@@ -187,8 +188,8 @@ void RenderSystem::PushGBufferData()
 
 	for (auto& entityID : mRenderComponentPool->GetEntities()) {
 		RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
-		if (renderEntity->IsVisibility())
-			continue;
+		//if (!renderEntity->IsVisibility())
+		//	continue;
 		if (mWorld->GetComponent<LightComponent>(entityID)) {
 			continue;
 		}
@@ -203,6 +204,8 @@ void RenderSystem::PushGBufferData()
 				continue;
 			}
 		}
+
+
 		uint32 i = 0;
 		for (shared_ptr<Material>& material : renderEntity->mMaterials) {
 			mDeferredDrawItems.emplace_back(
@@ -225,13 +228,19 @@ void RenderSystem::PushGBufferData()
 		return a.SubMesh < b.SubMesh;                          // Submesh
 		});
 
+
+	uint32 psoId{};
+	uint32 meshId{};
+	uint32 smIdx{};
+	uint32 base{};
+
 	for (size_t i = 0; i < mDeferredDrawItems.size(); ) {
-		const uint32 psoId = mDeferredDrawItems[i].PSOID;
-		const uint32 meshId = mDeferredDrawItems[i].MeshID;
-		const uint32 smIdx = mDeferredDrawItems[i].SubMesh;
+		psoId = mDeferredDrawItems[i].PSOID;
+		meshId = mDeferredDrawItems[i].MeshID;
+		smIdx = mDeferredDrawItems[i].SubMesh;
 
 		// 이 배치의 인스턴스들을 전역 InstanceGPU[]에 연속으로 복사
-		const uint32 base = (uint32)mInstanceVector.size();
+		base = (uint32)mInstanceVector.size();
 		size_t j = i;
 		while (j < mDeferredDrawItems.size()
 			&& mDeferredDrawItems[j].PSOID == psoId
@@ -242,10 +251,10 @@ void RenderSystem::PushGBufferData()
 		}
 
 
-		DrawBatch b(&mDeferredDrawItems[i]);
-		b.BaseInstance = base;
-		b.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
-		mDeferredDrawBatchs.push_back(b);
+		mBatch=&mDeferredDrawItems[i];
+		mBatch.BaseInstance = base;
+		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
+		mDeferredDrawBatchs.push_back(mBatch);
 
 		i = j; // 다음 run으로
 	}
@@ -318,7 +327,68 @@ void RenderSystem::PushObjectData()
 		index++;
 		
 
+
+		uint32 i = 0;
+		for (shared_ptr<Material>& material : renderComponent->mMaterials) {
+			mDeferredDrawItems.emplace_back(
+				material->GetShader(),
+				renderComponent->mMesh,
+				material->GetShaderID(),
+				renderComponent->mMesh->GetID(),
+				material->GetID(),
+				i++,
+				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),0,0 }
+			);
+		}
+
+
+
+
+
+
 	}
+
+
+
+	//std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
+	//	if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
+	//	if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
+	//	return a.SubMesh < b.SubMesh;                          // Submesh
+	//	});
+
+
+	uint32 psoId{};
+	uint32 meshId{};
+	uint32 smIdx{};
+	uint32 base{};
+
+	for (size_t i = 0; i < mDeferredDrawItems.size(); ) {
+		psoId = mDeferredDrawItems[i].PSOID;
+		meshId = mDeferredDrawItems[i].MeshID;
+		smIdx = mDeferredDrawItems[i].SubMesh;
+
+		// 이 배치의 인스턴스들을 전역 InstanceGPU[]에 연속으로 복사
+		base = (uint32)mInstanceVector.size();
+		size_t j = i;
+		while (j < mDeferredDrawItems.size()
+			&& mDeferredDrawItems[j].PSOID == psoId
+			&& mDeferredDrawItems[j].MeshID == meshId
+			&& mDeferredDrawItems[j].SubMesh == smIdx) {
+			mInstanceVector.push_back(mDeferredDrawItems[j].InstanceGPU);
+			++j;
+		}
+
+
+		mBatch = &mDeferredDrawItems[i];
+		mBatch.BaseInstance = base;
+		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
+		mDeferredDrawBatchs.push_back(mBatch);
+
+		i = j; // 다음 run으로
+	}
+
+
+
 
 	RENDERMANAGER.GetGroupBuffer(mFrameCount)->ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
 }

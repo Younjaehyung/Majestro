@@ -61,8 +61,8 @@ void Scene::Initialize()
 	mWorld->AddComponent<RenderComponent>(testEntity5, sphereMesh, materials);
 
 	// 한 번에 32x32 = 1024개 스폰 (간격, 스케일은 취향대로)
-	const int NX = 120;
-	const int NZ = 120;
+	const int NX = 520;
+
 	const float SPACING = 12.f;
 
 

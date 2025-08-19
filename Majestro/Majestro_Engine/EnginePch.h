@@ -330,8 +330,9 @@ extern unique_ptr<class Engine> gEngine;
 
 
 
-
+#define INPUT			gEngine->GetInputManager()
 #define DELTA_TIME		gEngine->GetTimer().GetTimeElapsed()
 
 #define CONST_BUFFER(type,count) gEngine->GetRenderManager().GetConstantBuffer(type,count)
 #define STRUCT_BUFFER(type,count) gEngine->GetRenderManager().GetStructuredBuffer(type,count)
+

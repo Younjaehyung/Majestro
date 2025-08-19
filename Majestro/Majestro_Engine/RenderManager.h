@@ -13,6 +13,7 @@ class SceneManager;
 
 struct GroupBuffer {
 	shared_ptr<ConstantBuffer> PassInfo;
+	shared_ptr<StructuredBuffer> InstanceInfo;
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;

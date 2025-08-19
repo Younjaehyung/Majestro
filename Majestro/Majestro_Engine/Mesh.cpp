@@ -90,7 +90,7 @@ void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 	_vecIndexInfo.push_back(info);
 }
 
-void Mesh::Render(uint32 instanceCount, uint32 idx)
+void Mesh::Render(uint32 instanceCount, uint32 idx, uint32 baseInstance )
 {
 	//Input Assembler (IA)
 	//GRAPHICS_CMD_LIST->IASetPrimitiveTopology ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );	//type : 삼각형 설정
@@ -100,7 +100,7 @@ void Mesh::Render(uint32 instanceCount, uint32 idx)
 
 
 	//CMD_LIST->DrawInstanced ( _vertexCount , 1 , 0 , 0 );	// 버텍스 버퍼로 그림을 그려라
-	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, instanceCount, 0, 0, 0);	//인덱스로 그림을 그려라
+	GRAPHICS_CMD_LIST->DrawIndexedInstanced(_vecIndexInfo[idx].count, instanceCount, baseInstance, 0, 0);	//인덱스로 그림을 그려라
 }
 
 

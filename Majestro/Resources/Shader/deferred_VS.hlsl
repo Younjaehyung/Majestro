@@ -21,13 +21,18 @@ struct VS_OUT
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
+    
+    uint instanceID : InstanceID;
 };
 
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0;
+    output.instanceID = input.instanceID;
 
-    uint objectIndex = GlobalParams.ObjectIndex;
+    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    
+    uint objectIndex = Instance.ObjectIndex;
     matrix WV = mul(Objects[objectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);
     

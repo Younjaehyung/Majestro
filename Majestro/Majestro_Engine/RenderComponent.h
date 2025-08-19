@@ -24,6 +24,7 @@ public:
 	uint8 GetLayerIndex() { return mLayerIndex; }
 	bool IsVisibility() { return mVisibility; }
 	uint64 GetInstanceID();
+
 public:
 	bool mCheckFrustum = true;
 	bool mCheckVisibilty = true;

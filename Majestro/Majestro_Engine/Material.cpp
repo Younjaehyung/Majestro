@@ -18,8 +18,9 @@ Material::~Material()
 
 void Material::SetShader(std::wstring name)
 {
-	{ mShaderID = name; }
+	{ mShaderName = name; }
 	{ mShader = RESOURCEMANAGER.Get<Shader>(name); }
+	{ mShaderID = mShader->GetID(); }
 	assert(mShader != nullptr);
 	
 
@@ -66,7 +67,7 @@ shared_ptr<Material> Material::Clone()
 {
 	shared_ptr<Material> material = make_shared<Material>();
 	
-	material->SetShader(mShaderID);
+	material->SetShader(mShaderName);
 	material->mParams = mParams;
 	material->mTextures = mTextures;
 

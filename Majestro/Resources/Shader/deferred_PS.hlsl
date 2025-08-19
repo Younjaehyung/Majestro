@@ -8,6 +8,8 @@ struct VS_OUT
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
+    
+    uint instanceID : InstanceID;
 };
 
 
@@ -22,8 +24,8 @@ PS_OUT PS_Main(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
     
-    uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = GlobalParams.MaterialInfoIndex;
+    uint objectIndex = InstanceParams[input.instanceID].ObjectIndex;
+    int materialIndex = InstanceParams[input.instanceID].MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
     float4 color = materials.Diffuse;

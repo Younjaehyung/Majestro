@@ -115,6 +115,16 @@ struct GLOBAL_PARAMS
 
 };
 
+struct RENDERPARAMS
+{
+
+    uint ObjectIndex;
+    uint MaterialInfoIndex;
+    
+    uint LightIndex; //light가 아니면 쓰지 말것.
+    uint ParticleIndex; //Particle가 아니면 쓰지 말것.
+
+};
 	
  ///////////////////////////GLOBAL_PARAMS/////////////////////////////
 ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
@@ -130,10 +140,10 @@ Texture2D<float4> Gbuffer[6] : register(t0, space0);
 
  ///////////////////////////GROUP///////////////////////////////////
 ConstantBuffer<PASSINFO> PassParams : register(b0, space1);
-
-StructuredBuffer<LIGHTINFO> Lights : register(t0, space1);
-StructuredBuffer<OBJECTINFO> Objects : register(t1, space1);
-StructuredBuffer<PARTICLESHARED> ParticleShared : register(t2, space1); // 속성값 (SRV)
+StructuredBuffer<RENDERPARAMS> InstanceParams : register(t0, space1);
+StructuredBuffer<LIGHTINFO> Lights : register(t1, space1);
+StructuredBuffer<OBJECTINFO> Objects : register(t2, space1);
+StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
 //StructuredBuffer<Matrix> g_mat_bone : register(t4);
  ///////////////////////////////////////////////////////////////////
 

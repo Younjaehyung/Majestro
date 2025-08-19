@@ -9,8 +9,12 @@
 
 struct MaterialParams;
 struct PatricleParams;
+class Mesh;
+class Shader;
 
-struct RenderParams {
+
+struct RenderParams 
+{
 	uint32 ObjectIndex{};
 	uint32 MaterialInfoIndex;
 
@@ -32,6 +36,66 @@ struct PassParams
 	uint32 LightsCount{};
 	uint32 SkyBoxIndex{};
 };
+
+struct DrawItem 
+{
+	shared_ptr<Shader> PSOShader{};
+	shared_ptr<Mesh> PMesh{};
+
+	uint32 PSOID{};
+	uint32 MeshID{};
+	uint32 SubMesh{};
+	uint32 SubMeshIndex{};
+
+	RenderParams InstanceGPU;
+	DrawItem() = default;
+	DrawItem(shared_ptr<Shader> shader,
+		shared_ptr<Mesh> mesh,
+		uint32 psoID,
+		uint32 meshID,
+		uint32 subMesh,
+		uint32  subMeshIndex,
+		RenderParams instanceGPU) {
+		PSOShader = shader;
+		PMesh = mesh;
+		PSOID = psoID;
+		MeshID = meshID;
+		SubMesh = subMesh;
+		SubMesh = subMeshIndex;
+		InstanceGPU = instanceGPU;
+
+	}
+};
+
+struct DrawBatch
+{
+	shared_ptr<Shader> PSOShader{};
+	shared_ptr<Mesh> Mesh{};
+
+	uint32 PSOID{};
+	uint32 MeshID{};
+	uint32 SubMesh{};
+	uint32 SubMeshIndex{};
+
+	uint32 BaseInstance{};
+	uint32 InstanceCount{};
+	RenderParams InstanceGPU{};
+
+	DrawBatch() = default;
+	DrawBatch(DrawItem* drawItem){
+		PSOShader = drawItem->PSOShader;
+		Mesh = drawItem->PMesh;
+		PSOID = drawItem->PSOID;
+		MeshID = drawItem->MeshID;
+		SubMesh = drawItem->SubMesh;
+		SubMeshIndex = drawItem->SubMeshIndex;
+		InstanceGPU = drawItem->InstanceGPU;
+
+	}
+
+};
+
+
 
 class RenderSystem	: public System
 {
@@ -68,6 +132,7 @@ private: // Push&Clear Data
 
 	void SetTable();
 	void PushPassData();
+	void PushInstanceData();
 	void PushGBufferData();
 	void PushObjectData();
 	void PushLightData();
@@ -76,7 +141,7 @@ private: // Push&Clear Data
 private: // Render
 
 	void RenderShadowCamera(Entity&, LightComponent*, class CameraComponent*,class RenderComponent*);
-	void InstancingRender(vector<Entity>& gameObjects);
+	void InstancingRender(DrawBatch&);
 
 
 	// deferred
@@ -107,15 +172,19 @@ private:
 	
 private:	// 배치 버퍼
 
-	// 동일 머티리얼을 사용하는 오브젝트별로 분류	(머테리얼 배치)
-	unordered_map<uint64, vector<Entity>> mMaterialObjectBatch; 
+	// Pass별 PSO에 따른 분류
+	std::vector<DrawItem> mDeferredDrawItems;
+	
+	std::vector<DrawBatch> mDeferredDrawBatchs;
 
-	// 쉐이더 타입별로 | 쉐이더 종류별로 분류	(쉐이더 배치)
-	array<unordered_map<std::wstring, std::vector<Entity>>, static_cast<uint8>(SHADER_TYPE::END)> shaderBatches;
+	
+
 private:
+	
 	std::vector<Entity>				mDummyVector;
 	// RenderManager의 structuerdBuffer로 복사할 데이터들
 
+	std::vector<RenderParams>		mInstanceVector;
 	std::vector<LightParams>		mLightVector;
 	std::vector<ObjectParams>		mObjectVector;
 	std::vector<MaterialParams>		mMaterialVector;
@@ -123,9 +192,12 @@ private:
 
 private:
 	// 변수 재사용을 막기 위해 둔 Dummy Parms
-	PassParams passParams{};
-	ObjectParams objectParams{};
-	LightParams	lightParams{};
+	PassParams		passParams{};
+	ObjectParams	objectParams{};
+	LightParams		lightParams{};
 	RenderParams	renderParams{};
+
+	DrawBatch mBatch{};
+	uint32  mCurrPSOID{};
 };
 

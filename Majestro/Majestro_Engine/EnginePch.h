@@ -152,6 +152,7 @@ enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
 
 enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
 { // t레지스터 space 1
+	SRV_INSTANCE_INDEX,
 	SRV_LIGHT_INDEX,
 	SRV_OBJECTINFO_INDEX,
 

@@ -50,7 +50,9 @@ public:
 	virtual ~Material();
 
 	shared_ptr<Shader> GetShader() { return mShader; }
-	wstring& GetShaderID() { return mShaderID; }
+	wstring& GetShaderName() { return mShaderName; }
+	uint32 GetShaderID() { return mShaderID; }
+
 	void SetShader(std::wstring name);
 
 	void SetTexture(shared_ptr<Texture> texture,uint8 texturetype);
@@ -58,10 +60,13 @@ public:
 	shared_ptr<Material> Clone();
 	MaterialParams& GetParams() { return mParams; }
 
+
+
 	uint32 GetIndex() { return mStructuredBufferIndex; }
 	void SetIndex(uint32 index) { mStructuredBufferIndex = index; }
 private:
-	wstring				mShaderID;
+	wstring				mShaderName;
+	uint32				mShaderID;
 	uint32				mStructuredBufferIndex{};
 	shared_ptr<Shader>	mShader;	//쉐이더 지울 예정
 	MaterialParams		mParams{};	//머테리얼 parm

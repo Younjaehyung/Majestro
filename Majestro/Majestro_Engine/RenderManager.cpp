@@ -55,13 +55,18 @@ void RenderManager::CreateGroup()
 		group->PassInfo->CreateBuffer(sizeof(PassParams));
 		group->PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
 
+		group->InstanceInfo = make_shared<StructuredBuffer>();
+		group->InstanceInfo->CreateUploadBuffer(2048, sizeof(RenderParams));
+		group->InstanceInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
+
+
 		group->LightInfo = make_shared<StructuredBuffer>();
 		group->LightInfo->CreateUploadBuffer(64, sizeof(LightParams));
 		group->LightInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
 
 
 		group->ObjectInfo = make_shared<StructuredBuffer>();
-		group->ObjectInfo->CreateUploadBuffer(2048, sizeof(ObjectParams));
+		group->ObjectInfo->CreateUploadBuffer(1024, sizeof(ObjectParams));
 		group->ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(STRUCTURED_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 		group->ParticleInfo = make_shared<StructuredBuffer>();

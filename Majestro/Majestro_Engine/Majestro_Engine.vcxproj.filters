@@ -185,6 +185,10 @@
     <ClInclude Include="Prefab.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="AudioComponent.h" />
+    <ClInclude Include="AudioSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -312,6 +316,10 @@
       <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioComponent.cpp" />
+    <ClCompile Include="AudioSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
   </ItemGroup>

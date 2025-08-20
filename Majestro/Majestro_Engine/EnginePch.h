@@ -53,7 +53,17 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "DirectXTex\\DirectXTex.lib")
 #endif
 
+// FMOD
+#include "FMod/fmod.hpp"
+#include "FMod/fmod_studio.hpp"
 
+#ifdef _DEBUG
+#pragma comment(lib, "FMod/fmodL_vc.lib")
+#pragma comment(lib, "FMod/fmodstudioL_vc.lib")
+#else
+#pragma comment(lib, "FMod/fmod_vc.lib")
+#pragma comment(lib, "FMod/fmodstudio_vc.lib")
+#endif
 
 using int8 = __int8;
 using int16 = __int16;

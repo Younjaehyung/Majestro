@@ -176,7 +176,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioManager.h" />
+    <ClInclude Include="AudioSystem.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
@@ -222,7 +224,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioManager.cpp" />
+    <ClCompile Include="AudioSystem.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />

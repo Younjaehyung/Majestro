@@ -13,6 +13,7 @@
 #include <array>
 #include <list>
 #include <map>
+#include <initializer_list>
 #include <filesystem>
 using namespace std;
 
@@ -56,6 +57,7 @@ using namespace Microsoft::WRL;
 // FMOD
 #include "FMod/fmod.hpp"
 #include "FMod/fmod_studio.hpp"
+#include "FMod/fmod_errors.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "FMod/fmodL_vc.lib")
@@ -275,7 +277,7 @@ enum {
 	, TEXTURE_SRV_COUNT = 1024	// texture(SRV) 개수
 	, TEXTURE_UAV_COUNT = 1024	// texture(UAV) 개수
 	, TEXTURE_CUBE_COUNT = 16	// texture(CUBE) 개수
-	, PARTICLE_COUNT = 1024	// texture(CUBE) 개수
+	, PARTICLE_COUNT = 4096		// particle(CUBE) 개수
 
 	, GBUFFER_INDEX_START = 0
 	, GBUFFER_INDEX_COUNT = static_cast<uint8>(GBUFFER_INDEX::GBUFFER_INDEX_END)
@@ -296,7 +298,7 @@ enum {
 	//, PARTICLE_SYSTEM_COUNT = static_cast<uint8>(PARTICLE_SYSTEM::SRV_PARTICLE_SYSTEM_END)
 
 	, PARTICLE_INDEX_START = GROUP_START + (GROUP_COUNT * FRAMEGROUP_COUNT)
-	, PARTICLE_GROUP_COUNT = 256// 파티클 시스템 종류 개수 (파티클 이미터 개수)
+	, PARTICLE_GROUP_COUNT = 1// 파티클 시스템 종류 개수 (파티클 이미터 개수)
 	, PARTICLE_INDEX_COUNT = (static_cast<uint8>(PARTICLE_INDEX::PARTICLE_INDEX_END)* PARTICLE_GROUP_COUNT)	//UAV_TEXTURE + UAV_STRUCTURED(1)
 
 	, TEXTURE_MATERIALS_INDEX_START = PARTICLE_INDEX_START + PARTICLE_INDEX_COUNT
@@ -328,6 +330,7 @@ extern unique_ptr<class Engine> gEngine;
 
 #define RENDERMANAGER	gEngine->GetRenderManager()
 #define RESOURCEMANAGER	gEngine->GetResourceManager()
+#define AUDIOMANAGER	gEngine->GetAudioManager()
 
 #define DEVICE	 gEngine->GetRenderManager().GetDevice()->GetDevice()
 #define GRAPHICS_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue ( )->GetGraphicsCmdList ( )

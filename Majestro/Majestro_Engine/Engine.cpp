@@ -4,6 +4,7 @@
 #include "SceneManager.h"
 #include "RenderManager.h"
 #include "InputManager.h"
+#include "AudioManager.h"
 #include "ResourceManager.h"
 #include "Timer.h"
 
@@ -18,18 +19,19 @@ void Engine::Initialize(const WindowInfo& info)
 	mRenderManager = make_unique<RenderManager>();
 	mResourceManager = make_unique<ResourceManager>();
 	mSceneManager = make_unique<SceneManager>();
+	mAudioManager = make_unique<AudioManager>();
 	mInputManager = make_unique<InputManager>();
 
 	
 	mRenderManager->Initialize(info);
 	mResourceManager->Initialize();
 
-	mSceneManager->Initialize();
+	mAudioManager->Initialize("..\\Resources\\Sound");
 
-	
 	mInputManager->Initialize(info.Hwnd);
 	mTimer = make_unique<Timer>();
-	
+
+	mSceneManager->Initialize();
 	mHwnd = info.Hwnd;
 }
 
@@ -39,7 +41,7 @@ void Engine::Update()
 	mTimer->Tick();
 	mInputManager->Update();
 	mSceneManager->Update(mTimer->GetTimeElapsed());
-	//mAudioManager->Update();
+	mAudioManager->Update(mTimer->GetTimeElapsed());
 }
 
 void Engine::Render()

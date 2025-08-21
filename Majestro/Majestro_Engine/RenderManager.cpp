@@ -88,8 +88,8 @@ void RenderManager::CreateParticle()
 
 		group->Particle = make_shared<StructuredBuffer>();
 		group->Particle->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
-		group->Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX),256);
-		group->Particle->CreateUavView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX), 256);
+		group->Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX));
+		group->Particle->CreateUavView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX));
 		
 
 		group->RWParticleShared = make_shared<StructuredBuffer>();

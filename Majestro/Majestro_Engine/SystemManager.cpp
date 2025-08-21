@@ -2,11 +2,13 @@
 #include "SystemManager.h"
 #include "RenderSystem.h"
 #include "CameraSystem.h"
+#include "AudioSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();
+    RegisterSystem<AudioSystem>();
     
 
 }
@@ -23,6 +25,7 @@ void SystemManager::Update(float deltaTime) {
     for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
 
     GetSystem<CameraSystem>()->Update();
+    GetSystem<AudioSystem>()->Update(deltaTime);
 }
 
 void SystemManager::Render() {

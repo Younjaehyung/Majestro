@@ -19,16 +19,16 @@ void FmodBackend::Initialize(const std::string& bankRoot, bool rightHanded3D) {
     FMOD_INITFLAGS coreFlags = FMOD_INIT_NORMAL;
     if (rightHanded3D) coreFlags = FMOD_INIT_3D_RIGHTHANDED | coreFlags;
 
-    // º¸ÀÌ½º/¹öÆÛ µîÀº ÇÁ·ÎÁ§Æ® ½ºÄÉÀÏ¿¡ ¸ÂÃç Á¶Á¤ °¡´É
+    // ï¿½ï¿½ï¿½Ì½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FMOD_CHECK(mStudio->initialize(1024, studioFlags, coreFlags, nullptr));
     FMOD_CHECK(mStudio->getCoreSystem(&mCore));
 
-    // 3D È¯°æ ±âº» ½ºÄÉÀÏ(¹ÌÅÍ ´ÜÀ§)
+    // 3D È¯ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     FMOD_CHECK(mCore->set3DSettings(1.0f, 1.0f, 1.0f));
 }
 
 void FmodBackend::Shutdown() {
-    // ¹ðÅ© ¾ð·Îµå
+    // ï¿½ï¿½Å© ï¿½ï¿½Îµï¿½
     for (auto& kv : mBanks) {
         if (kv.second) {
             kv.second->unloadSampleData();
@@ -81,7 +81,7 @@ FMOD::Studio::EventDescription* FmodBackend::GetOrCacheEventDesc(const char* eve
     FMOD::Studio::EventDescription* desc = nullptr;
     FMOD_RESULT r = mStudio->getEvent(eventPath, &desc);
     if (r != FMOD_OK) {
-        // strings.bank ¹Ì·Îµå or ÇØ´ç ÀÌº¥Æ® ¹ÌÆ÷ÇÔ ¹ðÅ© ¹Ì·ÎµåÀÏ ¼ö ÀÖÀ½
+        // strings.bank ï¿½Ì·Îµï¿½ or ï¿½Ø´ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å© ï¿½Ì·Îµï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         FMOD_CHECK(r);
     }
     mEventCache.emplace(eventPath, desc);
@@ -98,10 +98,10 @@ FMOD::Studio::EventInstance* FmodBackend::CreateInstance(const char* eventPath) 
 // ---------------------- AudioManager ---------------------- //
 
 void AudioManager::Initialize(const std::string& bankRoot) {
-    // ¿£ÁøÀÌ RH ÁÂÇ¥°è¸é true
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RH ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ true
     mFMOD.Initialize(bankRoot, /*rightHanded3D=*/false);
 
-    // ¹®ÀÚ¿­ Á¶È¸¿¡ ÇÊ¼ö
+    // ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½È¸ï¿½ï¿½ ï¿½Ê¼ï¿½
     mFMOD.LoadBank("Master.bank");
     mFMOD.LoadBank("Master.strings.bank", /*preloadSampleData=*/false);
 }
@@ -140,16 +140,16 @@ void AudioManager::PlayOneShot3D(const char* eventPath, const FMOD_3D_ATTRIBUTES
 }
 
 void AudioManager::PlayBGM(const char* eventPath) {
-    // ±âÁ¸ BGM Á¤¸®
+    // ï¿½ï¿½ï¿½ï¿½ BGM ï¿½ï¿½ï¿½ï¿½
     if (mBGM) {
         mBGM->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
         mBGM->release();
         mBGM = nullptr;
     }
     mBGM = mFMOD.CreateInstance(eventPath);
-    // ÇÊ¿ä ½Ã ÆÄ¶ó¹ÌÅÍ/¹ö½º ¶ó¿ìÆÃ ¼¼ÆÃ
+    // ï¿½Ê¿ï¿½ ï¿½ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FMOD_CHECK(mBGM->start());
-    // À¯ÁöÇÏ¸ç Á¦¾îÇÒ °ÍÀÌ¹Ç·Î release´Â ¿©±â¼­ ÇÏÁö ¾ÊÀ½(Shutdown/StopBGM¿¡¼­)
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ releaseï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(Shutdown/StopBGMï¿½ï¿½ï¿½ï¿½)
 }
 
 void AudioManager::StopBGM() {
@@ -174,13 +174,13 @@ void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {
 }
 
 void AudioManager::SetBGMParam(const char* name, float value, bool ignoreSeekSpeed) {
-    if (!mBGM) return; // ¾ÆÁ÷ BGMÀÌ ½ÃÀÛµÇÁö ¾Ê¾Ò´Ù¸é ¹«½Ã
+    if (!mBGM) return; // ï¿½ï¿½ï¿½ï¿½ BGMï¿½ï¿½ ï¿½ï¿½ï¿½Ûµï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
     FMOD_CHECK(mBGM->setParameterByName(name, value, ignoreSeekSpeed));
 }
 
 void AudioManager::SetBGMParamLabel(const char* name, const char* label, bool ignoreSeekSpeed) {
     if (!mBGM) return;
-    // ¶óº§Çü(Discrete Labeled) ÆÄ¶ó¹ÌÅÍ¸¦ ¹®ÀÚ¿­ ¶óº§·Î Á÷Á¢ ¼³Á¤
+    // ï¿½ï¿½ï¿½ï¿½(Discrete Labeled) ï¿½Ä¶ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½óº§·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FMOD_CHECK(mBGM->setParameterByNameWithLabel(name, label, ignoreSeekSpeed));
 }
 

@@ -6,6 +6,9 @@
 #include "Shader.h"
 #include "Component.h"
 #include "Texture.h"
+#include "Animator.h"
+#include "Skeleton.h"
+#include "FBXData.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
 
@@ -40,6 +43,9 @@ public:
 	shared_ptr<Mesh> LoadRectangleMesh();
 	shared_ptr<Mesh> LoadCubeMesh();
 	shared_ptr<Mesh> LoadSphereMesh();
+
+	shared_ptr<FBXData> LoadFBX(const wstring& path);
+
 
 	//texture를 키로 매핑하기 위한 함수
 	shared_ptr<Texture> CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
@@ -120,6 +126,12 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::MATERIAL;
 	else if (std::is_same_v<T, Mesh>)
 		return OBJECT_TYPE::MESH;
+	else if (std::is_same_v<T, Animator>)
+		return OBJECT_TYPE::ANIMATION;
+	else if (std::is_same_v<T, Skeleton>)
+		return OBJECT_TYPE::SKELETON;
+	else if (std::is_same_v<T, FBXData>)
+		return OBJECT_TYPE::FBXDATA;
 	else if (std::is_same_v<T, Shader>)
 		return OBJECT_TYPE::SHADER;
 	else if (std::is_same_v<T, Texture>)

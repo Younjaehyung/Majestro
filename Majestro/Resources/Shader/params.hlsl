@@ -144,7 +144,8 @@ StructuredBuffer<RENDERPARAMS> InstanceParams : register(t0, space1);
 StructuredBuffer<LIGHTINFO> Lights : register(t1, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t2, space1);
 StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
-//StructuredBuffer<Matrix> g_mat_bone : register(t4);
+StructuredBuffer<Matrix> SRBone : register(t4, space1);
+RWStructuredBuffer<Matrix> RWBone : register(u0, space1);
  ///////////////////////////////////////////////////////////////////
 
  ///////////////////////////PARTICLE///////////////////////////////////

@@ -255,6 +255,21 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 	return mesh;
 }
 
+shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
+{
+	wstring key = path;
+
+	shared_ptr<FBXData> meshData = Get<FBXData>(key);
+	if (meshData)
+		return meshData;
+
+	meshData->Load(path);
+	meshData->SetName(key);
+	Add(key, meshData);
+
+	return meshData;
+}
+
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
 	D3D12_RESOURCE_FLAGS resFlags,bool createSRVUAV, Vec4 clearColor)
@@ -321,6 +336,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		rootSignature->CreateGraphicsRootSignature();
 
 	}
+
 	// ComputeRootSignature
 	//{
 	//	std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges =

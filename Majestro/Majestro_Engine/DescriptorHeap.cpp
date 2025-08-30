@@ -33,6 +33,6 @@ void GraphicsDescriptorHeap::CommitTable(uint32 frameCount,uint32 signautreNum,u
 	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(signautreNum, handle);
 	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
 
-
+	
 
 }

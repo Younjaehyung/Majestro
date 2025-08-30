@@ -104,6 +104,8 @@ struct WindowInfo {
 	bool	ScreenState;	//전체,창 모드
 };
 
+wstring s2ws(const string& s);
+string ws2s(const wstring& s);
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		이 곳에는 RootSignature기준 세팅시 ROOT_PARAMETER로 부여된						  //
@@ -154,7 +156,7 @@ enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
 
 
 enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
-{ // b레지스터 (암묵적 space1)
+{ // b레지스터 (space1)
 	CBV_PASSINFO_INDEX ,	// PASS 파라미터 b0
 
 
@@ -162,21 +164,21 @@ enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
 };
 
 
-enum class STRUCTURED_INDEX : uint8		//DescriptorTable SRV&UAV
+enum class GROUP_INDEX : uint8		//DescriptorTable SRV&UAV
 { // t레지스터 space 1
 	SRV_INSTANCE_INDEX,
 	SRV_LIGHT_INDEX,
 	SRV_OBJECTINFO_INDEX,
-
 	SRV_PARTICLE_INDEX,	// 파티클 system view
-	//SRV_BONE_INDEX,
+	SRV_BONE_INDEX,
+	UAV_BONE_INDEX,
+
 	//SRV_PARTICLE_INDEX,
 	//UAV_PARTICLE_INDEX,
-	/*SRV_BONE_INDEX, */
+
 
 	SRV_INDEX_END
 };
-
 
 enum class PARTICLE_INDEX : uint8		//
 {
@@ -289,7 +291,7 @@ enum {
 
 
 	, STRUCTURED_INDEX_START = CONSTANT_INDEX_START + CONSTANT_INDEX_COUNT
-	, STRUCTURED_INDEX_COUNT = static_cast<uint8>(STRUCTURED_INDEX::SRV_INDEX_END)
+	, STRUCTURED_INDEX_COUNT = static_cast<uint8>(GROUP_INDEX::SRV_INDEX_END)
 
 	, GROUP_START = GBUFFER_INDEX_START + GBUFFER_INDEX_COUNT
 	, GROUP_COUNT = CONSTANT_INDEX_COUNT + STRUCTURED_INDEX_COUNT
@@ -333,18 +335,18 @@ extern unique_ptr<class Engine> gEngine;
 #define AUDIOMANAGER	gEngine->GetAudioManager()
 
 #define DEVICE	 gEngine->GetRenderManager().GetDevice()->GetDevice()
-#define GRAPHICS_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue ( )->GetGraphicsCmdList ( )
+#define GRAPHICS_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue ()->GetGraphicsCmdList ()
 #define RESOURCE_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetResourceCmdList()
+#define COMPUTE_CMD_LIST  gEngine->GetRenderManager().GetComputeCmdQueue()->GetComputeCmdList()
 #define Graphics_DescHeap gEngine->GetRenderManager().GetGraphicsDescHeap()
-//#define COMPUTE_CMD_LIST gEngine->GetRenderManager().GetComputeCmdQueue ( )->GetComputeCmdList ( )
 
 //#define GRAPHICS_ROOT_SIGNATURE gEngine->GetRenderManager().GetRootSignature()->GetGraphicsRootSignature()
-//define COMPUTE_ROOT_SIGNATURE gEngine->GetRenderManager()->GetRootSignature()->GetComputeRootSignature()
+//#define COMPUTE_ROOT_SIGNATURE gEngine->GetRenderManager()->GetRootSignature()->GetComputeRootSignature()
 
 
-
-#define INPUT			gEngine->GetInputManager()
-#define DELTA_TIME		gEngine->GetTimer().GetTimeElapsed()
+#define FRAMERESOURCEIDNEX	gEngine->GetRenderManager().GetFrameResourceIndex()
+#define INPUT				gEngine->GetInputManager()
+#define DELTA_TIME			gEngine->GetTimer().GetTimeElapsed()
 
 #define CONST_BUFFER(type,count) gEngine->GetRenderManager().GetConstantBuffer(type,count)
 #define STRUCT_BUFFER(type,count) gEngine->GetRenderManager().GetStructuredBuffer(type,count)

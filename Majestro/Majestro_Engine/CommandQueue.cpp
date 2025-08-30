@@ -138,3 +138,60 @@ void GraphicsCommandQueue::FlushResourceCommandQueue()
 	mResourceCommandAlloc->Reset();
 	mResourceCommandList->Reset(mResourceCommandAlloc.Get(), nullptr);
 }
+
+
+
+// ************************
+// ComputeCommandQueue
+// ************************
+
+ComputeCommandQueue::~ComputeCommandQueue()
+{
+	::CloseHandle(mFenceEvent);
+}
+
+void ComputeCommandQueue::Initialize(ComPtr<ID3D12Device> device)
+{
+	D3D12_COMMAND_QUEUE_DESC computeQueueDesc = {};
+	computeQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+	computeQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	device->CreateCommandQueue(&computeQueueDesc, IID_PPV_ARGS(&mCommandQueue));
+
+	device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(&mCommandAllocator));
+	device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&mCommandList));
+
+	device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+
+	// CreateFence
+	// - CPU와 GPU의 동기화 수단으로 쓰인다
+	device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+	mFenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
+}
+
+void ComputeCommandQueue::WaitForGpuComplete()
+{
+	mFenceValue++;
+
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+
+	if (mFence->GetCompletedValue() < mFenceValue)
+	{
+		mFence->SetEventOnCompletion(mFenceValue, mFenceEvent);
+		::WaitForSingleObject(mFenceEvent, INFINITE);
+	}
+}
+
+void ComputeCommandQueue::FlushComputeCommandQueue()
+{
+	mCommandList->Close();
+
+	ID3D12CommandList* cmdListArr[] = { mCommandList.Get() };
+	auto t = _countof(cmdListArr);
+	mCommandQueue->ExecuteCommandLists(_countof(cmdListArr), cmdListArr);
+
+	WaitForGpuComplete();
+
+	mCommandAllocator->Reset();
+	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+
+}

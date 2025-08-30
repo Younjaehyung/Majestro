@@ -185,9 +185,24 @@
     <ClInclude Include="Prefab.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioSystem.h">
       <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="AnimationSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="Skeleton.h">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="FBXData.h">
+      <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -318,9 +333,23 @@
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
-    <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioSystem.cpp">
       <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Skeleton.cpp">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="FBXData.cpp">
+      <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -401,5 +430,8 @@
     <FxCompile Include="..\Resources\Shader\math.hlsl">
       <Filter>World\Resource\Shader\Utils</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Majestro_Engine.rc" />
   </ItemGroup>
 </Project>

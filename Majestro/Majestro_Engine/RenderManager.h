@@ -16,7 +16,9 @@ struct GroupBuffer {
 	shared_ptr<StructuredBuffer> InstanceInfo;
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
+	shared_ptr<StructuredBuffer> AnimationInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;
+	
 
 };
 
@@ -40,18 +42,20 @@ public:
 
 	void ResizeWindow(int32 width, int32 height);
 
+	void SetTable();
+
 	const WindowInfo& GetWindow() { return mWindow; }
-	ID3D12DescriptorHeap* GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
+	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
 
 public:
 	shared_ptr<Device>					GetDevice()				{ return mDevice; }
 	shared_ptr<GraphicsCommandQueue>	GetGraphicsCmdQueue()	{ return mGraphicsCommandQueue; }
-	//shared_ptr< ComputeCommandQueue>	GetComputeCmdQueue()	{ return mComputeCmdQueue; }
+	shared_ptr<ComputeCommandQueue>		GetComputeCmdQueue()	{ return mComputeCommandQueue; }
 
 	shared_ptr<SwapChain>				GetSwapChain()			{ return mSwapChain; }
 	
 	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
-	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()			{ return mRenderTargetHeap; }
+	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()	{ return mRenderTargetHeap; }
 
 public:
 
@@ -60,9 +64,9 @@ public:
 
 
 
-	shared_ptr<StructuredBuffer>&							GetMaterialBuffers()	{ return mMaterialBuffer; }
+	shared_ptr<StructuredBuffer>&		GetMaterialBuffers()	{ return mMaterialBuffer; }
 
-	RenderTargetGroup&										GetRenderTargetGroup(uint8 type) { return mRenderTargetGroup[type]; }
+	RenderTargetGroup&					GetRenderTargetGroup(uint8 type) { return mRenderTargetGroup[type]; }
 
 public:
 	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
@@ -83,13 +87,15 @@ private:
 	// DX12
 	shared_ptr<Device>							mDevice						= make_shared<Device>();
 	shared_ptr<GraphicsCommandQueue>			mGraphicsCommandQueue		= make_shared<GraphicsCommandQueue>();
+	shared_ptr<ComputeCommandQueue>				mComputeCommandQueue		= make_shared<ComputeCommandQueue>();
+	
 	
 	shared_ptr<SwapChain>						mSwapChain					= make_shared<SwapChain>();
 	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
 	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
 
-
+	shared_ptr<RootSignature>					mRootSignature;
 private:
 
 

@@ -40,8 +40,6 @@ void RenderSystem::Update()
 
 	ClearRTV();
 
-	SetTable();
-
 	PushData();
 
 	DefferdRendering();
@@ -106,7 +104,7 @@ void RenderSystem::ClearRTV()
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).ClearRenderTargetView();
 
 
-	
+	mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
 	ClearBuffer();
 	// 추후 lightvector관련들 clear도 모두 확인할껏.
@@ -129,25 +127,6 @@ void RenderSystem::ClearBuffer()
 }
 
 
-
-void RenderSystem::SetTable()
-{
-	mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
-
-	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
-
-	ID3D12DescriptorHeap* descHeap = gEngine->GetRenderManager().GetLegacyGraphicsDescriptorHeap();
-	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
-
-
-
-	// Table 바인딩
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 1, GBUFFER_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 3, PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 4, TEXTURE_MATERIALS_INDEX_START);
-
-}
 
 void RenderSystem::PushPassData()
 {
@@ -341,21 +320,15 @@ void RenderSystem::PushObjectData()
 				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),0,0 }
 			);
 		}
-
-
-
-
-
-
 	}
 
 
 
-	//std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
-	//	if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
-	//	if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
-	//	return a.SubMesh < b.SubMesh;                          // Submesh
-	//	});
+	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
+		if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
+		if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
+		return a.SubMesh < b.SubMesh;                          // Submesh
+		});
 
 
 	uint32 psoId{};

@@ -48,3 +48,25 @@ private:
 	ComPtr<ID3D12Device>		mDevice;
 };
 
+
+class ComputeCommandQueue
+{
+public:
+	~ComputeCommandQueue();
+
+	void Initialize(ComPtr<ID3D12Device> device);
+	void WaitForGpuComplete();
+	void FlushComputeCommandQueue();
+
+	ComPtr<ID3D12CommandQueue> GetCmdQueue() { return mCommandQueue; }
+	ComPtr<ID3D12GraphicsCommandList> GetComputeCmdList() { return mCommandList; }
+
+private:
+	ComPtr<ID3D12CommandQueue>			mCommandQueue;
+	ComPtr<ID3D12CommandAllocator>		mCommandAllocator;
+	ComPtr<ID3D12GraphicsCommandList>	mCommandList;
+
+	ComPtr<ID3D12Fence>					mFence;
+	uint32								mFenceValue = 0;
+	HANDLE								mFenceEvent = INVALID_HANDLE_VALUE;
+};

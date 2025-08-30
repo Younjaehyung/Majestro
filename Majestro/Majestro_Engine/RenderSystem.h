@@ -130,7 +130,7 @@ private: // Culling
 private: // Push&Clear Data
 	void PushMaterialData();
 
-	void SetTable();
+
 	void PushPassData();
 	void PushInstanceData();
 	void PushGBufferData();

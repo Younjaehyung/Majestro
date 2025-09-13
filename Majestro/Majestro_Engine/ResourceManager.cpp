@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "RootSignature.h"
+#include "FBXData.h"
 
 void ResourceManager::Initialize()
 {
@@ -12,7 +13,7 @@ void ResourceManager::Initialize()
 
 	LoadRectangleMesh();
 	LoadSphereMesh();
-
+	
 }
 
 
@@ -257,17 +258,23 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 
 shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 {
-	wstring key = path;
-
-	shared_ptr<FBXData> meshData = Get<FBXData>(key);
+	shared_ptr<FBXData> meshData = Get<FBXData>(path);
 	if (meshData)
 		return meshData;
-
+	meshData = make_shared<FBXData>();
 	meshData->Load(path);
-	meshData->SetName(key);
-	Add(key, meshData);
+	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(path, meshData);
 
 	return meshData;
+}
+
+void ResourceManager::LoadResourceJson(const wstring& path)
+{
+	//meshData->Load(path);
+	//meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	//Add(path, meshData);
+
 }
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
@@ -627,6 +634,8 @@ void ResourceManager::CreateDefaultMaterial()
 		material->SetTexture(texture2, NORMALMAPINDEX);
 		Add<Material>(L"GameObject", material);
 	}
+
+	 shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
 
 	//// Shadow
 	//{

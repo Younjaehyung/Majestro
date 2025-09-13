@@ -15,6 +15,7 @@
 #include <map>
 #include <initializer_list>
 #include <filesystem>
+#include <fstream>
 using namespace std;
 
 
@@ -95,6 +96,10 @@ struct Vertex {
 	Vec2 uv;
 	Vec3 normal;
 	Vec3 tangent;
+
+
+	Vec4 weights;
+	Vec4 indices;
 };
 
 struct WindowInfo {

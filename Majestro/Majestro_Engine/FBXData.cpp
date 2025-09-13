@@ -6,103 +6,61 @@
 #include "Mesh.h"
 #include "Animator.h"
 #include "Skeleton.h"
+#include "Material.h"
+
+/*
+*	[STEP0]
+		All Texture Load
+	[STEP1]
+		FBX Load (model Load)
+			-> bin to class Resource
+	[STEP1-2]
+		If Animation exist Load Animation too
+	[STEP2]
+		Distribute loaded animation files into each class
+
+*/
 
 
-
-void FileLoader::FBXLoader(const string& path)
+string ReadString(std::ifstream& file)
 {
-	mPath = path;
+	uint32 length;
+	file.read(reinterpret_cast<char*>(&length), sizeof(uint32));
 
-	std::ifstream file (path, std::ios::binary);
-	if (!file.is_open())
-		return;
+	if (length == 0)
+		return "";
 
-	try
-	{
-		
-		uint32	nameLength;
-		file.read(reinterpret_cast<char*>(&nameLength), sizeof(uint32));
-		file.read(reinterpret_cast<char*>(&mFileName), nameLength);
-
-		// 헤더 읽기
-		BinaryFileHeader header;
-		file.read(reinterpret_cast<char*>(&header), sizeof(BinaryFileHeader));
-
-		mFbxMeshInfo = {};
-		mFbxAnimatorInfo = {};
-
-		//_meshes.reserve(header.MeshCount);
-		mFbxBoneInfo.boneWeights.reserve(header.BoneCount);
-		mFbxAnimatorInfo.reserve(header.AnimClipCount);
-
-		if (header.MeshCount != 0) {
-			// 메시 데이터 읽기
-			for (uint32 i = 0; i < header.MeshCount; ++i)
-			{
-				PreFbxMeshInfo pmi{};
-				file.read(reinterpret_cast<char*>(&pmi), sizeof(PreFbxMeshInfo));
-				mPreFbxMeshInfo = pmi;
-
-				FbxMeshInfo mi{};
-				file.read(reinterpret_cast<char*>(&mi.name), pmi.NameLength);
-
-				mi.vertices.reserve(pmi.VerticesSize);
-				file.read(reinterpret_cast<char*>(&mi.vertices), pmi.VerticesSize);
-
-				mi.indices.resize(pmi.IndicesSizeOut);
-				for (uint32 i = 0; i < mi.indices.size();  ++i) {
-					mi.indices[i].reserve(pmi.IndicesSizeIn);
-				}
-				
-				file.read(reinterpret_cast<char*>(&mi.indices), pmi.IndicesSizeOut);
-
-				mi.indices.reserve(pmi.MaterialsSize);
-				file.read(reinterpret_cast<char*>(&mi.materials), pmi.MaterialsSize);
-
-
-
-				mFbxMeshInfo=mi;
-				// 본 로딩 구현
-				// 메시 로딩 구현 (역순으로 읽기)
-				// 실제 구현은 WriteMeshData의 역순으로 진행
-			}
-		}
-
-		if (header.BoneCount != 0) {
-			// 본 데이터 읽기
-			mFbxBoneInfo.boneWeights.reserve(header.BoneCount);
-			for (uint32 i = 0; i < header.BoneCount; ++i)
-			{
-				BoneWeight bw{};
-				file.read(reinterpret_cast<char*>(&bw), sizeof(BoneWeight));
-				mFbxBoneInfo.boneWeights.push_back(bw);
-				// 본 로딩 구현
-			}
-		}
-
-		if (header.AnimClipCount !=0) {
-			// 애니메이션 클립 데이터 읽기
-			for (uint32 i = 0; i < header.AnimClipCount; ++i)
-			{
-				FbxAnimatorInfo ai{};
-				file.read(reinterpret_cast<char*>(&ai), sizeof(FbxAnimatorInfo));
-				mFbxAnimatorInfo.push_back(ai);
-				// 애니메이션 클립 로딩 구현
-			}
-		}
-
-		
-
-		file.close();
-		return;
-	}
-	catch (const std::exception& e)
-	{
-		file.close();
-		return;
-	}
+	string utf8Str(length, '\0');
+	file.read(&utf8Str[0], length);
+	cout<< utf8Str <<endl;
+	return utf8Str; // 기존의 s2ws 함수 사용
 }
 
+FBXMaterialInfo FBXData::ReadMaterialData(std::ifstream& file)
+{
+
+	FBXMaterialInfo m{};
+	FBXMaterialValue mv{};
+	file.read(reinterpret_cast<char*>(&mv), sizeof(mv));
+	m.MaterialValueInfo = mv;
+
+	m.ShaderName = ReadString(file);
+
+	m.DiffuseMap0Name = ReadString(file);
+	m.DiffuseMap1Name = ReadString(file);
+	m.DiffuseMap2Name = ReadString(file);
+	m.DiffuseMap3Name = ReadString(file);
+
+	m.NormalMapName = ReadString(file);
+	m.SpecularcMapName = ReadString(file);
+	m.EmissiveMapName = ReadString(file);
+	m.MetallicMapName = ReadString(file);
+	m.OcclusionMapName = ReadString(file);
+
+	return m;
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 
 FBXData::FBXData() : Object(OBJECT_TYPE::FBXDATA)
@@ -115,89 +73,180 @@ FBXData::~FBXData()
 
 void FBXData::Load(const wstring& path)
 {
-	mFBXRigLoader.FBXLoader(ws2s(path));
+	mPath = ws2s(path);
+	std::string filePath{ filesystem::path(mPath).parent_path().string() + "\\" + filesystem::path(mPath).filename().stem().string()};
 
 
-	for (int32 i = 0; i < mFBXRigLoader.GetMeshCount(); i++)
-	{
-		shared_ptr<Mesh> mesh = CreateMeshFromFBX(mFBXRigLoader);
+	if (std::ifstream f(filePath + ".mesh", std::ios::binary);f) {
+		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
 
+		CreateMeshFromFBX(f);
+		
+	}
+	if (std::ifstream f(filePath + ".skel", std::ios::binary); f) {
+		CreateSkeletonFromFBX(f);
+	}
+	if (std::ifstream f(filePath + ".ani", std::ios::binary); f) {
+		CreateAnimatorFromFBX(f);
+	}
+
+
+}
+
+vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
+{
+	vector<shared_ptr<Mesh>> meshs;
+	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
+		shared_ptr<Mesh> mesh = make_shared<Mesh>();
+
+		// === 1) .mesh ===
+
+		string meshName = ReadString(loader);
+
+		FBXMeshInfo metaMeshInfo{};
+		loader.read(reinterpret_cast<char*>(&metaMeshInfo), sizeof(metaMeshInfo));
+
+		FBXBMeshInfo meshInfo;
+
+		// Mesh Load
+		static_assert(std::is_trivially_copyable_v<Vertex>,
+			"Vertex must be trivially copyable");
+		meshInfo.Vertices.resize(metaMeshInfo.VertexCount);
+		if (metaMeshInfo.VertexCount)
+			loader.read(reinterpret_cast<char*>(meshInfo.Vertices.data()),
+				sizeof(Vertex) * metaMeshInfo.VertexCount);
+
+		// Indices (by material) Load
+		meshInfo.Indices.resize(metaMeshInfo.MaterialCount);
+		for (uint32 s = 0; s < metaMeshInfo.MaterialCount; ++s)
+		{
+			uint32 ic = 0;
+			loader.read(reinterpret_cast<char*>(&ic), sizeof(ic));
+			meshInfo.Indices[s].resize(ic);
+			if (ic)
+				loader.read(reinterpret_cast<char*>(meshInfo.Indices[s].data()),
+					sizeof(uint32) * ic);
+		}
+		mesh->SetName(s2ws(meshName));
+		mesh->CreateMesh(meshInfo);
+		meshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
-		mMesh = mesh;
 
-
-		for (size_t j = 0; j < mFBXRigLoader.GetMesh(i).materials.size(); j++)
-		{
-			shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(mFBXRigLoader.GetMesh(i).materials[j].name);
-			mMaterials.push_back(material);
-		}
+		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo);
 	}
+	loader.close();
+	cout << "Materials OVER" << endl;
 
-	shared_ptr<Skeleton> skeleton = CreateSkeletonFromFBX(mFBXRigLoader);
-	RESOURCEMANAGER.Add<Skeleton>(skeleton->GetName(), skeleton);
-	mSkeleton = skeleton;
+	return meshs;
 }
 
-
-void FBXData::LoadAnimation(const string& rigpath, const string& anipath)
+vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo)
 {
+	// Materials
+
+	meshInfo.Materials.reserve(metaInfo.MaterialCount);
+	mMaterials.resize(metaInfo.MaterialCount);
+	for (uint32 s = 0; s < metaInfo.MaterialCount; ++s) {
+		mMaterials[s] =make_shared<Material>();
+		mMaterials[s]->SetName(s2ws(ReadString(loader)));
+		meshInfo.Materials.push_back(ReadMaterialData(loader));
+
+		mMaterials[s]->CreateMaterial(meshInfo.Materials[s]);
+		RESOURCEMANAGER.Add<Material>(mMaterials[s]->GetName(), mMaterials[s]);
+	}
 	
-	Load(s2ws(rigpath));
-	mFBXAniLoader.FBXLoader(anipath);
-
-	if (anipath == "") {
-		return;
-	}
-
-	vector<shared_ptr<Animator>> animator;
-	animator = CreateAnimatorFromFBX(mFBXAniLoader);
-
-	for (auto& anim : animator) {
-		RESOURCEMANAGER.Add<Animator>(anim->GetName(), anim);
-		mAnimators.push_back(anim);
-	}
+	return mMaterials;
 }
 
-
-
-shared_ptr<Mesh> FBXData::CreateMeshFromFBX(FileLoader& loader)
-{
-	shared_ptr<Mesh> mesh = make_shared<Mesh>();
-	mesh->CreateVertexBuffer(meshInfo->vertices);
-
-	for (const vector<uint32>& buffer : meshInfo->indices)
-	{
-		if (buffer.empty())
-		{
-			// FBX ������ �̻��ϴ�. IndexBuffer�� ������ ���� ���ϱ� �ӽ� ó��
-			vector<uint32> defaultBuffer{ 0 };
-			mesh->CreateIndexBuffer(defaultBuffer);
-		}
-		else
-		{
-			mesh->CreateIndexBuffer(buffer);
-		}
-	}
-
-	return mesh;
-}
-
-shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(FileLoader& loader)
+shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 {
 	shared_ptr<Skeleton> skeleton = make_shared<Skeleton>();
-	skeleton->CreateBones(loader);
+	skeleton->mBones.reserve(mHeader.BoneCount);
+	struct Dummy {
+		int32					parentIdx{};
+		XMFLOAT4X4				matOffset{};
+	};
+	string fileName = ReadString(loader);
+	for (uint32 bi = 0; bi < mHeader.BoneCount; ++bi)
+	{
+		BoneInfo	fbxBondInfo;
+		Dummy dummy;
+		fbxBondInfo.boneName = ReadString(loader);
+
+		loader.read(reinterpret_cast<char*>(&dummy), sizeof(dummy));
+		fbxBondInfo.parentIdx = dummy.parentIdx;
+		fbxBondInfo.matOffset = dummy.matOffset; // XMFLOAT4X4 그대로
+
+		skeleton->mBones.emplace_back(fbxBondInfo);
+	}
+	loader.close();
+	RESOURCEMANAGER.Add(s2ws(fileName),skeleton);
 
 	return skeleton;
-
 }
 
-vector<shared_ptr<Animator>> FBXData::CreateAnimatorFromFBX(FileLoader& loader)
+vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 {
-	vector<shared_ptr<Animator>> animators;
-	// TO - DO
-	shared_ptr<Animator> animator = make_shared<Animator>();
-	animator->CreateAnimations(loader);
-	animators.push_back(animator);
+	mAnimators.resize(mHeader.AnimClipCount);
 
-	return animators;
+	for (uint32 ai = 0; ai < mHeader.AnimClipCount; ++ai)
+	{
+		mAnimators[ai] = make_shared<Animator>();
+
+		FBXAnimClipInfo animClipInfo{};
+
+		struct DummyAnimClipInfo
+		{
+			// string	Name; -> WriteString
+			double StartTime;
+			double EndTime;
+			uint32 TimeMode;                         // FbxTime::EMode를 uint32로
+			//	BinaryKeyFrameInfo	KeyFrameInfo;-> vector<Vector>
+		};
+
+		DummyAnimClipInfo dummy{};
+
+		animClipInfo.Name = ReadString(loader);
+		loader.read(reinterpret_cast<char*>(&dummy), sizeof(dummy));
+		animClipInfo.StartTime = dummy.StartTime;
+		animClipInfo.EndTime = dummy.EndTime;
+		animClipInfo.TimeMode = dummy.TimeMode;
+
+		// boneTracks
+		uint32 boneTracks = 0;
+		loader.read(reinterpret_cast<char*>(&boneTracks), sizeof(boneTracks));
+		animClipInfo.KeyFrameInfo.resize(boneTracks);
+
+		// 각 본 트랙
+		for (uint32 b = 0; b < boneTracks; ++b)
+		{
+			uint32 kcount = 0;
+			loader.read(reinterpret_cast<char*>(&kcount), sizeof(kcount));
+			auto& track = animClipInfo.KeyFrameInfo[b];
+			track.resize(kcount);
+
+			for (uint32 k = 0; k < kcount; ++k)
+			{
+				FBXKeyFrameInfo binKF{};
+				loader.read(reinterpret_cast<char*>(&binKF), sizeof(binKF));
+
+				binKF.MatTransform;
+				binKF.Time;
+				track[k] = binKF;
+			}
+		}
+
+		mAnimators[ai]->SetName(s2ws(animClipInfo.Name));
+		mAnimators[ai]->CreateAnimations(loader);
+		mAnimators.emplace_back(std::make_shared<Animator>(animClipInfo));
+		RESOURCEMANAGER.Add<Animator>(mAnimators[ai]->GetName(), mAnimators[ai]);
+	}
+	loader.close();
+
+	return mAnimators;
 }
+
+
+
+////////////////////////////////////////////////////
+

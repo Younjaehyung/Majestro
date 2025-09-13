@@ -28,9 +28,26 @@ void Scene::Initialize()
 
 
 	/////////////////////////////////////////////////////////////////////
+	//Entity testEntity = mWorld->CreateEntity();	// �ʼ�
+
+	//shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.LoadSphereMesh();
+	//shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"GameObject");
+	//std::vector<shared_ptr<Material>> materials;
+	//materials.push_back(material);
+
+	//TransformComponent t{};
+	//t.mLocalScale = { 100.f, 100.f, 100.f };
+	//t.mLocalPosition = {0.f, 0.f, 500.f};
+
+
+
+
+	//mWorld->AddComponent<TransformComponent>(testEntity, t);
+	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
+	//////////////////////////////////////////////////////////////
 	Entity testEntity = mWorld->CreateEntity();	// �ʼ�
 
-	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.LoadSphereMesh();
+	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.Get<Mesh>(L"Dragon_Mesh");
 	shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"GameObject");
 	std::vector<shared_ptr<Material>> materials;
 	materials.push_back(material);
@@ -47,37 +64,37 @@ void Scene::Initialize()
 
 
 	/////////////////////////////////////////////////////////////////////////
-	Entity testEntity5 = mWorld->CreateEntity();	// �ʼ�
+	//Entity testEntity5 = mWorld->CreateEntity();	// �ʼ�
 
 
-	TransformComponent ts{};
-	ts.mLocalScale = { 100.f, 100.f, 100.f };
-	ts.mLocalPosition = { 50.f, -10.f, 500.f };
+	//TransformComponent ts{};
+	//ts.mLocalScale = { 100.f, 100.f, 100.f };
+	//ts.mLocalPosition = { 50.f, -10.f, 500.f };
 
 
 
 
-	mWorld->AddComponent<TransformComponent>(testEntity5, ts);
-	mWorld->AddComponent<RenderComponent>(testEntity5, sphereMesh, materials);
+	//mWorld->AddComponent<TransformComponent>(testEntity5, ts);
+	//mWorld->AddComponent<RenderComponent>(testEntity5, sphereMesh, materials);
 
-	// 한 번에 32x32 = 1024개 스폰 (간격, 스케일은 취향대로)
-	const int NX = 520;
+	//// 한 번에 32x32 = 1024개 스폰 (간격, 스케일은 취향대로)
+	//const int NX = 520;
 
-	const float SPACING = 12.f;
+	//const float SPACING = 12.f;
 
 
-		for (int x = 0; x < NX; ++x)
-		{
-			Entity e = mWorld->CreateEntity();
+	//	for (int x = 0; x < NX; ++x)
+	//	{
+	//		Entity e = mWorld->CreateEntity();
 
-			TransformComponent t{};
-			t.mLocalScale = { 100.f, 100.f, 100.f };
-			t.mLocalPosition = { -350.f + x * SPACING, -10.f, 500.f };
+	//		TransformComponent t{};
+	//		t.mLocalScale = { 100.f, 100.f, 100.f };
+	//		t.mLocalPosition = { -350.f + x * SPACING, -10.f, 500.f };
 
-			mWorld->AddComponent<TransformComponent>(e, t);
-			mWorld->AddComponent<RenderComponent>(e, sphereMesh, materials);
-		}
-	
+	//		mWorld->AddComponent<TransformComponent>(e, t);
+	//		mWorld->AddComponent<RenderComponent>(e, sphereMesh, materials);
+	//	}
+	//
 
 	/////////////////////////////////////////////////////////////////////////
 	LightComponent l{};

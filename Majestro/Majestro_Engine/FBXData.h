@@ -1,12 +1,7 @@
 #pragma once
 #include "Object.h"
 
-struct BinaryFileHeader
-{
-	uint32 MeshCount = 0;                     // 메시 개수
-	uint32 BoneCount = 0;                     // 본 개수
-	uint32 AnimClipCount = 0;                 // 애니메이션 클립 개수
-};
+static string ReadString(std::ifstream& file);
 
 struct BoneWeight
 {
@@ -39,94 +34,115 @@ struct BoneWeight
 	}
 };
 
-struct FbxMaterialInfo
+struct FBXFileHeader
 {
-	Vec4			diffuse;
-	Vec4			ambient;
-	Vec4			specular;
-	string			name;
-	string			diffuseTexName;
-	string			normalTexName;
-	string			specularTexName;
+	uint32 MeshCount = 0;                     // 메시 개수
+	uint32 BoneCount = 0;                     // 본 개수
+	uint32 AnimClipCount = 0;                 // 애니메이션 클립 개수
+
 };
 
-struct PreFbxMeshInfo
-{
-	uint32								NameLength;
-	uint32								VerticesSize;
-	uint32								IndicesSizeOut;
-	uint32								IndicesSizeIn;
-	uint32								MaterialsSize;
-	
+struct  FBXMaterialValue {
+
+	Vec4 Diffuse{};
+	Vec4 Ambient{};
+	Vec4 Specular{};
+	Vec3 Emission{};
+
+	float Metallic{};
+	float Roughness{};
+	uint32 OcclusionMask{};
+	uint32 AlphaTest{};
 };
 
-struct FbxMeshInfo
+struct  FBXMaterialInfo
 {
-	string								name;
-	vector<Vertex>						vertices;
-	vector<vector<uint32>>				indices;
-	vector<FbxMaterialInfo>				materials;
-	
-};
-struct FbxBoneInfo
-{
-	vector<BoneWeight>					boneWeights; // �� ����ġ
-};
 
-struct PreFbxAnimatorInfo
-{
-	uint32							AnimNameLength;
-	uint32							KeyFramesOUT;
-	uint32							KeyFramesIN;
-};
+	FBXMaterialValue MaterialValueInfo{};
 
-struct FbxAnimatorInfo
-{
-	string							animName;
-	int32							frameCount;
-	double							duration;
-	vector<vector<KeyFrameInfo>>	keyFrames;
+
+	string ShaderName{};
+	string DiffuseMap0Name{};
+	string DiffuseMap1Name{};
+	string DiffuseMap2Name{};
+	string DiffuseMap3Name{};
+
+	string NormalMapName{};
+	string SpecularcMapName{};
+	string EmissiveMapName{};
+	string MetallicMapName{};
+	string OcclusionMapName{};
 };
 
-class FileLoader 
+// 바이너리용 메시 정보 (최적화된 구조)
+struct FBXMeshInfo
 {
-public:
-	void FBXLoader(const string& path);
-
-private:
-
-	string			mPath;
-	string			mFileName;
-
-	PreFbxMeshInfo			mPreFbxMeshInfo;
-	PreFbxAnimatorInfo		mPreFbxAnimatorInfo;
-
-	FbxMeshInfo		mFbxMeshInfo;
-	FbxBoneInfo		mFbxBoneInfo;
-	vector<FbxAnimatorInfo>	mFbxAnimatorInfo;
+	// uint32 NameLength;                        // 이름 길이 -> writeString
+	uint32 VertexCount;                      // 정점 개수
+	uint32 MaterialCount;                    // 머티리얼 개수
+	uint32 HasAnimation;                     // 애니메이션 여부 (bool을 uint32로)
 };
 
+struct FBXBMeshInfo
+{
+	string								Name;
+	vector<Vertex>						Vertices;
+	vector<vector<uint32>>				Indices;
+	vector<FBXMaterialInfo>				Materials;
+	//vector<BoneWeight>				BoneWeights; // 사용 안함
+	bool								hasAnimation;
+};
+
+
+// 바이너리용 본 정보
+struct FBXBoneInfo
+{
+	string	BoneName;
+	int32 ParentIndex;
+	XMFLOAT4X4 MatOffset;                    // 오프셋 매트릭스
+};
+
+
+// 바이너리용 키프레임 정보
+struct FBXKeyFrameInfo
+{
+	XMFLOAT4X4 MatTransform;
+	double Time;
+};
+
+// 바이너리용 애니메이션 클립 정보
+struct FBXAnimClipInfo
+{
+	string	Name;
+	double StartTime;
+	double EndTime;
+	uint32 TimeMode;                         // FbxTime::EMode를 uint32로
+	vector<vector<FBXKeyFrameInfo>>	KeyFrameInfo;
+};
 
 class FBXData : public Object
 {
 public:
+	
 	FBXData();
 	virtual ~FBXData();
-
-	shared_ptr<Mesh> CreateMeshFromFBX(FileLoader& loader);
-	shared_ptr<Skeleton> CreateSkeletonFromFBX(FileLoader& loader);
-	vector<shared_ptr<Animator>> CreateAnimatorFromFBX(FileLoader& loader);
+	
 	virtual void Load(const wstring& path);
-	virtual void LoadAnimation(const string& path, const string& anipath);
-
+	FBXMaterialInfo ReadMaterialData(std::ifstream& file);
+	FBXFileHeader	GetFBXFileHeader() { return mHeader; };
 private:
-	FileLoader						mFBXRigLoader;
-	FileLoader						mFBXAniLoader;
+	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo);
+	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader);
+	shared_ptr<class Skeleton> CreateSkeletonFromFBX(ifstream& loader);
+	vector<shared_ptr<class Animator>>& CreateAnimatorFromFBX(ifstream& loader);
+private:
 
 
+	std::string						mPath;
+
+	FBXFileHeader					mHeader{};
 	shared_ptr<Mesh>				mMesh;
 	vector<shared_ptr<Material>>	mMaterials;
-
 	shared_ptr<Skeleton>			mSkeleton;
 	vector<shared_ptr<Animator>>	mAnimators;
 

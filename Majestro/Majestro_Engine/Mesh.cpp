@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "Material.h"
+#include "FBXData.h"
 
 Mesh::Mesh() : Object(OBJECT_TYPE::MESH)
 {
@@ -120,5 +121,24 @@ void Mesh::Render(shared_ptr<class InstancingBuffer>& buffer, uint32 idx)
 
 
 void Mesh::Load(const wstring& path) {
+
+}
+
+void Mesh::CreateMesh(FBXBMeshInfo& f)
+{
+
+	CreateVertexBuffer(f.Vertices);
+	for (const vector<uint32>& buffer : f.Indices)
+	{
+		if (buffer.empty())
+		{
+			vector<uint32> defaultBuffer{ 0 };
+			CreateIndexBuffer(defaultBuffer);
+		}
+		else
+		{
+			CreateIndexBuffer(buffer);
+		}
+	}
 
 }

@@ -45,6 +45,7 @@ public:
 	shared_ptr<Mesh> LoadSphereMesh();
 
 	shared_ptr<FBXData> LoadFBX(const wstring& path);
+	void LoadResourceJson(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수

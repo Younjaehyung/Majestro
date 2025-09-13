@@ -15,17 +15,22 @@ class Animator : public Object
 {
 public:
 	Animator();
+	Animator(struct FBXAnimClipInfo);
 	virtual ~Animator();
 
-	virtual void Load(const wstring& path);
-	vector <Animator> CreateAnimations(class FileLoader& loader);
+	virtual void Load(const wstring& path) {};
+	vector <Animator> CreateAnimations(ifstream& file);
 
-	uint32			mSkeletonHandle;	// if Skeleton Enable use this Handle
-	
-	wstring			animName;
-	int32			frameCount;
-	double			duration;
+	uint32			mSkeletonHandle{};	// if Skeleton Enable use this Handle
+
+	int32			frameCount{};
+	double			duration{};
 	vector<vector<KeyFrameInfo>>	keyFrames;
 
+	double mStartTime{};
+	double mEndTime{};
+
+public:
+	friend class FBXData;
 };
 

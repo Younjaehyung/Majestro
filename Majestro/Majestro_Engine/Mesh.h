@@ -2,6 +2,7 @@
 #include "Object.h"
 
 class Material;
+class FBXData;
 
 struct IndexBufferInfo
 {
@@ -25,8 +26,7 @@ public:
 	void Render(shared_ptr<class InstancingBuffer>& buffer, uint32 idx = 0);
 
 	virtual void Load(const wstring& path);
-
-
+	void CreateMesh(struct FBXBMeshInfo& f);
 	void CreateVertexBuffer(const vector<Vertex>& buffer);
 	void CreateIndexBuffer(const vector<uint32>& buffer);
 private:
@@ -40,5 +40,7 @@ private:
 	
 	uint32						mSkeletonHandle;	// if Skeleton Enable use this Handle
 
+public:
+	friend class FBXData;
 };
 

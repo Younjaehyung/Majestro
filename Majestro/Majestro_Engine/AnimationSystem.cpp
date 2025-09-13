@@ -63,7 +63,7 @@ void AnimationSystem::AnimationUpdate(float deltaTime)
 
 
 
-		animCom->mStructuredBufferIndex = mAnimationVector.size();
+		animCom->mStructuredBufferIndex = static_cast<uint32>(mAnimationVector.size());
 
 		mAnimationVector.insert(mAnimationVector.end(), animCom->mBoneFinalMatrix.begin(), animCom->mBoneFinalMatrix.end());
 		

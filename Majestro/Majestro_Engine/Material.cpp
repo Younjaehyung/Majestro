@@ -73,6 +73,9 @@ shared_ptr<Material> Material::Clone()
 
 	return material;
 }
+void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
+{
+}
 //
 //void Material::SetShader(std::wstring shaderID)
 //{

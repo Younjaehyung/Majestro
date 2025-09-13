@@ -79,7 +79,7 @@ void RenderManager::CreateGroup()
 		group->ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
 		group->AnimationInfo = make_shared<StructuredBuffer>();
-		group->AnimationInfo->CreateUploadBuffer(sizeof(Matrix),1024);
+		group->AnimationInfo->CreateDefaultBuffer(sizeof(Matrix),1024);
 		group->AnimationInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_BONE_INDEX), GROUP_COUNT);
 		group->AnimationInfo->CreateUavView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::UAV_BONE_INDEX), GROUP_COUNT);
 

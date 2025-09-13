@@ -10,6 +10,11 @@ Skeleton::~Skeleton()
 {
 }
 
-void Skeleton::CreateBones(FileLoader& loader)
+void Skeleton::CreateBones(ifstream& file)
 {
+
+	// === 2) .skel ===
+
+	
+	
 }

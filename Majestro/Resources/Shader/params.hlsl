@@ -72,6 +72,8 @@ struct PARTICLE
 struct MATERIALINFO
 {
     float4 Diffuse;
+    float4 Ambient;
+    float4 Specular;
     float3 Emission;
     float Metallic;
     float Roughness;
@@ -85,6 +87,7 @@ struct MATERIALINFO
     int DiffuseMap3Index;
     
     int NormalMapIndex;
+    int SpecularcMapIndex;
     int EmissiveMapIndex;
     int MetallicMapIndex;
     int OcclusionMapIndex;

@@ -269,6 +269,12 @@ shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 	return meshData;
 }
 
+void ResourceManager::LoadAllTexture(const wstring& path)
+{
+	// std::string filePath{ filesystem::path(path).parent_path().string() + "\\" + filesystem::path(path).filename().stem().string() };
+
+}
+
 void ResourceManager::LoadResourceJson(const wstring& path)
 {
 	//meshData->Load(path);
@@ -636,7 +642,9 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 	 shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
-
+	 LoadFBX(L"..\\Resources\\FBX\\OSW2.fbx");
+	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
+	 
 	//// Shadow
 	//{
 

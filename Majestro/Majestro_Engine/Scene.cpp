@@ -48,19 +48,44 @@ void Scene::Initialize()
 	Entity testEntity = mWorld->CreateEntity();	// �ʼ�
 
 	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.Get<Mesh>(L"Dragon_Mesh");
-	shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"GameObject");
 	std::vector<shared_ptr<Material>> materials;
+	
+	shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Dragon0");
 	materials.push_back(material);
+	material = RESOURCEMANAGER.Get<Material>(L"Dragon1");
+	materials.push_back(material);
+	material = RESOURCEMANAGER.Get<Material>(L"Dragon2");
+	materials.push_back(material);
+	material = RESOURCEMANAGER.Get<Material>(L"Dragon3");
+	materials.push_back(material);
+	material = RESOURCEMANAGER.Get<Material>(L"Dragon4");
+	materials.push_back(material);
+	
 
 	TransformComponent t{};
-	t.mLocalScale = { 100.f, 100.f, 100.f };
+	t.mLocalScale = { 1, 1, 1 };
 	t.mLocalPosition = {0.f, 0.f, 500.f};
 
 
 
 
-	mWorld->AddComponent<TransformComponent>(testEntity, t);
-	mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
+	//mWorld->AddComponent<TransformComponent>(testEntity, t);
+	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
+	////////////////////////////////////////////////////////////////////
+	Entity osw = mWorld->CreateEntity();	// �ʼ�
+
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
+	std::vector<shared_ptr<Material>> material2s;
+	
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"OSW20");
+	material2s.push_back(material2);
+	material2 = RESOURCEMANAGER.Get<Material>(L"OSW21");
+	material2s.push_back(material2);
+	t.mLocalScale = { 10, 0, 0 };
+	t.mLocalScale = { 10, 10, 10 };
+
+	mWorld->AddComponent<TransformComponent>(osw, t);
+	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 
 
 	/////////////////////////////////////////////////////////////////////////

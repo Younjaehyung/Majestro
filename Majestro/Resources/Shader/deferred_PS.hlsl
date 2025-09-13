@@ -39,7 +39,7 @@ PS_OUT PS_Main(VS_OUT input)
         color *= texColor0;
     }
     
-    if (materials.DiffuseMap1Index >= 0)
+    if (materials.DiffuseMap1Index != 0)
     {
         // 샘플링 후 블렌딩 (선형 보간)
         float4 texColor1 = TextureMaps[materials.DiffuseMap1Index].Sample(g_sam_0, input.uv);
@@ -47,7 +47,7 @@ PS_OUT PS_Main(VS_OUT input)
         color = lerp(color, texColor1, texColor1.a);
     }
     
-    if (materials.DiffuseMap2Index >= 0)
+    if (materials.DiffuseMap2Index != 0)
     {
 
         float4 texColor1 = TextureMaps[materials.DiffuseMap2Index].Sample(g_sam_0, input.uv);
@@ -55,7 +55,7 @@ PS_OUT PS_Main(VS_OUT input)
         color = lerp(color, texColor1, texColor1.a);
     }
     
-    if (materials.DiffuseMap3Index >= 0)
+    if (materials.DiffuseMap3Index != 0)
     {
 
         float4 texColor1 = TextureMaps[materials.DiffuseMap3Index].Sample(g_sam_0, input.uv);
@@ -65,7 +65,7 @@ PS_OUT PS_Main(VS_OUT input)
     
     
     float3 viewNormal = input.viewNormal;
-    if (materials.NormalMapIndex >= 0)
+    if (materials.NormalMapIndex != 0)
     {
         // [0,255] 범위에서 [0,1]로 변환
         float3 tangentSpaceNormal = TextureMaps[materials.NormalMapIndex].Sample(g_sam_0, input.uv).xyz;

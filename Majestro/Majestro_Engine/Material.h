@@ -11,6 +11,7 @@ enum
 	DIFFUSEMAP2INDEX,
 	DIFFUSEMAP3INDEX,
 	NORMALMAPINDEX,
+	SPECULARCMAPINDEX,
 	EMISSIVEMAPINDEX,
 	METALLICMAPINDEX,
 	OCCLUSIONMAPINDEX,
@@ -23,7 +24,8 @@ enum
 struct MaterialParams
 {
 	Vec4 Diffuse{};
-
+	Vec4 Ambient{};
+	Vec4 Specular{};
 	Vec3 Emission{};
 
 	float Metallic{};
@@ -37,6 +39,7 @@ struct MaterialParams
 	int32 DiffuseMap3Index{};
 
 	int32 NormalMapIndex{};
+	int32 SpecularcMapIndex{};
 	int32 EmissiveMapIndex{};
 	int32 MetallicMapIndex{};
 	int32 OcclusionMapIndex{};

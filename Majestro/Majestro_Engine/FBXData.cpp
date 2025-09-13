@@ -152,6 +152,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 		meshInfo.Materials.push_back(ReadMaterialData(loader));
 
 		mMaterials[s]->CreateMaterial(meshInfo.Materials[s]);
+		mMaterials[s]->SetShader(L"Deferred");
 		RESOURCEMANAGER.Add<Material>(mMaterials[s]->GetName(), mMaterials[s]);
 	}
 	

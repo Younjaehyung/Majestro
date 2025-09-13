@@ -45,6 +45,7 @@ public:
 	shared_ptr<Mesh> LoadSphereMesh();
 
 	shared_ptr<FBXData> LoadFBX(const wstring& path);
+	void LoadAllTexture(const wstring& path);
 	void LoadResourceJson(const wstring& path);
 
 

@@ -112,17 +112,20 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		static_assert(std::is_trivially_copyable_v<Vertex>,
 			"Vertex must be trivially copyable");
 		meshInfo.Vertices.resize(metaMeshInfo.VertexCount);
+
 		if (metaMeshInfo.VertexCount)
 			loader.read(reinterpret_cast<char*>(meshInfo.Vertices.data()),
 				sizeof(Vertex) * metaMeshInfo.VertexCount);
 
 		// Indices (by material) Load
 		meshInfo.Indices.resize(metaMeshInfo.MaterialCount);
+
 		for (uint32 s = 0; s < metaMeshInfo.MaterialCount; ++s)
 		{
 			uint32 ic = 0;
 			loader.read(reinterpret_cast<char*>(&ic), sizeof(ic));
 			meshInfo.Indices[s].resize(ic);
+
 			if (ic)
 				loader.read(reinterpret_cast<char*>(meshInfo.Indices[s].data()),
 					sizeof(uint32) * ic);

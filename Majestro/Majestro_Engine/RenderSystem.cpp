@@ -342,20 +342,28 @@ void RenderSystem::PushObjectData()
 		smIdx = mDeferredDrawItems[i].SubMesh;
 
 		// 이 배치의 인스턴스들을 전역 InstanceGPU[]에 연속으로 복사
-		base = (uint32)mInstanceVector.size();
+		base = (uint32)mInstanceVector.size()-i;	// 수식이 이게 맞나? 확인 필요
 		size_t j = i;
 		while (j < mDeferredDrawItems.size()
 			&& mDeferredDrawItems[j].PSOID == psoId
 			&& mDeferredDrawItems[j].MeshID == meshId
 			&& mDeferredDrawItems[j].SubMesh == smIdx) {
 			mInstanceVector.push_back(mDeferredDrawItems[j].InstanceGPU);
+			
 			++j;
 		}
 
 
-		mBatch = &mDeferredDrawItems[i];
+		mBatch.PSOShader = mDeferredDrawItems[i].PSOShader;
+		mBatch.Mesh = mDeferredDrawItems[i].PMesh;
+		mBatch.PSOID = mDeferredDrawItems[i].PSOID;
+		mBatch.MeshID = mDeferredDrawItems[i].MeshID;
+		mBatch.SubMesh = mDeferredDrawItems[i].SubMesh;
+		mBatch.SubMeshIndex = mDeferredDrawItems[i].SubMeshIndex;
 		mBatch.BaseInstance = base;
 		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
+		mBatch.InstanceGPU = mDeferredDrawItems[i].InstanceGPU;
+		mBatch.ParamsINX = i;
 		mDeferredDrawBatchs.push_back(mBatch);
 
 		i = j; // 다음 run으로
@@ -567,7 +575,7 @@ void RenderSystem::InstancingRender(DrawBatch& drawBatch)
 {
 
 
-	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, drawBatch.BaseInstance);
+	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, drawBatch.BaseInstance, 9/*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 	
 }
 

@@ -8,7 +8,7 @@ public:
 	CameraSystem(World* world);
 
 	void Initialize();
-	void Update();
-	void TestUpdate();
+	void Update(float dt);
+	void TestUpdate(float dt);
 };
 

@@ -16,10 +16,10 @@ class Shader;
 struct RenderParams 
 {
 	uint32 ObjectIndex{};
-	uint32 MaterialInfoIndex;
+	uint32 MaterialInfoIndex{};
 
-	uint32 LightIndex;    //light가 아니면 쓰지 말것.
-	uint32 ParticleIndex; //Particle가 아니면 쓰지 말것.
+	uint32 LightIndex{};    //light가 아니면 쓰지 말것.
+	uint32 ParticleIndex{}; //Particle가 아니면 쓰지 말것.
 };
 
 
@@ -61,7 +61,7 @@ struct DrawItem
 		PSOID = psoID;
 		MeshID = meshID;
 		SubMesh = subMesh;
-		SubMesh = subMeshIndex;
+		SubMeshIndex = subMeshIndex;
 		InstanceGPU = instanceGPU;
 
 	}
@@ -80,7 +80,7 @@ struct DrawBatch
 	uint32 BaseInstance{};
 	uint32 InstanceCount{};
 	RenderParams InstanceGPU{};
-
+	uint32 ParamsINX{};
 	DrawBatch() = default;
 	DrawBatch(DrawItem* drawItem){
 		PSOShader = drawItem->PSOShader;

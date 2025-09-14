@@ -63,15 +63,15 @@ void Scene::Initialize()
 	
 
 	TransformComponent t{};
-	t.mLocalScale = { 1, 1, 1 };
-	t.mLocalPosition = {0.f, 0.f, 500.f};
+
+	t.mLocalPosition = {0.f, 0.f, 50.f};
 
 
 
 
-	//mWorld->AddComponent<TransformComponent>(testEntity, t);
-	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
-	////////////////////////////////////////////////////////////////////
+	mWorld->AddComponent<TransformComponent>(testEntity, t);
+	mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
+	/////////////////////////////////////////////////////////////////////
 	Entity osw = mWorld->CreateEntity();	// �ʼ�
 
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
@@ -81,8 +81,8 @@ void Scene::Initialize()
 	material2s.push_back(material2);
 	material2 = RESOURCEMANAGER.Get<Material>(L"OSW21");
 	material2s.push_back(material2);
-	t.mLocalScale = { 10, 0, 0 };
-	t.mLocalScale = { 10, 10, 10 };
+	t.mLocalPosition = { 100.f, 0.f, 50.f };
+
 
 	mWorld->AddComponent<TransformComponent>(osw, t);
 	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);

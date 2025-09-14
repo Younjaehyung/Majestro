@@ -11,11 +11,16 @@ class TransformComponent : public Component<TransformComponent>
 public:
 	TransformComponent(){}
 	TransformComponent(Vec3 position, Vec3 scale): mLocalPosition(position), mLocalScale(scale){}
+	TransformComponent(Vec3 position): mLocalPosition(position){}
 
 
 	Vec3 GetWorldPosition() { return mWorldPosition; }
 	float GetBoundingSphereRadius() { return mBoundingSphere.Radius; }
 	const Matrix& GetLocalToWorldMatrix() { return mWorldMatrix; }
+
+	Vec3 GetRight() { return mWorldMatrix.Right(); }
+	Vec3 GetUp() { return mWorldMatrix.Up(); }
+	Vec3 GetLook() { return mWorldMatrix.Backward(); }
 
 	void SetLocalScale(const Vec3& scale) { mLocalScale = scale; }
 

@@ -20,7 +20,7 @@ class RenderComponent : public Component<RenderComponent>
 {
 public:
 	RenderComponent();
-	RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>> materials);
+	RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>>& materials);
 	uint8 GetLayerIndex() { return mLayerIndex; }
 	bool IsVisibility() { return mVisibility; }
 	uint64 GetInstanceID();

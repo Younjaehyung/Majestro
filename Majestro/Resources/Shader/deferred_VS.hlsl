@@ -30,7 +30,7 @@ VS_OUT VS_Main(VS_IN input)
     VS_OUT output = (VS_OUT) 0;
     output.instanceID = input.instanceID;
 
-    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    RENDERPARAMS Instance = GlobalParams;
     
     uint objectIndex = Instance.ObjectIndex;
     matrix WV = mul(Objects[objectIndex].MatWorld, PassParams.MatView);

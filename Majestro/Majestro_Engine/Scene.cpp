@@ -79,8 +79,6 @@ void Scene::Initialize()
 	
 	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"OSW20");
 	material2s.push_back(material2);
-	material2 = RESOURCEMANAGER.Get<Material>(L"OSW21");
-	material2s.push_back(material2);
 	t.mLocalPosition = { 100.f, 0.f, 50.f };
 
 

@@ -10,7 +10,7 @@ RenderComponent::RenderComponent()
 {
 }
 
-RenderComponent::RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>> materials) : mMesh(mesh), mMaterials(materials)
+RenderComponent::RenderComponent(shared_ptr<Mesh> mesh, vector<shared_ptr<Material>>& materials) : mMesh(mesh), mMaterials(materials)
 {
 
 }

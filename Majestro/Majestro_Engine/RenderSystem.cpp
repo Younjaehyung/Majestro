@@ -296,9 +296,7 @@ void RenderSystem::PushObjectData()
 		
 
 		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-		transformComponent ->FinalUpdate();
 		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
-
 
 		objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 		mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
@@ -412,7 +410,7 @@ void RenderSystem::RenderGBuffer()
 			drawBatch.PSOShader->Update();
 			mCurrPSOID = drawBatch.PSOID;
 		}
-
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,4,&(drawBatch.InstanceGPU),0);
 		InstancingRender(drawBatch);
 	}
 
@@ -573,9 +571,9 @@ void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightCompo
 
 void RenderSystem::InstancingRender(DrawBatch& drawBatch)
 {
+	
 
-
-	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, drawBatch.BaseInstance, 9/*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
+	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, drawBatch.BaseInstance,0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 	
 }
 

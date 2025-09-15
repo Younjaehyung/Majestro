@@ -19,6 +19,7 @@ enum class eKeyCode {
 struct MouseState
 {
 	POINT Position = { 0, 0 };
+	POINT OldPosition = { 0, 0 };
 	POINT ClickPosition = { 0, 0 }; //클릭한 위치
 	POINT Delta = { 0, 0 }; // 이전 프레임과의 차이
 	short WheelDelta = 0;

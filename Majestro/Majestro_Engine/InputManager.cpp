@@ -96,40 +96,16 @@ void InputManager::MouseStateClear() {
 
 void InputManager::OnMouseMove(LPARAM lParam)
 {
-	/*int x = LOWORD(lParam);
-	int y = HIWORD(lParam);
-	mMouseState.Delta.x = x - mMouseState.Position.x;
-	mMouseState.Delta.y = y - mMouseState.Position.y;
-
-	mMouseState.Position.x = x;
-	mMouseState.Position.y = y;*/
-
 	
-	if (mMouseState.LeftDown) {
-		
-		POINT p;
-		::GetCursorPos(&p);
-		/*printf("%d,%d \n", mMouseState.Position.x, mMouseState.Position.y);
-		printf("%d,%d \n", mMouseState.Delta.x, mMouseState.Delta.y);
-		if (mMouseState.Position.x <= 1 || mMouseState.Position.x >= GetSystemMetrics(SM_CXSCREEN) - 1 ||
-			mMouseState.Position.y <= 1 || mMouseState.Position.y >= GetSystemMetrics(SM_CYSCREEN) - 1) {
-			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
-			::GetCursorPos(&mMouseState.Position);
-			p = mMouseState.Position;
-			mMouseState.Delta = { 0,0 };
-		}*/
-		mMouseState.Delta.x = p.x - mMouseState.Position.x;
-		mMouseState.Delta.y = p.y - mMouseState.Position.y;
-		::GetCursorPos(&mMouseState.Position);
-	}
-	
-
 	switch (lParam)
 	{
 	case WM_LBUTTONDOWN:
 		mMouseState.LeftDown = true;
 
+		mMouseState.Delta = { 0,0 };
+
 		::GetCursorPos(&mMouseState.Position);
+		::GetCursorPos(&mMouseState.OldPosition);
 		::GetCursorPos(&mMouseState.ClickPosition);
 		
 		break;
@@ -140,7 +116,7 @@ void InputManager::OnMouseMove(LPARAM lParam)
 
 	case WM_LBUTTONUP:
 		mMouseState.LeftDown = false;
-		mMouseState.Delta = { 0,0 };
+
 		::SetCursor(arrow);
 		::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
 		break;
@@ -150,6 +126,16 @@ void InputManager::OnMouseMove(LPARAM lParam)
 		break;
 
 	case WM_MOUSEMOVE:
+		if (mMouseState.LeftDown) { 
+			::GetCursorPos(&mMouseState.Position);
+
+			mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;
+			mMouseState.Delta.y += mMouseState.Position.y - mMouseState.OldPosition.y;
+
+			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y); 
+			mMouseState.OldPosition = mMouseState.ClickPosition;
+			mMouseState.Position = mMouseState.ClickPosition;
+		}
 		break;
 	default:
 		break;

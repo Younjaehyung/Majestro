@@ -136,6 +136,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+inline HCURSOR CreateTransparentCursorMask32() //투명커서
+{
+    BYTE ANDmask[32 * 4] = {}; // 모두 0xFF로 채워도 됨(장치 종속 비트맵 규칙)
+    memset(ANDmask, 0xFF, sizeof(ANDmask));
+    BYTE XORmask[32 * 4] = {}; // 0으로 유지 → 투명
+    return CreateCursor(GetModuleHandle(nullptr), 0, 0, 32, 32, ANDmask, XORmask);
+}
+
 //
 //  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -153,8 +161,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
+        ::SetCursor(CreateTransparentCursorMask32());
         SetCapture(hWnd);
-        ::SetCursor(NULL);
+        [[fallthrough]];
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     case WM_MOUSEMOVE:

@@ -12,6 +12,43 @@ int ASCII[(UINT)eKeyCode::End] = {
 
 };
 
+inline HCURSOR CreateTransparentCursor() {
+	ICONINFO ii{};
+	ii.fIcon = FALSE; // 커서
+	ii.xHotspot = 0;
+	ii.yHotspot = 0;
+
+	BITMAPV5HEADER bi{};
+	bi.bV5Size = sizeof(bi);
+	bi.bV5Width = 1;
+	bi.bV5Height = -1;        // top-down
+	bi.bV5Planes = 1;
+	bi.bV5BitCount = 32;
+	bi.bV5Compression = BI_BITFIELDS;
+	bi.bV5RedMask = 0x00FF0000;
+	bi.bV5GreenMask = 0x0000FF00;
+	bi.bV5BlueMask = 0x000000FF;
+	bi.bV5AlphaMask = 0xFF000000;
+
+	void* bits = nullptr;
+	HDC hdc = GetDC(nullptr);
+	HBITMAP color = CreateDIBSection(hdc, (BITMAPINFO*)&bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+	ReleaseDC(nullptr, hdc);
+	((DWORD*)bits)[0] = 0x00000000; // 완전 투명 픽셀
+
+	HBITMAP mask = CreateBitmap(1, 1, 1, 1, nullptr); // 형식상 필요
+
+	ii.hbmColor = color;
+	ii.hbmMask = mask;
+
+	HCURSOR cur = (HCURSOR)CreateIconIndirect(&ii);
+
+	// CreateIconIndirect가 자체 복사본을 가지므로 원본 비트맵은 해제 가능
+	DeleteObject(color);
+	DeleteObject(mask);
+	return cur;
+}
+
 void InputManager::Initialize(HWND _hWnd) {
 
 	for (size_t i = 0; i < (UINT)eKeyCode::End; i++) {
@@ -53,16 +90,70 @@ void InputManager::Update() {
 	}
 }
 
+void InputManager::MouseStateClear() {
+	mMouseState.Delta = { 0,0 };
+}
 
 void InputManager::OnMouseMove(LPARAM lParam)
 {
-	int x = LOWORD(lParam);
+	/*int x = LOWORD(lParam);
 	int y = HIWORD(lParam);
 	mMouseState.Delta.x = x - mMouseState.Position.x;
 	mMouseState.Delta.y = y - mMouseState.Position.y;
 
 	mMouseState.Position.x = x;
-	mMouseState.Position.y = y;
+	mMouseState.Position.y = y;*/
+
+	
+	if (mMouseState.LeftDown) {
+		
+		POINT p;
+		::GetCursorPos(&p);
+		/*printf("%d,%d \n", mMouseState.Position.x, mMouseState.Position.y);
+		printf("%d,%d \n", mMouseState.Delta.x, mMouseState.Delta.y);
+		if (mMouseState.Position.x <= 1 || mMouseState.Position.x >= GetSystemMetrics(SM_CXSCREEN) - 1 ||
+			mMouseState.Position.y <= 1 || mMouseState.Position.y >= GetSystemMetrics(SM_CYSCREEN) - 1) {
+			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
+			::GetCursorPos(&mMouseState.Position);
+			p = mMouseState.Position;
+			mMouseState.Delta = { 0,0 };
+		}*/
+		mMouseState.Delta.x = p.x - mMouseState.Position.x;
+		mMouseState.Delta.y = p.y - mMouseState.Position.y;
+		::GetCursorPos(&mMouseState.Position);
+	}
+	
+
+	switch (lParam)
+	{
+	case WM_LBUTTONDOWN:
+		mMouseState.LeftDown = true;
+
+		::GetCursorPos(&mMouseState.Position);
+		::GetCursorPos(&mMouseState.ClickPosition);
+		
+		break;
+
+	case WM_RBUTTONDOWN:
+		mMouseState.RightDown = true;
+		break;
+
+	case WM_LBUTTONUP:
+		mMouseState.LeftDown = false;
+		mMouseState.Delta = { 0,0 };
+		::SetCursor(arrow);
+		::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
+		break;
+
+	case WM_RBUTTONUP:
+		mMouseState.RightDown = false;
+		break;
+
+	case WM_MOUSEMOVE:
+		break;
+	default:
+		break;
+	}
 
 }
 

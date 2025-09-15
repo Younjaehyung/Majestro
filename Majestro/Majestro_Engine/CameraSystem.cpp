@@ -48,9 +48,20 @@ void CameraSystem::TestUpdate(float dt)
 		transformComponent->mLocalPosition += transformComponent->GetRight()* dt * 50.f;
 	}
 	if (INPUT.GetKey(eKeyCode::Q)) {
-		transformComponent->mLocalRotation.x+= dt;
+		transformComponent->mLocalPosition -= transformComponent->GetUp() * dt * 50.f;
 	}
 	if (INPUT.GetKey(eKeyCode::E)) {
-		transformComponent->mLocalRotation.x-= dt;
+		transformComponent->mLocalPosition += transformComponent->GetUp() * dt * 50.f;
 	}
+	
+	
+	//printf("%f  === %f \n", (float)INPUT.GetMouseState().Delta.y * 0.000001f/5.0f, dt);
+	if (INPUT.GetMouseState().LeftDown) {
+		transformComponent->mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * 1;
+		transformComponent->mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * 1;
+		INPUT.MouseStateClear();
+	}
+	
+	
+	
 }

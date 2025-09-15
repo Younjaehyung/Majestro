@@ -20,6 +20,8 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+unique_ptr<Game> game = make_unique<Game>();
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -45,11 +47,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    unique_ptr<Game> game = make_unique<Game>();
     gWindowInfo.Width = 800;
     gWindowInfo.Height = 600;
     gWindowInfo.ScreenState = true;
-
 
     game->Initialize(gWindowInfo);
 
@@ -67,8 +67,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 DispatchMessage(&msg);
             }
         }
-
-
+        
+        
         game->Update();
         game->Render();
     }
@@ -116,6 +116,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
+
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
@@ -127,7 +128,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    {
       return FALSE;
    }
-   
+
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -147,14 +148,26 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    //if(game)game->Input(message);
     switch (message)
     {
+    case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+        SetCapture(hWnd);
+        ::SetCursor(NULL);
+    case WM_LBUTTONUP:
+    case WM_RBUTTONUP:
+    case WM_MOUSEMOVE:
+        game->Input(message);
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
             // 메뉴 선택을 구문 분석합니다:
             switch (wmId)
             {
+                
+
             case IDM_ABOUT:
                 DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
                 break;

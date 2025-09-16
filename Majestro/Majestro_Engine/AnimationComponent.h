@@ -6,9 +6,10 @@
 class Material;
 class StructuredBuffer;
 
-
 class AnimationComponent : public Component<AnimationComponent>
 {
+public:
+	//void Play();
 
 public:
 	const vector<Skeleton>*			mBones;
@@ -29,5 +30,6 @@ public:
 
 	vector<Matrix>	mOffsetBuffer; // 각 뼈의 offset 정렬			(불변/ bone값)
 	vector<Matrix>	mFrameBuffer; // 전체 본 프레임 정보		(가변/ finalupdate값)
+
 };
 

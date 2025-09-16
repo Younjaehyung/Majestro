@@ -43,6 +43,21 @@ struct PARTICLESHARED
     int TextureIndex;
 };
 
+struct ANIMFRAMEPARAMS
+{
+    float3 Scale;
+    float4 Rotation; // quaternion (x,y,z,w)
+    float3 Translation;
+};
+
+struct ANIMATIONMETA
+{
+    uint BoneCount;
+    uint StartFrame;
+    uint NumFrame;
+    float FPS;
+};
+
 struct PARTICLE
 {
     int Index;
@@ -53,18 +68,16 @@ struct PARTICLE
     int frameNumber ;
     float deltaTime;
     float accTime ;
+    
     float minLifeTime ;
     float maxLifeTime ;
     float minSpeed ;
     float maxSpeed ;
-
-    
     float3 worldPos;
     float curTime; //경과시간
     float3 worldDir;
     float lifeTime; //유지시간
     int alive; //랜더링유무용
-
     float EndScale;
     float StartScale;
 };
@@ -147,8 +160,8 @@ StructuredBuffer<RENDERPARAMS> InstanceParams : register(t0, space1);
 StructuredBuffer<LIGHTINFO> Lights : register(t1, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t2, space1);
 StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
-StructuredBuffer<Matrix> SRBone : register(t4, space1);
-RWStructuredBuffer<Matrix> RWBone : register(u0, space1);
+StructuredBuffer<Matrix> SFinalBone : register(t4, space1);
+RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
  ///////////////////////////////////////////////////////////////////
 
  ///////////////////////////PARTICLE///////////////////////////////////
@@ -157,11 +170,18 @@ RWStructuredBuffer<PARTICLE> RWParticle : register(u0,space2); //compute Shader 
 RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //공유 전역변수
  ///////////////////////////////////////////////////////////////////
 
- ////////////////////////////TEXTURE////////////////////////////////
-StructuredBuffer<MATERIALINFO> Materials : register(t0, space3);
-TextureCube SkyBoxMaps[16] : register(t1, space3);
-Texture2D<float4> TextureMaps[1024] : register(t17, space3);
+ ///////////////////////////ANIMATION///////////////////////////////
+StructuredBuffer<matrix> SkeletonBone : register(t0, space3);
+StructuredBuffer<ANIMFRAMEPARAMS> AnimationClip : register(t1, space3);
+StructuredBuffer<ANIMATIONMETA> AnimationMeta : register(t2, space3);
  ///////////////////////////////////////////////////////////////////
+
+ ////////////////////////////TEXTURE////////////////////////////////
+StructuredBuffer<MATERIALINFO> Materials : register(t0, space4);
+TextureCube SkyBoxMaps[16] : register(t1, space4);
+Texture2D<float4> TextureMaps[1024] : register(t17, space4);
+ ///////////////////////////////////////////////////////////////////
+
 
 
 

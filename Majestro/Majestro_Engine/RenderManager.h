@@ -16,9 +16,8 @@ struct GroupBuffer {
 	shared_ptr<StructuredBuffer> InstanceInfo;
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
-	shared_ptr<StructuredBuffer> AnimationInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;
-	
+	shared_ptr<StructuredBuffer> AnimationInfo;
 
 };
 
@@ -28,6 +27,12 @@ struct ParticleBuffer {
 	shared_ptr<StructuredBuffer> RWParticleShared;//공유 전역변수
 };
 
+struct AnimationBuffer {
+
+	shared_ptr<StructuredBuffer> SkeletonBone;
+	shared_ptr<StructuredBuffer> AnimationClip;
+	shared_ptr<StructuredBuffer> AnimationMeta;
+};
 
 class RenderManager
 {
@@ -61,12 +66,10 @@ public:
 
 	shared_ptr<GroupBuffer>	&			GetGroupBuffer(uint32 frame)		{ return mGroupBuffer[frame]; }
 	shared_ptr<ParticleBuffer>&			GetParticleBuffers(uint32 group)	{ return mParticleBuffer[group]; }
+	shared_ptr<AnimationBuffer>&		GetAnimationBuffers()	{ return mAnimationBuffer; }
+	shared_ptr<StructuredBuffer>&		GetMaterialBuffers()				{ return mMaterialBuffer; }
 
-
-
-	shared_ptr<StructuredBuffer>&		GetMaterialBuffers()	{ return mMaterialBuffer; }
-
-	RenderTargetGroup&					GetRenderTargetGroup(uint8 type) { return mRenderTargetGroup[type]; }
+	RenderTargetGroup&					GetRenderTargetGroup(uint8 type)	{ return mRenderTargetGroup[type]; }
 
 public:
 	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
@@ -78,7 +81,9 @@ private:
 
 	void CreateGlobal();
 	void CreateGroup();
+	void CreateMaterial();
 	void CreateParticle();
+	void CreateAnimation();
 private:
 	uint32			mFrameResourceIndex{};	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
 	uint32			mFrameCurrIndex{};		// 현재 GPU로 보낸 Index
@@ -99,13 +104,11 @@ private:
 private:
 
 
-	array <shared_ptr<GroupBuffer>, FRAMEGROUP_COUNT>						mGroupBuffer;
-	array <shared_ptr<ParticleBuffer>, PARTICLE_GROUP_COUNT>				 mParticleBuffer;
-
-	//array< GroupBuffer, FRAMEGROUP_COUNT>							mGroupBuffer;						
-	//array< ParticleBuffer, PARTICLE_GROUP_COUNT>					mParticleBuffer;
-
+	array <shared_ptr<GroupBuffer>, FRAMEGROUP_COUNT>				mGroupBuffer;
+	array <shared_ptr<ParticleBuffer>, PARTICLE_GROUP_COUNT>		mParticleBuffer;
+	shared_ptr<AnimationBuffer>										mAnimationBuffer;
 	shared_ptr<StructuredBuffer>									mMaterialBuffer;
+
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:
 

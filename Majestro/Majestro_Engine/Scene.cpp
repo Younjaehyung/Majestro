@@ -77,9 +77,9 @@ void Scene::Initialize()
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
 	std::vector<shared_ptr<Material>> material2s;
 	
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Warrior_Animatiion0");
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Warrior20");
 	material2s.push_back(material2);
-	t.mLocalPosition = { 100.f, 0.f, 50.f };
+	t.mLocalPosition = { 0.f, 0.f, 50.f };
 
 
 	mWorld->AddComponent<TransformComponent>(osw, t);

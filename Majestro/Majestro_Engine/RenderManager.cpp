@@ -8,8 +8,9 @@
 #include "CameraComponent.h"
 #include "TransformComponent.h"
 #include "LightComponent.h"
-#include "AnimationComponent.h"
 #include "ParticleComponent.h"
+#include "AnimationComponent.h"
+#include "Animator.h"
 
 void RenderManager::Initialize(const WindowInfo& info)
 {
@@ -36,6 +37,8 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 
 	CreateGroup();
+	CreateMaterial();
+
 	//CreateParticle();
 
 	CreateRenderTargetGroups();
@@ -61,35 +64,38 @@ void RenderManager::CreateGroup()
 
 		group->InstanceInfo = make_shared<StructuredBuffer>();
 		group->InstanceInfo->CreateUploadBuffer(sizeof(RenderParams), 2048);
-		group->InstanceInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
+		group->InstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
 
 
 		group->LightInfo = make_shared<StructuredBuffer>();
 		group->LightInfo->CreateUploadBuffer(sizeof(LightParams), 64);
-		group->LightInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
+		group->LightInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
 
 
 		group->ObjectInfo = make_shared<StructuredBuffer>();
-		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams),1024);
-		group->ObjectInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
-		
+		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 1024);
+		group->ObjectInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
+
 
 		group->ParticleInfo = make_shared<StructuredBuffer>();
 		group->ParticleInfo->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
-		group->ParticleInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
+		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
 		group->AnimationInfo = make_shared<StructuredBuffer>();
-		group->AnimationInfo->CreateDefaultBuffer(sizeof(Matrix),1024);
-		group->AnimationInfo->CreateSrvView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::SRV_BONE_INDEX), GROUP_COUNT);
-		group->AnimationInfo->CreateUavView(i, STRUCTURED_INDEX_START, static_cast<uint32>(GROUP_INDEX::UAV_BONE_INDEX), GROUP_COUNT);
+		group->AnimationInfo->CreateDefaultBuffer(sizeof(Matrix), 1024);
+		group->AnimationInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
+		group->AnimationInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
 
 		i++;
 	}
 
+}
+void RenderManager::CreateMaterial()
+{
 	mMaterialBuffer = make_shared<StructuredBuffer>();
 	mMaterialBuffer->CreateDefaultBuffer(sizeof(MaterialParams), 128);
-	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX), 0);
+	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX));
 }
 void RenderManager::CreateParticle()
 {	// 추후 수정 바람
@@ -108,6 +114,22 @@ void RenderManager::CreateParticle()
 		group->RWParticleShared->CreateUavView(i, PARTICLE_INDEX_START + 1, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX), 256);
 		
 	}
+
+}
+
+void RenderManager::CreateAnimation()
+{
+	mAnimationBuffer->SkeletonBone = make_shared<StructuredBuffer>();
+	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(Matrix), 128);
+	mAnimationBuffer->SkeletonBone->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_SKELETONBONE_INDEX));
+
+	mAnimationBuffer->AnimationClip = make_shared<StructuredBuffer>();
+	mAnimationBuffer->AnimationClip->CreateDefaultBuffer(sizeof(KeyFrameInfo), 2'400'000);
+	mAnimationBuffer->AnimationClip->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_ANIMATIONCLIP_INDEX));
+
+	mAnimationBuffer->AnimationMeta = make_shared<StructuredBuffer>();
+	mAnimationBuffer->AnimationMeta->CreateDefaultBuffer(sizeof(AnimationClipMeta), 30);
+	mAnimationBuffer->AnimationMeta->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_ANIMATIONMETA_INDEX));
 
 }
 
@@ -157,7 +179,8 @@ void RenderManager::SetTable()
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 1, GBUFFER_INDEX_START);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 3, PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 4, TEXTURE_MATERIALS_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 4, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
 
 }
 

@@ -305,7 +305,7 @@ shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& na
 
 void ResourceManager::CreateDefaultRootSignature()
 {
-
+	// type count baseReg baseSpace
 
 	// GraphicsRootSignature
 	{
@@ -320,7 +320,8 @@ void ResourceManager::CreateDefaultRootSignature()
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges1 =	// group- buffer
 		{
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CONSTANT_INDEX_COUNT, 0,1), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  STRUCTURED_INDEX_COUNT, 0,1), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  GROUP_SRV_COUNT, 0,1), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV,  GROUP_UAV_COUNT, 0,1), // u0 사용
 
 		};
 
@@ -330,11 +331,16 @@ void ResourceManager::CreateDefaultRootSignature()
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2,0,2),
 		};
 
-		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// texture- buffer
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// animation- buffer
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_SRV_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX) + TEXTURE_CUBE_COUNT,3), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, ANIMATION_INDEX_COUNT,0 ,3),
+		};
+
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges4 =	// texture- buffer
+		{
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX),4), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),4), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_SRV_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX) + TEXTURE_CUBE_COUNT,4), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 		};
 
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
@@ -345,6 +351,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		rootSignature->AddTable(ranges1);
 		rootSignature->AddTable(ranges2);
 		rootSignature->AddTable(ranges3);
+		rootSignature->AddTable(ranges4);
 		rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
 		rootSignature->CreateGraphicsRootSignature();
 
@@ -642,7 +649,7 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 	// shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\Warrior_Animatiion.fbx");
+	 LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
 	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 	 
 	//// Shadow

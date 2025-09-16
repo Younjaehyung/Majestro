@@ -2,43 +2,39 @@
 #include "utils.hlsl"
 #include "math.hlsl"
 
-struct AnimFrameParams
-{
-    float4 scale;
-    float4 rotation;
-    float4 translation;
-};
-
-StructuredBuffer<AnimFrameParams> g_bone_frame : register(t8);
-StructuredBuffer<matrix> g_offset : register(t9);
-RWStructuredBuffer<matrix> g_final : register(u0);
-
 // ComputeAnimation
-// g_int_0 : BoneCount
-// g_int_1 : CurrentFrame
-// g_int_2 : NextFrame
-// g_float_0 : Ratio
-[numthreads(256, 1, 1)]
+// StructuredBuffer<matrix> SkeletonBone : register(t0, space3);
+// StructuredBuffer<ANIMFRAMEPARAMS> AnimationClip : register(t1, space3);
+// StructuredBuffer<ANIMATIONMETA> AnimationMeta : register(t2, space3);
+// StructuredBuffer<Matrix> SFinalBone : register(t4, space1);
+// RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
 void CS_Main(int3 threadIdx : SV_DispatchThreadID)
 {
-    //if (g_int_0 <= threadIdx.x)
-    //    return;
+    ANIMATIONMETA animationClipMeta = AnimationMeta[1]; // To-Do
+    
+    uint nowBone = threadIdx.x;
+    if (nowBone >= animationClipMeta.BoneCount)
+        return;
 
-    //int boneCount = g_int_0;
-    //int currentFrame = g_int_1;
-    //int nextFrame = g_int_2;
-    //float ratio = g_float_0;
+    
+    uint boneCount = animationClipMeta.BoneCount;
+    uint currentFrame = GlobalParams.ObjectIndex;
+    uint nextFrame = GlobalParams.MaterialInfoIndex;
+    uint ratioInt = GlobalParams.LightIndex;
 
-    //uint idx = (boneCount * currentFrame) + threadIdx.x;
-    //uint nextIdx = (boneCount * nextFrame) + threadIdx.x;
+    float ratio = (float) (ratioInt / 100);
+    
+    uint idx = (boneCount * currentFrame) + threadIdx.x;
+    uint nextIdx = (boneCount * nextFrame) + threadIdx.x;
 
-    //float4 quaternionZero = float4(0.f, 0.f, 0.f, 1.f);
+    float4 quaternionZero = float4(0.f, 0.f, 0.f, 1.f);
 
-    //float4 scale = lerp(g_bone_frame[idx].scale, g_bone_frame[nextIdx].scale, ratio);
-    //float4 rotation = QuaternionSlerp(g_bone_frame[idx].rotation, g_bone_frame[nextIdx].rotation, ratio);
-    //float4 translation = lerp(g_bone_frame[idx].translation, g_bone_frame[nextIdx].translation, ratio);
+    float4 scale = lerp(AnimationClip[idx].Scale, AnimationClip[nextIdx].Scale, ratio);
+    float4 rotation = QuaternionSlerp(AnimationClip[idx].Rotation, AnimationClip[nextIdx].Rotation, ratio);
+    float4 translation = lerp(AnimationClip[idx].Translation, AnimationClip[nextIdx].Translation, ratio);
 
-    //matrix matBone = MatrixAffineTransformation(scale, quaternionZero, rotation, translation);
+    matrix matBone = MatrixAffineTransformation(scale, quaternionZero, rotation, translation);
 
-    //g_final[threadIdx.x] = mul(g_offset[threadIdx.x], matBone);
+    RFinalBone[threadIdx.x] = mul(SkeletonBone[threadIdx.x], matBone);
+
 }

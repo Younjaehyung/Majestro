@@ -4,6 +4,11 @@
 
 #include "params.hlsl"
 
+float4 FixQuatSign(float4 q, float4 refq)
+{
+    return (dot(q, refq) < 0.0f) ? -q : q;
+}
+
 float4 VectorPermute(uint PermuteX, uint PermuteY, uint PermuteZ, uint PermuteW, in float4 V1, in float4 V2)
 {
     float4 Ptr[2] = { V1, V2 };

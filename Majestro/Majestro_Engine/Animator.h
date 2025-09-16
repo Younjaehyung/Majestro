@@ -10,6 +10,14 @@ struct KeyFrameInfo
 	Vec3	translate;
 };
 
+struct AnimationClipMeta
+{
+	uint32 BoneCount;
+	uint32 StartFrame;
+	uint32 NumFrame;
+	float FPS;
+};
+
 
 class Animator : public Object
 {
@@ -25,6 +33,7 @@ public:
 
 	int32			frameCount{};
 	double			duration{};
+	AnimationClipMeta				mClipMeta;
 	vector<vector<KeyFrameInfo>>	keyFrames;
 
 	double mStartTime{};

@@ -9,7 +9,6 @@ void Game::Initialize(const WindowInfo& info)
 
 void Game::Update()
 {
-
 	gEngine->Update();
 }
 

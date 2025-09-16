@@ -641,8 +641,8 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"GameObject", material);
 	}
 
-	 shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\OSW2.fbx");
+	// shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
+	 LoadFBX(L"..\\Resources\\FBX\\Warrior_Animatiion.fbx");
 	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 	 
 	//// Shadow

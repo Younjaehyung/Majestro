@@ -45,22 +45,22 @@ void Scene::Initialize()
 	//mWorld->AddComponent<TransformComponent>(testEntity, t);
 	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 	//////////////////////////////////////////////////////////////
-	Entity testEntity = mWorld->CreateEntity();	// �ʼ�
+	//Entity testEntity = mWorld->CreateEntity();	// �ʼ�
 
-	shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.Get<Mesh>(L"Dragon_Mesh");
-	std::vector<shared_ptr<Material>> materials;
-	
-	shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Dragon0");
-	materials.push_back(material);
-	material = RESOURCEMANAGER.Get<Material>(L"Dragon1");
-	materials.push_back(material);
-	material = RESOURCEMANAGER.Get<Material>(L"Dragon2");
-	materials.push_back(material);
-	material = RESOURCEMANAGER.Get<Material>(L"Dragon3");
-	materials.push_back(material);
-	material = RESOURCEMANAGER.Get<Material>(L"Dragon4");
-	materials.push_back(material);
-	
+	//shared_ptr<Mesh> sphereMesh = RESOURCEMANAGER.Get<Mesh>(L"Dragon_Mesh");
+	//std::vector<shared_ptr<Material>> materials;
+	//
+	//shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Dragon0");
+	//materials.push_back(material);
+	//material = RESOURCEMANAGER.Get<Material>(L"Dragon1");
+	//materials.push_back(material);
+	//material = RESOURCEMANAGER.Get<Material>(L"Dragon2");
+	//materials.push_back(material);
+	//material = RESOURCEMANAGER.Get<Material>(L"Dragon3");
+	//materials.push_back(material);
+	//material = RESOURCEMANAGER.Get<Material>(L"Dragon4");
+	//materials.push_back(material);
+	//
 
 	TransformComponent t{};
 
@@ -69,15 +69,15 @@ void Scene::Initialize()
 
 
 
-	mWorld->AddComponent<TransformComponent>(testEntity, t);
-	mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
+	//mWorld->AddComponent<TransformComponent>(testEntity, t);
+	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 	/////////////////////////////////////////////////////////////////////
 	Entity osw = mWorld->CreateEntity();	// �ʼ�
 
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
 	std::vector<shared_ptr<Material>> material2s;
 	
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"OSW20");
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Warrior_Animatiion0");
 	material2s.push_back(material2);
 	t.mLocalPosition = { 100.f, 0.f, 50.f };
 

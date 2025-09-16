@@ -452,6 +452,9 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
+# my
+Majestro/Resources/FBX
+
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 

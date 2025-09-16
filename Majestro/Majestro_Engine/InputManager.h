@@ -19,6 +19,8 @@ enum class eKeyCode {
 struct MouseState
 {
 	POINT Position = { 0, 0 };
+	POINT OldPosition = { 0, 0 };
+	POINT ClickPosition = { 0, 0 }; //클릭한 위치
 	POINT Delta = { 0, 0 }; // 이전 프레임과의 차이
 	short WheelDelta = 0;
 
@@ -58,12 +60,15 @@ public:
 	}
 
 	const MouseState& GetMouseState() const { return mMouseState; }
+	void MouseStateClear();
 
 
 private:
 	
 	HWND mHwnd;
 	MouseState mMouseState;
+
+	HCURSOR arrow = ::LoadCursor(nullptr, IDC_ARROW);
 
 	std::vector<Key> mKeys; //공통된 class를 가진 객체들이 공유
 };

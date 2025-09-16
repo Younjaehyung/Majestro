@@ -116,6 +116,7 @@ void InputManager::OnMouseMove(LPARAM lParam)
 
 	case WM_LBUTTONUP:
 		mMouseState.LeftDown = false;
+		::ReleaseCapture();
 
 		::SetCursor(arrow);
 		::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
@@ -123,6 +124,7 @@ void InputManager::OnMouseMove(LPARAM lParam)
 
 	case WM_RBUTTONUP:
 		mMouseState.RightDown = false;
+		::ReleaseCapture();
 		break;
 
 	case WM_MOUSEMOVE:

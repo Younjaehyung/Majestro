@@ -18,7 +18,7 @@ struct RenderParams
 	uint32 ObjectIndex{};
 	uint32 MaterialInfoIndex{};
 
-	uint32 LightIndex{};    //light가 아니면 쓰지 말것.
+	uint32 LightIndex{};    //light가 아니면 쓰지 말것. // animation
 	uint32 ParticleIndex{}; //Particle가 아니면 쓰지 말것.
 };
 

@@ -37,6 +37,7 @@ void RenderSystem::Update()
 
 	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
+	RENDERMANAGER.SetGraphicsTable();
 
 	ClearRTV();
 
@@ -334,14 +335,14 @@ void RenderSystem::PushObjectData()
 	uint32 smIdx{};
 	uint32 base{};
 
-	for (size_t i = 0; i < mDeferredDrawItems.size(); ) {
+	for (uint32 i = 0; i < mDeferredDrawItems.size(); ) {
 		psoId = mDeferredDrawItems[i].PSOID;
 		meshId = mDeferredDrawItems[i].MeshID;
 		smIdx = mDeferredDrawItems[i].SubMesh;
 
 		// 이 배치의 인스턴스들을 전역 InstanceGPU[]에 연속으로 복사
 		base = (uint32)mInstanceVector.size()-i;	// 수식이 이게 맞나? 확인 필요
-		size_t j = i;
+		uint32 j = i;
 		while (j < mDeferredDrawItems.size()
 			&& mDeferredDrawItems[j].PSOID == psoId
 			&& mDeferredDrawItems[j].MeshID == meshId
@@ -458,9 +459,8 @@ void RenderSystem::RenderFinal()
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
 	
-		RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
+	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
 		
-	
 	RESOURCEMANAGER.Get<Material>(L"Final");
 	
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();

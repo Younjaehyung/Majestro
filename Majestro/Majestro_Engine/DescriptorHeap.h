@@ -7,7 +7,8 @@ public:
 	void Initialize(uint32);
 
 
-	void CommitTable(uint32 frameCount, uint32 signautreNum, uint32 tableBegin, uint32 tableGroupSize=0/*if table isn't group*/);
+	void CommitGraphicsTable(uint32 frameCount, uint32 signautreNum, uint32 tableBegin, uint32 tableGroupSize=0/*if table isn't group*/);
+	void CommitComputeTable(uint32 frameCount, uint32 signautreNum, uint32 tableBegin, uint32 tableGroupSize=0/*if table isn't group*/);
 
 	ComPtr<ID3D12DescriptorHeap> GetDescriptorHeap() { return mDescHeap; }
 

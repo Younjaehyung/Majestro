@@ -19,6 +19,9 @@ struct VS_OUT
 // g_tex_2 : Specular Light Target
 // Mesh : Rectangle
 
+
+
+
 float4 PS_Final(VS_OUT input) : SV_Target
 {
     float4 output = (float4) 0;

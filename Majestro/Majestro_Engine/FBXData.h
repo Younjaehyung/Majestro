@@ -74,7 +74,6 @@ struct  FBXMaterialInfo
 	string OcclusionMapName{};
 };
 
-// 바이너리용 메시 정보 (최적화된 구조)
 struct FBXMeshInfo
 {
 	// uint32 NameLength;                        // 이름 길이 -> writeString
@@ -94,30 +93,27 @@ struct FBXBMeshInfo
 };
 
 
-// 바이너리용 본 정보
 struct FBXBoneInfo
 {
-	string	BoneName;
-	int32 ParentIndex;
-	XMFLOAT4X4 MatOffset;                    // 오프셋 매트릭스
+	string		BoneName;
+	int32		ParentIndex;
+	XMFLOAT4X4	MatOffset;                    // 오프셋 매트릭스
 };
 
 
-// 바이너리용 키프레임 정보
 struct FBXKeyFrameInfo
 {
-	XMFLOAT4X4 MatTransform;
-	double Time;
+	XMFLOAT4X4 MatTransform{};
+	double Time{};
 };
 
-// 바이너리용 애니메이션 클립 정보
 struct FBXAnimClipInfo
 {
 	string	Name;
 	double StartTime;
 	double EndTime;
 	uint32 TimeMode;                         // FbxTime::EMode를 uint32로
-	vector<vector<FBXKeyFrameInfo>>	KeyFrameInfo;
+	vector<vector<FBXKeyFrameInfo>>	KeyFrameInfo{};
 };
 
 class FBXData : public Object

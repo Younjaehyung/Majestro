@@ -3,11 +3,11 @@
 #include "System.h"
 
 struct AnimationPass{
-	int32			frameCount{};
-	double			duration{};
+	int32	FrameCount{};
+	double	Duration{};
 
-	double mStartTime{};
-	double mEndTime{};
+	double	StartTime{};
+	double	EndTime{};
 };
 
 class AnimationSystem : public System
@@ -22,14 +22,22 @@ private:	// COMPUTE 애니메이션 시스템
 
 	void ClearVector();
 
-	void AnimationBlend(float);
 	void AnimationPush(float);
 	void AnimationCompute();
+	void AnimationBlend(float);
+
+	
+	void AnimationDispatch();
+
+
 private:	// CPU 애니메이션 시스템
 
 
 private:
 	vector<struct KeyFrameInfo> mAniKeyFrame;
 	vector<struct AnimationClipMeta> mAniClipMeta;
+	vector<Matrix> mBoneData;
 	vector<AnimationPass> mAnimationPass;
+
+	shared_ptr<class Shader> mAnimationShader;
 };

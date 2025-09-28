@@ -20,12 +20,15 @@ struct PS_OUT
     float4 color : SV_Target2;
 };
 
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+
 PS_OUT PS_Main(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
     
-    uint objectIndex = GlobalParams.ObjectIndex;
-    int materialIndex = GlobalParams.MaterialInfoIndex;
+    uint objectIndex = GlobalParams.Index0;
+    uint materialIndex = GlobalParams.Index1;
     MATERIALINFO materials = Materials[materialIndex];
 
     float4 color = materials.Diffuse;

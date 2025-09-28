@@ -79,9 +79,7 @@ void FBXData::Load(const wstring& path)
 
 	if (std::ifstream f(filePath + ".mesh", std::ios::binary);f) {
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
-
 		CreateMeshFromFBX(f);
-		
 	}
 	if (std::ifstream f(filePath + ".skel", std::ios::binary); f) {
 		CreateSkeletonFromFBX(f);
@@ -89,7 +87,7 @@ void FBXData::Load(const wstring& path)
 	if (std::ifstream f(filePath + ".ani", std::ios::binary); f) {
 		CreateAnimatorFromFBX(f);
 	}
-
+	
 
 }
 
@@ -155,7 +153,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 		meshInfo.Materials.push_back(ReadMaterialData(loader));
 
 		mMaterials[s]->CreateMaterial(meshInfo.Materials[s]);
-		mMaterials[s]->SetShader(L"Deferred");
+		mMaterials[s]->SetShader(L"Deferred");	//to-do
 		RESOURCEMANAGER.Add<Material>(mMaterials[s]->GetName(), mMaterials[s]);
 	}
 	
@@ -164,8 +162,8 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 
 shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 {
-	shared_ptr<Skeleton> skeleton = make_shared<Skeleton>();
-	skeleton->mBones.reserve(mHeader.BoneCount);
+	mSkeleton = make_shared<Skeleton>();
+	mSkeleton->mBones.reserve(mHeader.BoneCount);
 	struct Dummy {
 		int32					parentIdx{};
 		XMFLOAT4X4				matOffset{};
@@ -177,16 +175,16 @@ shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 		Dummy dummy;
 		fbxBondInfo.boneName = ReadString(loader);
 
-		loader.read(reinterpret_cast<char*>(&dummy), sizeof(dummy));
+		loader.read(reinterpret_cast<char*>(&dummy), sizeof(Dummy));
 		fbxBondInfo.parentIdx = dummy.parentIdx;
 		fbxBondInfo.matOffset = dummy.matOffset; // XMFLOAT4X4 그대로
 
-		skeleton->mBones.emplace_back(fbxBondInfo);
+		mSkeleton->mBones.emplace_back(fbxBondInfo);
 	}
 	loader.close();
-	RESOURCEMANAGER.Add(s2ws(fileName),skeleton);
+	RESOURCEMANAGER.Add(s2ws(fileName),mSkeleton);
 
-	return skeleton;
+	return mSkeleton;
 }
 
 vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
@@ -195,7 +193,6 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 
 	for (uint32 ai = 0; ai < mHeader.AnimClipCount; ++ai)
 	{
-		mAnimators[ai] = make_shared<Animator>();
 
 		FBXAnimClipInfo animClipInfo{};
 
@@ -211,38 +208,44 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 		DummyAnimClipInfo dummy{};
 
 		animClipInfo.Name = ReadString(loader);
-		loader.read(reinterpret_cast<char*>(&dummy), sizeof(dummy));
+		loader.read(reinterpret_cast<char*>(&dummy), sizeof(DummyAnimClipInfo));
 		animClipInfo.StartTime = dummy.StartTime;
 		animClipInfo.EndTime = dummy.EndTime;
 		animClipInfo.TimeMode = dummy.TimeMode;
 
 		// boneTracks
 		uint32 boneTracks = 0;
-		loader.read(reinterpret_cast<char*>(&boneTracks), sizeof(boneTracks));
+		loader.read(reinterpret_cast<char*>(&boneTracks), sizeof(uint32));
 		animClipInfo.KeyFrameInfo.resize(boneTracks);
 
 		// 각 본 트랙
 		for (uint32 b = 0; b < boneTracks; ++b)
 		{
 			uint32 kcount = 0;
-			loader.read(reinterpret_cast<char*>(&kcount), sizeof(kcount));
+			loader.read(reinterpret_cast<char*>(&kcount), sizeof(uint32));
 			auto& track = animClipInfo.KeyFrameInfo[b];
-			track.resize(kcount);
+			track.resize(kcount); // frame
+			if (kcount != 0) {
+				for (uint32 k = 0; k < kcount; ++k)
+				{
+					FBXKeyFrameInfo binKF{};
+					loader.read(reinterpret_cast<char*>(&binKF), sizeof(FBXKeyFrameInfo));
 
-			for (uint32 k = 0; k < kcount; ++k)
-			{
-				FBXKeyFrameInfo binKF{};
-				loader.read(reinterpret_cast<char*>(&binKF), sizeof(binKF));
+					track[k] = binKF;
+				}
+			}
+			else {	// 해당 프레임에 데이터가 없을시 30으로 고정해버림
+				track.resize(30);
 
-				binKF.MatTransform;
-				binKF.Time;
-				track[k] = binKF;
+				for (uint32 k = 0; k < 30; ++k)
+				{
+					FBXKeyFrameInfo binKF{};
+					track[k] = binKF;
+				}
 			}
 		}
-
-		mAnimators[ai]->SetName(s2ws(animClipInfo.Name));
-		mAnimators[ai]->CreateAnimations(loader);
-		mAnimators.emplace_back(std::make_shared<Animator>(animClipInfo));
+		mAnimators[ai]= std::make_shared<Animator>(animClipInfo);
+		mAnimators[ai]->SetSkeleton(mSkeleton);
 		RESOURCEMANAGER.Add<Animator>(mAnimators[ai]->GetName(), mAnimators[ai]);
 	}
 	loader.close();

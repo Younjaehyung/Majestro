@@ -22,17 +22,23 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 }
 
 
-void GraphicsDescriptorHeap::CommitTable(uint32 frameCount,uint32 signautreNum,uint32 tableBegin, uint32 tableGroupSize)
+void GraphicsDescriptorHeap::CommitGraphicsTable(uint32 frameCount,uint32 signautreNum,uint32 tableBegin, uint32 tableGroupSize)
 {
-
-
 	D3D12_GPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetGPUDescriptorHandleForHeapStart();
 
 	// 만약 tableGroupSize가 0 이면 이것은 프레임리소스를 사용안한다고 간주하게됨. 
 	handle.ptr += static_cast<uint64>(( tableBegin +( frameCount * tableGroupSize))* mHandleSize);
 	GRAPHICS_CMD_LIST->SetGraphicsRootDescriptorTable(signautreNum, handle);
 	//CMD를 통하여 Desc Table에 있는 값들을 레지스터에 보내는 명령어를 실행.(CMD이기 때문에 즉시가 아니라 나중에 실행됨)
+}
 
-	
+void GraphicsDescriptorHeap::CommitComputeTable(uint32 frameCount, uint32 signautreNum, uint32 tableBegin, uint32 tableGroupSize)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handle = mDescHeap->GetGPUDescriptorHandleForHeapStart();
+
+	handle.ptr += static_cast<uint64>((tableBegin + (frameCount * tableGroupSize)) * mHandleSize);
+	//COMPUTE_CMD_LIST->SetComputeRootDescriptorTable(signautreNum, handle);
+	GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(signautreNum, handle);
+
 
 }

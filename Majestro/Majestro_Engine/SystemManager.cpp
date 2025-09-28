@@ -4,11 +4,14 @@
 #include "CameraSystem.h"
 #include "AudioSystem.h"
 #include "TransformSystem.h"
+#include "AnimationSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
+
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();
+    RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
     
@@ -29,6 +32,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);
+    GetSystem<AnimationSystem>()->Update(deltaTime);
     
 }
 

@@ -30,6 +30,7 @@ void Engine::Initialize(const WindowInfo& info)
 
 	mInputManager->Initialize(info.Hwnd);
 	mTimer = make_unique<Timer>();
+	mTimer->Start();
 
 	mSceneManager->Initialize();
 	mHwnd = info.Hwnd;
@@ -37,7 +38,7 @@ void Engine::Initialize(const WindowInfo& info)
 
 void Engine::Update()
 {
-	
+	mRenderManager->StartRender();
 	mTimer->Tick();
 	mInputManager->Update();
 	mSceneManager->Update(mTimer->GetTimeElapsed());
@@ -46,7 +47,7 @@ void Engine::Update()
 
 void Engine::Render()
 {
-	mRenderManager->StartRender();
+	
 	mSceneManager->Render();
 
 	mRenderManager->EndRender();

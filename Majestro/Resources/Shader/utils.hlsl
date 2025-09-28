@@ -82,4 +82,41 @@ float Rand(float2 co)
     //frac : 소수점 추출
 }
 
+float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, float max, float maxLv)
+{
+    float distance = length(patchPos - cameraWorldPos);
+
+    if (distance < min)
+        return maxLv;
+    if (distance > max)
+        return 1.f;
+
+    float ratio = (distance - min) / (max - min);
+    float level = (maxLv - 1.f) * (1.f - ratio);
+    return level;
+}
+
+
+void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
+    inout float4 weight, inout float4 indices)
+{
+    SkinningInfo info = (SkinningInfo) 0.f;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (weight[i] == 0.f)
+            continue;
+
+        int boneIdx = indices[i];
+        matrix matBone = SFinalBone[boneIdx];
+
+        info.pos += (mul(float4(pos, 1.f), matBone) * weight[i]).xyz;
+        info.normal += (mul(float4(normal, 0.f), matBone) * weight[i]).xyz;
+        info.tangent += (mul(float4(tangent, 0.f), matBone) * weight[i]).xyz;
+    }
+
+    pos = info.pos;
+    tangent = normalize(info.tangent);
+    normal = normalize(info.normal);
+}
 #endif

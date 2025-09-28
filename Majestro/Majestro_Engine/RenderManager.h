@@ -47,6 +47,8 @@ public:
 
 	void ResizeWindow(int32 width, int32 height);
 
+	void SetComputTable();
+	void SetGraphicsTable();
 	void SetTable();
 
 	const WindowInfo& GetWindow() { return mWindow; }
@@ -66,7 +68,7 @@ public:
 
 	shared_ptr<GroupBuffer>	&			GetGroupBuffer(uint32 frame)		{ return mGroupBuffer[frame]; }
 	shared_ptr<ParticleBuffer>&			GetParticleBuffers(uint32 group)	{ return mParticleBuffer[group]; }
-	shared_ptr<AnimationBuffer>&		GetAnimationBuffers()	{ return mAnimationBuffer; }
+	shared_ptr<AnimationBuffer>&		GetAnimationBuffers()				{ return mAnimationBuffer; }
 	shared_ptr<StructuredBuffer>&		GetMaterialBuffers()				{ return mMaterialBuffer; }
 
 	RenderTargetGroup&					GetRenderTargetGroup(uint8 type)	{ return mRenderTargetGroup[type]; }

@@ -18,11 +18,14 @@ struct VS_TEX_OUT
     float2 uv : TEXCOORD;
 };
 
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+
 VS_TEX_OUT VS_Tex(VS_TEX_IN input)
 {
     VS_TEX_OUT output = (VS_TEX_OUT) 0;
 
-    uint objectIndex = GlobalParams.ObjectIndex;
+    uint objectIndex = GlobalParams.Index0;
     matrix view = PassParams.MatView;
     matrix projection = PassParams.MatProjection;
     matrix WVP = mul(mul(Objects[objectIndex].MatWorld, view), projection);

@@ -9,10 +9,13 @@ struct VS_TEX_OUT
     float2 uv : TEXCOORD;
 };
 
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+
 float4 PS_Tex(VS_TEX_OUT input) : SV_Target
 {
     float4 color = float4(1.f, 1.f, 1.f, 1.f);
-    int materialIndex = GlobalParams.MaterialInfoIndex;
+    int materialIndex = GlobalParams.Index1;
     
     MATERIALINFO materials = Materials[materialIndex];
     

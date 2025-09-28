@@ -43,11 +43,18 @@ struct PARTICLESHARED
     int TextureIndex;
 };
 
+struct SkinningInfo
+{
+    float3 pos;
+    float3 normal;
+    float3 tangent;
+};
+
 struct ANIMFRAMEPARAMS
 {
-    float3 Scale;
+    float4 Scale;
     float4 Rotation; // quaternion (x,y,z,w)
-    float3 Translation;
+    float4 Translation;
 };
 
 struct ANIMATIONMETA
@@ -123,23 +130,27 @@ struct PASSINFO
 struct GLOBAL_PARAMS
 {
 
-    uint ObjectIndex;
-    uint MaterialInfoIndex;
-    
-    uint LightIndex;    //light가 아니면 쓰지 말것.
-    uint ParticleIndex; //Particle가 아니면 쓰지 말것.
+    uint Index0;
+    uint Index1;
+    uint Index2;
+    float Index3;
 
 };
 
 struct RENDERPARAMS
 {
 
+    //uint Index0;
+    //uint Index1;
+    //uint Index2;
+    //uint Index3;
+    
+    
     uint ObjectIndex;
     uint MaterialInfoIndex;
     
     uint LightIndex; //light가 아니면 쓰지 말것.
     uint ParticleIndex; //Particle가 아니면 쓰지 말것.
-
 };
 	
  ///////////////////////////GLOBAL_PARAMS/////////////////////////////

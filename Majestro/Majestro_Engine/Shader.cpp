@@ -166,21 +166,25 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 
 void Shader::CreateComputeShader(const ShaderPath& path, const string& name, const string& version)
 {
-	// 추후 수정
-	//mInfo.shaderType = SHADER_TYPE::COMPUTE;
 
-	//CreateShader(path.CS, name, version, mCsBlob, mComputePipelineDesc.CS);
-	//mComputePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"ComputeRootSignature")->GetRootSignature().Get();
+	mInfo.shaderType = SHADER_TYPE::COMPUTE;
 
-	//HRESULT hr = DEVICE->CreateComputePipelineState(&mComputePipelineDesc, IID_PPV_ARGS(&mPipelineState));
-	//assert(SUCCEEDED(hr));
+	CreateShader(path.CS, name, version, mCsBlob, mComputePipelineDesc.CS);
+	mComputePipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get();
+
+	HRESULT hr = DEVICE->CreateComputePipelineState(&mComputePipelineDesc, IID_PPV_ARGS(&mPipelineState));
+	assert(SUCCEEDED(hr));
 }
 
 
 void Shader::Update()
 {
 	if (GetShaderType() == SHADER_TYPE::COMPUTE) {
-		//COMPUTE_CMD_LIST->SetPipelineState(_pipelineState.Get());
+		//COMPUTE_CMD_LIST->SetPipelineState(mPipelineState.Get());
+
+		GRAPHICS_CMD_LIST->IASetPrimitiveTopology(mInfo.topology);
+
+		GRAPHICS_CMD_LIST->SetPipelineState(mPipelineState.Get());
 	}
 	else {
 		GRAPHICS_CMD_LIST->IASetPrimitiveTopology(mInfo.topology);

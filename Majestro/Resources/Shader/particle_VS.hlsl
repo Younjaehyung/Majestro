@@ -25,11 +25,13 @@ struct VS_OUT
 // g_float_1    : End Scale
 // g_tex_0      : Particle Texture
 
+// uint Index0 = ParticleIndex;
+
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
 
-    float3 worldPos = mul(float4(input.pos, 1.f), Objects[GlobalParams.ObjectIndex].MatWorld).xyz;
+    float3 worldPos = mul(float4(input.pos, 1.f), Objects[GlobalParams.Index0].MatWorld).xyz;
     worldPos += RWParticle[input.id].worldPos;
 
     output.viewPos = mul(float4(worldPos, 1.f), PassParams.MatView);

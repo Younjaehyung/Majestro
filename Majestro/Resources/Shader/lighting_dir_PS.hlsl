@@ -23,6 +23,10 @@ struct PS_OUT
 // g_tex_2 : Shadow RT
 // g_mat_0 : ShadowCamera VP
 // Mesh : Rectangle
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+
+
 
 PS_OUT PS_DirLight(VS_OUT input)
 {

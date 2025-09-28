@@ -10,6 +10,7 @@
 #include "CameraComponent.h"
 #include "LightComponent.h"
 #include "TagComponent.h"
+#include "AnimationComponent.h"
 
 #include "Prefab.h"
 //#include "Camera.h"
@@ -77,13 +78,17 @@ void Scene::Initialize()
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
 	std::vector<shared_ptr<Material>> material2s;
 	
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Warrior20");
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
 	material2s.push_back(material2);
 	t.mLocalPosition = { 0.f, 0.f, 50.f };
 
+	vector<shared_ptr<Animator>> anmators;
+	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
 
 	mWorld->AddComponent<TransformComponent>(osw, t);
 	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+	mWorld->AddComponent<AnimationComponent>(osw, anmators);
+
 
 
 	/////////////////////////////////////////////////////////////////////////

@@ -38,7 +38,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 	CreateGroup();
 	CreateMaterial();
-
+	CreateAnimation();
 	//CreateParticle();
 
 	CreateRenderTargetGroups();
@@ -119,6 +119,8 @@ void RenderManager::CreateParticle()
 
 void RenderManager::CreateAnimation()
 {
+	mAnimationBuffer = make_shared<AnimationBuffer>();
+
 	mAnimationBuffer->SkeletonBone = make_shared<StructuredBuffer>();
 	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(Matrix), 128);
 	mAnimationBuffer->SkeletonBone->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_SKELETONBONE_INDEX));
@@ -140,7 +142,7 @@ void RenderManager::Update()
 void RenderManager::StartRender()
 {
 	mGraphicsCommandQueue->RenderBegin();
-	SetTable();
+
 }
 
 
@@ -161,27 +163,77 @@ void RenderManager::ResizeWindow(int32 width, int32 height)
 
 }
 
+void RenderManager::SetComputTable()
+{
+
+	if (mRootSignature == nullptr) {
+		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
+	}
+
+
+	GRAPHICS_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+
+	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
+
+
+	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
+	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+
+	// Table 바인딩
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 1, GBUFFER_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 3, PARTICLE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 4, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
+}
+
+void RenderManager::SetGraphicsTable()
+{
+
+
+	if (mRootSignature == nullptr) {
+		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
+	}
+
+
+	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+
+
+	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
+
+	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
+	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+
+	// Table 바인딩
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 1, GBUFFER_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 3, PARTICLE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 4, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
+
+
+}
+
 void RenderManager::SetTable()
 {
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
-	if (mRootSignature==nullptr) {
+	if (mRootSignature == nullptr) {
 		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
-	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
-	COMPUTE_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
-
 	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
 	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
 	// Table 바인딩
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 1, GBUFFER_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 3, PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 4, ANIMATION_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
-
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 1, GBUFFER_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 3, PARTICLE_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 4, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
 }
 
 void RenderManager::CreateRenderTargetGroups()

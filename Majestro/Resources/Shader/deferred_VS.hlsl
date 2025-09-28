@@ -1,5 +1,5 @@
-
 #include "params.hlsl"
+#include "utils.hlsl"
 
 struct VS_IN
 {
@@ -25,16 +25,27 @@ struct VS_OUT
     uint instanceID : InstanceID;
 };
 
+
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+// uint Index2 = AnimationBool;
+
+    
+
+
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0;
     output.instanceID = input.instanceID;
 
-    RENDERPARAMS Instance = GlobalParams;
     
-    uint objectIndex = Instance.ObjectIndex;
+    uint objectIndex = GlobalParams.Index0;
     matrix WV = mul(Objects[objectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);
+    
+   // if (GlobalParams.Index2 == 1)
+   Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices);
+
     
     output.pos = mul(float4(input.pos, 1.f), WVP);
     output.uv = input.uv;

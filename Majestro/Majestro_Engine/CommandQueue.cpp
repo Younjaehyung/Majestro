@@ -54,6 +54,8 @@ void GraphicsCommandQueue::RenderBegin()
 		//SetGraphicsRootDescriptorTable와 거의 세트임. (1.선택후 2.명령어로 보내기.)
 	D3D12_RESOURCE_BARRIER barrier = gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetBarrier();
 	GRAPHICS_CMD_LIST->ResourceBarrier(1, &barrier);
+
+
 }
 
 void GraphicsCommandQueue::RenderEnd()

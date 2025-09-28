@@ -560,6 +560,18 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info);
 		Add<Shader>(L"Shadow", shader);
 	}
+
+	// animation 
+	{
+
+		ShaderPath shaderPath{
+			.CS = L"..\\Resources\\Shader\\animation_CS.hlsl",
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateComputeShader(shaderPath);
+		Add<Shader>(L"AnimationComputeShader", shader);
+	
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()
@@ -649,7 +661,7 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 	// shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
+	 LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
 	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 	 
 	//// Shadow

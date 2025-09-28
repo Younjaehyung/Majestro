@@ -7,6 +7,14 @@
 // g_int_0  : Particle Max Count
 // g_int_1  : AddCount
 // g_vec4_0 : MinLifeTime / MaxLifeTime / MinSpeed / MaxSpeed
+
+// uint Index0 = ParticleIndex;
+// uint Index1;
+// uint Index2;
+// uint Index3;
+
+
+
 [numthreads(1024, 1, 1)]
 void CS_Main(int3 threadIndex : SV_DispatchThreadID)
 {
@@ -23,21 +31,21 @@ void CS_Main(int3 threadIndex : SV_DispatchThreadID)
     float minSpeed = Particle[threadIndex.x].minSpeed;
     float maxSpeed = Particle[threadIndex.x].maxSpeed;
 
-    RWParticleShared[GlobalParams.ParticleIndex].addCount = addCount;
+    RWParticleShared[GlobalParams.Index0].addCount = addCount;
     GroupMemoryBarrierWithGroupSync();  //임계영역 보호를 위한 barrier (동기화)
 
     if (RWParticle[threadIndex.x].alive == 0)
     {
         while (true)
         {
-            int remaining = RWParticleShared[GlobalParams.ParticleIndex].addCount;
+            int remaining = RWParticleShared[GlobalParams.Index0].addCount;
             if (remaining <= 0)
                 break;
 
             int expected = remaining;
             int desired = remaining - 1;
             int originalValue;
-            InterlockedCompareExchange(RWParticleShared[GlobalParams.ParticleIndex].addCount, expected, desired, originalValue); //임계영역
+            InterlockedCompareExchange(RWParticleShared[GlobalParams.Index0].addCount, expected, desired, originalValue); //임계영역
                                                                                                 //한번에 한번만 실행함
                                                                                                 //if (addCount == expected )addCount = desired
                                                                                                 // originalValue = addCount

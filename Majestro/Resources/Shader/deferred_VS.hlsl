@@ -39,12 +39,14 @@ VS_OUT VS_Main(VS_IN input)
     output.instanceID = input.instanceID;
 
     
-    uint objectIndex = GlobalParams.Index0;
-    matrix WV = mul(Objects[objectIndex].MatWorld, PassParams.MatView);
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;;
+    RENDERPARAMS instance = InstanceParams[idx];
+    
+    matrix WV = mul(Objects[instance.ObjectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);
     
-   // if (GlobalParams.Index2 == 1)
-   Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices);
+   // if (GlobalParams.LightIndex == 1)
+   //Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices);
 
     
     output.pos = mul(float4(input.pos, 1.f), WVP);

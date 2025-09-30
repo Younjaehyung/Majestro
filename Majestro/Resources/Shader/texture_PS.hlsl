@@ -15,7 +15,10 @@ struct VS_TEX_OUT
 float4 PS_Tex(VS_TEX_OUT input) : SV_Target
 {
     float4 color = float4(1.f, 1.f, 1.f, 1.f);
-    int materialIndex = GlobalParams.Index1;
+    
+    uint idx = GlobalParams.BaseInstanceID;
+    RENDERPARAMS instance = InstanceParams[idx];
+    int materialIndex = instance.MaterialInfoIndex;
     
     MATERIALINFO materials = Materials[materialIndex];
     

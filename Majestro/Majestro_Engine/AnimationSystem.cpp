@@ -59,6 +59,9 @@ void AnimationSystem::Update(float deltaTime)
 
 void AnimationSystem::ClearVector()
 {
+    mAniKeyFrame.clear();
+    mAniClipMeta.clear();
+    mAnimationPass.clear();
 }
 
 

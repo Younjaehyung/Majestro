@@ -25,7 +25,9 @@ VS_TEX_OUT VS_Tex(VS_TEX_IN input)
 {
     VS_TEX_OUT output = (VS_TEX_OUT) 0;
 
-    uint objectIndex = GlobalParams.Index0;
+    uint idx = GlobalParams.BaseInstanceID;
+    RENDERPARAMS instance = InstanceParams[idx];
+    uint objectIndex = instance.ObjectIndex;
     matrix view = PassParams.MatView;
     matrix projection = PassParams.MatProjection;
     matrix WVP = mul(mul(Objects[objectIndex].MatWorld, view), projection);

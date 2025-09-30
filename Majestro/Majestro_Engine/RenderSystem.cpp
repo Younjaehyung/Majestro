@@ -20,7 +20,6 @@ RenderSystem::RenderSystem(World* world) : System::System(world)
 
 void RenderSystem::Initialize()
 {
-	// 1번 초기화
 	mRenderComponentPool = &(mWorld->GetComponentPool<RenderComponent>());
 	mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 
@@ -35,10 +34,9 @@ void RenderSystem::Initialize()
 void RenderSystem::Update()
 {
 
-	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
 	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-	RENDERMANAGER.SetGraphicsTable();
-
+	
 	ClearRTV();
 
 	PushData();
@@ -57,13 +55,10 @@ void RenderSystem::Update()
 
 void RenderSystem::PushData()
 {
-
+	RENDERMANAGER.SetGraphicsTable();
 	PushPassData();
 	PushObjectData();
 	PushLightData();
-
-	//PushGBufferData();
-
 	PushInstanceData();
 }
 
@@ -139,8 +134,8 @@ void RenderSystem::PushPassData()
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
 
 
-	shared_ptr<GroupBuffer> a = RENDERMANAGER.GetGroupBuffer(mFrameCount);
-	a->PassInfo->PushData(&passParams, sizeof(PassParams));
+	shared_ptr<GroupBuffer> groupBuffer = RENDERMANAGER.GetGroupBuffer(mFrameCount);
+	groupBuffer->PassInfo->PushData(&passParams, sizeof(PassParams));
 
 }
 
@@ -163,84 +158,6 @@ void RenderSystem::PushInstanceData()
 	RENDERMANAGER.GetGroupBuffer(mFrameCount)->InstanceInfo->PushGraphicsData(mInstanceVector.data(), static_cast<uint32>(mInstanceVector.size() * sizeof(RenderParams)));
 }
 
-
-void RenderSystem::PushGBufferData()
-{
-
-	for (auto& entityID : mRenderComponentPool->GetEntities()) {
-		RenderComponent* renderEntity = mRenderComponentPool->GetComponent(entityID);
-		//if (!renderEntity->IsVisibility())
-		//	continue;
-		if (mWorld->GetComponent<LightComponent>(entityID)) {
-			continue;
-		}
-		/*	if (IsCustomCulled(renderEntity->GetLayerIndex()))
-				continue;*/
-
-		if (IsFrustumCulled()) {
-			if (mCamera->mFrustum.ContainsSphere(
-				mWorld->GetComponent<TransformComponent>(entityID)->GetWorldPosition(),
-				mWorld->GetComponent<TransformComponent>(entityID)->GetBoundingSphereRadius()) == false)
-			{
-				continue;
-			}
-		}
-
-
-		uint32 i = 0;
-		for (shared_ptr<Material>& material : renderEntity->mMaterials) {
-			mDeferredDrawItems.emplace_back(
-				material->GetShader(),
-				renderEntity->mMesh,
-				material->GetShaderID(),
-				renderEntity->mMesh->GetID(),
-				material->GetID(),
-				i++,
-				RenderParams{ renderEntity->mObjectIndex, material->GetIndex(),0,0 }
-			);
-		}
-
-
-	}
-
-	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
-		if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
-		if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
-		return a.SubMesh < b.SubMesh;                          // Submesh
-		});
-
-
-	uint32 psoId{};
-	uint32 meshId{};
-	uint32 smIdx{};
-	uint32 base{};
-
-	for (size_t i = 0; i < mDeferredDrawItems.size(); ) {
-		psoId = mDeferredDrawItems[i].PSOID;
-		meshId = mDeferredDrawItems[i].MeshID;
-		smIdx = mDeferredDrawItems[i].SubMesh;
-
-		// 이 배치의 인스턴스들을 전역 InstanceGPU[]에 연속으로 복사
-		base = (uint32)mInstanceVector.size();
-		size_t j = i;
-		while (j < mDeferredDrawItems.size()
-			&& mDeferredDrawItems[j].PSOID == psoId
-			&& mDeferredDrawItems[j].MeshID == meshId
-			&& mDeferredDrawItems[j].SubMesh == smIdx) {
-			mInstanceVector.push_back(mDeferredDrawItems[j].InstanceGPU);
-			++j;
-		}
-
-
-		mBatch=&mDeferredDrawItems[i];
-		mBatch.BaseInstance = base;
-		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
-		mDeferredDrawBatchs.push_back(mBatch);
-
-		i = j; // 다음 run으로
-	}
-
-}
 
 
 
@@ -283,12 +200,10 @@ void RenderSystem::PushLightData()
 
 void RenderSystem::PushObjectData()
 {
-	TransformComponent* transformComponent;
-	RenderComponent* renderComponent;
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
 	
 	uint32 index{};
-	
+	uint32 index2{};
 	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
 	{
 		if (mWorld->GetComponent<LightComponent>(gameObject)) {
@@ -296,18 +211,23 @@ void RenderSystem::PushObjectData()
 		}
 		
 
-		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+		TransformComponent*		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+		RenderComponent*		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
+
+		if (animationComponent) {
+			index2 = 0;
+		}else{index2 = 1;}
 
 		objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 		mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
 			
-		renderComponent->mObjectIndex = index;
-		index++;
+		renderComponent->mObjectIndex = index++;	// objectParams의 index 지정
+
 		
 
 
-		uint32 i = 0;
+		uint32 subMaterialIdx{};
 		for (shared_ptr<Material>& material : renderComponent->mMaterials) {
 			mDeferredDrawItems.emplace_back(
 				material->GetShader(),
@@ -315,8 +235,8 @@ void RenderSystem::PushObjectData()
 				material->GetShaderID(),
 				renderComponent->mMesh->GetID(),
 				material->GetID(),
-				i++,
-				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),0,0 }
+				subMaterialIdx++,
+				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),index2,0 }
 			);
 		}
 	}
@@ -341,28 +261,29 @@ void RenderSystem::PushObjectData()
 		smIdx = mDeferredDrawItems[i].SubMesh;
 
 		// 이 배치의 인스턴스들을 전역 InstanceGPU[]에 연속으로 복사
-		base = (uint32)mInstanceVector.size()-i;	// 수식이 이게 맞나? 확인 필요
+		base = (uint32)mInstanceVector.size();//-i;	// 수식이 이게 맞나? 확인 필요
 		uint32 j = i;
+
 		while (j < mDeferredDrawItems.size()
 			&& mDeferredDrawItems[j].PSOID == psoId
 			&& mDeferredDrawItems[j].MeshID == meshId
-			&& mDeferredDrawItems[j].SubMesh == smIdx) {
-			mInstanceVector.push_back(mDeferredDrawItems[j].InstanceGPU);
-			
+			&& mDeferredDrawItems[j].SubMesh == smIdx) 
+		{
+			mInstanceVector.push_back(mDeferredDrawItems[j].InstanceGPU);	
 			++j;
 		}
 
 
 		mBatch.PSOShader = mDeferredDrawItems[i].PSOShader;
 		mBatch.Mesh = mDeferredDrawItems[i].PMesh;
-		mBatch.PSOID = mDeferredDrawItems[i].PSOID;
-		mBatch.MeshID = mDeferredDrawItems[i].MeshID;
-		mBatch.SubMesh = mDeferredDrawItems[i].SubMesh;
+		mBatch.PSOID = psoId;
+		mBatch.MeshID = meshId;
+		mBatch.SubMesh = smIdx;
 		mBatch.SubMeshIndex = mDeferredDrawItems[i].SubMeshIndex;
 		mBatch.BaseInstance = base;
 		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
-		mBatch.InstanceGPU = mDeferredDrawItems[i].InstanceGPU;
-		mBatch.ParamsINX = i;
+		//mBatch.InstanceGPU = mDeferredDrawItems[i].InstanceGPU;
+		//mBatch.ParamsINX = i;
 		mDeferredDrawBatchs.push_back(mBatch);
 
 		i = j; // 다음 run으로
@@ -411,7 +332,7 @@ void RenderSystem::RenderGBuffer()
 			drawBatch.PSOShader->Update();
 			mCurrPSOID = drawBatch.PSOID;
 		}
-		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,4,&(drawBatch.InstanceGPU),0);
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,1,&(drawBatch.BaseInstance),0);
 		InstancingRender(drawBatch);
 	}
 
@@ -573,7 +494,7 @@ void RenderSystem::InstancingRender(DrawBatch& drawBatch)
 {
 	
 
-	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, drawBatch.BaseInstance,0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
+	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, 0,0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 	
 }
 

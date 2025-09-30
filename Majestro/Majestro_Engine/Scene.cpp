@@ -88,6 +88,18 @@ void Scene::Initialize()
 	mWorld->AddComponent<TransformComponent>(osw, t);
 	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 	mWorld->AddComponent<AnimationComponent>(osw, anmators);
+	float i, j;
+	for (i = -10; i < 10; i+=1.0f) {
+		for (j = -10; j < 10; j += 1.0f) {
+			Entity osws = mWorld->CreateEntity();	// �ʼ�
+			t.mLocalPosition = { i, j, 50.f };
+
+
+			mWorld->AddComponent<TransformComponent>(osws, t);
+			mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
+			mWorld->AddComponent<AnimationComponent>(osws, anmators);
+		}
+	}
 
 
 

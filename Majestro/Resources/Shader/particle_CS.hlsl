@@ -31,21 +31,21 @@ void CS_Main(int3 threadIndex : SV_DispatchThreadID)
     float minSpeed = Particle[threadIndex.x].minSpeed;
     float maxSpeed = Particle[threadIndex.x].maxSpeed;
 
-    RWParticleShared[GlobalParams.Index0].addCount = addCount;
+    RWParticleShared[GlobalParams.BaseInstanceID].addCount = addCount;
     GroupMemoryBarrierWithGroupSync();  //임계영역 보호를 위한 barrier (동기화)
 
     if (RWParticle[threadIndex.x].alive == 0)
     {
         while (true)
         {
-            int remaining = RWParticleShared[GlobalParams.Index0].addCount;
+            int remaining = RWParticleShared[GlobalParams.BaseInstanceID].addCount;
             if (remaining <= 0)
                 break;
 
             int expected = remaining;
             int desired = remaining - 1;
             int originalValue;
-            InterlockedCompareExchange(RWParticleShared[GlobalParams.Index0].addCount, expected, desired, originalValue); //임계영역
+            InterlockedCompareExchange(RWParticleShared[GlobalParams.BaseInstanceID].addCount, expected, desired, originalValue); //임계영역
                                                                                                 //한번에 한번만 실행함
                                                                                                 //if (addCount == expected )addCount = desired
                                                                                                 // originalValue = addCount

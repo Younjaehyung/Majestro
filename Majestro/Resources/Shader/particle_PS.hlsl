@@ -21,7 +21,7 @@ struct GS_OUT
 
 float4 PS_Main(GS_OUT input) : SV_Target
 {
-    return TextureMaps[ParticleShared[GlobalParams.Index0].TextureIndex].Sample(g_sam_0, input.uv);
+    return TextureMaps[ParticleShared[GlobalParams.BaseInstanceID].TextureIndex].Sample(g_sam_0, input.uv);
 }
 
 

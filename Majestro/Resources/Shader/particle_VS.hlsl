@@ -31,7 +31,7 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
 
-    float3 worldPos = mul(float4(input.pos, 1.f), Objects[GlobalParams.Index0].MatWorld).xyz;
+    float3 worldPos = mul(float4(input.pos, 1.f), Objects[GlobalParams.BaseInstanceID].MatWorld).xyz;
     worldPos += RWParticle[input.id].worldPos;
 
     output.viewPos = mul(float4(worldPos, 1.f), PassParams.MatView);

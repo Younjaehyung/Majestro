@@ -27,8 +27,9 @@ PS_OUT PS_Main(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
     
-    uint objectIndex = GlobalParams.Index0;
-    uint materialIndex = GlobalParams.Index1;
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;;
+    RENDERPARAMS instance = InstanceParams[idx];
+    uint materialIndex = instance.MaterialInfoIndex;
     MATERIALINFO materials = Materials[materialIndex];
 
     float4 color = materials.Diffuse;

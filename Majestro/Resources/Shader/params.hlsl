@@ -1,5 +1,7 @@
 #ifndef _PARAMS_HLSL_
 #define _PARAMS_HLSL_
+
+//////////////Light
 struct LightColor
 {
     float4      diffuse;
@@ -16,8 +18,6 @@ struct LIGHTINFO
     float	    range;
     float	    angle;
 
-    
-    
     matrix MatWorld;
     matrix MatView;
     matrix MatProjection;
@@ -26,28 +26,52 @@ struct LIGHTINFO
     
 
 };
+//////////////
 
+//////////////Object
 struct OBJECTINFO
 {
     matrix MatWorld;
 
 };
+//////////////
 
-struct ComputeShared
+//////////////Instance
+struct RENDERPARAMS
 {
-    int addCount;
-};
 
-struct PARTICLESHARED
-{
-    int TextureIndex;
+    //uint Index0;
+    //uint Index1;
+    //uint Index2;
+    //uint Index3;
+    
+    
+    uint ObjectIndex;
+    uint MaterialInfoIndex;
+    
+    uint LightIndex; //light가 아니면 쓰지 말것.
+    uint ParticleIndex; //Particle가 아니면 쓰지 말것.
 };
+//////////////
 
+
+//////////////Animation
 struct SkinningInfo
 {
     float3 pos;
     float3 normal;
     float3 tangent;
+};
+
+struct ANIMINSTANCE
+{
+    uint    Skeletonid;
+    uint    Clipa, Clipb;
+    float   Timea, Timeb;
+    float   WeightB;
+    float   Playbackrate;
+    uint    Outbaseindex; // 최종 본 팔레트의 시작 인덱스
+    uint    Flags;
 };
 
 struct ANIMFRAMEPARAMS
@@ -64,6 +88,19 @@ struct ANIMATIONMETA
     uint NumFrame;
     float FPS;
 };
+//////////////
+
+//////////////PARTICLE
+struct ComputeShared
+{
+    int addCount;
+};
+
+struct PARTICLESHARED
+{
+    int TextureIndex;
+};
+
 
 struct PARTICLE
 {
@@ -88,7 +125,9 @@ struct PARTICLE
     float EndScale;
     float StartScale;
 };
+//////////////
 
+//////////////MATERIALI
 struct MATERIALINFO
 {
     float4 Diffuse;
@@ -112,7 +151,9 @@ struct MATERIALINFO
     int MetallicMapIndex;
     int OcclusionMapIndex;
 };
+//////////////
 
+//////////////Pass
 struct PASSINFO
 {
     matrix MatView;
@@ -126,32 +167,21 @@ struct PASSINFO
     int LightsCount;
     int SkyBoxIndex;
 };
+//////////////
 
+//////////////BaseGLOBAL
 struct GLOBAL_PARAMS
-{
-
-    uint Index0;
-    uint Index1;
-    uint Index2;
-    float Index3;
-
-};
-
-struct RENDERPARAMS
 {
 
     //uint Index0;
     //uint Index1;
     //uint Index2;
-    //uint Index3;
-    
-    
-    uint ObjectIndex;
-    uint MaterialInfoIndex;
-    
-    uint LightIndex; //light가 아니면 쓰지 말것.
-    uint ParticleIndex; //Particle가 아니면 쓰지 말것.
+    //float Index3;
+
+    uint BaseInstanceID;
 };
+//////////////
+
 	
  ///////////////////////////GLOBAL_PARAMS/////////////////////////////
 ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);

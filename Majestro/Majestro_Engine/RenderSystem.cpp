@@ -216,8 +216,10 @@ void RenderSystem::PushObjectData()
 		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
 
 		if (animationComponent) {
+			index2 = animationComponent->ReulstIndex;
+		}else {
 			index2 = 0;
-		}else{index2 = 1;}
+		}
 
 		objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 		mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
@@ -236,7 +238,7 @@ void RenderSystem::PushObjectData()
 				renderComponent->mMesh->GetID(),
 				material->GetID(),
 				subMaterialIdx++,
-				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),index2,0 }
+				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),0,0 }
 			);
 		}
 	}
@@ -325,6 +327,8 @@ void RenderSystem::RenderGBuffer()
 {
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).OMSetRenderTargets();
 
+	struct dummy { uint32 BaseInstance; uint32 InstanceCount; } dum;
+
 	for(auto& drawBatch : mDeferredDrawBatchs ) 
 	{
 
@@ -332,7 +336,10 @@ void RenderSystem::RenderGBuffer()
 			drawBatch.PSOShader->Update();
 			mCurrPSOID = drawBatch.PSOID;
 		}
-		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,1,&(drawBatch.BaseInstance),0);
+		dum.BaseInstance = drawBatch.BaseInstance;
+		dum.InstanceCount = drawBatch.InstanceCount;
+
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0,2,&(dum),0);
 		InstancingRender(drawBatch);
 	}
 
@@ -381,8 +388,6 @@ void RenderSystem::RenderFinal()
 
 	
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
-		
-	RESOURCEMANAGER.Get<Material>(L"Final");
 	
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 }

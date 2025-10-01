@@ -38,7 +38,7 @@ void AnimationSystem::Initialize()
 		skel->SetSkeletonHandle(index2++);
 	}
 
-	
+	mAnimationBuckets.reserve(16);
 	mAnimationShader = RESOURCEMANAGER.Get<Shader>(L"AnimationComputeShader");
 	RENDERMANAGER.GetAnimationBuffers()->AnimationMeta ->PushDefaultToData(mAniClipMeta.data(), static_cast<uint32>(mAniClipMeta.size() * sizeof(AnimationClipMeta)));
 	RENDERMANAGER.GetAnimationBuffers()->AnimationClip ->PushDefaultToData(mAniKeyFrame.data(), static_cast<uint32>(mAniKeyFrame.size() * sizeof(KeyFrameInfo)));
@@ -59,15 +59,17 @@ void AnimationSystem::Update(float deltaTime)
 
 void AnimationSystem::ClearVector()
 {
-    mAniKeyFrame.clear();
-    mAniClipMeta.clear();
+   //  mAniKeyFrame.clear();
+   //  mAniClipMeta.clear();
     mAnimationPass.clear();
+	mAnimationBuckets.clear();
 }
 
 
 
 void AnimationSystem::AnimationPush(float deltaTime)
 {
+
 	vector<Entity> animationsEntity = mWorld->GetEntitiesWithComponent<AnimationComponent>();
 	for (auto& entity : animationsEntity) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
@@ -91,37 +93,39 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		// 3. 현재 시간에서 현재 프레임의 시작 시간을 빼고, 두 프레임 사이의 시간으로 나눔
 		animCom->mFrameRatio = (animCom->mUpdateTime - frameTime) / (nextFrameTime - frameTime);
 
-		//animCom->mBoneFinalMatrix.push_back();
-
-		animCom->mStructuredBufferIndex = static_cast<uint32>(mAnimationPass.size());
-
-		//mAnimationPass.insert(mAnimationPass.end(), animCom->mBoneFinalMatrix.begin(), animCom->mBoneFinalMatrix.end());
+	
+		mAnimationPass.emplace_back(animCom->mSkeletonHandle,animCom->mClipIndex, animCom->mFrame, animCom->mNextFrame, animCom->mFrameRatio,animCom->mBoneCount,0);
 
 	}
+
+	std::sort(mAnimationPass.begin(), mAnimationPass.end(),
+		[](const AnimationInstance& a, const AnimationInstance& b) {
+			return a.SkeletonID < b.SkeletonID;
+		});
+
+
+	for (uint32 i = 0; i < (uint32)mAnimationPass.size(); )
+	{
+		uint32 sk = mAnimationPass[i].SkeletonID;
+
+		uint32 j = i + 1;
+		while (j < mAnimationPass.size() &&
+			mAnimationPass[j].SkeletonID == sk) {
+			mAnimationPass[j].ReulstIndex = mAnimationPass[i].ReulstIndex + (j - i) * mAnimationPass[i].BoneCount;
+			++j;
+		}
+
+		mAnimationBuckets.push_back({ i, j - i, mAnimationPass[i].BoneCount });
+		i = j;
+	}
+	RENDERMANAGER.GetGroupBuffer(RENDERMANAGER.GetFrameResourceIndex())->AnimInstanceInfo->PushGraphicsData(mAnimationPass.data(), static_cast<uint32>(sizeof(AnimationInstance) * mAnimationPass.size()));
 
 }
 
 void AnimationSystem::AnimationCompute()
 {
-	vector<Entity> animationsEntity = mWorld->GetEntitiesWithComponent<AnimationComponent>();
-	struct dum {
-		int32 ClipIndex;
-		int32 CurrFrame;
-		int32 NextFrame;
-		float Ratio;
 
-	} dummy;
-	for (auto& entity : animationsEntity) {
-		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
-
-		dummy.ClipIndex = animCom->mClipIndex;
-		dummy.CurrFrame = animCom->mFrame;
-		dummy.NextFrame = animCom->mNextFrame;
-		dummy.Ratio = animCom->mFrameRatio;
-
-		GRAPHICS_CMD_LIST->SetComputeRoot32BitConstants(0, 4, &dummy, 0);
-		AnimationDispatch();
-	}
+	AnimationDispatch();
 
 }
 
@@ -137,7 +141,7 @@ void AnimationSystem::AnimationBlend(float deltaTime)
 void AnimationSystem::AnimationDispatch()
 {
 	auto* res = RENDERMANAGER.GetGroupBuffer(FRAMERESOURCEIDNEX)
-		->AnimationInfo->GetBuffer().Get();
+		->AnimResultInfo->GetBuffer().Get();
 
 	auto b = CD3DX12_RESOURCE_BARRIER::Transition(
 		res,
@@ -146,10 +150,18 @@ void AnimationSystem::AnimationDispatch()
 
 	GRAPHICS_CMD_LIST->ResourceBarrier(1, &b);
 
-	const uint32_t T = 256; // numthreads X
-	uint32_t groupsX = (77 + T - 1) / T; // 올림
 
-	GRAPHICS_CMD_LIST->Dispatch(groupsX, 1, 1);
+	for (auto& b : mAnimationBuckets)
+	{
+		CSBatchCB cb{ b.start, b.count};
+		GRAPHICS_CMD_LIST->SetComputeRoot32BitConstants(/*b0*/0, 2, &cb, 0);
+
+		const uint32 groupsX = (b.bones + TX - 1) / TX;
+		const uint32 groupsY = (b.count + TY - 1) / TY;
+
+		GRAPHICS_CMD_LIST->Dispatch(groupsX, groupsY, 1);
+	}
+
 
 	{
 		auto uav = CD3DX12_RESOURCE_BARRIER::UAV(res);

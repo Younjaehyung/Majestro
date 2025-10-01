@@ -2,12 +2,11 @@
 #include "World.h"
 #include "System.h"
 
-struct AnimationPass{
-	int32	FrameCount{};
-	double	Duration{};
+struct Bucket { uint32 start; uint32 count; uint32 bones; };
 
-	double	StartTime{};
-	double	EndTime{};
+struct CSBatchCB {
+	uint32 InstanceStart;      // mAnimationPass 전역 시작 인덱스
+	uint32 InstanceCount;      // 이 배치에서 처리할 인스턴스 수
 };
 
 class AnimationSystem : public System
@@ -30,14 +29,18 @@ private:	// COMPUTE 애니메이션 시스템
 	void AnimationDispatch();
 
 
-private:	// CPU 애니메이션 시스템
-
+private:	// 애니메이션 시스템
+	shared_ptr<class Shader> mAnimationShader;
+	const uint32_t TX = 64; // numthreads X
+	const uint32_t TY = 4; // numthreads Y
 
 private:
 	vector<struct KeyFrameInfo> mAniKeyFrame;
 	vector<struct AnimationClipMeta> mAniClipMeta;
 	vector<Matrix> mBoneData;
-	vector<AnimationPass> mAnimationPass;
 
-	shared_ptr<class Shader> mAnimationShader;
+
+	vector<struct AnimationInstance> mAnimationPass;
+	vector<Bucket> mAnimationBuckets;
+	
 };

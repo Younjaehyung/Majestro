@@ -218,6 +218,7 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 		loader.read(reinterpret_cast<char*>(&boneTracks), sizeof(uint32));
 		animClipInfo.KeyFrameInfo.resize(boneTracks);
 
+		uint32 tempCount = 0;
 		// 각 본 트랙
 		for (uint32 b = 0; b < boneTracks; ++b)
 		{
@@ -233,11 +234,12 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 
 					track[k] = binKF;
 				}
+				tempCount = kcount;
 			}
 			else {	// 해당 프레임에 데이터가 없을시 30으로 고정해버림
-				track.resize(30);
+				track.resize(tempCount);
 
-				for (uint32 k = 0; k < 30; ++k)
+				for (uint32 k = 0; k < tempCount; ++k)
 				{
 					FBXKeyFrameInfo binKF{};
 					track[k] = binKF;
@@ -245,6 +247,7 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 			}
 		}
 		mAnimators[ai]= std::make_shared<Animator>(animClipInfo);
+		mAnimators[ai]->mFrameCount = tempCount;
 		mAnimators[ai]->SetSkeleton(mSkeleton);
 		RESOURCEMANAGER.Add<Animator>(mAnimators[ai]->GetName(), mAnimators[ai]);
 	}

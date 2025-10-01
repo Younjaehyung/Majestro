@@ -81,10 +81,14 @@ void RenderManager::CreateGroup()
 		group->ParticleInfo->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
 		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
-		group->AnimationInfo = make_shared<StructuredBuffer>();
-		group->AnimationInfo->CreateDefaultBuffer(sizeof(Matrix), 1024);
-		group->AnimationInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
-		group->AnimationInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
+		group->AnimInstanceInfo = make_shared<StructuredBuffer>();
+		group->AnimInstanceInfo->CreateUploadBuffer(sizeof(AnimationInstance), 512);
+		group->AnimInstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_ANIMINSTANCE_INDEX), GROUP_COUNT);
+
+		group->AnimResultInfo = make_shared<StructuredBuffer>();
+		group->AnimResultInfo->CreateDefaultBuffer(sizeof(Matrix), 1024);
+		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
+		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
 
 		i++;

@@ -65,13 +65,14 @@ struct SkinningInfo
 
 struct ANIMINSTANCE
 {
-    uint    Skeletonid;
-    uint    Clipa, Clipb;
-    float   Timea, Timeb;
-    float   WeightB;
-    float   Playbackrate;
-    uint    Outbaseindex; // 최종 본 팔레트의 시작 인덱스
-    uint    Flags;
+    uint SkeletonID;
+    uint AnimClipIdx;
+    uint CurrentFrame;
+    uint NextFrame;
+    float Ratio;
+    
+    uint BoneCount;
+    uint ReulstIndex;
 };
 
 struct ANIMFRAMEPARAMS
@@ -88,6 +89,8 @@ struct ANIMATIONMETA
     uint NumFrame;
     float FPS;
 };
+
+
 //////////////
 
 //////////////PARTICLE
@@ -179,6 +182,7 @@ struct GLOBAL_PARAMS
     //float Index3;
 
     uint BaseInstanceID;
+    uint etc;
 };
 //////////////
 
@@ -201,7 +205,8 @@ StructuredBuffer<RENDERPARAMS> InstanceParams : register(t0, space1);
 StructuredBuffer<LIGHTINFO> Lights : register(t1, space1);
 StructuredBuffer<OBJECTINFO> Objects : register(t2, space1);
 StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
-StructuredBuffer<Matrix> SFinalBone : register(t4, space1);
+StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t4, space1);
+StructuredBuffer<Matrix> SFinalBone : register(t5, space1);
 RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
  ///////////////////////////////////////////////////////////////////
 

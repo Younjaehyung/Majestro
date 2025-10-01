@@ -156,30 +156,6 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 	mResourceState = D3D12_RESOURCE_STATE_COMMON;
 }
 
-//
-//
-//	// UpdateSubresources로 업로드 (버퍼는 1 서브리소스)
-//	D3D12_SUBRESOURCE_DATA sub{};
-//	sub.pData = buffer;
-//	sub.RowPitch = static_cast<LONG_PTR>(size);
-//	sub.SlicePitch = static_cast<LONG_PTR>(size);
-//
-//	UpdateSubresources(RESOURCE_CMD_LIST.Get(), mBuffer.Get(), mDummyBuffer.Get(), 0, 0, 1, &sub);
-//
-//	// 상태로 전환
-//	if (mResourceState != D3D12_RESOURCE_STATE_COPY_DEST)
-//	{
-//		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-//			mBuffer.Get(),
-//			D3D12_RESOURCE_STATE_COPY_DEST,
-//			mResourceState);
-//		RESOURCE_CMD_LIST->ResourceBarrier(1, &barrier);
-//	}
-//
-//	gEngine->GetRenderManager().GetGraphicsCmdQueue()->FlushResourceCommandQueue();
-//
-//}
-
 void StructuredBuffer::PushComputeSRVData(void* buffer, uint32 size)
 {
 	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))

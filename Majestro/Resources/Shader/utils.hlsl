@@ -98,7 +98,7 @@ float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, floa
 
 
 void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
-    inout float4 weight, inout float4 indices)
+    inout float4 weight, inout float4 indices, in uint skelBaseIdx)
 {
     SkinningInfo info = (SkinningInfo) 0.f;
 
@@ -107,7 +107,7 @@ void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
         if (weight[i] == 0.f)
             continue;
 
-        int boneIdx = indices[i];
+        int boneIdx = indices[i] + skelBaseIdx;
         matrix matBone = SFinalBone[boneIdx];
 
         info.pos += (mul(float4(pos, 1.f), matBone) * weight[i]).xyz;

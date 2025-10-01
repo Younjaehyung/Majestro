@@ -346,7 +346,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		rootSignature->AddConstant(0, 4);
+		rootSignature->AddConstant(0, 2);
 		rootSignature->AddTable(ranges0);
 		rootSignature->AddTable(ranges1);
 		rootSignature->AddTable(ranges2);
@@ -661,7 +661,9 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 	// shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
+	//	LoadFBX(L"..\\Resources\\FBX\\Guitar_v001.fbx");
+	 //LoadFBX(L"..\\Resources\\FBX\\Guitar_aPlaying.fbx");
 	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 	 
 	//// Shadow

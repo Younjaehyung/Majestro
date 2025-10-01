@@ -17,7 +17,8 @@ struct GroupBuffer {
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;
-	shared_ptr<StructuredBuffer> AnimationInfo;
+	shared_ptr<StructuredBuffer> AnimInstanceInfo;
+	shared_ptr<StructuredBuffer> AnimResultInfo;
 
 };
 

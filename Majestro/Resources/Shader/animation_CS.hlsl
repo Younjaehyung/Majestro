@@ -18,34 +18,39 @@
     
 
 
-[numthreads(256, 1, 1)]
+[numthreads(64, 4, 1)]
 void CS_Main(int3 threadIdx : SV_DispatchThreadID)
 {
-    //ANIMATIONMETA animationClipMeta = AnimationMeta[GlobalParams.Index0]; // To-Do
+    uint nowbone = threadIdx.x;
+    uint rel = threadIdx.y; // 현재 인스턴스 idx   | GlobalParams.BaseInstanceID : 전체 인스턴스 idx
+    uint inst = GlobalParams.BaseInstanceID + rel;
+    ANIMATIONMETA animationclipmeta = AnimationMeta[AnimInstance[inst].AnimClipIdx];
     
-    //uint nowBone = threadIdx.x;
-    //if (nowBone >= animationClipMeta.BoneCount)
-    //    return;
+    uint bonecount = animationclipmeta.BoneCount;
+    uint frame = animationclipmeta.NumFrame;
+    
+    uint currentframe = AnimInstance[inst].CurrentFrame;
+    uint nextframe = AnimInstance[inst].NextFrame;
+    float ratio = AnimInstance[inst].Ratio;
+   
+    if (nowbone >= bonecount || rel >= GlobalParams.etc)
+        return; //etc : 현재 애니메이션을 사용하는 인스턴스 수
+        
+  
+    
+    uint idx = nowbone * animationclipmeta.NumFrame + currentframe;
+    uint nextidx = nowbone * animationclipmeta.NumFrame + currentframe;
+
+    float4 quaternionzero = float4(0.f, 0.f, 0.f, 1.f);
 
     
-    //uint boneCount = animationClipMeta.BoneCount;
-    //uint currentFrame = GlobalParams.Index1;
-    //uint nextFrame = GlobalParams.Index2;
-    //float ratio = GlobalParams.Index3;
-
-    //uint idx = (30 * nowBone) + currentFrame;
-    //uint nextIdx = (30 * nowBone) + nextFrame;
-
-    //float4 quaternionZero = float4(0.f, 0.f, 0.f, 1.f);
-
     
-    
-    //float4 scale = lerp(AnimationClip[idx].Scale, AnimationClip[nextIdx].Scale, ratio);
-    //float4 rotation = QuaternionSlerp(AnimationClip[idx].Rotation, AnimationClip[nextIdx].Rotation, ratio);
-    //float4 translation = lerp(AnimationClip[idx].Translation, AnimationClip[nextIdx].Translation, ratio);
+    float4 scale = lerp(AnimationClip[idx].Scale, AnimationClip[nextidx].Scale, ratio);
+    float4 rotation = QuaternionSlerp(AnimationClip[idx].Rotation, AnimationClip[nextidx].Rotation, ratio);
+    float4 translation = lerp(AnimationClip[idx].Translation, AnimationClip[nextidx].Translation, ratio);
 
-    //matrix matBone = MatrixAffineTransformation(scale, quaternionZero, rotation, translation);
+    matrix matbone = MatrixAffineTransformation(scale, quaternionzero, rotation, translation);
 
-    //RFinalBone[threadIdx.x] = mul(SkeletonBone[threadIdx.x], matBone);
+    RFinalBone[AnimInstance[inst].ReulstIndex + nowbone] = mul(SkeletonBone[nowbone], matbone);
 
 }

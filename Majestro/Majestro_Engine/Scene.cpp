@@ -65,9 +65,6 @@ void Scene::Initialize()
 
 	TransformComponent t{};
 
-	t.mLocalPosition = {0.f, 0.f, 50.f};
-
-
 
 
 	//mWorld->AddComponent<TransformComponent>(testEntity, t);
@@ -80,7 +77,7 @@ void Scene::Initialize()
 	
 	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
 	material2s.push_back(material2);
-	t.mLocalPosition = { 0.f, 0.f, 50.f };
+	t.mLocalPosition = { 0.f, 0.f, 100.f };
 
 	vector<shared_ptr<Animator>> anmators;
 	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
@@ -89,17 +86,20 @@ void Scene::Initialize()
 	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 	mWorld->AddComponent<AnimationComponent>(osw, anmators);
 	float i, j;
-	for (i = -10; i < 10; i+=1.0f) {
-		for (j = -10; j < 10; j += 1.0f) {
-			Entity osws = mWorld->CreateEntity();	// �ʼ�
-			t.mLocalPosition = { i, j, 50.f };
+
+		for (i = -5; i < 5; i += 1.0f) {
+			for (j = -5; j < 5; j += 1.0f) {
+				Entity osws = mWorld->CreateEntity();	// �ʼ�
+				t.mLocalPosition = { i, j, 100.f  };
 
 
-			mWorld->AddComponent<TransformComponent>(osws, t);
-			mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-			mWorld->AddComponent<AnimationComponent>(osws, anmators);
+				mWorld->AddComponent<TransformComponent>(osws, t);
+				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
+				mWorld->AddComponent<AnimationComponent>(osws, anmators);
+			}
+
 		}
-	}
+	
 
 
 

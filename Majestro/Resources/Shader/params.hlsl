@@ -73,6 +73,7 @@ struct ANIMINSTANCE
     
     uint BoneCount;
     uint ReulstIndex;
+    uint EntityID;
 };
 
 struct ANIMFRAMEPARAMS
@@ -87,7 +88,6 @@ struct ANIMATIONMETA
     uint BoneCount;
     uint StartFrame;
     uint NumFrame;
-    float FPS;
 };
 
 

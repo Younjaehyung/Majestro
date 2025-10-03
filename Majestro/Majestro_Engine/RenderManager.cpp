@@ -86,7 +86,7 @@ void RenderManager::CreateGroup()
 		group->AnimInstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_ANIMINSTANCE_INDEX), GROUP_COUNT);
 
 		group->AnimResultInfo = make_shared<StructuredBuffer>();
-		group->AnimResultInfo->CreateDefaultBuffer(sizeof(Matrix), 1024);
+		group->AnimResultInfo->CreateDefaultBuffer(sizeof(Matrix), 1024*1000);
 		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
 		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
@@ -126,7 +126,7 @@ void RenderManager::CreateAnimation()
 	mAnimationBuffer = make_shared<AnimationBuffer>();
 
 	mAnimationBuffer->SkeletonBone = make_shared<StructuredBuffer>();
-	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(Matrix), 128);
+	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(Matrix), 128 * 10);
 	mAnimationBuffer->SkeletonBone->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_SKELETONBONE_INDEX));
 
 	mAnimationBuffer->AnimationClip = make_shared<StructuredBuffer>();

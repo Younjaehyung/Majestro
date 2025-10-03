@@ -8,15 +8,16 @@ class StructuredBuffer;
 
 
 struct AnimationInstance {
-	uint32	SkeletonID;     // 스켈레톤 핸들(Initialize에서 부여한 값)
-	uint32	AnimClipIdx{};
-	uint32	CurrentFrame{};
-	uint32	NextFrame{};
-	float	Ratio{};
-
-	uint32	BoneCount{};
-	uint32	ReulstIndex{};
-};
+	uint32	SkeletonID{};		// 스켈레톤 핸들(Initialize에서 부여한 값)
+	uint32	AnimClipIdx{};		// 현재 재생중인 애니메이션 클립 인덱스
+	uint32	CurrentFrame{};		// 현재 프레임
+	uint32	NextFrame{};		// 다음 프레임
+	
+	float	Ratio{};			// 현재 프레임과 다음 프레임 사이의 보간 비율 (0	~1)
+	uint32	BoneCount{};		// 본 개수
+	uint32	ReulstIndex{};		// CS가 쓰고 VS가 읽는 팔레트 시작 오프셋
+	uint32  EntityID{};
+};								
 
 
 struct AnimatorParams
@@ -41,21 +42,13 @@ public:
 	AnimationComponent(vector<shared_ptr<Animator>>& AnimClips);
 
 public:
+	uint32							mAnimInstanceID = 0;
 
 	vector<shared_ptr<Animator>>	mAnimClips;
-	uint32							mSkeletonHandle;	// if Skeleton Enable use this Handle
+	AnimationInstance				mAnimInstance{};
 
-	float							mUpdateTime = 0.f;
-	int32							mClipIndex = 0;
-	int32							mFrame = 0;
-	int32							mNextFrame = 0;
-	uint32							mBoneCount = 0;	
-	uint32							ReulstIndex{};
-
-	float							mFrameRatio = 0;
-
+	
+	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;
-
-	uint32							mStructuredBufferIndex=0;
 };
 

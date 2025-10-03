@@ -13,15 +13,7 @@ Animator::Animator(FBXAnimClipInfo& fbxData) : Object(OBJECT_TYPE::ANIMATION)
 	mStartTime = fbxData.StartTime;
 	mEndTime = fbxData.EndTime;
 	mDuration = mEndTime - mStartTime;
-
-	mClipMeta.StartFrame = 0;
-	mClipMeta.FPS = 30.0f; // to-do
-	mFrameCount = static_cast<int>((mEndTime - mStartTime) * mClipMeta.FPS + 0.5f);
-
-	
-	mClipMeta.NumFrame = mFrameCount;
-	
-	
+		
 	mKeyFrames.resize(fbxData.KeyFrameInfo.size());
 
 	for(uint32 bi = 0; bi < fbxData.KeyFrameInfo.size(); ++bi)

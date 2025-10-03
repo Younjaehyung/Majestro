@@ -38,14 +38,13 @@ struct KeyFrameInfo
 
 struct AnimationClipMeta
 {
-	uint32 BoneCount;
-	uint32 StartFrame;
-	uint32 NumFrame;
-	float FPS;
+	uint32 BoneCount{};
+	uint32 StartFrame{};
+	uint32 NumFrame{};
 };
 
 
-class Animator : public Object
+class Animator : public Object	// Animation Clip
 {
 public:
 	Animator();
@@ -58,23 +57,23 @@ public:
 	void SetSkeleton(shared_ptr<Skeleton> sk);
 	shared_ptr<Skeleton> GetSkeleton() { return mSkeleton; }
 
+	void SetAnimClipHandle(uint32 handle) { mAnimClipHandle = handle; }
+	uint32 GetAnimClipHandle() { return mAnimClipHandle; }
+
 	AnimationClipMeta& GetClipMeta() { return mClipMeta; }
 	vector<vector<KeyFrameInfo>>& GetKeyFrames() { return mKeyFrames; }
 
-
 public:
-	double mStartTime{};
-	double mEndTime{};
+	double							mStartTime{};
+	double							mEndTime{};
+	double							mDuration{};
 
-	shared_ptr<Skeleton> mSkeleton;
-
-
-	int32			mFrameCount{};
-	double			mDuration{};
-	AnimationClipMeta				mClipMeta;
+	AnimationClipMeta				mClipMeta{};
+	
+private:
+	uint32							mAnimClipHandle{};
+	shared_ptr<Skeleton>			mSkeleton;
 	vector<vector<KeyFrameInfo>>	mKeyFrames;
-
-
 public:
 	friend class FBXData;
 };

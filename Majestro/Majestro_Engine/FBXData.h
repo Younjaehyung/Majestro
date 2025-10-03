@@ -137,7 +137,7 @@ private:
 	std::string						mPath;
 
 	FBXFileHeader					mHeader{};
-	shared_ptr<Mesh>				mMesh;
+	vector<shared_ptr<Mesh>>		mMeshs;
 	vector<shared_ptr<Material>>	mMaterials;
 	shared_ptr<Skeleton>			mSkeleton;
 	vector<shared_ptr<Animator>>	mAnimators;

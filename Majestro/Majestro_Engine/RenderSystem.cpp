@@ -216,7 +216,7 @@ void RenderSystem::PushObjectData()
 		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
 
 		if (animationComponent) {
-			index2 = animationComponent->ReulstIndex;
+			index2 = animationComponent->mAnimInstanceID;
 		}else {
 			index2 = 0;
 		}
@@ -238,7 +238,7 @@ void RenderSystem::PushObjectData()
 				renderComponent->mMesh->GetID(),
 				material->GetID(),
 				subMaterialIdx++,
-				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),0,0 }
+				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),index2,0 }
 			);
 		}
 	}

@@ -70,27 +70,28 @@ void Scene::Initialize()
 	//mWorld->AddComponent<TransformComponent>(testEntity, t);
 	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 	/////////////////////////////////////////////////////////////////////
-	Entity osw = mWorld->CreateEntity();	// �ʼ�
+	{
+		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
-	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
-	std::vector<shared_ptr<Material>> material2s;
-	
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
-	material2s.push_back(material2);
-	t.mLocalPosition = { 0.f, 0.f, 100.f };
+		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
+		std::vector<shared_ptr<Material>> material2s;
 
-	vector<shared_ptr<Animator>> anmators;
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
+		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
+		material2s.push_back(material2);
+		t.mLocalPosition = { 0.f, 0.f, 100.f };
 
-	mWorld->AddComponent<TransformComponent>(osw, t);
-	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-	mWorld->AddComponent<AnimationComponent>(osw, anmators);
-	float i, j;
+		vector<shared_ptr<Animator>> anmators;
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
 
-		for (i = -5; i < 5; i += 1.0f) {
-			for (j = -5; j < 5; j += 1.0f) {
+		mWorld->AddComponent<TransformComponent>(osw, t);
+		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+		mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		float i, j;
+
+		for (i = -5; i < 0; i += 1.0f) {
+			for (j = -5; j < 0; j += 1.0f) {
 				Entity osws = mWorld->CreateEntity();	// �ʼ�
-				t.mLocalPosition = { i, j, 100.f  };
+				t.mLocalPosition = { i * 100, j * 100, 100.f };
 
 
 				mWorld->AddComponent<TransformComponent>(osws, t);
@@ -99,7 +100,9 @@ void Scene::Initialize()
 			}
 
 		}
-	
+	}
+
+
 
 
 

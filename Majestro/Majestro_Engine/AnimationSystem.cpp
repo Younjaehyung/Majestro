@@ -16,7 +16,7 @@ void AnimationSystem::Initialize()
 {
 	// 불변 데이터  update
 
-	uint32 index1{};
+	uint32 animClipHandle{};
 	for (auto& animClip : RESOURCEMANAGER.GetAllResources<Animator>()) {
 		shared_ptr<Animator> aniClip = dynamic_pointer_cast<Animator>(animClip.second);
 
@@ -24,10 +24,10 @@ void AnimationSystem::Initialize()
 			mAniKeyFrame.insert(mAniKeyFrame.end(), v.begin(), v.end());
 		}
 		mAniClipMeta.push_back(aniClip->GetClipMeta());
-		index1++;
+		aniClip->SetAnimClipHandle(animClipHandle++);
 	}
 	
-	uint32 index2{};
+	uint32 skelHandle{};
 	for (auto& skels : RESOURCEMANAGER.GetAllResources<Skeleton>()) {
 		shared_ptr<Skeleton> skel = dynamic_pointer_cast<Skeleton>(skels.second);
 
@@ -35,7 +35,7 @@ void AnimationSystem::Initialize()
 			mBoneData.emplace_back(bone.matOffset);	// why not .Transpose()?
 		}
 		
-		skel->SetSkeletonHandle(index2++);
+		skel->SetSkeletonHandle(skelHandle++);
 	}
 
 	mAnimationBuckets.reserve(16);
@@ -52,7 +52,6 @@ void AnimationSystem::Update(float deltaTime)
 
 	ClearVector();
 	AnimationPush(deltaTime);
-	GRAPHICS_CMD_LIST->SetPipelineState(mAnimationShader->GetPipelineState().Get());
 	AnimationCompute();
 	AnimationBlend(deltaTime);
 }
@@ -76,33 +75,44 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		//animCom->mBoneFinalMatrix.clear();
 
 		animCom->mUpdateTime += deltaTime;
-		shared_ptr<Animator> animClip = animCom->mAnimClips.at(animCom->mClipIndex);
+		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimInstance.AnimClipIdx);
 
 		if (animCom->mUpdateTime >= animClip->mDuration)
 			animCom->mUpdateTime = 0.f;
-
-		const float ratio = static_cast<float>(animClip->mFrameCount / animClip->mDuration);
-		animCom->mFrame = static_cast<int32>(animCom->mUpdateTime * ratio);
-		animCom->mFrame = min(animCom->mFrame, animClip->mFrameCount - 1);
-		animCom->mNextFrame = min(animCom->mFrame + 1, animClip->mFrameCount - 1);
+		
+		const float ratio = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
+		animCom->mAnimInstance.CurrentFrame = static_cast<int32>(animCom->mUpdateTime * ratio);
+		animCom->mAnimInstance.CurrentFrame = min(animCom->mAnimInstance.CurrentFrame, animClip->mClipMeta.NumFrame - 1);
+		animCom->mAnimInstance.NextFrame = min(animCom->mAnimInstance.CurrentFrame + 1, animClip->mClipMeta.NumFrame - 1);
 
 		// 1. 현재 프레임의 시작 시간 계산
-		float frameTime = animCom->mFrame / static_cast<float>(ratio);
+		float frameTime = animCom->mAnimInstance.CurrentFrame / static_cast<float>(ratio);
 		// 2. 다음 프레임의 시작 시간 계산
-		float nextFrameTime = animCom->mNextFrame / static_cast<float>(ratio);
+		float nextFrameTime = animCom->mAnimInstance.NextFrame / static_cast<float>(ratio);
 		// 3. 현재 시간에서 현재 프레임의 시작 시간을 빼고, 두 프레임 사이의 시간으로 나눔
-		animCom->mFrameRatio = (animCom->mUpdateTime - frameTime) / (nextFrameTime - frameTime);
-
+		animCom-> mAnimInstance.Ratio = (animCom->mUpdateTime - frameTime) / (nextFrameTime - frameTime);
 	
-		mAnimationPass.emplace_back(animCom->mSkeletonHandle,animCom->mClipIndex, animCom->mFrame, animCom->mNextFrame, animCom->mFrameRatio,animCom->mBoneCount,0);
+		mAnimationPass.emplace_back(animCom->mAnimInstance.SkeletonID, animClip->GetAnimClipHandle(),
+			animCom->mAnimInstance.CurrentFrame, animCom->mAnimInstance.NextFrame, animCom->mAnimInstance.Ratio,
+			animCom->mAnimInstance.BoneCount,0);
 
+		mAnimationPass.back().EntityID = entity.GetID();   // ★ 소유자 기록
 	}
 
+	// 배치처리를 위한 정렬
+	// 스켈레톤 ID 기준 오름차순 정렬
 	std::sort(mAnimationPass.begin(), mAnimationPass.end(),
 		[](const AnimationInstance& a, const AnimationInstance& b) {
 			return a.SkeletonID < b.SkeletonID;
 		});
 
+	// 정렬 후 역매핑: 각 컴포넌트에 자기 위치 기록
+	for (size_t i = 0; i < mAnimationPass.size(); ++i) {
+		const Entity e = mAnimationPass[i].EntityID;
+		if (auto* c = mWorld->GetComponent<AnimationComponent>(e)) {
+			c->mAnimInstanceID = static_cast<uint32_t>(i); // 필요시 필드 추가
+		}
+	}
 
 	for (uint32 i = 0; i < (uint32)mAnimationPass.size(); )
 	{
@@ -124,34 +134,37 @@ void AnimationSystem::AnimationPush(float deltaTime)
 
 void AnimationSystem::AnimationCompute()
 {
+	GRAPHICS_CMD_LIST->SetPipelineState(mAnimationShader->GetPipelineState().Get());
 
-	AnimationDispatch();
-
-}
-
-
-
-
-void AnimationSystem::AnimationBlend(float deltaTime)
-{
-
-
-}
-
-void AnimationSystem::AnimationDispatch()
-{
 	auto* res = RENDERMANAGER.GetGroupBuffer(FRAMERESOURCEIDNEX)
 		->AnimResultInfo->GetBuffer().Get();
-
 	auto b = CD3DX12_RESOURCE_BARRIER::Transition(
 		res,
 		D3D12_RESOURCE_STATE_COMMON,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
 	GRAPHICS_CMD_LIST->ResourceBarrier(1, &b);
 
 
-	for (auto& b : mAnimationBuckets)
+
+	AnimationDispatch();
+
+
+
+	{
+		auto uav = CD3DX12_RESOURCE_BARRIER::UAV(res);
+		GRAPHICS_CMD_LIST->ResourceBarrier(1, &uav);
+	}
+	auto srv = CD3DX12_RESOURCE_BARRIER::Transition(
+		res,
+		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+		D3D12_RESOURCE_STATE_COMMON);
+	GRAPHICS_CMD_LIST->ResourceBarrier(1, &srv);
+}
+
+
+void AnimationSystem::AnimationDispatch()
+{
+	for (Bucket& b : mAnimationBuckets)
 	{
 		CSBatchCB cb{ b.start, b.count};
 		GRAPHICS_CMD_LIST->SetComputeRoot32BitConstants(/*b0*/0, 2, &cb, 0);
@@ -161,21 +174,10 @@ void AnimationSystem::AnimationDispatch()
 
 		GRAPHICS_CMD_LIST->Dispatch(groupsX, groupsY, 1);
 	}
+}
 
-
-	{
-		auto uav = CD3DX12_RESOURCE_BARRIER::UAV(res);
-		GRAPHICS_CMD_LIST->ResourceBarrier(1, &uav);
-	}
-
-	auto srv = CD3DX12_RESOURCE_BARRIER::Transition(
-		res,
-		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-		D3D12_RESOURCE_STATE_COMMON);
-
-	GRAPHICS_CMD_LIST->ResourceBarrier(1, &srv);
+void AnimationSystem::AnimationBlend(float deltaTime)
+{
 
 
 }
-
-

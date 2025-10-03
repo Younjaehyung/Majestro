@@ -93,7 +93,6 @@ void FBXData::Load(const wstring& path)
 
 vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 {
-	vector<shared_ptr<Mesh>> meshs;
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
 
@@ -130,7 +129,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		}
 		mesh->SetName(s2ws(meshName));
 		mesh->CreateMesh(meshInfo);
-		meshs.push_back(mesh);
+		mMeshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
 
 		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo);
@@ -138,7 +137,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 	loader.close();
 	cout << "Materials OVER" << endl;
 
-	return meshs;
+	return mMeshs;
 }
 
 vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo)
@@ -247,7 +246,7 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 			}
 		}
 		mAnimators[ai]= std::make_shared<Animator>(animClipInfo);
-		mAnimators[ai]->mFrameCount = tempCount;
+		mAnimators[ai]->mClipMeta.NumFrame = tempCount;
 		mAnimators[ai]->SetSkeleton(mSkeleton);
 		RESOURCEMANAGER.Add<Animator>(mAnimators[ai]->GetName(), mAnimators[ai]);
 	}

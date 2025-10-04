@@ -88,10 +88,10 @@ void Scene::Initialize()
 		mWorld->AddComponent<AnimationComponent>(osw, anmators);
 		float i, j;
 
-		for (i = -5; i < 0; i += 1.0f) {
-			for (j = -5; j < 0; j += 1.0f) {
+		for (i = -51; i < 0; i += 51.0f) {
+			for (j = -51; j < 0; j += 51.0f) {
 				Entity osws = mWorld->CreateEntity();	// �ʼ�
-				t.mLocalPosition = { i * 100, j * 100, 100.f };
+				t.mLocalPosition = { i, j, 100.f };
 
 
 				mWorld->AddComponent<TransformComponent>(osws, t);
@@ -101,6 +101,74 @@ void Scene::Initialize()
 
 		}
 	}
+	{
+		Entity osw = mWorld->CreateEntity();	// �ʼ�
+
+		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
+		std::vector<shared_ptr<Material>> material2s;
+
+		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Capoeira0");
+		material2s.push_back(material2);
+		t.mLocalPosition = { 0.f, 0.f, 0.f };
+
+		vector<shared_ptr<Animator>> anmators;
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
+
+		mWorld->AddComponent<TransformComponent>(osw, t);
+		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+		mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		float i, j;
+
+		for (i = -10; i < 10; i += 1.0f) {
+			for (j = -10; j < 10; j += 1.0f) {
+				Entity osws = mWorld->CreateEntity();	// �ʼ�
+				t.mLocalPosition = { i, j, 0.f };
+
+
+				mWorld->AddComponent<TransformComponent>(osws, t);
+				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
+				mWorld->AddComponent<AnimationComponent>(osws, anmators);
+			}
+
+		}
+	}
+	//{
+	//	Entity osw = mWorld->CreateEntity();	// �ʼ�
+
+	//	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Dragon_Mesh");
+	//	std::vector<shared_ptr<Material>> material2s;
+
+	//	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"dragon0");
+	//	shared_ptr<Material> material3 = RESOURCEMANAGER.Get<Material>(L"dragon1");
+	//	shared_ptr<Material> material4 = RESOURCEMANAGER.Get<Material>(L"dragon2");
+	//	shared_ptr<Material> material5= RESOURCEMANAGER.Get<Material>(L"dragon3");
+	//	material2s.push_back(material2);
+	//	material2s.push_back(material3);
+	//	material2s.push_back(material4);
+	//	material2s.push_back(material5);
+	//	t.mLocalPosition = { 0.f, 0.f, 100.f };
+
+	//	vector<shared_ptr<Animator>> anmators;
+	//	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Fly_New"));
+
+	//	mWorld->AddComponent<TransformComponent>(osw, t);
+	//	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+	//	mWorld->AddComponent<AnimationComponent>(osw, anmators);
+	//	float i, j;
+
+	//	//for (i = -5; i < 0; i += 1.0f) {
+	//	//	for (j = -5; j < 0; j += 1.0f) {
+	//	//		Entity osws = mWorld->CreateEntity();	// �ʼ�
+	//	//		t.mLocalPosition = { i * 100, j * 100, 100.f };
+
+
+	//	//		mWorld->AddComponent<TransformComponent>(osws, t);
+	//	//		mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
+	//	//		mWorld->AddComponent<AnimationComponent>(osws, anmators);
+	//	//	}
+
+	//	//}
+	//}
 
 
 

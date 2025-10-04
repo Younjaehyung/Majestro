@@ -225,22 +225,23 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 			loader.read(reinterpret_cast<char*>(&kcount), sizeof(uint32));
 			auto& track = animClipInfo.KeyFrameInfo[b];
 			track.resize(kcount); // frame
+
 			if (kcount != 0) {
 				for (uint32 k = 0; k < kcount; ++k)
 				{
-					FBXKeyFrameInfo binKF{};
+					FBXKeyFrameInfo binKF;
 					loader.read(reinterpret_cast<char*>(&binKF), sizeof(FBXKeyFrameInfo));
 
 					track[k] = binKF;
 				}
 				tempCount = kcount;
 			}
-			else {	// 해당 프레임에 데이터가 없을시 30으로 고정해버림
+			else {
 				track.resize(tempCount);
 
 				for (uint32 k = 0; k < tempCount; ++k)
 				{
-					FBXKeyFrameInfo binKF{};
+					FBXKeyFrameInfo binKF;
 					track[k] = binKF;
 				}
 			}

@@ -38,7 +38,8 @@ void Animator::SetSkeleton(shared_ptr<Skeleton> sk)
 }
 
 KeyFrameInfo::KeyFrameInfo(FBXKeyFrameInfo& fbxKeyFrame)
-	{
+{		
 		Matrix m = Matrix(fbxKeyFrame.MatTransform);
+		
 		DecomposeTRS(m, scale, rotation, translate);
-	}
+}

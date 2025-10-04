@@ -78,6 +78,7 @@ matrix MatrixAffineTransformation(in float4 Scaling, in float4 RotationOrigin, i
     float4 VTranslation = float4(Translation.xyz, 0.f);
 
     matrix M = MScaling;
+  //  M._44 = 1.f;
     M._41_42_43_44 = M._41_42_43_44 - VRotationOrigin;
     M = mul(M, MRotation);
     M._41_42_43_44 = M._41_42_43_44 + VRotationOrigin;

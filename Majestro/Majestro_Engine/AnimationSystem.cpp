@@ -16,27 +16,36 @@ void AnimationSystem::Initialize()
 {
 	// 불변 데이터  update
 
-	uint32 animClipHandle{};
-	for (auto& animClip : RESOURCEMANAGER.GetAllResources<Animator>()) {
-		shared_ptr<Animator> aniClip = dynamic_pointer_cast<Animator>(animClip.second);
 
-		for (const auto& v : aniClip->GetKeyFrames()) {
-			mAniKeyFrame.insert(mAniKeyFrame.end(), v.begin(), v.end());
-		}
-		mAniClipMeta.push_back(aniClip->GetClipMeta());
-		aniClip->SetAnimClipHandle(animClipHandle++);
-	}
-	
 	uint32 skelHandle{};
+	uint32 skelOffset{};
 	for (auto& skels : RESOURCEMANAGER.GetAllResources<Skeleton>()) {
 		shared_ptr<Skeleton> skel = dynamic_pointer_cast<Skeleton>(skels.second);
 
+		skel->mStartOffset = skelOffset;
 		for (auto& bone : skel->GetBones()) {
-			mBoneData.emplace_back(bone.matOffset);	// why not .Transpose()?
+			mBoneData.emplace_back(bone.matOffset);
 		}
-		
+		skelOffset += skel->GetBones().size();
 		skel->SetSkeletonHandle(skelHandle++);
 	}
+
+	uint32 animClipHandle{};
+	uint32 animClipOffset{};
+	for (auto& animClip : RESOURCEMANAGER.GetAllResources<Animator>()) {
+		shared_ptr<Animator> aniClip = dynamic_pointer_cast<Animator>(animClip.second);
+		aniClip->SetAnimClipOffset(animClipOffset);
+		aniClip->SetAnimClipHandle(animClipHandle++);
+		aniClip->SetAnimSkelOffset(aniClip->GetSkeleton()->mStartOffset);
+		for (const auto& v : aniClip->GetKeyFrames()) {
+			
+			mAniKeyFrame.insert(mAniKeyFrame.end(), v.begin(), v.end());
+			animClipOffset += v.size();
+		}
+		mAniClipMeta.push_back(aniClip->GetClipMeta());
+		
+	}
+	
 
 	mAnimationBuckets.reserve(16);
 	mAnimationShader = RESOURCEMANAGER.Get<Shader>(L"AnimationComputeShader");
@@ -72,10 +81,10 @@ void AnimationSystem::AnimationPush(float deltaTime)
 	vector<Entity> animationsEntity = mWorld->GetEntitiesWithComponent<AnimationComponent>();
 	for (auto& entity : animationsEntity) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
-		//animCom->mBoneFinalMatrix.clear();
+
 
 		animCom->mUpdateTime += deltaTime;
-		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimInstance.AnimClipIdx);
+		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimClipIdx);
 
 		if (animCom->mUpdateTime >= animClip->mDuration)
 			animCom->mUpdateTime = 0.f;
@@ -91,8 +100,8 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		float nextFrameTime = animCom->mAnimInstance.NextFrame / static_cast<float>(ratio);
 		// 3. 현재 시간에서 현재 프레임의 시작 시간을 빼고, 두 프레임 사이의 시간으로 나눔
 		animCom-> mAnimInstance.Ratio = (animCom->mUpdateTime - frameTime) / (nextFrameTime - frameTime);
-	
-		mAnimationPass.emplace_back(animCom->mAnimInstance.SkeletonID, animClip->GetAnimClipHandle(),
+
+		mAnimationPass.emplace_back(animClip->GetSkeleton()->GetSkeletonHandle(), animClip->GetAnimClipHandle(),
 			animCom->mAnimInstance.CurrentFrame, animCom->mAnimInstance.NextFrame, animCom->mAnimInstance.Ratio,
 			animCom->mAnimInstance.BoneCount,0);
 
@@ -114,18 +123,38 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		}
 	}
 
-	for (uint32 i = 0; i < (uint32)mAnimationPass.size(); )
+	uint32 resultIndex = 0;
+	for (uint32_t i = 0; i < (uint32_t)mAnimationPass.size(); )
 	{
-		uint32 sk = mAnimationPass[i].SkeletonID;
+		const uint32_t sk = mAnimationPass[i].SkeletonID;
+		const uint32_t bones = mAnimationPass[i].BoneCount;
 
-		uint32 j = i + 1;
-		while (j < mAnimationPass.size() &&
-			mAnimationPass[j].SkeletonID == sk) {
-			mAnimationPass[j].ReulstIndex = mAnimationPass[i].ReulstIndex + (j - i) * mAnimationPass[i].BoneCount;
+		// 같은 스켈레톤으로 이루어진 버킷의 끝 j 찾기
+		uint32_t j = i + 1;
+		while (j < (uint32_t)mAnimationPass.size() &&
+			mAnimationPass[j].SkeletonID == sk)
+		{
+			// 같은 스켈레톤인데 BoneCount가 다르면 설계 오류
+			assert(mAnimationPass[j].BoneCount == bones);
 			++j;
 		}
 
-		mAnimationBuckets.push_back({ i, j - i, mAnimationPass[i].BoneCount });
+		// 이 버킷의 연속 팔레트 영역의 베이스
+		const uint32_t base = resultIndex;
+
+		// 버킷 내 모든 인스턴스의 시작 오프셋을 명시적으로 설정
+		for (uint32_t k = i; k < j; ++k)
+		{
+			const uint32_t offsetInBucket = (k - i) * bones;
+			mAnimationPass[k].ReulstIndex = base + offsetInBucket; // 단위: 행렬 인덱스
+		}
+
+		// 버킷 메타 저장(원하면 base/총행렬수도 함께 저장)
+		mAnimationBuckets.push_back({ i, j - i, bones /* , base */ });
+
+		// 다음 버킷 시작 위치로 커서 이동
+		resultIndex += (j - i) * bones;
+
 		i = j;
 	}
 	RENDERMANAGER.GetGroupBuffer(RENDERMANAGER.GetFrameResourceIndex())->AnimInstanceInfo->PushGraphicsData(mAnimationPass.data(), static_cast<uint32>(sizeof(AnimationInstance) * mAnimationPass.size()));

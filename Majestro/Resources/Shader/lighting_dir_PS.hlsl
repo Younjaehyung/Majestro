@@ -35,7 +35,7 @@ PS_OUT PS_DirLight(VS_OUT input)
     RENDERPARAMS Instance = InstanceParams[input.instanceID];
     
     
-    int index = Instance.LightIndex;
+    int index = 0; //Instance.LightIndex;
     
     LIGHTINFO light = Lights[index];
 

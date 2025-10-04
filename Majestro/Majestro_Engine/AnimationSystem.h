@@ -30,8 +30,8 @@ private:	// COMPUTE 애니메이션 시스템
 
 private:	// 애니메이션 시스템
 	shared_ptr<class Shader> mAnimationShader;
-	const uint32_t TX = 64; // numthreads X
-	const uint32_t TY = 4; // numthreads Y
+	const uint32_t TX = 128; // numthreads X : bone
+	const uint32_t TY = 4; // numthreads Y : instance num
 
 	vector<struct KeyFrameInfo> mAniKeyFrame;
 	vector<struct AnimationClipMeta> mAniClipMeta;

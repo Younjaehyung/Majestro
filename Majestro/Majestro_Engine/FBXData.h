@@ -96,14 +96,14 @@ struct FBXBMeshInfo
 struct FBXBoneInfo
 {
 	string		BoneName;
-	int32		ParentIndex;
-	XMFLOAT4X4	MatOffset;                    // 오프셋 매트릭스
+	int32		ParentIndex{};
+	XMFLOAT4X4	MatOffset{};                    // 오프셋 매트릭스
 };
 
 
 struct FBXKeyFrameInfo
 {
-	XMFLOAT4X4 MatTransform{};
+	XMFLOAT4X4 MatTransform = Matrix::Identity;
 	double Time{};
 };
 

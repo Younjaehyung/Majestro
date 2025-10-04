@@ -96,6 +96,14 @@ float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, floa
     return level;
 }
 
+bool IsExactIdentity(float4x4 M)
+{
+    return all(M[0] == float4(1, 0, 0, 0)) &&
+           all(M[1] == float4(0, 1, 0, 0)) &&
+           all(M[2] == float4(0, 0, 1, 0)) &&
+           all(M[3] == float4(0, 0, 0, 1));
+}
+
 
 void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
     inout float4 weight, inout float4 indices, in uint skelBaseIdx)

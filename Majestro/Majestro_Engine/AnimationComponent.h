@@ -9,7 +9,7 @@ class StructuredBuffer;
 
 struct AnimationInstance {
 	uint32	SkeletonID{};		// 스켈레톤 핸들(Initialize에서 부여한 값)
-	uint32	AnimClipIdx{};		// 현재 재생중인 애니메이션 클립 인덱스
+	uint32	AnimClipID{};		// 현재 재생중인 애니메이션 클립 인덱스
 	uint32	CurrentFrame{};		// 현재 프레임
 	uint32	NextFrame{};		// 다음 프레임
 	
@@ -46,7 +46,7 @@ public:
 
 	vector<shared_ptr<Animator>>	mAnimClips;
 	AnimationInstance				mAnimInstance{};
-
+	uint32							mAnimClipIdx{};		// 현재 재생중인 애니메이션 클립 인덱스
 	
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;

@@ -85,9 +85,11 @@ struct ANIMFRAMEPARAMS
 
 struct ANIMATIONMETA
 {
+    uint BoneStart;
     uint BoneCount;
     uint StartFrame;
     uint NumFrame;
+    uint AnimOffset;
 };
 
 

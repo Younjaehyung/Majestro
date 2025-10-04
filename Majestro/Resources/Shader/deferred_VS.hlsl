@@ -45,7 +45,7 @@ VS_OUT VS_Main(VS_IN input)
     matrix WV = mul(Objects[instance.ObjectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);
     
-  // if (instance.LightIndex >= 1)
+    //if (instance.LightIndex >= 1)
        Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices, AnimInstance[instance.LightIndex].ReulstIndex);
 
     

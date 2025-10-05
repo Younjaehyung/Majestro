@@ -664,7 +664,7 @@ void ResourceManager::CreateDefaultMaterial()
 	
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
 	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
-	//LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
 	// LoadFBX(L"..\\Resources\\FBX\\Guitar_aPlaying.fbx");
 	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 	 

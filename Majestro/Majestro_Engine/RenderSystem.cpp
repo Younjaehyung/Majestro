@@ -203,7 +203,7 @@ void RenderSystem::PushObjectData()
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
 	
 	uint32 index{};
-	uint32 index2{};
+	int32 index2{};
 	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
 	{
 		if (mWorld->GetComponent<LightComponent>(gameObject)) {
@@ -215,17 +215,14 @@ void RenderSystem::PushObjectData()
 		RenderComponent*		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
 		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
 
-		if (animationComponent) {
-			index2 = animationComponent->mAnimInstanceID;
-		}else {
-			index2 = 0;
-		}
+		
 
 		objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 		mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
 			
 		renderComponent->mObjectIndex = index++;	// objectParams의 index 지정
-
+		
+		index2 = animationComponent ? animationComponent->mAnimInstanceID : -1;
 		
 
 

@@ -92,7 +92,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		const float ratio = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
 		animCom->mAnimInstance.CurrentFrame = static_cast<int32>(animCom->mUpdateTime * ratio);
 		animCom->mAnimInstance.CurrentFrame = min(animCom->mAnimInstance.CurrentFrame, animClip->mClipMeta.NumFrame - 1);
-		animCom->mAnimInstance.NextFrame = min(animCom->mAnimInstance.CurrentFrame + 1, animClip->mClipMeta.NumFrame - 1);
+		animCom->mAnimInstance.NextFrame = animCom->mAnimInstance.CurrentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : animCom->mAnimInstance.CurrentFrame + 1;
 
 		// 1. 현재 프레임의 시작 시간 계산
 		float frameTime = animCom->mAnimInstance.CurrentFrame / static_cast<float>(ratio);

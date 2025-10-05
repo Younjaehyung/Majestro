@@ -85,7 +85,7 @@ void Scene::Initialize()
 
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-		mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
 		float i, j;
 
 		for (i = -51; i < 0; i += 51.0f) {
@@ -96,7 +96,7 @@ void Scene::Initialize()
 
 				mWorld->AddComponent<TransformComponent>(osws, t);
 				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-				mWorld->AddComponent<AnimationComponent>(osws, anmators);
+				//mWorld->AddComponent<AnimationComponent>(osws, anmators);
 			}
 
 		}

@@ -49,7 +49,7 @@ struct RENDERPARAMS
     uint ObjectIndex;
     uint MaterialInfoIndex;
     
-    uint LightIndex; //light가 아니면 쓰지 말것.
+    int LightIndex; //light가 아니면 쓰지 말것.
     uint ParticleIndex; //Particle가 아니면 쓰지 말것.
 };
 //////////////

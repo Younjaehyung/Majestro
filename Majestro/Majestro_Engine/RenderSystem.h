@@ -18,7 +18,7 @@ struct RenderParams
 	uint32 object0{};	// object index
 	uint32 object1{};	// material index
 
-	uint32 object2{};    //// animation
+	int32 object2{};    //// animation
 	uint32 object3{};
 };
 

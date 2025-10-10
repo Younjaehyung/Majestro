@@ -55,10 +55,10 @@ void CameraSystem::TestUpdate(float dt)
 	}
 	
 	
-	//printf("%f  === %f \n", (float)INPUT.GetMouseState().Delta.y * 0.000001f/5.0f, dt);
+	const float DPI = 0.5f;
 	if (INPUT.GetMouseState().LeftDown) {
-		transformComponent->mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * 1;
-		transformComponent->mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * 1;
+		transformComponent->mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
+		transformComponent->mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
 		INPUT.MouseStateClear();
 	}
 	

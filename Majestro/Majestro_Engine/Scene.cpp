@@ -10,6 +10,7 @@
 #include "CameraComponent.h"
 #include "LightComponent.h"
 #include "TagComponent.h"
+#include "PlayerComponent.h"
 #include "AnimationComponent.h"
 
 #include "Prefab.h"
@@ -83,9 +84,17 @@ void Scene::Initialize()
 		vector<shared_ptr<Animator>> anmators;
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
 
+
+		mWorld->AddComponent<PlayerComponent>(osw);
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+
+		/*mWorld->AddComponent<MainCameraComponent>(osw);
+		mWorld->AddComponent<CameraComponent>(osw);*/
+
 		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
+
+		/*
 		float i, j;
 
 		for (i = -51; i < 0; i += 51.0f) {
@@ -99,7 +108,7 @@ void Scene::Initialize()
 				//mWorld->AddComponent<AnimationComponent>(osws, anmators);
 			}
 
-		}
+		}*/
 	}
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�

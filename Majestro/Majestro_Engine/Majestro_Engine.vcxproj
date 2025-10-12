@@ -206,6 +206,8 @@
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PlayerComponent.h" />
+    <ClInclude Include="PlayerSystem.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="RenderComponent.h" />
     <ClInclude Include="RenderManager.h" />
@@ -263,6 +265,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp" />
+    <ClCompile Include="PlayerSystem.cpp" />
     <ClCompile Include="Prefab.cpp" />
     <ClCompile Include="RenderComponent.cpp" />
     <ClCompile Include="RenderManager.cpp" />

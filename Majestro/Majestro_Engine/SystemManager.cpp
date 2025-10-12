@@ -5,6 +5,7 @@
 #include "AudioSystem.h"
 #include "TransformSystem.h"
 #include "AnimationSystem.h"
+#include "PlayerSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -14,6 +15,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
+    RegisterSystem<PlayerSystem>();
     
 
 }
@@ -33,6 +35,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);
     GetSystem<AnimationSystem>()->Update(deltaTime);
+    GetSystem<PlayerSystem>()->Update(deltaTime);
     
 }
 

@@ -204,6 +204,12 @@
     <ClInclude Include="FBXData.h">
       <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -350,6 +356,12 @@
     </ClCompile>
     <ClCompile Include="FBXData.cpp">
       <Filter>World\Resource\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerSystem.cpp">
+      <Filter>World\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

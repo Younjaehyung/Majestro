@@ -5,8 +5,6 @@ void CameraComponent::FinalUpdate(Matrix mat)
 {
 	mView = mat;
 
-
-
 	if (mCameraType == PROJECTION_TYPE::PERSPECTIVE)
 		mProjection = ::XMMatrixPerspectiveFovLH(mFov, mWidth / mHeight, mNear, mFar);
 	else

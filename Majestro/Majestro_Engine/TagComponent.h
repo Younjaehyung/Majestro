@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "Entity.h"
 
 class TagComponent : public Component<TagComponent>
 {
@@ -11,4 +12,15 @@ public:
 class MainCameraComponent : public Component<MainCameraComponent> {
 
 };
+
+class BackviewCameraComponent : public Component<BackviewCameraComponent>
+{
+public:
+	BackviewCameraComponent() {};
+	BackviewCameraComponent(Entity &entity) :mEntity(entity) {};
+
+public:
+	Entity mEntity;
+};
+
 

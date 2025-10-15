@@ -19,19 +19,51 @@ void PlayerSystem::Update(float dt)
 {
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<PlayerComponent, TransformComponent>() };
 	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
+	PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(entitys[0]);
 
+
+	float speed = 30.0f;
 	if (INPUT.GetKey(eKeyCode::A)) {
-		transformComponent->mLocalPosition -= transformComponent->GetRight() * dt * 50.f;
+		//transformComponent->mLocalPosition -= transformComponent->GetRight() * dt * speed;
+		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetRight() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::W)) {
-		transformComponent->mLocalPosition += transformComponent->GetLook() * dt * 50.f;
+		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetLook() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::S)) {
-		transformComponent->mLocalPosition -= transformComponent->GetLook() * dt * 50.f;
+		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetLook() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::D)) {
-		transformComponent->mLocalPosition += transformComponent->GetRight() * dt * 50.f;
+		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetRight() * dt * speed;
 	}
+	if (INPUT.GetKey(eKeyCode::Q)) {
+		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetUp() * dt * speed;
+	}
+	if (INPUT.GetKey(eKeyCode::E)) {
+		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetUp() * dt * speed;
+	}
+
+	const float DPI = 0.5f;
+	if (INPUT.GetMouseState().LeftDown) {
+		playerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
+		playerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
+		INPUT.MouseStateClear();
+	}
+
+	if (playerComponent->mPlayMode == "MainCamera") {
+		transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
+		transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
+	}
+	else if (playerComponent->mPlayMode == "3PS") { //3ÀÎÄª
+		transformComponent->mLocalPosition.x = playerComponent->mTransformComponent.mLocalPosition.x;
+		transformComponent->mLocalPosition.z = playerComponent->mTransformComponent.mLocalPosition.z;
+		transformComponent->mLocalRotation.y = playerComponent->mTransformComponent.mLocalRotation.y;
+	}
+
+	transformComponent->FinalUpdate();
+
+	playerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
+	playerComponent->mTransformComponent.FinalUpdate();
 
 	//TestUpdate(dt);
 	for (auto& entity : entitys) {

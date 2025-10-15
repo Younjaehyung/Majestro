@@ -23,10 +23,13 @@
 
 void Scene::Initialize()
 {
+
+	TransformComponent t{};
 	Entity testCamera = mWorld->CreateEntity();
+	//mWorld->AddComponent<PlayerComponent>(testCamera,t,"MainCamera");
 	mWorld->AddComponent<MainCameraComponent>(testCamera);
 	mWorld->AddComponent<CameraComponent>(testCamera);
-	mWorld->AddComponent<TransformComponent>(testCamera);
+	mWorld->AddComponent<TransformComponent>(testCamera,t);
 
 
 	/////////////////////////////////////////////////////////////////////
@@ -64,8 +67,6 @@ void Scene::Initialize()
 	//materials.push_back(material);
 	//
 
-	TransformComponent t{};
-
 
 
 	//mWorld->AddComponent<TransformComponent>(testEntity, t);
@@ -74,25 +75,24 @@ void Scene::Initialize()
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
+		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
 		std::vector<shared_ptr<Material>> material2s;
 
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
+		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Capoeira0");
 		material2s.push_back(material2);
-		t.mLocalPosition = { 0.f, 0.f, 100.f };
+		t.mLocalPosition = { 0.f, 0.f, 10.f };
 
 		vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
+		mWorld->AddComponent<BackviewCameraComponent>(testCamera,osw);
 
-		mWorld->AddComponent<PlayerComponent>(osw);
+		mWorld->AddComponent<PlayerComponent>(osw,t,"3PS");
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-
-		/*mWorld->AddComponent<MainCameraComponent>(osw);
-		mWorld->AddComponent<CameraComponent>(osw);*/
-
-		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		//mWorld->AddComponent<CameraComponent>(osw);
+		//mWorld->AddComponent<MainCameraComponent>(osw);
 
 		/*
 		float i, j;
@@ -113,30 +113,34 @@ void Scene::Initialize()
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
+		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
 		std::vector<shared_ptr<Material>> material2s;
 
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Capoeira0");
+		
+		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
 		material2s.push_back(material2);
 		t.mLocalPosition = { 0.f, 0.f, 0.f };
 
 		vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
+		
 
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-		mWorld->AddComponent<AnimationComponent>(osw, anmators);
-		float i, j;
+		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		float i, j, k;
+		float n = 10;
+		for (i = -50; i < 50; i += 10.0f) {
+			for (j = -50; j < 50; j += 10.0f) {
+				for (k = -50; k < 50; k += 10.0f) {
+					Entity osws = mWorld->CreateEntity();	// �ʼ�
+					t.mLocalPosition = { i*n, j*n, k*n };
 
-		for (i = -10; i < 10; i += 1.0f) {
-			for (j = -10; j < 10; j += 1.0f) {
-				Entity osws = mWorld->CreateEntity();	// �ʼ�
-				t.mLocalPosition = { i, j, 0.f };
 
-
-				mWorld->AddComponent<TransformComponent>(osws, t);
-				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-				mWorld->AddComponent<AnimationComponent>(osws, anmators);
+					mWorld->AddComponent<TransformComponent>(osws, t);
+					mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
+					//mWorld->AddComponent<AnimationComponent>(osws, anmators);
+				}
 			}
 
 		}

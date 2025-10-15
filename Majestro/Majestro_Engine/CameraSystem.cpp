@@ -25,21 +25,24 @@ void CameraSystem::Update(float dt)
 	for (auto& entity : entitys) {
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		
+		std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerComponent>() };
+		PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(playerEntitys[0]);
 
+		Vec3 pos = playerComponent->mTransformComponent.mLocalPosition;
 
-		BackviewCameraComponent* bviewComponent = mWorld->GetComponent<BackviewCameraComponent>(entity);
-
-		//transformComponent->FinalUpdate();
-		if (bviewComponent) {
-			std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerComponent>() };
-			PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(playerEntitys[0]);
-			//bviewComponent
-			//bviewComponent->mEntity.
-			//cameraComponent->FinalUpdate(playerComponent->mTransformComponent.GetLocalToWorldMatrix().Invert());
+		if (playerComponent->mPlayMode == "1PS") { //플레이어 시아로 변경 필요
 			transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
 			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
 			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 		}
+		else if (playerComponent->mPlayMode == "3PS") {
+			pos.y += playerComponent->mHight;
+			transformComponent->mLocalPosition = pos - playerComponent->mCameraLenth * playerComponent->mTransformComponent.GetLook();
+			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
+			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		}
+		
 		else cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 	}
 	

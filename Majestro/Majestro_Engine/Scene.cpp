@@ -85,8 +85,6 @@ void Scene::Initialize()
 		vector<shared_ptr<Animator>> anmators;
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
-		mWorld->AddComponent<BackviewCameraComponent>(testCamera,osw);
-
 		mWorld->AddComponent<PlayerComponent>(osw,t,"3PS");
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
@@ -132,15 +130,15 @@ void Scene::Initialize()
 		float n = 10;
 		for (i = -50; i < 50; i += 10.0f) {
 			for (j = -50; j < 50; j += 10.0f) {
-				for (k = -50; k < 50; k += 10.0f) {
+				//for (k = -50; k < 50; k += 10.0f) {
 					Entity osws = mWorld->CreateEntity();	// �ʼ�
-					t.mLocalPosition = { i*n, j*n, k*n };
+					t.mLocalPosition = { i*n, 0, j*n };
 
 
 					mWorld->AddComponent<TransformComponent>(osws, t);
 					mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
 					//mWorld->AddComponent<AnimationComponent>(osws, anmators);
-				}
+				//}
 			}
 
 		}

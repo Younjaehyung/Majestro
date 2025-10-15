@@ -21,40 +21,13 @@ void PlayerSystem::Update(float dt)
 	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
 	PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(entitys[0]);
 
-
-	float speed = 30.0f;
-	if (INPUT.GetKey(eKeyCode::A)) {
-		//transformComponent->mLocalPosition -= transformComponent->GetRight() * dt * speed;
-		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetRight() * dt * speed;
-	}
-	if (INPUT.GetKey(eKeyCode::W)) {
-		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetLook() * dt * speed;
-	}
-	if (INPUT.GetKey(eKeyCode::S)) {
-		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetLook() * dt * speed;
-	}
-	if (INPUT.GetKey(eKeyCode::D)) {
-		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetRight() * dt * speed;
-	}
-	if (INPUT.GetKey(eKeyCode::Q)) {
-		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetUp() * dt * speed;
-	}
-	if (INPUT.GetKey(eKeyCode::E)) {
-		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetUp() * dt * speed;
-	}
-
-	const float DPI = 0.5f;
-	if (INPUT.GetMouseState().LeftDown) {
-		playerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
-		playerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
-		INPUT.MouseStateClear();
-	}
+	Input(dt, playerComponent);
 
 	if (playerComponent->mPlayMode == "MainCamera") {
 		transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
 		transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
 	}
-	else if (playerComponent->mPlayMode == "3PS") { //3ÀÎÄª
+	else if (playerComponent->mPlayMode == "1PS" || playerComponent->mPlayMode == "3PS") { //1,3ÀÎÄª
 		transformComponent->mLocalPosition.x = playerComponent->mTransformComponent.mLocalPosition.x;
 		transformComponent->mLocalPosition.z = playerComponent->mTransformComponent.mLocalPosition.z;
 		transformComponent->mLocalRotation.y = playerComponent->mTransformComponent.mLocalRotation.y;
@@ -74,4 +47,32 @@ void PlayerSystem::Update(float dt)
 		//cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 	}
 
+}
+
+void PlayerSystem::Input(float dt, PlayerComponent* playerComponent)
+{
+
+	if (INPUT.GetKey(eKeyCode::A)) {
+		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetRight() * dt * speed;
+	}
+	if (INPUT.GetKey(eKeyCode::W)) {
+		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetLook() * dt * speed;
+	}
+	if (INPUT.GetKey(eKeyCode::S)) {
+		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetLook() * dt * speed;
+	}
+	if (INPUT.GetKey(eKeyCode::D)) {
+		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetRight() * dt * speed;
+	}
+	if (INPUT.GetKey(eKeyCode::Q)) {
+		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetUp() * dt * speed;
+	}
+	if (INPUT.GetKey(eKeyCode::E)) {
+		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetUp() * dt * speed;
+	}
+	if (INPUT.GetMouseState().LeftDown) {
+		playerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
+		playerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
+		INPUT.MouseStateClear();
+	}
 }

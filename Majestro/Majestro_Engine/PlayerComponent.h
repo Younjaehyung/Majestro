@@ -11,4 +11,6 @@ public:
 public:
 	TransformComponent mTransformComponent;
 	std::string mPlayMode;
+	float mHight = 1; //모델 심장부
+	float mCameraLenth = 5; //캐릭터 카메라 거리(차후 충돌처리 할일 생기면 스프링 암으로 변경)
 };

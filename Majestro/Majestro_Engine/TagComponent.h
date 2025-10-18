@@ -14,7 +14,7 @@ class MainCameraComponent : public Component<MainCameraComponent>
 
 };
 
-class BackviewCameraComponent : public Component<BackviewCameraComponent>
+class MainPlayerComponent : public Component<MainPlayerComponent>
 {
 
 };

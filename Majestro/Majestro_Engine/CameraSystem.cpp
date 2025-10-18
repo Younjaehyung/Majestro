@@ -31,12 +31,18 @@ void CameraSystem::Update(float dt)
 
 		Vec3 pos = playerComponent->mTransformComponent.mLocalPosition;
 
-		if (playerComponent->mPlayMode == "1PS") { //플레이어 시아로 변경 필요
+		if (playerComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
 			transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
 			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
 			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 		}
-		else if (playerComponent->mPlayMode == "3PS") {
+		else if (playerComponent->mPlayMode == THREE_FPS) {
+			pos.y += playerComponent->mHight;
+			transformComponent->mLocalPosition = pos - playerComponent->mCameraLenth * playerComponent->mTransformComponent.GetLook();
+			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
+			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		}
+		else if (playerComponent->mPlayMode == THREE_RPG) {
 			pos.y += playerComponent->mHight;
 			transformComponent->mLocalPosition = pos - playerComponent->mCameraLenth * playerComponent->mTransformComponent.GetLook();
 			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;

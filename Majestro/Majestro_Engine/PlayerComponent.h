@@ -13,12 +13,12 @@ enum PlayMode
 class PlayerComponent : public Component<PlayerComponent>
 {
 public:
-	PlayerComponent() {}
-	PlayerComponent(TransformComponent transform): mTransformComponent(transform) {}
+	PlayerComponent() : mTransformComponent(), mPlayMode(MAIN_CAMERA) {}
+	PlayerComponent(TransformComponent transform): mTransformComponent(transform), mPlayMode() {}
 	PlayerComponent(TransformComponent transform, PlayMode mode) : mTransformComponent(transform), mPlayMode(mode) {}
 public:
 	TransformComponent mTransformComponent;
 	PlayMode mPlayMode;
-	float mHight = 1; //¸ðµ¨ ½ÉÀåºÎ
-	float mCameraLenth = 5; //Ä³¸¯ÅÍ Ä«¸Þ¶ó °Å¸®(Â÷ÈÄ Ãæµ¹Ã³¸® ÇÒÀÏ »ý±â¸é ½ºÇÁ¸µ ¾ÏÀ¸·Î º¯°æ)
+	float mHight = 1; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	float mCameraLenth = 5; //Ä³ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ ï¿½Å¸ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
 };

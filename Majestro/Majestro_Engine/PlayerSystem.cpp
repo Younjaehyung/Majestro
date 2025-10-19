@@ -21,11 +21,6 @@ void PlayerSystem::Update(float dt)
 {
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<PlayerComponent, TransformComponent>() };
 
-	/*int i{ 1 };
-	for (Entity e : entitys) {
-		printf("%d --- \n", i++);
-	}*/
-
 	if (INPUT.GetKeyDown(eKeyCode::F1)) {
 		//printf("f4");
 		std::vector<Entity> mainPlayerEntitys{ mWorld->GetEntitiesWithComponent<MainPlayerComponent>() };
@@ -54,11 +49,7 @@ void PlayerSystem::Update(float dt)
 		mWorld->RemoveComponent<PlayerComponent>(entitys[0]);
 		mWorld->AddComponent<PlayerComponent>(mainCameraEntitys[0], *t, MAIN_CAMERA);
 	}
-	else if (INPUT.GetKeyDown(eKeyCode::T)) {
-		mWorld->RemoveComponent<PlayerComponent>(entitys[0]);
-	}
-
-	if(entitys.size()!=0) {
+	else {
 
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
 		PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(entitys[0]);

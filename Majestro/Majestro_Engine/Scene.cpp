@@ -85,7 +85,7 @@ void Scene::Initialize()
 		vector<shared_ptr<Animator>> anmators;
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
-		mWorld->AddComponent<PlayerComponent>(osw,t,"3PS");
+		mWorld->AddComponent<PlayerComponent>(osw,t,"1PS");
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(osw, anmators);

@@ -71,16 +71,8 @@ private:
     // System
     std::shared_ptr<SystemManager>		mSystemManager = std::make_shared< SystemManager>(this);
 
-
-    void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID) {
-        auto it = mComponentPools.find(typeID);
-        if (it != mComponentPools.end()) {
-            // 실제 타입을 알 수 없으므로 가상 함수를 통해 제거
-            // 이 부분은 런타임에 타입 정보가 필요하므로 개선 필요
-        }
-    }
+	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };
-
 
 
 template<typename T, typename... Args>

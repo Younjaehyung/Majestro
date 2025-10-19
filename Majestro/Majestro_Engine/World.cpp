@@ -32,3 +32,11 @@ void World::Clear() {
     mComponentPools.clear();
     mNextEntityID = 1;
 }
+
+void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)
+{
+    auto it = mComponentPools.find(typeID);
+    if (it != mComponentPools.end()) {
+        it->second->RemoveComponent(entityID);
+	}
+}

@@ -27,7 +27,7 @@ void PlayerSystem::Update(float dt)
 		transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
 		transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
 	}
-	else if (playerComponent->mPlayMode == "1PS" || playerComponent->mPlayMode == "3PS") { //1,3ÀÎÄª
+	else if (playerComponent->mPlayMode == "1PS" || playerComponent->mPlayMode == "3PS") { //1,3ï¿½ï¿½Äª
 		transformComponent->mLocalPosition.x = playerComponent->mTransformComponent.mLocalPosition.x;
 		transformComponent->mLocalPosition.z = playerComponent->mTransformComponent.mLocalPosition.z;
 		transformComponent->mLocalRotation.y = playerComponent->mTransformComponent.mLocalRotation.y;

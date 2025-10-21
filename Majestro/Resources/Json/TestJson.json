@@ -1,0 +1,42 @@
+{
+    "flags": {
+        "F_MOVE": 1,
+        "F_STUN": 2,
+        "F_DEAD": 4,
+        "F_ATTACK": 8,
+        "F_ANIM" : 16
+    },
+    "guards": [
+        {
+            "from": "Idle",
+            "to": "Walk",
+            "speed": [ 30, 69.999 ],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
+        },
+
+        {
+            "from": "Walk",
+            "to": "Run",
+            "speed": [ 70, null ],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
+        },
+
+        {
+            "from": "Run",
+            "to": "Walk",
+            "speed": [ 30, 69.999 ],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
+        },
+
+        {
+            "from": "Walk",
+            "to": "Idle",
+            "speed": [ null, 29.999 ],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
+        }
+    ]
+}

@@ -19,64 +19,69 @@ void PlayerSystem::Initialize()
 
 void PlayerSystem::Update(float dt)
 {
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<PlayerComponent, TransformComponent>() };
+	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
 
 	if (INPUT.GetKeyDown(eKeyCode::F1)) {
 		//printf("f4");
 		std::vector<Entity> mainPlayerEntitys{ mWorld->GetEntitiesWithComponent<MainPlayerComponent>() };
 		TransformComponent* t = mWorld->GetComponent<TransformComponent>(mainPlayerEntitys[0]);
-		mWorld->RemoveComponent<PlayerComponent>(entitys[0]);
-		mWorld->AddComponent<PlayerComponent>(mainPlayerEntitys[0], *t, ONE_FPS);
+		mWorld->RemoveComponent<ControllerComponent>(entitys[0]);
+		mWorld->AddComponent<ControllerComponent>(mainPlayerEntitys[0], *t, ONE_FPS);
 	}
 	else if (INPUT.GetKeyDown(eKeyCode::F2)) {
 		//printf("f4");
 		std::vector<Entity> mainPlayerEntitys{ mWorld->GetEntitiesWithComponent<MainPlayerComponent>() };
 		TransformComponent* t = mWorld->GetComponent<TransformComponent>(mainPlayerEntitys[0]);
-		mWorld->RemoveComponent<PlayerComponent>(entitys[0]);
-		mWorld->AddComponent<PlayerComponent>(mainPlayerEntitys[0], *t, THREE_FPS);
+		mWorld->RemoveComponent<ControllerComponent>(entitys[0]);
+		mWorld->AddComponent<ControllerComponent>(mainPlayerEntitys[0], *t, THREE_FPS);
 	}
 	else if (INPUT.GetKeyDown(eKeyCode::F3)) {
 		//printf("f4");
 		std::vector<Entity> mainPlayerEntitys{ mWorld->GetEntitiesWithComponent<MainPlayerComponent>() };
 		TransformComponent* t = mWorld->GetComponent<TransformComponent>(mainPlayerEntitys[0]);
-		mWorld->RemoveComponent<PlayerComponent>(entitys[0]);
-		mWorld->AddComponent<PlayerComponent>(mainPlayerEntitys[0], *t, THREE_RPG);
+		mWorld->RemoveComponent<ControllerComponent>(entitys[0]);
+		mWorld->AddComponent<ControllerComponent>(mainPlayerEntitys[0], *t, THREE_RPG);
 	}
 	else if (INPUT.GetKeyDown(eKeyCode::F4)) {
 		//printf("f4");
 		std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 		TransformComponent* t = mWorld->GetComponent<TransformComponent>(mainCameraEntitys[0]);
-		mWorld->RemoveComponent<PlayerComponent>(entitys[0]);
-		mWorld->AddComponent<PlayerComponent>(mainCameraEntitys[0], *t, MAIN_CAMERA);
+		mWorld->RemoveComponent<ControllerComponent>(entitys[0]);
+		mWorld->AddComponent<ControllerComponent>(mainCameraEntitys[0], *t, MAIN_CAMERA);
 	}
 	else {
 
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
-		PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(entitys[0]);
+		ControllerComponent* controllerComponent = mWorld->GetComponent<ControllerComponent>(entitys[0]);
+		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
 
 
-		Input(dt, playerComponent);
+		Input(dt, controllerComponent, mainPlayerComponent);
 
-		if (playerComponent->mPlayMode == MAIN_CAMERA) {
-			transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
-			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
+		if (controllerComponent->mPlayMode == MAIN_CAMERA) {
+			transformComponent->mLocalPosition = controllerComponent->mTransformComponent.mLocalPosition;
+			transformComponent->mLocalRotation = controllerComponent->mTransformComponent.mLocalRotation;
 		}
-		else if (playerComponent->mPlayMode == ONE_FPS || playerComponent->mPlayMode == THREE_FPS) {
-			transformComponent->mLocalPosition.x = playerComponent->mTransformComponent.mLocalPosition.x;
-			transformComponent->mLocalPosition.z = playerComponent->mTransformComponent.mLocalPosition.z;
-			transformComponent->mLocalRotation.y = playerComponent->mTransformComponent.mLocalRotation.y;
+		else if (controllerComponent->mPlayMode == ONE_FPS || controllerComponent->mPlayMode == THREE_FPS) {
+			transformComponent->mLocalPosition.x = controllerComponent->mTransformComponent.mLocalPosition.x;
+			transformComponent->mLocalPosition.z = controllerComponent->mTransformComponent.mLocalPosition.z;
+			transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
+			std::cout << mainPlayerComponent->mFlags << std::endl;
+			mainPlayerComponent->mSpeed = 50.f;
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent,WalkState::Instance());
+			mainPlayerComponent->mFsm.Update(mainPlayerComponent);
 		}
-		else if (playerComponent->mPlayMode == THREE_RPG) {
-			transformComponent->mLocalPosition.x = playerComponent->mTransformComponent.mLocalPosition.x;
-			transformComponent->mLocalPosition.z = playerComponent->mTransformComponent.mLocalPosition.z;
+		else if (controllerComponent->mPlayMode == THREE_RPG) {
+			transformComponent->mLocalPosition.x = controllerComponent->mTransformComponent.mLocalPosition.x;
+			transformComponent->mLocalPosition.z = controllerComponent->mTransformComponent.mLocalPosition.z;
 			//if(move)
-			//transformComponent->mLocalRotation.y = playerComponent->mTransformComponent.mLocalRotation.y;
+			//transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
 		}
 
 		transformComponent->FinalUpdate();
 
-		playerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
-		playerComponent->mTransformComponent.FinalUpdate();
+		controllerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
+		controllerComponent->mTransformComponent.FinalUpdate();
 
 		//TestUpdate(dt);
 		for (auto& entity : entitys) {
@@ -89,31 +94,34 @@ void PlayerSystem::Update(float dt)
 	}
 }
 
-void PlayerSystem::Input(float dt, PlayerComponent* playerComponent)
+void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, MainPlayerComponent* mainPlayerComponent)
 {
 
 
 	if (INPUT.GetKey(eKeyCode::A)) {
-		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetRight() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetRight() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::W)) {
-		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetLook() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetLook() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::S)) {
-		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetLook() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetLook() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::D)) {
-		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetRight() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetRight() * dt * speed;
 	}
+
 	if (INPUT.GetKey(eKeyCode::Q)) {
-		playerComponent->mTransformComponent.mLocalPosition -= playerComponent->mTransformComponent.GetUp() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetUp() * dt * speed;
 	}
 	if (INPUT.GetKey(eKeyCode::E)) {
-		playerComponent->mTransformComponent.mLocalPosition += playerComponent->mTransformComponent.GetUp() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetUp() * dt * speed;
 	}
+
+
 	if (INPUT.GetMouseState().LeftDown) {
-		playerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
-		playerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
+		controllerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
+		controllerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
 		INPUT.MouseStateClear();
 	}
 }

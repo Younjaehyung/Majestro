@@ -210,6 +210,9 @@
     <ClInclude Include="PlayerSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
+    <ClInclude Include="StateMachine.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -362,6 +365,9 @@
     </ClCompile>
     <ClCompile Include="PlayerSystem.cpp">
       <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="StateMachine.cpp">
+      <Filter>World\Component</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

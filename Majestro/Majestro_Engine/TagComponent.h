@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "Entity.h"
 
+
 class TagComponent : public Component<TagComponent>
 {
 public:
@@ -14,9 +15,5 @@ class MainCameraComponent : public Component<MainCameraComponent>
 
 };
 
-class MainPlayerComponent : public Component<MainPlayerComponent>
-{
-
-};
 
 

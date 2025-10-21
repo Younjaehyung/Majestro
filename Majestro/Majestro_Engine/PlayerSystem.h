@@ -2,7 +2,8 @@
 #include "World.h"
 #include "System.h"
 
-class PlayerComponent;
+class ControllerComponent;
+class MainPlayerComponent;
 
 class PlayerSystem : public System
 {
@@ -11,7 +12,7 @@ public:
 
 	void Initialize();
 	void Update(float dt);
-	void Input(float dt, PlayerComponent* playerComponent);
+	void Input(float dt, ControllerComponent* playerComponent , MainPlayerComponent* mainPlayerComponent);
 
 private:
 	float speed = 30.0f;

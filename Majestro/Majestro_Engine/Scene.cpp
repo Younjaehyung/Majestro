@@ -26,7 +26,6 @@ void Scene::Initialize()
 
 	TransformComponent t{};
 	Entity testCamera = mWorld->CreateEntity();
-	//mWorld->AddComponent<PlayerComponent>(testCamera,t,MAIN_CAMERA);
 	mWorld->AddComponent<MainCameraComponent>(testCamera);
 	mWorld->AddComponent<CameraComponent>(testCamera);
 	mWorld->AddComponent<TransformComponent>(testCamera,t);
@@ -85,13 +84,12 @@ void Scene::Initialize()
 		vector<shared_ptr<Animator>> anmators;
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
-		mWorld->AddComponent<PlayerComponent>(osw,t, THREE_FPS);
-		mWorld->AddComponent<MainPlayerComponent>(osw);
+		mWorld->AddComponent<ControllerComponent>(osw,t, THREE_FPS);
+		mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json");
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(osw, anmators);
-		//mWorld->AddComponent<CameraComponent>(osw);
-		//mWorld->AddComponent<MainCameraComponent>(osw);
+		
 
 		/*
 		float i, j;

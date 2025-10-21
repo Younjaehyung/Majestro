@@ -26,8 +26,8 @@ void CameraSystem::Update(float dt)
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		
-		std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerComponent>() };
-		PlayerComponent* playerComponent = mWorld->GetComponent<PlayerComponent>(playerEntitys[0]);
+		std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<ControllerComponent>() };
+		ControllerComponent* playerComponent = mWorld->GetComponent<ControllerComponent>(playerEntitys[0]);
 
 		Vec3 pos = playerComponent->mTransformComponent.mLocalPosition;
 

@@ -65,11 +65,13 @@ void PlayerSystem::Update(float dt)
 		else if (controllerComponent->mPlayMode == ONE_FPS || controllerComponent->mPlayMode == THREE_FPS) {
 			transformComponent->mLocalPosition.x = controllerComponent->mTransformComponent.mLocalPosition.x;
 			transformComponent->mLocalPosition.z = controllerComponent->mTransformComponent.mLocalPosition.z;
+			transformComponent->mLocalPosition.y = mainPlayerComponent->mHight;
 			transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
-			std::cout << mainPlayerComponent->mFlags << std::endl;
-			mainPlayerComponent->mSpeed = 50.f;
+			//std::cout << mainPlayerComponent->mFlags << std::endl;
+			//std::cout << mainPlayerComponent->mHight << std::endl;
+			mainPlayerComponent->mSpeed = 0.f;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent,WalkState::Instance());
-			mainPlayerComponent->mFsm.Update(mainPlayerComponent);
+			mainPlayerComponent->Update(dt);
 		}
 		else if (controllerComponent->mPlayMode == THREE_RPG) {
 			transformComponent->mLocalPosition.x = controllerComponent->mTransformComponent.mLocalPosition.x;
@@ -109,6 +111,10 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 	}
 	if (INPUT.GetKey(eKeyCode::D)) {
 		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetRight() * dt * speed;
+	}
+
+	else if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
+		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 	}
 
 	if (INPUT.GetKey(eKeyCode::Q)) {

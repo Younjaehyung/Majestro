@@ -29,35 +29,35 @@ public:
 
 //------------------------------------------------------------------------------------------------
 
-enum : StateId { S_Idle = 0 , S_Walk =1 , S_Run = 2/*, S_Stun, S_Dead ...*/ };
-
-using Flags = uint64_t;
-enum : Flags {
-	F_MOVE = 1ull << 0,
-	F_STUN = 1ull << 1,
-	F_DEAD = 1ull << 2,
-	F_ATTACK = 1ull << 3,
-	F_ANIM = 1ull << 4,
-};
-
 static std::unordered_map<std::string, uint64_t> gFlagByName = {
-	{"F_MOVE", 1ull << 0} ,{"F_STUN", 1ull << 1}, {"F_DEAD", 1ull << 2},{"F_ATTACK", 1ull << 3}, { "F_ANIM", 1ull << 4 }
+	{"F_MOVE", 1ull << 0} ,{"F_STUN", 1ull << 1}, {"F_DEAD", 1ull << 2},{"F_JUMP", 1ull << 3}, { "F_AIM", 1ull << 4 }
 };
+
+inline void SetFlag(uint64_t& f, uint64_t m) { f |= m; }   // 켜기
+inline void ClearFlag(uint64_t& f, uint64_t m) { f &= ~m; }   // 끄기
 
 class MainPlayerComponent : public Component<MainPlayerComponent>
 {
 public:
-	MainPlayerComponent():mFsm(this), mSpeed(0.0f), mFlags(0ull) {};
-	MainPlayerComponent(const std::string& path): mFsm(this), mSpeed(0.0f), mFlags(0ull)  { 
-		InitFSMFromJson(path);
-	};
+	MainPlayerComponent();
+	MainPlayerComponent(const std::string& path);
 
-	StateMachine<MainPlayerComponent> mFsm{this};
-	float mSpeed = 0.0f;
-	uint64_t mFlags = 0ull;
+	void StateCheck();
+	void Update(float dt);
 
 	void InitFSMOnce();
 	void InitFSMFromJson(const std::string& path);
+
+public:
+	StateMachine<MainPlayerComponent> mFsm{this};
+	float mSpeed = 0.0f;
+	uint64_t mFlags = 0ull;
+	float mStateTime=0.0f;
+	float mDt=0.0f;
+
+	float mJumpPower = 10.f;
+	float mHight = 0.0f;
+	float mGround = 0.0f;
 };
 
 class IdleState : public State<MainPlayerComponent> {
@@ -66,11 +66,16 @@ public:
 		static IdleState inst;
 		return &inst;
 	}
-	void Enter(MainPlayerComponent* owner) override { std::cout << "Enter Idle\n"; }
+	void Enter(MainPlayerComponent* owner) override { 
+		ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+		std::cout << "Enter Idle\n"; 
+	}
 	void Update(MainPlayerComponent* owner) override {
 		
 	}
-	void Exit(MainPlayerComponent* owner) override { std::cout << "Exit Idle\n"; }
+	void Exit(MainPlayerComponent* owner) override { 
+		std::cout << "Exit Idle\n"; 
+	}
 };
 
 class WalkState : public State<MainPlayerComponent> {
@@ -80,14 +85,17 @@ public:
 		return &inst;
 	}
 	void Enter(MainPlayerComponent* owner) override { 
-		owner->mFlags |= gFlagByName["F_MOVE"];
+		SetFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+		cout << owner->mFlags << endl;
 		std::cout << "Enter Walk\n"; 
 	}
 	void Update(MainPlayerComponent* owner) override {
-		cout << "try--" << endl;
+		//cout << "try--" << endl;
 		owner->mFsm.ChangeState(owner,IdleState::Instance());
+		//owner->mFsm.ChangeState(owner,RunState::Instance());
 	}
 	void Exit(MainPlayerComponent* owner) override { 
+		//ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
 		std::cout << "Exit Walk\n"; 
 	}
 };
@@ -98,11 +106,39 @@ public:
 		static RunState inst;                          // 최초 호출 시 한 번만 생성
 		return &inst;
 	}
-	void Enter(MainPlayerComponent* owner) override { std::cout << "Enter Run\n"; }
+	void Enter(MainPlayerComponent* owner) override { 
+		SetFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+		std::cout << "Enter Run\n"; 
+	}
 	void Update(MainPlayerComponent* owner) override {
-		if (owner->mFsm.ChangeState(owner,IdleState::Instance())) return;
+		if (owner->mFsm.ChangeState(owner,WalkState::Instance())) return;
 	}
 	void Exit(MainPlayerComponent* owner) override { 
 		std::cout << "Exit Run\n";
+	}
+};
+
+class JumpState : public State<MainPlayerComponent> {
+public:
+	static JumpState* Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
+		static JumpState inst;                          // 최초 호출 시 한 번만 생성
+		return &inst;
+	}
+	void Enter(MainPlayerComponent* owner) override {
+		owner->mStateTime = 0.0f;
+		owner->mHight = 0.1f;
+		SetFlag(owner->mFlags, gFlagByName["F_JUMP"]);
+		std::cout << "Enter Jump\n";
+	}
+	void Update(MainPlayerComponent* owner) override {
+		if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
+		float g = 9.8;
+		owner->mHight += (owner->mJumpPower - g *owner->mStateTime)* owner->mDt ;
+		cout << owner->mHight << endl;
+	}
+	void Exit(MainPlayerComponent* owner) override {
+		owner->mHight = owner->mGround;
+		
+		std::cout << "Exit Jump\n";
 	}
 };

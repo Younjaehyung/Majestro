@@ -3,8 +3,8 @@
         "F_MOVE": 1,
         "F_STUN": 2,
         "F_DEAD": 4,
-        "F_ATTACK": 8,
-        "F_ANIM" : 16
+        "F_JUMP": 8,
+        "F_AIM" : 16
     },
     "guards": [
         {
@@ -37,6 +37,40 @@
             "speed": [ null, 29.999 ],
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD" ]
+        },
+
+        {
+            "from": "Idle",
+            "to": "Jump",
+            "speed": [],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
+        },
+
+        {
+            "from": "Jump",
+            "to": "Idle",
+            "speed": [],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Jump",
+            "to": "Walk",
+            "speed": [],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Walk",
+            "to": "Jump",
+            "speed": [],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
         }
+
+
     ]
 }

@@ -25,7 +25,6 @@ void AudioSystem::Update(float deltaTime)
 
     time += deltaTime;
     if (time > 12.0f) {
-        cout << time << endl;
         AUDIOMANAGER.SetBGMParam("To Drum2Yeah", 1.f,true);
     }
     if(time > 30.0f){

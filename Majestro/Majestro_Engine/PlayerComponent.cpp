@@ -5,19 +5,46 @@
 using json = nlohmann::json;
 #include "PlayerComponent.h"
 
-void MainPlayerComponent::InitFSMOnce() {
-	
-}
-
 //static std::unordered_map<std::string, uint64_t> gFlagByName = {
 //    {"F_MOVE", 1ull << 0} ,{"F_STUN", 1ull << 1}, {"F_DEAD", 1ull << 2},{"F_ATTACK", 1ull << 3}, { "F_ANIM", 1ull << 4 }
 //};
+
+enum : StateId { S_Idle = 0, S_Walk = 1, S_Run = 2, S_Jump = 3 /*, S_Stun, S_Dead ...*/ };
 
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
     if (n == "Walk") return S_Walk;
 	if (n == "Run")  return S_Run;
+	if (n == "Jump")  return S_Jump;
 	return 255;
+}
+
+MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0ull)
+{
+}
+
+MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
+{
+    InitFSMFromJson(path);
+};
+
+void MainPlayerComponent::StateCheck()
+{
+    if(mSpeed<30.f)ClearFlag(mFlags, gFlagByName["F_MOVE"]);
+    if(mHight<=mGround)ClearFlag(mFlags, gFlagByName["F_JUMP"]);
+}
+
+void MainPlayerComponent::Update(float dt) 
+{
+    mStateTime += dt;
+    mDt = dt;
+    StateCheck();
+    mFsm.Update(this);
+}
+
+
+void MainPlayerComponent::InitFSMOnce()
+{
 }
 
 void MainPlayerComponent::InitFSMFromJson(const std::string& path)
@@ -29,6 +56,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == IdleState::Instance()) return S_Idle;
         if (s == WalkState::Instance())  return S_Walk;
         if (s == RunState::Instance())  return S_Run;
+        if (s == JumpState::Instance())  return S_Jump;
         return 255;
         });
 

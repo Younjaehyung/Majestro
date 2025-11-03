@@ -401,6 +401,23 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Skybox", shader);
 	}
 
+	// Cel (Default -cel) - TO-DO
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::DEFERRED
+		};
+
+		ShaderPath shaderPath{
+		.VS = L"..\\Resources\\Shader\\cel_VS.hlsl",
+		.PS = L"..\\Resources\\Shader\\cel_PS.hlsl"
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info);
+		Add<Shader>(L"Cel", shader);
+	}
+
 	// Deferred (Deferred)
 	{
 		ShaderInfo info =

@@ -16,8 +16,14 @@ void RenderManager::Initialize(const WindowInfo& info)
 {
 	mWindow = info;
 
-	mViewport = { 0, 0, static_cast<FLOAT>(info.Width), static_cast<FLOAT>(info.Height), 0.0f, 1.0f };	//뷰포트창 세팅
-	mScissorRect = CD3DX12_RECT(0, 0, info.Width, info.Height);	//사각형 생성
+	// TO - DO : 임시로 4K 해상도로 고정
+	mWindow.Width = 2560;
+	mWindow.Height = 1440;
+
+
+
+	mViewport = { 0, 0, static_cast<FLOAT>(mWindow.Width), static_cast<FLOAT>(mWindow.Height), 0.0f, 1.0f };	//뷰포트창 세팅
+	mScissorRect = CD3DX12_RECT(0, 0, mWindow.Width, mWindow.Height);	//사각형 생성
 
 	mDevice->Initialize();
 
@@ -26,7 +32,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mGraphicsCommandQueue->Initialize(mDevice->GetDevice(), mSwapChain);
 	mComputeCommandQueue->Initialize(mDevice->GetDevice());
 
-	mSwapChain->Initialize(info, mDevice->GetDevice(), mDevice->GetDXGI(), mGraphicsCommandQueue->GetCommandQueue());
+	mSwapChain->Initialize(mWindow, mDevice->GetDevice(), mDevice->GetDXGI(), mGraphicsCommandQueue->GetCommandQueue());
 
 	
 

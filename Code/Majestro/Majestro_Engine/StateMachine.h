@@ -5,17 +5,17 @@ class State
 {
 public:
     virtual ~State() = default;
-    virtual void Enter(entity_type*) = 0;   // »óÅÂ ÁøÀÔ ½Ã È£Ãâ
-    virtual void Update(entity_type*) = 0;  // ¸Å ÇÁ·¹ÀÓ/·çÇÁ¸¶´Ù È£Ãâ
-    virtual void Exit(entity_type*) = 0;    // »óÅÂ Á¾·á ½Ã È£Ãâ
+    virtual void Enter(entity_type*) = 0;   // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½
+    virtual void Update(entity_type*) = 0;  // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½
+    virtual void Exit(entity_type*) = 0;    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½
 };
 
 using StateId = uint8_t;
 
-// [Ãß°¡] (fromId,toId) Å°¿ë °æ·® ÇØ½Ã (8ºñÆ® Á¶ÇÕÀÌ¸é ÃæºÐ)
+// [ï¿½ß°ï¿½] (fromId,toId) Å°ï¿½ï¿½ ï¿½æ·® ï¿½Ø½ï¿½ (8ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½)
 struct pair_hash8 {
     size_t operator()(std::pair<StateId, StateId> p) const noexcept {
-        // °£´Ü Á¶ÇÕ: first ^ (second << 8)
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: first ^ (second << 8)
         return static_cast<size_t>(p.first) ^ (static_cast<size_t>(p.second) << 8);
     }
 };
@@ -32,14 +32,14 @@ public:
     bool ChangeState(entity_type* owner,State<entity_type>* newState) {
         if (newState == mState) return false;
         if (!CanTransition(owner, mState, newState)) { /*cout << "fail" << endl;*/ return false; }
-        if (mState) mState->Exit(owner);          // ÀÌÀü »óÅÂ Exit
-        mState = newState;           // »õ·Î¿î »óÅÂ ÀúÀå
-        if (mState) mState->Enter(owner);         // »õ·Î¿î »óÅÂ Enter
+        if (mState) mState->Exit(owner);          // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Exit
+        mState = newState;           // ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        if (mState) mState->Enter(owner);         // ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Enter
         return true;
     }
 
     void Update(entity_type* owner) {
-        if (mState) mState->Update(owner);        // ÇöÀç »óÅÂ Update
+        if (mState) mState->Update(owner);        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Update
     }
 
     using GuardFunc = std::function<bool(entity_type*)>;
@@ -57,12 +57,12 @@ public:
 
 private:
     entity_type* mOwner = nullptr;
-    State<entity_type>* mState = nullptr;              // ÇöÀç »óÅÂ
+    State<entity_type>* mState = nullptr;              // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     std::function<StateId(State<entity_type>*)> mIdOf;
 
     bool CanTransition(entity_type* owner, State<entity_type>* from, State<entity_type>* to) {
-        if (!mIdOf) return true;               // [¼³¸í] resolver ¾øÀ¸¸é °¡µå ½ºÅµ(±âº» Çã¿ë)
-        StateId fid = (from ? mIdOf(from) : 255);  // [¼³¸í] ÃÊ±â ÀüÀÌ µî from==nullptr ´ëºñ
+        if (!mIdOf) return true;               // [ï¿½ï¿½ï¿½ï¿½] resolver ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Åµ(ï¿½âº» ï¿½ï¿½ï¿½)
+        StateId fid = (from ? mIdOf(from) : 255);  // [ï¿½ï¿½ï¿½ï¿½] ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ from==nullptr ï¿½ï¿½ï¿½
         StateId tid = (to ? mIdOf(to) : 255);
 
         auto it = transitionGuards.find({ fid, tid });
@@ -70,7 +70,7 @@ private:
             //std::cout << "[Guard] NOT FOUND  (" << int(fid) << " -> " << int(tid) << ")\n";
             return true;
         }
-        // µî·ÏµÈ Á¶°Ç ÇÔ¼ö ½ÇÇà
+        // ï¿½ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
         //return it->second(owner);
         bool ok = it->second(owner);
         /*std::cout << "[Guard] EVAL (" << int(fid) << " -> " << int(tid)

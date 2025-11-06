@@ -649,22 +649,26 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 	// GameObject
-	{
+	//{
 
-		shared_ptr<Texture> texture = Load<Texture>(L"Leather", L"..\\Resources\\Texture\\Leather.jpg");
-		shared_ptr<Texture> texture2 = Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"Deferred");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-		material->SetTexture(texture2, NORMALMAPINDEX);
-		Add<Material>(L"GameObject", material);
-	}
+	//	shared_ptr<Texture> texture = Load<Texture>(L"Leather", L"..\\Resources\\Texture\\Leather.jpg");
+	//	shared_ptr<Texture> texture2 = Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"Deferred");
+	//	material->SetTexture(texture, DIFFUSEMAP0INDEX);
+	//	material->SetTexture(texture2, NORMALMAPINDEX);
+	//	Add<Material>(L"GameObject", material);
+	//}
 
 	// shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
 	
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
 	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aIdle_001.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aJump_001.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aRun_001.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aWalk_001.fbx");
 	// LoadFBX(L"..\\Resources\\FBX\\Guitar_aPlaying.fbx");
 	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
 	 

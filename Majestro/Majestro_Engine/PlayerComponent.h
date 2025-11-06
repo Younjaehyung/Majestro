@@ -44,6 +44,7 @@ public:
 
 	void StateCheck();
 	void Update(float dt);
+	uint32 GetState() { return (uint32)mFsm.GetState(); };
 
 	void InitFSMOnce();
 	void InitFSMFromJson(const std::string& path);
@@ -62,42 +63,18 @@ public:
 
 class IdleState : public State<MainPlayerComponent> {
 public:
-	static IdleState* Instance() {                      
-		static IdleState inst;
-		return &inst;
-	}
-	void Enter(MainPlayerComponent* owner) override { 
-		ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
-		std::cout << "Enter Idle\n"; 
-	}
-	void Update(MainPlayerComponent* owner) override {
-		
-	}
-	void Exit(MainPlayerComponent* owner) override { 
-		std::cout << "Exit Idle\n"; 
-	}
+	static IdleState* Instance();
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
 };
 
 class WalkState : public State<MainPlayerComponent> {
 public:
-	static WalkState* Instance() {
-		static WalkState inst;
-		return &inst;
-	}
-	void Enter(MainPlayerComponent* owner) override { 
-		SetFlag(owner->mFlags, gFlagByName["F_MOVE"]);
-		cout << owner->mFlags << endl;
-		std::cout << "Enter Walk\n"; 
-	}
-	void Update(MainPlayerComponent* owner) override {
-		//cout << "try--" << endl;
-		owner->mFsm.ChangeState(owner,IdleState::Instance());
-		//owner->mFsm.ChangeState(owner,RunState::Instance());
-	}
-	void Exit(MainPlayerComponent* owner) override { 
-		//ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
-		std::cout << "Exit Walk\n"; 
-	}
+	static WalkState* Instance();
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
 };
 
 class RunState : public State<MainPlayerComponent> {
@@ -132,7 +109,7 @@ public:
 	}
 	void Update(MainPlayerComponent* owner) override {
 		if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
-		float g = 9.8;
+		float g = 20.0;
 		owner->mHight += (owner->mJumpPower - g *owner->mStateTime)* owner->mDt ;
 		cout << owner->mHight << endl;
 	}

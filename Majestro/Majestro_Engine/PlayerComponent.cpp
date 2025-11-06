@@ -127,3 +127,39 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     // 5) 초기 상태 진입 (Enter 호출 시점이 민감하면 첫 Update 때로 미뤄도 됨)
     mFsm.ChangeState(this,IdleState::Instance());
 }
+
+
+//---------------------------------------------------------------------------------------------------
+
+IdleState* IdleState::Instance() {
+    static IdleState inst;
+    return &inst;
+}
+void IdleState::Enter(MainPlayerComponent* owner) {
+    ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+    std::cout << "Enter Idle\n";
+}
+void IdleState::Update(MainPlayerComponent* owner) {
+
+}
+void IdleState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Idle\n";
+}
+
+
+WalkState* WalkState::Instance() {
+    static WalkState inst;
+    return &inst;
+}
+void WalkState::Enter(MainPlayerComponent* owner) {
+    SetFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+    std::cout << "Enter Walk\n";
+}
+void WalkState::Update(MainPlayerComponent* owner) {
+    owner->mFsm.ChangeState(owner, IdleState::Instance());
+    owner->mFsm.ChangeState(owner,RunState::Instance());
+}
+void WalkState::Exit(MainPlayerComponent* owner) {
+    //ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+    std::cout << "Exit Walk\n";
+}

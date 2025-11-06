@@ -74,21 +74,28 @@ void Scene::Initialize()
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
+		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Rudwig_mBody");
+		//shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
 		std::vector<shared_ptr<Material>> material2s;
 
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Capoeira0");
+		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Rudwig_aIdle_0010");
+		//shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Capoeira0");
+
 		material2s.push_back(material2);
 		t.mLocalPosition = { 0.f, 0.f, 10.f };
 
-		vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
+		vector<shared_ptr<Animator>> anmators0;
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aIdle_001"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aWalk_001"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aJump_001"));
+		//anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
 		mWorld->AddComponent<ControllerComponent>(osw,t, THREE_FPS);
-		mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json");
+		mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json");	
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-		mWorld->AddComponent<AnimationComponent>(osw, anmators);
+		mWorld->AddComponent<AnimationComponent>(osw, anmators0);
 		
 
 		/*

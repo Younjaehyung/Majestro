@@ -10,7 +10,7 @@
         {
             "from": "Idle",
             "to": "Walk",
-            "speed": [ 30, 69.999 ],
+            "speed": [ 30, null ],
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD" ]
         },
@@ -26,7 +26,7 @@
         {
             "from": "Run",
             "to": "Walk",
-            "speed": [ 30, 69.999 ],
+            "speed": [ null, 69.999 ],
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD" ]
         },
@@ -35,14 +35,6 @@
             "from": "Walk",
             "to": "Idle",
             "speed": [ null, 29.999 ],
-            "require": [],
-            "forbid": [ "F_STUN", "F_DEAD" ]
-        },
-
-        {
-            "from": "Idle",
-            "to": "Jump",
-            "speed": [],
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD" ]
         },
@@ -64,11 +56,11 @@
         },
 
         {
-            "from": "Walk",
-            "to": "Jump",
+            "from": "Jump",
+            "to": "Run",
             "speed": [],
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
         }
 
 

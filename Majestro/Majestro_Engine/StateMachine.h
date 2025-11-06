@@ -51,6 +51,8 @@ public:
         transitionGuards.erase({ from, to });
     }
 
+    StateId GetState() { return mIdOf(mState); };
+
     std::unordered_map<std::pair<StateId, StateId>, GuardFunc, pair_hash8> transitionGuards;
 
 private:

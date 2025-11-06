@@ -6,6 +6,7 @@
 #include "Timer.h"
 #include "Animator.h"
 #include "AnimationComponent.h"
+#include "PlayerComponent.h"
 
 AnimationSystem::AnimationSystem(World* world) : System::System(world)
 {
@@ -81,7 +82,9 @@ void AnimationSystem::AnimationPush(float deltaTime)
 	vector<Entity> animationsEntity = mWorld->GetEntitiesWithComponent<AnimationComponent>();
 	for (auto& entity : animationsEntity) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
+		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
+		if(mainPlayerComponent)animCom->mAnimClipIdx = mainPlayerComponent->GetState();
 
 		animCom->mUpdateTime += deltaTime;
 		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimClipIdx);

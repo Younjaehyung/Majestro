@@ -1,0 +1,14 @@
+#include "pch.h"
+#include "AnimationComponent.h"
+
+AnimationComponent::AnimationComponent()
+{
+}
+
+AnimationComponent::AnimationComponent(vector<shared_ptr<Animator>>& AnimClips)
+{
+	mAnimClips = AnimClips;
+	mAnimInstance.SkeletonID = mAnimClips[0]->GetSkeleton()->GetSkeletonHandle();
+
+	mAnimInstance.BoneCount =static_cast<uint32>(mAnimClips[0]->GetSkeleton()->GetBones().size());
+}

@@ -1,0 +1,29 @@
+
+#include "params.hlsl"
+
+struct VS_IN
+{
+    float3 localPos : POSITION;
+    float2 uv : TEXCOORD;
+};
+
+struct VS_OUT
+{
+    float4 pos : SV_Position;
+    float2 uv : TEXCOORD;
+};
+
+VS_OUT VS_Main(VS_IN input)
+{
+    VS_OUT output = (VS_OUT) 0;
+
+    // Translation은 하지 않고 Rotation만 적용한다
+    float4 viewPos = mul(float4(input.localPos, 0), PassParams.MatView);
+    float4 clipSpacePos = mul(viewPos, PassParams.MatProjection);
+
+    // w/w=1이기 때문에 항상 깊이가 1로 유지된다
+    output.pos = clipSpacePos.xyww;
+    output.uv = input.uv;
+
+    return output;
+}

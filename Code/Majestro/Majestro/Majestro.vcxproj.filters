@@ -15,14 +15,11 @@
     <Filter Include="소스 파일\Utils">
       <UniqueIdentifier>{87ef141a-194c-4c65-8e54-a6a3a00262f3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Network">
+    <Filter Include="소스 파일\Network">
       <UniqueIdentifier>{55769ff7-3341-4021-bfcd-d7c7983e3319}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Game.h">
-      <Filter>소스 파일\Game</Filter>
-    </ClInclude>
     <ClInclude Include="framework.h">
       <Filter>소스 파일\Utils</Filter>
     </ClInclude>
@@ -39,27 +36,24 @@
       <Filter>소스 파일\Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\Majestro_Engine\Network.h">
-      <Filter>Network</Filter>
+      <Filter>소스 파일\Network</Filter>
     </ClInclude>
     <ClInclude Include="..\Majestro_Engine\Game.h">
-      <Filter>Network</Filter>
+      <Filter>소스 파일\Game</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp">
-      <Filter>소스 파일\Game</Filter>
-    </ClCompile>
     <ClCompile Include="Majestro.cpp">
       <Filter>소스 파일\Utils</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\Majestro_Engine\Game.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="..\Majestro_Engine\Network.cpp">
-      <Filter>Network</Filter>
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Majestro_Engine\Game.cpp">
+      <Filter>소스 파일\Game</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

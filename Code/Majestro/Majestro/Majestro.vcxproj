@@ -162,7 +162,6 @@
     <ClInclude Include="..\Majestro_Engine\Game.h" />
     <ClInclude Include="..\Majestro_Engine\Network.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Game.h" />
     <ClInclude Include="Majestro.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
@@ -171,7 +170,6 @@
   <ItemGroup>
     <ClCompile Include="..\Majestro_Engine\Game.cpp" />
     <ClCompile Include="..\Majestro_Engine\Network.cpp" />
-    <ClCompile Include="Game.cpp" />
     <ClCompile Include="Majestro.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

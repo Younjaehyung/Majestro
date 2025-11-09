@@ -8,7 +8,7 @@ void Game::Initialize(const WindowInfo& info)
 {
 	gEngine->Initialize(info);
 	Network::GetInstance().Initialize();
-	Network::GetInstance().ConnectToServer();
+	//Network::GetInstance().ConnectToServer();
 }
 
 void Game::Update()

@@ -159,6 +159,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Majestro_Engine\Game.h" />
+    <ClInclude Include="..\Majestro_Engine\Network.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Majestro.h" />
@@ -167,6 +169,8 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Majestro_Engine\Game.cpp" />
+    <ClCompile Include="..\Majestro_Engine\Network.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Majestro.cpp" />
     <ClCompile Include="pch.cpp">

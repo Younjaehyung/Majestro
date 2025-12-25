@@ -82,7 +82,8 @@ void PlayerSystem::Update(float dt)
 		auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 		TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
 		float terrainHeight = terrainComponent->GetHeightAtWorldPosition(controllerComponent->mTransformComponent.mLocalPosition);
-		transformComponent->mLocalPosition.y = terrainHeight + controllerComponent->mHight;
+		mainPlayerComponent->mGround = terrainHeight;
+		
 
 		transformComponent->FinalUpdate();
 
@@ -110,7 +111,7 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 	}
 	else {
 		if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = 200.f;
-		else mainPlayerComponent->mSpeed = 90.0f;
+		else mainPlayerComponent->mSpeed = 20.0f;
 	}
 
 	if (INPUT.GetKey(eKeyCode::A)) {

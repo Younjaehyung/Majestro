@@ -70,7 +70,9 @@ public:
 	float mStateTime=0.0f;
 	float mDt=0.0f;
 
-	float mJumpPower = 10.f;
+	float mGravity = 0.0f;
+	float mGravityA = 0.98f; //중력가속도
+	float mJumpPower = 150.f;
 	float mHight = 0.0f;
 	float mGround = 0.0f;
 };

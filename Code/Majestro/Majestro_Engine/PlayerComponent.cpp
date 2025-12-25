@@ -32,7 +32,15 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
 void MainPlayerComponent::StateCheck()
 {
     if(mSpeed<30.f)ClearFlag(mFlags, FLAG_MOVE);
-    if(mHight<=mGround)ClearFlag(mFlags, FLAG_JUMP);
+    if (mHight <= mGround) {
+        mHight = mGround;
+        mGravity = 0.0f;
+        ClearFlag(mFlags, FLAG_JUMP);
+    }
+    else {
+        mGravity += mGravityA * mDt;
+        mHight -= mGravity;
+    }
 }
 
 void MainPlayerComponent::Update(float dt) 
@@ -190,19 +198,16 @@ JumpState* JumpState::Instance() {
 }
 void JumpState::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0.0f;
-    owner->mHight = 0.1f;
+    owner->mHight = owner->mGround+ 0.1f;
     SetFlag(owner->mFlags, FLAG_JUMP);
     std::cout << "Enter Jump\n";
 }
 void JumpState::Update(MainPlayerComponent* owner) {
     if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
-    float g = 20.0;
-    owner->mHight += (owner->mJumpPower - g * owner->mStateTime) * owner->mDt;
-    //cout << owner->mHight << endl;
+    owner->mHight += owner->mJumpPower * owner->mDt;
+    cout << owner->mHight << endl;
 }
 void JumpState::Exit(MainPlayerComponent* owner) {
-    owner->mHight = owner->mGround;
-
     std::cout << "Exit Jump\n";
 }
 

@@ -43,6 +43,7 @@ public:
 	shared_ptr<Mesh> LoadRectangleMesh();
 	shared_ptr<Mesh> LoadCubeMesh();
 	shared_ptr<Mesh> LoadSphereMesh();
+	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
 
 	shared_ptr<FBXData> LoadFBX(const wstring& path);
 	void LoadAllTexture(const wstring& path);

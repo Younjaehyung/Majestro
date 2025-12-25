@@ -11,6 +11,7 @@
 #include "AnimationComponent.h"
 #include "ParticleComponent.h"
 #include "TagComponent.h"
+#include "TerrainComponent.h"
 
 
 RenderSystem::RenderSystem(World* world) : System::System(world)
@@ -25,6 +26,7 @@ void RenderSystem::Initialize()
 
 	// immutability Data
 	PushMaterialData();
+	
 
 	mDeferredDrawItems.reserve(1000);
 	mDeferredDrawBatchs.reserve(1000);
@@ -56,6 +58,7 @@ void RenderSystem::Update()
 void RenderSystem::PushData()
 {
 	RENDERMANAGER.SetGraphicsTable();
+	PushLandData();
 	PushPassData();
 	PushObjectData();
 	PushLightData();
@@ -132,6 +135,8 @@ void RenderSystem::PushPassData()
 	passParams.MatViewInv = mCamera->mView.Invert().Transpose();
 	passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
+	
+	//passParams.TotalTime = TIME.GetTotalTime();
 
 
 	shared_ptr<GroupBuffer> groupBuffer = RENDERMANAGER.GetGroupBuffer(mFrameCount);
@@ -150,6 +155,21 @@ void RenderSystem::PushMaterialData()
 		index++;
 	}
 	RENDERMANAGER.GetMaterialBuffers()->PushDefaultToData(mMaterialVector.data(), static_cast<uint32>(mMaterialVector.size() * sizeof(MaterialParams)));
+
+}
+
+void RenderSystem::PushLandData()
+{
+	auto entity = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+
+	auto terrain = mWorld->GetComponent<TerrainComponent>(entity[0])->mTerrainParams;
+
+	passParams.HeightMapResolution = terrain.HeightMapResolution;
+	passParams.MaxTessLevel = terrain.MaxTessLevel;
+	passParams.MinMaxTessDistance = terrain.MinMaxTessDistance;
+	passParams.TileCountX = terrain.TileCountX;
+	passParams.TileCountZ = terrain.TileCountZ;
+
 
 }
 

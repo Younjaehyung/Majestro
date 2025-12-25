@@ -37,6 +37,60 @@ shared_ptr<Mesh> ResourceManager::LoadPointMesh()
 	return mesh;
 }
 
+
+shared_ptr<Mesh> ResourceManager::LoadTerrainMesh(int32 sizeX, int32 sizeZ)
+{
+	vector<Vertex> vec;
+
+	for (int32 z = 0; z < sizeZ + 1; z++)
+	{
+		for (int32 x = 0; x < sizeX + 1; x++)
+		{
+			Vertex vtx;
+			vtx.pos = Vec3(static_cast<float>(x), 0, static_cast<float>(z));
+			vtx.uv = Vec2(static_cast<float>(x), static_cast<float>(sizeZ - z));
+			vtx.normal = Vec3(0.f, 1.f, 0.f);
+			vtx.tangent = Vec3(1.f, 0.f, 0.f);
+
+			vec.push_back(vtx);
+		}
+	}
+
+	vector<uint32> idx;
+
+	for (int32 z = 0; z < sizeZ; z++)
+	{
+		for (int32 x = 0; x < sizeX; x++)
+		{
+			//  [0]
+			//   |	\
+			//  [2] - [1]
+			idx.push_back((sizeX + 1) * (z + 1) + (x));
+			idx.push_back((sizeX + 1) * (z)+(x + 1));
+			idx.push_back((sizeX + 1) * (z)+(x));
+			//  [1] - [2]
+			//   	\  |
+			//		  [0]
+			idx.push_back((sizeX + 1) * (z)+(x + 1));
+			idx.push_back((sizeX + 1) * (z + 1) + (x));
+			idx.push_back((sizeX + 1) * (z + 1) + (x + 1));
+		}
+	}
+
+	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Terrain");
+	if (findMesh)
+	{
+		findMesh->Init(vec, idx);
+		return findMesh;
+	}
+
+	shared_ptr<Mesh> mesh = make_shared<Mesh>();
+	mesh->Init(vec, idx);
+	Add(L"Terrain", mesh);
+	return mesh;
+}
+
+
 shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 {
 	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Rectangle");
@@ -387,6 +441,7 @@ void ResourceManager::CreateDefaultShader()
 			SHADER_TYPE::FORWARD,
 			RASTERIZER_TYPE::CULL_NONE,
 			DEPTH_STENCIL_TYPE::LESS_EQUAL
+
 		};
 
 		ShaderPath shaderPath{
@@ -396,33 +451,68 @@ void ResourceManager::CreateDefaultShader()
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
 
-		shader->CreateGraphicsShader(shaderPath, info);
+		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
 
 		Add<Shader>(L"Skybox", shader);
 	}
 
-	// Cel (Default -cel) - TO-DO
+
+	// Terrain
 	{
 		ShaderInfo info =
 		{
-			SHADER_TYPE::DEFERRED
+			SHADER_TYPE::DEFERRED,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::LESS,
+			BLEND_TYPE::DEFAULT,
+			D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST
 		};
 
 		ShaderPath shaderPath{
-		.VS = L"..\\Resources\\Shader\\cel_VS.hlsl",
-		.PS = L"..\\Resources\\Shader\\cel_PS.hlsl"
+			.VS = L"..\\Resources\\Shader\\Terrain_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\Terrain_PS.hlsl",
+			.HS = L"..\\Resources\\Shader\\Terrain_HS.hlsl",
+			.DS = L"..\\Resources\\Shader\\Terrain_DS.hlsl",
 		};
 
+		ShaderArg arg =
+		{
+			"VS_Main",
+			"HS_Main",
+			"DS_Main",
+			"",
+			"PS_Main",
+		};
+
+
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info);
-		Add<Shader>(L"Cel", shader);
+		shader->CreateGraphicsShader(shaderPath, info, arg);
+		Add<Shader>(L"Terrain", shader);
 	}
 
-	// Deferred (Deferred)
+	//// Cel (Default -cel) - TO-DO
+	//{
+	//	ShaderInfo info =
+	//	{
+	//		SHADER_TYPE::DEFERRED
+	//	};
+
+	//	ShaderPath shaderPath{
+	//	.VS = L"..\\Resources\\Shader\\cel_VS.hlsl",
+	//	.PS = L"..\\Resources\\Shader\\cel_PS.hlsl"
+	//	};
+
+	//	shared_ptr<Shader> shader = make_shared<Shader>();
+	//	shader->CreateGraphicsShader(shaderPath, info);
+	//	Add<Shader>(L"Cel", shader);
+	//}
+
+// Deferred (Deferred)
 	{
 		ShaderInfo info =
 		{
-			SHADER_TYPE::DEFERRED
+			SHADER_TYPE::DEFERRED,
+
 		};
 
 		ShaderPath shaderPath{
@@ -431,9 +521,10 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info);
+		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
 		Add<Shader>(L"Deferred", shader);
 	}
+
 
 	// Forward (Forward)
 	{
@@ -446,10 +537,11 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\forward_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info);
+		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
 		Add<Shader>(L"Forward", shader);
 	}
 
+	
 	// Texture (Forward)
 	{
 		ShaderInfo info =
@@ -574,9 +666,10 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\shadow_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info);
+		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
 		Add<Shader>(L"Shadow", shader);
 	}
+
 
 	// animation 
 	{
@@ -600,7 +693,9 @@ void ResourceManager::CreateDefaultMaterial()
 		material->SetShader(L"Skybox");
 		Add<Material>(L"Skybox", material);
 	}
-	
+
+
+
 	// 추후 주석된 부분은 GBUFFER전용 생성으로 폐기 예정임.
 	 //DirLight
 	{
@@ -637,6 +732,16 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Final", material);
 	}
 	  
+	// Terrain
+	{
+
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"Terrain");
+		material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Texture\\terrain.png"), DIFFUSEMAP0INDEX);
+		material->SetTexture(Load<Texture>(L"HeightMap1", L"..\\Resources\\Texture\\Base_Texture.jpg"), DIFFUSEMAP1INDEX);
+		material->SetTexture(Load<Texture>(L"HeightMap2", L"..\\Resources\\Texture\\height.png"), DIFFUSEMAP2INDEX);
+		Add<Material>(L"Terrain", material);
+	}
 
 	//////
 	//// Compute Shader (프로젝트 제외함)
@@ -677,8 +782,7 @@ void ResourceManager::CreateDefaultMaterial()
 	//	Add<Material>(L"GameObject", material);
 	//}
 
-	// shared_ptr<FBXData> f= LoadFBX(L"..\\Resources\\FBX\\Warrior2.fbx");
-	
+
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
 	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
@@ -686,14 +790,5 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aJump_001.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aRun_001.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aWalk_001.fbx");
-	// LoadFBX(L"..\\Resources\\FBX\\Guitar_aPlaying.fbx");
-	// Load<Texture>(L"Leather_Normal", L"..\\Resources\\Texture\\Leather_Normal.jpg");
-	 
-	//// Shadow
-	//{
 
-	//	shared_ptr<Material> material = make_shared<Material>();
-	//	material->SetShader(L"Shadow");
-	//	Add<Material>(L"Shadow", material);
-	//}
 }

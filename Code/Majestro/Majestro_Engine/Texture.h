@@ -30,10 +30,14 @@ public:
 	float GetWidth() { return static_cast<float>(mDescription.Width); }
 	float GetHeight() { return static_cast<float>(mDescription.Height); }
 
+	// HeightMap에서 특정 좌표의 높이 값을 가져오는 함수
+	float GetHeightValue(float u, float v) const;
+	float GetHeightValuePixel(uint32 x, uint32 y) const;
 
 	void SetRtvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mRtvHeapBegin = handle; }
 	void SetDsvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mDsvHeapBegin = handle; }
 	void SetSrvHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mSrvHeapBegin = handle; }
+	void SetUavHandle(D3D12_CPU_DESCRIPTOR_HANDLE handle) { mUavHeapBegin = handle; }
 
 	void SetSrvIndex(uint32 index) { mSrvIndex = index; }
 	uint32 GetSrvIndex() { return mSrvIndex; }

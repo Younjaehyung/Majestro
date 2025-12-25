@@ -167,8 +167,14 @@ struct PASSINFO
     Matrix MatProjectionInv; // Projection의 역행렬	(사용은 선택)
     
     float2 ScreenSize;
-    float2 Padding;
+    float2 MinMaxTessDistance;
+
+    float2 HeightMapResolution;
+    float MaxTessLevel;
+    float TotalTime;
     
+    int TileCountX;
+    int TileCountZ;
     int LightsCount;
     int SkyBoxIndex;
 };

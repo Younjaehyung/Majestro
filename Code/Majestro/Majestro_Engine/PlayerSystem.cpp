@@ -139,13 +139,6 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 	}
 
-	if (INPUT.GetMouseState().LeftDown) {
-		controllerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
-		controllerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
-		INPUT.MouseStateClear();
-	}
-
-
 
 	if (INPUT.GetKey(eKeyCode::Q)) {
 		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetUp() * dt * speed;
@@ -153,8 +146,6 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 	if (INPUT.GetKey(eKeyCode::E)) {
 		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetUp() * dt * speed;
 	}
-<<<<<<< HEAD
-=======
 
 
 	if (INPUT.GetMouseState().LeftDown) {
@@ -163,5 +154,4 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 		INPUT.MouseStateClear();
 	}
 	
->>>>>>> origin/main
 }

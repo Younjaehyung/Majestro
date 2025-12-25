@@ -4,7 +4,9 @@
         "F_STUN": 2,
         "F_DEAD": 4,
         "F_JUMP": 8,
-        "F_AIM" : 16
+        "F_SA"  : 16,
+        "F_INVUL": 32,
+        "F_NO_RUN": 64 
     },
     "guards": [
         {
@@ -20,7 +22,7 @@
             "to": "Run",
             "speed": [ 70, null ],
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_NO_RUN"  ]
         },
 
         {
@@ -61,7 +63,16 @@
             "speed": [],
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Dash",
+            "to": "Walk",
+            "speed": [],
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP", "F_MOVE" ]
         }
+
 
 
     ]

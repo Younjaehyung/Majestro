@@ -5,17 +5,19 @@ class State
 {
 public:
     virtual ~State() = default;
-    virtual void Enter(entity_type*) = 0;   // ���� ���� �� ȣ��
-    virtual void Update(entity_type*) = 0;  // �� ������/�������� ȣ��
-    virtual void Exit(entity_type*) = 0;    // ���� ���� �� ȣ��
+    virtual void Enter(entity_type*)=0;   
+    virtual void Update(entity_type*)=0;  
+    virtual void Exit(entity_type*)=0;    
+
+public:
+    bool mAnimOnce = true;
+    float mStateTime = 3.0f;
 };
 
 using StateId = uint8_t;
 
-// [�߰�] (fromId,toId) Ű�� �淮 �ؽ� (8��Ʈ �����̸� ���)
 struct pair_hash8 {
     size_t operator()(std::pair<StateId, StateId> p) const noexcept {
-        // ���� ����: first ^ (second << 8)
         return static_cast<size_t>(p.first) ^ (static_cast<size_t>(p.second) << 8);
     }
 };
@@ -32,14 +34,14 @@ public:
     bool ChangeState(entity_type* owner,State<entity_type>* newState) {
         if (newState == mState) return false;
         if (!CanTransition(owner, mState, newState)) { /*cout << "fail" << endl;*/ return false; }
-        if (mState) mState->Exit(owner);          // ���� ���� Exit
-        mState = newState;           // ���ο� ���� ����
-        if (mState) mState->Enter(owner);         // ���ο� ���� Enter
+        if (mState) mState->Exit(owner);         
+        mState = newState;          
+        if (mState) mState->Enter(owner);      
         return true;
     }
 
     void Update(entity_type* owner) {
-        if (mState) mState->Update(owner);        // ���� ���� Update
+        if (mState) mState->Update(owner);       
     }
 
     using GuardFunc = std::function<bool(entity_type*)>;
@@ -57,12 +59,12 @@ public:
 
 private:
     entity_type* mOwner = nullptr;
-    State<entity_type>* mState = nullptr;              // ���� ����
+    State<entity_type>* mState = nullptr;            
     std::function<StateId(State<entity_type>*)> mIdOf;
 
     bool CanTransition(entity_type* owner, State<entity_type>* from, State<entity_type>* to) {
-        if (!mIdOf) return true;               // [����] resolver ������ ���� ��ŵ(�⺻ ���)
-        StateId fid = (from ? mIdOf(from) : 255);  // [����] �ʱ� ���� �� from==nullptr ���
+        if (!mIdOf) return true;               
+        StateId fid = (from ? mIdOf(from) : 255); 
         StateId tid = (to ? mIdOf(to) : 255);
 
         auto it = transitionGuards.find({ fid, tid });
@@ -70,7 +72,6 @@ private:
             //std::cout << "[Guard] NOT FOUND  (" << int(fid) << " -> " << int(tid) << ")\n";
             return true;
         }
-        // ��ϵ� ���� �Լ� ����
         //return it->second(owner);
         bool ok = it->second(owner);
         /*std::cout << "[Guard] EVAL (" << int(fid) << " -> " << int(tid)
@@ -81,6 +82,4 @@ private:
 
     }
 };
-
-
 

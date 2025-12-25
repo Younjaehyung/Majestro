@@ -22,6 +22,7 @@ void PlayerSystem::Update(float dt)
 {
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
 
+	//mode change
 	if (INPUT.GetKeyDown(eKeyCode::F1)) {
 		std::vector<Entity> mainPlayerEntitys{ mWorld->GetEntitiesWithComponent<MainPlayerComponent>() };
 		TransformComponent* t = mWorld->GetComponent<TransformComponent>(mainPlayerEntitys[0]);
@@ -46,6 +47,8 @@ void PlayerSystem::Update(float dt)
 		mWorld->RemoveComponent<ControllerComponent>(entitys[0]);
 		mWorld->AddComponent<ControllerComponent>(mainCameraEntitys[0], *t, MAIN_CAMERA);
 	}
+
+
 	else {
 
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
@@ -71,7 +74,7 @@ void PlayerSystem::Update(float dt)
 		else if (controllerComponent->mPlayMode == THREE_RPG) {
 			transformComponent->mLocalPosition.x = controllerComponent->mTransformComponent.mLocalPosition.x;
 			transformComponent->mLocalPosition.z = controllerComponent->mTransformComponent.mLocalPosition.z;
-			//if(move)
+			
 			//transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
 		}
 
@@ -105,31 +108,37 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 		mainPlayerComponent->mSpeed = 0.f;
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 	}
+	else {
+		if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = 200.f;
+		else mainPlayerComponent->mSpeed = 90.0f;
+	}
 
 	if (INPUT.GetKey(eKeyCode::A)) {
-		mainPlayerComponent->mSpeed = 90.f;
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetRight() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetRight() * dt * mainPlayerComponent->mSpeed;
 	}
 	if (INPUT.GetKey(eKeyCode::W)) {
-		mainPlayerComponent->mSpeed = 90.f;
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetLook() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetLook() * dt * mainPlayerComponent->mSpeed;
 	}
 	if (INPUT.GetKey(eKeyCode::S)) {
-		mainPlayerComponent->mSpeed = 90.f;
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetLook() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetLook() * dt * mainPlayerComponent->mSpeed;
 	}
 	if (INPUT.GetKey(eKeyCode::D)) {
-		mainPlayerComponent->mSpeed = 90.f;
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetRight() * dt * speed;
+		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetRight() * dt * mainPlayerComponent->mSpeed;
 	}
 
-	else if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
+
+
+	if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 	}
+	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
+		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+	}
+
 
 	if (INPUT.GetKey(eKeyCode::Q)) {
 		controllerComponent->mTransformComponent.mLocalPosition -= controllerComponent->mTransformComponent.GetUp() * dt * speed;

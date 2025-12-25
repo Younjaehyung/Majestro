@@ -4,18 +4,19 @@
 #include <limits>
 using json = nlohmann::json;
 #include "PlayerComponent.h"
+#include "StateMachine.h"
 
 //static std::unordered_map<std::string, uint64_t> gFlagByName = {
 //    {"F_MOVE", 1ull << 0} ,{"F_STUN", 1ull << 1}, {"F_DEAD", 1ull << 2},{"F_ATTACK", 1ull << 3}, { "F_ANIM", 1ull << 4 }
 //};
-
-enum : StateId { S_Idle = 0, S_Walk = 1, S_Run = 2, S_Jump = 3 /*, S_Stun, S_Dead ...*/ };
 
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
     if (n == "Walk") return S_Walk;
 	if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
+	if (n == "Dash")  return S_Dash;
+	if (n == "Aim")  return S_Aim;
 	return 255;
 }
 
@@ -30,8 +31,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
 
 void MainPlayerComponent::StateCheck()
 {
-    if(mSpeed<30.f)ClearFlag(mFlags, gFlagByName["F_MOVE"]);
-    if(mHight<=mGround)ClearFlag(mFlags, gFlagByName["F_JUMP"]);
+    if(mSpeed<30.f)ClearFlag(mFlags, FLAG_MOVE);
+    if(mHight<=mGround)ClearFlag(mFlags, FLAG_JUMP);
 }
 
 void MainPlayerComponent::Update(float dt) 
@@ -57,6 +58,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == WalkState::Instance())  return S_Walk;
         if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance())  return S_Jump;
+        if (s == DashState::Instance())  return S_Dash;
         return 255;
         });
 
@@ -136,7 +138,7 @@ IdleState* IdleState::Instance() {
     return &inst;
 }
 void IdleState::Enter(MainPlayerComponent* owner) {
-    ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+    ClearFlag(owner->mFlags, FLAG_MOVE);
     std::cout << "Enter Idle\n";
 }
 void IdleState::Update(MainPlayerComponent* owner) {
@@ -152,14 +154,75 @@ WalkState* WalkState::Instance() {
     return &inst;
 }
 void WalkState::Enter(MainPlayerComponent* owner) {
-    SetFlag(owner->mFlags, gFlagByName["F_MOVE"]);
+    SetFlag(owner->mFlags, FLAG_MOVE);
     std::cout << "Enter Walk\n";
 }
 void WalkState::Update(MainPlayerComponent* owner) {
     owner->mFsm.ChangeState(owner, IdleState::Instance());
-    owner->mFsm.ChangeState(owner,RunState::Instance());
+
+    if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > 70.0f) owner->mSpeed = 69.9f; } //달리기 불가 시 속도 강제 다운
+    else owner->mFsm.ChangeState(owner, RunState::Instance());
 }
 void WalkState::Exit(MainPlayerComponent* owner) {
-    //ClearFlag(owner->mFlags, gFlagByName["F_MOVE"]);
     std::cout << "Exit Walk\n";
+}
+
+
+RunState* RunState::Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
+    static RunState inst;                          // 최초 호출 시 한 번만 생성
+    return &inst;
+}
+void RunState::Enter(MainPlayerComponent* owner) {
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    std::cout << "Enter Run\n";
+}
+void RunState::Update(MainPlayerComponent* owner) {
+    if (owner->mFsm.ChangeState(owner, WalkState::Instance())) return;
+}
+void RunState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Run\n";
+}
+
+
+JumpState* JumpState::Instance() {                 
+    static JumpState inst;                          
+    return &inst;
+}
+void JumpState::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0.0f;
+    owner->mHight = 0.1f;
+    SetFlag(owner->mFlags, FLAG_JUMP);
+    std::cout << "Enter Jump\n";
+}
+void JumpState::Update(MainPlayerComponent* owner) {
+    if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
+    float g = 20.0;
+    owner->mHight += (owner->mJumpPower - g * owner->mStateTime) * owner->mDt;
+    //cout << owner->mHight << endl;
+}
+void JumpState::Exit(MainPlayerComponent* owner) {
+    owner->mHight = owner->mGround;
+
+    std::cout << "Exit Jump\n";
+}
+
+
+DashState* DashState::Instance() {
+    static DashState inst;
+    return &inst;
+}
+void DashState::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0.0f;
+    std::cout << "Enter Dash\n";
+}
+void DashState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        cout << this->mStateTime << endl;
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void DashState::Exit(MainPlayerComponent* owner) {
+
+    std::cout << "Exit Dash\n";
 }

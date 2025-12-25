@@ -89,6 +89,8 @@ void Scene::Initialize()
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aWalk_001"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aJump_001"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));//dash
+
 		//anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
 		mWorld->AddComponent<ControllerComponent>(osw,t, THREE_FPS);

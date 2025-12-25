@@ -6,17 +6,27 @@ using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 
-//static std::unordered_map<std::string, uint64_t> gFlagByName = {
-//    {"F_MOVE", 1ull << 0} ,{"F_STUN", 1ull << 1}, {"F_DEAD", 1ull << 2},{"F_ATTACK", 1ull << 3}, { "F_ANIM", 1ull << 4 }
-//};
-
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
     if (n == "Walk") return S_Walk;
 	if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
 	if (n == "Dash")  return S_Dash;
-	if (n == "Aim")  return S_Aim;
+
+    if (n == "Aim")  return S_Aim;
+    if (n == "ReRoad")  return S_ReRoad;
+    if (n == "RhythmChange")  return S_RhythmChange;
+
+    if (n == "Hit")  return S_Hit;
+    if (n == "Stun")  return S_Stun;
+    if (n == "Dead")  return S_Dead;
+
+    if (n == "Attack1")  return S_Attack1;
+    if (n == "Attack2")  return S_Attack2;
+    if (n == "Skill1")  return S_Skill1;
+    if (n == "Skill2")  return S_Skill2;
+    if (n == "Special")  return S_Special;
+    
 	return 255;
 }
 
@@ -41,6 +51,7 @@ void MainPlayerComponent::StateCheck()
         mGravity += mGravityA * mDt;
         mHight -= mGravity;
     }
+
 }
 
 void MainPlayerComponent::Update(float dt) 
@@ -50,7 +61,6 @@ void MainPlayerComponent::Update(float dt)
     StateCheck();
     mFsm.Update(this);
 }
-
 
 void MainPlayerComponent::InitFSMOnce()
 {
@@ -156,7 +166,6 @@ void IdleState::Exit(MainPlayerComponent* owner) {
     std::cout << "Exit Idle\n";
 }
 
-
 WalkState* WalkState::Instance() {
     static WalkState inst;
     return &inst;
@@ -175,7 +184,6 @@ void WalkState::Exit(MainPlayerComponent* owner) {
     std::cout << "Exit Walk\n";
 }
 
-
 RunState* RunState::Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
     static RunState inst;                          // 최초 호출 시 한 번만 생성
     return &inst;
@@ -190,7 +198,6 @@ void RunState::Update(MainPlayerComponent* owner) {
 void RunState::Exit(MainPlayerComponent* owner) {
     std::cout << "Exit Run\n";
 }
-
 
 JumpState* JumpState::Instance() {                 
     static JumpState inst;                          
@@ -211,7 +218,6 @@ void JumpState::Exit(MainPlayerComponent* owner) {
     std::cout << "Exit Jump\n";
 }
 
-
 DashState* DashState::Instance() {
     static DashState inst;
     return &inst;
@@ -230,4 +236,205 @@ void DashState::Update(MainPlayerComponent* owner) {
 void DashState::Exit(MainPlayerComponent* owner) {
 
     std::cout << "Exit Dash\n";
+}
+
+//battle support-----------------------------------------------------
+AimState* AimState::Instance() {
+    static AimState inst;
+    return &inst;
+}
+void AimState::Enter(MainPlayerComponent* owner) {
+    std::cout << "Enter Aim\n";
+}
+void AimState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void AimState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Aim\n";
+}
+
+ReRoadState* ReRoadState::Instance() {
+    static ReRoadState inst;
+    return &inst;
+}
+void ReRoadState::Enter(MainPlayerComponent* owner) {
+    std::cout << "Enter Reroad\n";
+}
+void ReRoadState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void ReRoadState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Reroad\n";
+}
+
+RhythmChangeState* RhythmChangeState::Instance() {
+    static RhythmChangeState inst;
+    return &inst;
+}
+void RhythmChangeState::Enter(MainPlayerComponent* owner) {
+    std::cout << "Enter RhythmChange\n";
+}
+void RhythmChangeState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void RhythmChangeState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit RhythmChange\n";
+}
+
+//damage-------------------------------------------------------------
+HitState* HitState::Instance() {
+    static HitState inst;
+    return &inst;
+}
+void HitState::Enter(MainPlayerComponent* owner) {
+    std::cout << "Enter Hit\n";
+}
+void HitState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void HitState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Hit\n";
+}
+
+StunState* StunState::Instance() {
+    static StunState inst;
+    return &inst;
+}
+void StunState::Enter(MainPlayerComponent* owner) {
+    std::cout << "Enter Stun\n";
+}
+void StunState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void StunState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Stun\n";
+}
+
+DeadState* DeadState::Instance() {
+    static DeadState inst;
+    return &inst;
+}
+void DeadState::Enter(MainPlayerComponent* owner) {
+    std::cout << "Enter Dead\n";
+}
+void DeadState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void DeadState::Exit(MainPlayerComponent* owner) {
+    std::cout << "Exit Dead\n";
+}
+
+
+//attack-------------------------------------------------------------
+Attack1State* Attack1State::Instance() {
+    static Attack1State inst;
+    return &inst;
+}
+void Attack1State::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0;
+    std::cout << "Enter Attack1\n";
+}
+void Attack1State::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void Attack1State::Exit(MainPlayerComponent* owner) {
+
+    std::cout << "Exit Attack1\n";
+}
+
+Attack2State* Attack2State::Instance() {
+    static Attack2State inst;
+    return &inst;
+}
+void Attack2State::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0;
+    std::cout << "Enter Attack2\n";
+}
+void Attack2State::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void Attack2State::Exit(MainPlayerComponent* owner) {
+
+    std::cout << "Exit Attack2\n";
+}
+
+Skill1State* Skill1State::Instance() {
+    static Skill1State inst;
+    return &inst;
+}
+void Skill1State::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0;
+    std::cout << "Enter Skill1\n";
+}
+void Skill1State::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void Skill1State::Exit(MainPlayerComponent* owner) {
+
+    std::cout << "Exit Skill1\n";
+}
+
+Skill2State* Skill2State::Instance() {
+    static Skill2State inst;
+    return &inst;
+}
+void Skill2State::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0;
+    std::cout << "Enter Skill2\n";
+}
+void Skill2State::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void Skill2State::Exit(MainPlayerComponent* owner) {
+
+    std::cout << "Exit Skill2\n";
+}
+
+SpecialState* SpecialState::Instance() {
+    static SpecialState inst;
+    return &inst;
+}
+void SpecialState::Enter(MainPlayerComponent* owner) {
+    owner->mStateTime = 0;
+    std::cout << "Enter Special\n";
+}
+void SpecialState::Update(MainPlayerComponent* owner) {
+    if (owner->mStateTime >= this->mStateTime) {
+        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        return;
+    }
+}
+void SpecialState::Exit(MainPlayerComponent* owner) {
+
+    std::cout << "Exit Special\n";
 }

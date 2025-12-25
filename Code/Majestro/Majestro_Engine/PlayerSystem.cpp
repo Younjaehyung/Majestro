@@ -7,6 +7,7 @@
 #include "TagComponent.h"
 #include "InputManager.h"
 #include "TransformSystem.h"
+#include "TerrainComponent.h"
 
 
 PlayerSystem::PlayerSystem(World* world) : System(world)
@@ -77,6 +78,12 @@ void PlayerSystem::Update(float dt)
 			//transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
 		}
 
+		auto& terrains = mWorld->GetComponentPool<TerrainComponent>();
+		auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+		TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
+		float terrainHeight = terrainComponent->GetHeightAtWorldPosition(controllerComponent->mTransformComponent.mLocalPosition);
+		transformComponent->mLocalPosition.y = terrainHeight + controllerComponent->mHight;
+
 		transformComponent->FinalUpdate();
 
 		controllerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
@@ -146,4 +153,15 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 	if (INPUT.GetKey(eKeyCode::E)) {
 		controllerComponent->mTransformComponent.mLocalPosition += controllerComponent->mTransformComponent.GetUp() * dt * speed;
 	}
+<<<<<<< HEAD
+=======
+
+
+	if (INPUT.GetMouseState().LeftDown) {
+		controllerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
+		controllerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
+		INPUT.MouseStateClear();
+	}
+	
+>>>>>>> origin/main
 }

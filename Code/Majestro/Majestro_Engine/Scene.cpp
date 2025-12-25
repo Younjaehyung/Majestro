@@ -12,6 +12,7 @@
 #include "TagComponent.h"
 #include "PlayerComponent.h"
 #include "AnimationComponent.h"
+#include "TerrainComponent.h"
 
 #include "Prefab.h"
 //#include "Camera.h"
@@ -71,6 +72,26 @@ void Scene::Initialize()
 	//mWorld->AddComponent<TransformComponent>(testEntity, t);
 	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 	/////////////////////////////////////////////////////////////////////
+
+#pragma region Skybox
+	{
+		Entity skyBox = mWorld->CreateEntity();
+		TransformComponent bt{};
+
+
+		shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+
+		// 빌보드 머티리얼
+		shared_ptr<Material> skyBoxMat = RESOURCEMANAGER.Get<Material>(L"Skybox");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(skyBoxMat);
+
+		mWorld->AddComponent<TransformComponent>(skyBox, bt);
+		RenderComponent& render = mWorld->AddComponent<RenderComponent>(skyBox, skyBoxMesh, materials);
+		render.mCheckFrustum = false;
+	}
+#pragma endregion
+
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
@@ -83,6 +104,7 @@ void Scene::Initialize()
 
 		material2s.push_back(material2);
 		t.mLocalPosition = { 0.f, 0.f, 10.f };
+		t.mLocalScale = { 10.f, 10.f, 10.f };
 
 		vector<shared_ptr<Animator>> anmators0;
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aIdle_001"));
@@ -126,7 +148,7 @@ void Scene::Initialize()
 		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
 		material2s.push_back(material2);
 		t.mLocalPosition = { 0.f, 0.f, 0.f };
-
+		t.mLocalScale = { 1.f, 1.f, 1.f };
 		vector<shared_ptr<Animator>> anmators;
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
 		
@@ -151,80 +173,36 @@ void Scene::Initialize()
 
 		}
 	}
-	//{
-	//	Entity osw = mWorld->CreateEntity();	// �ʼ�
-
-	//	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Dragon_Mesh");
-	//	std::vector<shared_ptr<Material>> material2s;
-
-	//	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"dragon0");
-	//	shared_ptr<Material> material3 = RESOURCEMANAGER.Get<Material>(L"dragon1");
-	//	shared_ptr<Material> material4 = RESOURCEMANAGER.Get<Material>(L"dragon2");
-	//	shared_ptr<Material> material5= RESOURCEMANAGER.Get<Material>(L"dragon3");
-	//	material2s.push_back(material2);
-	//	material2s.push_back(material3);
-	//	material2s.push_back(material4);
-	//	material2s.push_back(material5);
-	//	t.mLocalPosition = { 0.f, 0.f, 100.f };
-
-	//	vector<shared_ptr<Animator>> anmators;
-	//	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Fly_New"));
-
-	//	mWorld->AddComponent<TransformComponent>(osw, t);
-	//	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-	//	mWorld->AddComponent<AnimationComponent>(osw, anmators);
-	//	float i, j;
-
-	//	//for (i = -5; i < 0; i += 1.0f) {
-	//	//	for (j = -5; j < 0; j += 1.0f) {
-	//	//		Entity osws = mWorld->CreateEntity();	// �ʼ�
-	//	//		t.mLocalPosition = { i * 100, j * 100, 100.f };
-
-
-	//	//		mWorld->AddComponent<TransformComponent>(osws, t);
-	//	//		mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-	//	//		mWorld->AddComponent<AnimationComponent>(osws, anmators);
-	//	//	}
-
-	//	//}
-	//}
-
-
-
 
 
 	/////////////////////////////////////////////////////////////////////////
-	//Entity testEntity5 = mWorld->CreateEntity();	// �ʼ�
+
+#pragma region Terrain
+
+	Entity terrain = mWorld->CreateEntity();
+	TransformComponent bt{};
+	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+
+	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
+
+	// 빌보드 머티리얼(
+	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
+	std::vector<shared_ptr<Material>> materials;
+	materials.push_back(heightMap);
+
+	mWorld->AddComponent<TransformComponent>(terrain, bt);
+	TerrainComponent& terrainc = mWorld->AddComponent<TerrainComponent>(terrain, 64, 64, heightMap);
+	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
+	terrainc.mTerrainWorldScale = bt.mLocalScale;
+
+	RenderComponent& render = mWorld->AddComponent<RenderComponent>(terrain, skyBoxMesh, materials);
+	render.mCheckFrustum = false;
 
 
-	//TransformComponent ts{};
-	//ts.mLocalScale = { 100.f, 100.f, 100.f };
-	//ts.mLocalPosition = { 50.f, -10.f, 500.f };
 
+#pragma endregion
 
-
-
-	//mWorld->AddComponent<TransformComponent>(testEntity5, ts);
-	//mWorld->AddComponent<RenderComponent>(testEntity5, sphereMesh, materials);
-
-	//// 한 번에 32x32 = 1024개 스폰 (간격, 스케일은 취향대로)
-	//const int NX = 520;
-
-	//const float SPACING = 12.f;
-
-
-	//	for (int x = 0; x < NX; ++x)
-	//	{
-	//		Entity e = mWorld->CreateEntity();
-
-	//		TransformComponent t{};
-	//		t.mLocalScale = { 100.f, 100.f, 100.f };
-	//		t.mLocalPosition = { -350.f + x * SPACING, -10.f, 500.f };
-
-	//		mWorld->AddComponent<TransformComponent>(e, t);
-	//		mWorld->AddComponent<RenderComponent>(e, sphereMesh, materials);
-	//	}
-	//
 
 	/////////////////////////////////////////////////////////////////////////
 	LightComponent l{};

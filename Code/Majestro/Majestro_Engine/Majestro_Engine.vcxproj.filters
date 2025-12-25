@@ -55,6 +55,9 @@
     <Filter Include="World\Resource\Shader\animation">
       <UniqueIdentifier>{38130558-6394-44be-a0f6-beb19ba95322}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\Terrain">
+      <UniqueIdentifier>{3d125a3a-65f0-4fc2-880e-902c962f85b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -213,6 +216,9 @@
     <ClInclude Include="StateMachine.h">
       <Filter>World\Component</Filter>
     </ClInclude>
+    <ClInclude Include="TerrainComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -369,6 +375,9 @@
     <ClCompile Include="StateMachine.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
+    <ClCompile Include="TerrainComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">
@@ -447,6 +456,18 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\math.hlsl">
       <Filter>World\Resource\Shader\Utils</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Terrain_DS.hlsl">
+      <Filter>World\Resource\Shader\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Terrain_HS.hlsl">
+      <Filter>World\Resource\Shader\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Terrain_PS.hlsl">
+      <Filter>World\Resource\Shader\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Terrain_VS.hlsl">
+      <Filter>World\Resource\Shader\Terrain</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -13,6 +13,9 @@ enum class SHADER_TYPE : uint8
 	PARTICLE,
 	COMPUTE,
 	SHADOW,
+	BILBOARD,
+	BLUR,
+	COMPOSITE,
 
 	END
 };
@@ -61,7 +64,18 @@ struct ShaderPath {
 	wstring PS = L"";
 	wstring CS = L"";
 	wstring GS = L"";
+	wstring HS = L"";
+	wstring DS = L"";
 
+};
+
+struct ShaderArg
+{
+	const string vs = "VS_Main";
+	const string hs;
+	const string ds;
+	const string gs;
+	const string ps = "PS_Main";
 };
 
 class Shader : public Object
@@ -72,6 +86,8 @@ public:
 
 
 	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(), const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
+	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(), ShaderArg arg = ShaderArg());
+
 	void CreateComputeShader(const ShaderPath& path, const string& name = "CS_Main", const string& version = "cs_5_1");
 
 	void Update();
@@ -87,19 +103,21 @@ private:
 	void CreatePixelShader(const wstring& path, const string& name, const string& version);
 	void CreateGeometryShader(const wstring& path, const string& name, const string& version);
 
-
+	void CreateHullShader(const wstring& path, const string& name, const string& version);
+	void CreateDomainShader(const wstring& path, const string& name, const string& version);
 
 private:
 
-	
 	ShaderInfo mInfo;
 	ComPtr<ID3D12PipelineState>			mPipelineState;
-	
+
 
 	//GraphicsShader
 	ComPtr<ID3DBlob>					mVsBlob;
 	ComPtr<ID3DBlob>					mPsBlob;
 	ComPtr<ID3DBlob>					mGsBlob;
+	ComPtr<ID3DBlob>					mDsBlob;
+	ComPtr<ID3DBlob>					mHsBlob;
 	ComPtr<ID3DBlob>					mErrBlob;
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC  mGraphicsPipelineDesc = {};

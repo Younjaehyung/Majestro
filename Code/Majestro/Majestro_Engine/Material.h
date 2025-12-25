@@ -56,7 +56,10 @@ public:
 	wstring& GetShaderName() { return mShaderName; }
 	uint32 GetShaderID() { return mShaderID; }
 	void SetShader(std::wstring name);
-	void SetTexture(shared_ptr<Texture> texture,uint8 texturetype);
+
+	void SetTexture(shared_ptr<Texture> texture, uint8 texturetype);
+	shared_ptr<Texture> GetTexture(uint8 texturetype) { return mTextures[texturetype]; }
+
 
 	shared_ptr<Material> Clone();
 	MaterialParams& GetParams() { return mParams; }

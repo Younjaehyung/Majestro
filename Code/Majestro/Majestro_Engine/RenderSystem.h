@@ -27,17 +27,29 @@ struct RenderParams
 
 struct PassParams
 {
+
+
 	Matrix MatView;
 	Matrix MatProjection;
 	Matrix MatViewInv; // view의 역행렬
 	Matrix MatProjectionInv; // Projection의 역행렬	(사용은 선택)
 
 	Vec2 ScreenSize{};
-	Vec2 Padding{};
+	Vec2 MinMaxTessDistance;
 
+	Vec2 HeightMapResolution;
+	float MaxTessLevel;
+	float TotalTime;
+
+	uint32 TileCountX;
+	uint32 TileCountZ;
 	uint32 LightsCount{};
 	uint32 SkyBoxIndex{};
+
+
 };
+
+
 
 struct DrawItem 
 {
@@ -128,7 +140,7 @@ private: // Culling
 
 private: // Push&Clear Data
 	void PushMaterialData();
-
+	void PushLandData();
 
 	void PushPassData();
 	void PushInstanceData();
@@ -157,6 +169,7 @@ private: // Render
 	// particle
 	void RenderingParticle();
 
+
 private:
 	uint32 mFrameCount = 0;
 
@@ -175,7 +188,7 @@ private:	// 배치 버퍼
 	
 	std::vector<DrawBatch> mDeferredDrawBatchs;
 
-	
+	struct dummy { uint32 BaseInstance; uint32 InstanceCount; } dum;
 
 private:
 	

@@ -11,6 +11,7 @@
 #include "AnimationComponent.h"
 #include "ParticleComponent.h"
 #include "TagComponent.h"
+#include "TerrainComponent.h"
 
 
 RenderSystem::RenderSystem(World* world) : System::System(world)
@@ -25,6 +26,7 @@ void RenderSystem::Initialize()
 
 	// immutability Data
 	PushMaterialData();
+	
 
 	mDeferredDrawItems.reserve(1000);
 	mDeferredDrawBatchs.reserve(1000);
@@ -43,7 +45,7 @@ void RenderSystem::Update()
 
 	DefferdRendering();
 
-	//ForwardRendering();
+	ForwardRendering();
 
 	//ParticleRendering();
 
@@ -56,6 +58,7 @@ void RenderSystem::Update()
 void RenderSystem::PushData()
 {
 	RENDERMANAGER.SetGraphicsTable();
+	PushLandData();
 	PushPassData();
 	PushObjectData();
 	PushLightData();
@@ -132,6 +135,8 @@ void RenderSystem::PushPassData()
 	passParams.MatViewInv = mCamera->mView.Invert().Transpose();
 	passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
+	
+	//passParams.TotalTime = TIME.GetTotalTime();
 
 
 	shared_ptr<GroupBuffer> groupBuffer = RENDERMANAGER.GetGroupBuffer(mFrameCount);
@@ -150,6 +155,21 @@ void RenderSystem::PushMaterialData()
 		index++;
 	}
 	RENDERMANAGER.GetMaterialBuffers()->PushDefaultToData(mMaterialVector.data(), static_cast<uint32>(mMaterialVector.size() * sizeof(MaterialParams)));
+
+}
+
+void RenderSystem::PushLandData()
+{
+	auto entity = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+
+	auto terrain = mWorld->GetComponent<TerrainComponent>(entity[0])->mTerrainParams;
+
+	passParams.HeightMapResolution = terrain.HeightMapResolution;
+	passParams.MaxTessLevel = terrain.MaxTessLevel;
+	passParams.MinMaxTessDistance = terrain.MinMaxTessDistance;
+	passParams.TileCountX = terrain.TileCountX;
+	passParams.TileCountZ = terrain.TileCountZ;
+
 
 }
 
@@ -391,23 +411,22 @@ void RenderSystem::RenderFinal()
 
 void RenderSystem::RenderForward()
 {
-	//for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::FORWARD)]) {
+	for (auto& drawBatch : mDeferredDrawBatchs)
+	{
+		if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
+			continue;
 
-	//	RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
-	//	//InstancingRender(vec);
+		if (mCurrPSOID != drawBatch.PSOID) {
+			drawBatch.PSOShader->Update();
+			mCurrPSOID = drawBatch.PSOID;
+		}
+		dum.BaseInstance = drawBatch.BaseInstance;
+		dum.InstanceCount = drawBatch.InstanceCount;
 
-	//}
-	
-	//나머지는 바로 forward
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 2, &(dum), 0);
+		InstancingRender(drawBatch);
+	}
 
-	//for (auto& camera : _cameras)
-	//{
-	//	if (camera == mainCamera)
-	//		continue;
-
-	//	camera->SortGameObject();
-	//	camera->Render_Forward();
-	//}
 }
 
 void RenderSystem::RenderingParticle()

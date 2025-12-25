@@ -7,7 +7,7 @@ uint32 Texture::mTextureCount = 0;
 
 Texture::Texture() : Object(OBJECT_TYPE::TEXTURE)
 {
-	
+
 }
 
 Texture::~Texture()
@@ -89,11 +89,11 @@ void Texture::Load(const wstring& path)
 
 void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV ,Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, Vec4 clearColor)
 {
 	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height);
 	mDescription.Flags = resFlags;
-	
+
 
 	D3D12_CLEAR_VALUE optimizedClearValue = {};
 	D3D12_CLEAR_VALUE* pOptimizedClearValue = nullptr;
@@ -127,10 +127,10 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	assert(SUCCEEDED(hr));
 
 
-	
+
 	CreateFromResource(mImage, createSRVUAV);
-	
-	
+
+
 }
 
 void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV)
@@ -211,5 +211,107 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 		lastIndex++;
 	}
 
-	
+
+}
+
+float Texture::GetHeightValue(float u, float v) const
+{
+	if (mOriginalImage.GetImageCount() == 0)
+		return 0.0f;
+
+	const DirectX::Image* image = mOriginalImage.GetImage(0, 0, 0);
+	if (!image || !image->pixels)
+		return 0.0f;
+
+	u = std::clamp(u, 0.0f, 1.0f);
+	v = std::clamp(v, 0.0f, 1.0f);
+
+	float fx = u * (image->width - 1);
+	float fy = v * (image->height - 1);
+
+	uint32 x0 = static_cast<uint32>(fx);
+	uint32 y0 = static_cast<uint32>(fy);
+	uint32 x1 = min(x0 + 1, static_cast<uint32>(image->width - 1));
+	uint32 y1 = min(y0 + 1, static_cast<uint32>(image->height - 1));
+
+	float tx = fx - x0;
+	float ty = fy - y0;
+
+	// 수정: bilinear 필터링을 위한 주변 4 픽셀 샘플
+	float h00 = GetHeightValuePixel(x0, y0);
+	float h10 = GetHeightValuePixel(x1, y0);
+	float h01 = GetHeightValuePixel(x0, y1);
+	float h11 = GetHeightValuePixel(x1, y1);
+
+	float h0 = std::lerp(h00, h10, tx);
+	float h1 = std::lerp(h01, h11, tx);
+	return std::lerp(h0, h1, ty);
+}
+float Texture::GetHeightValuePixel(uint32 x, uint32 y) const
+{
+	if (mOriginalImage.GetImageCount() == 0)
+		return 0.0f;
+
+	const DirectX::Image* image = mOriginalImage.GetImage(0, 0, 0);
+	if (!image || !image->pixels)
+		return 0.0f;
+
+	if (x >= image->width || y >= image->height)
+		return 0.0f;
+
+	// [수정] 포맷별 bytesPerPixel 계산
+	size_t bytesPerPixel = 0;
+	switch (image->format)
+	{
+	case DXGI_FORMAT_R8_UNORM:
+		bytesPerPixel = 1;
+		break;
+	case DXGI_FORMAT_R16_UNORM:
+		bytesPerPixel = 2;
+		break;
+	case DXGI_FORMAT_R32_FLOAT:
+		bytesPerPixel = 4;
+		break;
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+	case DXGI_FORMAT_B8G8R8A8_UNORM:
+		bytesPerPixel = 4;
+		break;
+	case DXGI_FORMAT_R32G32B32A32_FLOAT:
+		bytesPerPixel = 16;
+		break;
+	default:
+		bytesPerPixel = 4; // 최소 기본값
+		break;
+	}
+
+	// [수정] rowPitch 와 bytesPerPixel 을 같이 사용
+	const uint8_t* pixel =
+		image->pixels + y * image->rowPitch + x * bytesPerPixel;
+
+	float height = 0.0f;
+
+	switch (image->format)
+	{
+	case DXGI_FORMAT_R8_UNORM:
+		height = pixel[0] / 255.0f;
+		break;
+	case DXGI_FORMAT_R16_UNORM:
+		height = (*reinterpret_cast<const uint16_t*>(pixel)) / 65535.0f;
+		break;
+	case DXGI_FORMAT_R32_FLOAT:
+		height = *reinterpret_cast<const float*>(pixel);
+		break;
+	case DXGI_FORMAT_R8G8B8A8_UNORM:
+	case DXGI_FORMAT_B8G8R8A8_UNORM:
+		height = pixel[0] / 255.0f;
+		break;
+	case DXGI_FORMAT_R32G32B32A32_FLOAT:
+		height = reinterpret_cast<const float*>(pixel)[0];
+		break;
+	default:
+		height = pixel[0] / 255.0f;
+		break;
+	}
+
+	return height;
 }

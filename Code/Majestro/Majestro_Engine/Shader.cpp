@@ -13,6 +13,163 @@ Shader::~Shader()
 {
 }
 
+void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, ShaderArg arg)
+{
+
+	mInfo = info;
+
+	CreateVertexShader(path.VS, arg.vs, "vs_5_1");
+	CreatePixelShader(path.PS, arg.ps, "ps_5_1");
+
+	if (arg.hs.empty() == false)
+		CreateHullShader(path.HS, arg.hs, "hs_5_1");
+
+	if (arg.ds.empty() == false)
+		CreateDomainShader(path.DS, arg.ds, "ds_5_1");
+
+	if (arg.gs.empty() == false)
+		CreateGeometryShader(path.GS, arg.gs, "gs_5_1");
+
+	D3D12_INPUT_ELEMENT_DESC desc[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BONEWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 44, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 60, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+
+	mGraphicsPipelineDesc.InputLayout = { desc, _countof(desc) };
+	mGraphicsPipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get();
+
+	mGraphicsPipelineDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	mGraphicsPipelineDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	mGraphicsPipelineDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);	//DepthStencil 사용 설정
+	mGraphicsPipelineDesc.SampleMask = UINT_MAX;
+	mGraphicsPipelineDesc.PrimitiveTopologyType = GetTopologyType(info.topology);
+	mGraphicsPipelineDesc.NumRenderTargets = 1;
+	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	mGraphicsPipelineDesc.SampleDesc.Count = 1;
+	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
+
+	switch (info.shaderType)
+	{
+	case SHADER_TYPE::DEFERRED:
+		mGraphicsPipelineDesc.NumRenderTargets = RENDER_TARGET_G_BUFFER_GROUP_MEMBER_COUNT;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT; // POSITION
+		mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT; // NORMAL
+		mGraphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM; // COLOR
+		break;
+	case SHADER_TYPE::FORWARD:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::LIGHTING:
+		mGraphicsPipelineDesc.NumRenderTargets = 2;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::PARTICLE:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::COMPUTE:
+		mGraphicsPipelineDesc.NumRenderTargets = 0;
+		break;
+	case SHADER_TYPE::SHADOW:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
+		break;
+	}
+
+
+	switch (info.rasterizerType)
+	{
+	case RASTERIZER_TYPE::CULL_BACK:
+		mGraphicsPipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		mGraphicsPipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+		break;
+	case RASTERIZER_TYPE::CULL_FRONT:
+		mGraphicsPipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		mGraphicsPipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+		break;
+	case RASTERIZER_TYPE::CULL_NONE:
+		mGraphicsPipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		mGraphicsPipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		break;
+	case RASTERIZER_TYPE::WIREFRAME:
+		mGraphicsPipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		mGraphicsPipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		break;
+	}
+
+	switch (info.depthStencilType)
+	{
+	case DEPTH_STENCIL_TYPE::LESS:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = TRUE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		break;
+	case DEPTH_STENCIL_TYPE::LESS_EQUAL:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = TRUE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		break;
+	case DEPTH_STENCIL_TYPE::GREATER:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = TRUE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+		break;
+	case DEPTH_STENCIL_TYPE::GREATER_EQUAL:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = TRUE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+		break;
+	case DEPTH_STENCIL_TYPE::NO_DEPTH_TEST:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = FALSE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		break;
+	case DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = FALSE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		break;
+	case DEPTH_STENCIL_TYPE::LESS_NO_WRITE:
+		mGraphicsPipelineDesc.DepthStencilState.DepthEnable = TRUE;
+		mGraphicsPipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		mGraphicsPipelineDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		break;
+	}
+
+	D3D12_RENDER_TARGET_BLEND_DESC& rt = mGraphicsPipelineDesc.BlendState.RenderTarget[0];
+	//어떤 랜더타겟을 알파블랜딩 될것인지.
+
+	// SrcBlend = Pixel Shader
+	// DestBlend = Render Target
+	switch (info.blendType)
+	{
+	case BLEND_TYPE::DEFAULT:
+		rt.BlendEnable = FALSE;
+		rt.LogicOpEnable = FALSE;
+		rt.SrcBlend = D3D12_BLEND_ONE;
+		rt.DestBlend = D3D12_BLEND_ZERO;
+		break;
+	case BLEND_TYPE::ALPHA_BLEND:
+		rt.BlendEnable = TRUE;
+		rt.LogicOpEnable = FALSE;
+		rt.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		rt.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+		break;
+	case BLEND_TYPE::ONE_TO_ONE_BLEND:
+		rt.BlendEnable = TRUE;
+		rt.LogicOpEnable = FALSE;
+		rt.SrcBlend = D3D12_BLEND_ONE;
+		rt.DestBlend = D3D12_BLEND_ONE;
+		break;
+	}
+
+
+	DEVICE->CreateGraphicsPipelineState(&mGraphicsPipelineDesc, IID_PPV_ARGS(&mPipelineState));
+
+}
+
+
 void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const string& vs, const string& ps, const string& gs)
 {
 
@@ -188,7 +345,7 @@ void Shader::Update()
 	}
 	else {
 		GRAPHICS_CMD_LIST->IASetPrimitiveTopology(mInfo.topology);
-		
+
 		GRAPHICS_CMD_LIST->SetPipelineState(mPipelineState.Get());
 	}
 }
@@ -226,7 +383,15 @@ void Shader::CreateGeometryShader(const wstring& path, const string& name, const
 	CreateShader(path, name, version, mGsBlob, mGraphicsPipelineDesc.GS);
 }
 
+void Shader::CreateHullShader(const wstring& path, const string& name, const string& version)
+{
+	CreateShader(path, name, version, mHsBlob, mGraphicsPipelineDesc.HS);
+}
 
+void Shader::CreateDomainShader(const wstring& path, const string& name, const string& version)
+{
+	CreateShader(path, name, version, mDsBlob, mGraphicsPipelineDesc.DS);
+}
 
 D3D12_PRIMITIVE_TOPOLOGY_TYPE Shader::GetTopologyType(D3D_PRIMITIVE_TOPOLOGY topology)
 {

@@ -686,13 +686,16 @@ void ResourceManager::CreateDefaultShader()
 
 void ResourceManager::CreateDefaultMaterial()
 {
+
 	// Skybox
 	{
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Skybox");
+		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\sky.jpg"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Skybox", material);
 	}
+
 
 
 

@@ -72,6 +72,26 @@ void Scene::Initialize()
 	//mWorld->AddComponent<TransformComponent>(testEntity, t);
 	//mWorld->AddComponent<RenderComponent>(testEntity, sphereMesh, materials);
 	/////////////////////////////////////////////////////////////////////
+
+#pragma region Skybox
+	{
+		Entity skyBox = mWorld->CreateEntity();
+		TransformComponent bt{};
+
+
+		shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+
+		// 빌보드 머티리얼
+		shared_ptr<Material> skyBoxMat = RESOURCEMANAGER.Get<Material>(L"Skybox");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(skyBoxMat);
+
+		mWorld->AddComponent<TransformComponent>(skyBox, bt);
+		RenderComponent& render = mWorld->AddComponent<RenderComponent>(skyBox, skyBoxMesh, materials);
+		render.mCheckFrustum = false;
+	}
+#pragma endregion
+
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
 

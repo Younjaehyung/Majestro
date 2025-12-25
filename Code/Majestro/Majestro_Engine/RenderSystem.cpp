@@ -45,7 +45,7 @@ void RenderSystem::Update()
 
 	DefferdRendering();
 
-	//ForwardRendering();
+	ForwardRendering();
 
 	//ParticleRendering();
 
@@ -411,23 +411,22 @@ void RenderSystem::RenderFinal()
 
 void RenderSystem::RenderForward()
 {
-	//for (auto& [shaderID, vec] : shaderBatches[static_cast<uint8>(SHADER_TYPE::FORWARD)]) {
+	for (auto& drawBatch : mDeferredDrawBatchs)
+	{
+		if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
+			continue;
 
-	//	RESOURCEMANAGER.Get<Shader>(shaderID)->Update();
-	//	//InstancingRender(vec);
+		if (mCurrPSOID != drawBatch.PSOID) {
+			drawBatch.PSOShader->Update();
+			mCurrPSOID = drawBatch.PSOID;
+		}
+		dum.BaseInstance = drawBatch.BaseInstance;
+		dum.InstanceCount = drawBatch.InstanceCount;
 
-	//}
-	
-	//나머지는 바로 forward
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 2, &(dum), 0);
+		InstancingRender(drawBatch);
+	}
 
-	//for (auto& camera : _cameras)
-	//{
-	//	if (camera == mainCamera)
-	//		continue;
-
-	//	camera->SortGameObject();
-	//	camera->Render_Forward();
-	//}
 }
 
 void RenderSystem::RenderingParticle()

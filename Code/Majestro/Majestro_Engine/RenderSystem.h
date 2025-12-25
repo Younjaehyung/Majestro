@@ -188,7 +188,7 @@ private:	// 배치 버퍼
 	
 	std::vector<DrawBatch> mDeferredDrawBatchs;
 
-	
+	struct dummy { uint32 BaseInstance; uint32 InstanceCount; } dum;
 
 private:
 	

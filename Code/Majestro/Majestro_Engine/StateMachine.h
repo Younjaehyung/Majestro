@@ -9,6 +9,8 @@ public:
     virtual void Update(entity_type*)=0;  
     virtual void Exit(entity_type*)=0;    
 
+    virtual const char* GetName() const = 0;
+
 public:
     bool mAnimOnce = true;
     float mStateTime = 3.0f;

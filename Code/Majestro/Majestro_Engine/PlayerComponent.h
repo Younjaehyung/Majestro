@@ -69,6 +69,7 @@ public:
 
 	void InitFSMOnce();
 	void InitFSMFromJson(const std::string& path);
+	void LoadStateSettingFromJson(const std::string& path);
 
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
@@ -88,6 +89,7 @@ public:
 class IdleState : public State<MainPlayerComponent> {
 public:
 	static IdleState* Instance();
+	virtual const char* GetName() const override { return "IdleState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -95,6 +97,7 @@ public:
 class WalkState : public State<MainPlayerComponent> {
 public:
 	static WalkState* Instance();
+	virtual const char* GetName() const override { return "WalkState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -102,6 +105,7 @@ public:
 class RunState : public State<MainPlayerComponent> {
 public:
 	static RunState* Instance();
+	virtual const char* GetName() const override { return "RunState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -109,6 +113,7 @@ public:
 class JumpState : public State<MainPlayerComponent> {
 public:
 	static JumpState* Instance();
+	virtual const char* GetName() const override { return "JumpState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -116,6 +121,7 @@ public:
 class DashState : public State<MainPlayerComponent> {
 public:
 	static DashState* Instance();
+	virtual const char* GetName() const override { return "DashState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -125,6 +131,9 @@ public:
 class AimState : public State<MainPlayerComponent> {
 public:
 	static AimState* Instance();
+
+	virtual const char* GetName() const override { return "AimState"; }
+
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -132,6 +141,9 @@ public:
 class ReRoadState : public State<MainPlayerComponent> {
 public:
 	static ReRoadState* Instance();
+
+	virtual const char* GetName() const override { return "ReRoadState"; }
+
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -139,6 +151,9 @@ public:
 class RhythmChangeState : public State<MainPlayerComponent> {
 public:
 	static RhythmChangeState* Instance();
+
+	virtual const char* GetName() const override { return "RhythmChangeState"; }
+
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -148,6 +163,7 @@ public:
 class HitState : public State<MainPlayerComponent> {
 public:
 	static HitState* Instance();
+	virtual const char* GetName() const override { return "HitState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -155,6 +171,7 @@ public:
 class StunState : public State<MainPlayerComponent> {
 public:
 	static StunState* Instance();
+	virtual const char* GetName() const override { return "StunState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -162,6 +179,7 @@ public:
 class DeadState : public State<MainPlayerComponent> {
 public:
 	static DeadState* Instance();
+	virtual const char* GetName() const override { return "DeadState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -171,6 +189,7 @@ public:
 class Attack1State : public State<MainPlayerComponent> {
 public:
 	static Attack1State* Instance();
+	virtual const char* GetName() const override { return "Attack1State"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -178,6 +197,7 @@ public:
 class Attack2State : public State<MainPlayerComponent> {
 public:
 	static Attack2State* Instance();
+	virtual const char* GetName() const override { return "Attack2State"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -185,6 +205,7 @@ public:
 class Skill1State : public State<MainPlayerComponent> {
 public:
 	static Skill1State* Instance();
+	virtual const char* GetName() const override { return "Skill1State"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -192,6 +213,7 @@ public:
 class Skill2State : public State<MainPlayerComponent> {
 public:
 	static Skill2State* Instance();
+	virtual const char* GetName() const override { return "Skill2State"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -199,6 +221,7 @@ public:
 class SpecialState : public State<MainPlayerComponent> {
 public:
 	static SpecialState* Instance();
+	virtual const char* GetName() const override { return "SpecialState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;

@@ -37,6 +37,7 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
 {
     InitFSMFromJson(path);
+    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 };
 
 void MainPlayerComponent::StateCheck()
@@ -146,6 +147,46 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 
     // 5) 초기 상태 진입 (Enter 호출 시점이 민감하면 첫 Update 때로 미뤄도 됨)
     mFsm.ChangeState(this,IdleState::Instance());
+}
+
+void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
+{
+    std::ifstream ifs(path);
+    if (!ifs) {
+        std::cout << "stateProps json not found\n";
+        return;
+    }
+
+    json j;
+    ifs >> j;
+
+    if (!j.contains("stateProps")) return;
+
+    auto& props = j["stateProps"];
+
+    auto applyTime = [&](State<MainPlayerComponent>* st)
+        {
+            const char* name = st->GetName();   // Attack1, Aim 등
+            if (!props.contains(name)) return;
+
+            if (props[name].contains("time"))
+                st->mStateTime = props[name]["time"].get<float>();
+        };
+
+    applyTime(DashState::Instance());
+
+    applyTime(AimState::Instance());
+    applyTime(ReRoadState::Instance());
+    applyTime(RhythmChangeState::Instance());
+    applyTime(HitState::Instance());
+    applyTime(StunState::Instance());
+    applyTime(DeadState::Instance());
+
+    applyTime(Attack1State::Instance());
+    applyTime(Attack2State::Instance());
+    applyTime(Skill1State::Instance());
+    applyTime(Skill2State::Instance());
+    applyTime(SpecialState::Instance());
 }
 
 

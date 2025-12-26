@@ -6,17 +6,20 @@
 #include "TransformSystem.h"
 #include "AnimationSystem.h"
 #include "PlayerSystem.h"
+#include "UIRenderSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
 
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();
+    RegisterSystem<UIRenderSystem>();
+
     RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
     RegisterSystem<PlayerSystem>();
-    
+
 
 }
 
@@ -42,6 +45,8 @@ void SystemManager::Update(float deltaTime) {
 void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
     GetSystem<RenderSystem>()->Update();
+    GetSystem<UIRenderSystem>()->Update();
+    
 }
 
 void SystemManager::Shutdown() {

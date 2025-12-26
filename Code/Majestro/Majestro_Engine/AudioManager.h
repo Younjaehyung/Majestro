@@ -14,6 +14,15 @@ namespace FMOD {
 	class Channel;
 }
 
+enum class SOUNDNAME {
+	Ambient,
+	Drum,
+    Bass,
+	Elec,
+    End
+
+};
+
 class FmodBackend {
 public:
     void Initialize(const std::string& bankRoot, bool rightHanded3D);
@@ -51,8 +60,8 @@ public:
 
     void PlayOneShot(const char* eventPath);
     void PlayOneShot3D(const char* eventPath, const FMOD_3D_ATTRIBUTES& attr);
-    void PlayBGM(const char* eventPath);
-    void StopBGM();
+    void PlayBGM(const char* eventPath, SOUNDNAME soundEnum);
+    void StopBGM(SOUNDNAME soundEnum);
 
     void SetGlobalParam(const char* name, float v);
     void SetBusVolume(const char* busPath, float v);
@@ -64,8 +73,8 @@ public:
 
 
     // ... 기존
-    void SetBGMParam(const char* name, float value, bool ignoreSeekSpeed = false);
-    void SetBGMParamLabel(const char* name, const char* label, bool ignoreSeekSpeed = false);
+    void SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed = false);
+    void SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed = false);
 
 
 
@@ -75,6 +84,7 @@ public:
 private:
     FmodBackend mFMOD;
     FMOD::Studio::EventInstance* mBGM = nullptr;
+	std::vector<FMOD::Studio::EventInstance*> mAllBGM;
     // 스레드세이프 큐/핸들 캐시 등
 
     

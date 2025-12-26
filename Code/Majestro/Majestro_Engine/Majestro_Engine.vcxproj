@@ -231,6 +231,8 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="TransformSystem.h" />
+    <ClInclude Include="UIComponent.h" />
+    <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
@@ -291,6 +293,8 @@
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="TransformSystem.cpp" />
+    <ClCompile Include="UIComponent.cpp" />
+    <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -594,6 +598,18 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_Tex</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Tex</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\UI_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\UI_VS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "AudioManager.h"
 #include "AudioSystem.h"
+#include "InputManager.h"
 
 AudioSystem::AudioSystem(World* world) : System::System(world)
 {
@@ -10,8 +11,13 @@ AudioSystem::AudioSystem(World* world) : System::System(world)
 void AudioSystem::Initialize()
 {
    
-    AUDIOMANAGER.PreloadBanks({"DrumBank.bank"}); // 필요 컨텐츠만
-    AUDIOMANAGER.PlayBGM("event:/Drum");              // BGM 시작
+    AUDIOMANAGER.PreloadBanks({"MajestroBank.bank"}); // 필요 컨텐츠만
+   
+    AUDIOMANAGER.PlayBGM("event:/Elec", SOUNDNAME::Elec);              // BGM 시작
+    AUDIOMANAGER.PlayBGM("event:/Bass" ,SOUNDNAME::Bass);              // BGM 시작
+    AUDIOMANAGER.PlayBGM("event:/Drum", SOUNDNAME::Drum);              // BGM 시작
+    
+
 }
 
 void AudioSystem::Update(float deltaTime)
@@ -24,12 +30,29 @@ void AudioSystem::Update(float deltaTime)
     AUDIOMANAGER.Update(deltaTime);
 
     time += deltaTime;
-    if (time > 12.0f) {
-        AUDIOMANAGER.SetBGMParam("To Drum2Yeah", 1.f,true);
-    }
-    if(time > 30.0f){
-        AUDIOMANAGER.SetBGMParam("To Drum3Yeah", 1.f, true);
-    } 
+
+    if(INPUT.GetKeyDown(eKeyCode::_1)){
+        AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 1.f, true);
+	}
+    if(INPUT.GetKeyDown(eKeyCode::_2)){
+        AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 1.f, true);
+	}
+
+
+    if(INPUT.GetKeyDown(eKeyCode::_3)){
+        AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
+	}
+    if(INPUT.GetKeyDown(eKeyCode::_4)){
+        AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);1
+	}
+
+    if(INPUT.GetKeyDown(eKeyCode::_5)){
+        AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);2
+	}
+    if(INPUT.GetKeyDown(eKeyCode::_6)){
+        AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);
+	}
+
 
 }
 

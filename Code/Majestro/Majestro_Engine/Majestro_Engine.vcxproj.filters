@@ -58,6 +58,9 @@
     <Filter Include="World\Resource\Shader\Terrain">
       <UniqueIdentifier>{3d125a3a-65f0-4fc2-880e-902c962f85b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Component\UI">
+      <UniqueIdentifier>{1fa1ef34-c658-498c-8e55-651acb2a8764}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -219,6 +222,12 @@
     <ClInclude Include="TerrainComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
+    <ClInclude Include="UIRenderSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="UIComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -378,6 +387,12 @@
     <ClCompile Include="TerrainComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
+    <ClCompile Include="UIRenderSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="UIComponent.cpp">
+      <Filter>World\Component\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">
@@ -468,6 +483,12 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_VS.hlsl">
       <Filter>World\Resource\Shader\Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\UI_VS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\UI_PS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

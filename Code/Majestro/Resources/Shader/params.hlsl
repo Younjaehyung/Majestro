@@ -158,6 +158,19 @@ struct MATERIALINFO
 };
 //////////////
 
+//////////////UI
+struct UIInstanceData
+{
+    float2 position; // 픽셀 좌표 (좌상단 기준)
+    float2 size; // 픽셀 크기
+    
+    float2 pivot; // (0~1)
+    float zOrder; // 정렬용
+};
+//////////////
+
+
+
 //////////////Pass
 struct PASSINFO
 {
@@ -216,6 +229,7 @@ StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속�
 StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t4, space1);
 StructuredBuffer<Matrix> SFinalBone : register(t5, space1);
 RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
+StructuredBuffer<UIInstanceData> UIInstances : register(t6, space1);
  ///////////////////////////////////////////////////////////////////
 
  ///////////////////////////PARTICLE///////////////////////////////////

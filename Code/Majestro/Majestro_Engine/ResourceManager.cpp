@@ -40,6 +40,7 @@ shared_ptr<Mesh> ResourceManager::LoadPointMesh()
 
 shared_ptr<Mesh> ResourceManager::LoadTerrainMesh(int32 sizeX, int32 sizeZ)
 {
+
 	vector<Vertex> vec;
 
 	for (int32 z = 0; z < sizeZ + 1; z++)
@@ -93,6 +94,55 @@ shared_ptr<Mesh> ResourceManager::LoadTerrainMesh(int32 sizeX, int32 sizeZ)
 
 shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 {
+	{
+		shared_ptr<Mesh> findMesh = Get<Mesh>(L"NDC");
+		if (findMesh)
+			return findMesh;
+
+
+		float x = 800.f;     // 좌상단 X (픽셀)
+		float y = 20.f;      // 좌상단 Y (픽셀)
+		float w = 200.0f;    // 가로 폭 (픽셀)
+		float h = 60.0f;     // 세로 높이 (픽셀)
+
+		vector<Vertex> vec(4);
+
+
+		// 좌상단
+		vec[0] = Vertex(Vec3(x, y, 0.0f),
+			Vec2(0.0f, 0.0f),
+			Vec3(0.0f, 0.0f, -1.0f),
+			Vec3(1.0f, 0.0f, 0.0f));
+
+		// 우상단
+		vec[1] = Vertex(Vec3(x + w, y, 0.0f),
+			Vec2(1.0f, 0.0f),
+			Vec3(0.0f, 0.0f, -1.0f),
+			Vec3(1.0f, 0.0f, 0.0f));
+
+		// 좌하단
+		vec[2] = Vertex(Vec3(x, y + h, 0.0f),
+			Vec2(0.0f, 1.0f),
+			Vec3(0.0f, 0.0f, -1.0f),
+			Vec3(1.0f, 0.0f, 0.0f));
+
+		// 우하단
+		vec[3] = Vertex(Vec3(x + w, y + h, 0.0f),
+			Vec2(1.0f, 1.0f),
+			Vec3(0.0f, 0.0f, -1.0f),
+			Vec3(1.0f, 0.0f, 0.0f));
+
+		vector<uint32> idx(6);
+
+		idx[0] = 0; idx[1] = 1; idx[2] = 2;
+		idx[3] = 1; idx[4] = 3; idx[5] = 2;
+
+		shared_ptr<Mesh> mesh = make_shared<Mesh>();
+		mesh->Init(vec, idx);
+		Add(L"NDC", mesh);
+	}
+
+
 	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Rectangle");
 	if (findMesh)
 		return findMesh;
@@ -525,6 +575,22 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Deferred", shader);
 	}
 
+	// Forward (UI)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\UI_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\UI_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		Add<Shader>(L"UI", shader);
+	}
 
 	// Forward (Forward)
 	{
@@ -772,6 +838,21 @@ void ResourceManager::CreateDefaultMaterial()
 
 		Add<Material>(L"ComputeParticle", material);
 	}
+
+
+	//number
+	{
+
+		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR", L"..\\Resources\\Texture\\UI\\Ingame_imgHpbar.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+		material->SetTexture(texture, DIFFUSEMAP1INDEX);
+		material->SetTexture(texture, NORMALMAPINDEX);
+
+		Add<Material>(L"HPBAR", material);
+	}
+
 
 	// GameObject
 	//{

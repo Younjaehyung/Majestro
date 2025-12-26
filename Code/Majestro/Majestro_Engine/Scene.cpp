@@ -203,6 +203,27 @@ void Scene::Initialize()
 
 #pragma endregion
 
+#pragma region UI
+	//{
+	//	Entity hpBAR = mWorld->CreateEntity();
+	//	TransformComponent ut{};
+	//	ut.mLocalScale = (Vec3(1.f, 1.f, 1.f));
+	//	ut.mLocalPosition = Vec3(1000.f, 1000.f, 0.f);
+
+
+	//	shared_ptr<Material> scorem;
+	//	shared_ptr<Mesh> boxMesh;
+
+	//	boxMesh = RESOURCEMANAGER.Get<Mesh>(L"NDC");
+	//	scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
+
+	//	std::vector<shared_ptr<Material>> materials;
+	//	materials.push_back(scorem);
+	//	mWorld->AddComponent<TransformComponent>(hpBAR, bt);
+	//	auto& m = mWorld->AddComponent<RenderComponent>(hpBAR, boxMesh, materials);
+	//	m.mCheckFrustum = false;
+	//}
+#pragma endregion
 
 	/////////////////////////////////////////////////////////////////////////
 	LightComponent l{};

@@ -104,14 +104,25 @@ void AudioManager::Initialize(const std::string& bankRoot) {
     // ���ڿ� ��ȸ�� �ʼ�
     mFMOD.LoadBank("Master.bank");
     mFMOD.LoadBank("Master.strings.bank", /*preloadSampleData=*/false);
+
+	mAllBGM.resize(static_cast<size_t>(SOUNDNAME::End) + 1, nullptr);
+
+	// 모든 mAllBGM을 nullptr로 초기화
+
+
 }
 
 void AudioManager::Shutdown() {
-    if (mBGM) {
-        mBGM->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-        mBGM->release();
-        mBGM = nullptr;
+
+    if (!mAllBGM.empty()) {
+        for (auto& bgm : mAllBGM) {
+            bgm->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+            bgm->release();
+            bgm = nullptr;
+        }
+        mAllBGM.clear();
     }
+
     mFMOD.Shutdown();
 }
 
@@ -139,24 +150,29 @@ void AudioManager::PlayOneShot3D(const char* eventPath, const FMOD_3D_ATTRIBUTES
     FMOD_CHECK(inst->release());
 }
 
-void AudioManager::PlayBGM(const char* eventPath) {
+void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
     // ���� BGM ����
-    if (mBGM) {
-        mBGM->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-        mBGM->release();
-        mBGM = nullptr;
-    }
+    //if (mAllBGM[soundEnum]) {
+    //    mAllBGM[soundEnum]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+    //    mAllBGM[soundEnum]->release();
+    //    mAllBGM[soundEnum] = nullptr;
+    //} // to-do
+	uint32 idx = static_cast<uint32>(soundEnum);
+
     mBGM = mFMOD.CreateInstance(eventPath);
+	mAllBGM[idx] = mBGM;
     // �ʿ� �� �Ķ����/���� ����� ����
     FMOD_CHECK(mBGM->start());
     // �����ϸ� ������ ���̹Ƿ� release�� ���⼭ ���� ����(Shutdown/StopBGM����)
 }
 
-void AudioManager::StopBGM() {
-    if (!mBGM) return;
-    mBGM->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-    mBGM->release();
-    mBGM = nullptr;
+void AudioManager::StopBGM(SOUNDNAME soundEnum) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+
+    if (!mAllBGM[idx]) return;
+    mAllBGM[idx]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+    mAllBGM[idx]->release();
+    mAllBGM[idx] = nullptr;
 }
 
 void AudioManager::SetGlobalParam(const char* name, float v) {
@@ -173,14 +189,16 @@ void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {
     FMOD_CHECK(mFMOD.GetStudio()->setListenerAttributes(index, &attr));
 }
 
-void AudioManager::SetBGMParam(const char* name, float value, bool ignoreSeekSpeed) {
-    if (!mBGM) return; // ���� BGM�� ���۵��� �ʾҴٸ� ����
-    FMOD_CHECK(mBGM->setParameterByName(name, value, ignoreSeekSpeed));
+void AudioManager::SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (!mAllBGM[idx]) return; // ���� BGM�� ���۵��� �ʾҴٸ� ����
+    FMOD_CHECK(mAllBGM[idx]->setParameterByName(name, value, ignoreSeekSpeed));
 }
 
-void AudioManager::SetBGMParamLabel(const char* name, const char* label, bool ignoreSeekSpeed) {
-    if (!mBGM) return;
+void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (!mAllBGM[idx]) return;
     // ����(Discrete Labeled) �Ķ���͸� ���ڿ� �󺧷� ���� ����
-    FMOD_CHECK(mBGM->setParameterByNameWithLabel(name, label, ignoreSeekSpeed));
+    FMOD_CHECK(mAllBGM[idx]->setParameterByNameWithLabel(name, label, ignoreSeekSpeed));
 }
 

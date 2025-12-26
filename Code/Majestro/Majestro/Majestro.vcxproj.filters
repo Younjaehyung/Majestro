@@ -35,11 +35,17 @@
     <ClInclude Include="targetver.h">
       <Filter>소스 파일\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\Majestro_Engine\Network.h">
+    <ClInclude Include="Packet.h">
       <Filter>소스 파일\Network</Filter>
     </ClInclude>
-    <ClInclude Include="..\Majestro_Engine\Game.h">
+    <ClInclude Include="Network.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
       <Filter>소스 파일\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHelper.h">
+      <Filter>소스 파일\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -49,11 +55,14 @@
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\Majestro_Engine\Network.cpp">
+    <ClCompile Include="Network.cpp">
       <Filter>소스 파일\Network</Filter>
     </ClCompile>
-    <ClCompile Include="..\Majestro_Engine\Game.cpp">
+    <ClCompile Include="Game.cpp">
       <Filter>소스 파일\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHelper.cpp">
+      <Filter>소스 파일\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

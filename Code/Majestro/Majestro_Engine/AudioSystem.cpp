@@ -43,11 +43,11 @@ void AudioSystem::Update(float deltaTime)
         AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
 	}
     if(INPUT.GetKeyDown(eKeyCode::_4)){
-        AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);1
+        AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);
 	}
 
     if(INPUT.GetKeyDown(eKeyCode::_5)){
-        AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);2
+        AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);
 	}
     if(INPUT.GetKeyDown(eKeyCode::_6)){
         AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);

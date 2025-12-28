@@ -15,6 +15,7 @@ enum class SHADER_TYPE : uint8
 	SHADOW,
 	BILBOARD,
 	BLUR,
+	UI,
 	COMPOSITE,
 
 	END

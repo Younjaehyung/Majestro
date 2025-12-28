@@ -17,6 +17,7 @@ struct GroupBuffer {
 	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;
+	shared_ptr<StructuredBuffer> UIInfo;
 	shared_ptr<StructuredBuffer> AnimInstanceInfo;
 	shared_ptr<StructuredBuffer> AnimResultInfo;
 
@@ -87,6 +88,7 @@ private:
 	void CreateMaterial();
 	void CreateParticle();
 	void CreateAnimation();
+
 private:
 	uint32			mFrameResourceIndex{};	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
 	uint32			mFrameCurrIndex{};		// 현재 GPU로 보낸 Index

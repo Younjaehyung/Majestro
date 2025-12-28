@@ -233,6 +233,9 @@
     <ClInclude Include="TransformSystem.h" />
     <ClInclude Include="UIComponent.h" />
     <ClInclude Include="UIRenderSystem.h" />
+    <ClInclude Include="UISpriteComponent.h" />
+    <ClInclude Include="UITransformComponent.h" />
+    <ClInclude Include="UIUpdateSystem.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
@@ -295,6 +298,9 @@
     <ClCompile Include="TransformSystem.cpp" />
     <ClCompile Include="UIComponent.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
+    <ClCompile Include="UISpriteComponent.cpp" />
+    <ClCompile Include="UITransformComponent.cpp" />
+    <ClCompile Include="UIUpdateSystem.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>

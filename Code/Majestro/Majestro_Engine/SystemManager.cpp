@@ -7,6 +7,7 @@
 #include "AnimationSystem.h"
 #include "PlayerSystem.h"
 #include "UIRenderSystem.h"
+#include "UIUpdateSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -14,6 +15,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();
     RegisterSystem<UIRenderSystem>();
+	RegisterSystem<UITransformSystem>();
 
     RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
@@ -39,6 +41,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<AudioSystem>()->Update(deltaTime);
     GetSystem<AnimationSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
+    GetSystem<UITransformSystem>()->Update(deltaTime);
     
 }
 

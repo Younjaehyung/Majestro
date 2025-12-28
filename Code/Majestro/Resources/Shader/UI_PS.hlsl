@@ -3,22 +3,23 @@
 #include "utils.hlsl"
 
 
-struct VS_TEX_OUT
+struct VS_OUT
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
+
+    uint instanceID : InstanceID;
 };
 
 // uint Index0 = ObjectIndex;
 // uint Index1 = MaterialInfoIndex;
 
-float4 PS_Main(VS_TEX_OUT input) : SV_Target
+float4 PS_Main(VS_OUT input) : SV_Target
 {
     float4 color = float4(1.f, 1.f, 1.f, 1.f);
     
-    uint idx = GlobalParams.BaseInstanceID;
-    RENDERPARAMS instance = InstanceParams[idx];
-    int materialIndex = instance.MaterialInfoIndex;
+    UIInstanceData instance = UIInstances[input.instanceID];
+    int materialIndex = instance.MaterialIndex;
     
     MATERIALINFO materials = Materials[materialIndex];
     
@@ -27,6 +28,8 @@ float4 PS_Main(VS_TEX_OUT input) : SV_Target
 
     if (color.a < 0.1f)
         discard;
+
+
     
     return color;
 }

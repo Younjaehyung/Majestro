@@ -5,14 +5,6 @@
 class Mesh;
 class Material;
 
-enum class Anchor
-{
-    TopLeft,
-    TopRight,
-    BottomLeft,
-    BottomRight,
-    Center
-};
 
 class UIComponent : public Component<UIComponent>
 {
@@ -20,7 +12,7 @@ public:
 	UIComponent() {}
 
 public:
-	Anchor mAnchor = Anchor::TopLeft;
+	//Anchor mAnchor = Anchor::TopLeft;
 
 
     Vec2 position;     // anchor 기준 오프셋 (pixel)

@@ -11,6 +11,7 @@
 #include "ParticleComponent.h"
 #include "AnimationComponent.h"
 #include "Animator.h"
+#include "UIRenderSystem.h"
 
 void RenderManager::Initialize(const WindowInfo& info)
 {
@@ -86,6 +87,10 @@ void RenderManager::CreateGroup()
 		group->ParticleInfo = make_shared<StructuredBuffer>();
 		group->ParticleInfo->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
 		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
+
+		group->UIInfo = make_shared<StructuredBuffer>();
+		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), 32);
+		group->UIInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_UI_INDEX), GROUP_COUNT);
 
 		group->AnimInstanceInfo = make_shared<StructuredBuffer>();
 		group->AnimInstanceInfo->CreateUploadBuffer(sizeof(AnimationInstance), 512);

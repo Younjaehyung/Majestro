@@ -61,6 +61,9 @@
     <Filter Include="World\Component\UI">
       <UniqueIdentifier>{1fa1ef34-c658-498c-8e55-651acb2a8764}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\UI">
+      <UniqueIdentifier>{0c6b4f72-e8cd-463c-8928-5ee2d19bad7d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -222,10 +225,19 @@
     <ClInclude Include="TerrainComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="UIRenderSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
     <ClInclude Include="UIComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRenderSystem.h">
+      <Filter>World\System\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUpdateSystem.h">
+      <Filter>World\System\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UISpriteComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UITransformComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
   </ItemGroup>
@@ -387,10 +399,19 @@
     <ClCompile Include="TerrainComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="UIRenderSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
     <ClCompile Include="UIComponent.cpp">
+      <Filter>World\Component\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderSystem.cpp">
+      <Filter>World\System\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUpdateSystem.cpp">
+      <Filter>World\System\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UISpriteComponent.cpp">
+      <Filter>World\Component\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UITransformComponent.cpp">
       <Filter>World\Component\UI</Filter>
     </ClCompile>
   </ItemGroup>

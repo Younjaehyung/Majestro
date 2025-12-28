@@ -13,6 +13,8 @@
 #include "PlayerComponent.h"
 #include "AnimationComponent.h"
 #include "TerrainComponent.h"
+#include "UITransformComponent.h"
+#include "UISpriteComponent.h"
 
 #include "Prefab.h"
 //#include "Camera.h"
@@ -204,25 +206,49 @@ void Scene::Initialize()
 #pragma endregion
 
 #pragma region UI
-	//{
-	//	Entity hpBAR = mWorld->CreateEntity();
-	//	TransformComponent ut{};
-	//	ut.mLocalScale = (Vec3(1.f, 1.f, 1.f));
-	//	ut.mLocalPosition = Vec3(1000.f, 1000.f, 0.f);
+	{
+		Entity hpBAR = mWorld->CreateEntity();
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
+		t.mAnchor = Anchor::TopLeft;
+		t.mPosition = Vec2(150.f, 50.f);
+		t.mSize = Vec2(300.f, 500.f);
 
 
-	//	shared_ptr<Material> scorem;
-	//	shared_ptr<Mesh> boxMesh;
+		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR,scorem);
+	}
+	{
+		Entity Bass = mWorld->CreateEntity();
 
-	//	boxMesh = RESOURCEMANAGER.Get<Mesh>(L"NDC");
-	//	scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"BassPortrait");
 
-	//	std::vector<shared_ptr<Material>> materials;
-	//	materials.push_back(scorem);
-	//	mWorld->AddComponent<TransformComponent>(hpBAR, bt);
-	//	auto& m = mWorld->AddComponent<RenderComponent>(hpBAR, boxMesh, materials);
-	//	m.mCheckFrustum = false;
-	//}
+		auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
+		t.mAnchor = Anchor::TopLeft;
+		t.mPosition = Vec2(750.f, 250.f);
+		t.mSize = Vec2(30.f, 50.f);
+		
+
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Bass, scorem);
+	}
+	{
+		Entity Bass = mWorld->CreateEntity();
+
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"GuitarPortrait");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
+		t.mAnchor = Anchor::TopLeft;
+		t.mPosition = Vec2(250.f, 250.f);
+		t.mSize = Vec2(300.f, 500.f);
+		
+
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Bass, scorem);
+	}
 #pragma endregion
 
 	/////////////////////////////////////////////////////////////////////////

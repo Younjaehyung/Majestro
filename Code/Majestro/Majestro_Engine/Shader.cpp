@@ -65,6 +65,10 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, Shade
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
+	case SHADER_TYPE::UI:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
 	case SHADER_TYPE::LIGHTING:
 		mGraphicsPipelineDesc.NumRenderTargets = 2;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;

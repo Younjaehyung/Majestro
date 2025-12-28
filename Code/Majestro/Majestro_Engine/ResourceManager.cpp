@@ -737,6 +737,24 @@ void ResourceManager::CreateDefaultShader()
 	}
 
 
+	// UI
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\UI_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\UI_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		Add<Shader>(L"UI", shader);
+	}
+
 	// animation 
 	{
 
@@ -840,17 +858,37 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 
-	//number
+	//HPBAR
 	{
 
 		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR", L"..\\Resources\\Texture\\UI\\Ingame_imgHpbar.png");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-		material->SetTexture(texture, DIFFUSEMAP1INDEX);
-		material->SetTexture(texture, NORMALMAPINDEX);
 
 		Add<Material>(L"HPBAR", material);
+	}
+
+	//BassPortrait
+	{
+
+		shared_ptr<Texture> texture = Load<Texture>(L"BassPortrait", L"..\\Resources\\Texture\\UI\\Ingame_imgBassPortrait.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"BassPortrait", material);
+	}
+
+	//BassPortrait
+	{
+
+		shared_ptr<Texture> texture = Load<Texture>(L"GuitarPortrait", L"..\\Resources\\Texture\\UI\\Ingame_imgGuitarPortrait.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"GuitarPortrait", material);
 	}
 
 

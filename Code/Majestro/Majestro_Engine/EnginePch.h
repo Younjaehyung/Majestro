@@ -93,7 +93,10 @@ using Matrix = DirectX::SimpleMath::Matrix;
 
 struct Vertex {
 	Vertex() {}
-
+	Vertex(Vec3 p, Vec2 u)
+		: pos(p), uv(u)
+	{
+	}
 	Vertex(Vec3 p, Vec2 u, Vec3 n, Vec3 t)
 		: pos(p), uv(u), normal(n), tangent(t)
 	{

@@ -348,6 +348,8 @@ void RenderSystem::RenderGBuffer()
 
 	for(auto& drawBatch : mDeferredDrawBatchs ) 
 	{
+		if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::DEFERRED)
+			continue;
 
 		if (mCurrPSOID != drawBatch.PSOID) {
 			drawBatch.PSOShader->Update();

@@ -213,27 +213,27 @@ void Scene::Initialize()
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
 		t.mAnchor = Anchor::TopLeft;
-		t.mPosition = Vec2(150.f, 50.f);
-		t.mSize = Vec2(300.f, 500.f);
+		t.mPosition = Vec2(50.f, 0.f);
+		t.mSize = Vec2(512.f, 256.f);
 
 
 		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR,scorem);
 	}
-	{
-		Entity Bass = mWorld->CreateEntity();
+	//{
+	//	Entity Bass = mWorld->CreateEntity();
 
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"BassPortrait");
+	//	shared_ptr<Material> scorem;
+	//	scorem = RESOURCEMANAGER.Get<Material>(L"BassPortrait");
 
-		auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
-		t.mAnchor = Anchor::TopLeft;
-		t.mPosition = Vec2(750.f, 250.f);
-		t.mSize = Vec2(30.f, 50.f);
-		
+	//	auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
+	//	t.mAnchor = Anchor::TopLeft;
+	//	t.mPosition = Vec2(750.f, 250.f);
+	//	t.mSize = Vec2(300.f, 500.f);
+	//	
 
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Bass, scorem);
-	}
+	//	auto& m = mWorld->AddComponent<UISpriteComponent>(Bass, scorem);
+	//}
 	{
 		Entity Bass = mWorld->CreateEntity();
 
@@ -242,8 +242,8 @@ void Scene::Initialize()
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
 		t.mAnchor = Anchor::TopLeft;
-		t.mPosition = Vec2(250.f, 250.f);
-		t.mSize = Vec2(300.f, 500.f);
+		t.mPosition = Vec2(2080.f, 1120.f);
+		t.mSize = Vec2(512.f, 256.f);
 		
 
 

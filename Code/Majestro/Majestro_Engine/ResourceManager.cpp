@@ -94,53 +94,32 @@ shared_ptr<Mesh> ResourceManager::LoadTerrainMesh(int32 sizeX, int32 sizeZ)
 
 shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 {
+
 	{
-		shared_ptr<Mesh> findMesh = Get<Mesh>(L"NDC");
+		shared_ptr<Mesh> findMesh = Get<Mesh>(L"UIQuad");
 		if (findMesh)
 			return findMesh;
 
+		vector<Vertex> vertices(4);
 
-		float x = 800.f;     // 좌상단 X (픽셀)
-		float y = 20.f;      // 좌상단 Y (픽셀)
-		float w = 200.0f;    // 가로 폭 (픽셀)
-		float h = 60.0f;     // 세로 높이 (픽셀)
+		// 좌표: 0~1 UI 로컬 공간
+		// UV와 1:1 매칭
+		vertices[0] = Vertex{ Vec3(0.0f, 0.0f, 0), Vec2(0.0f, 0.0f) }; // LT
+		vertices[1] = Vertex{ Vec3(1.0f, 0.0f, 0), Vec2(1.0f, 0.0f) }; // RT
+		vertices[2] = Vertex{ Vec3(1.0f, 1.0f, 0), Vec2(1.0f, 1.0f) }; // RB
+		vertices[3] = Vertex{ Vec3(0.0f, 1.0f, 0), Vec2(0.0f, 1.0f) }; // LB
 
-		vector<Vertex> vec(4);
-
-
-		// 좌상단
-		vec[0] = Vertex(Vec3(x, y, 0.0f),
-			Vec2(0.0f, 0.0f),
-			Vec3(0.0f, 0.0f, -1.0f),
-			Vec3(1.0f, 0.0f, 0.0f));
-
-		// 우상단
-		vec[1] = Vertex(Vec3(x + w, y, 0.0f),
-			Vec2(1.0f, 0.0f),
-			Vec3(0.0f, 0.0f, -1.0f),
-			Vec3(1.0f, 0.0f, 0.0f));
-
-		// 좌하단
-		vec[2] = Vertex(Vec3(x, y + h, 0.0f),
-			Vec2(0.0f, 1.0f),
-			Vec3(0.0f, 0.0f, -1.0f),
-			Vec3(1.0f, 0.0f, 0.0f));
-
-		// 우하단
-		vec[3] = Vertex(Vec3(x + w, y + h, 0.0f),
-			Vec2(1.0f, 1.0f),
-			Vec3(0.0f, 0.0f, -1.0f),
-			Vec3(1.0f, 0.0f, 0.0f));
-
-		vector<uint32> idx(6);
-
-		idx[0] = 0; idx[1] = 1; idx[2] = 2;
-		idx[3] = 1; idx[4] = 3; idx[5] = 2;
+		vector<uint32> indices(6);
+		indices[0] = 0; indices[1] = 1; indices[2] = 2;
+		indices[3] = 0; indices[4] = 2; indices[5] = 3;
 
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
-		mesh->Init(vec, idx);
-		Add(L"NDC", mesh);
+		mesh->Init(vertices, indices);   // UI 전용 Init 오버로드 권장
+		Add(L"UIQuad", mesh);
+
+		
 	}
+
 
 
 	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Rectangle");
@@ -575,22 +554,6 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Deferred", shader);
 	}
 
-	// Forward (UI)
-	{
-		ShaderInfo info =
-		{
-			SHADER_TYPE::FORWARD,
-			RASTERIZER_TYPE::CULL_NONE,
-			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE
-		};
-		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\UI_VS.hlsl",
-			.PS = L"..\\Resources\\Shader\\UI_PS.hlsl"
-		};
-		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
-		Add<Shader>(L"UI", shader);
-	}
 
 	// Forward (Forward)
 	{

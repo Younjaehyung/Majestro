@@ -14,7 +14,7 @@ UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
 
 void UIRenderSystem::Initialize()
 {
-	mQuadMesh = RESOURCEMANAGER.Get<Mesh>(L"Rectangle");
+	mQuadMesh = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
 }
 
 void UIRenderSystem::Update()

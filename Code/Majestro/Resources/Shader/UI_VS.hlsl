@@ -34,7 +34,7 @@ VS_OUT VS_Main(VS_IN input)
     // 3. 픽셀 -> NDC
     float2 ndc;
     ndc.x = (pixelPos.x / PassParams.ScreenSize.x) * 2.0f - 1.0f;
-    ndc.y = 1.0f - (pixelPos.y / PassParams.ScreenSize.y) * 2.0f;
+    ndc.y = 1-(pixelPos.y / PassParams.ScreenSize.y) * 2.0f;
 
     output.pos = float4(ndc, inst.ZOrder, 1.0f);
     output.uv = input.uv;

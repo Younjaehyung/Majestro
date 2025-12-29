@@ -52,9 +52,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    gWindowInfo.Width = 800;
-    gWindowInfo.Height = 600;
+
+    RECT clientRect{};
+    ::GetClientRect(gWindowInfo.Hwnd, &clientRect);
+    gWindowInfo.Width = clientRect.right - clientRect.left;
+    gWindowInfo.Height = clientRect.bottom - clientRect.top;
     gWindowInfo.ScreenState = true;
+
 
     game->Initialize(gWindowInfo);
 
@@ -125,9 +129,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
+      CW_USEDEFAULT, 0, 2560, 1440, nullptr, nullptr, hInstance, nullptr);
+   //mWindow.Width = 2560;
+   //mWindow.Height = 1440;
    gWindowInfo.Hwnd = hWnd;
+
 
    if (!hWnd)
    {
@@ -167,7 +173,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     //if(game)game->Input(message);
     switch (message)
     {
-   /* case WM_LBUTTONDOWN:
+    case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
         ::SetCursor(CreateTransparentCursorMask32());
         SetCapture(hWnd);
@@ -176,7 +182,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONUP:
     case WM_MOUSEMOVE:
         game->Input(message);
-        break;*/
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);

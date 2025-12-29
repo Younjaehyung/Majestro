@@ -18,8 +18,8 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mWindow = info;
 
 	// TO - DO : 임시로 4K 해상도로 고정
-	mWindow.Width = 2560;
-	mWindow.Height = 1440;
+	//mWindow.Width = 2560;
+	//mWindow.Height = 1440;
 
 
 

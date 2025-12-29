@@ -41,7 +41,8 @@ void Engine::Initialize(const WindowInfo& info)
 		info.Hwnd,
 		mRenderManager->GetDevice()->GetDevice().Get(),
 		DXGI_FORMAT_R8G8B8A8_UNORM,
-		mRenderManager->GetLegacyGraphicsDescriptorHeap()
+		mRenderManager->GetLegacyGraphicsDescriptorHeap(),
+		mRenderManager->GetGraphicsCmdQueue()->GetCommandQueue().Get()
 	);
 }
 

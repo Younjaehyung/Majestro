@@ -2,8 +2,10 @@
 
 class ImGuiManager
 {
+private:
     ImGuiManager() = default;
 	~ImGuiManager() = default;
+
 
 public:
 
@@ -17,7 +19,8 @@ public:
         HWND hwnd,
         ID3D12Device* device,
         DXGI_FORMAT rtvFormat,
-        ID3D12DescriptorHeap* srvHeap
+        ID3D12DescriptorHeap* srvHeap,
+		ID3D12CommandQueue* commandQueue
     );
 
     void BeginFrame();
@@ -25,6 +28,7 @@ public:
 	void Render();
     void Shutdown();
 	void DemoWindow();
+
 
 
 };

@@ -7,6 +7,7 @@
 #include "AudioManager.h"
 #include "ResourceManager.h"
 #include "Timer.h"
+#include "Imgui.h"
 
 Engine::Engine()
 {
@@ -34,6 +35,14 @@ void Engine::Initialize(const WindowInfo& info)
 
 	mSceneManager->Initialize();
 	mHwnd = info.Hwnd;
+
+
+	ImGuiManager::Get().Initialize(
+		info.Hwnd,
+		mRenderManager->GetDevice()->GetDevice().Get(),
+		DXGI_FORMAT_R8G8B8A8_UNORM,
+		mRenderManager->GetLegacyGraphicsDescriptorHeap()
+	);
 }
 
 void Engine::Update()
@@ -50,7 +59,13 @@ void Engine::Render()
 	
 	mSceneManager->Render();
 
+	ImGuiManager::Get().BeginFrame();
+	ImGuiManager::Get().Render();
+	ImGuiManager::Get().EndFrame(mRenderManager->GetGraphicsCmdQueue()->GetGraphicsCmdList().Get(),
+		mRenderManager->GetLegacyGraphicsDescriptorHeap());
+
 	mRenderManager->EndRender();
+
 
 	ShowFps();
 }

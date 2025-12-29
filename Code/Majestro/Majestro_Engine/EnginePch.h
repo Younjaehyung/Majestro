@@ -52,10 +52,20 @@ using namespace Microsoft::WRL;
 #include <DirectXTex/DirectXTex.h>
 #include <DirectXTex/DirectXTex.inl>
 
-// DEBUG
 
+#include <ImGUI/imgui.h>
+#include <ImGUI/imgui_impl_win32.h>
+#include <ImGUI/imgui_impl_dx12.h>
+
+
+// DEBUG
 #pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 
+// IMGUI
+#pragma comment(lib, "ImGUI\\example_win32_directx12.lib")
+
+
+// DirectXTex
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")
 #else
@@ -75,6 +85,8 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "FMod/fmodstudio_vc.lib")
 #endif
 
+
+///////////////////////////////////////////////////////////////////////////////
 using int8 = __int8;
 using int16 = __int16;
 using int32 = __int32;
@@ -111,6 +123,10 @@ struct Vertex {
 	Vec4 weights;
 	Vec4 indices;
 };
+///////////////////////////////////////////////////////////////////////////////
+
+
+
 
 struct WindowInfo {
 	HWND	Hwnd;		//출력 윈도우 핸들
@@ -351,7 +367,9 @@ enum {
 
 	, TEXTURE_INDEX_START = TEXTURE_CUBE_INDEX_START + TEXTURE_CUBE_INDEX_COUNT
 	, TEXTURE_INDEX_COUNT = TEXTURE_SRV_COUNT
-
+	
+	, IMGUI_INDEX_START = TEXTURE_INDEX_START + TEXTURE_INDEX_COUNT
+	, IMGUI_INDEX_COUNT = 1
 	
 
 

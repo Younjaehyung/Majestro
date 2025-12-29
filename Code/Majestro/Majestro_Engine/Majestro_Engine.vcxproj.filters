@@ -37,9 +37,6 @@
     <Filter Include="World\Resource\Shader">
       <UniqueIdentifier>{a87ffd82-97ab-44cf-a036-614ab1754d04}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils\UITools">
-      <UniqueIdentifier>{1eabffd8-9ecb-476b-97df-1f2f68729020}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Resource\Shader\Deferred">
       <UniqueIdentifier>{9ff8d14e-9792-4fb6-a3c3-3635c6b5f956}</UniqueIdentifier>
     </Filter>
@@ -63,6 +60,12 @@
     </Filter>
     <Filter Include="World\System\UI">
       <UniqueIdentifier>{0c6b4f72-e8cd-463c-8928-5ee2d19bad7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\ImGUI">
+      <UniqueIdentifier>{1eabffd8-9ecb-476b-97df-1f2f68729020}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Core">
+      <UniqueIdentifier>{ea0756ef-ba98-49eb-9303-56b9f872c1a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -135,9 +138,6 @@
     <ClInclude Include="SimpleMath.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="System.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>World\Entity</Filter>
     </ClInclude>
@@ -146,9 +146,6 @@
     </ClInclude>
     <ClInclude Include="ComponentPool.h">
       <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="SystemManager.h">
-      <Filter>World\System</Filter>
     </ClInclude>
     <ClInclude Include="EventManager.h">
       <Filter>World\System</Filter>
@@ -161,9 +158,6 @@
     </ClInclude>
     <ClInclude Include="RenderComponent.h">
       <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="World.h">
-      <Filter>World</Filter>
     </ClInclude>
     <ClInclude Include="TagComponent.h">
       <Filter>World\Component</Filter>
@@ -183,14 +177,12 @@
     <ClInclude Include="ParticleComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Imgui.h" />
     <ClInclude Include="CameraSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
     <ClInclude Include="TransformSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Prefab.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
@@ -239,6 +231,21 @@
     </ClInclude>
     <ClInclude Include="UITransformComponent.h">
       <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="SystemManager.h">
+      <Filter>World\System\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h">
+      <Filter>World\System\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>World\System\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui.h">
+      <Filter>Utils\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>World\System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -311,9 +318,6 @@
     <ClCompile Include="SimpleMath.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="System.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>World\Entity</Filter>
     </ClCompile>
@@ -322,9 +326,6 @@
     </ClCompile>
     <ClCompile Include="ComponentPool.cpp">
       <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="SystemManager.cpp">
-      <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="EventManager.cpp">
       <Filter>World\System</Filter>
@@ -337,9 +338,6 @@
     </ClCompile>
     <ClCompile Include="RenderComponent.cpp">
       <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="World.cpp">
-      <Filter>World</Filter>
     </ClCompile>
     <ClCompile Include="TagComponent.cpp">
       <Filter>World\Component</Filter>
@@ -359,7 +357,6 @@
     <ClCompile Include="ParticleComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="Imgui.cpp" />
     <ClCompile Include="CameraSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
@@ -413,6 +410,18 @@
     </ClCompile>
     <ClCompile Include="UITransformComponent.cpp">
       <Filter>World\Component\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="SystemManager.cpp">
+      <Filter>World\System\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
+      <Filter>World\System\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>World\System\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui.cpp">
+      <Filter>Utils\ImGUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

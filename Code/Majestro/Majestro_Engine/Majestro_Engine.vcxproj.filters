@@ -67,6 +67,12 @@
     <Filter Include="World\System\Core">
       <UniqueIdentifier>{ea0756ef-ba98-49eb-9303-56b9f872c1a8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\IMGUI">
+      <UniqueIdentifier>{88e35f1c-78bf-4dfe-b50e-1e4ac6da1b50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\IMGUI">
+      <UniqueIdentifier>{f3b43cef-1202-4e65-b9db-d67496978c23}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -247,6 +253,10 @@
     <ClInclude Include="ParticleSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
+    <ClInclude Include="IMGUISystem.h">
+      <Filter>World\System\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="IMGUIComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -423,6 +433,10 @@
     <ClCompile Include="Imgui.cpp">
       <Filter>Utils\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="IMGUISystem.cpp">
+      <Filter>World\System\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="IMGUIComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

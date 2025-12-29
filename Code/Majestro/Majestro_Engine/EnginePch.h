@@ -58,12 +58,17 @@ using namespace Microsoft::WRL;
 #include <ImGUI/imgui_impl_dx12.h>
 
 
+//#define _IMGUI
+
+
 // DEBUG
 #pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 
 // IMGUI
+#ifdef _IMGUI
 #pragma comment(lib, "ImGUI\\example_win32_directx12.lib")
-
+#else
+#endif
 
 // DirectXTex
 #ifdef _DEBUG

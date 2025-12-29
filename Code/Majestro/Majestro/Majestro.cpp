@@ -31,10 +31,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 여기에 코드를 입력합니다.
+    // 
+#ifdef _IMGUI
     // WinMain or Engine 시작부
     ImGui_ImplWin32_EnableDpiAwareness();
     float main_scale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
-
+#else
+#endif
 
 
     // 전역 문자열을 초기화합니다.
@@ -167,8 +170,11 @@ inline HCURSOR CreateTransparentCursorMask32() //투명커서
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+#ifdef _IMGUI
 	if (game->ImGuiInput(hWnd, message, wParam, lParam))
         return true;
+#else
+#endif
 
     //if(game)game->Input(message);
     switch (message)

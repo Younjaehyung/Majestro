@@ -5,7 +5,10 @@
 #include "Imgui.h"
 #include "Network.h"
 
+#ifdef _IMGUI
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#else
+#endif
 
 
 void Game::Initialize(const WindowInfo& info)
@@ -35,8 +38,10 @@ void Game::Render()
 
 int Game::ImGuiInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+#ifdef _IMGUI
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
 		return true;
-
+#else
+#endif
 	return false;
 }

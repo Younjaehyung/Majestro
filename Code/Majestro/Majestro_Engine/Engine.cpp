@@ -37,6 +37,7 @@ void Engine::Initialize(const WindowInfo& info)
 	mHwnd = info.Hwnd;
 
 
+#ifdef _IMGUI
 	ImGuiManager::Get().Initialize(
 		info.Hwnd,
 		mRenderManager->GetDevice()->GetDevice().Get(),
@@ -44,6 +45,8 @@ void Engine::Initialize(const WindowInfo& info)
 		mRenderManager->GetLegacyGraphicsDescriptorHeap(),
 		mRenderManager->GetGraphicsCmdQueue()->GetCommandQueue().Get()
 	);
+#else
+#endif
 }
 
 void Engine::Update()
@@ -60,11 +63,11 @@ void Engine::Render()
 	
 	mSceneManager->Render();
 
-	ImGuiManager::Get().BeginFrame();
-	ImGuiManager::Get().Render();
-	ImGuiManager::Get().EndFrame(mRenderManager->GetGraphicsCmdQueue()->GetGraphicsCmdList().Get(),
+#ifdef _IMGUI
+	ImGuiManager::Get().Render(mRenderManager->GetGraphicsCmdQueue()->GetGraphicsCmdList().Get(),
 		mRenderManager->GetLegacyGraphicsDescriptorHeap());
-
+#else
+#endif
 	mRenderManager->EndRender();
 
 

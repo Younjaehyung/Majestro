@@ -8,6 +8,7 @@
 #include "PlayerSystem.h"
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
+#include "IMGUISystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -21,8 +22,10 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
     RegisterSystem<PlayerSystem>();
-
-
+#ifdef _IMGUI
+	RegisterSystem<IMGUIRenderSystem>();
+#else
+#endif
 }
 
 SystemManager::~SystemManager()
@@ -49,7 +52,11 @@ void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
     GetSystem<RenderSystem>()->Update();
     GetSystem<UIRenderSystem>()->Update();
-    
+#ifdef _IMGUI
+	//GetSystem<IMGUIRenderSystem>()->Update();
+#else
+#endif
+
 }
 
 void SystemManager::Shutdown() {

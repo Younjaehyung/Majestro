@@ -3,7 +3,7 @@
 #include "TransformComponent.h"
 #include "StateMachine.h"
 #include "System.h"
-
+#include "IMGUIComponent.h"
 
 
 enum PlayMode
@@ -20,6 +20,13 @@ public:
 	ControllerComponent() : mTransformComponent(), mPlayMode(MAIN_CAMERA) {}
 	ControllerComponent(TransformComponent transform): mTransformComponent(transform), mPlayMode(MAIN_CAMERA) {}
 	ControllerComponent(TransformComponent transform, PlayMode mode) : mTransformComponent(transform), mPlayMode(mode) {}
+
+	void RegisterEditorProperties(std::vector<EditorProperty>& out)
+	{
+		out.push_back({ "Speed", PropertyType::Float, &mHight, 0.0f, 10.0f });
+		out.push_back({ "GodMode", PropertyType::Bool, &mCameraLenth });
+	}
+
 public:
 	TransformComponent mTransformComponent;
 	PlayMode mPlayMode;

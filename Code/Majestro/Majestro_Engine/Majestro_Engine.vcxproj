@@ -198,6 +198,8 @@
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="FBXData.h" />
     <ClInclude Include="Imgui.h" />
+    <ClInclude Include="IMGUIComponent.h" />
+    <ClInclude Include="IMGUISystem.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
@@ -259,6 +261,8 @@
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FBXData.cpp" />
     <ClCompile Include="Imgui.cpp" />
+    <ClCompile Include="IMGUIComponent.cpp" />
+    <ClCompile Include="IMGUISystem.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Material.cpp" />

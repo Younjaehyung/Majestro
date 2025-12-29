@@ -242,7 +242,7 @@ void Scene::Initialize()
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
 		t.mAnchor = Anchor::TopLeft;
-		t.mPosition = Vec2(2080.f, 1120.f);
+		t.mPosition = Vec2(280.f, 110.f);
 		t.mSize = Vec2(512.f, 256.f);
 		
 

@@ -142,6 +142,12 @@ struct WindowInfo {
 
 wstring s2ws(const string& s);
 string ws2s(const wstring& s);
+void LogDebug(const std::string& msg);
+void LogDebugW(const std::wstring& msg);
+
+void err_quit(const char* msg);
+void err_display(const char* msg);
+void err_display(int errcode);
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		이 곳에는 RootSignature기준 세팅시 ROOT_PARAMETER로 부여된						  //

@@ -21,7 +21,7 @@ void Game::Initialize(const WindowInfo& info)
 
 void Game::Update()
 {
-	//Network::GetInstance().Update();
+	//Network::GetInstance().GameUpdate();
 	gEngine->Update();
 	
 }

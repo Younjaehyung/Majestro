@@ -83,7 +83,7 @@ public static class MapScanner
         float[,,] alpha3D = td.GetAlphamaps(0, 0, aw, ah);
         info.alphamapWidth = aw;
         info.alphamapHeight = ah;
-        info.alphamaps = Flatten3D(alpha3D);
+        //info.alphamaps = Flatten3D(alpha3D);
 
         // Detail layers
         info.detailLayers = new List<DetailLayerJson>();

@@ -98,12 +98,12 @@ public static class MapScanner
             DetailLayerJson dlj = new DetailLayerJson();
             dlj.width = dw;
             dlj.height = dh;
-            dlj.data = new int[dw * dh];
+            //dlj.data = new int[dw * dh];
 
-            int idx = 0;
-            for (int y = 0; y < dh; y++)
-                for (int x = 0; x < dw; x++)
-                    dlj.data[idx++] = detail[y, x];
+            //int idx = 0;
+            //for (int y = 0; y < dh; y++)
+            //    for (int x = 0; x < dw; x++)
+            //        dlj.data[idx++] = detail[y, x];
 
             info.detailLayers.Add(dlj);
         }

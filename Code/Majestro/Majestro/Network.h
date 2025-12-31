@@ -5,6 +5,7 @@
 #include <mutex>
 #include <atomic>
 #include "Packet.h"
+#include "RingBuffer.h"
 #include "PacketHelper.h"
 
 #pragma comment(lib, "ws2_32") // ws2_32.lib 링크
@@ -34,6 +35,8 @@ private:
 	char mRecvBuf[BUFSIZ] = {};
 	int mRecvUsed = 0;
 	std::queue<PacketBlock*> mRecvQueue;
+	//std::queue<PacketBlock*> mSendQueue;
+	RingBuffer mSendRingBuffer{ 65536 };
 	std::mutex mQueueMutex;
 	std::atomic<bool> mIsRunning;
 
@@ -60,10 +63,7 @@ public: // Process
 	void GameSendUpdate();
 
 	void ProcessPacket(PacketBlock* packet);
-
-	void SendData();
-	int ReceiveData();
-
+	void PushSendData(const uint8_t* data, size_t size);
 
 };
 

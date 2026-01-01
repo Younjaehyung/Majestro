@@ -10,6 +10,15 @@ Network::Network()
 
 }
 
+Network::~Network()
+{
+	mIsRunning = false;
+	if (mNetworkThread.joinable()) {
+		mNetworkThread.join();
+	}
+	ReleaseServer();
+}
+
 void Network::Initialize() {
 	if (WSAStartup(MAKEWORD(2, 2), &mWsaData) != 0) {
 		cout << "WSA creation failed with error: " << std::endl;
@@ -33,20 +42,24 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	mServerAddr.sin_family = AF_INET;
 	
 	inet_pton(AF_INET, ipAddress, &mServerAddr.sin_addr);
-
 	mServerAddr.sin_port = htons(port);
 
 	int r = connect(mSock, (sockaddr*)&mServerAddr, sizeof(mServerAddr));
 	if(r == SOCKET_ERROR) {
 		std::cout << "Failed to connect to server." << std::endl;
-		delete this;
+		ReleaseServer();
+		return;
 	}
+
+	u_long one = 1;
+	ioctlsocket(mSock, FIONBIO, &one);
 
 	bool flag = true;
 	setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));
 	if (mSock == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
+		ReleaseServer();
 		return;
 	}
 
@@ -77,8 +90,7 @@ void Network::NetworkUpdate()
 				PacketBlock* packet = PacketPool::Acquire();
 
 				int serverAddrLen = sizeof(mServerAddr);
-				int recvLen = recv(mSock, (char*)packet->Data, MAX_PACKET_SIZE, 0,
-					(sockaddr*)&mServerAddr, &serverAddrLen);
+				int recvLen = recv(mSock, (char*)packet->Data, MAX_PACKET_SIZE, 0);
 
 				if (recvLen > 0) {
 					packet->Header.Size = (uint16_t)recvLen;
@@ -93,6 +105,7 @@ void Network::NetworkUpdate()
 		}
 		else if (result == SOCKET_ERROR) {
 			err_display("select failed");
+			ReleaseServer();
 			return;
 		}
 		// result == 0 인 경우는 타임아웃이므로 루프 다시 실행

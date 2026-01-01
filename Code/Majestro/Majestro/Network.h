@@ -42,6 +42,7 @@ private:
 
 
 	Network();
+	~Network();
 public: // Init
 	static Network& GetInstance() {
 		static Network instance;

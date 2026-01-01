@@ -183,6 +183,8 @@
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="AudioSystem.h" />
+    <ClInclude Include="BeatComponent.h" />
+    <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
@@ -247,6 +249,8 @@
     <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="AudioSystem.cpp" />
+    <ClCompile Include="BeatComponent.cpp" />
+    <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="Buffer.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />

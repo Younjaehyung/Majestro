@@ -257,6 +257,12 @@
       <Filter>World\System\IMGUI</Filter>
     </ClInclude>
     <ClInclude Include="IMGUIComponent.h" />
+    <ClInclude Include="BeatSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="BeatComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -437,6 +443,12 @@
       <Filter>World\System\IMGUI</Filter>
     </ClCompile>
     <ClCompile Include="IMGUIComponent.cpp" />
+    <ClCompile Include="BeatSystem.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="BeatComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

@@ -9,6 +9,7 @@
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
 #include "IMGUISystem.h"
+#include "BeatSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -22,6 +23,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
     RegisterSystem<PlayerSystem>();
+    RegisterSystem<BeatSystem>();
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();
 #else
@@ -45,6 +47,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<AnimationSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<UITransformSystem>()->Update(deltaTime);
+    GetSystem<BeatSystem>()->Update(deltaTime);
     
 }
 

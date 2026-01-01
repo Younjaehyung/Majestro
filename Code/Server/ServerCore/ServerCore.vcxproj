@@ -159,7 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CoreGlobal.h" />
+    <ClInclude Include="SessionManager.h" />
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePch.h" />
     <ClInclude Include="CoreTLS.h" />
@@ -176,7 +176,7 @@
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CoreGlobal.cpp" />
+    <ClCompile Include="SessionManager.cpp" />
     <ClCompile Include="CorePch.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
     <ClCompile Include="NetAddress.cpp" />

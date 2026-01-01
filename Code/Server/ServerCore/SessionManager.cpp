@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "CoreGlobal.h"
+#include "SessionManager.h"
 #include "SocketUtils.h"
 #include "ThreadManager.h"
 #include "NetworkThread.h"
@@ -34,6 +34,7 @@ std::shared_ptr<Session>	 SessionManager::CreateSessions(SOCKET sock)
 void SessionManager::AddSession(std::shared_ptr<Session>& session)
 {
 	session->SetPlayerId(++mPlayerLastIndex);
+	session->GetConnectedAtomic() = true;
 	mSessions.insert(session);
 }
 
@@ -60,7 +61,7 @@ void SessionManager::Broadcast(SendBufferRef sendBuffer)
 {
 	for (auto& session : mSessions)
 	{
-		session->Send(sendBuffer);
+		//session->Send(sendBuffer);
 	}
 }
 

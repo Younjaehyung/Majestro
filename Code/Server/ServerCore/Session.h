@@ -1,5 +1,6 @@
 #pragma once
 #include "NetAddress.h"
+#include <string>
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
 
@@ -21,10 +22,10 @@ public:
 public:
 	/* 외부에서 사용 */
 	void				SetSession(SOCKET socket);
-	void				Send(SendBufferRef sendBuffer);
+	//void				Send(SendBufferRef sendBuffer);
 	//bool				Connect();
-	void				Disconnect(const WCHAR* cause);
-
+	void				Disconnect(const std::string& cause);
+	void				Close();
 public:
 	/* 정보 관련 */
 	void				SetNetAddress(NetAddress address) { mNetAddress = address; }
@@ -36,7 +37,8 @@ public:
 	void				SetSocket(SOCKET socket) { mSocket = socket; }
 	SOCKET				GetSocket() { return mSocket; }
 	bool				IsConnected() { return mConnected; }
-	//shared_ptr<Session>	GetSessionRef() { return static_pointer_cast<Session>(shared_from_this()); }
+	
+	Atomic<bool>&		GetConnectedAtomic() { return mConnected; }
 
 private:
 

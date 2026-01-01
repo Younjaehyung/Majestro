@@ -15,7 +15,8 @@ public:
 	NetAddress(std::wstring ip, uint16 port);
 
 	sockaddr_in&	GetSockAddr() { return mSockAddr; }
-	std::wstring			GetIpAddress();
+	std::wstring	GetIpAddress();
+	std::string		GetIpAddressA();
 	uint16			GetPort() { return ::ntohs(mSockAddr.sin_port); }
 
 public:

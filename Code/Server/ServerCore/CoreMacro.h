@@ -1,4 +1,12 @@
 #pragma once
+#include <iostream>
+#include <string>
+#include <mutex>
+#include <chrono>
+#include <format>
+#include <source_location>
+
+
 
 #define PRINTLOG(fmt, ...) \
 { \
@@ -25,3 +33,53 @@
 		__analysis_assume(expr);	\
 	}								\
 }
+
+
+#ifdef _DEBUG
+
+static std::mutex logMutex;
+
+// std::source_location으로 호출부 정보를 자동으로 가져옴
+
+static void LogInternal(std::string_view level, std::string_view formatted_msg, const std::source_location& location) {
+    const auto now = std::chrono::system_clock::now();
+
+
+    std::string logEntry = std::format(
+        "[{:%F %T}] [{}] {}:{} | {}\n",
+        now, level, location.file_name(), location.line(), formatted_msg
+    );
+
+    std::lock_guard<std::mutex> lock(logMutex);
+    std::cout << logEntry;
+}
+
+
+template <typename... Args>
+static void LogHelper(std::string_view level,
+    const std::source_location location,
+    std::string_view fmt,
+    Args&&... args) {
+
+
+    try {
+        std::string formatted_msg = std::vformat(fmt, std::make_format_args(args...));
+        LogInternal(level, formatted_msg, location);
+    }
+    catch (const std::format_error& e) {
+        LogInternal("ERROR", std::string("Format Error: ") + e.what(), location);
+    }
+}
+
+#define LOG_INFO(fmt, ...)  LogHelper("INFO",  std::source_location::current(), fmt, ##__VA_ARGS__)
+#define LOG_WARN(fmt, ...)  LogHelper("WARN",  std::source_location::current(), fmt, ##__VA_ARGS__)
+#define LOG_ERROR(fmt, ...) LogHelper("ERROR", std::source_location::current(), fmt, ##__VA_ARGS__)
+#else
+
+
+#endif
+
+/*
+LogHelper("DEBUG", "Entity[{}] State: {}, Pos: ({:.2f}, {:.2f})",
+	entityID, state, posX, posY);
+*/

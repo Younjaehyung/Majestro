@@ -1,12 +1,17 @@
 #include "pch.h"
 #include "NetworkThread.h"
 #include "ServerCore.h"
-#include "CoreGlobal.h"
+#include "SessionManager.h"
 #include "ThreadManager.h"
 #include "SendBuffer.h"
 #include "Session.h"
 
 NetworkThread::NetworkThread()
+{
+}
+
+NetworkThread::NetworkThread(SOCKET listenSocket)
+    : mListenSocket(listenSocket)
 {
 }
 
@@ -16,6 +21,8 @@ NetworkThread::~NetworkThread()
 
 void NetworkThread::Start()
 {
+    
+
 
 	mThread = std::thread([this]()
 	{
@@ -61,7 +68,7 @@ void NetworkThread::Update()
                 HandleSend(const_cast<std::shared_ptr<Session>&>(s));
         }
 
-      //  CleanupDisconnected();
+        CleanupDisconnected();
     }
 }
 
@@ -86,11 +93,10 @@ void NetworkThread::AcceptClient()
 
 	gSessionMgr.AddSession(session);
 
-    printf("player %d connected\n", session->GetPlayerId());
-	
-    printf("Client IP: %ls, Port: %d\n",
-        session->GetAddress().GetIpAddress().c_str(),
-		session->GetAddress().GetPort());
+	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
+        session->GetPlayerId(), session->GetAddress().GetIpAddressA(),
+        session->GetAddress().GetPort());
+
 }
 
 void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
@@ -106,7 +112,7 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
             int32 ret = session->OnRecv(session->mRecvBuffer.ReadPos(), session->mRecvBuffer.DataSize());
             if (ret < 0 || ret > session->mRecvBuffer.DataSize())
             {
-                session->Disconnect(L"OnRecv Error");
+                session->Disconnect("OnRecv Error");
                 return;
             }
             else if (ret == 0)
@@ -118,19 +124,31 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
     }
     else if (len == 0)
     {
-        session->Disconnect(L"Recv 0");
+        session->Disconnect("Recv 0");
     }
     else
     {
         int32 errorCode = WSAGetLastError();
         if (errorCode != WSAEWOULDBLOCK)
         {
-            session->Disconnect(L"Recv Error");
+            session->Disconnect("Recv Error");
         }
 	}
 }
 
 void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 {
+
+}
+
+void NetworkThread::CleanupDisconnected()
+{
+    for (const shared_ptr<Session>& s : gSessionMgr.GetAllSessions())
+    {
+        if (s->GetConnectedAtomic()) continue;
+
+        s->Close();
+        gSessionMgr.RemoveSession(s);
+    }
 
 }

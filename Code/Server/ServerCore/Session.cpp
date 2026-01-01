@@ -24,42 +24,49 @@ void Session::SetSession(SOCKET socket)
 	SocketUtils::GetNetAddress(socket, mNetAddress);
 
 }
-
-void Session::Send(SendBufferRef sendBuffer)
-{
-	if (IsConnected() == false)
-		return;
-
-	bool registerSend = false;
-
-	//// 현재 RegisterSend가 걸리지 않은 상태라면, 걸어준다
-	//{
-	//	//WRITE_LOCK;
-
-	//	_sendQueue.push(sendBuffer);
-
-	//	if (_sendRegistered.exchange(true) == false)
-	//		registerSend = true;
-	//}
-
-	//if (registerSend)
-	//	RegisterSend();
-}
-
-//bool Session::Connect()
+//
+//void Session::Send(SendBufferRef sendBuffer)
 //{
-//	//return RegisterConnect();
+//	if (IsConnected() == false)
+//		return;
+//
+//	bool registerSend = false;
+//
+//	//// 현재 RegisterSend가 걸리지 않은 상태라면, 걸어준다
+//	//{
+//	//	//WRITE_LOCK;
+//
+//	//	_sendQueue.push(sendBuffer);
+//
+//	//	if (_sendRegistered.exchange(true) == false)
+//	//		registerSend = true;
+//	//}
+//
+//	//if (registerSend)
+//	//	RegisterSend();
 //}
+//
+////bool Session::Connect()
+////{
+////	//return RegisterConnect();
+////}
 
-void Session::Disconnect(const WCHAR* cause)
+void Session::Disconnect(const std::string& cause)
 {
 	if (mConnected.exchange(false) == false)
 		return;
 
-	// TEMP
-	wcout << "Disconnect : " << cause << endl;
 
+	LOG_INFO("Disconnect Req ID :[{}] Cause:{} ",
+		mPlayerId, cause);
 //	RegisterDisconnect();
+}
+
+void Session::Close()
+{
+	LOG_INFO("Disconnect ID :[{}] ",
+		mPlayerId);
+	SocketUtils::Close(mSocket);
 }
 
 
@@ -70,11 +77,11 @@ void Session::HandleError(int32 errorCode)
 	{
 	case WSAECONNRESET:
 	case WSAECONNABORTED:
-		Disconnect(L"HandleError");
+		Disconnect("HandleError");
 		break;
 	default:
 		// TODO : Log
-		cout << "Handle Error : " << errorCode << endl;
+		LOG_ERROR("Handle Error Code [{}]", errorCode);
 		break;
 	}
 }

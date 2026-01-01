@@ -10,21 +10,15 @@
     <Filter Include="Main">
       <UniqueIdentifier>{822845c6-354f-4d00-8796-127936fd930d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{53aaf3f5-9416-4572-8867-a1830fda7f16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer">
+      <UniqueIdentifier>{1b874653-352a-4bc5-b40c-87d0b7b8ddde}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CorePch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Types.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreGlobal.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreMacro.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="CoreTLS.h">
@@ -39,12 +33,6 @@
     <ClInclude Include="SocketUtils.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="RecvBuffer.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="SendBuffer.h">
-      <Filter>Network</Filter>
-    </ClInclude>
     <ClInclude Include="Session.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -57,15 +45,27 @@
     <ClInclude Include="NetworkThread.h">
       <Filter>Network</Filter>
     </ClInclude>
+    <ClInclude Include="RecvBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="SendBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionManager.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreMacro.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="CorePch.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Types.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CorePch.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreGlobal.cpp">
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="CoreTLS.cpp">
@@ -80,12 +80,6 @@
     <ClCompile Include="SocketUtils.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="RecvBuffer.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="SendBuffer.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
     <ClCompile Include="Session.cpp">
       <Filter>Network</Filter>
     </ClCompile>
@@ -97,6 +91,18 @@
     </ClCompile>
     <ClCompile Include="NetworkThread.cpp">
       <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="RecvBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="SendBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="SessionManager.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="CorePch.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

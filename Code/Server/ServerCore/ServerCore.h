@@ -1,5 +1,5 @@
 #pragma once
-
+#include "NetAddress.h"
 
 extern class ThreadManager* GThreadManager;
 extern class SessionManager gSessionMgr;
@@ -14,10 +14,11 @@ public:
 	void Initialize();
 	void Start();
 	void Update();
-
+	void Stop();
 private:
 
 private:
+	SOCKET mListenSocket;
 	std::shared_ptr<class NetworkThread>				mNetworkThread;
 };
 

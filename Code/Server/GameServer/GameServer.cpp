@@ -18,24 +18,24 @@ void ThreadFunc()
 
 GameCore                gGameCore;
 ServerCore			    gServerCore;
-Timer       gTimer;
+Timer                   gTimer;
 
 int main()
 {
 
- //   gTimer.Start();
- //   gServerCore.Initialize();
-	//gGameCore.Initialize();
+    gTimer.Start();
+    gServerCore.Initialize();
+	gGameCore.Initialize();
 
 
- //   gServerCore.Start();
-	//gServerCore.Start();
+    gServerCore.Start();
+    gGameCore.Start();
 
- //   while (true)
- //   {
- //       gTimer.Tick();
- //       gServerCore.Update();
-	//	gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
- //   }
+    while (true)
+    {
+        gTimer.Tick();
+        gServerCore.Update();
+		gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
+    }
 
 }

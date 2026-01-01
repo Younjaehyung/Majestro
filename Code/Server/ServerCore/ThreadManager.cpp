@@ -2,7 +2,7 @@
 #include "ThreadManager.h"
 
 #include "CoreTLS.h"
-#include "CoreGlobal.h"
+#include "SessionManager.h"
 
 
 ThreadManager::ThreadManager()

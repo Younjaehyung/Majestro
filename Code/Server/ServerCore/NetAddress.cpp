@@ -24,6 +24,13 @@ wstring NetAddress::GetIpAddress()
 	return wstring(buffer);
 }
 
+std::string NetAddress::GetIpAddressA()
+{
+	char buffer[100];
+	::InetNtopA(AF_INET, &mSockAddr.sin_addr, buffer, len32(buffer));
+	return std::string(buffer);
+}
+
 IN_ADDR NetAddress::Ip2Address(const WCHAR* ip)
 {
 	IN_ADDR address;

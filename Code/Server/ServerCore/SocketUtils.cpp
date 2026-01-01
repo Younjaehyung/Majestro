@@ -107,4 +107,5 @@ void SocketUtils::Close(SOCKET& socket)
 	if (socket != INVALID_SOCKET)
 		::closesocket(socket);
 	socket = INVALID_SOCKET;
+
 }

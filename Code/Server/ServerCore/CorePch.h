@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "CoreGlobal.h"
+#include "SessionManager.h"
 #include "CoreMacro.h"
 #include "CoreTLS.h"
 

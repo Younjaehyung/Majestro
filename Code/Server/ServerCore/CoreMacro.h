@@ -1,11 +1,11 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <mutex>
 #include <chrono>
 #include <format>
 #include <source_location>
-
 
 
 #define PRINTLOG(fmt, ...) \
@@ -74,6 +74,21 @@ static void LogHelper(std::string_view level,
 #define LOG_INFO(fmt, ...)  LogHelper("INFO",  std::source_location::current(), fmt, ##__VA_ARGS__)
 #define LOG_WARN(fmt, ...)  LogHelper("WARN",  std::source_location::current(), fmt, ##__VA_ARGS__)
 #define LOG_ERROR(fmt, ...) LogHelper("ERROR", std::source_location::current(), fmt, ##__VA_ARGS__)
+
+
+
+// ANSI
+static void LogDebug(const std::string& msg) {
+	std::string output = "[LOG] " + msg + "\n";
+	OutputDebugStringA(output.c_str());
+}
+
+// Unicode
+static void LogDebugW(const std::wstring& msg) {
+	std::wstring output = L"[LOG] " + msg + L"\n";
+	OutputDebugStringW(output.c_str());
+}
+
 #else
 
 

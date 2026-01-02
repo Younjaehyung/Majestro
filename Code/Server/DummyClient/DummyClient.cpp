@@ -1,7 +1,19 @@
 ﻿#include "pch.h"
-#include <iostream>
+#include "Network.h"
 
 int main()
 {
-	HelloWorld();
+	Network::GetInstance().Initialize();
+	Network::GetInstance().ConnectToServer();
+
+
+
+	while(true)
+	{
+		Network::GetInstance().GameRecvUpdate();
+
+
+
+		Network::GetInstance().GameSendUpdate();
+	}
 }

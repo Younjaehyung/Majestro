@@ -6,9 +6,10 @@
 #include "CoreTLS.h"
 
 
+
 // Network
-#define _CRT_SECURE_NO_WARNINGS // ╠╦гЭ C гт╪Ж ╩Г©К ╫ц ╟Ф╟М ╡Т╠Б
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // ╠╦гЭ ╪рдо API ╩Г©К ╫ц ╟Ф╟М ╡Т╠Б
+#define _CRT_SECURE_NO_WARNINGS // Й╣╛М≤∙ C М∙╗Л┬≤ Л┌╛Л ╘ Л▀° Й╡╫ЙЁ═ К│└Й╦╟
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // Й╣╛М≤∙ Л├▄Л╪⌠ API Л┌╛Л ╘ Л▀° Й╡╫ЙЁ═ К│└Й╦╟
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>

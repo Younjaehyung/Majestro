@@ -1,12 +1,12 @@
-#include "pch.h"
-#include "SendBuffer.h"
+//#include "pch.h"
+//#include "SendBuffer.h"
 //
 ///*----------------
 //	SendBuffer
 //-----------------*/
 //
-//SendBuffer::SendBuffer(SendBufferChunkRef owner, BYTE* buffer, uint32 allocSize)
-//	: _owner(owner), _buffer(buffer), _allocSize(allocSize)
+//SendBuffer::SendBuffer(BYTE* buffer, uint32 allocSize)
+//	:  _buffer(buffer), _allocSize(allocSize)
 //{
 //}
 //
@@ -18,7 +18,6 @@
 //{
 //	ASSERT_CRASH(_allocSize >= writeSize);
 //	_writeSize = writeSize;
-//	_owner->Close(writeSize);
 //}
 //
 ///*--------------------
@@ -72,7 +71,7 @@
 //
 //	ASSERT_CRASH(LSendBufferChunk->IsOpen() == false);
 //
-//	// ´Ù ½èÀ¸¸é ¹ö¸®°í »õ°Å·Î ±³Ã¼
+//	// ë‹¤ ì¼ìœ¼ë©´ ë²„ë¦¬ê³  ìƒˆê±°ë¡œ êµì²´
 //	if (LSendBufferChunk->FreeSize() < size)
 //	{
 //		LSendBufferChunk = Pop(); // WRITE_LOCK

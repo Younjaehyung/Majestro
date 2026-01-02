@@ -21,9 +21,6 @@ NetworkThread::~NetworkThread()
 
 void NetworkThread::Start()
 {
-    
-
-
 	mThread = std::thread([this]()
 	{
 		mRunning = true;
@@ -101,15 +98,29 @@ void NetworkThread::AcceptClient()
 
 void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 {
+    session->mRecvBuffer.Clean();
+
+    if (session->mRecvBuffer.FreeSize() <= 0)
+    {
+        session->Disconnect("RecvBuffer Full");
+        return;
+    }
+
 	int len = recv(session->GetSocket(), (char*)session->mRecvBuffer.WritePos(),
         session->mRecvBuffer.FreeSize(), 0);
 
 	if (len > 0)
+    {
+        if (!session->mRecvBuffer.OnWrite(len))
         {
-        session->mRecvBuffer.OnWrite(len);
+                session->Disconnect("RecvBuffer OnWrite Error");
+                return;
+        }
+
         while (true)
         {
             int32 ret = session->OnRecv(session->mRecvBuffer.ReadPos(), session->mRecvBuffer.DataSize());
+
             if (ret < 0 || ret > session->mRecvBuffer.DataSize())
             {
                 session->Disconnect("OnRecv Error");
@@ -138,6 +149,8 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 
 void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 {
+    int len = send(session->GetSocket(), (char*)session->mSendBuffer.WritePos(),
+        session->mSendBuffer.FreeSize(), 0);
 
 }
 

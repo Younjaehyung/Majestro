@@ -63,6 +63,12 @@
     <ClInclude Include="Types.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Packet.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHelper.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -103,6 +109,9 @@
     </ClCompile>
     <ClCompile Include="CorePch.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHelper.cpp">
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

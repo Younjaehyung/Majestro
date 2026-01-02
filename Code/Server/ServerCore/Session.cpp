@@ -2,7 +2,7 @@
 #include "Session.h"
 #include <atomic>
 #include "SocketUtils.h"
-
+#include "Packet.h"
 /*--------------
 	Session
 ---------------*/
@@ -20,7 +20,7 @@ Session::~Session()
 void Session::SetSession(SOCKET socket)
 {
 	mSocket = socket;
-	// µ¥ÀÌÅÍ µî·Ï
+	// ë°ì´í„° ë“±ë¡
 	SocketUtils::GetNetAddress(socket, mNetAddress);
 
 }
@@ -32,7 +32,7 @@ void Session::SetSession(SOCKET socket)
 //
 //	bool registerSend = false;
 //
-//	//// ÇöÀç RegisterSend°¡ °É¸®Áö ¾ÊÀº »óÅÂ¶ó¸é, °É¾îÁØ´Ù
+//	//// í˜„ì¬ RegisterSendê°€ ê±¸ë¦¬ì§€ ì•Šì€ ìƒíƒœë¼ë©´, ê±¸ì–´ì¤€ë‹¤
 //	//{
 //	//	//WRITE_LOCK;
 //
@@ -45,7 +45,7 @@ void Session::SetSession(SOCKET socket)
 //	//if (registerSend)
 //	//	RegisterSend();
 //}
-//
+
 ////bool Session::Connect()
 ////{
 ////	//return RegisterConnect();
@@ -59,7 +59,6 @@ void Session::Disconnect(const std::string& cause)
 
 	LOG_INFO("Disconnect Req ID :[{}] Cause:{} ",
 		mPlayerId, cause);
-//	RegisterDisconnect();
 }
 
 void Session::Close()
@@ -86,40 +85,51 @@ void Session::HandleError(int32 errorCode)
 	}
 }
 
-/*-----------------
-	PacketSession
-------------------*/
-//
-//PacketSession::PacketSession()
-//{
-//}
-//
-//PacketSession::~PacketSession()
-//{
-//}
-//
-//// [size(2)][id(2)][data....][size(2)][id(2)][data....]
-//int32 PacketSession::OnRecv(BYTE* buffer, int32 len)
-//{
-//	int32 processLen = 0;
-//
-//	while (true)
-//	{
-//		int32 dataSize = len - processLen;
-//		// ÃÖ¼ÒÇÑ Çì´õ´Â ÆÄ½ÌÇÒ ¼ö ÀÖ¾î¾ß ÇÑ´Ù
-//		if (dataSize < sizeof(PacketHeader))
-//			break;
-//
-//		PacketHeader header = *(reinterpret_cast<PacketHeader*>(&buffer[processLen]));
-//		// Çì´õ¿¡ ±â·ÏµÈ ÆĞÅ¶ Å©±â¸¦ ÆÄ½ÌÇÒ ¼ö ÀÖ¾î¾ß ÇÑ´Ù
-//		if (dataSize < header.size)
-//			break;
-//
-//		// ÆĞÅ¶ Á¶¸³ ¼º°ø
-//		OnRecvPacket(&buffer[processLen], header.size);
-//
-//		processLen += header.size;
-//	}
-//
-//	return processLen;
-//}
+int32 Session::OnRecv(BYTE* buffer, int32 len)
+{
+	int32 processLen = 0;
+
+	while (true)
+	{
+		int32 dataSize = len - processLen;
+		// ìµœì†Œí•œ í—¤ë”ëŠ” íŒŒì‹±í•  ìˆ˜ ìˆì–´ì•¼ í•œë‹¤
+		if (dataSize < sizeof(PacketHeader))
+			break;
+
+		PacketHeader header;
+		::memcpy(&header, buffer + processLen, sizeof(PacketHeader));
+		// í—¤ë”ì— ê¸°ë¡ëœ íŒ¨í‚· í¬ê¸°ë¥¼ íŒŒì‹±í•  ìˆ˜ ìˆì–´ì•¼ í•œë‹¤
+
+		if (header.Size < sizeof(PacketHeader))
+			return -1; // í”„ë¡œí† ì½œ ì˜¤ë¥˜
+
+		if (dataSize < header.Size)
+			break; // ì•„ì§ ëœ ì˜´
+
+		// íŒ¨í‚· ì¡°ë¦½ ì„±ê³µ
+		mInputQueue.Process(buffer + processLen, header.Size);
+
+		processLen += header.Size;
+	}
+
+	return processLen;
+}
+
+
+void Session::OnSend(int32 len)
+{
+	if (IsConnected() == false)
+		return;
+		
+	bool registerSend = false;
+		
+	{
+		_sendQueue.push(sendBuffer);
+		
+		if (_sendRegistered.exchange(true) == false)
+			registerSend = true;
+	}
+		
+	if (registerSend)
+		RegisterSend();
+}

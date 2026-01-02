@@ -1,15 +1,25 @@
 //#pragma once
+//#include <array>
 //
 //class SendBufferChunk;
 //
 ///*----------------
 //	SendBuffer
 //-----------------*/
-//
+class SendBuffer {
+
+public:
+	uint32 size;
+	uint32 sent;
+	BYTE*  data;
+};
+
+
+
 //class SendBuffer
 //{
 //public:
-//	SendBuffer(SendBufferChunkRef owner, BYTE* buffer, uint32 allocSize);
+//	SendBuffer(BYTE* buffer, uint32 allocSize);
 //	~SendBuffer();
 //
 //	BYTE*		Buffer() { return _buffer; }
@@ -49,7 +59,7 @@
 //	uint32				FreeSize() { return static_cast<uint32>(_buffer.size()) - _usedSize; }
 //
 //private:
-//	Array<BYTE, SEND_BUFFER_CHUNK_SIZE>		_buffer = {};
+//	std::array<BYTE, SEND_BUFFER_CHUNK_SIZE>		_buffer = {};
 //	bool									_open = false;
 //	uint32									_usedSize = 0;
 //};
@@ -71,5 +81,5 @@
 //
 //private:
 //
-//	Vector<SendBufferChunkRef> _sendBufferChunks;
+//	std::vector<SendBufferChunkRef> _sendBufferChunks;
 //};

@@ -3,6 +3,7 @@
 #include <string>
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
+#include "PacketHelper.h"
 
 /*--------------
 	Session
@@ -20,14 +21,13 @@ public:
 	virtual ~Session();
 
 public:
-	/* ¿ÜºÎ¿¡¼­ »ç¿ë */
+	/* ì™¸ë¶€ì—ì„œ ì‚¬ìš© */
 	void				SetSession(SOCKET socket);
-	//void				Send(SendBufferRef sendBuffer);
 	//bool				Connect();
 	void				Disconnect(const std::string& cause);
 	void				Close();
 public:
-	/* Á¤º¸ °ü·Ã */
+	/* ì •ë³´ ê´€ë ¨ */
 	void				SetNetAddress(NetAddress address) { mNetAddress = address; }
 	NetAddress			GetAddress() { return mNetAddress; }
 
@@ -41,21 +41,13 @@ public:
 	Atomic<bool>&		GetConnectedAtomic() { return mConnected; }
 
 private:
-
-private:
-	/* Àü¼Û °ü·Ã */
-	/*void				ProcessConnect();
-	void				ProcessDisconnect();
-	void				ProcessRecv(int32 numOfBytes);
-	void				ProcessSend(int32 numOfBytes);*/
-
 	void				HandleError(int32 errorCode);
 
 protected:
-	/* ÄÁÅÙÃ÷ ÄÚµå¿¡¼­ ÀçÁ¤ÀÇ */
+	/* ì»¨í…ì¸  ì½”ë“œì—ì„œ ì¬ì •ì˜ */
 	virtual void		OnConnected() {}
-	virtual int32		OnRecv(BYTE* buffer, int32 len) { return len; }
-	virtual void		OnSend(int32 len) {}
+	virtual int32		OnRecv(BYTE* buffer, int32 len);
+	virtual void		OnSend(int32 len);
 	virtual void		OnDisconnected() {}
 
 private:
@@ -64,8 +56,14 @@ private:
 	Atomic<bool>	mConnected = false;
 
 	NetAddress		mNetAddress;
-	RecvBuffer		mRecvBuffer;
-	//SendBuffer		mSendBuffer;
+	
+	// sendìš©
+	SendBufferPool	mSendBuffer;			// ì†¡ì‹  ë²„í¼ (Queue) ì „ì²´ ë²„í¼
+
+
+	// recvìš©
+	RecvBuffer		mRecvBuffer;			// ìˆ˜ì‹  ë²„í¼ (Ring) ì „ì²´ ë²„í¼
+	ProcessPacket	mInputQueue;			// ì…ë ¥ í ë¡œì§ìœ¼ë¡œ ì…ë ¥ ì „ì†¡
 
 	uint32_t		mLastRecvServerTick;
 	int				mPlayerId;
@@ -73,27 +71,3 @@ private:
 	friend class NetworkThread;
 	friend class SessionManager;
 };
-
-
-/*-----------------
-	PacketSession
-------------------*/
-
-//struct PacketHeader
-//{
-//	uint16 size;
-//	uint16 id; // ÇÁ·ÎÅäÄİID (ex. 1=·Î±×ÀÎ, 2=ÀÌµ¿¿äÃ»)
-//};
-//
-//class PacketSession : public Session
-//{
-//public:
-//	PacketSession();
-//	virtual ~PacketSession();
-//
-//	PacketSessionRef	GetPacketSessionRef() { return static_pointer_cast<PacketSession>(shared_from_this()); }
-//
-//protected:
-//	virtual int32		OnRecv(BYTE* buffer, int32 len) sealed;
-//	virtual void		OnRecvPacket(BYTE* buffer, int32 len) abstract;
-//};

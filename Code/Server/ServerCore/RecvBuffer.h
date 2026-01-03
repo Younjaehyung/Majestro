@@ -16,16 +16,16 @@ public:
 	bool			OnRead(int32 numOfBytes);
 	bool			OnWrite(int32 numOfBytes);
 
-	BYTE*			ReadPos() { return &_buffer[_readPos]; }
-	BYTE*			WritePos() { return &_buffer[_writePos]; }
-	int32			DataSize() { return _writePos - _readPos; }
-	int32			FreeSize() { return _capacity - _writePos; }
+	BYTE*			ReadPos() { return &mBuffer[mReadPos]; }
+	BYTE*			WritePos() { return &mBuffer[mWritePos]; }
+	int32			DataSize() { return mWritePos - mReadPos; }
+	int32			FreeSize() { return mCapacity - mWritePos; }
 
 private:
-	int32			_capacity = 0;
-	int32			_bufferSize = 0;
-	int32			_readPos = 0;
-	int32			_writePos = 0;
-	std::vector<BYTE>	_buffer;
+	int32			mCapacity = 0;
+	int32			mBufferSize = 0;
+	int32			mReadPos = 0;
+	int32			mWritePos = 0;
+	std::vector<BYTE>	mBuffer;
 };
 

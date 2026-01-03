@@ -25,7 +25,8 @@ public:
 	/* 외부에서 사용 */
 	void				SetSession(SOCKET socket);
 	//bool				Connect();
-	void				Send(PacketHeader* sendBuffer);
+	void				OnSend(PacketHeader* sendBuffer);
+	int32				OnRecv(BYTE* buffer, int32 len);
 	void				Disconnect(const std::string& cause);
 	void				Close();
 public:
@@ -48,24 +49,23 @@ private:
 protected:
 	/* 컨텐츠 코드에서 재정의 */
 	virtual void		OnConnected() {}
-	virtual int32		OnRecv(BYTE* buffer, int32 len);
-	virtual void		OnSend(int32 len);
 	virtual void		OnDisconnected() {}
 
 private:
 
 	SOCKET			mSocket;
-	Atomic<bool>	mConnected = false;
-
 	NetAddress		mNetAddress;
+	Atomic<bool>	mConnected = false;
+	
 	
 	// send용
 	std::queue<SendBuffer*>	mSendBufferQueue;			// 송신 버퍼 (Queue) 전체 버퍼
-
-
+	std::mutex		mMutex;			// 세션	뮤텍스
+	
 	// recv용
 	RecvBuffer		mRecvBuffer;			// 수신 버퍼 (Ring) 전체 버퍼
 	ProcessPacket	mInputQueue;			// 입력 큐 로직으로 입력 전송
+
 
 	uint32_t		mLastRecvServerTick;
 	int				mPlayerId;

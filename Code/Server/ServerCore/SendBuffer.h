@@ -10,12 +10,11 @@
 
 struct SendBuffer
 {
-	uint32  WritePos = 0;
 	uint32  ReadPos = 0;                    
     uint32  Capacity = 0;
-	uint8_t Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
+	uint8   Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
 
-    void SetData(const void* data, uint16_t dataSize) {
+    void SetData(const void* data, uint32 dataSize) {
         Capacity = dataSize;
         if (dataSize > 0 && data != nullptr) {
             std::memcpy(Data, data, dataSize);
@@ -40,16 +39,16 @@ public:
     // packet release
     static void Release(SendBuffer* p) {
         if (!p) return;
-        m_pool.push_back(p);
+        mPool.push_back(p);
     }
 
     // Size of available packets in the pool
     static size_t GetAvailableCount() {
-        return m_pool.size();
+        return mPool.size();
     }
 
 private:
     // Vector를 스택처럼 사용 (Cache Friendly)
-    static inline std::vector<SendBuffer*> m_pool;
-    static inline size_t m_totalAllocated;
+    static inline std::vector<SendBuffer*> mPool;
+    static inline size_t mTotalAllocated;
 };

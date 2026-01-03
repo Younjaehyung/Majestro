@@ -17,7 +17,7 @@ public:
 private:
 
 private:
-	SOCKET mListenSocket;
+	SOCKET												mListenSocket;
 	std::shared_ptr<class NetworkThread>				mNetworkThread;
 };
 

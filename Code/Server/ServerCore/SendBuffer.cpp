@@ -4,32 +4,32 @@
 
 
 void SendBufferManager::Initialize(size_t count) {
-    m_pool.reserve(count);
+    mPool.reserve(count);
     for (size_t i = 0; i < count; ++i) {
-        m_pool.push_back(new SendBuffer());
+        mPool.push_back(new SendBuffer());
     }
-    m_totalAllocated = count;
+    mTotalAllocated = count;
     
 }
 
 
 void SendBufferManager::Shutdown() {
 
-    for (SendBuffer* p : m_pool) {
+    for (SendBuffer* p : mPool) {
         delete p;
     }
-    m_pool.clear();
+    mPool.clear();
     
 }
 
 SendBuffer* SendBufferManager::Acquire() {
-    if (m_pool.empty()) {
+    if (mPool.empty()) {
         LOG_WARN("SendBufferPool Exhausted! Allocating new.\n");
-        m_totalAllocated++;
+        mTotalAllocated++;
         return new SendBuffer();
     }
     // LIFO
-    SendBuffer* p = m_pool.back();
-    m_pool.pop_back();
+    SendBuffer* p = mPool.back();
+    mPool.pop_back();
     return p;
 }

@@ -7,6 +7,9 @@
 
 NetworkThread::NetworkThread()
 {
+	mListenSocket = INVALID_SOCKET;
+    gSessionMgr.Initialize();
+    SendBufferManager::Initialize(1000);
 }
 
 NetworkThread::NetworkThread(SOCKET listenSocket)
@@ -16,11 +19,12 @@ NetworkThread::NetworkThread(SOCKET listenSocket)
 
 NetworkThread::~NetworkThread()
 {
+	Stop();
 }
 
 void NetworkThread::Start()
 {
-	SendBufferManager::Initialize(1000);
+	
 	mThread = std::thread([this]()
 	{
 		mRunning = true;
@@ -29,6 +33,17 @@ void NetworkThread::Start()
 			Update();
 		}
 	});
+}
+
+void NetworkThread::Stop()
+{
+    mRunning = false;
+    if (mThread.joinable())
+    {
+        mThread.join();
+    }
+    SendBufferManager::Shutdown();
+    gSessionMgr.ClearSessions();
 }
 
 void NetworkThread::Update()
@@ -44,10 +59,10 @@ void NetworkThread::Update()
 
         for (auto& s : gSessionMgr.GetAllSessions())
         {
-            FD_SET(s->GetSocket(), &readSet);
+            FD_SET(s.second->GetSocket(), &readSet);
 
-            //if (!s->mSendBuffer.empty())
-            //    FD_SET(s->GetSocket(), &writeSet);
+            if (!s.second->mSendBufferQueue.empty())
+                FD_SET(s.second->GetSocket(), &writeSet);
         }
 
         timeval tv{ 0, 1000 }; // 1ms
@@ -56,27 +71,20 @@ void NetworkThread::Update()
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
 
-        for (const std::shared_ptr<Session>& s : gSessionMgr.GetAllSessions())
+        for (auto& s : gSessionMgr.GetAllSessions())
         {
-            if (FD_ISSET(s->GetSocket(), &readSet))
-                HandleRecv(const_cast<std::shared_ptr<Session>&>(s));
+            if (FD_ISSET(s.second->GetSocket(), &readSet))
+                HandleRecv(const_cast<std::shared_ptr<Session>&>(s.second));
 
-            if (FD_ISSET(s->GetSocket(), &writeSet))
-                HandleSend(const_cast<std::shared_ptr<Session>&>(s));
+            if (FD_ISSET(s.second->GetSocket(), &writeSet))
+                HandleSend(const_cast<std::shared_ptr<Session>&>(s.second));
         }
 
         CleanupDisconnected();
     }
 }
 
-void NetworkThread::Stop()
-{
-	mRunning = false;
-	if (mThread.joinable())
-	{
-		mThread.join();
-	}
-}
+
 
 void NetworkThread::AcceptClient()
 {
@@ -87,7 +95,6 @@ void NetworkThread::AcceptClient()
     ioctlsocket(s, FIONBIO, &one);
 
     shared_ptr<Session> session = gSessionMgr.CreateSessions(s);
-
 	gSessionMgr.AddSession(session);
 
 	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
@@ -149,7 +156,7 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 
 void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 {
-    
+    std::lock_guard<std::mutex> lock(session->mMutex);
     if (session->mSendBufferQueue.empty())
         return;
 
@@ -170,6 +177,7 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
             if (err == WSAEWOULDBLOCK)
             {
                 // 지금은 더 못 보냄 → 다음 select 때 재시도
+				LOG_INFO("WSAEWOULDBLOCK on Send, ID:[{}]", session->GetPlayerId());
                 return;
             }
 
@@ -203,12 +211,13 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 
 void NetworkThread::CleanupDisconnected()
 {
-    for (const shared_ptr<Session>& s : gSessionMgr.GetAllSessions())
+    for (auto& s : gSessionMgr.GetAllSessions())
     {
-        if (s->GetConnectedAtomic()) continue;
+        std::lock_guard<std::mutex> lock(s.second->mMutex);
+        if (s.second->GetConnectedAtomic()) continue;
 
-        s->Close();
-        gSessionMgr.RemoveSession(s);
+        s.second->Close();
+        gSessionMgr.RemoveSession(s.second);
     }
 
 }

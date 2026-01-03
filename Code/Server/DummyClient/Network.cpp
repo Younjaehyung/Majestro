@@ -71,9 +71,7 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 
 void Network::NetworkUpdate()
 {
-	timeval timeOut;
-	timeOut.tv_sec = 0;
-	timeOut.tv_usec = 1000; // 1ms
+
 
 	fd_set readSet;
 
@@ -81,10 +79,11 @@ void Network::NetworkUpdate()
 		FD_ZERO(&readSet);
 		FD_SET(mSock, &readSet);
 
+		timeval timeOut;
+		timeOut.tv_sec = 0;
+		timeOut.tv_usec = 1000; // 1ms
 
 		int result = select(0, &readSet, nullptr, nullptr, &timeOut);
-
-		std::cout << "Select Result: " << result << std::endl;
 
 		if (result ==0) {
 			std::cout << "Time Out: " << result << std::endl;
@@ -260,7 +259,7 @@ void Network::ProcessPacket(BYTE* buffer, int32 len) {
 
 	switch (header.PacketType) {
 		case KPOSITION: {
-			auto data = reinterpret_cast<MovePacketData*>(&header);
+			auto data = reinterpret_cast<MovePacketData*>(&payload);
 
 
 
@@ -275,7 +274,7 @@ void Network::ProcessPacket(BYTE* buffer, int32 len) {
 			break;
 		}
 		case KSYNC: {
-			auto data = reinterpret_cast<SyncPacketData*>(&header);
+			auto data = reinterpret_cast<SyncPacketData*>(&payload);
 
 			std::cout << "Received Sync Packet: ClientID=" << data->clientId
 				<< ", RhythmTime=" << data->rhythmTime << std::endl;

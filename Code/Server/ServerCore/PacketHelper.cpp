@@ -1,6 +1,10 @@
 #include "pch.h"
 #include "PacketHelper.h"
 
+ProcessPacket::ProcessPacket()
+{
+}
+
 void ProcessPacket::Process(BYTE* buffer, int32 len)
 {
 	PacketHeader header;
@@ -31,4 +35,15 @@ void ProcessPacket::Process(BYTE* buffer, int32 len)
 		break;
 	}
 
+}
+
+InputCommand* ProcessPacket::PopCommand()
+{
+	std::lock_guard<std::mutex> lock(mPopMutex);
+	if (!mCommandQueue.empty())
+	{
+		InputCommand* cmd = mCommandQueue.front();
+		mCommandQueue.pop();
+		return cmd;
+	}
 }

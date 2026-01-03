@@ -22,9 +22,14 @@ constexpr uint32 MAX_PACKET_SIZE = 1024;
 
 ///////////////////////////////////////////
 
-struct SyncPacketData{
-	uint32_t clientId{1};
-	float    rhythmTime{3};
+struct SyncPacketData : public PacketHeader {
+	uint32_t clientId{ 1 };
+	float    rhythmTime{ 3 };
+
+	SyncPacketData() : PacketHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 } {}
+	SyncPacketData(uint32_t id, float time)
+		: PacketHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 }, clientId(id), rhythmTime(time) {
+	}
 };
 
 struct MovePacketData {

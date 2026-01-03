@@ -35,16 +35,7 @@ void Session::SetSession(SOCKET socket)
 ////	//return RegisterConnect();
 ////}
 
-void Session::Send(PacketHeader* sendData)
-{
-	if (IsConnected() == false)
-		return;
 
-
-	SendBuffer* sendBuffer = SendBufferManager::Acquire();
-	sendBuffer->SetData(sendData,sendData->Size);
-	mSendBufferQueue.push(sendBuffer);
-}
 
 void Session::Disconnect(const std::string& cause)
 {
@@ -110,11 +101,12 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 	return processLen;
 }
 
-
-void Session::OnSend(int32 len)
+void Session::OnSend(PacketHeader* sendData)
 {
 	if (IsConnected() == false)
 		return;
 
-
+	SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	sendBuffer->SetData(sendData, sendData->Size);
+	mSendBufferQueue.push(sendBuffer);
 }

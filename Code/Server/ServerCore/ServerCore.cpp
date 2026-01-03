@@ -45,29 +45,22 @@ void ServerCore::Initialize()
 
 	LOG_INFO("START GAME SERVER");
 
-
-	gSessionMgr.Initialize();
 	mNetworkThread = make_shared<NetworkThread>(mListenSocket);
 }
 
 void ServerCore::Start()
 {
-
+	
 	mNetworkThread->Start();
 }
 
 void ServerCore::Update()
 {
-	gSessionMgr.Update();
-
 	SyncPacketData syncData{1,3};
-
 	gSessionMgr.Broadcast((PacketHeader*)&syncData);
-
 }
 
 void ServerCore::Stop()
 {
 	mNetworkThread->Stop();
-	gSessionMgr.ClearSessions();
 }

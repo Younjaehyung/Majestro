@@ -7,28 +7,19 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{1c94faf8-d38f-44b3-b3f3-39ba3c6951e1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Main">
-      <UniqueIdentifier>{822845c6-354f-4d00-8796-127936fd930d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Packet">
       <UniqueIdentifier>{53aaf3f5-9416-4572-8867-a1830fda7f16}</UniqueIdentifier>
     </Filter>
     <Filter Include="Buffer">
       <UniqueIdentifier>{1b874653-352a-4bc5-b40c-87d0b7b8ddde}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Assistance">
+      <UniqueIdentifier>{822845c6-354f-4d00-8796-127936fd930d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="CoreTLS.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="NetAddress.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="SocketUtils.h">
-      <Filter>Network</Filter>
+      <Filter>Assistance</Filter>
     </ClInclude>
     <ClInclude Include="Session.h">
       <Filter>Network</Filter>
@@ -63,22 +54,22 @@
     <ClInclude Include="Packet.h">
       <Filter>Packet</Filter>
     </ClInclude>
+    <ClInclude Include="SocketUtils.h">
+      <Filter>Assistance</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="NetAddress.h">
+      <Filter>Assistance</Filter>
+    </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>Packet</Filter>
+      <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
     <ClCompile Include="CoreTLS.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="NetAddress.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="SocketUtils.cpp">
-      <Filter>Network</Filter>
+      <Filter>Assistance</Filter>
     </ClCompile>
     <ClCompile Include="Session.cpp">
       <Filter>Network</Filter>
@@ -104,8 +95,17 @@
     <ClCompile Include="CorePch.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="SocketUtils.cpp">
+      <Filter>Assistance</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="NetAddress.cpp">
+      <Filter>Assistance</Filter>
+    </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Packet</Filter>
+      <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

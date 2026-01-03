@@ -33,7 +33,6 @@ private:
     std::vector<std::unique_ptr<System>> mLateUpdateSystems;
     std::vector<std::unique_ptr<System>> mFinalUpdateSystems;
     std::vector<std::unique_ptr<System>> mRenderSystems;
-    std::vector<std::unique_ptr<System>> mBeatSystems;
 
 };
 

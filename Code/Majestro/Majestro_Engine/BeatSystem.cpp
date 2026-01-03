@@ -15,6 +15,12 @@ void BeatSystem::Update(float dt)
 
 	mSeconds += dt;
 
+	cout << "time :" << mSeconds << endl;
+	mBeat = (int)(mSeconds / (60.0f / mBpm));
+	mBeat %= (int)mBpm;
+	cout << "Beat :" << mBeat << endl;
+
+
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<BeatComponent>() };
 
 	

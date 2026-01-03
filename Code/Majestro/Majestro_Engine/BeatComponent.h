@@ -1,5 +1,7 @@
 #pragma once
-class BeatComponent
-{
-};
+#include "Component.h"
 
+class BeatComponent : public Component<BeatComponent>
+{
+
+};

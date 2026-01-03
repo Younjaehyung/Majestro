@@ -1,5 +1,4 @@
 #pragma once
-#include "pch.h"
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -7,8 +6,6 @@
 #include "Packet.h"
 #include "RingBuffer.h"
 #include "PacketHelper.h"
-
-#pragma comment(lib, "ws2_32") // ws2_32.lib 링크
 
 
 constexpr int SERVERPORT = 9000;
@@ -34,9 +31,9 @@ private:
 	const char* SERVERIP = "127.0.0.1";
 	char mRecvBuf[BUFSIZ] = {};
 	int mRecvUsed = 0;
-	std::queue<PacketBuffer*> mRecvQueue;
+	RecvBuffer mRecvBuffer;
 	//std::queue<PacketBlock*> mSendQueue;
-	RingBuffer mSendRingBuffer{ 65536 };
+	std::queue<SendBuffer*> mSendBuffer;
 	std::mutex mQueueMutex;
 	std::atomic<bool> mIsRunning;
 
@@ -57,13 +54,15 @@ public: // Init
 	void Awake();
 	void CheckConnect();
 
+	int32 Onrecv(BYTE* buffer, int32 len);
+
 public: // Process
 
 	void NetworkUpdate();
 	void GameRecvUpdate();
 	void GameSendUpdate();
 
-	void ProcessPacket(PacketBuffer* packet);
+	void ProcessPacket(BYTE* buffer, int32 len);
 	void PushSendData(const uint8_t* data, size_t size);
 
 };

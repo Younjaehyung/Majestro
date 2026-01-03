@@ -10,6 +10,15 @@ Network::Network()
 
 }
 
+Network::~Network()
+{
+	mIsRunning = false;
+	if (mNetworkThread.joinable()) {
+		mNetworkThread.join();
+	}
+	ReleaseServer();
+}
+
 void Network::Initialize() {
 	if (WSAStartup(MAKEWORD(2, 2), &mWsaData) != 0) {
 		cout << "WSA creation failed with error: " << std::endl;
@@ -33,20 +42,24 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	mServerAddr.sin_family = AF_INET;
 	
 	inet_pton(AF_INET, ipAddress, &mServerAddr.sin_addr);
-
 	mServerAddr.sin_port = htons(port);
 
 	int r = connect(mSock, (sockaddr*)&mServerAddr, sizeof(mServerAddr));
 	if(r == SOCKET_ERROR) {
 		std::cout << "Failed to connect to server." << std::endl;
-		delete this;
+		ReleaseServer();
+		return;
 	}
+
+	u_long one = 1;
+	ioctlsocket(mSock, FIONBIO, &one);
 
 	bool flag = true;
 	setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));
 	if (mSock == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
+		ReleaseServer();
 		return;
 	}
 
@@ -68,16 +81,16 @@ void Network::NetworkUpdate()
 		FD_ZERO(&readSet);
 		FD_SET(mSock, &readSet);
 
+
 		int result = select(0, &readSet, nullptr, nullptr, &timeOut);
 
 		if (result > 0) {
 			// 데이터 수신 가능 상태
 			if (FD_ISSET(mSock, &readSet)) {
-				PacketBlock* packet = PacketPool::Acquire();
+				PacketBuffer* packet = PacketPool::Acquire();
 
 				int serverAddrLen = sizeof(mServerAddr);
-				int recvLen = recvfrom(mSock, (char*)packet->Data, MAX_PACKET_SIZE, 0,
-					(sockaddr*)&mServerAddr, &serverAddrLen);
+				int recvLen = recv(mSock, (char*)packet->Data, MAX_PACKET_SIZE, 0);
 
 				if (recvLen > 0) {
 					packet->Header.Size = (uint16_t)recvLen;
@@ -92,6 +105,7 @@ void Network::NetworkUpdate()
 		}
 		else if (result == SOCKET_ERROR) {
 			err_display("select failed");
+			ReleaseServer();
 			return;
 		}
 		// result == 0 인 경우는 타임아웃이므로 루프 다시 실행
@@ -102,7 +116,7 @@ void Network::NetworkUpdate()
 
 void Network::GameRecvUpdate()
 {
-		std::queue<PacketBlock*> localQueue;
+		std::queue<PacketBuffer*> localQueue;
 		{
 			std::lock_guard<std::mutex> lock(mQueueMutex);
 			if (mRecvQueue.empty()) return;
@@ -111,7 +125,7 @@ void Network::GameRecvUpdate()
 
 
 		while (!localQueue.empty()) {
-			PacketBlock* packet = localQueue.front();
+			PacketBuffer* packet = localQueue.front();
 			localQueue.pop();
 
 			ProcessPacket(packet);
@@ -123,6 +137,35 @@ void Network::GameRecvUpdate()
 
 void Network::GameSendUpdate()
 {
+	int result = 0;
+
+	uint8_t* ptr1 = nullptr;
+	uint8_t* ptr2 = nullptr;
+	size_t size1 = 0, size2 = 0;
+
+	// 1. 현재 보낼 수 있는 데이터 위치 확보
+	mSendRingBuffer.Peek(&ptr1, size1, &ptr2, size2);
+
+	if (size1 > 0) {
+		// 첫 번째 영역 송신 시도
+		int sent = send(mSock, (const char*)ptr1, (int)size1, 0);
+		if (sent > 0) {
+			mSendRingBuffer.Consume(sent);
+
+			// 첫 번째 영역을 다 보냈고, 두 번째 영역(Wrap-around)이 있다면 연속 송신 시도
+			if (sent == size1 && size2 > 0) {
+				int sent2 = send(mSock, (const char*)ptr2, (int)size2, 0);
+				if (sent2 > 0) mSendRingBuffer.Consume(sent2);
+			}
+		}
+		else if (sent == SOCKET_ERROR) {
+			if (WSAGetLastError() != WSAEWOULDBLOCK) {
+				std::cout << "Send failed with error: " << WSAGetLastError() << std::endl;
+				return;
+			}
+		}
+	}
+
 }
 
 void Network::ReleaseServer()
@@ -138,65 +181,8 @@ void Network::CheckConnect()
 
 }
 
-void Network::SendData()
-{
-	int result = 0;
-	while (true)
-	{
-	//result = send(mSock, data, length, 0);
-		if(result == SOCKET_ERROR) {
-			
-			if (WSAGetLastError() == WSAEWOULDBLOCK)
-				continue;
 
-			std::cout << "Send failed with error: " << WSAGetLastError() << std::endl;
-			return;
-		}
-	}
-	
-}
-
-int Network::ReceiveData()
-{
-
-	int ret = recv(mSock, mRecvBuf + mRecvUsed, sizeof(mRecvBuf) - mRecvUsed, 0);
-	if (ret == SOCKET_ERROR)
-	{
-		int err = WSAGetLastError();
-		if (err == WSAEWOULDBLOCK)// 받을 데이터가 없음
-			return -1;  // 즉시 리턴
-		else
-		{
-			// 실제 에러
-			std::cout << "[Client] recv error " << err << std::endl;
-			return -1;
-		}
-	}
-	if (ret == 0)
-	{
-		// 서버 연결 종료
-		std::cout << "[Client] server closed connection.\n";
-		return -1;
-	}
-
-	mRecvUsed += ret;
-	//std::cout << "recv data size : " << ret << " , total data size: " << recvUsed << std::endl;
-
-
-	while (mRecvUsed >= sizeof(PacketHeader)) {
-		PacketHeader* header = (PacketHeader*)mRecvBuf;
-		uint16 packetSize = header->Size;
-
-		if (mRecvUsed < packetSize)
-			break;
-		//ProcessPacket((BYTE*)recvBuf, packetSize);
-		memmove(mRecvBuf, mRecvBuf + packetSize, mRecvUsed - packetSize);
-		mRecvUsed -= packetSize;
-	}
-
-}
-
-void Network::ProcessPacket(PacketBlock* packet) {
+void Network::ProcessPacket(PacketBuffer* packet) {
 	switch (packet->Header.PacketType) {
 		case KPOSITION: {
 			auto data = reinterpret_cast<MovePacketData*>(packet->Data);
@@ -217,4 +203,9 @@ void Network::ProcessPacket(PacketBlock* packet) {
 			break;
 		}
 	}
+}
+
+void Network::PushSendData(const uint8_t* data, size_t size)
+{
+	mSendRingBuffer.Push(data, size);
 }

@@ -47,6 +47,9 @@
     <ClInclude Include="PacketHelper.h">
       <Filter>소스 파일\Network</Filter>
     </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Majestro.cpp">
@@ -62,6 +65,9 @@
       <Filter>소스 파일\Game</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
       <Filter>소스 파일\Network</Filter>
     </ClCompile>
   </ItemGroup>

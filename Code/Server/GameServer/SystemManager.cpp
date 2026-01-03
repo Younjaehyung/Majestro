@@ -1,33 +1,25 @@
 #include "pch.h"
 #include "SystemManager.h"
-#include "RenderSystem.h"
-#include "CameraSystem.h"
-#include "AudioSystem.h"
-#include "TransformSystem.h"
-#include "AnimationSystem.h"
-#include "PlayerSystem.h"
-#include "UIRenderSystem.h"
-#include "UIUpdateSystem.h"
-#include "IMGUISystem.h"
-#include "BeatSystem.h"
+//
+//#include "CameraSystem.h"
+//
+//#include "TransformSystem.h"
+//
+//#include "PlayerSystem.h"
+//
+//#include "UIUpdateSystem.h"
+
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
 
-    RegisterSystem<CameraSystem>();
-    RegisterSystem<RenderSystem>();
-    RegisterSystem<UIRenderSystem>();
-	RegisterSystem<UITransformSystem>();
+  //  RegisterSystem<CameraSystem>();
+   
+	//RegisterSystem<UITransformSystem>();
 
-    RegisterSystem<AnimationSystem>();
-    RegisterSystem<AudioSystem>();
-    RegisterSystem<TransformSystem>();
-    RegisterSystem<PlayerSystem>();
-    RegisterSystem<BeatSystem>();
-#ifdef _IMGUI
-	RegisterSystem<IMGUIRenderSystem>();
-#else
-#endif
+   // RegisterSystem<TransformSystem>();
+  //  RegisterSystem<PlayerSystem>();
+
 }
 
 SystemManager::~SystemManager()
@@ -41,26 +33,15 @@ void SystemManager::Update(float deltaTime) {
     for (auto& sys : mLateUpdateSystems)   sys->Update(deltaTime);
     for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
 
-    GetSystem<TransformSystem>()->Update(deltaTime);
+  /*  GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
-    GetSystem<AudioSystem>()->Update(deltaTime);
-    GetSystem<AnimationSystem>()->Update(deltaTime);
+
+
     GetSystem<PlayerSystem>()->Update(deltaTime);
-    GetSystem<UITransformSystem>()->Update(deltaTime);
-   // GetSystem<BeatSystem>()->Update(deltaTime);
+    GetSystem<UITransformSystem>()->Update(deltaTime);*/
     
 }
 
-void SystemManager::Render() {
-    for (auto& sys : mRenderSystems)        sys->Update();
-    GetSystem<RenderSystem>()->Update();
-    GetSystem<UIRenderSystem>()->Update();
-#ifdef _IMGUI
-	//GetSystem<IMGUIRenderSystem>()->Update();
-#else
-#endif
-
-}
 
 void SystemManager::Shutdown() {
     for (auto& sys : mAwakeSystems)         sys->Shutdown();

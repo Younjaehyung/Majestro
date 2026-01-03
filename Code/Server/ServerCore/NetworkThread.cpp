@@ -156,7 +156,6 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 
 void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 {
-    std::lock_guard<std::mutex> lock(session->mMutex);
     if (session->mSendBufferQueue.empty())
         return;
 

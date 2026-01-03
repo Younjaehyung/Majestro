@@ -6,7 +6,22 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include "PacketHelper.h"
 #include "Packet.h"
+
+
+class ProcessBuffer // SEND QUEUE
+{
+public:
+    ProcessBuffer();
+    ~ProcessBuffer() {}
+    void PushBuffer(PacketHeader* sendBuffer);
+    PacketHeader* PopBuffer();
+private:
+    SpscRingQueue<Packet*,100>   mQueue;
+}
+
+
 
 struct SendBuffer
 {

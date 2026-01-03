@@ -1,8 +1,25 @@
 #pragma once
 #include <vector>
+
 /*--------------
 	RecvBuffer
 ----------------*/
+class ProcessPacket // RECV QUEUE
+{
+public:
+	ProcessPacket();
+	~ProcessPacket() {}
+	void Process(BYTE* buffer, int32 len);
+	InputCommand* PopCommand();
+public:
+	void ProcessSyncPacket(BYTE* buffer, int32 len) {};
+	void ProcessInputPacket(BYTE* buffer, int32 len) {};
+	void ProcessActionPacket(BYTE* buffer, int32 len) {};
+private:
+	std::queue<InputCommand*>   mCommandQueue;
+	SpscRingQueue<Packet*, 100>   mQueue;
+};
+
 
 class RecvBuffer
 {

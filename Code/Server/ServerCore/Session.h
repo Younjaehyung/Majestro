@@ -60,7 +60,7 @@ private:
 	
 	// send용
 	std::queue<SendBuffer*>	mSendBufferQueue;			// 송신 버퍼 (Queue) 전체 버퍼
-	std::mutex		mMutex;			// 세션	뮤텍스
+	std::mutex				mMutex;						// 세션	뮤텍스
 	
 	// recv용
 	RecvBuffer		mRecvBuffer;			// 수신 버퍼 (Ring) 전체 버퍼

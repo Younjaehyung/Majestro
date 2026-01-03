@@ -15,6 +15,7 @@
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
+#include "BeatComponent.h"
 
 #include "Prefab.h"
 //#include "Camera.h"
@@ -122,6 +123,7 @@ void Scene::Initialize()
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(osw, anmators0);
+		mWorld->AddComponent<BeatComponent>(osw);
 		
 
 		/*

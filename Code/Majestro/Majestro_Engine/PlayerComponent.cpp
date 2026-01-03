@@ -6,6 +6,8 @@ using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 
+BOOL STATE_DEBUG = FALSE;
+
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
     if (n == "Walk") return S_Walk;
@@ -198,13 +200,13 @@ IdleState* IdleState::Instance() {
 }
 void IdleState::Enter(MainPlayerComponent* owner) {
     ClearFlag(owner->mFlags, FLAG_MOVE);
-    std::cout << "Enter Idle\n";
+    if(STATE_DEBUG) std::cout << "Enter Idle\n";
 }
 void IdleState::Update(MainPlayerComponent* owner) {
 
 }
 void IdleState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Idle\n";
+    if(STATE_DEBUG) std::cout << "Exit Idle\n";
 }
 
 WalkState* WalkState::Instance() {
@@ -213,7 +215,7 @@ WalkState* WalkState::Instance() {
 }
 void WalkState::Enter(MainPlayerComponent* owner) {
     SetFlag(owner->mFlags, FLAG_MOVE);
-    std::cout << "Enter Walk\n";
+    if(STATE_DEBUG) std::cout << "Enter Walk\n";
 }
 void WalkState::Update(MainPlayerComponent* owner) {
     owner->mFsm.ChangeState(owner, IdleState::Instance());
@@ -222,7 +224,7 @@ void WalkState::Update(MainPlayerComponent* owner) {
     else owner->mFsm.ChangeState(owner, RunState::Instance());
 }
 void WalkState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Walk\n";
+    if(STATE_DEBUG) std::cout << "Exit Walk\n";
 }
 
 RunState* RunState::Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
@@ -231,13 +233,13 @@ RunState* RunState::Instance() {                      // [수정] Meyers' singleto
 }
 void RunState::Enter(MainPlayerComponent* owner) {
     SetFlag(owner->mFlags, FLAG_MOVE);
-    std::cout << "Enter Run\n";
+    if(STATE_DEBUG) std::cout << "Enter Run\n";
 }
 void RunState::Update(MainPlayerComponent* owner) {
     if (owner->mFsm.ChangeState(owner, WalkState::Instance())) return;
 }
 void RunState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Run\n";
+    if(STATE_DEBUG) std::cout << "Exit Run\n";
 }
 
 JumpState* JumpState::Instance() {                 
@@ -248,15 +250,15 @@ void JumpState::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0.0f;
     owner->mHight = owner->mGround+ 0.1f;
     SetFlag(owner->mFlags, FLAG_JUMP);
-    std::cout << "Enter Jump\n";
+    if(STATE_DEBUG) std::cout << "Enter Jump\n";
 }
 void JumpState::Update(MainPlayerComponent* owner) {
     if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
     owner->mHight += owner->mJumpPower * owner->mDt;
-    cout << owner->mHight << endl;
+    //cout << owner->mHight << endl;
 }
 void JumpState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Jump\n";
+    if(STATE_DEBUG) std::cout << "Exit Jump\n";
 }
 
 DashState* DashState::Instance() {
@@ -265,7 +267,7 @@ DashState* DashState::Instance() {
 }
 void DashState::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0.0f;
-    std::cout << "Enter Dash\n";
+    if(STATE_DEBUG) std::cout << "Enter Dash\n";
 }
 void DashState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -276,7 +278,7 @@ void DashState::Update(MainPlayerComponent* owner) {
 }
 void DashState::Exit(MainPlayerComponent* owner) {
 
-    std::cout << "Exit Dash\n";
+    if(STATE_DEBUG) std::cout << "Exit Dash\n";
 }
 
 //battle support-----------------------------------------------------
@@ -285,7 +287,7 @@ AimState* AimState::Instance() {
     return &inst;
 }
 void AimState::Enter(MainPlayerComponent* owner) {
-    std::cout << "Enter Aim\n";
+    if(STATE_DEBUG) std::cout << "Enter Aim\n";
 }
 void AimState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -294,7 +296,7 @@ void AimState::Update(MainPlayerComponent* owner) {
     }
 }
 void AimState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Aim\n";
+    if(STATE_DEBUG) std::cout << "Exit Aim\n";
 }
 
 ReRoadState* ReRoadState::Instance() {
@@ -302,7 +304,7 @@ ReRoadState* ReRoadState::Instance() {
     return &inst;
 }
 void ReRoadState::Enter(MainPlayerComponent* owner) {
-    std::cout << "Enter Reroad\n";
+    if(STATE_DEBUG) std::cout << "Enter Reroad\n";
 }
 void ReRoadState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -311,7 +313,7 @@ void ReRoadState::Update(MainPlayerComponent* owner) {
     }
 }
 void ReRoadState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Reroad\n";
+    if(STATE_DEBUG) std::cout << "Exit Reroad\n";
 }
 
 RhythmChangeState* RhythmChangeState::Instance() {
@@ -319,7 +321,7 @@ RhythmChangeState* RhythmChangeState::Instance() {
     return &inst;
 }
 void RhythmChangeState::Enter(MainPlayerComponent* owner) {
-    std::cout << "Enter RhythmChange\n";
+    if(STATE_DEBUG) std::cout << "Enter RhythmChange\n";
 }
 void RhythmChangeState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -328,7 +330,7 @@ void RhythmChangeState::Update(MainPlayerComponent* owner) {
     }
 }
 void RhythmChangeState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit RhythmChange\n";
+    if(STATE_DEBUG) std::cout << "Exit RhythmChange\n";
 }
 
 //damage-------------------------------------------------------------
@@ -337,7 +339,7 @@ HitState* HitState::Instance() {
     return &inst;
 }
 void HitState::Enter(MainPlayerComponent* owner) {
-    std::cout << "Enter Hit\n";
+    if(STATE_DEBUG) std::cout << "Enter Hit\n";
 }
 void HitState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -346,7 +348,7 @@ void HitState::Update(MainPlayerComponent* owner) {
     }
 }
 void HitState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Hit\n";
+    if(STATE_DEBUG) std::cout << "Exit Hit\n";
 }
 
 StunState* StunState::Instance() {
@@ -354,7 +356,7 @@ StunState* StunState::Instance() {
     return &inst;
 }
 void StunState::Enter(MainPlayerComponent* owner) {
-    std::cout << "Enter Stun\n";
+    if(STATE_DEBUG) std::cout << "Enter Stun\n";
 }
 void StunState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -363,7 +365,7 @@ void StunState::Update(MainPlayerComponent* owner) {
     }
 }
 void StunState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Stun\n";
+    if(STATE_DEBUG) std::cout << "Exit Stun\n";
 }
 
 DeadState* DeadState::Instance() {
@@ -371,7 +373,7 @@ DeadState* DeadState::Instance() {
     return &inst;
 }
 void DeadState::Enter(MainPlayerComponent* owner) {
-    std::cout << "Enter Dead\n";
+    if(STATE_DEBUG) std::cout << "Enter Dead\n";
 }
 void DeadState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -380,7 +382,7 @@ void DeadState::Update(MainPlayerComponent* owner) {
     }
 }
 void DeadState::Exit(MainPlayerComponent* owner) {
-    std::cout << "Exit Dead\n";
+    if(STATE_DEBUG) std::cout << "Exit Dead\n";
 }
 
 
@@ -391,7 +393,7 @@ Attack1State* Attack1State::Instance() {
 }
 void Attack1State::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0;
-    std::cout << "Enter Attack1\n";
+    if(STATE_DEBUG) std::cout << "Enter Attack1\n";
 }
 void Attack1State::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -401,7 +403,7 @@ void Attack1State::Update(MainPlayerComponent* owner) {
 }
 void Attack1State::Exit(MainPlayerComponent* owner) {
 
-    std::cout << "Exit Attack1\n";
+    if(STATE_DEBUG) std::cout << "Exit Attack1\n";
 }
 
 Attack2State* Attack2State::Instance() {
@@ -410,7 +412,7 @@ Attack2State* Attack2State::Instance() {
 }
 void Attack2State::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0;
-    std::cout << "Enter Attack2\n";
+    if(STATE_DEBUG) std::cout << "Enter Attack2\n";
 }
 void Attack2State::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -420,7 +422,7 @@ void Attack2State::Update(MainPlayerComponent* owner) {
 }
 void Attack2State::Exit(MainPlayerComponent* owner) {
 
-    std::cout << "Exit Attack2\n";
+    if(STATE_DEBUG) std::cout << "Exit Attack2\n";
 }
 
 Skill1State* Skill1State::Instance() {
@@ -429,7 +431,7 @@ Skill1State* Skill1State::Instance() {
 }
 void Skill1State::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0;
-    std::cout << "Enter Skill1\n";
+    if(STATE_DEBUG) std::cout << "Enter Skill1\n";
 }
 void Skill1State::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -439,7 +441,7 @@ void Skill1State::Update(MainPlayerComponent* owner) {
 }
 void Skill1State::Exit(MainPlayerComponent* owner) {
 
-    std::cout << "Exit Skill1\n";
+    if(STATE_DEBUG) std::cout << "Exit Skill1\n";
 }
 
 Skill2State* Skill2State::Instance() {
@@ -448,7 +450,7 @@ Skill2State* Skill2State::Instance() {
 }
 void Skill2State::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0;
-    std::cout << "Enter Skill2\n";
+    if(STATE_DEBUG) std::cout << "Enter Skill2\n";
 }
 void Skill2State::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -458,7 +460,7 @@ void Skill2State::Update(MainPlayerComponent* owner) {
 }
 void Skill2State::Exit(MainPlayerComponent* owner) {
 
-    std::cout << "Exit Skill2\n";
+    if(STATE_DEBUG) std::cout << "Exit Skill2\n";
 }
 
 SpecialState* SpecialState::Instance() {
@@ -467,7 +469,7 @@ SpecialState* SpecialState::Instance() {
 }
 void SpecialState::Enter(MainPlayerComponent* owner) {
     owner->mStateTime = 0;
-    std::cout << "Enter Special\n";
+    if(STATE_DEBUG) std::cout << "Enter Special\n";
 }
 void SpecialState::Update(MainPlayerComponent* owner) {
     if (owner->mStateTime >= this->mStateTime) {
@@ -477,5 +479,5 @@ void SpecialState::Update(MainPlayerComponent* owner) {
 }
 void SpecialState::Exit(MainPlayerComponent* owner) {
 
-    std::cout << "Exit Special\n";
+    if(STATE_DEBUG) std::cout << "Exit Special\n";
 }

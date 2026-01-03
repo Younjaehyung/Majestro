@@ -14,7 +14,10 @@ public:
 	void Update(float dt);
 
 private:
-	float mBpm = 120.0f;
+	int mBpm = 120.0f;
 	int mBeat =0;
+
+	float mBpmSeconds = 60.f / mBpm;
 	float mSeconds = 0.0f;
+	float mBonusTime = 0.2;
 };

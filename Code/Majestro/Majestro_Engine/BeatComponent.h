@@ -3,5 +3,7 @@
 
 class BeatComponent : public Component<BeatComponent>
 {
-
+public:
+	int mBeat;
+	bool mBouns;
 };

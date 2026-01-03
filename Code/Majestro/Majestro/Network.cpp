@@ -87,7 +87,7 @@ void Network::NetworkUpdate()
 		if (result > 0) {
 			// 데이터 수신 가능 상태
 			if (FD_ISSET(mSock, &readSet)) {
-				PacketBlock* packet = PacketPool::Acquire();
+				PacketBuffer* packet = PacketPool::Acquire();
 
 				int serverAddrLen = sizeof(mServerAddr);
 				int recvLen = recv(mSock, (char*)packet->Data, MAX_PACKET_SIZE, 0);
@@ -116,7 +116,7 @@ void Network::NetworkUpdate()
 
 void Network::GameRecvUpdate()
 {
-		std::queue<PacketBlock*> localQueue;
+		std::queue<PacketBuffer*> localQueue;
 		{
 			std::lock_guard<std::mutex> lock(mQueueMutex);
 			if (mRecvQueue.empty()) return;
@@ -125,7 +125,7 @@ void Network::GameRecvUpdate()
 
 
 		while (!localQueue.empty()) {
-			PacketBlock* packet = localQueue.front();
+			PacketBuffer* packet = localQueue.front();
 			localQueue.pop();
 
 			ProcessPacket(packet);
@@ -182,7 +182,7 @@ void Network::CheckConnect()
 }
 
 
-void Network::ProcessPacket(PacketBlock* packet) {
+void Network::ProcessPacket(PacketBuffer* packet) {
 	switch (packet->Header.PacketType) {
 		case KPOSITION: {
 			auto data = reinterpret_cast<MovePacketData*>(packet->Data);

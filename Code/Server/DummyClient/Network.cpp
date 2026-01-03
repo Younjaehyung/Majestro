@@ -84,29 +84,55 @@ void Network::NetworkUpdate()
 
 		int result = select(0, &readSet, nullptr, nullptr, &timeOut);
 
+		std::cout << "Select Result: " << result << std::endl;
+
+		if (result ==0) {
+			std::cout << "Time Out: " << result << std::endl;
+			continue;
+		}
 		if (result > 0) {
 			// 데이터 수신 가능 상태
 			if (FD_ISSET(mSock, &readSet)) {
-				PacketBlock* packet = PacketPool::Acquire();
+				mRecvBuffer.Clean();
 
 				int serverAddrLen = sizeof(mServerAddr);
-				int recvLen = recv(mSock, (char*)packet->Data, MAX_PACKET_SIZE, 0);
+				int recvLen = recv(mSock, (char*)mRecvBuffer.WritePos(), mRecvBuffer.FreeSize(), 0);
 
 				if (recvLen > 0) {
-					packet->Header.Size = (uint16_t)recvLen;
-					// TO - DO Lock-freeQueue로 바꿀 것.
-					std::lock_guard<std::mutex> lock(mQueueMutex);
-					mRecvQueue.push(packet);
+					if (!mRecvBuffer.OnWrite(recvLen))
+					{
+						std::cout << "RecvBuffer OnWrite Error" << std::endl;
+						return;
+					}
+					while (true)
+					{
+						int32 ret = Onrecv(mRecvBuffer.ReadPos(), mRecvBuffer.DataSize());
+
+						if (ret < 0 || ret > mRecvBuffer.DataSize())
+						{
+							std::cout << "OnRecv Error" << std::endl;
+							return;;
+						}
+						else if (ret == 0)
+						{
+							break;
+						}
+						mRecvBuffer.OnRead(ret);
+						
+					}
 				}
-				else {
-					PacketPool::Release(packet);
-				}
+
 			}
 		}
 		else if (result == SOCKET_ERROR) {
-
+			int32 errorCode = WSAGetLastError();
+			if (errorCode != WSAEWOULDBLOCK)
+			{
+				continue;
+			}
 			LogDebug("select failed");
 			ReleaseServer();
+			std::cout << "select failed" << std::endl;
 			return;
 		}
 		// result == 0 인 경우는 타임아웃이므로 루프 다시 실행
@@ -117,22 +143,22 @@ void Network::NetworkUpdate()
 
 void Network::GameRecvUpdate()
 {
-		std::queue<PacketBlock*> localQueue;
-		{
-			std::lock_guard<std::mutex> lock(mQueueMutex);
-			if (mRecvQueue.empty()) return;
-			std::swap(mRecvQueue, localQueue);
-		}
+		//RecvBuffer localQueue;
+		//{
+		//	std::lock_guard<std::mutex> lock(mQueueMutex);
+		//	if (mRecvBuffer.empty()) return;
+		//	std::swap(mRecvBuffer, localQueue);
+		//}
 
 
-		while (!localQueue.empty()) {
-			PacketBlock* packet = localQueue.front();
-			localQueue.pop();
+		//while (!localQueue.empty()) {
+		//	PacketBlock* packet = localQueue.front();
+		//	localQueue.pop();
 
-			ProcessPacket(packet);
+		//	ProcessPacket(packet);
 
-			PacketPool::Release(packet);
-		}
+		//	PacketPool::Release(packet);
+		//}
 	
 }
 
@@ -145,24 +171,34 @@ void Network::GameSendUpdate()
 	size_t size1 = 0, size2 = 0;
 
 	// 1. 현재 보낼 수 있는 데이터 위치 확보
-	mSendRingBuffer.Peek(&ptr1, size1, &ptr2, size2);
-
-	if (size1 > 0) {
-		// 첫 번째 영역 송신 시도
-		int sent = send(mSock, (const char*)ptr1, (int)size1, 0);
-		if (sent > 0) {
-			mSendRingBuffer.Consume(sent);
-
-			// 첫 번째 영역을 다 보냈고, 두 번째 영역(Wrap-around)이 있다면 연속 송신 시도
-			if (sent == size1 && size2 > 0) {
-				int sent2 = send(mSock, (const char*)ptr2, (int)size2, 0);
-				if (sent2 > 0) mSendRingBuffer.Consume(sent2);
+	while(!mSendBuffer.empty())
+	{
+		SendBuffer* sb = mSendBuffer.front();
+		size_t remain = sb->Capacity - sb->ReadPos;
+		int len = send(mSock, (char*)(sb->Data + sb->ReadPos),
+			remain, 0);
+		if (len < 0){
+			int err = WSAGetLastError();
+			if (err == WSAEWOULDBLOCK)
+			{
+				// 지금은 더 못 보냄  다음 select 때 재시도
+				break;
 			}
 		}
-		else if (sent == SOCKET_ERROR) {
-			if (WSAGetLastError() != WSAEWOULDBLOCK) {
-				std::cout << "Send failed with error: " << WSAGetLastError() << std::endl;
-				return;
+		else if (len == 0)
+		{
+			// 연결 종료
+			ReleaseServer();
+			return;
+		}
+		else
+		{
+			sb->ReadPos += len;
+			if (sb->ReadPos >= sb->Capacity)
+			{
+				// 다 보냈으면 큐에서 제거
+				mSendBuffer.pop();
+				PacketPool::Release(sb);
 			}
 		}
 	}
@@ -182,11 +218,52 @@ void Network::CheckConnect()
 
 }
 
+int32 Network::Onrecv(BYTE* buffer, int32 len)
+{
+	int32 processLen = 0;
 
-void Network::ProcessPacket(PacketBlock* packet) {
-	switch (packet->Header.PacketType) {
+	while (true)
+	{
+		int32 dataSize = len - processLen;
+		// 최소한 헤더는 파싱할 수 있어야 한다
+		if (dataSize < sizeof(PacketHeader))
+			break;
+
+		PacketHeader header;
+		::memcpy(&header, buffer + processLen, sizeof(PacketHeader));
+		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
+
+		if (header.Size < sizeof(PacketHeader))
+			return -1; // 프로토콜 오류
+
+		if (dataSize < header.Size)
+			break; // 아직 덜 옴
+
+		// 패킷 조립 성공
+		ProcessPacket(buffer + processLen, header.Size);
+
+		processLen += header.Size;
+	}
+
+	return processLen;
+}
+
+
+void Network::ProcessPacket(BYTE* buffer, int32 len) {
+
+	PacketHeader header;
+	::memcpy(&header, buffer, sizeof(PacketHeader));
+
+	BYTE* payload = buffer + sizeof(PacketHeader);
+	int32 payloadSize = header.Size - sizeof(PacketHeader);
+
+
+	switch (header.PacketType) {
 		case KPOSITION: {
-			auto data = reinterpret_cast<MovePacketData*>(packet->Data);
+			auto data = reinterpret_cast<MovePacketData*>(&header);
+
+
+
 
 			// 게임 월드의 해당 캐릭터 위치 갱신
 			// 여기서 직접 위치를 세팅하면 '순간이동'처럼 보이므로, 
@@ -198,7 +275,11 @@ void Network::ProcessPacket(PacketBlock* packet) {
 			break;
 		}
 		case KSYNC: {
-			auto data = reinterpret_cast<SyncPacketData*>(packet->Data);
+			auto data = reinterpret_cast<SyncPacketData*>(&header);
+
+			std::cout << "Received Sync Packet: ClientID=" << data->clientId
+				<< ", RhythmTime=" << data->rhythmTime << std::endl;
+
 			// 리듬 동기화 및 서버 시간 보정
 			//m_timeSystem->SyncWithServer(data->serverTime);
 			break;
@@ -208,5 +289,10 @@ void Network::ProcessPacket(PacketBlock* packet) {
 
 void Network::PushSendData(const uint8_t* data, size_t size)
 {
-	mSendRingBuffer.Push(data, size);
+	SendBuffer* packet = PacketPool::Acquire();
+	packet->SetData(data, static_cast<uint16_t>(size));
+
+
+	mSendBuffer.push(packet);
+
 }

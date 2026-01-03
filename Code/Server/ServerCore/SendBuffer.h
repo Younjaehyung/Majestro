@@ -1,85 +1,55 @@
-//#pragma once
-//#include <array>
-//
-//class SendBufferChunk;
-//
+
 ///*----------------
 //	SendBuffer
 //-----------------*/
-class SendBuffer {
+#pragma once
+#include <vector>
+#include <memory>
+#include <algorithm>
+#include "Packet.h"
 
-public:
-	uint32 size;
-	uint32 sent;
-	BYTE*  data;
+struct SendBuffer
+{
+	uint32  WritePos = 0;
+	uint32  ReadPos = 0;                    
+    uint32  Capacity = 0;
+	uint8_t Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
+
+    void SetData(const void* data, uint16_t dataSize) {
+        Capacity = dataSize;
+        if (dataSize > 0 && data != nullptr) {
+            std::memcpy(Data, data, dataSize);
+        }
+    }
 };
 
+class SendBufferManager
+{
+public:
 
+    // Initialize the pool with a specific number of packets
+    static void Initialize(size_t count);
 
-//class SendBuffer
-//{
-//public:
-//	SendBuffer(BYTE* buffer, uint32 allocSize);
-//	~SendBuffer();
-//
-//	BYTE*		Buffer() { return _buffer; }
-//	uint32		AllocSize() { return _allocSize; }
-//	uint32		WriteSize() { return _writeSize; }
-//	void		Close(uint32 writeSize);
-//
-//	bool		empty() { return _writeSize == 0; }
-//private:
-//	BYTE*				_buffer;
-//	uint32				_allocSize = 0;
-//	uint32				_writeSize = 0;
-//	SendBufferChunkRef	_owner;
-//};
-//
-///*--------------------
-//	SendBufferChunk
-//--------------------*/
-//
-//class SendBufferChunk : public enable_shared_from_this<SendBufferChunk>
-//{
-//	enum
-//	{
-//		SEND_BUFFER_CHUNK_SIZE = 6000
-//	};
-//
-//public:
-//	SendBufferChunk();
-//	~SendBufferChunk();
-//
-//	void				Reset();
-//	SendBufferRef		Open(uint32 allocSize);
-//	void				Close(uint32 writeSize);
-//
-//	bool				IsOpen() { return _open; }
-//	BYTE*				Buffer() { return &_buffer[_usedSize]; }
-//	uint32				FreeSize() { return static_cast<uint32>(_buffer.size()) - _usedSize; }
-//
-//private:
-//	std::array<BYTE, SEND_BUFFER_CHUNK_SIZE>		_buffer = {};
-//	bool									_open = false;
-//	uint32									_usedSize = 0;
-//};
-//
-///*---------------------
-//	SendBufferManager
-//----------------------*/
-//
-//class SendBufferManager
-//{
-//public:
-//	SendBufferRef		Open(uint32 size);
-//
-//private:
-//	SendBufferChunkRef	Pop();
-//	void				Push(SendBufferChunkRef buffer);
-//
-//	static void			PushGlobal(SendBufferChunk* buffer);
-//
-//private:
-//
-//	std::vector<SendBufferChunkRef> _sendBufferChunks;
-//};
+    // Destroy all packets in the pool
+    static void Shutdown();
+
+    // packet acquire
+    [[nodiscard("PacketBlock not return")]]
+    static SendBuffer* Acquire();
+
+    // packet release
+    static void Release(SendBuffer* p) {
+        if (!p) return;
+        m_pool.push_back(p);
+    }
+
+    // Size of available packets in the pool
+    static size_t GetAvailableCount() {
+        return m_pool.size();
+    }
+
+private:
+    // Vector를 스택처럼 사용 (Cache Friendly)
+    static inline std::vector<SendBuffer*> m_pool;
+    static inline size_t m_totalAllocated;
+};

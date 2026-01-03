@@ -1,11 +1,63 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN // °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀ» Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
+#define WIN32_LEAN_AND_MEAN // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì„ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
 
-#ifdef _DEBUG
-#pragma comment(lib, "Debug\\ServerCore.lib")
-#else
-#pragma comment(lib, "Release\\ServerCore.lib")
-#endif
+//#ifdef _DEBUG
+//#pragma comment(lib, "Debug\\ServerCore.lib")
+//#else
+//#pragma comment(lib, "Release\\ServerCore.lib")
+//#endif
 
-#include "CorePch.h"
+//#include "CorePch.h"
+
+
+// Network
+#define _CRT_SECURE_NO_WARNINGS // êµ¬í˜• C í•¨ìˆ˜ ì‚¬ìš© ì‹œ ê²½ê³  ë„ê¸°
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // êµ¬í˜• ì†Œì¼“ API ì‚¬ìš© ì‹œ ê²½ê³  ë„ê¸°
+
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <MSWSock.h>
+
+#include <windows.h>
+#include <iostream>
+#include <tchar.h>
+#include <vector>
+#include <list>
+#include <queue>
+#include <stack>
+#include <map>
+#include <set>
+#include <array>
+#include <unordered_map>
+#include <unordered_set>
+#include <string>
+#include <memory>
+
+#pragma comment(lib, "ws2_32.lib")
+
+#include <iostream>
+using namespace std;
+
+
+using BYTE = unsigned char;
+using int8 = __int8;
+using int16 = __int16;
+using int32 = __int32;
+using int64 = __int64;
+using uint8 = unsigned __int8;
+using uint16 = unsigned __int16;
+using uint32 = unsigned __int32;
+using uint64 = unsigned __int64;
+
+// ANSI
+static void LogDebug(const std::string& msg) {
+	std::string output = "[LOG] " + msg + "\n";
+	OutputDebugStringA(output.c_str());
+}
+
+// Unicode
+static void LogDebugW(const std::wstring& msg) {
+	std::wstring output = L"[LOG] " + msg + L"\n";
+	OutputDebugStringW(output.c_str());
+}

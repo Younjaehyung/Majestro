@@ -1,6 +1,7 @@
 #pragma once
 #include "NetAddress.h"
 #include <string>
+#include <queue>
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
 #include "PacketHelper.h"
@@ -24,6 +25,7 @@ public:
 	/* 외부에서 사용 */
 	void				SetSession(SOCKET socket);
 	//bool				Connect();
+	void				Send(PacketHeader* sendBuffer);
 	void				Disconnect(const std::string& cause);
 	void				Close();
 public:
@@ -58,7 +60,7 @@ private:
 	NetAddress		mNetAddress;
 	
 	// send용
-	SendBufferPool	mSendBuffer;			// 송신 버퍼 (Queue) 전체 버퍼
+	std::queue<SendBuffer*>	mSendBufferQueue;			// 송신 버퍼 (Queue) 전체 버퍼
 
 
 	// recv용

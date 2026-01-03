@@ -2,7 +2,6 @@
 #include "NetworkThread.h"
 #include "ServerCore.h"
 #include "SessionManager.h"
-#include "ThreadManager.h"
 #include "SendBuffer.h"
 #include "Session.h"
 
@@ -21,6 +20,7 @@ NetworkThread::~NetworkThread()
 
 void NetworkThread::Start()
 {
+	SendBufferManager::Initialize(1000);
 	mThread = std::thread([this]()
 	{
 		mRunning = true;
@@ -149,8 +149,55 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 
 void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 {
-    int len = send(session->GetSocket(), (char*)session->mSendBuffer.WritePos(),
-        session->mSendBuffer.FreeSize(), 0);
+    
+    if (session->mSendBufferQueue.empty())
+        return;
+
+
+    while (!session->mSendBufferQueue.empty())
+    {
+		SendBuffer* sb = session->mSendBufferQueue.front();
+
+        // 아직 보내야 할 바이트 수
+        uint32 remain = sb->Capacity - sb->ReadPos;
+
+        int len = send(session->GetSocket(), (char*)(sb->Data+sb->ReadPos),
+            remain, 0);
+
+        if (len < 0)
+        {
+            int err = WSAGetLastError();
+            if (err == WSAEWOULDBLOCK)
+            {
+                // 지금은 더 못 보냄 → 다음 select 때 재시도
+                return;
+            }
+
+            // 치명적 오류
+            session->Disconnect("Send Error");
+            return;
+        }
+
+        if (len == 0)
+        {
+            // TCP에서 send 0은 거의 없음 → 안전하게 종료
+            session->Disconnect("Send 0");
+            return;
+        }
+
+        // 부분/전체 전송 반영
+        sb->ReadPos += len;
+
+        if (sb->Capacity > sb->ReadPos)
+        {
+			continue; // 아직 덜 보냄
+        }
+
+        // 전송 완료
+        session->mSendBufferQueue.pop();
+        SendBufferManager::Release(sb);
+    }
+
 
 }
 

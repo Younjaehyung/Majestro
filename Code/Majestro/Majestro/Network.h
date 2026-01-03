@@ -34,7 +34,7 @@ private:
 	const char* SERVERIP = "127.0.0.1";
 	char mRecvBuf[BUFSIZ] = {};
 	int mRecvUsed = 0;
-	std::queue<PacketBlock*> mRecvQueue;
+	std::queue<PacketBuffer*> mRecvQueue;
 	//std::queue<PacketBlock*> mSendQueue;
 	RingBuffer mSendRingBuffer{ 65536 };
 	std::mutex mQueueMutex;
@@ -63,7 +63,7 @@ public: // Process
 	void GameRecvUpdate();
 	void GameSendUpdate();
 
-	void ProcessPacket(PacketBlock* packet);
+	void ProcessPacket(PacketBuffer* packet);
 	void PushSendData(const uint8_t* data, size_t size);
 
 };

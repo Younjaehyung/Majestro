@@ -5,8 +5,8 @@
 
 struct Packet				// recv 용
 {
-	uint16_t type;
-	uint16_t size;
+	uint16 type;
+	uint16 size;
 	const char* payload; // RecvRingBuffer 내부를 참조
 };
 
@@ -20,7 +20,7 @@ struct InputCommand			// 로직쓰레드용
 };
 ////////////////////////////////////////////
 
-enum PKT_Type : uint32 {
+enum PKT_Type : uint16 {
 	KSERVER,
 	KSYNC,
 	KINPUT,
@@ -34,15 +34,29 @@ struct PacketHeader {
 	uint32 Size;
 	PKT_Type PacketType;
 	double   sendTime;
+
+	
 };
 static constexpr uint32 kHeaderSize = sizeof(PacketHeader);
-constexpr uint32 MAX_PACKET_SIZE = 1024;
+constexpr uint32 MAX_PACKET_SIZE = 128;
 
 ///////////////////////////////////////////
 
-struct SyncPacketData {
+struct KServerPacket : public PacketHeader {
+
+	uint16 dummy{}; // 예시 필드
+
+	KServerPacket() : PacketHeader{ sizeof(KServerPacket), PKT_Type::KSERVER, 0.0 } {}
+};
+
+struct SyncPacketData : public PacketHeader {
 	uint32_t clientId;
 	float    rhythmTime;
+
+	SyncPacketData() : PacketHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 } {}
+	SyncPacketData(uint32_t id, float time)
+		: PacketHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 }, clientId(id), rhythmTime(time) {
+	}
 };
 
 struct MovePacketData {

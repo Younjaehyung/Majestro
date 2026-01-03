@@ -1,8 +1,12 @@
 #include "pch.h"
 #include "Session.h"
 #include <atomic>
+#include "ServerCore.h"
 #include "SocketUtils.h"
+#include "SessionManager.h"
+#include "SendBuffer.h"
 #include "Packet.h"
+
 /*--------------
 	Session
 ---------------*/
@@ -24,32 +28,23 @@ void Session::SetSession(SOCKET socket)
 	SocketUtils::GetNetAddress(socket, mNetAddress);
 
 }
-//
-//void Session::Send(SendBufferRef sendBuffer)
-//{
-//	if (IsConnected() == false)
-//		return;
-//
-//	bool registerSend = false;
-//
-//	//// 현재 RegisterSend가 걸리지 않은 상태라면, 걸어준다
-//	//{
-//	//	//WRITE_LOCK;
-//
-//	//	_sendQueue.push(sendBuffer);
-//
-//	//	if (_sendRegistered.exchange(true) == false)
-//	//		registerSend = true;
-//	//}
-//
-//	//if (registerSend)
-//	//	RegisterSend();
-//}
+
 
 ////bool Session::Connect()
 ////{
 ////	//return RegisterConnect();
 ////}
+
+void Session::Send(PacketHeader* sendData)
+{
+	if (IsConnected() == false)
+		return;
+
+
+	SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	sendBuffer->SetData(sendData,sendData->Size);
+	mSendBufferQueue.push(sendBuffer);
+}
 
 void Session::Disconnect(const std::string& cause)
 {
@@ -120,16 +115,6 @@ void Session::OnSend(int32 len)
 {
 	if (IsConnected() == false)
 		return;
-		
-	bool registerSend = false;
-		
-	{
-		_sendQueue.push(sendBuffer);
-		
-		if (_sendRegistered.exchange(true) == false)
-			registerSend = true;
-	}
-		
-	if (registerSend)
-		RegisterSend();
+
+
 }

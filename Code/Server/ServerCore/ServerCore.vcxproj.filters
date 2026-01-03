@@ -24,9 +24,6 @@
     <ClInclude Include="CoreTLS.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadManager.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="NetAddress.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -75,9 +72,6 @@
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="CoreTLS.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="ThreadManager.cpp">
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="NetAddress.cpp">

@@ -2,6 +2,7 @@
 #include "NetAddress.h"
 #include <set>
 #include "Session.h"
+#include "SendBuffer.h"
 
 class ServerCore;
 class Session;
@@ -21,7 +22,7 @@ public:
 	void								RemoveSession(std::shared_ptr<Session> session);
 	void 								ClearSessions();
 	
-	void 								Broadcast(SendBufferRef sendBuffer);
+	void 								Broadcast(PacketHeader* sendBuffer);
 
 public:
 	std::set<std::shared_ptr<Session>>&		GetAllSessions() { return mSessions; }
@@ -39,10 +40,8 @@ private:
 	uint8										mCoreState = 0; // 0: Init, 1: Running, 2: Stop		
 	uint8										mPlayerLastIndex = 0;
 private:
-
 	std::weak_ptr<ServerCore>					mServerCore;
 	std::set<std::shared_ptr<Session>>			mSessions;
-
 
 	SOCKET										mSocket;
 	NetAddress									mServerAddress = {};

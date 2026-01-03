@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "SessionManager.h"
 #include "SocketUtils.h"
-#include "ThreadManager.h"
 #include "NetworkThread.h"
 
 SessionManager::SessionManager()
@@ -18,10 +17,7 @@ void SessionManager::Initialize()
 {
 	mSessions.clear();
 	mPlayerLastIndex = 0;
-
 }
-
-
 
 std::shared_ptr<Session>	 SessionManager::CreateSessions(SOCKET sock)
 {
@@ -57,11 +53,11 @@ void SessionManager::ClearSessions()
 	mSessions.clear();
 }
 
-void SessionManager::Broadcast(SendBufferRef sendBuffer)
+void SessionManager::Broadcast(PacketHeader* sendBuffer)
 {
 	for (auto& session : mSessions)
 	{
-		//session->Send(sendBuffer);
+		session->Send(sendBuffer);
 	}
 }
 

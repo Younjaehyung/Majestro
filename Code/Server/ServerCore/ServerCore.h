@@ -1,7 +1,6 @@
 #pragma once
 #include "NetAddress.h"
 
-extern class ThreadManager* GThreadManager;
 extern class SessionManager gSessionMgr;
 
 class ServerCore

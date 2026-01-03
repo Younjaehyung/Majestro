@@ -23,8 +23,8 @@ constexpr uint32 MAX_PACKET_SIZE = 1024;
 ///////////////////////////////////////////
 
 struct SyncPacketData{
-	uint32_t clientId;
-	float    rhythmTime;
+	uint32_t clientId{1};
+	float    rhythmTime{3};
 };
 
 struct MovePacketData {

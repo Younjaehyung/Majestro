@@ -1,34 +1,29 @@
 #include "pch.h"
 #include "ServerCore.h"
-#include "ThreadManager.h"
 #include "SessionManager.h"
 #include "NetworkThread.h"
 #include "SocketUtils.h"
 
 SessionManager gSessionMgr;
-ThreadManager* GThreadManager = nullptr;
-
 
 ServerCore::ServerCore()
 {
-	GThreadManager = new ThreadManager();
 
 
 }
 
 ServerCore::~ServerCore()
 {
-	delete GThreadManager;
 }
 
 void ServerCore::Initialize()
 {
-	// À©¼Ó ÃÊ±âÈ­
+	// ìœˆì† ì´ˆê¸°í™”
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return;
 
-	// ¼ÒÄÏ »ı¼º
+	// ì†Œì¼“ ìƒì„±
 	mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if (mListenSocket == INVALID_SOCKET) LOG_ERROR("err(socket)");
 
@@ -64,6 +59,10 @@ void ServerCore::Start()
 void ServerCore::Update()
 {
 	gSessionMgr.Update();
+
+	SyncPacketData syncData{1,3};
+
+	gSessionMgr.Broadcast((PacketHeader*)&syncData);
 
 }
 

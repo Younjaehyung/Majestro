@@ -1,22 +1,56 @@
 #pragma once
-
+#include <vector>
 #include <stack>
 #include <mutex>
+
 #include "Packet.h"
 
-struct PacketBlock
-{
-	PacketHeader Header;
-	uint8_t Data[MAX_PACKET_SIZE];
+/*--------------
+    RecvBuffer
+----------------*/
 
-    void SetData(PKT_Type packetId, const void* data, uint16_t dataSize) {
-        Header.PacketType = packetId;
-        Header.Size = sizeof(PacketHeader) + dataSize;
+class RecvBuffer
+{
+    enum { BUFFER_COUNT = 10 };
+
+public:
+    RecvBuffer(int32 bufferSize = BUFFER_COUNT);
+    ~RecvBuffer();
+
+    void			Clean();
+    bool			OnRead(int32 numOfBytes);
+    bool			OnWrite(int32 numOfBytes);
+
+    BYTE* ReadPos() { return &_buffer[_readPos]; }
+    BYTE* WritePos() { return &_buffer[_writePos]; }
+    int32			DataSize() { return _writePos - _readPos; }
+    int32			FreeSize() { return _capacity - _writePos; }
+
+private:
+    int32			_capacity = 0;
+    int32			_bufferSize = 0;
+    int32			_readPos = 0;
+    int32			_writePos = 0;
+    std::vector<BYTE>	_buffer;
+};
+
+
+
+struct SendBuffer
+{
+    uint32  WritePos = 0;
+    uint32  ReadPos = 0;
+    uint32  Capacity = 0;
+    uint8_t Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
+
+    void SetData(const void* data, uint16_t dataSize) {
+        Capacity = dataSize;
         if (dataSize > 0 && data != nullptr) {
             std::memcpy(Data, data, dataSize);
         }
     }
 };
+
 
 class PacketPool
 {
@@ -27,7 +61,7 @@ public:
         std::lock_guard<std::mutex> lock(mMutex);
         m_pool.reserve(count);
         for (size_t i = 0; i < count; ++i) {
-            m_pool.push_back(new PacketBlock());
+            m_pool.push_back(new SendBuffer());
         }
         m_totalAllocated = count;
     }
@@ -36,7 +70,7 @@ public:
 	// Destroy all packets in the pool
     static void Shutdown() {
         std::lock_guard<std::mutex> lock(mMutex);
-        for (PacketBlock* p : m_pool) {
+        for (SendBuffer* p : m_pool) {
             delete p;
         }
         m_pool.clear();
@@ -44,24 +78,24 @@ public:
 
 	// packet acquire
     [[nodiscard("PacketBlock not return")]] 
-    static PacketBlock* Acquire() {
+    static SendBuffer* Acquire() {
         std::lock_guard<std::mutex> lock(mMutex);
 
         if (m_pool.empty()) {
 
             LogDebug("[Warning] PacketPool Exhausted! Allocating new.\n");
             m_totalAllocated++;
-            return new PacketBlock();
+            return new SendBuffer();
         }
 
         // LIFO
-        PacketBlock* p = m_pool.back();
+        SendBuffer* p = m_pool.back();
         m_pool.pop_back();
         return p;
     }
 
 	// packet release
-    static void Release(PacketBlock* p) {
+    static void Release(SendBuffer* p) {
         if (!p) return;
 
         std::lock_guard<std::mutex> lock(mMutex);
@@ -76,7 +110,7 @@ public:
 
 private:
     // Vector를 스택처럼 사용 (Cache Friendly)
-    static inline std::vector<PacketBlock*> m_pool;
+    static inline std::vector<SendBuffer*> m_pool;
     static inline std::mutex mMutex;
     static inline size_t m_totalAllocated;
 };

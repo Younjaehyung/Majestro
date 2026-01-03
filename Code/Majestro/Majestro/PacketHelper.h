@@ -4,7 +4,7 @@
 #include <mutex>
 #include "Packet.h"
 
-struct PacketBlock
+struct PacketBuffer
 {
 	PacketHeader Header;
 	uint8_t Data[MAX_PACKET_SIZE];
@@ -27,7 +27,7 @@ public:
         std::lock_guard<std::mutex> lock(mMutex);
         m_pool.reserve(count);
         for (size_t i = 0; i < count; ++i) {
-            m_pool.push_back(new PacketBlock());
+            m_pool.push_back(new PacketBuffer());
         }
         m_totalAllocated = count;
     }
@@ -36,7 +36,7 @@ public:
 	// Destroy all packets in the pool
     static void Shutdown() {
         std::lock_guard<std::mutex> lock(mMutex);
-        for (PacketBlock* p : m_pool) {
+        for (PacketBuffer* p : m_pool) {
             delete p;
         }
         m_pool.clear();
@@ -44,24 +44,24 @@ public:
 
 	// packet acquire
     [[nodiscard("PacketBlock not return")]] 
-    static PacketBlock* Acquire() {
+    static PacketBuffer* Acquire() {
         std::lock_guard<std::mutex> lock(mMutex);
 
         if (m_pool.empty()) {
 
             LogDebug("[Warning] PacketPool Exhausted! Allocating new.\n");
             m_totalAllocated++;
-            return new PacketBlock();
+            return new PacketBuffer();
         }
 
         // LIFO
-        PacketBlock* p = m_pool.back();
+        PacketBuffer* p = m_pool.back();
         m_pool.pop_back();
         return p;
     }
 
 	// packet release
-    static void Release(PacketBlock* p) {
+    static void Release(PacketBuffer* p) {
         if (!p) return;
 
         std::lock_guard<std::mutex> lock(mMutex);
@@ -76,7 +76,7 @@ public:
 
 private:
     // Vector를 스택처럼 사용 (Cache Friendly)
-    static inline std::vector<PacketBlock*> m_pool;
+    static inline std::vector<PacketBuffer*> m_pool;
     static inline std::mutex mMutex;
     static inline size_t m_totalAllocated;
 };

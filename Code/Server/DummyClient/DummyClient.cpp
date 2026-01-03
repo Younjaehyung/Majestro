@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "Network.h"
 
 int main()
@@ -11,8 +11,6 @@ int main()
 	while(true)
 	{
 		Network::GetInstance().GameRecvUpdate();
-
-
 
 		Network::GetInstance().GameSendUpdate();
 	}

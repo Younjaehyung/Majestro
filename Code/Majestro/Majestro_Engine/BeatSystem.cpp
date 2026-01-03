@@ -4,6 +4,7 @@
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
+	mBpmSeconds = 60.f / (float)mBpm;
 }
 
 void BeatSystem::Initialize()
@@ -14,23 +15,21 @@ void BeatSystem::Update(float dt)
 {
 
 	mSeconds += dt;
-
-	cout << "time :" << mSeconds << endl;
-	mBeat = (int)(mSeconds / (60.0f / mBpm));
-	mBeat %= (int)mBpm;
-	cout << "Beat :" << mBeat << endl;
+	//cout << "time :" << mSeconds << endl;
+	mBeat = (int)(mSeconds / mBpmSeconds);
+	mBeat %= mBpm;
+	//cout << "Beat :" << mBeat << endl;
 
 
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<BeatComponent>() };
 
-	
-	//TestUpdate(dt);
+	float s = mSeconds - (float)mBeat * mBpmSeconds;
+	//cout << "seconds :" << s << endl;
 	for (auto& entity : entitys) {
-		//CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
-		//TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-
-		//transformComponent->FinalUpdate();
-		//cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entity);
+		beatComponent->mBeat = this->mBeat;
+		if (s*s < mBonusTime* mBonusTime)beatComponent->mBouns = true;
+		else beatComponent->mBouns = false;
 	}
 	
 }

@@ -12,7 +12,7 @@ public:
 
 	void Initialize();
 	void Update(float dt);
-	void Input(float dt, ControllerComponent* playerComponent , MainPlayerComponent* mainPlayerComponent);
+	void Input(float dt, ControllerComponent* playerComponent , MainPlayerComponent* mainPlayerComponent, bool beatHit);
 
 private:
 	float speed = 30.0f;

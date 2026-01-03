@@ -8,6 +8,7 @@
 #include "InputManager.h"
 #include "TransformSystem.h"
 #include "TerrainComponent.h"
+#include "BeatComponent.h"
 
 
 PlayerSystem::PlayerSystem(World* world) : System(world)
@@ -54,9 +55,9 @@ void PlayerSystem::Update(float dt)
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
 		ControllerComponent* controllerComponent = mWorld->GetComponent<ControllerComponent>(entitys[0]);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
+		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
 
-
-		Input(dt, controllerComponent, mainPlayerComponent);
+		Input(dt, controllerComponent, mainPlayerComponent, beatComponent->mBouns);
 
 		if (controllerComponent->mPlayMode == MAIN_CAMERA) {
 			transformComponent->mLocalPosition = controllerComponent->mTransformComponent.mLocalPosition;
@@ -101,7 +102,7 @@ void PlayerSystem::Update(float dt)
 	}
 }
 
-void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, MainPlayerComponent* mainPlayerComponent)
+void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, MainPlayerComponent* mainPlayerComponent, bool beatHit)
 {
 
 
@@ -134,6 +135,9 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 
 
 	if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
+		if (beatHit) cout << "Hit Beat!" << endl;
+		else cout << "fail" << endl;
+
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
@@ -150,6 +154,9 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 
 
 	if (INPUT.GetMouseState().LeftDown) {
+		//attack
+
+		//screen move
 		controllerComponent->mTransformComponent.mLocalRotation.x += (float)INPUT.GetMouseState().Delta.y * dt * DPI;
 		controllerComponent->mTransformComponent.mLocalRotation.y += (float)INPUT.GetMouseState().Delta.x * dt * DPI;
 		INPUT.MouseStateClear();

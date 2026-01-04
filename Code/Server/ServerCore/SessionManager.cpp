@@ -50,30 +50,4 @@ void SessionManager::ClearSessions()
 	mSessions.clear();
 }
 
-InputCommand* SessionManager::PopData(uint32 sId)
-{
-	if(mSessions[sId]){
-		std::lock_guard<std::mutex> lock(mSessions[sId]->mMutex);
-		return mSessions[sId]->mInputQueue.PopCommand();
-	}
-}
-
-void SessionManager::Broadcast(PacketHeader* sendBuffer)
-{
-	for (auto& session : mSessions)
-	{
-		std::lock_guard<std::mutex> lock(session.second->mMutex);
-		session.second->OnSend(sendBuffer);
-	}
-}
-
-void SessionManager::Unicast(int32 playerId, PacketHeader* sendBuffer)
-{
-	if (mSessions[playerId])
-	{
-		std::lock_guard<std::mutex> lock(mSessions[playerId]->mMutex);
-		mSessions[playerId]->OnSend(sendBuffer);
-	}
-	
-}
 

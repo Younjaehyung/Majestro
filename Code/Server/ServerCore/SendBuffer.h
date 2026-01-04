@@ -1,8 +1,8 @@
-
+#pragma once
 ///*----------------
 //	SendBuffer
+// Send시 Packet 관리용 버퍼
 //-----------------*/
-#pragma once
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -10,20 +10,7 @@
 #include "Packet.h"
 
 
-class ProcessBuffer // SEND QUEUE
-{
-public:
-    ProcessBuffer();
-    ~ProcessBuffer() {}
-    void PushBuffer(PacketHeader* sendBuffer);
-    PacketHeader* PopBuffer();
-private:
-    SpscRingQueue<Packet*,100>   mQueue;
-}
-
-
-
-struct SendBuffer
+struct SendBuffer   // SEND BUFFER
 {
 	uint32  ReadPos = 0;                    
     uint32  Capacity = 0;

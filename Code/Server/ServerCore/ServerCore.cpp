@@ -4,7 +4,9 @@
 #include "NetworkThread.h"
 #include "SocketUtils.h"
 
-SessionManager gSessionMgr;
+SpscRingQueue<SendRequest, 128>								gSendQueue;
+SpscRingQueue<InputCommand, 128>						gRecvQueue;
+
 
 ServerCore::ServerCore()
 {
@@ -56,11 +58,19 @@ void ServerCore::Start()
 
 void ServerCore::Update()
 {
-	SyncPacketData syncData{1,3};
-	gSessionMgr.Broadcast((PacketHeader*)&syncData);
 }
 
 void ServerCore::Stop()
 {
 	mNetworkThread->Stop();
+}
+
+void ServerCore::BroadcastPacket(SendRequest& pkt)
+{
+	mNetworkThread->BroadcastPacket(pkt);
+}
+
+void ServerCore::UnicastPacket(SendRequest& pkt)
+{
+	gSendQueue.Push(pkt);
 }

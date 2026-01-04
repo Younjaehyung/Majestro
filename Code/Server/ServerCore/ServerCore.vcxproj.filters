@@ -64,7 +64,7 @@
       <Filter>Assistance</Filter>
     </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>Network</Filter>
+      <Filter>Buffer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -105,7 +105,7 @@
       <Filter>Assistance</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Network</Filter>
+      <Filter>Buffer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

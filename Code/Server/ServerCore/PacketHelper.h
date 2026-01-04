@@ -2,15 +2,37 @@
 #include <stack>
 #include <queue>
 #include <mutex>
-#include "Packet.h"
-
-#pragma once
 #include <atomic>
 #include <cstddef>
 #include <type_traits>
+#include "Packet.h"
+
+//////////////////*
+// Single Producer Single Consumer Ring Queue
+// LOGIC THREAD <-> NETWORK THREAD
+////////////////*/
+
+struct InputCommand // Packet received (network thread -> logic thread)
+{
+    int   sessionId;
+    float moveX;
+    float moveY;
+    bool  action1;
+    bool  action2;
+};
+
+class SendRequest { // Packet to be sent (logic thread -> network thread)
+public:
+    uint32 SessionId;
+    uint32 Len;
+    BYTE Data[128];
+private:
+
+};
+
 
 template<typename T, size_t Capacity>
-class SpscRingQueue
+class SpscRingQueue // LOGIC <-> NETWORK
 {
     static_assert(Capacity >= 2, "Capacity must be >= 2");
     static_assert((Capacity& (Capacity - 1)) == 0,

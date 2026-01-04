@@ -11,6 +11,8 @@ class NetworkThread;
 class SessionManager
 {
 public:
+	std::map<uint8, std::shared_ptr<Session>>		mSessions;
+public:
 	SessionManager();
 	~SessionManager();
 
@@ -34,8 +36,6 @@ public:
 private:
 	uint8										mCoreState = 0; // 0: Init, 1: Running, 2: Stop		
 	uint8										mPlayerLastIndex = 0;
-private:
 
-	std::map<uint8, std::shared_ptr<Session>>		mSessions;
 
 };

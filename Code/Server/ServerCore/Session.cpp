@@ -55,7 +55,6 @@ void Session::Close()
 }
 
 
-
 void Session::HandleError(int32 errorCode)
 {
 	switch (errorCode)
@@ -69,6 +68,52 @@ void Session::HandleError(int32 errorCode)
 		LOG_ERROR("Handle Error Code [{}]", errorCode);
 		break;
 	}
+}
+
+void Session::Process(BYTE* buffer, int32 len)
+{
+	PacketHeader header;
+	::memcpy(&header, buffer, sizeof(PacketHeader));
+
+	BYTE* payload = buffer + sizeof(PacketHeader);
+	int32 payloadSize = header.Size - sizeof(PacketHeader);
+
+	mTempInputCommand.sessionId = mPlayerId;
+
+
+	switch (header.PacketType)
+	{
+	case PKT_Type::KSYNC:
+		//mProcessPacket.ProcessSyncPacket(buffer, len);
+		break;
+	case PKT_Type::KINPUT:
+		//mProcessPacket.ProcessInputPacket(buffer, len);
+		break;
+	case PKT_Type::KACTION:
+		//mProcessPacket.ProcessActionPacket(buffer, len);
+		break;
+	case PKT_Type::KPOSITION:
+		//mProcessPacket.ProcessPositionPacket(buffer, len);
+		break;
+	case PKT_Type::KMSG:
+		//mProcessPacket.ProcessMsgPacket(buffer, len);
+		break;
+	default:
+		LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
+		break;
+	}
+
+
+
+	gRecvQueue.Push(mTempInputCommand);
+}
+
+void Session::SendData(BYTE* buffer, int32 len)
+{
+	
+	SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	sendBuffer->SetData(buffer, len);
+	mSendBufferQueue.push(sendBuffer);
 }
 
 int32 Session::OnRecv(BYTE* buffer, int32 len)
@@ -93,18 +138,18 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 			break; // 아직 덜 옴
 
 		// 패킷 조립 성공
-		mInputQueue.Process(buffer + processLen, header.Size);
+		Process(buffer + processLen, header.Size);
+
 
 		processLen += header.Size;
 	}
+
 
 	return processLen;
 }
 
 void Session::OnSend(PacketHeader* sendData)
 {
-	if (IsConnected() == false)
-		return;
 
 	SendBuffer* sendBuffer = SendBufferManager::Acquire();
 	sendBuffer->SetData(sendData, sendData->Size);

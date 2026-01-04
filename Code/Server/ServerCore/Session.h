@@ -29,6 +29,8 @@ public:
 	int32				OnRecv(BYTE* buffer, int32 len);
 	void				Disconnect(const std::string& cause);
 	void				Close();
+
+	
 public:
 	/* 정보 관련 */
 	void				SetNetAddress(NetAddress address) { mNetAddress = address; }
@@ -50,6 +52,10 @@ protected:
 	/* 컨텐츠 코드에서 재정의 */
 	virtual void		OnConnected() {}
 	virtual void		OnDisconnected() {}
+private:
+	void Process(BYTE* buffer, int32 len);
+	void SendData(BYTE* buffer, int32 len);
+	ProcessPacket	mProcessPacket;
 
 private:
 
@@ -69,6 +75,9 @@ private:
 
 	uint32_t		mLastRecvServerTick;
 	int				mPlayerId;
+
+	InputCommand	mTempInputCommand;
+	SendRequest		mTempSendRequest;
 
 	friend class NetworkThread;
 	friend class SessionManager;

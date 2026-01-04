@@ -5,10 +5,12 @@
 #include "SendBuffer.h"
 #include "Session.h"
 
+
+
 NetworkThread::NetworkThread()
 {
 	mListenSocket = INVALID_SOCKET;
-    gSessionMgr.Initialize();
+    mSessionMgr.Initialize();
     SendBufferManager::Initialize(1000);
 }
 
@@ -43,7 +45,7 @@ void NetworkThread::Stop()
         mThread.join();
     }
     SendBufferManager::Shutdown();
-    gSessionMgr.ClearSessions();
+    mSessionMgr.ClearSessions();
 }
 
 void NetworkThread::Update()
@@ -57,11 +59,11 @@ void NetworkThread::Update()
         FD_SET(mListenSocket, &readSet);
 
 
-        for (auto& s : gSessionMgr.GetAllSessions())
-        {
+        for (auto& s : mSessionMgr.GetAllSessions())
+        {   
             FD_SET(s.second->GetSocket(), &readSet);
 
-            if (!s.second->mSendBufferQueue.empty())
+            if (Send())
                 FD_SET(s.second->GetSocket(), &writeSet);
         }
 
@@ -71,8 +73,11 @@ void NetworkThread::Update()
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
 
-        for (auto& s : gSessionMgr.GetAllSessions())
+        for (auto& s : mSessionMgr.GetAllSessions())
         {
+            if (s.second->IsConnected() == false)
+                continue;
+
             if (FD_ISSET(s.second->GetSocket(), &readSet))
                 HandleRecv(const_cast<std::shared_ptr<Session>&>(s.second));
 
@@ -94,8 +99,8 @@ void NetworkThread::AcceptClient()
     u_long one = 1;
     ioctlsocket(s, FIONBIO, &one);
 
-    shared_ptr<Session> session = gSessionMgr.CreateSessions(s);
-	gSessionMgr.AddSession(session);
+    shared_ptr<Session> session = mSessionMgr.CreateSessions(s);
+	mSessionMgr.AddSession(session);
 
 	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
         session->GetPlayerId(), session->GetAddress().GetIpAddressA(),
@@ -210,13 +215,41 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 
 void NetworkThread::CleanupDisconnected()
 {
-    for (auto& s : gSessionMgr.GetAllSessions())
+    for (auto& s : mSessionMgr.GetAllSessions())
     {
         std::lock_guard<std::mutex> lock(s.second->mMutex);
         if (s.second->GetConnectedAtomic()) continue;
 
         s.second->Close();
-        gSessionMgr.RemoveSession(s.second);
+        mSessionMgr.RemoveSession(s.second);
     }
 
+}
+
+bool NetworkThread::Send()
+{
+  
+    if (gSendQueue.Empty())
+        return false;
+
+	gSendQueue.Pop(mData);
+   
+    mSessionMgr.mSessions[mData.SessionId]->SendData(mData.Data, mData.Len);
+
+
+    return true;
+}
+
+void NetworkThread::BroadcastPacket(SendRequest& pkt)
+{
+    if (pkt.SessionId != 0) {
+        LOG_ERROR("BroadcastPacket SessionId is 0");
+        return;
+    }
+
+    for (auto& s : mSessionMgr.GetAllSessions())
+    {
+		pkt.SessionId = s.second->GetPlayerId();
+		gSendQueue.Push(pkt);
+    }
 }

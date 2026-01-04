@@ -5,8 +5,10 @@ void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBu
 {
 
 	// Copy header
-	std::memcpy(&pkt.sync, sendBuffer->Data, sizeof(SyncPacketData));
+	std::memcpy(sendBuffer->Data , &pkt.sync, sizeof(SyncPacketData));
 
 	// Set total size
 	sendBuffer->Capacity = sizeof(SyncPacketData);
+
+	
 }

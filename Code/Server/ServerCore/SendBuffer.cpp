@@ -24,7 +24,7 @@ void SendBufferManager::Shutdown() {
 
 SendBuffer* SendBufferManager::Acquire() {
     if (mPool.empty()) {
-        LOG_WARN("SendBufferPool Exhausted! Allocating new.\n");
+        LOG_WARN("SendBufferPool Exhausted! Allocating new. All: [{}] \n", mTotalAllocated);
         mTotalAllocated++;
         return new SendBuffer();
     }

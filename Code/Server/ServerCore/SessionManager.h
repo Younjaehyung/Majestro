@@ -11,7 +11,7 @@ class NetworkThread;
 class SessionManager
 {
 public:
-	std::map<uint8, std::shared_ptr<Session>>		mSessions;
+	std::map<uint32, std::shared_ptr<Session>>		mSessions;
 public:
 	SessionManager();
 	~SessionManager();
@@ -24,18 +24,14 @@ public:
 	void								RemoveSession(std::shared_ptr<Session> session);
 	void 								ClearSessions();
 
-	InputCommand*						PopData(uint32 sId);
-	
-	void 								Broadcast(PacketHeader* sendBuffer);
-	void								Unicast(int32 playerId, PacketHeader* sendBuffer);
 public:
-	std::map<uint8, std::shared_ptr<Session>>&		GetAllSessions() { return mSessions; }
+	std::map<uint32, std::shared_ptr<Session>>&		GetAllSessions() { return mSessions; }
 
 	size_t									GetMaxSessionCount() { return mSessions.size(); }
 	void 									Update() {};
 private:
 	uint8										mCoreState = 0; // 0: Init, 1: Running, 2: Stop		
-	uint8										mPlayerLastIndex = 0;
+	uint32										mPlayerLastIndex = 0;
 
 
 };

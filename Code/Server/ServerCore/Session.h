@@ -29,7 +29,7 @@ public:
 	int32				OnRecv(BYTE* buffer, int32 len);
 	void				Disconnect(const std::string& cause);
 	void				Close();
-
+	void				ClearSendBufferQueue();
 	
 public:
 	/* 정보 관련 */
@@ -40,7 +40,7 @@ public:
 	int					GetPlayerId() { return mPlayerId; }
 
 	void				SetSocket(SOCKET socket) { mSocket = socket; }
-	SOCKET				GetSocket() { return mSocket; }
+	SOCKET&				GetSocket() { return mSocket; }
 	bool				IsConnected() { return mConnected; }
 	
 	Atomic<bool>&		GetConnectedAtomic() { return mConnected; }
@@ -61,13 +61,12 @@ private:
 
 	SOCKET			mSocket;
 	NetAddress		mNetAddress;
-	Atomic<bool>	mConnected = false;
+	Atomic<bool>	mConnected = true;
 	
 	
 	// send용
 	std::queue<SendBuffer*>	mSendBufferQueue;			// 송신 버퍼 (Queue) 전체 버퍼
-	std::mutex				mMutex;						// 세션	뮤텍스
-	
+
 	// recv용
 	RecvBuffer		mRecvBuffer;			// 수신 버퍼 (Ring) 전체 버퍼
 	ProcessPacket	mInputQueue;			// 입력 큐 로직으로 입력 전송

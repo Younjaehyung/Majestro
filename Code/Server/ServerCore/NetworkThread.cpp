@@ -17,6 +17,8 @@ NetworkThread::NetworkThread()
 NetworkThread::NetworkThread(SOCKET listenSocket)
     : mListenSocket(listenSocket)
 {
+    mSessionMgr.Initialize();
+    SendBufferManager::Initialize(1000);
 }
 
 NetworkThread::~NetworkThread()
@@ -50,8 +52,6 @@ void NetworkThread::Stop()
 
 void NetworkThread::Update()
 {
-    while (mRunning)
-    {
         fd_set readSet, writeSet;
         FD_ZERO(&readSet);
         FD_ZERO(&writeSet);
@@ -72,21 +72,23 @@ void NetworkThread::Update()
 
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
-
+       
         for (auto& s : mSessionMgr.GetAllSessions())
         {
             if (s.second->IsConnected() == false)
                 continue;
 
+            
+
             if (FD_ISSET(s.second->GetSocket(), &readSet))
-                HandleRecv(const_cast<std::shared_ptr<Session>&>(s.second));
+                HandleRecv(s.second);
 
             if (FD_ISSET(s.second->GetSocket(), &writeSet))
-                HandleSend(const_cast<std::shared_ptr<Session>&>(s.second));
+                HandleSend(s.second);
         }
 
         CleanupDisconnected();
-    }
+
 }
 
 
@@ -165,6 +167,9 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
         return;
 
 
+    LOG_INFO("HandleSend ID:[{}] SendBufferQueue Size:[{}]",
+        session->GetPlayerId(), session->mSendBufferQueue.size());
+
     while (!session->mSendBufferQueue.empty())
     {
 		SendBuffer* sb = session->mSendBufferQueue.front();
@@ -208,6 +213,7 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
         // 전송 완료
         session->mSendBufferQueue.pop();
         SendBufferManager::Release(sb);
+
     }
 
 
@@ -217,7 +223,7 @@ void NetworkThread::CleanupDisconnected()
 {
     for (auto& s : mSessionMgr.GetAllSessions())
     {
-        std::lock_guard<std::mutex> lock(s.second->mMutex);
+
         if (s.second->GetConnectedAtomic()) continue;
 
         s.second->Close();
@@ -233,6 +239,12 @@ bool NetworkThread::Send()
 
     while (gSendQueue.Pop(mData)) {
 
+        if( mData.SessionId == 0)
+        {
+            LOG_ERROR("Send SessionId is 0");
+            continue;
+		}
+
         SendBuffer* sendBuffer = SendBufferManager::Acquire();
 
         switch (mData.Type)
@@ -243,11 +255,12 @@ bool NetworkThread::Send()
             case PKT_Type::KSYNC:
                 SendRequestPacket::SerializeSyncPacket(mData, sendBuffer);
 				break;
-        default:
-            break;
+            default:
+                break;
         }
 
-       mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
+	    if(mSessionMgr.mSessions.contains(mData.SessionId))
+         mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
     }
     return true;
 }

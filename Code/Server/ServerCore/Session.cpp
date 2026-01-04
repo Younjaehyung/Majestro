@@ -18,7 +18,8 @@ Session::Session() : mRecvBuffer(BUFFER_SIZE)
 
 Session::~Session()
 {
-	SocketUtils::Close(mSocket);
+	Close();
+	ClearSendBufferQueue();
 }
 
 void Session::SetSession(SOCKET socket)
@@ -52,6 +53,16 @@ void Session::Close()
 	LOG_INFO("Disconnect ID :[{}] ",
 		mPlayerId);
 	SocketUtils::Close(mSocket);
+}
+
+void Session::ClearSendBufferQueue()
+{
+	while (!mSendBufferQueue.empty())
+	{
+		SendBuffer* buffer = mSendBufferQueue.front();
+		mSendBufferQueue.pop();
+		SendBufferManager::Release(buffer);
+	}
 }
 
 

@@ -79,22 +79,15 @@ void Network::NetworkUpdate()
 		FD_ZERO(&readSet);
 		FD_SET(mSock, &readSet);
 
-		timeval timeOut;
-		timeOut.tv_sec = 0;
-		timeOut.tv_usec = 1000; // 1ms
-
+		timeval timeOut{0,1000};
 		int result = select(0, &readSet, nullptr, nullptr, &timeOut);
 
-		if (result ==0) {
-			std::cout << "Time Out: " << result << std::endl;
-			continue;
-		}
 		if (result > 0) {
+			std::cout << "Time Out: " << result << std::endl;
 			// 데이터 수신 가능 상태
 			if (FD_ISSET(mSock, &readSet)) {
 				mRecvBuffer.Clean();
 
-				int serverAddrLen = sizeof(mServerAddr);
 				int recvLen = recv(mSock, (char*)mRecvBuffer.WritePos(), mRecvBuffer.FreeSize(), 0);
 
 				if (recvLen > 0) {
@@ -120,21 +113,27 @@ void Network::NetworkUpdate()
 						
 					}
 				}
+				else if (result == SOCKET_ERROR) {
+					int32 errorCode = WSAGetLastError();
+					if (errorCode != WSAEWOULDBLOCK)
+					{
+						continue;
+					}
+					LogDebug("select failed");
+					ReleaseServer();
+					std::cout << "select failed" << std::endl;
+					return;
+				}
+				else {
+					// 연결 종료
+					ReleaseServer();
+					std::cout << "Connection closed by server." << std::endl;
+					return;
+				}
 
 			}
 		}
-		else if (result == SOCKET_ERROR) {
-			int32 errorCode = WSAGetLastError();
-			if (errorCode != WSAEWOULDBLOCK)
-			{
-				continue;
-			}
-			LogDebug("select failed");
-			ReleaseServer();
-			std::cout << "select failed" << std::endl;
-			return;
-		}
-		// result == 0 인 경우는 타임아웃이므로 루프 다시 실행
+		
 	}
 	
 

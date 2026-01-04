@@ -1,7 +1,6 @@
 #pragma once
 #include <thread>
 #include <atomic>
-#include <mutex>
 #include "PacketHelper.h"
 
 class ServerCore;

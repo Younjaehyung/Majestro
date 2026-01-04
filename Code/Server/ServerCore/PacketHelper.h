@@ -1,7 +1,6 @@
 #pragma once
 #include <stack>
 #include <queue>
-#include <mutex>
 #include <atomic>
 #include <cstddef>
 #include <type_traits>

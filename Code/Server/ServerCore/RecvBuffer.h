@@ -5,20 +5,6 @@
 	RecvBuffer
 	Recv시 패킷을 받는 버퍼
 ----------------*/
-
-
-class ProcessPacket // Process received packets (network thread -> logic thread)
-{
-public:
-	ProcessPacket() = default;
-	~ProcessPacket() = default;
-public:
-	void ProcessSyncPacket(BYTE* buffer, int32 len) {};
-	void ProcessInputPacket(BYTE* buffer, int32 len) {};
-	void ProcessActionPacket(BYTE* buffer, int32 len) {};
-};
-
-
 class RecvBuffer	// RECV RING BUFFER
 {
 	enum { BUFFER_COUNT = 10 };

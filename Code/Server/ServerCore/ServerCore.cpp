@@ -5,7 +5,7 @@
 #include "SocketUtils.h"
 
 SpscRingQueue<SendRequest, 128>								gSendQueue;
-SpscRingQueue<InputCommand, 128>						gRecvQueue;
+SpscRingQueue<InputCommand, 128>							gRecvQueue;
 
 
 ServerCore::ServerCore()

@@ -14,20 +14,41 @@
 
 struct InputCommand // Packet received (network thread -> logic thread)
 {
-    int   sessionId;
+    uint32   SessionId;
     float moveX;
     float moveY;
     bool  action1;
     bool  action2;
 };
 
-class SendRequest { // Packet to be sent (logic thread -> network thread)
-public:
-    uint32 SessionId;
-    uint32 Len;
-    BYTE Data[128];
-private:
+struct SendRequest { // Packet to be sent (logic thread -> network thread)
 
+    uint32 SessionId;
+    PKT_Type Type;
+
+    union
+    {
+        
+    };
+
+};
+
+class SendRequestPacket
+{
+public:
+    static void SerializeSyncPacket(SendRequest& pkt) {};
+    static void SerializeInputPacket(SendRequest& pkt) {};
+    static void SerializeActionPacket(SendRequest& pkt) {};
+};
+
+
+class ProcessPacket // Process received packets (network thread -> logic thread)
+{
+private:
+public:
+    static void ProcessSyncPacket(BYTE* buffer, int32 len) {};
+    static void ProcessInputPacket(BYTE* buffer, int32 len) {};
+    static void ProcessActionPacket(BYTE* buffer, int32 len) {};
 };
 
 

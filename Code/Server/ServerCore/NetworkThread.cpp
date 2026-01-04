@@ -228,15 +228,27 @@ void NetworkThread::CleanupDisconnected()
 
 bool NetworkThread::Send()
 {
-  
     if (gSendQueue.Empty())
         return false;
 
-	gSendQueue.Pop(mData);
-   
-    mSessionMgr.mSessions[mData.SessionId]->SendData(mData.Data, mData.Len);
+    while (gSendQueue.Pop(mData)) {
 
+        SendBuffer* sendBuffer = SendBufferManager::Acquire();
 
+        switch (mData.Type)
+        {
+            //case PKT_Type::POSITION:
+            //	SerializePosition(mData,sendBuffer);
+            //	break;
+            //case PKT_Type::INPUT:
+            //	SerializeInput(mData,sendBuffer);
+            //	break;
+        default:
+            break;
+        }
+
+       mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
+    }
     return true;
 }
 

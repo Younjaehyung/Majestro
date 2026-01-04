@@ -1,7 +1,6 @@
 #pragma once
 #include "NetAddress.h"
 
-extern class SessionManager gSessionMgr;
 extern SpscRingQueue<SendRequest, 128>							gSendQueue;
 extern SpscRingQueue<InputCommand, 128>							gRecvQueue;
 

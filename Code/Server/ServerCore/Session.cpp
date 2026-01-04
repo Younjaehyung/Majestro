@@ -78,7 +78,7 @@ void Session::Process(BYTE* buffer, int32 len)
 	BYTE* payload = buffer + sizeof(PacketHeader);
 	int32 payloadSize = header.Size - sizeof(PacketHeader);
 
-	mTempInputCommand.sessionId = mPlayerId;
+	mTempInputCommand.SessionId = mPlayerId;
 
 
 	switch (header.PacketType)
@@ -108,11 +108,8 @@ void Session::Process(BYTE* buffer, int32 len)
 	gRecvQueue.Push(mTempInputCommand);
 }
 
-void Session::SendData(BYTE* buffer, int32 len)
+void Session::SendData(SendBuffer* sendBuffer)
 {
-	
-	SendBuffer* sendBuffer = SendBufferManager::Acquire();
-	sendBuffer->SetData(buffer, len);
 	mSendBufferQueue.push(sendBuffer);
 }
 

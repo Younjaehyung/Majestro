@@ -9,7 +9,6 @@
 #include "PacketHelper.h"
 #include "Packet.h"
 
-
 struct SendBuffer   // SEND BUFFER
 {
 	uint32  ReadPos = 0;                    

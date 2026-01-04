@@ -33,8 +33,8 @@ struct KServerPacket : public PacketHeader {
 };
 
 struct SyncPacketData : public PacketHeader {
-	uint32_t clientId;
-	float    rhythmTime;
+	uint32_t clientId{};
+	float    rhythmTime{};
 
 	SyncPacketData() : PacketHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 } {}
 	SyncPacketData(uint32_t id, float time)

@@ -240,9 +240,9 @@ bool NetworkThread::Send()
             //case PKT_Type::POSITION:
             //	SerializePosition(mData,sendBuffer);
             //	break;
-            //case PKT_Type::INPUT:
-            //	SerializeInput(mData,sendBuffer);
-            //	break;
+            case PKT_Type::KSYNC:
+                SendRequestPacket::SerializeSyncPacket(mData, sendBuffer);
+				break;
         default:
             break;
         }

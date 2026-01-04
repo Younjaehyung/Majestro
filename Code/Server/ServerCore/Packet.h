@@ -5,7 +5,8 @@
 
 ////////////////////////////////////////////
 
-enum PKT_Type : uint16 {
+enum PKT_Type : uint32 {
+	KNONE = 0,
 	KSERVER,
 	KSYNC,
 	KINPUT,
@@ -48,7 +49,6 @@ struct MovePacketData {
 	float    y;
 	float    z;
 };
-
 
 
 

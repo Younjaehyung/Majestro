@@ -3,6 +3,7 @@
 #pragma pack(push, 1)
 
 enum PKT_Type : uint32 {
+	KNONE = 0,
 	KSERVER,
 	KSYNC,
 	KINPUT,
@@ -23,8 +24,8 @@ constexpr uint32 MAX_PACKET_SIZE = 1024;
 ///////////////////////////////////////////
 
 struct SyncPacketData : public PacketHeader {
-	uint32_t clientId{ 1 };
-	float    rhythmTime{ 3 };
+	uint32_t clientId{};
+	float    rhythmTime{};
 
 	SyncPacketData() : PacketHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 } {}
 	SyncPacketData(uint32_t id, float time)

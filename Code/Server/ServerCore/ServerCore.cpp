@@ -3,6 +3,7 @@
 #include "SessionManager.h"
 #include "NetworkThread.h"
 #include "SocketUtils.h"
+#include "PacketHelper.h"
 
 SpscRingQueue<SendRequest, 128>								gSendQueue;
 SpscRingQueue<InputCommand, 128>							gRecvQueue;
@@ -58,6 +59,17 @@ void ServerCore::Start()
 
 void ServerCore::Update()
 {
+	SendRequest data;
+
+	data.SessionId = 1; // Broadcast
+	data.Type = PKT_Type::KSYNC;
+	data.sync.clientId = 1;
+	data.sync.rhythmTime = 123.456f;
+
+
+
+
+	UnicastPacket(data);
 }
 
 void ServerCore::Stop()

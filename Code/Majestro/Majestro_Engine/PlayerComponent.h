@@ -4,6 +4,7 @@
 #include "StateMachine.h"
 #include "System.h"
 #include "IMGUIComponent.h"
+#include "Animator.h"
 
 
 enum PlayMode
@@ -69,6 +70,7 @@ class MainPlayerComponent : public Component<MainPlayerComponent>
 public:
 	MainPlayerComponent();
 	MainPlayerComponent(const std::string& path);
+	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim);
 
 	void StateCheck();
 	void Update(float dt);

@@ -7,6 +7,7 @@ using json = nlohmann::json;
 #include "StateMachine.h"
 
 BOOL STATE_DEBUG = FALSE;
+std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
@@ -38,9 +39,42 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 
 MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
 {
+
     InitFSMFromJson(path);
     LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 };
+
+MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
+    mStateList = {
+    IdleState::Instance(),
+    WalkState::Instance(),
+    RunState::Instance(),
+    JumpState::Instance(),
+    DashState::Instance(),
+
+    AimState::Instance(),
+    ReRoadState::Instance(),
+    RhythmChangeState::Instance(),
+
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance(),
+
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance()
+    };
+    InitFSMFromJson(path);
+    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+
+    for (int i = 0; i < (int)anim.size(); i++)
+    {
+        mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
+        cout << "State[" << i << "] EndTime = " << mStateList[i]->mAnimEndTime << endl;
+    }
+}
 
 void MainPlayerComponent::StateCheck()
 {
@@ -166,29 +200,17 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 
     auto& props = j["stateProps"];
 
-    auto applyTime = [&](State<MainPlayerComponent>* st)
+    for (auto* st : mStateList)
+    {
+        const char* name = st->GetName();
+
+        if (props.contains(name))
         {
-            const char* name = st->GetName();   // Attack1, Aim µî
-            if (!props.contains(name)) return;
-
             if (props[name].contains("time"))
-                st->mStateTime = props[name]["time"].get<float>();
-        };
+                st->mStateTime = props[name]["time"];
+        }
+    }
 
-    applyTime(DashState::Instance());
-
-    applyTime(AimState::Instance());
-    applyTime(ReRoadState::Instance());
-    applyTime(RhythmChangeState::Instance());
-    applyTime(HitState::Instance());
-    applyTime(StunState::Instance());
-    applyTime(DeadState::Instance());
-
-    applyTime(Attack1State::Instance());
-    applyTime(Attack2State::Instance());
-    applyTime(Skill1State::Instance());
-    applyTime(Skill2State::Instance());
-    applyTime(SpecialState::Instance());
 }
 
 

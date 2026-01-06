@@ -159,14 +159,18 @@
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="PacketHelper.cpp" />
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="RecvBuffer.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
+    <ClCompile Include="SendBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Network.h" />
     <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="RecvBuffer.h" />
     <ClInclude Include="RingBuffer.h" />
+    <ClInclude Include="SendBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,19 +5,17 @@
 #include <atomic>
 #include "Packet.h"
 #include "RingBuffer.h"
+#include "RecvBuffer.h"
+#include "SendBuffer.h"
 #include "PacketHelper.h"
 
 constexpr const char* SERVERIP = "127.0.0.1";
-constexpr int SERVERPORT = 9000;
+constexpr int TCPSERVERPORT = 9000;	//TCP
+constexpr int UDPSERVERPORT = 9001;	//UDP
 constexpr int BUFSIZE = 4096;
 
-struct PendingSend {
-	BYTE* data;
-	int size;
-	int sentBytes;
-};
-
-
+extern SpscRingQueue<SendRequest, 128>	gSendBuffer;	// Logic -> Network
+extern SpscRingQueue<InputCommand, 128>	gRecvBuffer;	// Network -> Logic
 
 class Network
 {
@@ -25,16 +23,20 @@ public:
 	uint32_t mClientId{};
 private:
 	WSADATA mWsaData{};
-	SOCKET mSock{};
-	sockaddr_in mServerAddr{};
+	SOCKET mTcpSocket;
+	SOCKET mUdpSocket;
+	sockaddr_in mServerTcpAddr{};
+	sockaddr_in mServerUdpAddr{};
 	
 private:
 	std::thread mNetworkThread;
-	RecvBuffer mRecvBuffer;
-	std::queue<SendBuffer*> mSendBuffer;
-	std::mutex mQueueMutex;
 	std::atomic<bool> mIsRunning;
 
+	BYTE					mURecvBuffer[BUFSIZE];
+	RecvBuffer				mTRecvBuffer;	// 수신 버퍼
+	std::queue<SendBuffer*> mSendBuffer;	// 전송 버퍼 큐
+
+private:
 
 	Network();
 	~Network();
@@ -44,24 +46,35 @@ public: // Init
 		return instance;
 	}
 
-
+public: // 외부통신용
 	void Initialize();
-	void ConnectToServer(const char* ipAddress = SERVERIP, int port = SERVERPORT);
-	void ReleaseServer();
-
+	
 	void Awake();
-	void CheckConnect();
+	void Shutdown();
 
-	int32 Onrecv(BYTE* buffer, int32 len);
+private: // Session
 
-public: // Process
+	// send
+	void PrepareSendData();
+	void OnSendPacket();
+	//void ProcessSendData();
+	
 
+	// recv
+	void  OnRecvPacket();	// recv process
+	void  OnTCPNetworkUpdate();
+	int32 OnTcpRecv(BYTE* buffer, int32 len);
+
+	void OnUDPNetworkUpdate();
+	
+	InputCommand mInputCommand;
+	SendRequest mSendData;
+private: // Process
+	void ConnectToServer(const char* ipAddress = SERVERIP, int port = TCPSERVERPORT);
+	void ReleaseServer();
 	void NetworkUpdate();
-	void GameRecvUpdate();
-	void GameSendUpdate();
-
-	void ProcessPacket(BYTE* buffer, int32 len);
-	void PushSendData(const uint8_t* data, size_t size);
-
+private:
+	
+	
 };
 

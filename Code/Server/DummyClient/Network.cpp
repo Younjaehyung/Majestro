@@ -1,11 +1,17 @@
 #include "pch.h"
 #include "Network.h"
+#include "PacketHelper.h"
+
+SpscRingQueue<SendRequest, 128>	gSendBuffer;
+SpscRingQueue<InputCommand, 128>	gRecvBuffer;
 
 Network::Network()
 {
 	mWsaData={};
-	mSock={};
-	mServerAddr={};
+	mTcpSocket ={};
+	mUdpSocket ={};
+	mServerTcpAddr={};
+	mServerUdpAddr={};
 	mIsRunning = false;
 
 }
@@ -20,6 +26,10 @@ Network::~Network()
 }
 
 void Network::Initialize() {
+
+	SendBufferManager::Initialize(256);
+
+
 	if (WSAStartup(MAKEWORD(2, 2), &mWsaData) != 0) {
 		cout << "WSA creation failed with error: " << std::endl;
 		return;
@@ -30,20 +40,25 @@ void Network::Awake()
 {
 
 	ConnectToServer();
-
+	std::cout << "Network Awake completed." << std::endl;
 }
 
 void Network::ConnectToServer(const char* ipAddress, int port)
 {
 
-	mSock = socket(AF_INET, SOCK_STREAM, 0);
+	mTcpSocket = socket(AF_INET, SOCK_STREAM, 0);
+	mUdpSocket = socket(AF_INET, SOCK_DGRAM, 0);
+
+	mServerTcpAddr.sin_family = AF_INET;
+	inet_pton(AF_INET, ipAddress, &mServerTcpAddr.sin_addr);
+	mServerTcpAddr.sin_port = htons(port);
+
+	mServerUdpAddr.sin_family = AF_INET;
+	inet_pton(AF_INET, ipAddress, &mServerUdpAddr.sin_addr);
+	mServerUdpAddr.sin_port = htons(port + 1);
 
 
-	mServerAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, ipAddress, &mServerAddr.sin_addr);
-	mServerAddr.sin_port = htons(port);
-
-	int r = connect(mSock, (sockaddr*)&mServerAddr, sizeof(mServerAddr));
+	int r = connect(mTcpSocket, (sockaddr*)&mServerTcpAddr, sizeof(mServerTcpAddr));
 	if(r == SOCKET_ERROR) {
 		std::cout << "Failed to connect to server." << std::endl;
 		ReleaseServer();
@@ -51,176 +66,222 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	}
 
 	u_long one = 1;
-	ioctlsocket(mSock, FIONBIO, &one);
-
-	/*bool flag = true;
-	setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
-	if (mSock == INVALID_SOCKET) {
+	ioctlsocket(mTcpSocket, FIONBIO, &one);
+	if (mTcpSocket == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
 		ReleaseServer();
 		return;
 	}
 
+	/*bool flag = true; // nagle
+setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
+
+
 	mIsRunning = true;
 	mNetworkThread = std::thread(&Network::NetworkUpdate, this);
-	mNetworkThread.detach();
 }
 
 
 void Network::NetworkUpdate()
 {
 
-	
-	fd_set readSet;
-
 	while (mIsRunning) {
-
-		FD_ZERO(&readSet);
-		FD_SET(mSock, &readSet);
-
-		timeval timeOut{0,1000};
-		int result = select(0, &readSet, nullptr, nullptr, &timeOut);
-
-		if (result > 0) {
-			std::cout << "Time Out: " << result << std::endl;
-			// 데이터 수신 가능 상태
-			if (FD_ISSET(mSock, &readSet)) {
-				mRecvBuffer.Clean();
-
-				int recvLen = recv(mSock, (char*)mRecvBuffer.WritePos(), mRecvBuffer.FreeSize(), 0);
-
-				if (recvLen > 0) {
-					if (!mRecvBuffer.OnWrite(recvLen))
-					{
-						std::cout << "RecvBuffer OnWrite Error" << std::endl;
-						return;
-					}
-					while (true)
-					{
-						int32 ret = Onrecv(mRecvBuffer.ReadPos(), mRecvBuffer.DataSize());
-
-						if (ret < 0 || ret > mRecvBuffer.DataSize())
-						{
-							std::cout << "OnRecv Error" << std::endl;
-							return;;
-						}
-						else if (ret == 0)
-						{
-							break;
-						}
-						mRecvBuffer.OnRead(ret);
-						
-					}
-				}
-				else if (result == SOCKET_ERROR) {
-					int32 errorCode = WSAGetLastError();
-					if (errorCode != WSAEWOULDBLOCK)
-					{
-						continue;
-					}
-					LogDebug("select failed");
-					ReleaseServer();
-					std::cout << "select failed" << std::endl;
-					return;
-				}
-				else {
-					// 연결 종료
-					ReleaseServer();
-					std::cout << "Connection closed by server." << std::endl;
-					return;
-				}
-
-			}
-		}
+		OnRecvPacket();
+		OnSendPacket();
 		
 	}
-	
-
+	ReleaseServer();
 }
 
-void Network::GameRecvUpdate()
+void Network::Shutdown()
 {
-		//RecvBuffer localQueue;
-		//{
-		//	std::lock_guard<std::mutex> lock(mQueueMutex);
-		//	if (mRecvBuffer.empty()) return;
-		//	std::swap(mRecvBuffer, localQueue);
-		//}
-
-
-		//while (!localQueue.empty()) {
-		//	PacketBlock* packet = localQueue.front();
-		//	localQueue.pop();
-
-		//	ProcessPacket(packet);
-
-		//	PacketPool::Release(packet);
-		//}
-	
-}
-
-void Network::GameSendUpdate()
-{
-	int result = 0;
-
-	uint8_t* ptr1 = nullptr;
-	uint8_t* ptr2 = nullptr;
-	size_t size1 = 0, size2 = 0;
-
-	// 1. 현재 보낼 수 있는 데이터 위치 확보
-	while(!mSendBuffer.empty())
-	{
-		SendBuffer* sb = mSendBuffer.front();
-		size_t remain = sb->Capacity - sb->ReadPos;
-		int len = send(mSock, (char*)(sb->Data + sb->ReadPos),
-			remain, 0);
-		if (len < 0){
-			int err = WSAGetLastError();
-			if (err == WSAEWOULDBLOCK)
-			{
-				// 지금은 더 못 보냄  다음 select 때 재시도
-				break;
-			}
-		}
-		else if (len == 0)
-		{
-			// 연결 종료
-			ReleaseServer();
-			return;
-		}
-		else
-		{
-			sb->ReadPos += len;
-			if (sb->ReadPos >= sb->Capacity)
-			{
-				// 다 보냈으면 큐에서 제거
-				mSendBuffer.pop();
-				PacketPool::Release(sb);
-			}
-		}
+	std::cout << "Network Shutdown called." << std::endl;
+	mIsRunning = false;
+	if (mNetworkThread.joinable()) {
+		mNetworkThread.join();
 	}
-
 }
 
 void Network::ReleaseServer()
 {
-	closesocket(mSock);
+
+	SendBufferManager::Shutdown();
+	closesocket(mTcpSocket);
+	closesocket(mUdpSocket);
 	WSACleanup();
 }
 
-void Network::CheckConnect()
+
+
+void Network::OnRecvPacket()
 {
-	// 서버와 연결이 끊겼는지 확인
+	if (!mIsRunning) return;
+	OnTCPNetworkUpdate();	// recv
+	OnUDPNetworkUpdate();	// recv
 	
+}
+
+void Network::PrepareSendData()
+{
+	while (gSendBuffer.Pop(mSendData))
+	{
+		SendBuffer* sendBuffer = SendBufferManager::Acquire();
+		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
+		mSendBuffer.push(sendBuffer);
+	}
 
 }
 
-int32 Network::Onrecv(BYTE* buffer, int32 len)
+
+
+void Network::OnSendPacket()
+{
+	if (!mIsRunning) return;
+
+	PrepareSendData();	//send
+
+	while (!mSendBuffer.empty()) {
+
+		SendBuffer* sendBuffer = mSendBuffer.front();
+
+		switch (sendBuffer->Protocol)
+		{
+		case NetProtocol::TCP:
+		{
+
+			uint32 remain = sendBuffer->Capacity - sendBuffer->ReadPos;
+
+			int len = send(mTcpSocket, (char*)sendBuffer->Data, sendBuffer->Capacity, 0);
+			//ProcessSendData();
+			if (len == 0)
+			{
+				// 연결이 종료됨
+				Shutdown();
+				return;
+			}
+			else if (len < 0)
+			{
+				int err = WSAGetLastError();
+				if (err == WSAEWOULDBLOCK)
+				{
+					
+					break;
+				}
+
+				// 치명적 오류
+				Shutdown();
+				return;
+			}
+			// 부분/전체 전송 반영
+			sendBuffer->ReadPos += len;
+
+			if (sendBuffer->ReadPos > sendBuffer->Capacity)
+			{
+				Shutdown();
+				SendBufferManager::Release(sendBuffer);
+				return;
+			}
+			if (sendBuffer->Capacity > sendBuffer->ReadPos)
+			{
+				continue; // 아직 덜 보냄
+			}
+
+			mSendBuffer.pop();
+			SendBufferManager::Release(sendBuffer);
+		}
+		case NetProtocol::UDP:
+		{
+			int len = sendto(mUdpSocket, (char*)sendBuffer->Data, sendBuffer->Capacity, 0,
+				(sockaddr*)&mServerUdpAddr, sizeof(mServerUdpAddr));
+
+			if(len > 0)
+			{
+				// 전송 성공
+				mSendBuffer.pop();
+				SendBufferManager::Release(sendBuffer);
+			}
+			else if (len == 0)
+			{
+				// 연결이 종료됨
+				Shutdown();
+			}
+			else
+			{
+				int32 errorCode = WSAGetLastError();
+				if (errorCode != WSAEWOULDBLOCK)
+				{
+					// 치명적인 오류 발생
+					Shutdown();
+				}
+			}
+
+			break;
+		}
+		default:
+		{	// 알 수 없는 프로토콜
+			mSendBuffer.pop();
+			SendBufferManager::Release(sendBuffer);
+			break;
+		}
+		}
+		
+		
+	}
+	
+}
+
+
+void Network::OnTCPNetworkUpdate()
+{
+	if (!mIsRunning) return;
+	// 수신 처리
+	mTRecvBuffer.Clean();
+
+	if (mTRecvBuffer.FreeSize() <= 0) {
+		Shutdown();
+		return;
+	}
+
+	int len = recv(mTcpSocket, (char*)mTRecvBuffer.WritePos(),
+		mTRecvBuffer.FreeSize(), 0);
+
+	if (len > 0) {
+		if (!mTRecvBuffer.OnWrite(len)) {
+			Shutdown();
+			return;
+		}
+		while (true) {
+			int32 ret = OnTcpRecv(mTRecvBuffer.ReadPos(), mTRecvBuffer.DataSize());
+			if (ret < 0 || ret > mTRecvBuffer.DataSize()) {
+				Shutdown();
+				return;
+			}
+			else if (ret == 0) {
+				break;
+			}
+			mTRecvBuffer.OnRead(ret);
+		}
+	}
+	else if (len == 0) {
+		Shutdown();
+		return;
+	}
+	else {
+		int32 errorCode = WSAGetLastError();
+		if (errorCode != WSAEWOULDBLOCK) {
+			Shutdown();
+			return;
+		}
+	}
+	
+}
+
+int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 {
 	int32 processLen = 0;
 
-	
+	std::cout << "Onrecv called with len: " << len << std::endl;
 	{
 		int32 dataSize = len - processLen;
 		// 최소한 헤더는 파싱할 수 있어야 한다
@@ -238,7 +299,10 @@ int32 Network::Onrecv(BYTE* buffer, int32 len)
 			return 0;
 
 		// 패킷 조립 성공
-		ProcessPacket(buffer, header.Size);
+
+		ProcessPacket::ProcessPackets(buffer, &mInputCommand);
+		gRecvBuffer.Push(mInputCommand);
+
 
 		processLen += header.Size;
 	}
@@ -247,50 +311,18 @@ int32 Network::Onrecv(BYTE* buffer, int32 len)
 }
 
 
-void Network::ProcessPacket(BYTE* buffer, int32 len) {
-
-	PacketHeader header;
-	::memcpy(&header, buffer, sizeof(PacketHeader));
-
-	BYTE* payload = buffer + sizeof(PacketHeader);
-	int32 payloadSize = header.Size - sizeof(PacketHeader);
-
-
-	switch (header.PacketType) {
-		case KPOSITION: {
-			auto data = reinterpret_cast<MovePacketData*>(&payload);
-
-
-
-
-			// 게임 월드의 해당 캐릭터 위치 갱신
-			// 여기서 직접 위치를 세팅하면 '순간이동'처럼 보이므로, 
-			// 목표 위치(TargetPos)만 설정하고 World::Tick에서 보간(Lerp)
-			//Player* player = m_world->FindPlayer(data->playerId);
-			//if (player) {
-			//	player->SetTargetPosition(data->x, data->y, data->z);
-			//}
-			break;
-		}
-		case KSYNC: {
-			auto data = reinterpret_cast<SyncPacketData*>(&buffer);
-
-			std::cout << "Received Sync Packet: ClientID=" << data->clientId
-				<< ", RhythmTime=" << data->rhythmTime << std::endl;
-
-			// 리듬 동기화 및 서버 시간 보정
-			//m_timeSystem->SyncWithServer(data->serverTime);
-			break;
-		}
-	}
-}
-
-void Network::PushSendData(const uint8_t* data, size_t size)
+void Network::OnUDPNetworkUpdate()
 {
-	SendBuffer* packet = PacketPool::Acquire();
-	packet->SetData(data, static_cast<uint16_t>(size));
-
-
-	mSendBuffer.push(packet);
-
+	if (!mIsRunning) return;
+	// UDP 수신 처리
+	sockaddr_in fromAddr;
+	int fromLen = sizeof(fromAddr);
+	
+	int len = recvfrom(mUdpSocket, (char*)mURecvBuffer, BUFSIZE, 0,
+		(sockaddr*)&fromAddr, &fromLen);
+	if (len > 0) {
+		// UDP 패킷 처리
+		ProcessPacket::ProcessPackets(mURecvBuffer, &mInputCommand);
+		gRecvBuffer.Push(mInputCommand);
+	}
 }

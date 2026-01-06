@@ -1,118 +1,134 @@
 #pragma once
-#include <vector>
 #include <stack>
-#include <mutex>
-
+#include <queue>
+#include <atomic>
+#include <cstddef>
+#include <type_traits>
 #include "Packet.h"
 
-/*--------------
-    RecvBuffer
-----------------*/
+//////////////////*
+// Single Producer Single Consumer Ring Queue
+// LOGIC THREAD <-> NETWORK THREAD
+////////////////*/
 
-class RecvBuffer
+class SendBuffer;
+
+struct InputCommand // Packet received (network thread -> logic thread)
 {
-    enum { BUFFER_COUNT = 64 };
-
-public:
-    RecvBuffer(int32 bufferSize = 1024);
-    ~RecvBuffer();
-
-    void			Clean();
-    bool			OnRead(int32 numOfBytes);
-    bool			OnWrite(int32 numOfBytes);
-
-    BYTE* ReadPos() { return &mBuffer[mReadPos]; }
-    BYTE* WritePos() { return &mBuffer[mWritePos]; }
-    int32			DataSize() { return mWritePos - mReadPos; }
-    int32			FreeSize() { return mCapacity - mWritePos; }
-
-private:
-    int32			mCapacity = 0;
-    int32			mBufferSize = 0;
-    int32			mReadPos = 0;
-    int32			mWritePos = 0;
-    std::vector<BYTE>	mBuffer;
+    uint32   SessionId;
+    float moveX;
+    float moveY;
+    bool  action1;
+    bool  action2;
 };
 
+struct SendRequest { // Packet to be sent (logic thread -> network thread)
 
+    uint32 SessionId;
+    PKT_Type Type;
 
-struct SendBuffer
-{
-    uint32  ReadPos = 0;
-    uint32  Capacity = 0;
-    uint8_t Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
+    union
+    {
+        SyncPacketData sync{};
 
-    void SetData(const void* data, uint16_t dataSize) {
-        Capacity = dataSize;
-        if (dataSize > 0 && data != nullptr) {
-            std::memcpy(Data, data, dataSize);
-        }
-    }
+    };
+
+    SendRequest() : SessionId(0), Type(PKT_Type::KNONE){ }
 };
 
-
-class PacketPool
+class SendRequestPacket
 {
 public:
-
-	// Initialize the pool with a specific number of packets
-    static void Initialize(size_t count) {
-        std::lock_guard<std::mutex> lock(mMutex);
-        m_pool.reserve(count);
-        for (size_t i = 0; i < count; ++i) {
-            m_pool.push_back(new SendBuffer());
-        }
-        m_totalAllocated = count;
-    }
-
-
-	// Destroy all packets in the pool
-    static void Shutdown() {
-        std::lock_guard<std::mutex> lock(mMutex);
-        for (SendBuffer* p : m_pool) {
-            delete p;
-        }
-        m_pool.clear();
-    }
-
-	// packet acquire
-    [[nodiscard("PacketBlock not return")]] 
-    static SendBuffer* Acquire() {
-        std::lock_guard<std::mutex> lock(mMutex);
-
-        if (m_pool.empty()) {
-
-            LogDebug("[Warning] PacketPool Exhausted! Allocating new.\n");
-            m_totalAllocated++;
-            return new SendBuffer();
-        }
-
-        // LIFO
-        SendBuffer* p = m_pool.back();
-        m_pool.pop_back();
-        return p;
-    }
-
-	// packet release
-    static void Release(SendBuffer* p) {
-        if (!p) return;
-
-        std::lock_guard<std::mutex> lock(mMutex);
-        m_pool.push_back(p);
-    }
-
-	// Size of available packets in the pool
-    static size_t GetAvailableCount() {
-        std::lock_guard<std::mutex> lock(mMutex);
-        return m_pool.size();
-    }
-
-private:
-    // Vector를 스택처럼 사용 (Cache Friendly)
-    static inline std::vector<SendBuffer*> m_pool;
-    static inline std::mutex mMutex;
-    static inline size_t m_totalAllocated;
+    static void SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer);
+    static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
+    static void SerializeInputPacket(SendRequest& pkt, SendBuffer*){}
+    static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}
 };
 
 
+class ProcessPacket // Process received packets (network thread -> logic thread)
+{
+private:
+public:
+	static void ProcessPackets(BYTE* buffer, InputCommand* inputCommand);
+    static void ProcessSyncPacket(BYTE* buffer, InputCommand* inputCommand);
+    static void ProcessInputPacket(BYTE* buffer, InputCommand* inputCommand) {};
+    static void ProcessActionPacket(BYTE* buffer, InputCommand* inputCommand) {};
+};
+
+
+template<typename T, size_t Capacity>
+class SpscRingQueue // LOGIC <-> NETWORK
+{
+    static_assert(Capacity >= 2, "Capacity must be >= 2");
+    static_assert((Capacity& (Capacity - 1)) == 0,
+        "Capacity must be power of two");
+
+public:
+    SpscRingQueue()
+    {
+        mHead.store(0, std::memory_order_relaxed);
+        mTail.store(0, std::memory_order_relaxed);
+    }
+
+    // Producer 전용
+    bool Push(const T& item)
+    {
+        const size_t tail = mTail.load(std::memory_order_relaxed);
+        const size_t next = (tail + 1) & MASK;
+
+        // 큐가 가득 참
+        if (next == mHead.load(std::memory_order_acquire))
+            return false;
+
+        mBuffer[tail] = item;
+
+        // item 쓰기 완료 후 tail 갱신
+        mTail.store(next, std::memory_order_release);
+        return true;
+    }
+
+    // Consumer 전용
+    bool Pop(T& out)
+    {
+        const size_t head = mHead.load(std::memory_order_relaxed);
+
+        // 큐가 비어 있음
+        if (head == mTail.load(std::memory_order_acquire))
+            return false;
+
+        out = mBuffer[head];
+
+        // 읽기 완료 후 head 갱신
+        mHead.store((head + 1) & MASK, std::memory_order_release);
+        return true;
+    }
+
+    // Consumer 전용 (읽기만, 제거 안 함)
+    bool Peek(T& out) const
+    {
+        const size_t head = mHead.load(std::memory_order_relaxed);
+
+        if (head == mTail.load(std::memory_order_acquire))
+            return false;
+
+        out = mBuffer[head];
+        return true;
+    }
+
+    bool Empty() const
+    {
+        return mHead.load(std::memory_order_acquire) ==
+            mTail.load(std::memory_order_acquire);
+    }
+
+private:
+    static constexpr size_t MASK = Capacity - 1;
+
+    alignas(64) std::atomic<size_t> mHead;
+    alignas(64) std::atomic<size_t> mTail;
+
+    // false sharing 방지용 패딩은 alignas로 충분
+    T mBuffer[Capacity];
+};
 

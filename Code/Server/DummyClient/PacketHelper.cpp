@@ -1,54 +1,62 @@
 #include "pch.h"
 #include "PacketHelper.h"
+#include "SendBuffer.h"
 
-/*--------------
-	RecvBuffer
-----------------*/
 
-RecvBuffer::RecvBuffer(int32 bufferSize) : mBufferSize(bufferSize)
+void SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer)
 {
-	mCapacity = bufferSize * BUFFER_COUNT;
-	mBuffer.resize(mCapacity);
+
+    {
+        switch (pkt.Type)
+        {
+        case PKT_Type::KSYNC:
+            SerializeSyncPacket(pkt, sendBuffer);
+            break;
+        case PKT_Type::KINPUT:
+            SerializeInputPacket(pkt, sendBuffer);
+            break;
+        case PKT_Type::KACTION:
+            SerializeActionPacket(pkt, sendBuffer);
+            break;
+        default:
+            // Unknown packet type
+            break;
+        }
+    }
 }
 
-RecvBuffer::~RecvBuffer()
+void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBuffer)
 {
+
+	// Copy header
+	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData),TCP);
+
+	
 }
 
-void RecvBuffer::Clean()
+void ProcessPacket::ProcessPackets(BYTE* buffer, InputCommand* inputCommand )
 {
-	int32 dataSize = DataSize();
-	if (dataSize == 0)
-	{
-		// 딱 마침 읽기+쓰기 커서가 동일한 위치라면, 둘 다 리셋.
-		mReadPos = mWritePos = 0;
-	}
-	else
-	{
-		// 여유 공간이 버퍼 1개 크기 미만이면, 데이터를 앞으로 땅긴다.
-		if (FreeSize() < mBufferSize)
-		{
-			::memcpy(&mBuffer[0], &mBuffer[mReadPos], dataSize);
-			mReadPos = 0;
-			mWritePos = dataSize;
-		}
-	}
+
+    PacketHeader header;
+	::memcpy(&header, buffer, sizeof(PacketHeader));
+
+
+    switch (header.PacketType) {
+        case PKT_Type::KSYNC:
+        ProcessSyncPacket(buffer, inputCommand);
+		break;
+    }
 }
 
-bool RecvBuffer::OnRead(int32 numOfBytes)
+void ProcessPacket::ProcessSyncPacket(BYTE* buffer, InputCommand* inputCommand)
 {
-	if (numOfBytes > DataSize())
-		return false;
+    SyncPacketData syncPacket;
+    ::memcpy(&syncPacket, buffer, sizeof(SyncPacketData));
 
-	mReadPos += numOfBytes;
-	return true;
-}
-
-bool RecvBuffer::OnWrite(int32 numOfBytes)
-{
-	if (numOfBytes > FreeSize())
-		return false;
-
-	mWritePos += numOfBytes;
-	return true;
+    inputCommand->SessionId = syncPacket.clientId;
+	inputCommand->moveX = syncPacket.rhythmTime;
+	std::cout << "Processed SyncPacket for Client ID: " << inputCommand->SessionId << " with Rhythm Time: " << inputCommand->moveX << std::endl;
+    // 여기서 inputCmd의 다른 필드를 설정할 수 있습니다.
+    // 수신된 명령을 링 버퍼에 푸시
+   
 }

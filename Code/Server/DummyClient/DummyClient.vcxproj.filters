@@ -10,6 +10,12 @@
     <Filter Include="Network">
       <UniqueIdentifier>{43d7ae0a-f4d8-4ea1-9376-a77021dcb46c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Buffer">
+      <UniqueIdentifier>{03861826-f5e2-415c-87b4-262d33539e57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer\Packet">
+      <UniqueIdentifier>{c3f43d01-631b-4980-b240-d852c3fe7f02}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DummyClient.cpp">
@@ -18,31 +24,43 @@
     <ClCompile Include="pch.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="RingBuffer.cpp">
+    <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Network</Filter>
+      <Filter>Buffer\Packet</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
-      <Filter>Network</Filter>
+    <ClCompile Include="RecvBuffer.cpp">
+      <Filter>Buffer\Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>Buffer\Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="SendBuffer.cpp">
+      <Filter>Buffer\Packet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="RingBuffer.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketHelper.h">
+    <ClInclude Include="Network.h">
       <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="Packet.h">
-      <Filter>Network</Filter>
+      <Filter>Buffer\Packet</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
-      <Filter>Network</Filter>
+    <ClInclude Include="PacketHelper.h">
+      <Filter>Buffer\Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="RecvBuffer.h">
+      <Filter>Buffer\Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>Buffer\Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="SendBuffer.h">
+      <Filter>Buffer\Packet</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

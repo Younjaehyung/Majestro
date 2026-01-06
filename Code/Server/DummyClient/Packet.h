@@ -1,6 +1,10 @@
 #pragma once
 #include "pch.h"
+
 #pragma pack(push, 1)
+
+////////////////////////////////////////////
+
 
 enum PKT_Type : uint32 {
 	KNONE = 0,
@@ -15,13 +19,21 @@ enum PKT_Type : uint32 {
 
 struct PacketHeader {
 	uint32 Size;
+	
 	PKT_Type PacketType;
 	double   sendTime;
 };
 static constexpr uint32 kHeaderSize = sizeof(PacketHeader);
-constexpr uint32 MAX_PACKET_SIZE = 1024;
+constexpr uint32 MAX_PACKET_SIZE = 128;
 
 ///////////////////////////////////////////
+
+struct KServerPacket : public PacketHeader {
+
+	uint16 dummy{}; // 예시 필드
+
+	KServerPacket() : PacketHeader{ sizeof(KServerPacket) ,PKT_Type::KSERVER, 0.0 } {}
+};
 
 struct SyncPacketData : public PacketHeader {
 	uint32_t clientId{};
@@ -42,7 +54,4 @@ struct MovePacketData {
 
 
 
-
 #pragma pack(pop)
-
-

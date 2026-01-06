@@ -4,13 +4,13 @@
 int main()
 {
 	Network::GetInstance().Initialize();
-	Network::GetInstance().ConnectToServer();
+	Network::GetInstance().Awake();
 
 
 
 	while(true)
 	{
-		Network::GetInstance().GameRecvUpdate();
+		//Network::GetInstance().GameRecvUpdate();
 
 		//Network::GetInstance().GameSendUpdate();
 	}

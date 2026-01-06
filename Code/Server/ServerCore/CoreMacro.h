@@ -1,4 +1,5 @@
 #pragma once
+#include <windows.h>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -6,6 +7,7 @@
 #include <chrono>
 #include <format>
 #include <source_location>
+
 
 
 #define PRINTLOG(fmt, ...) \
@@ -39,7 +41,7 @@
 
 static std::mutex logMutex;
 
-// std::source_locationÀ¸·Î È£ÃâºÎ Á¤º¸¸¦ ÀÚµ¿À¸·Î °¡Á®¿È
+// std::source_locationìœ¼ë¡œ í˜¸ì¶œë¶€ ì •ë³´ë¥¼ ìë™ìœ¼ë¡œ ê°€ì ¸ì˜´
 
 static void LogInternal(std::string_view level, std::string_view formatted_msg, const std::source_location& location) {
     const auto now = std::chrono::system_clock::now();

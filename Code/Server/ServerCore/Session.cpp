@@ -155,11 +155,3 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 
 	return processLen;
 }
-
-void Session::OnSend(PacketHeader* sendData)
-{
-
-	SendBuffer* sendBuffer = SendBufferManager::Acquire();
-	sendBuffer->SetData(sendData, sendData->Size);
-	mSendBufferQueue.push(sendBuffer);
-}

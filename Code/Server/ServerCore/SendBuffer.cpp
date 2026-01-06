@@ -4,9 +4,9 @@
 
 
 void SendBufferManager::Initialize(size_t count) {
-    mPool.reserve(count);
+
     for (size_t i = 0; i < count/2; ++i) {
-        mPool.push_back(new SendBuffer());
+        mPool.push(new SendBuffer());
     }
     mTotalAllocated = count;
     
@@ -15,21 +15,21 @@ void SendBufferManager::Initialize(size_t count) {
 
 void SendBufferManager::Shutdown() {
 
-    for (SendBuffer* p : mPool) {
-        delete p;
+    while (!mPool.empty()) {
+		SendBuffer* p = mPool.top();
+        mPool.pop();
+		delete p;
     }
-    mPool.clear();
-    
 }
 
 SendBuffer* SendBufferManager::Acquire() {
     if (mPool.empty()) {
-        LOG_WARN("SendBufferPool Exhausted! Allocating new. All: [{}] \n", mTotalAllocated);
+        // LOG_WARN("SendBufferPool Exhausted! Allocating new. All: [{}] \n", mTotalAllocated);
         mTotalAllocated++;
         return new SendBuffer();
     }
     // LIFO
-    SendBuffer* p = mPool.back();
-    mPool.pop_back();
+    SendBuffer* p = mPool.top();
+    mPool.pop();
     return p;
 }

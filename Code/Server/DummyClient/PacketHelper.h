@@ -11,10 +11,10 @@
 
 class RecvBuffer
 {
-    enum { BUFFER_COUNT = 10 };
+    enum { BUFFER_COUNT = 64 };
 
 public:
-    RecvBuffer(int32 bufferSize = BUFFER_COUNT);
+    RecvBuffer(int32 bufferSize = 1024);
     ~RecvBuffer();
 
     void			Clean();

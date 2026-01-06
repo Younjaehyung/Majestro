@@ -7,7 +7,7 @@
 #include "RingBuffer.h"
 #include "PacketHelper.h"
 
-
+constexpr const char* SERVERIP = "127.0.0.1";
 constexpr int SERVERPORT = 9000;
 constexpr int BUFSIZE = 4096;
 
@@ -18,6 +18,7 @@ struct PendingSend {
 };
 
 
+
 class Network
 {
 public:
@@ -26,13 +27,10 @@ private:
 	WSADATA mWsaData{};
 	SOCKET mSock{};
 	sockaddr_in mServerAddr{};
+	
+private:
 	std::thread mNetworkThread;
-
-	const char* SERVERIP = "127.0.0.1";
-	char mRecvBuf[BUFSIZ] = {};
-	int mRecvUsed = 0;
 	RecvBuffer mRecvBuffer;
-	//std::queue<PacketBlock*> mSendQueue;
 	std::queue<SendBuffer*> mSendBuffer;
 	std::mutex mQueueMutex;
 	std::atomic<bool> mIsRunning;
@@ -48,7 +46,7 @@ public: // Init
 
 
 	void Initialize();
-	void ConnectToServer(const char* ipAddress = "127.0.0.1", int port = 9000);
+	void ConnectToServer(const char* ipAddress = SERVERIP, int port = SERVERPORT);
 	void ReleaseServer();
 
 	void Awake();

@@ -3,7 +3,7 @@
 //	SendBuffer
 // Send시 Packet 관리용 버퍼
 //-----------------*/
-#include <vector>
+#include <stack>
 #include <memory>
 #include <algorithm>
 #include "PacketHelper.h"
@@ -16,6 +16,7 @@ struct SendBuffer   // SEND BUFFER
 	uint8   Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
 
     void SetData(const void* data, uint32 dataSize) {
+        ReadPos = 0;
         Capacity = dataSize;
         if (dataSize > 0 && data != nullptr) {
             std::memcpy(Data, data, dataSize);
@@ -39,8 +40,8 @@ public:
 
     // packet release
     static void Release(SendBuffer* p) {
-        if (!p) return;
-        mPool.push_back(p);
+        if (nullptr == p) return;
+        mPool.push(p);
     }
 
     // Size of available packets in the pool
@@ -50,6 +51,6 @@ public:
 
 private:
     // Vector를 스택처럼 사용 (Cache Friendly)
-    static inline std::vector<SendBuffer*> mPool;
-    static inline size_t mTotalAllocated;
+    static inline std::stack<SendBuffer*> mPool;
+    static inline size_t mTotalAllocated{};
 };

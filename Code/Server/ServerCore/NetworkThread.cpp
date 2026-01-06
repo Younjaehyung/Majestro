@@ -3,6 +3,7 @@
 #include "ServerCore.h"
 #include "SessionManager.h"
 #include "SendBuffer.h"
+#include "SocketUtils.h"
 #include "Session.h"
 
 
@@ -10,15 +11,13 @@
 NetworkThread::NetworkThread()
 {
 	mListenSocket = INVALID_SOCKET;
-    mSessionMgr.Initialize();
-    SendBufferManager::Initialize(1000);
+    Initialize();
 }
 
 NetworkThread::NetworkThread(SOCKET listenSocket)
     : mListenSocket(listenSocket)
 {
-    mSessionMgr.Initialize();
-    SendBufferManager::Initialize(1000);
+    Initialize();
 }
 
 NetworkThread::~NetworkThread()
@@ -26,17 +25,49 @@ NetworkThread::~NetworkThread()
 	Stop();
 }
 
+
+
+void NetworkThread::Initialize()
+{
+    mSessionMgr.Initialize();
+    
+
+    // 소켓 생성
+    mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (mListenSocket == INVALID_SOCKET) LOG_ERROR("err(socket)");
+
+    u_long on = 1;
+    if (::ioctlsocket(mListenSocket, FIONBIO, &on) == INVALID_SOCKET) {
+        LOG_ERROR("err(ioct)");
+        return;
+    }
+        
+
+    // bind()
+    if (false == SocketUtils::BindAnyAddress(mListenSocket, 9000)) {
+        LOG_ERROR("err(bind)");
+        SocketUtils::Close(mListenSocket);
+        SocketUtils::Clear();
+        return;
+    }
+
+    // listen()
+    if (false == SocketUtils::Listen(mListenSocket, SOMAXCONN)) {
+        LOG_ERROR("err(listen)");
+        SocketUtils::Close(mListenSocket);
+        SocketUtils::Clear();
+        return;
+    }
+
+    LOG_INFO("START GAME SERVER");
+}
+
 void NetworkThread::Start()
 {
 	
-	mThread = std::thread([this]()
-	{
-		mRunning = true;
-		while (mRunning)
-		{
-			Update();
-		}
-	});
+	mRunning = true;
+    mThread = std::thread(&NetworkThread::Update, this);
+    
 }
 
 void NetworkThread::Stop()
@@ -52,33 +83,40 @@ void NetworkThread::Stop()
 
 void NetworkThread::Update()
 {
+    while (mRunning) {
         fd_set readSet, writeSet;
         FD_ZERO(&readSet);
         FD_ZERO(&writeSet);
 
         FD_SET(mListenSocket, &readSet);
 
+        
+        Send();
 
-        for (auto& s : mSessionMgr.GetAllSessions())
-        {   
+        for (auto& s : mSessionMgr.mSessions)
+        {
+			if (!s.second->IsConnected()) continue;
+
             FD_SET(s.second->GetSocket(), &readSet);
 
-            if (Send())
+            if (!s.second->mSendBufferQueue.empty())
                 FD_SET(s.second->GetSocket(), &writeSet);
         }
 
         timeval tv{ 0, 1000 }; // 1ms
-        select(0, &readSet, &writeSet, nullptr, &tv);
+        int32 ready = select(0, &readSet, &writeSet, nullptr, &tv);
+        if (ready <= 0)
+            continue;
 
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
-       
-        for (auto& s : mSessionMgr.GetAllSessions())
+
+        for (auto& s : mSessionMgr.mSessions)
         {
             if (s.second->IsConnected() == false)
                 continue;
 
-            
+
 
             if (FD_ISSET(s.second->GetSocket(), &readSet))
                 HandleRecv(s.second);
@@ -89,6 +127,7 @@ void NetworkThread::Update()
 
         CleanupDisconnected();
 
+    }
 }
 
 
@@ -98,11 +137,14 @@ void NetworkThread::AcceptClient()
     sockaddr_in clientaddr;
     int32 addrlen = sizeof(clientaddr);
     SOCKET s = accept(mListenSocket, (struct sockaddr*)&clientaddr, &addrlen);
-    u_long one = 1;
-    ioctlsocket(s, FIONBIO, &one);
+    if(s == INVALID_SOCKET)
+    {
+        int32 error = WSAGetLastError();
+        LOG_ERROR("Accept Failed, error code : {}", error);
+        return;
+	}
 
     shared_ptr<Session> session = mSessionMgr.CreateSessions(s);
-	mSessionMgr.AddSession(session);
 
 	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
         session->GetPlayerId(), session->GetAddress().GetIpAddressA(),
@@ -187,7 +229,7 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
             {
                 // 지금은 더 못 보냄 → 다음 select 때 재시도
 				LOG_INFO("WSAEWOULDBLOCK on Send, ID:[{}]", session->GetPlayerId());
-                return;
+                break;
             }
 
             // 치명적 오류
@@ -205,6 +247,12 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
         // 부분/전체 전송 반영
         sb->ReadPos += len;
 
+        if (sb->ReadPos > sb->Capacity)
+        {
+            session->Disconnect("BUFFER ERROR");
+            SendBufferManager::Release(sb);
+            return;
+        }
         if (sb->Capacity > sb->ReadPos)
         {
 			continue; // 아직 덜 보냄
@@ -221,10 +269,10 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 
 void NetworkThread::CleanupDisconnected()
 {
-    for (auto& s : mSessionMgr.GetAllSessions())
+    for (auto& s : mSessionMgr.mSessions)
     {
 
-        if (s.second->GetConnectedAtomic()) continue;
+        if (s.second->IsConnected()) continue;
 
         s.second->Close();
         mSessionMgr.RemoveSession(s.second);
@@ -234,8 +282,6 @@ void NetworkThread::CleanupDisconnected()
 
 bool NetworkThread::Send()
 {
-    if (gSendQueue.Empty())
-        return false;
 
     while (gSendQueue.Pop(mData)) {
 
@@ -246,21 +292,37 @@ bool NetworkThread::Send()
 		}
 
         SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	
+        if (sendBuffer == nullptr)
+        {
+            LOG_ERROR("SendBuffer Acquire Failed");
+            continue;
+        }
+
 
         switch (mData.Type)
         {
             //case PKT_Type::POSITION:
             //	SerializePosition(mData,sendBuffer);
             //	break;
-            case PKT_Type::KSYNC:
-                SendRequestPacket::SerializeSyncPacket(mData, sendBuffer);
-				break;
-            default:
-                break;
+        case PKT_Type::KSYNC: {
+            SendRequestPacket::SerializeSyncPacket(mData, sendBuffer);
+            break;
+         }
+        default:
+            SendBufferManager::Release(sendBuffer);
+            continue;
         }
 
-	    if(mSessionMgr.mSessions.contains(mData.SessionId))
-         mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
+        auto it = mSessionMgr.mSessions.find(mData.SessionId);
+        if (it != mSessionMgr.mSessions.end())
+        {
+            it->second->SendData(sendBuffer);
+        }
+        else
+        {
+            SendBufferManager::Release(sendBuffer);
+        }
     }
     return true;
 }
@@ -272,7 +334,7 @@ void NetworkThread::BroadcastPacket(SendRequest& pkt)
         return;
     }
 
-    for (auto& s : mSessionMgr.GetAllSessions())
+    for (auto& s : mSessionMgr.mSessions)
     {
 		pkt.SessionId = s.second->GetPlayerId();
 		gSendQueue.Push(pkt);

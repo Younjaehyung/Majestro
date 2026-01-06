@@ -18,8 +18,7 @@ public:
 
 	void 								Initialize();
 
-	std::shared_ptr<Session>			CreateSessions(SOCKET);
-	void								AddSession(std::shared_ptr<Session>& seesion);
+	std::shared_ptr<Session>			CreateSessions(SOCKET&);
 	void								RemoveSessionAt(int32 index);
 	void								RemoveSession(std::shared_ptr<Session> session);
 	void 								ClearSessions();

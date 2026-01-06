@@ -25,7 +25,7 @@ public:
 	/* 외부에서 사용 */
 	void				SetSession(SOCKET socket);
 	//bool				Connect();
-	void				OnSend(PacketHeader* sendBuffer);
+
 	int32				OnRecv(BYTE* buffer, int32 len);
 	void				Disconnect(const std::string& cause);
 	void				Close();
@@ -41,10 +41,8 @@ public:
 
 	void				SetSocket(SOCKET socket) { mSocket = socket; }
 	SOCKET&				GetSocket() { return mSocket; }
-	bool				IsConnected() { return mConnected; }
+	Atomic<bool>&		IsConnected()		{ return mConnected; }
 	
-	Atomic<bool>&		GetConnectedAtomic() { return mConnected; }
-
 private:
 	void				HandleError(int32 errorCode);
 

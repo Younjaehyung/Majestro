@@ -40,7 +40,6 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 
 
 	mServerAddr.sin_family = AF_INET;
-	
 	inet_pton(AF_INET, ipAddress, &mServerAddr.sin_addr);
 	mServerAddr.sin_port = htons(port);
 
@@ -54,8 +53,8 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	u_long one = 1;
 	ioctlsocket(mSock, FIONBIO, &one);
 
-	bool flag = true;
-	setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));
+	/*bool flag = true;
+	setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
 	if (mSock == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
@@ -65,17 +64,18 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 
 	mIsRunning = true;
 	mNetworkThread = std::thread(&Network::NetworkUpdate, this);
-
+	mNetworkThread.detach();
 }
 
 
 void Network::NetworkUpdate()
 {
 
-
+	
 	fd_set readSet;
 
 	while (mIsRunning) {
+
 		FD_ZERO(&readSet);
 		FD_SET(mSock, &readSet);
 
@@ -220,25 +220,25 @@ int32 Network::Onrecv(BYTE* buffer, int32 len)
 {
 	int32 processLen = 0;
 
-	while (true)
+	
 	{
 		int32 dataSize = len - processLen;
 		// 최소한 헤더는 파싱할 수 있어야 한다
 		if (dataSize < sizeof(PacketHeader))
-			break;
+			return 0;
 
 		PacketHeader header;
-		::memcpy(&header, buffer + processLen, sizeof(PacketHeader));
+		::memcpy(&header, buffer, sizeof(PacketHeader));
 		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
 
 		if (header.Size < sizeof(PacketHeader))
 			return -1; // 프로토콜 오류
 
 		if (dataSize < header.Size)
-			break; // 아직 덜 옴
+			return 0;
 
 		// 패킷 조립 성공
-		ProcessPacket(buffer + processLen, header.Size);
+		ProcessPacket(buffer, header.Size);
 
 		processLen += header.Size;
 	}
@@ -273,7 +273,7 @@ void Network::ProcessPacket(BYTE* buffer, int32 len) {
 			break;
 		}
 		case KSYNC: {
-			auto data = reinterpret_cast<SyncPacketData*>(&payload);
+			auto data = reinterpret_cast<SyncPacketData*>(&buffer);
 
 			std::cout << "Received Sync Packet: ClientID=" << data->clientId
 				<< ", RhythmTime=" << data->rhythmTime << std::endl;

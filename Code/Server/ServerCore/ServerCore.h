@@ -1,8 +1,10 @@
 #pragma once
 #include "NetAddress.h"
+#include "PacketHelper.h"
 
-extern SpscRingQueue<SendRequest, 128>							gSendQueue;
-extern SpscRingQueue<InputCommand, 128>							gRecvQueue;
+
+extern SpscRingQueue<SendRequest, 128 * 1024>							gSendQueue;
+extern SpscRingQueue<InputCommand, 128 * 1024>							gRecvQueue;
 
 class ServerCore
 {
@@ -21,7 +23,6 @@ public:
 private:
 
 private:
-	SOCKET												mListenSocket;
 	std::shared_ptr<class NetworkThread>				mNetworkThread;
 };
 

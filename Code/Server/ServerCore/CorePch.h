@@ -1,10 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "SessionManager.h"
 #include "CoreMacro.h"
-#include "CoreTLS.h"
-
 
 
 // Network
@@ -17,6 +14,7 @@
 
 #include <windows.h>
 #include <iostream>
+#include <debugapi.h>
 #include <tchar.h>
 #include <vector>
 #include <list>
@@ -32,6 +30,5 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-#include <iostream>
 using namespace std;
 

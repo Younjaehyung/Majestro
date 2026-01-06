@@ -5,8 +5,8 @@
 #include "SocketUtils.h"
 #include "PacketHelper.h"
 
-SpscRingQueue<SendRequest, 128>								gSendQueue;
-SpscRingQueue<InputCommand, 128>							gRecvQueue;
+SpscRingQueue<SendRequest, 128*1024>								gSendQueue;
+SpscRingQueue<InputCommand, 128*1024>								gRecvQueue;
 
 
 ServerCore::ServerCore()
@@ -25,30 +25,8 @@ void ServerCore::Initialize()
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return;
-
-	// 소켓 생성
-	mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (mListenSocket == INVALID_SOCKET) LOG_ERROR("err(socket)");
-
-	// bind()
-	if (false ==SocketUtils::BindAnyAddress(mListenSocket, 9000)) {
-		LOG_ERROR("err(bind)");
-		SocketUtils::Close(mListenSocket);
-		SocketUtils::Clear();
-		return;
-	}
-	
-	// listen()
-	if (false == SocketUtils::Listen(mListenSocket, SOMAXCONN)) {
-		LOG_ERROR("err(listen)");
-		SocketUtils::Close(mListenSocket);
-		SocketUtils::Clear();
-		return;
-	}
-
-	LOG_INFO("START GAME SERVER");
-
-	mNetworkThread = make_shared<NetworkThread>(mListenSocket);
+	SendBufferManager::Initialize(1000);
+	mNetworkThread = make_shared<NetworkThread>();
 }
 
 void ServerCore::Start()
@@ -66,7 +44,7 @@ void ServerCore::Update()
 	data.sync.clientId = 1;
 	data.sync.rhythmTime = 123.456f;
 
-
+	Sleep(1); // Simulate some processing delay
 
 
 	UnicastPacket(data);

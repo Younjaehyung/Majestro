@@ -19,19 +19,15 @@ void SessionManager::Initialize()
 	mPlayerLastIndex = 0;
 }
 
-std::shared_ptr<Session>	 SessionManager::CreateSessions(SOCKET sock)
+std::shared_ptr<Session>	 SessionManager::CreateSessions(SOCKET& sock)
 {
 	std::shared_ptr<Session> session = std::make_shared<Session>();
 	session->SetSession(sock);
+	session->SetPlayerId(++mPlayerLastIndex);
+	session->IsConnected() = true;
+	mSessions[mPlayerLastIndex] = session;
 
 	return session;
-}
-
-void SessionManager::AddSession(std::shared_ptr<Session>& session)
-{
-	session->SetPlayerId(++mPlayerLastIndex);
-	session->GetConnectedAtomic() = true;
-	mSessions[mPlayerLastIndex]=session;
 }
 
 void SessionManager::RemoveSessionAt(int32 index)

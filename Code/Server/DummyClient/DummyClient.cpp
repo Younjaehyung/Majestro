@@ -12,6 +12,6 @@ int main()
 	{
 		Network::GetInstance().GameRecvUpdate();
 
-		Network::GetInstance().GameSendUpdate();
+		//Network::GetInstance().GameSendUpdate();
 	}
 }

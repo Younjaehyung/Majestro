@@ -30,9 +30,13 @@ constexpr uint32 MAX_PACKET_SIZE = 128;
 
 struct KServerPacket : public PacketHeader {
 
-	uint16 dummy{}; // 예시 필드
+	uint32 ClientId{};
+
 
 	KServerPacket() : PacketHeader{ sizeof(KServerPacket) ,PKT_Type::KSERVER, 0.0 } {}
+	KServerPacket(uint32 id)
+		: PacketHeader{ sizeof(KServerPacket), PKT_Type::KSERVER, 0.0 }, ClientId(id) {
+	}
 };
 
 struct SyncPacketData : public PacketHeader {

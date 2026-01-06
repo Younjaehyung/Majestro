@@ -55,7 +55,7 @@ void ProcessPacket::ProcessSyncPacket(BYTE* buffer, InputCommand* inputCommand)
 
     inputCommand->SessionId = syncPacket.clientId;
 	inputCommand->moveX = syncPacket.rhythmTime;
-	std::cout << "Processed SyncPacket for Client ID: " << inputCommand->SessionId << " with Rhythm Time: " << inputCommand->moveX << std::endl;
+	//std::cout << "Processed SyncPacket for Client ID: " << inputCommand->SessionId << " with Rhythm Time: " << inputCommand->moveX << std::endl;
     // 여기서 inputCmd의 다른 필드를 설정할 수 있습니다.
     // 수신된 명령을 링 버퍼에 푸시
    

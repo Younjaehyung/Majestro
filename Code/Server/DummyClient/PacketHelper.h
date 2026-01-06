@@ -24,16 +24,16 @@ struct InputCommand // Packet received (network thread -> logic thread)
 
 struct SendRequest { // Packet to be sent (logic thread -> network thread)
 
-    uint32 SessionId;
     PKT_Type Type;
-
     union
     {
         SyncPacketData sync{};
 
     };
 
-    SendRequest() : SessionId(0), Type(PKT_Type::KNONE){ }
+    SendRequest() :Type(PKT_Type::KNONE){ }
+	SendRequest(PKT_Type t) : Type(t) {}
+	SendRequest(PKT_Type t, const SyncPacketData& s) : Type(t), sync(s) {}
 };
 
 class SendRequestPacket

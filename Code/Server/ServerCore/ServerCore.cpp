@@ -39,15 +39,23 @@ void ServerCore::Update()
 {
 	SendRequest data;
 
-	data.SessionId = 1; // Broadcast
+	data.SessionId = 0; // Broadcast
 	data.Type = PKT_Type::KSYNC;
 	data.sync.clientId = 1;
 	data.sync.rhythmTime = 123.456f;
 
+	
+
+	for(int i =1; i < 5; ++i)
+	{
+		data.SessionId = i;
+		data.sync.clientId = i;
+		data.sync.rhythmTime += 0.1f;
+		UnicastPacket(data);
+		
+	}
 	Sleep(1); // Simulate some processing delay
-
-
-	UnicastPacket(data);
+	
 }
 
 void ServerCore::Stop()

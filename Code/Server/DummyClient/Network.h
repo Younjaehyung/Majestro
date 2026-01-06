@@ -20,22 +20,23 @@ extern SpscRingQueue<InputCommand, 128>	gRecvBuffer;	// Network -> Logic
 class Network
 {
 public:
-	uint32_t mClientId{};
 private:
 	WSADATA mWsaData{};
-	SOCKET mTcpSocket;
-	SOCKET mUdpSocket;
+	SOCKET	mTcpSocket;
+	SOCKET	mUdpSocket;
 	sockaddr_in mServerTcpAddr{};
 	sockaddr_in mServerUdpAddr{};
 	
 private:
-	std::thread mNetworkThread;
-	std::atomic<bool> mIsRunning;
+	std::thread				mNetworkThread;
+	std::atomic<bool>		mIsRunning;
 
 	BYTE					mURecvBuffer[BUFSIZE];
 	RecvBuffer				mTRecvBuffer;	// 수신 버퍼
 	std::queue<SendBuffer*> mSendBuffer;	// 전송 버퍼 큐
-
+private:
+	InputCommand	mInputCommand;
+	SendRequest		mSendData;
 private:
 
 	Network();
@@ -67,8 +68,7 @@ private: // Session
 
 	void OnUDPNetworkUpdate();
 	
-	InputCommand mInputCommand;
-	SendRequest mSendData;
+
 private: // Process
 	void ConnectToServer(const char* ipAddress = SERVERIP, int port = TCPSERVERPORT);
 	void ReleaseServer();

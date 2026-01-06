@@ -95,7 +95,7 @@ void Session::Process(BYTE* buffer, int32 len)
 	switch (header.PacketType)
 	{
 	case PKT_Type::KSYNC:
-		//mProcessPacket.ProcessSyncPacket(buffer, len);
+		mProcessPacket.ProcessSyncPacket(buffer, len);
 		break;
 	case PKT_Type::KINPUT:
 		//mProcessPacket.ProcessInputPacket(buffer, len);

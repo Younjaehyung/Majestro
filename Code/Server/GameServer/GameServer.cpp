@@ -23,7 +23,7 @@ int main()
     while (true)
     {
         gTimer.Tick();
-        gServerCore.Update();
+        //gServerCore.Update();
 		//gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
     }
 

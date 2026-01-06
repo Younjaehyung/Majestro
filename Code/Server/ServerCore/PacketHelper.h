@@ -47,7 +47,8 @@ class ProcessPacket // Process received packets (network thread -> logic thread)
 {
 private:
 public:
-    static void ProcessSyncPacket(BYTE* buffer, int32 len) {};
+	static void ProcessPackets(BYTE* buffer);
+    static void ProcessSyncPacket(BYTE* buffer, int32 len);
     static void ProcessInputPacket(BYTE* buffer, int32 len) {};
     static void ProcessActionPacket(BYTE* buffer, int32 len) {};
 };

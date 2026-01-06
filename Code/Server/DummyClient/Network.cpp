@@ -8,8 +8,8 @@ SpscRingQueue<InputCommand, 128>	gRecvBuffer;
 Network::Network()
 {
 	mWsaData={};
-	mTcpSocket ={};
-	mUdpSocket ={};
+	mTcpSocket = INVALID_SOCKET;
+	mUdpSocket = INVALID_SOCKET;
 	mServerTcpAddr={};
 	mServerUdpAddr={};
 	mIsRunning = false;
@@ -133,8 +133,6 @@ void Network::PrepareSendData()
 
 }
 
-
-
 void Network::OnSendPacket()
 {
 	if (!mIsRunning) return;
@@ -152,7 +150,7 @@ void Network::OnSendPacket()
 
 			uint32 remain = sendBuffer->Capacity - sendBuffer->ReadPos;
 
-			int len = send(mTcpSocket, (char*)sendBuffer->Data, sendBuffer->Capacity, 0);
+			int len = send(mTcpSocket, (char*)sendBuffer->Data + sendBuffer->ReadPos, remain, 0);
 			//ProcessSendData();
 			if (len == 0)
 			{
@@ -189,6 +187,8 @@ void Network::OnSendPacket()
 
 			mSendBuffer.pop();
 			SendBufferManager::Release(sendBuffer);
+
+			break;
 		}
 		case NetProtocol::UDP:
 		{
@@ -301,6 +301,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		// 패킷 조립 성공
 
 		ProcessPacket::ProcessPackets(buffer, &mInputCommand);
+		std::cout << "Processed TCP Packet of type: " << mInputCommand.SessionId << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 
 
@@ -323,6 +324,7 @@ void Network::OnUDPNetworkUpdate()
 	if (len > 0) {
 		// UDP 패킷 처리
 		ProcessPacket::ProcessPackets(mURecvBuffer, &mInputCommand);
+		
 		gRecvBuffer.Push(mInputCommand);
 	}
 }

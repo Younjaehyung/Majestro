@@ -119,12 +119,12 @@ void Scene::Initialize()
 		//anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
 		mWorld->AddComponent<ControllerComponent>(osw,t, THREE_FPS);
-		mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json");	
+		mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json", anmators0);
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(osw, anmators0);
 		mWorld->AddComponent<BeatComponent>(osw);
-		
+
 
 		/*
 		float i, j;

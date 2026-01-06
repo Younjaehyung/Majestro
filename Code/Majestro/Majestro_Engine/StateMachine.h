@@ -12,8 +12,10 @@ public:
     virtual const char* GetName() const = 0;
 
 public:
-    bool mAnimOnce = true;
+    bool mAnimOnce = false;
     float mStateTime = 3.0f;
+
+    float mAnimEndTime = 0.0f;
 };
 
 using StateId = uint8_t;

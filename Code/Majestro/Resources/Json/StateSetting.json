@@ -1,4 +1,10 @@
 {
+    "player": {
+        "walkSpeed": 5.0,
+        "runSpeed": 10.0,
+        "dashSpeed": 20.0
+    },
+
     "stateProps": {
         "DashState": {
             "time": 3.5

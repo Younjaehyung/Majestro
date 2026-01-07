@@ -268,17 +268,27 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
 
 void NetworkThread::CleanupDisconnected()
 {
-    for (auto& s : mSessionMgr.mSessions)
+    for (auto it = mSessionMgr.mSessions.begin(); it != mSessionMgr.mSessions.end(); )
     {
+        const auto& session = it->second;
+        if (session == nullptr)
+        {
+            it = mSessionMgr.mSessions.erase(it);
+            continue;
+        }
 
-        if (s.second->IsConnected()) continue;
+        if (session->IsConnected())
+        {
+            ++it;
+            continue;
+        }
 
-        s.second->Close();
-        mSessionMgr.RemoveSession(s.second);
+        session->Close();
+        // SessionManager가 내부적으로 map을 지우는 경우 이터레이터가 더 위험해질 수 있으므로,
+        // 여기서는 직접 지우는 편이 안전합니다.
+        it = mSessionMgr.mSessions.erase(it);
     }
-
 }
-
 bool NetworkThread::Send()
 {
 

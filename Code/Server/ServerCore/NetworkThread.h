@@ -6,6 +6,8 @@
 
 class ServerCore;
 
+
+
 class NetworkThread
 {
 public:
@@ -25,8 +27,10 @@ public:
 
 public:
 	void AcceptClient();
-	void HandleRecv(std::shared_ptr<class Session>& session);
-	void HandleSend(std::shared_ptr<class Session>& session);
+	void HandleTcpRecv(std::shared_ptr<class Session>& session);
+	void HandleUdpRecv(std::shared_ptr<class Session>& session);
+	void HandleTcpSend(std::shared_ptr<class Session>& session);
+	void HandleUdpSend(std::shared_ptr<class Session>& session);
 	void CleanupDisconnected();
 public:		// game logic thread 와의 통신용
 	bool Send();

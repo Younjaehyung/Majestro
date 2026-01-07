@@ -14,6 +14,7 @@
 Session::Session() : mRecvBuffer(BUFFER_SIZE)
 {
 	mTcpSocket = INVALID_SOCKET;
+	mUdpSocket = INVALID_SOCKET;
 }
 
 Session::~Session()
@@ -22,11 +23,13 @@ Session::~Session()
 	ClearSendBufferQueue();
 }
 
-void Session::SetSession(SOCKET socket)
+void Session::SetSession(SOCKET& tcpsocket, SOCKET& udpsocket)
 {
-	mTcpSocket = socket;
+	mTcpSocket = tcpsocket;
+	mUdpSocket = udpsocket;
 	// 데이터 등록
-	SocketUtils::GetNetAddress(socket, mTcpAddr);
+	SocketUtils::GetNetAddress(mTcpSocket, mTcpAddr);
+	SocketUtils::GetNetAddress(mUdpSocket, mUdpAddr);
 
 }
 
@@ -53,14 +56,15 @@ void Session::Close()
 	LOG_INFO("Disconnect ID :[{}] ",
 		mPlayerId);
 	SocketUtils::Close(mTcpSocket);
+	SocketUtils::Close(mUdpSocket);
 }
 
 void Session::ClearSendBufferQueue()
 {
-	while (!mSendBufferQueue.empty())
+	while (!mTSendBufferQueue.empty())
 	{
-		SendBuffer* buffer = mSendBufferQueue.front();
-		mSendBufferQueue.pop();
+		SendBuffer* buffer = mTSendBufferQueue.front();
+		mTSendBufferQueue.pop();
 		SendBufferManager::Release(buffer);
 	}
 }
@@ -83,10 +87,10 @@ void Session::HandleError(int32 errorCode)
 
 void Session::SendData(SendBuffer* sendBuffer)
 {
-	mSendBufferQueue.push(sendBuffer);
+	mTSendBufferQueue.push(sendBuffer);
 }
 
-int32 Session::OnRecv(BYTE* buffer, int32 len)
+int32 Session::OnTcpRecv(BYTE* buffer, int32 len)
 {
 	int32 processLen = 0;
 
@@ -117,4 +121,13 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 
 
 	return processLen;
+}
+
+int32 Session::OnUdpRecv(BYTE* buffer, int32 len)
+{
+	mTempInputCommand.SessionId = mPlayerId;
+	ProcessPacket::ProcessPackets(mTempInputCommand, buffer);
+	gRecvQueue.Push(mTempInputCommand);
+
+	return len;
 }

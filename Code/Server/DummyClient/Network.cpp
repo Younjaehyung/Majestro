@@ -335,7 +335,7 @@ void Network::OnUDPNetworkUpdate()
 {
 	if (!mIsRunning) return;
 	// UDP 수신 처리
-	sockaddr_in fromAddr;
+	sockaddr_in fromAddr{};
 	int fromLen = sizeof(fromAddr);
 	
 	int len = recvfrom(mUdpSocket, (char*)mURecvBuffer, BUFSIZE, 0,

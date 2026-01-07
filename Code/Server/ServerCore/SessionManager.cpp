@@ -19,10 +19,10 @@ void SessionManager::Initialize()
 	mPlayerLastIndex = 0;
 }
 
-std::shared_ptr<Session>	 SessionManager::CreateSessions(SOCKET& sock)
+std::shared_ptr<Session>	 SessionManager::CreateSessions(SOCKET& tcpsock, SOCKET& udpsock)
 {
 	std::shared_ptr<Session> session = std::make_shared<Session>();
-	session->SetSession(sock);
+	session->SetSession(tcpsock, udpsock);
 	session->SetPlayerId(++mPlayerLastIndex);
 	session->IsConnected() = true;
 	mSessions[mPlayerLastIndex] = session;

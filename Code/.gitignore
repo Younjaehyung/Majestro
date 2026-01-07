@@ -456,7 +456,7 @@ FodyWeavers.xsd
 Majestro/Resources/FBX
 Majestro/Resources/Sound
 Majestro/Resources/Texture
-
+//Majestro/Resources/Effect
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 

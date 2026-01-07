@@ -78,9 +78,9 @@ using namespace Microsoft::WRL;
 #endif
 
 // FMOD
-#include "FMod/fmod.hpp"
-#include "FMod/fmod_studio.hpp"
-#include "FMod/fmod_errors.h"
+#include <FMod/fmod.hpp>
+#include <FMod/fmod_studio.hpp>
+#include <FMod/fmod_errors.h>
 
 #ifdef _DEBUG
 #pragma comment(lib, "FMod/fmodL_vc.lib")
@@ -89,6 +89,22 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "FMod/fmod_vc.lib")
 #pragma comment(lib, "FMod/fmodstudio_vc.lib")
 #endif
+
+// EFFEKSEER
+#include <Effekseer/Effekseer/Effekseer.h>
+#include <Effekseer/EffekseerRendererDX12/EffekseerRendererDX12.h>
+#include <Effekseer/LLGI/LLGI.Base.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "Effekseer/Effekseer_D.lib")
+#pragma comment(lib, "Effekseer/EffekseerRendererDX12_D.lib")
+#pragma comment(lib, "Effekseer/LLGI_D.lib")
+#else
+#pragma comment(lib, "Effekseer/lib/Effekseer.lib")
+#pragma comment(lib, "EffekseerRendererDX12/lib/EffekseerRendererDX12.lib")
+#pragma comment(lib, "Effekseer/LLGI.lib")
+#endif
+
 
 
 ///////////////////////////////////////////////////////////////////////////////

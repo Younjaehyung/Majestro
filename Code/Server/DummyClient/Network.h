@@ -51,6 +51,7 @@ public: // 외부통신용
 	void Initialize();
 	
 	void Awake();
+	void Stop();
 	void Shutdown();
 
 private: // Session

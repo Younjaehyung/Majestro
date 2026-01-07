@@ -98,17 +98,32 @@ void Network::Shutdown()
 {
 	std::cout << "Network Shutdown called." << std::endl;
 	mIsRunning = false;
+}
+
+void Network::Stop()
+{
+	std::cout << "Network Shutdown called." << std::endl;
+	mIsRunning = false;
 	if (mNetworkThread.joinable()) {
 		mNetworkThread.join();
 	}
 }
 
+
 void Network::ReleaseServer()
 {
-
 	SendBufferManager::Shutdown();
+
+	if (mTcpSocket != INVALID_SOCKET)
 	closesocket(mTcpSocket);
+
+	if (mTcpSocket != INVALID_SOCKET)
 	closesocket(mUdpSocket);
+
+
+	mTcpSocket = INVALID_SOCKET;
+	mUdpSocket = INVALID_SOCKET;
+
 	WSACleanup();
 }
 

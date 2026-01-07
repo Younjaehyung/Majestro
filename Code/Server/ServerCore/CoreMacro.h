@@ -52,7 +52,7 @@ static void LogInternal(std::string_view level, std::string_view formatted_msg, 
         now, level, location.file_name(), location.line(), formatted_msg
     );
 
-    std::lock_guard<std::mutex> lock(logMutex);
+    // std::lock_guard<std::mutex> lock(logMutex);
     std::cout << logEntry;
 }
 

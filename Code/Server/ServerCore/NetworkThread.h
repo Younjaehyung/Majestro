@@ -28,7 +28,6 @@ public:
 	void HandleRecv(std::shared_ptr<class Session>& session);
 	void HandleSend(std::shared_ptr<class Session>& session);
 	void CleanupDisconnected();
-	void BroadcastPacket(SendRequest& pkt);
 public:		// game logic thread 와의 통신용
 	bool Send();
 

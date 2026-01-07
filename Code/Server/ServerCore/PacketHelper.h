@@ -13,7 +13,7 @@
 
 struct InputCommand // Packet received (network thread -> logic thread)
 {
-    uint32   SessionId;
+    uint32 SessionId;
     float moveX;
     float moveY;
     bool  action1;
@@ -37,6 +37,7 @@ struct SendRequest { // Packet to be sent (logic thread -> network thread)
 class SendRequestPacket
 {
 public:
+    static bool SerializePacket(SendRequest& pkt, SendBuffer*);
     static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
     static void SerializeInputPacket(SendRequest& pkt, SendBuffer*){}
     static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}
@@ -47,10 +48,10 @@ class ProcessPacket // Process received packets (network thread -> logic thread)
 {
 private:
 public:
-	static void ProcessPackets(BYTE* buffer);
-    static void ProcessSyncPacket(BYTE* buffer, int32 len);
-    static void ProcessInputPacket(BYTE* buffer, int32 len) {};
-    static void ProcessActionPacket(BYTE* buffer, int32 len) {};
+	static bool ProcessPackets(InputCommand& inputCommand, BYTE* buffer);
+    static void ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer);
+    static void ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer) {};
+    static void ProcessActionPacket(InputCommand& inputCommand, BYTE* buffer) {};
 };
 
 

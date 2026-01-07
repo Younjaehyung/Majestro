@@ -16,7 +16,7 @@ int main()
 			PKT_Type::KSYNC,
 			SyncPacketData{ 1, 123.456f }
 			});
-		Sleep(1);
+		Sleep(30); // Simulate some processing delay
 		//Network::GetInstance().GameSendUpdate();
 	}
 }

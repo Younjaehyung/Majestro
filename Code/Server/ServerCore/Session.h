@@ -51,9 +51,7 @@ protected:
 	virtual void		OnConnected() {}
 	virtual void		OnDisconnected() {}
 private:
-	void Process(BYTE* buffer, int32 len);
 	void SendData(SendBuffer* sendBuffer);
-	ProcessPacket	mProcessPacket;
 
 private:
 

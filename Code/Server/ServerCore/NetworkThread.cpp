@@ -95,7 +95,8 @@ void NetworkThread::Update()
 
         for (auto& s : mSessionMgr.mSessions)
         {
-			if (!s.second->IsConnected()) continue;
+			if (s.second == nullptr) continue;
+			if (s.second->IsConnected() == false) continue;
 
             FD_SET(s.second->GetSocket(), &readSet);
 
@@ -113,10 +114,8 @@ void NetworkThread::Update()
 
         for (auto& s : mSessionMgr.mSessions)
         {
-            if (s.second->IsConnected() == false)
-                continue;
-
-
+            if (s.second == nullptr) continue;
+            if (s.second->IsConnected() == false) continue;
 
             if (FD_ISSET(s.second->GetSocket(), &readSet))
                 HandleRecv(s.second);
@@ -285,39 +284,28 @@ bool NetworkThread::Send()
 
     while (gSendQueue.Pop(mData)) {
 
-        if( mData.SessionId == 0)
-        {
-            LOG_ERROR("Send SessionId is 0");
-            continue;
-		}
 
         SendBuffer* sendBuffer = SendBufferManager::Acquire();
-	
         if (sendBuffer == nullptr)
         {
             LOG_ERROR("SendBuffer Acquire Failed");
             continue;
         }
 
-
-        switch (mData.Type)
-        {
-            //case PKT_Type::POSITION:
-            //	SerializePosition(mData,sendBuffer);
-            //	break;
-        case PKT_Type::KSYNC: {
-            SendRequestPacket::SerializeSyncPacket(mData, sendBuffer);
-            break;
-         }
-        default:
+        if (false == SendRequestPacket::SerializePacket(mData, sendBuffer)) {
             SendBufferManager::Release(sendBuffer);
             continue;
         }
 
-        auto it = mSessionMgr.mSessions.find(mData.SessionId);
-        if (it != mSessionMgr.mSessions.end())
+        if (mData.SessionId == 0)
         {
-            it->second->SendData(sendBuffer);
+            for (auto& s : mSessionMgr.mSessions  ) {
+                s.second->SendData(sendBuffer);
+            }
+        }
+        else if (mSessionMgr.mSessions.contains(mData.SessionId))
+        {
+            mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
         }
         else
         {
@@ -327,16 +315,3 @@ bool NetworkThread::Send()
     return true;
 }
 
-void NetworkThread::BroadcastPacket(SendRequest& pkt)
-{
-    if (pkt.SessionId != 0) {
-        LOG_ERROR("BroadcastPacket SessionId is 0");
-        return;
-    }
-
-    for (auto& s : mSessionMgr.mSessions)
-    {
-		pkt.SessionId = s.second->GetPlayerId();
-		gSendQueue.Push(pkt);
-    }
-}

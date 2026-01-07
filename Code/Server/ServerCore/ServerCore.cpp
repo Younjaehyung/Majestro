@@ -54,7 +54,7 @@ void ServerCore::Update()
 		UnicastPacket(data);
 		
 	}
-	Sleep(1); // Simulate some processing delay
+	
 	
 }
 
@@ -65,7 +65,7 @@ void ServerCore::Stop()
 
 void ServerCore::BroadcastPacket(SendRequest& pkt)
 {
-	mNetworkThread->BroadcastPacket(pkt);
+
 }
 
 void ServerCore::UnicastPacket(SendRequest& pkt)

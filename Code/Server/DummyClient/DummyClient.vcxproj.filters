@@ -28,16 +28,16 @@
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClCompile>
     <ClCompile Include="RingBuffer.cpp">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClCompile>
     <ClCompile Include="SendBuffer.cpp">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -51,16 +51,16 @@
       <Filter>Buffer\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClInclude>
     <ClInclude Include="RecvBuffer.h">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClInclude>
     <ClInclude Include="RingBuffer.h">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClInclude>
     <ClInclude Include="SendBuffer.h">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Buffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

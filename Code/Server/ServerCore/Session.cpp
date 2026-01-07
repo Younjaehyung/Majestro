@@ -81,44 +81,6 @@ void Session::HandleError(int32 errorCode)
 	}
 }
 
-void Session::Process(BYTE* buffer, int32 len)
-{
-	PacketHeader header;
-	::memcpy(&header, buffer, sizeof(PacketHeader));
-
-	BYTE* payload = buffer + sizeof(PacketHeader);
-	int32 payloadSize = header.Size - sizeof(PacketHeader);
-
-	mTempInputCommand.SessionId = mPlayerId;
-
-
-	switch (header.PacketType)
-	{
-	case PKT_Type::KSYNC:
-		mProcessPacket.ProcessSyncPacket(buffer, len);
-		break;
-	case PKT_Type::KINPUT:
-		//mProcessPacket.ProcessInputPacket(buffer, len);
-		break;
-	case PKT_Type::KACTION:
-		//mProcessPacket.ProcessActionPacket(buffer, len);
-		break;
-	case PKT_Type::KPOSITION:
-		//mProcessPacket.ProcessPositionPacket(buffer, len);
-		break;
-	case PKT_Type::KMSG:
-		//mProcessPacket.ProcessMsgPacket(buffer, len);
-		break;
-	default:
-		LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
-		break;
-	}
-
-
-
-	gRecvQueue.Push(mTempInputCommand);
-}
-
 void Session::SendData(SendBuffer* sendBuffer)
 {
 	mSendBufferQueue.push(sendBuffer);
@@ -146,8 +108,9 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 			break; // 아직 덜 옴
 
 		// 패킷 조립 성공
-		Process(buffer + processLen, header.Size);
-
+		mTempInputCommand.SessionId = mPlayerId;
+		ProcessPacket::ProcessPackets(mTempInputCommand, buffer);
+		gRecvQueue.Push(mTempInputCommand);
 
 		processLen += header.Size;
 	}

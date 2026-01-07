@@ -300,8 +300,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 
 		// 패킷 조립 성공
 
-		ProcessPacket::ProcessPackets(buffer, &mInputCommand);
-		std::cout << "Processed TCP Packet of type: " << mInputCommand.SessionId << std::endl;
+		ProcessPacket::ProcessPackets(mInputCommand, buffer);
 		gRecvBuffer.Push(mInputCommand);
 
 
@@ -323,7 +322,7 @@ void Network::OnUDPNetworkUpdate()
 		(sockaddr*)&fromAddr, &fromLen);
 	if (len > 0) {
 		// UDP 패킷 처리
-		ProcessPacket::ProcessPackets(mURecvBuffer, &mInputCommand);
+		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
 		
 		gRecvBuffer.Push(mInputCommand);
 	}

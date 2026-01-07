@@ -149,6 +149,10 @@ void NetworkThread::AcceptClient()
         session->GetPlayerId(), session->GetAddress().GetIpAddressA(),
         session->GetAddress().GetPort());
 
+	SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	KLoginPacket loginPkt = KLoginPacket(session->GetPlayerId());
+	sendBuffer->SetData(&loginPkt, sizeof(KLoginPacket));
+    session->mSendBufferQueue.push(sendBuffer);
 }
 
 void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)

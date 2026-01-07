@@ -33,14 +33,14 @@ public:
 	
 public:
 	/* 정보 관련 */
-	void				SetNetAddress(NetAddress address) { mNetAddress = address; }
-	NetAddress			GetAddress() { return mNetAddress; }
+	void				SetNetAddress(NetAddress address) { mTcpAddr = address; }
+	NetAddress			GetAddress() { return mTcpAddr; }
 
 	void				SetPlayerId(int id) { mPlayerId = id; }
 	int					GetPlayerId() { return mPlayerId; }
 
-	void				SetSocket(SOCKET socket) { mSocket = socket; }
-	SOCKET&				GetSocket() { return mSocket; }
+	void				SetSocket(SOCKET socket) { mTcpSocket = socket; }
+	SOCKET&				GetSocket() { return mTcpSocket; }
 	Atomic<bool>&		IsConnected()		{ return mConnected; }
 	
 private:
@@ -55,8 +55,8 @@ private:
 
 private:
 
-	SOCKET			mSocket;
-	NetAddress		mNetAddress;
+	SOCKET			mTcpSocket;
+	NetAddress		mTcpAddr;
 	Atomic<bool>	mConnected = true;
 	
 	
@@ -65,8 +65,6 @@ private:
 
 	// recv용
 	RecvBuffer		mRecvBuffer;			// 수신 버퍼 (Ring) 전체 버퍼
-	ProcessPacket	mInputQueue;			// 입력 큐 로직으로 입력 전송
-
 
 	uint32_t		mLastRecvServerTick;
 	int				mPlayerId;

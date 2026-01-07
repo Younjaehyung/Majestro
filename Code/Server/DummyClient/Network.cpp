@@ -300,26 +300,29 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 	{
 		int32 dataSize = len - processLen;
 		// 최소한 헤더는 파싱할 수 있어야 한다
-		if (dataSize < sizeof(PacketHeader))
+		if (dataSize < sizeof(PacketTcpHeader))
 			return 0;
 
-		PacketHeader header;
-		::memcpy(&header, buffer, sizeof(PacketHeader));
+		PacketTcpHeader header;
+		::memcpy(&header, buffer, sizeof(PacketTcpHeader));
 		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
 
-		if (header.Size < sizeof(PacketHeader))
+		if (header.Header.Size < sizeof(PacketTcpHeader))
 			return -1; // 프로토콜 오류
 
-		if (dataSize < header.Size)
+		if (dataSize < header.Header.Size)
 			return 0;
 
 		// 패킷 조립 성공
 
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
+		if (mInputCommand.Type == KLOGIN) {
+			mClientId = mInputCommand.SessionId;
+		}
 		gRecvBuffer.Push(mInputCommand);
 
 
-		processLen += header.Size;
+		processLen += header.Header.Size;
 	}
 
 	return processLen;

@@ -13,7 +13,7 @@
 
 Session::Session() : mRecvBuffer(BUFFER_SIZE)
 {
-	mSocket = INVALID_SOCKET;
+	mTcpSocket = INVALID_SOCKET;
 }
 
 Session::~Session()
@@ -24,9 +24,9 @@ Session::~Session()
 
 void Session::SetSession(SOCKET socket)
 {
-	mSocket = socket;
+	mTcpSocket = socket;
 	// 데이터 등록
-	SocketUtils::GetNetAddress(socket, mNetAddress);
+	SocketUtils::GetNetAddress(socket, mTcpAddr);
 
 }
 
@@ -52,7 +52,7 @@ void Session::Close()
 {
 	LOG_INFO("Disconnect ID :[{}] ",
 		mPlayerId);
-	SocketUtils::Close(mSocket);
+	SocketUtils::Close(mTcpSocket);
 }
 
 void Session::ClearSendBufferQueue()
@@ -94,17 +94,17 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 	{
 		int32 dataSize = len - processLen;
 		// 최소한 헤더는 파싱할 수 있어야 한다
-		if (dataSize < sizeof(PacketHeader))
+		if (dataSize < sizeof(PacketTcpHeader))
 			break;
 
-		PacketHeader header;
-		::memcpy(&header, buffer + processLen, sizeof(PacketHeader));
+		PacketTcpHeader header;
+		::memcpy(&header, buffer + processLen, sizeof(PacketTcpHeader));
 		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
 
-		if (header.Size < sizeof(PacketHeader))
+		if (header.Header.Size < sizeof(PacketTcpHeader))
 			return -1; // 프로토콜 오류
 
-		if (dataSize < header.Size)
+		if (dataSize < header.Header.Size)
 			break; // 아직 덜 옴
 
 		// 패킷 조립 성공
@@ -112,7 +112,7 @@ int32 Session::OnRecv(BYTE* buffer, int32 len)
 		ProcessPacket::ProcessPackets(mTempInputCommand, buffer);
 		gRecvQueue.Push(mTempInputCommand);
 
-		processLen += header.Size;
+		processLen += header.Header.Size;
 	}
 
 

@@ -20,6 +20,7 @@ extern SpscRingQueue<InputCommand, 128>	gRecvBuffer;	// Network -> Logic
 class Network
 {
 public:
+	uint32  mClientId = 0;
 private:
 	WSADATA mWsaData{};
 	SOCKET	mTcpSocket;

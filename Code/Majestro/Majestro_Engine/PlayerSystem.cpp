@@ -111,8 +111,8 @@ void PlayerSystem::Input(float dt, ControllerComponent* controllerComponent, Mai
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 	}
 	else {
-		if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = 200.f;
-		else mainPlayerComponent->mSpeed = 90.0f;
+		if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
+		else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
 	}
 
 	if (INPUT.GetKey(eKeyCode::A)) {

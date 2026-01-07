@@ -80,7 +80,6 @@ private:
         bool ok = it->second(owner);
         /*std::cout << "[Guard] EVAL (" << int(fid) << " -> " << int(tid)
             << ") = " << ok
-            << " | speed=" << owner->mSpeed
             << " | flags=0x" << std::hex << owner->mFlags << std::dec << "\n";*/
         return ok;
 

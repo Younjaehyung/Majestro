@@ -47,7 +47,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<AnimationSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<UITransformSystem>()->Update(deltaTime);
-   // GetSystem<BeatSystem>()->Update(deltaTime);
+    GetSystem<BeatSystem>()->Update(deltaTime);
     
 }
 

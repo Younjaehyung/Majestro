@@ -83,6 +83,11 @@ public:
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	float mSpeed = 0.0f;
+	float mWalkSpeed = 0.0f;
+	float mRunSpeed = 0.0f;
+	float mDashSpeed = 0.0f;
+
+
 	uint64_t mFlags = 0ull;
 	float mStateTime=0.0f;
 	float mDt=0.0f;
@@ -92,6 +97,8 @@ public:
 	float mJumpPower = 150.f;
 	float mHight = 0.0f; //플레이어 높이
 	float mGround = 0.0f;
+
+
 };
 
 //player base --------------------------------------------------

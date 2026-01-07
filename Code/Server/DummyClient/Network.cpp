@@ -142,6 +142,7 @@ void Network::PrepareSendData()
 	while (gSendBuffer.Pop(mSendData))
 	{
 		SendBuffer* sendBuffer = SendBufferManager::Acquire();
+		mSendData.sync.clientId = mClientId;
 		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
 		mSendBuffer.push(sendBuffer);
 	}
@@ -319,6 +320,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		if (mInputCommand.Type == KLOGIN) {
 			mClientId = mInputCommand.SessionId;
 		}
+		std::cout << "Rec" << mClientId << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 
 

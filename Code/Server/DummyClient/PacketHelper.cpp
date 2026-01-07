@@ -31,6 +31,7 @@ void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBu
 {
 
 	// Copy header
+
 	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData),TCP);
 
 	
@@ -46,12 +47,12 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
     switch (header.Header.PacketType) {
     case PKT_Type::KSYNC: {
         ProcessSyncPacket(inputCommand, buffer);
-        std::cout << "Processed Sync Packet for Client ID: " << inputCommand.SessionId << " with Rhythm Time: " << inputCommand.moveX << std::endl;
+        //std::cout << "Processed Sync Packet for Client ID: " << inputCommand.SessionId << " with Rhythm Time: " << inputCommand.moveX << std::endl;
         break;
     }
     case PKT_Type::KLOGIN: {
         ProcessLoginPacket(inputCommand, buffer);
-        std::cout << "Processed Login Packet for Client ID: " << inputCommand.SessionId << std::endl;
+       // std::cout << "Processed Login Packet for Client ID: " << inputCommand.SessionId << std::endl;
         break;
 	}
     default:
@@ -78,5 +79,6 @@ void ProcessPacket::ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer)
 	KLoginPacket loginPacket;
 	::memcpy(&loginPacket, buffer, sizeof(KLoginPacket));
 	inputCommand.SessionId = loginPacket.clientId;
+	inputCommand.Type = PKT_Type::KLOGIN;
     
 }

@@ -889,5 +889,5 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aRun_001.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aWalk_001.fbx");
 
-	LoadEffect(L"..\\Resources\\Effect\\fire.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 }

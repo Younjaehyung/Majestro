@@ -94,12 +94,10 @@ void EffectSystem::Update(float deltaTime)
 			effectComp->mIsPlaying = true;
 		}
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
-		if (tr == nullptr) {
-			manager_->AddLocation(efkHandle, effectComp->mPosition);
-		}
-		else {
+		if (tr != nullptr) {
 			effectComp->SetPosition(tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
 		}
+		manager_->AddLocation(efkHandle, effectComp->mPosition);
 		/*Effekseer::Manager::UpdateParameter updateParameter;
 		updateParameter.DeltaFrame = 1.0f;*/
 		manager_->Update(deltaTime*60.f);

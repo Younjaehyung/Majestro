@@ -211,8 +211,8 @@ void Scene::Initialize()
 	{
 		Entity vfxEntity = mWorld->CreateEntity();
 		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(-20.f, 15.f, 0.f);
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"fire");
+		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
 		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
 		vfxComp.mVfx = vfx;

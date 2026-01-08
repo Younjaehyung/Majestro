@@ -134,6 +134,12 @@ void NetworkThread::Update()
 
         timeval tv{ 0, 1000 }; // 1ms
         int32 ready = select(0, &readSet, &writeSet, nullptr, &tv);
+        for (auto& s : mSessionMgr.mSessions)
+        {
+            HandleUdpSend(s.second);
+        }
+        
+
         if (ready <= 0)
             continue;
 
@@ -155,7 +161,7 @@ void NetworkThread::Update()
             if (FD_ISSET(s.second->GetTSocket(), &writeSet))
                 HandleTcpSend(s.second);
   
-			HandleUdpSend(s.second);
+			
         }
 
         CleanupDisconnected();

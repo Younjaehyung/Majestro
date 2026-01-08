@@ -9,15 +9,23 @@
 #include "PacketHelper.h"
 #include "Packet.h"
 
+enum NetProtocol : uint8 {
+    NONE = 0,
+    TCP,
+    UDP,
+};
+
 struct SendBuffer   // SEND BUFFER
 {
+    NetProtocol Protocol = NONE;
 	uint32  ReadPos = 0;                    
     uint32  Capacity = 0;
 	uint8   Data[MAX_PACKET_SIZE];          // 실제 데이터 버퍼
 
-    void SetData(const void* data, uint32 dataSize) {
+    void SetData(const void* data, uint32 dataSize, NetProtocol protocol) {
         ReadPos = 0;
         Capacity = dataSize;
+        Protocol = protocol;
         if (dataSize > 0 && data != nullptr) {
             std::memcpy(Data, data, dataSize);
         }

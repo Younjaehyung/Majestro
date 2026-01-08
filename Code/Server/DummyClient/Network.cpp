@@ -65,19 +65,6 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 		return;
 	}
 
-	u_long one = 1;
-	ioctlsocket(mTcpSocket, FIONBIO, &one);
-
-	u_long one1 = 1;
-	ioctlsocket(mUdpSocket, FIONBIO, &one1);
-
-	if (mTcpSocket == INVALID_SOCKET) {
-		int32_t error = WSAGetLastError();
-		cout << "Socket creation failed with error: " << error << std::endl;
-		ReleaseServer();
-		return;
-	}
-
 	sockaddr_in localUdp{};
 	localUdp.sin_family = AF_INET;
 	localUdp.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -90,6 +77,29 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 		ReleaseServer();
 		return;
 	}
+
+
+
+	u_long one = 1;
+	ioctlsocket(mTcpSocket, FIONBIO, &one);
+
+	u_long one1 = 1;
+	ioctlsocket(mUdpSocket, FIONBIO, &one1);
+
+
+	if (mTcpSocket == INVALID_SOCKET) {
+		int32_t error = WSAGetLastError();
+		cout << "Socket creation failed with error: " << error << std::endl;
+		ReleaseServer();
+		return;
+	}
+	if (mUdpSocket == INVALID_SOCKET) {
+		int32_t error = WSAGetLastError();
+		cout << "Socket creation failed with error: " << error << std::endl;
+		ReleaseServer();
+		return;
+	}
+	
 
 
 	/*bool flag = true; // nagle
@@ -107,7 +117,6 @@ void Network::NetworkUpdate()
 	while (mIsRunning) {
 		OnRecvPacket();
 		OnSendPacket();
-		
 	}
 	ReleaseServer();
 }
@@ -354,10 +363,11 @@ void Network::OnUDPNetworkUpdate()
 	
 	int len = recvfrom(mUdpSocket, (char*)mURecvBuffer, BUFSIZE, 0,
 		(sockaddr*)&fromAddr, &fromLen);
+	
 	if (len > 0) {
 		// UDP 패킷 처리
-		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
-		
+		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer,len);
+		std::cout << "Recv" << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 	}
 	else if (len == SOCKET_ERROR)

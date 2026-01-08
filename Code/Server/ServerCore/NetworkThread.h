@@ -33,8 +33,9 @@ public:
 	void HandleUdpSend(std::shared_ptr<class Session>& session);
 	void CleanupDisconnected();
 public:		// game logic thread 와의 통신용
-	bool Send();
-
+	bool PushSend();
+	bool PushUdpSend();
+	bool PushTcpSend();
 private:
 	std::thread mThread;
 	SOCKET		mListenSocket = INVALID_SOCKET;

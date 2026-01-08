@@ -59,7 +59,8 @@ protected:
 	virtual void		OnConnected() {}
 	virtual void		OnDisconnected() {}
 private:
-	void SendData(SendBuffer* sendBuffer);
+	void SendTcpData(SendBuffer* sendBuffer);
+	void SendUdpData(SendBuffer* sendBuffer);
 
 private:
 

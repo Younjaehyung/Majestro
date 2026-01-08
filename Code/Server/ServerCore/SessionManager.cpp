@@ -58,6 +58,8 @@ void SessionManager::RegisterUdpAddress(sockaddr_in addr, uint64 sessionId)
 {
 	
 	mUdpMapper[addr] = sessionId;
+	LOG_INFO("Session {} UDP Address Registered!", sessionId);
+	LOG_INFO("Addr IP: {}, Port: {}", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 	
 }
 

@@ -108,6 +108,8 @@ void NetworkThread::Stop()
 void NetworkThread::Update()
 {
     while (mRunning) {
+        std::cout<<"fff"<<std::endl;
+
         fd_set readSet, writeSet;
         FD_ZERO(&readSet);
         FD_ZERO(&writeSet);
@@ -115,7 +117,7 @@ void NetworkThread::Update()
         FD_SET(mListenSocket, &readSet);
         FD_SET(mUdpSock, &readSet);
         
-        Send();
+        PushSend();
 
         for (auto& s : mSessionMgr.mSessions)
         {
@@ -152,7 +154,7 @@ void NetworkThread::Update()
 
             if (FD_ISSET(s.second->GetTSocket(), &writeSet))
                 HandleTcpSend(s.second);
-
+  
 			HandleUdpSend(s.second);
         }
 
@@ -186,7 +188,7 @@ void NetworkThread::AcceptClient()
 
 	SendBuffer* sendBuffer = SendBufferManager::Acquire();
 	KLoginPacket loginPkt = KLoginPacket(session->GetPlayerId());
-	sendBuffer->SetData(&loginPkt, sizeof(KLoginPacket));
+	sendBuffer->SetData(&loginPkt, sizeof(KLoginPacket),TCP);
     session->mTSendBufferQueue.push(sendBuffer);
 }
 
@@ -254,8 +256,9 @@ void NetworkThread::HandleUdpRecv()
 
         if (len <= 0) break;
 
-        // [핵심] 주소 정보를 기반으로 어떤 세션인지 찾음
-        // mSessionMgr에 sockaddr_in을 키로 하는 맵을 추가하는 것이 효율적입니다.
+        if (len < (int)sizeof(PacketHeader))
+            continue;
+
         auto session = mSessionMgr.FindSessionByAddr(fromAddr);
         if (session) {
             session->OnUdpRecv(mURecvBuffer, len);
@@ -263,18 +266,24 @@ void NetworkThread::HandleUdpRecv()
             continue;
         }
 
+
         PacketHeader* header = (PacketHeader*)mURecvBuffer;
         if (header->PacketType == KLOGIN) {
             KLoginPacket* pkt = (KLoginPacket*)mURecvBuffer;
 
-            auto targetSession = mSessionMgr.mSessions[pkt->clientId];
+            auto& targetSession = mSessionMgr.mSessions[pkt->clientId];
             if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
                 // 주소 매핑 등록
                 targetSession->SetUNetAddress(fromAddr);
                 mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
-                LOG_INFO("Session {} UDP Address Registered!", pkt->clientId);
+                
             }
+
+            std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
+            
         }
+
+
 
     }
     
@@ -346,26 +355,30 @@ void NetworkThread::HandleTcpSend(std::shared_ptr<Session>& session)
 
 void NetworkThread::HandleUdpSend(std::shared_ptr<class Session>& session)
 {
-    if (session->mUSendBufferQueue.empty())
-        return;
-    SendBuffer* sb = session->mUSendBufferQueue.front();
-    int len = sendto(mUdpSock, (char*)sb->Data, sb->Capacity, 0,
-        (sockaddr * )&session->GetUdpAddress().GetSockAddr(), sizeof(sockaddr_in));
-	
-    
- 
-    //{
-    //    int32 errorCode = WSAGetLastError();
-    //    if (errorCode != WSAEWOULDBLOCK)
-    //    {
-    //        // 치명적인 오류 발생
-    //        session->Shutdown();
-    //    }
-    //}
+    while (!session->mUSendBufferQueue.empty()) {
+        sockaddr_in to = session->GetUdpAddress().GetSockAddr();
+        if (to.sin_port == 0) return;
+        SendBuffer* sb = session->mUSendBufferQueue.front();
+		
+        int len = sendto(mUdpSock, (char*)sb->Data, sb->Capacity, 0,
+            (sockaddr*)&to, sizeof(sockaddr_in));
 
-    session->mUSendBufferQueue.pop();
-    SendBufferManager::Release(sb);
- 
+        if (len == SOCKET_ERROR)
+        {
+            int err = WSAGetLastError();
+            if (err == WSAEWOULDBLOCK)
+            {
+                // 지금은 못 보냄: reliable이면 unacked에 남겨두고 다음 틱에 시도
+
+                break;
+            }
+
+            return;
+        }
+
+        session->mUSendBufferQueue.pop();
+        SendBufferManager::Release(sb);
+    }
 }
         
 
@@ -393,7 +406,7 @@ void NetworkThread::CleanupDisconnected()
         it = mSessionMgr.mSessions.erase(it);
     }
 }
-bool NetworkThread::Send()
+bool NetworkThread::PushSend()
 {
 
     while (gSendQueue.Pop(mData)) {
@@ -414,12 +427,27 @@ bool NetworkThread::Send()
         if (mData.SessionId == 0)
         {
             for (auto& s : mSessionMgr.mSessions  ) {
-                s.second->SendData(sendBuffer);
+                s.second->SendTcpData(sendBuffer);
             }
         }
         else if (mSessionMgr.mSessions.contains(mData.SessionId))
         {
-            mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
+			
+            switch (sendBuffer->Protocol)
+            {
+            case TCP:
+                
+                mSessionMgr.mSessions[mData.SessionId]->SendTcpData(sendBuffer);
+                break;
+            case UDP:
+                
+                mSessionMgr.mSessions[mData.SessionId]->SendUdpData(sendBuffer);
+                break;
+            default:
+                break;
+            }
+
+           
         }
         else
         {
@@ -427,5 +455,15 @@ bool NetworkThread::Send()
         }
     }
     return true;
+}
+
+bool NetworkThread::PushUdpSend()
+{
+    return false;
+}
+
+bool NetworkThread::PushTcpSend()
+{
+    return false;
 }
 

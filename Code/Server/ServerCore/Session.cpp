@@ -85,9 +85,14 @@ void Session::HandleError(int32 errorCode)
 	}
 }
 
-void Session::SendData(SendBuffer* sendBuffer)
+void Session::SendTcpData(SendBuffer* sendBuffer)
 {
 	mTSendBufferQueue.push(sendBuffer);
+}
+
+void Session::SendUdpData(SendBuffer* sendBuffer)
+{
+	mUSendBufferQueue.push(sendBuffer);
 }
 
 int32 Session::OnTcpRecv(BYTE* buffer, int32 len)

@@ -12,10 +12,10 @@ int main()
 	while(true)
 	{
 		//Network::GetInstance().GameRecvUpdate();
-		gSendBuffer.Push({
-			PKT_Type::KSYNC,
-			SyncPacketData{ 1, 123.456f }
-			});
+		//gSendBuffer.Push({
+		//	PKT_Type::KSYNC,
+		//	SyncPacketData{ 1, 123.456f }
+		//	});
 		Sleep(30); // Simulate some processing delay
 		//Network::GetInstance().GameSendUpdate();
 	}

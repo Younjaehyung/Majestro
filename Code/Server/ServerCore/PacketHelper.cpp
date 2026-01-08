@@ -22,7 +22,7 @@ void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBu
 {
 
 	// Copy header
-	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData));
+	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData),UDP);
 
 	
 }

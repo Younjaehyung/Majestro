@@ -88,6 +88,8 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer,uint
     {
         PacketTcpHeader syncPacket;
         ::memcpy(&syncPacket, buffer, sizeof(PacketTcpHeader));
+		inputCommand.SessionId = syncPacket.Header.Size;
+		inputCommand.Type = PKT_Type::KTCP;
 
 		std::cout << "Processed TCPPacket for Client ID: " << syncPacket.Header.Size << " with Send Time: " << syncPacket.SendTime << std::endl;
     }
@@ -96,7 +98,8 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer,uint
     {
         PacketUdpHeader syncPacket;
         ::memcpy(&syncPacket, buffer, sizeof(PacketUdpHeader));
-
+        inputCommand.SessionId = syncPacket.Header.Size;
+        inputCommand.Type = PKT_Type::KUDP;
 		std::cout << "Processed UDPPacket for Session ID: " << syncPacket.SessionId << " with Sequence: " << syncPacket.Sequence << std::endl;
     }
 

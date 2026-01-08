@@ -50,10 +50,10 @@ void ServerCore::Update()
 	for(int i =1; i < 5; ++i)
 	{
 		data.SessionId = i;
-		//data.sync.clientId = i;
-		/*data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::KTCP, 0.0 };
+		
+		data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::KTCP, 0.0 };
 		data.Type = PKT_Type::KTCP;
-		UnicastPacket(data);*/
+		UnicastPacket(data);
 		
 		data.udpHeader = PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::KUDP, (uint32)i, 0 };
 		data.Type = PKT_Type::KUDP;

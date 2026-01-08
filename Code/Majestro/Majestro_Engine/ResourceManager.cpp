@@ -352,6 +352,19 @@ shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 	return meshData;
 }
 
+shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
+{
+	shared_ptr<Vfx> effect = Get<Vfx>(s2ws(filesystem::path(path).filename().stem().string()));
+	if(effect)
+		return effect;
+	effect = make_shared<Vfx>();
+	effect ->Load(path);
+	effect ->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(effect->GetName(), effect);
+
+	return effect;
+}
+
 void ResourceManager::LoadAllTexture(const wstring& path)
 {
 	// std::string filePath{ filesystem::path(path).parent_path().string() + "\\" + filesystem::path(path).filename().stem().string() };
@@ -876,4 +889,5 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aRun_001.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aWalk_001.fbx");
 
+	LoadEffect(L"..\\Resources\\Effect\\fire.efk");
 }

@@ -3,12 +3,15 @@
 
 #include "World.h"
 #include "Engine.h"
+#include "ResourceManager.h"
 #include "RenderManager.h"
 
 #include "TagComponent.h"
 #include "CameraComponent.h"
 #include "PlayerComponent.h"
 #include "TransformComponent.h"
+#include "VfxComponent.h"
+#include "Vfx.h"
 
 EffectSystem::EffectSystem(World* world) : System::System(world)
 {
@@ -30,8 +33,26 @@ void EffectSystem::Initialize()
 		2000,
 		2000);
 
-	effect_ = LoadEffect(u"..\\Resources\\Effect\\Fire\\Fire\\Fire_efc.efkefc");
+	LoadResources();
 }
+
+
+Effekseer::EffectRef EffectSystem::LoadEffect(const EFK_CHAR * path, float magnification,const EFK_CHAR * materialPath )
+{
+	// Effect::Create(manager, path, magnification, materialPath) :contentReference[oaicite:14]{index=14}
+	return Effekseer::Effect::Create(manager_, path, magnification, materialPath);
+}
+
+Effekseer::EffectRef EffectSystem::LoadEffect(const std::string_view path, float magnification, const std::string_view materialPath)
+{
+	EfkString efkPath = ToEfkString(path);
+	EfkString efkMat = materialPath.empty() ? EfkString{} : ToEfkString(materialPath);
+
+	const EFK_CHAR* matPtr = materialPath.empty() ? nullptr : efkMat.c_str();
+	return Effekseer::Effect::Create(manager_, efkPath.c_str(), magnification, matPtr);
+}
+
+
 
 Effekseer::Handle EffectSystem::Play(Effekseer::EffectRef& effect, float x, float y, float z)
 {
@@ -39,6 +60,10 @@ Effekseer::Handle EffectSystem::Play(Effekseer::EffectRef& effect, float x, floa
 	return manager_->Play(effect, x, y, z);
 }
 
+Effekseer::Handle EffectSystem::Play(Effekseer::EffectRef& effect, const Effekseer::Vector3D& position)
+{
+	return manager_->Play(effect, position);
+}
 
 void EffectSystem::BeginFrame(ID3D12GraphicsCommandList* dxCmdList)
 {
@@ -52,31 +77,34 @@ void EffectSystem::BeginFrame(ID3D12GraphicsCommandList* dxCmdList)
 	EffekseerRendererDX12::BeginCommandList(commandList_, dxCmdList);
 
 
-	// DX12 CommandList 브릿지 :contentReference[oaicite:17]{index=17}
-	LLGI::Color8 color;
-	color.R = 0;
-	color.G = 0;
-	color.B = 0;
-	color.A = 255;
-
-	//commandList_->Begin();
-	//commandList_->BeginRenderPass(platform->GetCurrentScreen(color, true, false)); // TODO: isDepthClear is false, because it fails with dx12.
-
-
   EffekseerRendererDX12::BeginCommandList(commandList_, GRAPHICS_CMD_LIST.Get());
 	renderer_->SetCommandList(commandList_);
 }
 
 void EffectSystem::Update(float deltaTime)
 {
-
-	Play(effect_, 0, 0, 0);
+	std::vector<Entity> effect = mWorld->GetEntitiesWithComponent<VfxComponent>();
+	
+	for (Entity& e : effect)
 	{
-		manager_->AddLocation(efkHandle, ::Effekseer::Vector3D(0.2f, 0.0f, 0.0f));
-
-		Effekseer::Manager::UpdateParameter updateParameter;
-		manager_->Update(updateParameter);
-		renderer_->SetTime(deltaTime / 60.0f);
+		VfxComponent* effectComp = mWorld->GetComponent<VfxComponent>(e);
+		if (effectComp == nullptr) continue;
+		if (!effectComp->mIsPlaying && effectComp->mTotalTime > 5.0f) {
+			Play(effectComp->mVfx->mEffect, 0,0,0);
+			effectComp->mIsPlaying = true;
+		}
+		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
+		if (tr == nullptr) {
+			manager_->AddLocation(efkHandle, effectComp->mPosition);
+		}
+		else {
+			effectComp->SetPosition(tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+		}
+		/*Effekseer::Manager::UpdateParameter updateParameter;
+		updateParameter.DeltaFrame = 1.0f;*/
+		manager_->Update(deltaTime*60.f);
+		effectComp->mTotalTime += deltaTime;
+		renderer_->SetTime(effectComp->mTotalTime);	// total
 	}
 }
 
@@ -84,14 +112,14 @@ void EffectSystem::Render(const Effekseer::Matrix44& camera, const Effekseer::Ma
 {
 
 	{
-		// Renderer는 카메라/프로젝션 행렬을 보관합니다. :contentReference[oaicite:18]{index=18}
+	
 		renderer_->SetCameraMatrix(camera);
 		renderer_->SetProjectionMatrix(projection);
-
-		// BeginRendering / EndRendering :contentReference[oaicite:19]{index=19}
+		
+		
 		if (renderer_->BeginRendering())
 		{
-			// Draw :contentReference[oaicite:20]{index=20}
+			
 			Effekseer::Manager::DrawParameter drawParameter;
 			drawParameter.ZNear = 0.0f;
 			drawParameter.ZFar = 1.0f;
@@ -105,7 +133,7 @@ void EffectSystem::Render(const Effekseer::Matrix44& camera, const Effekseer::Ma
 
 void EffectSystem::EndFrame()
 {
-	// DX12 CommandList 브릿지 :contentReference[oaicite:21]{index=21}
+
 	EffekseerRendererDX12::EndCommandList(commandList_);
 	EffekseerRendererDX12::ExecuteCommandList(commandList_);
 }
@@ -122,8 +150,61 @@ void EffectSystem::Update()
 	BeginFrame(GRAPHICS_CMD_LIST.Get());
 	Render(cameraMat, projMat);
 	EndFrame();
-	/*gEffekseerManager->EffekseerRendererDX12::SetProjectionMatrix(RENDERMANAGER.GetProjectionMatrix().ToEffekseer());
-	gEffekseerManager->Draw();
-	gEffekseerRenderer->EndRendering();*/
+
 }
 
+bool EffectSystem::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, int32_t swapBufferCount, bool isReversedDepth, int32_t instanceMax, int32_t squareMaxCount)
+{
+
+	graphicsDevice_ = EffekseerRendererDX12::CreateGraphicsDevice(device, commandQueue, swapBufferCount);
+	if (graphicsDevice_ == nullptr) return false; // CreateGraphicsDevice :contentReference[oaicite:8]{index=8}
+
+	DXGI_FORMAT rtFormats[1] = { rtvFormat };
+	renderer_ = EffekseerRendererDX12::Create(
+		graphicsDevice_,
+		rtFormats,
+		1,
+		dsvFormat,
+		isReversedDepth,
+		squareMaxCount);
+	if (renderer_ == nullptr) return false; // Create :contentReference[oaicite:9]{index=9}
+
+	manager_ = Effekseer::Manager::Create(instanceMax);
+	if (manager_ == nullptr) return false;
+
+	setting_ = Effekseer::Setting::Create();
+	setting_->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
+
+	memoryPool_ = EffekseerRenderer::CreateSingleFrameMemoryPool(graphicsDevice_);
+	commandList_ = EffekseerRenderer::CreateCommandList(graphicsDevice_, memoryPool_);
+
+
+	manager_->SetSpriteRenderer(renderer_->CreateSpriteRenderer());
+	manager_->SetRibbonRenderer(renderer_->CreateRibbonRenderer());
+	manager_->SetRingRenderer(renderer_->CreateRingRenderer());
+	manager_->SetTrackRenderer(renderer_->CreateTrackRenderer());
+	manager_->SetModelRenderer(renderer_->CreateModelRenderer());
+
+	manager_->SetTextureLoader(renderer_->CreateTextureLoader());
+	manager_->SetModelLoader(renderer_->CreateModelLoader());
+	manager_->SetMaterialLoader(renderer_->CreateMaterialLoader());
+	manager_->SetCurveLoader(Effekseer::MakeRefPtr<Effekseer::CurveLoader>());
+
+
+	
+
+	return (memoryPool_ != nullptr && commandList_ != nullptr);
+}
+
+void EffectSystem::LoadResources()
+{
+	auto& resources = RESOURCEMANAGER.GetAllResources<Vfx>();
+	for (auto& res : resources)
+	{
+		shared_ptr<Vfx> effect = static_pointer_cast<Vfx>(res.second);
+		if (effect)
+		{
+			effect->mEffect = LoadEffect(ws2s(effect->mEffectPath));
+		}
+	}
+}

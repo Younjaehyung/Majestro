@@ -59,7 +59,7 @@ void SystemManager::Render() {
     GetSystem<RenderSystem>()->Update();
   
     GetSystem<UIRenderSystem>()->Update();
-   // GetSystem<EffectSystem>()->Update();
+    GetSystem<EffectSystem>()->Update();
 #ifdef _IMGUI
 	//GetSystem<IMGUIRenderSystem>()->Update();
 #else

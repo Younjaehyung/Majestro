@@ -16,7 +16,7 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "BeatComponent.h"
-
+#include "VfxComponent.h"
 #include "Prefab.h"
 //#include "Camera.h"
 //
@@ -205,6 +205,18 @@ void Scene::Initialize()
 
 
 
+#pragma endregion
+
+#pragma region VFX
+	{
+		Entity vfxEntity = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(-20.f, 15.f, 0.f);
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"fire");
+		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
+		vfxComp.mVfx = vfx;
+	}
 #pragma endregion
 
 #pragma region UI

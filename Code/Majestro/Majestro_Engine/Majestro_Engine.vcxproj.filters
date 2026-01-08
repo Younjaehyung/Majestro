@@ -82,9 +82,6 @@
     <Filter Include="World\System\Render">
       <UniqueIdentifier>{9728c576-47af-44e6-866f-f01bc204d06a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Component\Effect\Effekseer">
-      <UniqueIdentifier>{2310b514-19a5-4c4e-b068-c151fabac574}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -259,9 +256,6 @@
     <ClInclude Include="BeatComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="EffectComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentPool.h">
       <Filter>World\Component\Base</Filter>
     </ClInclude>
@@ -282,6 +276,12 @@
     </ClInclude>
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="VfxComponent.h">
+      <Filter>World\Component\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="Vfx.h">
+      <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -453,9 +453,6 @@
     <ClCompile Include="BeatComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="EffectComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentPool.cpp">
       <Filter>World\Component\Base</Filter>
     </ClCompile>
@@ -476,6 +473,12 @@
     </ClCompile>
     <ClCompile Include="UIRenderSystem.cpp">
       <Filter>World\System\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="VfxComponent.cpp">
+      <Filter>World\Component\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="Vfx.cpp">
+      <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

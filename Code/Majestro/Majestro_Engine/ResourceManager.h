@@ -9,6 +9,7 @@
 #include "Animator.h"
 #include "Skeleton.h"
 #include "FBXData.h"
+#include "Vfx.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
 
@@ -45,7 +46,8 @@ public:
 	shared_ptr<Mesh> LoadSphereMesh();
 	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
 
-	shared_ptr<FBXData> LoadFBX(const wstring& path);
+	shared_ptr<FBXData>		LoadFBX(const wstring& path);
+	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
 	void LoadResourceJson(const wstring& path);
 
@@ -135,6 +137,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::SKELETON;
 	else if (std::is_same_v<T, FBXData>)
 		return OBJECT_TYPE::FBXDATA;
+	else if (std::is_same_v<T, Vfx>)
+		return OBJECT_TYPE::VFX;
 	else if (std::is_same_v<T, Shader>)
 		return OBJECT_TYPE::SHADER;
 	else if (std::is_same_v<T, Texture>)

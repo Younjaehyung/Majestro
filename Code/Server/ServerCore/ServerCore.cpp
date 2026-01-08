@@ -40,19 +40,26 @@ void ServerCore::Update()
 	SendRequest data;
 
 	data.SessionId = 0; // Broadcast
-	data.Type = PKT_Type::KSYNC;
-	data.sync.clientId = 1;
-	data.sync.rhythmTime = 123.456f;
+	data.Type = PKT_Type::KTCP;
+	
+
+	//data.sync.rhythmTime = 123.456f;
 
 	
 
 	for(int i =1; i < 5; ++i)
 	{
 		data.SessionId = i;
-		data.sync.clientId = i;
-		data.sync.rhythmTime += 0.1f;
-		UnicastPacket(data);
+		//data.sync.clientId = i;
+		/*data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::KTCP, 0.0 };
+		data.Type = PKT_Type::KTCP;
+		UnicastPacket(data);*/
 		
+		data.udpHeader = PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::KUDP, (uint32)i, 0 };
+		data.Type = PKT_Type::KUDP;
+		UnicastPacket(data);
+
+
 	}
 	
 	

@@ -108,7 +108,7 @@ void NetworkThread::Stop()
 void NetworkThread::Update()
 {
     while (mRunning) {
-        std::cout<<"fff"<<std::endl;
+
 
         fd_set readSet, writeSet;
         FD_ZERO(&readSet);
@@ -146,7 +146,7 @@ void NetworkThread::Update()
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
 
-        // 3. UDP 공용 수신 처리 (Dispatcher)
+        
         if (FD_ISSET(mUdpSock, &readSet))
             HandleUdpRecv(); // 개별 세션 함수가 아닌 전체 수신 함수 호출
 
@@ -182,9 +182,6 @@ void NetworkThread::AcceptClient()
         LOG_ERROR("Accept Failed, error code : {}", error);
         return;
 	}
-
-   
-
 
     shared_ptr<Session> session = mSessionMgr.CreateSessions(tcpSock, mUdpSock);
 

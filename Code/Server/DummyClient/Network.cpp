@@ -170,6 +170,7 @@ void Network::PrepareSendData()
 	{
 		SendBuffer* sendBuffer = SendBufferManager::Acquire();
 		mSendData.sync.clientId = mClientId;
+		
 		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
 		mSendBuffer.push(sendBuffer);
 	}

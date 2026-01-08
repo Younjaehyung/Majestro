@@ -14,6 +14,8 @@ enum PKT_Type : uint32 {
 	KINPUT,
 	KACTION,
 	KPOSITION,
+	KTCP,
+	KUDP,
 	KMSG,
 };
 
@@ -59,6 +61,8 @@ struct KLoginPacket : public PacketTcpHeader {
 	}
 };
 
+
+
 struct KServerPacket : public PacketTcpHeader {
 
 	uint32 ClientId{};
@@ -79,6 +83,8 @@ struct SyncPacketData : public PacketTcpHeader {
 		: PacketTcpHeader{ sizeof(SyncPacketData), PKT_Type::KSYNC, 0.0 }, clientId(id), rhythmTime(time) {
 	}
 };
+
+
 
 struct MovePacketData {
 	uint32_t clientId;

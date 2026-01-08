@@ -13,6 +13,8 @@ enum PKT_Type : uint32 {
 	KINPUT,
 	KACTION,
 	KPOSITION,
+	KTCP,
+	KUDP,
 	KMSG,
 };
 

@@ -29,16 +29,16 @@ void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBu
 
 bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 {
-	PacketTcpHeader header;
-	::memcpy(&header, buffer, sizeof(PacketTcpHeader));
+	PacketHeader header;
+	::memcpy(&header, buffer, sizeof(PacketHeader));
 
-	switch (header.Header.PacketType) {
+	switch (header.PacketType) {
 	case PKT_Type::KSYNC: {
 		ProcessSyncPacket(inputCommand, buffer);
 		break;
 	}
 	default:
-		LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.Header.PacketType));
+		LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
 		return false;
 	}
 	return true;

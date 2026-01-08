@@ -36,6 +36,29 @@ void NetworkThread::Initialize()
     mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (mListenSocket == INVALID_SOCKET) LOG_ERROR("err(socket)");
 
+    mUdpSock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (mUdpSock == INVALID_SOCKET) {
+        int32 error = WSAGetLastError();
+        LOG_ERROR("Accept Failed, error code : {}", error);
+        return;
+    }
+
+    sockaddr_in udpAddr{};
+    udpAddr.sin_family = AF_INET;
+    udpAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    udpAddr.sin_port = htons(9000 + 1);   // 클라가 보내는 서버 UDP 포트
+
+    if (bind(mUdpSock, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
+        int32 error = WSAGetLastError();
+        LOG_ERROR("Accept Failed, error code : {}", error);
+        return;
+    }
+    u_long on1 = 1;
+    if (::ioctlsocket(mUdpSock, FIONBIO, &on1) == INVALID_SOCKET) {
+        LOG_ERROR("err(ioct)");
+        return;
+    }
+
     u_long on = 1;
     if (::ioctlsocket(mListenSocket, FIONBIO, &on) == INVALID_SOCKET) {
         LOG_ERROR("err(ioct)");
@@ -50,6 +73,7 @@ void NetworkThread::Initialize()
         SocketUtils::Clear();
         return;
     }
+
 
     // listen()
     if (false == SocketUtils::Listen(mListenSocket, SOMAXCONN)) {
@@ -89,7 +113,7 @@ void NetworkThread::Update()
         FD_ZERO(&writeSet);
 
         FD_SET(mListenSocket, &readSet);
-
+        FD_SET(mUdpSock, &readSet);
         
         Send();
 
@@ -99,7 +123,7 @@ void NetworkThread::Update()
 			if (s.second->IsConnected() == false) continue;
 
             FD_SET(s.second->GetTSocket(), &readSet);
-            FD_SET(s.second->GetUSocket(), &readSet);
+            
 
             if (!s.second->mTSendBufferQueue.empty()) {
                 FD_SET(s.second->GetTSocket(), &writeSet);
@@ -114,6 +138,10 @@ void NetworkThread::Update()
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
 
+        // 3. UDP 공용 수신 처리 (Dispatcher)
+        if (FD_ISSET(mUdpSock, &readSet))
+            HandleUdpRecv(); // 개별 세션 함수가 아닌 전체 수신 함수 호출
+
         for (auto& s : mSessionMgr.mSessions)
         {
             if (s.second == nullptr) continue;
@@ -121,10 +149,6 @@ void NetworkThread::Update()
 
             if (FD_ISSET(s.second->GetTSocket(), &readSet))
                 HandleTcpRecv(s.second);
-
-            if (FD_ISSET(s.second->GetUSocket(), &readSet))
-                HandleTcpRecv(s.second);
-
 
             if (FD_ISSET(s.second->GetTSocket(), &writeSet))
                 HandleTcpSend(s.second);
@@ -151,14 +175,10 @@ void NetworkThread::AcceptClient()
         return;
 	}
 
-    SOCKET udpSock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (udpSock == INVALID_SOCKET) {
-        int32 error = WSAGetLastError();
-        LOG_ERROR("Accept Failed, error code : {}", error);
-        return;
-    }
+   
 
-    shared_ptr<Session> session = mSessionMgr.CreateSessions(tcpSock, udpSock);
+
+    shared_ptr<Session> session = mSessionMgr.CreateSessions(tcpSock, mUdpSock);
 
 	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
         session->GetPlayerId(), session->GetTcpAddress().GetIpAddressA(),
@@ -221,18 +241,43 @@ void NetworkThread::HandleTcpRecv(std::shared_ptr<Session>& session)
 	}
 }
 
-void NetworkThread::HandleUdpRecv(std::shared_ptr<class Session>& session)
+void NetworkThread::HandleUdpRecv()
 {
-    // UDP 수신 처리
+	
+
     sockaddr_in fromAddr{};
     int fromLen = sizeof(fromAddr);
 
-    int len = recvfrom(session->mUdpSocket, (char*)session->mURecvBuffer, BUFSIZE, 0,
-        (sockaddr*)&fromAddr, &fromLen);
-    if (len > 0) {
-        // UDP 패킷 처리
-		session->OnUdpRecv(session->mURecvBuffer, len);
+    // UDP 소켓에 쌓인 모든 데이터를 비움
+    while (true) {
+        int len = ::recvfrom(mUdpSock, (char*)mURecvBuffer, BUFSIZE, 0, (sockaddr*)&fromAddr, &fromLen);
+
+        if (len <= 0) break;
+
+        // [핵심] 주소 정보를 기반으로 어떤 세션인지 찾음
+        // mSessionMgr에 sockaddr_in을 키로 하는 맵을 추가하는 것이 효율적입니다.
+        auto session = mSessionMgr.FindSessionByAddr(fromAddr);
+        if (session) {
+            session->OnUdpRecv(mURecvBuffer, len);
+           
+            continue;
+        }
+
+        PacketHeader* header = (PacketHeader*)mURecvBuffer;
+        if (header->PacketType == KLOGIN) {
+            KLoginPacket* pkt = (KLoginPacket*)mURecvBuffer;
+
+            auto targetSession = mSessionMgr.mSessions[pkt->clientId];
+            if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
+                // 주소 매핑 등록
+                targetSession->SetUNetAddress(fromAddr);
+                mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
+                LOG_INFO("Session {} UDP Address Registered!", pkt->clientId);
+            }
+        }
+
     }
+    
 }
 
 void NetworkThread::HandleTcpSend(std::shared_ptr<Session>& session)
@@ -304,8 +349,8 @@ void NetworkThread::HandleUdpSend(std::shared_ptr<class Session>& session)
     if (session->mUSendBufferQueue.empty())
         return;
     SendBuffer* sb = session->mUSendBufferQueue.front();
-    int len = sendto(session->mUdpSocket, (char*)sb->Data, sb->Capacity, 0,
-        (sockaddr * )&session->GetUdpAddress().GetSockAddr(), sizeof(session->GetUdpAddress().GetSockAddr()));
+    int len = sendto(mUdpSock, (char*)sb->Data, sb->Capacity, 0,
+        (sockaddr * )&session->GetUdpAddress().GetSockAddr(), sizeof(sockaddr_in));
 	
     
  

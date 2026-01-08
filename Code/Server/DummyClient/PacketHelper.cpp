@@ -32,7 +32,7 @@ void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBu
 
 	// Copy header
 
-	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData),TCP);
+	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData),UDP);
 
 	
 }
@@ -40,11 +40,11 @@ void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBu
 bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 {
 
-    PacketTcpHeader header;
-	::memcpy(&header, buffer, sizeof(PacketTcpHeader));
+    PacketHeader header;
+	::memcpy(&header, buffer, sizeof(PacketHeader));
 
 
-    switch (header.Header.PacketType) {
+    switch (header.PacketType) {
     case PKT_Type::KSYNC: {
         ProcessSyncPacket(inputCommand, buffer);
         //std::cout << "Processed Sync Packet for Client ID: " << inputCommand.SessionId << " with Rhythm Time: " << inputCommand.moveX << std::endl;

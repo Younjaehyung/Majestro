@@ -14,7 +14,7 @@
 Session::Session() : mRecvBuffer(BUFFER_SIZE)
 {
 	mTcpSocket = INVALID_SOCKET;
-	mUdpSocket = INVALID_SOCKET;
+	
 }
 
 Session::~Session()
@@ -26,10 +26,10 @@ Session::~Session()
 void Session::SetSession(SOCKET& tcpsocket, SOCKET& udpsocket)
 {
 	mTcpSocket = tcpsocket;
-	mUdpSocket = udpsocket;
+	
 	// 데이터 등록
 	SocketUtils::GetNetAddress(mTcpSocket, mTcpAddr);
-	SocketUtils::GetNetAddress(mUdpSocket, mUdpAddr);
+	SocketUtils::GetNetAddress(udpsocket, mUdpAddr);
 
 }
 
@@ -56,7 +56,7 @@ void Session::Close()
 	LOG_INFO("Disconnect ID :[{}] ",
 		mPlayerId);
 	SocketUtils::Close(mTcpSocket);
-	SocketUtils::Close(mUdpSocket);
+	
 }
 
 void Session::ClearSendBufferQueue()

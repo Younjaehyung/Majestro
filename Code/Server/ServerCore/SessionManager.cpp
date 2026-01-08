@@ -45,4 +45,20 @@ void SessionManager::ClearSessions()
 	mSessions.clear();
 }
 
+shared_ptr<Session> SessionManager::FindSessionByAddr(sockaddr_in addr)
+{
+	
+	auto it = mUdpMapper.find(addr);
+	if (it == mUdpMapper.end()) return nullptr;
+	return mSessions[it->second];
+	
+}
+
+void SessionManager::RegisterUdpAddress(sockaddr_in addr, uint64 sessionId)
+{
+	
+	mUdpMapper[addr] = sessionId;
+	
+}
+
 

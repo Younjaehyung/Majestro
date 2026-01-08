@@ -37,7 +37,9 @@ public:
 	
 public:
 	/* 정보 관련 */
-	void				SetNetAddress(NetAddress address) { mTcpAddr = address; }
+	void				SetTNetAddress(NetAddress address) { mTcpAddr = address; }
+	void				SetUNetAddress(NetAddress address) { mUdpAddr = address; }
+	
 	NetAddress			GetTcpAddress() { return mTcpAddr; }
 	NetAddress			GetUdpAddress() { return mUdpAddr; }
 
@@ -45,10 +47,8 @@ public:
 	int					GetPlayerId() { return mPlayerId; }
 
 	void				SetTSocket(SOCKET socket) { mTcpSocket = socket; }
-	void				SetUSocket(SOCKET socket) { mUdpSocket = socket; }
 
 	SOCKET&				GetTSocket() { return mTcpSocket; }
-	SOCKET&				GetUSocket() { return mUdpSocket; }
 	Atomic<bool>&		IsConnected()		{ return mConnected; }
 	
 private:
@@ -64,7 +64,6 @@ private:
 private:
 
 	SOCKET			mTcpSocket;
-	SOCKET 			mUdpSocket;
 
 	NetAddress		mTcpAddr;
 	NetAddress		mUdpAddr;

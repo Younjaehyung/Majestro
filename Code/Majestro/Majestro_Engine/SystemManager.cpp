@@ -11,6 +11,7 @@
 #include "IMGUISystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
+#include "EffectSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -26,6 +27,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<PlayerSystem>();
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
+    RegisterSystem<EffectSystem>();
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();
 #else
@@ -51,13 +53,16 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);
+    GetSystem<EffectSystem>()->Update(deltaTime);
     
 }
 
 void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
     GetSystem<RenderSystem>()->Update();
+    GetSystem<EffectSystem>()->Update();
     GetSystem<UIRenderSystem>()->Update();
+   
 #ifdef _IMGUI
 	//GetSystem<IMGUIRenderSystem>()->Update();
 #else

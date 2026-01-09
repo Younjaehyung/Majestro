@@ -5,6 +5,7 @@
 #include "RootSignature.h"
 #include "FBXData.h"
 
+
 void ResourceManager::Initialize()
 {
 	CreateDefaultRootSignature();

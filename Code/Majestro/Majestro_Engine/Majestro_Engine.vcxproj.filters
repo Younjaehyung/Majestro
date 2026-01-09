@@ -73,6 +73,12 @@
     <Filter Include="World\Component\IMGUI">
       <UniqueIdentifier>{f3b43cef-1202-4e65-b9db-d67496978c23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Effect">
+      <UniqueIdentifier>{13fbfe9a-7fb2-469f-8773-dbb82d5249c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\Effect">
+      <UniqueIdentifier>{5aee3f13-e97c-4a03-a84d-eca79442a635}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -275,6 +281,15 @@
     <ClInclude Include="MovementComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
+    <ClInclude Include="Vfx.h">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectSystem.h">
+      <Filter>World\System\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="VfxComponent.h">
+      <Filter>World\Component\Effect</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -469,6 +484,15 @@
     </ClCompile>
     <ClCompile Include="MovementSystem.cpp">
       <Filter>World\System</Filter>
+    </ClCompile>
+    <ClCompile Include="Vfx.cpp">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectSystem.cpp">
+      <Filter>World\System\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="VfxComponent.cpp">
+      <Filter>World\Component\Effect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

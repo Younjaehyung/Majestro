@@ -63,7 +63,7 @@
             "from": "Dash",
             "to": "Walk",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP", "F_MOVE" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_MOVE" ]
         }
 
 

@@ -16,6 +16,7 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "BeatComponent.h"
+#include "GravityComponent.h"
 
 #include "Prefab.h"
 //#include "Camera.h"
@@ -171,7 +172,7 @@ void Scene::Initialize()
 
 					mWorld->AddComponent<TransformComponent>(osws, t);
 					mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-					//mWorld->AddComponent<AnimationComponent>(osws, anmators);
+					mWorld->AddComponent<GravityComponent>(osws);
 				//}
 			}
 

@@ -263,6 +263,9 @@
     <ClInclude Include="BeatComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
+    <ClInclude Include="GravityComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -447,6 +450,9 @@
       <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="BeatComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="GravityComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "InputManager.h"
 #include "TransformSystem.h"
 #include "TagComponent.h"
+#include "MovementComponent.h"
 
 
 CameraSystem::CameraSystem(World* world) : System(world)
@@ -19,37 +20,44 @@ void CameraSystem::Initialize()
 	
 void CameraSystem::Update(float dt)
 {
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<CameraComponent, TransformComponent>() };
+	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 
 	//TestUpdate(dt);
 	for (auto& entity : entitys) {
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-		
-		std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<ControllerComponent>() };
-		ControllerComponent* playerComponent = mWorld->GetComponent<ControllerComponent>(playerEntitys[0]);
+		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(entity);
 
-		Vec3 pos = playerComponent->mTransformComponent.mLocalPosition;
+		auto& playerPosPool = mWorld->GetComponentPool<TransformComponent>();
+		TransformComponent* playerPos = playerPosPool.GetComponent(cameraTypeComponent->mTargetID);
 
-		if (playerComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
-			transformComponent->mLocalPosition = playerComponent->mTransformComponent.mLocalPosition;
-			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
-			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
-		}
-		else if (playerComponent->mPlayMode == THREE_FPS) {
-			pos.y += playerComponent->mHight;
-			transformComponent->mLocalPosition = pos - playerComponent->mCameraLenth * playerComponent->mTransformComponent.GetLook();
-			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
-			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
-		}
-		else if (playerComponent->mPlayMode == THREE_RPG) {
-			pos.y += playerComponent->mHight;
-			transformComponent->mLocalPosition = pos - playerComponent->mCameraLenth * playerComponent->mTransformComponent.GetLook();
-			transformComponent->mLocalRotation = playerComponent->mTransformComponent.mLocalRotation;
-			cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
-		}
+		auto& playerMovePool = mWorld->GetComponentPool<MovementComponent>();
+		MovementComponent* movementComponent = playerMovePool.GetComponent(cameraTypeComponent->mTargetID);
 		
-		else cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		Vec3 pos = playerPos->mLocalPosition;
+
+		if (cameraTypeComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
+			transformComponent->mLocalPosition = playerPos->mLocalPosition;
+			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			//cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		}
+		else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
+			pos.y += cameraTypeComponent->mCameraHight;
+			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
+			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			
+		}
+		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
+			pos.y += cameraTypeComponent->mCameraHight;
+			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
+			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+
+		}
+
+		cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 	}
 	
 }

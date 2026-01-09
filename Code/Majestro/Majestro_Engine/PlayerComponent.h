@@ -7,31 +7,31 @@
 #include "Animator.h"
 
 
-enum PlayMode
-{
-	MAIN_CAMERA,
-	ONE_FPS,
-	THREE_FPS,
-	THREE_RPG,
-};
+//enum PlayMode
+//{
+//	MAIN_CAMERA,
+//	ONE_FPS,
+//	THREE_FPS,
+//	THREE_RPG,
+//};
 
 class ControllerComponent : public Component<ControllerComponent>
 {
 public:
-	ControllerComponent() : mTransformComponent(), mPlayMode(MAIN_CAMERA) {}
-	ControllerComponent(TransformComponent transform): mTransformComponent(transform), mPlayMode(MAIN_CAMERA) {}
-	ControllerComponent(TransformComponent transform, PlayMode mode) : mTransformComponent(transform), mPlayMode(mode) {}
+	ControllerComponent() : mTransformComponent(){}
+	ControllerComponent(TransformComponent transform): mTransformComponent(transform){}
+	ControllerComponent(TransformComponent transform, int mode) : mTransformComponent(transform), mPlayMode(mode) {}
 
 	void RegisterEditorProperties(std::vector<EditorProperty>& out)
 	{
-		out.push_back({ "Speed", PropertyType::Float, &mHight, 0.0f, 10.0f });
+		out.push_back({ "Speed", PropertyType::Float, &mCameraHight, 0.0f, 10.0f });
 		out.push_back({ "GodMode", PropertyType::Bool, &mCameraLenth });
 	}
 
 public:
 	TransformComponent mTransformComponent;
-	PlayMode mPlayMode;
-	float mHight = 1; 
+	int mPlayMode;
+	float mCameraHight = 1; 
 	float mCameraLenth = 5; 
 };
 

@@ -111,3 +111,23 @@ public:
 	uint32 mCullingMask = 0;	//어떤 레이어를 랜더링할건지 비트로 계산
 	CameraParams mCameraParams;
 };
+
+enum PlayMode
+{
+	MAIN_CAMERA,
+	ONE_FPS,
+	THREE_FPS,
+	THREE_RPG,
+};
+
+class CameraTypeComponent : public Component<CameraTypeComponent>
+{
+public:
+	CameraTypeComponent(PlayMode mode): mPlayMode(mode) {}
+	CameraTypeComponent(ComponentTypeID targetID, PlayMode mode ): mPlayMode(mode), mTargetID(targetID) {}
+public:
+	ComponentTypeID mTargetID;
+	PlayMode mPlayMode;
+	float mCameraHight = 20;
+	float mCameraLenth = 25;
+};

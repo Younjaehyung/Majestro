@@ -1,8 +1,8 @@
 {
     "player": {
-        "walkSpeed": 5.0,
-        "runSpeed": 10.0,
-        "dashSpeed": 20.0
+        "walkSpeed": 50.0,
+        "runSpeed": 100.0,
+        "dashSpeed": 200.0
     },
 
     "stateProps": {

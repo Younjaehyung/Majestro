@@ -266,6 +266,15 @@
     <ClInclude Include="GravityComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
+    <ClInclude Include="EnemyComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementSystem.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementComponent.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -454,6 +463,12 @@
     </ClCompile>
     <ClCompile Include="GravityComponent.cpp">
       <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyComponent.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>World\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

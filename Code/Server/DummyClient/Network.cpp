@@ -110,6 +110,22 @@ setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
 	mNetworkThread = std::thread(&Network::NetworkUpdate, this);
 }
 
+void Network::ReleaseServer()
+{
+	SendBufferManager::Shutdown();
+
+	if (mTcpSocket != INVALID_SOCKET)
+		closesocket(mTcpSocket);
+
+	if (mUdpSocket != INVALID_SOCKET)
+		closesocket(mUdpSocket);
+
+
+	mTcpSocket = INVALID_SOCKET;
+	mUdpSocket = INVALID_SOCKET;
+
+	WSACleanup();
+}
 
 void Network::NetworkUpdate()
 {
@@ -137,45 +153,12 @@ void Network::Stop()
 }
 
 
-void Network::ReleaseServer()
-{
-	SendBufferManager::Shutdown();
-
-	if (mTcpSocket != INVALID_SOCKET)
-	closesocket(mTcpSocket);
-
-	if (mUdpSocket != INVALID_SOCKET)
-	closesocket(mUdpSocket);
-
-
-	mTcpSocket = INVALID_SOCKET;
-	mUdpSocket = INVALID_SOCKET;
-
-	WSACleanup();
-}
 
 
 
-void Network::OnRecvPacket()
-{
-	if (!mIsRunning) return;
-	OnTCPNetworkUpdate();	// recv
-	OnUDPNetworkUpdate();	// recv
-	
-}
-
-void Network::PrepareSendData()
-{
-	while (gSendBuffer.Pop(mSendData))
-	{
-		SendBuffer* sendBuffer = SendBufferManager::Acquire();
-		mSendData.sync.clientId = mClientId;
-		
-		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
-		mSendBuffer.push(sendBuffer);
-	}
-
-}
+///////////////////////////////////
+//SEND
+///////////////////////////////////
 
 void Network::OnSendPacket()
 {
@@ -209,7 +192,7 @@ void Network::OnSendPacket()
 				int err = WSAGetLastError();
 				if (err == WSAEWOULDBLOCK)
 				{
-					
+
 					break;
 				}
 
@@ -238,19 +221,19 @@ void Network::OnSendPacket()
 		}
 		case NetProtocol::UDP:
 		{
-			
+
 
 			int len = sendto(mUdpSocket, (char*)sendBuffer->Data, sendBuffer->Capacity, 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(mServerUdpAddr));
 
-			if(len > 0)
+			if (len > 0)
 			{
 				// 전송 성공
 				mSendBuffer.pop();
 				SendBufferManager::Release(sendBuffer);
 			}
 
-			
+
 
 			break;
 		}
@@ -261,10 +244,38 @@ void Network::OnSendPacket()
 			break;
 		}
 		}
-		
-		
+
+
 	}
-	
+
+}
+
+
+void Network::PrepareSendData()
+{
+	while (gSendBuffer.Pop(mSendData))
+	{
+		SendBuffer* sendBuffer = SendBufferManager::Acquire();
+		mSendData.sync.clientId = mClientId;
+		
+		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
+		mSendBuffer.push(sendBuffer);
+	}
+
+}
+
+
+///////////////////////////////////
+//RECV
+///////////////////////////////////
+
+
+void Network::OnRecvPacket()
+{
+	if (!mIsRunning) return;
+	OnTCPNetworkUpdate();	// recv
+	OnUDPNetworkUpdate();	// recv
+
 }
 
 

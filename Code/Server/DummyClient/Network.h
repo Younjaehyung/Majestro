@@ -60,8 +60,6 @@ private: // Session
 	// send
 	void PrepareSendData();
 	void OnSendPacket();
-	//void ProcessSendData();
-	
 
 	// recv
 	void  OnRecvPacket();	// recv process

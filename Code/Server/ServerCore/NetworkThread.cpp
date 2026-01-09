@@ -36,6 +36,29 @@ void NetworkThread::Initialize()
     mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (mListenSocket == INVALID_SOCKET) LOG_ERROR("err(socket)");
 
+    mUdpSock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (mUdpSock == INVALID_SOCKET) {
+        int32 error = WSAGetLastError();
+        LOG_ERROR("Accept Failed, error code : {}", error);
+        return;
+    }
+
+    sockaddr_in udpAddr{};
+    udpAddr.sin_family = AF_INET;
+    udpAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    udpAddr.sin_port = htons(9000 + 1);   // 클라가 보내는 서버 UDP 포트
+
+    if (bind(mUdpSock, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
+        int32 error = WSAGetLastError();
+        LOG_ERROR("Accept Failed, error code : {}", error);
+        return;
+    }
+    u_long on1 = 1;
+    if (::ioctlsocket(mUdpSock, FIONBIO, &on1) == INVALID_SOCKET) {
+        LOG_ERROR("err(ioct)");
+        return;
+    }
+
     u_long on = 1;
     if (::ioctlsocket(mListenSocket, FIONBIO, &on) == INVALID_SOCKET) {
         LOG_ERROR("err(ioct)");
@@ -50,6 +73,7 @@ void NetworkThread::Initialize()
         SocketUtils::Clear();
         return;
     }
+
 
     // listen()
     if (false == SocketUtils::Listen(mListenSocket, SOMAXCONN)) {
@@ -84,44 +108,60 @@ void NetworkThread::Stop()
 void NetworkThread::Update()
 {
     while (mRunning) {
+
+
         fd_set readSet, writeSet;
         FD_ZERO(&readSet);
         FD_ZERO(&writeSet);
 
         FD_SET(mListenSocket, &readSet);
-
+        FD_SET(mUdpSock, &readSet);
         
-        Send();
+        PushSend();
 
         for (auto& s : mSessionMgr.mSessions)
         {
 			if (s.second == nullptr) continue;
 			if (s.second->IsConnected() == false) continue;
 
-            FD_SET(s.second->GetSocket(), &readSet);
+            FD_SET(s.second->GetTSocket(), &readSet);
+            
 
-            if (!s.second->mSendBufferQueue.empty())
-                FD_SET(s.second->GetSocket(), &writeSet);
+            if (!s.second->mTSendBufferQueue.empty()) {
+                FD_SET(s.second->GetTSocket(), &writeSet);
+            }
         }
 
         timeval tv{ 0, 1000 }; // 1ms
         int32 ready = select(0, &readSet, &writeSet, nullptr, &tv);
+        for (auto& s : mSessionMgr.mSessions)
+        {
+            HandleUdpSend(s.second);
+        }
+        
+
         if (ready <= 0)
             continue;
 
         if (FD_ISSET(mListenSocket, &readSet))
             AcceptClient();
 
+        
+        if (FD_ISSET(mUdpSock, &readSet))
+            HandleUdpRecv(); // 개별 세션 함수가 아닌 전체 수신 함수 호출
+
         for (auto& s : mSessionMgr.mSessions)
         {
             if (s.second == nullptr) continue;
             if (s.second->IsConnected() == false) continue;
 
-            if (FD_ISSET(s.second->GetSocket(), &readSet))
-                HandleRecv(s.second);
+            if (FD_ISSET(s.second->GetTSocket(), &readSet))
+                HandleTcpRecv(s.second);
 
-            if (FD_ISSET(s.second->GetSocket(), &writeSet))
-                HandleSend(s.second);
+            if (FD_ISSET(s.second->GetTSocket(), &writeSet))
+                HandleTcpSend(s.second);
+  
+			
         }
 
         CleanupDisconnected();
@@ -135,27 +175,27 @@ void NetworkThread::AcceptClient()
 {
     sockaddr_in clientaddr;
     int32 addrlen = sizeof(clientaddr);
-    SOCKET s = accept(mListenSocket, (struct sockaddr*)&clientaddr, &addrlen);
-    if(s == INVALID_SOCKET)
+    SOCKET tcpSock = accept(mListenSocket, (struct sockaddr*)&clientaddr, &addrlen);
+    if(tcpSock == INVALID_SOCKET)
     {
         int32 error = WSAGetLastError();
         LOG_ERROR("Accept Failed, error code : {}", error);
         return;
 	}
 
-    shared_ptr<Session> session = mSessionMgr.CreateSessions(s);
+    shared_ptr<Session> session = mSessionMgr.CreateSessions(tcpSock, mUdpSock);
 
 	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
-        session->GetPlayerId(), session->GetAddress().GetIpAddressA(),
-        session->GetAddress().GetPort());
+        session->GetPlayerId(), session->GetTcpAddress().GetIpAddressA(),
+        session->GetTcpAddress().GetPort());
 
 	SendBuffer* sendBuffer = SendBufferManager::Acquire();
 	KLoginPacket loginPkt = KLoginPacket(session->GetPlayerId());
-	sendBuffer->SetData(&loginPkt, sizeof(KLoginPacket));
-    session->mSendBufferQueue.push(sendBuffer);
+	sendBuffer->SetData(&loginPkt, sizeof(KLoginPacket),TCP);
+    session->mTSendBufferQueue.push(sendBuffer);
 }
 
-void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
+void NetworkThread::HandleTcpRecv(std::shared_ptr<Session>& session)
 {
     session->mRecvBuffer.Clean();
 
@@ -165,7 +205,7 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
         return;
     }
 
-	int len = recv(session->GetSocket(), (char*)session->mRecvBuffer.WritePos(),
+	int len = recv(session->GetTSocket(), (char*)session->mRecvBuffer.WritePos(),
         session->mRecvBuffer.FreeSize(), 0);
 
 	if (len > 0)
@@ -178,7 +218,7 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 
         while (true)
         {
-            int32 ret = session->OnRecv(session->mRecvBuffer.ReadPos(), session->mRecvBuffer.DataSize());
+            int32 ret = session->OnTcpRecv(session->mRecvBuffer.ReadPos(), session->mRecvBuffer.DataSize());
 
             if (ret < 0 || ret > session->mRecvBuffer.DataSize())
             {
@@ -206,23 +246,69 @@ void NetworkThread::HandleRecv(std::shared_ptr<Session>& session)
 	}
 }
 
-void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
+void NetworkThread::HandleUdpRecv()
 {
-    if (session->mSendBufferQueue.empty())
+	
+
+    sockaddr_in fromAddr{};
+    int fromLen = sizeof(fromAddr);
+
+    // UDP 소켓에 쌓인 모든 데이터를 비움
+    while (true) {
+        int len = ::recvfrom(mUdpSock, (char*)mURecvBuffer, BUFSIZE, 0, (sockaddr*)&fromAddr, &fromLen);
+
+        if (len <= 0) break;
+
+        if (len < (int)sizeof(PacketHeader))
+            continue;
+
+        auto session = mSessionMgr.FindSessionByAddr(fromAddr);
+        if (session) {
+            session->OnUdpRecv(mURecvBuffer, len);
+           
+            continue;
+        }
+
+
+        PacketHeader* header = (PacketHeader*)mURecvBuffer;
+        if (header->PacketType == KLOGIN) {
+            KLoginPacket* pkt = (KLoginPacket*)mURecvBuffer;
+
+            auto& targetSession = mSessionMgr.mSessions[pkt->clientId];
+            if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
+                // 주소 매핑 등록
+                targetSession->SetUNetAddress(fromAddr);
+                mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
+                
+            }
+
+            std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
+            
+        }
+
+
+
+    }
+    
+}
+
+void NetworkThread::HandleTcpSend(std::shared_ptr<Session>& session)
+{
+    if (session->mTSendBufferQueue.empty())
         return;
 
 
     LOG_INFO("HandleSend ID:[{}] SendBufferQueue Size:[{}]",
-        session->GetPlayerId(), session->mSendBufferQueue.size());
+        session->GetPlayerId(), session->mTSendBufferQueue.size());
 
-    while (!session->mSendBufferQueue.empty())
+    while (!session->mTSendBufferQueue.empty())
     {
-		SendBuffer* sb = session->mSendBufferQueue.front();
+		SendBuffer* sb = session->mTSendBufferQueue.front();
 
         // 아직 보내야 할 바이트 수
         uint32 remain = sb->Capacity - sb->ReadPos;
 
-        int len = send(session->GetSocket(), (char*)(sb->Data+sb->ReadPos),
+        int len = send(session->GetTSocket(), (char*)(sb->Data+sb->ReadPos),
             remain, 0);
 
         if (len < 0)
@@ -262,13 +348,43 @@ void NetworkThread::HandleSend(std::shared_ptr<Session>& session)
         }
 
         // 전송 완료
-        session->mSendBufferQueue.pop();
+        session->mTSendBufferQueue.pop();
         SendBufferManager::Release(sb);
 
     }
 
 
 }
+
+void NetworkThread::HandleUdpSend(std::shared_ptr<class Session>& session)
+{
+    while (!session->mUSendBufferQueue.empty()) {
+        sockaddr_in to = session->GetUdpAddress().GetSockAddr();
+        if (to.sin_port == 0) return;
+        SendBuffer* sb = session->mUSendBufferQueue.front();
+		
+        int len = sendto(mUdpSock, (char*)sb->Data, sb->Capacity, 0,
+            (sockaddr*)&to, sizeof(sockaddr_in));
+
+        if (len == SOCKET_ERROR)
+        {
+            int err = WSAGetLastError();
+            if (err == WSAEWOULDBLOCK)
+            {
+                // 지금은 못 보냄: reliable이면 unacked에 남겨두고 다음 틱에 시도
+
+                break;
+            }
+
+            return;
+        }
+
+        session->mUSendBufferQueue.pop();
+        SendBufferManager::Release(sb);
+    }
+}
+        
+
 
 void NetworkThread::CleanupDisconnected()
 {
@@ -293,7 +409,7 @@ void NetworkThread::CleanupDisconnected()
         it = mSessionMgr.mSessions.erase(it);
     }
 }
-bool NetworkThread::Send()
+bool NetworkThread::PushSend()
 {
 
     while (gSendQueue.Pop(mData)) {
@@ -314,12 +430,27 @@ bool NetworkThread::Send()
         if (mData.SessionId == 0)
         {
             for (auto& s : mSessionMgr.mSessions  ) {
-                s.second->SendData(sendBuffer);
+                s.second->SendTcpData(sendBuffer);
             }
         }
         else if (mSessionMgr.mSessions.contains(mData.SessionId))
         {
-            mSessionMgr.mSessions[mData.SessionId]->SendData(sendBuffer);
+			
+            switch (sendBuffer->Protocol)
+            {
+            case TCP:
+                
+                mSessionMgr.mSessions[mData.SessionId]->SendTcpData(sendBuffer);
+                break;
+            case UDP:
+                
+                mSessionMgr.mSessions[mData.SessionId]->SendUdpData(sendBuffer);
+                break;
+            default:
+                break;
+            }
+
+           
         }
         else
         {
@@ -327,5 +458,15 @@ bool NetworkThread::Send()
         }
     }
     return true;
+}
+
+bool NetworkThread::PushUdpSend()
+{
+    return false;
+}
+
+bool NetworkThread::PushTcpSend()
+{
+    return false;
 }
 

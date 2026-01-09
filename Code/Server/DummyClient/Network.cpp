@@ -65,14 +65,42 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 		return;
 	}
 
+	sockaddr_in localUdp{};
+	localUdp.sin_family = AF_INET;
+	localUdp.sin_addr.s_addr = htonl(INADDR_ANY);
+	localUdp.sin_port = htons(0); // 0 = OS가 사용 가능한 포트를 자동 할당
+
+	if (bind(mUdpSocket, (sockaddr*)&localUdp, sizeof(localUdp)) == SOCKET_ERROR)
+	{
+		int err = WSAGetLastError();
+		std::cout << "UDP bind failed: " << err << std::endl;
+		ReleaseServer();
+		return;
+	}
+
+
+
 	u_long one = 1;
 	ioctlsocket(mTcpSocket, FIONBIO, &one);
+
+	u_long one1 = 1;
+	ioctlsocket(mUdpSocket, FIONBIO, &one1);
+
+
 	if (mTcpSocket == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
 		ReleaseServer();
 		return;
 	}
+	if (mUdpSocket == INVALID_SOCKET) {
+		int32_t error = WSAGetLastError();
+		cout << "Socket creation failed with error: " << error << std::endl;
+		ReleaseServer();
+		return;
+	}
+	
+
 
 	/*bool flag = true; // nagle
 setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
@@ -89,7 +117,6 @@ void Network::NetworkUpdate()
 	while (mIsRunning) {
 		OnRecvPacket();
 		OnSendPacket();
-		
 	}
 	ReleaseServer();
 }
@@ -117,7 +144,7 @@ void Network::ReleaseServer()
 	if (mTcpSocket != INVALID_SOCKET)
 	closesocket(mTcpSocket);
 
-	if (mTcpSocket != INVALID_SOCKET)
+	if (mUdpSocket != INVALID_SOCKET)
 	closesocket(mUdpSocket);
 
 
@@ -143,6 +170,7 @@ void Network::PrepareSendData()
 	{
 		SendBuffer* sendBuffer = SendBufferManager::Acquire();
 		mSendData.sync.clientId = mClientId;
+		
 		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
 		mSendBuffer.push(sendBuffer);
 	}
@@ -156,6 +184,8 @@ void Network::OnSendPacket()
 	PrepareSendData();	//send
 
 	while (!mSendBuffer.empty()) {
+
+		std::cout << "OnSendPacket processing." << std::endl;
 
 		SendBuffer* sendBuffer = mSendBuffer.front();
 
@@ -208,6 +238,8 @@ void Network::OnSendPacket()
 		}
 		case NetProtocol::UDP:
 		{
+			
+
 			int len = sendto(mUdpSocket, (char*)sendBuffer->Data, sendBuffer->Capacity, 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(mServerUdpAddr));
 
@@ -217,20 +249,8 @@ void Network::OnSendPacket()
 				mSendBuffer.pop();
 				SendBufferManager::Release(sendBuffer);
 			}
-			else if (len == 0)
-			{
-				// 연결이 종료됨
-				Shutdown();
-			}
-			else
-			{
-				int32 errorCode = WSAGetLastError();
-				if (errorCode != WSAEWOULDBLOCK)
-				{
-					// 치명적인 오류 발생
-					Shutdown();
-				}
-			}
+
+			
 
 			break;
 		}
@@ -319,6 +339,10 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
 		if (mInputCommand.Type == KLOGIN) {
 			mClientId = mInputCommand.SessionId;
+			KLoginPacket loginPkt = KLoginPacket(mClientId);
+
+			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(loginPkt), 0,
+				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));
 		}
 		std::cout << "Rec" << mClientId << std::endl;
 		gRecvBuffer.Push(mInputCommand);
@@ -335,15 +359,34 @@ void Network::OnUDPNetworkUpdate()
 {
 	if (!mIsRunning) return;
 	// UDP 수신 처리
-	sockaddr_in fromAddr;
+	sockaddr_in fromAddr{};
 	int fromLen = sizeof(fromAddr);
 	
 	int len = recvfrom(mUdpSocket, (char*)mURecvBuffer, BUFSIZE, 0,
 		(sockaddr*)&fromAddr, &fromLen);
+	
 	if (len > 0) {
 		// UDP 패킷 처리
-		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
-		
+		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer,len);
+		std::cout << "Recv" << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 	}
+	else if (len == SOCKET_ERROR)
+	{
+		int err = WSAGetLastError();
+
+		// FIX: 논블로킹에서 "지금 받을 게 없음"은 정상 상황
+		if (err == WSAEWOULDBLOCK)
+			return;
+
+		// FIX: UDP에서 흔한 케이스(상대 포트 unreachable 등). 필요 시 무시 가능
+		if (err == WSAECONNRESET)
+			return;
+
+		// 그 외는 진짜 오류로 보고 종료
+		std::cout << "UDP recvfrom failed: " << err << std::endl;
+		Shutdown();
+		return;
+	}
+
 }

@@ -16,7 +16,9 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "BeatComponent.h"
-#include "VfxComponent.h"
+#include "GravityComponent.h"
+#include "MovementComponent.h"
+
 #include "Prefab.h"
 //#include "Camera.h"
 //
@@ -27,12 +29,14 @@
 
 void Scene::Initialize()
 {
+	Entity osw = mWorld->CreateEntity();
 
 	TransformComponent t{};
 	Entity testCamera = mWorld->CreateEntity();
 	mWorld->AddComponent<MainCameraComponent>(testCamera);
 	mWorld->AddComponent<CameraComponent>(testCamera);
 	mWorld->AddComponent<TransformComponent>(testCamera,t);
+	mWorld->AddComponent<CameraTypeComponent>(testCamera, osw.GetID(), THREE_FPS);
 
 
 	/////////////////////////////////////////////////////////////////////
@@ -96,7 +100,7 @@ void Scene::Initialize()
 #pragma endregion
 
 	{
-		Entity osw = mWorld->CreateEntity();	// �ʼ�
+		//Entity osw = mWorld->CreateEntity();	// �ʼ�
 
 		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Rudwig_mBody");
 		//shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
@@ -118,29 +122,17 @@ void Scene::Initialize()
 
 		//anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
 
-		mWorld->AddComponent<ControllerComponent>(osw,t, THREE_FPS);
+		mWorld->AddComponent<ControllerComponent>(osw,t);
 		mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json", anmators0);
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(osw, anmators0);
 		mWorld->AddComponent<BeatComponent>(osw);
+		mWorld->AddComponent<GravityComponent>(osw);
+		mWorld->AddComponent<MovementComponent>(osw);
 
 
-		/*
-		float i, j;
-
-		for (i = -51; i < 0; i += 51.0f) {
-			for (j = -51; j < 0; j += 51.0f) {
-				Entity osws = mWorld->CreateEntity();	// �ʼ�
-				t.mLocalPosition = { i, j, 100.f };
-
-
-				mWorld->AddComponent<TransformComponent>(osws, t);
-				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-				//mWorld->AddComponent<AnimationComponent>(osws, anmators);
-			}
-
-		}*/
+		
 	}
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
@@ -171,7 +163,7 @@ void Scene::Initialize()
 
 					mWorld->AddComponent<TransformComponent>(osws, t);
 					mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-					//mWorld->AddComponent<AnimationComponent>(osws, anmators);
+					mWorld->AddComponent<GravityComponent>(osws);
 				//}
 			}
 
@@ -205,18 +197,6 @@ void Scene::Initialize()
 
 
 
-#pragma endregion
-
-#pragma region VFX
-	{
-		Entity vfxEntity = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
-		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
-		vfxComp.mVfx = vfx;
-	}
 #pragma endregion
 
 #pragma region UI

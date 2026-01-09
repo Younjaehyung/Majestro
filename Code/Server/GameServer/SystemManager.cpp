@@ -49,7 +49,7 @@ void SystemManager::Shutdown() {
     for (auto& sys : mUpdateSystems)        sys->Shutdown();
     for (auto& sys : mLateUpdateSystems)    sys->Shutdown();
     for (auto& sys : mFinalUpdateSystems)   sys->Shutdown();
-    for (auto& sys : mRenderSystems)        sys->Shutdown();
+    //for (auto& sys : mRenderSystems)        sys->Shutdown();
 
 
 
@@ -57,7 +57,7 @@ void SystemManager::Shutdown() {
     mStartSystems.clear();
     mUpdateSystems.clear();
     mFinalUpdateSystems.clear();
-    mRenderSystems.clear();
+    //mRenderSystems.clear();
 
     mSystemMap.clear();
 }

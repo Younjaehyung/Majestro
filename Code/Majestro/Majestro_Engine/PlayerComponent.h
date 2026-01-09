@@ -7,31 +7,31 @@
 #include "Animator.h"
 
 
-enum PlayMode
-{
-	MAIN_CAMERA,
-	ONE_FPS,
-	THREE_FPS,
-	THREE_RPG,
-};
+//enum PlayMode
+//{
+//	MAIN_CAMERA,
+//	ONE_FPS,
+//	THREE_FPS,
+//	THREE_RPG,
+//};
 
 class ControllerComponent : public Component<ControllerComponent>
 {
 public:
-	ControllerComponent() : mTransformComponent(), mPlayMode(MAIN_CAMERA) {}
-	ControllerComponent(TransformComponent transform): mTransformComponent(transform), mPlayMode(MAIN_CAMERA) {}
-	ControllerComponent(TransformComponent transform, PlayMode mode) : mTransformComponent(transform), mPlayMode(mode) {}
+	ControllerComponent() : mTransformComponent(){}
+	ControllerComponent(TransformComponent transform): mTransformComponent(transform){}
+	ControllerComponent(TransformComponent transform, int mode) : mTransformComponent(transform), mPlayMode(mode) {}
 
 	void RegisterEditorProperties(std::vector<EditorProperty>& out)
 	{
-		out.push_back({ "Speed", PropertyType::Float, &mHight, 0.0f, 10.0f });
+		out.push_back({ "Speed", PropertyType::Float, &mCameraHight, 0.0f, 10.0f });
 		out.push_back({ "GodMode", PropertyType::Bool, &mCameraLenth });
 	}
 
 public:
 	TransformComponent mTransformComponent;
-	PlayMode mPlayMode;
-	float mHight = 1; 
+	int mPlayMode;
+	float mCameraHight = 1; 
 	float mCameraLenth = 5; 
 };
 
@@ -43,10 +43,10 @@ static std::unordered_map<std::string, uint64_t> gFlagByName = {
 	{"F_NO_RUN", 1ull <<7}
 };
 
-enum : StateId { S_Idle = 0, S_Walk = 1, S_Run = 2, S_Jump = 3, S_Dash = 4, 
-	S_Aim = 5, S_ReRoad = 6, S_RhythmChange =7,
-	S_Hit = 8, S_Stun = 9, S_Dead =10,
-	S_Attack1 = 11, S_Attack2 = 12, S_Skill1 = 13, S_Skill2 = 14, S_Special =15, 
+enum : StateId { S_Idle=0, S_Walk, S_Run, S_Jump, S_Dash, 
+	S_Aim, S_ReRoad, S_RhythmChange,
+	S_Hit, S_Stun, S_Dead,
+	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special, 
 
 };
 
@@ -83,6 +83,11 @@ public:
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	float mSpeed = 0.0f;
+	float mWalkSpeed = 0.0f;
+	float mRunSpeed = 0.0f;
+	float mDashSpeed = 0.0f;
+
+
 	uint64_t mFlags = 0ull;
 	float mStateTime=0.0f;
 	float mDt=0.0f;
@@ -92,6 +97,8 @@ public:
 	float mJumpPower = 150.f;
 	float mHight = 0.0f; //플레이어 높이
 	float mGround = 0.0f;
+
+
 };
 
 //player base --------------------------------------------------

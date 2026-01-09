@@ -74,6 +74,12 @@ struct ANIMINSTANCE
     uint BoneCount;
     uint ReulstIndex;
     uint EntityID;
+    uint BlendClipIdx;
+    uint BlendCurrentFrame;
+    uint BlendNextFrame;
+    float BlendRatio;
+
+    float BlendWeight;
 };
 
 struct ANIMFRAMEPARAMS

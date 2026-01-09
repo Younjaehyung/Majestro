@@ -64,23 +64,14 @@
     <Filter Include="Utils\ImGUI">
       <UniqueIdentifier>{1eabffd8-9ecb-476b-97df-1f2f68729020}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Core">
+      <UniqueIdentifier>{ea0756ef-ba98-49eb-9303-56b9f872c1a8}</UniqueIdentifier>
+    </Filter>
     <Filter Include="World\System\IMGUI">
       <UniqueIdentifier>{88e35f1c-78bf-4dfe-b50e-1e4ac6da1b50}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\Component\IMGUI">
       <UniqueIdentifier>{f3b43cef-1202-4e65-b9db-d67496978c23}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Component\Base">
-      <UniqueIdentifier>{672df3d8-d4f3-400b-9a0c-cf44af6113f3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Component\Effect">
-      <UniqueIdentifier>{396b01c4-949e-40cd-9540-04302f1c74ba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\System\Base">
-      <UniqueIdentifier>{ea0756ef-ba98-49eb-9303-56b9f872c1a8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\System\Render">
-      <UniqueIdentifier>{9728c576-47af-44e6-866f-f01bc204d06a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +138,9 @@
     <ClInclude Include="RootSignature.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
     <ClInclude Include="SimpleMath.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -156,8 +150,17 @@
     <ClInclude Include="Object.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentPool.h">
+      <Filter>World\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="EventManager.h">
+      <Filter>World\System</Filter>
+    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
+      <Filter>World\System</Filter>
     </ClInclude>
     <ClInclude Include="RenderComponent.h">
       <Filter>World\Component</Filter>
@@ -223,6 +226,9 @@
     <ClInclude Include="UIComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
+    <ClInclude Include="UIRenderSystem.h">
+      <Filter>World\System\UI</Filter>
+    </ClInclude>
     <ClInclude Include="UIUpdateSystem.h">
       <Filter>World\System\UI</Filter>
     </ClInclude>
@@ -233,13 +239,13 @@
       <Filter>World\Component\UI</Filter>
     </ClInclude>
     <ClInclude Include="SystemManager.h">
-      <Filter>World\System\Base</Filter>
+      <Filter>World\System\Core</Filter>
     </ClInclude>
     <ClInclude Include="System.h">
-      <Filter>World\System\Base</Filter>
+      <Filter>World\System\Core</Filter>
     </ClInclude>
     <ClInclude Include="World.h">
-      <Filter>World\System\Base</Filter>
+      <Filter>World\System\Core</Filter>
     </ClInclude>
     <ClInclude Include="Imgui.h">
       <Filter>Utils\ImGUI</Filter>
@@ -250,38 +256,24 @@
     <ClInclude Include="IMGUISystem.h">
       <Filter>World\System\IMGUI</Filter>
     </ClInclude>
+    <ClInclude Include="IMGUIComponent.h" />
     <ClInclude Include="BeatSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
     <ClInclude Include="BeatComponent.h">
       <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentPool.h">
-      <Filter>World\Component\Base</Filter>
+    <ClInclude Include="GravityComponent.h">
+      <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>World\Component\Base</Filter>
+    <ClInclude Include="EnemyComponent.h">
+      <Filter>World\Component</Filter>
     </ClInclude>
-    <ClInclude Include="IMGUIComponent.h">
-      <Filter>World\Component\IMGUI</Filter>
+    <ClInclude Include="MovementSystem.h">
+      <Filter>World\System</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSystem.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="EventManager.h">
-      <Filter>World\System\Base</Filter>
-    </ClInclude>
-    <ClInclude Include="EffectSystem.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="UIRenderSystem.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="VfxComponent.h">
-      <Filter>World\Component\Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="Vfx.h">
-      <Filter>World\Resource\Graphics</Filter>
+    <ClInclude Include="MovementComponent.h">
+      <Filter>World\Component</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -348,6 +340,9 @@
     <ClCompile Include="Prefab.cpp">
       <Filter>World\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
     <ClCompile Include="SimpleMath.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -357,8 +352,17 @@
     <ClCompile Include="Object.cpp">
       <Filter>World\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentPool.cpp">
+      <Filter>World\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="EventManager.cpp">
+      <Filter>World\System</Filter>
+    </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="RenderComponent.cpp">
       <Filter>World\Component</Filter>
@@ -423,6 +427,9 @@
     <ClCompile Include="UIComponent.cpp">
       <Filter>World\Component\UI</Filter>
     </ClCompile>
+    <ClCompile Include="UIRenderSystem.cpp">
+      <Filter>World\System\UI</Filter>
+    </ClCompile>
     <ClCompile Include="UIUpdateSystem.cpp">
       <Filter>World\System\UI</Filter>
     </ClCompile>
@@ -433,13 +440,13 @@
       <Filter>World\Component\UI</Filter>
     </ClCompile>
     <ClCompile Include="SystemManager.cpp">
-      <Filter>World\System\Base</Filter>
+      <Filter>World\System\Core</Filter>
     </ClCompile>
     <ClCompile Include="System.cpp">
-      <Filter>World\System\Base</Filter>
+      <Filter>World\System\Core</Filter>
     </ClCompile>
     <ClCompile Include="World.cpp">
-      <Filter>World\System\Base</Filter>
+      <Filter>World\System\Core</Filter>
     </ClCompile>
     <ClCompile Include="Imgui.cpp">
       <Filter>Utils\ImGUI</Filter>
@@ -447,38 +454,21 @@
     <ClCompile Include="IMGUISystem.cpp">
       <Filter>World\System\IMGUI</Filter>
     </ClCompile>
+    <ClCompile Include="IMGUIComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="BeatComponent.cpp">
       <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentPool.cpp">
-      <Filter>World\Component\Base</Filter>
+    <ClCompile Include="GravityComponent.cpp">
+      <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>World\Component\Base</Filter>
+    <ClCompile Include="EnemyComponent.cpp">
+      <Filter>World\Component</Filter>
     </ClCompile>
-    <ClCompile Include="IMGUIComponent.cpp">
-      <Filter>World\Component\IMGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderSystem.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="EventManager.cpp">
-      <Filter>World\System\Base</Filter>
-    </ClCompile>
-    <ClCompile Include="EffectSystem.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="UIRenderSystem.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="VfxComponent.cpp">
-      <Filter>World\Component\Effect</Filter>
-    </ClCompile>
-    <ClCompile Include="Vfx.cpp">
-      <Filter>World\Resource\Graphics</Filter>
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>World\System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

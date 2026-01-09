@@ -6,6 +6,8 @@
 
 class ServerCore;
 
+
+
 class NetworkThread
 {
 public:
@@ -25,20 +27,25 @@ public:
 
 public:
 	void AcceptClient();
-	void HandleRecv(std::shared_ptr<class Session>& session);
-	void HandleSend(std::shared_ptr<class Session>& session);
+	void HandleTcpRecv(std::shared_ptr<class Session>& session);
+	void HandleUdpRecv();
+	void HandleTcpSend(std::shared_ptr<class Session>& session);
+	void HandleUdpSend(std::shared_ptr<class Session>& session);
 	void CleanupDisconnected();
 public:		// game logic thread 와의 통신용
-	bool Send();
-
+	bool PushSend();
+	bool PushUdpSend();
+	bool PushTcpSend();
 private:
 	std::thread mThread;
 	SOCKET		mListenSocket = INVALID_SOCKET;
+	SOCKET		mUdpSock = INVALID_SOCKET;
 	atomic<bool>		mRunning = false;
 
 	std::weak_ptr<ServerCore>						mServerCore;
 	SessionManager									mSessionMgr;
 private:
 	SendRequest mData;
+	BYTE mURecvBuffer[BUFSIZE]; // 임시 버퍼
 };
 

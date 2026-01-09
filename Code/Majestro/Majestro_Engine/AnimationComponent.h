@@ -17,6 +17,13 @@ struct AnimationInstance {
 	uint32	BoneCount{};		// 본 개수
 	uint32	ReulstIndex{};		// CS가 쓰고 VS가 읽는 팔레트 시작 오프셋
 	uint32  EntityID{};
+
+	uint32	BlendClipID{};		// 보간 대상 클립 인덱스
+	uint32	BlendCurrentFrame{};
+	uint32	BlendNextFrame{};
+	float	BlendRatio{};
+
+	float	BlendWeight{};		// 0~1 (0이면 현재 클립만 사용)
 };								
 
 
@@ -47,7 +54,13 @@ public:
 	vector<shared_ptr<Animator>>	mAnimClips;
 	AnimationInstance				mAnimInstance{};
 	uint32							mAnimClipIdx{};		// 현재 재생중인 애니메이션 클립 인덱스
-	
+	uint32							mBlendClipIdx{};	// 보간 대상 클립 인덱스
+
+	float							mBlendUpdateTime = 0.f;
+	float							mBlendTimer = 0.f;
+	float							mBlendDuration = 0.2f;
+	float							mBlendWeight = 0.f;
+
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;
 };

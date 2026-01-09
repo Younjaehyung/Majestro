@@ -8,6 +8,8 @@
 #include "AnimationComponent.h"
 #include "PlayerComponent.h"
 
+#include "InputManager.h"
+
 AnimationSystem::AnimationSystem(World* world) : System::System(world)
 {
 
@@ -79,12 +81,36 @@ void AnimationSystem::ClearVector()
 void AnimationSystem::AnimationPush(float deltaTime)
 {
 
+
+
+	auto computeFrames = [](const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio) {
+		const float frameRate = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
+		currentFrame = static_cast<uint32>(updateTime * frameRate);
+		currentFrame = min(currentFrame, animClip->mClipMeta.NumFrame - 1);
+		nextFrame = currentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : currentFrame + 1;
+
+		const float frameTime = currentFrame / frameRate;
+		const float nextFrameTime = nextFrame / frameRate;
+		ratio = (updateTime - frameTime) / (nextFrameTime - frameTime);
+		};
+
+
 	vector<Entity> animationsEntity = mWorld->GetEntitiesWithComponent<AnimationComponent>();
 	for (auto& entity : animationsEntity) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
-		if(mainPlayerComponent)animCom->mAnimClipIdx = mainPlayerComponent->GetState();
+		const uint32 previousClip = animCom->mAnimClipIdx;
+		if (mainPlayerComponent)
+			animCom->mAnimClipIdx = mainPlayerComponent->GetState();
+
+		if (animCom->mAnimClipIdx != previousClip) {
+			animCom->mBlendClipIdx = previousClip;
+			animCom->mBlendUpdateTime = animCom->mUpdateTime;
+			animCom->mBlendTimer = 0.f;
+			animCom->mBlendWeight = 1.f;
+			animCom->mUpdateTime = 0.f;
+		}
 
 		animCom->mUpdateTime += deltaTime;
 		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimClipIdx);
@@ -92,24 +118,53 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		if (animCom->mUpdateTime >= animClip->mDuration)
 			animCom->mUpdateTime = 0.f;
 		
-		const float ratio = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
-		animCom->mAnimInstance.CurrentFrame = static_cast<int32>(animCom->mUpdateTime * ratio);
-		animCom->mAnimInstance.CurrentFrame = min(animCom->mAnimInstance.CurrentFrame, animClip->mClipMeta.NumFrame - 1);
-		animCom->mAnimInstance.NextFrame = animCom->mAnimInstance.CurrentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : animCom->mAnimInstance.CurrentFrame + 1;
+		uint32 currentFrame = 0;
+		uint32 nextFrame = 0;
+		float ratio = 0.f;
+		computeFrames(animClip, animCom->mUpdateTime, currentFrame, nextFrame, ratio);
 
-		// 1. 현재 프레임의 시작 시간 계산
-		float frameTime = animCom->mAnimInstance.CurrentFrame / static_cast<float>(ratio);
-		// 2. 다음 프레임의 시작 시간 계산
-		float nextFrameTime = animCom->mAnimInstance.NextFrame / static_cast<float>(ratio);
-		// 3. 현재 시간에서 현재 프레임의 시작 시간을 빼고, 두 프레임 사이의 시간으로 나눔
-		animCom-> mAnimInstance.Ratio = (animCom->mUpdateTime - frameTime) / (nextFrameTime - frameTime);
+		uint32 blendClipIdx = animCom->mBlendClipIdx;
+		uint32 blendCurrentFrame = 0;
+		uint32 blendNextFrame = 0;
+		float blendRatio = 0.f;
 
-		mAnimationPass.emplace_back(animClip->GetSkeleton()->GetSkeletonHandle(), animClip->GetAnimClipHandle(),
-			animCom->mAnimInstance.CurrentFrame, animCom->mAnimInstance.NextFrame, animCom->mAnimInstance.Ratio,
-			animCom->mAnimInstance.BoneCount,0);
+		if (animCom->mBlendWeight > 0.f && blendClipIdx < animCom->mAnimClips.size()) {
+			animCom->mBlendTimer += deltaTime;
+			if (animCom->mBlendDuration > 0.f)
+				animCom->mBlendWeight = max(0.f, 1.f - (animCom->mBlendTimer / animCom->mBlendDuration));
+			else
+				animCom->mBlendWeight = 0.f;
 
-		mAnimationPass.back().EntityID = entity.GetID();   // ★ 소유자 기록
+			shared_ptr<Animator>& blendClip = animCom->mAnimClips.at(blendClipIdx);
+			animCom->mBlendUpdateTime += deltaTime;
+			if (animCom->mBlendUpdateTime >= blendClip->mDuration)
+				animCom->mBlendUpdateTime = 0.f;
+
+			computeFrames(blendClip, animCom->mBlendUpdateTime, blendCurrentFrame, blendNextFrame, blendRatio);
+		}
+		else {
+			animCom->mBlendWeight = 0.f;
+			animCom->mBlendTimer = 0.f;
+			blendClipIdx = animCom->mAnimClipIdx;
+		}
+
+		AnimationInstance instance{};
+		instance.SkeletonID = animClip->GetSkeleton()->GetSkeletonHandle();
+		instance.AnimClipID = animClip->GetAnimClipHandle();
+		instance.CurrentFrame = currentFrame;
+		instance.NextFrame = nextFrame;
+		instance.Ratio = ratio;
+		instance.BoneCount = animCom->mAnimInstance.BoneCount;
+		instance.ReulstIndex = 0;
+		instance.EntityID = entity.GetID();
+		instance.BlendClipID = blendClipIdx;
+		instance.BlendCurrentFrame = blendCurrentFrame;
+		instance.BlendNextFrame = blendNextFrame;
+		instance.BlendRatio = blendRatio;
+		instance.BlendWeight = animCom->mBlendWeight;
+		mAnimationPass.emplace_back(instance);
 	}
+	
 
 	// 배치처리를 위한 정렬
 	// 스켈레톤 ID 기준 오름차순 정렬

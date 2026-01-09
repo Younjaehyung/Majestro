@@ -51,6 +51,24 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
     float4 rotation = QuaternionSlerp(AnimationClip[idx].Rotation, AnimationClip[nextidx].Rotation, ratio);
     float4 translation = lerp(AnimationClip[idx].Translation, AnimationClip[nextidx].Translation, ratio);
 
+    float blendWeight = saturate(animationInst.BlendWeight);
+    if (blendWeight > 0.0001f && animationInst.BlendClipIdx != animationInst.AnimClipIdx)
+    {
+        ANIMATIONMETA blendMeta = AnimationMeta[animationInst.BlendClipIdx];
+        uint blendFrameCount = blendMeta.NumFrame;
+        uint blendIdx = nowbone * blendFrameCount + animationInst.BlendCurrentFrame + blendMeta.AnimOffset;
+        uint blendNextIdx = nowbone * blendFrameCount + animationInst.BlendNextFrame + blendMeta.AnimOffset;
+
+        float4 blendScale = lerp(AnimationClip[blendIdx].Scale, AnimationClip[blendNextIdx].Scale, animationInst.BlendRatio);
+        float4 blendRotation = QuaternionSlerp(AnimationClip[blendIdx].Rotation, AnimationClip[blendNextIdx].Rotation, animationInst.BlendRatio);
+        float4 blendTranslation = lerp(AnimationClip[blendIdx].Translation, AnimationClip[blendNextIdx].Translation, animationInst.BlendRatio);
+
+        scale = lerp(scale, blendScale, blendWeight);
+        rotation = QuaternionSlerp(rotation, blendRotation, blendWeight);
+        translation = lerp(translation, blendTranslation, blendWeight);
+    }
+
+    
     matrix matbone = MatrixAffineTransformation(scale, quaternionzero, rotation, translation);
     
     //if (IsExactIdentity(matbone))

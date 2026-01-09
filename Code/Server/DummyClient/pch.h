@@ -18,6 +18,8 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
+#pragma comment(lib, "ws2_32.lib")
+
 
 #include <windows.h>
 #include <iostream>
@@ -34,9 +36,15 @@
 #include <string>
 #include <memory>
 
-#pragma comment(lib, "ws2_32.lib")
+#include "SimpleMath.h"
+#include <DirectXMath.h>
+#include <DirectXPackedVector.h>
+#include <DirectXColors.h>
 
-using namespace std;
+using namespace DirectX;
+using namespace DirectX::PackedVector;
+
+
 
 
 using BYTE = unsigned char;
@@ -48,6 +56,19 @@ using uint8 = unsigned __int8;
 using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
+
+
+
+using Vec = XMVECTOR;
+using Vec2 = DirectX::SimpleMath::Vector2;
+using Vec3 = DirectX::SimpleMath::Vector3;
+using Vec4 = DirectX::SimpleMath::Vector4;
+using Matrix = DirectX::SimpleMath::Matrix;
+
+
+#include "../../Protocol/Packet.h"
+#include "../../Protocol/PacketHelper.h"
+using namespace std;
 
 // ANSI
 static void LogDebug(const std::string& msg) {

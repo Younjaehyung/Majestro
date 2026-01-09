@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Network.h"
-#include "PacketHelper.h"
 
 SpscRingQueue<SendRequest, 128>	gSendBuffer;
 SpscRingQueue<InputCommand, 128>	gRecvBuffer;
@@ -70,7 +69,7 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	localUdp.sin_addr.s_addr = htonl(INADDR_ANY);
 	localUdp.sin_port = htons(0); // 0 = OS가 사용 가능한 포트를 자동 할당
 
-	if (bind(mUdpSocket, (sockaddr*)&localUdp, sizeof(localUdp)) == SOCKET_ERROR)
+	if (::bind(mUdpSocket, (sockaddr*)&localUdp, sizeof(localUdp)) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
 		std::cout << "UDP bind failed: " << err << std::endl;
@@ -348,9 +347,9 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		// 패킷 조립 성공
 
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
-		if (mInputCommand.Type == KLOGIN) {
+		if (mInputCommand.Type == PKT_LOGIN) {
 			mClientId = mInputCommand.SessionId;
-			KLoginPacket loginPkt = KLoginPacket(mClientId);
+			LoginPacket loginPkt = LoginPacket(mClientId);
 
 			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(loginPkt), 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));
@@ -378,7 +377,7 @@ void Network::OnUDPNetworkUpdate()
 	
 	if (len > 0) {
 		// UDP 패킷 처리
-		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer,len);
+		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
 		std::cout << "Recv" << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 	}

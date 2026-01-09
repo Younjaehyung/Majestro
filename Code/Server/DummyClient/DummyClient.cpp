@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "Network.h"
-#include "PacketHelper.h"
-#include "Packet.h"
 
 int main()
 {
@@ -13,12 +11,12 @@ int main()
 	{
 		//Network::GetInstance().GameRecvUpdate();
 		gSendBuffer.Push({
-			PKT_Type::KTCP,
-			PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::KTCP, 0.0 }
+			PKT_Type::PKT_TCP,
+			PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::PKT_TCP, 0.0 }
 			});
 		gSendBuffer.Push({
-			PKT_Type::KUDP,
-			PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::KUDP, 1, 0 }
+			PKT_Type::PKT_UDP,
+			PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::PKT_UDP, 1, 0 }
 			});
 		Sleep(30); // Simulate some processing delay
 		//Network::GetInstance().GameSendUpdate();

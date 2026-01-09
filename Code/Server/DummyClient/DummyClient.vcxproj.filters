@@ -27,9 +27,6 @@
     <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="PacketHelper.cpp">
-      <Filter>Buffer</Filter>
-    </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
       <Filter>Buffer</Filter>
     </ClCompile>
@@ -47,12 +44,6 @@
     <ClInclude Include="Network.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>Buffer\Packet</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketHelper.h">
-      <Filter>Buffer</Filter>
-    </ClInclude>
     <ClInclude Include="RecvBuffer.h">
       <Filter>Buffer</Filter>
     </ClInclude>
@@ -61,6 +52,12 @@
     </ClInclude>
     <ClInclude Include="SendBuffer.h">
       <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Protocol\Packet.h">
+      <Filter>Buffer\Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Protocol\PacketHelper.h">
+      <Filter>Buffer\Packet</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

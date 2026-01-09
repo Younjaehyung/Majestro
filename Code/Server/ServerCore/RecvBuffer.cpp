@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "RecvBuffer.h"
-#include "PacketHelper.h"
+
 /*--------------
 	RecvBuffer
 ----------------*/

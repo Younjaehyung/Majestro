@@ -14,7 +14,3 @@
 #include "CorePch.h"
 
 
-#include "SimpleMath.h"
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
-#include <DirectXColors.h>

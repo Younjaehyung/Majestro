@@ -3,11 +3,10 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "Packet.h"
 #include "RingBuffer.h"
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
-#include "PacketHelper.h"
+
 
 constexpr const char* SERVERIP = "127.0.0.1";
 constexpr int TCPSERVERPORT = 9000;	//TCP

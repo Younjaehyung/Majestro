@@ -66,7 +66,7 @@ void PlayerSystem::Update(float dt)
 		else if (controllerComponent->mPlayMode == ONE_FPS || controllerComponent->mPlayMode == THREE_FPS) {
 			transformComponent->mLocalPosition.x = controllerComponent->mTransformComponent.mLocalPosition.x;
 			transformComponent->mLocalPosition.z = controllerComponent->mTransformComponent.mLocalPosition.z;
-			transformComponent->mLocalPosition.y = mainPlayerComponent->mHight;
+			//transformComponent->mLocalPosition.y = mainPlayerComponent->mHight;
 			transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
 			//std::cout << mainPlayerComponent->GetState() << std::endl;
 			//std::cout << mainPlayerComponent->mHight << std::endl;
@@ -79,7 +79,7 @@ void PlayerSystem::Update(float dt)
 			//transformComponent->mLocalRotation.y = controllerComponent->mTransformComponent.mLocalRotation.y;
 		}
 
-		auto& terrains = mWorld->GetComponentPool<TerrainComponent>();
+		
 		auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 		TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
 		float terrainHeight = terrainComponent->GetHeightAtWorldPosition(controllerComponent->mTransformComponent.mLocalPosition);
@@ -91,7 +91,7 @@ void PlayerSystem::Update(float dt)
 		controllerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
 		controllerComponent->mTransformComponent.FinalUpdate();
 
-		//TestUpdate(dt);
+
 		for (auto& entity : entitys) {
 			//CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 			//TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);

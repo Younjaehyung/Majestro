@@ -125,6 +125,7 @@ void Scene::Initialize()
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(osw, anmators0);
 		mWorld->AddComponent<BeatComponent>(osw);
+		mWorld->AddComponent<GravityComponent>(osw);
 
 
 		/*

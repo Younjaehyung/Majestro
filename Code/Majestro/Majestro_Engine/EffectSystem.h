@@ -6,6 +6,7 @@
 #include <LLGI.Platform.h>
 
 using EfkString = std::basic_string<EFK_CHAR>;
+class VfxComponent;
 
 class EffectSystem : public System
 {
@@ -34,23 +35,14 @@ public:
 
 	void LoadResources();
 
-    void Shutdown()
-    {
-        // RefPtr 기반이면 보통 nullptr 대입으로 정리됩니다.
-        commandList_ = nullptr;
-        memoryPool_ = nullptr;
-        manager_ = nullptr;
-        renderer_ = nullptr;
-        graphicsDevice_ = nullptr;
-        setting_ = nullptr;
-    }
+    void Shutdown();
 
     // 이펙트 로드
     Effekseer::EffectRef LoadEffect(const EFK_CHAR* path, float magnification = 1.0f, const EFK_CHAR* materialPath = nullptr);
     Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f, const std::string_view materialPath = {});
     // 재생
-    Effekseer::Handle Play(Effekseer::EffectRef& effect, float x, float y, float z);
-	Effekseer::Handle Play(Effekseer::EffectRef& effect, const Effekseer::Vector3D& position);
+    Effekseer::Handle Play(VfxComponent* comp, float x, float y, float z);
+	Effekseer::Handle Play(VfxComponent* comp, const Effekseer::Vector3D& position);
 
     // 프레임 시작: 엔진 커맨드리스트를 Effekseer에 연결
     void BeginFrame(ID3D12GraphicsCommandList* dxCmdList);

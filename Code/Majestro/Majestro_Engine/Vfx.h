@@ -12,5 +12,6 @@ public:
 public:
 	Effekseer::EffectRef mEffect = nullptr;
 	std::wstring mEffectPath;
+	
 };
 

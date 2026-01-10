@@ -19,6 +19,45 @@ EffectSystem::EffectSystem(World* world) : System::System(world)
 
 EffectSystem::~EffectSystem()
 {
+
+	
+	Shutdown();
+	//CoUninitialize();
+	
+}
+
+void EffectSystem::Shutdown()
+{
+	auto resources = mWorld->GetEntitiesWithComponent<VfxComponent>();
+	for (auto& res : resources)
+	{
+		VfxComponent* effect = mWorld->GetComponent<VfxComponent>(res);
+		if (effect && effect->efkHandle != -1)
+		{
+			manager_->StopEffect(effect->efkHandle);
+		}
+	}
+
+
+	commandList_.Reset();
+	memoryPool_.Reset();
+	//
+
+	manager_.Reset();
+	setting_.Reset();
+
+	renderer_.Reset();
+	graphicsDevice_.Reset();
+
+
+	// RefPtr 기반이면 보통 nullptr 대입으로 정리됩니다.
+	//commandList_ = nullptr;
+	//memoryPool_ = nullptr;
+	//    manager_ = nullptr;
+	//    renderer_ = nullptr;
+	/*graphicsDevice_ = nullptr;*/
+	//   setting_ = nullptr;
+	
 }
 
 void EffectSystem::Initialize()
@@ -34,6 +73,49 @@ void EffectSystem::Initialize()
 		2000);
 
 	LoadResources();
+}
+
+bool EffectSystem::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, int32_t swapBufferCount, bool isReversedDepth, int32_t instanceMax, int32_t squareMaxCount)
+{
+
+	graphicsDevice_ = EffekseerRendererDX12::CreateGraphicsDevice(device, commandQueue, swapBufferCount);
+	if (graphicsDevice_ == nullptr) return false; // CreateGraphicsDevice :contentReference[oaicite:8]{index=8}
+
+	DXGI_FORMAT rtFormats[1] = { rtvFormat };
+	renderer_ = EffekseerRendererDX12::Create(
+		graphicsDevice_,
+		rtFormats,
+		1,
+		dsvFormat,
+		isReversedDepth,
+		squareMaxCount);
+	if (renderer_ == nullptr) return false; // Create :contentReference[oaicite:9]{index=9}
+
+	manager_ = Effekseer::Manager::Create(instanceMax);
+	if (manager_ == nullptr) return false;
+
+	setting_ = Effekseer::Setting::Create();
+	setting_->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
+
+	memoryPool_ = EffekseerRenderer::CreateSingleFrameMemoryPool(graphicsDevice_);
+	commandList_ = EffekseerRenderer::CreateCommandList(graphicsDevice_, memoryPool_);
+
+
+	manager_->SetSpriteRenderer(renderer_->CreateSpriteRenderer());
+	manager_->SetRibbonRenderer(renderer_->CreateRibbonRenderer());
+	manager_->SetRingRenderer(renderer_->CreateRingRenderer());
+	manager_->SetTrackRenderer(renderer_->CreateTrackRenderer());
+	manager_->SetModelRenderer(renderer_->CreateModelRenderer());
+
+	manager_->SetTextureLoader(renderer_->CreateTextureLoader());
+	manager_->SetModelLoader(renderer_->CreateModelLoader());
+	manager_->SetMaterialLoader(renderer_->CreateMaterialLoader());
+	manager_->SetCurveLoader(Effekseer::MakeRefPtr<Effekseer::CurveLoader>());
+
+
+
+
+	return (memoryPool_ != nullptr && commandList_ != nullptr);
 }
 
 
@@ -54,16 +136,33 @@ Effekseer::EffectRef EffectSystem::LoadEffect(const std::string_view path, float
 
 
 
-Effekseer::Handle EffectSystem::Play(Effekseer::EffectRef& effect, float x, float y, float z)
+Effekseer::Handle EffectSystem::Play(VfxComponent* comp, float x, float y, float z)
 {
 	// Manager::Play :contentReference[oaicite:15]{index=15}
-	return manager_->Play(effect, x, y, z);
+	Effekseer::EffectRef& effect = comp->mVfx->mEffect;
+	Effekseer::Handle efkHandle = manager_->Play(effect, x, y, z);
+	comp->mIsPlaying = true;
+	return efkHandle;
 }
 
-Effekseer::Handle EffectSystem::Play(Effekseer::EffectRef& effect, const Effekseer::Vector3D& position)
+Effekseer::Handle EffectSystem::Play(VfxComponent* comp, const Effekseer::Vector3D& position)
 {
-	return manager_->Play(effect, position);
+	Effekseer::EffectRef& effect = comp->mVfx->mEffect;
+	Effekseer::Handle efkHandle = manager_->Play(effect, position);
+	comp->mIsPlaying = true;
+	return efkHandle;
 }
+
+//void EffectSystem::StopEffect()
+//{
+//	if (handle != -1 && manager != nullptr)
+//	{
+//		manager->StopEffect(handle);
+//		handle = -1;
+//		OutputDebugStringA("Effect stopped!!\n");
+//	}
+//}
+
 
 void EffectSystem::BeginFrame(ID3D12GraphicsCommandList* dxCmdList)
 {
@@ -90,8 +189,7 @@ void EffectSystem::Update(float deltaTime)
 		VfxComponent* effectComp = mWorld->GetComponent<VfxComponent>(e);
 		if (effectComp == nullptr) continue;
 		if (!effectComp->mIsPlaying && effectComp->mTotalTime > 5.0f) {
-			Play(effectComp->mVfx->mEffect, 0,0,0);
-			effectComp->mIsPlaying = true;
+			Play(effectComp, 0,0,0);
 		}
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
 		if (tr != nullptr) {
@@ -149,49 +247,6 @@ void EffectSystem::Update()
 	Render(cameraMat, projMat);
 	EndFrame();
 
-}
-
-bool EffectSystem::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQueue, DXGI_FORMAT rtvFormat, DXGI_FORMAT dsvFormat, int32_t swapBufferCount, bool isReversedDepth, int32_t instanceMax, int32_t squareMaxCount)
-{
-
-	graphicsDevice_ = EffekseerRendererDX12::CreateGraphicsDevice(device, commandQueue, swapBufferCount);
-	if (graphicsDevice_ == nullptr) return false; // CreateGraphicsDevice :contentReference[oaicite:8]{index=8}
-
-	DXGI_FORMAT rtFormats[1] = { rtvFormat };
-	renderer_ = EffekseerRendererDX12::Create(
-		graphicsDevice_,
-		rtFormats,
-		1,
-		dsvFormat,
-		isReversedDepth,
-		squareMaxCount);
-	if (renderer_ == nullptr) return false; // Create :contentReference[oaicite:9]{index=9}
-
-	manager_ = Effekseer::Manager::Create(instanceMax);
-	if (manager_ == nullptr) return false;
-
-	setting_ = Effekseer::Setting::Create();
-	setting_->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
-
-	memoryPool_ = EffekseerRenderer::CreateSingleFrameMemoryPool(graphicsDevice_);
-	commandList_ = EffekseerRenderer::CreateCommandList(graphicsDevice_, memoryPool_);
-
-
-	manager_->SetSpriteRenderer(renderer_->CreateSpriteRenderer());
-	manager_->SetRibbonRenderer(renderer_->CreateRibbonRenderer());
-	manager_->SetRingRenderer(renderer_->CreateRingRenderer());
-	manager_->SetTrackRenderer(renderer_->CreateTrackRenderer());
-	manager_->SetModelRenderer(renderer_->CreateModelRenderer());
-
-	manager_->SetTextureLoader(renderer_->CreateTextureLoader());
-	manager_->SetModelLoader(renderer_->CreateModelLoader());
-	manager_->SetMaterialLoader(renderer_->CreateMaterialLoader());
-	manager_->SetCurveLoader(Effekseer::MakeRefPtr<Effekseer::CurveLoader>());
-
-
-	
-
-	return (memoryPool_ != nullptr && commandList_ != nullptr);
 }
 
 void EffectSystem::LoadResources()

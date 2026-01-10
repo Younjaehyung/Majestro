@@ -16,13 +16,12 @@ public:
 	}
 
 	shared_ptr<Vfx> mVfx = nullptr;
+	Effekseer::Handle efkHandle = -1;
 
-	//effect_ = LoadEffect(u"..\\Resources\\Effect\\fire.efk");
 
 	float	mTotalTime = 0.f;
 	bool	mIsPlaying = false;
 	::Effekseer::Vector3D mPosition = ::Effekseer::Vector3D(0.0f, 0.0f, 0.0f);
 
-	//manager_->AddLocation(efkHandle, ::Effekseer::Vector3D(-1.2f, 3.0f, 0.0f));
 };
 

@@ -17,13 +17,11 @@ void Game::Initialize(const WindowInfo& info)
 	mInitializeEnd = true;
 
 	Network::GetInstance().Initialize();
-	Network::GetInstance().ConnectToServer();
+	Network::GetInstance().Awake();
 }
 
 void Game::Update()
 {
-	Network::GetInstance().GameRecvUpdate();
-	Network::GetInstance().GameSendUpdate();
 	gEngine->Update();
 	
 }

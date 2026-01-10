@@ -1,85 +1,151 @@
 #pragma once
-#include "pch.h"
 #include <stack>
-#include <mutex>
-#include "Packet.h"
+#include <queue>
+#include <atomic>
+#include <cstddef>
+#include <type_traits>
+#include "../../Protocol/Packet.h"
+//////////////////*
+// Single Producer Single Consumer Ring Queue
+// LOGIC THREAD <-> NETWORK THREAD
+////////////////*/
 
-struct PacketBuffer
+struct SendBuffer;
+
+
+struct InputCommand // Packet received (network thread -> logic thread)
 {
-	PacketHeader Header;
-	uint8_t Data[MAX_PACKET_SIZE];
-
-    void SetData(PKT_Type packetId, const void* data, uint16_t dataSize) {
-        Header.PacketType = packetId;
-        Header.Size = sizeof(PacketHeader) + dataSize;
-        if (dataSize > 0 && data != nullptr) {
-            std::memcpy(Data, data, dataSize);
-        }
-    }
+    PKT_Type Type;
+    uint32 SessionId;
+    float moveX;
+    float moveY;
+    bool  action1;
+    bool  action2;
 };
 
-class PacketPool
+struct SendRequest { // Packet to be sent (logic thread -> network thread)
+
+    uint32 SessionId{};
+    PKT_Type Type{};
+
+    union
+    {
+		PacketTcpHeader tcpHeader;
+		PacketUdpHeader udpHeader;
+        
+        C2S_InputPacket input;
+        
+
+        S2C_SyncPacket sync{};
+    };
+
+    SendRequest() :Type(PKT_Type::KNONE) {}
+    SendRequest(PKT_Type t) : Type(t) {}
+    SendRequest(PKT_Type t, const S2C_SyncPacket& s) : Type(t), sync(s) {}
+    SendRequest(PKT_Type t, const PacketTcpHeader& th) : Type(t), tcpHeader(th) {}
+    SendRequest(PKT_Type t, const PacketUdpHeader& uh) : Type(t), udpHeader(uh) {}
+};
+
+class SendRequestPacket
 {
 public:
+    static bool SerializePacket(SendRequest& pkt, SendBuffer*);
+    static void SerializeTcpPacket(SendRequest& pkt, SendBuffer*);
+    static void SerializeUdpPacket(SendRequest& pkt, SendBuffer*);
 
-	// Initialize the pool with a specific number of packets
-    static void Initialize(size_t count) {
-        std::lock_guard<std::mutex> lock(mMutex);
-        m_pool.reserve(count);
-        for (size_t i = 0; i < count; ++i) {
-            m_pool.push_back(new PacketBuffer());
-        }
-        m_totalAllocated = count;
+
+    static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
+    static void SerializeInputPacket(SendRequest& pkt, SendBuffer*){}
+    static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}
+};
+
+
+class ProcessPacket // Process received packets (network thread -> logic thread)
+{
+private:
+public:
+	static bool ProcessPackets(InputCommand& inputCommand, BYTE* buffer);
+	static void ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer);
+	static void ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer);
+	static void ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer);
+    static void ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer);
+    static void ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer) {};
+    static void ProcessActionPacket(InputCommand& inputCommand, BYTE* buffer) {};
+};
+
+
+template<typename T, size_t Capacity>
+class SpscRingQueue // LOGIC <-> NETWORK
+{
+    static_assert(Capacity >= 2, "Capacity must be >= 2");
+    static_assert((Capacity& (Capacity - 1)) == 0,
+        "Capacity must be power of two");
+
+public:
+    SpscRingQueue()
+    {
+        mHead.store(0, std::memory_order_relaxed);
+        mTail.store(0, std::memory_order_relaxed);
     }
 
+    // Producer 전용
+    bool Push(const T& item)
+    {
+        const size_t tail = mTail.load(std::memory_order_relaxed);
+        const size_t next = (tail + 1) & MASK;
 
-	// Destroy all packets in the pool
-    static void Shutdown() {
-        std::lock_guard<std::mutex> lock(mMutex);
-        for (PacketBuffer* p : m_pool) {
-            delete p;
-        }
-        m_pool.clear();
+        // 큐가 가득 참
+        if (next == mHead.load(std::memory_order_acquire))
+            return false;
+
+        mBuffer[tail] = item;
+
+        // item 쓰기 완료 후 tail 갱신
+        mTail.store(next, std::memory_order_release);
+        return true;
     }
 
-	// packet acquire
-    [[nodiscard("PacketBlock not return")]] 
-    static PacketBuffer* Acquire() {
-        std::lock_guard<std::mutex> lock(mMutex);
+    // Consumer 전용
+    bool Pop(T& out)
+    {
+        const size_t head = mHead.load(std::memory_order_relaxed);
 
-        if (m_pool.empty()) {
+        // 큐가 비어 있음
+        if (head == mTail.load(std::memory_order_acquire))
+            return false;
 
-            LogDebug("[Warning] PacketPool Exhausted! Allocating new.\n");
-            m_totalAllocated++;
-            return new PacketBuffer();
-        }
+        out = mBuffer[head];
 
-        // LIFO
-        PacketBuffer* p = m_pool.back();
-        m_pool.pop_back();
-        return p;
+        // 읽기 완료 후 head 갱신
+        mHead.store((head + 1) & MASK, std::memory_order_release);
+        return true;
     }
 
-	// packet release
-    static void Release(PacketBuffer* p) {
-        if (!p) return;
+    // Consumer 전용 (읽기만, 제거 안 함)
+    bool Peek(T& out) const
+    {
+        const size_t head = mHead.load(std::memory_order_relaxed);
 
-        std::lock_guard<std::mutex> lock(mMutex);
-        m_pool.push_back(p);
+        if (head == mTail.load(std::memory_order_acquire))
+            return false;
+
+        out = mBuffer[head];
+        return true;
     }
 
-	// Size of available packets in the pool
-    static size_t GetAvailableCount() {
-        std::lock_guard<std::mutex> lock(mMutex);
-        return m_pool.size();
+    bool Empty() const
+    {
+        return mHead.load(std::memory_order_acquire) ==
+            mTail.load(std::memory_order_acquire);
     }
 
 private:
-    // Vector를 스택처럼 사용 (Cache Friendly)
-    static inline std::vector<PacketBuffer*> m_pool;
-    static inline std::mutex mMutex;
-    static inline size_t m_totalAllocated;
+    static constexpr size_t MASK = Capacity - 1;
+
+    alignas(64) std::atomic<size_t> mHead;
+    alignas(64) std::atomic<size_t> mTail;
+
+    // false sharing 방지용 패딩은 alignas로 충분
+    T mBuffer[Capacity];
 };
-
-
 

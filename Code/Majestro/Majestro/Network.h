@@ -1,45 +1,43 @@
 #pragma once
-#include "pch.h"
 #include <queue>
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "Packet.h"
 #include "RingBuffer.h"
-#include "PacketHelper.h"
+#include "RecvBuffer.h"
+#include "SendBuffer.h"
 
-#pragma comment(lib, "ws2_32") // ws2_32.lib 링크
 
-
-constexpr int SERVERPORT = 9000;
+constexpr const char* SERVERIP = "127.0.0.1";
+constexpr int TCPSERVERPORT = 9000;	//TCP
+constexpr int UDPSERVERPORT = 9001;	//UDP
 constexpr int BUFSIZE = 4096;
 
-struct PendingSend {
-	BYTE* data;
-	int size;
-	int sentBytes;
-};
-
+extern SpscRingQueue<SendRequest, 128>	gSendBuffer;	// Logic -> Network
+extern SpscRingQueue<InputCommand, 128>	gRecvBuffer;	// Network -> Logic
 
 class Network
 {
 public:
-	uint32_t mClientId{};
+	uint32  mClientId = 0;
 private:
 	WSADATA mWsaData{};
-	SOCKET mSock{};
-	sockaddr_in mServerAddr{};
-	std::thread mNetworkThread;
+	SOCKET	mTcpSocket;
+	SOCKET	mUdpSocket;
+	sockaddr_in mServerTcpAddr{};
+	sockaddr_in mServerUdpAddr{};
+	
+private:
+	std::thread				mNetworkThread;
+	std::atomic<bool>		mIsRunning;
 
-	const char* SERVERIP = "127.0.0.1";
-	char mRecvBuf[BUFSIZ] = {};
-	int mRecvUsed = 0;
-	std::queue<PacketBuffer*> mRecvQueue;
-	//std::queue<PacketBlock*> mSendQueue;
-	RingBuffer mSendRingBuffer{ 65536 };
-	std::mutex mQueueMutex;
-	std::atomic<bool> mIsRunning;
-
+	BYTE					mURecvBuffer[BUFSIZE];
+	RecvBuffer				mTRecvBuffer;	// 수신 버퍼
+	std::queue<SendBuffer*> mSendBuffer;	// 전송 버퍼 큐
+private:
+	InputCommand	mInputCommand;
+	SendRequest		mSendData;
+private:
 
 	Network();
 	~Network();
@@ -49,22 +47,33 @@ public: // Init
 		return instance;
 	}
 
-
+public: // 외부통신용
 	void Initialize();
-	void ConnectToServer(const char* ipAddress = "127.0.0.1", int port = 9000);
-	void ReleaseServer();
-
+	
 	void Awake();
-	void CheckConnect();
+	void Stop();
+	void Shutdown();
 
-public: // Process
+private: // Session
 
+	// send
+	void PrepareSendData();
+	void OnSendPacket();
+
+	// recv
+	void  OnRecvPacket();	// recv process
+	void  OnTCPNetworkUpdate();
+	int32 OnTcpRecv(BYTE* buffer, int32 len);
+
+	void OnUDPNetworkUpdate();
+	
+
+private: // Process
+	void ConnectToServer(const char* ipAddress = SERVERIP, int port = TCPSERVERPORT);
+	void ReleaseServer();
 	void NetworkUpdate();
-	void GameRecvUpdate();
-	void GameSendUpdate();
-
-	void ProcessPacket(PacketBuffer* packet);
-	void PushSendData(const uint8_t* data, size_t size);
-
+private:
+	
+	
 };
 

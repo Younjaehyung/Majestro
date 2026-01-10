@@ -35,19 +35,22 @@
     <ClInclude Include="targetver.h">
       <Filter>소스 파일\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
+    <ClInclude Include="Game.h">
+      <Filter>소스 파일\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="RecvBuffer.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>소스 파일\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="SendBuffer.h">
       <Filter>소스 파일\Network</Filter>
     </ClInclude>
     <ClInclude Include="Network.h">
       <Filter>소스 파일\Network</Filter>
     </ClInclude>
-    <ClInclude Include="Game.h">
-      <Filter>소스 파일\Game</Filter>
-    </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>소스 파일\Network</Filter>
-    </ClInclude>
-    <ClInclude Include="RingBuffer.h">
       <Filter>소스 파일\Network</Filter>
     </ClInclude>
   </ItemGroup>
@@ -58,16 +61,22 @@
     <ClCompile Include="pch.cpp">
       <Filter>소스 파일\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
-      <Filter>소스 파일\Network</Filter>
-    </ClCompile>
     <ClCompile Include="Game.cpp">
       <Filter>소스 파일\Game</Filter>
     </ClCompile>
-    <ClCompile Include="PacketHelper.cpp">
+    <ClCompile Include="RecvBuffer.cpp">
       <Filter>소스 파일\Network</Filter>
     </ClCompile>
     <ClCompile Include="RingBuffer.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="SendBuffer.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>소스 파일\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHelper.cpp">
       <Filter>소스 파일\Network</Filter>
     </ClCompile>
   </ItemGroup>

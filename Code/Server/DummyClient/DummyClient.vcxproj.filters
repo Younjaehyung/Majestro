@@ -36,6 +36,9 @@
     <ClCompile Include="SendBuffer.cpp">
       <Filter>Buffer</Filter>
     </ClCompile>
+    <ClCompile Include="PacketHelper.cpp">
+      <Filter>Buffer\Packet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -56,7 +59,7 @@
     <ClInclude Include="..\..\Protocol\Packet.h">
       <Filter>Buffer\Packet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Protocol\PacketHelper.h">
+    <ClInclude Include="PacketHelper.h">
       <Filter>Buffer\Packet</Filter>
     </ClInclude>
   </ItemGroup>

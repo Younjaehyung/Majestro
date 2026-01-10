@@ -30,19 +30,13 @@
 
 
 
-#include "SimpleMath.h"
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
-#include <DirectXColors.h>
 
-using namespace DirectX;
-using namespace DirectX::PackedVector;
 using namespace std;
 #include "Types.h"
 
 #pragma comment(lib, "ws2_32.lib")
 #include "../../Protocol/Packet.h"
-#include "../../Protocol/PacketHelper.h"
+#include "PacketHelper.h"
 
 
 

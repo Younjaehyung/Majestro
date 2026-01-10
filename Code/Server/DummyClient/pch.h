@@ -67,7 +67,7 @@ using Matrix = DirectX::SimpleMath::Matrix;
 
 
 #include "../../Protocol/Packet.h"
-#include "../../Protocol/PacketHelper.h"
+#include "PacketHelper.h"
 using namespace std;
 
 // ANSI

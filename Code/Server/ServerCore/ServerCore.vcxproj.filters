@@ -63,7 +63,7 @@
     <ClInclude Include="..\..\Protocol\Packet.h">
       <Filter>Packet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Protocol\PacketHelper.h">
+    <ClInclude Include="PacketHelper.h">
       <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>
@@ -100,6 +100,9 @@
     </ClCompile>
     <ClCompile Include="NetAddress.cpp">
       <Filter>Assistance</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHelper.cpp">
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

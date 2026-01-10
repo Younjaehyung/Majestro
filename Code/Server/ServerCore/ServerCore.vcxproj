@@ -160,7 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Protocol\Packet.h" />
-    <ClInclude Include="..\..\Protocol\PacketHelper.h" />
+    <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="SessionManager.h" />
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePch.h" />
@@ -176,6 +176,7 @@
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="PacketHelper.cpp" />
     <ClCompile Include="SessionManager.cpp" />
     <ClCompile Include="CorePch.cpp" />
     <ClCompile Include="NetAddress.cpp" />

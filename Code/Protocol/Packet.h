@@ -1,5 +1,4 @@
 #pragma once
-#include "pch.h"
 
 #pragma pack(push, 1)
 
@@ -89,12 +88,12 @@ struct S2C_SyncPacket : public PacketTcpHeader {
 
 struct C2S_InputPacket : public PacketUdpHeader {
 	
-	Vec3 Pos;
+	/*Vec3 Pos;
 	Vec3 Dir;
 	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket),C2S_PKT_INPUT,0,0 } {}
 	C2S_InputPacket(uint32 id, uint32 seq, Vec3 pos, Vec3 dir)
 		: PacketUdpHeader{ sizeof(C2S_InputPacket),C2S_PKT_INPUT,id,seq }, Pos(pos), Dir(dir) {
-	}
+	}*/
 };
 
 

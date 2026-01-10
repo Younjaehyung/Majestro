@@ -128,6 +128,7 @@ public:
 public:
 	ComponentTypeID mTargetID;
 	PlayMode mPlayMode;
+	float mCameraMoveSpeed = 100;
 	float mCameraHight = 20;
 	float mCameraLenth = 25;
 };

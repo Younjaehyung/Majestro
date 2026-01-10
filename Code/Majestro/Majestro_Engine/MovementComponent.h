@@ -6,7 +6,7 @@
 class MovementComponent : public Component<MovementComponent>
 {
 public:
-	Vec2 mMovingDirection;
+	Vec3 mMovingDirection;
 
 	Vec2 mCameraView;
 

@@ -37,10 +37,10 @@ void CameraSystem::Update(float dt)
 		Vec3 pos = playerPos->mLocalPosition;
 
 		if (cameraTypeComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
-			transformComponent->mLocalPosition = playerPos->mLocalPosition;
+			pos.y += cameraTypeComponent->mCameraHight;
+			transformComponent->mLocalPosition = pos;
 			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
-			//cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
 			pos.y += cameraTypeComponent->mCameraHight;
@@ -54,7 +54,26 @@ void CameraSystem::Update(float dt)
 			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
 			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+		}
+		else {
+			Vec3 forward = transformComponent->GetLook();
+			Vec3 right = transformComponent->GetRight();
+			Vec3 up = {0,1,0};
 
+			float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
+			float iz = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
+			float iy = movementComponent->mMovingDirection.y;  // W/S   (-1 ~ 1)
+
+			Vec3 desired = forward * iz + right * ix + up*iy;
+
+			// 정규화
+			if (desired.LengthSquared() > 0.0001f)
+				desired.Normalize();
+
+			transformComponent->mLocalPosition += desired * dt * cameraTypeComponent->mCameraMoveSpeed;
+
+			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
 		}
 
 		cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());

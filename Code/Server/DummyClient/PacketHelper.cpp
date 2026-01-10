@@ -103,5 +103,6 @@ void ProcessPacket::ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer)
 	LoginPacket loginPacket;
 	::memcpy(&loginPacket, buffer, sizeof(LoginPacket));
 	inputCommand.SessionId = loginPacket.clientId;
+	inputCommand.Type = loginPacket.Header.PacketType;
 	std::cout << "Processed Login Packet for Client ID: " << loginPacket.clientId << std::endl;
 }

@@ -50,9 +50,9 @@ void ServerCore::Update()
 	{
 		data.SessionId = i;
 		
-		data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::PKT_TCP, 0.0 };
-		data.Type = PKT_Type::PKT_TCP;
-		UnicastPacket(data);
+		//data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::PKT_TCP, 0.0 };
+		//data.Type = PKT_Type::PKT_TCP;
+		//UnicastPacket(data);
 		
 		data.udpHeader = PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::PKT_UDP, (uint32)i, 0 };
 		data.Type = PKT_Type::PKT_UDP;

@@ -60,6 +60,11 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 		ProcessSyncPacket(inputCommand, buffer);
 		break;
 	}
+	case PKT_Type::PKT_LOGIN: {
+		ProcessLoginPacket(inputCommand, buffer);
+		// std::cout << "Processed Login Packet for Client ID: " << inputCommand.SessionId << std::endl;
+		break;
+	}
 	default:
 		LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
 		return false;
@@ -91,4 +96,12 @@ void ProcessPacket::ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer)
 	inputCommand.SessionId = syncPacket.clientId;
 	inputCommand.moveX = syncPacket.rhythmTime;
 	std::cout << "Processed SyncPacket for Client ID: " << syncPacket.clientId << " with Rhythm Time: " << syncPacket.rhythmTime << std::endl;
+}
+
+void ProcessPacket::ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer)
+{
+	LoginPacket loginPacket;
+	::memcpy(&loginPacket, buffer, sizeof(LoginPacket));
+	inputCommand.SessionId = loginPacket.clientId;
+	std::cout << "Processed Login Packet for Client ID: " << loginPacket.clientId << std::endl;
 }

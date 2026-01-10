@@ -268,7 +268,7 @@ void NetworkThread::HandleUdpRecv()
            
             continue;
         }
-
+       
 
         PacketHeader* header = (PacketHeader*)mURecvBuffer;
         if (header->PacketType == PKT_LOGIN) {
@@ -281,7 +281,7 @@ void NetworkThread::HandleUdpRecv()
                 mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
                 
             }
-
+            std::cout << "No session found for UDP packet from " << std::endl;
             std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
             
         }

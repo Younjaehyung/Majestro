@@ -67,7 +67,7 @@ public:
 	static bool ProcessPackets(InputCommand& inputCommand, BYTE* buffer);
 	static void ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer);
 	static void ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer);
-
+	static void ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer);
     static void ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer);
     static void ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer) {};
     static void ProcessActionPacket(InputCommand& inputCommand, BYTE* buffer) {};

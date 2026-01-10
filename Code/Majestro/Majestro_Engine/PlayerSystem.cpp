@@ -93,7 +93,7 @@ void PlayerSystem::Update(float dt)
 			mainPlayerComponent->Update(dt);
 		}
 
-		transformComponent->FinalUpdate();
+		//transformComponent->FinalUpdate();
 
 		//controllerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
 		//controllerComponent->mTransformComponent.FinalUpdate();

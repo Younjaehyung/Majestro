@@ -52,6 +52,7 @@ public:
 		return mKeys[(UINT)code].state == eKeyState::Up;
 	}
 
+	void OnActivateApp(bool active);
 	void OnMouseMove(LPARAM lParam);
 	void OnMouseWheel(WPARAM wParam);
 	void OnMouseButtonDown(WPARAM button);
@@ -68,6 +69,7 @@ public:
 private:
 	
 	HWND mHwnd;
+	bool mHasFocus = true; // 창이 활성화 상태인지
 	MouseState mMouseState;
 
 	HCURSOR arrow = ::LoadCursor(nullptr, IDC_ARROW);

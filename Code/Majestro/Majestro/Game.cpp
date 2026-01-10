@@ -14,6 +14,7 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 void Game::Initialize(const WindowInfo& info)
 {
 	gEngine->Initialize(info);
+	mInitializeEnd = true;
 
 	Network::GetInstance().Initialize();
 	Network::GetInstance().ConnectToServer();
@@ -30,6 +31,11 @@ void Game::Update()
 void Game::Input(UINT message) 
 {
 	gEngine->GetInputManager().OnMouseMove(message);
+}
+
+void Game::ActiveGame(bool active)
+{
+	if(mInitializeEnd)gEngine->GetInputManager().OnActivateApp(active);
 }
 
 void Game::Render()

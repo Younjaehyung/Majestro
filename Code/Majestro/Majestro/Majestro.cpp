@@ -175,10 +175,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return true;
 #else
 #endif
-
     //if(game)game->Input(message);
     switch (message)
     {
+    case WM_ACTIVATEAPP:
+        game->ActiveGame(wParam != 0); // [추가]
+        return 0;
+
+    case WM_SETFOCUS:
+        game->ActiveGame(true);        // [추가]
+        return 0;
+
+    case WM_KILLFOCUS:
+        game->ActiveGame(false);       // [추가]
+        return 0;
+
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
         ::SetCursor(CreateTransparentCursorMask32());

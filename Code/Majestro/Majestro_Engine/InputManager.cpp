@@ -52,6 +52,8 @@ inline HCURSOR CreateTransparentCursor() {
 	return cur;
 }
 
+
+
 void InputManager::Initialize(HWND _hWnd) {
 
 	for (size_t i = 0; i < (UINT)eKeyCode::End; i++) {
@@ -67,6 +69,9 @@ void InputManager::Initialize(HWND _hWnd) {
 }
 
 void InputManager::Update() {
+	if (!mHasFocus)
+		return;
+
 	for (size_t i = 0; i < mKeys.size(); i++) {
 		//눌렀는지
 		if (GetAsyncKeyState(ASCII[i]) & 0x8000) {
@@ -90,6 +95,32 @@ void InputManager::Update() {
 		}
 
 
+	}
+}
+
+void InputManager::OnActivateApp(bool active)
+{
+	mHasFocus = active;
+
+	if (!mHasFocus)
+	{
+		// [추가] 포커스 잃을 때: 캡처 해제 (Alt+Tab 등으로 Up 메시지가 안 올 수 있음)
+		if (GetCapture() == mHwnd)
+			::ReleaseCapture();
+
+		// [추가] 마우스 버튼 상태 초기화
+		mMouseState.LeftDown = false;
+		mMouseState.RightDown = false;
+		mMouseState.MiddleDown = false;
+		mMouseState.Delta = { 0,0 };
+		mMouseState.WheelDelta = 0;
+
+		// [추가] 키 상태 초기화 (Sticky 입력 방지)
+		for (auto& k : mKeys)
+		{
+			k.bPressed = false;
+			k.state = eKeyState::None;
+		}
 	}
 }
 

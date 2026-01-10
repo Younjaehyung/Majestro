@@ -6,15 +6,6 @@
 #include "IMGUIComponent.h"
 #include "Animator.h"
 
-
-//enum PlayMode
-//{
-//	MAIN_CAMERA,
-//	ONE_FPS,
-//	THREE_FPS,
-//	THREE_RPG,
-//};
-
 class ControllerComponent : public Component<ControllerComponent>
 {
 public:

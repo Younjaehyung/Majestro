@@ -48,7 +48,7 @@ void NetworkThread::Initialize()
     udpAddr.sin_addr.s_addr = htonl(INADDR_ANY);
     udpAddr.sin_port = htons(9000 + 1);   // 클라가 보내는 서버 UDP 포트
 
-    if (bind(mUdpSock, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
+    if (::bind(mUdpSock, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
         int32 error = WSAGetLastError();
         LOG_ERROR("Accept Failed, error code : {}", error);
         return;
@@ -190,8 +190,8 @@ void NetworkThread::AcceptClient()
         session->GetTcpAddress().GetPort());
 
 	SendBuffer* sendBuffer = SendBufferManager::Acquire();
-	KLoginPacket loginPkt = KLoginPacket(session->GetPlayerId());
-	sendBuffer->SetData(&loginPkt, sizeof(KLoginPacket),TCP);
+	LoginPacket loginPkt = LoginPacket(session->GetPlayerId());
+	sendBuffer->SetData(&loginPkt, sizeof(LoginPacket),TCP);
     session->mTSendBufferQueue.push(sendBuffer);
 }
 
@@ -271,8 +271,8 @@ void NetworkThread::HandleUdpRecv()
 
 
         PacketHeader* header = (PacketHeader*)mURecvBuffer;
-        if (header->PacketType == KLOGIN) {
-            KLoginPacket* pkt = (KLoginPacket*)mURecvBuffer;
+        if (header->PacketType == PKT_LOGIN) {
+            LoginPacket* pkt = (LoginPacket*)mURecvBuffer;
 
             auto& targetSession = mSessionMgr.mSessions[pkt->clientId];
             if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
@@ -458,15 +458,5 @@ bool NetworkThread::PushSend()
         }
     }
     return true;
-}
-
-bool NetworkThread::PushUdpSend()
-{
-    return false;
-}
-
-bool NetworkThread::PushTcpSend()
-{
-    return false;
 }
 

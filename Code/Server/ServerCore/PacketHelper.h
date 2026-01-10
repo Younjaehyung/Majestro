@@ -4,15 +4,19 @@
 #include <atomic>
 #include <cstddef>
 #include <type_traits>
-#include "Packet.h"
+
 
 //////////////////*
 // Single Producer Single Consumer Ring Queue
 // LOGIC THREAD <-> NETWORK THREAD
 ////////////////*/
 
+struct SendBuffer;
+
+
 struct InputCommand // Packet received (network thread -> logic thread)
 {
+    PKT_Type Type;
     uint32 SessionId;
     float moveX;
     float moveY;
@@ -29,13 +33,16 @@ struct SendRequest { // Packet to be sent (logic thread -> network thread)
     {
 		PacketTcpHeader tcpHeader;
 		PacketUdpHeader udpHeader;
-        SyncPacketData sync{};
+        
+        C2S_InputPacket input;
+        
 
+        S2C_SyncPacket sync{};
     };
 
     SendRequest() :Type(PKT_Type::KNONE) {}
     SendRequest(PKT_Type t) : Type(t) {}
-    SendRequest(PKT_Type t, const SyncPacketData& s) : Type(t), sync(s) {}
+    SendRequest(PKT_Type t, const S2C_SyncPacket& s) : Type(t), sync(s) {}
     SendRequest(PKT_Type t, const PacketTcpHeader& th) : Type(t), tcpHeader(th) {}
     SendRequest(PKT_Type t, const PacketUdpHeader& uh) : Type(t), udpHeader(uh) {}
 };
@@ -46,6 +53,8 @@ public:
     static bool SerializePacket(SendRequest& pkt, SendBuffer*);
     static void SerializeTcpPacket(SendRequest& pkt, SendBuffer*);
     static void SerializeUdpPacket(SendRequest& pkt, SendBuffer*);
+
+
     static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
     static void SerializeInputPacket(SendRequest& pkt, SendBuffer*){}
     static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}

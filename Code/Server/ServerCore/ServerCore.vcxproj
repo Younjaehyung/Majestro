@@ -159,7 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Packet.h" />
+    <ClInclude Include="..\..\Protocol\Packet.h" />
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="SessionManager.h" />
     <ClInclude Include="CoreMacro.h" />

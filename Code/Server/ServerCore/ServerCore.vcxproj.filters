@@ -16,6 +16,9 @@
     <Filter Include="Assistance">
       <UniqueIdentifier>{822845c6-354f-4d00-8796-127936fd930d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\Lib">
+      <UniqueIdentifier>{4998b08e-95bf-41f4-b7e1-032caf7d4509}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Session.h">
@@ -48,9 +51,6 @@
     <ClInclude Include="Types.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Packet.h">
-      <Filter>Packet</Filter>
-    </ClInclude>
     <ClInclude Include="SocketUtils.h">
       <Filter>Assistance</Filter>
     </ClInclude>
@@ -60,8 +60,11 @@
     <ClInclude Include="NetAddress.h">
       <Filter>Assistance</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Protocol\Packet.h">
+      <Filter>Packet</Filter>
+    </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>Buffer</Filter>
+      <Filter>Packet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -99,7 +102,7 @@
       <Filter>Assistance</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Buffer</Filter>
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

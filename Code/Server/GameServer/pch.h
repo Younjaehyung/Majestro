@@ -13,8 +13,16 @@
 
 #include "CorePch.h"
 
-
 #include "SimpleMath.h"
 #include <DirectXMath.h>
 #include <DirectXPackedVector.h>
 #include <DirectXColors.h>
+
+using namespace DirectX;
+using namespace DirectX::PackedVector;
+
+using Vec = XMVECTOR;
+using Vec2 = DirectX::SimpleMath::Vector2;
+using Vec3 = DirectX::SimpleMath::Vector3;
+using Vec4 = DirectX::SimpleMath::Vector4;
+using Matrix = DirectX::SimpleMath::Matrix;

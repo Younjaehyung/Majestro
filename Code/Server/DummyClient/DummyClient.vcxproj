@@ -164,8 +164,8 @@
     <ClCompile Include="SendBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Protocol\Packet.h" />
     <ClInclude Include="Network.h" />
-    <ClInclude Include="Packet.h" />
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="RecvBuffer.h" />

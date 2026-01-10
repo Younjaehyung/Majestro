@@ -4,7 +4,7 @@
 #include <queue>
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
-#include "PacketHelper.h"
+
 
 /*--------------
 	Session
@@ -47,7 +47,6 @@ public:
 	int					GetPlayerId() { return mPlayerId; }
 
 	void				SetTSocket(SOCKET socket) { mTcpSocket = socket; }
-
 	SOCKET&				GetTSocket() { return mTcpSocket; }
 	Atomic<bool>&		IsConnected()		{ return mConnected; }
 	

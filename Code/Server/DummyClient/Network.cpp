@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Network.h"
-#include "PacketHelper.h"
 
 SpscRingQueue<SendRequest, 128>	gSendBuffer;
 SpscRingQueue<InputCommand, 128>	gRecvBuffer;
@@ -70,7 +69,7 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	localUdp.sin_addr.s_addr = htonl(INADDR_ANY);
 	localUdp.sin_port = htons(0); // 0 = OS가 사용 가능한 포트를 자동 할당
 
-	if (bind(mUdpSocket, (sockaddr*)&localUdp, sizeof(localUdp)) == SOCKET_ERROR)
+	if (::bind(mUdpSocket, (sockaddr*)&localUdp, sizeof(localUdp)) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
 		std::cout << "UDP bind failed: " << err << std::endl;
@@ -110,6 +109,22 @@ setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
 	mNetworkThread = std::thread(&Network::NetworkUpdate, this);
 }
 
+void Network::ReleaseServer()
+{
+	SendBufferManager::Shutdown();
+
+	if (mTcpSocket != INVALID_SOCKET)
+		closesocket(mTcpSocket);
+
+	if (mUdpSocket != INVALID_SOCKET)
+		closesocket(mUdpSocket);
+
+
+	mTcpSocket = INVALID_SOCKET;
+	mUdpSocket = INVALID_SOCKET;
+
+	WSACleanup();
+}
 
 void Network::NetworkUpdate()
 {
@@ -137,45 +152,12 @@ void Network::Stop()
 }
 
 
-void Network::ReleaseServer()
-{
-	SendBufferManager::Shutdown();
-
-	if (mTcpSocket != INVALID_SOCKET)
-	closesocket(mTcpSocket);
-
-	if (mUdpSocket != INVALID_SOCKET)
-	closesocket(mUdpSocket);
-
-
-	mTcpSocket = INVALID_SOCKET;
-	mUdpSocket = INVALID_SOCKET;
-
-	WSACleanup();
-}
 
 
 
-void Network::OnRecvPacket()
-{
-	if (!mIsRunning) return;
-	OnTCPNetworkUpdate();	// recv
-	OnUDPNetworkUpdate();	// recv
-	
-}
-
-void Network::PrepareSendData()
-{
-	while (gSendBuffer.Pop(mSendData))
-	{
-		SendBuffer* sendBuffer = SendBufferManager::Acquire();
-		mSendData.sync.clientId = mClientId;
-		
-		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
-		mSendBuffer.push(sendBuffer);
-	}
-
-}
+///////////////////////////////////
+//SEND
+///////////////////////////////////
 
 void Network::OnSendPacket()
 {
@@ -209,7 +191,7 @@ void Network::OnSendPacket()
 				int err = WSAGetLastError();
 				if (err == WSAEWOULDBLOCK)
 				{
-					
+
 					break;
 				}
 
@@ -238,19 +220,19 @@ void Network::OnSendPacket()
 		}
 		case NetProtocol::UDP:
 		{
-			
+
 
 			int len = sendto(mUdpSocket, (char*)sendBuffer->Data, sendBuffer->Capacity, 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(mServerUdpAddr));
 
-			if(len > 0)
+			if (len > 0)
 			{
 				// 전송 성공
 				mSendBuffer.pop();
 				SendBufferManager::Release(sendBuffer);
 			}
 
-			
+
 
 			break;
 		}
@@ -261,10 +243,38 @@ void Network::OnSendPacket()
 			break;
 		}
 		}
-		
-		
+
+
 	}
-	
+
+}
+
+
+void Network::PrepareSendData()
+{
+	while (gSendBuffer.Pop(mSendData))
+	{
+		SendBuffer* sendBuffer = SendBufferManager::Acquire();
+		mSendData.sync.clientId = mClientId;
+		
+		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
+		mSendBuffer.push(sendBuffer);
+	}
+
+}
+
+
+///////////////////////////////////
+//RECV
+///////////////////////////////////
+
+
+void Network::OnRecvPacket()
+{
+	if (!mIsRunning) return;
+	OnTCPNetworkUpdate();	// recv
+	OnUDPNetworkUpdate();	// recv
+
 }
 
 
@@ -337,9 +347,9 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		// 패킷 조립 성공
 
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
-		if (mInputCommand.Type == KLOGIN) {
+		if (mInputCommand.Type == PKT_LOGIN) {
 			mClientId = mInputCommand.SessionId;
-			KLoginPacket loginPkt = KLoginPacket(mClientId);
+			LoginPacket loginPkt = LoginPacket(mClientId);
 
 			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(loginPkt), 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));
@@ -367,7 +377,7 @@ void Network::OnUDPNetworkUpdate()
 	
 	if (len > 0) {
 		// UDP 패킷 처리
-		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer,len);
+		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
 		std::cout << "Recv" << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 	}

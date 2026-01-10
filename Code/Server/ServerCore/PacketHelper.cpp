@@ -6,15 +6,15 @@
 bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer) {
 
 	switch (pkt.Type) {
-	case PKT_Type::KTCP: {
+	case PKT_Type::PKT_TCP: {
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
 	}
-	case PKT_Type::KUDP: {
+	case PKT_Type::PKT_UDP: {
 		SerializeUdpPacket(pkt, sendBuffer);
 		break;
 					   }
-	case PKT_Type::KSYNC: {
+	case PKT_Type::S2C_PKT_SYNC: {
 		SerializeSyncPacket(pkt, sendBuffer);
 		break;
 	}
@@ -39,7 +39,7 @@ void SendRequestPacket::SerializeUdpPacket(SendRequest& pkt, SendBuffer* sendBuf
 void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBuffer)
 {
 	// Copy header
-	sendBuffer->SetData(&pkt.sync, sizeof(SyncPacketData),UDP);
+	sendBuffer->SetData(&pkt.sync, sizeof(S2C_SyncPacket),UDP);
 }
 
 bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
@@ -48,15 +48,15 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	::memcpy(&header, buffer, sizeof(PacketHeader));
 
 	switch (header.PacketType) {
-	case PKT_Type::KTCP: {
+	case PKT_Type::PKT_TCP: {
 		ProcessTcpPackets(inputCommand, buffer);
 		break;
 	}
-	 case PKT_Type::KUDP: {
+	 case PKT_Type::PKT_UDP: {
 		ProcessUdpPackets(inputCommand, buffer);
 		break;
 					   }
-	case PKT_Type::KSYNC: {
+	case PKT_Type::S2C_PKT_SYNC: {
 		ProcessSyncPacket(inputCommand, buffer);
 		break;
 	}
@@ -85,8 +85,8 @@ void ProcessPacket::ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer)
 
 void ProcessPacket::ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer)
 {
-	SyncPacketData syncPacket;
-	::memcpy(&syncPacket, buffer, sizeof(SyncPacketData));
+	S2C_SyncPacket syncPacket;
+	::memcpy(&syncPacket, buffer, sizeof(S2C_SyncPacket));
 
 	inputCommand.SessionId = syncPacket.clientId;
 	inputCommand.moveX = syncPacket.rhythmTime;

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "Types.h"
-#include "CoreMacro.h"
-
 
 // Network
 #define _CRT_SECURE_NO_WARNINGS // 구형 C 함수 사용 시 경고 끄기
@@ -11,6 +8,8 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <MSWSock.h>
+
+#include "CoreMacro.h"
 
 #include <windows.h>
 #include <iostream>
@@ -28,7 +27,18 @@
 #include <string>
 #include <memory>
 
-#pragma comment(lib, "ws2_32.lib")
+
+
+
 
 using namespace std;
+#include "Types.h"
+
+#pragma comment(lib, "ws2_32.lib")
+#include "../../Protocol/Packet.h"
+#include "PacketHelper.h"
+
+
+
+
 

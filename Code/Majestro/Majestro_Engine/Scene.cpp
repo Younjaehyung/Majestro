@@ -31,16 +31,12 @@ void Scene::Initialize()
 {
 	PlayerPrefab player{mWorld};
 
-	/*Entity osw = mWorld->CreateEntity();
+	TerrainPrefab terrain{ mWorld };
+	SkyBoxPrefab skybox{ mWorld };
+	DirLightPrefab light{ mWorld };
 
-	TransformComponent t{};
-	Entity testCamera = mWorld->CreateEntity();
-	mWorld->AddComponent<MainCameraComponent>(testCamera);
-	mWorld->AddComponent<CameraComponent>(testCamera);
-	mWorld->AddComponent<TransformComponent>(testCamera,t);
-	mWorld->AddComponent<CameraTypeComponent>(testCamera, osw.GetID(), THREE_FPS);*/
 
-	TransformComponent t{};
+	
 	/////////////////////////////////////////////////////////////////////
 	{
 		Entity vfxEntity = mWorld->CreateEntity();
@@ -53,60 +49,6 @@ void Scene::Initialize()
 	}
 	/////////////////////////////////////////////////////////////////////
 
-#pragma region Skybox
-	{
-		Entity skyBox = mWorld->CreateEntity();
-		TransformComponent bt{};
-
-
-		shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
-
-		// 빌보드 머티리얼
-		shared_ptr<Material> skyBoxMat = RESOURCEMANAGER.Get<Material>(L"Skybox");
-		std::vector<shared_ptr<Material>> materials;
-		materials.push_back(skyBoxMat);
-
-		mWorld->AddComponent<TransformComponent>(skyBox, bt);
-		RenderComponent& render = mWorld->AddComponent<RenderComponent>(skyBox, skyBoxMesh, materials);
-		render.mCheckFrustum = false;
-	}
-#pragma endregion
-
-	//{
-	//	//Entity osw = mWorld->CreateEntity();	// �ʼ�
-
-	//	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Rudwig_mBody");
-	//	//shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Guitar_mBody");
-	//	std::vector<shared_ptr<Material>> material2s;
-
-	//	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Rudwig_aIdle_0010");
-	//	//shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Capoeira0");
-
-	//	material2s.push_back(material2);
-	//	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	//	t.mLocalScale = { 10.f, 10.f, 10.f };
-
-	//	vector<shared_ptr<Animator>> anmators0;
-	//	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aIdle_001"));
-	//	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aWalk_001"));
-	//	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));
-	//	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aJump_001"));
-	//	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));//dash
-
-	//	//anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"mixamo.com"));
-
-	//	mWorld->AddComponent<ControllerComponent>(osw,t);
-	//	mWorld->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json", anmators0);
-	//	mWorld->AddComponent<TransformComponent>(osw, t);
-	//	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-	//	mWorld->AddComponent<AnimationComponent>(osw, anmators0);
-	//	mWorld->AddComponent<BeatComponent>(osw);
-	//	mWorld->AddComponent<GravityComponent>(osw);
-	//	mWorld->AddComponent<MovementComponent>(osw);
-
-
-	//	
-	//}
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
@@ -116,6 +58,7 @@ void Scene::Initialize()
 		
 		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
 		material2s.push_back(material2);
+		TransformComponent t{};
 		t.mLocalPosition = { 0.f, 0.f, 0.f };
 		t.mLocalScale = { 1.f, 1.f, 1.f };
 		vector<shared_ptr<Animator>> anmators;
@@ -146,29 +89,7 @@ void Scene::Initialize()
 
 	/////////////////////////////////////////////////////////////////////////
 
-#pragma region Terrain
 
-	Entity terrain = mWorld->CreateEntity();
-	TransformComponent bt{};
-	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
-	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
-
-	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
-
-	// 빌보드 머티리얼(
-	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
-	std::vector<shared_ptr<Material>> materials;
-	materials.push_back(heightMap);
-
-	mWorld->AddComponent<TransformComponent>(terrain, bt);
-	TerrainComponent& terrainc = mWorld->AddComponent<TerrainComponent>(terrain, 64, 64, heightMap);
-	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
-	terrainc.mTerrainWorldScale = bt.mLocalScale;
-
-	RenderComponent& render = mWorld->AddComponent<RenderComponent>(terrain, skyBoxMesh, materials);
-	render.mCheckFrustum = false;
-
-#pragma endregion
 
 #pragma region UI
 	{
@@ -217,32 +138,10 @@ void Scene::Initialize()
 #pragma endregion
 
 	/////////////////////////////////////////////////////////////////////////
-	LightComponent l{};
-	l.mLightInfo.Position = {Vec3(0, 1000, 500)};
-	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.mLightInfo.Color.Diffuse = { Vec3(1.f, 1.f, 1.f) };
-	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.SetLightDirection(Vec3(0, -1, 1.f));
-
-	LightFactory::CreateLight(mWorld,LIGHT_TYPE::DIRECTIONAL_LIGHT,l);
-
-	//Particle
-	//particleComponent->_particleBuffer->PushGraphicsData(SRV_REGISTER::t9);
-	//particleComponent->_material->SetFloat(0, particleComponent->_startScale);
-	//particleComponent->_material->SetFloat(1, particleComponent->_endScale);
-	//particleComponent->_material->PushGraphicsData();
-
-	//TransformComponent t;
 
 
-	//testlight->GetLight()->SetLightDirection(Vec3(0, -1, 1.f));
-	//testlight->GetLight()->SetLightType(LIGHT_TYPE::DIRECTIONAL_LIGHT);
-	//testlight->GetLight()->SetDiffuse(Vec3(1.f, 1.f, 1.f));
-	//testlight->GetLight()->SetAmbient(Vec3(0.1f, 0.1f, 0.1f));
-	//testlight->GetLight()->SetSpecular(Vec3(0.1f, 0.1f, 0.1f));
+	
 
-
-	//mWorld->Awake();
 }
 
 void Scene::Update(float deltaTime)

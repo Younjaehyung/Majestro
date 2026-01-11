@@ -30,14 +30,14 @@ Prefab::~Prefab()
 
 PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
 {
-	Entity osw = world->CreateEntity();
+	mEntityID = world->CreateEntity();
 
 	TransformComponent t{};
 	Entity testCamera = world->CreateEntity();
 	world->AddComponent<MainCameraComponent>(testCamera);
 	world->AddComponent<CameraComponent>(testCamera);
 	world->AddComponent<TransformComponent>(testCamera, t);
-	world->AddComponent<CameraTypeComponent>(testCamera, osw.GetID(), THREE_FPS);
+	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
 
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Rudwig_mBody");
 		
@@ -58,14 +58,14 @@ PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));//dash
 
 
-	world->AddComponent<ControllerComponent>(osw, t);
-	world->AddComponent<MainPlayerComponent>(osw, "../Resources/Json/TestJson.json", anmators0);
-	world->AddComponent<TransformComponent>(osw, t);
-	world->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-	world->AddComponent<AnimationComponent>(osw, anmators0);
-	world->AddComponent<BeatComponent>(osw);
-	world->AddComponent<GravityComponent>(osw);
-	world->AddComponent<MovementComponent>(osw);
+	world->AddComponent<ControllerComponent>(mEntityID, t);
+	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+	world->AddComponent<TransformComponent>(mEntityID, t);
+	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	world->AddComponent<BeatComponent>(mEntityID);
+	world->AddComponent<GravityComponent>(mEntityID);
+	world->AddComponent<MovementComponent>(mEntityID);
 
 }
 
@@ -73,3 +73,70 @@ PlayerPrefab::~PlayerPrefab()
 {
 }
 
+SkyBoxPrefab::SkyBoxPrefab(shared_ptr<World> world)
+{
+
+	mEntityID = world->CreateEntity();
+	TransformComponent bt{};
+
+
+	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+
+	// 빌보드 머티리얼
+	shared_ptr<Material> skyBoxMat = RESOURCEMANAGER.Get<Material>(L"Skybox");
+	std::vector<shared_ptr<Material>> materials;
+	materials.push_back(skyBoxMat);
+
+	world->AddComponent<TransformComponent>(mEntityID, bt);
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
+	render.mCheckFrustum = false;
+
+}
+
+SkyBoxPrefab::~SkyBoxPrefab()
+{
+}
+
+TerrainPrefab::TerrainPrefab(shared_ptr<World> world)
+{
+
+	mEntityID = world->CreateEntity();
+	TransformComponent bt{};
+	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+
+	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
+
+	// 빌보드 머티리얼(
+	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
+	std::vector<shared_ptr<Material>> materials;
+	materials.push_back(heightMap);
+
+	world->AddComponent<TransformComponent>(mEntityID, bt);
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
+	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
+	terrainc.mTerrainWorldScale = bt.mLocalScale;
+
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
+	render.mCheckFrustum = false;
+
+}
+
+TerrainPrefab::~TerrainPrefab()
+{
+}
+
+DirLightPrefab::DirLightPrefab(shared_ptr<World> world)
+{
+	LightComponent l{};
+	l.mLightInfo.Position = { Vec3(0, 1000, 500) };
+	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };
+	l.mLightInfo.Color.Diffuse = { Vec3(1.f, 1.f, 1.f) };
+	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
+	l.SetLightDirection(Vec3(0, -1, 1.f));
+	mEntityID = LightFactory::CreateLight(world, LIGHT_TYPE::DIRECTIONAL_LIGHT, l);
+}
+
+DirLightPrefab::~DirLightPrefab()
+{
+}

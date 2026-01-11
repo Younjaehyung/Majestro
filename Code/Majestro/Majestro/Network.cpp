@@ -167,8 +167,7 @@ void Network::OnSendPacket()
 
 	while (!mSendBuffer.empty()) {
 
-		std::cout << "OnSendPacket processing." << std::endl;
-
+		
 		SendBuffer* sendBuffer = mSendBuffer.front();
 
 		switch (sendBuffer->Protocol)
@@ -255,7 +254,7 @@ void Network::PrepareSendData()
 	while (gSendBuffer.Pop(mSendData))
 	{
 		SendBuffer* sendBuffer = SendBufferManager::Acquire();
-		mSendData.sync.clientId = mClientId;
+		mSendData.SessionId = mClientId;
 		
 		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
 		mSendBuffer.push(sendBuffer);

@@ -46,7 +46,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 {
 	PacketHeader header;
 	::memcpy(&header, buffer, sizeof(PacketHeader));
-
+	std::cout << header.PacketType << std::endl;
 	switch (header.PacketType) {
 	case PKT_Type::PKT_TCP: {
 		ProcessTcpPackets(inputCommand, buffer);
@@ -63,6 +63,10 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::PKT_LOGIN: {
 		ProcessLoginPacket(inputCommand, buffer);
 		// std::cout << "Processed Login Packet for Client ID: " << inputCommand.SessionId << std::endl;
+		break;
+	}
+	case PKT_Type::C2S_PKT_INPUT: {
+		ProcessInputPacket(inputCommand, buffer);
 		break;
 	}
 	default:
@@ -88,6 +92,16 @@ void ProcessPacket::ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer)
 	std::cout << "Processed UDP Packet for Session ID: " << udpPacket.SessionId << std::endl;
 }
 
+void ProcessPacket::ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer)
+{
+	C2S_InputPacket udpPacket;
+	::memcpy(&udpPacket, buffer, sizeof(C2S_InputPacket));
+	// For demonstration, we assume the UDP packet contains SyncPacketData
+	std::cout << "Processed Input Packet for Client ID: " << udpPacket.SessionId << std::endl;
+	std::cout << "Input Data - moveX: " << udpPacket.x << ", moveY: " << udpPacket.y
+		<< ", action1: " << inputCommand.action1 << ", action2: " << inputCommand.action2 << std::endl;
+}
+
 void ProcessPacket::ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer)
 {
 	S2C_SyncPacket syncPacket;
@@ -95,7 +109,7 @@ void ProcessPacket::ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer)
 
 	inputCommand.SessionId = syncPacket.clientId;
 	inputCommand.moveX = syncPacket.rhythmTime;
-	std::cout << "Processed SyncPacket for Client ID: " << syncPacket.clientId << " with Rhythm Time: " << syncPacket.rhythmTime << std::endl;
+	//std::cout << "Processed SyncPacket for Client ID: " << syncPacket.clientId << " with Rhythm Time: " << syncPacket.rhythmTime << std::endl;
 }
 
 void ProcessPacket::ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer)

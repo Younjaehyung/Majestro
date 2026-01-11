@@ -79,6 +79,12 @@
     <Filter Include="World\Component\Effect">
       <UniqueIdentifier>{5aee3f13-e97c-4a03-a84d-eca79442a635}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Component\Server">
+      <UniqueIdentifier>{70399b08-2e12-41c1-9269-e9053c6e3642}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Prefab">
+      <UniqueIdentifier>{a227d864-22c6-412b-8635-e06cbb6c8ea0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -195,9 +201,6 @@
     <ClInclude Include="TransformSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
-    <ClInclude Include="Prefab.h">
-      <Filter>World\Resource</Filter>
-    </ClInclude>
     <ClInclude Include="AudioSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
@@ -262,7 +265,6 @@
     <ClInclude Include="IMGUISystem.h">
       <Filter>World\System\IMGUI</Filter>
     </ClInclude>
-    <ClInclude Include="IMGUIComponent.h" />
     <ClInclude Include="BeatSystem.h">
       <Filter>World\System</Filter>
     </ClInclude>
@@ -289,6 +291,15 @@
     </ClInclude>
     <ClInclude Include="VfxComponent.h">
       <Filter>World\Component\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="NetEntityComponent.h">
+      <Filter>World\Component\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="IMGUIComponent.h">
+      <Filter>World\Component\IMGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Prefab.h">
+      <Filter>World\Resource\Prefab</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -351,9 +362,6 @@
     </ClCompile>
     <ClCompile Include="RootSignature.cpp">
       <Filter>Engine\DirectX</Filter>
-    </ClCompile>
-    <ClCompile Include="Prefab.cpp">
-      <Filter>World\Resource</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
       <Filter>World\Component</Filter>
@@ -469,7 +477,6 @@
     <ClCompile Include="IMGUISystem.cpp">
       <Filter>World\System\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="IMGUIComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp">
       <Filter>World\System</Filter>
     </ClCompile>
@@ -493,6 +500,15 @@
     </ClCompile>
     <ClCompile Include="VfxComponent.cpp">
       <Filter>World\Component\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="NetEntityComponent.cpp">
+      <Filter>World\Component\Server</Filter>
+    </ClCompile>
+    <ClCompile Include="IMGUIComponent.cpp">
+      <Filter>World\Component\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Prefab.cpp">
+      <Filter>World\Resource\Prefab</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

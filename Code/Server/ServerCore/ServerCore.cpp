@@ -44,23 +44,23 @@ void ServerCore::Update()
 
 	//data.sync.rhythmTime = 123.456f;
 
-	
+	//
 
-	for(int i =1; i < 5; ++i)
-	{
-		data.SessionId = i;
-		
-		data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::PKT_TCP, 0.0 };
-		data.Type = PKT_Type::PKT_TCP;
-		UnicastPacket(data);
-		
-		data.udpHeader = PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::PKT_UDP, (uint32)i, 0 };
-		data.Type = PKT_Type::PKT_UDP;
-		UnicastPacket(data);
+	//for(int i =1; i < 5; ++i)
+	//{
+	//	//data.SessionId = i;
+	//	//
+	//	//data.tcpHeader = PacketTcpHeader{ sizeof(PacketTcpHeader), PKT_Type::PKT_TCP, 0.0 };
+	//	//data.Type = PKT_Type::PKT_TCP;
+	//	//UnicastPacket(data);
+	//	//
+	//	//data.udpHeader = PacketUdpHeader{ sizeof(PacketUdpHeader), PKT_Type::PKT_UDP, (uint32)i, 0 };
+	//	//data.Type = PKT_Type::PKT_UDP;
+	//	//UnicastPacket(data);
 
 
-	}
-	
+	//}
+	//
 	
 }
 

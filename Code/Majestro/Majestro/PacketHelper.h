@@ -55,7 +55,7 @@ public:
 
 
     static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
-    static void SerializeInputPacket(SendRequest& pkt, SendBuffer*){}
+    static void SerializeInputPacket(SendRequest& pkt, SendBuffer*);
     static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}
 };
 

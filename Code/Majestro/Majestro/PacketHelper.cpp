@@ -18,6 +18,10 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 		SerializeSyncPacket(pkt, sendBuffer);
 		break;
 	}
+	case PKT_Type::C2S_PKT_INPUT: {
+		SerializeInputPacket(pkt, sendBuffer);
+		break;
+	}
 	default :
 		return false;
 	}
@@ -39,7 +43,16 @@ void SendRequestPacket::SerializeUdpPacket(SendRequest& pkt, SendBuffer* sendBuf
 void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBuffer)
 {
 	// Copy header
+	
 	sendBuffer->SetData(&pkt.sync, sizeof(S2C_SyncPacket),UDP);
+}
+
+void SendRequestPacket::SerializeInputPacket(SendRequest& pkt, SendBuffer* sendBuffer)
+{
+	std::cout << "Serializing Input Packet for Session ID: " << pkt.input.x << std::endl;
+	pkt.input.Header = PacketHeader(sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT);
+	sendBuffer->SetData(&pkt.input, sizeof(C2S_InputPacket), UDP);
+
 }
 
 bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)

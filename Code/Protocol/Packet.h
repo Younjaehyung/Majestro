@@ -88,12 +88,13 @@ struct S2C_SyncPacket : public PacketTcpHeader {
 
 struct C2S_InputPacket : public PacketUdpHeader {
 	
-	/*Vec3 Pos;
-	Vec3 Dir;
-	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket),C2S_PKT_INPUT,0,0 } {}
-	C2S_InputPacket(uint32 id, uint32 seq, Vec3 pos, Vec3 dir)
-		: PacketUdpHeader{ sizeof(C2S_InputPacket),C2S_PKT_INPUT,id,seq }, Pos(pos), Dir(dir) {
-	}*/
+	float x, y;
+
+	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 }, x(0), y(0) {}
+	C2S_InputPacket(uint32 sessId, uint32 seq, float moveX, float moveY)
+		: PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, sessId, seq },
+		x(moveX), y(moveY) {
+	}
 };
 
 

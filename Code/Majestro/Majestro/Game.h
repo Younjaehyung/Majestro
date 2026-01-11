@@ -11,6 +11,10 @@ public:
 
 	int ImGuiInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+public: // network 
+	void ReceiveNetworkData();
+	void SendNetworkData();
+
 public:
 	bool mInitializeEnd = false;
 };

@@ -211,6 +211,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
+    <ClInclude Include="NetEntityComponent.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="ParticleSystem.h" />
@@ -282,6 +283,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
+    <ClCompile Include="NetEntityComponent.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />

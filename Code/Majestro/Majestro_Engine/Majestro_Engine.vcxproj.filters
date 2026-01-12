@@ -82,20 +82,50 @@
     <Filter Include="World\Component\Server">
       <UniqueIdentifier>{70399b08-2e12-41c1-9269-e9053c6e3642}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Prefab">
+    <Filter Include="World\System\Network">
+      <UniqueIdentifier>{95dc7531-d7fa-4b28-a68a-80c62c6387c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Network">
+      <UniqueIdentifier>{49c6bfae-9fac-42d7-b4cf-bb0ae9da8c8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{48d0e12c-073e-4a25-befe-8975c5546535}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Client">
+      <UniqueIdentifier>{8e2a4bcd-147c-4e76-88cc-0ad200931b8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Logic">
+      <UniqueIdentifier>{0dc690ba-ae13-4b4e-b717-5c86ab60e6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\Client">
+      <UniqueIdentifier>{fdbcb73d-ddc1-4937-84ca-e09f2d1ccffd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\Base">
+      <UniqueIdentifier>{7a26fd7e-1d4d-4581-9522-661a5667997f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\Logic">
+      <UniqueIdentifier>{138d84d6-6d11-4508-99a8-4ebbdb49ee81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Script">
+      <UniqueIdentifier>{2a498703-bb7a-4868-90b1-79eb7152f936}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Math">
+      <UniqueIdentifier>{ffad11d8-31ac-4a24-b3c0-365bc9e152e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Pch">
+      <UniqueIdentifier>{b28412a9-d981-4b9d-8508-31d302ff01c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\Buffer">
+      <UniqueIdentifier>{c2601b59-e976-4530-8100-511ef2d03ed7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Script\Prefab">
       <UniqueIdentifier>{a227d864-22c6-412b-8635-e06cbb6c8ea0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\Packet">
+      <UniqueIdentifier>{b512c8ae-e411-4f2e-a7e4-90863e83e104}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="EnginePch.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Device.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
@@ -150,67 +180,13 @@
     <ClInclude Include="RootSignature.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleMath.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>World\Entity</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentPool.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="EventManager.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>World</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TagComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="LightComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="AnimationComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="ParticleComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="AudioSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="AudioComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="AnimationSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
     <ClInclude Include="Skeleton.h">
       <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
@@ -219,18 +195,6 @@
     </ClInclude>
     <ClInclude Include="FBXData.h">
       <Filter>World\Resource\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="StateMachine.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainComponent.h">
-      <Filter>World\Component</Filter>
     </ClInclude>
     <ClInclude Include="UIComponent.h">
       <Filter>World\Component\UI</Filter>
@@ -259,29 +223,8 @@
     <ClInclude Include="Imgui.h">
       <Filter>Utils\ImGUI</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
     <ClInclude Include="IMGUISystem.h">
       <Filter>World\System\IMGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="BeatSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="BeatComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="GravityComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyComponent.h">
-      <Filter>World\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MovementSystem.h">
-      <Filter>World\System</Filter>
-    </ClInclude>
-    <ClInclude Include="MovementComponent.h">
-      <Filter>World\Component</Filter>
     </ClInclude>
     <ClInclude Include="Vfx.h">
       <Filter>World\Resource\Graphics</Filter>
@@ -299,16 +242,142 @@
       <Filter>World\Component\IMGUI</Filter>
     </ClInclude>
     <ClInclude Include="Prefab.h">
-      <Filter>World\Resource\Prefab</Filter>
+      <Filter>World\Script\Prefab</Filter>
+    </ClInclude>
+    <ClInclude Include="NetRecvSystem.h">
+      <Filter>World\System\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetSendSystem.h">
+      <Filter>World\System\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="INetSendSink.h">
+      <Filter>Utils\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="MainNetSink.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="EventManager.h">
+      <Filter>World\System\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioSystem.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationSystem.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="BeatSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationComponent.h">
+      <Filter>World\Component\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioComponent.h">
+      <Filter>World\Component\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderComponent.h">
+      <Filter>World\Component\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleComponent.h">
+      <Filter>World\Component\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>World\Component\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentPool.h">
+      <Filter>World\Component\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BeatComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="GravityComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="StateMachine.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TagComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>World\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Utils\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EnginePch.h">
+      <Filter>Utils\Pch</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Utils\Pch</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Utils\Pch</Filter>
+    </ClInclude>
+    <ClInclude Include="RecvBuffer.h">
+      <Filter>Network\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>Network\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="SendBuffer.h">
+      <Filter>Network\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="SpscRingQueue.h">
+      <Filter>Network\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="NetIdMap.h">
+      <Filter>World\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketHelper.h">
+      <Filter>Network\Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Protocol\Packet.h">
+      <Filter>Network\Packet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pch.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="EnginePch.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Device.cpp">
       <Filter>Engine\DirectX</Filter>
     </ClCompile>
@@ -363,68 +432,11 @@
     <ClCompile Include="RootSignature.cpp">
       <Filter>Engine\DirectX</Filter>
     </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleMath.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>World\Entity</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>World\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentPool.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="EventManager.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>World</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="TagComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="LightComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="AudioSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="AudioComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationSystem.cpp">
-      <Filter>World\System</Filter>
     </ClCompile>
     <ClCompile Include="Skeleton.cpp">
       <Filter>World\Resource\Graphics</Filter>
@@ -434,18 +446,6 @@
     </ClCompile>
     <ClCompile Include="FBXData.cpp">
       <Filter>World\Resource\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="StateMachine.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainComponent.cpp">
-      <Filter>World\Component</Filter>
     </ClCompile>
     <ClCompile Include="UIComponent.cpp">
       <Filter>World\Component\UI</Filter>
@@ -477,21 +477,6 @@
     <ClCompile Include="IMGUISystem.cpp">
       <Filter>World\System\IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="BeatSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
-    <ClCompile Include="BeatComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="GravityComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyComponent.cpp">
-      <Filter>World\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="MovementSystem.cpp">
-      <Filter>World\System</Filter>
-    </ClCompile>
     <ClCompile Include="Vfx.cpp">
       <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
@@ -508,13 +493,131 @@
       <Filter>World\Component\IMGUI</Filter>
     </ClCompile>
     <ClCompile Include="Prefab.cpp">
-      <Filter>World\Resource\Prefab</Filter>
+      <Filter>World\Script\Prefab</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SimpleMath.inl">
-      <Filter>Utils</Filter>
-    </None>
+    <ClCompile Include="NetRecvSystem.cpp">
+      <Filter>World\System\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetSendSystem.cpp">
+      <Filter>World\System\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="INetSendSink.cpp">
+      <Filter>Utils\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="MainNetSink.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="EventManager.cpp">
+      <Filter>World\System\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>World\System\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>World\System\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioSystem.cpp">
+      <Filter>World\System\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationSystem.cpp">
+      <Filter>World\System\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="BeatSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationComponent.cpp">
+      <Filter>World\Component\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioComponent.cpp">
+      <Filter>World\Component\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderComponent.cpp">
+      <Filter>World\Component\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleComponent.cpp">
+      <Filter>World\Component\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>World\Component\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentPool.cpp">
+      <Filter>World\Component\Base</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BeatComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="GravityComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="StateMachine.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TagComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>World\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>Utils\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="EnginePch.cpp">
+      <Filter>Utils\Pch</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Utils\Pch</Filter>
+    </ClCompile>
+    <ClCompile Include="RecvBuffer.cpp">
+      <Filter>Network\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>Network\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="SendBuffer.cpp">
+      <Filter>Network\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="SpscRingQueue.cpp">
+      <Filter>Network\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="NetIdMap.cpp">
+      <Filter>World\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHelper.cpp">
+      <Filter>Network\Packet</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -610,5 +713,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl">
+      <Filter>Utils\Math</Filter>
+    </None>
   </ItemGroup>
 </Project>

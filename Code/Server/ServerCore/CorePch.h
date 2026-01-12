@@ -13,6 +13,7 @@
 
 #include <windows.h>
 #include <iostream>
+#include <algorithm>
 #include <debugapi.h>
 #include <tchar.h>
 #include <vector>

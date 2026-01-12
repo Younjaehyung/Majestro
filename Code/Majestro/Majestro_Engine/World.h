@@ -4,11 +4,13 @@
 #include "Component.h"
 #include "ComponentPool.h"
 #include "SystemManager.h"
+#include "NetIdMap.h"
 
 class World {
 public:
     World() : mNextEntityID(1) {
     }
+    void Initialize() {mSystemManager = std::make_shared<SystemManager>(this);}
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
 public:
@@ -59,17 +61,22 @@ public:
     // 디버그 정보
     size_t GetEntityCount() const { return mEntities.size(); }
     size_t GetComponentPoolCount() const { return mComponentPools.size(); }
-
+public:
+    std::shared_ptr<SystemManager>& GetSystemManager()      { return mSystemManager; }
+    std::shared_ptr<NetIdMap>& GetNetIdMap()                { return mNetIdMap; }
 private:
     // Entity
     EntityID mNextEntityID;
     std::vector<Entity> mEntities;
 
+	// Network Entity ID 관리
+	shared_ptr<NetIdMap> mNetIdMap = make_shared<NetIdMap>();
+
     // 타입별 컴포넌트 풀 (type erasure 사용)
     std::unordered_map<ComponentTypeID, std::unique_ptr<BaseComponentPool>> mComponentPools;
 
     // System
-    std::shared_ptr<SystemManager>		mSystemManager = std::make_shared< SystemManager>(this);
+    std::shared_ptr<SystemManager>		mSystemManager;
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };

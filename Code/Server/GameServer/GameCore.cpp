@@ -3,13 +3,16 @@
 
 void GameCore::Initialize()
 {
+	mResourceManager = std::make_unique<ResourceManager>();
 	mSceneManager = std::make_unique<SceneManager>();
+	
 }
 
 void GameCore::Start()
 {
-	mSceneManager->Initialize();
+	
 	LoadGameData();
+
 }
 
 void GameCore::Update(float deltaTime)
@@ -20,6 +23,8 @@ void GameCore::Update(float deltaTime)
 
 void GameCore::LoadGameData()
 {
+	mResourceManager->Initialize();
+	mSceneManager->Initialize();
 }
 
 void GameCore::UpdateGameLogic(float deltaTime)

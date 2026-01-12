@@ -23,5 +23,6 @@ public:
     }
 public:
 	bool			mIsActive = true;
+	bool			mIsDirty = false;
 	bool			mReplicateFlags = false;
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include "Component.h"
 
+static uint64 NetEntityId = 0;
+
 class NetEntityComponent : public Component<NetEntityComponent>
 {
 	enum class Replicationmode : uint8
@@ -12,7 +14,7 @@ class NetEntityComponent : public Component<NetEntityComponent>
 
 
 public:
-	uint64 mNetEntityId = 0;
+	uint64 mNetEntityId = ++NetEntityId;
 	Replicationmode mNetworkmode = Replicationmode::NONE;
 
 };

@@ -10,7 +10,7 @@ class SceneManager
 public:
 	void Initialize();
 	void Update(float deltaTime);
-
+	void Render();
 private:
 	std::vector<Scene*> mScene;
 

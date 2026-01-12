@@ -103,6 +103,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,6 +121,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,6 +139,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,6 +157,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,41 +167,85 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ServerCore\Entity.cpp" />
-    <ClCompile Include="..\ServerCore\EventManager.cpp" />
-    <ClCompile Include="..\ServerCore\Object.cpp" />
-    <ClCompile Include="..\ServerCore\Prefab.cpp" />
+    <ClCompile Include="BeatComponent.cpp" />
+    <ClCompile Include="BeatSystem.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentPool.cpp" />
+    <ClCompile Include="EnemyComponent.cpp" />
+    <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="GravityComponent.cpp" />
+    <ClCompile Include="HeightField.cpp" />
+    <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="MovementSystem.cpp" />
+    <ClCompile Include="NetEntityComponent.cpp" />
+    <ClCompile Include="NetRecvSystem.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp" />
+    <ClCompile Include="PlayerSystem.cpp" />
+    <ClCompile Include="Prefab.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
+    <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="SystemManager.cpp" />
+    <ClCompile Include="TagComponent.cpp" />
+    <ClCompile Include="TerrainComponent.cpp" />
+    <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TransformComponent.cpp" />
+    <ClCompile Include="TransformSystem.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\ServerCore\Entity.h" />
-    <ClInclude Include="..\ServerCore\EventManager.h" />
-    <ClInclude Include="..\ServerCore\Object.h" />
-    <ClInclude Include="..\ServerCore\Prefab.h" />
+    <ClInclude Include="..\ServerCore\json.hpp" />
+    <ClInclude Include="BeatComponent.h" />
+    <ClInclude Include="BeatSystem.h" />
+    <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentPool.h" />
+    <ClInclude Include="EnemyComponent.h" />
+    <ClInclude Include="Entity.h" />
+    <ClInclude Include="EventManager.h" />
     <ClInclude Include="GameCore.h" />
+    <ClInclude Include="GravityComponent.h" />
+    <ClInclude Include="HeightField.h" />
+    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="MovementComponent.h" />
+    <ClInclude Include="MovementSystem.h" />
+    <ClInclude Include="NetEntityComponent.h" />
+    <ClInclude Include="NetRecvSystem.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PlayerComponent.h" />
+    <ClInclude Include="PlayerSystem.h" />
+    <ClInclude Include="Prefab.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="StateMachine.h" />
     <ClInclude Include="System.h" />
     <ClInclude Include="SystemManager.h" />
+    <ClInclude Include="TagComponent.h" />
+    <ClInclude Include="TerrainComponent.h" />
+    <ClInclude Include="Texture.h" />
+    <ClInclude Include="TransformComponent.h" />
+    <ClInclude Include="TransformSystem.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

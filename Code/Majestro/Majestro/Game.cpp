@@ -4,7 +4,7 @@
 #include "InputManager.h"
 #include "Imgui.h"
 #include "Network.h"
-
+#include "MainNetSink.h"
 #ifdef _IMGUI
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #else
@@ -13,8 +13,10 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 void Game::Initialize(const WindowInfo& info)
 {
-	gEngine->Initialize(info);
+	mSendSink = make_shared<MainNetSendSink>();
 	mInitializeEnd = true;
+
+	gEngine->Initialize(info, mSendSink);
 
 	Network::GetInstance().Initialize();
 	Network::GetInstance().Awake();

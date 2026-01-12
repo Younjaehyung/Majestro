@@ -189,7 +189,7 @@ void EffectSystem::Update(float deltaTime)
 		VfxComponent* effectComp = mWorld->GetComponent<VfxComponent>(e);
 		if (effectComp == nullptr) continue;
 		if (!effectComp->mIsPlaying && effectComp->mTotalTime > 5.0f) {
-			Play(effectComp, 0,0,0);
+			Play(effectComp, -10,30,0);
 		}
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
 		if (tr != nullptr) {

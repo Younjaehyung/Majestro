@@ -1,4 +1,6 @@
 #pragma once
+class INetSendSink;
+
 class Game
 {
 public:
@@ -17,5 +19,6 @@ public: // network
 
 public:
 	bool mInitializeEnd = false;
+	shared_ptr<INetSendSink> mSendSink;
 };
 

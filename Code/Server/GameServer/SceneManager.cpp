@@ -18,6 +18,11 @@ void SceneManager::Update(float deltaTime)
 
 }
 
+void SceneManager::Render()
+{
+
+	mActiveScene->Render();
+}
 
 void SceneManager::LoadScene(wstring sceneName)
 {

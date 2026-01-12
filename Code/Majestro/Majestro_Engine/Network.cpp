@@ -1,7 +1,8 @@
 #include "pch.h"
 #include "Network.h"
+#include "PacketHelper.h"
 
-SpscRingQueue<SendRequest, 128>	gSendBuffer;
+SpscRingQueue<SendRequest, 128>		gSendBuffer;
 SpscRingQueue<InputCommand, 128>	gRecvBuffer;
 
 Network::Network()
@@ -38,11 +39,18 @@ void Network::Initialize() {
 void Network::Awake()
 {
 
-	ConnectToServer();
-	std::cout << "Network Awake completed." << std::endl;
+	if(ConnectToServer())
+	{
+		std::cout << "Connected to server successfully." << std::endl;
+	}
+	else
+	{
+		std::cout << "Failed to awake to server." << std::endl;
+		return;
+	}
 }
 
-void Network::ConnectToServer(const char* ipAddress, int port)
+bool Network::ConnectToServer(const char* ipAddress, int port)
 {
 
 	mTcpSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -61,7 +69,7 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 	if(r == SOCKET_ERROR) {
 		std::cout << "Failed to connect to server." << std::endl;
 		ReleaseServer();
-		return;
+		return false;
 	}
 
 	sockaddr_in localUdp{};
@@ -74,7 +82,7 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 		int err = WSAGetLastError();
 		std::cout << "UDP bind failed: " << err << std::endl;
 		ReleaseServer();
-		return;
+		return false;
 	}
 
 
@@ -90,13 +98,13 @@ void Network::ConnectToServer(const char* ipAddress, int port)
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
 		ReleaseServer();
-		return;
+		return false;
 	}
 	if (mUdpSocket == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
 		cout << "Socket creation failed with error: " << error << std::endl;
 		ReleaseServer();
-		return;
+		return false;
 	}
 	
 
@@ -107,6 +115,8 @@ setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
 
 	mIsRunning = true;
 	mNetworkThread = std::thread(&Network::NetworkUpdate, this);
+
+	return true;
 }
 
 void Network::ReleaseServer()

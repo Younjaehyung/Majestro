@@ -14,18 +14,18 @@ int main()
 
     gTimer.Start();
     gServerCore.Initialize();
-	//gGameCore.Initialize();
+	gGameCore.Initialize();
 
 
     gServerCore.Start();
-   // gGameCore.Start();
+    gGameCore.Start();
 
     while (true)
     {
         gTimer.Tick();
-       gServerCore.Update();
-        Sleep(30); // Simulate some processing delay
-		//gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
+        //gServerCore.Update();
+       // Sleep(30); // Simulate some processing delay
+		gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
     }
 
 }

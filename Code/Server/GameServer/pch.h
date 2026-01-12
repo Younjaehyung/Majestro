@@ -1,8 +1,8 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN // °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀ» Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
+#define WIN32_LEAN_AND_MEAN // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì„ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
 
-//std::byte »ç¿ë¾ÈÇÔ ¼³Á¤
+//std::byte ì‚¬ìš©ì•ˆí•¨ ì„¤ì •
 #define _HAS_STD_BYTE 0
 
 #ifdef _DEBUG
@@ -20,6 +20,18 @@
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;
+
+
+#include <DirectXTex/DirectXTex.h>
+#include <DirectXTex/DirectXTex.inl>
+
+// DirectXTex
+#ifdef _DEBUG
+#pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")
+#else
+#pragma comment(lib, "DirectXTex\\DirectXTex.lib")
+#endif
+
 
 using Vec = XMVECTOR;
 using Vec2 = DirectX::SimpleMath::Vector2;

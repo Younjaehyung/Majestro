@@ -7,8 +7,10 @@
 #define _CRT_SECURE_NO_WARNINGS // 구형 C 함수 사용 시 경고 끄기
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 구형 소켓 API 사용 시 경고 끄기
 
-#include <winsock2.h> // 윈속2 메인 헤더
-#include <ws2tcpip.h> // 윈속2 확장 헤더
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#include <MSWSock.h>
+#pragma comment(lib, "ws2_32.lib")
 
 // ���� include
 #include <windows.h>
@@ -24,6 +26,7 @@
 #include <filesystem>
 #include <fstream>
 using namespace std;
+
 
 
 
@@ -161,10 +164,13 @@ string ws2s(const wstring& s);
 void LogDebug(const std::string& msg);
 void LogDebugW(const std::wstring& msg);
 
+// network
 void err_quit(const char* msg);
 void err_display(const char* msg);
 void err_display(int errcode);
 
+#include "../../Protocol/Packet.h"
+#include "PacketHelper.h"
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		이 곳에는 RootSignature기준 세팅시 ROOT_PARAMETER로 부여된						  //
 //		reg의 번호를 정의 해둠.															  //

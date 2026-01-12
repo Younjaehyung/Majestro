@@ -21,4 +21,7 @@ public:
     static ComponentTypeID GetTypeID() {
         return typeid(T).hash_code();
     }
+public:
+	bool			mIsActive = true;
+	bool			mReplicateFlags = false;
 };

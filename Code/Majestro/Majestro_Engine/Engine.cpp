@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Engine.h"
-
 #include "SceneManager.h"
 #include "RenderManager.h"
 #include "InputManager.h"
 #include "AudioManager.h"
 #include "ResourceManager.h"
+#include "INetSendSink.h"
 #include "Timer.h"
 #include "Imgui.h"
 
@@ -15,7 +15,7 @@ Engine::Engine()
 
 Engine::~Engine() = default;
 
-void Engine::Initialize(const WindowInfo& info)
+void Engine::Initialize(const WindowInfo& info, shared_ptr<INetSendSink>& sendSink)
 {
 	mRenderManager = make_unique<RenderManager>();
 	mResourceManager = make_unique<ResourceManager>();
@@ -36,6 +36,7 @@ void Engine::Initialize(const WindowInfo& info)
 	mSceneManager->Initialize();
 	mHwnd = info.Hwnd;
 
+	mNetSendSink = sendSink;
 
 #ifdef _IMGUI
 	ImGuiManager::Get().Initialize(

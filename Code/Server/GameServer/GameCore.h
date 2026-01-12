@@ -1,5 +1,6 @@
 #pragma once
 #include "SceneManager.h"
+#include "ResourceManager.h"
 
 class GameCore
 {
@@ -14,5 +15,6 @@ private:
 
 private:
 	std::unique_ptr<SceneManager> mSceneManager;
+	std::unique_ptr<ResourceManager> mResourceManager;
 };
 

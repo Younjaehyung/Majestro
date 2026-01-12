@@ -18,8 +18,23 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 		SerializeSyncPacket(pkt, sendBuffer);
 		break;
 	}
+	case PKT_Type::PKT_LOGIN: {
+		// SerializeLoginPacket(pkt, sendBuffer);
+		sendBuffer->SetData(&pkt.login, sizeof(LoginPacket), TCP);
+		break;
+	}
+	case PKT_Type::PKT_SERVER: {
+		// SerializeServerPacket(pkt, sendBuffer);
+		sendBuffer->SetData(&pkt.server, sizeof(ServerPacket), TCP);
+		break;
+	}
 	case PKT_Type::C2S_PKT_INPUT: {
 		SerializeInputPacket(pkt, sendBuffer);
+		break;
+	}
+	case PKT_Type::C2S_PKT_ACTION: {
+		// SerializeActionPacket(pkt, sendBuffer);
+		//sendBuffer->SetData(&pkt.action, sizeof(C2S_ActionPacket), UDP);
 		break;
 	}
 	default :
@@ -109,6 +124,13 @@ void ProcessPacket::ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer)
 	inputCommand.SessionId = syncPacket.clientId;
 	inputCommand.moveX = syncPacket.rhythmTime;
 	std::cout << "Processed SyncPacket for Client ID: " << syncPacket.clientId << " with Rhythm Time: " << syncPacket.rhythmTime << std::endl;
+}
+
+void ProcessPacket::ProcessRespawnPacket(InputCommand& inputCommand, BYTE* buffer)
+{
+	S2C_RespawnPacket respawnPacket;
+	::memcpy(&respawnPacket, buffer, sizeof(S2C_RespawnPacket));
+
 }
 
 void ProcessPacket::ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer)

@@ -19,7 +19,8 @@ enum PKT_Type : uint32 {
 	// Server -> Client
 	S2C_PKT_POS,
 	S2C_PKT_SYNC,
-
+	S2C_PKT_RESPAWN,
+	S2C_PKT_MOVE,
 
 
 	KMSG,
@@ -57,6 +58,29 @@ struct PacketUdpHeader {
 static constexpr uint32 kHeaderSize = sizeof(PacketTcpHeader);
 constexpr uint32 MAX_PACKET_SIZE = 128;
 
+enum class PrefabType : uint8 {
+	NONE,
+	PLAYER,
+	TERRAIN,
+	SKYBOX,
+	DIRLIGHT,
+};
+
+enum class MsgKind : uint8
+{
+	KNONE = 0,
+	ReplicationDelta,
+	Spawn,
+	Despawn,
+};
+
+enum class RepCompKind : uint8
+{
+	KNONE = 0,
+	NetTransform,
+	NetHealth,
+};
+
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -75,6 +99,8 @@ struct ServerPacket : public PacketTcpHeader {
 
 };
 
+///////////////Server To Client///////////////
+
 struct S2C_SyncPacket : public PacketTcpHeader {
 	uint32_t clientId{};
 	float    rhythmTime{};
@@ -85,6 +111,39 @@ struct S2C_SyncPacket : public PacketTcpHeader {
 		clientId(id), rhythmTime(time) {
 	}
 };
+
+struct S2C_PosPacket : public PacketTcpHeader {
+	uint32_t clientId{};
+	float    x, y;
+	S2C_PosPacket() : PacketTcpHeader{ sizeof(S2C_PosPacket), PKT_Type::S2C_PKT_POS, 0.0 } {}
+	S2C_PosPacket(uint32_t id, float posX, float posY)
+		: PacketTcpHeader{ sizeof(S2C_PosPacket), PKT_Type::S2C_PKT_POS, 0.0 },
+		clientId(id), x(posX), y(posY) {
+	}
+};
+
+struct S2C_RespawnPacket : public PacketTcpHeader {
+	uint64_t netEntityId{};
+	PrefabType prefabType{ PrefabType::NONE };
+
+	S2C_RespawnPacket() : PacketTcpHeader{ sizeof(S2C_RespawnPacket), PKT_Type::S2C_PKT_RESPAWN, 0.0 } {}
+	S2C_RespawnPacket(uint64_t entityId, PrefabType type)
+		: PacketTcpHeader{ sizeof(S2C_RespawnPacket), PKT_Type::S2C_PKT_RESPAWN, 0.0 },
+		netEntityId(entityId), prefabType(type) {
+	}
+};
+
+struct S2C_MovePacket : public PacketUdpHeader {
+	uint32_t netEntityId{};
+	float    x, y, z;
+	S2C_MovePacket() : PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 } {}
+	S2C_MovePacket(uint32_t id, float posX, float posY, float posZ)
+		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
+		netEntityId(id), x(posX), y(posY), z(posZ) {
+	}
+};
+
+///////////////Client To Server///////////////
 
 struct C2S_InputPacket : public PacketUdpHeader {
 	

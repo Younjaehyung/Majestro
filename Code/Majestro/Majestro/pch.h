@@ -10,27 +10,8 @@
 #define _CRT_SECURE_NO_WARNINGS // 구형 C 함수 사용 시 경고 끄기
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 구형 소켓 API 사용 시 경고 끄기
 
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <MSWSock.h>
-#pragma comment(lib, "ws2_32.lib")
 
 // 여기에 미리 컴파일하려는 헤더 추가
 #pragma comment(lib, "Majestro_Engine.lib")
 #include "EnginePch.h"
 
-#include "../../Protocol/Packet.h"
-#include "PacketHelper.h"
-using namespace std;
-
-// ANSI
-static void LogDebug(const std::string& msg) {
-	std::string output = "[LOG] " + msg + "\n";
-	OutputDebugStringA(output.c_str());
-}
-
-// Unicode
-static void LogDebugW(const std::wstring& msg) {
-	std::wstring output = L"[LOG] " + msg + L"\n";
-	OutputDebugStringW(output.c_str());
-}

@@ -10,6 +10,7 @@ public:
 
     void Update(float deltaTime);
 
+
     void Shutdown();
 
     template<typename T, typename... Args>
@@ -30,7 +31,6 @@ private:
     std::vector<std::unique_ptr<System>> mUpdateSystems;
     std::vector<std::unique_ptr<System>> mLateUpdateSystems;
     std::vector<std::unique_ptr<System>> mFinalUpdateSystems;
-    //std::vector<std::unique_ptr<System>> mRenderSystems;
 
 };
 

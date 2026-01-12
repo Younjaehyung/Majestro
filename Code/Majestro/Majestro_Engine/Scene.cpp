@@ -141,7 +141,7 @@ void Scene::Initialize()
 
 
 	
-
+	mWorld->Initialize();
 }
 
 void Scene::Update(float deltaTime)

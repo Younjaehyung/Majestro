@@ -6,6 +6,7 @@
 #include "RingBuffer.h"
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
+#include "SpscRingQueue.h"
 
 
 constexpr const char* SERVERIP = "127.0.0.1";
@@ -69,7 +70,7 @@ private: // Session
 	
 
 private: // Process
-	void ConnectToServer(const char* ipAddress = SERVERIP, int port = TCPSERVERPORT);
+	bool ConnectToServer(const char* ipAddress = SERVERIP, int port = TCPSERVERPORT);
 	void ReleaseServer();
 	void NetworkUpdate();
 private:

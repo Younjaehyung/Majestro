@@ -12,9 +12,13 @@
 #include "BeatSystem.h"
 #include "MovementSystem.h"
 #include "EffectSystem.h"
+#include "NetRecvSystem.h"
+#include "NetSendSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
+    RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+    RegisterSystem<NetSendSystem>(mWorld->GetNetIdMap());
 
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();
@@ -44,6 +48,10 @@ void SystemManager::Update(float deltaTime) {
     for (auto& sys : mUpdateSystems)       sys->Update(deltaTime);
     for (auto& sys : mLateUpdateSystems)   sys->Update(deltaTime);
     for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
+
+    GetSystem<NetRecvSystem>()->Update(deltaTime);
+    GetSystem<NetSendSystem>()->Update(deltaTime);
+
 
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);

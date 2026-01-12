@@ -6,7 +6,7 @@
 #include <stack>
 #include <memory>
 #include <algorithm>
-
+#include "../../Protocol/Packet.h"
 
 enum NetProtocol : uint8 {
     NONE = 0,

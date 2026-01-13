@@ -882,13 +882,19 @@ void ResourceManager::CreateDefaultMaterial()
 	//}
 
 
+	//.fbx 라는 뜻은 진짜 fbx 파일을 로드한다는 뜻이 아니라
+	// .ani, .mesh, .skel의 파일을 묶어서 fbx라는 이름으로 임의로 가져온다는 뜻임
+	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
+
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
 	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aIdle_001.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aJump_001.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aRun_001.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Rudwig_aWalk_001.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Run.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Fall.fbx");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 }

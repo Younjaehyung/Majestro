@@ -40,23 +40,26 @@ PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
 	world->AddComponent<TransformComponent>(testCamera, t);
 	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
 
-	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Rudwig_mBody");
+	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		
 	std::vector<shared_ptr<Material>> material2s;
 
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Rudwig_aIdle_0010");
+	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 		
 
 	material2s.push_back(material2);
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
 	t.mLocalScale = { 10.f, 10.f, 10.f };
 
+	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aIdle_001"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aWalk_001"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aJump_001"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Armature|Rudwig_aRun_001"));//dash
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
 
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);

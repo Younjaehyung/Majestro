@@ -39,6 +39,28 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 
 MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
 {
+    mStateList = {
+    IdleState::Instance(),
+    WalkState::Instance(),
+    RunState::Instance(),
+    JumpState::Instance(),
+    DashState::Instance(),
+
+    AimState::Instance(),
+    ReRoadState::Instance(),
+    RhythmChangeState::Instance(),
+
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance(),
+
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance()
+    };
+
     InitFSMFromJson(path);
     LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 };

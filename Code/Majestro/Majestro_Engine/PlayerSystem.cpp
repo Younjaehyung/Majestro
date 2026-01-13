@@ -42,7 +42,7 @@ void PlayerSystem::Update(float dt)
 	}
 	else {
 		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
+		//TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
 

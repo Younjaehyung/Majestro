@@ -376,6 +376,9 @@
     <ClInclude Include="..\..\Protocol\Packet.h">
       <Filter>Network\Packet</Filter>
     </ClInclude>
+    <ClInclude Include="InputSystem.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -617,6 +620,9 @@
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
       <Filter>Network\Packet</Filter>
+    </ClCompile>
+    <ClCompile Include="InputSystem.cpp">
+      <Filter>World\System\Client</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

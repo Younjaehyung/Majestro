@@ -48,50 +48,7 @@ void PlayerSystem::Update(float dt)
 
 		Input(dt, movementComponent, mainPlayerComponent, beatComponent->mBouns);
 
-		if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
-			Vec3 forward = transformComponent->GetLook();
-			Vec3 right = transformComponent->GetRight();
-
-			// WASD 입력
-			float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
-			float iy = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
-
-			// 로컬 입력 방향을 월드 방향으로 변환
-			Vec3 desired = forward * iy + right * ix;
-
-			// 정규화
-			if (desired.LengthSquared() > 0.0001f)
-				desired.Normalize();
-
-			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
-
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
-			mainPlayerComponent->Update(dt);
-
-		}
-		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
-			Vec3 forward = transformComponent->GetLook();
-			Vec3 right = transformComponent->GetRight();
-
-			// WASD 입력
-			float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
-			float iy = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
-
-			// 로컬 입력 방향을 월드 방향으로 변환
-			Vec3 desired = forward * iy + right * ix;
-
-			// 정규화
-			if (desired.LengthSquared() > 0.0001f)
-				desired.Normalize();
-
-			if (mainPlayerComponent->mSpeed >0) {
-				transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
-			}
-			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
-
-			//
-			mainPlayerComponent->Update(dt);
-		}
+		mainPlayerComponent->Update(dt);
 
 		//transformComponent->FinalUpdate();
 

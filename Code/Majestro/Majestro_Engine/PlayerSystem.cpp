@@ -41,7 +41,7 @@ void PlayerSystem::Update(float dt)
 		cameraTypeComponent->mPlayMode = MAIN_CAMERA;
 	}
 	else {
-		MovementComponent* movementComponent = mWorld->GetComponent<MovementComponent>(entitys[0]);
+		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
@@ -109,7 +109,7 @@ void PlayerSystem::Update(float dt)
 	}
 }
 
-void PlayerSystem::Input(float dt, MovementComponent* movementComponent, MainPlayerComponent* mainPlayerComponent, bool beatHit)
+void PlayerSystem::Input(float dt, PlayerMovementComponent* movementComponent, MainPlayerComponent* mainPlayerComponent, bool beatHit)
 {
 
 

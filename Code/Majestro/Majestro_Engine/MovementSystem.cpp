@@ -16,7 +16,7 @@ MovementSystem::MovementSystem(World* world) : System(world)
 void MovementSystem::Update(float dt) {
 
 	//movement
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MovementComponent>() };
+	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 	for (auto& entity : entitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 

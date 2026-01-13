@@ -3,7 +3,7 @@
 #include "TransformComponent.h"
 #include "EnginePch.h"
 
-class MovementComponent : public Component<MovementComponent>
+class PlayerMovementComponent : public Component<PlayerMovementComponent>
 {
 public:
 	Vec3 mMovingDirection;

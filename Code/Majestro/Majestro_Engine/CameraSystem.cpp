@@ -31,8 +31,8 @@ void CameraSystem::Update(float dt)
 		auto& playerPosPool = mWorld->GetComponentPool<TransformComponent>();
 		TransformComponent* playerPos = playerPosPool.GetComponent(cameraTypeComponent->mTargetID);
 
-		auto& playerMovePool = mWorld->GetComponentPool<MovementComponent>();
-		MovementComponent* movementComponent = playerMovePool.GetComponent(cameraTypeComponent->mTargetID);
+		auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
+		PlayerMovementComponent* movementComponent = playerMovePool.GetComponent(cameraTypeComponent->mTargetID);
 		
 		Vec3 pos = playerPos->mLocalPosition;
 

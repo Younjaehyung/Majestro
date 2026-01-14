@@ -3,21 +3,24 @@
 #include "SendBuffer.h"
 
 
+/// <summary>
+///	SerializePacket
+/// </summary>
+
 bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer) {
 
 	switch (pkt.Type) {
-	case PKT_Type::PKT_TCP: {
+	case PKT_Type::PKT_TCP:
+	case PKT_Type::PKT_LOGIN:
+	case PKT_Type::S2C_PKT_SYNC: {
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
 	}
 	case PKT_Type::PKT_UDP: {
 		SerializeUdpPacket(pkt, sendBuffer);
 		break;
-					   }
-	case PKT_Type::S2C_PKT_SYNC: {
-		SerializeSyncPacket(pkt, sendBuffer);
-		break;
 	}
+	
 	default :
 		return false;
 	}
@@ -28,45 +31,39 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 
 void SendRequestPacket::SerializeTcpPacket(SendRequest& pkt, SendBuffer* sendBuffer)
 {
-	sendBuffer->SetData(&pkt.tcpHeader, sizeof(PacketTcpHeader), TCP);
+	sendBuffer->SetData(pkt.MsgBuffer.data(), pkt.Size, TCP);
 }
 
 void SendRequestPacket::SerializeUdpPacket(SendRequest& pkt, SendBuffer* sendBuffer)
 {
-	sendBuffer->SetData(&pkt.udpHeader, sizeof(PacketUdpHeader), UDP);
+	sendBuffer->SetData(pkt.MsgBuffer.data(), pkt.Size, UDP);
 }
 
-void SendRequestPacket::SerializeSyncPacket(SendRequest& pkt, SendBuffer* sendBuffer)
-{
-	// Copy header
-	sendBuffer->SetData(&pkt.sync, sizeof(S2C_SyncPacket),UDP);
-}
+
+
+
+/// <summary>
+///	ProcessPackets
+/// </summary>
+
 
 bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 {
 	PacketHeader header;
 	::memcpy(&header, buffer, sizeof(PacketHeader));
-	std::cout << header.PacketType << std::endl;
+	
+	
+
 	switch (header.PacketType) {
-	case PKT_Type::PKT_TCP: {
-		ProcessTcpPackets(inputCommand, buffer);
+	case PKT_Type::PKT_TCP:
+	case PKT_Type::PKT_LOGIN:
+	case PKT_Type::C2S_PKT_ACTION: {
+		ProcessTcpPackets(inputCommand, buffer , header.Size);
 		break;
 	}
-	 case PKT_Type::PKT_UDP: {
-		ProcessUdpPackets(inputCommand, buffer);
-		break;
-					   }
-	case PKT_Type::S2C_PKT_SYNC: {
-		ProcessSyncPacket(inputCommand, buffer);
-		break;
-	}
-	case PKT_Type::PKT_LOGIN: {
-		ProcessLoginPacket(inputCommand, buffer);
-		// std::cout << "Processed Login Packet for Client ID: " << inputCommand.SessionId << std::endl;
-		break;
-	}
+	case PKT_Type::PKT_UDP:
 	case PKT_Type::C2S_PKT_INPUT: {
-		ProcessInputPacket(inputCommand, buffer);
+		ProcessUdpPackets(inputCommand, buffer, header.Size);
 		break;
 	}
 	default:
@@ -76,46 +73,12 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	return true;
 }
 
-void ProcessPacket::ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer)
+void ProcessPacket::ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer, uint32 size)
 {
-	PacketTcpHeader tcpPacket;
-	::memcpy(&tcpPacket, buffer, sizeof(PacketTcpHeader));
-	// For demonstration, we assume the TCP packet contains SyncPacketData
-	std::cout << "Processed TCP Packet of size: " << tcpPacket.Header.Size << std::endl;
+	::memcpy(&inputCommand.MsgBuffer, buffer, size);
 }
 
-void ProcessPacket::ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer)
+void ProcessPacket::ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer, uint32 size)
 {
-	PacketUdpHeader udpPacket;
-	::memcpy(&udpPacket, buffer, sizeof(PacketUdpHeader));
-	// For demonstration, we assume the UDP packet contains SyncPacketData
-	std::cout << "Processed UDP Packet for Session ID: " << udpPacket.SessionId << std::endl;
-}
-
-void ProcessPacket::ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer)
-{
-	C2S_InputPacket udpPacket;
-	::memcpy(&udpPacket, buffer, sizeof(C2S_InputPacket));
-	// For demonstration, we assume the UDP packet contains SyncPacketData
-	std::cout << "Processed Input Packet for Client ID: " << udpPacket.SessionId << std::endl;
-	std::cout << "Input Data - moveX: " << udpPacket.x << ", moveY: " << udpPacket.y
-		<< ", action1: " << inputCommand.action1 << ", action2: " << inputCommand.action2 << std::endl;
-}
-
-void ProcessPacket::ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer)
-{
-	S2C_SyncPacket syncPacket;
-	::memcpy(&syncPacket, buffer, sizeof(S2C_SyncPacket));
-
-	inputCommand.SessionId = syncPacket.clientId;
-	inputCommand.moveX = syncPacket.rhythmTime;
-	//std::cout << "Processed SyncPacket for Client ID: " << syncPacket.clientId << " with Rhythm Time: " << syncPacket.rhythmTime << std::endl;
-}
-
-void ProcessPacket::ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer)
-{
-	LoginPacket loginPacket;
-	::memcpy(&loginPacket, buffer, sizeof(LoginPacket));
-	inputCommand.SessionId = loginPacket.clientId;
-	std::cout << "Processed Login Packet for Client ID: " << loginPacket.clientId << std::endl;
+	::memcpy(&inputCommand.MsgBuffer, buffer, size);
 }

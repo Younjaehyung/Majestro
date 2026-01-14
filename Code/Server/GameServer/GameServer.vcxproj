@@ -180,11 +180,13 @@
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
     <ClCompile Include="HeightField.cpp" />
+    <ClCompile Include="InputComponent.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />
     <ClCompile Include="NetRecvSystem.cpp" />
+    <ClCompile Include="NetSendSystem.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -223,12 +225,14 @@
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="HeightField.h" />
+    <ClInclude Include="InputComponent.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
     <ClInclude Include="NetEntityComponent.h" />
     <ClInclude Include="NetRecvSystem.h" />
+    <ClInclude Include="NetSendSystem.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerComponent.h" />

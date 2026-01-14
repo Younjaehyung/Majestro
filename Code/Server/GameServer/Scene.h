@@ -10,7 +10,6 @@ public:
 	void Initialize();
 
 	void Update(float deltaTime);
-	void Render();
 
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 

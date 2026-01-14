@@ -97,9 +97,5 @@ void Scene::Update(float deltaTime)
 	mWorld->Update(deltaTime);
 }
 
-void Scene::Render()
-{
-	mWorld->Render();
-}
 
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "Entity.h"
 
 class NetEntityComponent : public Component<NetEntityComponent>
 {
@@ -12,7 +13,9 @@ class NetEntityComponent : public Component<NetEntityComponent>
 
 
 public:
+	Entity mOwnerEntity = NULL_ENTITY;
 	uint64 mNetEntityId = 0;
+	uint32 mSessionId = 0;
 	Replicationmode mNetworkmode = Replicationmode::NONE;
 
 };

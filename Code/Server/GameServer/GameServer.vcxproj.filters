@@ -34,6 +34,9 @@
     <Filter Include="Core\Manager\Resource">
       <UniqueIdentifier>{cf7a9df3-8932-4e46-87e7-57a5cd41075a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Network">
+      <UniqueIdentifier>{a37e56d3-d2e0-4355-a2d3-d93cb97f4003}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -126,9 +129,6 @@
     <ClCompile Include="InputManager.cpp">
       <Filter>Core\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="NetRecvSystem.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
     <ClCompile Include="TerrainComponent.cpp">
       <Filter>Component</Filter>
     </ClCompile>
@@ -143,6 +143,15 @@
     </ClCompile>
     <ClCompile Include="HeightField.cpp">
       <Filter>Core\Manager\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="InputComponent.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="NetRecvSystem.cpp">
+      <Filter>System\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetSendSystem.cpp">
+      <Filter>System\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -168,9 +177,6 @@
       <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="CameraComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformComponent.h">
       <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="TagComponent.h">
@@ -236,9 +242,6 @@
     <ClInclude Include="InputManager.h">
       <Filter>Core\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="NetRecvSystem.h">
-      <Filter>System</Filter>
-    </ClInclude>
     <ClInclude Include="TerrainComponent.h">
       <Filter>Component</Filter>
     </ClInclude>
@@ -256,6 +259,18 @@
     </ClInclude>
     <ClInclude Include="..\ServerCore\json.hpp">
       <Filter>Script</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="InputComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="NetRecvSystem.h">
+      <Filter>System\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetSendSystem.h">
+      <Filter>System\Network</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

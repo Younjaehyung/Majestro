@@ -16,35 +16,74 @@ struct SendBuffer;
 
 struct InputCommand // Packet received (network thread -> logic thread)
 {
-    PKT_Type Type;
-    uint32 SessionId;
-    float moveX;
-    float moveY;
-    bool  action1;
-    bool  action2;
+    uint32 SessionId{};
+    PKT_Type Type = PKT_Type::KNONE;
+    MsgKind Kind = MsgKind::KNONE;
+    uint32  SIze{};
+    std::array<uint8, MAX_PACKET_SIZE> MsgBuffer{}; // 메시지 버퍼
+
+    void Clear()
+    {
+        Type = PKT_Type::KNONE;
+        Kind = MsgKind::KNONE;
+        //SessionId = 0;
+        SIze = 0;
+    }
+
+    template<typename T>
+    bool StoreAs(const T& src)
+    {
+        // [추가] memcpy 저장은 T가 trivially copyable 이어야 안전
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+
+        if (sizeof(T) > MAX_PACKET_SIZE) return false;
+        std::memcpy(MsgBuffer.data(), &src, sizeof(T));
+        SIze = static_cast<uint16_t>(sizeof(T));
+        return true;
+    }
+
+    template<typename T>
+    const T* ViewAs() const
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+        if (SIze != sizeof(T)) return nullptr;
+        return reinterpret_cast<const T*>(MsgBuffer.data());
+    }
 };
 
 struct SendRequest { // Packet to be sent (logic thread -> network thread)
 
     uint32 SessionId{};
-    PKT_Type Type{};
+    PKT_Type Type = PKT_Type::KNONE;
+    uint32  Size{};
+    std::array<uint8, MAX_PACKET_SIZE> MsgBuffer{}; // 메시지 버퍼
 
-    union
+    void Clear()
     {
-		PacketTcpHeader tcpHeader;
-		PacketUdpHeader udpHeader;
-        
-        C2S_InputPacket input;
-        
+        Type = PKT_Type::KNONE;
+        //SessionId = 0;
+        Size = 0;
+    }
 
-        S2C_SyncPacket sync{};
-    };
+    template<typename T>
+    bool StoreAs(const T& src)
+    {
+        // [추가] memcpy 저장은 T가 trivially copyable 이어야 안전
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
-    SendRequest() :Type(PKT_Type::KNONE) {}
-    SendRequest(PKT_Type t) : Type(t) {}
-    SendRequest(PKT_Type t, const S2C_SyncPacket& s) : Type(t), sync(s) {}
-    SendRequest(PKT_Type t, const PacketTcpHeader& th) : Type(t), tcpHeader(th) {}
-    SendRequest(PKT_Type t, const PacketUdpHeader& uh) : Type(t), udpHeader(uh) {}
+        if (sizeof(T) > MAX_PACKET_SIZE) return false;
+        std::memcpy(MsgBuffer.data(), &src, sizeof(T));
+        Size = static_cast<uint16_t>(sizeof(T));
+        return true;
+    }
+
+    template<typename T>
+    const T* ViewAs() const
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+        if (Size != sizeof(T)) return nullptr;
+        return reinterpret_cast<const T*>(MsgBuffer.data());
+    }
 };
 
 class SendRequestPacket
@@ -54,10 +93,7 @@ public:
     static void SerializeTcpPacket(SendRequest& pkt, SendBuffer*);
     static void SerializeUdpPacket(SendRequest& pkt, SendBuffer*);
 
-
-    static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
-    static void SerializeInputPacket(SendRequest& pkt, SendBuffer*){}
-    static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}
+    
 };
 
 
@@ -66,12 +102,9 @@ class ProcessPacket // Process received packets (network thread -> logic thread)
 private:
 public:
 	static bool ProcessPackets(InputCommand& inputCommand, BYTE* buffer);
-	static void ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer);
-	static void ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer);
-    static void ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer);
-    static void ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer);
-    static void ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer);
-    static void ProcessActionPacket(InputCommand& inputCommand, BYTE* buffer) {};
+	static void ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer,uint32 size);
+	static void ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer, uint32 size);
+
 };
 
 

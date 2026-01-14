@@ -135,7 +135,7 @@ struct S2C_RespawnPacket : public PacketTcpHeader {
 
 struct S2C_MovePacket : public PacketUdpHeader {
 	uint32_t netEntityId{};
-	float    x, y, z;
+	float    x{}, y{}, z{};
 	S2C_MovePacket() : PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 } {}
 	S2C_MovePacket(uint32_t id, float posX, float posY, float posZ)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
@@ -146,13 +146,13 @@ struct S2C_MovePacket : public PacketUdpHeader {
 ///////////////Client To Server///////////////
 
 struct C2S_InputPacket : public PacketUdpHeader {
-	
+	uint64 netEntityId{};
 	float x, y;
 
 	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 }, x(0), y(0) {}
-	C2S_InputPacket(uint32 sessId, uint32 seq, float moveX, float moveY)
-		: PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, sessId, seq },
-		x(moveX), y(moveY) {
+	C2S_InputPacket(uint64 entityId, float posX, float posY)
+		: PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 },
+		netEntityId(entityId), x(posX), y(posY) {
 	}
 };
 

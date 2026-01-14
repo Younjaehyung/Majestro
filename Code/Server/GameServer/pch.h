@@ -21,16 +21,16 @@
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 
-
-#include <DirectXTex/DirectXTex.h>
-#include <DirectXTex/DirectXTex.inl>
-
-// DirectXTex
-#ifdef _DEBUG
-#pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")
-#else
-#pragma comment(lib, "DirectXTex\\DirectXTex.lib")
-#endif
+//
+//#include <DirectXTex/DirectXTex.h>
+//#include <DirectXTex/DirectXTex.inl>
+//
+//// DirectXTex
+//#ifdef _DEBUG
+//#pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")
+//#else
+//#pragma comment(lib, "DirectXTex\\DirectXTex.lib")
+//#endif
 
 
 using Vec = XMVECTOR;

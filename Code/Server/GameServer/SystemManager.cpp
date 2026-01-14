@@ -34,7 +34,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<PlayerSystem>()->Update(deltaTime);
 
     GetSystem<BeatSystem>()->Update(deltaTime);
-    GetSystem<MovementSystem>()->Update(deltaTime);
+    //GetSystem<MovementSystem>()->Update(deltaTime);
 
     
 }

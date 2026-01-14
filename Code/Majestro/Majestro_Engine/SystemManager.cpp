@@ -14,7 +14,7 @@
 #include "EffectSystem.h"
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
-#include "InputSystem.h"
+#include "PlayerInputSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -33,7 +33,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
     RegisterSystem<EffectSystem>();
-    RegisterSystem<InputSystem>();
+    RegisterSystem<PlayerInputSystem>();
 
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();
@@ -61,7 +61,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<AudioSystem>()->Update(deltaTime);
     GetSystem<AnimationSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
-    GetSystem<InputSystem>()->Update(deltaTime);
+    GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);

@@ -61,7 +61,7 @@ void Game::ReceiveNetworkData()
 
 void Game::SendNetworkData()
 {
-	SendRequest sendCommand;
+	/*SendRequest sendCommand;
 
 	sendCommand.Type = C2S_PKT_INPUT;
 	if(gEngine->GetInputManager().GetKey(eKeyCode::A))
@@ -75,5 +75,5 @@ void Game::SendNetworkData()
 	if(gEngine->GetInputManager().GetKey(eKeyCode::S))
 	sendCommand.input.y = -1;
 
-	gSendBuffer.Push(sendCommand);
+	gSendBuffer.Push(sendCommand);*/
 }

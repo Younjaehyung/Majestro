@@ -253,9 +253,6 @@
     <ClInclude Include="INetSendSink.h">
       <Filter>Utils\Network</Filter>
     </ClInclude>
-    <ClInclude Include="MainNetSink.h">
-      <Filter>Network</Filter>
-    </ClInclude>
     <ClInclude Include="Network.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -506,9 +503,6 @@
     </ClCompile>
     <ClCompile Include="INetSendSink.cpp">
       <Filter>Utils\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="MainNetSink.cpp">
-      <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>

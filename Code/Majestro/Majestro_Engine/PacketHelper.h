@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <stack>
 #include <queue>
 #include <atomic>
@@ -13,41 +14,80 @@
 struct SendBuffer;
 
 
-
+// 클라에서는 inputCommand는 S2C 패킷만 담음
 struct InputCommand // Packet received (network thread -> logic thread)
 {
-    PKT_Type Type;
-    uint32 SessionId;
-	MsgKind Kind;
-    float moveX;
-    float moveY;
-    bool  action1;
-    bool  action2;
+    PKT_Type Type = PKT_Type::KNONE;
+	MsgKind Kind = MsgKind::KNONE;
+	uint32  Size{};
+	std::array<uint8, MAX_PACKET_SIZE> MsgBuffer{}; // 메시지 버퍼
+
+    void Clear()
+    {
+        Type = PKT_Type::KNONE;
+        Kind = MsgKind::KNONE;
+        //SessionId = 0;
+        Size = 0;
+    }
+
+    template<typename T>
+    bool StoreAs(const T& src)
+    {
+        // [추가] memcpy 저장은 T가 trivially copyable 이어야 안전
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+
+        if (sizeof(T) > MAX_PACKET_SIZE) return false;
+        std::memcpy(MsgBuffer.data(), &src, sizeof(T));
+        Size = static_cast<uint16_t>(sizeof(T));
+        return true;
+    }
+
+    template<typename T>
+    const T* ViewAs() const
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+        if (Size != sizeof(T)) return nullptr;
+        return reinterpret_cast<const T*>(MsgBuffer.data());
+    }
 };
 
+
+// 클라에서는 sendRequest는 C2S 패킷만 담음
 struct SendRequest { // Packet to be sent (logic thread -> network thread)
 
-    uint32 SessionId{};
-    PKT_Type Type{};
+    //uint32 SessionId{};
 
-    union
+    PKT_Type Type = PKT_Type::KNONE;
+    uint32  SIze{};
+    std::array<uint8, MAX_PACKET_SIZE> MsgBuffer{}; // 메시지 버퍼
+
+    void Clear()
     {
-		PacketTcpHeader tcpHeader;
-		PacketUdpHeader udpHeader;
-        
-		LoginPacket login;
-		ServerPacket server;
-        C2S_InputPacket input;
-        
-		S2C_MovePacket move;
-        S2C_SyncPacket sync{};
-    };
+        Type = PKT_Type::KNONE;
+        //SessionId = 0;
+        SIze = 0;
+    }
 
-    SendRequest() :Type(PKT_Type::KNONE) {}
-    SendRequest(PKT_Type t) : Type(t) {}
-    SendRequest(PKT_Type t, const S2C_SyncPacket& s) : Type(t), sync(s) {}
-    SendRequest(PKT_Type t, const PacketTcpHeader& th) : Type(t), tcpHeader(th) {}
-    SendRequest(PKT_Type t, const PacketUdpHeader& uh) : Type(t), udpHeader(uh) {}
+    template<typename T>
+    bool StoreAs(const T& src)
+    {
+        // [추가] memcpy 저장은 T가 trivially copyable 이어야 안전
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+
+        if (sizeof(T) > MAX_PACKET_SIZE) return false;
+        std::memcpy(MsgBuffer.data(), &src, sizeof(T));
+        SIze = static_cast<uint16_t>(sizeof(T));
+        return true;
+    }
+
+    template<typename T>
+    const T* ViewAs() const
+    {
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
+        if (SIze != sizeof(T)) return nullptr;
+        return reinterpret_cast<const T*>(MsgBuffer.data());
+    }
+
 };
 
 class SendRequestPacket
@@ -58,8 +98,7 @@ public:
     static void SerializeUdpPacket(SendRequest& pkt, SendBuffer*);
 
 
-    static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
-    static void SerializeInputPacket(SendRequest& pkt, SendBuffer*);
+    //static void SerializeSyncPacket(SendRequest& pkt, SendBuffer*);
     static void SerializeActionPacket(SendRequest& pkt, SendBuffer*){}
 };
 
@@ -71,9 +110,7 @@ public:
 	static bool ProcessPackets(InputCommand& inputCommand, BYTE* buffer);
 	static void ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer);
 	static void ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer);
-	static void ProcessLoginPacket(InputCommand& inputCommand, BYTE* buffer);
-    static void ProcessSyncPacket(InputCommand& inputCommand, BYTE* buffer);
-	static void ProcessRespawnPacket(InputCommand& inputCommand, BYTE* buffer);
+
 
     static void ProcessPosPacket(InputCommand& inputCommand, BYTE* buffer) {}
     static void ProcessInputPacket(InputCommand& inputCommand, BYTE* buffer) {};

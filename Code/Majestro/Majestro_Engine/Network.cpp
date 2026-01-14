@@ -264,8 +264,6 @@ void Network::PrepareSendData()
 	while (gSendBuffer.Pop(mSendData))
 	{
 		SendBuffer* sendBuffer = SendBufferManager::Acquire();
-		mSendData.SessionId = mClientId;
-		
 		SendRequestPacket::SerializePacket(mSendData, sendBuffer);
 		mSendBuffer.push(sendBuffer);
 	}
@@ -357,8 +355,10 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
 		if (mInputCommand.Type == PKT_LOGIN) {
-			mClientId = mInputCommand.SessionId;
-			LoginPacket loginPkt = LoginPacket(mClientId);
+
+			
+			LoginPacket loginPkt;
+			::memcpy(&loginPkt, &mInputCommand.MsgBuffer, sizeof(LoginPacket));
 
 			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(loginPkt), 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));

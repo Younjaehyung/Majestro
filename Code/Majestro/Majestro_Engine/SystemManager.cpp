@@ -19,7 +19,7 @@
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
     RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
-    RegisterSystem<NetSendSystem>(mWorld->GetNetIdMap());
+    RegisterSystem<NetSendSystem>();
 
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();

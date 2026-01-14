@@ -3,16 +3,14 @@
 #include "Engine.h"
 #include "Entity.h"
 #include "World.h"
-#include "INetSendSink.h"
+#include "Network.h"
 #include "NetEntityComponent.h"
 
-NetSendSystem::NetSendSystem(World* world, shared_ptr<NetIdMap>& netSendSink) : System::System(world)
+NetSendSystem::NetSendSystem(World* world) : System::System(world)
 {
-	mNetSendSink = netSendSink;
+
 }
-NetSendSystem::~NetSendSystem()
-{
-}
+
 void NetSendSystem::Update(double deltaTime)
 {
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
@@ -24,10 +22,9 @@ void NetSendSystem::Update(double deltaTime)
 		if (netComp->mIsDirty)
 		{
 			// Send data through the sink
-			if (mNetSendSink)
-			{
-				//mNetSendSink->Enqueue(SendRequest());
-			}
+			
+			//gSendBuffer.Push(netComp->mPendingSendData);
+			
 			netComp->mIsDirty = false;
 		}
 	}

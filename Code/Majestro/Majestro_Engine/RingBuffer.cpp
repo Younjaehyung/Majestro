@@ -4,18 +4,18 @@
 bool RingBuffer::Push(const uint8_t* data, size_t size)
 {
     
-    if (GetFreeSize() < size) return false; // °ø°£ ºÎÁ·
+    if (GetFreeSize() < size) return false; // ê³µê°„ ë¶€ì¡±
 
-    // Å×ÀÏ(Tail)ºÎÅÍ ³¡±îÁö ³²Àº °ø°£ °è»ê
-    size_t firstPart = min(size, m_capacity - m_tail);
-    std::memcpy(&m_buffer[m_tail], data, firstPart);
+    // í…Œì¼(Tail)ë¶€í„° ëê¹Œì§€ ë‚¨ì€ ê³µê°„ ê³„ì‚°
+    size_t firstPart = min(size, mCapacity - mTail);
+    std::memcpy(&mBuffer[mTail], data, firstPart);
 
-    // ÇÑ ¹ÙÄû µ¹¾Æ¼­(Wrap-around) ½á¾ß ÇÏ´Â °æ¿ì
+    // í•œ ë°”í€´ ëŒì•„ì„œ(Wrap-around) ì¨ì•¼ í•˜ëŠ” ê²½ìš°
     if (size > firstPart) {
-        std::memcpy(&m_buffer[0], data + firstPart, size - firstPart);
+        std::memcpy(&mBuffer[0], data + firstPart, size - firstPart);
     }
 
-    m_tail = (m_tail + size) % m_capacity;
+    mTail = (mTail + size) % mCapacity;
     return true;
     
 }
@@ -28,17 +28,17 @@ void RingBuffer::Peek(uint8_t** outPtr1, size_t& outSize1, uint8_t** outPtr2, si
         return;
     }
 
-    if (m_head < m_tail) {
-        // ¿¬¼ÓµÈ ¸Þ¸ð¸®
-        *outPtr1 = &m_buffer[m_head];
-        outSize1 = m_tail - m_head;
+    if (mHead < mTail) {
+        // ì—°ì†ëœ ë©”ëª¨ë¦¬
+        *outPtr1 = &mBuffer[mHead];
+        outSize1 = mTail - mHead;
         outSize2 = 0;
     }
     else {
-        // ²÷¾îÁø ¸Þ¸ð¸® (Wrap-around ¹ß»ý)
-        *outPtr1 = &m_buffer[m_head];
-        outSize1 = m_capacity - m_head;
-        *outPtr2 = &m_buffer[0];
-        outSize2 = m_tail;
+        // ëŠì–´ì§„ ë©”ëª¨ë¦¬ (Wrap-around ë°œìƒ)
+        *outPtr1 = &mBuffer[mHead];
+        outSize1 = mCapacity - mHead;
+        *outPtr2 = &mBuffer[0];
+        outSize2 = mTail;
     }
 }

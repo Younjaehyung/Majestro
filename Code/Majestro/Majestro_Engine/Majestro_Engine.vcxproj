@@ -208,7 +208,6 @@
     <ClInclude Include="IMGUISystem.h" />
     <ClInclude Include="INetSendSink.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="InputSystem.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
@@ -225,6 +224,7 @@
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PlayerComponent.h" />
+    <ClInclude Include="PlayerInputSystem.h" />
     <ClInclude Include="PlayerSystem.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="RecvBuffer.h" />
@@ -292,7 +292,6 @@
     <ClCompile Include="IMGUISystem.cpp" />
     <ClCompile Include="INetSendSink.cpp" />
     <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="InputSystem.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -313,6 +312,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="PlayerComponent.cpp" />
+    <ClCompile Include="PlayerInputSystem.cpp" />
     <ClCompile Include="PlayerSystem.cpp" />
     <ClCompile Include="Prefab.cpp" />
     <ClCompile Include="RecvBuffer.cpp" />

@@ -23,47 +23,9 @@ void PlayerSystem::Initialize()
 void PlayerSystem::Update(float dt)
 {
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
-
-	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
-	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
-
-	//mode change
-	if (INPUT.GetKeyDown(eKeyCode::F1)) {
-		cameraTypeComponent->mPlayMode = ONE_FPS;
-	}
-	else if (INPUT.GetKeyDown(eKeyCode::F2)) {
-		cameraTypeComponent->mPlayMode = THREE_FPS;
-	}
-	else if (INPUT.GetKeyDown(eKeyCode::F3)) {
-		cameraTypeComponent->mPlayMode = THREE_RPG;
-	}
-	else if (INPUT.GetKeyDown(eKeyCode::F4)) {
-		cameraTypeComponent->mPlayMode = MAIN_CAMERA;
-	}
-	else {
-		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
-		//TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entitys[0]);
-		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
-		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
-
-		Input(dt, movementComponent, mainPlayerComponent, beatComponent->mBouns);
-
-		mainPlayerComponent->Update(dt);
-
-		//transformComponent->FinalUpdate();
-
-		//controllerComponent->mTransformComponent.mLocalPosition = transformComponent->mLocalPosition;
-		//controllerComponent->mTransformComponent.FinalUpdate();
-
-
-		for (auto& entity : entitys) {
-			//CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
-			//TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-
-			//transformComponent->FinalUpdate();
-			//cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
-		}
-	}
+	
+	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
+	mainPlayerComponent->Update(dt);
 }
 
 void PlayerSystem::Input(float dt, PlayerMovementComponent* movementComponent, MainPlayerComponent* mainPlayerComponent, bool beatHit)

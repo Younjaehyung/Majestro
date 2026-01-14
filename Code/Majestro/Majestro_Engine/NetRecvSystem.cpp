@@ -4,6 +4,7 @@
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "NetIdMap.h"
+#include "Prefab.h"
 
 NetRecvSystem::NetRecvSystem(World* world, shared_ptr<NetIdMap>& netIdMap) : System::System(world)
 {
@@ -61,12 +62,13 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 
 void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 {
-    // 예시 payload: [uint32 netId][uint32 archetypeId][NetTransformState 초기값...]
+
     uint32_t netId = 0;
     uint32_t archetypeId = 0;
-  //  if (!r.Read(netId) || !r.Read(archetypeId)) return;
+	const S2C_SpawnPacekt* spawnPacket = msg.ViewAs<S2C_SpawnPacekt>();
+	archetypeId = static_cast<uint32_t>(spawnPacket->prefabType);
+	netId = static_cast<uint32_t>(spawnPacket->netEntityId);
 
-    // TODO: 네 ECS에서 엔티티 생성 + archetype에 따른 컴포넌트 구성
     Entity e = CreateEntityFromArchetype(archetypeId);
 
     // netId 바인딩 (중요)
@@ -127,7 +129,7 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
 Entity NetRecvSystem::CreateEntityFromArchetype(uint32_t archetypeId)
 {
     Entity entity = mWorld->CreateEntity();
-	// ::CreatePrefab(archetypeId, mWorld, entity);
+	PrefabFactory::Spawn(mWorld, static_cast<PrefabType>(archetypeId), mInputCommand);
 
     return entity;
 }

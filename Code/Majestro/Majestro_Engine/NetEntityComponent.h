@@ -1,7 +1,11 @@
 #pragma once
 #include "Component.h"
-
+#include "Entity.h"
 static uint64 NetEntityId = 0;
+
+
+class World;
+
 
 class NetEntityComponent : public Component<NetEntityComponent>
 {
@@ -11,10 +15,14 @@ class NetEntityComponent : public Component<NetEntityComponent>
 		INTERP,		//보간
 		PREDICT,	//예상
 	};
+public:
+	NetEntityComponent();
+	NetEntityComponent(shared_ptr<World> world, Entity entity);
 
 
 public:
-	uint64 mNetEntityId = ++NetEntityId;
+	Entity mOwnerEntity = NULL_ENTITY;
+	uint64 mNetEntityId = 0;
 	Replicationmode mNetworkmode = Replicationmode::NONE;
 
 };

@@ -64,6 +64,7 @@ enum class PrefabType : uint8 {
 	TERRAIN,
 	SKYBOX,
 	DIRLIGHT,
+	COUNT
 };
 
 enum class MsgKind : uint8
@@ -140,6 +141,16 @@ struct S2C_MovePacket : public PacketUdpHeader {
 	S2C_MovePacket(uint32_t id, float posX, float posY, float posZ)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
 		netEntityId(id), x(posX), y(posY), z(posZ) {
+	}
+};
+
+struct S2C_SpawnPacekt : public PacketTcpHeader {
+	uint64 netEntityId{};
+	PrefabType prefabType{ PrefabType::NONE };
+	S2C_SpawnPacekt() : PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_RESPAWN, 0.0 } {}
+	S2C_SpawnPacekt(uint64 entityId, PrefabType type)
+		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_RESPAWN, 0.0 },
+		netEntityId(entityId), prefabType(type) {
 	}
 };
 

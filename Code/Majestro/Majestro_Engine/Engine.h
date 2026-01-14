@@ -7,8 +7,6 @@ class AudioManager;
 class InputManager;
 class Timer;
 
-class INetSendSink;
-
 class Engine
 {
 public:
@@ -19,7 +17,7 @@ public:
 	//	static Engine instance;
 	//	return &instance;
 	//}
-	void Initialize(const WindowInfo& info, shared_ptr<INetSendSink>& sendSink);
+	void Initialize(const WindowInfo& info);
 	void Update();
 	void Render();
 	void ShowFps();
@@ -33,7 +31,7 @@ public:
 	InputManager&		GetInputManager()		{ return *mInputManager; }
 	Timer&				GetTimer()				{ return *mTimer; }
 	
-	shared_ptr<INetSendSink>& GetNetSendSink()	{ return mNetSendSink; }
+	
 private:
 
 	unique_ptr<RenderManager>	mRenderManager;
@@ -43,7 +41,7 @@ private:
 	unique_ptr<InputManager>	mInputManager;
 	unique_ptr<Timer>			mTimer;
 
-	shared_ptr<INetSendSink>	mNetSendSink;
+
 
 	HWND mHwnd;
 };

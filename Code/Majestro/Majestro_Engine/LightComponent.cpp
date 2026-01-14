@@ -39,7 +39,7 @@ void LightComponent::SetLightDirection(Vec3 direction)
 //	}
 //}
 
-Entity LightFactory::CreateLight(shared_ptr<World> world, LIGHT_TYPE type , LightComponent& l)
+Entity LightFactory::CreateLight(World* world, LIGHT_TYPE type , LightComponent& l)
 {
 	Entity entity = world->CreateEntity();
 

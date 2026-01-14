@@ -29,7 +29,7 @@ Prefab::~Prefab()
 }
 
 
-PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
+PlayerPrefab::PlayerPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
 
@@ -42,12 +42,12 @@ PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
 
 	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-		
+
 	std::vector<shared_ptr<Material>> material2s;
 
 	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
 	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
-		
+
 
 	material2s.push_back(material2);
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
@@ -78,7 +78,53 @@ PlayerPrefab::~PlayerPrefab()
 {
 }
 
-SkyBoxPrefab::SkyBoxPrefab(shared_ptr<World> world)
+Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
+{
+	Entity mEntityID = world->CreateEntity();
+
+	TransformComponent t{};
+	Entity testCamera = world->CreateEntity();
+	world->AddComponent<MainCameraComponent>(testCamera);
+	world->AddComponent<CameraComponent>(testCamera);
+	world->AddComponent<TransformComponent>(testCamera, t);
+	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
+
+	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+
+	std::vector<shared_ptr<Material>> material2s;
+
+	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+
+
+	material2s.push_back(material2);
+	t.mLocalPosition = { 0.f, 0.f, 10.f };
+	t.mLocalScale = { 10.f, 10.f, 10.f };
+
+	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
+	vector<shared_ptr<Animator>> anmators0;
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+
+
+	world->AddComponent<ControllerComponent>(mEntityID, t);
+	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+	world->AddComponent<TransformComponent>(mEntityID, t);
+	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	world->AddComponent<BeatComponent>(mEntityID);
+	world->AddComponent<GravityComponent>(mEntityID);
+	world->AddComponent<PlayerMovementComponent>(mEntityID);
+	world->AddComponent<NetEntityComponent>(mEntityID);
+
+	return mEntityID;
+}
+
+SkyBoxPrefab::SkyBoxPrefab(World* world)
 {
 
 	mEntityID = world->CreateEntity();
@@ -102,9 +148,8 @@ SkyBoxPrefab::~SkyBoxPrefab()
 {
 }
 
-TerrainPrefab::TerrainPrefab(shared_ptr<World> world)
+TerrainPrefab::TerrainPrefab(World* world)
 {
-
 	mEntityID = world->CreateEntity();
 	TransformComponent bt{};
 	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
@@ -131,7 +176,33 @@ TerrainPrefab::~TerrainPrefab()
 {
 }
 
-DirLightPrefab::DirLightPrefab(shared_ptr<World> world)
+Entity TerrainPrefab::Build(World* world, const InputCommand& ctx)
+{
+
+	Entity mEntityID = world->CreateEntity();
+	TransformComponent bt{};
+	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+
+	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
+
+	// 빌보드 머티리얼(
+	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
+	std::vector<shared_ptr<Material>> materials;
+	materials.push_back(heightMap);
+
+	world->AddComponent<TransformComponent>(mEntityID, bt);
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
+	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
+	terrainc.mTerrainWorldScale = bt.mLocalScale;
+
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
+	render.mCheckFrustum = false;
+
+	return mEntityID;
+}
+
+DirLightPrefab::DirLightPrefab(World* world)
 {
 	LightComponent l{};
 	l.mLightInfo.Position = { Vec3(0, 1000, 500) };

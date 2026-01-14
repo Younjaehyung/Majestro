@@ -15,7 +15,7 @@ Engine::Engine()
 
 Engine::~Engine() = default;
 
-void Engine::Initialize(const WindowInfo& info, shared_ptr<INetSendSink>& sendSink)
+void Engine::Initialize(const WindowInfo& info)
 {
 	mRenderManager = make_unique<RenderManager>();
 	mResourceManager = make_unique<ResourceManager>();
@@ -36,7 +36,6 @@ void Engine::Initialize(const WindowInfo& info, shared_ptr<INetSendSink>& sendSi
 	mSceneManager->Initialize();
 	mHwnd = info.Hwnd;
 
-	mNetSendSink = sendSink;
 
 #ifdef _IMGUI
 	ImGuiManager::Get().Initialize(

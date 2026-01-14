@@ -48,7 +48,7 @@ struct LightInfo	//빛과 관련된 정보
 class LightFactory
 {
 public:
-	static Entity CreateLight(shared_ptr<World>, LIGHT_TYPE type,class LightComponent& l);
+	static Entity CreateLight(World* world, LIGHT_TYPE type, class LightComponent& l);
 };
 
 

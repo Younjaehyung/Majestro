@@ -61,9 +61,18 @@ public:
     // 디버그 정보
     size_t GetEntityCount() const { return mEntities.size(); }
     size_t GetComponentPoolCount() const { return mComponentPools.size(); }
+
+    // Network Entity ID
+    shared_ptr<NetIdMap>& GetNetIdMap() { return mNetIdMap; }
+
+    // System Manager
+    std::shared_ptr<SystemManager> GetSystemManager() const { return mSystemManager; }
+    void SetSystemManager(std::shared_ptr<SystemManager> systemManager) { mSystemManager = systemManager; }
+
 public:
-    std::shared_ptr<SystemManager>& GetSystemManager()      { return mSystemManager; }
-    std::shared_ptr<NetIdMap>& GetNetIdMap()                { return mNetIdMap; }
+    void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
+    void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(netID); }
+    Entity GetEntityByNetId(uint64 netID) const { return mNetIdMap->GetOrInvalid(netID); }
 private:
     // Entity
     EntityID mNextEntityID;

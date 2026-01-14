@@ -43,6 +43,18 @@
     <Filter Include="System\Logic">
       <UniqueIdentifier>{7e0aca65-3a27-4699-8480-8b40d86383d9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="System\Input">
+      <UniqueIdentifier>{3593629e-5ded-49a1-b375-b6f43053a1fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Logic">
+      <UniqueIdentifier>{b899b734-dcb2-49c1-b5b1-94536e826491}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Server">
+      <UniqueIdentifier>{006d4b30-e4b1-44fa-a795-7e4dbc12098f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Utils">
+      <UniqueIdentifier>{a916b56b-9b0d-49f6-8a12-9b17b084c818}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -65,33 +77,6 @@
     </ClCompile>
     <ClCompile Include="StateMachine.cpp">
       <Filter>Script</Filter>
-    </ClCompile>
-    <ClCompile Include="BeatComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="TagComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="NetEntityComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="LightComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="GravityComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="EnemyComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerComponent.cpp">
-      <Filter>Component</Filter>
     </ClCompile>
     <ClCompile Include="SystemManager.cpp">
       <Filter>Base\System</Filter>
@@ -120,9 +105,6 @@
     <ClCompile Include="InputManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainComponent.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
@@ -134,9 +116,6 @@
     </ClCompile>
     <ClCompile Include="HeightField.cpp">
       <Filter>Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="InputComponent.cpp">
-      <Filter>Component</Filter>
     </ClCompile>
     <ClCompile Include="NetRecvSystem.cpp">
       <Filter>System\Network</Filter>
@@ -162,6 +141,42 @@
     <ClCompile Include="MovementSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="PlayerInputSystem.cpp">
+      <Filter>System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="NetEntityComponent.cpp">
+      <Filter>Component\Server</Filter>
+    </ClCompile>
+    <ClCompile Include="BeatComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemyComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="GravityComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="InputComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="LightComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TagComponent.cpp">
+      <Filter>Component\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -181,33 +196,6 @@
     </ClInclude>
     <ClInclude Include="StateMachine.h">
       <Filter>Script</Filter>
-    </ClInclude>
-    <ClInclude Include="BeatComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TagComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="NetEntityComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="MovementComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="LightComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="GravityComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="EnemyComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerComponent.h">
-      <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="SystemManager.h">
       <Filter>Base\System</Filter>
@@ -236,9 +224,6 @@
     <ClInclude Include="InputManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
-    <ClInclude Include="TerrainComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
     <ClInclude Include="ResourceManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
@@ -253,12 +238,6 @@
     </ClInclude>
     <ClInclude Include="..\ServerCore\json.hpp">
       <Filter>Script</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformComponent.h">
-      <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="InputComponent.h">
-      <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="NetRecvSystem.h">
       <Filter>System\Network</Filter>
@@ -283,6 +262,45 @@
     </ClInclude>
     <ClInclude Include="TransformSystem.h">
       <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerInputSystem.h">
+      <Filter>System\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="NetEntityComponent.h">
+      <Filter>Component\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="BeatComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemyComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="GravityComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="InputComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="LightComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TagComponent.h">
+      <Filter>Component\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

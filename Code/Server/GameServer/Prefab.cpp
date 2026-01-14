@@ -62,7 +62,7 @@ PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);*/
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
-	world->AddComponent<MovementComponent>(mEntityID);
+	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<InputComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
 }

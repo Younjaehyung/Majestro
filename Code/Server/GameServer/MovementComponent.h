@@ -2,7 +2,8 @@
 #include "Component.h"
 #include "TransformComponent.h"
 
-class MovementComponent : public Component<MovementComponent>
+
+class PlayerMovementComponent : public Component<PlayerMovementComponent>
 {
 public:
 	Vec3 mMovingDirection;

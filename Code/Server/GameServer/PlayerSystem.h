@@ -2,7 +2,7 @@
 #include "World.h"
 #include "System.h"
 
-class MovementComponent;
+class PlayerMovementComponent;
 class MainPlayerComponent;
 
 class PlayerSystem : public System
@@ -12,7 +12,7 @@ public:
 
 	void Initialize();
 	void Update(float dt);
-	void Input(float dt, MovementComponent* movementComponent, MainPlayerComponent* mainPlayerComponent, bool beatHit);
+	/*void Input(float dt, PlayerMovementComponent* movementComponent, MainPlayerComponent* mainPlayerComponent, bool beatHit);*/
 
 private:
 	float speed = 30.0f;

@@ -44,11 +44,11 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const InputFrame& inputFrame)
 			// 중복/역순 입력 방지
 			if (inputFrame.Seq <= inputComp->lastSeq)
 				return;
-			inputComp->moveX = inputFrame.MoveX;
-			inputComp->moveY = inputFrame.MoveY;
-			inputComp->buttons = inputFrame.Buttons;
-			inputComp->yaw = inputFrame.Yaw;
-			inputComp->pitch = inputFrame.Pitch;
+			inputComp->MoveX = inputFrame.MoveX;
+			inputComp->MoveY = inputFrame.MoveY;
+			inputComp->Buttons = inputFrame.Buttons;
+			inputComp->Yaw = inputFrame.Yaw;
+			inputComp->Pitch = inputFrame.Pitch;
 			inputComp->lastSeq = inputFrame.Seq;
 			break;
 		}

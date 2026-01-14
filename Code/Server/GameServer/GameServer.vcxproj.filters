@@ -37,6 +37,12 @@
     <Filter Include="Resource">
       <UniqueIdentifier>{cf7a9df3-8932-4e46-87e7-57a5cd41075a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NewFilter1">
+      <UniqueIdentifier>{4426ef73-c12f-4226-8029-44a6d5a8fcd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Logic">
+      <UniqueIdentifier>{7e0aca65-3a27-4699-8480-8b40d86383d9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -78,26 +84,11 @@
     <ClCompile Include="LightComponent.cpp">
       <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="MovementSystem.cpp">
-      <Filter>Component</Filter>
-    </ClCompile>
     <ClCompile Include="GravityComponent.cpp">
       <Filter>Component</Filter>
     </ClCompile>
     <ClCompile Include="EnemyComponent.cpp">
       <Filter>Component</Filter>
-    </ClCompile>
-    <ClCompile Include="TransformSystem.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="BeatSystem.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="CameraSystem.cpp">
-      <Filter>System</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerSystem.cpp">
-      <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="PlayerComponent.cpp">
       <Filter>Component</Filter>
@@ -156,6 +147,21 @@
     <ClCompile Include="NetIdMap.cpp">
       <Filter>Base\World</Filter>
     </ClCompile>
+    <ClCompile Include="BeatSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -199,21 +205,6 @@
     </ClInclude>
     <ClInclude Include="EnemyComponent.h">
       <Filter>Component</Filter>
-    </ClInclude>
-    <ClInclude Include="TransformSystem.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="BeatSystem.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="CameraSystem.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="MovementSystem.h">
-      <Filter>System</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerSystem.h">
-      <Filter>System</Filter>
     </ClInclude>
     <ClInclude Include="PlayerComponent.h">
       <Filter>Component</Filter>
@@ -277,6 +268,21 @@
     </ClInclude>
     <ClInclude Include="NetIdMap.h">
       <Filter>Base\World</Filter>
+    </ClInclude>
+    <ClInclude Include="BeatSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TransformSystem.h">
+      <Filter>System\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

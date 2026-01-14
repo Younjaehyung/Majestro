@@ -12,6 +12,8 @@
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
+#include "InputComponent.h"
+#include "NetEntityComponent.h"
 
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
@@ -61,7 +63,8 @@ PlayerPrefab::PlayerPrefab(shared_ptr<World> world)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<MovementComponent>(mEntityID);
-
+	world->AddComponent<InputComponent>(mEntityID);
+	world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
 }
 
 PlayerPrefab::~PlayerPrefab()

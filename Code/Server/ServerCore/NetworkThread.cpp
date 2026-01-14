@@ -167,6 +167,9 @@ void NetworkThread::Update()
         CleanupDisconnected();
 
     }
+
+	LOG_ERROR("Network Thread Stopped");
+	static_assert(true);
 }
 
 

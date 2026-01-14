@@ -60,15 +60,18 @@ public:
     // 디버그 정보
     size_t GetEntityCount() const { return mEntities.size(); }
     size_t GetComponentPoolCount() const { return mComponentPools.size(); }
-public : 
-    // Network Entity ID 관리
+
+    // Network Entity ID
     shared_ptr<NetIdMap> GetNetIdMap() const { return mNetIdMap; }
-    // System Manager 접근
+
+    // System Manager
     std::shared_ptr<SystemManager> GetSystemManager() const { return mSystemManager; }
 	void SetSystemManager(std::shared_ptr<SystemManager> systemManager) { mSystemManager = systemManager; }
-public:
-    void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
 
+public: // Network Entity ID 관리
+    void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
+	void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(netID); }
+	Entity GetEntityByNetId(uint64 netID) const { return mNetIdMap->GetOrInvalid(netID); }
 private:
     // Entity
     EntityID mNextEntityID;
@@ -77,6 +80,7 @@ private:
 
     // Network Entity ID 관리
     shared_ptr<NetIdMap> mNetIdMap = make_shared<NetIdMap>();
+
 
     // 타입별 컴포넌트 풀 (type erasure 사용)
     std::unordered_map<ComponentTypeID, std::unique_ptr<BaseComponentPool>> mComponentPools;

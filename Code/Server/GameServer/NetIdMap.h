@@ -17,4 +17,3 @@ public:
 private:
     std::unordered_map<uint64, Entity> mMap;
 };
-

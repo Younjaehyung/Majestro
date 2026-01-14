@@ -185,6 +185,7 @@
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />
+    <ClCompile Include="NetIdMap.cpp" />
     <ClCompile Include="NetRecvSystem.cpp" />
     <ClCompile Include="NetSendSystem.cpp" />
     <ClCompile Include="Object.cpp" />
@@ -231,6 +232,7 @@
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
     <ClInclude Include="NetEntityComponent.h" />
+    <ClInclude Include="NetIdMap.h" />
     <ClInclude Include="NetRecvSystem.h" />
     <ClInclude Include="NetSendSystem.h" />
     <ClInclude Include="Object.h" />

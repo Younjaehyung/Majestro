@@ -125,6 +125,22 @@ public:
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
+class FallState : public State<MainPlayerComponent> {
+public:
+	static FallState* Instance();
+	virtual const char* GetName() const override { return "JumpState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class LandState : public State<MainPlayerComponent> {
+public:
+	static LandState* Instance();
+	virtual const char* GetName() const override { return "JumpState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
 class DashState : public State<MainPlayerComponent> {
 public:
 	static DashState* Instance();

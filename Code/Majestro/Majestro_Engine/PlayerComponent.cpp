@@ -278,7 +278,6 @@ void StateEnter(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
     if (s->mAnimOnce && owner->mStateTime >= s->mAnimEndTime) {
         //cout << s->mStateTime << endl;
-        ClearFlag(owner->mFlags, FLAG_JUMP);
         owner->mFsm.ChangeState(owner, IdleState::Instance());
     }
 }
@@ -364,6 +363,44 @@ void JumpState::Update(MainPlayerComponent* owner) {
     //cout << owner->mHight << endl;
 }
 void JumpState::Exit(MainPlayerComponent* owner) 
+{
+
+    StateExit(this, owner);
+}
+
+FallState* FallState::Instance() {
+    static FallState inst;
+    return &inst;
+}
+void FallState::Enter(MainPlayerComponent* owner) {
+    StateEnter(this, owner);
+    //owner->mHight = owner->mGround+ 0.1f;
+    SetFlag(owner->mFlags, FLAG_JUMP);
+}
+void FallState::Update(MainPlayerComponent* owner) {
+    StateUpdate(this, owner);
+    //if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
+
+    //owner->mHight += owner->mJumpPower * owner->mDt;
+    //cout << owner->mHight << endl;
+}
+void FallState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+LandState* LandState::Instance() {
+    static LandState inst;
+    return &inst;
+}
+void LandState::Enter(MainPlayerComponent* owner) {
+    StateEnter(this, owner);
+    ClearFlag(owner->mFlags, FLAG_JUMP);
+}
+void LandState::Update(MainPlayerComponent* owner) {
+    StateUpdate(this, owner);
+}
+void LandState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

@@ -57,11 +57,11 @@ void SystemManager::Update(float deltaTime) {
 
 
     GetSystem<TransformSystem>()->Update(deltaTime);
-    GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);
     GetSystem<AnimationSystem>()->Update(deltaTime);
-    GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
+    GetSystem<CameraSystem>()->Update(deltaTime);
+    GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);

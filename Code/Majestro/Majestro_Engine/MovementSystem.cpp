@@ -82,10 +82,11 @@ void MovementSystem::Update(float dt) {
 	for (auto& entity : gravityEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-		float terrainHeight = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
+		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
+		gravityComponent->mGround = terrainGround;
 
-		if (gravityComponent->mHight <= terrainHeight) {
-			gravityComponent->mHight = terrainHeight;
+		if (gravityComponent->mHight <= terrainGround) {
+			gravityComponent->mHight = terrainGround;
 			gravityComponent->mGravity = 0.0f;
 		}
 		else {
@@ -93,6 +94,7 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity;
 		}
 
+		
 		transformComponent->mLocalPosition.y = gravityComponent->mHight;
 	}
 

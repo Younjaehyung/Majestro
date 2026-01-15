@@ -29,7 +29,7 @@ void MovementSystem::Update(float dt) {
 		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
 		gravityComponent->mGround = terrainGround;
 
-		if (gravityComponent->mHight <= terrainGround) {
+		if (gravityComponent->mHight <= terrainGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= terrainGround) {
 			gravityComponent->mHight = terrainGround;
 			gravityComponent->mGravity = 0.0f;
 
@@ -43,6 +43,7 @@ void MovementSystem::Update(float dt) {
 		}
 
 		transformComponent->mLocalPosition.y = gravityComponent->mHight;
+		
 	}
 
 
@@ -56,7 +57,7 @@ void MovementSystem::Update(float dt) {
 		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
-
+		
 
 		if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
 			Vec3 forward = transformComponent->GetLook();
@@ -102,6 +103,7 @@ void MovementSystem::Update(float dt) {
 
 		//jump
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
+		//cout << "height::" << gravityComponent->mHight << endl;
 		mainPlayerComponent->mFalling = gravityComponent->mFalling;
 		if (movementComponent->mJump) {
 			gravityComponent->mHight += 10.0f;

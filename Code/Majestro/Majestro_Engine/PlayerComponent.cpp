@@ -108,6 +108,9 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 void MainPlayerComponent::StateCheck()
 {
     if(mSpeed<1.f)ClearFlag(mFlags, FLAG_MOVE);
+    if (mFalling) {
+        mFsm.ChangeState(this, FallState::Instance());
+    }
 
 }
 
@@ -273,11 +276,12 @@ void StateEnter(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
     owner->mStateTime = 0.0f;
     owner->mNextState = S_Idle;
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() <<"\n"; }
+    if(s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
     if (s->mAnimOnce && owner->mStateTime >= s->mAnimEndTime) {
-        cout << "num::" << owner->mNextState << endl;
+        if (s->mAnimOnce) ClearFlag(owner->mFlags, FLAG_ANIM);
         owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }
 
@@ -370,7 +374,7 @@ FallState* FallState::Instance() {
 }
 void FallState::Enter(MainPlayerComponent* owner) {
     StateEnter(this, owner);
-    //SetFlag(owner->mFlags, FLAG_JUMP);
+    SetFlag(owner->mFlags, FLAG_JUMP);
 }
 void FallState::Update(MainPlayerComponent* owner) {
     StateUpdate(this, owner);
@@ -390,7 +394,6 @@ LandState* LandState::Instance() {
 }
 void LandState::Enter(MainPlayerComponent* owner) {
     StateEnter(this, owner);
-    ClearFlag(owner->mFlags, FLAG_JUMP);
 }
 void LandState::Update(MainPlayerComponent* owner) {
     StateUpdate(this, owner);

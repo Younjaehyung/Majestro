@@ -140,5 +140,4 @@ Entity NetRecvSystem::CreateEntityFromArchetype(uint32_t archetypeId)
 {
     //Entity entity = mWorld->CreateEntity();
     return PrefabFactory::Spawn(mWorld, static_cast<PrefabType>(archetypeId), mInputCommand);
-
 }

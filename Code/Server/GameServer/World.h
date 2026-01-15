@@ -4,6 +4,7 @@
 #include "Component.h"
 #include "ComponentPool.h"
 #include "SystemManager.h"
+#include "EventManager.h"
 #include "NetIdMap.h"
 
 class World {
@@ -63,10 +64,15 @@ public:
 
     // Network Entity ID
     shared_ptr<NetIdMap> GetNetIdMap() const { return mNetIdMap; }
+    uint32  GetSessionIDByEntity(Entity entity);
 
     // System Manager
     std::shared_ptr<SystemManager> GetSystemManager() const { return mSystemManager; }
 	void SetSystemManager(std::shared_ptr<SystemManager> systemManager) { mSystemManager = systemManager; }
+
+	std::shared_ptr<EventManager>& GetEventManager() { return mEventManager; }
+	void SetEventManager(std::shared_ptr<EventManager> eventManager) { mEventManager = eventManager; }
+
 
 public: // Network Entity ID 관리
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
@@ -87,6 +93,9 @@ private:
 
     // System
     std::shared_ptr<SystemManager>		mSystemManager;
+
+    // Event
+    std::shared_ptr<EventManager>		mEventManager;
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };

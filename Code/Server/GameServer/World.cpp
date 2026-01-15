@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "World.h"
-
+#include "NetEntityComponent.h"
 
 
 Entity World::CreateEntity() {
@@ -31,6 +31,15 @@ void World::Clear() {
     mEntities.clear();
     mComponentPools.clear();
     mNextEntityID = 1;
+}
+
+uint32 World::GetSessionIDByEntity(Entity entity)
+{
+	NetEntityComponent* comp = GetComponent<NetEntityComponent>(entity);
+    if(comp!=nullptr)
+        return comp->mSessionId;
+
+    return 0;
 }
 
 void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)

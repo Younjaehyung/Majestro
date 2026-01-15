@@ -177,6 +177,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="GameCore.cpp" />
+    <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
     <ClCompile Include="HeightField.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="GameCore.h" />
+    <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="HeightField.h" />
     <ClInclude Include="InputComponent.h" />

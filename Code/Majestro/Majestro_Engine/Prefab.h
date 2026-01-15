@@ -31,6 +31,7 @@ public:
 	{
 		Register<PrefabType::PLAYER, PlayerPrefab>();
 		Register<PrefabType::TERRAIN, TerrainPrefab>();
+
 		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
 		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();
 	}
@@ -81,6 +82,8 @@ public:
 public:
 	static Entity Build(World* world, const InputCommand& ctx);
 };
+
+
 
 class SkyBoxPrefab : public Prefab
 {

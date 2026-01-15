@@ -11,11 +11,11 @@ enum PKT_Type : uint32 {
 	PKT_LOGIN,
 	PKT_SERVER,
 	
-
 	// Client -> Server
 	C2S_PKT_LOGIN,
 	C2S_PKT_INPUT,
 	C2S_PKT_ACTION,
+
 
 	// Server -> Client
 	S2C_PKT_LOGIN,
@@ -58,15 +58,19 @@ struct PacketUdpHeader {
 	}
 };
 
+
+
 static constexpr uint32 kHeaderSize = sizeof(PacketTcpHeader);
 constexpr uint32 MAX_PACKET_SIZE = 128;
 
+////////////////////////////////////////////
 enum class PrefabType : uint8 {
 	NONE,
 	PLAYER,
 	TERRAIN,
 	SKYBOX,
 	DIRLIGHT,
+
 	COUNT
 };
 

@@ -85,7 +85,10 @@ void PlayerInputSystem::Update(float dt)
 		if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 		else cout << "fail" << endl;
 
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
+		if (not mainPlayerComponent->mFalling) {
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
+			movementComponent->mJump = true;
+		}
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());

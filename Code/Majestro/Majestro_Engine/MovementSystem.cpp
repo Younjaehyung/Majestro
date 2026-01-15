@@ -18,6 +18,35 @@ MovementSystem::MovementSystem(World* world) : System(world)
 
 void MovementSystem::Update(float dt) {
 
+	//terrain
+	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
+
+	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
+	for (auto& entity : gravityEntitys) {
+		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
+		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
+		gravityComponent->mGround = terrainGround;
+
+		if (gravityComponent->mHight <= terrainGround) {
+			gravityComponent->mHight = terrainGround;
+			gravityComponent->mGravity = 0.0f;
+
+			gravityComponent->mFalling = false;
+		}
+		else {
+			gravityComponent->mFalling = true;
+
+			gravityComponent->mGravity += gravityComponent->mGravityA * dt;
+			gravityComponent->mHight -= gravityComponent->mGravity * dt;
+		}
+
+		transformComponent->mLocalPosition.y = gravityComponent->mHight;
+	}
+
+
+
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
@@ -71,31 +100,16 @@ void MovementSystem::Update(float dt) {
 
 		}
 
-	}
-
-
-	//terrain
-	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
-	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
-
-	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
-	for (auto& entity : gravityEntitys) {
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		//jump
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
-		gravityComponent->mGround = terrainGround;
-
-		if (gravityComponent->mHight <= terrainGround) {
-			gravityComponent->mHight = terrainGround;
-			gravityComponent->mGravity = 0.0f;
+		mainPlayerComponent->mFalling = gravityComponent->mFalling;
+		if (movementComponent->mJump) {
+			gravityComponent->mHight += 10.0f;
+			gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+			movementComponent->mJump = false;
+			mainPlayerComponent->mFalling = true;
 		}
-		else {
-			gravityComponent->mGravity += gravityComponent->mGravityA * dt;
-			gravityComponent->mHight -= gravityComponent->mGravity;
-		}
-
 		
-		transformComponent->mLocalPosition.y = gravityComponent->mHight;
 	}
 
 }

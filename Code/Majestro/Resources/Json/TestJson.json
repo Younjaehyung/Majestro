@@ -21,7 +21,7 @@
             "from": "Walk",
             "to": "Run",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_NO_RUN"  ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_NO_RUN" ]
         },
 
         {
@@ -41,20 +41,41 @@
         {
             "from": "Jump",
             "to": "Idle",
-            "require": [],
+            "require": [ ],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Fall",
+            "to": "Idle",
+            "require": [ ],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Land",
+            "to": "Idle",
+            "require": [  ],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Fall",
+            "to": "Walk",
+            "require": [ ],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Land",
+            "to": "Walk",
+            "require": [ ],
             "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
         },
 
         {
             "from": "Jump",
             "to": "Walk",
-            "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
-        },
-
-        {
-            "from": "Jump",
-            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
         },

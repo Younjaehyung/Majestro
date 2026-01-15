@@ -34,7 +34,7 @@ static std::unordered_map<std::string, uint64_t> gFlagByName = {
 	{"F_NO_RUN", 1ull <<7}
 };
 
-enum : StateId { S_Idle=0, S_Walk, S_Run, S_Jump, S_Dash, 
+enum : StateId { S_Idle=0, S_Walk, S_Run, S_Jump, S_Fall=4, S_Land, S_Dash, 
 	S_Aim, S_ReRoad, S_RhythmChange,
 	S_Hit, S_Stun, S_Dead,
 	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special, 
@@ -73,21 +73,18 @@ public:
 
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
+	int mNextState;
+
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;
 	float mDashSpeed = 0.0f;
-
+	float mJumpPower = 150.f;
+	bool mFalling = false;
 
 	uint64_t mFlags = 0ull;
 	float mStateTime=0.0f;
 	float mDt=0.0f;
-
-	float mGravity = 0.0f;
-	float mGravityA = 0.98f; //중력가속도
-	float mJumpPower = 150.f;
-	float mHight = 0.0f; //플레이어 높이
-	float mGround = 0.0f;
 
 
 };
@@ -128,7 +125,7 @@ public:
 class FallState : public State<MainPlayerComponent> {
 public:
 	static FallState* Instance();
-	virtual const char* GetName() const override { return "JumpState"; }
+	virtual const char* GetName() const override { return "FallState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
@@ -136,7 +133,7 @@ public:
 class LandState : public State<MainPlayerComponent> {
 public:
 	static LandState* Instance();
-	virtual const char* GetName() const override { return "JumpState"; }
+	virtual const char* GetName() const override { return "LandState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;

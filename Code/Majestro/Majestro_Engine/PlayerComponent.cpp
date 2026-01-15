@@ -14,6 +14,8 @@ static StateId NameToId(const std::string& n) {
     if (n == "Walk") return S_Walk;
 	if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
+	if (n == "Fall")  return S_Fall;
+	if (n == "Land")  return S_Land;
 	if (n == "Dash")  return S_Dash;
 
     if (n == "Aim")  return S_Aim;
@@ -44,6 +46,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
     WalkState::Instance(),
     RunState::Instance(),
     JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
     DashState::Instance(),
 
     AimState::Instance(),
@@ -71,6 +75,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     WalkState::Instance(),
     RunState::Instance(),
     JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
     DashState::Instance(),
 
     AimState::Instance(),
@@ -102,15 +108,6 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 void MainPlayerComponent::StateCheck()
 {
     if(mSpeed<1.f)ClearFlag(mFlags, FLAG_MOVE);
-    //if (mHight <= mGround) {
-    //    mHight = mGround;
-    //    mGravity = 0.0f;
-    //    //ClearFlag(mFlags, FLAG_JUMP);
-    //}
-    //else {
-    //    mGravity += mGravityA * mDt;
-    //    mHight -= mGravity;
-    //}
 
 }
 
@@ -136,6 +133,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == WalkState::Instance()) return S_Walk;
         if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance()) return S_Jump;
+        if (s == FallState::Instance()) return S_Fall;
+        if (s == LandState::Instance()) return S_Land;
         if (s == DashState::Instance()) return S_Dash;
         return 255;
         });
@@ -272,14 +271,16 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 void StateEnter(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
 {
     owner->mStateTime = 0.0f;
+    owner->mNextState = S_Idle;
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() <<"\n"; }
 }
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
     if (s->mAnimOnce && owner->mStateTime >= s->mAnimEndTime) {
-        //cout << s->mStateTime << endl;
-        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        cout << "num::" << owner->mNextState << endl;
+        owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }
+
 }
 
 void StateExit(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
@@ -352,19 +353,14 @@ JumpState* JumpState::Instance() {
 }
 void JumpState::Enter(MainPlayerComponent* owner) {
     StateEnter(this,owner);
-    //owner->mHight = owner->mGround+ 0.1f;
     SetFlag(owner->mFlags, FLAG_JUMP);
+    owner->mNextState = S_Fall;
 }
 void JumpState::Update(MainPlayerComponent* owner) {
     StateUpdate(this, owner);
-    //if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
-
-    //owner->mHight += owner->mJumpPower * owner->mDt;
-    //cout << owner->mHight << endl;
 }
-void JumpState::Exit(MainPlayerComponent* owner) 
-{
-
+void JumpState::Exit(MainPlayerComponent* owner) {
+    //owner->mFalling = true;
     StateExit(this, owner);
 }
 
@@ -374,15 +370,14 @@ FallState* FallState::Instance() {
 }
 void FallState::Enter(MainPlayerComponent* owner) {
     StateEnter(this, owner);
-    //owner->mHight = owner->mGround+ 0.1f;
-    SetFlag(owner->mFlags, FLAG_JUMP);
+    //SetFlag(owner->mFlags, FLAG_JUMP);
 }
 void FallState::Update(MainPlayerComponent* owner) {
     StateUpdate(this, owner);
-    //if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
-
-    //owner->mHight += owner->mJumpPower * owner->mDt;
-    //cout << owner->mHight << endl;
+    if (not owner->mFalling) {
+        ClearFlag(owner->mFlags, FLAG_JUMP);
+        owner->mFsm.ChangeState(owner, LandState::Instance());
+    }
 }
 void FallState::Exit(MainPlayerComponent* owner)
 {

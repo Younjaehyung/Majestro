@@ -10,6 +10,14 @@
             "time": 3.5,
             "animOnce": true
         },
+        "FallState": {
+            "time": 3.5,
+            "animOnce": false
+        },
+        "LandState": {
+            "time": 3.5,
+            "animOnce": true
+        },
         "DashState": {
             "time": 3.5,
             "animOnce": true

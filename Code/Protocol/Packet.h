@@ -183,13 +183,16 @@ struct C2S_LoginPacket : public PacketUdpHeader {
 
 struct C2S_InputPacket : public PacketUdpHeader {
 	uint64 netEntityId{};
-	float x, y;
 
-	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 }, x(0), y(0) {}
-	C2S_InputPacket(uint64 entityId, float posX, float posY)
-		: PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 },
-		netEntityId(entityId), x(posX), y(posY) {
-	}
+	uint32   Seq = 0;     // 클라 입력 시퀀스(증가)
+	float    Dt = 0.0f;   // 선택: 클라 프레임 dt (서버에서는 보통 무시하거나 참고)
+	float    MoveX = 0.0f; // -1~1
+	float    MoveY = 0.0f; // -1~1
+	uint8    Buttons = 0;  // 비트플래그 (점프/발사/대시 등)
+	float    Yaw = 0.0f;
+	float    Pitch = 0.0f;
+
+	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 } {}
 };
 
 

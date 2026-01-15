@@ -4,6 +4,7 @@
 #include "ServerCore.h"
 #include "NetEntityComponent.h"
 #include "InputComponent.h"
+#include "Prefab.h"
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
@@ -25,6 +26,21 @@ void NetRecvSystem::Update(float dt)
 					RecvInput(mInputCommand.SessionId, *inputFrame);
 				}
 				break;
+			}
+			case PKT_Type::PKT_LOGIN:
+			{
+				uint32 ssessionId = mInputCommand.SessionId;
+
+
+				Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, mInputCommand);
+
+				NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+
+				S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+				
+				SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+				request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+				gSendQueue.Push(request);
 			}
 		}
 		++processed;

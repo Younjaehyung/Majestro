@@ -17,8 +17,10 @@ MovementSystem::MovementSystem(World* world) : System(world)
 
 
 void MovementSystem::Update(float dt) {
-
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	if (mainCameraEntitys.empty())return;
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
 	//movement

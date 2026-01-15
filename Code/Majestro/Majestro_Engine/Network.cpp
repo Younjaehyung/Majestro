@@ -354,11 +354,15 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		// 패킷 조립 성공
 
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
-		if (mInputCommand.Type == PKT_LOGIN) {
+		if (mInputCommand.Type == S2C_PKT_LOGIN) {
 
 			
-			LoginPacket loginPkt;
-			::memcpy(&loginPkt, &mInputCommand.MsgBuffer, sizeof(LoginPacket));
+			C2S_LoginPacket loginPkt;
+			loginPkt.clientId = mClientId;
+			loginPkt.Header.PacketType = C2S_PKT_LOGIN;
+			loginPkt.Header.Size = sizeof(C2S_LoginPacket);
+			loginPkt.Sequence = 0;
+			loginPkt.SessionId = 0;
 
 			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(loginPkt), 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));

@@ -236,6 +236,7 @@ void EffectSystem::EndFrame()
 
 void EffectSystem::Update()
 {
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0] };
 	CameraComponent* mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
 

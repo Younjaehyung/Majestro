@@ -193,9 +193,15 @@ void NetworkThread::AcceptClient()
         session->GetTcpAddress().GetPort());
 
 	SendBuffer* sendBuffer = SendBufferManager::Acquire();
-	LoginPacket loginPkt = LoginPacket(session->GetPlayerId());
-	sendBuffer->SetData(&loginPkt, sizeof(LoginPacket),TCP);
+    S2C_LoginPacket loginPkt = S2C_LoginPacket(session->GetPlayerId());
+
+	sendBuffer->SetData(&loginPkt, sizeof(S2C_LoginPacket),TCP);
     session->mTSendBufferQueue.push(sendBuffer);
+
+   /* sendBuffer = SendBufferManager::Acquire();
+	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(session->GetPlayerId(), , PrefabType::PLAYER);
+    sendBuffer->SetData(&spawnPkt, sizeof(S2C_SpawnPacekt), TCP);
+	session->mTSendBufferQueue.push(sendBuffer);*/
 }
 
 void NetworkThread::HandleTcpRecv(std::shared_ptr<Session>& session)
@@ -274,8 +280,8 @@ void NetworkThread::HandleUdpRecv()
        
 
         PacketHeader* header = (PacketHeader*)mURecvBuffer;
-        if (header->PacketType == PKT_LOGIN) {
-            LoginPacket* pkt = (LoginPacket*)mURecvBuffer;
+        if (header->PacketType == C2S_PKT_LOGIN) {
+            C2S_LoginPacket* pkt = (C2S_LoginPacket*)mURecvBuffer;
 
             auto& targetSession = mSessionMgr.mSessions[pkt->clientId];
             if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
@@ -287,6 +293,12 @@ void NetworkThread::HandleUdpRecv()
             std::cout << "No session found for UDP packet from " << std::endl;
             std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
             
+			// client에게 prefab생성 패킷 전송
+			SendBuffer* sendBuffer = SendBufferManager::Acquire();
+			S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(targetSession->GetPlayerId(), targetSession->GetPlayerId(), PrefabType::PLAYER);
+			sendBuffer->SetData(&spawnPkt, sizeof(S2C_SpawnPacekt), TCP);
+			targetSession->mTSendBufferQueue.push(sendBuffer);
+			
         }
 
 

@@ -13,6 +13,8 @@ NetSendSystem::NetSendSystem(World* world) : System::System(world)
 
 void NetSendSystem::Update(double deltaTime)
 {
+	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
+
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
 
 	for(auto& entity : entities)

@@ -1,7 +1,13 @@
 #pragma once
 #include "Object.h"
+#include <array>
+#include <cstdint>
 #include "Entity.h"
+#include "PacketHelper.h"
 class World;
+class PlayerPrefab;
+class TerrainPrefab;
+
 
 class Prefab : public Object
 {
@@ -15,31 +21,79 @@ protected:
 	Entity mEntityID;
 };
 
-class DirLightPrefab : public Prefab
+
+class PrefabFactory
 {
 public:
-	DirLightPrefab(shared_ptr<World> world);
-	~DirLightPrefab();
+	using BuildFn = Entity(*)(World*, const InputCommand&);
 
+	static void RegisterAllPrefabs()
+	{
+		Register<PrefabType::PLAYER, PlayerPrefab>();
+		Register<PrefabType::TERRAIN, TerrainPrefab>();
+		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
+		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();
+	}
+
+
+	template<PrefabType Type, typename PrefabT>
+	static void Register()
+	{
+		constexpr size_t idx = static_cast<size_t>(Type);
+		sTable[idx] = &PrefabFactory::BuildThunk<PrefabT>;
+	}
+
+
+	static Entity Spawn(World* world, PrefabType type, const InputCommand& ctx)
+	{
+		const size_t idx = static_cast<size_t>(type);
+		if (idx >= sTable.size() || sTable[idx] == nullptr)
+			return Entity{}; // invalid
+
+		return sTable[idx](world, ctx);
+	}
+
+private:
+	template<typename PrefabT>
+	static Entity BuildThunk(World* world, const InputCommand& ctx)
+	{
+		return PrefabT::Build(world, ctx);
+	}
+
+private:
+
+	static inline std::array<BuildFn, static_cast<size_t>(PrefabType::COUNT)> sTable{};
 };
+
+//class DirLightPrefab : public Prefab
+//{
+//public:
+//	DirLightPrefab(World* world);
+//	~DirLightPrefab();
+//
+//};
 
 class PlayerPrefab : public Prefab
 {
 public:
-	PlayerPrefab(shared_ptr<World> world);
+	PlayerPrefab(World* world);
 	~PlayerPrefab();
+public:
+	static Entity Build(World* world, const InputCommand& ctx);
 };
 
 class SkyBoxPrefab : public Prefab
 {
 public:
-	SkyBoxPrefab(shared_ptr<World> world);
+	SkyBoxPrefab(World* world);
 	~SkyBoxPrefab();
+	//static Entity Build(World& world, const InputCommand& ctx);
 };
 
 class TerrainPrefab : public Prefab
 {
 public:
-	TerrainPrefab(shared_ptr<World> world);
+	TerrainPrefab(World* world);
 	~TerrainPrefab();
+	static Entity Build(World* world, const InputCommand& ctx);
 };

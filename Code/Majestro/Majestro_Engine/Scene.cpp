@@ -29,7 +29,7 @@
 
 void Scene::Initialize()
 {
-	PlayerPrefab player{mWorld.get()};
+	//PlayerPrefab player{mWorld.get()};
 
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };

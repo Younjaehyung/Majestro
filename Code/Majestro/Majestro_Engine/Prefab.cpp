@@ -120,7 +120,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
-
+	std::cout << "Create Prefab" << std::endl;
 	return mEntityID;
 }
 

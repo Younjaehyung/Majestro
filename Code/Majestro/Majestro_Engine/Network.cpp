@@ -356,7 +356,11 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		ProcessPacket::ProcessPackets(mInputCommand, buffer);
 		if (mInputCommand.Type == S2C_PKT_LOGIN) {
 
+			const S2C_LoginPacket* loginResp =
+				(mInputCommand.ViewAs<S2C_LoginPacket>());
 			
+			mClientId = loginResp->clientId;
+
 			C2S_LoginPacket loginPkt;
 			loginPkt.clientId = mClientId;
 			loginPkt.Header.PacketType = C2S_PKT_LOGIN;

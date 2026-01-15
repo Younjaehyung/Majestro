@@ -21,6 +21,7 @@ void CameraSystem::Initialize()
 void CameraSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	if (entitys.empty()) return;
 	//TestUpdate(dt);

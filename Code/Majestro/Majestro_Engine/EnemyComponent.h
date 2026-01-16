@@ -4,6 +4,5 @@
 
 class EnemyComponent : public Component<EnemyComponent>
 {
-public:
-	ComponentTypeID Target;
+
 };

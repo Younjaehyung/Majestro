@@ -47,13 +47,12 @@ void MovementSystem::Update(float dt) {
 	}
 
 
-
+	//main player movement
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
-	//movement
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
-	for (auto& entity : entitys) {
+	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
+	for (auto& entity : playerEntitys) {
 		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
@@ -112,6 +111,15 @@ void MovementSystem::Update(float dt) {
 			mainPlayerComponent->mFalling = true;
 		}
 		
+	}
+
+	//enemy movement
+	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
+	for (auto& entity : enemyEntitys) {
+		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
+		
+		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
 	}
 
 }

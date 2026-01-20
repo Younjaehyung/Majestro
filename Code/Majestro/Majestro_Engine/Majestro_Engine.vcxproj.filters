@@ -133,6 +133,9 @@
     <Filter Include="World\System\UI">
       <UniqueIdentifier>{0c6b4f72-e8cd-463c-8928-5ee2d19bad7d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\Debug">
+      <UniqueIdentifier>{6f895306-537a-47c4-b743-d6ec121572a8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -388,6 +391,9 @@
     <ClInclude Include="EnemySystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="BoxColliderComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -632,6 +638,9 @@
     </ClCompile>
     <ClCompile Include="EnemySystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxColliderComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

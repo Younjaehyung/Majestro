@@ -20,6 +20,7 @@
 #include "MovementComponent.h"
 #include "VfxComponent.h"
 #include "NetEntityComponent.h"
+#include "BoxColliderComponent.h"
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
 {
@@ -74,6 +75,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
+	world->AddComponent<BoxColliderComponent>(mEntityID);
 
 }
 
@@ -159,6 +161,7 @@ EnemyPrefab::EnemyPrefab(World* world)
 			world->AddComponent<AnimationComponent>(mEntityID, anmators);
 			world->AddComponent<EnemyComponent>(mEntityID);
 			world->AddComponent<EnemyMovementComponent>(mEntityID);
+			world->AddComponent<BoxColliderComponent>(mEntityID);
 			//}
 		}
 

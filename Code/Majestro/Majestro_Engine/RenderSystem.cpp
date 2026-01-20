@@ -12,6 +12,7 @@
 #include "ParticleComponent.h"
 #include "TagComponent.h"
 #include "TerrainComponent.h"
+#include "BoxColliderComponent.h"
 
 
 RenderSystem::RenderSystem(World* world) : System::System(world)
@@ -27,6 +28,13 @@ void RenderSystem::Initialize()
 	// immutability Data
 	PushMaterialData();
 	
+	mWireCube = RESOURCEMANAGER.Get<Mesh>(L"WireCube");
+	mDebugLineMat = RESOURCEMANAGER.Get<Material>(L"DebugLine");
+	mDebugLineNoDepthMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_NoDepth");
+
+	if (mWireCube) cout << "WireCube mesh not loaded" << endl;
+	if (mDebugLineMat) cout<<"DebugLine material not loaded"<<endl;
+	if (mDebugLineNoDepthMat) cout << "DebugLine_NoDepth material not loaded"<<endl;
 
 	mDeferredDrawItems.reserve(1000);
 	mDeferredDrawBatchs.reserve(1000);
@@ -260,7 +268,47 @@ void RenderSystem::PushObjectData()
 		}
 	}
 
+	//
+	if (mWireCube)
+	{
+		auto colliderEntities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
+		for (auto e : colliderEntities)
+		{
+			auto* tr = mWorld->GetComponent<TransformComponent>(e);
+			auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
+			if (!col || !col->bDebugDraw) continue;
 
+			// [핵심] TransformComponent가 제공하는 월드행렬을 그대로 사용
+			// 콜라이더 로컬 박스 변환(스케일/센터 오프셋)을 월드행렬에 합성
+
+			Matrix colliderLocal =
+				Matrix::CreateScale(col->HalfExtents * 2.0f) *
+				Matrix::CreateTranslation(col->Center);
+
+			// 월드 합성: 기존 오브젝트 트랜스폼에 콜라이더 로컬 변환을 끼워 넣는다.
+			// 당신 Transform이 S*R*T 형태로 만들어지므로, 같은 규칙에 맞춰 Local을 곱해준다.
+			Matrix boxWorld = colliderLocal * tr->mWorldMatrix;
+
+			objectParams.MatWorld = boxWorld.Transpose();
+			mObjectVector.push_back(objectParams);
+
+			const uint32 objIndex = index++;
+			const int32 animId = -1;
+
+			shared_ptr<Material> mat = col->bNoDepth ? mDebugLineNoDepthMat : mDebugLineMat;
+			if (!mat) continue;
+
+			mDeferredDrawItems.emplace_back(
+				mat->GetShader(),
+				mWireCube,
+				mat->GetShaderID(),
+				mWireCube->GetID(),
+				mat->GetID(),
+				0,
+				RenderParams{ objIndex, mat->GetIndex(), animId, 0 }
+			);
+		}
+	}
 
 	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
 		if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선

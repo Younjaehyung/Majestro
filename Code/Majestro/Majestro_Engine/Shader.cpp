@@ -180,6 +180,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 	mInfo = info;
 
 
+
 	CreateVertexShader(path.VS, vs, "vs_5_1");
 	CreatePixelShader(path.PS, ps, "ps_5_1");
 
@@ -195,6 +196,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 		{ "BONEWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 44, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 60, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
+
 
 	mGraphicsPipelineDesc.InputLayout = { desc, _countof(desc) };
 	mGraphicsPipelineDesc.pRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get();
@@ -321,7 +323,13 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 	}
 
 
-	DEVICE->CreateGraphicsPipelineState(&mGraphicsPipelineDesc, IID_PPV_ARGS(&mPipelineState));
+	HRESULT hr = DEVICE->CreateGraphicsPipelineState(&mGraphicsPipelineDesc, IID_PPV_ARGS(&mPipelineState));
+	if (FAILED(hr) || !mPipelineState)
+	{
+		cout<<"CreateGraphicsPipelineState failed. -" << hr <<endl;
+		assert(false); // 여기서 멈춰야 Update까지 안 감
+		return;
+	}
 }
 
 

@@ -75,7 +75,10 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
-	world->AddComponent<BoxColliderComponent>(mEntityID);
+
+	Vec3 half{ 10,10,10 };
+	Vec3 center{ 0,10,0 };
+	world->AddComponent<BoxColliderComponent>(mEntityID,half,center);
 
 }
 

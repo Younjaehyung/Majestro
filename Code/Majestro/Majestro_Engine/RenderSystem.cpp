@@ -32,10 +32,6 @@ void RenderSystem::Initialize()
 	mDebugLineMat = RESOURCEMANAGER.Get<Material>(L"DebugLine");
 	mDebugLineNoDepthMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_NoDepth");
 
-	if (mWireCube) cout << "WireCube mesh not loaded" << endl;
-	if (mDebugLineMat) cout<<"DebugLine material not loaded"<<endl;
-	if (mDebugLineNoDepthMat) cout << "DebugLine_NoDepth material not loaded"<<endl;
-
 	mDeferredDrawItems.reserve(1000);
 	mDeferredDrawBatchs.reserve(1000);
 	mInstanceVector.reserve(1000);
@@ -268,7 +264,7 @@ void RenderSystem::PushObjectData()
 		}
 	}
 
-	//
+	// collison box
 	if (mWireCube)
 	{
 		auto colliderEntities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
@@ -281,13 +277,26 @@ void RenderSystem::PushObjectData()
 			// [핵심] TransformComponent가 제공하는 월드행렬을 그대로 사용
 			// 콜라이더 로컬 박스 변환(스케일/센터 오프셋)을 월드행렬에 합성
 
+			DirectX::SimpleMath::Vector3 s, t;
+			DirectX::SimpleMath::Quaternion r;
+
+			// SimpleMath::Matrix는 보통 Decompose를 지원합니다.
+			// (만약 컴파일 에러가 나면 아래에 XMMatrixDecompose 버전도 같이 적어두었습니다.)
+			tr->mWorldMatrix.Decompose(s, r, t);
+
+			// [수정] 스케일 없는 월드행렬 구성 (Rotation * Translation)
+			// TransformComponent가 S*R*T로 월드행렬을 만든다는 전제에 맞춰 동일한 순서를 유지합니다.
+			Matrix worldNoScale =
+				Matrix::CreateFromQuaternion(r) *
+				Matrix::CreateTranslation(t);
+
+			// 콜라이더 로컬 변환 (이 스케일은 "충돌박스 자체 크기"이므로 유지)
 			Matrix colliderLocal =
 				Matrix::CreateScale(col->HalfExtents * 2.0f) *
 				Matrix::CreateTranslation(col->Center);
 
-			// 월드 합성: 기존 오브젝트 트랜스폼에 콜라이더 로컬 변환을 끼워 넣는다.
-			// 당신 Transform이 S*R*T 형태로 만들어지므로, 같은 규칙에 맞춰 Local을 곱해준다.
-			Matrix boxWorld = colliderLocal * tr->mWorldMatrix;
+			// [수정] 스케일 없는 월드에 붙인다 -> 엔티티 Scale에 영향 받지 않음
+			Matrix boxWorld = colliderLocal * worldNoScale;
 
 			objectParams.MatWorld = boxWorld.Transpose();
 			mObjectVector.push_back(objectParams);

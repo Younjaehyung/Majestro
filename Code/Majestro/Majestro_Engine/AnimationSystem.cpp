@@ -60,6 +60,7 @@ void AnimationSystem::Initialize()
 
 void AnimationSystem::Update(float deltaTime)
 {
+	if (false == mWorld->HasComponentPool<AnimationComponent>()) return;
 	RENDERMANAGER.SetComputTable();
 
 	ClearVector();

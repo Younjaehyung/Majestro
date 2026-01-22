@@ -19,11 +19,11 @@ void BeatSystem::Update(float dt)
 	mBeat = (int)(mSeconds / mBpmSeconds);
 	mBeat %= mBpm;
 	//cout << "Beat :" << mBeat << endl;
-
-
+	float s = mSeconds - (float)mBeat * mBpmSeconds;
+	if (false == mWorld->HasComponentPool<BeatComponent>())return;
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<BeatComponent>() };
 
-	float s = mSeconds - (float)mBeat * mBpmSeconds;
+
 	//cout << "seconds :" << s << endl;
 	for (auto& entity : entitys) {
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entity);

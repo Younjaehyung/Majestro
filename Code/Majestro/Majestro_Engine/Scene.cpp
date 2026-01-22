@@ -29,12 +29,12 @@
 
 void Scene::Initialize()
 {
-	PlayerPrefab player{mWorld.get()};
-	EnemyPrefab Enemy{mWorld.get()};
-
+	//PlayerPrefab player{mWorld.get()};
+	PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
+	EnemyPrefab	enemys {mWorld.get() };
 
 
 	
@@ -66,9 +66,8 @@ void Scene::Initialize()
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
 		
 
-		//mWorld->AddComponent<TransformComponent>(osw, t);
-		//mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-		// 
+		mWorld->AddComponent<TransformComponent>(osw, t);
+		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
 		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
 		float i, j, k;
 		float n = 10;

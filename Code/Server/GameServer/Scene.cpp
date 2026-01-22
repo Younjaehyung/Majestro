@@ -24,11 +24,11 @@
 
 void Scene::Initialize()
 {
-	PlayerPrefab player{mWorld};
+	PlayerPrefab player{mWorld.get()};
 
-	TerrainPrefab terrain{ mWorld };
-	SkyBoxPrefab skybox{ mWorld };
-	DirLightPrefab light{ mWorld };
+	//TerrainPrefab terrain{ mWorld };
+	//SkyBoxPrefab skybox{ mWorld };
+	//DirLightPrefab light{ mWorld };
 
 
 	

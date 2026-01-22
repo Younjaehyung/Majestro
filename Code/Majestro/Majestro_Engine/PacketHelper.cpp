@@ -14,6 +14,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::PKT_TCP:
 	case PKT_Type::PKT_LOGIN:
 	case PKT_Type::PKT_SERVER:
+	case PKT_Type::C2S_PKT_LOGIN:
 	case PKT_Type::C2S_PKT_ACTION:
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
@@ -63,6 +64,8 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::PKT_TCP:
 	case PKT_Type::PKT_LOGIN: 
 	case PKT_Type::S2C_PKT_SYNC:
+	case PKT_Type::S2C_PKT_LOGIN:
+	case PKT_Type::S2C_PKT_SPAWN:
 	{
 		ProcessTcpPackets(inputCommand, buffer);
 		break;

@@ -47,6 +47,9 @@ public:
     template<typename T>
     bool HasComponent(Entity entity) const;
 
+    template<typename T>
+    bool HasComponentPool() const;
+
     // 컴포넌트 풀 직접 접근 (성능 최적화용)
     template<typename T>
     ComponentPool<T>& GetComponentPool();
@@ -90,6 +93,12 @@ private:
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };
 
+template<typename T>
+bool World::HasComponentPool() const
+{
+    const ComponentTypeID typeID = T::GetTypeID();
+    return (mComponentPools.find(typeID) != mComponentPools.end());
+}
 
 template<typename T, typename... Args>
 T& World::AddComponent(Entity entity, Args&&... args) {
@@ -191,6 +200,9 @@ const ComponentPool<T>& World::GetComponentPool() const {
     ComponentTypeID typeID = T::GetTypeID();
     auto it = mComponentPools.find(typeID);
 
+    // 없을시 assert가 아니라 생성
+
+    
     assert(it != mComponentPools.end() && "Component pool not found");
     return *static_cast<const ComponentPool<T>*>(it->second.get());
 }

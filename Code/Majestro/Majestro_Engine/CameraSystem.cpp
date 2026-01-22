@@ -20,8 +20,10 @@ void CameraSystem::Initialize()
 	
 void CameraSystem::Update(float dt)
 {
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 
+	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	if (entitys.empty()) return;
 	//TestUpdate(dt);
 	for (auto& entity : entitys) {
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);

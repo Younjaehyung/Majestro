@@ -21,6 +21,9 @@ void EnemySystem::Update(float dt) {
 
 
 	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
+	
+	if (enemyEntitys.empty())return;
+	
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
@@ -28,7 +31,9 @@ void EnemySystem::Update(float dt) {
 		Vec3 dir;
 		float maxLen = std::numeric_limits<float>::infinity();
 
+		if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 		std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
+		
 		for (auto& entity : playerEntitys) {
 			TransformComponent* playerPos = transformPool.GetComponent(entity.GetID());
 

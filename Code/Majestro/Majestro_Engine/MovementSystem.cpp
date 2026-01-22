@@ -17,6 +17,8 @@ MovementSystem::MovementSystem(World* world) : System(world)
 
 
 void MovementSystem::Update(float dt) {
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
@@ -49,6 +51,7 @@ void MovementSystem::Update(float dt) {
 
 	//main player movement
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	if (mainCameraEntitys.empty())return;
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
 	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };

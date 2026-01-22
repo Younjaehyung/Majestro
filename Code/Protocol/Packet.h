@@ -11,14 +11,17 @@ enum PKT_Type : uint32 {
 	PKT_LOGIN,
 	PKT_SERVER,
 	
-
 	// Client -> Server
+	C2S_PKT_LOGIN,
 	C2S_PKT_INPUT,
 	C2S_PKT_ACTION,
 
+
 	// Server -> Client
+	S2C_PKT_LOGIN,
 	S2C_PKT_POS,
 	S2C_PKT_SYNC,
+	S2C_PKT_SPAWN,
 	S2C_PKT_RESPAWN,
 	S2C_PKT_MOVE,
 
@@ -55,16 +58,20 @@ struct PacketUdpHeader {
 	}
 };
 
+
+
 static constexpr uint32 kHeaderSize = sizeof(PacketTcpHeader);
 constexpr uint32 MAX_PACKET_SIZE = 128;
 
+////////////////////////////////////////////
 enum class PrefabType : uint8 {
 	NONE,
 	PLAYER,
-	ENEMY,
+	
 	TERRAIN,
 	SKYBOX,
 	DIRLIGHT,
+	ENEMY,
 	COUNT
 };
 
@@ -87,10 +94,12 @@ enum class RepCompKind : uint8
 
 struct LoginPacket : public PacketTcpHeader {
 	uint32 clientId{};
+
 	LoginPacket() : PacketTcpHeader{ sizeof(LoginPacket), PKT_Type::PKT_LOGIN, 0.0 } {}
 	LoginPacket(uint32 id)
 		: PacketTcpHeader{ sizeof(LoginPacket), PKT_Type::PKT_LOGIN, 0.0 }, clientId(id) {
 	}
+
 };
 
 struct ServerPacket : public PacketTcpHeader {
@@ -102,6 +111,14 @@ struct ServerPacket : public PacketTcpHeader {
 };
 
 ///////////////Server To Client///////////////
+
+struct S2C_LoginPacket : public PacketTcpHeader {
+	uint32 clientId{};
+	S2C_LoginPacket() : PacketTcpHeader{ sizeof(S2C_LoginPacket), PKT_Type::S2C_PKT_LOGIN, 0.0 } {}
+	S2C_LoginPacket(uint32 id)
+		: PacketTcpHeader{ sizeof(S2C_LoginPacket), PKT_Type::S2C_PKT_LOGIN, 0.0 }, clientId(id) {
+	}
+};
 
 struct S2C_SyncPacket : public PacketTcpHeader {
 	uint32_t clientId{};
@@ -146,26 +163,41 @@ struct S2C_MovePacket : public PacketUdpHeader {
 };
 
 struct S2C_SpawnPacekt : public PacketTcpHeader {
+	uint32 SessionId{};
 	uint64 netEntityId{};
+	
+	MsgKind kind = MsgKind::Spawn;
 	PrefabType prefabType{ PrefabType::NONE };
-	S2C_SpawnPacekt() : PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_RESPAWN, 0.0 } {}
-	S2C_SpawnPacekt(uint64 entityId, PrefabType type)
-		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_RESPAWN, 0.0 },
-		netEntityId(entityId), prefabType(type) {
+
+	S2C_SpawnPacekt() : PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 } {}
+	S2C_SpawnPacekt(uint32 sessionId, uint64 entityId, PrefabType type = PrefabType::NONE)
+		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 },
+		SessionId(sessionId), netEntityId(entityId), prefabType(type) {
 	}
 };
 
 ///////////////Client To Server///////////////
 
+struct C2S_LoginPacket : public PacketUdpHeader {
+	uint32 clientId{};
+	C2S_LoginPacket() : PacketUdpHeader{ sizeof(C2S_LoginPacket), PKT_Type::C2S_PKT_LOGIN, 0, 0 } {}
+	C2S_LoginPacket(uint32 id)
+		: PacketUdpHeader{ sizeof(C2S_LoginPacket), PKT_Type::C2S_PKT_LOGIN, 0, 0 }, clientId(id) {
+	}
+};
+
 struct C2S_InputPacket : public PacketUdpHeader {
 	uint64 netEntityId{};
-	float x, y;
 
-	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 }, x(0), y(0) {}
-	C2S_InputPacket(uint64 entityId, float posX, float posY)
-		: PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 },
-		netEntityId(entityId), x(posX), y(posY) {
-	}
+	uint32   Seq = 0;     // 클라 입력 시퀀스(증가)
+	float    Dt = 0.0f;   // 선택: 클라 프레임 dt (서버에서는 보통 무시하거나 참고)
+	float    MoveX = 0.0f; // -1~1
+	float    MoveY = 0.0f; // -1~1
+	uint8    Buttons = 0;  // 비트플래그 (점프/발사/대시 등)
+	float    Yaw = 0.0f;
+	float    Pitch = 0.0f;
+
+	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 } {}
 };
 
 

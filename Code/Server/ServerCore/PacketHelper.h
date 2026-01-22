@@ -68,7 +68,7 @@ struct SendRequest { // Packet to be sent (logic thread -> network thread)
     template<typename T>
     bool StoreAs(const T& src)
     {
-        // [추가] memcpy 저장은 T가 trivially copyable 이어야 안전
+
         static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
 
         if (sizeof(T) > MAX_PACKET_SIZE) return false;

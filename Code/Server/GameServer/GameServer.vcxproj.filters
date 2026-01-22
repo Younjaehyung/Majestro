@@ -55,6 +55,9 @@
     <Filter Include="Component\Utils">
       <UniqueIdentifier>{a916b56b-9b0d-49f6-8a12-9b17b084c818}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Base\Event">
+      <UniqueIdentifier>{166ddb8d-195f-421c-92c6-845c6271abdb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -89,9 +92,6 @@
     </ClCompile>
     <ClCompile Include="ComponentPool.cpp">
       <Filter>Base\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="EventManager.cpp">
-      <Filter>Base\System</Filter>
     </ClCompile>
     <ClCompile Include="Entity.cpp">
       <Filter>Base\World</Filter>
@@ -177,6 +177,12 @@
     <ClCompile Include="TagComponent.cpp">
       <Filter>Component\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="EventManager.cpp">
+      <Filter>Base\Event</Filter>
+    </ClCompile>
+    <ClCompile Include="GameEvents.cpp">
+      <Filter>Base\Event</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -208,9 +214,6 @@
     </ClInclude>
     <ClInclude Include="ComponentPool.h">
       <Filter>Base\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="EventManager.h">
-      <Filter>Base\System</Filter>
     </ClInclude>
     <ClInclude Include="Entity.h">
       <Filter>Base\World</Filter>
@@ -301,6 +304,12 @@
     </ClInclude>
     <ClInclude Include="TagComponent.h">
       <Filter>Component\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="EventManager.h">
+      <Filter>Base\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="GameEvents.h">
+      <Filter>Base\Event</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

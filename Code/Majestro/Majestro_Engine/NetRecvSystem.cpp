@@ -17,8 +17,10 @@ NetRecvSystem::~NetRecvSystem()
 
 void NetRecvSystem::Initialize()
 {
-	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
+    if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
+	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
+    if (entities.empty())return;
 	for (auto& entity : entities)
 	{
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
@@ -28,12 +30,13 @@ void NetRecvSystem::Initialize()
 
 void NetRecvSystem::Update(double deltaTime)
 {
-	return; // 임시 비활성화
+
     constexpr int kMaxMsgsPerTick = 256; // 폭주 방지
     int processed = 0;
-
+    
     while (processed < kMaxMsgsPerTick && gRecvBuffer.Pop(mInputCommand))
     {
+        std::cout << " Packet Received in NetRecvSystem" << std::endl;
         ProcessOne(mInputCommand);
         ++processed;
     }
@@ -44,6 +47,13 @@ void NetRecvSystem::Update(double deltaTime)
 
 void NetRecvSystem::ProcessOne(const InputCommand& msg)
 {
+
+    if (msg.Type == PKT_Type::S2C_PKT_SPAWN) {
+		std::cout << "Spawn Packet Received in NetRecvSystem" << std::endl;
+        HandleSpawn(msg);
+        return;
+    }
+
     switch (msg.Kind)
     {
     case MsgKind::ReplicationDelta:
@@ -72,7 +82,7 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
     Entity e = CreateEntityFromArchetype(archetypeId);
 
     // netId 바인딩 (중요)
-    mNetIdMap->Bind(netId, e);
+    // mNetIdMap->Bind(netId, e);
 
     // 초기 상태도 같이 온다면 반영
     //NetTransformState nts{};
@@ -128,8 +138,6 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
 
 Entity NetRecvSystem::CreateEntityFromArchetype(uint32_t archetypeId)
 {
-    Entity entity = mWorld->CreateEntity();
-	PrefabFactory::Spawn(mWorld, static_cast<PrefabType>(archetypeId), mInputCommand);
-
-    return entity;
+    //Entity entity = mWorld->CreateEntity();
+    return PrefabFactory::Spawn(mWorld, static_cast<PrefabType>(archetypeId), mInputCommand);
 }

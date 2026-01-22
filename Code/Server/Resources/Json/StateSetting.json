@@ -1,0 +1,63 @@
+{
+    "player": {
+        "walkSpeed": 50.0,
+        "runSpeed": 100.0,
+        "dashSpeed": 200.0
+    },
+
+    "stateProps": {
+        "JumpState": {
+            "time": 3.5,
+            "animOnce": true
+        },
+        "DashState": {
+            "time": 3.5,
+            "animOnce": true
+        },
+        "AimState": {
+            "time": 0.5,
+            "animOnce": false
+        },
+        "ReRoadState": {
+            "time": 1.2,
+            "animOnce": true
+        },
+        "RhythmChangeState": {
+            "time": 0.8,
+            "animOnce": true
+        },
+        "HitState": {
+            "time": 0.2,
+            "animOnce": true
+        },
+        "StunState": {
+            "time": 1.0,
+            "animOnce": true
+        },
+        "DeadState": {
+            "time": 5.0,
+            "animOnce": true
+        },
+        "Attack1State": {
+            "time": 0.35,
+            "animOnce": true
+        },
+        "Attack2State": {
+            "time": 0.40,
+            "animOnce": true
+        },
+        "Skill1State": {
+            "time": 0.9,
+            "animOnce": true
+        },
+        "Skill2State": {
+            "time": 1.4,
+            "animOnce": true
+        },
+        "SpecialState": {
+            "time": 2.0,
+            "animOnce": true
+        }
+    }
+
+}

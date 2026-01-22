@@ -39,7 +39,7 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update()
 {
-
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
 	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
 	

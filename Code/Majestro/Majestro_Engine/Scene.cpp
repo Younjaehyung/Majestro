@@ -34,6 +34,7 @@ void Scene::Initialize()
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
+	EnemyPrefab	enemys {mWorld.get() };
 
 
 	

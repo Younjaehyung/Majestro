@@ -67,11 +67,11 @@ constexpr uint32 MAX_PACKET_SIZE = 128;
 enum class PrefabType : uint8 {
 	NONE,
 	PLAYER,
-	ENEMY,
+	
 	TERRAIN,
 	SKYBOX,
 	DIRLIGHT,
-
+	ENEMY,
 	COUNT
 };
 

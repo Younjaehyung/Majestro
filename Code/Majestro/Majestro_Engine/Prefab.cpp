@@ -116,6 +116,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
 
 
@@ -128,6 +130,11 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
+
+	Vec3 half{ 10,10,10 };
+	Vec3 center{ 0,10,0 };
+	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
+
 	std::cout << "Create Prefab" << std::endl;
 	return mEntityID;
 }

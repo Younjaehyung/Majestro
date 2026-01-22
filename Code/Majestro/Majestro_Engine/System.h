@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 
+class EventManager;
 class World;
 
 class System{
@@ -13,6 +14,8 @@ public:
 
 protected:
     System(World* world) : mWorld(world) {}
+	System(World* world, EventManager* event) : mWorld(world), mEventManager(event){} // for future use with args
 
     World* mWorld;
+    EventManager* mEventManager = nullptr;
 };

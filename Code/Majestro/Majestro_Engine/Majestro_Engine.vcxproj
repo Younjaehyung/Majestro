@@ -204,6 +204,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="FBXData.h" />
+    <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="Imgui.h" />
     <ClInclude Include="IMGUIComponent.h" />
@@ -217,8 +218,10 @@
     <ClInclude Include="MovementSystem.h" />
     <ClInclude Include="NetEntityComponent.h" />
     <ClInclude Include="NetIdMap.h" />
+    <ClInclude Include="NetInterpolationSystem.h" />
     <ClInclude Include="NetRecvSystem.h" />
     <ClInclude Include="NetSendSystem.h" />
+    <ClInclude Include="NetTransformComponent.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PacketHelper.h" />
@@ -290,6 +293,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FBXData.cpp" />
+    <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
     <ClCompile Include="Imgui.cpp" />
     <ClCompile Include="IMGUIComponent.cpp" />
@@ -302,8 +306,10 @@
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />
     <ClCompile Include="NetIdMap.cpp" />
+    <ClCompile Include="NetInterpolationSystem.cpp" />
     <ClCompile Include="NetRecvSystem.cpp" />
     <ClCompile Include="NetSendSystem.cpp" />
+    <ClCompile Include="NetTransformComponent.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="PacketHelper.cpp" />

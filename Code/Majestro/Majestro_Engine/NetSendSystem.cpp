@@ -7,7 +7,7 @@
 #include "NetEntityComponent.h"
 #include "InputManager.h"
 
-NetSendSystem::NetSendSystem(World* world) : System::System(world)
+NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
 {
 
 }

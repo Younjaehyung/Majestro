@@ -19,8 +19,8 @@
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
-    RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
-    RegisterSystem<NetSendSystem>();
+    RegisterSystem<NetRecvSystem>(mEventManager.get(), mWorld->GetNetIdMap());
+    RegisterSystem<NetSendSystem>(mEventManager.get());
 
     RegisterSystem<CameraSystem>();
     RegisterSystem<RenderSystem>();
@@ -48,30 +48,45 @@ SystemManager::~SystemManager()
 }
 
 void SystemManager::Update(float deltaTime) {
-    for (auto& sys : mAwakeSystems)        sys->Update(deltaTime);
-    for (auto& sys : mStartSystems)        sys->Update(deltaTime);
-    for (auto& sys : mUpdateSystems)       sys->Update(deltaTime);
-    for (auto& sys : mLateUpdateSystems)   sys->Update(deltaTime);
-    for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
+    //for (auto& sys : mAwakeSystems)        sys->Update(deltaTime);
+    //for (auto& sys : mStartSystems)        sys->Update(deltaTime);
+    //for (auto& sys : mUpdateSystems)       sys->Update(deltaTime);
+    //for (auto& sys : mLateUpdateSystems)   sys->Update(deltaTime);
+    //for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
 
+	NetUpdate(deltaTime);
+
+    PreUpdate(deltaTime);
+	
+	PostUpdate(deltaTime);
+
+}
+
+void SystemManager::NetUpdate(float deltaTime)
+{
     GetSystem<NetRecvSystem>()->Update(deltaTime);
     GetSystem<NetSendSystem>()->Update(deltaTime);
+}
 
-
-    GetSystem<AudioSystem>()->Update(deltaTime);
+void SystemManager::PreUpdate(float deltaTime)
+{
+    mEventManager->BeginPhase(EventPhase::Pre);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<EnemySystem>()->Update(deltaTime);
-    GetSystem<AnimationSystem>()->Update(deltaTime);
+}
 
+void SystemManager::PostUpdate(float deltaTime)
+{
+    mEventManager->BeginPhase(EventPhase::Post);
     GetSystem<TransformSystem>()->Update(deltaTime);
-
     GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
+    GetSystem<AudioSystem>()->Update(deltaTime);
     GetSystem<EffectSystem>()->Update(deltaTime);
-    
+    GetSystem<AnimationSystem>()->Update(deltaTime);
 }
 
 void SystemManager::Render() {

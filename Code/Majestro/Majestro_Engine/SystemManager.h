@@ -10,6 +10,12 @@ public:
 
     void Update(float deltaTime);
 
+
+	void NetUpdate(float deltaTime);
+    void PreUpdate(float deltaTime);
+	void PostUpdate(float deltaTime);
+	
+
     void Render();
 
     void Shutdown();

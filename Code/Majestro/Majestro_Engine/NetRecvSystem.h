@@ -3,10 +3,12 @@
 #include "NetIdMap.h"
 #include "PacketHelper.h"
 
+class  EventManager;
+
 class NetRecvSystem : public System
 {
 public:
-	NetRecvSystem(World* world, shared_ptr<NetIdMap>& netIdMap);
+	NetRecvSystem(World* world, EventManager* event,shared_ptr<NetIdMap>& netIdMap);
 	virtual ~NetRecvSystem();
 
 	void Initialize();

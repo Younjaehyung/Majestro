@@ -6,7 +6,8 @@
 #include "NetIdMap.h"
 #include "Prefab.h"
 
-NetRecvSystem::NetRecvSystem(World* world, shared_ptr<NetIdMap>& netIdMap) : System::System(world)
+NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
+	: System::System(world, event)
 {
 	mNetIdMap = netIdMap;
 }
@@ -123,6 +124,8 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
         return;
     }
 
+	
+    //mEventManager->PushPre(msg); // TODO: 적절한 이벤트 생성
     switch (compKind)
     {
     case RepCompKind::NetTransform:

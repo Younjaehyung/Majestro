@@ -11,6 +11,7 @@ struct MaterialParams;
 struct PatricleParams;
 class Mesh;
 class Shader;
+class Material;
 
 
 struct RenderParams 
@@ -210,5 +211,11 @@ private:
 
 	DrawBatch mBatch{};
 	uint32  mCurrPSOID{};
+
+private: //디버그용 충돌박스
+	shared_ptr<Mesh> mWireCube;
+	shared_ptr<Material> mDebugLineMat; // 또는 NoDepth 버전
+	shared_ptr<Material> mDebugLineNoDepthMat; // 또는 NoDepth 버전
+	bool mDrawColliders = true;
 };
 

@@ -14,6 +14,8 @@ void ResourceManager::Initialize()
 
 	LoadRectangleMesh();
 	LoadSphereMesh();
+
+	LoadWireCubeMesh();
 	
 }
 
@@ -219,6 +221,46 @@ shared_ptr<Mesh> ResourceManager::LoadCubeMesh()
 	mesh->Init(vec, idx);
 	Add(L"Cube", mesh);
 
+	return mesh;
+}
+
+shared_ptr<Mesh> ResourceManager::LoadWireCubeMesh()
+{
+	shared_ptr<Mesh> findMesh = Get<Mesh>(L"WireCube");
+	if (findMesh)
+		return findMesh;
+
+	const float h = 0.5f;
+
+	vector<Vertex> v(8);
+	auto MakeV = [](float x, float y, float z)
+		{
+			Vertex vv{};
+			vv.pos = Vec3(x, y, z);
+			// uv/normal/tangent 등은 0이어도 됨(디버그 라인 셰이더에서 안 씀)
+			return vv;
+		};
+
+	v[0] = MakeV(-h, -h, -h);
+	v[1] = MakeV(+h, -h, -h);
+	v[2] = MakeV(+h, +h, -h);
+	v[3] = MakeV(-h, +h, -h);
+	v[4] = MakeV(-h, -h, +h);
+	v[5] = MakeV(+h, -h, +h);
+	v[6] = MakeV(+h, +h, +h);
+	v[7] = MakeV(-h, +h, +h);
+
+	// 12 edges => 24 indices (LINELIST)
+	vector<uint32> i =
+	{
+		0,1, 1,2, 2,3, 3,0,
+		4,5, 5,6, 6,7, 7,4,
+		0,4, 1,5, 2,6, 3,7
+	};
+
+	shared_ptr<Mesh> mesh = make_shared<Mesh>();
+	mesh->Init(v, i);
+	Add(L"WireCube", mesh);
 	return mesh;
 }
 
@@ -743,6 +785,48 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"AnimationComputeShader", shader);
 	
 	}
+
+	// DebugLine (Depth Test O, Depth Write X)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+			D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINELIST // [핵심]
+		};
+
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\debugline_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\debugline_PS.hlsl"
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		Add<Shader>(L"DebugLine", shader);
+	}
+
+	// DebugLine (항상 보이게: Depth Test X)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+			D3D_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINELIST
+		};
+
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\debugline_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\debugline_PS.hlsl"
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		Add<Shader>(L"DebugLine_NoDepth", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()
@@ -868,6 +952,19 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"GuitarPortrait", material);
 	}
 
+	// DebugLine Material
+	{
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"DebugLine");
+		Add<Material>(L"DebugLine", material);
+	}
+
+	// DebugLine_NoDepth Material
+	{
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"DebugLine_NoDepth");
+		Add<Material>(L"DebugLine_NoDepth", material);
+	}
 
 	// GameObject
 	//{
@@ -895,6 +992,8 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Fall.fbx");
+
+	LoadFBX(L"..\\Resources\\FBX\\NoteBoar_Run.fbx");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 }

@@ -10,6 +10,7 @@
 #include "LightComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "AnimationComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
@@ -19,6 +20,7 @@
 #include "MovementComponent.h"
 #include "VfxComponent.h"
 #include "NetEntityComponent.h"
+#include "BoxColliderComponent.h"
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
 {
@@ -59,6 +61,8 @@ PlayerPrefab::PlayerPrefab(World* world)
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
 
 
@@ -71,6 +75,10 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
+
+	Vec3 half{ 10,10,10 };
+	Vec3 center{ 0,10,0 };
+	world->AddComponent<BoxColliderComponent>(mEntityID,half,center);
 
 }
 
@@ -121,6 +129,96 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
 	std::cout << "Create Prefab" << std::endl;
+	return mEntityID;
+}
+
+EnemyPrefab::EnemyPrefab(World* world)
+{
+	mEntityID = world->CreateEntity();
+
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"NoteHog_mBody");
+	std::vector<shared_ptr<Material>> material2s;
+
+
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"NoteBoar_Run0");
+	material2s.push_back(material2);
+	TransformComponent t{};
+	t.mLocalPosition = { 0.f, 0.f, 0.f };
+	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
+	vector<shared_ptr<Animator>> anmators;
+	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"NoteBoar_Rig|NoteBoar_aRun"));
+
+	//mWorld->AddComponent<AnimationComponent>(osw, anmators);
+	float i, j, k;
+	float n = 10;
+	for (i = -50; i < 50; i += 10.0f) {
+		for (j = -50; j < 50; j += 10.0f) {
+			//for (k = -50; k < 50; k += 10.0f) {
+			Entity mEntityID = world->CreateEntity();
+			t.mLocalPosition = { i * n, 0, j * n };
+
+
+			world->AddComponent<TransformComponent>(mEntityID, t);
+			world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+			world->AddComponent<GravityComponent>(mEntityID);
+			world->AddComponent<AnimationComponent>(mEntityID, anmators);
+			world->AddComponent<EnemyComponent>(mEntityID);
+			world->AddComponent<EnemyMovementComponent>(mEntityID);
+			world->AddComponent<BoxColliderComponent>(mEntityID);
+			//}
+		}
+
+	}
+
+}
+
+EnemyPrefab::~EnemyPrefab()
+{
+}
+
+Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
+{
+	Entity mEntityID = world->CreateEntity();
+
+	TransformComponent t{};
+	Entity testCamera = world->CreateEntity();
+	world->AddComponent<MainCameraComponent>(testCamera);
+	world->AddComponent<CameraComponent>(testCamera);
+	world->AddComponent<TransformComponent>(testCamera, t);
+	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
+
+	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+
+	std::vector<shared_ptr<Material>> material2s;
+
+	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+
+
+	material2s.push_back(material2);
+	t.mLocalPosition = { 0.f, 0.f, 10.f };
+	t.mLocalScale = { 10.f, 10.f, 10.f };
+
+	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
+	vector<shared_ptr<Animator>> anmators0;
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+
+
+	world->AddComponent<ControllerComponent>(mEntityID, t);
+	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+	world->AddComponent<TransformComponent>(mEntityID, t);
+	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	world->AddComponent<BeatComponent>(mEntityID);
+	world->AddComponent<GravityComponent>(mEntityID);
+	world->AddComponent<PlayerMovementComponent>(mEntityID);
+	world->AddComponent<NetEntityComponent>(mEntityID);
+
 	return mEntityID;
 }
 

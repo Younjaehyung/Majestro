@@ -15,6 +15,7 @@
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
 #include "PlayerInputSystem.h"
+#include "EnemySystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -34,6 +35,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<MovementSystem>();
     RegisterSystem<EffectSystem>();
     RegisterSystem<PlayerInputSystem>();
+    RegisterSystem<EnemySystem>();
 
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();
@@ -56,15 +58,18 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<NetSendSystem>()->Update(deltaTime);
 
 
-    GetSystem<TransformSystem>()->Update(deltaTime);
-    GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);
-    GetSystem<AnimationSystem>()->Update(deltaTime);
-    GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
+    GetSystem<MovementSystem>()->Update(deltaTime);
+    GetSystem<CameraSystem>()->Update(deltaTime);
+    GetSystem<EnemySystem>()->Update(deltaTime);
+    GetSystem<AnimationSystem>()->Update(deltaTime);
+
+    GetSystem<TransformSystem>()->Update(deltaTime);
+
+    GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
-    GetSystem<MovementSystem>()->Update(deltaTime);
     GetSystem<EffectSystem>()->Update(deltaTime);
     
 }

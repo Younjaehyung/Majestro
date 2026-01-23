@@ -363,12 +363,10 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 
 			C2S_LoginPacket loginPkt;
 			loginPkt.clientId = mClientId;
-			loginPkt.Header.PacketType = C2S_PKT_LOGIN;
-			loginPkt.Header.Size = sizeof(C2S_LoginPacket);
 			loginPkt.Sequence = 0;
-			loginPkt.SessionId = 0;
+			loginPkt.SessionId = mClientId;
 
-			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(loginPkt), 0,
+			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(C2S_LoginPacket), 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));
 		}
 		std::cout << "Rec" << mClientId << std::endl;

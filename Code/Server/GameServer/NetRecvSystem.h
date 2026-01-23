@@ -48,7 +48,7 @@ public:
 	void RecvInput(uint32 sessionId, const InputFrame& inputFrame);
 private:
 
-	void LoginProcess(uint32 sessionId);
+	void LoginProcess(InputCommand& inputCommand);
 
 
 private:

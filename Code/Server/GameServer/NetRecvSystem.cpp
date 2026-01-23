@@ -29,7 +29,7 @@ void NetRecvSystem::Update(float dt)
 			}
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
-				LoginProcess(0);
+				LoginProcess(mInputCommand);
 				break;
 			}
 		}
@@ -61,16 +61,16 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const InputFrame& inputFrame)
 	}
 }
 
-void NetRecvSystem::LoginProcess(uint32 sessionId)
+void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 {
 	uint32 ssessionId = 0;//mInputCommand.SessionId;
 
 
-	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, mInputCommand);
+	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
 
-	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 
 	SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 	request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
@@ -83,13 +83,14 @@ void NetRecvSystem::LoginProcess(uint32 sessionId)
 		
 
 		netComp = mWorld->GetComponent<NetEntityComponent>(N.second);
-		if (mInputCommand.SessionId == netComp->mSessionId)
+		
+		if (inputCommand.SessionId == netComp->mSessionId)
 			continue;
 
 
-		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 
-		SendRequest request{ mInputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
 		gSendQueue.Push(request);
 	}

@@ -76,8 +76,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
-	world->AddComponent<NetEntityComponent>(mEntityID,world,mEntityID);
-
+	auto& w = world->AddComponent<NetEntityComponent>(mEntityID,world,mEntityID);
+	w.mSessionId = ctx.SessionId;
 	return mEntityID;
 }
 

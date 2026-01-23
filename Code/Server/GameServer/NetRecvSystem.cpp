@@ -79,14 +79,20 @@ void NetRecvSystem::LoginProcess(uint32 sessionId)
 
 
 
-	//for (auto& N : mWorld->GetNetIdMap()->GetNetIdMap()) {
-	//	netComp = mWorld->GetComponent<NetEntityComponent>(N.second);
-	//	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+	for (auto& N : mWorld->GetNetIdMap()->GetNetIdMap()) {
+		
 
-	//	SendRequest request{ mInputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
-	//	request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
-	//	gSendQueue.Push(request);
-	//}
+		netComp = mWorld->GetComponent<NetEntityComponent>(N.second);
+		if (mInputCommand.SessionId == netComp->mSessionId)
+			continue;
+
+
+		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+
+		SendRequest request{ mInputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(request);
+	}
 
 }
 

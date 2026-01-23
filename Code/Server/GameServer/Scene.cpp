@@ -24,7 +24,8 @@
 
 void Scene::Initialize()
 {
-	PlayerPrefab player{mWorld.get()};
+	PlayerPrefab p{ mWorld.get()};
+	PrefabFactory::RegisterAllPrefabs();
 
 	//TerrainPrefab terrain{ mWorld };
 	//SkyBoxPrefab skybox{ mWorld };

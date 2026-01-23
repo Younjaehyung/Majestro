@@ -46,7 +46,11 @@ public:
 	NetRecvSystem(World* world);
 	void Update(float dt) override;
 	void RecvInput(uint32 sessionId, const InputFrame& inputFrame);
-    
+private:
+
+	void LoginProcess(uint32 sessionId);
+
+
 private:
 	InputBuffer mInputBuffer;
 	InputCommand mInputCommand;

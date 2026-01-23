@@ -13,11 +13,13 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::PKT_TCP:
 	case PKT_Type::PKT_LOGIN:
 	case PKT_Type::S2C_PKT_SYNC:
-	case PKT_Type::S2C_PKT_LOGIN:{
+	case PKT_Type::S2C_PKT_LOGIN:
+	case PKT_Type::S2C_PKT_SPAWN:
+	{
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
 	}
-	case PKT_Type::PKT_UDP: {
+	case PKT_Type::PKT_UDP:  {
 		SerializeUdpPacket(pkt, sendBuffer);
 		break;
 	}
@@ -53,18 +55,20 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	PacketHeader header;
 	::memcpy(&header, buffer, sizeof(PacketHeader));
 	
-	
+	inputCommand.Type = header.PacketType;
+	inputCommand.SIze = header.Size;
+	//inputCommand.Kind = MsgKind::KNONE;
 
 	switch (header.PacketType) {
 	case PKT_Type::PKT_TCP:
 	case PKT_Type::PKT_LOGIN:
-	case PKT_Type::C2S_PKT_ACTION:
-	case PKT_Type::C2S_PKT_LOGIN:{
+	case PKT_Type::C2S_PKT_ACTION:{
 		ProcessTcpPackets(inputCommand, buffer , header.Size);
 		break;
 	}
 	case PKT_Type::PKT_UDP:
-	case PKT_Type::C2S_PKT_INPUT: {
+	case PKT_Type::C2S_PKT_INPUT:
+	case PKT_Type::C2S_PKT_LOGIN: {
 		ProcessUdpPackets(inputCommand, buffer, header.Size);
 		break;
 	}
@@ -82,5 +86,6 @@ void ProcessPacket::ProcessTcpPackets(InputCommand& inputCommand, BYTE* buffer, 
 
 void ProcessPacket::ProcessUdpPackets(InputCommand& inputCommand, BYTE* buffer, uint32 size)
 {
+	
 	::memcpy(&inputCommand.MsgBuffer, buffer, size);
 }

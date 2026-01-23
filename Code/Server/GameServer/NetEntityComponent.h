@@ -16,7 +16,7 @@ class NetEntityComponent : public Component<NetEntityComponent>
 	};
 public:
 	NetEntityComponent();
-	NetEntityComponent(shared_ptr<World> world, Entity entity);
+	NetEntityComponent(World* world, Entity entity);
 
 public:
 	Entity mOwnerEntity = NULL_ENTITY;

@@ -14,6 +14,7 @@ public:
     void Bind(uint64 netId, Entity e) { mMap[netId] = e; }
     void Unbind(uint64 netId) { mMap.erase(netId); }
 
+    std::unordered_map<uint64, Entity>& GetNetIdMap() { return mMap; }
 private:
     std::unordered_map<uint64, Entity> mMap;
 };

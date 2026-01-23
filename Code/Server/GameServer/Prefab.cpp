@@ -46,7 +46,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
-	world->AddComponent<NetEntityComponent>(mEntityID);
+	world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
 
 }
 
@@ -76,7 +76,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
-	world->AddComponent<NetEntityComponent>(mEntityID);
+	world->AddComponent<NetEntityComponent>(mEntityID,world,mEntityID);
 
 	return mEntityID;
 }

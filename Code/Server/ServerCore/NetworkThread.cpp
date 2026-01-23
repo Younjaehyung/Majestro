@@ -288,17 +288,18 @@ void NetworkThread::HandleUdpRecv()
                 // 주소 매핑 등록
                 targetSession->SetUNetAddress(fromAddr);
                 mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
+                targetSession->OnUdpRecv(mURecvBuffer, len);
                 
             }
             std::cout << "No session found for UDP packet from " << std::endl;
             std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
             
 			// client에게 prefab생성 패킷 전송
-			SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	/*		SendBuffer* sendBuffer = SendBufferManager::Acquire();
 			S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(targetSession->GetPlayerId(), targetSession->GetPlayerId(), PrefabType::PLAYER);
 			sendBuffer->SetData(&spawnPkt, sizeof(S2C_SpawnPacekt), TCP);
 			targetSession->mTSendBufferQueue.push(sendBuffer);
-			
+			*/
         }
 
 
@@ -445,7 +446,19 @@ bool NetworkThread::PushSend()
         if (mData.SessionId == 0)
         {
             for (auto& s : mSessionMgr.mSessions  ) {
-                s.second->SendTcpData(sendBuffer);
+                switch (sendBuffer->Protocol)
+                {
+                case TCP:
+
+                    s.second->SendTcpData(sendBuffer);
+                    break;
+                case UDP:
+
+                    s.second->SendUdpData(sendBuffer);
+                    break;
+                default:
+                    break;
+                }
             }
         }
         else if (mSessionMgr.mSessions.contains(mData.SessionId))

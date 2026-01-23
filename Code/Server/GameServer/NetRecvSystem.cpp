@@ -15,7 +15,7 @@ void NetRecvSystem::Update(float dt)
 	constexpr int kMaxMsgsPerTick = 256;
 	int processed = 0;
 	while (processed < kMaxMsgsPerTick && gRecvQueue.Pop(mInputCommand)) {
-
+		std::cout << "nae" << endl;
 		switch (mInputCommand.Type)
 		{
 			case PKT_Type::C2S_PKT_INPUT:
@@ -27,20 +27,10 @@ void NetRecvSystem::Update(float dt)
 				}
 				break;
 			}
-			case PKT_Type::PKT_LOGIN:
+			case PKT_Type::C2S_PKT_LOGIN:
 			{
-				uint32 ssessionId = mInputCommand.SessionId;
-
-
-				Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, mInputCommand);
-
-				NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
-
-				S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-				
-				SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
-				request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
-				gSendQueue.Push(request);
+				LoginProcess(0);
+				break;
 			}
 		}
 		++processed;
@@ -69,5 +59,34 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const InputFrame& inputFrame)
 			break;
 		}
 	}
+}
+
+void NetRecvSystem::LoginProcess(uint32 sessionId)
+{
+	uint32 ssessionId = 0;//mInputCommand.SessionId;
+
+
+	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, mInputCommand);
+
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+
+	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+
+	SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+	request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+	gSendQueue.Push(request);
+	std::cout << "[YSW]Spawn Packet Sent to SessionID: " << ssessionId << netComp->mNetEntityId << std::endl;
+
+
+
+	//for (auto& N : mWorld->GetNetIdMap()->GetNetIdMap()) {
+	//	netComp = mWorld->GetComponent<NetEntityComponent>(N.second);
+	//	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(mInputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+
+	//	SendRequest request{ mInputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+	//	request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+	//	gSendQueue.Push(request);
+	//}
+
 }
 

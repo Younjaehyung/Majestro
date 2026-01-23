@@ -8,9 +8,8 @@ NetEntityComponent::NetEntityComponent()
 	mNetEntityId = ++NetEntityID;
 }
 
-NetEntityComponent::NetEntityComponent(World* world, Entity entity)
+NetEntityComponent::NetEntityComponent(World* world, Entity entity) : NetEntityComponent()
 {
-	NetEntityComponent();
 	mOwnerEntity = entity;
 	world->NetIdBinding(mNetEntityId, entity);
 }

@@ -5,6 +5,7 @@
 #include "NetEntityComponent.h"
 #include "InputComponent.h"
 #include "Prefab.h"
+#include "PlayerComponent.h"
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
@@ -81,14 +82,17 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 
 	for (auto& N : mWorld->GetNetIdMap()->GetNetIdMap()) {
 		
-
 		netComp = mWorld->GetComponent<NetEntityComponent>(N.second);
 		
-		if (inputCommand.SessionId == netComp->mSessionId)
+
+		if(nullptr == mWorld->GetComponent<MainPlayerComponent>(N.second)|| nullptr== netComp)
+			continue;
+		
+		if (inputCommand.SessionId == netComp->mSessionId || netComp->mSessionId == 0)
 			continue;
 
 
-		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 
 		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);

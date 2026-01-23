@@ -966,6 +966,23 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"DebugLine_NoDepth", material);
 	}
 
+	// ResourceManager::CreateDefaultMaterial() 안에 추가
+	{
+		// DebugLine_Green
+		auto mat = make_shared<Material>();
+		mat->SetShader(L"DebugLine");                 // 동일 셰이더
+		mat->GetParams().Diffuse = Vec4(0.f, 1.f, 0.f, 1.f);                           
+		Add<Material>(L"DebugLine_Green", mat);
+	}
+
+	{
+		// DebugLine_Red
+		auto mat = make_shared<Material>();
+		mat->SetShader(L"DebugLine");
+		mat->GetParams().Diffuse = Vec4(1.f, 0.f, 0.f, 1.f);
+		Add<Material>(L"DebugLine_Red", mat);
+	}
+
 	// GameObject
 	//{
 

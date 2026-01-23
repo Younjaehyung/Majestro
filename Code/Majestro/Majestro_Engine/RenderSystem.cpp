@@ -32,6 +32,9 @@ void RenderSystem::Initialize()
 	mDebugLineMat = RESOURCEMANAGER.Get<Material>(L"DebugLine");
 	mDebugLineNoDepthMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_NoDepth");
 
+	mDebugLineGreenMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_Green"); 
+	mDebugLineRedMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_Red");
+
 	mDeferredDrawItems.reserve(1000);
 	mDeferredDrawBatchs.reserve(1000);
 	mInstanceVector.reserve(1000);
@@ -292,8 +295,8 @@ void RenderSystem::PushObjectData()
 
 			// 콜라이더 로컬 변환 (이 스케일은 "충돌박스 자체 크기"이므로 유지)
 			Matrix colliderLocal =
-				Matrix::CreateScale(col->HalfExtents * 2.0f) *
-				Matrix::CreateTranslation(col->Center);
+				Matrix::CreateScale(col->mHalfExtents * 2.0f) *
+				Matrix::CreateTranslation(col->mCenter);
 
 			// [수정] 스케일 없는 월드에 붙인다 -> 엔티티 Scale에 영향 받지 않음
 			Matrix boxWorld = colliderLocal * worldNoScale;
@@ -304,7 +307,12 @@ void RenderSystem::PushObjectData()
 			const uint32 objIndex = index++;
 			const int32 animId = -1;
 
-			shared_ptr<Material> mat = col->bNoDepth ? mDebugLineNoDepthMat : mDebugLineMat;
+			shared_ptr<Material> mat = nullptr;
+			if (col->bIsColliding)
+				mat = mDebugLineRedMat;
+			else
+				mat = mDebugLineGreenMat;
+
 			if (!mat) continue;
 
 			mDeferredDrawItems.emplace_back(

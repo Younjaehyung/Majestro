@@ -216,6 +216,8 @@ private: //디버그용 충돌박스
 	shared_ptr<Mesh> mWireCube;
 	shared_ptr<Material> mDebugLineMat; // 또는 NoDepth 버전
 	shared_ptr<Material> mDebugLineNoDepthMat; // 또는 NoDepth 버전
+	shared_ptr<Material> mDebugLineGreenMat; // 또는 NoDepth 버전
+	shared_ptr<Material> mDebugLineRedMat; // 또는 NoDepth 버전
 	bool mDrawColliders = true;
 };
 

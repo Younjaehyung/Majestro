@@ -1,6 +1,10 @@
 #pragma once
 #include "World.h"
 #include "System.h"
+
+//class TransformComponent;
+//class BoxColliderComponent;
+
 class CollisionSystem :public System
 {
 public:
@@ -9,9 +13,6 @@ public:
 	void Initialize() {};
 	void Update(float deltaTime);
 
-public:
-	DirectX::BoundingOrientedBox mBoundingBoxA;
-	DirectX::BoundingOrientedBox mBoundingBoxB;
-
 };
 
+//static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);

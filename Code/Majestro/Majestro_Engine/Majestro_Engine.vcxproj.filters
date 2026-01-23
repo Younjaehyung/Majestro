@@ -402,6 +402,9 @@
     </ClInclude>
     <ClInclude Include="NetInterpolationSystem.h" />
     <ClInclude Include="NetTransformComponent.h" />
+    <ClInclude Include="CollisionSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -655,6 +658,9 @@
     </ClCompile>
     <ClCompile Include="NetInterpolationSystem.cpp" />
     <ClCompile Include="NetTransformComponent.cpp" />
+    <ClCompile Include="CollisionSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

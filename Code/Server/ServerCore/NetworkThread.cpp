@@ -431,21 +431,25 @@ bool NetworkThread::PushSend()
     while (gSendQueue.Pop(mData)) {
 
 
-        SendBuffer* sendBuffer = SendBufferManager::Acquire();
-        if (sendBuffer == nullptr)
-        {
-            LOG_ERROR("SendBuffer Acquire Failed");
-            continue;
-        }
-
-        if (false == SendRequestPacket::SerializePacket(mData, sendBuffer)) {
-            SendBufferManager::Release(sendBuffer);
-            continue;
-        }
 
         if (mData.SessionId == 0)
         {
+
+
             for (auto& s : mSessionMgr.mSessions  ) {
+            
+                SendBuffer* sendBuffer = SendBufferManager::Acquire();
+                if (sendBuffer == nullptr)
+                {
+                    LOG_ERROR("SendBuffer Acquire Failed");
+                    continue;
+                }
+
+                if (false == SendRequestPacket::SerializePacket(mData, sendBuffer)) {
+                    SendBufferManager::Release(sendBuffer);
+                    continue;
+                }
+
                 switch (sendBuffer->Protocol)
                 {
                 case TCP:
@@ -457,13 +461,25 @@ bool NetworkThread::PushSend()
                     s.second->SendUdpData(sendBuffer);
                     break;
                 default:
+                    SendBufferManager::Release(sendBuffer);
                     break;
                 }
             }
         }
         else if (mSessionMgr.mSessions.contains(mData.SessionId))
         {
-			
+            SendBuffer* sendBuffer = SendBufferManager::Acquire();
+            if (sendBuffer == nullptr)
+            {
+                LOG_ERROR("SendBuffer Acquire Failed");
+                continue;
+            }
+
+            if (false == SendRequestPacket::SerializePacket(mData, sendBuffer)) {
+                SendBufferManager::Release(sendBuffer);
+                continue;
+            }
+
             switch (sendBuffer->Protocol)
             {
             case TCP:
@@ -475,15 +491,13 @@ bool NetworkThread::PushSend()
                 mSessionMgr.mSessions[mData.SessionId]->SendUdpData(sendBuffer);
                 break;
             default:
+                SendBufferManager::Release(sendBuffer);
                 break;
             }
 
            
         }
-        else
-        {
-            SendBufferManager::Release(sendBuffer);
-        }
+
     }
     return true;
 }

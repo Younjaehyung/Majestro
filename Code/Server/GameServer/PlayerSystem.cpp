@@ -23,6 +23,10 @@ void PlayerSystem::Update(float dt)
 {
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
 
-	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
-	mainPlayerComponent->Update(dt);
+	for(auto & entity : entitys)
+	{
+		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
+		mainPlayerComponent->Update(dt);
+	}
+	
 }

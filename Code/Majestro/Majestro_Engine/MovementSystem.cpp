@@ -23,6 +23,7 @@ void MovementSystem::Update(float dt) {
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
+	std::cout << "[MovementSystem] Terrain Height at (0,0): " << terrainComponent->GetHeightAtWorldPosition(Vec3(0.0f, 0.0f, 0.0f)) << std::endl;
 
 	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {
@@ -65,14 +66,14 @@ void MovementSystem::Update(float dt) {
 			Vec3 forward = transformComponent->GetLook();
 			Vec3 right = transformComponent->GetRight();
 
-			// WASD ÀÔ·Â
+			// WASD ìž…ë ¥
 			float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
 			float iy = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
 
-			// ·ÎÄÃ ÀÔ·Â ¹æÇâÀ» ¿ùµå ¹æÇâÀ¸·Î º¯È¯
+			// ë¡œì»¬ ìž…ë ¥ ë°©í–¥ì„ ì›”ë“œ ë°©í–¥ìœ¼ë¡œ ë³€í™˜
 			Vec3 desired = forward * iy + right * ix;
 
-			// Á¤±ÔÈ­
+			// ì •ê·œí™”
 			if (desired.LengthSquared() > 0.0001f)
 				desired.Normalize();
 
@@ -80,19 +81,22 @@ void MovementSystem::Update(float dt) {
 
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
 
+			{
+				std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
+			}
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 			Vec3 forward = transformComponent->GetLook();
 			Vec3 right = transformComponent->GetRight();
 
-			// WASD ÀÔ·Â
+			// WASD ìž…ë ¥
 			float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
 			float iy = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
 
-			// ·ÎÄÃ ÀÔ·Â ¹æÇâÀ» ¿ùµå ¹æÇâÀ¸·Î º¯È¯
+			// ë¡œì»¬ ìž…ë ¥ ë°©í–¥ì„ ì›”ë“œ ë°©í–¥ìœ¼ë¡œ ë³€í™˜
 			Vec3 desired = forward * iy + right * ix;
 
-			// Á¤±ÔÈ­
+			// ì •ê·œí™”
 			if (desired.LengthSquared() > 0.0001f)
 				desired.Normalize();
 

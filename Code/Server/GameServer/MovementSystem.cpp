@@ -26,6 +26,7 @@ void MovementSystem::Update(float dt) {
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
 	
+
 	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -54,76 +55,84 @@ void MovementSystem::Update(float dt) {
 	//main player movement
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	if (mainCameraEntitys.empty())return;
-	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
-
 	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
-	for (auto& entity : playerEntitys) {
-		//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
-		InputComponent* inputComponent = mWorld->GetComponent<InputComponent>(entity);
 
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
+	
 
+	for (auto& cameraEntitys : mainCameraEntitys)
+	{
+		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(cameraEntitys);
 
-		if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
-			Vec3 forward = transformComponent->GetLook();
-			Vec3 right = transformComponent->GetRight();
+		for (auto& entity : playerEntitys) {
+			//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
+			InputComponent* inputComponent = mWorld->GetComponent<InputComponent>(entity);
 
-			// WASD 입력
-			float ix = inputComponent->MoveX;//movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
-			float iy = inputComponent->MoveZ;//movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
-
-			// 로컬 입력 방향을 월드 방향으로 변환
-			Vec3 desired = forward * iy + right * ix;
-
-			// 정규화
-			if (desired.LengthSquared() > 0.0001f)
-				desired.Normalize();
-
-			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
-
-			transformComponent->mLocalRotation.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
+			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+			MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
 
-			std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
-			std::cout << "mx " << ix << "," << iy << std::endl;
-		}
-		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
-			Vec3 forward = transformComponent->GetLook();
-			Vec3 right = transformComponent->GetRight();
+			if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
+				Vec3 forward = transformComponent->GetLook();
+				Vec3 right = transformComponent->GetRight();
 
-			// WASD 입력
-			float ix = inputComponent->MoveX;
-			float iy = inputComponent->MoveZ;
+				// WASD 입력
+				float ix = inputComponent->MoveX;//movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
+				float iy = inputComponent->MoveZ;//movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
 
-			// 로컬 입력 방향을 월드 방향으로 변환
-			Vec3 desired = forward * iy + right * ix;
+				// 로컬 입력 방향을 월드 방향으로 변환
+				Vec3 desired = forward * iy + right * ix;
 
-			// 정규화
-			if (desired.LengthSquared() > 0.0001f)
-				desired.Normalize();
+				// 정규화
+				if (desired.LengthSquared() > 0.0001f)
+					desired.Normalize();
 
-			if (mainPlayerComponent->mSpeed > 0) {
-				transformComponent->mLocalRotation.y = inputComponent->Yaw;
+				transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
+
+				transformComponent->mLocalRotation.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
+
+				if (entity.GetID() != 1) {
+					std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
+					std::cout << "mx " << ix << "," << iy << std::endl;
+					std::cout << "desired: (" << desired.x << ", " << desired.y << ", " << desired.z << ")" << std::endl;
+					//std::cout << "dt: " << dt << ", speed: " << mainPlayerComponent->mSpeed << std::endl;
+				}
 			}
-			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
+			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
+				Vec3 forward = transformComponent->GetLook();
+				Vec3 right = transformComponent->GetRight();
+
+				// WASD 입력
+				float ix = inputComponent->MoveX;
+				float iy = inputComponent->MoveZ;
+
+				// 로컬 입력 방향을 월드 방향으로 변환
+				Vec3 desired = forward * iy + right * ix;
+
+				// 정규화
+				if (desired.LengthSquared() > 0.0001f)
+					desired.Normalize();
+
+				if (mainPlayerComponent->mSpeed > 0) {
+					transformComponent->mLocalRotation.y = inputComponent->Yaw;
+				}
+				transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
+
+			}
+
+			//jump
+			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
+			//cout << "height::" << gravityComponent->mHight << endl;
+			mainPlayerComponent->mFalling = gravityComponent->mFalling;
+			if (inputComponent->MoveY == 1) {
+				gravityComponent->mHight += 10.0f;
+				gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+				inputComponent->MoveY = 0;//false;
+				mainPlayerComponent->mFalling = true;
+			}
+
 
 		}
-
-		//jump
-		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-		//cout << "height::" << gravityComponent->mHight << endl;
-		mainPlayerComponent->mFalling = gravityComponent->mFalling;
-		if (inputComponent->MoveY == 1) {
-			gravityComponent->mHight += 10.0f;
-			gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
-			inputComponent->MoveY = 0;//false;
-			mainPlayerComponent->mFalling = true;
-		}
-
-		
 	}
-
 	//enemy movement
 	/*std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	for (auto& entity : enemyEntitys) {

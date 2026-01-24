@@ -7,7 +7,7 @@
 #include "MovementSystem.h"
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
-#include "MovementSystem.h"
+#include "PlayerInputSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -19,7 +19,8 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<PlayerSystem>();
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
-
+    RegisterSystem<PlayerInputSystem>();
+    
 }
 
 SystemManager::~SystemManager()
@@ -34,6 +35,7 @@ void SystemManager::Update(float deltaTime) {
     for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
 
     GetSystem<NetRecvSystem>()->Update(deltaTime);
+    GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);

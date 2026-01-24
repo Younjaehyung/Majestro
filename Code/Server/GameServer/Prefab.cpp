@@ -41,6 +41,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
+	world->AddComponent<InputComponent>(mEntityID);
 	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json");
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<BeatComponent>(mEntityID);
@@ -76,6 +77,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
+	world->AddComponent<InputComponent>(mEntityID);
 	auto& w = world->AddComponent<NetEntityComponent>(mEntityID,world,mEntityID);
 	w.mSessionId = ctx.SessionId;
 	return mEntityID;

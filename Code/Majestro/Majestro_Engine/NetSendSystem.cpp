@@ -6,6 +6,7 @@
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "InputManager.h"
+#include "MovementComponent.h"
 
 NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
 {
@@ -23,48 +24,39 @@ void NetSendSystem::Update(double deltaTime)
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 
 		if (netComp == nullptr) continue;
-		if (netComp->mIsDirty)
+		//if (netComp->mIsDirty)
 		{
 			SendRequest seq;
 			ConvertInput(&seq);
 			gSendBuffer.Push(seq);
 			
-			netComp->mIsDirty = false;
+			//netComp->mIsDirty = false;
 		}
 	}
 }
 
 void NetSendSystem::ConvertInput(SendRequest* seq)
 {
-	mInputPacket = C2S_InputPacket();
-	mInputPacket.netEntityId = 0; // Set appropriate net entity ID
-	mInputPacket.MoveX = 0.0f;
-	mInputPacket.MoveY = 0.0f;
-
 	
-	if(INPUT.GetKeyDown(eKeyCode::A))
-	{
-		mInputPacket.MoveX -= 1.0f;
-	}
-	else if(INPUT.GetKeyDown(eKeyCode::D))
-	{
-		mInputPacket.MoveX += 1.0f;
-	}
-	if(INPUT.GetKeyDown(eKeyCode::W))
-	{
-		mInputPacket.MoveY += 1.0f;
-	}
-	else if(INPUT.GetKeyDown(eKeyCode::S))
-	{
-		mInputPacket.MoveY -= 1.0f;
-	}
-
-
+	
+	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
+	Entity playerEntity = playerEntities[0];
+	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
+	
+	mInputPacket = C2S_InputPacket();
+	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
+	mInputPacket.MoveX = comp->mMovingDirection.x;
+	mInputPacket.MoveY = comp->mMovingDirection.y;
+	mInputPacket.MoveZ = comp->mMovingDirection.z;
+	mInputPacket.Yaw = comp->mCameraRotationY;
+	mInputPacket.Pitch = comp->mCameraRotationX;
+	mInputPacket.Buttons = 0;
 
 
 
 	// Convert InputComponent data to SendRequest format
 	seq->Type = PKT_Type::C2S_PKT_INPUT;
 	seq->SIze = sizeof(C2S_InputPacket);
+	
 	seq->StoreAs(mInputPacket);
 }

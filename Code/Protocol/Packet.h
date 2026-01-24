@@ -193,6 +193,7 @@ struct C2S_InputPacket : public PacketUdpHeader {
 	float    Dt = 0.0f;   // 선택: 클라 프레임 dt (서버에서는 보통 무시하거나 참고)
 	float    MoveX = 0.0f; // -1~1
 	float    MoveY = 0.0f; // -1~1
+	float	 MoveZ = 0.0f; // -1~1
 	uint8    Buttons = 0;  // 비트플래그 (점프/발사/대시 등)
 	float    Yaw = 0.0f;
 	float    Pitch = 0.0f;

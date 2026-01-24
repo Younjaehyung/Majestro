@@ -46,11 +46,10 @@ public:
     }
 
 private:
-    // [중요] Read는 현재 phase에서 소비되는 큐
-    std::vector<GameEvent> mPreRead;
-    std::vector<GameEvent> mPostRead;
+    //현재 phase에서 소비되는 큐
+    std::vector<GameEvent> mPreRead, mPostRead;
 
-    // [중요] Write는 시스템들이 Push하는 큐(처리 중에도 안전하게 추가 가능)
-    std::vector<GameEvent> mPreWrite;
-    std::vector<GameEvent> mPostWrite;
+
+    // 시스템들이 Push하는 큐(처리 중에도 안전하게 추가 가능)
+    std::vector<GameEvent> mPreWrite, mPostWrite;
 };

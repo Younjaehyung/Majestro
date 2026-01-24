@@ -25,7 +25,7 @@ public:
     // 이번 서버 틱에서 사용할 “현재 입력 상태”
     float MoveX = 0.0f;
     float MoveY = 0.0f;
-    
+	float MoveZ = 0.0f;
     
     uint32 Buttons = 0;
 	uint8  Mouse = 0;

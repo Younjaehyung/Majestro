@@ -16,14 +16,15 @@ void NetRecvSystem::Update(float dt)
 	constexpr int kMaxMsgsPerTick = 256;
 	int processed = 0;
 	while (processed < kMaxMsgsPerTick && gRecvQueue.Pop(mInputCommand)) {
-		std::cout << "nae" << endl;
+
 		switch (mInputCommand.Type)
 		{
 			case PKT_Type::C2S_PKT_INPUT:
 			{
-				const InputFrame* inputFrame = mInputCommand.ViewAs<InputFrame>();
+				const C2S_InputPacket* inputFrame = mInputCommand.ViewAs<C2S_InputPacket>();
 				if (inputFrame)
 				{
+					
 					RecvInput(mInputCommand.SessionId, *inputFrame);
 				}
 				break;
@@ -39,7 +40,7 @@ void NetRecvSystem::Update(float dt)
 	}
 }
 
-void NetRecvSystem::RecvInput(uint32 sessionId, const InputFrame& inputFrame)
+void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFrame)
 {
 	auto view = mWorld->GetEntitiesWithComponent<InputComponent>();
 	for (auto entity : view)
@@ -48,15 +49,29 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const InputFrame& inputFrame)
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (netComp && netComp->mSessionId == sessionId)
 		{
+			std::cout << "[NetRecvSystem] C2S_PKT_INPUT received from SessionID: " << mInputCommand.SessionId << std::endl;
+
 			// 중복/역순 입력 방지
-			if (inputFrame.Seq <= inputComp->lastSeq)
-				return;
+			/*if (inputFrame.Seq <= inputComp->lastSeq)
+				return;*/
 			inputComp->MoveX = inputFrame.MoveX;
 			inputComp->MoveY = inputFrame.MoveY;
+			inputComp->MoveZ = inputFrame.MoveZ;
 			inputComp->Buttons = inputFrame.Buttons;
 			inputComp->Yaw = inputFrame.Yaw;
 			inputComp->Pitch = inputFrame.Pitch;
 			inputComp->lastSeq = inputFrame.Seq;
+
+
+			std::cout << "input received from SessionID: " << sessionId << 
+				" MoveX: " << inputComp->MoveX <<
+				" MoveY: " << inputComp->MoveY <<
+				" MoveZ: " << inputComp->MoveZ <<
+				" Buttons: " << inputComp->Buttons <<
+				" Yaw: " << inputComp->Yaw <<
+				" Pitch: " << inputComp->Pitch <<
+				std::endl;
+
 			break;
 		}
 	}

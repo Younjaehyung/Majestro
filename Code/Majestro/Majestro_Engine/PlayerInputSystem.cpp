@@ -63,6 +63,7 @@ void PlayerInputSystem::Update(float dt)
 	}
 
 	movementComponent->mMovingDirection = { 0,0,0 };
+	movementComponent->mJump = false;
 
 	if (INPUT.GetKey(eKeyCode::A)) {
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());

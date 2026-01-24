@@ -46,10 +46,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
 	mInputPacket.MoveX = comp->mMovingDirection.x;
-	if (comp->mJump) {
-		mInputPacket.MoveY = 1;
-		comp->mJump = 0;
-	}
+	mInputPacket.MoveY = comp->mJump;
 	mInputPacket.MoveZ = comp->mMovingDirection.z;
 	mInputPacket.Yaw = comp->mCameraRotationY;
 	mInputPacket.Pitch = comp->mCameraRotationX;

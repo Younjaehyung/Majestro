@@ -128,6 +128,7 @@ void MovementSystem::Update(float dt) {
 				gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
 				inputComponent->MoveY = 0;//false;
 				mainPlayerComponent->mFalling = true;
+
 			}
 
 

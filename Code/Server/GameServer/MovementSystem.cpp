@@ -25,7 +25,7 @@ void MovementSystem::Update(float dt) {
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
-
+	
 	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -69,14 +69,14 @@ void MovementSystem::Update(float dt) {
 			Vec3 forward = transformComponent->GetLook();
 			Vec3 right = transformComponent->GetRight();
 
-			// WASD ÀÔ·Â
+			// WASD ìž…ë ¥
 			float ix = inputComponent->MoveX;//movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
 			float iy = inputComponent->MoveZ;//movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
 
-			// ·ÎÄÃ ÀÔ·Â ¹æÇâÀ» ¿ùµå ¹æÇâÀ¸·Î º¯È¯
+			// ë¡œì»¬ ìž…ë ¥ ë°©í–¥ì„ ì›”ë“œ ë°©í–¥ìœ¼ë¡œ ë³€í™˜
 			Vec3 desired = forward * iy + right * ix;
 
-			// Á¤±ÔÈ­
+			// ì •ê·œí™”
 			if (desired.LengthSquared() > 0.0001f)
 				desired.Normalize();
 
@@ -84,19 +84,22 @@ void MovementSystem::Update(float dt) {
 
 			transformComponent->mLocalRotation.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
 
+
+			std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
+			std::cout << "mx " << ix << "," << iy << std::endl;
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 			Vec3 forward = transformComponent->GetLook();
 			Vec3 right = transformComponent->GetRight();
 
-			// WASD ÀÔ·Â
+			// WASD ìž…ë ¥
 			float ix = inputComponent->MoveX;
 			float iy = inputComponent->MoveZ;
 
-			// ·ÎÄÃ ÀÔ·Â ¹æÇâÀ» ¿ùµå ¹æÇâÀ¸·Î º¯È¯
+			// ë¡œì»¬ ìž…ë ¥ ë°©í–¥ì„ ì›”ë“œ ë°©í–¥ìœ¼ë¡œ ë³€í™˜
 			Vec3 desired = forward * iy + right * ix;
 
-			// Á¤±ÔÈ­
+			// ì •ê·œí™”
 			if (desired.LengthSquared() > 0.0001f)
 				desired.Normalize();
 
@@ -118,6 +121,7 @@ void MovementSystem::Update(float dt) {
 			mainPlayerComponent->mFalling = true;
 		}
 
+		
 	}
 
 	//enemy movement

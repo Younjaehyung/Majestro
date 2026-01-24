@@ -127,7 +127,7 @@ public:
 	CameraTypeComponent(ComponentTypeID targetID, PlayMode mode ): mPlayMode(mode), mTargetID(targetID) {}
 public:
 	ComponentTypeID mTargetID;
-	PlayMode mPlayMode;
+	PlayMode mPlayMode = PlayMode::MAIN_CAMERA;
 	float mCameraMoveSpeed = 100;
 	float mCameraHight = 20;
 	float mCameraLenth = 25;

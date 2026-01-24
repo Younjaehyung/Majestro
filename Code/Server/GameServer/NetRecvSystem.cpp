@@ -49,7 +49,7 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFram
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (netComp && netComp->mSessionId == sessionId)
 		{
-			std::cout << "[NetRecvSystem] C2S_PKT_INPUT received from SessionID: " << mInputCommand.SessionId << std::endl;
+			//std::cout << "[NetRecvSystem] C2S_PKT_INPUT received from SessionID: " << mInputCommand.SessionId << std::endl;
 
 			// 중복/역순 입력 방지
 			/*if (inputFrame.Seq <= inputComp->lastSeq)

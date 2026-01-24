@@ -16,10 +16,10 @@ void NetSendSystem::Update(float dt)
 	{
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (netComp == nullptr) continue;
-		if (netComp->mIsDirty)
+		//if (netComp->mIsDirty)
 		{
 			ConvertMove(netComp, &mSendReq);
-			netComp->mIsDirty = false;
+		//	netComp->mIsDirty = false;
 		}
 	}
 }
@@ -37,6 +37,8 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq)
 	movePkt.x = transComp->mWorldPosition.x;
 	movePkt.y = transComp->mWorldPosition.y;
 	movePkt.z = transComp->mWorldPosition.z;
+
+	//std::cout << "[NetSendSystem] S2C_PKT_MOVE sent to SessionID: " << seq->SessionId << " Position: (" << movePkt.x << ", " << movePkt.y << ", " << movePkt.z << ")" << std::endl;
 
 	seq->StoreAs<S2C_MovePacket>(movePkt);
 }

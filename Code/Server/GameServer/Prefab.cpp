@@ -14,6 +14,7 @@
 #include "MovementComponent.h"
 #include "InputComponent.h"
 #include "NetEntityComponent.h"
+#include "HeightField.h"
 
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
@@ -103,26 +104,27 @@ SkyBoxPrefab::~SkyBoxPrefab()
 
 TerrainPrefab::TerrainPrefab(World* world)
 {
-	mEntityID = world->CreateEntity();
+	Entity mEntityID = world->CreateEntity();
 	TransformComponent bt{};
 	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
-	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+	//bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
 
-	//shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
 
-	//// 빌보드 머티리얼(
-	//shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
-	//std::vector<shared_ptr<Material>> materials;
-	//materials.push_back(heightMap);
+	world->AddComponent<TransformComponent>(mEntityID, bt);
 
-	//world->AddComponent<TransformComponent>(mEntityID, bt);
-	//TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
-	//terrainc.mTerrainWorldPosition = bt.mLocalPosition;
-	//terrainc.mTerrainWorldScale = bt.mLocalScale;
+	auto heightField = std::make_shared<HeightField>();
+	heightField->LoadHeightFieldFromRaw16("../Resources/Texture/height.raw", 64, 64, true);
+	//Add<HeightField>(L"TerrainHeightField", heightField);
 
-	//RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
-	//render.mCheckFrustum = false;
-
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightField);
+	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
+	terrainc.mTerrainWorldScale = bt.mLocalScale;
+	terrainc.mTerrainParams.HeightMapResolution = Vec2(64.f, 64.f);
+	terrainc.mTerrainParams.TileCountX = 16;
+	terrainc.mTerrainParams.TileCountZ = 16;
+	terrainc.mTerrainParams.MaxTessLevel = 5.f;
+	terrainc.mTerrainParams.MinMaxTessDistance = Vec2(50.f, 300.f);
+	
 }
 
 TerrainPrefab::~TerrainPrefab()
@@ -133,24 +135,21 @@ Entity TerrainPrefab::Build(World* world, const InputCommand& ctx)
 {
 
 	Entity mEntityID = world->CreateEntity();
-	//TransformComponent bt{};
-	//bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
-	//bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+	TransformComponent bt{};
+	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
 
-	//shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
 
-	//// 빌보드 머티리얼(
-	//shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
-	//std::vector<shared_ptr<Material>> materials;
-	//materials.push_back(heightMap);
+	world->AddComponent<TransformComponent>(mEntityID, bt);
+	
+	auto heightField = std::make_shared<HeightField>();
+	heightField->LoadHeightFieldFromRaw16("height.raw", 2048, 2048, true);
+	//Add<HeightField>(L"TerrainHeightField", heightField);
 
-	//world->AddComponent<TransformComponent>(mEntityID, bt);
-	//TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
-	//terrainc.mTerrainWorldPosition = bt.mLocalPosition;
-	//terrainc.mTerrainWorldScale = bt.mLocalScale;
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID,2048, 2048, heightField);
+	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
+	terrainc.mTerrainWorldScale = bt.mLocalScale;
 
-	//RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
-	//render.mCheckFrustum = false;
 
 	return mEntityID;
 }

@@ -37,7 +37,7 @@ void PlayerInputSystem::Update(float dt)
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
 
-		if (inputComp->MoveX ==0 && inputComp->MoveY == 0) {
+		if (inputComp->MoveX ==0 && inputComp->MoveZ == 0) {
 			mainPlayerComponent->mSpeed = 0.f;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 		}
@@ -52,11 +52,11 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.x -= 1;
 		}
-		if (inputComp->MoveY == 1) {
+		if (inputComp->MoveZ == 1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.z += 1;
 		}
-		if (inputComp->MoveY == -1) {
+		if (inputComp->MoveZ == -1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.z -= 1;
 		}

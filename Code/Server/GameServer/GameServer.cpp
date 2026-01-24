@@ -22,7 +22,7 @@ int main()
 
     while (true)
     {
-        gTimer.Tick();
+        gTimer.Tick(60.f);
         //gServerCore.Update();
        // Sleep(30); // Simulate some processing delay
 		gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity

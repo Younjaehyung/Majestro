@@ -72,21 +72,19 @@ public:
 
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
+	int mNextState;
+
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;
 	float mDashSpeed = 0.0f;
-
+	float mJumpPower = 60.f;
+	bool mFalling = false;
 
 	uint64_t mFlags = 0ull;
-	float mStateTime=0.0f;
-	float mDt=0.0f;
-
-	float mGravity = 0.0f;
-	float mGravityA = 0.98f; //중력가속도
-	float mJumpPower = 150.f;
-	float mHight = 0.0f; //플레이어 높이
-	float mGround = 0.0f;
+	bool mAnimEnd = false;
+	float mStateTime = 0.0f;
+	float mDt = 0.0f;
 
 
 };

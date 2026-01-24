@@ -129,12 +129,16 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
-	world->AddComponent<NetEntityComponent>(mEntityID);
+	
 
-	Vec3 half{ 10,10,10 };
+	Vec3 half{ 10,10,10 };	
 	Vec3 center{ 0,10,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
-
+	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
+	netComp.mOwnerEntity = mEntityID;
+	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
+	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
+	
 	std::cout << "Create Prefab" << std::endl;
 	return mEntityID;
 }

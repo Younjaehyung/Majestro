@@ -19,7 +19,9 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
 	}
-	case PKT_Type::PKT_UDP:  {
+	case PKT_Type::PKT_UDP:
+	case PKT_Type::S2C_PKT_MOVE:
+	{
 		SerializeUdpPacket(pkt, sendBuffer);
 		break;
 	}

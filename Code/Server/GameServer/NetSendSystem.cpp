@@ -20,6 +20,7 @@ void NetSendSystem::Update(float dt)
 		{
 			ConvertMove(netComp, &mSendReq);
 		//	netComp->mIsDirty = false;
+			gSendQueue.Push(mSendReq);
 		}
 	}
 }
@@ -28,18 +29,18 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq)
 {
 	
 	TransformComponent* transComp = mWorld->GetComponent<TransformComponent>(netComp->mOwnerEntity);
-	seq->SessionId = netComp->mSessionId;
+	seq->SessionId = 0;
 	seq->Type = S2C_PKT_MOVE;
 	seq->Size = sizeof(S2C_MovePacket);
 
-	S2C_MovePacket movePkt{};
+	S2C_MovePacket movePkt;
 	movePkt.netEntityId = netComp->mNetEntityId;
 	movePkt.x = transComp->mWorldPosition.x;
 	movePkt.y = transComp->mWorldPosition.y;
 	movePkt.z = transComp->mWorldPosition.z;
-
-	//std::cout << "[NetSendSystem] S2C_PKT_MOVE sent to SessionID: " << seq->SessionId << " Position: (" << movePkt.x << ", " << movePkt.y << ", " << movePkt.z << ")" << std::endl;
-
+	movePkt.yaw = transComp->mLocalRotation.y;
+	movePkt.pitch = transComp->mLocalRotation.x;
+	std::cout << movePkt.netEntityId << " Send Move Packet Position: (" << movePkt.x << ", " << movePkt.y << ", " << movePkt.z << "), Yaw: " << movePkt.yaw << ", Pitch: " << movePkt.pitch << std::endl;
 	seq->StoreAs<S2C_MovePacket>(movePkt);
 }
 

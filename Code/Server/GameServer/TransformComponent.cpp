@@ -87,6 +87,7 @@ void TransformComponent::FinalUpdate()
 
 		mLocalMatrix = matScale * matRotation * matTranslation;
 		mWorldMatrix = mLocalMatrix;
+		mWorldPosition = mWorldMatrix.Translation();
 
 		//shared_ptr<Transform> parent = GetParent().lock();
 		//if (parent != nullptr)

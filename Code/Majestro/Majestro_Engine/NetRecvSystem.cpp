@@ -4,6 +4,7 @@
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "NetIdMap.h"
+#include "TransformComponent.h"
 #include "Prefab.h"
 
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
@@ -37,7 +38,7 @@ void NetRecvSystem::Update(double deltaTime)
     
     while (processed < kMaxMsgsPerTick && gRecvBuffer.Pop(mInputCommand))
     {
-        std::cout << " Packet Received in NetRecvSystem" << std::endl;
+        
         ProcessOne(mInputCommand);
         ++processed;
     }
@@ -54,7 +55,23 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         HandleSpawn(msg);
         return;
     }
+    else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {
+        const S2C_MovePacket* movePacket = msg.ViewAs<S2C_MovePacket>();
 
+		// msg netity id로 엔티티 찾기
+		Entity e = mWorld->GetEntityByNetId(movePacket->netEntityId);
+		std::cout << movePacket->netEntityId << std::endl;
+        TransformComponent* comp =  mWorld->GetComponent<TransformComponent>(e);
+		if(comp == nullptr) return;
+		comp->mLocalPosition.x = movePacket->x;
+		comp->mLocalPosition.y = movePacket->y;
+		comp->mLocalPosition.z = movePacket->z;
+		comp->mLocalRotation.y = movePacket->yaw;
+		comp->mLocalRotation.x = movePacket->pitch;
+		std::cout << "Move Packet Processed for Entity: " <<" "<<
+			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;
+        return;
+    }
     switch (msg.Kind)
     {
     case MsgKind::ReplicationDelta:
@@ -79,7 +96,7 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 	const S2C_SpawnPacekt* spawnPacket = msg.ViewAs<S2C_SpawnPacekt>();
 	archetypeId = static_cast<uint32_t>(spawnPacket->prefabType);
 	netId = static_cast<uint32_t>(spawnPacket->netEntityId);
-
+	std::cout << "HandleSpawn called with netId: " << netId << " archetypeId: " << archetypeId << std::endl;
     Entity e = CreateEntityFromArchetype(archetypeId);
 
     // netId 바인딩 (중요)
@@ -129,7 +146,8 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
     switch (compKind)
     {
     case RepCompKind::NetTransform:
-        //ApplyNetTransformDelta(r, e, fieldMask);
+        
+
         break;
     case RepCompKind::NetHealth:
         //ApplyNetHealthDelta(r, e, fieldMask);

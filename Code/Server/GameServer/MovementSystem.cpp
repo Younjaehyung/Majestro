@@ -90,12 +90,12 @@ void MovementSystem::Update(float dt) {
 
 				transformComponent->mLocalRotation.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
 
-				if (entity.GetID() != 1) {
-					std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
-					std::cout << "mx " << ix << "," << iy << std::endl;
-					std::cout << "desired: (" << desired.x << ", " << desired.y << ", " << desired.z << ")" << std::endl;
-					//std::cout << "dt: " << dt << ", speed: " << mainPlayerComponent->mSpeed << std::endl;
-				}
+				//if (entity.GetID() != 1) {
+				//	std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
+				//	std::cout << "mx " << ix << "," << iy << std::endl;
+				//	std::cout << "desired: (" << desired.x << ", " << desired.y << ", " << desired.z << ")" << std::endl;
+				//	//std::cout << "dt: " << dt << ", speed: " << mainPlayerComponent->mSpeed << std::endl;
+				//}
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 				Vec3 forward = transformComponent->GetLook();

@@ -72,7 +72,8 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	}
 
 	// UDP
-	case PKT_Type::PKT_UDP: {
+	case PKT_Type::PKT_UDP:
+	case PKT_Type::S2C_PKT_MOVE: {
 		ProcessUdpPackets(inputCommand, buffer);
 		break;
 	}

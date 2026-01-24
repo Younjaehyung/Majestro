@@ -42,7 +42,7 @@ PlayerPrefab::PlayerPrefab(World *world) {
   world->AddComponent<BeatComponent>(mEntityID);
   world->AddComponent<GravityComponent>(mEntityID);
   world->AddComponent<PlayerMovementComponent>(mEntityID);
-  world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
+ // world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
 }
 
 PlayerPrefab::~PlayerPrefab() {}

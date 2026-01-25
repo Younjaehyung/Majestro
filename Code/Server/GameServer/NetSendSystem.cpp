@@ -75,7 +75,7 @@ void NetSendSystem::ConvertState()
 
 			mSendReq.SessionId = 0;
 			mSendReq.Type = S2C_PKT_STATE;
-			mSendReq.Size = sizeof(S2C_PKT_STATE);
+			mSendReq.Size = sizeof(S2C_StatePacket);
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(netComp->mOwnerEntity);
 			S2C_StatePacket statePkt;

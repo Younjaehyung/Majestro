@@ -11,9 +11,15 @@ public:
 	void Update(float dt) override;
 
 private:
-	void ConvertMove(NetEntityComponent*, SendRequest* );
+	void ConvertMove(NetEntityComponent*, SendRequest* , float);
 
 private:
 	SendRequest mSendReq;
+	NetEntityComponent* mNetComp = nullptr;
+private:
+	static constexpr float mMoveSendHz = 30.0f;
+	static constexpr int mMaxMoveBurst = 4;
+	float mMoveSendAccumulator = 0.0f;
+	float mMoveSendInterval = 1.0f / mMoveSendHz;
 };
 

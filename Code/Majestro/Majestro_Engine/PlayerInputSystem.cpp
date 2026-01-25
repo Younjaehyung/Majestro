@@ -55,7 +55,7 @@ void PlayerInputSystem::Update(float dt)
 
 	if (!INPUT.GetKey(eKeyCode::W) && !INPUT.GetKey(eKeyCode::A) && !INPUT.GetKey(eKeyCode::S) && !INPUT.GetKey(eKeyCode::D)) {
 		mainPlayerComponent->mSpeed = 0.f;
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 	}
 	else {
 		if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
@@ -66,19 +66,19 @@ void PlayerInputSystem::Update(float dt)
 	movementComponent->mJump = false;
 
 	if (INPUT.GetKey(eKeyCode::A)) {
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.x -= 1;
 	}
 	if (INPUT.GetKey(eKeyCode::W)) {
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.z += 1;
 	}
 	if (INPUT.GetKey(eKeyCode::S)) {
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.z -= 1;
 	}
 	if (INPUT.GetKey(eKeyCode::D)) {
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.x += 1;
 	}
 
@@ -89,12 +89,12 @@ void PlayerInputSystem::Update(float dt)
 		else cout << "fail" << endl;
 
 		
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		movementComponent->mJump = true;
 		
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 	}
 
 

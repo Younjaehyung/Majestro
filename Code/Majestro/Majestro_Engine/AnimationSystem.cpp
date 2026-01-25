@@ -103,7 +103,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 
 		const uint32 previousClip = animCom->mAnimClipIdx;
 		if (mainPlayerComponent)
-			animCom->mAnimClipIdx = mainPlayerComponent->GetState();
+			animCom->mAnimClipIdx = mainPlayerComponent->mStatePacket;
 
 		if (animCom->mAnimClipIdx != previousClip) {
 			animCom->mBlendClipIdx = previousClip;

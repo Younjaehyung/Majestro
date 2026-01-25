@@ -75,6 +75,7 @@ public:
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
+	int mStatePacket;
 
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;

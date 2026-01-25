@@ -85,7 +85,9 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
       NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
       if (comp == nullptr || playercomp == nullptr) return;
 
-      switch (statePacket->stateId)
+      playercomp->mStatePacket = statePacket->stateId;
+
+      /*switch (statePacket->stateId)
       {
          case S_Idle:
              playercomp->mFsm.ChangeState(playercomp, IdleState::Instance());
@@ -103,7 +105,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         default:
 			break;
 
-      }
+      }*/
       
       return;
     }

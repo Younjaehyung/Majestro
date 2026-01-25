@@ -70,6 +70,23 @@ void MovementSystem::Update(float dt) {
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 			MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
+			//stateSetting
+			{
+				if (inputComponent->MoveX == 0 && inputComponent->MoveZ==0) {
+					mainPlayerComponent->mSpeed = 0.f;
+					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
+				}
+				else {
+					if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
+					else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
+
+					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+				}
+
+				//dash
+				//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+
+			}
 
 			if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
 				Vec3 forward = transformComponent->GetLook();
@@ -127,6 +144,8 @@ void MovementSystem::Update(float dt) {
 				if (not mainPlayerComponent->mFalling) {
 					gravityComponent->mHight += 10.0f;
 					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+					//stateSetting
+					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 				}
 				mainPlayerComponent->mFalling = true;
 

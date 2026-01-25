@@ -123,11 +123,11 @@ void MovementSystem::Update(float dt) {
 			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 			//cout << "height::" << gravityComponent->mHight << endl;
 			mainPlayerComponent->mFalling = gravityComponent->mFalling;
-			if (inputComponent->MoveY == 1 ) {
-				//cout << "!!!!!!!!!!!!!!!!!!!!!!\n\n\n\n\n!!!!!!!!!!!!!!!!!!!!!" << endl;
-				gravityComponent->mHight += 10.0f;
-				gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
-				//inputComponent->MoveY = 0;//false;
+			if (inputComponent->MoveY == 1) {
+				if (not mainPlayerComponent->mFalling) {
+					gravityComponent->mHight += 10.0f;
+					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+				}
 				mainPlayerComponent->mFalling = true;
 
 			}

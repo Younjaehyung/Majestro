@@ -59,7 +59,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {
         const S2C_MovePacket* movePacket = msg.ViewAs<S2C_MovePacket>();
-        std::cout << "State Packet Received in NetRecvSystem for Entity ID: " << statePacket->netEntityId << " with State ID: " << static_cast<int>(statePacket->stateId) << std::endl;
+        //std::cout << "State Packet Received in NetRecvSystem for Entity ID: " << statePacket->netEntityId << " with State ID: " << static_cast<int>(statePacket->stateId) << std::endl;
 
 		// msg netity id로 엔티티 찾기
 		Entity e = mWorld->GetEntityByNetId(movePacket->netEntityId);

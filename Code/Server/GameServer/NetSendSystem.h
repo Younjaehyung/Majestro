@@ -12,7 +12,7 @@ public:
 
 private:
 	void ConvertMove(NetEntityComponent*, SendRequest* , float);
-
+	void ConvertState();
 private:
 	SendRequest mSendReq;
 	NetEntityComponent* mNetComp = nullptr;

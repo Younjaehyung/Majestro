@@ -3,6 +3,7 @@
 #include "World.h"
 #include "NetEntityComponent.h"
 #include "TransformComponent.h"
+#include "PlayerComponent.h"
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
 {
@@ -12,7 +13,7 @@ void NetSendSystem::Update(float dt)
 {
 
 	ConvertMove(mNetComp, &mSendReq, dt);	//move
-	
+	ConvertState();
 
 }
 
@@ -62,6 +63,29 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 	}
 
 
+}
+
+void NetSendSystem::ConvertState()
+{
+	std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
+	for (auto& entity : entities)
+	{
+		//if (netComp->mIsDirty)
+		{
+
+			mSendReq.SessionId = 0;
+			mSendReq.Type = S2C_PKT_STATE;
+			mSendReq.Size = sizeof(S2C_PKT_STATE);
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(netComp->mOwnerEntity);
+			S2C_StatePacket statePkt;
+			statePkt.netEntityId = netComp->mNetEntityId;
+			statePkt.stateId = playerComp->GetState();
+			mSendReq.StoreAs<S2C_StatePacket>(statePkt);
+			//	netComp->mIsDirty = false;
+			gSendQueue.Push(mSendReq);
+		}
+	}
 }
 
 

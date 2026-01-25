@@ -7,6 +7,7 @@
 #include "TransformComponent.h"
 #include "NetTransformComponent.h"
 #include "Prefab.h"
+#include "PlayerComponent.h"
 
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world, event)
@@ -75,6 +76,20 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;*/
         return;
     }
+     else if (msg.Type == PKT_Type::S2C_PKT_STATE) {
+      const S2C_StatePacket* statePacket = msg.ViewAs<S2C_StatePacket>();
+
+      // msg netity id로 엔티티 찾기
+      Entity e = mWorld->GetEntityByNetId(statePacket->netEntityId);
+      MainPlayerComponent* playercomp = mWorld->GetComponent<MainPlayerComponent>(e);
+      NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
+      if (comp == nullptr || playercomp == nullptr) return;
+      playercomp->mNextState=statePacket->stateId; // pitch 필드를 상태로 사용
+      return;
+    }
+
+
+
     switch (msg.Kind)
     {
     case MsgKind::ReplicationDelta:

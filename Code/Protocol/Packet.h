@@ -24,6 +24,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_SPAWN,
 	S2C_PKT_RESPAWN,
 	S2C_PKT_MOVE,
+	S2C_PKT_STATE,
 
 
 	KMSG,
@@ -149,6 +150,16 @@ struct S2C_RespawnPacket : public PacketTcpHeader {
 	S2C_RespawnPacket(uint64_t entityId, PrefabType type)
 		: PacketTcpHeader{ sizeof(S2C_RespawnPacket), PKT_Type::S2C_PKT_RESPAWN, 0.0 },
 		netEntityId(entityId), prefabType(type) {
+	}
+};
+
+struct S2C_StatePacket : public PacketTcpHeader {
+	uint64_t netEntityId{};
+	uint8_t stateId{};
+	S2C_StatePacket() : PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 } {}
+	S2C_StatePacket(uint64_t entityId, uint8_t sId)
+		: PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 },
+		netEntityId(entityId), stateId(sId) {
 	}
 };
 

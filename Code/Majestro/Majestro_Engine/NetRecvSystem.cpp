@@ -59,6 +59,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {
         const S2C_MovePacket* movePacket = msg.ViewAs<S2C_MovePacket>();
+        std::cout << "State Packet Received in NetRecvSystem for Entity ID: " << statePacket->netEntityId << " with State ID: " << static_cast<int>(statePacket->stateId) << std::endl;
 
 		// msg netity id로 엔티티 찾기
 		Entity e = mWorld->GetEntityByNetId(movePacket->netEntityId);
@@ -76,15 +77,34 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;*/
         return;
     }
-     else if (msg.Type == PKT_Type::S2C_PKT_STATE) {
+    else if (msg.Type == PKT_Type::S2C_PKT_STATE) {
       const S2C_StatePacket* statePacket = msg.ViewAs<S2C_StatePacket>();
-
-      // msg netity id로 엔티티 찾기
+	  // msg netity id로 엔티티 찾기
       Entity e = mWorld->GetEntityByNetId(statePacket->netEntityId);
       MainPlayerComponent* playercomp = mWorld->GetComponent<MainPlayerComponent>(e);
       NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
       if (comp == nullptr || playercomp == nullptr) return;
-      playercomp->mNextState=statePacket->stateId; // pitch 필드를 상태로 사용
+
+      switch (statePacket->stateId)
+      {
+         case S_Idle:
+             playercomp->mFsm.ChangeState(playercomp, IdleState::Instance());
+			 break;
+        case S_Walk:
+			playercomp->mFsm.ChangeState(playercomp, WalkState::Instance());
+			std::cout << "State Changed to Walk for Entity: " << e.GetID() << std::endl;
+            break;
+        case S_Run:
+			playercomp->mFsm.ChangeState(playercomp, DashState::Instance());
+            break;
+		case S_Jump:
+            playercomp->mFsm.ChangeState(playercomp, JumpState::Instance());
+            break;
+        default:
+			break;
+
+      }
+      
       return;
     }
 

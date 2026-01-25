@@ -17,6 +17,7 @@
 #include "PlayerInputSystem.h"
 #include "EnemySystem.h"
 #include "CollisionSystem.h"
+#include "NetInterpolationSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -38,6 +39,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<EnemySystem>();
     RegisterSystem<CollisionSystem>();
+    RegisterSystem<NetInterpolationSystem>();
 
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();
@@ -75,9 +77,11 @@ void SystemManager::PreUpdate(float deltaTime)
     mEventManager->BeginPhase(EventPhase::Pre);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<CollisionSystem>()->Update(deltaTime);
-    //GetSystem<MovementSystem>()->Update(deltaTime);
+    GetSystem<MovementSystem>()->Update(deltaTime);
+    GetSystem<NetInterpolationSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<EnemySystem>()->Update(deltaTime);
+
 }
 
 void SystemManager::PostUpdate(float deltaTime)

@@ -5,6 +5,7 @@
 #include "NetEntityComponent.h"
 #include "NetIdMap.h"
 #include "TransformComponent.h"
+#include "NetTransformComponent.h"
 #include "Prefab.h"
 
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
@@ -62,14 +63,16 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 		Entity e = mWorld->GetEntityByNetId(movePacket->netEntityId);
 		std::cout << movePacket->netEntityId << std::endl;
         TransformComponent* comp =  mWorld->GetComponent<TransformComponent>(e);
-		if(comp == nullptr) return;
-		comp->mLocalPosition.x = movePacket->x;
-		comp->mLocalPosition.y = movePacket->y;
-		comp->mLocalPosition.z = movePacket->z;
-		comp->mLocalRotation.y = movePacket->yaw;
-		comp->mLocalRotation.x = movePacket->pitch;
-		std::cout << "Move Packet Processed for Entity: " <<" "<<
-			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;
+        NetTransformComponent* netcomp =  mWorld->GetComponent<NetTransformComponent>(e);
+		if(comp == nullptr || netcomp == nullptr ) return;
+		netcomp->mTargetPosition.x = movePacket->x;
+		netcomp->mTargetPosition.y = movePacket->y;
+		netcomp->mTargetPosition.z = movePacket->z;
+		netcomp->mTargetRotation.y = movePacket->yaw;
+		netcomp->mTargetRotation.x = movePacket->pitch;
+        netcomp->mHasTarget = true;
+		/*std::cout << "Move Packet Processed for Entity: " <<" "<<
+			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;*/
         return;
     }
     switch (msg.Kind)

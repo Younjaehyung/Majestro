@@ -20,6 +20,7 @@
 #include "MovementComponent.h"
 #include "VfxComponent.h"
 #include "NetEntityComponent.h"
+#include "NetTransformComponent.h"
 #include "BoxColliderComponent.h"
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
@@ -129,6 +130,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
+	world->AddComponent<NetTransformComponent>(mEntityID);
 	
 
 	Vec3 half{ 10,10,10 };	

@@ -139,6 +139,9 @@
     <Filter Include="World\Event">
       <UniqueIdentifier>{470ed48e-45b5-4435-9d62-8ac4ed014633}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Logic\Move">
+      <UniqueIdentifier>{738b7ce8-1ffc-4712-b713-1f0fdfec12e3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -286,9 +289,6 @@
     <ClInclude Include="CameraSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="MovementSystem.h">
-      <Filter>World\System\Logic</Filter>
-    </ClInclude>
     <ClInclude Include="PlayerSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -400,10 +400,15 @@
     <ClInclude Include="GameEvents.h">
       <Filter>World\Event</Filter>
     </ClInclude>
-    <ClInclude Include="NetInterpolationSystem.h" />
     <ClInclude Include="NetTransformComponent.h" />
     <ClInclude Include="CollisionSystem.h">
       <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="NetInterpolationSystem.h">
+      <Filter>World\System\Logic\Move</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementSystem.h">
+      <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -551,9 +556,6 @@
     <ClCompile Include="CameraSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
-    <ClCompile Include="MovementSystem.cpp">
-      <Filter>World\System\Logic</Filter>
-    </ClCompile>
     <ClCompile Include="PlayerSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
@@ -656,10 +658,15 @@
     <ClCompile Include="GameEvents.cpp">
       <Filter>World\Event</Filter>
     </ClCompile>
-    <ClCompile Include="NetInterpolationSystem.cpp" />
     <ClCompile Include="NetTransformComponent.cpp" />
     <ClCompile Include="CollisionSystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="NetInterpolationSystem.cpp">
+      <Filter>World\System\Logic\Move</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

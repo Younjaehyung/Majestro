@@ -5,6 +5,7 @@
 #include "TerrainComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
+#include "NetTransformComponent.h"
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
@@ -28,6 +29,7 @@ void MovementSystem::Update(float dt) {
 	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
 		gravityComponent->mGround = terrainGround;
@@ -45,7 +47,14 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity * dt;
 		}
 
-		transformComponent->mLocalPosition.y = gravityComponent->mHight;
+		NetTransformComponent * netTransformComponent = mWorld->GetComponent<NetTransformComponent>(entity);
+		if (netTransformComponent == nullptr) {
+			transformComponent->mLocalPosition.y = gravityComponent->mHight;
+		}
+		else {
+			netTransformComponent->mStartPosition.y = transformComponent->mLocalPosition.y = gravityComponent->mHight;
+		}
+		
 		
 	}
 
@@ -60,7 +69,7 @@ void MovementSystem::Update(float dt) {
 		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
-		
+		NetTransformComponent* netTransformComponent = mWorld->GetComponent<NetTransformComponent>(entity);
 
 		if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
 			Vec3 forward = transformComponent->GetLook();
@@ -81,9 +90,10 @@ void MovementSystem::Update(float dt) {
 
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
 
-			{
-				std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
-			}
+			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
+			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
+
+		
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 			Vec3 forward = transformComponent->GetLook();
@@ -105,6 +115,8 @@ void MovementSystem::Update(float dt) {
 			}
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
+			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
+			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
 		}
 
 		//jump

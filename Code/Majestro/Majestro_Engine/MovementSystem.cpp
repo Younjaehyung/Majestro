@@ -86,7 +86,6 @@ void MovementSystem::Update(float dt) {
 				desired.Normalize();
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
-
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;

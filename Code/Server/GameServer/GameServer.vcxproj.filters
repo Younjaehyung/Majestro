@@ -183,6 +183,9 @@
     <ClCompile Include="GameEvents.cpp">
       <Filter>Base\Event</Filter>
     </ClCompile>
+    <ClCompile Include="EnemySystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -310,6 +313,9 @@
     </ClInclude>
     <ClInclude Include="GameEvents.h">
       <Filter>Base\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemySystem.h">
+      <Filter>System\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

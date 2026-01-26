@@ -50,7 +50,13 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	mInputPacket.MoveZ = comp->mMovingDirection.z;
 	mInputPacket.Yaw = comp->mCameraRotationY;
 	mInputPacket.Pitch = comp->mCameraRotationX;
-	mInputPacket.Buttons = 0;
+	
+	// buttons 마스킹
+
+	/*if (comp->mAttack)			mInputPacket.Buttons |= InputButtons::SPACE;
+	if (comp->mDash)			mInputPacket.Buttons |= INPUT_DASH;
+	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
+	if (comp->mJump)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::SPACE);
 
 
 

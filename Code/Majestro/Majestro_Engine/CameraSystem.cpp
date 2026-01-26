@@ -38,7 +38,7 @@ void CameraSystem::Update(float dt)
 		
 		Vec3 pos = playerPos->mLocalPosition;
 
-		if (cameraTypeComponent->mPlayMode == ONE_FPS) { //ÇÃ·¹ÀÌ¾î ½Ã¾Æ·Î º¯°æ ÇÊ¿ä
+		if (cameraTypeComponent->mPlayMode == ONE_FPS) { //í”Œë ˆì´ì–´ ì‹œì•„ë¡œ ë³€ê²½ í•„ìš”
 			pos.y += cameraTypeComponent->mCameraHight;
 			transformComponent->mLocalPosition = pos;
 			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
@@ -68,7 +68,7 @@ void CameraSystem::Update(float dt)
 
 			Vec3 desired = forward * iz + right * ix + up*iy;
 
-			// Á¤±ÔÈ­
+			// ì •ê·œí™”
 			if (desired.LengthSquared() > 0.0001f)
 				desired.Normalize();
 
@@ -77,8 +77,9 @@ void CameraSystem::Update(float dt)
 			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
 		}
-
+		transformComponent->FinalUpdate();
 		cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		
 	}
 	
 }

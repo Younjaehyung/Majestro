@@ -64,7 +64,6 @@ void MovementSystem::Update(float dt) {
 		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(cameraEntitys);
 
 		for (auto& entity : playerEntitys) {
-			//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
 			InputComponent* inputComponent = mWorld->GetComponent<InputComponent>(entity);
 
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -80,12 +79,8 @@ void MovementSystem::Update(float dt) {
 					if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
 					else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
 
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+					
 				}
-
-				//dash
-				//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
-
 			}
 
 			if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
@@ -107,12 +102,6 @@ void MovementSystem::Update(float dt) {
 
 				transformComponent->mLocalRotation.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
 
-				//if (entity.GetID() != 1) {
-				//	std::cout << "[MovementSystem] Player " << entity.GetID() << "Position: (" << transformComponent->mLocalPosition.x << ", " << transformComponent->mLocalPosition.y << ", " << transformComponent->mLocalPosition.z << ")";
-				//	std::cout << "mx " << ix << "," << iy << std::endl;
-				//	std::cout << "desired: (" << desired.x << ", " << desired.y << ", " << desired.z << ")" << std::endl;
-				//	//std::cout << "dt: " << dt << ", speed: " << mainPlayerComponent->mSpeed << std::endl;
-				//}
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 				Vec3 forward = transformComponent->GetLook();
@@ -138,14 +127,13 @@ void MovementSystem::Update(float dt) {
 
 			//jump
 			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-			//cout << "height::" << gravityComponent->mHight << endl;
+
 			mainPlayerComponent->mFalling = gravityComponent->mFalling;
 			if (inputComponent->MoveY == 1) {
 				if (not mainPlayerComponent->mFalling) {
 					gravityComponent->mHight += 10.0f;
 					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
 					//stateSetting
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 				}
 				mainPlayerComponent->mFalling = true;
 

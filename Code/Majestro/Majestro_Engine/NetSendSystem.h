@@ -4,6 +4,23 @@
 
 class  EventManager;
 
+enum class InputButtons : uint32 {
+    NONE,
+    SPACE,
+    SHIFT,
+    Q,
+    E,
+    END
+};
+
+enum class InputMouse : uint8 {
+    NONE,
+    LEFT,
+    RIGHT,
+    WHEEL,
+    END
+};
+
 class NetSendSystem : public System
 {
 public:

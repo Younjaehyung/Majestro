@@ -8,6 +8,7 @@
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
 #include "PlayerInputSystem.h"
+#include "CollisionSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -20,6 +21,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
     RegisterSystem<PlayerInputSystem>();
+    RegisterSystem<CollisionSystem>();
     
 }
 
@@ -40,6 +42,7 @@ void SystemManager::Update(float deltaTime) {
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
+    GetSystem<CollisionSystem>()->Update(deltaTime);
    
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<NetSendSystem>()->Update(deltaTime);

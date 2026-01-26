@@ -186,6 +186,12 @@
     <ClCompile Include="EnemySystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="CollisionSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxColliderComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -316,6 +322,12 @@
     </ClInclude>
     <ClInclude Include="EnemySystem.h">
       <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="CollisionSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxColliderComponent.h">
+      <Filter>Component\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

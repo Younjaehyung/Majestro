@@ -38,7 +38,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<EffectSystem>();
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<EnemySystem>();
-    RegisterSystem<CollisionSystem>();
+    //RegisterSystem<CollisionSystem>();
     RegisterSystem<NetInterpolationSystem>();
 
 #ifdef _IMGUI
@@ -76,7 +76,7 @@ void SystemManager::PreUpdate(float deltaTime)
 {
     mEventManager->BeginPhase(EventPhase::Pre);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
-    GetSystem<CollisionSystem>()->Update(deltaTime);
+    //GetSystem<CollisionSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);
    
     

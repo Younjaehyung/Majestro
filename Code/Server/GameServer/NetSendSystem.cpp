@@ -52,7 +52,6 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 			movePkt.z = transComp->mWorldPosition.z;
 			movePkt.yaw = transComp->mLocalRotation.y;
 			movePkt.pitch = transComp->mLocalRotation.x;
-			std::cout << movePkt.netEntityId << " Send Move Packet Position: (" << movePkt.x << ", " << movePkt.y << ", " << movePkt.z << "), Yaw: " << movePkt.yaw << ", Pitch: " << movePkt.pitch << std::endl;
 			seq->StoreAs<S2C_MovePacket>(movePkt);
 			
 			

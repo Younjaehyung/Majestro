@@ -62,16 +62,6 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFram
 			inputComp->Pitch = inputFrame.Pitch;
 			inputComp->lastSeq = inputFrame.Seq;
 
-
-			std::cout << "input received from SessionID: " << sessionId << 
-				" MoveX: " << inputComp->MoveX <<
-				" MoveY: " << inputComp->MoveY <<
-				" MoveZ: " << inputComp->MoveZ <<
-				" Buttons: " << inputComp->Buttons <<
-				" Yaw: " << inputComp->Yaw <<
-				" Pitch: " << inputComp->Pitch <<
-				std::endl;
-
 			break;
 		}
 	}

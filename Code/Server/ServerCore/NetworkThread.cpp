@@ -314,9 +314,6 @@ void NetworkThread::HandleTcpSend(std::shared_ptr<Session>& session)
         return;
 
 
-    LOG_INFO("HandleSend ID:[{}] SendBufferQueue Size:[{}]",
-        session->GetPlayerId(), session->mTSendBufferQueue.size());
-
     while (!session->mTSendBufferQueue.empty())
     {
 		SendBuffer* sb = session->mTSendBufferQueue.front();

@@ -49,19 +49,23 @@ void PlayerInputSystem::Update(float dt)
 		movementComponent->mMovingDirection = { 0,0,0 };
 
 		if (inputComp->MoveX == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			/*if (mainPlayerComponent->GetState() != S_Walk)
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());*/
 			movementComponent->mMovingDirection.x -= 1;
 		}
 		if (inputComp->MoveZ == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			/*if (mainPlayerComponent->GetState() != S_Walk)
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());*/
 			movementComponent->mMovingDirection.z += 1;
 		}
 		if (inputComp->MoveZ == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			/*if (mainPlayerComponent->GetState() != S_Walk)
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());*/
 			movementComponent->mMovingDirection.z -= 1;
 		}
 		if (inputComp->MoveX == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			/*if (mainPlayerComponent->GetState() != S_Walk)
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());*/
 			movementComponent->mMovingDirection.x += 1;
 		}
 

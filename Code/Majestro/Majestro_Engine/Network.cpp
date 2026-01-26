@@ -334,7 +334,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 {
 	int32 processLen = 0;
 
-	std::cout << "Onrecv called with len: " << len << std::endl;
+
 	{
 		int32 dataSize = len - processLen;
 		// 최소한 헤더는 파싱할 수 있어야 한다
@@ -369,7 +369,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 			int len = sendto(mUdpSocket, (char*)&loginPkt, sizeof(C2S_LoginPacket), 0,
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));
 		}
-		std::cout << "Rec" << mClientId << std::endl;
+
 		gRecvBuffer.Push(mInputCommand);
 
 
@@ -393,7 +393,6 @@ void Network::OnUDPNetworkUpdate()
 	if (len > 0) {
 		// UDP 패킷 처리
 		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
-		std::cout << "Recv" << std::endl;
 		gRecvBuffer.Push(mInputCommand);
 	}
 	else if (len == SOCKET_ERROR)

@@ -77,7 +77,7 @@ void SystemManager::PreUpdate(float deltaTime)
     mEventManager->BeginPhase(EventPhase::Pre);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<CollisionSystem>()->Update(deltaTime);
-   // GetSystem<MovementSystem>()->Update(deltaTime);
+    //GetSystem<MovementSystem>()->Update(deltaTime);
     GetSystem<NetInterpolationSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
     GetSystem<EnemySystem>()->Update(deltaTime);

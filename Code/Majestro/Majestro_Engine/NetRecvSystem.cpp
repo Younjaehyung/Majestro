@@ -63,7 +63,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 
 		// msg netity id로 엔티티 찾기
 		Entity e = mWorld->GetEntityByNetId(movePacket->netEntityId);
-		std::cout << movePacket->netEntityId << std::endl;
+
         TransformComponent* comp =  mWorld->GetComponent<TransformComponent>(e);
         NetTransformComponent* netcomp =  mWorld->GetComponent<NetTransformComponent>(e);
 		if(comp == nullptr || netcomp == nullptr ) return;
@@ -79,7 +79,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     }
     else if (msg.Type == PKT_Type::S2C_PKT_STATE) {
       const S2C_StatePacket* statePacket = msg.ViewAs<S2C_StatePacket>();
-	  // msg netity id로 엔티티 찾기
+	   // msg netity id로 엔티티 찾기
       Entity e = mWorld->GetEntityByNetId(statePacket->netEntityId);
       MainPlayerComponent* playercomp = mWorld->GetComponent<MainPlayerComponent>(e);
       NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);

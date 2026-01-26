@@ -24,9 +24,8 @@ void MovementSystem::Update(float dt) {
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
-	std::cout << "[MovementSystem] Terrain Height at (0,0): " << terrainComponent->GetHeightAtWorldPosition(Vec3(0.0f, 0.0f, 0.0f)) << std::endl;
 
-	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
+	/*std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 
@@ -56,7 +55,7 @@ void MovementSystem::Update(float dt) {
 		}
 		
 		
-	}
+	}*/
 
 
 	//main player movement
@@ -119,27 +118,27 @@ void MovementSystem::Update(float dt) {
 			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
 		}
 
-		//jump
-		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-		//cout << "height::" << gravityComponent->mHight << endl;
-		mainPlayerComponent->mFalling = gravityComponent->mFalling;
-		if (movementComponent->mJump) {
-			gravityComponent->mHight += 10.0f;
-			gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
-			movementComponent->mJump = false;
-			mainPlayerComponent->mFalling = true;
-		}
+		////jump
+		//GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
+		////cout << "height::" << gravityComponent->mHight << endl;
+		//mainPlayerComponent->mFalling = gravityComponent->mFalling;
+		//if (movementComponent->mJump) {
+		//	gravityComponent->mHight += 10.0f;
+		//	gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+		//	movementComponent->mJump = false;
+		//	mainPlayerComponent->mFalling = true;
+		//}
 		
 	}
 
-	//enemy movement
-	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
-	for (auto& entity : enemyEntitys) {
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
-		
-		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
-	}
+	////enemy movement
+	//std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
+	//for (auto& entity : enemyEntitys) {
+	//	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+	//	EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
+	//	
+	//	transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
+	//}
 
 }
 

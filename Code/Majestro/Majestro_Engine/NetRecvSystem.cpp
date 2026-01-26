@@ -9,6 +9,7 @@
 #include "Prefab.h"
 #include "PlayerComponent.h"
 
+
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world, event)
 {
@@ -83,10 +84,11 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
       Entity e = mWorld->GetEntityByNetId(statePacket->netEntityId);
       MainPlayerComponent* playercomp = mWorld->GetComponent<MainPlayerComponent>(e);
       NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
+      NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(e);
       if (comp == nullptr || playercomp == nullptr) return;
 
       playercomp->mStatePacket = statePacket->stateId;
-
+	  netTransform->mElapsed = 0.0f;
       /*switch (statePacket->stateId)
       {
          case S_Idle:
@@ -137,15 +139,17 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 	archetypeId = static_cast<uint32_t>(spawnPacket->prefabType);
 	netId = static_cast<uint32_t>(spawnPacket->netEntityId);
 	std::cout << "HandleSpawn called with netId: " << netId << " archetypeId: " << archetypeId << std::endl;
-    Entity e = CreateEntityFromArchetype(archetypeId);
+    if (mWorld->GetEntityByNetId(netId) == NULL_ENTITY) {
+        Entity e = CreateEntityFromArchetype(archetypeId);
+		std::cout << "Entity created with ID: " << e.GetID() << std::endl;
+    }
+       
 
-    // netId 바인딩 (중요)
-    // mNetIdMap->Bind(netId, e);
 
     // 초기 상태도 같이 온다면 반영
     //NetTransformState nts{};
     //if (r.Read(nts)) {
-    //    // [중요] 네트워크 상태 컴포넌트만 갱신
+    //    // 
     //    mCmd->SetNetTransform(e, nts);
     //}
 }

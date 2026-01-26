@@ -73,18 +73,31 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
-
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 
-	SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
-	request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
-	gSendQueue.Push(request);
+	// 로그인 한 클라이언트에게 자신의 Spawn 패킷 전송
+	{
+		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		spawnPkt.isLocalPlayer = 1;
+		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(request);
+	}
+
+	// 다른 클라이언트들에게 로그인 한 클라이언트의 Spawn 패킷 전송
+	{
+		SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		spawnPkt.isLocalPlayer = 0;
+		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(request);
+	}
 	std::cout << "[YSW]Spawn Packet Sent to SessionID: " << ssessionId << netComp->mNetEntityId << std::endl;
 
 
 
+
+	// 로그인 한 클라이언트에게 이미 접속해있는 다른 플레이어들에 대한 Spawn 패킷 전송
 	for (auto& N : mWorld->GetNetIdMap()->GetNetIdMap()) {
 		
 		netComp = mWorld->GetComponent<NetEntityComponent>(N.second);

@@ -12,4 +12,6 @@ void CameraComponent::FinalUpdate(Matrix mat)
 
 
 	mFrustum.FinalUpdate(mView, mProjection);
+
+
 }

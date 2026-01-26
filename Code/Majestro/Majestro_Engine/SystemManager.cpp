@@ -77,19 +77,21 @@ void SystemManager::PreUpdate(float deltaTime)
     mEventManager->BeginPhase(EventPhase::Pre);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<CollisionSystem>()->Update(deltaTime);
-    //GetSystem<MovementSystem>()->Update(deltaTime);
-    GetSystem<NetInterpolationSystem>()->Update(deltaTime);
+    GetSystem<MovementSystem>()->Update(deltaTime);
+   
     
     GetSystem<EnemySystem>()->Update(deltaTime);
-
+    GetSystem<NetInterpolationSystem>()->Update(deltaTime);
 }
 
 void SystemManager::PostUpdate(float deltaTime)
 {
     mEventManager->BeginPhase(EventPhase::Post);
+
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);
+
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);

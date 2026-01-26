@@ -177,7 +177,7 @@ struct S2C_MovePacket : public PacketUdpHeader {
 struct S2C_SpawnPacekt : public PacketTcpHeader {
 	uint32 SessionId{};
 	uint64 netEntityId{};
-	
+	uint8  isLocalPlayer{};
 	MsgKind kind = MsgKind::Spawn;
 	PrefabType prefabType{ PrefabType::NONE };
 

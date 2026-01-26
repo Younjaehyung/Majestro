@@ -63,7 +63,7 @@ void MovementSystem::Update(float dt) {
 	if (mainCameraEntitys.empty())return;
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
-	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
+	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponents<PlayerMovementComponent, LocalPlayerComponent>() };
 	for (auto& entity : playerEntitys) {
 		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -90,6 +90,7 @@ void MovementSystem::Update(float dt) {
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
 			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
+			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotation.x;
 
 		
 		}
@@ -115,6 +116,7 @@ void MovementSystem::Update(float dt) {
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
 			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
+			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotation.x;
 		}
 
 		////jump

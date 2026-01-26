@@ -2,7 +2,9 @@
 #include "NetInterpolationSystem.h"
 #include "World.h"
 #include "TransformComponent.h"
+#include "MovementComponent.h"
 #include "NetTransformComponent.h"
+#include "TagComponent.h"
 
 NetInterpolationSystem::NetInterpolationSystem(World* world) : System(world)
 {
@@ -26,8 +28,23 @@ void NetInterpolationSystem::Update(float dt)
 		float t = netTransform->mElapsed / duration;
 		if (t > 1.0f) t = 1.0f;
 
-		transform->mLocalPosition = Vec3::Lerp(netTransform->mStartPosition, netTransform->mTargetPosition, t);
-		transform->mLocalRotation = Vec3::Lerp(netTransform->mStartRotation, netTransform->mTargetRotation, t);
+		if (mWorld->GetComponent<LocalPlayerComponent>(entity)) {
+			transform->mLocalPosition = Vec3::Lerp(netTransform->mStartPosition, netTransform->mTargetPosition, t);
+			transform->mLocalRotation = Vec3::Lerp(netTransform->mStartRotation, netTransform->mTargetRotation, t);
+		}
+		else {
+			transform->mLocalPosition = netTransform->mTargetPosition;
+			transform->mLocalRotation = netTransform->mTargetRotation;
+		}
+		
+
+		//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
+		//if (movementComponent) {
+		//	movementComponent->mCameraRotationX = transform->mLocalRotation.x;
+		//	movementComponent->mCameraRotationY = transform->mLocalRotation.y;
+		//}
+			
+
 
 		if (t >= 1.0f)
 		{

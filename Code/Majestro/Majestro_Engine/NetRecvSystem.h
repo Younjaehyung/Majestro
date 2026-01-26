@@ -30,5 +30,6 @@ private:
 
 	InputCommand mInputCommand{};
 	
+	bool mIsPlayer = false;
 };
 

@@ -15,5 +15,7 @@ class MainCameraComponent : public Component<MainCameraComponent>
 
 };
 
-
+class LocalPlayerComponent : public Component<LocalPlayerComponent>
+{
+};
 

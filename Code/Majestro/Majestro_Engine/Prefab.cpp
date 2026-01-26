@@ -132,6 +132,11 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	
+	if(ctx.ViewAs<S2C_SpawnPacekt>()->isLocalPlayer == 1)
+	{
+		world->AddComponent<LocalPlayerComponent>(mEntityID);
+	}
+
 
 	Vec3 half{ 10,10,10 };	
 	Vec3 center{ 0,10,0 };

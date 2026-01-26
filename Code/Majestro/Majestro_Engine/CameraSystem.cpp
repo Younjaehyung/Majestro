@@ -81,7 +81,7 @@ void CameraSystem::Update(float dt)
 		cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
 		
 	}
-	
+
 }
 
 

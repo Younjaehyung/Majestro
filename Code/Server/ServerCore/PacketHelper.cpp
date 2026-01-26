@@ -16,6 +16,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::S2C_PKT_LOGIN:
 	case PKT_Type::S2C_PKT_SPAWN:
 	case PKT_Type::S2C_PKT_STATE:
+	case PKT_Type::S2C_PKT_COLLISION:
 	{
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;

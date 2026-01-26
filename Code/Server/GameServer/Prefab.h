@@ -97,3 +97,12 @@ public:
 	~TerrainPrefab();
 	static Entity Build(World* world, const InputCommand& ctx);
 };
+
+class EnemyPrefab : public Prefab
+{
+public:
+	EnemyPrefab(World* world);
+	~EnemyPrefab();
+public:
+	static Entity Build(World* world, const InputCommand& ctx);
+};

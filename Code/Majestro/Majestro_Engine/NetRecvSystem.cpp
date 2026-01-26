@@ -8,7 +8,7 @@
 #include "NetTransformComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
-
+#include "BoxColliderComponent.h"
 
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world, event)
@@ -111,6 +111,18 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
       
       return;
     }
+    else if(msg.Type == PKT_Type::S2C_PKT_COLLISION) {
+		const S2C_CollisionPacket* collisionPacket = msg.ViewAs<S2C_CollisionPacket>();
+		// msg netity id로 엔티티 찾기
+		Entity e = mWorld->GetEntityByNetId(collisionPacket->netEntityId);
+		NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
+		if (comp == nullptr) return;
+		BoxColliderComponent* boxComp = mWorld->GetComponent<BoxColliderComponent>(e);
+		if (boxComp == nullptr) return;
+		boxComp->bIsColliding = collisionPacket->bIsColliding;
+		std::cout << "Collision Packet Processed for Entity ID: " << collisionPacket->netEntityId << " Collision State: " << boxComp->bIsColliding << std::endl;
+        return;
+	}
 
 
 

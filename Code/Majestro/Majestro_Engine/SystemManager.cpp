@@ -38,7 +38,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<EffectSystem>();
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<EnemySystem>();
-    //RegisterSystem<CollisionSystem>();
+    RegisterSystem<CollisionSystem>();
     RegisterSystem<NetInterpolationSystem>();
 
 #ifdef _IMGUI
@@ -58,13 +58,24 @@ void SystemManager::Update(float deltaTime) {
     //for (auto& sys : mLateUpdateSystems)   sys->Update(deltaTime);
     //for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
 
-	NetUpdate(deltaTime);
+	
 
     PreUpdate(deltaTime);
+
+    NetUpdate(deltaTime);
 	
 	PostUpdate(deltaTime);
 
 }
+
+void SystemManager::PreUpdate(float deltaTime)
+{
+    mEventManager->BeginPhase(EventPhase::Pre);
+    GetSystem<PlayerInputSystem>()->Update(deltaTime);
+    GetSystem<MovementSystem>()->Update(deltaTime);
+    //GetSystem<CollisionSystem>()->Update(deltaTime);
+}
+
 
 void SystemManager::NetUpdate(float deltaTime)
 {
@@ -72,22 +83,12 @@ void SystemManager::NetUpdate(float deltaTime)
     GetSystem<NetSendSystem>()->Update(deltaTime);
 }
 
-void SystemManager::PreUpdate(float deltaTime)
-{
-    mEventManager->BeginPhase(EventPhase::Pre);
-    GetSystem<PlayerInputSystem>()->Update(deltaTime);
-    //GetSystem<CollisionSystem>()->Update(deltaTime);
-    GetSystem<MovementSystem>()->Update(deltaTime);
-   
-    
-    GetSystem<EnemySystem>()->Update(deltaTime);
-    GetSystem<NetInterpolationSystem>()->Update(deltaTime);
-}
 
 void SystemManager::PostUpdate(float deltaTime)
 {
     mEventManager->BeginPhase(EventPhase::Post);
-
+    GetSystem<EnemySystem>()->Update(deltaTime);
+    GetSystem<NetInterpolationSystem>()->Update(deltaTime);
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);
     GetSystem<CameraSystem>()->Update(deltaTime);

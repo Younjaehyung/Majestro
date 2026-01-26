@@ -4,6 +4,7 @@
 #include "NetEntityComponent.h"
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
+#include "BoxColliderComponent.h"
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
 {
@@ -14,7 +15,8 @@ void NetSendSystem::Update(float dt)
 
 	ConvertMove(mNetComp, &mSendReq, dt);	//move
 	ConvertState();
-
+	SendCollision();
+	
 }
 
 void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
@@ -81,6 +83,28 @@ void NetSendSystem::ConvertState()
 			statePkt.netEntityId = netComp->mNetEntityId;
 			statePkt.stateId = playerComp->GetState();
 			mSendReq.StoreAs<S2C_StatePacket>(statePkt);
+			//	netComp->mIsDirty = false;
+			gSendQueue.Push(mSendReq);
+		}
+	}
+}
+
+void NetSendSystem::SendCollision()
+{
+	std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<BoxColliderComponent, NetEntityComponent>();
+	for (auto& entity : entities)
+	{
+		//if (netComp->mIsDirty)
+		{
+
+			mSendReq.SessionId = 0;
+			mSendReq.Type = S2C_PKT_STATE;
+			mSendReq.Size = sizeof(S2C_CollisionPacket);
+			S2C_CollisionPacket collisionPkt;
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			collisionPkt.netEntityId = netComp->mNetEntityId;
+			collisionPkt.bIsColliding = mWorld->GetComponent<BoxColliderComponent>(entity)->bIsColliding;
+			mSendReq.StoreAs<S2C_CollisionPacket>(collisionPkt);
 			//	netComp->mIsDirty = false;
 			gSendQueue.Push(mSendReq);
 		}

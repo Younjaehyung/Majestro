@@ -14,6 +14,8 @@
 #include "TagComponent.h"
 #include "TerrainComponent.h"
 #include "TransformComponent.h"
+#include "BoxColliderComponent.h"
+#include "EnemyComponent.h"
 #include "World.h"
 
 
@@ -73,6 +75,11 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   auto &w =
       world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
   w.mSessionId = ctx.SessionId;
+
+  Vec3 half{ 10,10,10 };
+  Vec3 center{ 0,10,0 };
+  world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
+
   return mEntityID;
 }
 
@@ -126,4 +133,48 @@ Entity TerrainPrefab::Build(World *world, const InputCommand &ctx) {
   terrainc.mTerrainWorldScale = bt.mLocalScale;
 
   return mEntityID;
+}
+
+
+EnemyPrefab::EnemyPrefab(World* world)
+{
+	mEntityID = world->CreateEntity();
+	TransformComponent t{};
+	t.mLocalPosition = { 0.f, 0.f, 0.f };
+	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
+
+
+	//mWorld->AddComponent<AnimationComponent>(osw, anmators);
+	float i, j, k;
+	float n = 10;
+	for (i = -50; i < 50; i += 10.0f) {
+		for (j = -50; j < 50; j += 10.0f) {
+			//for (k = -50; k < 50; k += 10.0f) {
+			Entity mEntityID = world->CreateEntity();
+			t.mLocalPosition = { i * n, 0, j * n };
+
+
+			world->AddComponent<TransformComponent>(mEntityID, t);
+
+			world->AddComponent<GravityComponent>(mEntityID);
+
+			world->AddComponent<EnemyComponent>(mEntityID);
+			world->AddComponent<EnemyMovementComponent>(mEntityID);
+			world->AddComponent<BoxColliderComponent>(mEntityID);
+			//}
+		}
+
+	}
+
+}
+
+EnemyPrefab::~EnemyPrefab()
+{
+}
+
+Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
+{
+	Entity mEntityID = world->CreateEntity();
+
+	return mEntityID;
 }

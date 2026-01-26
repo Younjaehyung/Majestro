@@ -25,6 +25,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_RESPAWN,
 	S2C_PKT_MOVE,
 	S2C_PKT_STATE,
+	S2C_PKT_COLLISION,
 
 
 	KMSG,
@@ -185,6 +186,18 @@ struct S2C_SpawnPacekt : public PacketTcpHeader {
 	S2C_SpawnPacekt(uint32 sessionId, uint64 entityId, PrefabType type = PrefabType::NONE)
 		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 },
 		SessionId(sessionId), netEntityId(entityId), prefabType(type) {
+	}
+};
+
+struct S2C_CollisionPacket : public PacketTcpHeader {	// 임시
+
+	uint64 netEntityId{};
+	bool	bIsColliding{};
+
+	S2C_CollisionPacket() : PacketTcpHeader{ sizeof(S2C_CollisionPacket), PKT_Type::S2C_PKT_COLLISION, 0.0 } {}
+	S2C_CollisionPacket(uint64 entityId, bool isColliding)
+		: PacketTcpHeader{ sizeof(S2C_CollisionPacket), PKT_Type::S2C_PKT_COLLISION, 0.0 },
+		netEntityId(entityId), bIsColliding(isColliding) {
 	}
 };
 

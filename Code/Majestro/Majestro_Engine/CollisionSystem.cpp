@@ -11,13 +11,13 @@ static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* c
 {
     XMVECTOR S, R, T;
 
-    // [¼öÁ¤] SimpleMath::Matrix -> XMMATRIX º¯È¯
-    const XMMATRIX M = tr->mWorldMatrix; // SimpleMath::Matrix´Â XMMATRIX·Î ¾Ï½Ã º¯È¯µÇ´Â °æ¿ì°¡ ¸¹À½
+    // [ìˆ˜ì •] SimpleMath::Matrix -> XMMATRIX ë³€í™˜
+    const XMMATRIX M = tr->mWorldMatrix; // SimpleMath::MatrixëŠ” XMMATRIXë¡œ ì•”ì‹œ ë³€í™˜ë˜ëŠ” ê²½ìš°ê°€ ë§ŽìŒ
 
     if (!XMMatrixDecompose(&S, &R, &T, M))
         return;
 
-    // scale / rotation(quat) / translation ÃßÃâ
+    // scale / rotation(quat) / translation ì¶”ì¶œ
     const XMFLOAT3 s3 = {};
     const XMFLOAT4 r4 = {};
     const XMFLOAT3 t3 = {};
@@ -29,7 +29,7 @@ static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* c
 
     const Vec3 worldPos = Vec3(tF.x, tF.y, tF.z);
 
-    // ·ÎÄÃ Center ¿ÀÇÁ¼ÂÀ» ¿ùµå È¸ÀüÀ¸·Î È¸Àü
+    // ë¡œì»¬ Center ì˜¤í”„ì…‹ì„ ì›”ë“œ íšŒì „ìœ¼ë¡œ íšŒì „
     const XMVECTOR localCenter = XMVectorSet(col->mCenter.x, col->mCenter.y, col->mCenter.z, 0.0f);
     const XMVECTOR rotatedOffV = XMVector3Rotate(localCenter, XMLoadFloat4(&rF));
     XMFLOAT3 rotatedOffF;
@@ -55,7 +55,7 @@ void CollisionSystem::Update(float dt) {
 
     auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
 
-    // (B) ¿ùµå OBB °»½Å
+    // (B) ì›”ë“œ OBB ê°±ì‹ 
     for (auto e : entities)
     {
         auto* tr = mWorld->GetComponent<TransformComponent>(e);
@@ -65,26 +65,4 @@ void CollisionSystem::Update(float dt) {
 
         UpdateWorldOBB(tr, col);
     }
-
-    // (C) Ãæµ¹ ÆÇÁ¤ (N^2)
-    for (size_t i = 0; i < entities.size(); ++i)
-    {
-        auto a = entities[i];
-        auto* colA = mWorld->GetComponent<BoxColliderComponent>(a);
-
-        for (size_t j = i + 1; j < entities.size(); ++j)
-        {
-            auto b = entities[j];
-            auto* colB = mWorld->GetComponent<BoxColliderComponent>(b);
-
-            if (!colA || !colB) continue;
-
-            if (colA->mWorldOBB.Intersects(colB->mWorldOBB))
-            {
-                colA->bIsColliding = true; // [Ãß°¡]
-                colB->bIsColliding = true; // [Ãß°¡]
-            }
-        }
-    }
-
 }

@@ -28,6 +28,7 @@ void Scene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 
 	TerrainPrefab terrain{ mWorld.get()};
+	EnemyPrefab	enemys{ mWorld.get() };
 	//SkyBoxPrefab skybox{ mWorld };
 	//DirLightPrefab light{ mWorld };
 

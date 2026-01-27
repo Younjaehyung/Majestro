@@ -155,17 +155,17 @@ EnemyPrefab::EnemyPrefab(World* world)
 {
 	//mEntityID = world->CreateEntity();
 
-	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"NoteHog_mBody");
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Noteboar_Body");
 	std::vector<shared_ptr<Material>> material2s;
 
 
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"NoteBoar_Run0");
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"SK_NoteBoar_Run0");
 	material2s.push_back(material2);
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 0.f, 0.f };
 	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
 	vector<shared_ptr<Animator>> anmators;
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"NoteBoar_Rig|NoteBoar_aRun"));
+	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"SM_Noteboar_Body.001|Action"));
 
 	//mWorld->AddComponent<AnimationComponent>(osw, anmators);
 	float i, j, k;

@@ -189,9 +189,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
-
 	world->AddComponent<GravityComponent>(mEntityID);
-
 	world->AddComponent<EnemyComponent>(mEntityID);
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);

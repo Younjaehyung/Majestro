@@ -207,6 +207,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
 
+	cout << "//////////////////////////\n\n\n\n\n\n\n\////////////////////////////////////" << endl;
+
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"NoteHog_mBody");
 	std::vector<shared_ptr<Material>> material2s;
 
@@ -220,6 +222,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"NoteBoar_Rig|NoteBoar_aRun"));
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
+	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	//world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators);

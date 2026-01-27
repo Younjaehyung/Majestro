@@ -6,7 +6,7 @@ using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 
-BOOL STATE_DEBUG = TRUE;
+BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {

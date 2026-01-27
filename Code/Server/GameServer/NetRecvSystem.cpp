@@ -128,12 +128,13 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 
 	if (mEnemySpawnOnce) {
 		mNetEntityIds.reserve(200);
-		for (int i = 0;i < 100; ++i) {
+		for (int i = 0;i < 10; ++i) {
 			Entity e = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, inputCommand);
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
 			mNetEntityIds.push_back(netComp->mNetEntityId);
 
 		}
+		mEnemySpawnOnce = false;
 	}
 
 	for (uint64 id :mNetEntityIds) {

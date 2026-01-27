@@ -35,7 +35,7 @@ Prefab::~Prefab()
 PlayerPrefab::PlayerPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
-
+	cout << "/////////////////////////////////////" << endl;
 	TransformComponent t{};
 	Entity testCamera = world->CreateEntity();
 	world->AddComponent<MainCameraComponent>(testCamera);
@@ -221,10 +221,10 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
-	world->AddComponent<GravityComponent>(mEntityID);
+	//world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators);
-	world->AddComponent<EnemyComponent>(mEntityID);
-	world->AddComponent<EnemyMovementComponent>(mEntityID);
+	//world->AddComponent<EnemyComponent>(mEntityID);
+	//world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);

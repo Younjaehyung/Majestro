@@ -19,6 +19,10 @@ void CameraSystem::Initialize()
 
 void CameraSystem::Update(float dt)
 {
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+	if (false == mWorld->HasComponentPool<TransformComponent>())return;
+
+
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 
 	//TestUpdate(dt);

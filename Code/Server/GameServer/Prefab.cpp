@@ -187,7 +187,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	
 	t.mLocalPosition = { i * n, 0, j * n };
 
-
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<EnemyComponent>(mEntityID);

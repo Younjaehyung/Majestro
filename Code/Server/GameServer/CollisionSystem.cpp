@@ -51,6 +51,8 @@ CollisionSystem::CollisionSystem(World* world) : System(world)
 }
 
 void CollisionSystem::Update(float dt) {
+    if (false == mWorld->HasComponentPool<BoxColliderComponent>())return;
+    if (false == mWorld->HasComponentPool<TransformComponent>())return;
 
     auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
 

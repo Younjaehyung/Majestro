@@ -12,6 +12,7 @@ NetSendSystem::NetSendSystem(World* world) : System(world)
 
 void NetSendSystem::Update(float dt)
 {
+	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
 	ConvertMove(mNetComp, &mSendReq, dt);	//move
 	ConvertState();
@@ -68,6 +69,8 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 
 void NetSendSystem::ConvertState()
 {
+	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
+
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
 	for (auto& entity : entities)
 	{
@@ -91,6 +94,8 @@ void NetSendSystem::ConvertState()
 
 void NetSendSystem::SendCollision()
 {
+	if (false == mWorld->HasComponentPool<BoxColliderComponent>())return;
+
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<BoxColliderComponent, NetEntityComponent>();
 	for (auto& entity : entities)
 	{

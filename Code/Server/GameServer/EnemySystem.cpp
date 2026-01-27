@@ -13,9 +13,10 @@ EnemySystem::EnemySystem(World* world) : System(world)
 
 
 void EnemySystem::Update(float dt) {
+	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
+	if (false == mWorld->HasComponentPool<TransformComponent>())return;
 
 	auto& transformPool = mWorld->GetComponentPool<TransformComponent>();
-
 
 	//TransformComponent* playerPos = transformPool.GetComponent(cameraTypeComponent->mTargetID);
 

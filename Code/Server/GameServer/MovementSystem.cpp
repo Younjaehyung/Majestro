@@ -19,8 +19,9 @@ MovementSystem::MovementSystem(World* world) : System(world)
 
 void MovementSystem::Update(float dt) {
 
-	//if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
-	//if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
+	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
 
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();

@@ -24,7 +24,7 @@ void PlayerInputSystem::Initialize()
 
 void PlayerInputSystem::Update(float dt)
 {
-
+	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 	//player move
 
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };

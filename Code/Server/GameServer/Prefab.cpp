@@ -51,7 +51,7 @@ PlayerPrefab::~PlayerPrefab() {}
 
 Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   Entity mEntityID = world->CreateEntity();
-
+  
   TransformComponent t{};
   Entity testCamera = world->CreateEntity();
   world->AddComponent<MainCameraComponent>(testCamera);
@@ -136,6 +136,7 @@ Entity TerrainPrefab::Build(World *world, const InputCommand &ctx) {
 }
 
 
+int EnemyPrefab::mSpawnCount = 0;
 EnemyPrefab::EnemyPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
@@ -143,7 +144,7 @@ EnemyPrefab::EnemyPrefab(World* world)
 	t.mLocalPosition = { 0.f, 0.f, 0.f };
 	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
 
-
+	
 	//mWorld->AddComponent<AnimationComponent>(osw, anmators);
 	float i, j, k;
 	float n = 10;
@@ -161,6 +162,8 @@ EnemyPrefab::EnemyPrefab(World* world)
 			world->AddComponent<EnemyComponent>(mEntityID);
 			world->AddComponent<EnemyMovementComponent>(mEntityID);
 			world->AddComponent<BoxColliderComponent>(mEntityID);
+
+
 			//}
 		}
 
@@ -175,6 +178,30 @@ EnemyPrefab::~EnemyPrefab()
 Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
+
+	TransformComponent t{};
+
+	float n = 10;
+	float i = (float)(mSpawnCount/10)*n , j = (float)(mSpawnCount % 10) * n, k;
+	
+	
+	t.mLocalPosition = { i * n, 0, j * n };
+
+
+	world->AddComponent<TransformComponent>(mEntityID, t);
+
+	world->AddComponent<GravityComponent>(mEntityID);
+
+	world->AddComponent<EnemyComponent>(mEntityID);
+	world->AddComponent<EnemyMovementComponent>(mEntityID);
+	world->AddComponent<BoxColliderComponent>(mEntityID);
+
+	auto& w =
+		world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
+	w.mSessionId = ctx.SessionId;
+
+
+	mSpawnCount++;
 
 	return mEntityID;
 }

@@ -143,12 +143,12 @@ void MovementSystem::Update(float dt) {
 		}
 	}
 	//enemy movement
-	/*std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
+	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
 
 		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
-	}*/
+	}
 
 }

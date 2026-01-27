@@ -17,13 +17,13 @@ LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos
     if (Lights[lightIndex].lightType == 0)
     {
         // Directional Light
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), Lights[lightIndex].MatView).xyz);
+        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
         diffuseRatio = saturate(dot(-viewLightDir, viewNormal)); //saturate: 음수이면 0으로.
     }
     else if (Lights[lightIndex].lightType == 1)
     {
         // Point Light
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), Lights[lightIndex].MatView).xyz;
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
         viewLightDir = normalize(viewPos - viewLightPos);
         diffuseRatio = saturate(dot(-viewLightDir, viewNormal));
 
@@ -36,7 +36,7 @@ LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos
     else
     {
         // Spot Light
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), Lights[lightIndex].MatView).xyz;
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
         viewLightDir = normalize(viewPos - viewLightPos);
         diffuseRatio = saturate(dot(-viewLightDir, viewNormal));
 
@@ -47,7 +47,7 @@ LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos
             float halfAngle = Lights[lightIndex].angle / 2;
 
             float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), Lights[lightIndex].MatView).xyz);
+            float3 viewCenterLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
 
             float centerDist = dot(viewLightVec, viewCenterLightDir);
             distanceRatio = saturate(1.f - centerDist / Lights[lightIndex].range);

@@ -130,7 +130,8 @@ void MovementSystem::Update(float dt) {
 			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 
 			mainPlayerComponent->mFalling = gravityComponent->mFalling;
-			if (inputComponent->MoveY == 1) {
+			if (inputComponent->MoveY == 1/*inputComponent->IsButtonPressed(InputButtons::SPACE)*/) {
+				cout << "jump" << endl;
 				if (not mainPlayerComponent->mFalling) {
 					gravityComponent->mHight += 10.0f;
 					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;

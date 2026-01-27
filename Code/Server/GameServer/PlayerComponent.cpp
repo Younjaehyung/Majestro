@@ -14,6 +14,8 @@ static StateId NameToId(const std::string& n) {
     if (n == "Walk") return S_Walk;
 	if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
+    if (n == "Fall")  return S_Fall;
+    if (n == "Land")  return S_Land;
 	if (n == "Dash")  return S_Dash;
 
     if (n == "Aim")  return S_Aim;
@@ -49,6 +51,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
     WalkState::Instance(),
     RunState::Instance(),
     JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
     DashState::Instance(),
 
     AimState::Instance(),
@@ -79,17 +83,10 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
 
 void MainPlayerComponent::StateCheck()
 {
-    if(mSpeed<1.f)ClearFlag(mFlags, FLAG_MOVE);
-    //if (mHight <= mGround) {
-    //    mHight = mGround;
-    //    mGravity = 0.0f;
-    //    //ClearFlag(mFlags, FLAG_JUMP);
-    //}
-    //else {
-    //    mGravity += mGravityA * mDt;
-    //    mHight -= mGravity;
-    //}
-
+    if (mSpeed < 1.f)ClearFlag(mFlags, FLAG_MOVE);
+    if (mFalling) {
+        mFsm.ChangeState(this, FallState::Instance());
+    }
 }
 
 void MainPlayerComponent::Update(float dt) 
@@ -114,6 +111,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == WalkState::Instance()) return S_Walk;
         if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance()) return S_Jump;
+        if (s == FallState::Instance()) return S_Fall;
+        if (s == LandState::Instance()) return S_Land;
         if (s == DashState::Instance()) return S_Dash;
         return 255;
         });
@@ -240,25 +239,35 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 
         if (_p.contains("animOnce"))
             st->mAnimOnce = _p["animOnce"].get<bool>();
+
+        if (_p.contains("animEndTime"))
+        {
+            float t = _p["animEndTime"].get<float>();
+            if (t > 0.0f)
+                st->mAnimEndTime = t;
+            // else: 0 이하이면 "설정 안 함" 취급 -> 기존 값 유지
+        }
         
     }
 
     std::cout << "[State Props Loaded]\n";
 }
 
-//---------------------------------------------------------------------------------------------------
-void StateEnter(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
+//-------------------------------------------------------------------------------------------------
+void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 {
     owner->mStateTime = 0.0f;
-    if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() <<"\n"; }
+    owner->mNextState = S_Idle;
+    if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }
+    if (s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
     if (s->mAnimOnce && owner->mStateTime >= s->mAnimEndTime) {
-        //cout << s->mStateTime << endl;
-        ClearFlag(owner->mFlags, FLAG_JUMP);
-        owner->mFsm.ChangeState(owner, IdleState::Instance());
+        if (s->mAnimOnce) ClearFlag(owner->mFlags, FLAG_ANIM);
+        owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }
+
 }
 
 void StateExit(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
@@ -272,13 +281,13 @@ IdleState* IdleState::Instance() {
     static IdleState inst;
     return &inst;
 }
-void IdleState::Enter(MainPlayerComponent* owner) 
+void IdleState::Enter(MainPlayerComponent* owner)
 {
     ClearFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
 void IdleState::Update(MainPlayerComponent* owner) {
-    
+
 }
 void IdleState::Exit(MainPlayerComponent* owner) {
     StateExit(this, owner);
@@ -288,7 +297,7 @@ WalkState* WalkState::Instance() {
     static WalkState inst;
     return &inst;
 }
-void WalkState::Enter(MainPlayerComponent* owner) 
+void WalkState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
@@ -296,12 +305,12 @@ void WalkState::Enter(MainPlayerComponent* owner)
 void WalkState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
-    if(owner->mSpeed <=0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 
     if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mWalkSpeed; } //달리기 불가 시 속도 강제 다운
-    else if(owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
+    else if (owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
 }
-void WalkState::Exit(MainPlayerComponent* owner) 
+void WalkState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -320,28 +329,59 @@ void RunState::Update(MainPlayerComponent* owner)
     StateUpdate(this, owner);
     if (owner->mSpeed < owner->mRunSpeed) owner->mFsm.ChangeState(owner, WalkState::Instance());
 }
-void RunState::Exit(MainPlayerComponent* owner) 
+void RunState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
 
-JumpState* JumpState::Instance() {                 
-    static JumpState inst;                          
+JumpState* JumpState::Instance() {
+    static JumpState inst;
     return &inst;
 }
 void JumpState::Enter(MainPlayerComponent* owner) {
-    StateEnter(this,owner);
-    //owner->mHight = owner->mGround+ 0.1f;
+    StateEnter(this, owner);
     SetFlag(owner->mFlags, FLAG_JUMP);
+    owner->mNextState = S_Fall;
 }
 void JumpState::Update(MainPlayerComponent* owner) {
     StateUpdate(this, owner);
-    //if (owner->mFsm.ChangeState(owner, IdleState::Instance())) return;
-
-    //owner->mHight += owner->mJumpPower * owner->mDt;
-    //cout << owner->mHight << endl;
 }
-void JumpState::Exit(MainPlayerComponent* owner) 
+void JumpState::Exit(MainPlayerComponent* owner) {
+    //owner->mFalling = true;
+    StateExit(this, owner);
+}
+
+FallState* FallState::Instance() {
+    static FallState inst;
+    return &inst;
+}
+void FallState::Enter(MainPlayerComponent* owner) {
+    StateEnter(this, owner);
+    SetFlag(owner->mFlags, FLAG_JUMP);
+}
+void FallState::Update(MainPlayerComponent* owner) {
+    StateUpdate(this, owner);
+    if (not owner->mFalling) {
+        ClearFlag(owner->mFlags, FLAG_JUMP);
+        owner->mFsm.ChangeState(owner, LandState::Instance());
+    }
+}
+void FallState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+LandState* LandState::Instance() {
+    static LandState inst;
+    return &inst;
+}
+void LandState::Enter(MainPlayerComponent* owner) {
+    StateEnter(this, owner);
+}
+void LandState::Update(MainPlayerComponent* owner) {
+    StateUpdate(this, owner);
+}
+void LandState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -350,11 +390,11 @@ DashState* DashState::Instance() {
     static DashState inst;
     return &inst;
 }
-void DashState::Enter(MainPlayerComponent* owner) 
+void DashState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void DashState::Update(MainPlayerComponent* owner) 
+void DashState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
@@ -385,11 +425,11 @@ ReRoadState* ReRoadState::Instance() {
     static ReRoadState inst;
     return &inst;
 }
-void ReRoadState::Enter(MainPlayerComponent* owner) 
+void ReRoadState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void ReRoadState::Update(MainPlayerComponent* owner) 
+void ReRoadState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
@@ -402,11 +442,11 @@ RhythmChangeState* RhythmChangeState::Instance() {
     static RhythmChangeState inst;
     return &inst;
 }
-void RhythmChangeState::Enter(MainPlayerComponent* owner) 
+void RhythmChangeState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void RhythmChangeState::Update(MainPlayerComponent* owner) 
+void RhythmChangeState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
@@ -420,15 +460,15 @@ HitState* HitState::Instance() {
     static HitState inst;
     return &inst;
 }
-void HitState::Enter(MainPlayerComponent* owner) 
+void HitState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void HitState::Update(MainPlayerComponent* owner) 
+void HitState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void HitState::Exit(MainPlayerComponent* owner) 
+void HitState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -437,7 +477,7 @@ StunState* StunState::Instance() {
     static StunState inst;
     return &inst;
 }
-void StunState::Enter(MainPlayerComponent* owner) 
+void StunState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
@@ -454,7 +494,7 @@ DeadState* DeadState::Instance() {
     static DeadState inst;
     return &inst;
 }
-void DeadState::Enter(MainPlayerComponent* owner) 
+void DeadState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
@@ -462,7 +502,7 @@ void DeadState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void DeadState::Exit(MainPlayerComponent* owner) 
+void DeadState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -473,15 +513,15 @@ Attack1State* Attack1State::Instance() {
     static Attack1State inst;
     return &inst;
 }
-void Attack1State::Enter(MainPlayerComponent* owner) 
+void Attack1State::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void Attack1State::Update(MainPlayerComponent* owner) 
+void Attack1State::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void Attack1State::Exit(MainPlayerComponent* owner) 
+void Attack1State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -490,7 +530,7 @@ Attack2State* Attack2State::Instance() {
     static Attack2State inst;
     return &inst;
 }
-void Attack2State::Enter(MainPlayerComponent* owner) 
+void Attack2State::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
@@ -498,7 +538,7 @@ void Attack2State::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void Attack2State::Exit(MainPlayerComponent* owner) 
+void Attack2State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -511,11 +551,11 @@ void Skill1State::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void Skill1State::Update(MainPlayerComponent* owner) 
+void Skill1State::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void Skill1State::Exit(MainPlayerComponent* owner) 
+void Skill1State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -528,11 +568,11 @@ void Skill2State::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void Skill2State::Update(MainPlayerComponent* owner) 
+void Skill2State::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void Skill2State::Exit(MainPlayerComponent* owner) 
+void Skill2State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
@@ -549,7 +589,7 @@ void SpecialState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void SpecialState::Exit(MainPlayerComponent* owner) 
+void SpecialState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

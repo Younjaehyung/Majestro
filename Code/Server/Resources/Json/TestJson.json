@@ -1,13 +1,14 @@
 {
     "flags": {
         "F_NONE": 1,
-        "F_MOVE": 2,
-        "F_STUN": 4,
-        "F_DEAD": 8,
-        "F_JUMP": 16,
-        "F_SA": 32,
-        "F_INVUL": 64,
-        "F_NO_RUN": 128
+        "F_ANIM": 2,
+        "F_MOVE": 4,
+        "F_STUN": 8,
+        "F_DEAD": 16,
+        "F_JUMP": 32,
+        "F_SA": 64,
+        "F_INVUL": 128,
+        "F_NO_RUN": 256
     },
     "guards": [
         {
@@ -21,14 +22,7 @@
             "from": "Walk",
             "to": "Run",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_NO_RUN"  ]
-        },
-
-        {
-            "from": "Run",
-            "to": "Walk",
-            "require": [],
-            "forbid": [ "F_STUN", "F_DEAD" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_NO_RUN" ]
         },
 
         {
@@ -39,6 +33,13 @@
         },
 
         {
+            "from": "Run",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD" ]
+        },
+
+        {
             "from": "Jump",
             "to": "Idle",
             "require": [],
@@ -53,10 +54,31 @@
         },
 
         {
-            "from": "Jump",
-            "to": "Run",
+            "from": "Fall",
+            "to": "Idle",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Fall",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
+        },
+
+        {
+            "from": "Land",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
+        },
+
+        {
+            "from": "Land",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
         },
 
         {

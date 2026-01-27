@@ -49,32 +49,32 @@ void PlayerInputSystem::Update(float dt)
 		movementComponent->mMovingDirection = { 0,0,0 };
 
 		if (inputComp->MoveX == -1) {
-			if (mainPlayerComponent->GetState() != FLAG_MOVE) {
+			//if (mainPlayerComponent->GetState() != FLAG_MOVE) {
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 				std::cout << "walk" << std::endl;
-			}
+			//}
 				
 			movementComponent->mMovingDirection.x -= 1;
 		}
 		if (inputComp->MoveZ == 1) {
-			if (mainPlayerComponent->GetState() != FLAG_MOVE)
+			//if (mainPlayerComponent->GetState() != FLAG_MOVE)
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.z += 1;
 		}
 		if (inputComp->MoveZ == -1) {
-			if (mainPlayerComponent->GetState() != FLAG_MOVE)
+			//if (mainPlayerComponent->GetState() != FLAG_MOVE)
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.z -= 1;
 		}
 		if (inputComp->MoveX == 1) {
-			if (mainPlayerComponent->GetState() != FLAG_MOVE)
+			//if (mainPlayerComponent->GetState() != FLAG_MOVE)
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.x += 1;
 		}
 
 
 
-		if (inputComp->IsButtonPressed(InputButtons::SPACE)) {
+		if (inputComp->IsButtonPressed(InputButtons::SPACE) || inputComp->MoveY == 1) {
 			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 			else cout << "fail" << endl;
 

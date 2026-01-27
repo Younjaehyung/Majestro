@@ -21,7 +21,8 @@ void PlayerSystem::Initialize()
 
 void PlayerSystem::Update(float dt)
 {
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
+	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
+	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<MainPlayerComponent>() };
 
 	for(auto & entity : entitys)
 	{

@@ -35,7 +35,7 @@ Prefab::~Prefab()
 PlayerPrefab::PlayerPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
-
+	cout << "/////////////////////////////////////" << endl;
 	TransformComponent t{};
 	Entity testCamera = world->CreateEntity();
 	world->AddComponent<MainCameraComponent>(testCamera);
@@ -141,6 +141,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 10,10,10 };	
 	Vec3 center{ 0,10,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
+
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
 	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
@@ -152,7 +153,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 EnemyPrefab::EnemyPrefab(World* world)
 {
-	mEntityID = world->CreateEntity();
+	//mEntityID = world->CreateEntity();
 
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Noteboar_Body");
 	std::vector<shared_ptr<Material>> material2s;
@@ -183,6 +184,14 @@ EnemyPrefab::EnemyPrefab(World* world)
 			world->AddComponent<EnemyComponent>(mEntityID);
 			world->AddComponent<EnemyMovementComponent>(mEntityID);
 			world->AddComponent<BoxColliderComponent>(mEntityID);
+
+
+			/*auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
+			netComp.mOwnerEntity = mEntityID;
+			netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
+			world->NetIdBinding(netComp.mNetEntityId, mEntityID);*/
+
+
 			//}
 		}
 
@@ -198,44 +207,36 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
 
-	TransformComponent t{};
-	Entity testCamera = world->CreateEntity();
-	world->AddComponent<MainCameraComponent>(testCamera);
-	world->AddComponent<CameraComponent>(testCamera);
-	world->AddComponent<TransformComponent>(testCamera, t);
-	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
+	cout << "//////////////////////////\n\n\n\n\n\n\n\////////////////////////////////////" << endl;
 
-	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
-	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-
+	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Noteboar_Body");
 	std::vector<shared_ptr<Material>> material2s;
 
-	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 
-
+	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"SK_NoteBoar_Run0");
 	material2s.push_back(material2);
-	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	t.mLocalScale = { 10.f, 10.f, 10.f };
+	TransformComponent t{};
+	t.mLocalPosition = { 0.f, 0.f, 0.f };
+	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
+	vector<shared_ptr<Animator>> anmators;
+	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"SM_Noteboar_Body.001|Action"));
 
-	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
-	vector<shared_ptr<Animator>> anmators0;
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
-
-
-	world->AddComponent<ControllerComponent>(mEntityID, t);
-	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
 	world->AddComponent<TransformComponent>(mEntityID, t);
+	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
-	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
-	world->AddComponent<BeatComponent>(mEntityID);
-	world->AddComponent<GravityComponent>(mEntityID);
-	world->AddComponent<PlayerMovementComponent>(mEntityID);
-	world->AddComponent<NetEntityComponent>(mEntityID);
+	//world->AddComponent<GravityComponent>(mEntityID);
+	world->AddComponent<AnimationComponent>(mEntityID, anmators);
+	//world->AddComponent<EnemyComponent>(mEntityID);
+	//world->AddComponent<EnemyMovementComponent>(mEntityID);
+	world->AddComponent<BoxColliderComponent>(mEntityID);
+
+	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
+	netComp.mOwnerEntity = mEntityID;
+	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
+	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
+
+
+	
 
 	return mEntityID;
 }

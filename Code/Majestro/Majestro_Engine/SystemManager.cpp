@@ -87,7 +87,7 @@ void SystemManager::NetUpdate(float deltaTime)
 void SystemManager::PostUpdate(float deltaTime)
 {
     mEventManager->BeginPhase(EventPhase::Post);
-    GetSystem<EnemySystem>()->Update(deltaTime);
+    //GetSystem<EnemySystem>()->Update(deltaTime);
     GetSystem<NetInterpolationSystem>()->Update(deltaTime);
     GetSystem<TransformSystem>()->Update(deltaTime);
     GetSystem<PlayerSystem>()->Update(deltaTime);

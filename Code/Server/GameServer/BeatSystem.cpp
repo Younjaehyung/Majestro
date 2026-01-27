@@ -13,6 +13,7 @@ void BeatSystem::Initialize()
 
 void BeatSystem::Update(float dt)
 {
+	if (false == mWorld->HasComponentPool<BeatComponent>())return;
 
 	mSeconds += dt;
 	//cout << "time :" << mSeconds << endl;

@@ -11,6 +11,7 @@ TransformSystem::TransformSystem(World* world) : System(world)
 
 
 void TransformSystem::Update(float dt) {
+	if (false == mWorld->HasComponentPool<TransformComponent>())return;
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<TransformComponent>() };
 	for (auto& entity : entitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);

@@ -50,9 +50,14 @@ public:
 private:
 
 	void LoginProcess(InputCommand& inputCommand);
+	void EnemySpawnProcess(InputCommand& inputCommand);
 
 
 private:
+
+    vector<uint64> mNetEntityIds{};
+    bool mEnemySpawnOnce = true;
+
 	InputBuffer mInputBuffer;
 	InputCommand mInputCommand;
 };

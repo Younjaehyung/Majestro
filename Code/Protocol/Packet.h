@@ -22,6 +22,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_POS,
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
+	S2C_PKT_SPAWNS,
 	S2C_PKT_RESPAWN,
 	S2C_PKT_MOVE,
 	S2C_PKT_STATE,
@@ -82,6 +83,7 @@ enum class MsgKind : uint8
 	KNONE = 0,
 	ReplicationDelta,
 	Spawn,
+	Spawns,
 	Despawn,
 };
 
@@ -184,6 +186,20 @@ struct S2C_SpawnPacekt : public PacketTcpHeader {
 
 	S2C_SpawnPacekt() : PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 } {}
 	S2C_SpawnPacekt(uint32 sessionId, uint64 entityId, PrefabType type = PrefabType::NONE)
+		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 },
+		SessionId(sessionId), netEntityId(entityId), prefabType(type) {
+	}
+};
+
+struct S2C_SpawnsPacekt : public PacketTcpHeader {
+	uint32 SessionId{};
+	uint64 netEntityId{};
+	uint8  isLocalPlayer{};
+	MsgKind kind = MsgKind::Spawns;
+	PrefabType prefabType{ PrefabType::NONE };
+
+	S2C_SpawnsPacekt() : PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 } {}
+	S2C_SpawnsPacekt(uint32 sessionId, uint64 entityId, PrefabType type = PrefabType::NONE)
 		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 },
 		SessionId(sessionId), netEntityId(entityId), prefabType(type) {
 	}

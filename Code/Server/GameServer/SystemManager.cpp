@@ -3,6 +3,7 @@
 #include "CameraSystem.h"
 #include "TransformSystem.h"
 #include "PlayerSystem.h"
+#include "EnemySystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
 #include "NetRecvSystem.h"
@@ -18,6 +19,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<CameraSystem>();
     RegisterSystem<TransformSystem>();
     RegisterSystem<PlayerSystem>();
+    RegisterSystem<EnemySystem>();
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
     RegisterSystem<PlayerInputSystem>();
@@ -37,6 +39,7 @@ void SystemManager::Update(float deltaTime) {
     for (auto& sys : mFinalUpdateSystems)  sys->Update(deltaTime);
 
     GetSystem<NetRecvSystem>()->Update(deltaTime);
+    GetSystem<EnemySystem>()->Update(deltaTime);
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);
     GetSystem<TransformSystem>()->Update(deltaTime);

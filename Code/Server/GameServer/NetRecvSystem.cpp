@@ -32,6 +32,7 @@ void NetRecvSystem::Update(float dt)
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
 				LoginProcess(mInputCommand);
+				EnemySpawnProcess(mInputCommand);
 				break;
 			}
 		}
@@ -117,5 +118,35 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 		gSendQueue.Push(request);
 	}
 
+}
+
+
+void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
+{
+	uint32 ssessionId = 0;//mInputCommand.SessionId;
+
+
+	if (mEnemySpawnOnce) {
+		mNetEntityIds.reserve(200);
+		for (int i = 0;i < 1; ++i) {
+			Entity e = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, inputCommand);
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+			mNetEntityIds.push_back(netComp->mNetEntityId);
+
+		}
+		mEnemySpawnOnce = false;
+	}
+
+	for (uint64 id :mNetEntityIds) {
+		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, id, PrefabType::ENEMY);
+
+		// 로그인 한 클라이언트에게 자신의 Spawn 패킷 전송
+		{
+			SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+			spawnPkt.isLocalPlayer = 0;
+			request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+			gSendQueue.Push(request);
+		}
+	}
 }
 

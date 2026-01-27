@@ -7,6 +7,7 @@
 class World;
 class PlayerPrefab;
 class TerrainPrefab;
+class EnemyPrefab;
 
 
 class Prefab : public Object
@@ -31,6 +32,7 @@ public:
 	{
 		Register<PrefabType::PLAYER, PlayerPrefab>();
 		Register<PrefabType::TERRAIN, TerrainPrefab>();
+		Register<PrefabType::ENEMY, EnemyPrefab>();
 		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
 		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();
 	}
@@ -105,4 +107,7 @@ public:
 	~EnemyPrefab();
 public:
 	static Entity Build(World* world, const InputCommand& ctx);
+
+private:
+	static int mSpawnCount;
 };

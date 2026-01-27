@@ -19,8 +19,9 @@ MovementSystem::MovementSystem(World* world) : System(world)
 
 void MovementSystem::Update(float dt) {
 
-	//if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
-	//if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
+	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
+	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
 
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
@@ -129,7 +130,8 @@ void MovementSystem::Update(float dt) {
 			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 
 			mainPlayerComponent->mFalling = gravityComponent->mFalling;
-			if (inputComponent->MoveY == 1) {
+			if (inputComponent->MoveY == 1/*inputComponent->IsButtonPressed(InputButtons::SPACE)*/) {
+				cout << "jump" << endl;
 				if (not mainPlayerComponent->mFalling) {
 					gravityComponent->mHight += 10.0f;
 					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
@@ -143,12 +145,12 @@ void MovementSystem::Update(float dt) {
 		}
 	}
 	//enemy movement
-	/*std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
+	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
 
 		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
-	}*/
+	}
 
 }

@@ -86,7 +86,7 @@ DS_OUT DS_Main(const OutputPatch<HS_OUT, 3> input, float3 location : SV_DomainLo
     output.viewNormal = -normalize(cross(output.viewBinormal, output.viewTangent));
 
 
-    output.uv = uv;
+    output.uv = fullUV;
 
     return output;
 }

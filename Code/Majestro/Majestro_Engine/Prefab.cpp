@@ -141,6 +141,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 10,10,10 };	
 	Vec3 center{ 0,10,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
+
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
 	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
@@ -268,10 +269,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
 	TransformComponent bt{};
-	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+	bt.mLocalScale = (Vec3(1.f, 800.f, 1.f));
 	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
 
-	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
+	shared_ptr<Mesh> terrainMesh = RESOURCEMANAGER.LoadTerrainMesh(1000, 1000);
 
 	// 빌보드 머티리얼(
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
@@ -279,11 +280,11 @@ TerrainPrefab::TerrainPrefab(World* world)
 	materials.push_back(heightMap);
 
 	world->AddComponent<TransformComponent>(mEntityID, bt);
-	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 1000, 1000, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 
-	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, terrainMesh, materials);
 	render.mCheckFrustum = false;
 
 }

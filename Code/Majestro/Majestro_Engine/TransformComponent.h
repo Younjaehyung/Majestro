@@ -10,8 +10,11 @@ class TransformComponent : public Component<TransformComponent>
 {
 public:
 	TransformComponent(){}
+	TransformComponent(Vec3 position) : mLocalPosition(position) {}
 	TransformComponent(Vec3 position, Vec3 scale): mLocalPosition(position), mLocalScale(scale){}
-	TransformComponent(Vec3 position): mLocalPosition(position){}
+	TransformComponent(Vec3 position, Vec3 rotation, Vec3 scale)
+		: mLocalPosition(position), mLocalRotation(rotation), mLocalScale(scale) {
+	}
 
 
 	Vec3 GetWorldPosition() { return mWorldPosition; }

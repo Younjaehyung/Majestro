@@ -9,17 +9,18 @@ public:
     BoxColliderComponent(Vec3 half, Vec3 center): mHalfExtents(half),  mCenter(center){}
 
 public:
-    // [¼³¸í] ·ÎÄÃ °ø°£ ±âÁØ ¹Ú½º(OBBÀÇ ·ÎÄÃ Á¤ÀÇ)
-    // Center: ·ÎÄÃ Áß½É ¿ÀÇÁ¼Â
-    // HalfExtents: ·ÎÄÃ ¹İ±æÀÌ (x,y,z)
+    // [ì„¤ëª…] ë¡œì»¬ ê³µê°„ ê¸°ì¤€ ë°•ìŠ¤(OBBì˜ ë¡œì»¬ ì •ì˜)
+    // Center: ë¡œì»¬ ì¤‘ì‹¬ ì˜¤í”„ì…‹
+    // HalfExtents: ë¡œì»¬ ë°˜ê¸¸ì´ (x,y,z)
     Vec3 mCenter = Vec3(0, 0, 0);
     Vec3 mHalfExtents = Vec3(10.5f, 10.5f, 10.5f);
 
-    // [¿É¼Ç] µğ¹ö±× Ç¥½Ã¿ë
+    // [ì˜µì…˜] ë””ë²„ê·¸ í‘œì‹œìš©
     bool bDebugDraw = true;
-    bool bNoDepth = false; // true¸é Ç×»ó º¸ÀÌ°Ô(Depth Test X)
+    bool bNoDepth = false; // trueë©´ í•­ìƒ ë³´ì´ê²Œ(Depth Test X)
 
     bool bIsColliding = false;
 
     BoundingOrientedBox mWorldOBB{};
+
 };

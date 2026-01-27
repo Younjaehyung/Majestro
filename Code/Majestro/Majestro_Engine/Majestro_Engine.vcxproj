@@ -212,6 +212,7 @@
     <ClInclude Include="IMGUISystem.h" />
     <ClInclude Include="INetSendSink.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="SceneExportData.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
@@ -302,6 +303,7 @@
     <ClCompile Include="IMGUISystem.cpp" />
     <ClCompile Include="INetSendSink.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="SceneExportData.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />

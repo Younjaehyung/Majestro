@@ -1,12 +1,20 @@
 {
     "player": {
-        "walkSpeed": 50.0,
+        "walkSpeed": 25.0,
         "runSpeed": 100.0,
         "dashSpeed": 200.0
     },
 
     "stateProps": {
         "JumpState": {
+            "time": 3.5,
+            "animOnce": true
+        },
+        "FallState": {
+            "time": 3.5,
+            "animOnce": false
+        },
+        "LandState": {
             "time": 3.5,
             "animOnce": true
         },

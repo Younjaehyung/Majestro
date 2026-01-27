@@ -43,6 +43,7 @@ public:
 	Entity mParent;
 	vector<Entity> mChild;
 
+	bool mStatic = false;
 public:
 	uint8 mBufferIndex = 0;
 };

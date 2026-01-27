@@ -82,6 +82,8 @@ void CollisionSystem::Update(float dt) {
             {
                 colA->bIsColliding = true; // [추가]
                 colB->bIsColliding = true; // [추가]
+
+				//colA->mDirty = true;
             }
         }
     }

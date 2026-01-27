@@ -9,6 +9,7 @@ public:
 
 	void Update(float deltaTime);
 	void Render();
+	void LoadJsonScene(const wstring& path);
 
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 

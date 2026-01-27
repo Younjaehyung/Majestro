@@ -395,6 +395,18 @@ shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 	return meshData;
 }
 
+shared_ptr<FBXData> ResourceManager::LoadJsonFbx(const wstring& path)
+{
+	shared_ptr<FBXData> meshData = Get<FBXData>(path);
+	if (meshData)
+		return meshData;
+	meshData = make_shared<FBXData>();
+	meshData->LoadJsonFbx(path);
+	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(path, meshData);
+	return meshData;
+}
+
 shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
 {
 	shared_ptr<Vfx> effect = Get<Vfx>(s2ws(filesystem::path(path).filename().stem().string()));
@@ -414,12 +426,78 @@ void ResourceManager::LoadAllTexture(const wstring& path)
 
 }
 
-void ResourceManager::LoadResourceJson(const wstring& path)
+std::string ResourceManager::ReadAllText(const wstring& path)
 {
-	//meshData->Load(path);
-	//meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
-	//Add(path, meshData);
+	std::filesystem::path fsPath = path;
 
+	std::ifstream ifs(fsPath, std::ios::binary);
+	if (!ifs) throw std::runtime_error("JSON 파일을 열 수 없습니다: " + fsPath.string());
+
+	std::string s;
+	ifs.seekg(0, std::ios::end);
+	s.resize(static_cast<size_t>(ifs.tellg()));
+	ifs.seekg(0, std::ios::beg);
+	ifs.read(s.data(), static_cast<std::streamsize>(s.size()));
+	return s;
+}
+
+SceneMapDesc ResourceManager::ImportUnityScene(const wstring& path)
+{
+	std::ifstream ifs(path);
+	nlohmann::json j;
+	ifs >> j;
+
+	SceneMapDesc out;
+	out.sceneName = j.value("sceneName", "");
+	out.bakedBaseDir = j.value("bakedTextureBaseDir", "");
+	out.fbxBaseDir = j.value("fbxBaseDir", "");
+
+	for (auto& oj : j["objects"])
+	{
+		MapObjectDesc o;
+		o.name = oj.value("name", "");
+		o.active = oj.value("activeInHierarchy", true);
+
+		auto& tr = oj["transform"];
+		o.pos = ReadVec3(tr["worldPosition"]);
+		o.rotEulerDeg = ReadVec3(tr["worldRotationEuler"]);
+		o.scale = ReadVec3(tr["worldScale"]);
+
+		o.meshFbxFile = oj.value("meshFbxFile", ""); // 너 JSON 필드명에 맞춰라
+		o.meshName = oj.value("meshName", "");
+		// materials
+		auto& mats = oj["materials"];
+		o.materials.resize(mats.size());
+
+		for (auto& mj : mats)
+		{
+			int slot = mj.value("slot", 0);
+			auto& baked = mj["baked"];
+			PbrSet p;
+			p.albedo = baked.value("albedoFile", "");
+			p.normal = baked.value("normalFile", "");
+			p.metallic = baked.value("metallicFile", "");
+			p.smoothness = baked.value("smoothnessFile", "");
+			p.occlusion = baked.value("occlusionFile", "");
+			p.emission = baked.value("emissionFile", "");
+			if (slot >= 0 && slot < (int)o.materials.size())
+				o.materials[slot] = std::move(p);
+		}
+
+		out.objects.push_back(std::move(o));
+	}
+	return out;
+}
+
+
+Vec3 ResourceManager::ParseVec3(const json& j)
+{
+	// JsonUtility Vector3: { "x":..., "y":..., "z":... }
+	Vec3 v{};
+	v.x = j.at("x").get<float>();
+	v.y = j.at("y").get<float>();
+	v.z = j.at("z").get<float>();
+	return v;
 }
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
@@ -885,9 +963,11 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Terrain");
-		material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Texture\\terrain.png"), DIFFUSEMAP0INDEX);
-		material->SetTexture(Load<Texture>(L"HeightMap1", L"..\\Resources\\Texture\\Base_Texture.jpg"), DIFFUSEMAP1INDEX);
-		material->SetTexture(Load<Texture>(L"HeightMap2", L"..\\Resources\\Texture\\height.png"), DIFFUSEMAP2INDEX);
+		material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Texture\\Terrain_Colormap_4096.png"), DIFFUSEMAP0INDEX);
+		//material->SetTexture(Load<Texture>(L"HeightMap1", L"..\\Resources\\Texture\\Base_Texture.jpg"), DIFFUSEMAP1INDEX);
+		material->SetTexture(Load<Texture>(L"HeightMap2", L"..\\Resources\\Texture\\Heightmap_R16.png"), DIFFUSEMAP2INDEX);
+		material->SetTexture(Load<Texture>(L"HeightMap2", L"..\\Resources\\Texture\\Terrain_ControlMap_0.png"), NORMALMAPINDEX);
+
 		Add<Material>(L"Terrain", material);
 	}
 
@@ -1000,8 +1080,10 @@ void ResourceManager::CreateDefaultMaterial()
 	// .ani, .mesh, .skel의 파일을 묶어서 fbx라는 이름으로 임의로 가져온다는 뜻임
 	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
 
+	
+
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx");
@@ -1009,6 +1091,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Fall.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Rock_Overgrown_D.fbx");
 
 	LoadFBX(L"..\\Resources\\FBX\\NoteBoar_Run.fbx");
 

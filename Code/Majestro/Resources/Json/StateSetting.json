@@ -1,6 +1,6 @@
 {
     "player": {
-        "walkSpeed": 50.0,
+        "walkSpeed": 25.0,
         "runSpeed": 100.0,
         "dashSpeed": 200.0
     },

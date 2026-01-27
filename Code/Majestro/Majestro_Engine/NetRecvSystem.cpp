@@ -120,7 +120,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 		BoxColliderComponent* boxComp = mWorld->GetComponent<BoxColliderComponent>(e);
 		if (boxComp == nullptr) return;
 		boxComp->bIsColliding = collisionPacket->bIsColliding;
-		std::cout << "Collision Packet Processed for Entity ID: " << collisionPacket->netEntityId << " Collision State: " << boxComp->bIsColliding << std::endl;
+		
         return;
 	}
 
@@ -151,6 +151,7 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 	archetypeId = static_cast<uint32_t>(spawnPacket->prefabType);
 	netId = static_cast<uint32_t>(spawnPacket->netEntityId);
 	std::cout << "HandleSpawn called with netId: " << netId << " archetypeId: " << archetypeId << std::endl;
+    
     if (mWorld->GetEntityByNetId(netId) == NULL_ENTITY) {
         Entity e = CreateEntityFromArchetype(archetypeId);
 		std::cout << "Entity created with ID: " << e.GetID() << std::endl;

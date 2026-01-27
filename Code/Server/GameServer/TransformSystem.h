@@ -8,6 +8,7 @@ public:
 
 	void Initialize() {};
 	void Update(float deltaTime);
+public:
 
 };
 

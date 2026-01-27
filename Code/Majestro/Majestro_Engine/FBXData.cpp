@@ -79,7 +79,9 @@ void FBXData::Load(const wstring& path)
 
 	if (std::ifstream f(filePath + ".mesh", std::ios::binary);f) {
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
-		CreateMeshFromFBX(f);
+
+		CreateMeshFromFBX(f,false);
+
 	}
 	if (std::ifstream f(filePath + ".skel", std::ios::binary); f) {
 		CreateSkeletonFromFBX(f);
@@ -91,7 +93,21 @@ void FBXData::Load(const wstring& path)
 
 }
 
-vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
+void FBXData::LoadJsonFbx(const wstring& path)
+{
+	mPath = ws2s(path);
+	std::string filePath{ filesystem::path(mPath).parent_path().string() + "\\" + filesystem::path(mPath).filename().stem().string() };
+
+
+	if (std::ifstream f(filePath + ".mesh", std::ios::binary); f) {
+		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
+
+		CreateMeshFromFBX(f, true);
+
+	}
+}
+
+vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, bool isJson)
 {
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
@@ -132,7 +148,8 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		mMeshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
 
-		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo);
+		if(isJson==false)
+			CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo);
 	}
 	loader.close();
 	cout << "Materials OVER" << endl;

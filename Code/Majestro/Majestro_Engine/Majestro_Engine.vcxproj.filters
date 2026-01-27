@@ -142,6 +142,9 @@
     <Filter Include="World\System\Logic\Move">
       <UniqueIdentifier>{738b7ce8-1ffc-4712-b713-1f0fdfec12e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\00.NotUsed">
+      <UniqueIdentifier>{7a3d0239-319c-4409-abb5-f98c244587ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -388,9 +391,6 @@
     <ClInclude Include="TagComponent.h">
       <Filter>World\Component\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="EnemySystem.h">
-      <Filter>World\System\Logic</Filter>
-    </ClInclude>
     <ClInclude Include="BoxColliderComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
@@ -401,15 +401,19 @@
       <Filter>World\Event</Filter>
     </ClInclude>
     <ClInclude Include="NetTransformComponent.h" />
-    <ClInclude Include="CollisionSystem.h">
-      <Filter>World\System\Logic</Filter>
-    </ClInclude>
     <ClInclude Include="NetInterpolationSystem.h">
       <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
     <ClInclude Include="MovementSystem.h">
       <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
+    <ClInclude Include="CollisionSystem.h">
+      <Filter>World\System\00.NotUsed</Filter>
+    </ClInclude>
+    <ClInclude Include="EnemySystem.h">
+      <Filter>World\System\00.NotUsed</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneExportData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -646,9 +650,6 @@
     <ClCompile Include="TagComponent.cpp">
       <Filter>World\Component\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="EnemySystem.cpp">
-      <Filter>World\System\Logic</Filter>
-    </ClCompile>
     <ClCompile Include="BoxColliderComponent.cpp">
       <Filter>World\Component\Logic</Filter>
     </ClCompile>
@@ -659,15 +660,19 @@
       <Filter>World\Event</Filter>
     </ClCompile>
     <ClCompile Include="NetTransformComponent.cpp" />
-    <ClCompile Include="CollisionSystem.cpp">
-      <Filter>World\System\Logic</Filter>
-    </ClCompile>
     <ClCompile Include="NetInterpolationSystem.cpp">
       <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
     <ClCompile Include="MovementSystem.cpp">
       <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
+    <ClCompile Include="CollisionSystem.cpp">
+      <Filter>World\System\00.NotUsed</Filter>
+    </ClCompile>
+    <ClCompile Include="EnemySystem.cpp">
+      <Filter>World\System\00.NotUsed</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneExportData.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

@@ -78,7 +78,7 @@ public:
 	float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;
 	float mDashSpeed = 0.0f;
-	float mJumpPower = 60.f;
+	float mJumpPower = 25.f;
 	bool mFalling = false;
 
 	uint64_t mFlags = 0ull;

@@ -124,11 +124,18 @@ public:
 	virtual ~FBXData();
 	
 	virtual void Load(const wstring& path);
+	void LoadJsonFbx(const wstring& path);
 	FBXMaterialInfo ReadMaterialData(std::ifstream& file);
 	FBXFileHeader	GetFBXFileHeader() { return mHeader; };
-private:
+public:
+	vector<shared_ptr<class Material>>& GetMaterials() { return mMaterials; }
+	vector<shared_ptr<class Mesh>>& GetMeshs() { return mMeshs; }
+	shared_ptr<class Skeleton> GetSkeleton() { return mSkeleton; }
+	vector<shared_ptr<class Animator>>& GetAnimators() { return mAnimators; }
+
+public:
 	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo);
-	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader);
+	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader,bool isJson);
 	shared_ptr<class Skeleton> CreateSkeletonFromFBX(ifstream& loader);
 	vector<shared_ptr<class Animator>>& CreateAnimatorFromFBX(ifstream& loader);
 private:

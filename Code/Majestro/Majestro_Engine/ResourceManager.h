@@ -9,6 +9,7 @@
 #include "Animator.h"
 #include "Skeleton.h"
 #include "FBXData.h"
+#include "SceneExportData.h"
 #include "Vfx.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
@@ -47,10 +48,16 @@ public:
 	shared_ptr<Mesh> LoadSphereMesh();
 	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
 
+	
 	shared_ptr<FBXData>		LoadFBX(const wstring& path);
+	shared_ptr<FBXData>		LoadJsonFbx(const wstring& path);
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
-	void LoadResourceJson(const wstring& path);
+
+
+	std::string ReadAllText(const wstring& path);
+	SceneMapDesc ImportUnityScene(const wstring& path);
+	Vec3 ParseVec3(const json& j);
 
 
 	//texture를 키로 매핑하기 위한 함수

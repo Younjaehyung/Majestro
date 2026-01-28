@@ -71,12 +71,13 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFram
 void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 {
 	uint32 ssessionId = 0;//mInputCommand.SessionId;
-
+	uint8 playertype = 1;
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+	spawnPkt.isPlayerType = playertype;
 
 	// 로그인 한 클라이언트에게 자신의 Spawn 패킷 전송
 	{
@@ -112,6 +113,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 
 
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+		spawnPkt.isPlayerType = playertype;
 
 		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);

@@ -97,33 +97,67 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<CameraComponent>(testCamera);
 	world->AddComponent<TransformComponent>(testCamera, t);
 	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
-
+	
 	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
-	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-
-	std::vector<shared_ptr<Material>> material2s;
+	shared_ptr<Mesh> phereMesh;
 
 	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+	shared_ptr<Material> material2;
 
-
-	material2s.push_back(material2);
+	std::vector<shared_ptr<Material>> material2s;
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	t.mLocalScale = { 10.f, 10.f, 10.f };
+	t.mLocalScale = { 0.1f, 0.1f, 0.1f };
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
-	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
 
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
-	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	case 0:
+		t.mLocalScale = { 10.f, 10.f, 10.f };
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+		material2s.push_back(material2);
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+		break;
+	case 1:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Idle0");
+		material2s.push_back(material2);
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Jump"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Fall"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Land"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));//dash
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+		break;
+	case 2:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
+		material2s.push_back(material2);
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Jump"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Fall"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Land"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));//dash
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+		break;
+	}
+
+
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
@@ -206,8 +240,6 @@ EnemyPrefab::~EnemyPrefab()
 Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
-
-	cout << "//////////////////////////\n\n\n\n\n\n\n\////////////////////////////////////" << endl;
 
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Noteboar_Body");
 	std::vector<shared_ptr<Material>> material2s;

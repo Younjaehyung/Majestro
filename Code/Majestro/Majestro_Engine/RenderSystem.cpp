@@ -178,29 +178,41 @@ void RenderSystem::PushLandData()
 
 	auto recomp = mWorld->GetComponent<RenderComponent>(entity[0]);
 
-	/*for(int i= 0; i < 6; ++i)
-	{
-		if (recomp->mMaterials[i]->GetID())
-		{
-			passParams.TerrainSlot[i] = recomp->mMaterials[i]->GetID();
-			
-		}
-		else {
-			passParams.TerrainSlot[i] = -1;
-		}
-	}*/
-	if (recomp->mMaterials[0]->GetID())
-		passParams.TerrainSlot1 = recomp->mMaterials[0]->GetIndex();
-	if (recomp->mMaterials[1]->GetID())
-		passParams.TerrainSlot2 = recomp->mMaterials[1]->GetIndex();
-	if (recomp->mMaterials[2]->GetID())
-		passParams.TerrainSlot3 = recomp->mMaterials[2]->GetIndex();
-	if (recomp->mMaterials[3]->GetID())
-		passParams.TerrainSlot4 = recomp->mMaterials[3]->GetIndex();
-	if (recomp->mMaterials[4]->GetID())
-		passParams.TerrainSlot5 = recomp->mMaterials[4]->GetIndex();
-	if (recomp->mMaterials[5]->GetID())
-		passParams.TerrainSlot6 = recomp->mMaterials[5]->GetIndex();
+	passParams.TerrainSlot1 = -1;
+	passParams.TerrainSlot2 = -1;
+	passParams.TerrainSlot3 = -1;
+	passParams.TerrainSlot4 = -1;
+	passParams.TerrainSlot5 = -1;
+	passParams.TerrainSlot6 = -1;
+
+
+	switch(recomp->mMaterials.size()){
+	case 6:
+		if (recomp->mMaterials[5]->GetID())
+			passParams.TerrainSlot6 = recomp->mMaterials[5]->GetIndex();
+	case 5:
+		if (recomp->mMaterials[4]->GetID())
+			passParams.TerrainSlot5 = recomp->mMaterials[4]->GetIndex();
+	case 4:
+		if (recomp->mMaterials[3]->GetID())
+			passParams.TerrainSlot4 = recomp->mMaterials[3]->GetIndex();
+	case 3:
+		if (recomp->mMaterials[2]->GetID())
+			passParams.TerrainSlot3 = recomp->mMaterials[2]->GetIndex();
+	case 2:
+		if (recomp->mMaterials[1]->GetID())
+			passParams.TerrainSlot2 = recomp->mMaterials[1]->GetIndex();
+	case 1:
+		if (recomp->mMaterials[0]->GetID())
+			passParams.TerrainSlot1 = recomp->mMaterials[0]->GetIndex();
+		break;
+	}
+	
+	
+	
+	
+	
+	
 
 
 }

@@ -269,7 +269,7 @@ TerrainPrefab::TerrainPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
 	TransformComponent bt{};
-	bt.mLocalScale = (Vec3(100.f, 2500.f, 100.f));
+	bt.mLocalScale = (Vec3(5.f, 320.f, 5.f));
 	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
 
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
@@ -280,12 +280,14 @@ TerrainPrefab::TerrainPrefab(World* world)
 
 	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
 	std::vector<shared_ptr<Material>> materials{
-		RESOURCEMANAGER.Get<Material>(L"Asphalt"),
+		
 		RESOURCEMANAGER.Get<Material>(L"Grass_Uncut"),
 		RESOURCEMANAGER.Get<Material>(L"Ground_Gravel"),
 		RESOURCEMANAGER.Get<Material>(L"Mosaic"),
 		RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
-		RESOURCEMANAGER.Get<Material>(L"Soil_Mud") };
+		RESOURCEMANAGER.Get<Material>(L"Soil_Mud") ,
+		RESOURCEMANAGER.Get<Material>(L"Asphalt")
+	};
 
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, terrain, materials);
 	render.mCheckFrustum = false;

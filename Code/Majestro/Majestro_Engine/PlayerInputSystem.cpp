@@ -63,7 +63,8 @@ void PlayerInputSystem::Update(float dt)
 	}
 
 	movementComponent->mMovingDirection = { 0,0,0 };
-	movementComponent->mJump = false;
+	movementComponent->mJump = INPUT.GetKey(eKeyCode::SPACE);
+
 
 	if (INPUT.GetKey(eKeyCode::A)) {
 		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
@@ -90,7 +91,7 @@ void PlayerInputSystem::Update(float dt)
 
 		
 		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
-		movementComponent->mJump = true;
+		//movementComponent->mJump = true;
 		
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {

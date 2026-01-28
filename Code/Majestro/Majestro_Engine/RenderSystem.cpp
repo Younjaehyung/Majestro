@@ -43,9 +43,15 @@ void RenderSystem::Initialize()
 void RenderSystem::Update()
 {
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
-	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
-	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-	
+	/*std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
+	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);*/
+	auto cameraView = mWorld->View<MainCameraComponent>();
+	auto cameraIt = cameraView.begin();
+	if (cameraIt == cameraView.end()) {
+		return;
+	}
+	mCamera = mWorld->GetComponent<CameraComponent>(*cameraIt);
+
 	ClearRTV();
 
 	PushData();
@@ -265,18 +271,27 @@ void RenderSystem::PushLightData()
 void RenderSystem::PushObjectData()
 {
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
-	
+	auto View = mWorld->View<RenderComponent>();
+	TransformComponent* transformComponent;
+	AnimationComponent* animationComponent;
+	RenderComponent* renderComponent;
+	RenderParams renderParams{};
+
 	uint32 index{};
 	int32 index2{};
-	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
+
+	for (auto gameObject : View)		// 같은 머테리얼을 가진 것끼리 분류
 	{
-		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
-		if (mWorld->GetComponent<LightComponent>(gameObject) || renderComponent->mIsNotObject) {
+		//renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+		renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
+		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+		/*if (mWorld->GetComponent<LightComponent>(gameObject) || renderComponent->mIsNotObject) {
 			continue;
-		}
+		}*/
+
 		if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
 
-			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+			
 			TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);
 
 			objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
@@ -287,6 +302,7 @@ void RenderSystem::PushObjectData()
 
 
 			uint32 subMaterialIdx{};
+			renderParams = { renderComponent->mObjectIndex, terrainComponent->mHeightmap->GetIndex(), index2, 0 };
 			mDeferredDrawItems.emplace_back(
 				terrainComponent->mHeightmap->GetShader(),
 				renderComponent->mMesh,
@@ -294,23 +310,21 @@ void RenderSystem::PushObjectData()
 				renderComponent->mMesh->GetID(),
 				terrainComponent->mHeightmap->GetID(),
 				subMaterialIdx++,
-				RenderParams{ renderComponent->mObjectIndex, terrainComponent->mHeightmap->GetIndex(),index2,0 }
+				renderParams
 			);
-			
+
 			continue;
 		}
-		
 
-		TransformComponent*		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
-
-		
+		if (false == IsFrustumCulled(transformComponent, renderComponent))continue;
+		if (false == renderComponent->mVisibility) continue;
 
 		objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 		mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
 			
 		renderComponent->mObjectIndex = index++;	// objectParams의 index 지정
-		
+
+		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
 		index2 = animationComponent ? animationComponent->mAnimInstanceID : -1;
 		
 
@@ -318,7 +332,7 @@ void RenderSystem::PushObjectData()
 		uint32 subMaterialIdx{};
 		for (shared_ptr<Material>& material : renderComponent->mMaterials) {
 
-
+			renderParams = { renderComponent->mObjectIndex, material->GetIndex(),index2,0 };
 			mDeferredDrawItems.emplace_back(
 				material->GetShader(),
 				renderComponent->mMesh,
@@ -326,7 +340,7 @@ void RenderSystem::PushObjectData()
 				renderComponent->mMesh->GetID(),
 				material->GetID(),
 				subMaterialIdx++,
-				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),index2,0 }
+				renderParams
 			);
 		}
 	}
@@ -440,7 +454,7 @@ void RenderSystem::PushObjectData()
 
 
 
-
+	
 	RENDERMANAGER.GetGroupBuffer(mFrameCount)->ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
 }
 
@@ -582,11 +596,16 @@ void RenderSystem::RenderingParticle()
 
 }
 
-bool RenderSystem::IsFrustumCulled()
+bool RenderSystem::IsFrustumCulled(TransformComponent* trans,RenderComponent* renderComponent)
 {
-	
-
-	return false;
+	if (renderComponent->mCheckFrustum && mCamera) {
+		//if (trans->mIsDirty)
+			renderComponent->UpdateWorldOBB(trans);
+		if (!mCamera->IntersectsOBB(renderComponent->mWorldOBB)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent)

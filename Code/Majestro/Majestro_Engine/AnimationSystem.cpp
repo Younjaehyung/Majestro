@@ -96,8 +96,8 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		};
 
 
-	vector<Entity> animationsEntity = mWorld->GetEntitiesWithComponent<AnimationComponent>();
-	for (auto& entity : animationsEntity) {
+	auto view = mWorld->View<AnimationComponent>();
+	for (Entity entity : view) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 

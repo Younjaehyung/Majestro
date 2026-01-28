@@ -6,6 +6,10 @@
 #include "SystemManager.h"
 #include "EventManager.h"
 #include "NetIdMap.h"
+#include <tuple>
+
+template<typename... Components>
+class EntityView;
 
 class World {
 public:
@@ -27,6 +31,10 @@ public:
     // 여러 컴포넌트를 모두 가진 엔티티들 가져오기
     template<typename T1, typename T2, typename... Rest>
     std::vector<Entity> GetEntitiesWithComponents() const;
+
+    // 컴포넌트 기반 뷰
+    template<typename... Components>
+    EntityView<Components...> View() const;
 
 public:
     // 컴포넌트 추가
@@ -213,4 +221,85 @@ const ComponentPool<T>& World::GetComponentPool() const {
 
     assert(it != mComponentPools.end() && "Component pool not found");
     return *static_cast<const ComponentPool<T>*>(it->second.get());
+
 }
+
+template<typename... Components>
+EntityView<Components...> World::View() const {
+    using FirstComponent = std::tuple_element_t<0, std::tuple<Components...>>;
+    if (!HasComponentPool<FirstComponent>()) {
+        return EntityView<Components...>(this, nullptr);
+    }
+    const auto& pool = GetComponentPool<FirstComponent>();
+    return EntityView<Components...>(this, &pool.GetEntities());
+}
+
+
+template<typename... Components>
+class EntityView {
+public:
+    class iterator {
+    public:
+        iterator(const World* world, const std::vector<EntityID>* entities, size_t index, bool skipAdvance)
+            : mWorld(world)
+            , mEntities(entities)
+            , mIndex(index)
+            , mEnd(entities ? entities->size() : 0) {
+            if (!skipAdvance) {
+                AdvanceToValid();
+            }
+        }
+
+        Entity operator*() const { return Entity((*mEntities)[mIndex]); }
+
+        iterator& operator++() {
+            ++mIndex;
+            AdvanceToValid();
+            return *this;
+        }
+
+        bool operator==(const iterator& other) const {
+            return mEntities == other.mEntities && mIndex == other.mIndex;
+        }
+
+        bool operator!=(const iterator& other) const { return !(*this == other); }
+
+    private:
+        void AdvanceToValid() {
+            if (!mEntities) {
+                mIndex = 0;
+                mEnd = 0;
+                return;
+            }
+
+            while (mIndex < mEnd) {
+                Entity entity((*mEntities)[mIndex]);
+                if (Matches(entity)) {
+                    break;
+                }
+                ++mIndex;
+            }
+        }
+
+        bool Matches(Entity entity) const {
+            return (mWorld->HasComponent<Components>(entity) && ...);
+        }
+
+        const World* mWorld = nullptr;
+        const std::vector<EntityID>* mEntities = nullptr;
+        size_t mIndex = 0;
+        size_t mEnd = 0;
+    };
+
+    EntityView(const World* world, const std::vector<EntityID>* entities)
+        : mWorld(world)
+        , mEntities(entities) {
+    }
+
+    iterator begin() const { return iterator(mWorld, mEntities, 0, false); }
+    iterator end() const { return iterator(mWorld, mEntities, mEntities ? mEntities->size() : 0, true); }
+
+private:
+    const World* mWorld = nullptr;
+    const std::vector<EntityID>* mEntities = nullptr;
+};

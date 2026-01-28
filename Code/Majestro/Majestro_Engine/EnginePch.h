@@ -103,8 +103,8 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "Effekseer/EffekseerRendererDX12_D.lib")
 #pragma comment(lib, "Effekseer/LLGI_D.lib")
 #else
-#pragma comment(lib, "Effekseer/lib/Effekseer.lib")
-#pragma comment(lib, "EffekseerRendererDX12/lib/EffekseerRendererDX12.lib")
+#pragma comment(lib, "Effekseer/Effekseer.lib")
+#pragma comment(lib, "Effekseer/EffekseerRendererDX12.lib")
 #pragma comment(lib, "Effekseer/LLGI.lib")
 #endif
 

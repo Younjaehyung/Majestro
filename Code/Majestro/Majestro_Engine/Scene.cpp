@@ -36,7 +36,7 @@ void Scene::Initialize()
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
 
-
+	LoadJsonLevel(L"..\\Resources\\Json\\Map1_Export.json");
 	
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -153,6 +153,60 @@ void Scene::Update(float deltaTime)
 void Scene::Render()
 {
 	mWorld->Render();
+}
+
+void Scene::LoadJsonLevel(const wstring& path)
+{
+	RESOURCEMANAGER.Load<Texture>(L"normalgun", L"..\\Resources\\Texture\\MI_Trims_C_DarkGray_Normal_0.png");
+	int i = 0;
+	try
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+
+		for (const auto& inst : level.instances)
+		{
+			// 파일명만 추출
+			std::string name = filesystem::path(inst.staticMeshAsset).filename().stem().string();
+			name = "..\\Resources\\FBX\\" + name + ".fbx";
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
+
+			if (!data)
+			{
+				std::cerr << "FBX load failed (null data): " << name << "\n";
+				break;
+			}
+			else if (data->GetMaterials().empty()) {
+				std::cerr << "FBX load failed Material (null data): " << name << "\n";
+				continue;
+			}
+			else if (data->GetMeshs().empty()) {
+				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				continue;
+			}
+			
+			Entity entity = mWorld->CreateEntity();
+			TransformComponent transform{};
+			transform.mWorldMatrix = BuildWorldMatrix_RowMajor(inst.world);
+			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+			trans.mIsStatic = true;
+
+			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+			
+			for (const auto& mat : data->GetMaterials()) {
+				mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"normalgun"), NORMALMAPINDEX);
+			}
+			render.mMaterials = data->GetMaterials();
+			render.mMesh = data->GetMeshs().at(0);
+			
+			i++;
+			if (i == 800)break;
+
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Load failed: " << e.what() << "\n";
+	}
 }
 
 

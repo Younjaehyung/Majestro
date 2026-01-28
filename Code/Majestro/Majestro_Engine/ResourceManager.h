@@ -9,6 +9,7 @@
 #include "Animator.h"
 #include "Skeleton.h"
 #include "FBXData.h"
+#include "LevelImport.h"
 #include "Vfx.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
@@ -48,9 +49,10 @@ public:
 	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
 
 	shared_ptr<FBXData>		LoadFBX(const wstring& path);
+	shared_ptr<FBXData> LoadFBXMesh(const wstring& path);
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
-	void LoadResourceJson(const wstring& path);
+	LevelImportData  LoadResourceJson(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수

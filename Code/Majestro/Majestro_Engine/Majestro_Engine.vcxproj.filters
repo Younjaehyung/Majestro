@@ -410,6 +410,7 @@
     <ClInclude Include="MovementSystem.h">
       <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
+    <ClInclude Include="LevelImport.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -668,6 +669,7 @@
     <ClCompile Include="MovementSystem.cpp">
       <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
+    <ClCompile Include="LevelImport.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

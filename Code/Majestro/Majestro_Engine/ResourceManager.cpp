@@ -6,6 +6,7 @@
 #include "FBXData.h"
 
 
+
 void ResourceManager::Initialize()
 {
 	CreateDefaultRootSignature();
@@ -395,6 +396,19 @@ shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 	return meshData;
 }
 
+shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path)
+{
+	shared_ptr<FBXData> meshData = Get<FBXData>(path);
+	if (meshData)
+		return meshData;
+	meshData = make_shared<FBXData>();
+	meshData->LoadMeshOnly(path);
+	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(path, meshData);
+
+	return meshData;
+}
+
 shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
 {
 	shared_ptr<Vfx> effect = Get<Vfx>(s2ws(filesystem::path(path).filename().stem().string()));
@@ -414,11 +428,64 @@ void ResourceManager::LoadAllTexture(const wstring& path)
 
 }
 
-void ResourceManager::LoadResourceJson(const wstring& path)
+LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
 {
-	//meshData->Load(path);
-	//meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
-	//Add(path, meshData);
+	std::string jsonPath = ws2s(path);
+	std::ifstream ifs(jsonPath);
+	if (!ifs.is_open())
+		throw std::runtime_error("Failed to open json: " + jsonPath);
+
+	json root;
+	ifs >> root;
+
+	LevelImportData out{};
+	out.levelName = GetString(root, "level_name");
+
+	// optional
+	if (root.contains("actual_export_root"))
+		out.actualExportRoot = root["actual_export_root"].get<std::string>();
+
+	const auto& actors = Require(root, "actors");
+	if (!actors.is_array())
+		throw std::runtime_error("JSON 'actors' is not an array");
+
+	for (const auto& a : actors)
+	{
+		const std::string actorName = GetString(a, "name");
+		const std::string actorPath = GetString(a, "path");
+
+		const auto& comps = Require(a, "static_mesh_components");
+		if (!comps.is_array())
+			throw std::runtime_error("JSON 'static_mesh_components' is not an array");
+
+		for (const auto& c : comps)
+		{
+			MeshInstance inst{};
+			inst.actorName = actorName;
+			inst.actorPath = actorPath;
+
+			inst.componentName = GetString(c, "component_name");
+			inst.staticMeshAsset = GetString(c, "static_mesh_asset");
+
+			// fbx는 null일 수 없도록 우리가 만들었지만, 방어적으로 처리
+			if (c.contains("fbx") && !c["fbx"].is_null())
+				inst.fbx = c["fbx"].get<std::string>();
+			else
+				inst.fbx.clear();
+
+			// component_world_transform.dx
+			const auto& cwt = Require(c, "component_world_transform");
+			const auto& dx = Require(cwt, "dx");
+			inst.world = ParseDxTransform(dx);
+
+			out.instances.push_back(std::move(inst));
+
+			// 인스턴스가 있는 ISM/HISM이면 instances[]도 펼치고 싶을 수 있음
+			// 현재 JSON은 comp_entry["instances"]를 넣을 수도 있으니, 필요하면 여기에 추가 파싱하면 됨.
+		}
+	}
+
+	return out;
 
 }
 

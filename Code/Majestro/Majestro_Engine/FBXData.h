@@ -124,8 +124,13 @@ public:
 	virtual ~FBXData();
 	
 	virtual void Load(const wstring& path);
+	void LoadMeshOnly(const wstring& path);
 	FBXMaterialInfo ReadMaterialData(std::ifstream& file);
 	FBXFileHeader	GetFBXFileHeader() { return mHeader; };
+public:
+	const vector<shared_ptr<class Mesh>>& GetMeshs() const { return mMeshs; }
+	const vector<shared_ptr<class Material>>& GetMaterials() const { return mMaterials; }
+
 private:
 	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo);
 	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader);

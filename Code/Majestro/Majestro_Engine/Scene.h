@@ -9,7 +9,7 @@ public:
 
 	void Update(float deltaTime);
 	void Render();
-
+	void LoadJsonLevel(const wstring& path);
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 
 

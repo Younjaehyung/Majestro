@@ -74,7 +74,7 @@ void RenderSystem::PushData()
 
 void RenderSystem::DefferdRendering()
 {
-	RenderShadow();
+	//RenderShadow();
 
 	RenderGBuffer();
 

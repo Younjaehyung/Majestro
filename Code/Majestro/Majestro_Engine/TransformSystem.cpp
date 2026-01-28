@@ -15,6 +15,8 @@ void TransformSystem::Update(float dt) {
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<TransformComponent>() };
 	for (auto& entity : entitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		if(transformComponent -> mIsStatic)
+			continue;
 		transformComponent->FinalUpdate();
 	}
 

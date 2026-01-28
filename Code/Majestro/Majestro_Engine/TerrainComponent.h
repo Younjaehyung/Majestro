@@ -1,6 +1,7 @@
 #pragma once
 #include "Component.h"
 #include "Material.h"
+#include <array>
 
 struct TerrainParams {
 	int TileCountX;
@@ -10,13 +11,15 @@ struct TerrainParams {
 	float Padding0;
 	float MaxTessLevel;
 	Vec2 HeightMapResolution;
+	std::array<uint32, 6> TerrainSlot{};
 };
 
 class TerrainComponent : public Component<TerrainComponent>
 {
 public:
 		TerrainComponent() {}
-		TerrainComponent(float width, float depth, shared_ptr< Material> material);
+		TerrainComponent(float width, float depth, shared_ptr< Material>& material);
+
 
 		float GetHeightAtWorldPosition(const Vec3& worldPos) const;
 
@@ -31,7 +34,8 @@ public:
 		//float GetHeightAtUV(float u, float v) const;
 public:
 	TerrainParams mTerrainParams = {};
-	shared_ptr< Material> mMaterial = nullptr;
+	shared_ptr< Material> mHeightmap = nullptr;
+
 	Vec3 mTerrainWorldPosition;  // Terrain의 월드 위치
 	Vec3 mTerrainWorldScale;     // Terrain의 월드 스케일
 };

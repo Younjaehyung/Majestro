@@ -96,13 +96,14 @@ SkyBoxPrefab::~SkyBoxPrefab() {}
 TerrainPrefab::TerrainPrefab(World *world) {
   Entity mEntityID = world->CreateEntity();
   TransformComponent bt{};
-  bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+  bt.mLocalScale = (Vec3(100.f, 2500.f, 100.f));
+
   bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
 
   world->AddComponent<TransformComponent>(mEntityID, bt);
 
   auto heightField = std::make_shared<HeightField>();
-  heightField->LoadHeightFieldFromPng16("../Resources/Texture/height.raw");
+  heightField->LoadHeightFieldFromPng16("../Resources/Texture/height.png");
   // Add<HeightField>(L"TerrainHeightField", heightField);
   // Add<HeightField>(L"TerrainHeightField", heightField);
 

@@ -359,7 +359,7 @@ enum {
 	, FRAMEGROUP_COUNT = 1			// 추후 프레임리소스 선택시 3으로 변경할것.
 
 
-	, TEXTURE_SRV_COUNT = 1024	// texture(SRV) 개수
+	, TEXTURE_SRV_COUNT = 2048	// texture(SRV) 개수
 	, TEXTURE_UAV_COUNT = 1024	// texture(UAV) 개수
 	, TEXTURE_CUBE_COUNT = 16	// texture(CUBE) 개수
 	, PARTICLE_COUNT = 4096		// particle(CUBE) 개수

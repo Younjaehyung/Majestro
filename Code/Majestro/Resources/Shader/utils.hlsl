@@ -6,9 +6,9 @@
 
 LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos)
 {
-    LightColor color = (LightColor)0.f;
+    LightColor color = (LightColor) 0.f;
 
-    float3 viewLightDir = (float3)0.f;
+    float3 viewLightDir = (float3) 0.f;
 
     float diffuseRatio = 0.f;
     float specularRatio = 0.f;

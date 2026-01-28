@@ -6,40 +6,66 @@
     },
 
     "stateProps": {
-        "IdleState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 1.83333
-        },
-        "WalkState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 1.36667
-        },
-        "RunState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 0.666667
-        },
         "JumpState": {
             "time": 3.5,
-            "animOnce": true,
-            "animEndTime": 0.833333
+            "animOnce": true
         },
         "FallState": {
             "time": 3.5,
-            "animOnce": false,
-            "animEndTime": 0.7
+            "animOnce": false
         },
         "LandState": {
             "time": 3.5,
-            "animOnce": true,
-            "animEndTime": 1.06667
+            "animOnce": true
         },
         "DashState": {
+            "time": 3.5,
+            "animOnce": true
+        },
+        "AimState": {
+            "time": 0.5,
+            "animOnce": false
+        },
+        "ReRoadState": {
+            "time": 1.2,
+            "animOnce": true
+        },
+        "RhythmChangeState": {
+            "time": 0.8,
+            "animOnce": true
+        },
+        "HitState": {
+            "time": 0.2,
+            "animOnce": true
+        },
+        "StunState": {
+            "time": 1.0,
+            "animOnce": true
+        },
+        "DeadState": {
+            "time": 5.0,
+            "animOnce": true
+        },
+        "Attack1State": {
             "time": 0.35,
-            "animOnce": true,
-            "animEndTime": 0.666667
+            "animOnce": true
+        },
+        "Attack2State": {
+            "time": 0.40,
+            "animOnce": true
+        },
+        "Skill1State": {
+            "time": 0.9,
+            "animOnce": true
+        },
+        "Skill2State": {
+            "time": 1.4,
+            "animOnce": true
+        },
+        "SpecialState": {
+            "time": 2.0,
+            "animOnce": true
         }
     }
+
 }

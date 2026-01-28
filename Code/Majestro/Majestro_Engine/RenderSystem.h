@@ -47,6 +47,17 @@ struct PassParams
 	uint32 LightsCount{};
 	uint32 SkyBoxIndex{};
 
+	int32 TerrainSlot1;
+	int32 TerrainSlot2;
+	int32 TerrainSlot3;
+	int32 TerrainSlot4;
+	int32 TerrainSlot5;
+	int32 TerrainSlot6;
+	int32 Padding1;
+	int32 Padding2;
+	/*std::array<uint32, 6> TerrainSlot{};
+	std::array<uint32, 2> TerrainSlotPadding{};*/
+
 
 };
 

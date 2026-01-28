@@ -143,8 +143,6 @@ void RenderSystem::PushPassData()
 	passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
 	
-	//passParams.TotalTime = TIME.GetTotalTime();
-
 
 	shared_ptr<GroupBuffer> groupBuffer = RENDERMANAGER.GetGroupBuffer(mFrameCount);
 	groupBuffer->PassInfo->PushData(&passParams, sizeof(PassParams));
@@ -168,6 +166,7 @@ void RenderSystem::PushMaterialData()
 void RenderSystem::PushLandData()
 {
 	auto entity = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+	
 
 	auto terrain = mWorld->GetComponent<TerrainComponent>(entity[0])->mTerrainParams;
 
@@ -176,6 +175,32 @@ void RenderSystem::PushLandData()
 	passParams.MinMaxTessDistance = terrain.MinMaxTessDistance;
 	passParams.TileCountX = terrain.TileCountX;
 	passParams.TileCountZ = terrain.TileCountZ;
+
+	auto recomp = mWorld->GetComponent<RenderComponent>(entity[0]);
+
+	/*for(int i= 0; i < 6; ++i)
+	{
+		if (recomp->mMaterials[i]->GetID())
+		{
+			passParams.TerrainSlot[i] = recomp->mMaterials[i]->GetID();
+			
+		}
+		else {
+			passParams.TerrainSlot[i] = -1;
+		}
+	}*/
+	if (recomp->mMaterials[0]->GetID())
+		passParams.TerrainSlot1 = recomp->mMaterials[0]->GetIndex();
+	if (recomp->mMaterials[1]->GetID())
+		passParams.TerrainSlot2 = recomp->mMaterials[1]->GetIndex();
+	if (recomp->mMaterials[2]->GetID())
+		passParams.TerrainSlot3 = recomp->mMaterials[2]->GetIndex();
+	if (recomp->mMaterials[3]->GetID())
+		passParams.TerrainSlot4 = recomp->mMaterials[3]->GetIndex();
+	if (recomp->mMaterials[4]->GetID())
+		passParams.TerrainSlot5 = recomp->mMaterials[4]->GetIndex();
+	if (recomp->mMaterials[5]->GetID())
+		passParams.TerrainSlot6 = recomp->mMaterials[5]->GetIndex();
 
 
 }
@@ -233,13 +258,38 @@ void RenderSystem::PushObjectData()
 	int32 index2{};
 	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
 	{
-		if (mWorld->GetComponent<LightComponent>(gameObject)) {
+		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+		if (mWorld->GetComponent<LightComponent>(gameObject) || renderComponent->mIsNotObject) {
+			continue;
+		}
+		if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
+
+			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+			TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);
+
+			objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
+			mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
+
+			renderComponent->mObjectIndex = index++;	// objectParams의 index 지정
+			index2 =  -1;
+
+
+			uint32 subMaterialIdx{};
+			mDeferredDrawItems.emplace_back(
+				terrainComponent->mHeightmap->GetShader(),
+				renderComponent->mMesh,
+				terrainComponent->mHeightmap->GetShaderID(),
+				renderComponent->mMesh->GetID(),
+				terrainComponent->mHeightmap->GetID(),
+				subMaterialIdx++,
+				RenderParams{ renderComponent->mObjectIndex, terrainComponent->mHeightmap->GetIndex(),index2,0 }
+			);
+			
 			continue;
 		}
 		
 
 		TransformComponent*		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-		RenderComponent*		renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
 		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
 
 		
@@ -255,6 +305,8 @@ void RenderSystem::PushObjectData()
 
 		uint32 subMaterialIdx{};
 		for (shared_ptr<Material>& material : renderComponent->mMaterials) {
+
+
 			mDeferredDrawItems.emplace_back(
 				material->GetShader(),
 				renderComponent->mMesh,
@@ -266,6 +318,7 @@ void RenderSystem::PushObjectData()
 			);
 		}
 	}
+
 
 	// collison box
 	if (mWireCube)

@@ -27,6 +27,7 @@ struct DS_OUT
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
+    float2 fulluv : TEXCOORD1;
     float3 viewPos : POSITION;
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;
@@ -83,9 +84,9 @@ DS_OUT DS_Main(const OutputPatch<HS_OUT, 3> input, float3 location : SV_DomainLo
 
     output.viewTangent = normalize(mul(float4(localTangent, 0.f), WV)).xyz;
     output.viewBinormal = normalize(mul(float4(localBinormal, 0.f), WV)).xyz;
-    output.viewNormal = -normalize(cross(output.viewBinormal, output.viewTangent));
+    output.viewNormal = normalize(cross(output.viewBinormal, output.viewTangent));
 
-
+    output.fulluv = fullUV;
     output.uv = uv;
 
     return output;

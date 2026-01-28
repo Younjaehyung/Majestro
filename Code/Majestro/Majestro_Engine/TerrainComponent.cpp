@@ -2,11 +2,12 @@
 #include "TerrainComponent.h"
 #include "Texture.h"
 
-TerrainComponent::TerrainComponent(float width, float depth, shared_ptr<Material> material)
+
+TerrainComponent::TerrainComponent(float width, float depth, shared_ptr<Material>& material)
 
 {
 
-	mMaterial = material;
+	mHeightmap = material;
 	shared_ptr<Texture> heightMap = material->GetTexture(2);
 	mTerrainParams = {
 
@@ -18,18 +19,17 @@ TerrainComponent::TerrainComponent(float width, float depth, shared_ptr<Material
 		.MaxTessLevel = 4.0f,
 		.HeightMapResolution = Vec2(heightMap->GetWidth() , heightMap->GetHeight())
 	};
-	
-	
-
 
 }
 
+
+
 float TerrainComponent::GetHeightAtWorldPosition(const Vec3& worldPos) const
 {
-    if (!mMaterial)
+    if (!mHeightmap)
         return 0.0f;
 
-    std::shared_ptr<Texture> heightMap = mMaterial->GetTexture(2);
+    std::shared_ptr<Texture> heightMap = mHeightmap->GetTexture(2);
     if (!heightMap)
         return 0.0f;
 
@@ -68,10 +68,10 @@ float TerrainComponent::GetHeightAtWorldPosition(const Vec3& worldPos) const
 
 float TerrainComponent::GetHeightAtUV(float fullU, float fullV) const
 {
-    if (!mMaterial)
+    if (!mHeightmap)
         return 0.0f;
 
-    shared_ptr<Texture> heightMap = mMaterial->GetTexture(2);
+    shared_ptr<Texture> heightMap = mHeightmap->GetTexture(2);
     if (!heightMap)
         return 0.0f;
 

@@ -13,6 +13,7 @@ enum PKT_Type : uint32 {
 	
 	// Client -> Server
 	C2S_PKT_LOGIN,
+	C2S_PKT_LOGOUT,
 	C2S_PKT_INPUT,
 	C2S_PKT_ACTION,
 
@@ -224,6 +225,14 @@ struct C2S_LoginPacket : public PacketUdpHeader {
 	C2S_LoginPacket() : PacketUdpHeader{ sizeof(C2S_LoginPacket), PKT_Type::C2S_PKT_LOGIN, 0, 0 } {}
 	C2S_LoginPacket(uint32 id)
 		: PacketUdpHeader{ sizeof(C2S_LoginPacket), PKT_Type::C2S_PKT_LOGIN, 0, 0 }, clientId(id) {
+	}
+};
+
+struct C2S_LogoutPacket : public PacketTcpHeader {
+	uint32 clientId{};
+	C2S_LogoutPacket() : PacketTcpHeader{ sizeof(C2S_LogoutPacket), PKT_Type::C2S_PKT_LOGOUT, 0.0 } {}
+	C2S_LogoutPacket(uint32 id)
+		: PacketTcpHeader{ sizeof(C2S_LogoutPacket), PKT_Type::C2S_PKT_LOGOUT, 0.0 }, clientId(id) {
 	}
 };
 

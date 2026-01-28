@@ -197,6 +197,16 @@ struct PASSINFO
     int TileCountZ;
     int LightsCount;
     int SkyBoxIndex;
+    
+    int TerrainSlot1;
+    int TerrainSlot2;
+    int TerrainSlot3;
+    int TerrainSlot4;
+    int TerrainSlot5;
+    int TerrainSlot6;
+	int Padding1;
+	int Padding2;
+
 };
 //////////////
 

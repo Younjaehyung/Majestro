@@ -28,6 +28,7 @@ public:
 public:
 	bool mCheckFrustum = true;
 	bool mCheckVisibilty = true;
+	bool mIsNotObject = false;
 
 	//자기 layer인덱스 확인
 	uint8 mLayerIndex = 0;

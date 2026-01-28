@@ -269,22 +269,25 @@ TerrainPrefab::TerrainPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
 	TransformComponent bt{};
-	bt.mLocalScale = (Vec3(30.f, 250.f, 30.f));
+	bt.mLocalScale = (Vec3(100.f, 2500.f, 100.f));
 	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
 
-	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
-
-	// 빌보드 머티리얼(
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
-	std::vector<shared_ptr<Material>> materials;
-	materials.push_back(heightMap);
-
 	world->AddComponent<TransformComponent>(mEntityID, bt);
 	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 
-	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, skyBoxMesh, materials);
+	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
+	std::vector<shared_ptr<Material>> materials{
+		RESOURCEMANAGER.Get<Material>(L"Asphalt"),
+		RESOURCEMANAGER.Get<Material>(L"Grass_Uncut"),
+		RESOURCEMANAGER.Get<Material>(L"Ground_Gravel"),
+		RESOURCEMANAGER.Get<Material>(L"Mosaic"),
+		RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
+		RESOURCEMANAGER.Get<Material>(L"Soil_Mud") };
+
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, terrain, materials);
 	render.mCheckFrustum = false;
 
 }

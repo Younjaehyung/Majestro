@@ -77,13 +77,15 @@ void MovementSystem::Update(float dt) {
 	if (mainCameraEntitys.empty())return;
 	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 
-	
+	auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
 
-	for (auto& cameraEntitys : mainCameraEntitys)
+	for (auto& cameraEntity : mainCameraEntitys)
 	{
-		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(cameraEntitys);
+		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(cameraEntity);
 
 		for (auto& entity : playerEntitys) {
+			if (entity.GetID() != cameraTypeComponent->mTargetID) continue;
+
 			InputComponent* inputComponent = mWorld->GetComponent<InputComponent>(entity);
 
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -172,44 +174,33 @@ void MovementSystem::Update(float dt) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
 
-		if (!transformComponent || !enemyMovementComponent)
-			continue;
+		if (!transformComponent || !enemyMovementComponent) continue;
 
-		// ====== 기존 이동 로직 유지 ======
+		
 		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50.0f;
 
-		// ====== [추가] 이동 방향을 바라보도록 회전(yaw) 계산 + 천천히 회전 ======
-		// 주의: mMovingDirection이 "월드 기준 이동 방향"이라고 가정.
-		//       (로컬 기준이면 먼저 월드로 변환하거나, 반대로 로컬 회전과 정합 맞춰야 함.)
 		Vec3 dir = enemyMovementComponent->mMovingDirection;
 
-		// [추가] 방향 벡터가 거의 0이면 회전 계산하지 않음(각도 불안정 방지)
 		const float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
 		if (lenSq <= 1e-8f)
 			continue;
 
-		// [추가] 지면 이동이라면 y 성분 제거해서 수평 방향만으로 yaw 계산
 		dir.y = 0.0f;
 		const float flatLenSq = dir.x * dir.x + dir.z * dir.z;
 		if (flatLenSq <= 1e-8f)
 			continue;
 
-		// [추가] 정규화(각도 계산 안정성)
 		const float invLen = 1.0f / sqrtf(flatLenSq);
 		dir.x *= invLen;
 		dir.z *= invLen;
 
-		// [추가] 목표 yaw 계산
-		// - 엔진/모델의 전방(forward)이 +Z일 때: yaw = atan2(x, z)
-		// - 만약 전방이 +X라면: atan2(z, x) 로 바꿔야 함
 		const float targetYaw = atan2f(dir.x, dir.z) + 3.14159265358979323846f /*PI*/;
 
-		// [추가] 현재 yaw -> 목표 yaw 로 "초당 kTurnSpeedRadPerSec"만큼만 회전
 		const float maxDelta = kTurnSpeedRadPerSec * dt;
 		transformComponent->mLocalRotation.y =
 			MoveTowardsAngle(transformComponent->mLocalRotation.y, targetYaw, maxDelta);
 
-		// (선택) pitch/roll 고정이 필요하면 아래 주석 해제
+		// pitch/roll 고정이 필요하면 아래 주석 해제
 		// transformComponent->mLocalRotation.x = 0.0f;
 		// transformComponent->mLocalRotation.z = 0.0f;
 	}

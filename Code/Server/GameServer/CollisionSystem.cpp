@@ -54,10 +54,6 @@ void CollisionSystem::Update(float dt)
 
 }
 
-void CollisionSystem::Player2Movable(float deltaTime)
-{
-
-}
 
 
 

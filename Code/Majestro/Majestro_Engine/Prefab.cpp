@@ -114,7 +114,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (0) {
 	case 0:
 		t.mLocalScale = { 10.f, 10.f, 10.f };
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
@@ -300,29 +300,39 @@ SkyBoxPrefab::~SkyBoxPrefab()
 TerrainPrefab::TerrainPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
+
 	TransformComponent bt{};
-	bt.mLocalScale = (Vec3(5.f, 320.f, 5.f));
-	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+	bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
+	// bt.mLocalScale = Vec3(99.21f, 15000.f, 99.21f);
+	bt.mLocalPosition = Vec3(0.f, -70.f, 0.f);
 
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 	world->AddComponent<TransformComponent>(mEntityID, bt);
-	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
+
+	// heightmap 512x512 => 타일 511x511
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
+
+	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(504, 504);
+
+
+
+	world->AddComponent<TransformComponent>(mEntityID, bt);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 
-	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
 	std::vector<shared_ptr<Material>> materials{
 		
-		RESOURCEMANAGER.Get<Material>(L"Grass_Uncut"),
-		RESOURCEMANAGER.Get<Material>(L"Ground_Gravel"),
-		RESOURCEMANAGER.Get<Material>(L"Mosaic"),
-		RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
-		RESOURCEMANAGER.Get<Material>(L"Soil_Mud") ,
-		RESOURCEMANAGER.Get<Material>(L"Asphalt")
+		RESOURCEMANAGER.Get<Material>(L"Grass"),
+		RESOURCEMANAGER.Get<Material>(L"Rock"),
+		RESOURCEMANAGER.Get<Material>(L"Dirt"),
+		//RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
+		//RESOURCEMANAGER.Get<Material>(L"Soil_Mud") ,
+		//RESOURCEMANAGER.Get<Material>(L"Asphalt")
 	};
 
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, terrain, materials);
 	render.mCheckFrustum = false;
+
 
 }
 

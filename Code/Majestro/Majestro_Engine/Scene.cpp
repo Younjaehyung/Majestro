@@ -40,7 +40,7 @@ void Scene::Initialize()
 	// MAP export json load
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 	// 
-	// LoadJsonLevel(L"..\\Resources\\Json\\Map1_Export.json");
+	 LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -201,7 +201,7 @@ void Scene::Render()
 
 void Scene::LoadJsonLevel(const wstring& path)
 {
-	RESOURCEMANAGER.Load<Texture>(L"normalgun", L"..\\Resources\\Texture\\MI_Trims_C_DarkGray_Normal_0.png");
+	//RESOURCEMANAGER.Load<Texture>(L"normalgun", L"..\\Resources\\Texture\\MI_Trims_C_DarkGray_Normal_0.png");
 	int i = 0;
 	try
 	{

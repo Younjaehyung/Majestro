@@ -904,7 +904,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Skybox");
-		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\sky.jpg"), DIFFUSEMAP0INDEX);
+		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\Hdri_Sky.dds"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Skybox", material);
 	}
 
@@ -952,9 +952,9 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Terrain");
-		material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Terrain\\Asphalt.png"), DIFFUSEMAP0INDEX);
+		//material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Terrain\\Asphalt.png"), DIFFUSEMAP0INDEX);
 		//material->SetTexture(Load<Texture>(L"HeightMap1", L"..\\Resources\\Terrain\\Base_Texture.jpg"), DIFFUSEMAP1INDEX);
-		material->SetTexture(Load<Texture>(L"HeightMap2", L"..\\Resources\\Terrain\\Height.png"), DIFFUSEMAP2INDEX);
+		material->SetTexture(Load<Texture>(L"T_Height", L"..\\Resources\\Terrain\\T_Height.png"), DIFFUSEMAP2INDEX);
 		Add<Material>(L"Terrain", material);
 	}
 	// Terrain 1
@@ -962,45 +962,55 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> color1 = make_shared<Material>();
 		color1->SetShader(L"Terrain");
-		color1->SetTexture(Load<Texture>(L"T_Asphalt_BC", L"..\\Resources\\Terrain\\T_Asphalt_BC.png"), DIFFUSEMAP0INDEX);
-		color1->SetTexture(Load<Texture>(L"Asphalt", L"..\\Resources\\Terrain\\Asphalt.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"T_Rock_BC", L"..\\Resources\\Terrain\\T_Rock_BC.png"), DIFFUSEMAP0INDEX);
+		color1->SetTexture(Load<Texture>(L"T_Rock_Layer", L"..\\Resources\\Terrain\\T_Rock_Layer.png"), DIFFUSEMAP1INDEX);
 		color1->SetTexture(Load<Texture>(L"colors", L"..\\Resources\\Terrain\\Geom_Rock_Overgrown_B_LOD00_Rock_Overgrown_B_0_Normal.png"), NORMALMAPINDEX);
-		Add<Material>(L"Asphalt", color1);
+		Add<Material>(L"Rock", color1);
 
+
+		//
 		shared_ptr<Material> color2 = make_shared<Material>();
 		color2->SetShader(L"Terrain");
-		color2->SetTexture(Load<Texture>(L"T_Grass_Uncut_BC", L"..\\Resources\\Terrain\\T_Grass_Uncut_BC.png"), DIFFUSEMAP0INDEX);
-		color2->SetTexture(Load<Texture>(L"Grass_Uncut", L"..\\Resources\\Terrain\\Grass_Uncut.png"), DIFFUSEMAP1INDEX);
+		color2->SetTexture(Load<Texture>(L"T_Dirt_BC", L"..\\Resources\\Terrain\\T_Dirt_BC.png"), DIFFUSEMAP0INDEX);
+		color2->SetTexture(Load<Texture>(L"T_Dirt_Layer", L"..\\Resources\\Terrain\\T_Dirt_Layer.png"), DIFFUSEMAP1INDEX);
 		color2->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Grass_Uncut", color2);
+		Add<Material>(L"Dirt", color2);
 
+		//
 		shared_ptr<Material> color3 = make_shared<Material>();
 		color3->SetShader(L"Terrain");
-		color3->SetTexture(Load<Texture>(L"T_Ground_Gravel_BC", L"..\\Resources\\Terrain\\T_Ground_Gravel_BC.png"), DIFFUSEMAP0INDEX);
-		color3->SetTexture(Load<Texture>(L"Ground_Gravel", L"..\\Resources\\Terrain\\Ground_Gravel.png"), DIFFUSEMAP1INDEX);
+		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.png"), DIFFUSEMAP0INDEX);
+		color3->SetTexture(Load<Texture>(L"T_Grass_Layer", L"..\\Resources\\Terrain\\T_Grass_Layer.png"), DIFFUSEMAP1INDEX);
 		color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Ground_Gravel", color3);
+		Add<Material>(L"Grass", color3);
 
-		shared_ptr<Material> color4 = make_shared<Material>();
-		color4->SetShader(L"Terrain");
-		color4->SetTexture(Load<Texture>(L"T_Mosaic_BC", L"..\\Resources\\Terrain\\T_Mosaic_BC.png"), DIFFUSEMAP0INDEX);
-		color4->SetTexture(Load<Texture>(L"Mosaic", L"..\\Resources\\Terrain\\Mosaic.png"), DIFFUSEMAP1INDEX);
-		color4->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Mosaic", color4);
+		//shared_ptr<Material> color3 = make_shared<Material>();
+		//color3->SetShader(L"Terrain");
+		//color3->SetTexture(Load<Texture>(L"T_Ground_Gravel_BC", L"..\\Resources\\Terrain\\T_Ground_Gravel_BC.png"), DIFFUSEMAP0INDEX);
+		//color3->SetTexture(Load<Texture>(L"Ground_Gravel", L"..\\Resources\\Terrain\\Ground_Gravel.png"), DIFFUSEMAP1INDEX);
+		//color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"Ground_Gravel", color3);
 
-		shared_ptr<Material> color5 = make_shared<Material>();
-		color5->SetShader(L"Terrain");
-		color5->SetTexture(Load<Texture>(L"T_SnowFootprints_BC", L"..\\Resources\\Terrain\\T_SnowFootprints_BC.png"), DIFFUSEMAP0INDEX);
-		color5->SetTexture(Load<Texture>(L"SnowFootprints", L"..\\Resources\\Terrain\\SnowFootprints.png"), DIFFUSEMAP1INDEX);
-		color5->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"SnowFootprints", color5);
+		//shared_ptr<Material> color4 = make_shared<Material>();
+		//color4->SetShader(L"Terrain");
+		//color4->SetTexture(Load<Texture>(L"T_Mosaic_BC", L"..\\Resources\\Terrain\\T_Mosaic_BC.png"), DIFFUSEMAP0INDEX);
+		//color4->SetTexture(Load<Texture>(L"Mosaic", L"..\\Resources\\Terrain\\Mosaic.png"), DIFFUSEMAP1INDEX);
+		//color4->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"Mosaic", color4);
 
-		shared_ptr<Material> color6 = make_shared<Material>();
-		color6->SetShader(L"Terrain");
-		color6->SetTexture(Load<Texture>(L"T_Soil_Mud", L"..\\Resources\\Terrain\\T_Soil_Mud.png"), DIFFUSEMAP0INDEX);
-		color6->SetTexture(Load<Texture>(L"Soil_Mud", L"..\\Resources\\Terrain\\Soil_Mud.png"), DIFFUSEMAP1INDEX);
-		color6->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Soil_Mud", color6);
+		//shared_ptr<Material> color5 = make_shared<Material>();
+		//color5->SetShader(L"Terrain");
+		//color5->SetTexture(Load<Texture>(L"T_SnowFootprints_BC", L"..\\Resources\\Terrain\\T_SnowFootprints_BC.png"), DIFFUSEMAP0INDEX);
+		//color5->SetTexture(Load<Texture>(L"SnowFootprints", L"..\\Resources\\Terrain\\SnowFootprints.png"), DIFFUSEMAP1INDEX);
+		//color5->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"SnowFootprints", color5);
+
+		//shared_ptr<Material> color6 = make_shared<Material>();
+		//color6->SetShader(L"Terrain");
+		//color6->SetTexture(Load<Texture>(L"T_Soil_Mud", L"..\\Resources\\Terrain\\T_Soil_Mud.png"), DIFFUSEMAP0INDEX);
+		//color6->SetTexture(Load<Texture>(L"Soil_Mud", L"..\\Resources\\Terrain\\Soil_Mud.png"), DIFFUSEMAP1INDEX);
+		//color6->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"Soil_Mud", color6);
 
 
 	}	// Terrain
@@ -1174,8 +1184,7 @@ void ResourceManager::CreateDefaultMaterial()
 	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
 
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
+
 
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");

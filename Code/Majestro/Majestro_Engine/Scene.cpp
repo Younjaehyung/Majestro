@@ -36,7 +36,11 @@ void Scene::Initialize()
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
 
-	LoadJsonLevel(L"..\\Resources\\Json\\Map1_Export.json");
+
+	// MAP export json load
+	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
+	// 
+	// LoadJsonLevel(L"..\\Resources\\Json\\Map1_Export.json");
 	
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -87,47 +91,7 @@ void Scene::Initialize()
 		}
 	}
 
-	{
-		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-		std::vector<shared_ptr<Material>> material2s;
-
-
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
-		material2s.push_back(material2);
-		TransformComponent t;
-		t.mLocalPosition = { 0.f, 0.f, 0.f };
-		
-	/*	vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));*/
-
-
-		mWorld->AddComponent<TransformComponent>(osw);
-		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-
-	}
-	{
-		Entity osw = mWorld->CreateEntity();	// �ʼ�
-
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-		std::vector<shared_ptr<Material>> material2s;
-
-
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
-		material2s.push_back(material2);
-	
-		
-		
-	/*	vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));*/
-
-
-		TransformComponent& t = mWorld->AddComponent<TransformComponent>(osw);
-		t.mLocalPosition = { 50.f, 0.f, 0.f };
-		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-
-	}
 
 	/////////////////////////////////////////////////////////////////////////
 
@@ -272,9 +236,9 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
 			
-			for (const auto& mat : data->GetMaterials()) {
+			/*for (const auto& mat : data->GetMaterials()) {
 				mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"normalgun"), NORMALMAPINDEX);
-			}
+			}*/
 			render.mMaterials = data->GetMaterials();
 			render.mMesh = data->GetMeshs().at(0);
 			

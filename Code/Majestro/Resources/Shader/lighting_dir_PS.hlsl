@@ -6,63 +6,63 @@ struct VS_OUT
     float4 pos : SV_Position;
     float2 uv : TEXCOORD;
     uint instanceID : InstanceID;
+    
 };
 
 struct PS_OUT
 {
     float4 diffuse : SV_Target0;
     float4 specular : SV_Target1;
+    
 };
 
-// [정리: 네 코드 기준 Gbuffer 배열 사용]
-// Gbuffer[0] : Shadow depth
-// Gbuffer[1] : Position (view-space xyz)
-// Gbuffer[2] : Normal+Metallic (xyz = view normal, w = metallic)   // [수정 반영]
-// Gbuffer[3] : Albedo+Roughness (rgb = baseColor, a = roughness)   // [추가 필요]
+// [Directional Light]
+// g_int_0 : Light index
+// g_tex_0 : Position RT
+// g_tex_1 : Normal RT
+// g_tex_2 : Shadow RT
+// g_mat_0 : ShadowCamera VP
+// Mesh : Rectangle
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+
+
 
 PS_OUT PS_DirLight(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
 
-    // 라이트 선택
-    int index = 0; // Instance.LightIndex; (네 엔진 로직에 맞게 사용)
+    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    
+    
+    int index = 0; //Instance.LightIndex;
+    
     LIGHTINFO light = Lights[index];
 
-    // -----------------------------
-    // [수정] G-Buffer 샘플링 확장
-    // -----------------------------
+    
     float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
-
-    // NOTE: 네 카메라 전방이 -Z라면, "앞에 있는 픽셀"의 viewPos.z는 보통 음수다.
-    // 지금 조건(viewPos.z <= 0)로 clip하면 화면 대부분이 잘릴 가능성이 큼.
-    // 기존 코드 유지하지만, 만약 화면이 안 나오면 이 조건을 반대로 고쳐야 함.
-    if (viewPos.z <= 0.f)
+    if (viewPos.z <= 0.f)   //DirLight의 영역에 카메라에 있는지에 따라 출력할지 아닐지 정함
         clip(-1);
 
-    float4 n_m = Gbuffer[2].Sample(g_sam_0, input.uv);
-    float3 viewNormal = normalize(n_m.xyz);
-    float metallic = saturate(n_m.w); // [수정] normal.w에서 metallic 읽기
+    float3 viewNormal = Gbuffer[2].Sample(g_sam_0, input.uv).xyz;
 
-    float4 a_r = Gbuffer[3].Sample(g_sam_0, input.uv); // [추가] Albedo(RGB)+Roughness(A)
-    float3 baseColor = a_r.rgb;
-    float roughness = saturate(a_r.a);
-
-    // -----------------------------
-    // [수정] PBR 라이트 계산
-    // -----------------------------
-    LightColor color = CalculateLightColorPBR(index, viewNormal, viewPos, baseColor, metallic, roughness);
-
-    // -----------------------------
-    // 그림자(기존 로직 유지)
-    // -----------------------------
-    if (length(color.diffuse.rgb) != 0)
+    LightColor color = CalculateLightColor(index, viewNormal, viewPos);
+    
+    
+    
+    // 그림자
+    if (length(color.diffuse) != 0)
     {
+        
+        
         matrix shadowCameraVP = mul(light.MatView, light.MatProjection);
 
         float4 worldPos = mul(float4(viewPos.xyz, 1.f), light.MatViewInv);
         float4 shadowClipPos = mul(worldPos, shadowCameraVP);
         float depth = shadowClipPos.z / shadowClipPos.w;
 
+        // x [-1 ~ 1] -> u [0 ~ 1]
+        // y [1 ~ -1] -> v [0 ~ 1]
         float2 uv = shadowClipPos.xy / shadowClipPos.w;
         uv.y = -uv.y;
         uv = uv * 0.5 + 0.5;
@@ -70,19 +70,16 @@ PS_OUT PS_DirLight(VS_OUT input)
         if (0 < uv.x && uv.x < 1 && 0 < uv.y && uv.y < 1)
         {
             float shadowDepth = Gbuffer[0].Sample(g_sam_0, uv).x;
-
-            // [권장] 바이어스는 상수보다 N·L 기반으로 키우는게 좋지만, 기존 유지
             if (shadowDepth > 0 && depth > shadowDepth + 0.00001f)
             {
-                // [수정] PBR에서도 shadow는 diffuse/specular 모두에 영향
                 color.diffuse *= 0.5f;
-                color.specular *= 0.0f;
+                color.specular = (float4) 0.f;
             }
         }
     }
 
-    // 출력 (너는 diffuse/ambient를 한 버퍼에 합치고 specular는 별도 누적)
-    output.diffuse = color.diffuse + color.ambient * 2.0f;
+    
+    output.diffuse = color.diffuse + color.ambient;
     output.specular = color.specular;
 
     return output;

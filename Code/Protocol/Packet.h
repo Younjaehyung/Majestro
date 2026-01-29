@@ -233,9 +233,9 @@ struct C2S_LoginPacket : public PacketUdpHeader {
 struct C2S_StartGamePacket : public PacketUdpHeader {
 	uint32 clientId{};
 	uint8 playerType{};
-	C2S_StartGamePacket() : PacketUdpHeader{ sizeof(C2S_GAME_START), PKT_Type::C2S_GAME_START, 0, 0 } {}
+	C2S_StartGamePacket() : PacketUdpHeader{ sizeof(C2S_StartGamePacket), PKT_Type::C2S_GAME_START, 0, 0 } {}
 	C2S_StartGamePacket(uint32 id, uint8 type)
-		: PacketUdpHeader{ sizeof(C2S_GAME_START), PKT_Type::C2S_GAME_START, 0, 0 }, clientId(id), playerType(type) {
+		: PacketUdpHeader{ sizeof(C2S_StartGamePacket), PKT_Type::C2S_GAME_START, 0, 0 }, clientId(id), playerType(type) {
 	}
 };
 

@@ -4,9 +4,9 @@
 
 void SceneManager::Initialize()
 {
-	mActiveScene = make_shared<Scene>();
-	mActiveScene->Initialize();
-
+	/*mActiveScene = make_shared<Scene>();
+	mActiveScene->Initialize();*/
+	LoadScene(L"Lobby");
 }
 
 void SceneManager::Update(float deltaTime)
@@ -28,6 +28,21 @@ void SceneManager::LoadScene(wstring sceneName)
 {
 	// TODO : 기존 Scene 정리
 	// TODO : 파일에서 Scene 정보 로드
+
+	if (sceneName == L"Lobby")
+	{
+		mActiveScene = make_shared<LobbyScene>();
+	}
+	else if (sceneName == L"Game")
+	{
+		mActiveScene = make_shared<GameScene>();
+	}
+	else
+	{
+		mActiveScene = make_shared<GameScene>();
+	}
+
+	mActiveScene->Initialize();
 
 	//mActiveScene = LoadTestScene();
 

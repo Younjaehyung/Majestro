@@ -451,37 +451,59 @@ LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
 
 	for (const auto& a : actors)
 	{
+		// string_view 등을 활용하거나, 루프 밖에서 한 번만 생성
 		const std::string actorName = GetString(a, "name");
 		const std::string actorPath = GetString(a, "path");
 
 		const auto& comps = Require(a, "static_mesh_components");
-		if (!comps.is_array())
-			throw std::runtime_error("JSON 'static_mesh_components' is not an array");
+		if (!comps.is_array()) throw std::runtime_error("JSON components is not an array");
 
 		for (const auto& c : comps)
 		{
-			MeshInstance inst{};
-			inst.actorName = actorName;
-			inst.actorPath = actorPath;
+			// 공통 정보 추출
+			const std::string compName = GetString(c, "component_name");
+			const std::string meshAsset = GetString(c, "static_mesh_asset");
+			const std::string fbxPath = (c.contains("fbx") && !c["fbx"].is_null()) ? c["fbx"].get<std::string>() : "";
 
-			inst.componentName = GetString(c, "component_name");
-			inst.staticMeshAsset = GetString(c, "static_mesh_asset");
+			// 인스턴스가 있는지 확인
+			if (c.contains("instances") && c["instances"].is_array())
+			{
+				const auto& instances_json = c["instances"];
+				out.instances.reserve(out.instances.size() + instances_json.size()); // 메모리 재할당 방지
 
-			// fbx는 null일 수 없도록 우리가 만들었지만, 방어적으로 처리
-			if (c.contains("fbx") && !c["fbx"].is_null())
-				inst.fbx = c["fbx"].get<std::string>();
+				for (const auto& inst_j : instances_json)
+				{
+					MeshInstance insts{};
+					insts.actorName = actorName;
+					insts.actorPath = actorPath;
+					insts.componentName = compName;
+					insts.staticMeshAsset = meshAsset;
+					insts.fbx = fbxPath;
+
+					// 인스턴스는 부모의 transform이 이미 계산된 dx 위치를 사용하거나, 
+					// 필요 시 부모 world * 자식 local 연산이 필요함 (현재 JSON은 계산된 dx 제공 중)
+					const auto& dx = Require(inst_j, "dx");
+					insts.world = ParseDxTransform(dx);
+
+					out.instances.push_back(std::move(insts));
+				}
+			}
 			else
-				inst.fbx.clear();
+			{
+				// 인스턴스가 없는 일반 Static Mesh인 경우에만 단일 객체로 추가
+				MeshInstance inst{};
+				inst.actorName = actorName;
+				inst.actorPath = actorPath;
+				inst.componentName = compName;
+				inst.staticMeshAsset = meshAsset;
+				inst.fbx = fbxPath;
 
-			// component_world_transform.dx
-			const auto& cwt = Require(c, "component_world_transform");
-			const auto& dx = Require(cwt, "dx");
-			inst.world = ParseDxTransform(dx);
+				const auto& cwt = Require(c, "component_world_transform");
+				const auto& dx = Require(cwt, "dx");
+				inst.world = ParseDxTransform(dx);
 
-			out.instances.push_back(std::move(inst));
-
-			// 인스턴스가 있는 ISM/HISM이면 instances[]도 펼치고 싶을 수 있음
-			// 현재 JSON은 comp_entry["instances"]를 넣을 수도 있으니, 필요하면 여기에 추가 파싱하면 됨.
+				out.instances.push_back(std::move(inst));
+			}
 		}
 	}
 

@@ -230,7 +230,11 @@ void Scene::LoadJsonLevel(const wstring& path)
 			
 			Entity entity = mWorld->CreateEntity();
 			TransformComponent transform{};
-			transform.mWorldMatrix = BuildWorldMatrix_RowMajor(inst.world);
+			transform.mLocalScale = Vec{ 0.1f, 0.1f, 0.1f };
+			transform.FinalUpdate();
+			Matrix instanceMatrix = BuildWorldMatrix_RowMajor(inst.world);
+			transform.mWorldMatrix = instanceMatrix * transform.mWorldMatrix;
+			
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
 

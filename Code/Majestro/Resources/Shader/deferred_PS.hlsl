@@ -63,7 +63,8 @@ PS_OUT PS_Main(VS_OUT input)
         float4 tex3 = TextureMaps[materials.DiffuseMap3Index].Sample(g_sam_0, input.uv);
         baseColor = lerp(baseColor, tex3, tex3.a);
     }
-
+    if (baseColor.a < 0.1f)
+        discard;
     // -----------------------------
     // 2) Normal Map 적용
     // -----------------------------
@@ -132,6 +133,7 @@ PS_OUT PS_Main(VS_OUT input)
 
     // [수정] color.a에 roughness 저장
     output.color = float4(baseColor.rgb, roughness);
-
+    
+    
     return output;
 }

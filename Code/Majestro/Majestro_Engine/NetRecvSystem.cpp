@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "NetRecvSystem.h"
+#include "EnginePch.h"
+#include "Engine.h"
 #include "World.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
@@ -56,6 +58,10 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     if (msg.Type == PKT_Type::S2C_PKT_SPAWN) {
 		std::cout << "Spawn Packet Received in NetRecvSystem" << std::endl;
         HandleSpawn(msg);
+        return;
+    }
+    else if (msg.Type == PKT_Type::S2C_GAME_START) {
+        gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {

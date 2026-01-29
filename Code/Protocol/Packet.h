@@ -25,6 +25,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
 	S2C_PKT_SPAWNS,
+	S2C_GAME_START,
 	S2C_PKT_RESPAWN,
 	S2C_PKT_MOVE,
 	S2C_PKT_STATE,
@@ -125,6 +126,15 @@ struct S2C_LoginPacket : public PacketTcpHeader {
 		: PacketTcpHeader{ sizeof(S2C_LoginPacket), PKT_Type::S2C_PKT_LOGIN, 0.0 }, clientId(id) {
 	}
 };
+
+struct S2C_StartGamePacket : public PacketTcpHeader {
+	uint32 clientId{};
+	S2C_StartGamePacket() : PacketTcpHeader{ sizeof(S2C_StartGamePacket), PKT_Type::S2C_GAME_START, 0.0 } {}
+	S2C_StartGamePacket(uint32 id)
+		: PacketTcpHeader{ sizeof(S2C_StartGamePacket), PKT_Type::S2C_GAME_START, 0.0 }, clientId(id) {
+	}
+};
+
 
 struct S2C_SyncPacket : public PacketTcpHeader {
 	uint32_t clientId{};

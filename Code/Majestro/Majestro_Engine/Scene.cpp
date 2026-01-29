@@ -105,7 +105,7 @@ void Scene::Initialize()
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-256.f, 768.f);
+		t.mPosition = Vec2(-256.f, 468.f);
 		t.mSize = Vec2(512.f, 256.f);
 
 
@@ -115,12 +115,12 @@ void Scene::Initialize()
 	{
 		Entity Aim = mWorld->CreateEntity();
 		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Aim");
+		scorem = RESOURCEMANAGER.Get<Material>(L"jAims");
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-64.f, -64.f);
-		t.mSize = Vec2(128.f, 128.f);
+		t.mPosition = Vec2(-98.f, -64.f);
+		t.mSize = Vec2(196.f, 128.f);
 
 		auto& m = mWorld->AddComponent<UISpriteComponent>(Aim, scorem);
 	}

@@ -30,5 +30,6 @@ public:
 	void ConvertInput(SendRequest* seq);
 private:
 	C2S_InputPacket mInputPacket{};
+    bool mHasSentGameStart = false;
 };
 

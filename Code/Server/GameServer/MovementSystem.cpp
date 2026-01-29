@@ -91,8 +91,8 @@ void MovementSystem::Update(float dt) {
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 			MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
-			float correction{ 0 };
-			if (mainPlayerComponent->mPlayerType == 1 || mainPlayerComponent->mPlayerType == 2) correction = 3.14159265358979323846f;
+			//float correction{ 0 };
+			//if (mainPlayerComponent->mPlayerType == 1 || mainPlayerComponent->mPlayerType == 2) correction = 3.14159265358979323846f;
 
 			//stateSetting
 			{

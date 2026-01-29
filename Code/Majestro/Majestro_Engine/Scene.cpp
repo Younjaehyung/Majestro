@@ -51,7 +51,15 @@ void LobbyScene::Initialize()
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
 
+	/////////////////////////////////////////////////////////////////////
 
+	{
+		Entity mannequinEntity = mWorld->CreateEntity();
+		
+		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
+		mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
+		
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	{

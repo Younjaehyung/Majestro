@@ -7,6 +7,7 @@
 #include "NetEntityComponent.h"
 #include "InputManager.h"
 #include "MovementComponent.h"
+#include "TagComponent.h"
 
 NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
 {
@@ -28,7 +29,11 @@ void NetSendSystem::Update(double deltaTime)
 		{
 			SendRequest seq;
 			ConvertInput(&seq);
-			gSendBuffer.Push(seq);
+			//gSendBuffer.Push(seq);
+			if (seq.Type != PKT_Type::KNONE)
+			{
+				gSendBuffer.Push(seq);
+			}
 			
 			//netComp->mIsDirty = false;
 		}
@@ -42,6 +47,9 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
 	Entity playerEntity = playerEntities[0];
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
+
+	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(playerEntity);
+
 	
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
@@ -58,7 +66,23 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
 	if (comp->mJump)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::SPACE);
 
+	if (!mHasSentGameStart && INPUT.GetKeyDown(eKeyCode::R))
+	{
+		cout << "start Game" << endl;
+		const uint32 clientId = Network::GetInstance().mClientId;
+		C2S_StartGamePacket startPacket;
+		startPacket.clientId = clientId;
+		startPacket.playerType = characterChoice ? characterChoice->mPlayerType : 0;
+		startPacket.SessionId = clientId;
+		startPacket.Sequence = 0;
 
+		SendRequest startSeq;
+		startSeq.Type = PKT_Type::C2S_GAME_START;
+		startSeq.SIze = sizeof(C2S_StartGamePacket);
+		startSeq.StoreAs(startPacket);
+		gSendBuffer.Push(startSeq);
+		mHasSentGameStart = true;
+	}
 
 	// Convert InputComponent data to SendRequest format
 	seq->Type = PKT_Type::C2S_PKT_INPUT;

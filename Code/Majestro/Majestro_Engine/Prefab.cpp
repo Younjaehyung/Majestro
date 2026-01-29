@@ -109,7 +109,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	material2s.push_back(material2);
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	t.mLocalScale = { 10.f, 10.f, 10.f };
+	t.mLocalScale = { 0.1f, 0.1f, 0.1f };
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;

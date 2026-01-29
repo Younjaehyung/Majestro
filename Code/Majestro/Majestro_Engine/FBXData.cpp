@@ -112,6 +112,10 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		// === 1) .mesh ===
 
 		string meshName = ReadString(loader);
+		//if (RESOURCEMANAGER.Get<Mesh>(s2ws(meshName))) {
+		//	
+		//	mMeshs.push_back(RESOURCEMANAGER.Get<Mesh>(s2ws(meshName)));
+		//}
 
 		FBXMeshInfo metaMeshInfo{};
 		loader.read(reinterpret_cast<char*>(&metaMeshInfo), sizeof(metaMeshInfo));

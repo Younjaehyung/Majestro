@@ -38,17 +38,17 @@ void RenderComponent::UpdateWorldOBB(const TransformComponent* transformComponen
 	if (!transformComponent)
 		return;
 
-	XMVECTOR scale;
-	XMVECTOR rotation;
-	XMVECTOR translation;
-	const XMMATRIX worldMatrix = transformComponent->mWorldMatrix;
+	Vec scale;
+	Vec rotation;
+	Vec translation;
+	const Matrix worldMatrix = transformComponent->mWorldMatrix;
 
 	if (!XMMatrixDecompose(&scale, &rotation, &translation, worldMatrix))
 		return;
 
-	XMFLOAT3 scaleF;
-	XMFLOAT3 translationF;
-	XMFLOAT4 rotationF;
+	Vec3 scaleF;
+	Vec3 translationF;
+	Vec4 rotationF;
 	XMStoreFloat3(&scaleF, scale);
 	XMStoreFloat3(&translationF, translation);
 	XMStoreFloat4(&rotationF, XMQuaternionNormalize(rotation));
@@ -61,18 +61,18 @@ void RenderComponent::UpdateWorldOBB(const TransformComponent* transformComponen
 		mObbCenter.y * absScale.y,
 		mObbCenter.z * absScale.z);
 
-	const XMVECTOR localCenter = XMVectorSet(scaledCenter.x, scaledCenter.y, scaledCenter.z, 0.0f);
-	const XMVECTOR rotatedCenter = XMVector3Rotate(localCenter, XMLoadFloat4(&rotationF));
+	const Vec localCenter = XMVectorSet(scaledCenter.x, scaledCenter.y, scaledCenter.z, 0.0f);
+	const Vec rotatedCenter = XMVector3Rotate(localCenter, XMLoadFloat4(&rotationF));
 	XMFLOAT3 rotatedCenterF;
 	XMStoreFloat3(&rotatedCenterF, rotatedCenter);
 
-	const Vec3 worldCenter = worldPos + Vec3(rotatedCenterF.x, rotatedCenterF.y, rotatedCenterF.z);
+	const Vec3 worldCenter = worldPos + rotatedCenterF;
 	const Vec3 worldExtents = Vec3(
 		mObbHalfExtents.x * absScale.x,
 		mObbHalfExtents.y * absScale.y,
 		mObbHalfExtents.z * absScale.z);
 
-	mWorldOBB.Center = XMFLOAT3(worldCenter.x, worldCenter.y, worldCenter.z);
-	mWorldOBB.Extents = XMFLOAT3(worldExtents.x, worldExtents.y, worldExtents.z);
-	mWorldOBB.Orientation = XMFLOAT4(rotationF.x, rotationF.y, rotationF.z, rotationF.w);
+	mWorldOBB.Center = worldCenter;
+	mWorldOBB.Extents = worldExtents;
+	mWorldOBB.Orientation = rotationF;
 }

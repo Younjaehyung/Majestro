@@ -100,8 +100,8 @@ struct DrawBatch
 	shared_ptr<Mesh> Mesh{};
 
 	uint32 PSOID{};
-	uint32 MeshID{};
-	uint32 SubMesh{};
+	//uint32 MeshID{};
+	//uint32 SubMesh{};
 	uint32 SubMeshIndex{};
 
 	uint32 BaseInstance{};
@@ -112,8 +112,8 @@ struct DrawBatch
 		PSOShader = drawItem->PSOShader;
 		Mesh = drawItem->PMesh;
 		PSOID = drawItem->PSOID;
-		MeshID = drawItem->MeshID;
-		SubMesh = drawItem->SubMesh;
+		//MeshID = drawItem->MeshID;
+		//SubMesh = drawItem->SubMesh;
 		SubMeshIndex = drawItem->SubMeshIndex;
 	}
 

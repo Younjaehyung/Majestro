@@ -287,15 +287,15 @@ void RenderSystem::PushObjectData()
 	for (auto gameObject : View)		// 같은 머테리얼을 가진 것끼리 분류
 	{
 		//renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
-		renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
-		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+		
 		/*if (mWorld->GetComponent<LightComponent>(gameObject) || renderComponent->mIsNotObject) {
 			continue;
 		}*/
 
 		if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
 
-			
+			renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+			transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
 			TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);
 
 			objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
@@ -320,6 +320,9 @@ void RenderSystem::PushObjectData()
 			continue;
 		}
 
+		renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
+		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+
 		if (false == IsFrustumCulled(transformComponent, renderComponent))continue;
 		if (false == renderComponent->mVisibility) continue;
 
@@ -329,15 +332,25 @@ void RenderSystem::PushObjectData()
 		renderComponent->mObjectIndex = index++;	// objectParams의 index 지정
 
 		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
-		index2 = animationComponent ? animationComponent->mAnimInstanceID : -1;
+		index2  = animationComponent ? animationComponent->mAnimInstanceID : -1;
 		
 
 
 		uint32 subMaterialIdx{};
+		DrawItem drawItem{};
 		for (shared_ptr<Material>& material : renderComponent->mMaterials) {
 
 			renderParams = { renderComponent->mObjectIndex, material->GetIndex(),index2,0 };
-			mDeferredDrawItems.emplace_back(
+
+			drawItem = { material->GetShader(),
+				renderComponent->mMesh,
+				material->GetShaderID(),
+				renderComponent->mMesh->GetID(),
+				material->GetID(),
+				subMaterialIdx++,
+				renderParams };
+			mDeferredDrawItems.push_back(drawItem);
+			/*mDeferredDrawItems.emplace_back(
 				material->GetShader(),
 				renderComponent->mMesh,
 				material->GetShaderID(),
@@ -345,7 +358,7 @@ void RenderSystem::PushObjectData()
 				material->GetID(),
 				subMaterialIdx++,
 				renderParams
-			);
+			);*/
 		}
 	}
 
@@ -444,11 +457,11 @@ void RenderSystem::PushObjectData()
 		mBatch.PSOShader = mDeferredDrawItems[i].PSOShader;
 		mBatch.Mesh = mDeferredDrawItems[i].PMesh;
 		mBatch.PSOID = psoId;
-		mBatch.MeshID = meshId;
-		mBatch.SubMesh = smIdx;
+		//mBatch.MeshID = meshId;
+		//mBatch.SubMesh = smIdx;
 		mBatch.SubMeshIndex = mDeferredDrawItems[i].SubMeshIndex;
 		mBatch.BaseInstance = base;
-		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
+		mBatch.InstanceCount = (j - i);    // 이 run의 인스턴스 수
 		//mBatch.InstanceGPU = mDeferredDrawItems[i].InstanceGPU;
 		//mBatch.ParamsINX = i;
 		mDeferredDrawBatchs.push_back(mBatch);

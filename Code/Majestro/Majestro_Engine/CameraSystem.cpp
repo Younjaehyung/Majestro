@@ -81,6 +81,7 @@ void CameraSystem::Update(float dt)
 
 			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+
 		}
 		transformComponent->FinalUpdate();
 

@@ -81,6 +81,36 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
 
 }
 
+MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
+{
+    mStateList = {
+    IdleState::Instance(),
+    WalkState::Instance(),
+    RunState::Instance(),
+    JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
+    DashState::Instance(),
+
+    AimState::Instance(),
+    ReRoadState::Instance(),
+    RhythmChangeState::Instance(),
+
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance(),
+
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance()
+    };
+    InitFSMFromJson(path);
+
+    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+}
+
 void MainPlayerComponent::StateCheck()
 {
     if (mSpeed < 1.f)ClearFlag(mFlags, FLAG_MOVE);

@@ -127,7 +127,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 		break;
 	case 1:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
@@ -140,7 +140,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));//dash
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 		break;
 	case 2:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
@@ -153,7 +153,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));//dash
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 		break;
 	}
 

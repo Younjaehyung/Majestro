@@ -87,9 +87,10 @@ void MovementSystem::Update(float dt) {
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
-			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
+			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;// +correction;
 			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotation.x;
 
 		
@@ -115,7 +116,7 @@ void MovementSystem::Update(float dt) {
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
-			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
+			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y; //+correction;;
 			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotation.x;
 		}
 

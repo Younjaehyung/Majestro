@@ -48,8 +48,9 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	Entity playerEntity = playerEntities[0];
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
 
-	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(playerEntity);
 
+	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
 	
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;

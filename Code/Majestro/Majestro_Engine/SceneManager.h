@@ -11,10 +11,10 @@ public:
 	void Initialize();
 	void Update(float deltaTime);
 	void Render();
-private:
-	std::vector<Scene*> mScene;
 
 	void LoadScene(wstring sceneName);
+private:
+	std::vector<Scene*> mScene;
 
 
 	void SetLayerName(uint8 index, const wstring& name);

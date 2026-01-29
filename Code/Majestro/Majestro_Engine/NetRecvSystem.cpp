@@ -2,6 +2,7 @@
 #include "NetRecvSystem.h"
 #include "EnginePch.h"
 #include "Engine.h"
+#include "SceneManager.h"
 #include "World.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
@@ -61,7 +62,8 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         return;
     }
     else if (msg.Type == PKT_Type::S2C_GAME_START) {
-        //gEngine->GetSceneManager().LoadScene(L"Game");
+        cout << "GameStart" << endl;
+        gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {

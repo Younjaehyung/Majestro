@@ -55,9 +55,8 @@ void LobbyScene::Initialize()
 
 	{
 		Entity mannequinEntity = mWorld->CreateEntity();
-		
 		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
-		mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
+		//mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
 		
 	}
 

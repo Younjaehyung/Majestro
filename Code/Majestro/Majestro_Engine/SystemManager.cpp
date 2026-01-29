@@ -96,15 +96,15 @@ void SystemManager::PostUpdate(float deltaTime)
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);
-    GetSystem<EffectSystem>()->Update(deltaTime);
+   // GetSystem<EffectSystem>()->Update(deltaTime);
     GetSystem<AnimationSystem>()->Update(deltaTime);
 }
 
 void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
     GetSystem<RenderSystem>()->Update();
-    GetSystem<EffectSystem>()->Update();
-    GetSystem<UIRenderSystem>()->Update();
+    //GetSystem<EffectSystem>()->Update();
+    //GetSystem<UIRenderSystem>()->Update();
    
 #ifdef _IMGUI
 	//GetSystem<IMGUIRenderSystem>()->Update();

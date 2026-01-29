@@ -400,7 +400,6 @@
     <ClInclude Include="GameEvents.h">
       <Filter>World\Event</Filter>
     </ClInclude>
-    <ClInclude Include="NetTransformComponent.h" />
     <ClInclude Include="CollisionSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -410,7 +409,12 @@
     <ClInclude Include="MovementSystem.h">
       <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
-    <ClInclude Include="LevelImport.h" />
+    <ClInclude Include="LevelImport.h">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="NetTransformComponent.h">
+      <Filter>World\Component\Server</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -659,7 +663,6 @@
     <ClCompile Include="GameEvents.cpp">
       <Filter>World\Event</Filter>
     </ClCompile>
-    <ClCompile Include="NetTransformComponent.cpp" />
     <ClCompile Include="CollisionSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
@@ -669,7 +672,12 @@
     <ClCompile Include="MovementSystem.cpp">
       <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
-    <ClCompile Include="LevelImport.cpp" />
+    <ClCompile Include="LevelImport.cpp">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="NetTransformComponent.cpp">
+      <Filter>World\Component\Server</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

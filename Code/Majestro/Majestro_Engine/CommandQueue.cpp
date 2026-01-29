@@ -37,10 +37,10 @@ void GraphicsCommandQueue::WaitForGpuComplete()
 	}
 }
 
-void GraphicsCommandQueue::RenderBegin()
+void GraphicsCommandQueue::RenderBegin(uint32 frameIndex)
 {
-	mCommandAllocator->Reset();
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	mCommandAllocators[frameIndex]->Reset();
+	mCommandList->Reset(mCommandAllocators[frameIndex].Get(), nullptr);
 	// 기존 정보들 클리어
 
 	uint32 backIndex = mSwapChain->GetBackBufferIndex();
@@ -80,12 +80,42 @@ void GraphicsCommandQueue::RenderEnd()
 
 		mSwapChain->Present();// 백 버퍼(B)와 프론트 버퍼(A) 교체
 
-		// Wait until frame commands are complete.  This waiting is inefficient and is
-		// done for simplicity.  Later we will show how to organize our rendering code
-		// so we do not have to wait per frame.
-		WaitForGpuComplete();
 
-		mSwapChain->SwapIndex();
+
+}
+
+void GraphicsCommandQueue::SignalFrame(uint32 frameIndex, uint32 backBufferIndex)
+{
+	mFenceValue++;
+	mFrameFenceValues[frameIndex] = mFenceValue;
+	mBackBufferFenceValues[backBufferIndex] = mFenceValue;
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+}
+
+void GraphicsCommandQueue::WaitForFrame(uint32 frameIndex)
+{
+	const uint64 fenceValue = mFrameFenceValues[frameIndex];
+	if (fenceValue == 0)
+		return;
+
+	if (mFence->GetCompletedValue() < fenceValue)
+	{
+		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
+		::WaitForSingleObject(mFenceEvent, INFINITE);
+	}
+}
+
+void GraphicsCommandQueue::WaitForBackBuffer(uint32 backBufferIndex)
+{
+	const uint64 fenceValue = mBackBufferFenceValues[backBufferIndex];
+	if (fenceValue == 0)
+		return;
+
+	if (mFence->GetCompletedValue() < fenceValue)
+	{
+		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
+		::WaitForSingleObject(mFenceEvent, INFINITE);
+	}
 }
 
 void GraphicsCommandQueue::CreateCommandQueue()
@@ -102,8 +132,10 @@ void GraphicsCommandQueue::CreateCommandQueue()
 	//cmdQueue 생성
 
 	// - D3D12_COMMAND_LIST_TYPE_DIRECT : GPU가 직접 실행하는 명령 목록
-	mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator));
-	//cmdAlloc 생성
+	for (auto& commandAllocator : mCommandAllocators)
+	{
+		mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+	}
 
 
 	// GPU가 하나인 시스템에서는 0으로
@@ -111,8 +143,7 @@ void GraphicsCommandQueue::CreateCommandQueue()
 	// Allocator
 	// 초기 상태 (그리기 명령은 nullptr 지정)
 	// cmdList 생성
-	mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&mCommandList));
-
+	mDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocators[0].Get(), nullptr, IID_PPV_ARGS(&mCommandList));
 	// CommandList는 Close / Open 상태가 있는데
 	// Open 상태에서 Command를 넣다가 Close한 다음 제출하는 개념
 	mCommandList->Close();

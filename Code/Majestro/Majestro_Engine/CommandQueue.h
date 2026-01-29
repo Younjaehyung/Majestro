@@ -13,8 +13,12 @@ public:
 	void FlushResourceCommandQueue();	//리소스 로딩용 CMD실행 함수
 
 
-	void RenderBegin();
+	void RenderBegin(uint32 frameIndex);
 	void RenderEnd();
+
+	void SignalFrame(uint32 frameIndex, uint32 backBufferIndex);
+	void WaitForFrame(uint32 frameIndex);
+	void WaitForBackBuffer(uint32 backBufferIndex);
 
 	void CreateCommandQueue();
 
@@ -27,7 +31,7 @@ public:
 private:
 
 	ComPtr<ID3D12CommandQueue>			mCommandQueue;
-	ComPtr<ID3D12CommandAllocator>		mCommandAllocator;
+	array<ComPtr<ID3D12CommandAllocator>, FRAMEGROUP_COUNT> mCommandAllocators;
 	ComPtr<ID3D12GraphicsCommandList>	mCommandList;
 	
 	//리소스 로딩용 CMD
@@ -42,6 +46,9 @@ private:
 	ComPtr<ID3D12Fence>					mFence;
 	uint64								mFenceValue = 0;
 	HANDLE								mFenceEvent = INVALID_HANDLE_VALUE;
+
+	array<uint64, FRAMEGROUP_COUNT>		mFrameFenceValues{};
+	array<uint64, SWAP_CHAIN_BUFFER_COUNT> mBackBufferFenceValues{};
 
 	D3D12_RESOURCE_BARRIER		mBarrier;
 	shared_ptr<SwapChain>		mSwapChain;

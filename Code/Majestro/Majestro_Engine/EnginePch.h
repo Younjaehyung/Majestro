@@ -52,13 +52,21 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "dxguid")
 #pragma comment(lib, "d3dcompiler")
 
-#include <DirectXTex/DirectXTex.h>
-#include <DirectXTex/DirectXTex.inl>
 
+// DirectXTK12
+#include <DirectXTK12/ResourceUploadBatch.h >
+#include <DirectXTK12/SpriteBatch.h >
 
-#include <ImGUI/imgui.h>
-#include <ImGUI/imgui_impl_win32.h>
-#include <ImGUI/imgui_impl_dx12.h>
+//#include <DirectXTK12/CommonStates.h >
+//#include <DirectXTK12/DescriptorHeap.h >
+#include <DirectXTK12/SpriteFont.h >
+//#include <DirectXTK12/GraphicsMemory.h >
+#ifdef _DEBUG
+#pragma comment(lib, "DirectXTK12/DirectXTK12_D.lib")
+#else
+#pragma comment(lib, "DirectXTK12/DirectXTK12.lib")
+#endif
+
 
 
 //#define _IMGUI
@@ -68,12 +76,19 @@ using namespace Microsoft::WRL;
 #pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 
 // IMGUI
+
+#include <ImGUI/imgui.h>
+#include <ImGUI/imgui_impl_win32.h>
+#include <ImGUI/imgui_impl_dx12.h>
 #ifdef _IMGUI
 #pragma comment(lib, "ImGUI\\example_win32_directx12.lib")
 #else
 #endif
 
 // DirectXTex
+#include <DirectXTex/DirectXTex.h>
+#include <DirectXTex/DirectXTex.inl>
+
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTex\\DirectXTex_Debug.lib")
 #else
@@ -107,6 +122,7 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "Effekseer/EffekseerRendererDX12.lib")
 #pragma comment(lib, "Effekseer/LLGI.lib")
 #endif
+
 
 
 
@@ -356,7 +372,7 @@ enum {
 
 
 	SWAP_CHAIN_BUFFER_COUNT = 2	// 더블버퍼링 버퍼 개수
-	, FRAMEGROUP_COUNT = 1			// 추후 프레임리소스 선택시 3으로 변경할것.
+	, FRAMEGROUP_COUNT = 3			// 추후 프레임리소스 선택시 3으로 변경할것.
 
 
 	, TEXTURE_SRV_COUNT = 2048	// texture(SRV) 개수

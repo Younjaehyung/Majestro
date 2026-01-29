@@ -17,6 +17,8 @@ void RenderManager::Initialize(const WindowInfo& info)
 {
 	mWindow = info;
 
+	mFrameResourceIndex = 0;
+	mFrameCurrIndex = 0;
 	// TO - DO : 임시로 4K 해상도로 고정
 	//mWindow.Width = 2560;
 	//mWindow.Height = 1440;
@@ -156,14 +158,23 @@ void RenderManager::Update()
 
 void RenderManager::StartRender()
 {
-	mGraphicsCommandQueue->RenderBegin();
+	mSwapChain->UpdateBackBufferIndex();
+	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
+	mGraphicsCommandQueue->WaitForBackBuffer(backIndex);
+	mGraphicsCommandQueue->WaitForFrame(mFrameResourceIndex);
+	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
 }
 
 
 void RenderManager::EndRender()
 {
+	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
 	mGraphicsCommandQueue->RenderEnd();
+	mGraphicsCommandQueue->SignalFrame(mFrameResourceIndex, backIndex);
+
+	mFrameCurrIndex = mFrameResourceIndex;
+	mFrameResourceIndex = (mFrameResourceIndex + 1) % FRAMEGROUP_COUNT;
 }
 
 void RenderManager::ResizeWindow(int32 width, int32 height)

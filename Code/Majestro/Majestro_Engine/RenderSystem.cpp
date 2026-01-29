@@ -423,11 +423,28 @@ void RenderSystem::PushObjectData()
 		}
 	}
 
-	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
-		if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
-		if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
-		return a.SubMesh < b.SubMesh;                          // Submesh
+	//std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
+	//	if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
+	//	if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
+	//	return a.SubMesh < b.SubMesh;                          // Submesh
+	//	});
+	
+	// [수정] 정렬 키를 실제 드로우에 사용되는 SubMeshIndex로 맞춘다.
+	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(),
+		[](const DrawItem& a, const DrawItem& b)
+		{
+			if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;
+			if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;
+
+			// [수정] a.SubMeshIndex 기준으로 묶어야 InstancingRender의 Render(submesh)와 일치한다.
+			if (a.SubMeshIndex != b.SubMeshIndex) return a.SubMeshIndex < b.SubMeshIndex;
+
+			// (선택) material id까지 묶고 싶으면 여기서 비교
+			// return a.MaterialID < b.MaterialID;
+
+			return a.SubMesh < b.SubMesh;
 		});
+
 
 
 	uint32 psoId{};

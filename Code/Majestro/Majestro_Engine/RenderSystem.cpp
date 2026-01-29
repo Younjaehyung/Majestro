@@ -235,15 +235,19 @@ void RenderSystem::PushLightData()
 {
 	// light Component 추출
 	const vector<Entity>& entities = mWorld->GetEntitiesWithComponent<LightComponent>();
-	ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
-
+	//ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
+	
+	TransformComponent* transformComponent;
+	LightComponent* lightComponent;
+	RenderComponent* renderComponent;
+	CameraComponent* cameraComponent;
 	// push 시작 (vector에 값 밀어 넣기)
 	for (auto& entity : entities)
 	{
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-		LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(entity);
-		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
-		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
+		transformComponent	= mWorld->GetComponent<TransformComponent>(entity);
+		lightComponent		= mWorld->GetComponent<LightComponent>(entity);
+		renderComponent		= mWorld->GetComponent<RenderComponent>(entity);
+		cameraComponent		= mWorld->GetComponent<CameraComponent>(entity);
 
 
 		lightParams = {};
@@ -514,15 +518,6 @@ void RenderSystem::RenderGBuffer()
 void RenderSystem::RenderLights()
 {
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).OMSetRenderTargets();
-
-
-	//// 광원을 그린다.
-	//// 광원을 기준으로 나머지 객체들을 그린다
-
-	//for (auto& light : _lights)
-	//{
-	//	light->Render();
-	//}
 
 	auto lights = 
 	mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent, CameraComponent, RenderComponent>();

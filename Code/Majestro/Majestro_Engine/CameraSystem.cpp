@@ -46,9 +46,14 @@ void CameraSystem::Update(float dt)
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
 			pos.y += cameraTypeComponent->mCameraHight;
-			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
 			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			transformComponent->FinalUpdate();
+			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
+			
+			
+			
+			
 			
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
@@ -78,7 +83,8 @@ void CameraSystem::Update(float dt)
 			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
 		}
 		transformComponent->FinalUpdate();
-		cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+
+		cameraComponent->FinalUpdate(transformComponent->GetWorldMatrix().Invert());
 		
 	}
 

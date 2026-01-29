@@ -16,7 +16,7 @@ public:
 
 	Vec3 GetWorldPosition() { return mWorldPosition; }
 	float GetBoundingSphereRadius() { return mBoundingSphere.Radius; }
-	const Matrix& GetLocalToWorldMatrix() { return mWorldMatrix; }
+	const Matrix& GetWorldMatrix() { return mWorldMatrix; }
 
 	Vec3 GetRight() { return mWorldMatrix.Right(); }
 	Vec3 GetUp() { return mWorldMatrix.Up(); }

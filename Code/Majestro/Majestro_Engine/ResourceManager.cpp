@@ -1035,8 +1035,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 	//HPBAR
 	{
-
-		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR", L"..\\Resources\\Texture\\UI\\Ingame_imgHpbar.png");
+		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR", L"..\\Resources\\Image\\UI\\UI_Hpbar_01.dds");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
@@ -1044,27 +1043,87 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"HPBAR", material);
 	}
 
-	//BassPortrait
+	//IbanixPortrait
 	{
-
-		shared_ptr<Texture> texture = Load<Texture>(L"BassPortrait", L"..\\Resources\\Texture\\UI\\Ingame_imgBassPortrait.png");
+		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Portrait", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_01.dds");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
-		Add<Material>(L"BassPortrait", material);
+		Add<Material>(L"Ibanix_Portrait", material);
 	}
 
-	//BassPortrait
+	//FanthorPortrait
 	{
-
-		shared_ptr<Texture> texture = Load<Texture>(L"GuitarPortrait", L"..\\Resources\\Texture\\UI\\Ingame_imgGuitarPortrait.png");
+		shared_ptr<Texture> texture = Load<Texture>(L"Fanthor_Portrait", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_01.dds");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
-		Add<Material>(L"GuitarPortrait", material);
+		Add<Material>(L"Fanthor_Portrait", material);
 	}
+
+
+	//RudwigPortrait
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Rudwig_Portrait", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_01.dds");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Rudwig_Portrait", material);
+	}
+
+	//Aim
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Aim", L"..\\Resources\\Image\\UI\\UI_Aim_01.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Aim", material);
+	}
+
+	//Ibanix_Ammo
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Ammo", L"..\\Resources\\Image\\UI\\UI_Ibanix_Ammo_01.dds");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Ibanix_Ammo", material);
+	}
+
+	//Ibanix_Rhythm
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Rhythm", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_01.dds");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Ibanix_Rhythm", material);
+	}
+
+	//Ibanix_Skill_1
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Skill_01", L"..\\Resources\\Image\\UI\\UI_Ibanix_Skill_01.dds");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Ibanix_Skill_01", material);
+	}
+
+	//Ibanix_Skill_2
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Skill_02", L"..\\Resources\\Image\\UI\\UI_Ibanix_Skill_02.dds");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Ibanix_Skill_02", material);
+	}
+
 
 	// DebugLine Material
 	{
@@ -1117,6 +1176,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
 	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
+
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx");
@@ -1125,6 +1185,22 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Fall.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
+
+
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Jump.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Run.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Walk.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Land.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Fall.fbx");
+
+
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx");
 

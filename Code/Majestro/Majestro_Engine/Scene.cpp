@@ -140,43 +140,82 @@ void Scene::Initialize()
 		scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mAnchor = Anchor::TopLeft;
-		t.mPosition = Vec2(50.f, 0.f);
+		t.mAnchor = Anchor::Center;
+		t.mPosition = Vec2(-256.f, 768.f);
 		t.mSize = Vec2(512.f, 256.f);
 
 
 		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR,scorem);
 	}
-	//{
-	//	Entity Bass = mWorld->CreateEntity();
 
-	//	shared_ptr<Material> scorem;
-	//	scorem = RESOURCEMANAGER.Get<Material>(L"BassPortrait");
-
-	//	auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
-	//	t.mAnchor = Anchor::TopLeft;
-	//	t.mPosition = Vec2(750.f, 250.f);
-	//	t.mSize = Vec2(300.f, 500.f);
-	//	
-
-
-	//	auto& m = mWorld->AddComponent<UISpriteComponent>(Bass, scorem);
-	//}
 	{
-		Entity Bass = mWorld->CreateEntity();
+		Entity Aim = mWorld->CreateEntity();
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Aim");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
+		t.mAnchor = Anchor::Center;
+		t.mPosition = Vec2(-64.f, -64.f);
+		t.mSize = Vec2(128.f, 128.f);
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Aim, scorem);
+	}
+
+	{
+		Entity Ibanix_Ammo = mWorld->CreateEntity();
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Ammo");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Ammo);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(212.f, -212.f);
+		t.mSize = Vec2(196.f, 128.f);
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Ibanix_Ammo, scorem);
+	}
+
+	{
+		Entity Fanthor_Portrait = mWorld->CreateEntity();
 
 		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"GuitarPortrait");
+		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
 
-		auto& t = mWorld->AddComponent<UITransformComponent>(Bass);
-		t.mAnchor = Anchor::TopLeft;
-		t.mPosition = Vec2(280.f, 110.f);
-		t.mSize = Vec2(512.f, 256.f);
-		
+		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(32.f, -636.f);
+		t.mSize = Vec2(196.f, 196.f);
 
-
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Bass, scorem);
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Fanthor_Portrait, scorem);
 	}
+
+	{
+		Entity Ibanix_Portrait = mWorld->CreateEntity();
+
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Portrait");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Portrait);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(32.f, -424.f);
+		t.mSize = Vec2(196.f, 196.f);
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Ibanix_Portrait, scorem);
+	}
+
+	{
+		Entity Rudwig_Portrait = mWorld->CreateEntity();
+
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Rudwig_Portrait");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Rudwig_Portrait);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(32.f, -212.f);
+		t.mSize = Vec2(196.f, 196.f);
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(Rudwig_Portrait, scorem);
+	}
+
 #pragma endregion
 
 	/////////////////////////////////////////////////////////////////////////

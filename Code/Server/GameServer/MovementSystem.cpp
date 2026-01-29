@@ -10,12 +10,31 @@
 #include "PlayerComponent.h"
 #include "InputComponent.h"
 
-MovementSystem::MovementSystem(World* world) : System(world)
+static float WrapPi(float a)
 {
+	constexpr float PI = 3.14159265358979323846f;
+	constexpr float TAU = 6.28318530717958647692f;
 
+	while (a > PI) a -= TAU;
+	while (a < -PI) a += TAU;
+	return a;
+}
+
+// [추가] 현재 각도를 목표 각도로 "최대 변화량(maxDelta)"만큼만 따라가게 하는 함수(천천히 회전)
+static float MoveTowardsAngle(float current, float target, float maxDelta)
+{
+	float delta = WrapPi(target - current);
+
+	if (delta > maxDelta) delta = maxDelta;
+	if (delta < -maxDelta) delta = -maxDelta;
+
+	return WrapPi(current + delta);
 }
 
 
+MovementSystem::MovementSystem(World* world) : System(world)
+{
+}
 
 void MovementSystem::Update(float dt) {
 
@@ -64,13 +83,15 @@ void MovementSystem::Update(float dt) {
 	if (mainCameraEntitys.empty())return;
 	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 
-	
+	auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
 
-	for (auto& cameraEntitys : mainCameraEntitys)
+	for (auto& cameraEntity : mainCameraEntitys)
 	{
-		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(cameraEntitys);
+		CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(cameraEntity);
 
 		for (auto& entity : playerEntitys) {
+			if (entity.GetID() != cameraTypeComponent->mTargetID) continue;
+
 			InputComponent* inputComponent = mWorld->GetComponent<InputComponent>(entity);
 
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -150,13 +171,46 @@ void MovementSystem::Update(float dt) {
 
 		}
 	}
+
 	//enemy movement
+
+	constexpr float kTurnSpeedRadPerSec = 6.0f;
 	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
 
-		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
+		if (!transformComponent || !enemyMovementComponent) continue;
+
+		
+		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50.0f;
+
+		Vec3 dir = enemyMovementComponent->mMovingDirection;
+
+		const float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
+		if (lenSq <= 1e-8f)
+			continue;
+
+		dir.y = 0.0f;
+		const float flatLenSq = dir.x * dir.x + dir.z * dir.z;
+		if (flatLenSq <= 1e-8f)
+			continue;
+
+		const float invLen = 1.0f / sqrtf(flatLenSq);
+		dir.x *= invLen;
+		dir.z *= invLen;
+
+		const float targetYaw = atan2f(dir.x, dir.z) + 3.14159265358979323846f /*PI*/;
+
+		const float maxDelta = kTurnSpeedRadPerSec * dt;
+		transformComponent->mLocalRotation.y =
+			MoveTowardsAngle(transformComponent->mLocalRotation.y, targetYaw, maxDelta);
+
+		// pitch/roll 고정이 필요하면 아래 주석 해제
+		// transformComponent->mLocalRotation.x = 0.0f;
+		// transformComponent->mLocalRotation.z = 0.0f;
 	}
+
+	
 
 }

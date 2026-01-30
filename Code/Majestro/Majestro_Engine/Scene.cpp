@@ -15,6 +15,7 @@
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
+#include "UITextComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
@@ -98,6 +99,13 @@ void Scene::Initialize()
 
 
 #pragma region UI
+
+	{
+		Entity text = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UITextComponent>(text);
+	}
+
+
 	{
 		Entity hpBAR = mWorld->CreateEntity();
 		shared_ptr<Material> scorem;

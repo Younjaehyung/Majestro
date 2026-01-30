@@ -415,6 +415,7 @@
     <ClInclude Include="NetTransformComponent.h">
       <Filter>World\Component\Server</Filter>
     </ClInclude>
+    <ClInclude Include="UITextComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -678,6 +679,7 @@
     <ClCompile Include="NetTransformComponent.cpp">
       <Filter>World\Component\Server</Filter>
     </ClCompile>
+    <ClCompile Include="UITextComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

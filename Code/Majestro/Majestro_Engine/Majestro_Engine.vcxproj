@@ -263,6 +263,7 @@
     <ClInclude Include="UIComponent.h" />
     <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="UISpriteComponent.h" />
+    <ClInclude Include="UITextComponent.h" />
     <ClInclude Include="UITransformComponent.h" />
     <ClInclude Include="UIUpdateSystem.h" />
     <ClInclude Include="Vfx.h" />
@@ -357,6 +358,7 @@
     <ClCompile Include="UIComponent.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
+    <ClCompile Include="UITextComponent.cpp" />
     <ClCompile Include="UITransformComponent.cpp" />
     <ClCompile Include="UIUpdateSystem.cpp" />
     <ClCompile Include="Vfx.cpp" />

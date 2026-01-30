@@ -85,9 +85,31 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 		mHasSentGameStart = true;
 	}
 
+	if (INPUT.GetKeyDown(eKeyCode::G))
+	{
+		cout << "\ngame\n" << endl;
+		SendSceneChange(SceneId::Game);
+	}
+
+	if (INPUT.GetKeyDown(eKeyCode::L))
+	{
+		cout << "\nloby\n" << endl;
+		SendSceneChange(SceneId::Lobby);
+	}
+
 	// Convert InputComponent data to SendRequest format
 	seq->Type = PKT_Type::C2S_PKT_INPUT;
 	seq->SIze = sizeof(C2S_InputPacket);
 	
 	seq->StoreAs(mInputPacket);
+}
+
+void NetSendSystem::SendSceneChange(SceneId targetScene)
+{
+	C2S_SceneChangePacket changePacket(targetScene);
+	SendRequest changeSeq;
+	changeSeq.Type = PKT_Type::C2S_SCENE_CHANGE;
+	changeSeq.SIze = sizeof(C2S_SceneChangePacket);
+	changeSeq.StoreAs(changePacket);
+	gSendBuffer.Push(changeSeq);
 }

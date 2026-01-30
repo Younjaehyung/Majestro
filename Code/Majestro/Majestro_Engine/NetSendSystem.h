@@ -28,6 +28,7 @@ public:
 	void Update(double deltaTime);
 public:
 	void ConvertInput(SendRequest* seq);
+    void SendSceneChange(SceneId targetScene);
 private:
 	C2S_InputPacket mInputPacket{};
     bool mHasSentGameStart = false;

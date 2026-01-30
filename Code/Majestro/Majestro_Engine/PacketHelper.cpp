@@ -16,6 +16,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::PKT_SERVER:
 	case PKT_Type::C2S_PKT_LOGIN:
 	case PKT_Type::C2S_PKT_ACTION:
+	case PKT_Type::C2S_SCENE_CHANGE:
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
 	
@@ -67,6 +68,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_SYNC:
 	case PKT_Type::S2C_PKT_LOGIN:
 	case PKT_Type::S2C_GAME_START:
+	case PKT_Type::S2C_SCENE_CHANGE_RESULT:
 	case PKT_Type::S2C_PKT_SPAWN:
 	case PKT_Type::S2C_PKT_STATE:
 	case PKT_Type::S2C_PKT_COLLISION:

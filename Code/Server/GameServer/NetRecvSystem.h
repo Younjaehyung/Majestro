@@ -51,12 +51,17 @@ private:
 
 	void LoginProcess(InputCommand& inputCommand);
 	void EnemySpawnProcess(InputCommand& inputCommand);
+    void HandleSceneChange(InputCommand& inputCommand);
+    bool IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const;
+    SceneId GetOrCreateScene(uint32 sessionId);
+
 
 
 private:
 
     vector<uint64> mNetEntityIds{};
     bool mEnemySpawnOnce = true;
+    std::unordered_map<uint32, SceneId> mSceneBySession{};
 
 	InputBuffer mInputBuffer;
 	InputCommand mInputCommand;

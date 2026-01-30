@@ -46,6 +46,11 @@ void NetRecvSystem::Update(float dt)
 				EnemySpawnProcess(mInputCommand);
 				break;
 			}
+			case PKT_Type::C2S_SCENE_CHANGE:
+			{
+				HandleSceneChange(mInputCommand);
+				break;
+			}
 		}
 		++processed;
 		
@@ -83,6 +88,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 {
 	uint32 ssessionId = 0;//mInputCommand.SessionId;
 	uint8 playertype = 1;
+	mSceneBySession[inputCommand.SessionId] = SceneId::Lobby;
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
@@ -131,6 +137,53 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 		gSendQueue.Push(request);
 	}
 
+}
+
+void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
+{
+	const C2S_SceneChangePacket* requestPacket = inputCommand.ViewAs<C2S_SceneChangePacket>();
+	if (!requestPacket)
+		return;
+
+	SceneId currentScene = GetOrCreateScene(inputCommand.SessionId);
+	SceneId requestedScene = requestPacket->targetScene;
+	const bool isApproved = IsSceneChangeAllowed(currentScene, requestedScene);
+	if (isApproved)
+	{
+		mSceneBySession[inputCommand.SessionId] = requestedScene;
+		currentScene = requestedScene;
+	}
+
+	S2C_SceneChangeResultPacket responsePacket(currentScene, isApproved);
+	SendRequest response{ inputCommand.SessionId, PKT_Type::S2C_SCENE_CHANGE_RESULT, sizeof(S2C_SceneChangeResultPacket) };
+	response.StoreAs<S2C_SceneChangeResultPacket>(responsePacket);
+	gSendQueue.Push(response);
+}
+
+bool NetRecvSystem::IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const
+{
+	if (currentScene == requestedScene)
+		return false;
+
+	switch (currentScene)
+	{
+	case SceneId::Lobby:
+		return requestedScene == SceneId::Game;
+	case SceneId::Game:
+		return requestedScene == SceneId::Lobby;
+	default:
+		return false;
+	}
+}
+
+SceneId NetRecvSystem::GetOrCreateScene(uint32 sessionId)
+{
+	auto findIt = mSceneBySession.find(sessionId);
+	if (findIt != mSceneBySession.end())
+		return findIt->second;
+
+	mSceneBySession[sessionId] = SceneId::Lobby;
+	return SceneId::Lobby;
 }
 
 

@@ -4,17 +4,25 @@
 
 void SceneManager::Initialize()
 {
-	mActiveScene = make_shared<Scene>();
-	mActiveScene->Initialize();
+	//mActiveScene = make_shared<Scene>();
+	//mActiveScene->Initialize();
 
+	mScenesBySession.clear();
 }
 
 void SceneManager::Update(float deltaTime)
 {
-	if (mActiveScene == nullptr)
+	/*if (mActiveScene == nullptr)
 		return;
+	mActiveScene->Update(deltaTime);*/
 
-	mActiveScene->Update(deltaTime);
+	for (const auto& [sessionId, scene] : mScenesBySession)
+	{
+		if (scene == nullptr)
+			continue;
+
+		scene->Update(deltaTime);
+	}
 
 }
 
@@ -28,6 +36,40 @@ void SceneManager::LoadScene(wstring sceneName)
 
 	//mActiveScene->Initialize();
 
+}
+
+void SceneManager::InitializeSession(uint64 sessionId)
+{
+	if (mScenesBySession.find(sessionId) != mScenesBySession.end())
+		return;
+
+	auto scene = make_shared<Scene>();
+	scene->Initialize();
+	mScenesBySession.emplace(sessionId, std::move(scene));
+}
+
+void SceneManager::RemoveSession(uint64 sessionId)
+{
+	mScenesBySession.erase(sessionId);
+}
+
+void SceneManager::LoadScene(uint64 sessionId, wstring sceneName)
+{
+	// TODO : 기존 Scene 정리
+	// TODO : 파일에서 Scene 정보 로드
+
+	auto scene = make_shared<Scene>();
+	scene->Initialize();
+	mScenesBySession[sessionId] = std::move(scene);
+}
+
+shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
+{
+	auto findIt = mScenesBySession.find(sessionId);
+	if (findIt == mScenesBySession.end())
+		return nullptr;
+
+	return findIt->second;
 }
 
 

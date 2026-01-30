@@ -20,6 +20,7 @@ public:
 	void HandleSpawn(const InputCommand& msg);
 	void HandleDespawn(const InputCommand& msg);
 	void HandleReplicationDelta(const InputCommand& msg);
+	void HandleSceneChangeResult(const InputCommand& msg);
 private:
 	//void ApplyNetTransformDelta(PacketReader& r, Entity e, uint32_t fieldMask);
 	//void ApplyNetHealthDelta(PacketReader& r, Entity e, uint32_t fieldMask);
@@ -31,5 +32,6 @@ private:
 	InputCommand mInputCommand{};
 	
 	bool mIsPlayer = false;
+	SceneId mCurrentScene = SceneId::Lobby;
 };
 

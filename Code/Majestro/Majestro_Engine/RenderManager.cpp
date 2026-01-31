@@ -40,7 +40,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 	
 
 
-	mGraphicsDescHeap->Initialize(FRAMEGROUP_COUNT);
+	mDescHeap->Initialize(FRAMEGROUP_COUNT);
 	mRenderTargetHeap->Initialize();
 
 
@@ -197,13 +197,13 @@ void RenderManager::SetComputTable()
 	}
 
 
-	GRAPHICS_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+	COMPUTE_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
 
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
 
-	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
-	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
+	COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
 	// Table 바인딩
@@ -216,19 +216,15 @@ void RenderManager::SetComputTable()
 
 void RenderManager::SetGraphicsTable()
 {
-
-
 	if (mRootSignature == nullptr) {
 		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
-
 	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
-
 
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
-	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
+	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
 	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
@@ -250,7 +246,7 @@ void RenderManager::SetTable()
 		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
-	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
+	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
 	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
@@ -394,7 +390,7 @@ void RenderManager::CreateRenderTargetGroups()
 				// 지원하지 않는 차원에 대한 오류 처리
 				break;
 			}
-			D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mGraphicsDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+			D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 			uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (i ) * srvSize);

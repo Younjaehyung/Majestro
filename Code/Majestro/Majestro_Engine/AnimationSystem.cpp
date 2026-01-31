@@ -66,7 +66,7 @@ void AnimationSystem::Update(float deltaTime)
 	ClearVector();
 	AnimationPush(deltaTime);
 	AnimationCompute();
-	AnimationBlend(deltaTime);
+
 }
 
 void AnimationSystem::ClearVector()
@@ -81,19 +81,16 @@ void AnimationSystem::ClearVector()
 
 void AnimationSystem::AnimationPush(float deltaTime)
 {
+	//auto computeFrames = [](const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio) {
+	//	const float frameRate = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
+	//	currentFrame = static_cast<uint32>(updateTime * frameRate);
+	//	currentFrame = min(currentFrame, animClip->mClipMeta.NumFrame - 1);
+	//	nextFrame = currentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : currentFrame + 1;
 
-
-
-	auto computeFrames = [](const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio) {
-		const float frameRate = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
-		currentFrame = static_cast<uint32>(updateTime * frameRate);
-		currentFrame = min(currentFrame, animClip->mClipMeta.NumFrame - 1);
-		nextFrame = currentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : currentFrame + 1;
-
-		const float frameTime = currentFrame / frameRate;
-		const float nextFrameTime = nextFrame / frameRate;
-		ratio = (updateTime - frameTime) / (nextFrameTime - frameTime);
-		};
+	//	const float frameTime = currentFrame / frameRate;
+	//	const float nextFrameTime = nextFrame / frameRate;
+	//	ratio = (updateTime - frameTime) / (nextFrameTime - frameTime);
+	//	};
 
 
 	auto view = mWorld->View<AnimationComponent>();
@@ -122,7 +119,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		uint32 currentFrame = 0;
 		uint32 nextFrame = 0;
 		float ratio = 0.f;
-		computeFrames(animClip, animCom->mUpdateTime, currentFrame, nextFrame, ratio);
+		AnimationBlend(animClip, animCom->mUpdateTime, currentFrame, nextFrame, ratio);
 
 		uint32 blendClipIdx = animCom->mBlendClipIdx;
 		uint32 blendCurrentFrame = 0;
@@ -141,7 +138,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 			if (animCom->mBlendUpdateTime >= blendClip->mDuration)
 				animCom->mBlendUpdateTime = 0.f;
 
-			computeFrames(blendClip, animCom->mBlendUpdateTime, blendCurrentFrame, blendNextFrame, blendRatio);
+			AnimationBlend(blendClip, animCom->mBlendUpdateTime, blendCurrentFrame, blendNextFrame, blendRatio);
 		}
 		else {
 			animCom->mBlendWeight = 0.f;
@@ -176,8 +173,8 @@ void AnimationSystem::AnimationPush(float deltaTime)
 
 	// 정렬 후 역매핑: 각 컴포넌트에 자기 위치 기록
 	for (size_t i = 0; i < mAnimationPass.size(); ++i) {
-		const Entity e = mAnimationPass[i].EntityID;
-		if (auto* c = mWorld->GetComponent<AnimationComponent>(e)) {
+		const Entity& e = mAnimationPass[i].EntityID;
+		if (AnimationComponent* c = mWorld->GetComponent<AnimationComponent>(e)) {
 			c->mAnimInstanceID = static_cast<uint32_t>(i); // 필요시 필드 추가
 		}
 	}
@@ -222,7 +219,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 
 void AnimationSystem::AnimationCompute()
 {
-	GRAPHICS_CMD_LIST->SetPipelineState(mAnimationShader->GetPipelineState().Get());
+	COMPUTE_CMD_LIST->SetPipelineState(mAnimationShader->GetPipelineState().Get());
 
 	auto* res = RENDERMANAGER.GetGroupBuffer(FRAMERESOURCEIDNEX)
 		->AnimResultInfo->GetBuffer().Get();
@@ -230,7 +227,7 @@ void AnimationSystem::AnimationCompute()
 		res,
 		D3D12_RESOURCE_STATE_COMMON,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	GRAPHICS_CMD_LIST->ResourceBarrier(1, &b);
+	COMPUTE_CMD_LIST->ResourceBarrier(1, &b);
 
 
 
@@ -240,13 +237,15 @@ void AnimationSystem::AnimationCompute()
 
 	{
 		auto uav = CD3DX12_RESOURCE_BARRIER::UAV(res);
-		GRAPHICS_CMD_LIST->ResourceBarrier(1, &uav);
+		COMPUTE_CMD_LIST->ResourceBarrier(1, &uav);
 	}
 	auto srv = CD3DX12_RESOURCE_BARRIER::Transition(
 		res,
 		D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
 		D3D12_RESOURCE_STATE_COMMON);
-	GRAPHICS_CMD_LIST->ResourceBarrier(1, &srv);
+	COMPUTE_CMD_LIST->ResourceBarrier(1, &srv);
+
+	RENDERMANAGER.GetComputeCmdQueue()->FlushComputeCommandQueue();
 }
 
 
@@ -255,17 +254,24 @@ void AnimationSystem::AnimationDispatch()
 	for (Bucket& b : mAnimationBuckets)
 	{
 		CSBatchCB cb{ b.start, b.count};
-		GRAPHICS_CMD_LIST->SetComputeRoot32BitConstants(/*b0*/0, 2, &cb, 0);
+		COMPUTE_CMD_LIST->SetComputeRoot32BitConstants(/*b0*/0, 2, &cb, 0);
 
 		const uint32 groupsX = (b.bones + TX - 1) / TX;
 		const uint32 groupsY = (b.count + TY - 1) / TY;
 
-		GRAPHICS_CMD_LIST->Dispatch(groupsX, groupsY, 1);
+		COMPUTE_CMD_LIST->Dispatch(groupsX, groupsY, 1);
 	}
 }
 
-void AnimationSystem::AnimationBlend(float deltaTime)
+void AnimationSystem::AnimationBlend(const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio)
 {
+	const float frameRate = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
+	currentFrame = static_cast<uint32>(updateTime * frameRate);
+	currentFrame = min(currentFrame, animClip->mClipMeta.NumFrame - 1);
+	nextFrame = currentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : currentFrame + 1;
 
+	const float frameTime = currentFrame / frameRate;
+	const float nextFrameTime = nextFrame / frameRate;
+	ratio = (updateTime - frameTime) / (nextFrameTime - frameTime);
 
 }

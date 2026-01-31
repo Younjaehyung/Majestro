@@ -54,7 +54,7 @@ public:
 	void SetTable();
 
 	const WindowInfo& GetWindow() { return mWindow; }
-	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
+	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mDescHeap->GetDescriptorHeap().Get(); }
 
 public:
 	shared_ptr<Device>					GetDevice()				{ return mDevice; }
@@ -63,7 +63,7 @@ public:
 
 	shared_ptr<SwapChain>				GetSwapChain()			{ return mSwapChain; }
 	
-	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
+	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mDescHeap; }
 	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()	{ return mRenderTargetHeap; }
 
 public:
@@ -101,7 +101,7 @@ private:
 	
 	
 	shared_ptr<SwapChain>						mSwapChain					= make_shared<SwapChain>();
-	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
+	shared_ptr<GraphicsDescriptorHeap>			mDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
 	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
 

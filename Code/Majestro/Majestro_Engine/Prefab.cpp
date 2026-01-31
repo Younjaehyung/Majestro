@@ -106,7 +106,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	std::vector<shared_ptr<Material>> material2s;
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	t.mLocalScale = { 0.1f, 0.1f, 0.1f };
+	//t.mLocalScale = { 0.1f, 0.1f, 0.1f };
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;
@@ -114,7 +114,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (2) {
+	switch (0) {
 	case 0:
 		t.mLocalScale = { 10.f, 10.f, 10.f };
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");

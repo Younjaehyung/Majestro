@@ -38,7 +38,7 @@ void GraphicsDescriptorHeap::CommitComputeTable(uint32 frameCount, uint32 signau
 
 	handle.ptr += static_cast<uint64>((tableBegin + (frameCount * tableGroupSize)) * mHandleSize);
 	//COMPUTE_CMD_LIST->SetComputeRootDescriptorTable(signautreNum, handle);
-	GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(signautreNum, handle);
+	COMPUTE_CMD_LIST->SetComputeRootDescriptorTable(signautreNum, handle);
 
 
 }

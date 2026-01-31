@@ -35,10 +35,10 @@ static std::unordered_map<std::string, uint64_t> gFlagByName = {
 };
 
 enum : StateId { S_Idle=0, S_Walk, S_Run, S_Jump, S_Fall=4, S_Land, S_Dash, 
-
+	S_Attack1,
 	S_Aim, S_ReRoad, S_RhythmChange,
 	S_Hit, S_Stun, S_Dead,
-	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special,
+	/*S_Attack1,*/ S_Attack2, S_Skill1, S_Skill2, S_Special,
 
 };
 

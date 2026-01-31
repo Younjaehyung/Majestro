@@ -148,6 +148,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == FallState::Instance()) return S_Fall;
         if (s == LandState::Instance()) return S_Land;
         if (s == DashState::Instance()) return S_Dash;
+
+        if (s == Attack1State::Instance()) return S_Attack1;
         return 255;
         });
 

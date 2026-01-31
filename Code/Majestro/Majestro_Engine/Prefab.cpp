@@ -106,7 +106,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	std::vector<shared_ptr<Material>> material2s;
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	//t.mLocalScale = { 0.1f, 0.1f, 0.1f };
+	t.mLocalScale = { 0.1f, 0.1f, 0.1f };
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;
@@ -121,8 +121,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01")); // Anim_Rudwig_Run
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
@@ -303,20 +303,17 @@ TerrainPrefab::TerrainPrefab(World* world)
 
 	TransformComponent bt{};
 	bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
-	// bt.mLocalScale = Vec3(99.21f, 15000.f, 99.21f);
 	bt.mLocalPosition = Vec3(0.f, -70.f, 0.f);
 
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 	world->AddComponent<TransformComponent>(mEntityID, bt);
 
 	// heightmap 512x512 => 타일 511x511
-	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
+
 
 	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(504, 504);
 
-
-
-	world->AddComponent<TransformComponent>(mEntityID, bt);
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 

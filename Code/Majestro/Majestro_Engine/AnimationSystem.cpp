@@ -145,7 +145,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		else {
 			animCom->mBlendWeight = 0.f;
 			animCom->mBlendTimer = 0.f;
-			blendClipIdx = animCom->mAnimClipIdx;
+			// blendClipIdx = animCom->mAnimClipIdx;
 		}
 
 		AnimationInstance instance{};
@@ -162,6 +162,8 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		instance.BlendNextFrame = blendNextFrame;
 		instance.BlendRatio = blendRatio;
 		instance.BlendWeight = animCom->mBlendWeight;
+		instance.BlendMaskStart = 2;//animCom->mBlendMaskStart;
+		instance.BlendMaskEnd = 55; // animCom->mBlendMaskEnd;
 		mAnimationPass.emplace_back(instance);
 	}
 	

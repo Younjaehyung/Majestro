@@ -8,6 +8,7 @@ class PlayerMovementComponent : public Component<PlayerMovementComponent>
 public:
 	Vec3 mMovingDirection;
 	bool mJump = false;
+	bool mAttack1 = false;
 
 	Vec2 mCameraView;
 

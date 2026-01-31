@@ -65,6 +65,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//dash
 
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
@@ -122,11 +123,12 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01")); // Anim_Rudwig_Run
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//attack
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
 		break;
 	case 1:

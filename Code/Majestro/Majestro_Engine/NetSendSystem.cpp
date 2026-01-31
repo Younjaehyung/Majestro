@@ -7,6 +7,7 @@
 #include "NetEntityComponent.h"
 #include "InputManager.h"
 #include "MovementComponent.h"
+#include <bitset>
 
 NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
 {
@@ -51,13 +52,13 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	mInputPacket.Yaw = comp->mCameraRotationY;
 	mInputPacket.Pitch = comp->mCameraRotationX;
 	
-	// buttons 마스킹
+	// buttons 비트마스크로 변환
 
-	/*if (comp->mAttack)			mInputPacket.Buttons |= InputButtons::SPACE;
+	/*
 	if (comp->mDash)			mInputPacket.Buttons |= INPUT_DASH;
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
-	if (comp->mJump)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::SPACE);
-	if (comp->mAttack1)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::Q);
+	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
+	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
 
 
 
@@ -66,4 +67,4 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	seq->SIze = sizeof(C2S_InputPacket);
 	
 	seq->StoreAs(mInputPacket);
-}
+} 

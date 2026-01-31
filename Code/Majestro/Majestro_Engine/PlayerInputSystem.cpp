@@ -64,7 +64,7 @@ void PlayerInputSystem::Update(float dt)
 
 	movementComponent->mMovingDirection = { 0,0,0 };
 	movementComponent->mJump = INPUT.GetKey(eKeyCode::SPACE);
-	movementComponent->mAttack1 = INPUT.GetKey(eKeyCode::Q);
+	movementComponent->mAttack1 = INPUT.GetKey(eKeyCode::V);
 
 
 	if (INPUT.GetKey(eKeyCode::A)) {

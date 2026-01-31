@@ -4,12 +4,13 @@
 
 class  EventManager;
 
-enum class InputButtons : uint32 {
+enum class InputButtons : uint8 {
     NONE,
     SPACE,
     SHIFT,
     Q,
     E,
+    ATTACK,
     END
 };
 

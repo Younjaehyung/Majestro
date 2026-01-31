@@ -99,8 +99,10 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
 		const uint32 previousClip = animCom->mAnimClipIdx;
-		if (mainPlayerComponent)
+		if (mainPlayerComponent) {
 			animCom->mAnimClipIdx = mainPlayerComponent->mStatePacket;
+		}
+			
 
 		if (animCom->mAnimClipIdx != previousClip) {
 			animCom->mBlendClipIdx = previousClip;
@@ -134,6 +136,8 @@ void AnimationSystem::AnimationPush(float deltaTime)
 			else
 				animCom->mBlendWeight = 0.f;
 
+			// animCom->mBlendWeight = 1.f;
+
 			shared_ptr<Animator>& blendClip = animCom->mAnimClips.at(blendClipIdx);
 			blendClipHandle = blendClip->GetAnimClipHandle();
 			animCom->mBlendUpdateTime += deltaTime;
@@ -162,8 +166,8 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		instance.BlendNextFrame = blendNextFrame;
 		instance.BlendRatio = blendRatio;
 		instance.BlendWeight = animCom->mBlendWeight;
-		instance.BlendMaskStart = 2;//animCom->mBlendMaskStart;
-		instance.BlendMaskEnd = 55; // animCom->mBlendMaskEnd;
+		instance.BlendMaskStart = 0;//animCom->mBlendMaskStart;
+		instance.BlendMaskEnd = 0; // animCom->mBlendMaskEnd;
 		mAnimationPass.emplace_back(instance);
 	}
 	

@@ -20,25 +20,25 @@ void UIRenderSystem::Initialize()
 
 void UIRenderSystem::InitializeFont()
 {
-    D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = Graphics_DescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
-    uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (static_cast<uint32>(UI_INDEX_START))*srvSize);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(Graphics_DescHeap->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart(), (static_cast<uint32>(UI_INDEX_START)) * srvSize);
-    
-    DirectX::ResourceUploadBatch resourceUpload(DEVICE.Get());
-    resourceUpload.Begin();
+ //   D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = Graphics_DescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+ //   uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+ //   D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (static_cast<uint32>(UI_INDEX_START))*srvSize);
+	//D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(Graphics_DescHeap->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart(), (static_cast<uint32>(UI_INDEX_START)) * srvSize);
+ //   
+ //   DirectX::ResourceUploadBatch resourceUpload(DEVICE.Get());
+ //   resourceUpload.Begin();
 
-    for (Entity a : mWorld->View<UITextComponent>()) {
-        auto textComp = mWorld->GetComponent<UITextComponent>(a);
+ //   for (Entity a : mWorld->View<UITextComponent>()) {
+ //       auto textComp = mWorld->GetComponent<UITextComponent>(a);
 
-            
-		textComp->m_font = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload,L"..Resources\Font\myfile.spritefont", cpuDescriptor, gpuDescriptor);
-        //textComp->m_font.reset();
+ //           
+	//	textComp->m_font = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload,L"..Resources\Font\myfile.spritefont", cpuDescriptor, gpuDescriptor);
+ //       //textComp->m_font.reset();
 
-        auto size = RENDERMANAGER.GetWindow();
-        textComp->m_fontPos.x = float(size.Width) / 2.f;
-        textComp->m_fontPos.y = float(size.Height) / 2.f;
-    }
+ //       auto size = RENDERMANAGER.GetWindow();
+ //       textComp->m_fontPos.x = float(size.Width) / 2.f;
+ //       textComp->m_fontPos.y = float(size.Height) / 2.f;
+ //   }
 
     //resourceUpload.End(C);
 }
@@ -46,7 +46,7 @@ void UIRenderSystem::InitializeFont()
 void UIRenderSystem::Update()
 {
     SpriteUpdate();
-    TextUpdate();
+    //TextUpdate();
 }
 
 void UIRenderSystem::TextUpdate()

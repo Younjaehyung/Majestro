@@ -6,6 +6,7 @@
 
 SpscRingQueue<SendRequest, 128*1024>								gSendQueue;
 SpscRingQueue<InputCommand, 128*1024>								gRecvQueue;
+SpscRingQueue<uint32, 1024>											gNewSessions;
 
 
 ServerCore::ServerCore()

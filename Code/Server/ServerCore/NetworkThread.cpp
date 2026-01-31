@@ -197,6 +197,7 @@ void NetworkThread::AcceptClient()
 
 	sendBuffer->SetData(&loginPkt, sizeof(S2C_LoginPacket),TCP);
     session->mTSendBufferQueue.push(sendBuffer);
+    gNewSessions.Push(session->GetPlayerId());
 
    /* sendBuffer = SendBufferManager::Acquire();
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(session->GetPlayerId(), , PrefabType::PLAYER);
@@ -282,24 +283,30 @@ void NetworkThread::HandleUdpRecv()
         PacketHeader* header = (PacketHeader*)mURecvBuffer;
         if (header->PacketType == C2S_PKT_LOGIN || header->PacketType == C2S_GAME_START) {
             uint32 clientId = 0;
+            uint32 sessionId = 0;
             if (header->PacketType == C2S_PKT_LOGIN) {
                 const C2S_LoginPacket* loginPkt = (C2S_LoginPacket*)mURecvBuffer;
                 clientId = loginPkt->clientId;
+                sessionId = loginPkt->SessionId;
             }
             else {
                 const C2S_StartGamePacket* startPkt = (C2S_StartGamePacket*)mURecvBuffer;
                 clientId = startPkt->clientId;
+                sessionId = startPkt->SessionId;
             }
-            auto& targetSession = mSessionMgr.mSessions[clientId];
-            if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
+            const uint32 lookupId = (clientId != 0) ? clientId : sessionId;
+            auto targetIt = mSessionMgr.mSessions.find(lookupId);
+            if (targetIt != mSessionMgr.mSessions.end() && targetIt->second /*&& targetIt->second->VerifyToken(pkt->token)*/) {
                 // 주소 매핑 등록
-                targetSession->SetUNetAddress(fromAddr);
+                targetIt->second->SetUNetAddress(fromAddr);
                 mSessionMgr.RegisterUdpAddress(fromAddr, clientId);
-                targetSession->OnUdpRecv(mURecvBuffer, len);
-
+                targetIt->second->OnUdpRecv(mURecvBuffer, len);
             }
-            std::cout << "No session found for UDP packet from " << std::endl;
-            std::cout << targetSession->GetUdpAddress().GetPort() << std::endl;
+            else {
+                std::cout << "No session found for UDP packet from " << std::endl;
+                std::cout << "clientId=" << clientId << " sessionId=" << sessionId
+                    << " port=" << ntohs(fromAddr.sin_port) << std::endl;
+            }
         }
 
  //       if (header->PacketType == C2S_PKT_LOGIN) {

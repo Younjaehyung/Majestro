@@ -16,7 +16,7 @@ void NetRecvSystem::Update(float dt)
 	constexpr int kMaxMsgsPerTick = 256;
 	int processed = 0;
 	while (processed < kMaxMsgsPerTick && gRecvQueue.Pop(mInputCommand)) {
-
+		cout << "update" << endl;
 		switch (mInputCommand.Type)
 		{
 			case PKT_Type::C2S_PKT_INPUT:
@@ -32,6 +32,7 @@ void NetRecvSystem::Update(float dt)
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
 				LoginProcess(mInputCommand);
+				cout << "login process" << endl;
 				//EnemySpawnProcess(mInputCommand);
 				break;
 			}
@@ -112,8 +113,6 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 		gSendQueue.Push(request);
 	}
 	std::cout << "[YSW]Spawn Packet Sent to SessionID: " << ssessionId << netComp->mNetEntityId << std::endl;
-
-
 
 
 	// 로그인 한 클라이언트에게 이미 접속해있는 다른 플레이어들에 대한 Spawn 패킷 전송

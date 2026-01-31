@@ -122,6 +122,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		AnimationBlend(animClip, animCom->mUpdateTime, currentFrame, nextFrame, ratio);
 
 		uint32 blendClipIdx = animCom->mBlendClipIdx;
+		uint32 blendClipHandle = animClip->GetAnimClipHandle();
 		uint32 blendCurrentFrame = 0;
 		uint32 blendNextFrame = 0;
 		float blendRatio = 0.f;
@@ -134,6 +135,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 				animCom->mBlendWeight = 0.f;
 
 			shared_ptr<Animator>& blendClip = animCom->mAnimClips.at(blendClipIdx);
+			blendClipHandle = blendClip->GetAnimClipHandle();
 			animCom->mBlendUpdateTime += deltaTime;
 			if (animCom->mBlendUpdateTime >= blendClip->mDuration)
 				animCom->mBlendUpdateTime = 0.f;
@@ -155,7 +157,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 		instance.BoneCount = animCom->mAnimInstance.BoneCount;
 		instance.ReulstIndex = 0;
 		instance.EntityID = entity.GetID();
-		instance.BlendClipID = blendClipIdx;
+		instance.BlendClipID = blendClipHandle;
 		instance.BlendCurrentFrame = blendCurrentFrame;
 		instance.BlendNextFrame = blendNextFrame;
 		instance.BlendRatio = blendRatio;

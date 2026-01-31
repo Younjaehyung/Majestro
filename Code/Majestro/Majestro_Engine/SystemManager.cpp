@@ -96,7 +96,7 @@ void SystemManager::PostUpdate(float deltaTime)
     GetSystem<UITransformSystem>()->Update(deltaTime);
     GetSystem<BeatSystem>()->Update(deltaTime);
     GetSystem<AudioSystem>()->Update(deltaTime);
-   // GetSystem<EffectSystem>()->Update(deltaTime);
+    GetSystem<EffectSystem>()->Update(deltaTime);
     GetSystem<AnimationSystem>()->Update(deltaTime);
 }
 

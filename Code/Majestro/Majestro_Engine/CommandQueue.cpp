@@ -11,6 +11,8 @@ void GraphicsCommandQueue::Initialize(ComPtr<ID3D12Device> device, shared_ptr<Sw
 	mSwapChain = swapChain;
 	mDevice = device;
 	CreateCommandQueue();
+
+	mBackBufferStates.fill(D3D12_RESOURCE_STATE_PRESENT);
 }
 
 void GraphicsCommandQueue::WaitForGpuComplete()
@@ -45,15 +47,20 @@ void GraphicsCommandQueue::RenderBegin(uint32 frameIndex)
 
 	uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
-	mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
-		D3D12_RESOURCE_STATE_PRESENT, 
-		D3D12_RESOURCE_STATE_RENDER_TARGET); 
-	//더블버퍼링을 위해 기존의 출력되던 버퍼를 후방버퍼로 바꾸겠다
+	D3D12_RESOURCE_STATES& currentState = mBackBufferStates[backIndex];
+	if (currentState != D3D12_RESOURCE_STATE_RENDER_TARGET)
+	{
+		mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
+			currentState,
+			D3D12_RESOURCE_STATE_RENDER_TARGET);
+		//더블버퍼링을 위해 기존의 출력되던 버퍼를 후방버퍼로 바꾸겠다
+
 
 		//SetGraphicsRootDescriptorTable와 거의 세트임. (1.선택후 2.명령어로 보내기.)
-	D3D12_RESOURCE_BARRIER barrier = gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetBarrier();
-	GRAPHICS_CMD_LIST->ResourceBarrier(1, &barrier);
+		GRAPHICS_CMD_LIST->ResourceBarrier(1, &mBarrier);
+		currentState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	}
 
 
 }
@@ -63,12 +70,19 @@ void GraphicsCommandQueue::RenderEnd()
 	
 		uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
-		mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-			RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
-			D3D12_RESOURCE_STATE_RENDER_TARGET, 
-			D3D12_RESOURCE_STATE_PRESENT); 
 
-		mCommandList->ResourceBarrier(1, &mBarrier);
+
+		D3D12_RESOURCE_STATES& currentState = mBackBufferStates[backIndex];
+		if (currentState != D3D12_RESOURCE_STATE_PRESENT)
+		{
+			mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+				RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).GetRTTexture(backIndex)->GetTex2D().Get(),	//RenderTargetGroup에서 backbuffer을 가져옴
+				currentState,
+				D3D12_RESOURCE_STATE_PRESENT);
+
+			mCommandList->ResourceBarrier(1, &mBarrier);
+			currentState = D3D12_RESOURCE_STATE_PRESENT;
+		}
 		mCommandList->Close();
 		// 명령어들을 큐에 넣고 close을 한 다음에 실행하게 되는데 Reset하면 알아서 Open이 됨
 
@@ -103,6 +117,14 @@ void GraphicsCommandQueue::WaitForFrame(uint32 frameIndex)
 		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
 		::WaitForSingleObject(mFenceEvent, INFINITE);
 	}
+}
+
+void GraphicsCommandQueue::WaitForFence(ID3D12Fence* fence, uint64 fenceValue)
+{
+	if (fence == nullptr || fenceValue == 0)
+		return;
+
+	mCommandQueue->Wait(fence, fenceValue);
 }
 
 void GraphicsCommandQueue::WaitForBackBuffer(uint32 backBufferIndex)
@@ -190,8 +212,11 @@ void ComputeCommandQueue::Initialize(ComPtr<ID3D12Device> device)
 	computeQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	device->CreateCommandQueue(&computeQueueDesc, IID_PPV_ARGS(&mCommandQueue));
 
-	device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(&mCommandAllocator));
-	device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&mCommandList));
+	for (auto& commandAllocator : mCommandAllocators)
+	{
+		device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(&commandAllocator));
+	}
+	device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, mCommandAllocators[0].Get(), nullptr, IID_PPV_ARGS(&mCommandList));
 
 	device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
 
@@ -203,28 +228,67 @@ void ComputeCommandQueue::Initialize(ComPtr<ID3D12Device> device)
 
 void ComputeCommandQueue::WaitForGpuComplete()
 {
-	mFenceValue++;
+	const uint64 fenceValue = mFenceValue;
+	if (fenceValue == 0)
+		return;
 
-	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+	//if (mFence->GetCompletedValue() < mFenceValue)
+	//{
+	//	mFence->SetEventOnCompletion(mFenceValue, mFenceEvent);
+	//	::WaitForSingleObject(mFenceEvent, INFINITE);
+	//}
 
-	if (mFence->GetCompletedValue() < mFenceValue)
+	if (mFence->GetCompletedValue() < fenceValue)
 	{
-		mFence->SetEventOnCompletion(mFenceValue, mFenceEvent);
+		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
 		::WaitForSingleObject(mFenceEvent, INFINITE);
 	}
 }
 
+
+
 void ComputeCommandQueue::FlushComputeCommandQueue()
 {
+	//mCommandList->Close();
+
+	//ID3D12CommandList* cmdListArr[] = { mCommandList.Get() };
+	//auto t = _countof(cmdListArr);
+	//mCommandQueue->ExecuteCommandLists(_countof(cmdListArr), cmdListArr);
+
+	//WaitForGpuComplete();
+
+	//mCommandAllocator->Reset();
+	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	const uint32 frameIndex = gEngine->GetRenderManager().GetFrameResourceIndex();
+	ExecuteCommandList(frameIndex);
+	WaitForGpuComplete();
+
+}
+
+uint64 ComputeCommandQueue::ExecuteCommandList(uint32 frameIndex)
+{
+	const uint64 fenceValue = mFrameFenceValues[frameIndex];
+	if (fenceValue != 0 && mFence->GetCompletedValue() < fenceValue)
+	{
+		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
+		::WaitForSingleObject(mFenceEvent, INFINITE);
+	}
 	mCommandList->Close();
 
 	ID3D12CommandList* cmdListArr[] = { mCommandList.Get() };
-	auto t = _countof(cmdListArr);
 	mCommandQueue->ExecuteCommandLists(_countof(cmdListArr), cmdListArr);
 
-	WaitForGpuComplete();
+	mFenceValue++;
+	mCommandQueue->Signal(mFence.Get(), mFenceValue);
+	mFrameFenceValues[frameIndex] = mFenceValue;
+	ResetCommandList(frameIndex);
 
-	mCommandAllocator->Reset();
-	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+	return mFenceValue;
+}
 
+
+void ComputeCommandQueue::ResetCommandList(uint32 frameIndex)
+{
+	mCommandAllocators[frameIndex]->Reset();
+	mCommandList->Reset(mCommandAllocators[frameIndex].Get(), nullptr);
 }

@@ -8,6 +8,8 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
+#include "CameraComponent.h"
+#include "TagComponent.h"
 
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
 {
@@ -45,6 +47,16 @@ void UIRenderSystem::InitializeFont()
 
 void UIRenderSystem::Update()
 {
+    if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+    /*std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
+    mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);*/
+    auto cameraView = mWorld->View<MainCameraComponent>();
+    auto cameraIt = cameraView.begin();
+    if (cameraIt == cameraView.end()) {
+        return;
+    }
+
+    RENDERMANAGER.SetGraphicsTable();
     SpriteUpdate();
     //TextUpdate();
 }

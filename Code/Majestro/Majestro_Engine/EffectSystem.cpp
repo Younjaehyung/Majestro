@@ -243,7 +243,7 @@ void EffectSystem::Update()
 	Effekseer::Matrix44 cameraMat = ToEfkMatrix(mCamera->GetViewMatrix());
 	Effekseer::Matrix44 projMat = ToEfkMatrix(mCamera->GetProjectionMatrix());
 
-
+	RENDERMANAGER.SetGraphicsTable();
 	BeginFrame(GRAPHICS_CMD_LIST.Get());
 	Render(cameraMat, projMat);
 	EndFrame();

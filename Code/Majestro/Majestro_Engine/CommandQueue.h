@@ -13,12 +13,14 @@ public:
 	void FlushResourceCommandQueue();	//리소스 로딩용 CMD실행 함수
 
 
+
 	void RenderBegin(uint32 frameIndex);
 	void RenderEnd();
 
 	void SignalFrame(uint32 frameIndex, uint32 backBufferIndex);
 	void WaitForFrame(uint32 frameIndex);
 	void WaitForBackBuffer(uint32 backBufferIndex);
+	void WaitForFence(ID3D12Fence* fence, uint64 fenceValue);
 
 	void CreateCommandQueue();
 
@@ -49,6 +51,7 @@ private:
 
 	array<uint64, FRAMEGROUP_COUNT>		mFrameFenceValues{};
 	array<uint64, SWAP_CHAIN_BUFFER_COUNT> mBackBufferFenceValues{};
+	array<D3D12_RESOURCE_STATES, SWAP_CHAIN_BUFFER_COUNT> mBackBufferStates{};
 
 	D3D12_RESOURCE_BARRIER		mBarrier;
 	shared_ptr<SwapChain>		mSwapChain;
@@ -64,14 +67,17 @@ public:
 	void Initialize(ComPtr<ID3D12Device> device);
 	void WaitForGpuComplete();
 	void FlushComputeCommandQueue();
+	uint64 ExecuteCommandList(uint32 frameIndex);
+	void ResetCommandList(uint32 frameIndex);
 
 	ComPtr<ID3D12CommandQueue> GetCmdQueue() { return mCommandQueue; }
 	ComPtr<ID3D12GraphicsCommandList> GetComputeCmdList() { return mCommandList; }
-
+	ComPtr<ID3D12Fence> GetFence() { return mFence; }
 private:
 	ComPtr<ID3D12CommandQueue>			mCommandQueue;
-	ComPtr<ID3D12CommandAllocator>		mCommandAllocator;
+	array<ComPtr<ID3D12CommandAllocator>, FRAMEGROUP_COUNT> mCommandAllocators;
 	ComPtr<ID3D12GraphicsCommandList>	mCommandList;
+	array<uint64, FRAMEGROUP_COUNT>		mFrameFenceValues{};
 
 	ComPtr<ID3D12Fence>					mFence;
 	uint32								mFenceValue = 0;

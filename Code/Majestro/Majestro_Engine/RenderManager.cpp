@@ -162,6 +162,7 @@ void RenderManager::StartRender()
 	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
 	mGraphicsCommandQueue->WaitForBackBuffer(backIndex);
 	mGraphicsCommandQueue->WaitForFrame(mFrameResourceIndex);
+	mGraphicsCommandQueue->WaitForFence(mComputeCommandQueue->GetFence().Get(), mAnimationComputeFenceValue);
 	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
 }

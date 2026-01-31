@@ -245,7 +245,8 @@ void AnimationSystem::AnimationCompute()
 		D3D12_RESOURCE_STATE_COMMON);
 	COMPUTE_CMD_LIST->ResourceBarrier(1, &srv);
 
-	RENDERMANAGER.GetComputeCmdQueue()->FlushComputeCommandQueue();
+	const uint64 fenceValue = RENDERMANAGER.GetComputeCmdQueue()->ExecuteCommandList(RENDERMANAGER.GetFrameResourceIndex());
+	RENDERMANAGER.SetAnimationComputeFenceValue(fenceValue);
 }
 
 

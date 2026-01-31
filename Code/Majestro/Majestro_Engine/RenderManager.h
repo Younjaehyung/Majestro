@@ -52,7 +52,7 @@ public:
 	void SetComputTable();
 	void SetGraphicsTable();
 	void SetTable();
-
+	void SetAnimationComputeFenceValue(uint64 fenceValue) { mAnimationComputeFenceValue = fenceValue; }
 	const WindowInfo& GetWindow() { return mWindow; }
 	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mDescHeap->GetDescriptorHeap().Get(); }
 
@@ -78,7 +78,7 @@ public:
 public:
 	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
 	uint32 GetFrameCurrIndex() {return mFrameCurrIndex;}
-
+	uint64 GetAnimationComputeFenceValue() const { return mAnimationComputeFenceValue; }
 	
 private:
 	void CreateRenderTargetGroups();
@@ -92,7 +92,7 @@ private:
 private:
 	uint32			mFrameResourceIndex{};	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
 	uint32			mFrameCurrIndex{};		// 현재 GPU로 보낸 Index
-
+	uint64			mAnimationComputeFenceValue{};
 private:
 	// DX12
 	shared_ptr<Device>							mDevice						= make_shared<Device>();

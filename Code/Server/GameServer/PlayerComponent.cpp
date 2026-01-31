@@ -18,6 +18,8 @@ static StateId NameToId(const std::string& n) {
     if (n == "Land")  return S_Land;
 	if (n == "Dash")  return S_Dash;
 
+    if (n == "Attack1")  return S_Attack1;
+
     if (n == "Aim")  return S_Aim;
     if (n == "ReRoad")  return S_ReRoad;
     if (n == "RhythmChange")  return S_RhythmChange;
@@ -26,7 +28,7 @@ static StateId NameToId(const std::string& n) {
     if (n == "Stun")  return S_Stun;
     if (n == "Dead")  return S_Dead;
 
-    if (n == "Attack1")  return S_Attack1;
+    /*if (n == "Attack1")  return S_Attack1;*/
     if (n == "Attack2")  return S_Attack2;
     if (n == "Skill1")  return S_Skill1;
     if (n == "Skill2")  return S_Skill2;
@@ -55,6 +57,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
     LandState::Instance(),
     DashState::Instance(),
 
+    Attack1State::Instance(),
+
     AimState::Instance(),
     ReRoadState::Instance(),
     RhythmChangeState::Instance(),
@@ -63,7 +67,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
     StunState::Instance(),
     DeadState::Instance(),
 
-    Attack1State::Instance(),
+    /*Attack1State::Instance(),*/
     Attack2State::Instance(),
     Skill1State::Instance(),
     Skill2State::Instance(),
@@ -114,6 +118,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == FallState::Instance()) return S_Fall;
         if (s == LandState::Instance()) return S_Land;
         if (s == DashState::Instance()) return S_Dash;
+
+        if (s == Attack1State::Instance()) return S_Attack1;
         return 255;
         });
 

@@ -18,6 +18,8 @@ static StateId NameToId(const std::string& n) {
 	if (n == "Land")  return S_Land;
 	if (n == "Dash")  return S_Dash;
 
+    if (n == "Attack1")  return S_Attack1;
+
     if (n == "Aim")  return S_Aim;
     if (n == "ReRoad")  return S_ReRoad;
     if (n == "RhythmChange")  return S_RhythmChange;
@@ -26,7 +28,7 @@ static StateId NameToId(const std::string& n) {
     if (n == "Stun")  return S_Stun;
     if (n == "Dead")  return S_Dead;
 
-    if (n == "Attack1")  return S_Attack1;
+    /*if (n == "Attack1")  return S_Attack1;*/
     if (n == "Attack2")  return S_Attack2;
     if (n == "Skill1")  return S_Skill1;
     if (n == "Skill2")  return S_Skill2;
@@ -50,6 +52,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
     LandState::Instance(),
     DashState::Instance(),
 
+    Attack1State::Instance(),
+
     AimState::Instance(),
     ReRoadState::Instance(),
     RhythmChangeState::Instance(),
@@ -58,7 +62,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
     StunState::Instance(),
     DeadState::Instance(),
 
-    Attack1State::Instance(),
+    /*Attack1State::Instance(),*/
     Attack2State::Instance(),
     Skill1State::Instance(),
     Skill2State::Instance(),
@@ -79,6 +83,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     LandState::Instance(),
     DashState::Instance(),
 
+    Attack1State::Instance(),
+
     AimState::Instance(),
     ReRoadState::Instance(),
     RhythmChangeState::Instance(),
@@ -87,7 +93,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     StunState::Instance(),
     DeadState::Instance(),
 
-    Attack1State::Instance(),
+    /*Attack1State::Instance(),*/
     Attack2State::Instance(),
     Skill1State::Instance(),
     Skill2State::Instance(),
@@ -109,6 +115,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 void MainPlayerComponent::StateCheck()
 {
     if(mSpeed<1.f)ClearFlag(mFlags, FLAG_MOVE);
+    else SetFlag(mFlags, FLAG_MOVE);
+
     if (mFalling) {
         mFsm.ChangeState(this, FallState::Instance());
     }

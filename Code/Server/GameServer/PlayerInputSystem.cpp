@@ -80,6 +80,10 @@ void PlayerInputSystem::Update(float dt)
 
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		}
+		if (inputComp->IsButtonPressed(InputButtons::Q)) {
+			
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
+		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}

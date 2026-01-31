@@ -86,6 +86,20 @@
             "to": "Walk",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_MOVE" ]
+        },
+
+        {
+            "from": "Attack1",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Attack1",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         }
 
 

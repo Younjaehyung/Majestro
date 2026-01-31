@@ -33,8 +33,6 @@ float4 PS_Final(VS_OUT input) : SV_Target
     float4 color = Gbuffer[3].Sample(g_sam_0, input.uv);
     float4 specular = Gbuffer[5].Sample(g_sam_0, input.uv);
 
-
-    
     output = (color * lightPower) + specular;
     return output;
 }

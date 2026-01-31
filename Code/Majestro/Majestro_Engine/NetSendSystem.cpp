@@ -57,6 +57,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mDash)			mInputPacket.Buttons |= INPUT_DASH;
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
 	if (comp->mJump)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::SPACE);
+	if (comp->mAttack1)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::Q);
 
 
 

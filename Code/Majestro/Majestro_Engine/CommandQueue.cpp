@@ -70,6 +70,37 @@ void GraphicsCommandQueue::RenderEnd()
 	
 		uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
+		if (true) // msaa
+		{
+			auto& msaaGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::FINAL));
+			auto& swapChainGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN));
+
+			ID3D12Resource* msaaResource = msaaGroup.GetRTTexture(backIndex)->GetTex2D().Get();
+			ID3D12Resource* backBuffer = swapChainGroup.GetRTTexture(backIndex)->GetTex2D().Get();
+
+			D3D12_RESOURCE_BARRIER preResolveBarriers[2] = {
+				CD3DX12_RESOURCE_BARRIER::Transition(
+					msaaResource,
+					D3D12_RESOURCE_STATE_RENDER_TARGET,
+					D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
+				CD3DX12_RESOURCE_BARRIER::Transition(
+					backBuffer,
+					mBackBufferStates[backIndex],
+					D3D12_RESOURCE_STATE_RESOLVE_DEST)
+			};
+
+			mCommandList->ResourceBarrier(_countof(preResolveBarriers), preResolveBarriers);
+			mBackBufferStates[backIndex] = D3D12_RESOURCE_STATE_RESOLVE_DEST;
+
+			mCommandList->ResolveSubresource(backBuffer, 0, msaaResource, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			D3D12_RESOURCE_BARRIER postResolveBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+				msaaResource,
+				D3D12_RESOURCE_STATE_RESOLVE_SOURCE,
+				D3D12_RESOURCE_STATE_COMMON);
+			mCommandList->ResourceBarrier(1, &postResolveBarrier);
+		}
+
 
 
 		D3D12_RESOURCE_STATES& currentState = mBackBufferStates[backIndex];

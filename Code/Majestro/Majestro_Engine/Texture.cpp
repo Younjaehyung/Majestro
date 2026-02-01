@@ -48,6 +48,8 @@ void Texture::Load(const wstring& path)
 	D3D12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
+
+
 	ComPtr<ID3D12Resource> textureUploadHeap;
 	hr = DEVICE->CreateCommittedResource(
 		&heapProperty,
@@ -89,9 +91,9 @@ void Texture::Load(const wstring& path)
 
 void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, int massCount,int msaaQality, Vec4 clearColor)
 {
-	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height);
+	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height,1, 1, massCount, msaaQality);
 	mDescription.Flags = resFlags;
 
 

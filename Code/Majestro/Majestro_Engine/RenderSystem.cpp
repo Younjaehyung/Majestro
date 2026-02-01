@@ -104,7 +104,16 @@ void RenderSystem::ClearRTV()
 {
 	// SwapChain Group 초기화
 	uint8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
+	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
+
+	if (true) //msaa
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).ClearRenderTargetView();
+	}
+	else
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
+	}
 
 	// Shadow Group 초기화 
 	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
@@ -572,9 +581,16 @@ void RenderSystem::RenderFinal()
 	// Swapchain OMSet
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
-	
+	if(true){//msaa
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+	}
+	else
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	}
+
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
 	
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();

@@ -428,7 +428,7 @@ void ResourceManager::LoadAllTexture(const wstring& path)
 
 }
 
-LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
+LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 {
 	std::string jsonPath = ws2s(path);
 	std::ifstream ifs(jsonPath);
@@ -441,9 +441,27 @@ LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
 	LevelImportData out{};
 	out.levelName = GetString(root, "level_name");
 
-	// optional
 	if (root.contains("actual_export_root"))
 		out.actualExportRoot = root["actual_export_root"].get<std::string>();
+
+	// [수정] JSON units 처리
+	// UE exporter가 "units":"cm"로 박아놨음. 엔진이 cm면 1.0f, 엔진이 m면 0.01f로 바꿔라.
+	float positionUnitScale = 1.0f; // 기본: cm 그대로
+	if (root.contains("units"))
+	{
+		const std::string units = root["units"].get<std::string>();
+		if (units == "cm")
+		{
+			// 엔진 단위가 cm라면 1.0f 유지
+			// 엔진 단위가 m라면 아래를 0.01f로 바꿔야 함.
+			positionUnitScale = 1.0f;
+		}
+		else if (units == "m")
+		{
+			// exporter가 m로 내보냈을 때를 대비
+			positionUnitScale = 1.0f;
+		}
+	}
 
 	const auto& actors = Require(root, "actors");
 	if (!actors.is_array())
@@ -451,25 +469,23 @@ LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
 
 	for (const auto& a : actors)
 	{
-		// string_view 등을 활용하거나, 루프 밖에서 한 번만 생성
 		const std::string actorName = GetString(a, "name");
 		const std::string actorPath = GetString(a, "path");
 
 		const auto& comps = Require(a, "static_mesh_components");
-		if (!comps.is_array()) throw std::runtime_error("JSON components is not an array");
+		if (!comps.is_array())
+			throw std::runtime_error("JSON components is not an array");
 
 		for (const auto& c : comps)
 		{
-			// 공통 정보 추출
 			const std::string compName = GetString(c, "component_name");
 			const std::string meshAsset = GetString(c, "static_mesh_asset");
 			const std::string fbxPath = (c.contains("fbx") && !c["fbx"].is_null()) ? c["fbx"].get<std::string>() : "";
 
-			// 인스턴스가 있는지 확인
 			if (c.contains("instances") && c["instances"].is_array())
 			{
 				const auto& instances_json = c["instances"];
-				out.instances.reserve(out.instances.size() + instances_json.size()); // 메모리 재할당 방지
+				out.instances.reserve(out.instances.size() + instances_json.size());
 
 				for (const auto& inst_j : instances_json)
 				{
@@ -480,17 +496,23 @@ LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
 					insts.staticMeshAsset = meshAsset;
 					insts.fbx = fbxPath;
 
-					// 인스턴스는 부모의 transform이 이미 계산된 dx 위치를 사용하거나, 
-					// 필요 시 부모 world * 자식 local 연산이 필요함 (현재 JSON은 계산된 dx 제공 중)
+					// exporter JSON에서 instance는 inst_j["dx"]가 바로 있음
 					const auto& dx = Require(inst_j, "dx");
 					insts.world = ParseDxTransform(dx);
+
+					// [수정] 로드 단계에서 월드행렬 생성 (DX12에 바로 사용 가능)
+					{
+						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world, /*fromUe=*/false);
+
+						insts.worldMtx = Matrix::CreateRotationZ(-90.f) * Matrix::CreateRotationX(90.f) * insts.worldMtx;
+						
+					}
 
 					out.instances.push_back(std::move(insts));
 				}
 			}
 			else
 			{
-				// 인스턴스가 없는 일반 Static Mesh인 경우에만 단일 객체로 추가
 				MeshInstance inst{};
 				inst.actorName = actorName;
 				inst.actorPath = actorPath;
@@ -502,14 +524,23 @@ LevelImportData  ResourceManager::LoadResourceJson(const wstring& path)
 				const auto& dx = Require(cwt, "dx");
 				inst.world = ParseDxTransform(dx);
 
+				// [수정] 로드 단계에서 월드행렬 생성
+				{
+					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, /*fromUe=*/false);
+
+					inst.worldMtx =   inst.worldMtx * Matrix::CreateRotationZ(90.f);
+
+				}
+
+
 				out.instances.push_back(std::move(inst));
 			}
 		}
 	}
 
 	return out;
-
 }
+
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
@@ -580,7 +611,20 @@ void ResourceManager::CreateDefaultRootSignature()
 		rootSignature->AddTable(ranges2);
 		rootSignature->AddTable(ranges3);
 		rootSignature->AddTable(ranges4);
-		rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
+		//rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
+
+		CD3DX12_STATIC_SAMPLER_DESC samplerDesc(0);
+		samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
+		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = 16;
+		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		samplerDesc.MinLOD = 0.0f;
+		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+		rootSignature->AddSampler(samplerDesc);
+
 		rootSignature->CreateGraphicsRootSignature();
 
 	}
@@ -997,7 +1041,7 @@ void ResourceManager::CreateDefaultMaterial()
 		//
 		shared_ptr<Material> color3 = make_shared<Material>();
 		color3->SetShader(L"Terrain");
-		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.png"), DIFFUSEMAP0INDEX);
+		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.dds"), DIFFUSEMAP0INDEX);
 		color3->SetTexture(Load<Texture>(L"T_Grass_Layer", L"..\\Resources\\Terrain\\T_Grass_Layer.png"), DIFFUSEMAP1INDEX);
 		color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
 		Add<Material>(L"Grass", color3);

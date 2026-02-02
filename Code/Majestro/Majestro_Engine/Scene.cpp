@@ -76,7 +76,7 @@ void Scene::Initialize()
 		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
 		float i, j, k;
 		float n = 10;
-		for (i = -50; i < 50; i += 10.0f) {
+		for (i = -50; i < 10; i += 10.0f) {
 			for (j = -50; j < 50; j += 10.0f) {
 				//for (k = -50; k < 50; k += 10.0f) {
 					Entity osws = mWorld->CreateEntity();	// �ʼ�
@@ -240,8 +240,9 @@ void Scene::LoadJsonLevel(const wstring& path)
 			TransformComponent transform{};
 			transform.mLocalScale = Vec{ 0.1f, 0.1f, 0.1f };
 			transform.FinalUpdate();
-			Matrix instanceMatrix = BuildWorldMatrix_RowMajor(inst.world);
-			transform.mWorldMatrix = instanceMatrix * transform.mWorldMatrix;
+			//Matrix instanceMatrix = BuildWorldMatrix_RowMajor(inst.world, true);
+			Matrix worldMatrix = inst.worldMtx;
+			transform.mWorldMatrix = worldMatrix;// *transform.mWorldMatrix;
 			
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;

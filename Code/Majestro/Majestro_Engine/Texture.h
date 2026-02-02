@@ -52,7 +52,7 @@ private:
 	D3D12_RESOURCE_DESC				mDescription{};
 
 	ComPtr<ID3D12Resource>			mImage;
-
+	uint32							mMipLevels;
 private:
 	D3D12_CPU_DESCRIPTOR_HANDLE		mSrvHeapBegin{};
 	D3D12_CPU_DESCRIPTOR_HANDLE		mUavHeapBegin{};

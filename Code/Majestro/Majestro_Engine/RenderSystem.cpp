@@ -586,7 +586,7 @@ void RenderSystem::RenderFinal()
 	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
 	if(RENDERMANAGER.IsMsaaEnabled()){//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets();
 	}
 	else
 	{
@@ -606,7 +606,7 @@ void RenderSystem::RenderForward()
 {
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets();
 	}
 	else
 	{

@@ -625,7 +625,7 @@ void ResourceManager::CreateDefaultShader()
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
 
-		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
 
 		Add<Shader>(L"Skybox", shader);
 	}
@@ -707,7 +707,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\forward_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
 		Add<Shader>(L"Forward", shader);
 	}
 
@@ -725,7 +725,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\texture_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Tex", "PS_Tex");
+		shader->CreateGraphicsShader(shaderPath, info, 4, "VS_Tex", "PS_Tex");
 		Add<Shader>(L"Texture", shader);
 	}
 
@@ -888,7 +888,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, 4, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine", shader);
 	}
 
@@ -909,7 +909,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info,4, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine_NoDepth", shader);
 	}
 }

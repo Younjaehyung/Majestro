@@ -3,6 +3,7 @@
 #include "EnginePch.h"
 #include "Engine.h"
 #include "SceneManager.h"
+#include "Scene.h"
 #include "World.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
@@ -12,6 +13,7 @@
 #include "Prefab.h"
 #include "PlayerComponent.h"
 #include "BoxColliderComponent.h"
+#include "NetSendSystem.h"
 
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world, event)
@@ -59,11 +61,6 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     if (msg.Type == PKT_Type::S2C_PKT_SPAWN) {
 		std::cout << "Spawn Packet Received in NetRecvSystem" << std::endl;
         HandleSpawn(msg);
-        return;
-    }
-    else if (msg.Type == PKT_Type::S2C_GAME_START) {
-        cout << "GameStart" << endl;
-        gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
     else if (msg.Type == PKT_Type::S2C_SCENE_CHANGE_RESULT) {
@@ -174,6 +171,18 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
         break;
     case SceneId::Game:
         gEngine->GetSceneManager().LoadScene(L"Game");
+        if (auto activeScene = gEngine->GetSceneManager().GetActiveScene())
+        {
+            auto world = activeScene->GetWorld();
+            if (world && world->GetSystemManager())
+            {
+                auto netSendSystem = world->GetSystemManager()->GetSystem<NetSendSystem>();
+                if (netSendSystem)
+                {
+                    netSendSystem->QueueGameStart();
+                }
+            }
+        }
         break;
     default:
         break;

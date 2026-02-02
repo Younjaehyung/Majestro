@@ -38,11 +38,6 @@ void NetRecvSystem::Update(float dt)
 			}
 			case PKT_Type::C2S_GAME_START:
 			{
-				S2C_StartGamePacket startPacket(mInputCommand.SessionId);
-				SendRequest request{ mInputCommand.SessionId, PKT_Type::S2C_GAME_START, sizeof(S2C_StartGamePacket) };
-				request.StoreAs<S2C_StartGamePacket>(startPacket);
-				gSendQueue.Push(request);
-
 				LoginProcess(mInputCommand);
 				EnemySpawnProcess(mInputCommand);
 				break;

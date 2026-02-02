@@ -16,6 +16,9 @@ NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System
 
 void NetSendSystem::Update(double deltaTime)
 {
+	UpdateCachedPlayerType();
+	TrySendGameStart();
+
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
@@ -45,12 +48,20 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	
 	
 	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
+	if (playerEntities.empty())
+	{
+		seq->Type = PKT_Type::KNONE;
+		return;
+	}
 	Entity playerEntity = playerEntities[0];
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
 
 
 	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
-	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+	//ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+	ChoicePlayerComponent* characterChoice = choiceplayerEntities.empty()
+		? nullptr
+		: mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
 	
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
@@ -67,23 +78,6 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
 	if (comp->mJump)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::SPACE);
 
-	if (!mHasSentGameStart && INPUT.GetKeyDown(eKeyCode::R))
-	{
-		cout << "start Game" << endl;
-		const uint32 clientId = Network::GetInstance().mClientId;
-		C2S_StartGamePacket startPacket;
-		startPacket.clientId = clientId;
-		startPacket.playerType = characterChoice ? characterChoice->mPlayerType : 0;
-		startPacket.SessionId = clientId;
-		startPacket.Sequence = 0;
-
-		SendRequest startSeq;
-		startSeq.Type = PKT_Type::C2S_GAME_START;
-		startSeq.SIze = sizeof(C2S_StartGamePacket);
-		startSeq.StoreAs(startPacket);
-		gSendBuffer.Push(startSeq);
-		mHasSentGameStart = true;
-	}
 
 	if (INPUT.GetKeyDown(eKeyCode::G))
 	{
@@ -104,6 +98,12 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	seq->StoreAs(mInputPacket);
 }
 
+void NetSendSystem::QueueGameStart()
+{
+	mPendingGameStart = true;
+	mHasSentGameStart = false;
+}
+
 void NetSendSystem::SendSceneChange(SceneId targetScene)
 {
 	C2S_SceneChangePacket changePacket(targetScene);
@@ -112,4 +112,39 @@ void NetSendSystem::SendSceneChange(SceneId targetScene)
 	changeSeq.SIze = sizeof(C2S_SceneChangePacket);
 	changeSeq.StoreAs(changePacket);
 	gSendBuffer.Push(changeSeq);
+}
+
+void NetSendSystem::TrySendGameStart()
+{
+	if (!mPendingGameStart || mHasSentGameStart)
+		return;
+
+	cout << "start Game" << endl;
+	const uint32 clientId = Network::GetInstance().mClientId;
+	C2S_StartGamePacket startPacket;
+	startPacket.clientId = clientId;
+	startPacket.playerType = mCachedPlayerType;
+	startPacket.SessionId = clientId;
+	startPacket.Sequence = 0;
+
+	SendRequest startSeq;
+	startSeq.Type = PKT_Type::C2S_GAME_START;
+	startSeq.SIze = sizeof(C2S_StartGamePacket);
+	startSeq.StoreAs(startPacket);
+	gSendBuffer.Push(startSeq);
+	mHasSentGameStart = true;
+	mPendingGameStart = false;
+}
+
+void NetSendSystem::UpdateCachedPlayerType()
+{
+	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+	if (choiceplayerEntities.empty())
+		return;
+
+	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+	if (characterChoice)
+	{
+		mCachedPlayerType = characterChoice->mPlayerType;
+	}
 }

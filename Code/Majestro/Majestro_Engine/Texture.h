@@ -15,7 +15,7 @@ public:
 		D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV = 1, int massCount =1, int msaaQality = 1, Vec4 clearColor = Vec4());
 	//새로운 사용자 텍스쳐 생성
 
-	void CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1);
+	void CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1, int isMSAA = 0);
 	//버퍼를 이용해서 텍스쳐 생성
 
 public:
@@ -58,6 +58,10 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE		mUavHeapBegin{};
 	D3D12_CPU_DESCRIPTOR_HANDLE		mRtvHeapBegin{};
 	D3D12_CPU_DESCRIPTOR_HANDLE		mDsvHeapBegin{};
+	
+	bool	mIsMSAA{};
+	int 	mMSAACount{};
+
 
 private:
 	uint32 mSrvIndex{};

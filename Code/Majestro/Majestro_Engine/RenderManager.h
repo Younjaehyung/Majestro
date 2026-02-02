@@ -47,6 +47,7 @@ public:
 	void Render() {};
 	void EndRender();
 
+	void CheckMsaaSupport(DXGI_FORMAT format, uint32 sampleCount);
 	void ResizeWindow(int32 width, int32 height);
 
 	void SetComputTable();
@@ -55,6 +56,10 @@ public:
 	void SetAnimationComputeFenceValue(uint64 fenceValue) { mAnimationComputeFenceValue = fenceValue; }
 	const WindowInfo& GetWindow() { return mWindow; }
 	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mDescHeap->GetDescriptorHeap().Get(); }
+
+	uint32 GetMsaaSampleCount() const { return mMsaaSampleCount; }
+	uint32 GetMsaaQuality() const { return mMsaaQuality; }
+	bool IsMsaaEnabled() const { return mMsaaSampleCount > 1; }
 
 public:
 	shared_ptr<Device>					GetDevice()				{ return mDevice; }
@@ -116,6 +121,9 @@ private:
 
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:
+
+	uint32			mMsaaSampleCount{ 1 };
+	uint32			mMsaaQuality{ 0 };
 
 	WindowInfo		mWindow;
 	D3D12_VIEWPORT	mViewport{};

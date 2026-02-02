@@ -106,9 +106,9 @@ void RenderSystem::ClearRTV()
 	uint8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
 
-	if (true) //msaa
+	if (RENDERMANAGER.IsMsaaEnabled()) //msaa
 	{
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).ClearRenderTargetView();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).ClearRenderTargetView(backIndex);
 	}
 	else
 	{
@@ -583,7 +583,7 @@ void RenderSystem::RenderFinal()
 
 	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
-	if(true){//msaa
+	if(RENDERMANAGER.IsMsaaEnabled()){//msaa
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
 	}
 	else
@@ -594,6 +594,8 @@ void RenderSystem::RenderFinal()
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
 	
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
+
+
 }
 
 void RenderSystem::RenderForward()

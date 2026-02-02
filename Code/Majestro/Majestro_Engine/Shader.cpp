@@ -50,8 +50,8 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, Shade
 	mGraphicsPipelineDesc.PrimitiveTopologyType = GetTopologyType(info.topology);
 	mGraphicsPipelineDesc.NumRenderTargets = 1;
 	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	mGraphicsPipelineDesc.SampleDesc.Count = 4;		//MSAA 4x 설정
-	mGraphicsPipelineDesc.SampleDesc.Quality = 0;
+	mGraphicsPipelineDesc.SampleDesc.Count = RENDERMANAGER.GetMsaaSampleCount();//MSAA 4x 설정
+	mGraphicsPipelineDesc.SampleDesc.Quality = RENDERMANAGER.GetMsaaQuality();
 	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
 
 	
@@ -210,8 +210,8 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 	mGraphicsPipelineDesc.PrimitiveTopologyType = GetTopologyType(info.topology);
 	mGraphicsPipelineDesc.NumRenderTargets = 1;
 	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-	mGraphicsPipelineDesc.SampleDesc.Count = 4;
-	mGraphicsPipelineDesc.SampleDesc.Quality = 0;
+	mGraphicsPipelineDesc.SampleDesc.Count = RENDERMANAGER.GetMsaaSampleCount();
+	mGraphicsPipelineDesc.SampleDesc.Quality = RENDERMANAGER.GetMsaaQuality();
 	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
 
 	switch (info.shaderType)

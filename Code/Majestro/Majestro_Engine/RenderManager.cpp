@@ -30,6 +30,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 	mDevice->Initialize();
 
+	CheckMsaaSupport(DXGI_FORMAT_R8G8B8A8_UNORM, 4);
 
 
 	mGraphicsCommandQueue->Initialize(mDevice->GetDevice(), mSwapChain);
@@ -178,6 +179,33 @@ void RenderManager::EndRender()
 	mFrameResourceIndex = (mFrameResourceIndex + 1) % FRAMEGROUP_COUNT;
 }
 
+void RenderManager::CheckMsaaSupport(DXGI_FORMAT format, uint32 sampleCount)
+{
+	mMsaaSampleCount = 1;
+	mMsaaQuality = 0;
+
+	if (sampleCount <= 1)
+	{
+		return;
+	}
+
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS qualityLevels{};
+	qualityLevels.Format = format;
+	qualityLevels.SampleCount = sampleCount;
+	qualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+	qualityLevels.NumQualityLevels = 0;
+
+	if (SUCCEEDED(mDevice->GetDevice()->CheckFeatureSupport(
+		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+		&qualityLevels,
+		sizeof(qualityLevels)))
+		&& qualityLevels.NumQualityLevels > 0)
+	{
+		mMsaaSampleCount = sampleCount;
+		mMsaaQuality = qualityLevels.NumQualityLevels - 1;
+	}
+}
+
 void RenderManager::ResizeWindow(int32 width, int32 height)
 {
 	mWindow.Width = width;
@@ -268,12 +296,12 @@ void RenderManager::CreateRenderTargetGroups()
 		D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0);
 
 	shared_ptr<Texture> msaaDsTexture = nullptr;
-	if (true)
+	if (IsMsaaEnabled())
 	{
 		msaaDsTexture = gEngine->GetResourceManager().CreateTexture(L"DepthStencil_MSAA",
 			DXGI_FORMAT_D32_FLOAT, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0,  1, 1);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0, mMsaaSampleCount, mMsaaQuality);
 	}
 
 
@@ -296,7 +324,7 @@ void RenderManager::CreateRenderTargetGroups()
 	}
 
 	// SwapChain MSAA Group
-	if (true)
+	if (IsMsaaEnabled())
 	{
 		vector<RenderTarget> rtVec(SWAP_CHAIN_BUFFER_COUNT);
 
@@ -307,7 +335,7 @@ void RenderManager::CreateRenderTargetGroups()
 			rtVec[i].Target = RESOURCEMANAGER.CreateTexture(name,
 				DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
 				CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-				D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false, 4, 0);
+				D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false, mMsaaSampleCount, mMsaaQuality);
 		}
 
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::FINAL)].Create(RENDER_TARGET_GROUP_TYPE::FINAL, rtVec, msaaDsTexture);
@@ -339,17 +367,17 @@ void RenderManager::CreateRenderTargetGroups()
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PositionTarget",
 			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0, 4);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"NormalTarget",
 			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0, 4);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 		rtVec[2].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseTarget",
 			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0, 4);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, rtVec, dsTexture);
@@ -363,12 +391,12 @@ void RenderManager::CreateRenderTargetGroups()
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseLightTarget",
 			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0, 4);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"SpecularLightTarget",
 			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0, 4);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0);
 
 
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
@@ -396,6 +424,8 @@ void RenderManager::CreateRenderTargetGroups()
 			// ViewDimension에 따라 다른 구조체 필드를 설정
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
+			
+
 			switch (srvDesc.ViewDimension)
 			{
 			case D3D12_SRV_DIMENSION_TEXTURE2D:
@@ -417,7 +447,12 @@ void RenderManager::CreateRenderTargetGroups()
 				srvDesc.TextureCube.MipLevels = mipLevels;
 				srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 				break;
-				// 다른 텍스처 차원에 대한 case 추가 (3D, CubeArray 등)
+			case D3D12_SRV_DIMENSION_TEXTURE2DMS:
+				srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
+				srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
+				srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
+				srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
+				break;
 			default:
 				// 지원하지 않는 차원에 대한 오류 처리
 				break;

@@ -70,8 +70,10 @@ void GraphicsCommandQueue::RenderEnd()
 	
 		uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
-		if (true) // msaa
+		if (RENDERMANAGER.IsMsaaEnabled()) // msaa
 		{
+			
+
 			auto& msaaGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::FINAL));
 			auto& swapChainGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN));
 

@@ -128,14 +128,15 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 
 	assert(SUCCEEDED(hr));
 
+	mIsMSAA = (massCount > 1) ? true : false;
+	mMSAACount = massCount;
 
-
-	CreateFromResource(mImage, createSRVUAV);
+	CreateFromResource(mImage, createSRVUAV, mMSAACount);
 
 
 }
 
-void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV)
+void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV, int isMSAA)
 {
 	mImage = tex2D;
 
@@ -154,6 +155,11 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 
 	// ViewDimension에 따라 다른 구조체 필드를 설정
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+
+	if(isMSAA > 1)
+	{
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+	}
 
 	switch (srvDesc.ViewDimension)
 	{
@@ -176,7 +182,12 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 		srvDesc.TextureCube.MipLevels = mipLevels;
 		srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 		break;
-		// 다른 텍스처 차원에 대한 case 추가 (3D, CubeArray 등)
+	case D3D12_SRV_DIMENSION_TEXTURE2DMS:
+		srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
+		srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
+		srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
+		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
+		break;
 	default:
 		// 지원하지 않는 차원에 대한 오류 처리
 		break;

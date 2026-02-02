@@ -103,7 +103,7 @@ void GraphicsCommandQueue::RenderEnd()
 			mCommandList->ResourceBarrier(1, &postResolveBarrier);
 		}
 
-
+		//MSAA가 아닐경우 그냥 넘어감
 
 		D3D12_RESOURCE_STATES& currentState = mBackBufferStates[backIndex];
 		if (currentState != D3D12_RESOURCE_STATE_PRESENT)

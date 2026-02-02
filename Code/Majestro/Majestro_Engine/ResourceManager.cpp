@@ -608,7 +608,7 @@ void ResourceManager::CreateDefaultShader()
 {
 	
 
-	// Skybox
+	// Skybox					현재 swapChain에 박고 있음
 	{
 		ShaderInfo info =
 		{
@@ -625,7 +625,7 @@ void ResourceManager::CreateDefaultShader()
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
 
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 
 		Add<Shader>(L"Skybox", shader);
 	}
@@ -660,7 +660,7 @@ void ResourceManager::CreateDefaultShader()
 
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, arg);
+		shader->CreateGraphicsShader(shaderPath, info, 1 ,arg);
 		Add<Shader>(L"Terrain", shader);
 	}
 
@@ -676,10 +676,6 @@ void ResourceManager::CreateDefaultShader()
 	//	.PS = L"..\\Resources\\Shader\\cel_PS.hlsl"
 	//	};
 
-	//	shared_ptr<Shader> shader = make_shared<Shader>();
-	//	shader->CreateGraphicsShader(shaderPath, info);
-	//	Add<Shader>(L"Cel", shader);
-	//}
 
 // Deferred (Deferred)
 	{
@@ -695,7 +691,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Deferred", shader);
 	}
 
@@ -711,7 +707,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\forward_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"Forward", shader);
 	}
 
@@ -729,7 +725,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\texture_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Tex", "PS_Tex");
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Tex", "PS_Tex");
 		Add<Shader>(L"Texture", shader);
 	}
 
@@ -747,7 +743,7 @@ void ResourceManager::CreateDefaultShader()
 		.PS = L"..\\Resources\\Shader\\lighting_dir_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_DirLight", "PS_DirLight");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_DirLight", "PS_DirLight");
 		Add<Shader>(L"DirLight", shader);
 	}
 
@@ -765,7 +761,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\lighting_point_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_PointLight", "PS_PointLight");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_PointLight", "PS_PointLight");
 		Add<Shader>(L"PointLight", shader);
 	}
 
@@ -782,7 +778,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\final_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Final", "PS_Final");
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Final");
 		Add<Shader>(L"Final", shader);
 	}
 
@@ -812,7 +808,7 @@ void ResourceManager::CreateDefaultShader()
 			.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main", "GS_Main");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main", "GS_Main");
 		Add<Shader>(L"Particle", shader);
 	}
 
@@ -840,12 +836,12 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\shadow_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"Shadow", shader);
 	}
 
 
-	// UI
+	// UI			현재 swapChain에 박고 있음
 	{
 		ShaderInfo info =
 		{
@@ -859,7 +855,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\UI_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info,1, ShaderArg());
 		Add<Shader>(L"UI", shader);
 	}
 
@@ -892,7 +888,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine", shader);
 	}
 
@@ -913,7 +909,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine_NoDepth", shader);
 	}
 }

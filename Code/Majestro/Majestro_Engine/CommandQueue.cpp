@@ -47,6 +47,8 @@ void GraphicsCommandQueue::RenderBegin(uint32 frameIndex)
 
 	uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
+
+
 	D3D12_RESOURCE_STATES& currentState = mBackBufferStates[backIndex];
 	if (currentState != D3D12_RESOURCE_STATE_RENDER_TARGET)
 	{
@@ -83,7 +85,7 @@ void GraphicsCommandQueue::RenderEnd()
 			D3D12_RESOURCE_BARRIER preResolveBarriers[2] = {
 				CD3DX12_RESOURCE_BARRIER::Transition(
 					msaaResource,
-					D3D12_RESOURCE_STATE_RENDER_TARGET,
+					D3D12_RESOURCE_STATE_COMMON,
 					D3D12_RESOURCE_STATE_RESOLVE_SOURCE),
 				CD3DX12_RESOURCE_BARRIER::Transition(
 					backBuffer,

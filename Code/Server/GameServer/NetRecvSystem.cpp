@@ -94,6 +94,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 {
 	///uint32 ssessionId = 0;//mInputCommand.SessionId;
 	uint8 playertype = 1;
+
 	if (inputCommand.Type == PKT_Type::C2S_GAME_START)
 	{
 		const C2S_StartGamePacket* startPacket = inputCommand.ViewAs<C2S_StartGamePacket>();
@@ -108,6 +109,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 	{
 		playertype = 1;
 	}
+
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
@@ -168,7 +170,11 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 
 }
 
+
 /*void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
+=======
+void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
+>>>>>>> 2d627a9 (# 문제 해결중)
 {
 	const C2S_SceneChangePacket* requestPacket = inputCommand.ViewAs<C2S_SceneChangePacket>();
 	if (!requestPacket)
@@ -213,7 +219,9 @@ SceneId NetRecvSystem::GetOrCreateScene(uint32 sessionId)
 
 	mSceneBySession[sessionId] = SceneId::Lobby;
 	return SceneId::Lobby;
+<<<<<<< HEAD
 }*/
+
 
 
 void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)

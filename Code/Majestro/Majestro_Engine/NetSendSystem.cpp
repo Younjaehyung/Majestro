@@ -102,21 +102,25 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	
 	seq->StoreAs(mInputPacket);
 
+
 }
 
 void NetSendSystem::QueueGameStart()
 {
 	mPendingGameStart = true;
 	mHasSentGameStart = false;
+
 }
 
 void NetSendSystem::SendSceneChange(SceneId targetScene)
 {
+
 	if (targetScene == SceneId::Game)
 	{
 		UpdateCachedPlayerType();
 		gEngine->GetSceneManager().StorePendingPlayerType(mCachedPlayerType);
 	}
+
 
 	C2S_SceneChangePacket changePacket(targetScene);
 	SendRequest changeSeq;
@@ -124,6 +128,7 @@ void NetSendSystem::SendSceneChange(SceneId targetScene)
 	changeSeq.SIze = sizeof(C2S_SceneChangePacket);
 	changeSeq.StoreAs(changePacket);
 	gSendBuffer.Push(changeSeq);
+
 }
 
 void NetSendSystem::TrySendGameStart()
@@ -169,4 +174,5 @@ void NetSendSystem::UpdateCachedPlayerType()
 		cout << (int)mCachedPlayerType << endl;
 	}
 }
+
 

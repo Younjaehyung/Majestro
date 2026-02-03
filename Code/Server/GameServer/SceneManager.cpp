@@ -8,10 +8,12 @@ void SceneManager::Initialize()
 	//mActiveScene = make_shared<Scene>();
 	//mActiveScene->Initialize();
 
+
 	//mScenesBySession.clear();
 	mLobbyScenesBySession.clear();
 	mSceneBySession.clear();
 	mGameScene.reset();
+
 }
 
 void SceneManager::Update(float deltaTime)
@@ -19,6 +21,7 @@ void SceneManager::Update(float deltaTime)
 	/*if (mActiveScene == nullptr)
 		return;
 	mActiveScene->Update(deltaTime);*/
+
 
 	//for (const auto& [sessionId, scene] : mScenesBySession)
 	for (const auto& [sessionId, scene] : mLobbyScenesBySession)
@@ -33,6 +36,7 @@ void SceneManager::Update(float deltaTime)
 	{
 		mGameScene->Update(deltaTime);
 	}
+
 
 }
 
@@ -50,22 +54,26 @@ void SceneManager::LoadScene(wstring sceneName)
 
 void SceneManager::InitializeSession(uint64 sessionId)
 {
-	//if (mScenesBySession.find(sessionId) != mScenesBySession.end())
+
 	if (mLobbyScenesBySession.find(sessionId) != mLobbyScenesBySession.end())
 		return;
 
 	auto scene = make_shared<Scene>();
 	scene->Initialize();
+
 	//mScenesBySession.emplace(sessionId, std::move(scene));
 	mLobbyScenesBySession.emplace(sessionId, std::move(scene));
 	mSceneBySession[sessionId] = SceneId::Lobby;
+
 }
 
 void SceneManager::RemoveSession(uint64 sessionId)
 {
+
 	//mScenesBySession.erase(sessionId);
 	mLobbyScenesBySession.erase(sessionId);
 	mSceneBySession.erase(sessionId);
+
 }
 
 void SceneManager::LoadScene(uint64 sessionId, wstring sceneName)
@@ -78,10 +86,12 @@ void SceneManager::LoadScene(uint64 sessionId, wstring sceneName)
 	//mScenesBySession[sessionId] = std::move(scene);
 	mLobbyScenesBySession[sessionId] = std::move(scene);
 	mSceneBySession[sessionId] = SceneId::Lobby;
+
 }
 
 shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
 {
+
 	//auto findIt = mScenesBySession.find(sessionId);
 	//if (findIt == mScenesBySession.end())
 	auto stateIt = mSceneBySession.find(sessionId);
@@ -102,6 +112,7 @@ shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
 
 	return findIt->second;
 }
+
 
 bool SceneManager::EnqueueCommand(const InputCommand& command)
 {
@@ -193,6 +204,7 @@ SceneId SceneManager::GetOrCreateSceneState(uint64 sessionId)
 	InitializeSession(sessionId);
 	return SceneId::Lobby;
 }
+
 
 void SceneManager::SetLayerName(uint8 index, const wstring& name)
 {

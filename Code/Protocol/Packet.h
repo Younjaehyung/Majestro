@@ -160,6 +160,7 @@ struct S2C_RespawnPacket : public PacketTcpHeader {
 struct S2C_StatePacket : public PacketTcpHeader {
 	uint64_t netEntityId{};
 	uint8_t stateId{};
+	uint8_t lowerStateId{};
 	S2C_StatePacket() : PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 } {}
 	S2C_StatePacket(uint64_t entityId, uint8_t sId)
 		: PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 },

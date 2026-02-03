@@ -67,15 +67,17 @@ public:
 
     // Network Entity ID
     shared_ptr<NetIdMap>& GetNetIdMap() { return mNetIdMap; }
+    void SetSceneId(SceneId sceneId) { mSceneId = sceneId; }
+    SceneId GetSceneId() const { return mSceneId; }
 
     // System Manager
     std::shared_ptr<SystemManager> GetSystemManager() const { return mSystemManager; }
     void SetSystemManager(std::shared_ptr<SystemManager> systemManager) { mSystemManager = systemManager; }
 
 public:
-    void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
-    void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(netID); }
-    Entity GetEntityByNetId(uint64 netID) const { return mNetIdMap->GetOrInvalid(netID); }
+    void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(mSceneId, netID, entity); }
+    void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(mSceneId, netID); }
+    Entity GetEntityByNetId(uint64 netID) const { return mNetIdMap->GetOrInvalid(mSceneId, netID); }
 private:
     // Entity
     EntityID mNextEntityID;
@@ -83,6 +85,7 @@ private:
 
 	// Network Entity ID 관리
 	shared_ptr<NetIdMap> mNetIdMap = make_shared<NetIdMap>();
+    SceneId mSceneId = SceneId::Lobby;
 
     // 타입별 컴포넌트 풀 (type erasure 사용)
     std::unordered_map<ComponentTypeID, std::unique_ptr<BaseComponentPool>> mComponentPools;

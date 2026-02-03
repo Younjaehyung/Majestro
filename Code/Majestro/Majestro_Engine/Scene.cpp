@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Scene.h"
 #include "Engine.h"
+#include "EnginePch.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
 #include "World.h"
@@ -20,6 +21,7 @@
 #include "MovementComponent.h"
 #include "VfxComponent.h"
 #include "Prefab.h"
+
 //#include "Camera.h"
 //
 //#include "ConstantBuffer.h"
@@ -45,6 +47,7 @@ void Scene::Render()
 void LobbyScene::Initialize()
 {
 	//PlayerPrefab player{mWorld.get()};
+	mWorld->SetSceneId(SceneId::Lobby);
 	PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
@@ -178,6 +181,7 @@ void LobbyScene::Render()
 /// //////////////////////////////////////////////////////////////////////////////////
 void GameScene::Initialize()
 {
+	mWorld->SetSceneId(SceneId::Game);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };

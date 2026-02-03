@@ -34,7 +34,7 @@ void NetRecvSystem::Initialize()
 	for (auto& entity : entities)
 	{
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-		mNetIdMap->Bind(netComp->mNetEntityId, entity);
+        mWorld->NetIdBinding(netComp->mNetEntityId, entity);
 	}
 }
 
@@ -218,12 +218,13 @@ void NetRecvSystem::HandleDespawn(const InputCommand& msg)
     uint32_t netId = 0;
    // if (!r.Read(netId)) return;
 
-    Entity e = mNetIdMap->GetOrInvalid(netId);
+    Entity e = mWorld->GetEntityByNetId(netId);
     if (e == 0) return;
 
     // TODO: ECS 엔티티 삭제는 별도 명령으로 처리 권장
     // mCmd->DestroyEntity(e);
-    mNetIdMap->Unbind(netId);
+    
+    mWorld->NetIdUnbinding(netId);
 }
 
 void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
@@ -237,7 +238,7 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
     if (!r.Read(compKind)) return;
     if (!r.Read(fieldMask)) return;*/
 
-    Entity e = mNetIdMap->GetOrInvalid(netId);
+    Entity e = mWorld->GetEntityByNetId(netId);
     if (e == 0) {
         // 아직 Spawn이 안 왔거나, 관심영역 늦게 들어온 케이스
         // 실전에서는 여기서 "Spawn 요청" 또는 "임시 보류" 전략을 둠

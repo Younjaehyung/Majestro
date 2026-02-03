@@ -307,6 +307,7 @@ void NetworkThread::HandleUdpRecv()
                 std::cout << "clientId=" << clientId << " sessionId=" << sessionId
                     << " port=" << ntohs(fromAddr.sin_port) << std::endl;
             }
+
         }
 
  //       if (header->PacketType == C2S_PKT_LOGIN) {

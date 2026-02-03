@@ -31,6 +31,7 @@ void NetRecvSystem::Update(float dt)
 			}
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
+
 				//LoginProcess(mInputCommand);
 				LoginProcess(mInputCommand, false);
 				cout << "login process" << endl;
@@ -39,6 +40,7 @@ void NetRecvSystem::Update(float dt)
 			}
 			case PKT_Type::C2S_GAME_START:
 			{
+
 				//LoginProcess(mInputCommand);
 				LoginProcess(mInputCommand, true);
 				EnemySpawnProcess(mInputCommand);

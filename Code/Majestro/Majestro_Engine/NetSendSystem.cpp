@@ -57,11 +57,11 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
 
 
-	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
-	//ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
-	ChoicePlayerComponent* characterChoice = choiceplayerEntities.empty()
-		? nullptr
-		: mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+	//std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+	////ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+	//ChoicePlayerComponent* characterChoice = choiceplayerEntities.empty()
+	//	? nullptr
+	//	: mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
 	
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
@@ -138,6 +138,9 @@ void NetSendSystem::TrySendGameStart()
 
 void NetSendSystem::UpdateCachedPlayerType()
 {
+	if (!mWorld->HasComponentPool<ChoicePlayerComponent>() )
+		return;
+
 	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
 	if (choiceplayerEntities.empty())
 		return;

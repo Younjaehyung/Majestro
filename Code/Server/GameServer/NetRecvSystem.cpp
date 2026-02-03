@@ -57,12 +57,18 @@ void NetRecvSystem::Update(float dt)
 
 void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFrame)
 {
+	if (!mWorld->HasComponentPool<InputComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
 	auto view = mWorld->GetEntitiesWithComponent<InputComponent>();
 	for (auto entity : view)
 	{
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(entity);
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-		if (netComp && netComp->mSessionId == sessionId)
+		if (inputComp == nullptr || netComp == nullptr)
+			continue;
+
+		if (netComp->mSessionId == sessionId)
 		{
 			//std::cout << "[NetRecvSystem] C2S_PKT_INPUT received from SessionID: " << mInputCommand.SessionId << std::endl;
 

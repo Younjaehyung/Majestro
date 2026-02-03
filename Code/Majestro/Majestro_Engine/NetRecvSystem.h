@@ -33,5 +33,6 @@ private:
 	
 	bool mIsPlayer = false;
 	SceneId mCurrentScene = SceneId::Lobby;
+	bool mStopProcessing = false;	
 };
 

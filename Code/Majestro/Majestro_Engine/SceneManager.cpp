@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "SceneManager.h"
 #include "Scene.h"
+#include "NetSendSystem.h"
 
 void SceneManager::Initialize()
 {
@@ -11,6 +12,28 @@ void SceneManager::Initialize()
 
 void SceneManager::Update(float deltaTime)
 {
+	if (mHasPendingSceneChange)
+	{
+		mHasPendingSceneChange = false;
+		LoadScene(mPendingSceneName);
+		mPendingSceneName.clear();
+		if (mPendingGameStart)
+		{
+			mPendingGameStart = false;
+			if (mActiveScene)
+			{
+				auto world = mActiveScene->GetWorld();
+				if (world && world->GetSystemManager())
+				{
+					auto netSendSystem = world->GetSystemManager()->GetSystem<NetSendSystem>();
+					if (netSendSystem)
+					{
+						netSendSystem->QueueGameStart();
+					}
+				}
+			}
+		}
+	}
 	if (mActiveScene == nullptr)
 		return;
 
@@ -50,6 +73,16 @@ void SceneManager::LoadScene(wstring sceneName)
 
 }
 
+void SceneManager::QueueLoadScene(const wstring& sceneName)
+{
+	mPendingSceneName = sceneName;
+	mHasPendingSceneChange = true;
+}
+
+void SceneManager::QueueGameStartAfterLoad()
+{
+	mPendingGameStart = true;
+}
 
 void SceneManager::SetLayerName(uint8 index, const wstring& name)
 {

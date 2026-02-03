@@ -43,12 +43,15 @@ void NetRecvSystem::Update(double deltaTime)
 
     constexpr int kMaxMsgsPerTick = 256; // 폭주 방지
     int processed = 0;
+    mStopProcessing = false;
     
     while (processed < kMaxMsgsPerTick && gRecvBuffer.Pop(mInputCommand))
     {
         
         ProcessOne(mInputCommand);
         ++processed;
+        if (mStopProcessing)
+            break;
     }
 
    /* if (mWorld && mCmd)
@@ -164,25 +167,15 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
         return;
 
     mCurrentScene = resultPacket->currentScene;
+    mStopProcessing = true;
     switch (mCurrentScene)
     {
     case SceneId::Lobby:
-        gEngine->GetSceneManager().LoadScene(L"Lobby");
+        gEngine->GetSceneManager().QueueLoadScene(L"Lobby");
         break;
     case SceneId::Game:
-        gEngine->GetSceneManager().LoadScene(L"Game");
-        if (auto activeScene = gEngine->GetSceneManager().GetActiveScene())
-        {
-            auto world = activeScene->GetWorld();
-            if (world && world->GetSystemManager())
-            {
-                auto netSendSystem = world->GetSystemManager()->GetSystem<NetSendSystem>();
-                if (netSendSystem)
-                {
-                    netSendSystem->QueueGameStart();
-                }
-            }
-        }
+        gEngine->GetSceneManager().QueueLoadScene(L"Game");
+        gEngine->GetSceneManager().QueueGameStartAfterLoad();
         break;
     default:
         break;

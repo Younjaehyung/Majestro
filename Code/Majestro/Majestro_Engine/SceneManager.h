@@ -13,6 +13,9 @@ public:
 	void Render();
 
 	void LoadScene(wstring sceneName);
+	void QueueLoadScene(const wstring& sceneName);
+	void QueueGameStartAfterLoad();
+	bool HasPendingSceneChange() const { return mHasPendingSceneChange; }
 private:
 	std::vector<Scene*> mScene;
 
@@ -28,6 +31,9 @@ private:
 
 private:
 	shared_ptr<Scene> mActiveScene;
+	bool mHasPendingSceneChange = false;
+	wstring mPendingSceneName;
+	bool mPendingGameStart = false;
 
 	//layer를 양쪽에서 찾을 수 있게 매핑
 	array<wstring, MAX_LAYER> _layerNames;

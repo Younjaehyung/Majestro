@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "NetSendSystem.h"
 #include "Engine.h"
+#include "EnginePch.h"
 #include "Entity.h"
 #include "World.h"
 #include "Network.h"
@@ -8,6 +9,7 @@
 #include "InputManager.h"
 #include "MovementComponent.h"
 #include "TagComponent.h"
+#include "SceneManager.h"
 
 NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
 {
@@ -106,6 +108,12 @@ void NetSendSystem::QueueGameStart()
 
 void NetSendSystem::SendSceneChange(SceneId targetScene)
 {
+	if (targetScene == SceneId::Game)
+	{
+		UpdateCachedPlayerType();
+		gEngine->GetSceneManager().StorePendingPlayerType(mCachedPlayerType);
+	}
+
 	C2S_SceneChangePacket changePacket(targetScene);
 	SendRequest changeSeq;
 	changeSeq.Type = PKT_Type::C2S_SCENE_CHANGE;
@@ -118,6 +126,8 @@ void NetSendSystem::TrySendGameStart()
 {
 	if (!mPendingGameStart || mHasSentGameStart)
 		return;
+
+	UpdateCachedPlayerType();
 
 	cout << "start Game" << endl;
 	const uint32 clientId = Network::GetInstance().mClientId;

@@ -28,6 +28,11 @@ void SceneManager::Update(float deltaTime)
 					auto netSendSystem = world->GetSystemManager()->GetSystem<NetSendSystem>();
 					if (netSendSystem)
 					{
+						if (mHasPendingPlayerType)
+						{
+							netSendSystem->SetCachedPlayerType(mPendingPlayerType);
+							mHasPendingPlayerType = false;
+						}
 						netSendSystem->QueueGameStart();
 					}
 				}
@@ -82,6 +87,12 @@ void SceneManager::QueueLoadScene(const wstring& sceneName)
 void SceneManager::QueueGameStartAfterLoad()
 {
 	mPendingGameStart = true;
+}
+
+void SceneManager::StorePendingPlayerType(uint8 playerType)
+{
+	 mPendingPlayerType = playerType; 
+	 mHasPendingPlayerType = true; 
 }
 
 void SceneManager::SetLayerName(uint8 index, const wstring& name)

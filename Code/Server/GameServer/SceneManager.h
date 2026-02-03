@@ -16,8 +16,8 @@ public:
 	void LoadScene(uint64 sessionId, wstring sceneName);
 	shared_ptr<Scene> GetScene(uint64 sessionId) const;
 
-	bool EnqueueCommand(const InputCommand& command);
 
+	bool EnqueueCommand(const InputCommand& command);
 private:
 	//std::vector<Scene*> mScene;
 

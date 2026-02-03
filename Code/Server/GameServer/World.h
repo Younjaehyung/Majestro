@@ -6,6 +6,7 @@
 #include "SystemManager.h"
 #include "EventManager.h"
 #include "NetIdMap.h"
+#include "PacketHelper.h"
 
 #include "PacketHelper.h"
 

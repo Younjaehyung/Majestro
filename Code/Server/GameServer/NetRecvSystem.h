@@ -59,13 +59,13 @@ private:
     std::vector<uint32> CollectPlayerSessions() const;
 
 
-
 private:
 
     vector<uint64> mNetEntityIds{};
     bool mEnemySpawnOnce = true;
 
     std::unordered_map<uint32, SceneId> mSceneBySession{};
+
 
 
 	InputBuffer mInputBuffer;

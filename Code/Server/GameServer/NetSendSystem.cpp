@@ -106,7 +106,6 @@ void NetSendSystem::ConvertState()
 			statePkt.stateId = playerComp->GetState();
 			statePkt.lowerStateId = playerComp->GetLowerState();
 
-
 			for (uint32 sessionId : recipients)
 			{
 				mSendReq.SessionId = sessionId;

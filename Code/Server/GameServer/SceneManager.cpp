@@ -7,8 +7,6 @@ void SceneManager::Initialize()
 {
 	//mActiveScene = make_shared<Scene>();
 	//mActiveScene->Initialize();
-
-
 	//mScenesBySession.clear();
 	mLobbyScenesBySession.clear();
 	mSceneBySession.clear();
@@ -55,16 +53,17 @@ void SceneManager::LoadScene(wstring sceneName)
 void SceneManager::InitializeSession(uint64 sessionId)
 {
 
+	//if (mScenesBySession.find(sessionId) != mScenesBySession.end())
 	if (mLobbyScenesBySession.find(sessionId) != mLobbyScenesBySession.end())
 		return;
 
 	auto scene = make_shared<Scene>();
 	scene->Initialize();
 
+
 	//mScenesBySession.emplace(sessionId, std::move(scene));
 	mLobbyScenesBySession.emplace(sessionId, std::move(scene));
 	mSceneBySession[sessionId] = SceneId::Lobby;
-
 }
 
 void SceneManager::RemoveSession(uint64 sessionId)
@@ -73,6 +72,7 @@ void SceneManager::RemoveSession(uint64 sessionId)
 	//mScenesBySession.erase(sessionId);
 	mLobbyScenesBySession.erase(sessionId);
 	mSceneBySession.erase(sessionId);
+
 
 }
 
@@ -113,6 +113,15 @@ shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
 	return findIt->second;
 }
 
+SceneId SceneManager::GetOrCreateSceneState(uint64 sessionId)
+{
+	auto findIt = mSceneBySession.find(sessionId);
+	if (findIt != mSceneBySession.end())
+		return findIt->second;
+
+	InitializeSession(sessionId);
+	return SceneId::Lobby;
+}
 
 bool SceneManager::EnqueueCommand(const InputCommand& command)
 {
@@ -193,16 +202,6 @@ bool SceneManager::IsSceneChangeAllowed(SceneId currentScene, SceneId requestedS
 	default:
 		return false;
 	}
-}
-
-SceneId SceneManager::GetOrCreateSceneState(uint64 sessionId)
-{
-	auto findIt = mSceneBySession.find(sessionId);
-	if (findIt != mSceneBySession.end())
-		return findIt->second;
-
-	InitializeSession(sessionId);
-	return SceneId::Lobby;
 }
 
 

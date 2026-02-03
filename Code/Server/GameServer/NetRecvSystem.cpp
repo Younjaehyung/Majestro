@@ -131,7 +131,6 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 		gSendQueue.Push(request);
 	}
 
-
 	// 다른 클라이언트들에게 로그인 한 클라이언트의 Spawn 패킷 전송
 	if (broadcastToWorld){
 		for (uint32 sessionId : CollectPlayerSessions())
@@ -153,6 +152,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 
 		netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		playerComp = mWorld->GetComponent<MainPlayerComponent>(entity);
+
 		if (nullptr == netComp)
 			continue;
 		
@@ -171,10 +171,14 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 }
 
 
+
 /*void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
 =======
 void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
 >>>>>>> 2d627a9 (# 문제 해결중)
+=======
+/*void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
+>>>>>>> 1a011bc (# 로비 추가중)
 {
 	const C2S_SceneChangePacket* requestPacket = inputCommand.ViewAs<C2S_SceneChangePacket>();
 	if (!requestPacket)
@@ -220,7 +224,10 @@ SceneId NetRecvSystem::GetOrCreateScene(uint32 sessionId)
 	mSceneBySession[sessionId] = SceneId::Lobby;
 	return SceneId::Lobby;
 <<<<<<< HEAD
+<<<<<<< HEAD
 }*/
+
+
 
 
 

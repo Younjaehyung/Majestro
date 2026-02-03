@@ -109,12 +109,6 @@ void NetSendSystem::QueueGameStart()
 
 }
 
-void NetSendSystem::QueueGameStart()
-{
-	mPendingGameStart = true;
-	mHasSentGameStart = false;
-}
-
 void NetSendSystem::SendSceneChange(SceneId targetScene)
 {
 

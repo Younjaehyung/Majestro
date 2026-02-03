@@ -79,6 +79,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
 	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
 
+
 	
 	if (INPUT.GetKeyDown(eKeyCode::G))
 	{
@@ -108,6 +109,12 @@ void NetSendSystem::QueueGameStart()
 
 }
 
+void NetSendSystem::QueueGameStart()
+{
+	mPendingGameStart = true;
+	mHasSentGameStart = false;
+}
+
 void NetSendSystem::SendSceneChange(SceneId targetScene)
 {
 
@@ -132,13 +139,17 @@ void NetSendSystem::TrySendGameStart()
 	if (!mPendingGameStart || mHasSentGameStart)
 		return;
 
+
 	UpdateCachedPlayerType();
+
 
 	cout << "start Game" << endl;
 	const uint32 clientId = Network::GetInstance().mClientId;
 	C2S_StartGamePacket startPacket;
 	startPacket.clientId = clientId;
+
 	cout << "snad Pack Player type" << (int)mCachedPlayerType << endl;
+
 	startPacket.playerType = mCachedPlayerType;
 	startPacket.SessionId = clientId;
 	startPacket.Sequence = 0;
@@ -154,6 +165,7 @@ void NetSendSystem::TrySendGameStart()
 
 void NetSendSystem::UpdateCachedPlayerType()
 {
+
 	if (!mWorld->HasComponentPool<ChoicePlayerComponent>() )
 		return;
 
@@ -165,10 +177,11 @@ void NetSendSystem::UpdateCachedPlayerType()
 
 	if (characterChoice)
 	{
-		SetCachedPlayerType(characterChoice->mPlayerType);
-		//mCachedPlayerType = characterChoice->mPlayerType;
+		//SetCachedPlayerType(characterChoice->mPlayerType);
+		mCachedPlayerType = characterChoice->mPlayerType;
 		cout << (int)mCachedPlayerType << endl;
 	}
 }
+
 
 

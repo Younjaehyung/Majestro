@@ -28,7 +28,9 @@ public:
 	NetSendSystem(World* world, EventManager* event);
 	void Update(double deltaTime);
     void QueueGameStart();
+
     void SetCachedPlayerType(uint8 playerType){mCachedPlayerType = playerType;}
+
 public:
 	void ConvertInput(SendRequest* seq);
     void SendSceneChange(SceneId targetScene);

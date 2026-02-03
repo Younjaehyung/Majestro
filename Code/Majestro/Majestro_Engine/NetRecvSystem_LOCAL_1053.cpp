@@ -74,6 +74,10 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
+    else if (msg.Type == PKT_Type::S2C_SCENE_CHANGE_RESULT) {
+        HandleSceneChangeResult(msg);
+        return;
+    }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {
         const S2C_MovePacket* movePacket = msg.ViewAs<S2C_MovePacket>();
         //std::cout << "State Packet Received in NetRecvSystem for Entity ID: " << statePacket->netEntityId << " with State ID: " << static_cast<int>(statePacket->stateId) << std::endl;

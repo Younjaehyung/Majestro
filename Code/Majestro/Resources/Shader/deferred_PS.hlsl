@@ -64,8 +64,10 @@ PS_OUT PS_Main(VS_OUT input)
         baseColor = lerp(baseColor, tex3, tex3.a);
     }
 
+
     if (baseColor.a < 0.1f)
         discard;
+
 
     // -----------------------------
     // 2) Normal Map 적용

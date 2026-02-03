@@ -123,6 +123,7 @@ void NetSendSystem::TrySendGameStart()
 	const uint32 clientId = Network::GetInstance().mClientId;
 	C2S_StartGamePacket startPacket;
 	startPacket.clientId = clientId;
+	cout << "snad Pack Player type" << (int)mCachedPlayerType << endl;
 	startPacket.playerType = mCachedPlayerType;
 	startPacket.SessionId = clientId;
 	startPacket.Sequence = 0;
@@ -140,17 +141,17 @@ void NetSendSystem::UpdateCachedPlayerType()
 {
 	if (!mWorld->HasComponentPool<ChoicePlayerComponent>() )
 		return;
-	cout << "test type" << endl;
+
 	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
 	if (choiceplayerEntities.empty())
 		return;
 
-	cout << "test type2" << endl;
 	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
 
-	cout << (int)characterChoice->mPlayerType << endl;
 	if (characterChoice)
 	{
-		mCachedPlayerType = characterChoice->mPlayerType;
+		SetCachedPlayerType(characterChoice->mPlayerType);
+		//mCachedPlayerType = characterChoice->mPlayerType;
+		cout << (int)mCachedPlayerType << endl;
 	}
 }

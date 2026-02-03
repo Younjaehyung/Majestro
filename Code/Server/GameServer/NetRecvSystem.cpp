@@ -98,6 +98,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 		if (startPacket)
 		{
 			playertype = startPacket->playerType;
+			cout <<"charactor: " << (int)startPacket->playerType << endl;
 		}
 	}
 
@@ -108,6 +109,11 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+	MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
+	if (playerComp)
+	{
+		playerComp->mPlayerType = playertype;
+	}
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 	spawnPkt.isPlayerType = playertype;
@@ -142,6 +148,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 		
 
 		netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		playerComp = mWorld->GetComponent<MainPlayerComponent>(entity);
 		if (nullptr == netComp)
 			continue;
 		
@@ -150,7 +157,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 
 
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-		spawnPkt.isPlayerType = playertype;
+		spawnPkt.isPlayerType = playerComp ? playerComp->mPlayerType : 1;
 
 		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);

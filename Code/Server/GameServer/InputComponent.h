@@ -2,12 +2,13 @@
 #include "Entity.h"
 #include "Component.h"
 
-enum class InputButtons : uint32 {
+enum class InputButtons : uint8 {
     NONE,
     SPACE,
     SHIFT,
     Q,
     E,
+    ATTACK,
     END
 };
 
@@ -27,7 +28,7 @@ public:
     float MoveY = 0.0f;
 	float MoveZ = 0.0f;
     
-    uint32 Buttons = 0;
+    uint8 Buttons = 0;
 	uint8  Mouse = 0;
 
 
@@ -41,15 +42,15 @@ public:
     // InputButtons 버튼 마스킹 
     // 마스킹에 따라 현재 누른 버튼을 알 수 있음
     void PressButton(InputButtons button) {
-        Buttons |= (1 << static_cast<uint32>(button));
+        Buttons |= (1 << static_cast<uint8>(button));
 	}
 
     void ReleaseButton(InputButtons button) {
-        Buttons &= ~(1 << static_cast<uint32>(button));
+        Buttons &= ~(1 << static_cast<uint8>(button));
 	}
 
     bool IsButtonPressed(InputButtons button) const {
-        return (Buttons & (1 << static_cast<uint32>(button))) != 0;
+        return (Buttons & (1 << static_cast<uint8>(button))) != 0;
 	}
 public:
     void PressMouse(InputMouse button) {

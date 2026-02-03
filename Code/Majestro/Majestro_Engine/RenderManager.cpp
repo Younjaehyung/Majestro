@@ -17,6 +17,8 @@ void RenderManager::Initialize(const WindowInfo& info)
 {
 	mWindow = info;
 
+	mFrameResourceIndex = 0;
+	mFrameCurrIndex = 0;
 	// TO - DO : 임시로 4K 해상도로 고정
 	//mWindow.Width = 2560;
 	//mWindow.Height = 1440;
@@ -28,6 +30,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 	mDevice->Initialize();
 
+	CheckMsaaSupport(DXGI_FORMAT_R8G8B8A8_UNORM, 4);
 
 
 	mGraphicsCommandQueue->Initialize(mDevice->GetDevice(), mSwapChain);
@@ -38,7 +41,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 	
 
 
-	mGraphicsDescHeap->Initialize(FRAMEGROUP_COUNT);
+	mDescHeap->Initialize(FRAMEGROUP_COUNT);
 	mRenderTargetHeap->Initialize();
 
 
@@ -156,14 +159,51 @@ void RenderManager::Update()
 
 void RenderManager::StartRender()
 {
-	mGraphicsCommandQueue->RenderBegin();
+	mSwapChain->UpdateBackBufferIndex();
+	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
+	mGraphicsCommandQueue->WaitForBackBuffer(backIndex);
+	mGraphicsCommandQueue->WaitForFrame(mFrameResourceIndex);
+	mGraphicsCommandQueue->WaitForFence(mComputeCommandQueue->GetFence().Get(), mAnimationComputeFenceValue);
+	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
 }
 
 
 void RenderManager::EndRender()
 {
+	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
 	mGraphicsCommandQueue->RenderEnd();
+	mGraphicsCommandQueue->SignalFrame(mFrameResourceIndex, backIndex);
+
+	mFrameCurrIndex = mFrameResourceIndex;
+	mFrameResourceIndex = (mFrameResourceIndex + 1) % FRAMEGROUP_COUNT;
+}
+
+void RenderManager::CheckMsaaSupport(DXGI_FORMAT format, uint32 sampleCount)
+{
+	mMsaaSampleCount = 1;
+	mMsaaQuality = 0;
+
+	if (sampleCount <= 1)
+	{
+		return;
+	}
+
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS qualityLevels{};
+	qualityLevels.Format = format;
+	qualityLevels.SampleCount = sampleCount;
+	qualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+	qualityLevels.NumQualityLevels = 0;
+
+	if (SUCCEEDED(mDevice->GetDevice()->CheckFeatureSupport(
+		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+		&qualityLevels,
+		sizeof(qualityLevels)))
+		&& qualityLevels.NumQualityLevels > 0)
+	{
+		mMsaaSampleCount = sampleCount;
+		mMsaaQuality = qualityLevels.NumQualityLevels - 1;
+	}
 }
 
 void RenderManager::ResizeWindow(int32 width, int32 height)
@@ -186,13 +226,13 @@ void RenderManager::SetComputTable()
 	}
 
 
-	GRAPHICS_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+	COMPUTE_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
 
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
 
-	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
-	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
+	COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
 	// Table 바인딩
@@ -205,19 +245,15 @@ void RenderManager::SetComputTable()
 
 void RenderManager::SetGraphicsTable()
 {
-
-
 	if (mRootSignature == nullptr) {
 		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
-
 	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
-
 
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
-	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
+	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
 	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
@@ -239,7 +275,7 @@ void RenderManager::SetTable()
 		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
-	ID3D12DescriptorHeap* descHeap = mGraphicsDescHeap->GetDescriptorHeap().Get();
+	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
 	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
 
@@ -259,6 +295,16 @@ void RenderManager::CreateRenderTargetGroups()
 		CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0);
 
+	shared_ptr<Texture> msaaDsTexture = nullptr;
+	if (IsMsaaEnabled())
+	{
+		msaaDsTexture = gEngine->GetResourceManager().CreateTexture(L"DepthStencil_MSAA",
+			DXGI_FORMAT_D32_FLOAT, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0, mMsaaSampleCount, mMsaaQuality);
+	}
+
+
 	// SwapChain Group
 	{
 		vector<RenderTarget> rtVec(SWAP_CHAIN_BUFFER_COUNT);
@@ -276,6 +322,26 @@ void RenderManager::CreateRenderTargetGroups()
 
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)].Create(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN, rtVec, dsTexture);
 	}
+
+	// SwapChain MSAA Group
+	if (IsMsaaEnabled())
+	{
+		vector<RenderTarget> rtVec(SWAP_CHAIN_BUFFER_COUNT);
+
+		for (uint32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
+		{
+			wstring name = L"SwapChainMsaaTarget_" + std::to_wstring(i);
+
+			rtVec[i].Target = RESOURCEMANAGER.CreateTexture(name,
+				DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
+				CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+				D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false, mMsaaSampleCount, mMsaaQuality);
+		}
+
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::FINAL)].Create(RENDER_TARGET_GROUP_TYPE::FINAL, rtVec, msaaDsTexture);
+	}
+
+
 	//======공용=======
 	// Shadow Group
 	{
@@ -339,7 +405,8 @@ void RenderManager::CreateRenderTargetGroups()
 	int i = 0;
 	for (auto& renderTargetGroup : mRenderTargetGroup) {
 		
-		if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN) {
+		if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::FINAL) {
 			continue;
 		}
 
@@ -356,6 +423,8 @@ void RenderManager::CreateRenderTargetGroups()
 
 			// ViewDimension에 따라 다른 구조체 필드를 설정
 			srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+
+			
 
 			switch (srvDesc.ViewDimension)
 			{
@@ -378,12 +447,17 @@ void RenderManager::CreateRenderTargetGroups()
 				srvDesc.TextureCube.MipLevels = mipLevels;
 				srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 				break;
-				// 다른 텍스처 차원에 대한 case 추가 (3D, CubeArray 등)
+			case D3D12_SRV_DIMENSION_TEXTURE2DMS:
+				srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
+				srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
+				srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
+				srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
+				break;
 			default:
 				// 지원하지 않는 차원에 대한 오류 처리
 				break;
 			}
-			D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mGraphicsDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+			D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 			uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 			D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (i ) * srvSize);

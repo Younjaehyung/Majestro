@@ -47,14 +47,19 @@ public:
 	void Render() {};
 	void EndRender();
 
+	void CheckMsaaSupport(DXGI_FORMAT format, uint32 sampleCount);
 	void ResizeWindow(int32 width, int32 height);
 
 	void SetComputTable();
 	void SetGraphicsTable();
 	void SetTable();
-
+	void SetAnimationComputeFenceValue(uint64 fenceValue) { mAnimationComputeFenceValue = fenceValue; }
 	const WindowInfo& GetWindow() { return mWindow; }
-	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mGraphicsDescHeap->GetDescriptorHeap().Get(); }
+	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mDescHeap->GetDescriptorHeap().Get(); }
+
+	uint32 GetMsaaSampleCount() const { return mMsaaSampleCount; }
+	uint32 GetMsaaQuality() const { return mMsaaQuality; }
+	bool IsMsaaEnabled() const { return mMsaaSampleCount > 1; }
 
 public:
 	shared_ptr<Device>					GetDevice()				{ return mDevice; }
@@ -63,7 +68,7 @@ public:
 
 	shared_ptr<SwapChain>				GetSwapChain()			{ return mSwapChain; }
 	
-	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mGraphicsDescHeap; }
+	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mDescHeap; }
 	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()	{ return mRenderTargetHeap; }
 
 public:
@@ -78,7 +83,7 @@ public:
 public:
 	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
 	uint32 GetFrameCurrIndex() {return mFrameCurrIndex;}
-
+	uint64 GetAnimationComputeFenceValue() const { return mAnimationComputeFenceValue; }
 	
 private:
 	void CreateRenderTargetGroups();
@@ -92,7 +97,7 @@ private:
 private:
 	uint32			mFrameResourceIndex{};	// 프레임리소스 그룹 인덱스 (현재 CPU에서 처리중인 Index)
 	uint32			mFrameCurrIndex{};		// 현재 GPU로 보낸 Index
-
+	uint64			mAnimationComputeFenceValue{};
 private:
 	// DX12
 	shared_ptr<Device>							mDevice						= make_shared<Device>();
@@ -101,7 +106,7 @@ private:
 	
 	
 	shared_ptr<SwapChain>						mSwapChain					= make_shared<SwapChain>();
-	shared_ptr<GraphicsDescriptorHeap>			mGraphicsDescHeap			= make_shared<GraphicsDescriptorHeap>();
+	shared_ptr<GraphicsDescriptorHeap>			mDescHeap			= make_shared<GraphicsDescriptorHeap>();
 
 	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
 
@@ -116,6 +121,9 @@ private:
 
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:
+
+	uint32			mMsaaSampleCount{ 1 };
+	uint32			mMsaaQuality{ 0 };
 
 	WindowInfo		mWindow;
 	D3D12_VIEWPORT	mViewport{};

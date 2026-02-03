@@ -43,9 +43,15 @@ void RenderSystem::Initialize()
 void RenderSystem::Update()
 {
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
-	std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
-	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);
-	
+	/*std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
+	mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);*/
+	auto cameraView = mWorld->View<MainCameraComponent>();
+	auto cameraIt = cameraView.begin();
+	if (cameraIt == cameraView.end()) {
+		return;
+	}
+	mCamera = mWorld->GetComponent<CameraComponent>(*cameraIt);
+
 	ClearRTV();
 
 	PushData();
@@ -56,8 +62,7 @@ void RenderSystem::Update()
 
 	//ParticleRendering();
 
-	
-
+	RenderFinal();
 
 }
 
@@ -74,13 +79,13 @@ void RenderSystem::PushData()
 
 void RenderSystem::DefferdRendering()
 {
-	RenderShadow();
+	//RenderShadow();
 
 	RenderGBuffer();
 
 	RenderLights();
 
-	RenderFinal();
+	
 }
 
 void RenderSystem::ForwardRendering()
@@ -98,10 +103,22 @@ void RenderSystem::ClearRTV()
 {
 	// SwapChain Group 초기화
 	uint8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
+	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
+
+	if (RENDERMANAGER.IsMsaaEnabled()) //msaa
+	{
+		auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(
+			static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL));
+		finalGroup.WaitResourceToTarget();
+		finalGroup.ClearRenderTargetView(backIndex);
+	}
+	else
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
+	}
 
 	// Shadow Group 초기화 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
+	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
 
 	// Deferred Group 초기화 
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).ClearRenderTargetView();
@@ -229,15 +246,19 @@ void RenderSystem::PushLightData()
 {
 	// light Component 추출
 	const vector<Entity>& entities = mWorld->GetEntitiesWithComponent<LightComponent>();
-	ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
-
+	//ComponentPool<LightComponent>& lightComponents = mWorld->GetComponentPool<LightComponent>();
+	
+	TransformComponent* transformComponent;
+	LightComponent* lightComponent;
+	RenderComponent* renderComponent;
+	CameraComponent* cameraComponent;
 	// push 시작 (vector에 값 밀어 넣기)
 	for (auto& entity : entities)
 	{
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-		LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(entity);
-		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
-		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
+		transformComponent	= mWorld->GetComponent<TransformComponent>(entity);
+		lightComponent		= mWorld->GetComponent<LightComponent>(entity);
+		renderComponent		= mWorld->GetComponent<RenderComponent>(entity);
+		cameraComponent		= mWorld->GetComponent<CameraComponent>(entity);
 
 
 		lightParams = {};
@@ -265,18 +286,27 @@ void RenderSystem::PushLightData()
 void RenderSystem::PushObjectData()
 {
 	const vector<EntityID>& gameObjects = mRenderComponentPool->GetEntities();
-	
+	auto View = mWorld->View<RenderComponent>();
+	TransformComponent* transformComponent;
+	AnimationComponent* animationComponent;
+	RenderComponent* renderComponent;
+	RenderParams renderParams{};
+
 	uint32 index{};
 	int32 index2{};
-	for (const EntityID& gameObject : gameObjects)		// 같은 머테리얼을 가진 것끼리 분류
+
+	for (auto gameObject : View)		// 같은 머테리얼을 가진 것끼리 분류
 	{
-		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
-		if (mWorld->GetComponent<LightComponent>(gameObject) || renderComponent->mIsNotObject) {
+		//renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+		
+		/*if (mWorld->GetComponent<LightComponent>(gameObject) || renderComponent->mIsNotObject) {
 			continue;
-		}
+		}*/
+
 		if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
 
-			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+			renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+			transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
 			TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);
 
 			objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
@@ -287,6 +317,7 @@ void RenderSystem::PushObjectData()
 
 
 			uint32 subMaterialIdx{};
+			renderParams = { renderComponent->mObjectIndex, terrainComponent->mHeightmap->GetIndex(), index2, 0 };
 			mDeferredDrawItems.emplace_back(
 				terrainComponent->mHeightmap->GetShader(),
 				renderComponent->mMesh,
@@ -294,40 +325,51 @@ void RenderSystem::PushObjectData()
 				renderComponent->mMesh->GetID(),
 				terrainComponent->mHeightmap->GetID(),
 				subMaterialIdx++,
-				RenderParams{ renderComponent->mObjectIndex, terrainComponent->mHeightmap->GetIndex(),index2,0 }
+				renderParams
 			);
-			
+
 			continue;
 		}
-		
 
-		TransformComponent*		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-		AnimationComponent*		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
+		renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
+		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
 
-		
+		if (false == IsFrustumCulled(transformComponent, renderComponent))continue;
+		if (false == renderComponent->mVisibility) continue;
 
 		objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
 		mObjectVector.push_back(objectParams);		// 트랜스폼 갱신
 			
 		renderComponent->mObjectIndex = index++;	// objectParams의 index 지정
-		
-		index2 = animationComponent ? animationComponent->mAnimInstanceID : -1;
+
+		animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
+		index2  = animationComponent ? animationComponent->mAnimInstanceID : -1;
 		
 
 
 		uint32 subMaterialIdx{};
+		DrawItem drawItem{};
 		for (shared_ptr<Material>& material : renderComponent->mMaterials) {
 
+			renderParams = { renderComponent->mObjectIndex, material->GetIndex(),index2,0 };
 
-			mDeferredDrawItems.emplace_back(
+			drawItem = { material->GetShader(),
+				renderComponent->mMesh,
+				material->GetShaderID(),
+				renderComponent->mMesh->GetID(),
+				material->GetID(),
+				subMaterialIdx++,
+				renderParams };
+			mDeferredDrawItems.push_back(drawItem);
+			/*mDeferredDrawItems.emplace_back(
 				material->GetShader(),
 				renderComponent->mMesh,
 				material->GetShaderID(),
 				renderComponent->mMesh->GetID(),
 				material->GetID(),
 				subMaterialIdx++,
-				RenderParams{ renderComponent->mObjectIndex, material->GetIndex(),index2,0 }
-			);
+				renderParams
+			);*/
 		}
 	}
 
@@ -392,11 +434,28 @@ void RenderSystem::PushObjectData()
 		}
 	}
 
-	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
-		if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
-		if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
-		return a.SubMesh < b.SubMesh;                          // Submesh
+	//std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a, auto& b) {
+	//	if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;   // PSO 우선
+	//	if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;  // Mesh
+	//	return a.SubMesh < b.SubMesh;                          // Submesh
+	//	});
+	
+	// [수정] 정렬 키를 실제 드로우에 사용되는 SubMeshIndex로 맞춘다.
+	std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(),
+		[](const DrawItem& a, const DrawItem& b)
+		{
+			if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;
+			if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;
+
+			// [수정] a.SubMeshIndex 기준으로 묶어야 InstancingRender의 Render(submesh)와 일치한다.
+			if (a.SubMeshIndex != b.SubMeshIndex) return a.SubMeshIndex < b.SubMeshIndex;
+
+			// (선택) material id까지 묶고 싶으면 여기서 비교
+			// return a.MaterialID < b.MaterialID;
+
+			return a.SubMesh < b.SubMesh;
 		});
+
 
 
 	uint32 psoId{};
@@ -426,11 +485,11 @@ void RenderSystem::PushObjectData()
 		mBatch.PSOShader = mDeferredDrawItems[i].PSOShader;
 		mBatch.Mesh = mDeferredDrawItems[i].PMesh;
 		mBatch.PSOID = psoId;
-		mBatch.MeshID = meshId;
-		mBatch.SubMesh = smIdx;
+		//mBatch.MeshID = meshId;
+		//mBatch.SubMesh = smIdx;
 		mBatch.SubMeshIndex = mDeferredDrawItems[i].SubMeshIndex;
 		mBatch.BaseInstance = base;
-		mBatch.InstanceCount = (uint32)(j - i);    // 이 run의 인스턴스 수
+		mBatch.InstanceCount = (j - i);    // 이 run의 인스턴스 수
 		//mBatch.InstanceGPU = mDeferredDrawItems[i].InstanceGPU;
 		//mBatch.ParamsINX = i;
 		mDeferredDrawBatchs.push_back(mBatch);
@@ -440,7 +499,7 @@ void RenderSystem::PushObjectData()
 
 
 
-
+	
 	RENDERMANAGER.GetGroupBuffer(mFrameCount)->ObjectInfo->PushGraphicsData(mObjectVector.data(), static_cast<uint32>(sizeof(objectParams)*mObjectVector.size()));
 }
 
@@ -501,15 +560,6 @@ void RenderSystem::RenderLights()
 {
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).OMSetRenderTargets();
 
-
-	//// 광원을 그린다.
-	//// 광원을 기준으로 나머지 객체들을 그린다
-
-	//for (auto& light : _lights)
-	//{
-	//	light->Render();
-	//}
-
 	auto lights = 
 	mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent, CameraComponent, RenderComponent>();
 
@@ -533,16 +583,38 @@ void RenderSystem::RenderFinal()
 	// Swapchain OMSet
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
-	
+	if(RENDERMANAGER.IsMsaaEnabled()){//msaa
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitResourceToTarget();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+	}
+	else
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	}
+
 	RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
 	
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
+
+	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+	}
 }
 
 void RenderSystem::RenderForward()
 {
+	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+		
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+	}
+	else
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	}
+
 	for (auto& drawBatch : mDeferredDrawBatchs)
 	{
 		if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
@@ -558,7 +630,9 @@ void RenderSystem::RenderForward()
 		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 2, &(dum), 0);
 		InstancingRender(drawBatch);
 	}
-
+	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+	}
 }
 
 void RenderSystem::RenderingParticle()
@@ -582,11 +656,16 @@ void RenderSystem::RenderingParticle()
 
 }
 
-bool RenderSystem::IsFrustumCulled()
+bool RenderSystem::IsFrustumCulled(TransformComponent* trans,RenderComponent* renderComponent)
 {
-	
-
-	return false;
+	if (renderComponent->mCheckFrustum && mCamera) {
+		//if (trans->mIsDirty)
+			renderComponent->UpdateWorldOBB(trans);
+		if (!mCamera->IntersectsOBB(renderComponent->mWorldOBB)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent)

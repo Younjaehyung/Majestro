@@ -6,6 +6,7 @@
 #include "FBXData.h"
 
 
+
 void ResourceManager::Initialize()
 {
 	CreateDefaultRootSignature();
@@ -395,6 +396,19 @@ shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 	return meshData;
 }
 
+shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path)
+{
+	shared_ptr<FBXData> meshData = Get<FBXData>(path);
+	if (meshData)
+		return meshData;
+	meshData = make_shared<FBXData>();
+	meshData->LoadMeshOnly(path);
+	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(path, meshData);
+
+	return meshData;
+}
+
 shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
 {
 	shared_ptr<Vfx> effect = Get<Vfx>(s2ws(filesystem::path(path).filename().stem().string()));
@@ -414,20 +428,126 @@ void ResourceManager::LoadAllTexture(const wstring& path)
 
 }
 
-void ResourceManager::LoadResourceJson(const wstring& path)
+LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 {
-	//meshData->Load(path);
-	//meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
-	//Add(path, meshData);
+	std::string jsonPath = ws2s(path);
+	std::ifstream ifs(jsonPath);
+	if (!ifs.is_open())
+		throw std::runtime_error("Failed to open json: " + jsonPath);
 
+	json root;
+	ifs >> root;
+
+	LevelImportData out{};
+	out.levelName = GetString(root, "level_name");
+
+	if (root.contains("actual_export_root"))
+		out.actualExportRoot = root["actual_export_root"].get<std::string>();
+
+	// [수정] JSON units 처리
+	// UE exporter가 "units":"cm"로 박아놨음. 엔진이 cm면 1.0f, 엔진이 m면 0.01f로 바꿔라.
+	float positionUnitScale = 1.0f; // 기본: cm 그대로
+	if (root.contains("units"))
+	{
+		const std::string units = root["units"].get<std::string>();
+		if (units == "cm")
+		{
+			// 엔진 단위가 cm라면 1.0f 유지
+			// 엔진 단위가 m라면 아래를 0.01f로 바꿔야 함.
+			positionUnitScale = 1.0f;
+		}
+		else if (units == "m")
+		{
+			// exporter가 m로 내보냈을 때를 대비
+			positionUnitScale = 1.0f;
+		}
+	}
+
+	const auto& actors = Require(root, "actors");
+	if (!actors.is_array())
+		throw std::runtime_error("JSON 'actors' is not an array");
+
+	for (const auto& a : actors)
+	{
+		const std::string actorName = GetString(a, "name");
+		const std::string actorPath = GetString(a, "path");
+
+		const auto& comps = Require(a, "static_mesh_components");
+		if (!comps.is_array())
+			throw std::runtime_error("JSON components is not an array");
+
+		for (const auto& c : comps)
+		{
+			const std::string compName = GetString(c, "component_name");
+			const std::string meshAsset = GetString(c, "static_mesh_asset");
+			const std::string fbxPath = (c.contains("fbx") && !c["fbx"].is_null()) ? c["fbx"].get<std::string>() : "";
+
+			if (c.contains("instances") && c["instances"].is_array())
+			{
+				const auto& instances_json = c["instances"];
+				out.instances.reserve(out.instances.size() + instances_json.size());
+
+				for (const auto& inst_j : instances_json)
+				{
+					MeshInstance insts{};
+					insts.actorName = actorName;
+					insts.actorPath = actorPath;
+					insts.componentName = compName;
+					insts.staticMeshAsset = meshAsset;
+					insts.fbx = fbxPath;
+
+					// exporter JSON에서 instance는 inst_j["dx"]가 바로 있음
+					const auto& dx = Require(inst_j, "dx");
+					insts.world = ParseDxTransform(dx);
+
+					// [수정] 로드 단계에서 월드행렬 생성 (DX12에 바로 사용 가능)
+					{
+						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world, /*fromUe=*/false);
+
+						insts.worldMtx = Matrix::CreateRotationZ(-90.f) * Matrix::CreateRotationX(90.f) * insts.worldMtx;
+						
+					}
+
+					out.instances.push_back(std::move(insts));
+				}
+			}
+			else
+			{
+				MeshInstance inst{};
+				inst.actorName = actorName;
+				inst.actorPath = actorPath;
+				inst.componentName = compName;
+				inst.staticMeshAsset = meshAsset;
+				inst.fbx = fbxPath;
+
+				const auto& cwt = Require(c, "component_world_transform");
+				const auto& dx = Require(cwt, "dx");
+				inst.world = ParseDxTransform(dx);
+
+				// [수정] 로드 단계에서 월드행렬 생성
+				{
+					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, /*fromUe=*/false);
+
+					inst.worldMtx =   inst.worldMtx * Matrix::CreateRotationZ(90.f);
+
+				}
+
+
+				out.instances.push_back(std::move(inst));
+			}
+		}
+	}
+
+	return out;
 }
+
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags,bool createSRVUAV, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags,bool createSRVUAV, int msaaCount,int msaaQuilty, Vec4 clearColor)
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
-	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, createSRVUAV,clearColor);
+	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, createSRVUAV, msaaCount, msaaQuilty,clearColor);
 	Add(name, texture);
 
 	return texture;
@@ -491,7 +611,20 @@ void ResourceManager::CreateDefaultRootSignature()
 		rootSignature->AddTable(ranges2);
 		rootSignature->AddTable(ranges3);
 		rootSignature->AddTable(ranges4);
-		rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
+		//rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
+
+		CD3DX12_STATIC_SAMPLER_DESC samplerDesc(0);
+		samplerDesc.Filter = D3D12_FILTER_ANISOTROPIC;
+		samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+		samplerDesc.MipLODBias = 0.0f;
+		samplerDesc.MaxAnisotropy = 16;
+		samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		samplerDesc.MinLOD = 0.0f;
+		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+		rootSignature->AddSampler(samplerDesc);
+
 		rootSignature->CreateGraphicsRootSignature();
 
 	}
@@ -519,7 +652,7 @@ void ResourceManager::CreateDefaultShader()
 {
 	
 
-	// Skybox
+	// Skybox					현재 swapChain에 박고 있음
 	{
 		ShaderInfo info =
 		{
@@ -536,7 +669,7 @@ void ResourceManager::CreateDefaultShader()
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
 
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
 
 		Add<Shader>(L"Skybox", shader);
 	}
@@ -571,7 +704,7 @@ void ResourceManager::CreateDefaultShader()
 
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, arg);
+		shader->CreateGraphicsShader(shaderPath, info, 1 ,arg);
 		Add<Shader>(L"Terrain", shader);
 	}
 
@@ -587,10 +720,6 @@ void ResourceManager::CreateDefaultShader()
 	//	.PS = L"..\\Resources\\Shader\\cel_PS.hlsl"
 	//	};
 
-	//	shared_ptr<Shader> shader = make_shared<Shader>();
-	//	shader->CreateGraphicsShader(shaderPath, info);
-	//	Add<Shader>(L"Cel", shader);
-	//}
 
 // Deferred (Deferred)
 	{
@@ -606,7 +735,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Deferred", shader);
 	}
 
@@ -622,7 +751,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\forward_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
 		Add<Shader>(L"Forward", shader);
 	}
 
@@ -640,7 +769,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\texture_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Tex", "PS_Tex");
+		shader->CreateGraphicsShader(shaderPath, info, 4, "VS_Tex", "PS_Tex");
 		Add<Shader>(L"Texture", shader);
 	}
 
@@ -658,7 +787,7 @@ void ResourceManager::CreateDefaultShader()
 		.PS = L"..\\Resources\\Shader\\lighting_dir_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_DirLight", "PS_DirLight");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_DirLight", "PS_DirLight");
 		Add<Shader>(L"DirLight", shader);
 	}
 
@@ -676,7 +805,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\lighting_point_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_PointLight", "PS_PointLight");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_PointLight", "PS_PointLight");
 		Add<Shader>(L"PointLight", shader);
 	}
 
@@ -693,7 +822,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\final_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Final", "PS_Final");
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Final");
 		Add<Shader>(L"Final", shader);
 	}
 
@@ -723,7 +852,7 @@ void ResourceManager::CreateDefaultShader()
 			.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main", "GS_Main");
+		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main", "GS_Main");
 		Add<Shader>(L"Particle", shader);
 	}
 
@@ -751,12 +880,12 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\shadow_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"Shadow", shader);
 	}
 
 
-	// UI
+	// UI			현재 swapChain에 박고 있음
 	{
 		ShaderInfo info =
 		{
@@ -770,7 +899,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\UI_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info,1, ShaderArg());
 		Add<Shader>(L"UI", shader);
 	}
 
@@ -803,7 +932,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, 4, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine", shader);
 	}
 
@@ -824,7 +953,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info,4, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine_NoDepth", shader);
 	}
 }
@@ -837,7 +966,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Skybox");
-		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\sky.jpg"), DIFFUSEMAP0INDEX);
+		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\Hdri_Sky.dds"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Skybox", material);
 	}
 
@@ -885,9 +1014,9 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Terrain");
-		material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Terrain\\Asphalt.png"), DIFFUSEMAP0INDEX);
+		//material->SetTexture(Load<Texture>(L"HeightMap0", L"..\\Resources\\Terrain\\Asphalt.png"), DIFFUSEMAP0INDEX);
 		//material->SetTexture(Load<Texture>(L"HeightMap1", L"..\\Resources\\Terrain\\Base_Texture.jpg"), DIFFUSEMAP1INDEX);
-		material->SetTexture(Load<Texture>(L"HeightMap2", L"..\\Resources\\Terrain\\Height.png"), DIFFUSEMAP2INDEX);
+		material->SetTexture(Load<Texture>(L"T_Height", L"..\\Resources\\Terrain\\T_Height.png"), DIFFUSEMAP2INDEX);
 		Add<Material>(L"Terrain", material);
 	}
 	// Terrain 1
@@ -895,45 +1024,55 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> color1 = make_shared<Material>();
 		color1->SetShader(L"Terrain");
-		color1->SetTexture(Load<Texture>(L"T_Asphalt_BC", L"..\\Resources\\Terrain\\T_Asphalt_BC.png"), DIFFUSEMAP0INDEX);
-		color1->SetTexture(Load<Texture>(L"Asphalt", L"..\\Resources\\Terrain\\Asphalt.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"T_Rock_BC", L"..\\Resources\\Terrain\\T_Rock_BC.png"), DIFFUSEMAP0INDEX);
+		color1->SetTexture(Load<Texture>(L"T_Rock_Layer", L"..\\Resources\\Terrain\\T_Rock_Layer.png"), DIFFUSEMAP1INDEX);
 		color1->SetTexture(Load<Texture>(L"colors", L"..\\Resources\\Terrain\\Geom_Rock_Overgrown_B_LOD00_Rock_Overgrown_B_0_Normal.png"), NORMALMAPINDEX);
-		Add<Material>(L"Asphalt", color1);
+		Add<Material>(L"Rock", color1);
 
+
+		//
 		shared_ptr<Material> color2 = make_shared<Material>();
 		color2->SetShader(L"Terrain");
-		color2->SetTexture(Load<Texture>(L"T_Grass_Uncut_BC", L"..\\Resources\\Terrain\\T_Grass_Uncut_BC.png"), DIFFUSEMAP0INDEX);
-		color2->SetTexture(Load<Texture>(L"Grass_Uncut", L"..\\Resources\\Terrain\\Grass_Uncut.png"), DIFFUSEMAP1INDEX);
+		color2->SetTexture(Load<Texture>(L"T_Dirt_BC", L"..\\Resources\\Terrain\\T_Dirt_BC.png"), DIFFUSEMAP0INDEX);
+		color2->SetTexture(Load<Texture>(L"T_Dirt_Layer", L"..\\Resources\\Terrain\\T_Dirt_Layer.png"), DIFFUSEMAP1INDEX);
 		color2->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Grass_Uncut", color2);
+		Add<Material>(L"Dirt", color2);
 
+		//
 		shared_ptr<Material> color3 = make_shared<Material>();
 		color3->SetShader(L"Terrain");
-		color3->SetTexture(Load<Texture>(L"T_Ground_Gravel_BC", L"..\\Resources\\Terrain\\T_Ground_Gravel_BC.png"), DIFFUSEMAP0INDEX);
-		color3->SetTexture(Load<Texture>(L"Ground_Gravel", L"..\\Resources\\Terrain\\Ground_Gravel.png"), DIFFUSEMAP1INDEX);
+		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.dds"), DIFFUSEMAP0INDEX);
+		color3->SetTexture(Load<Texture>(L"T_Grass_Layer", L"..\\Resources\\Terrain\\T_Grass_Layer.png"), DIFFUSEMAP1INDEX);
 		color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Ground_Gravel", color3);
+		Add<Material>(L"Grass", color3);
 
-		shared_ptr<Material> color4 = make_shared<Material>();
-		color4->SetShader(L"Terrain");
-		color4->SetTexture(Load<Texture>(L"T_Mosaic_BC", L"..\\Resources\\Terrain\\T_Mosaic_BC.png"), DIFFUSEMAP0INDEX);
-		color4->SetTexture(Load<Texture>(L"Mosaic", L"..\\Resources\\Terrain\\Mosaic.png"), DIFFUSEMAP1INDEX);
-		color4->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Mosaic", color4);
+		//shared_ptr<Material> color3 = make_shared<Material>();
+		//color3->SetShader(L"Terrain");
+		//color3->SetTexture(Load<Texture>(L"T_Ground_Gravel_BC", L"..\\Resources\\Terrain\\T_Ground_Gravel_BC.png"), DIFFUSEMAP0INDEX);
+		//color3->SetTexture(Load<Texture>(L"Ground_Gravel", L"..\\Resources\\Terrain\\Ground_Gravel.png"), DIFFUSEMAP1INDEX);
+		//color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"Ground_Gravel", color3);
 
-		shared_ptr<Material> color5 = make_shared<Material>();
-		color5->SetShader(L"Terrain");
-		color5->SetTexture(Load<Texture>(L"T_SnowFootprints_BC", L"..\\Resources\\Terrain\\T_SnowFootprints_BC.png"), DIFFUSEMAP0INDEX);
-		color5->SetTexture(Load<Texture>(L"SnowFootprints", L"..\\Resources\\Terrain\\SnowFootprints.png"), DIFFUSEMAP1INDEX);
-		color5->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"SnowFootprints", color5);
+		//shared_ptr<Material> color4 = make_shared<Material>();
+		//color4->SetShader(L"Terrain");
+		//color4->SetTexture(Load<Texture>(L"T_Mosaic_BC", L"..\\Resources\\Terrain\\T_Mosaic_BC.png"), DIFFUSEMAP0INDEX);
+		//color4->SetTexture(Load<Texture>(L"Mosaic", L"..\\Resources\\Terrain\\Mosaic.png"), DIFFUSEMAP1INDEX);
+		//color4->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"Mosaic", color4);
 
-		shared_ptr<Material> color6 = make_shared<Material>();
-		color6->SetShader(L"Terrain");
-		color6->SetTexture(Load<Texture>(L"T_Soil_Mud", L"..\\Resources\\Terrain\\T_Soil_Mud.png"), DIFFUSEMAP0INDEX);
-		color6->SetTexture(Load<Texture>(L"Soil_Mud", L"..\\Resources\\Terrain\\Soil_Mud.png"), DIFFUSEMAP1INDEX);
-		color6->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
-		Add<Material>(L"Soil_Mud", color6);
+		//shared_ptr<Material> color5 = make_shared<Material>();
+		//color5->SetShader(L"Terrain");
+		//color5->SetTexture(Load<Texture>(L"T_SnowFootprints_BC", L"..\\Resources\\Terrain\\T_SnowFootprints_BC.png"), DIFFUSEMAP0INDEX);
+		//color5->SetTexture(Load<Texture>(L"SnowFootprints", L"..\\Resources\\Terrain\\SnowFootprints.png"), DIFFUSEMAP1INDEX);
+		//color5->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"SnowFootprints", color5);
+
+		//shared_ptr<Material> color6 = make_shared<Material>();
+		//color6->SetShader(L"Terrain");
+		//color6->SetTexture(Load<Texture>(L"T_Soil_Mud", L"..\\Resources\\Terrain\\T_Soil_Mud.png"), DIFFUSEMAP0INDEX);
+		//color6->SetTexture(Load<Texture>(L"Soil_Mud", L"..\\Resources\\Terrain\\Soil_Mud.png"), DIFFUSEMAP1INDEX);
+		//color6->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		//Add<Material>(L"Soil_Mud", color6);
 
 
 	}	// Terrain
@@ -1009,12 +1148,12 @@ void ResourceManager::CreateDefaultMaterial()
 
 	//Aim
 	{
-		shared_ptr<Texture> texture = Load<Texture>(L"Aim", L"..\\Resources\\Image\\UI\\UI_Aim_01.png");
+		shared_ptr<Texture> texture = Load<Texture>(L"jAims", L"..\\Resources\\Image\\UI\\UI_Aim_01.png");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
-		Add<Material>(L"Aim", material);
+		Add<Material>(L"jAims", material);
 	}
 
 	//Ibanix_Ammo
@@ -1107,15 +1246,17 @@ void ResourceManager::CreateDefaultMaterial()
 	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
 
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
-	 LoadFBX(L"..\\Resources\\FBX\\Capoeira.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Dragon.fbx");
+
 
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Run.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
+	
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Fall.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
 
 
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx");

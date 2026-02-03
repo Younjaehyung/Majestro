@@ -48,6 +48,8 @@ void Texture::Load(const wstring& path)
 	D3D12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
 
+
+
 	ComPtr<ID3D12Resource> textureUploadHeap;
 	hr = DEVICE->CreateCommittedResource(
 		&heapProperty,
@@ -89,9 +91,9 @@ void Texture::Load(const wstring& path)
 
 void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, int massCount,int msaaQality, Vec4 clearColor)
 {
-	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height);
+	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height,1, 1, massCount, msaaQality);
 	mDescription.Flags = resFlags;
 
 
@@ -126,14 +128,15 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 
 	assert(SUCCEEDED(hr));
 
+	mIsMSAA = (massCount > 1) ? true : false;
+	mMSAACount = massCount;
 
-
-	CreateFromResource(mImage, createSRVUAV);
+	CreateFromResource(mImage, createSRVUAV, mMSAACount);
 
 
 }
 
-void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV)
+void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV, int isMSAA)
 {
 	mImage = tex2D;
 
@@ -143,7 +146,9 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 		return;
 	}
 
-	UINT mipLevels = 1;	// 임시 밈맵
+	mMipLevels = mOriginalImage.GetMetadata().mipLevels;	// 임시 밈맵
+
+
 
 	// Texture에 대한 SRV 서술자 설정
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -153,17 +158,22 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 	// ViewDimension에 따라 다른 구조체 필드를 설정
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
+	if(isMSAA > 1)
+	{
+		srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DMS;
+	}
+
 	switch (srvDesc.ViewDimension)
 	{
 	case D3D12_SRV_DIMENSION_TEXTURE2D:
 		srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
-		srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
+		srvDesc.Texture2D.MipLevels = mMipLevels;     // 사용할 밉맵 레벨 수
 		srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
 		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
 		break;
 	case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
 		srvDesc.Texture2DArray.MostDetailedMip = 0;
-		srvDesc.Texture2DArray.MipLevels = mipLevels;
+		srvDesc.Texture2DArray.MipLevels = mMipLevels;
 		srvDesc.Texture2DArray.FirstArraySlice = 0;
 		srvDesc.Texture2DArray.ArraySize = mImage->GetDesc().DepthOrArraySize; // 배열 크기
 		srvDesc.Texture2DArray.PlaneSlice = 0;
@@ -171,10 +181,15 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 		break;
 	case D3D12_SRV_DIMENSION_TEXTURECUBE:
 		srvDesc.TextureCube.MostDetailedMip = 0;
-		srvDesc.TextureCube.MipLevels = mipLevels;
+		srvDesc.TextureCube.MipLevels = mMipLevels;
 		srvDesc.TextureCube.ResourceMinLODClamp = 0.0f;
 		break;
-		// 다른 텍스처 차원에 대한 case 추가 (3D, CubeArray 등)
+	case D3D12_SRV_DIMENSION_TEXTURE2DMS:
+		srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
+		srvDesc.Texture2D.MipLevels = mMipLevels;     // 사용할 밉맵 레벨 수
+		srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
+		srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
+		break;
 	default:
 		// 지원하지 않는 차원에 대한 오류 처리
 		break;

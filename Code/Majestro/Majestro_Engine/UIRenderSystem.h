@@ -20,7 +20,11 @@ class UIRenderSystem : public System
 public:
 	UIRenderSystem(World* world);
 	void Initialize();
+	void InitializeFont();
+
 	void Update();
+	void SpriteUpdate();
+	void TextUpdate();
 
 private:
     void UploadInstanceBuffer();

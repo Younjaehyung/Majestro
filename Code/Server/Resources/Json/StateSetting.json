@@ -40,6 +40,11 @@
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 0.666667
+        },
+        "Attack1State": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime":  1.16667
         }
     }
 }

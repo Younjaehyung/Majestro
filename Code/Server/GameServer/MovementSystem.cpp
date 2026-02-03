@@ -43,9 +43,15 @@ void MovementSystem::Update(float dt) {
 	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
 
 	//terrain
-	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
-	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
-	
+	//auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+	//TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
+	//
+
+
+	auto terrainView = mWorld->View<TerrainComponent>();
+	auto terrainIt = terrainView.begin();
+	if (terrainIt == terrainView.end()) return;
+	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(*terrainIt);
 
 	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {

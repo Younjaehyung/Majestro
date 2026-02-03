@@ -11,7 +11,10 @@ void CameraComponent::FinalUpdate(Matrix mat)
 		mProjection = ::XMMatrixOrthographicLH(mWidth * mScale, mHeight * mScale, mNear, mFar);
 
 
-	mFrustum.FinalUpdate(mView, mProjection);
+	//mFrustum.FinalUpdate(mView, mProjection);
 
-
+	BoundingFrustum localFrustum;
+	BoundingFrustum::CreateFromMatrix(localFrustum, mProjection);
+	Matrix viewInv = mView.Invert();
+	localFrustum.Transform(mBoundingFrustum, viewInv);
 }

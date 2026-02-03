@@ -104,9 +104,8 @@ void NetSendSystem::ConvertState()
 			S2C_StatePacket statePkt;
 			statePkt.netEntityId = netComp->mNetEntityId;
 			statePkt.stateId = playerComp->GetState();
-			//mSendReq.StoreAs<S2C_StatePacket>(statePkt);
-			////	netComp->mIsDirty = false;
-			//gSendQueue.Push(mSendReq);
+			statePkt.lowerStateId = playerComp->GetLowerState();
+
 
 			for (uint32 sessionId : recipients)
 			{
@@ -118,6 +117,7 @@ void NetSendSystem::ConvertState()
 				gSendQueue.Push(mSendReq);
 			}
 		}
+
 	}
 }
 

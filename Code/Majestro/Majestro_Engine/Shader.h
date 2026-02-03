@@ -86,12 +86,14 @@ public:
 	virtual ~Shader();
 
 
-	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(), const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
-	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(), ShaderArg arg = ShaderArg());
+	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(),int msaaCount = 1 ,const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
+	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(),int msaaCount = 1, ShaderArg arg = ShaderArg());
 
 	void CreateComputeShader(const ShaderPath& path, const string& name = "CS_Main", const string& version = "cs_5_1");
 
 	void Update();
+
+	
 
 	SHADER_TYPE GetShaderType() { return mInfo.shaderType; }
 	ComPtr<ID3D12PipelineState> GetPipelineState() { return mPipelineState; }

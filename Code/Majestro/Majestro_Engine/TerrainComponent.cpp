@@ -13,7 +13,7 @@ TerrainComponent::TerrainComponent(float width, float depth, shared_ptr<Material
 
 		.TileCountX = (int)width,
 		.TileCountZ = (int)depth,
-		.MinMaxTessDistance = Vec2(1000.f , 5000.f),
+		.MinMaxTessDistance = Vec2(100.f , 5000.f),
 
 
 		.MaxTessLevel = 4.0f,

@@ -13,7 +13,7 @@ Shader::~Shader()
 {
 }
 
-void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, ShaderArg arg)
+void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int msaaCount, ShaderArg arg)
 {
 
 	mInfo = info;
@@ -49,9 +49,19 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, Shade
 	mGraphicsPipelineDesc.SampleMask = UINT_MAX;
 	mGraphicsPipelineDesc.PrimitiveTopologyType = GetTopologyType(info.topology);
 	mGraphicsPipelineDesc.NumRenderTargets = 1;
-	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	mGraphicsPipelineDesc.SampleDesc.Count = 1;
+	mGraphicsPipelineDesc.SampleDesc.Quality = 0;
+	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
+
+	
+
+	if (msaaCount > 1)
+	{
+		mGraphicsPipelineDesc.SampleDesc.Count = RENDERMANAGER.GetMsaaSampleCount();
+		mGraphicsPipelineDesc.SampleDesc.Quality = RENDERMANAGER.GetMsaaQuality();
+	}
+
 
 	switch (info.shaderType)
 	{
@@ -62,10 +72,6 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, Shade
 		mGraphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM; // COLOR
 		break;
 	case SHADER_TYPE::FORWARD:
-		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-		break;
-	case SHADER_TYPE::UI:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
@@ -85,6 +91,25 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, Shade
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
 		break;
+	case SHADER_TYPE::BILBOARD:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::BLUR:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::UI:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::COMPOSITE:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	
+	
+	
 	}
 
 
@@ -174,7 +199,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, Shade
 }
 
 
-void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const string& vs, const string& ps, const string& gs)
+void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int msaaCount, const string& vs, const string& ps, const string& gs)
 {
 
 	mInfo = info;
@@ -209,7 +234,14 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, const
 	mGraphicsPipelineDesc.NumRenderTargets = 1;
 	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	mGraphicsPipelineDesc.SampleDesc.Count = 1;
+	mGraphicsPipelineDesc.SampleDesc.Quality = 0;
 	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
+
+	if(msaaCount > 1)
+	{
+		mGraphicsPipelineDesc.SampleDesc.Count = RENDERMANAGER.GetMsaaSampleCount();
+		mGraphicsPipelineDesc.SampleDesc.Quality = RENDERMANAGER.GetMsaaQuality();
+	}
 
 	switch (info.shaderType)
 	{

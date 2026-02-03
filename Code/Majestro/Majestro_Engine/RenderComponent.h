@@ -4,6 +4,7 @@
 
 class Mesh;
 class Material;
+class TransformComponent;
 
 union InstanceID
 {
@@ -24,7 +25,8 @@ public:
 	uint8 GetLayerIndex() { return mLayerIndex; }
 	bool IsVisibility() { return mVisibility; }
 	uint64 GetInstanceID();
-
+	void SetLocalOBB(const Vec3& center, const Vec3& halfExtents);
+	void UpdateWorldOBB(const TransformComponent* transformComponent);
 public:
 	bool mCheckFrustum = true;
 	bool mCheckVisibilty = true;
@@ -39,5 +41,8 @@ public:
 	uint32	mObjectIndex{};
 	bool mVisibility{true};
 
+	Vec3 mObbCenter = Vec3(0.f, 0.f, 0.f);
+	Vec3 mObbHalfExtents = Vec3(0.5f, 0.5f, 0.5f);
+	BoundingOrientedBox mWorldOBB{};
 };
 

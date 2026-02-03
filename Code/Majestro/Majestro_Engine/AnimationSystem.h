@@ -2,6 +2,8 @@
 #include "World.h"
 #include "System.h"
 
+class Animator;
+
 struct Bucket { uint32 start; uint32 count; uint32 bones; };
 
 struct CSBatchCB {
@@ -22,7 +24,7 @@ private:	// COMPUTE 애니메이션 시스템
 
 	void AnimationPush(float);
 	void AnimationCompute();
-	void AnimationBlend(float);
+	void AnimationBlend(const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio);
 
 	
 	void AnimationDispatch();

@@ -4,6 +4,12 @@
 void SwapChain::Initialize(const WindowInfo& info, ComPtr<ID3D12Device> device, ComPtr<IDXGIFactory> dxgi, ComPtr<ID3D12CommandQueue> cmdQueue)
 {
 	CreateSwapChain(info, dxgi, cmdQueue);
+	UpdateBackBufferIndex();
+}
+
+void SwapChain::UpdateBackBufferIndex()
+{
+	mBackBufferIndex = mSwapChain->GetCurrentBackBufferIndex();
 }
 
 void SwapChain::Present()
@@ -40,8 +46,9 @@ void SwapChain::CreateSwapChain(const WindowInfo& info, ComPtr<IDXGIFactory> dxg
 
 	
 
-	HRESULT hResult =  dxgi->CreateSwapChain(cmdQueue.Get(), &SWAP_CHAIN_DESC, &mSwapChain);	//스왑체인 만들기
-
+	ComPtr<IDXGISwapChain> swapChain;
+	HRESULT hResult = dxgi->CreateSwapChain(cmdQueue.Get(), &SWAP_CHAIN_DESC, &swapChain);	//스왑체인 만들기
+	swapChain.As(&mSwapChain);
 
 
 	dxgi->MakeWindowAssociation(info.Hwnd, DXGI_MWA_NO_ALT_ENTER);	// alt + enter 전체화면 금지

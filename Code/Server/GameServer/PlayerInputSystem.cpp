@@ -80,6 +80,11 @@ void PlayerInputSystem::Update(float dt)
 
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		}
+		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
+			std::cout << "attack!!!" << std::endl;
+			
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
+		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
@@ -94,7 +99,7 @@ void PlayerInputSystem::Update(float dt)
 
 
 		if (inputComp->IsMousePressed(InputMouse::LEFT)) {
-			//attack
+			
 
 			//screen move
 			movementComponent->mCameraRotationX += (float)inputComp->Pitch * dt * mDPI;

@@ -268,8 +268,7 @@ void StructuredBuffer::CreateUavView(uint32 frameCount, uint32 startIndex, uint3
 	uint32 mHandleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
 
 	//mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * GROUP_COUNT) + static_cast<uint32>(type) + STRUCTURED_INDEX_START) * mHandleIncrementSize);
-	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * groupCount) + type + mStartIndex) * mHandleIncrementSize);
-
+	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(mHeapHandleBegin, ((static_cast<uint32>(mFrameCount) * mGroupIndex) + mUavIndex + mStartIndex) * mHandleIncrementSize);
 
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};

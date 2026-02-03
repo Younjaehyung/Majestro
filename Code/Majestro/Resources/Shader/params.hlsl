@@ -80,6 +80,8 @@ struct ANIMINSTANCE
     float BlendRatio;
 
     float BlendWeight;
+    uint BlendMaskStart;
+    uint BlendMaskEnd;
 };
 
 struct ANIMFRAMEPARAMS

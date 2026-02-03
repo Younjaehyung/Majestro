@@ -91,6 +91,19 @@ void FBXData::Load(const wstring& path)
 
 }
 
+void FBXData::LoadMeshOnly(const wstring& path)
+{
+	mPath = ws2s(path);
+	std::string filePath{ filesystem::path(mPath).parent_path().string() + "\\" + filesystem::path(mPath).filename().stem().string() };
+
+
+	if (std::ifstream f(filePath + ".mesh", std::ios::binary); f) {
+		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
+		CreateMeshFromFBX(f);
+	}
+
+}
+
 vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 {
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
@@ -99,6 +112,10 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		// === 1) .mesh ===
 
 		string meshName = ReadString(loader);
+		//if (RESOURCEMANAGER.Get<Mesh>(s2ws(meshName))) {
+		//	
+		//	mMeshs.push_back(RESOURCEMANAGER.Get<Mesh>(s2ws(meshName)));
+		//}
 
 		FBXMeshInfo metaMeshInfo{};
 		loader.read(reinterpret_cast<char*>(&metaMeshInfo), sizeof(metaMeshInfo));

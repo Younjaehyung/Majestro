@@ -100,6 +100,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
       if (comp == nullptr || playercomp == nullptr) return;
 
       playercomp->mStatePacket = statePacket->stateId;
+      playercomp->mLowerStatePacket = statePacket->lowerStateId;
 	  netTransform->mElapsed = 0.0f;
       /*switch (statePacket->stateId)
       {

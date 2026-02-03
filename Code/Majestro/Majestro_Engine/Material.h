@@ -52,7 +52,7 @@ public:
 	Material();
 	virtual ~Material();
 
-	shared_ptr<Shader> GetShader() { return mShader; }
+	shared_ptr<Shader>& GetShader() { return mShader; }
 	wstring& GetShaderName() { return mShaderName; }
 	uint32 GetShaderID() { return mShaderID; }
 	void SetShader(std::wstring name);

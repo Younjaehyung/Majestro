@@ -9,6 +9,7 @@
 #include "Animator.h"
 #include "Skeleton.h"
 #include "FBXData.h"
+#include "LevelImport.h"
 #include "Vfx.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
@@ -48,15 +49,16 @@ public:
 	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
 
 	shared_ptr<FBXData>		LoadFBX(const wstring& path);
+	shared_ptr<FBXData> LoadFBXMesh(const wstring& path);
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
-	void LoadResourceJson(const wstring& path);
+	LevelImportData  LoadResourceJson(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수
 	shared_ptr<Texture> CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 		const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-		D3D12_RESOURCE_FLAGS resFlags = D3D12_RESOURCE_FLAG_NONE,bool createSRVUAV = 1, Vec4 clearColor = Vec4());
+		D3D12_RESOURCE_FLAGS resFlags = D3D12_RESOURCE_FLAG_NONE,bool createSRVUAV = 1,int msaaCount=1, int msaaQuilty =0,Vec4 clearColor = Vec4());
 
 
 	shared_ptr<Texture> CreateTextureFromResource(const wstring& name, ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1);

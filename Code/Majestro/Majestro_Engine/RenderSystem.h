@@ -6,9 +6,10 @@
 #include "Shader.h"
 #include "LightComponent.h"
 #include "TransformComponent.h"
-
+#include "RenderComponent.h"
 struct MaterialParams;
 struct PatricleParams;
+
 class Mesh;
 class Shader;
 class Material;
@@ -75,8 +76,8 @@ struct DrawItem
 
 	RenderParams InstanceGPU;
 	DrawItem() = default;
-	DrawItem(shared_ptr<Shader> shader,
-		shared_ptr<Mesh> mesh,
+	DrawItem(shared_ptr<Shader>& shader,
+		shared_ptr<Mesh>& mesh,
 		uint32 psoID,
 		uint32 meshID,
 		uint32 subMesh,
@@ -99,8 +100,8 @@ struct DrawBatch
 	shared_ptr<Mesh> Mesh{};
 
 	uint32 PSOID{};
-	uint32 MeshID{};
-	uint32 SubMesh{};
+	//uint32 MeshID{};
+	//uint32 SubMesh{};
 	uint32 SubMeshIndex{};
 
 	uint32 BaseInstance{};
@@ -111,8 +112,8 @@ struct DrawBatch
 		PSOShader = drawItem->PSOShader;
 		Mesh = drawItem->PMesh;
 		PSOID = drawItem->PSOID;
-		MeshID = drawItem->MeshID;
-		SubMesh = drawItem->SubMesh;
+		//MeshID = drawItem->MeshID;
+		//SubMesh = drawItem->SubMesh;
 		SubMeshIndex = drawItem->SubMeshIndex;
 	}
 
@@ -147,7 +148,7 @@ private: // RenderPass
 
 private: // Culling
 	bool IsCustomCulled(uint8 layer) { return (mCullingMask & (1 << layer)) != 0; }
-	bool IsFrustumCulled();
+	bool IsFrustumCulled(TransformComponent* trans, RenderComponent* renderComponent);
 
 
 private: // Push&Clear Data

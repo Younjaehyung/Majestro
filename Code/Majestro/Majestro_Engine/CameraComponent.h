@@ -81,6 +81,9 @@ public:
 	Matrix& GetViewMatrix()			{ return mView; }
 	Matrix& GetProjectionMatrix()	{ return mProjection; }
 
+	bool IntersectsOBB(const BoundingOrientedBox& obb) const { return mBoundingFrustum.Intersects(obb); }
+
+
 	void SetNear(float value)	{ mNear = value; }
 	void SetFar(float value)	{ mFar = value; }
 	void SetFOV(float value)	{ mFov = value; }
@@ -106,7 +109,7 @@ public:
 	Matrix mProjection = {};
 
 	Frustum mFrustum;
-
+	BoundingFrustum mBoundingFrustum;
 
 	uint32 mCullingMask = 0;	//어떤 레이어를 랜더링할건지 비트로 계산
 	CameraParams mCameraParams;
@@ -130,5 +133,5 @@ public:
 	PlayMode mPlayMode;
 	float mCameraMoveSpeed = 100;
 	float mCameraHight = 20;
-	float mCameraLenth = 25;
+	float mCameraLenth = 50;
 };

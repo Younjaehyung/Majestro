@@ -52,6 +52,11 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
     float4 translation = lerp(AnimationClip[idx].Translation, AnimationClip[nextidx].Translation, ratio);
 
     float blendWeight = saturate(animationInst.BlendWeight);
+    if (animationInst.BlendMaskEnd > animationInst.BlendMaskStart)
+    {
+        const bool inMask = nowbone >= animationInst.BlendMaskStart && nowbone <= animationInst.BlendMaskEnd;
+        blendWeight *= inMask ? 1.0f : 0.0f;
+    }
     if (blendWeight > 0.0001f && animationInst.BlendClipIdx != animationInst.AnimClipIdx)
     {
         ANIMATIONMETA blendMeta = AnimationMeta[animationInst.BlendClipIdx];

@@ -65,6 +65,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+	anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//dash
 
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
@@ -114,20 +115,22 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (0) {
 	case 0:
 		t.mLocalScale = { 10.f, 10.f, 10.f };
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//attack
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
+
 		break;
 	case 1:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
@@ -300,29 +303,36 @@ SkyBoxPrefab::~SkyBoxPrefab()
 TerrainPrefab::TerrainPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
+
 	TransformComponent bt{};
-	bt.mLocalScale = (Vec3(5.f, 320.f, 5.f));
-	bt.mLocalPosition = Vec3(-150.f, -70.f, -150.f);
+	bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
+	bt.mLocalPosition = Vec3(0.f, -70.f, 0.f);
 
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 	world->AddComponent<TransformComponent>(mEntityID, bt);
-	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightMap);
+
+	// heightmap 512x512 => 타일 511x511
+
+
+	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(504, 504);
+
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 
-	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(64, 64);
 	std::vector<shared_ptr<Material>> materials{
 		
-		RESOURCEMANAGER.Get<Material>(L"Grass_Uncut"),
-		RESOURCEMANAGER.Get<Material>(L"Ground_Gravel"),
-		RESOURCEMANAGER.Get<Material>(L"Mosaic"),
-		RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
-		RESOURCEMANAGER.Get<Material>(L"Soil_Mud") ,
-		RESOURCEMANAGER.Get<Material>(L"Asphalt")
+		RESOURCEMANAGER.Get<Material>(L"Grass"),
+		RESOURCEMANAGER.Get<Material>(L"Rock"),
+		RESOURCEMANAGER.Get<Material>(L"Dirt"),
+		//RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
+		//RESOURCEMANAGER.Get<Material>(L"Soil_Mud") ,
+		//RESOURCEMANAGER.Get<Material>(L"Asphalt")
 	};
 
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, terrain, materials);
 	render.mCheckFrustum = false;
+
 
 }
 
@@ -363,7 +373,7 @@ DirLightPrefab::DirLightPrefab(World* world)
 	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };
 	l.mLightInfo.Color.Diffuse = { Vec3(1.f, 1.f, 1.f) };
 	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.SetLightDirection(Vec3(0, -1, 1.f));
+	l.SetLightDirection(Vec3(0, 0, 1.f));
 	mEntityID = LightFactory::CreateLight(world, LIGHT_TYPE::DIRECTIONAL_LIGHT, l);
 }
 

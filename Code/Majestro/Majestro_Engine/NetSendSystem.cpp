@@ -8,8 +8,12 @@
 #include "NetEntityComponent.h"
 #include "InputManager.h"
 #include "MovementComponent.h"
+
 #include "TagComponent.h"
 #include "SceneManager.h"
+
+#include <bitset>
+
 
 NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
 {
@@ -57,13 +61,6 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	}
 	Entity playerEntity = playerEntities[0];
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
-
-
-	//std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
-	////ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
-	//ChoicePlayerComponent* characterChoice = choiceplayerEntities.empty()
-	//	? nullptr
-	//	: mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
 	
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
@@ -73,12 +70,13 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	mInputPacket.Yaw = comp->mCameraRotationY;
 	mInputPacket.Pitch = comp->mCameraRotationX;
 	
-	// buttons 마스킹
+	// buttons 비트마스크로 변환
 
-	/*if (comp->mAttack)			mInputPacket.Buttons |= InputButtons::SPACE;
+	/*
 	if (comp->mDash)			mInputPacket.Buttons |= INPUT_DASH;
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
-	if (comp->mJump)			mInputPacket.Buttons |= static_cast<uint8>(InputButtons::SPACE);
+	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
+	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
 
 
 	if (INPUT.GetKeyDown(eKeyCode::G))
@@ -98,6 +96,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	seq->SIze = sizeof(C2S_InputPacket);
 	
 	seq->StoreAs(mInputPacket);
+
 }
 
 void NetSendSystem::QueueGameStart()
@@ -165,3 +164,4 @@ void NetSendSystem::UpdateCachedPlayerType()
 		cout << (int)mCachedPlayerType << endl;
 	}
 }
+

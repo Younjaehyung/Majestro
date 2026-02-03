@@ -115,7 +115,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (0) {
+	switch (anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 	case 0:
 		t.mLocalScale = { 10.f, 10.f, 10.f };
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");

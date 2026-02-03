@@ -70,7 +70,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         HandleSceneChangeResult(msg);
     }
     else if (msg.Type == PKT_Type::S2C_GAME_START) {
-        gEngine->GetSceneManager().LoadScene(L"Game");
+        //gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {

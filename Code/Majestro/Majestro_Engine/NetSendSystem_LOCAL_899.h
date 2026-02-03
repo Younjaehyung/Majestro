@@ -39,6 +39,5 @@ private:
     bool mHasSentGameStart = false;
     bool mPendingGameStart = false;
     uint8 mCachedPlayerType = 0;
-
 };
 

@@ -37,8 +37,10 @@ private:
     void UpdateCachedPlayerType();
 	C2S_InputPacket mInputPacket{};
     bool mHasSentGameStart = false;
+<<<<<<< HEAD
     bool mPendingGameStart = false;
     uint8 mCachedPlayerType = 0;
-
+=======
+>>>>>>> fc3f054 (# 로비 추가중)
 };
 

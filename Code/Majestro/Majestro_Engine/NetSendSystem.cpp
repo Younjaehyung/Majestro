@@ -8,6 +8,7 @@
 #include "NetEntityComponent.h"
 #include "InputManager.h"
 #include "MovementComponent.h"
+#include "TagComponent.h"
 
 #include "TagComponent.h"
 #include "SceneManager.h"
@@ -61,6 +62,9 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	}
 	Entity playerEntity = playerEntities[0];
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
+
+	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(playerEntity);
+
 	
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
@@ -78,7 +82,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
 	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
 
-
+	
 	if (INPUT.GetKeyDown(eKeyCode::G))
 	{
 		cout << "\ngame\n" << endl;

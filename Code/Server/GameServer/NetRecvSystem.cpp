@@ -16,6 +16,7 @@ void NetRecvSystem::Update(float dt)
 {
 	constexpr int kMaxMsgsPerTick = 256;
 	int processed = 0;
+
 	while (processed < kMaxMsgsPerTick && mWorld->DequeueCommand(mInputCommand)) {
 		switch (mInputCommand.Type)
 		{
@@ -31,9 +32,9 @@ void NetRecvSystem::Update(float dt)
 			}
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
-
 				//LoginProcess(mInputCommand);
 				LoginProcess(mInputCommand, false);
+
 				cout << "login process" << endl;
 				//EnemySpawnProcess(mInputCommand);
 				break;
@@ -144,7 +145,6 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 			gSendQueue.Push(request);
 		}
 	}
-
 
 	// 로그인 한 클라이언트에게 이미 접속해있는 다른 플레이어들에 대한 Spawn 패킷 전송
 	auto entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();

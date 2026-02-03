@@ -13,11 +13,14 @@ public:
 	void Render();
 
 	void LoadScene(wstring sceneName);
+<<<<<<< HEAD
 	void QueueLoadScene(const wstring& sceneName);
 	void QueueGameStartAfterLoad();
 	void StorePendingPlayerType(uint8 playerType);
 
 	bool HasPendingSceneChange() const { return mHasPendingSceneChange; }
+=======
+>>>>>>> 11ae364 (# 게임시작시 에러)
 private:
 	std::vector<Scene*> mScene;
 

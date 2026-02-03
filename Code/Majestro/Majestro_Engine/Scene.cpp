@@ -71,15 +71,6 @@ void LobbyScene::Initialize()
 	// 
 	 //LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 
-
-	{
-		Entity mannequinEntity = mWorld->CreateEntity();
-		
-		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
-		mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
-		
-	}
-
 	/////////////////////////////////////////////////////////////////////
 	{
 		Entity vfxEntity = mWorld->CreateEntity();

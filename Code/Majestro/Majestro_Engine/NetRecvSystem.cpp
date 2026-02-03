@@ -3,7 +3,10 @@
 #include "EnginePch.h"
 #include "Engine.h"
 #include "SceneManager.h"
+<<<<<<< HEAD
 #include "Scene.h"
+=======
+>>>>>>> 11ae364 (# 게임시작시 에러)
 #include "World.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
@@ -70,7 +73,8 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         HandleSceneChangeResult(msg);
     }
     else if (msg.Type == PKT_Type::S2C_GAME_START) {
-        //gEngine->GetSceneManager().LoadScene(L"Game");
+        cout << "GameStart" << endl;
+        gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {

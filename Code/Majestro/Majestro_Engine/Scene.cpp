@@ -69,8 +69,8 @@ void LobbyScene::Initialize()
 	// MAP export json load
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 	// 
-	 LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
-	
+	 //LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -91,7 +91,7 @@ void LobbyScene::Initialize()
 		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
 		std::vector<shared_ptr<Material>> material2s;
 
-		
+
 		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
 		material2s.push_back(material2);
 		TransformComponent t{};
@@ -99,7 +99,7 @@ void LobbyScene::Initialize()
 		t.mLocalScale = { 1.f, 1.f, 1.f };
 		vector<shared_ptr<Animator>> anmators;
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
-		
+
 
 		mWorld->AddComponent<TransformComponent>(osw, t);
 		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
@@ -109,13 +109,13 @@ void LobbyScene::Initialize()
 		for (i = -50; i < 10; i += 10.0f) {
 			for (j = -50; j < 50; j += 10.0f) {
 				//for (k = -50; k < 50; k += 10.0f) {
-					Entity osws = mWorld->CreateEntity();	// �ʼ�
-					t.mLocalPosition = { i*n, 0, j*n };
+				Entity osws = mWorld->CreateEntity();	// �ʼ�
+				t.mLocalPosition = { i * n, 0, j * n };
 
 
-					mWorld->AddComponent<TransformComponent>(osws, t);
-					mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-					mWorld->AddComponent<GravityComponent>(osws);
+				mWorld->AddComponent<TransformComponent>(osws, t);
+				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
+				mWorld->AddComponent<GravityComponent>(osws);
 				//}
 			}
 
@@ -400,10 +400,12 @@ LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	mWorld->Initialize();
 }
 
+
 void GameScene::Update(float deltaTime)
 {
 	mWorld->Update(deltaTime);
 }
+
 
 void GameScene::Render()
 {
@@ -411,7 +413,6 @@ void GameScene::Render()
 }
 
 
-/////
 
 void Scene::LoadJsonLevel(const wstring& path)
 {
@@ -471,3 +472,4 @@ void Scene::LoadJsonLevel(const wstring& path)
 		std::cerr << "Load failed: " << e.what() << "\n";
 	}
 }
+

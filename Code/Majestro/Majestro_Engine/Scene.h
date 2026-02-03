@@ -7,13 +7,12 @@ class Scene
 public:
 	virtual ~Scene() = default;
 
-
 	virtual void Initialize();
 
 	virtual void Update(float deltaTime);
 	virtual void Render();
-	void LoadJsonLevel(const wstring& path);
 
+	void LoadJsonLevel(const wstring& path);
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 
 protected:

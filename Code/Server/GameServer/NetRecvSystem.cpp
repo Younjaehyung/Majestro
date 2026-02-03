@@ -92,7 +92,19 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 {
 	///uint32 ssessionId = 0;//mInputCommand.SessionId;
 	uint8 playertype = 1;
-	//mSceneBySession[inputCommand.SessionId] = SceneId::Lobby;
+	if (inputCommand.Type == PKT_Type::C2S_GAME_START)
+	{
+		const C2S_StartGamePacket* startPacket = inputCommand.ViewAs<C2S_StartGamePacket>();
+		if (startPacket)
+		{
+			playertype = startPacket->playerType;
+		}
+	}
+
+	if (playertype > 2)
+	{
+		playertype = 1;
+	}
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);

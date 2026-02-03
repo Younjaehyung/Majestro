@@ -70,6 +70,9 @@ void MovementSystem::Update(float dt) {
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 		NetTransformComponent* netTransformComponent = mWorld->GetComponent<NetTransformComponent>(entity);
 
+		const bool isLobbyScene = (mWorld->GetSceneId() == SceneId::Lobby);
+		const bool hasMoveInput = (movementComponent->mMovingDirection.LengthSquared() > 0.0001f);
+
 		if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
 			Vec3 forward = transformComponent->GetLook();
 			Vec3 right = transformComponent->GetRight();
@@ -86,8 +89,10 @@ void MovementSystem::Update(float dt) {
 				desired.Normalize();
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
-			
+			//transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			if (!isLobbyScene || hasMoveInput) {
+				transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			}
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
 			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;// +correction;

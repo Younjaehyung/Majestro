@@ -19,6 +19,7 @@
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
+#include "NetSendSystem.h"
 #include "VfxComponent.h"
 #include "Prefab.h"
 
@@ -58,7 +59,7 @@ void LobbyScene::Initialize()
 
 	{
 		Entity mannequinEntity = mWorld->CreateEntity();
-		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
+		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 0);
 		//mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
 		
 	}

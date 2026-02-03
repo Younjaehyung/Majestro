@@ -132,7 +132,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 		BoxColliderComponent* boxComp = mWorld->GetComponent<BoxColliderComponent>(e);
 		if (boxComp == nullptr) return;
 		boxComp->bIsColliding = collisionPacket->bIsColliding;
-		std::cout << "Collision Packet Processed for Entity ID: " << collisionPacket->netEntityId << " Collision State: " << boxComp->bIsColliding << std::endl;
+		//std::cout << "Collision Packet Processed for Entity ID: " << collisionPacket->netEntityId << " Collision State: " << boxComp->bIsColliding << std::endl;
         return;
 	}
 

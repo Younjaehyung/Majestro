@@ -30,6 +30,20 @@ void PlayerInputSystem::Update(float dt)
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
+
+	if (mWorld->HasComponentPool<ChoicePlayerComponent>()) {
+		std::vector<Entity> choiceEntitys{ mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>() };
+		ChoicePlayerComponent* choicecomponent = mWorld->GetComponent<ChoicePlayerComponent>(choiceEntitys[0]);
+		if (INPUT.GetKeyDown(eKeyCode::LEFT))
+		{
+			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 2) % 3;
+		}
+		else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
+		{
+			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 1) % 3;
+		}
+	}
+
 	if (INPUT.GetKeyDown(eKeyCode::F1)) {
 		cameraTypeComponent->mPlayMode = ONE_FPS;
 	}

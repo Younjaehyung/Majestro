@@ -140,12 +140,15 @@ void NetSendSystem::UpdateCachedPlayerType()
 {
 	if (!mWorld->HasComponentPool<ChoicePlayerComponent>() )
 		return;
-
+	cout << "test type" << endl;
 	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
 	if (choiceplayerEntities.empty())
 		return;
 
+	cout << "test type2" << endl;
 	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+
+	cout << (int)characterChoice->mPlayerType << endl;
 	if (characterChoice)
 	{
 		mCachedPlayerType = characterChoice->mPlayerType;

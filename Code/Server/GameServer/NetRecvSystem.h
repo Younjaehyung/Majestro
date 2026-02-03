@@ -49,19 +49,20 @@ public:
 	void RecvInput(uint32 sessionId, const C2S_InputPacket& inputFrame);
 private:
 
-	void LoginProcess(InputCommand& inputCommand);
+	//void LoginProcess(InputCommand& inputCommand);
+    void LoginProcess(InputCommand& inputCommand, bool broadcastToWorld);
 	void EnemySpawnProcess(InputCommand& inputCommand);
-    void HandleSceneChange(InputCommand& inputCommand);
+    /*void HandleSceneChange(InputCommand& inputCommand);
     bool IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const;
-    SceneId GetOrCreateScene(uint32 sessionId);
-
+    SceneId GetOrCreateScene(uint32 sessionId);*/
+    std::vector<uint32> CollectPlayerSessions() const;
 
 
 private:
 
     vector<uint64> mNetEntityIds{};
     bool mEnemySpawnOnce = true;
-    std::unordered_map<uint32, SceneId> mSceneBySession{};
+    //std::unordered_map<uint32, SceneId> mSceneBySession{};
 
 	InputBuffer mInputBuffer;
 	InputCommand mInputCommand;

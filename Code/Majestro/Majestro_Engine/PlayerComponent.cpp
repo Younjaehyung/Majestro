@@ -136,7 +136,6 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 
     for (int i = 0; i < (int)anim.size(); i++)
     {
-        cout << "?" << endl;
         mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
         cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime) << " : " << mStateList[i]->mAnimEndTime << endl;
     }

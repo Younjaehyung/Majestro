@@ -6,6 +6,7 @@
 #include "InputComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
+#include <unordered_set>
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
@@ -15,8 +16,7 @@ void NetRecvSystem::Update(float dt)
 {
 	constexpr int kMaxMsgsPerTick = 256;
 	int processed = 0;
-	while (processed < kMaxMsgsPerTick && gRecvQueue.Pop(mInputCommand)) {
-		cout << "update" << endl;
+	while (processed < kMaxMsgsPerTick && mWorld->DequeueCommand(mInputCommand)) {
 		switch (mInputCommand.Type)
 		{
 			case PKT_Type::C2S_PKT_INPUT:
@@ -31,22 +31,24 @@ void NetRecvSystem::Update(float dt)
 			}
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
-				LoginProcess(mInputCommand);
+				//LoginProcess(mInputCommand);
+				LoginProcess(mInputCommand, false);
 				cout << "login process" << endl;
 				//EnemySpawnProcess(mInputCommand);
 				break;
 			}
 			case PKT_Type::C2S_GAME_START:
 			{
-				LoginProcess(mInputCommand);
+				//LoginProcess(mInputCommand);
+				LoginProcess(mInputCommand, true);
 				EnemySpawnProcess(mInputCommand);
 				break;
 			}
-			case PKT_Type::C2S_SCENE_CHANGE:
+			/*case PKT_Type::C2S_SCENE_CHANGE:
 			{
 				HandleSceneChange(mInputCommand);
 				break;
-			}
+			}*/
 		}
 		++processed;
 		
@@ -80,11 +82,11 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFram
 	}
 }
 
-void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
+void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWorld) 
 {
-	uint32 ssessionId = 0;//mInputCommand.SessionId;
+	///uint32 ssessionId = 0;//mInputCommand.SessionId;
 	uint8 playertype = 1;
-	mSceneBySession[inputCommand.SessionId] = SceneId::Lobby;
+	//mSceneBySession[inputCommand.SessionId] = SceneId::Lobby;
 
 	Entity e = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
@@ -100,23 +102,29 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 		gSendQueue.Push(request);
 	}
 
+
 	// 다른 클라이언트들에게 로그인 한 클라이언트의 Spawn 패킷 전송
-	{
-		SendRequest request{ ssessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
-		spawnPkt.isLocalPlayer = 0;
-		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
-		gSendQueue.Push(request);
+	if (broadcastToWorld){
+		for (uint32 sessionId : CollectPlayerSessions())
+		{
+			if (sessionId == inputCommand.SessionId)
+				continue;
+
+			SendRequest request{ sessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+			spawnPkt.isLocalPlayer = 0;
+			request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+			gSendQueue.Push(request);
+		}
 	}
-	std::cout << "[YSW]Spawn Packet Sent to SessionID: " << ssessionId << netComp->mNetEntityId << std::endl;
 
 
 	// 로그인 한 클라이언트에게 이미 접속해있는 다른 플레이어들에 대한 Spawn 패킷 전송
-	for (auto& N : mWorld->GetNetIdMap()->GetNetIdMap()) {
-		
-		netComp = mWorld->GetComponent<NetEntityComponent>(N.second);
+	auto entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
+	for (auto entity : entities) {
 		
 
-		if(nullptr == mWorld->GetComponent<MainPlayerComponent>(N.second)|| nullptr== netComp)
+		netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (nullptr == netComp)
 			continue;
 		
 		if (inputCommand.SessionId == netComp->mSessionId || netComp->mSessionId == 0)
@@ -133,7 +141,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand)
 
 }
 
-void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
+/*void NetRecvSystem::HandleSceneChange(InputCommand& inputCommand)
 {
 	const C2S_SceneChangePacket* requestPacket = inputCommand.ViewAs<C2S_SceneChangePacket>();
 	if (!requestPacket)
@@ -178,14 +186,12 @@ SceneId NetRecvSystem::GetOrCreateScene(uint32 sessionId)
 
 	mSceneBySession[sessionId] = SceneId::Lobby;
 	return SceneId::Lobby;
-}
+}*/
 
 
 void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 {
-	uint32 ssessionId = 0;//mInputCommand.SessionId;
-
-
+	
 	if (mEnemySpawnOnce) {
 		mNetEntityIds.reserve(200);
 		for (int i = 0;i < 5; ++i) {
@@ -201,8 +207,10 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, id, PrefabType::ENEMY);
 
 		// 로그인 한 클라이언트에게 자신의 Spawn 패킷 전송
+		for (uint32 sessionId : CollectPlayerSessions())
 		{
-			SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+			//SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+			SendRequest request{ sessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 			spawnPkt.isLocalPlayer = 0;
 			request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
 			gSendQueue.Push(request);
@@ -210,3 +218,22 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 	}
 }
 
+std::vector<uint32> NetRecvSystem::CollectPlayerSessions() const
+{
+	std::unordered_set<uint32> sessionSet;
+	if (false == mWorld->HasComponentPool<NetEntityComponent>())
+		return {};
+
+	auto entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
+	sessionSet.reserve(entities.size());
+	for (auto entity : entities)
+	{
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (!netComp || netComp->mSessionId == 0)
+			continue;
+
+		sessionSet.insert(netComp->mSessionId);
+	}
+
+	return std::vector<uint32>(sessionSet.begin(), sessionSet.end());
+}

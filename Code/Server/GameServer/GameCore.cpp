@@ -24,6 +24,11 @@ void GameCore::Update(float deltaTime)
 	{
 		mSceneManager->InitializeSession(sessionId);
 	}
+	InputCommand command;
+	while (gRecvQueue.Pop(command))
+	{
+		mSceneManager->EnqueueCommand(command);
+	}
 	mSceneManager->Update(deltaTime);
 }
 

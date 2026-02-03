@@ -6,6 +6,7 @@
 #include "SystemManager.h"
 #include "EventManager.h"
 #include "NetIdMap.h"
+#include "PacketHelper.h"
 
 class World {
 public:
@@ -75,7 +76,8 @@ public:
 
 	std::shared_ptr<EventManager>& GetEventManager() { return mEventManager; }
 	void SetEventManager(std::shared_ptr<EventManager> eventManager) { mEventManager = eventManager; }
-
+    bool EnqueueCommand(const InputCommand& command) { return mInboundCommands.Push(command); }
+    bool DequeueCommand(InputCommand& command) { return mInboundCommands.Pop(command); }
 
 public: // Network Entity ID 관리
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
@@ -101,6 +103,8 @@ private:
     std::shared_ptr<EventManager>		mEventManager;
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
+
+    SpscRingQueue<InputCommand, 1024> mInboundCommands;
 };
 
 

@@ -30,6 +30,20 @@ void PlayerInputSystem::Update(float dt)
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
+
+	if (mWorld->HasComponentPool<ChoicePlayerComponent>()) {
+		std::vector<Entity> choiceEntitys{ mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>() };
+		ChoicePlayerComponent* choicecomponent = mWorld->GetComponent<ChoicePlayerComponent>(choiceEntitys[0]);
+		if (INPUT.GetKeyDown(eKeyCode::LEFT))
+		{
+			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 2) % 3;
+		}
+		else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
+		{
+			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 1) % 3;
+		}
+	}
+
 	if (INPUT.GetKeyDown(eKeyCode::F1)) {
 		cameraTypeComponent->mPlayMode = ONE_FPS;
 	}
@@ -58,29 +72,26 @@ void PlayerInputSystem::Update(float dt)
 		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 	}
 	else {
-		if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
+		if (mainPlayerComponent->GetState() == S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
 		else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
 	}
 
 	movementComponent->mMovingDirection = { 0,0,0 };
 	movementComponent->mJump = INPUT.GetKey(eKeyCode::SPACE);
+	movementComponent->mDash = INPUT.GetKey(eKeyCode::SHIFT);
 	movementComponent->mAttack1 = INPUT.GetKey(eKeyCode::V);
 
 
 	if (INPUT.GetKey(eKeyCode::A)) {
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.x -= 1;
 	}
 	if (INPUT.GetKey(eKeyCode::W)) {
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.z += 1;
 	}
 	if (INPUT.GetKey(eKeyCode::S)) {
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.z -= 1;
 	}
 	if (INPUT.GetKey(eKeyCode::D)) {
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 		movementComponent->mMovingDirection.x += 1;
 	}
 
@@ -89,14 +100,15 @@ void PlayerInputSystem::Update(float dt)
 	if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
 		if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 		else cout << "fail" << endl;
-
 		
+
 		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		//movementComponent->mJump = true;
 		
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
 		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+
 	}
 
 

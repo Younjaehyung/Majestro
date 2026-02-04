@@ -197,6 +197,7 @@ void NetworkThread::AcceptClient()
 
 	sendBuffer->SetData(&loginPkt, sizeof(S2C_LoginPacket),TCP);
     session->mTSendBufferQueue.push(sendBuffer);
+    gNewSessions.Push(session->GetPlayerId());
 
    /* sendBuffer = SendBufferManager::Acquire();
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(session->GetPlayerId(), , PrefabType::PLAYER);
@@ -280,29 +281,59 @@ void NetworkThread::HandleUdpRecv()
        
 
         PacketHeader* header = (PacketHeader*)mURecvBuffer;
-        if (header->PacketType == C2S_PKT_LOGIN) {
-            C2S_LoginPacket* pkt = (C2S_LoginPacket*)mURecvBuffer;
-
-            auto& targetSession = mSessionMgr.mSessions[pkt->clientId];
-            if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
-                // 주소 매핑 등록
-                targetSession->SetUNetAddress(fromAddr);
-                mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
-                targetSession->OnUdpRecv(mURecvBuffer, len);
-                
+        if (header->PacketType == C2S_PKT_LOGIN || header->PacketType == C2S_GAME_START) {
+            uint32 clientId = 0;
+            uint32 sessionId = 0;
+            if (header->PacketType == C2S_PKT_LOGIN) {
+                const C2S_LoginPacket* loginPkt = (C2S_LoginPacket*)mURecvBuffer;
+                clientId = loginPkt->clientId;
+                sessionId = loginPkt->SessionId;
             }
-            std::cout << "No session found for UDP packet from " << std::endl;
-            std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
-            
-			// client에게 prefab생성 패킷 전송
-	/*		SendBuffer* sendBuffer = SendBufferManager::Acquire();
-			S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(targetSession->GetPlayerId(), targetSession->GetPlayerId(), PrefabType::PLAYER);
-			sendBuffer->SetData(&spawnPkt, sizeof(S2C_SpawnPacekt), TCP);
-			targetSession->mTSendBufferQueue.push(sendBuffer);
-			*/
+            else {
+                const C2S_StartGamePacket* startPkt = (C2S_StartGamePacket*)mURecvBuffer;
+                clientId = startPkt->clientId;
+                sessionId = startPkt->SessionId;
+            }
+            const uint32 lookupId = (clientId != 0) ? clientId : sessionId;
+            auto targetIt = mSessionMgr.mSessions.find(lookupId);
+            if (targetIt != mSessionMgr.mSessions.end() && targetIt->second /*&& targetIt->second->VerifyToken(pkt->token)*/) {
+                // 주소 매핑 등록
+                targetIt->second->SetUNetAddress(fromAddr);
+                mSessionMgr.RegisterUdpAddress(fromAddr, clientId);
+                targetIt->second->OnUdpRecv(mURecvBuffer, len);
+            }
+            else {
+                std::cout << "No session found for UDP packet from " << std::endl;
+                std::cout << "clientId=" << clientId << " sessionId=" << sessionId
+                    << " port=" << ntohs(fromAddr.sin_port) << std::endl;
+            }
+
+
         }
 
+ //       if (header->PacketType == C2S_PKT_LOGIN) {
+ //           C2S_LoginPacket* pkt = (C2S_LoginPacket*)mURecvBuffer;
 
+ //           auto& targetSession = mSessionMgr.mSessions[pkt->clientId];
+ //           if (targetSession /*&& targetSession->VerifyToken(pkt->token)*/) {
+ //               // 주소 매핑 등록
+ //               targetSession->SetUNetAddress(fromAddr);
+ //               mSessionMgr.RegisterUdpAddress(fromAddr, pkt->clientId);
+ //               targetSession->OnUdpRecv(mURecvBuffer, len);
+ //               
+ //           }
+ //           std::cout << "No session found for UDP packet from " << std::endl;
+ //           std::cout<<targetSession->GetUdpAddress().GetPort() << std::endl;
+ //           
+	//		// client에게 prefab생성 패킷 전송
+	///*		SendBuffer* sendBuffer = SendBufferManager::Acquire();
+	//		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(targetSession->GetPlayerId(), targetSession->GetPlayerId(), PrefabType::PLAYER);
+	//		sendBuffer->SetData(&spawnPkt, sizeof(S2C_SpawnPacekt), TCP);
+	//		targetSession->mTSendBufferQueue.push(sendBuffer);
+	//		*/
+ //       }
+
+        
 
     }
     

@@ -13,6 +13,8 @@ enum PKT_Type : uint32 {
 	
 	// Client -> Server
 	C2S_PKT_LOGIN,
+	C2S_GAME_START,
+	C2S_SCENE_CHANGE,
 	C2S_PKT_LOGOUT,
 	C2S_PKT_INPUT,
 	C2S_PKT_ACTION,
@@ -24,6 +26,8 @@ enum PKT_Type : uint32 {
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
 	S2C_PKT_SPAWNS,
+	S2C_GAME_START,
+	S2C_SCENE_CHANGE_RESULT,
 	S2C_PKT_RESPAWN,
 	S2C_PKT_MOVE,
 	S2C_PKT_STATE,
@@ -79,6 +83,12 @@ enum class PrefabType : uint8 {
 	COUNT
 };
 
+enum class SceneId : uint8
+{
+	Lobby = 0,
+	Game = 1,
+};
+
 enum class MsgKind : uint8
 {
 	KNONE = 0,
@@ -125,6 +135,15 @@ struct S2C_LoginPacket : public PacketTcpHeader {
 	}
 };
 
+struct S2C_StartGamePacket : public PacketTcpHeader {
+	uint32 clientId{};
+	S2C_StartGamePacket() : PacketTcpHeader{ sizeof(S2C_StartGamePacket), PKT_Type::S2C_GAME_START, 0.0 } {}
+	S2C_StartGamePacket(uint32 id)
+		: PacketTcpHeader{ sizeof(S2C_StartGamePacket), PKT_Type::S2C_GAME_START, 0.0 }, clientId(id) {
+	}
+};
+
+
 struct S2C_SyncPacket : public PacketTcpHeader {
 	uint32_t clientId{};
 	float    rhythmTime{};
@@ -160,6 +179,7 @@ struct S2C_RespawnPacket : public PacketTcpHeader {
 struct S2C_StatePacket : public PacketTcpHeader {
 	uint64_t netEntityId{};
 	uint8_t stateId{};
+	uint8_t lowerStateId{};
 	S2C_StatePacket() : PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 } {}
 	S2C_StatePacket(uint64_t entityId, uint8_t sId)
 		: PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 },
@@ -229,6 +249,25 @@ struct C2S_LoginPacket : public PacketUdpHeader {
 	}
 };
 
+struct C2S_StartGamePacket : public PacketUdpHeader {
+	uint32 clientId{};
+	uint8 playerType{};
+	C2S_StartGamePacket() : PacketUdpHeader{ sizeof(C2S_StartGamePacket), PKT_Type::C2S_GAME_START, 0, 0 } {}
+	C2S_StartGamePacket(uint32 id, uint8 type)
+		: PacketUdpHeader{ sizeof(C2S_StartGamePacket), PKT_Type::C2S_GAME_START, 0, 0 }, clientId(id), playerType(type) {
+	}
+};
+
+struct C2S_SceneChangePacket : public PacketTcpHeader {
+	SceneId targetScene{ SceneId::Lobby };
+	uint8 reserved{};
+	uint16 reserved2{};
+	C2S_SceneChangePacket() : PacketTcpHeader{ sizeof(C2S_SceneChangePacket), PKT_Type::C2S_SCENE_CHANGE, 0.0 } {}
+	C2S_SceneChangePacket(SceneId target)
+		: PacketTcpHeader{ sizeof(C2S_SceneChangePacket), PKT_Type::C2S_SCENE_CHANGE, 0.0 }, targetScene(target) {
+	}
+};
+
 struct C2S_LogoutPacket : public PacketTcpHeader {
 	uint32 clientId{};
 	C2S_LogoutPacket() : PacketTcpHeader{ sizeof(C2S_LogoutPacket), PKT_Type::C2S_PKT_LOGOUT, 0.0 } {}
@@ -250,6 +289,20 @@ struct C2S_InputPacket : public PacketUdpHeader {
 	float    Pitch = 0.0f;
 
 	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 } {}
+};
+
+struct S2C_SceneChangeResultPacket : public PacketTcpHeader {
+	SceneId currentScene{ SceneId::Lobby };
+	uint8 approved{};
+	uint16 reserved{};
+
+	S2C_SceneChangeResultPacket()
+		: PacketTcpHeader{ sizeof(S2C_SceneChangeResultPacket), PKT_Type::S2C_SCENE_CHANGE_RESULT, 0.0 } {
+	}
+	S2C_SceneChangeResultPacket(SceneId current, bool isApproved)
+		: PacketTcpHeader{ sizeof(S2C_SceneChangeResultPacket), PKT_Type::S2C_SCENE_CHANGE_RESULT, 0.0 },
+		currentScene(current), approved(isApproved ? 1 : 0) {
+	}
 };
 
 

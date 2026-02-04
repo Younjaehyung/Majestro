@@ -503,9 +503,8 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 					// [수정] 로드 단계에서 월드행렬 생성 (DX12에 바로 사용 가능)
 					{
 						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world, /*fromUe=*/false);
-						Matrix RotateX = Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.f));
-						insts.worldMtx =insts.worldMtx * Matrix::CreateTranslation(Vec3(-10400.f, -450.0f,9500.f));
-						// fbx z축 방향 보정
+
+						insts.worldMtx = Matrix::CreateRotationZ(-90.f) * Matrix::CreateRotationX(90.f) * insts.worldMtx;
 						
 					}
 
@@ -527,11 +526,9 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 
 				// [수정] 로드 단계에서 월드행렬 생성
 				{
-					Matrix RotateX = Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.f));
-					inst.worldMtx =  BuildWorldMatrix_RowMajor(inst.world, /*fromUe=*/false) * Matrix::CreateTranslation(Vec3(-10400.f, -450.0f, 9500.f));
+					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, /*fromUe=*/false);
 
-
-					//inst.worldMtx = inst.worldMtx * Matrix::CreateTranslation(Vec3(-10400.f, 0.0f, 29500.f));
+					inst.worldMtx =   inst.worldMtx * Matrix::CreateRotationZ(90.f);
 
 				}
 
@@ -1249,44 +1246,35 @@ void ResourceManager::CreateDefaultMaterial()
 	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
 
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Anim_Rudwig_Idle.fbx");
+
+
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
+	//LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
-
-	
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx");
-
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Run.fbx");
-	//LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx");
-	
 	
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Fall.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
 
-	
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Anim_Ibanix_Run.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Anim_Ibanix_Idle.fbx");
-	
+
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Jump.fbx");
-	
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Run.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Fall.fbx");
 
 
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Anim_Fanthor_Idle2.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Anim_Fanthor_Idle.fbx");
-	
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx");
-	
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\SM_Fountain_01.fbx");
-	//LoadFBX(L"..\\Resources\\FBX\\SM_Arch_02_mZfYup.fbx");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 }

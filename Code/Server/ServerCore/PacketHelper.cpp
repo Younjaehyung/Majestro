@@ -14,6 +14,8 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::PKT_LOGIN:
 	case PKT_Type::S2C_PKT_SYNC:
 	case PKT_Type::S2C_PKT_LOGIN:
+	case PKT_Type::S2C_GAME_START:
+	case PKT_Type::S2C_SCENE_CHANGE_RESULT:
 	case PKT_Type::S2C_PKT_SPAWN:
 	case PKT_Type::S2C_PKT_SPAWNS:
 	case PKT_Type::S2C_PKT_STATE:
@@ -67,13 +69,15 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	switch (header.PacketType) {
 	case PKT_Type::PKT_TCP:
 	case PKT_Type::PKT_LOGIN:
+	case PKT_Type::C2S_SCENE_CHANGE:
 	case PKT_Type::C2S_PKT_ACTION:{
 		ProcessTcpPackets(inputCommand, buffer , header.Size);
 		break;
 	}
 	case PKT_Type::PKT_UDP:
 	case PKT_Type::C2S_PKT_INPUT:
-	case PKT_Type::C2S_PKT_LOGIN: {
+	case PKT_Type::C2S_PKT_LOGIN:
+	case PKT_Type::C2S_GAME_START: {
 		ProcessUdpPackets(inputCommand, buffer, header.Size);
 		break;
 	}

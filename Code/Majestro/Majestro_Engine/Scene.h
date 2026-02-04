@@ -5,17 +5,35 @@ class SystemManager;
 class Scene
 {
 public:
-	void Initialize();
+	virtual ~Scene() = default;
 
-	void Update(float deltaTime);
-	void Render();
+	virtual void Initialize();
+
+	virtual void Update(float deltaTime);
+	virtual void Render();
+
 	void LoadJsonLevel(const wstring& path);
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 
-
-
-private:
+protected:
 
 	shared_ptr<World>				mWorld = make_shared<World>();
 
+};
+
+
+class LobbyScene : public Scene
+{
+public:
+	void Initialize() override;
+	void Update(float deltaTime) override;
+	void Render() override;
+};
+
+class GameScene : public Scene
+{
+public:
+	void Initialize() override;
+	void Update(float deltaTime) override;
+	void Render() override;
 };

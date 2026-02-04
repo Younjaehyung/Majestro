@@ -112,6 +112,41 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 
 }
 
+MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, uint8 playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
+{
+    mStateList = {
+    IdleState::Instance(),
+    WalkState::Instance(),
+    RunState::Instance(),
+    JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
+    DashState::Instance(),
+
+    AimState::Instance(),
+    ReRoadState::Instance(),
+    RhythmChangeState::Instance(),
+
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance(),
+
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance()
+    };
+    InitFSMFromJson(path);
+    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+
+    for (int i = 0; i < (int)anim.size(); i++)
+    {
+        mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
+        cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime) << " : " << mStateList[i]->mAnimEndTime << endl;
+    }
+}
+
 void MainPlayerComponent::StateCheck()
 {
     if(mSpeed<1.f)ClearFlag(mFlags, FLAG_MOVE);

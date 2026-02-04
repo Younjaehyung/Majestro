@@ -64,6 +64,7 @@ public:
 	MainPlayerComponent();
 	MainPlayerComponent(const std::string& path);
 	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim);
+	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, uint8 playerType);
 
 	void StateCheck();
 	void Update(float dt);
@@ -74,9 +75,12 @@ public:
 	void LoadStateSettingFromJson(const std::string& path);
 
 public:
+	uint8 mPlayerType;
+public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
 	int mStatePacket;
+	int mLowerStatePacket;
 
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;

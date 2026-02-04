@@ -1,5 +1,9 @@
 #include "pch.h"
 #include "NetRecvSystem.h"
+#include "EnginePch.h"
+#include "Engine.h"
+#include "SceneManager.h"
+#include "Scene.h"
 #include "World.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
@@ -9,6 +13,7 @@
 #include "Prefab.h"
 #include "PlayerComponent.h"
 #include "BoxColliderComponent.h"
+#include "NetSendSystem.h"
 
 NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world, event)
@@ -29,7 +34,7 @@ void NetRecvSystem::Initialize()
 	for (auto& entity : entities)
 	{
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-		mNetIdMap->Bind(netComp->mNetEntityId, entity);
+        mWorld->NetIdBinding(netComp->mNetEntityId, entity);
 	}
 }
 
@@ -38,12 +43,15 @@ void NetRecvSystem::Update(double deltaTime)
 
     constexpr int kMaxMsgsPerTick = 256; // 폭주 방지
     int processed = 0;
+    mStopProcessing = false;
     
     while (processed < kMaxMsgsPerTick && gRecvBuffer.Pop(mInputCommand))
     {
         
         ProcessOne(mInputCommand);
         ++processed;
+        if (mStopProcessing)
+            break;
     }
 
    /* if (mWorld && mCmd)
@@ -56,6 +64,14 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     if (msg.Type == PKT_Type::S2C_PKT_SPAWN) {
 		std::cout << "Spawn Packet Received in NetRecvSystem" << std::endl;
         HandleSpawn(msg);
+        return;
+    }
+    else if (msg.Type == PKT_Type::S2C_SCENE_CHANGE_RESULT) {
+        HandleSceneChangeResult(msg);
+    }
+    else if (msg.Type == PKT_Type::S2C_GAME_START) {
+        cout << "GameStart" << endl;
+        gEngine->GetSceneManager().LoadScene(L"Game");
         return;
     }
     else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {
@@ -88,6 +104,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
       if (comp == nullptr || playercomp == nullptr) return;
 
       playercomp->mStatePacket = statePacket->stateId;
+      playercomp->mLowerStatePacket = statePacket->lowerStateId;
 	  netTransform->mElapsed = 0.0f;
       /*switch (statePacket->stateId)
       {
@@ -142,6 +159,35 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     }
 }
 
+void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
+{
+    const S2C_SceneChangeResultPacket* resultPacket = msg.ViewAs<S2C_SceneChangeResultPacket>();
+    if (resultPacket == nullptr)
+        return;
+
+    if (!resultPacket->approved)
+        return;
+
+    if (mCurrentScene == resultPacket->currentScene)
+        return;
+
+    mCurrentScene = resultPacket->currentScene;
+
+    mStopProcessing = true;
+    switch (mCurrentScene)
+    {
+    case SceneId::Lobby:
+        gEngine->GetSceneManager().QueueLoadScene(L"Lobby");
+        break;
+    case SceneId::Game:
+        gEngine->GetSceneManager().QueueLoadScene(L"Game");
+        gEngine->GetSceneManager().QueueGameStartAfterLoad();
+        break;
+    default:
+        break;
+    }
+}
+
 void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 {
 
@@ -171,12 +217,13 @@ void NetRecvSystem::HandleDespawn(const InputCommand& msg)
     uint32_t netId = 0;
    // if (!r.Read(netId)) return;
 
-    Entity e = mNetIdMap->GetOrInvalid(netId);
+    Entity e = mWorld->GetEntityByNetId(netId);
     if (e == 0) return;
 
     // TODO: ECS 엔티티 삭제는 별도 명령으로 처리 권장
     // mCmd->DestroyEntity(e);
-    mNetIdMap->Unbind(netId);
+    
+    mWorld->NetIdUnbinding(netId);
 }
 
 void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
@@ -190,7 +237,7 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
     if (!r.Read(compKind)) return;
     if (!r.Read(fieldMask)) return;*/
 
-    Entity e = mNetIdMap->GetOrInvalid(netId);
+    Entity e = mWorld->GetEntityByNetId(netId);
     if (e == 0) {
         // 아직 Spawn이 안 왔거나, 관심영역 늦게 들어온 케이스
         // 실전에서는 여기서 "Spawn 요청" 또는 "임시 보류" 전략을 둠

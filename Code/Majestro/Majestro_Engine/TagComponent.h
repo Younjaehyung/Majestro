@@ -19,3 +19,14 @@ class LocalPlayerComponent : public Component<LocalPlayerComponent>
 {
 };
 
+class ChoicePlayerComponent : public Component<ChoicePlayerComponent>
+{
+public:
+	ChoicePlayerComponent(uint8 playerType) : mPlayerType(playerType) {};
+
+	uint8 mPlayerType;
+};
+
+class MannequinComponent : public Component<MannequinComponent>
+{
+};

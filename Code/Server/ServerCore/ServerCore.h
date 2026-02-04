@@ -5,6 +5,7 @@
 
 extern SpscRingQueue<SendRequest, 128 * 1024>							gSendQueue;
 extern SpscRingQueue<InputCommand, 128 * 1024>							gRecvQueue;
+extern SpscRingQueue<uint32, 1024>										gNewSessions;
 
 class ServerCore
 {

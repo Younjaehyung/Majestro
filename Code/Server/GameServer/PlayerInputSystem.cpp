@@ -42,39 +42,35 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 		}
 		else {
-			if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-			else mainPlayerComponent->mSpeed = 750.f;// mainPlayerComponent->mRunSpeed;
+
+			if (mainPlayerComponent->mDash) mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
+			else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
+
 		}
+		
 
 		movementComponent->mMovingDirection = { 0,0,0 };
 
 		if (inputComp->MoveX == -1) {
-			//if (mainPlayerComponent->GetState() != FLAG_MOVE) {
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-				std::cout << "walk" << std::endl;
-			//}
-				
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.x -= 1;
 		}
 		if (inputComp->MoveZ == 1) {
-			//if (mainPlayerComponent->GetState() != FLAG_MOVE)
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.z += 1;
 		}
 		if (inputComp->MoveZ == -1) {
-			//if (mainPlayerComponent->GetState() != FLAG_MOVE)
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.z -= 1;
 		}
 		if (inputComp->MoveX == 1) {
-			//if (mainPlayerComponent->GetState() != FLAG_MOVE)
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
 			movementComponent->mMovingDirection.x += 1;
 		}
 
 
 
-		if (inputComp->IsButtonPressed(InputButtons::SPACE) || inputComp->MoveY == 1) {
+		if (inputComp->IsButtonPressed(InputButtons::SPACE)) {
 			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 			else cout << "fail" << endl;
 
@@ -86,6 +82,7 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {
+			cout << "dash" << endl;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
 

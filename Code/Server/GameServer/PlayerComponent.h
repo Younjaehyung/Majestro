@@ -50,9 +50,9 @@ enum PlayerFlags : uint64_t
 	FLAG_STUN = 1ull << 3,
 	FLAG_DEAD = 1ull << 4,
 	FLAG_JUMP = 1ull << 5,
-	FLAG_SA = 1ull << 6,
-	FLAG_INVUL = 1ull << 7,
-	FLAG_NO_RUN = 1ull << 8,
+	FLAG_SA	  = 1ull << 6,
+	FLAG_INVUL =1ull << 7,
+	FLAG_NO_RUN=1ull << 8,
 };
 
 inline void SetFlag(uint64_t& f, uint64_t m) { f |= m; }   // 켜기
@@ -64,15 +64,27 @@ public:
 	MainPlayerComponent();
 	// MainPlayerComponent(const std::string& path);
 	MainPlayerComponent(const std::string& path/*, vector<shared_ptr<Animator>> anim*/);
+	MainPlayerComponent(const std::string& path, uint8 playerType);
 
 	void StateCheck();
 	void Update(float dt);
 	uint32 GetState() { return (uint32)mFsm.GetState(); };
+	uint32 GetLowerState() { 
+		if (mFlags & FLAG_MOVE) {
+			if (mSpeed <= 1.f) return (uint32)S_Idle;
+			if(mSpeed <= mWalkSpeed) return (uint32)S_Walk;
+			if(mSpeed <= mRunSpeed) return (uint32)S_Run;
+		}
+
+		return (uint32)mFsm.GetState(); 
+	};
 
 	void InitFSMOnce();
 	void InitFSMFromJson(const std::string& path);
 	void LoadStateSettingFromJson(const std::string& path);
 
+public:
+	uint8 mPlayerType;
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
@@ -81,13 +93,19 @@ public:
 	float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;
 	float mDashSpeed = 0.0f;
+	float mDashTime = 3.0f;
+
 	float mJumpPower = 60.f;
 	bool mFalling = false;
+	bool mDash = false;
 
 	uint64_t mFlags = 0ull;
 	bool mAnimEnd = false;
-	float mStateTime = 0.0f;
+	float mStateTimer = 0.0f;
+	float mDashTimer = 0.0f;
 	float mDt = 0.0f;
+
+	
 
 
 };

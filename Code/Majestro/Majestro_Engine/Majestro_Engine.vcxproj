@@ -210,7 +210,6 @@
     <ClInclude Include="Imgui.h" />
     <ClInclude Include="IMGUIComponent.h" />
     <ClInclude Include="IMGUISystem.h" />
-    <ClInclude Include="INetSendSink.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LevelImport.h" />
     <ClInclude Include="LightComponent.h" />
@@ -302,7 +301,6 @@
     <ClCompile Include="Imgui.cpp" />
     <ClCompile Include="IMGUIComponent.cpp" />
     <ClCompile Include="IMGUISystem.cpp" />
-    <ClCompile Include="INetSendSink.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LevelImport.cpp" />
     <ClCompile Include="LightComponent.cpp" />

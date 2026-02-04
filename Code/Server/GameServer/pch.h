@@ -20,6 +20,7 @@
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;
+using namespace DirectX::SimpleMath;
 
 //
 //#include <DirectXTex/DirectXTex.h>
@@ -38,3 +39,4 @@ using Vec2 = DirectX::SimpleMath::Vector2;
 using Vec3 = DirectX::SimpleMath::Vector3;
 using Vec4 = DirectX::SimpleMath::Vector4;
 using Matrix = DirectX::SimpleMath::Matrix;
+using Quternion = DirectX::SimpleMath::Quaternion;

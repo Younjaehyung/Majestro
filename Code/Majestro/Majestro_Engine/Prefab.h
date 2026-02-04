@@ -102,6 +102,14 @@ public:
 	//static Entity Build(World& world, const InputCommand& ctx);
 };
 
+class BillboardPrefab : public Prefab
+{
+public:
+	BillboardPrefab(World* world);
+	~BillboardPrefab();
+	//static Entity Build(World& world, const InputCommand& ctx);
+};
+
 class TerrainPrefab : public Prefab
 {
 public:

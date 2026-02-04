@@ -41,7 +41,8 @@ void Scene::Initialize()
 	// MAP export json load
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 	// 
-	 LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	 // LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -54,6 +55,60 @@ void Scene::Initialize()
 		vfxComp.mVfx = vfx;
 	}
 	/////////////////////////////////////////////////////////////////////
+
+	//// Test Map
+	//{
+	//	Entity osw = mWorld->CreateEntity();	// �ʼ�
+
+	//	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
+	//	std::vector<shared_ptr<Material>> material2s;
+
+
+	//	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Walk0");
+
+	//	material2s.push_back(material2);
+
+	//	TransformComponent t{};
+
+	//	const float rotX = DirectX::XMConvertToRadians(90.0f);
+
+
+	//	t.mLocalPosition = { 0.f, 0.f, 0.f };
+	//	t.mLocalRotationE = { rotX, 0.f, 0.f };
+	//	t.mLocalScale = { 1.f, 1.f, 1.f };
+
+
+	//	mWorld->AddComponent<TransformComponent>(osw, t);
+	//	mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+
+
+	//}
+	{
+		Entity osw = mWorld->CreateEntity();	// �ʼ�
+
+		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+		std::vector<shared_ptr<Material>> material2s;
+
+
+		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+
+		material2s.push_back(material2);
+
+		TransformComponent t{};
+
+		const float rotX = DirectX::XMConvertToRadians(90.0f);
+
+
+		t.mLocalPosition = { 0.f, 0.f, 0.f };
+		t.mLocalRotationE = { rotX, 0.f, 0.f };
+		t.mLocalScale = { 1.f, 1.f, 1.f };
+
+
+		mWorld->AddComponent<TransformComponent>(osw, t);
+		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
+
+
+	}
 
 	{
 		Entity osw = mWorld->CreateEntity();	// �ʼ�
@@ -238,7 +293,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 			
 			Entity entity = mWorld->CreateEntity();
 			TransformComponent transform{};
-			transform.mLocalScale = Vec{ 0.1f, 0.1f, 0.1f };
+			//transform.mLocalScale = Vec{ 10.f,10.f, 10.0f };
 			transform.FinalUpdate();
 			//Matrix instanceMatrix = BuildWorldMatrix_RowMajor(inst.world, true);
 			Matrix worldMatrix = inst.worldMtx;
@@ -254,9 +309,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 			}*/
 			render.mMaterials = data->GetMaterials();
 			render.mMesh = data->GetMeshs().at(0);
-			
-			i++;
-			if (i == 800)break;
+
 
 		}
 	}

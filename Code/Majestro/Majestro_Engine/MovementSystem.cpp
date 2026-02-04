@@ -86,11 +86,11 @@ void MovementSystem::Update(float dt) {
 				desired.Normalize();
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
-			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
-			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotation.x;
+			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotationE.y;
+			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotationE.x;
 
 		
 		}
@@ -110,13 +110,13 @@ void MovementSystem::Update(float dt) {
 				desired.Normalize();
 
 			if (mainPlayerComponent->mSpeed > 0) {
-				transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 			}
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
-			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotation.y;
-			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotation.x;
+			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotationE.y;
+			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotationE.x;
 		}
 
 		////jump

@@ -107,7 +107,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	std::vector<shared_ptr<Material>> material2s;
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
-	t.mLocalScale = { 0.1f, 0.1f, 0.1f };
+	
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;
@@ -115,9 +115,9 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (0) {
+	switch (1) {
 	case 0:
-		t.mLocalScale = { 10.f, 10.f, 10.f };
+
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 		material2s.push_back(material2);
@@ -128,15 +128,16 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//attack
+		//anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//attack
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
 		break;
 	case 1:
+		
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Idle0");
 		material2s.push_back(material2);
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Fall"));
@@ -145,10 +146,11 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
 		break;
 	case 2:
+
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle20");
 		material2s.push_back(material2);
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle2"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Jump"));
@@ -284,7 +286,6 @@ SkyBoxPrefab::SkyBoxPrefab(World* world)
 
 	shared_ptr<Mesh> skyBoxMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
 
-	// 빌보드 머티리얼
 	shared_ptr<Material> skyBoxMat = RESOURCEMANAGER.Get<Material>(L"Skybox");
 	std::vector<shared_ptr<Material>> materials;
 	materials.push_back(skyBoxMat);
@@ -306,14 +307,13 @@ TerrainPrefab::TerrainPrefab(World* world)
 	TransformComponent bt{};
 	bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
 	bt.mLocalPosition = Vec3(0.f, -70.f, 0.f);
-
-	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 	world->AddComponent<TransformComponent>(mEntityID, bt);
 
 	// heightmap 512x512 => 타일 511x511
 
 
 	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(504, 504);
+	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 
 	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
@@ -377,5 +377,13 @@ DirLightPrefab::DirLightPrefab(World* world)
 }
 
 DirLightPrefab::~DirLightPrefab()
+{
+}
+
+BillboardPrefab::BillboardPrefab(World* world)
+{
+}
+
+BillboardPrefab::~BillboardPrefab()
 {
 }

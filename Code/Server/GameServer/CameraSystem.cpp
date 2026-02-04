@@ -42,21 +42,21 @@ void CameraSystem::Update(float dt)
 		if (cameraTypeComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
 			pos.y += cameraTypeComponent->mCameraHight;
 			transformComponent->mLocalPosition = pos;
-			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
 			pos.y += cameraTypeComponent->mCameraHight;
 			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
-			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 			pos.y += cameraTypeComponent->mCameraHight;
 			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
-			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 		}
 		else {
 			Vec3 forward = transformComponent->GetLook();
@@ -75,11 +75,11 @@ void CameraSystem::Update(float dt)
 
 			transformComponent->mLocalPosition += desired * dt * cameraTypeComponent->mCameraMoveSpeed;
 
-			transformComponent->mLocalRotation.x = movementComponent->mCameraRotationX;
-			transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
+			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
+			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 		}
 
-		cameraComponent->FinalUpdate(transformComponent->GetLocalToWorldMatrix().Invert());
+		cameraComponent->FinalUpdate(transformComponent->GetWorldMatrix().Invert());
 	}
 
 }

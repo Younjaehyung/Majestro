@@ -22,17 +22,45 @@ public:
 	Vec3 GetUp() { return mWorldMatrix.Up(); }
 	Vec3 GetLook() { return mWorldMatrix.Backward(); }
 
+	void SetLocalPosition(const Vec3& position) { mLocalPosition = position; }
+	void SetLocalRotationE(const Vec3& rotation) { mLocalRotationE = rotation; }
 	void SetLocalScale(const Vec3& scale) { mLocalScale = scale; }
+public: 
+	// Position
 
+
+
+	// Scale
+	
+
+	// Rotate
+	void UpdateRotationQuaternionFromEuler(Vec3 rotation); // 외부 Euler각 -> 쿼터니언 변환
+	void UpdateRotationQuaternionFromEuler();	// 내부 Euler각 -> 쿼터니언 변환
+	void UpdateRotationEulerFromQuaternion(); // 쿼터니언 -> Euler각 변환
+	
+
+
+	//Utils
 	void LookAt(const Vec3 dir);
 	bool CloseEnough(const float& a, const float& b, const float& epsilon = std::numeric_limits<float>::epsilon());
 	Vec3 DecomposeRotationMatrix(const Matrix& rotation);
-	void FinalUpdate();
+
+	// Update
+	Matrix FinalUpdate(Matrix parentMatrix = Matrix());
 public:
 
 	Vec3 mLocalPosition = {};
-	Vec3 mLocalRotation = {};
+	Vec3 mLocalRotationE = {}; // Euler Degrees	(에디터 용)
 	Vec3 mLocalScale = { 1.f, 1.f, 1.f };
+
+	Vec3 mLocalRotationR = {}; // Radians
+	Quaternion mLocalRotationQ = {}; // Quaternion
+
+
+	Matrix mLocalMatTranslation = {};
+	Matrix mLocalMatRotation = {};
+	Matrix mLocalMatScale = {};
+	
 
 	Matrix mLocalMatrix = {};
 	Matrix mWorldMatrix = {};

@@ -129,10 +129,6 @@ public:
 	void Initialize();
 	void Update();
 
-	void MainUpdate() {};
-	void PostUpdate() {};
-
-	
 private: // RenderPass
 
 

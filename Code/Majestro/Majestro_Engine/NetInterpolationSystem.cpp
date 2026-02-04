@@ -30,11 +30,11 @@ void NetInterpolationSystem::Update(float dt)
 
 		if (mWorld->GetComponent<LocalPlayerComponent>(entity)) {
 			transform->mLocalPosition = Vec3::Lerp(netTransform->mStartPosition, netTransform->mTargetPosition, t);
-			transform->mLocalRotation = Vec3::Lerp(netTransform->mStartRotation, netTransform->mTargetRotation, t);
+			transform->mLocalRotationE = Vec3::Lerp(netTransform->mStartRotation, netTransform->mTargetRotation, t);
 		}
 		else {
 			transform->mLocalPosition = netTransform->mTargetPosition;
-			transform->mLocalRotation = netTransform->mTargetRotation;
+			transform->mLocalRotationE = netTransform->mTargetRotation;
 		}
 		
 

@@ -59,7 +59,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
 	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
 	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
-
+	
 
 
 	// Convert InputComponent data to SendRequest format

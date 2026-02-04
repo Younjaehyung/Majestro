@@ -243,11 +243,26 @@ void EffectSystem::Update()
 	Effekseer::Matrix44 cameraMat = ToEfkMatrix(mCamera->GetViewMatrix());
 	Effekseer::Matrix44 projMat = ToEfkMatrix(mCamera->GetProjectionMatrix());
 
+	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+
+	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitResourceToTarget();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+	}
+	else
+	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	}
+
 	RENDERMANAGER.SetGraphicsTable();
 	BeginFrame(GRAPHICS_CMD_LIST.Get());
 	Render(cameraMat, projMat);
 	EndFrame();
 
+
+	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+	}
 }
 
 void EffectSystem::LoadResources()

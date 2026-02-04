@@ -136,7 +136,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 			else
 				animCom->mBlendWeight = 0.f;
 
-			// animCom->mBlendWeight = 1.f;
+			//animCom->mBlendWeight = 1.f;
 
 			shared_ptr<Animator>& blendClip = animCom->mAnimClips.at(blendClipIdx);
 			blendClipHandle = blendClip->GetAnimClipHandle();
@@ -151,7 +151,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 			animCom->mBlendTimer = 0.f;
 			// blendClipIdx = animCom->mAnimClipIdx;
 		}
-
+		
 		AnimationInstance instance{};
 		instance.SkeletonID = animClip->GetSkeleton()->GetSkeletonHandle();
 		instance.AnimClipID = animClip->GetAnimClipHandle();

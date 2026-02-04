@@ -11,5 +11,5 @@ public:
 	void Update(float dt);
 
 public:
-	const float mDPI = 0.3f;
+	const float mDPI = 5.f;
 };

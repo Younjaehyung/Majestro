@@ -19,7 +19,18 @@ void TransformSystem::Update(float dt) {
 		
 		if(transformComponent -> mIsStatic)
 			continue;
-		transformComponent->FinalUpdate();
+		Matrix result = transformComponent->FinalUpdate();
+
+
+		if (!transformComponent->mChild.empty()) {
+			for (Entity& e : transformComponent->mChild) {
+				TransformComponent* childComp = mWorld->GetComponent<TransformComponent>(e);
+				if (childComp) {
+					childComp->FinalUpdate(result);
+				}
+			}
+		}
+
 	}
 
 }

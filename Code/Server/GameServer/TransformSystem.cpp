@@ -1,21 +1,36 @@
 #include "pch.h"
 #include "TransformSystem.h"
 #include "TransformComponent.h"
+#include "TerrainComponent.h"
 #include "GravityComponent.h"
 
 TransformSystem::TransformSystem(World* world) : System(world)
 {
-	
+
 }
 
 
 
 void TransformSystem::Update(float dt) {
-	if (false == mWorld->HasComponentPool<TransformComponent>())return;
 	auto view = mWorld->View<TransformComponent>();
 	for (Entity entity : view) {
+
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-		transformComponent->FinalUpdate();
+
+		if (transformComponent->mIsStatic)
+			continue;
+		Matrix result = transformComponent->FinalUpdate();
+
+
+		if (!transformComponent->mChild.empty()) {
+			for (Entity& e : transformComponent->mChild) {
+				TransformComponent* childComp = mWorld->GetComponent<TransformComponent>(e);
+				if (childComp) {
+					childComp->FinalUpdate(result);
+				}
+			}
+		}
+
 	}
 
 }

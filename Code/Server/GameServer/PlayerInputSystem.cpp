@@ -43,7 +43,7 @@ void PlayerInputSystem::Update(float dt)
 		}
 		else {
 			if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-			else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
+			else mainPlayerComponent->mSpeed = 750.f;// mainPlayerComponent->mRunSpeed;
 		}
 
 		movementComponent->mMovingDirection = { 0,0,0 };

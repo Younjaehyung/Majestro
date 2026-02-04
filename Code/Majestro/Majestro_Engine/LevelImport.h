@@ -221,7 +221,10 @@ static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fro
     Matrix matScale = Matrix::CreateScale(sx,sy,sz);
     Matrix matTranslation = Matrix::CreateTranslation(px,py,pz);
 
-    return matScale * Identity * matTranslation;
+	// X축 회전행렬 생성 예시
+	Matrix RotateX = Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
+
+    return worldCpu;
 
 
 }

@@ -43,6 +43,7 @@ using namespace std;
 #include <DirectXColors.h>
 using namespace DirectX;
 using namespace DirectX::PackedVector;
+using namespace DirectX::SimpleMath;
 using namespace Microsoft::WRL;
 
 
@@ -141,7 +142,7 @@ using Vec2 = DirectX::SimpleMath::Vector2;
 using Vec3 = DirectX::SimpleMath::Vector3;
 using Vec4 = DirectX::SimpleMath::Vector4;
 using Matrix = DirectX::SimpleMath::Matrix;
-
+using Quaternion = DirectX::SimpleMath::Quaternion;
 
 struct Vertex {
 	Vertex() {}

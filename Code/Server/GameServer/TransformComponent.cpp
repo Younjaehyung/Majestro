@@ -21,7 +21,7 @@ void TransformComponent::LookAt(const Vec3 dir)
 	matrix.Up(up);
 	matrix.Backward(front);
 
-	mLocalRotation = DecomposeRotationMatrix(matrix);
+	mLocalRotationE = DecomposeRotationMatrix(matrix);
 }
 
 bool TransformComponent::CloseEnough(const float& a, const float& b, const float& epsilon)
@@ -76,23 +76,46 @@ Vec3 TransformComponent::DecomposeRotationMatrix(const Matrix& rotation)
 	return ret;
 }
 
-void TransformComponent::FinalUpdate()
+void TransformComponent::UpdateRotationQuaternionFromEuler(Vec3 rotation)
 {
-	
-		Matrix matScale = Matrix::CreateScale(mLocalScale);
-		Matrix matRotation = Matrix::CreateRotationX(mLocalRotation.x);
-		matRotation *= Matrix::CreateRotationY(mLocalRotation.y);
-		matRotation *= Matrix::CreateRotationZ(mLocalRotation.z);
-		Matrix matTranslation = Matrix::CreateTranslation(mLocalPosition);
 
-		mLocalMatrix = matScale * matRotation * matTranslation;
-		mWorldMatrix = mLocalMatrix;
-		mWorldPosition = mWorldMatrix.Translation();
+	mLocalRotationR.x = DirectX::XMConvertToRadians(rotation.x);
+	mLocalRotationR.y = DirectX::XMConvertToRadians(rotation.y);
+	mLocalRotationR.z = DirectX::XMConvertToRadians(rotation.z);
 
-		//shared_ptr<Transform> parent = GetParent().lock();
-		//if (parent != nullptr)
-		//{
-		//	_matWorld *= parent->GetLocalToWorldMatrix();
-		//}
-	
+	mLocalRotationQ = Quaternion::CreateFromYawPitchRoll(rotation.y, rotation.x, rotation.z);
+
+}
+
+void TransformComponent::UpdateRotationQuaternionFromEuler()
+{
+	mLocalRotationR.x = DirectX::XMConvertToRadians(mLocalRotationE.x);
+	mLocalRotationR.y = DirectX::XMConvertToRadians(mLocalRotationE.y);
+	mLocalRotationR.z = DirectX::XMConvertToRadians(mLocalRotationE.z);
+
+
+	mLocalRotationQ = Quaternion::CreateFromYawPitchRoll(mLocalRotationR.y, mLocalRotationR.x, mLocalRotationR.z);
+
+}
+
+Matrix TransformComponent::FinalUpdate(Matrix parentMatrix)
+{
+	UpdateRotationQuaternionFromEuler();
+
+	mLocalMatScale = Matrix::CreateScale(mLocalScale);
+	mLocalMatRotation = Matrix::CreateFromQuaternion(mLocalRotationQ);
+	mLocalMatTranslation = Matrix::CreateTranslation(mLocalPosition);
+
+	/*Matrix matRotation = Matrix::CreateRotationX(mLocalRotationE.x);
+	matRotation *= Matrix::CreateRotationY(mLocalRotationE.y);
+	matRotation *= Matrix::CreateRotationZ(mLocalRotationE.z);*/
+
+
+	mLocalMatrix = mLocalMatScale * mLocalMatRotation * mLocalMatTranslation;
+	mWorldMatrix = mLocalMatrix * parentMatrix;
+	mWorldPosition = mWorldMatrix.Translation();
+
+	mIsDirty = true;
+
+	return mWorldMatrix;
 }

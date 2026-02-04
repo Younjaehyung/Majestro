@@ -37,6 +37,7 @@ PS_OUT PS_Main(VS_OUT input)
     // -----------------------------
     float4 baseColor = materials.Diffuse;
 
+
     // [수정] 인덱스 0도 유효할 수 있으니 ">= 0"으로 통일해야 함.
     //        (invalid = -1이라는 전제. MATERIALINFO의 인덱스 타입은 int여야 정상)
     if (materials.DiffuseMap0Index != 0)
@@ -64,6 +65,12 @@ PS_OUT PS_Main(VS_OUT input)
         baseColor = lerp(baseColor, tex3, tex3.a);
     }
 
+        
+    if (baseColor.a < 0.01f)
+    {
+        discard;
+    }
+    
     // -----------------------------
     // 2) Normal Map 적용
     // -----------------------------
@@ -97,7 +104,7 @@ PS_OUT PS_Main(VS_OUT input)
     // [권장] MATERIALINFO에 float Metallic; float Roughness; 를 넣고 여기서 기본값으로 사용해라.
 
     float metallic = 0.7f; // [수정] 기본 메탈릭
-    float roughness = 0.2f; // [수정] 기본 러프니스(너무 매끈/너무 거칠지 않게 중간값)
+    float roughness = 1.0f; // [수정] 기본 러프니스(너무 매끈/너무 거칠지 않게 중간값)
 
     // [수정] 메탈릭 맵
     if (materials.MetallicMapIndex != 0)
@@ -105,7 +112,7 @@ PS_OUT PS_Main(VS_OUT input)
         // 네 코드처럼 r 채널 사용 (프로젝트 규약에 맞춰 유지)
         metallic = TextureMaps[materials.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    metallic = 0.7f; // [수정] 기본 메탈릭 (텍스처 없을 때)
+    metallic = 0.0f; // [수정] 기본 메탈릭 (텍스처 없을 때)
     // else metallic = materials.Metallic;  // [권장] MATERIALINFO에 Metallic이 있다면 이걸로
 
     // [추가] 러프니스 맵이 있다면 여기서 샘플링 해야 함.

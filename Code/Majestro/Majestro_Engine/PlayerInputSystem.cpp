@@ -96,7 +96,7 @@ void PlayerInputSystem::Update(float dt)
 		
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 	}
 
 

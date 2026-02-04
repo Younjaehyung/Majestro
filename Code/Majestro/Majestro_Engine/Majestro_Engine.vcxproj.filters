@@ -265,9 +265,6 @@
     <ClInclude Include="NetSendSystem.h">
       <Filter>World\System\Network</Filter>
     </ClInclude>
-    <ClInclude Include="INetSendSink.h">
-      <Filter>Utils\Network</Filter>
-    </ClInclude>
     <ClInclude Include="Network.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -415,7 +412,9 @@
     <ClInclude Include="NetTransformComponent.h">
       <Filter>World\Component\Server</Filter>
     </ClInclude>
-    <ClInclude Include="UITextComponent.h" />
+    <ClInclude Include="UITextComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -537,9 +536,6 @@
     </ClCompile>
     <ClCompile Include="NetSendSystem.cpp">
       <Filter>World\System\Network</Filter>
-    </ClCompile>
-    <ClCompile Include="INetSendSink.cpp">
-      <Filter>Utils\Network</Filter>
     </ClCompile>
     <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>
@@ -679,7 +675,9 @@
     <ClCompile Include="NetTransformComponent.cpp">
       <Filter>World\Component\Server</Filter>
     </ClCompile>
-    <ClCompile Include="UITextComponent.cpp" />
+    <ClCompile Include="UITextComponent.cpp">
+      <Filter>World\Component\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

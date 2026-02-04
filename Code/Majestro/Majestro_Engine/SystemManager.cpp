@@ -38,7 +38,6 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<EffectSystem>();
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<EnemySystem>();
-    RegisterSystem<CollisionSystem>();
     RegisterSystem<NetInterpolationSystem>();
 
 #ifdef _IMGUI
@@ -104,7 +103,7 @@ void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
     GetSystem<RenderSystem>()->Update();
     //GetSystem<EffectSystem>()->Update();
-    //GetSystem<UIRenderSystem>()->Update();
+    GetSystem<UIRenderSystem>()->Update();
    
 #ifdef _IMGUI
 	//GetSystem<IMGUIRenderSystem>()->Update();

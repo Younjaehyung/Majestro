@@ -102,8 +102,8 @@ public:
 	float mFar = 10000.f;
 	float mFov = XM_PI / 4.f;
 	float mScale = 1.f;
-	float mWidth = 1200.f;
-	float mHeight = 800.f;
+	float mWidth = 2560.0f; //2560, 1440
+	float mHeight = 1440.f;
 
 	Matrix mView = {};
 	Matrix mProjection = {};
@@ -133,5 +133,5 @@ public:
 	PlayMode mPlayMode;
 	float mCameraMoveSpeed = 100;
 	float mCameraHight = 20;
-	float mCameraLenth = 50;
+	float mCameraLenth = 300;
 };

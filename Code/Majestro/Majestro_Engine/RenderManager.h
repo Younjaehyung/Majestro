@@ -59,7 +59,7 @@ public:
 
 	uint32 GetMsaaSampleCount() const { return mMsaaSampleCount; }
 	uint32 GetMsaaQuality() const { return mMsaaQuality; }
-	bool IsMsaaEnabled() const { return mMsaaSampleCount > 1; }
+	bool IsMsaaEnabled() const { return false /*mMsaaSampleCount > 1*/; }
 
 public:
 	shared_ptr<Device>					GetDevice()				{ return mDevice; }

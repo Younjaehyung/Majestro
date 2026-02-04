@@ -37,9 +37,6 @@
     <Filter Include="Resource">
       <UniqueIdentifier>{cf7a9df3-8932-4e46-87e7-57a5cd41075a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NewFilter1">
-      <UniqueIdentifier>{4426ef73-c12f-4226-8029-44a6d5a8fcd9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="System\Logic">
       <UniqueIdentifier>{7e0aca65-3a27-4699-8480-8b40d86383d9}</UniqueIdentifier>
     </Filter>

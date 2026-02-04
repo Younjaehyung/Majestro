@@ -18,7 +18,7 @@ class TerrainComponent : public Component<TerrainComponent>
 {
 public:
 		TerrainComponent() {}
-		TerrainComponent(float width, float depth, shared_ptr< Material>& material);
+		TerrainComponent(int width, int depth, shared_ptr< Material>& material);
 
 
 		float GetHeightAtWorldPosition(const Vec3& worldPos) const;

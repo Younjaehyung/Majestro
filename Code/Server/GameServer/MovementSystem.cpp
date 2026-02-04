@@ -128,7 +128,7 @@ void MovementSystem::Update(float dt) {
 
 				transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
-				transformComponent->mLocalRotation.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
+				transformComponent->mLocalRotationE.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
 
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
@@ -147,7 +147,7 @@ void MovementSystem::Update(float dt) {
 					desired.Normalize();
 
 				if (mainPlayerComponent->mSpeed > 0) {
-					transformComponent->mLocalRotation.y = inputComponent->Yaw;
+					transformComponent->mLocalRotationE.y = inputComponent->Yaw;
 				}
 				transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
@@ -203,8 +203,8 @@ void MovementSystem::Update(float dt) {
 		const float targetYaw = atan2f(dir.x, dir.z) + 3.14159265358979323846f /*PI*/;
 
 		const float maxDelta = kTurnSpeedRadPerSec * dt;
-		transformComponent->mLocalRotation.y =
-			MoveTowardsAngle(transformComponent->mLocalRotation.y, targetYaw, maxDelta);
+		transformComponent->mLocalRotationE.y =
+			MoveTowardsAngle(transformComponent->mLocalRotationE.y, targetYaw, maxDelta);
 
 		// pitch/roll 고정이 필요하면 아래 주석 해제
 		// transformComponent->mLocalRotation.x = 0.0f;

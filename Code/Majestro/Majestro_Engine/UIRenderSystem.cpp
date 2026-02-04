@@ -48,17 +48,25 @@ void UIRenderSystem::InitializeFont()
 void UIRenderSystem::Update()
 {
     if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
-    /*std::vector<Entity> camera{ mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]};
-    mCamera = mWorld->GetComponent<CameraComponent>(camera[0]);*/
-    auto cameraView = mWorld->View<MainCameraComponent>();
-    auto cameraIt = cameraView.begin();
-    if (cameraIt == cameraView.end()) {
-        return;
+
+    int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+
+    if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitResourceToTarget();
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+    }
+    else
+    {
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
     }
 
-    RENDERMANAGER.SetGraphicsTable();
+    
     SpriteUpdate();
     //TextUpdate();
+
+    if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+    }
 }
 
 void UIRenderSystem::TextUpdate()

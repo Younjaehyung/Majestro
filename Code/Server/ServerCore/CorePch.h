@@ -11,6 +11,7 @@
 
 #include "CoreMacro.h"
 
+#define NOMINMAX
 #include <windows.h>
 #include <iostream>
 #include <algorithm>

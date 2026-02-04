@@ -103,7 +103,7 @@ void SystemManager::Render() {
     for (auto& sys : mRenderSystems)        sys->Update();
     GetSystem<RenderSystem>()->Update();
     //GetSystem<EffectSystem>()->Update();
-    GetSystem<UIRenderSystem>()->Update();
+    // GetSystem<UIRenderSystem>()->Update();
    
 #ifdef _IMGUI
 	//GetSystem<IMGUIRenderSystem>()->Update();

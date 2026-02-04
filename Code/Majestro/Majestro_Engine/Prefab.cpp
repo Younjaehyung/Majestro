@@ -90,6 +90,7 @@ PlayerPrefab::~PlayerPrefab()
 
 Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 {
+	std::cout << "오승원" << std::endl;
 	Entity mEntityID = world->CreateEntity();
 
 	TransformComponent t{};
@@ -115,7 +116,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
 
@@ -139,8 +140,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Idle0");
 		material2s.push_back(material2);
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Fall"));
@@ -151,9 +152,9 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	case 2:
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle20");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
 		material2s.push_back(material2);
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle2"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Jump"));

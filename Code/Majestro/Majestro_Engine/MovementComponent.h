@@ -10,7 +10,7 @@ public:
 	bool mJump = false;
 	bool mDash = false;
 	bool mAttack1 = false;
-	bool mDash = false;
+
 
 	Vec2 mCameraView;
 

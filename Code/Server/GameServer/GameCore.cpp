@@ -19,11 +19,11 @@ void GameCore::Start()
 void GameCore::Update(float deltaTime)
 {
 	UpdateGameLogic(deltaTime);
-	/*uint32 sessionId = 0;
-	while (gNewSessions.Pop(sessionId))
-	{
-		mSceneManager->InitializeSession(sessionId);
-	}*/
+	//uint32 sessionId = 0;
+	//while (gNewSessions.Pop(sessionId))
+	//{
+	//	mSceneManager->InitializeSession(sessionId);
+	//}
 
 	InputCommand command;
 	while (gRecvQueue.Pop(command))

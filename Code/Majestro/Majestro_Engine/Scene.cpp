@@ -84,69 +84,7 @@ void LobbyScene::Initialize()
 	}
 	/////////////////////////////////////////////////////////////////////
 
-	{
-		Entity osw = mWorld->CreateEntity();	// �ʼ�
 
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-		std::vector<shared_ptr<Material>> material2s;
-
-
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
-
-		material2s.push_back(material2);
-
-		TransformComponent t{};
-
-		const float rotX = DirectX::XMConvertToRadians(90.0f);
-
-
-		t.mLocalPosition = { 0.f, 0.f, 0.f };
-		t.mLocalRotationE = { rotX, 0.f, 0.f };
-		t.mLocalScale = { 1.f, 1.f, 1.f };
-
-
-		mWorld->AddComponent<TransformComponent>(osw, t);
-		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-
-
-	}
-
-	{
-		Entity osw = mWorld->CreateEntity();	// �ʼ�
-
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
-		std::vector<shared_ptr<Material>> material2s;
-
-		
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
-		material2s.push_back(material2);
-		TransformComponent t{};
-		t.mLocalPosition = { 0.f, 0.f, 0.f };
-		t.mLocalScale = { 1.f, 1.f, 1.f };
-		vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
-		
-
-		mWorld->AddComponent<TransformComponent>(osw, t);
-		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
-		float i, j, k;
-		float n = 10;
-		for (i = -50; i < 10; i += 10.0f) {
-			for (j = -50; j < 50; j += 10.0f) {
-				//for (k = -50; k < 50; k += 10.0f) {
-					Entity osws = mWorld->CreateEntity();	// �ʼ�
-					t.mLocalPosition = { i*n, 0, j*n };
-
-
-					mWorld->AddComponent<TransformComponent>(osws, t);
-					mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-					mWorld->AddComponent<GravityComponent>(osws);
-				//}
-			}
-
-		}
-	}
 
 
 
@@ -277,7 +215,7 @@ void GameScene::Initialize()
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
-LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -290,43 +228,6 @@ LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 		vfxComp.mVfx = vfx;
 	}
 	/////////////////////////////////////////////////////////////////////
-
-	{
-		Entity osw = mWorld->CreateEntity();	// �ʼ�
-
-		shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"Ammor");
-		std::vector<shared_ptr<Material>> material2s;
-
-
-		shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"oo10");
-		material2s.push_back(material2);
-		TransformComponent t{};
-		t.mLocalPosition = { 0.f, 0.f, 0.f };
-		t.mLocalScale = { 1.f, 1.f, 1.f };
-		vector<shared_ptr<Animator>> anmators;
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Model|Punch"));
-
-
-		mWorld->AddComponent<TransformComponent>(osw, t);
-		mWorld->AddComponent<RenderComponent>(osw, phereMesh, material2s);
-		//mWorld->AddComponent<AnimationComponent>(osw, anmators);
-		float i, j, k;
-		float n = 10;
-		for (i = -50; i < 50; i += 10.0f) {
-			for (j = -50; j < 50; j += 10.0f) {
-				//for (k = -50; k < 50; k += 10.0f) {
-				Entity osws = mWorld->CreateEntity();	// �ʼ�
-				t.mLocalPosition = { i * n, 0, j * n };
-
-
-				mWorld->AddComponent<TransformComponent>(osws, t);
-				mWorld->AddComponent<RenderComponent>(osws, phereMesh, material2s);
-				mWorld->AddComponent<GravityComponent>(osws);
-				//}
-			}
-
-		}
-	}
 
 
 	/////////////////////////////////////////////////////////////////////////

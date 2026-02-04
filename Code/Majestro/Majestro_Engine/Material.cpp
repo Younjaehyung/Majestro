@@ -136,7 +136,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 	SetTexture(texture, DIFFUSEMAP3INDEX);
 	}
 
-	/*if (fbxMat.NormalMapName != "") {
+	if (fbxMat.NormalMapName != "") {
 		texture = RESOURCEMANAGER.Get<Texture>(s2ws(fbxMat.NormalMapName));
 		if (texture == nullptr) {
 			texture = make_shared<Texture>();
@@ -144,7 +144,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.NormalMapName), texture);
 		}test = false;
 	SetTexture(texture, NORMALMAPINDEX);
-	}*/
+	}
 
 	if (fbxMat.SpecularcMapName != "") {
 		texture = RESOURCEMANAGER.Get<Texture>(s2ws(fbxMat.SpecularcMapName));

@@ -56,7 +56,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 
 	
 
-	if (msaaCount > 1)
+	if ( RENDERMANAGER.IsMsaaEnabled() && msaaCount > 1)
 	{
 		mGraphicsPipelineDesc.SampleDesc.Count = RENDERMANAGER.GetMsaaSampleCount();
 		mGraphicsPipelineDesc.SampleDesc.Quality = RENDERMANAGER.GetMsaaQuality();
@@ -237,7 +237,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 	mGraphicsPipelineDesc.SampleDesc.Quality = 0;
 	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
 
-	if(msaaCount > 1)
+	if (RENDERMANAGER.IsMsaaEnabled() && msaaCount > 1)
 	{
 		mGraphicsPipelineDesc.SampleDesc.Count = RENDERMANAGER.GetMsaaSampleCount();
 		mGraphicsPipelineDesc.SampleDesc.Quality = RENDERMANAGER.GetMsaaQuality();

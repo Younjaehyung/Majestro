@@ -267,7 +267,7 @@ StructuredBuffer<ANIMATIONMETA> AnimationMeta : register(t2, space3);
  ////////////////////////////TEXTURE////////////////////////////////
 StructuredBuffer<MATERIALINFO> Materials : register(t0, space4);
 TextureCube SkyBoxMaps[16] : register(t1, space4);
-Texture2D<float4> TextureMaps[1024] : register(t17, space4);
+Texture2D<float4> TextureMaps[2048] : register(t17, space4);
  ///////////////////////////////////////////////////////////////////
 
 

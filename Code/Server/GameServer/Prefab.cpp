@@ -98,7 +98,7 @@ TerrainPrefab::TerrainPrefab(World *world) {
   TransformComponent bt{};
   bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
 
-  bt.mLocalPosition = Vec3(0.f, -27.f, 0.f);
+  bt.mLocalPosition = Vec3(-25200.0f, -27.6f, -25199.f);
 
   world->AddComponent<TransformComponent>(mEntityID, bt);
 

@@ -74,8 +74,10 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	// buttons 비트마스크로 변환
 
 	/*
-	if (comp->mDash)			mInputPacket.Buttons |= INPUT_DASH;
+	
 	if (comp->mInteract)			mInputPacket.Buttons |= INPUT_INTERACT;*/
+
+	if (comp->mDash)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SHIFT));
 	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
 	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
 

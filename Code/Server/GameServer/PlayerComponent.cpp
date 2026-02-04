@@ -6,7 +6,7 @@ using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 
-BOOL STATE_DEBUG = FALSE;
+BOOL STATE_DEBUG = TRUE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {
@@ -118,6 +118,12 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
 void MainPlayerComponent::StateCheck()
 {
     if (mSpeed < 1.f)ClearFlag(mFlags, FLAG_MOVE);
+    if (mDash && mDashTime <= mDashTimer) {
+        mDash = false;
+        mFsm.ChangeState(this, IdleState::Instance());
+    }
+
+    else 
     if (mFalling) {
         mFsm.ChangeState(this, FallState::Instance());
     }
@@ -125,8 +131,10 @@ void MainPlayerComponent::StateCheck()
 
 void MainPlayerComponent::Update(float dt) 
 {
-    mStateTime += dt;
+    mStateTimer += dt;
     mDt = dt;
+
+    if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
     StateCheck();
     mFsm.Update(this);
 }
@@ -247,6 +255,9 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         if (p.contains("dashSpeed"))
             mDashSpeed = p["dashSpeed"].get<float>();
 
+        if (p.contains("dashTime"))
+            mDashTime = p["dashTime"].get<float>();
+
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();
 
@@ -254,6 +265,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         std::cout << "  WalkSpeed : " << mWalkSpeed << "\n";
         std::cout << "  RunSpeed  : " << mRunSpeed << "\n";
         std::cout << "  DashSpeed : " << mDashSpeed << "\n";
+        std::cout << "  DashTime : " << mDashTime << "\n";
     }
     // 2) STATE PROPERTY 로딩
     if (!j.contains("stateProps"))
@@ -292,18 +304,17 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 //-------------------------------------------------------------------------------------------------
 void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 {
-    owner->mStateTime = 0.0f;
+    owner->mStateTimer = 0.0f;
     owner->mNextState = S_Idle;
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }
     if (s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
-    if (s->mAnimOnce && owner->mStateTime >= s->mAnimEndTime) {
+    if (s->mAnimOnce && owner->mStateTimer >= s->mAnimEndTime) {
         if (s->mAnimOnce) ClearFlag(owner->mFlags, FLAG_ANIM);
         owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }
-
 }
 
 void StateExit(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
@@ -428,6 +439,8 @@ DashState* DashState::Instance() {
 }
 void DashState::Enter(MainPlayerComponent* owner)
 {
+    owner->mDash = true;
+    owner->mDashTimer = 0.f;
     StateEnter(this, owner);
 }
 void DashState::Update(MainPlayerComponent* owner)

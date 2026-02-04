@@ -2,7 +2,8 @@
     "player": {
         "walkSpeed": 50.0,
         "runSpeed": 100.0,
-        "dashSpeed": 200.0
+        "dashSpeed": 2000.0,
+        "dashTime": 5.0
     },
 
     "stateProps": {
@@ -38,8 +39,8 @@
         },
         "DashState": {
             "time": 0.35,
-            "animOnce": true,
-            "animEndTime": 0.666667
+            "animOnce": false,
+            "animEndTime": 3.0000
         },
         "Attack1State": {
             "time": 0.35,

@@ -100,19 +100,6 @@ void MovementSystem::Update(float dt) {
 			//float correction{ 0 };
 			//if (mainPlayerComponent->mPlayerType == 1 || mainPlayerComponent->mPlayerType == 2) correction = 3.14159265358979323846f;
 
-			//stateSetting
-			{
-				if (inputComponent->MoveX == 0 && inputComponent->MoveZ==0) {
-					mainPlayerComponent->mSpeed = 0.f;
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
-				}
-				else {
-					if (mainPlayerComponent->GetState() & S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-					else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
-
-					
-				}
-			}
 
 			if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
 				Vec3 forward = transformComponent->GetLook();
@@ -160,12 +147,10 @@ void MovementSystem::Update(float dt) {
 			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 
 			mainPlayerComponent->mFalling = gravityComponent->mFalling;
-			if (inputComponent->MoveY == 1/*inputComponent->IsButtonPressed(InputButtons::SPACE)*/) {
-				cout << "jump" << endl;
+			if (inputComponent->IsButtonPressed(InputButtons::SPACE)) {
 				if (not mainPlayerComponent->mFalling) {
 					gravityComponent->mHight += 10.0f;
 					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
-					//stateSetting
 				}
 				mainPlayerComponent->mFalling = true;
 

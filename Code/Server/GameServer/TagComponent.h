@@ -15,5 +15,13 @@ class MainCameraComponent : public Component<MainCameraComponent>
 
 };
 
+class MovableComponent : public Component<MovableComponent>
+{
 
+};
+
+class ImmovableComponent : public Component<ImmovableComponent>
+{
+
+};
 

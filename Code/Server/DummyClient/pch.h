@@ -20,7 +20,7 @@
 #include <MSWSock.h>
 #pragma comment(lib, "ws2_32.lib")
 
-
+#define NOMINMAX
 #include <windows.h>
 #include <iostream>
 #include <tchar.h>

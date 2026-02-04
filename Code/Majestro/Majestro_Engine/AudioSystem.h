@@ -10,6 +10,7 @@ public:
 
 	void Initialize();
 	void Update(float);
+	void Shutdown();
 private:
 	float time{};
 };

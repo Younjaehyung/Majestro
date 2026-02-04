@@ -274,5 +274,6 @@ Texture2D<float4> TextureMaps[1024] : register(t17, space4);
 
 
 SamplerState g_sam_0 : register(s0);
+SamplerState g_sam_Terrain : register(s1);
 
 #endif

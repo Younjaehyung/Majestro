@@ -46,6 +46,12 @@ void Scene::Render()
 	//mWorld->Render();
 }
 
+void Scene::Shudown()
+{
+	mWorld->Shutdown();
+
+}
+
 void LobbyScene::Initialize()
 {
 	//PlayerPrefab player{mWorld.get()};
@@ -70,8 +76,7 @@ void LobbyScene::Initialize()
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 	// 
 
-	// LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
-
+	
 	/////////////////////////////////////////////////////////////////////
 	{
 		Entity vfxEntity = mWorld->CreateEntity();
@@ -215,7 +220,8 @@ void GameScene::Initialize()
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
-	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	// LoadJsonLevel(L"..\\Resources\\Json\\Dungeon_Export.json");
+	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -228,7 +234,6 @@ void GameScene::Initialize()
 		vfxComp.mVfx = vfx;
 	}
 	/////////////////////////////////////////////////////////////////////
-
 
 	/////////////////////////////////////////////////////////////////////////
 
@@ -351,7 +356,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 		for (const auto& inst : level.instances)
 		{
 			// 파일명만 추출
-			std::string name = filesystem::path(inst.staticMeshAsset).filename().stem().string();
+			std::string name = filesystem::path(inst.fbx).filename().stem().string();
 			name = "..\\Resources\\FBX\\" + name + ".fbx";
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
 
@@ -371,23 +376,20 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			Entity entity = mWorld->CreateEntity();
 			TransformComponent transform{};
-			//transform.mLocalScale = Vec{ 10.f,10.f, 10.0f };
-			transform.FinalUpdate();
-			//Matrix instanceMatrix = BuildWorldMatrix_RowMajor(inst.world, true);
-			Matrix worldMatrix = inst.worldMtx;
-			transform.mWorldMatrix = worldMatrix;// *transform.mWorldMatrix;
+			transform.mWorldMatrix = inst.worldMtx;
 
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
 
 			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
 
-			/*for (const auto& mat : data->GetMaterials()) {
-				mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"normalgun"), NORMALMAPINDEX);
-			}*/
+			for (const auto& mat : data->GetMaterials()) {
+				mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
+			}
 			render.mMaterials = data->GetMaterials();
-			render.mMesh = data->GetMeshs().at(0);
 
+			render.mMesh = data->GetMeshs().at(0);
+			
 
 		}
 	}

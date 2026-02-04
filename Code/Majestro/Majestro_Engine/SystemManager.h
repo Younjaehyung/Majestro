@@ -23,6 +23,11 @@ public:
     template<typename T, typename... Args>
     T* RegisterSystem(Args&&... args);
 
+
+    template<typename T>
+    T* UnRegisterSystem();
+
+
     template<typename T>
     T* GetSystem();
 
@@ -54,6 +59,24 @@ T* SystemManager::RegisterSystem(Args&&... args) {
 
     systemPtr->Initialize();
     return systemPtr;
+}
+
+template<typename T>
+T* SystemManager::UnRegisterSystem() //? 되는 코드인가
+{
+    size_t typeHash = typeid(T).hash_code();
+    auto it = mSystemMap.find(typeHash);
+    if (it != mSystemMap.end()) {
+        T* systemPtr = static_cast<T*>(it->second);
+        mSystemMap.erase(it);
+        auto sysIt = std::find_if(mSystems.begin(), mSystems.end(),
+            [systemPtr](const std::unique_ptr<System>& sys) { return sys.get() == systemPtr; });
+        if (sysIt != mSystems.end()) {
+            mSystems.erase(sysIt);
+        }
+        return systemPtr;
+    }
+	return nullptr;
 }
 
 template<typename T>

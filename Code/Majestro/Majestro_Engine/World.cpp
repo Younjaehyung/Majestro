@@ -40,3 +40,9 @@ void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)
         it->second->RemoveComponent(entityID);
 	}
 }
+
+void World::Shutdown()
+{
+	mSystemManager->Shutdown();
+    // Clear();
+}

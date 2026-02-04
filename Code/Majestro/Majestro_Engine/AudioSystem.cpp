@@ -64,3 +64,8 @@ void OnExplosion(float x, float y, float z) {
     a.up = { 0, 1, 0 };
     AUDIOMANAGER.PlayOneShot3D("event:/Drum", a);
 }
+
+void AudioSystem::Shutdown()
+{
+    AUDIOMANAGER.Shutdown();
+}

@@ -385,7 +385,7 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 
 shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 {
-	shared_ptr<FBXData> meshData = Get<FBXData>(path);
+	shared_ptr<FBXData> meshData = Get<FBXData>(s2ws(filesystem::path(path).filename().stem().string()));
 	if (meshData)
 		return meshData;
 	meshData = make_shared<FBXData>();
@@ -398,7 +398,7 @@ shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path)
 
 shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path)
 {
-	shared_ptr<FBXData> meshData = Get<FBXData>(path);
+	shared_ptr<FBXData> meshData = Get<FBXData>(s2ws(filesystem::path(path).filename().stem().string()));
 	if (meshData)
 		return meshData;
 	meshData = make_shared<FBXData>();
@@ -498,14 +498,16 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 
 					// exporter JSON에서 instance는 inst_j["dx"]가 바로 있음
 					const auto& dx = Require(inst_j, "dx");
+					
 					insts.world = ParseDxTransform(dx);
-
+					//const auto& ue = Require(inst_j, "ue");
+					//insts.ue = ParseUETransform(inst_j, positionUnitScale);
 					// [수정] 로드 단계에서 월드행렬 생성 (DX12에 바로 사용 가능)
 					{
-						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world, /*fromUe=*/false);
-
-						insts.worldMtx = Matrix::CreateRotationZ(-90.f) * Matrix::CreateRotationX(90.f) * insts.worldMtx;
-						
+						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world,false);
+						//insts.worldMtx = ConvertTransform(insts.ue) * 
+						//	Matrix::CreateTranslation(Vec3(-9493.f, -472.0f, 15647.0f)); // UE to DX 변환
+						//
 					}
 
 					out.instances.push_back(std::move(insts));
@@ -523,12 +525,14 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 				const auto& cwt = Require(c, "component_world_transform");
 				const auto& dx = Require(cwt, "dx");
 				inst.world = ParseDxTransform(dx);
-
+				//const auto& ue = Require(cwt, "ue");
+				//inst.ue = ParseUETransform(ue, positionUnitScale);
 				// [수정] 로드 단계에서 월드행렬 생성
 				{
-					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, /*fromUe=*/false);
+					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, false);
+					//inst.worldMtx = ConvertTransform(inst.ue) *
+					//	Matrix::CreateTranslation(Vec3(-4863.0f, -472.0f, 20647.0f)); // UE to DX 변환
 
-					inst.worldMtx =   inst.worldMtx * Matrix::CreateRotationZ(90.f);
 
 				}
 
@@ -624,6 +628,20 @@ void ResourceManager::CreateDefaultRootSignature()
 		samplerDesc.MinLOD = 0.0f;
 		samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 		rootSignature->AddSampler(samplerDesc);
+
+		CD3DX12_STATIC_SAMPLER_DESC samplerDesc2(1);
+		samplerDesc2.Filter = D3D12_FILTER_ANISOTROPIC;
+		samplerDesc2.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc2.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc2.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+		samplerDesc2.MipLODBias = 0.0f;
+		samplerDesc2.MaxAnisotropy = 16;
+		samplerDesc2.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+		samplerDesc2.MinLOD = 0.0f;
+		samplerDesc2.MaxLOD = D3D12_FLOAT32_MAX;
+		rootSignature->AddSampler(samplerDesc2);
+
+
 
 		rootSignature->CreateGraphicsRootSignature();
 
@@ -726,6 +744,7 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::DEFERRED,
+			RASTERIZER_TYPE::CULL_NONE,
 
 		};
 

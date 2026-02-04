@@ -17,6 +17,7 @@ public:
     void Initialize() {mSystemManager = std::make_shared<SystemManager>(this);}
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
+    void Shutdown();
 public:
 
     // 엔티티 생성

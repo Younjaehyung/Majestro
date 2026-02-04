@@ -78,7 +78,7 @@ shared_ptr<Material> Material::Clone()
 }
 void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 {
-
+	bool test = true;
 	std::cout << "Create Materail ID" << GetID() << std::endl;
 
 	mParams.Diffuse = Vec4(1.0f,1.0f,1.0f,1.0f);
@@ -102,6 +102,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture->Load(filePath + s2ws(fbxMat.DiffuseMap0Name));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.DiffuseMap0Name), texture);
 		}
+		test = false;
 		SetTexture(texture, DIFFUSEMAP0INDEX);
 	}
 
@@ -111,7 +112,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.DiffuseMap1Name));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.DiffuseMap1Name), texture);
-		}
+		}test = false;
 	SetTexture(texture, DIFFUSEMAP1INDEX);
 	}
 
@@ -121,7 +122,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.DiffuseMap2Name));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.DiffuseMap2Name), texture);
-		}
+		}test = false;
 	SetTexture(texture, DIFFUSEMAP2INDEX);
 	}
 
@@ -131,19 +132,19 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.DiffuseMap3Name));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.DiffuseMap3Name), texture);
-		}
+		}test = false;
 	SetTexture(texture, DIFFUSEMAP3INDEX);
 	}
 
-	if (fbxMat.NormalMapName != "") {
+	/*if (fbxMat.NormalMapName != "") {
 		texture = RESOURCEMANAGER.Get<Texture>(s2ws(fbxMat.NormalMapName));
 		if (texture == nullptr) {
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.NormalMapName));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.NormalMapName), texture);
-		}
+		}test = false;
 	SetTexture(texture, NORMALMAPINDEX);
-	}
+	}*/
 
 	if (fbxMat.SpecularcMapName != "") {
 		texture = RESOURCEMANAGER.Get<Texture>(s2ws(fbxMat.SpecularcMapName));
@@ -151,7 +152,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.SpecularcMapName));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.SpecularcMapName), texture);
-		}
+		}test = false;
 	SetTexture(texture, SPECULARCMAPINDEX);
 	}
 
@@ -161,7 +162,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.EmissiveMapName));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.EmissiveMapName), texture);
-		}
+		}test = false;
 	SetTexture(texture, EMISSIVEMAPINDEX);
 	}
 
@@ -171,7 +172,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.MetallicMapName));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.MetallicMapName), texture);
-		}
+		}test = false;
 	SetTexture(texture, METALLICMAPINDEX);
 	}
 
@@ -181,7 +182,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 			texture = make_shared<Texture>();
 			texture->Load(filePath + s2ws(fbxMat.OcclusionMapName));
 			RESOURCEMANAGER.Add<Texture>(s2ws(fbxMat.OcclusionMapName), texture);
-		}
+		}test = false;
 	SetTexture(texture, OCCLUSIONMAPINDEX);
 	}
 

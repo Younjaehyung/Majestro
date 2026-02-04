@@ -11,6 +11,7 @@ public:
 
 	virtual void Update(float deltaTime);
 	virtual void Render();
+	virtual void Shudown();
 
 	void LoadJsonLevel(const wstring& path);
 	const shared_ptr<World>& GetWorld() { return mWorld; }

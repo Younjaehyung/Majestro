@@ -58,12 +58,13 @@ void RenderSystem::Update()
 
 	DefferdRendering();
 
-	ForwardRendering();
+	
 
 	//ParticleRendering();
 
 	RenderFinal();
 
+	ForwardRendering();
 }
 
 

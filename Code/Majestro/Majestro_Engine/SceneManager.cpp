@@ -56,6 +56,8 @@ void SceneManager::LoadScene(wstring sceneName)
 {
 	// TODO : 기존 Scene 정리
 	// TODO : 파일에서 Scene 정보 로드
+	if(mActiveScene)
+		mActiveScene->Shudown();
 
 	if (sceneName == L"Lobby")
 	{
@@ -71,6 +73,8 @@ void SceneManager::LoadScene(wstring sceneName)
 	}
 
 	mActiveScene->Initialize();
+
+	
 
 	//mActiveScene = LoadTestScene();
 

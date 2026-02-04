@@ -116,7 +116,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (1/*ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType*/) {
 
 	case 0:
 
@@ -310,7 +310,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 
 	TransformComponent bt{};
 	bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
-	bt.mLocalPosition = Vec3(0.f, -70.f, 0.f);
+	bt.mLocalPosition = Vec3(0.f, -27.f, 0.f);
+
+
+
 	world->AddComponent<TransformComponent>(mEntityID, bt);
 
 	// heightmap 512x512 => 타일 511x511
@@ -335,6 +338,8 @@ TerrainPrefab::TerrainPrefab(World* world)
 
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, terrain, materials);
 	render.mCheckFrustum = false;
+
+
 
 
 }

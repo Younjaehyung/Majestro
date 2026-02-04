@@ -17,6 +17,7 @@ struct TransformData
 {
     Vec3 position;
     Vec3 scale;
+	Vec3 rotation; // UE Euler 각도(디버깅/매핑용)
     Basis basis;   // 회전은 basis로 안전하게 전달(UE Euler 함정 회피)
 };
 
@@ -29,6 +30,7 @@ struct MeshInstance
     std::string staticMeshAsset; // UE 에셋 경로(디버깅/매핑용)
     std::string fbx;             // "Meshes/SM_xxx.fbx"
 
+	TransformData ue;            // ue 기준(transform.ue)
     TransformData world;         // dx 기준(transform.dx)
     Matrix worldMtx; // [수정] DX12에 바로 넣을 월드행렬 캐시
 };
@@ -68,6 +70,15 @@ static Vec3 ParseVec3(const json& j)
     return v;
 }
 
+static Vec3 ParseRot3(const json& j)
+{
+    Vec3 v;
+    v.x = GetFloat(j, "pitch");
+    v.y = GetFloat(j, "yaw");
+    v.z = GetFloat(j, "roll");
+    return v;
+}
+
 static Basis ParseBasis(const json& jBasis)
 {
     Basis b{};
@@ -83,6 +94,17 @@ static TransformData ParseDxTransform(const json& jDx)
     t.position = ParseVec3(Require(jDx, "location"));
     t.scale = ParseVec3(Require(jDx, "scale"));
     t.basis = ParseBasis(Require(jDx, "basis"));
+    return t;
+}
+
+static TransformData ParseUETransform(const json& jUe, float positionUnitScale)
+{
+    TransformData t{};
+    t.position = ParseVec3(Require(jUe, "location_cm"));
+    //t.position = MulVec3(t.position, positionUnitScale); // 단위 변환 적용
+    t.scale = ParseVec3(Require(jUe, "scale"));
+	t.rotation = ParseRot3(Require(jUe, "rotation_deg")); // Euler 각도(디버깅/매핑용)
+    t.basis = ParseBasis(Require(jUe, "basis"));
     return t;
 }
 
@@ -182,9 +204,9 @@ static inline DirectX::XMMATRIX MakeRotation_RowBasis(const Basis& basis)
 
 static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fromUe = false)
 {
-    const Vec3 r = dx.basis.right;    // 엔진 기준 right(+X)
-    const Vec3 u = dx.basis.up;       // 엔진 기준 up(+Y)
-    const Vec3 f = dx.basis.forward;  // 엔진 기준 forward(+Z)
+    Vec3 r = dx.basis.right;   
+    Vec3 u = dx.basis.up;      
+    Vec3 f = -dx.basis.forward; 
 
     const float sx = dx.scale.x;
     const float sy = dx.scale.y;
@@ -219,12 +241,78 @@ static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fro
         0.f, 0.f, 0.f, 1.f };
 
     Matrix matScale = Matrix::CreateScale(sx,sy,sz);
-    Matrix matTranslation = Matrix::CreateTranslation(px,py,pz);
+
+    //Matrix matTranslation = Matrix::CreateTranslation(px,py,pz);
 
 	// X축 회전행렬 생성 예시
-	Matrix RotateX = Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
+	//Matrix RotateX = Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
 
     return worldCpu;
 
 
+}
+
+// ========== 구현 파일 ==========
+
+// ★ 수정: 언리얼 좌표를 DirectX로 변환
+static DirectX::XMFLOAT3 ConvertPosition(const Vec3& uePos)
+{
+    // 언리얼 FBX Export는 Z-up 좌표계
+    // FbxAxisSystem::DirectX.ConvertScene()는 이미 Y-up으로 변환함
+
+    // ★ 중요: FBX 메시는 이미 변환되었으므로, 
+    // 액터의 Transform도 같은 방식으로 변환해야 함
+
+    // 언리얼 (X-Forward, Y-Right, Z-Up)
+    // → DirectX (X-Right, Y-Up, Z-Forward)
+
+    return DirectX::XMFLOAT3(
+        uePos.y,  // Unreal Y (Right) → DX X (Right)
+        uePos.z,  // Unreal Z (Up)    → DX Y (Up)
+        uePos.x   // Unreal X (Fwd)   → DX Z (Forward)
+    );
+    // * 0.01f: cm → m 변환 (FBX를 cm로 export했다면)
+}
+
+static DirectX::XMVECTOR ConvertRotation(const Vec3& ueRot)
+{
+    // 언리얼 회전: Pitch(Y축), Yaw(Z축), Roll(X축)
+    // DirectX 회전: X, Y, Z 순서
+
+    float pitchRad = DirectX::XMConvertToRadians(ueRot.x);
+    float yawRad = DirectX::XMConvertToRadians(ueRot.y);
+    float rollRad = DirectX::XMConvertToRadians(ueRot.z);
+
+    // 좌표축 변환을 고려한 회전
+    // Unreal Pitch(Y) → DX Pitch(Z)
+    // Unreal Yaw(Z)   → DX Yaw(Y)
+    // Unreal Roll(X)  → DX Roll(X)
+
+   return Quaternion::CreateFromYawPitchRoll(yawRad, pitchRad, rollRad);
+
+
+}
+
+static DirectX::XMFLOAT3 ConvertScale(const Vec3& ueScale)
+{
+    // 스케일도 축 재배열
+    return DirectX::XMFLOAT3(
+        ueScale.y,  // Y → X
+        ueScale.z,  // Z → Y
+        ueScale.x   // X → Z
+    );
+}
+
+static Matrix ConvertTransform(
+    const TransformData& ueTransform)
+{
+    DirectX::XMFLOAT3 pos = ConvertPosition(ueTransform.position);
+    DirectX::XMVECTOR rot = ConvertRotation(ueTransform.rotation);
+    DirectX::XMFLOAT3 scale = ConvertScale(ueTransform.scale);
+
+    DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);
+    DirectX::XMMATRIX R = DirectX::XMMatrixRotationQuaternion(rot);
+    DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+    return S * R * T;
 }

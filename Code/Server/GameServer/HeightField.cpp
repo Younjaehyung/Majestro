@@ -168,6 +168,13 @@ float HeightField::GetHeightValuePixel(float x, float y) const {
   return static_cast<float>(heightU16) / 65535.0f;
 }
 
+float HeightField::GetLandscapeLocalHeightValue(float u, float v) const {
+    const float normalizedHeight = GetHeightValue(u, v);
+    // Unreal Landscape 16bit 높이는 0.5(32768)를 기준으로 signed 높이를 표현한다.
+    // 로컬 높이 범위를 [-256, +256]으로 복원(총 512)하면 UE Z scale과 직접 대응된다.
+    return (normalizedHeight - 0.5f) * 512.0f;
+}
+
 // float HeightField::GetHeightValue(float u, float v) const
 //{
 //     u = std::clamp(u, 0.0f, 1.0f);

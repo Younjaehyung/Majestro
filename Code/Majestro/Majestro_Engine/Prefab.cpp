@@ -309,9 +309,9 @@ TerrainPrefab::TerrainPrefab(World* world)
 	mEntityID = world->CreateEntity();
 
 	TransformComponent bt{};
-	bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
-	bt.mLocalPosition = Vec3(-25200.0f, -27.6f, -25199.f);
-
+	bt.mLocalScale = Vec3(100, 100, 100);
+	//bt.mLocalRotationE = Vec3(0, 90, 0);
+	bt.mLocalPosition = Vec3(-0.5 * 504 * 100, -27.6f, -0.5 * 504 * 100);
 
 
 	world->AddComponent<TransformComponent>(mEntityID, bt);

@@ -99,7 +99,7 @@ public:
 	PROJECTION_TYPE mCameraType = PROJECTION_TYPE::PERSPECTIVE;
 
 	float mNear = 1.f;
-	float mFar = 10000.f;
+	float mFar = 50000.f;
 	float mFov = XM_PI / 4.f;
 	float mScale = 1.f;
 	float mWidth = 2560.0f; //2560, 1440

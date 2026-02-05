@@ -49,11 +49,13 @@ float TerrainComponent::GetHeightAtWorldPosition(const Vec3& worldPos) const
         return 0.0f;
     }
 
-    const float normalizedHeight = mHeightField->GetHeightValue(fullU, fullV); // 0~1
+    //const float normalizedHeight = mHeightField->GetHeightValue(fullU, fullV); // 0~1
+    const float localHeight = mHeightField->GetLandscapeLocalHeightValue(fullU, fullV);
 
+   const float worldY = mTerrainWorldPosition.y + localHeight * mTerrainWorldScale.y;
+     //   mTerrainWorldPosition.y + normalizedHeight * mTerrainWorldScale.y;
 
-    const float worldY =
-        mTerrainWorldPosition.y + normalizedHeight * mTerrainWorldScale.y;
+   
 
     return worldY;
 }
@@ -64,8 +66,8 @@ float TerrainComponent::GetHeightAtUV(float fullU, float fullV) const
         return 0.0f;
 
 
-    float normalizedHeight = mHeightField->GetHeightValue(fullU, fullV);
-
-
-    return normalizedHeight *mTerrainWorldScale.y;
+    //float normalizedHeight = mHeightField->GetHeightValue(fullU, fullV);
+    const float localHeight = mHeightField->GetLandscapeLocalHeightValue(fullU, fullV);
+    return localHeight * mTerrainWorldScale.y;
+    //return normalizedHeight *mTerrainWorldScale.y;
 }

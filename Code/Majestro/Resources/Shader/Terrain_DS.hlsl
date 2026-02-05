@@ -66,16 +66,22 @@ DS_OUT DS_Main(const OutputPatch<HS_OUT, 3> input, float3 location : SV_DomainLo
     float height = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, fullUV, 0).x;
 
 
-    localPos.y = height;
-
+    //localPos.y = height;
+    localPos.y = (height - 0.5f) * 512.0f;
+    
     float2 deltaUV = float2(1.f / mapWidth, 1.f / mapHeight);
     float2 deltaPos = float2(tileCountX * deltaUV.x, tileCountZ * deltaUV.y);
 
-    float upHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x, fullUV.y - deltaUV.y), 0).x;
-    float downHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x, fullUV.y + deltaUV.y), 0).x;
-    float rightHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x + deltaUV.x, fullUV.y), 0).x;
-    float leftHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x - deltaUV.x, fullUV.y), 0).x;
+    //float upHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x, fullUV.y - deltaUV.y), 0).x;
+    //float downHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x, fullUV.y + deltaUV.y), 0).x;
+    //float rightHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x + deltaUV.x, fullUV.y), 0).x;
+    //float leftHeight = TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x - deltaUV.x, fullUV.y), 0).x;
 
+    float upHeight = (TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x, fullUV.y - deltaUV.y), 0).x - 0.5f) * 512.0f;
+    float downHeight = (TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x, fullUV.y + deltaUV.y), 0).x - 0.5f) * 512.0f;
+    float rightHeight = (TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x + deltaUV.x, fullUV.y), 0).x - 0.5f) * 512.0f;
+    float leftHeight = (TextureMaps[material.DiffuseMap2Index].SampleLevel(g_sam_Terrain, float2(fullUV.x - deltaUV.x, fullUV.y), 0).x - 0.5f) * 512.0f;
+    
     float3 localTangent = float3(localPos.x + deltaPos.x, rightHeight, localPos.z) - float3(localPos.x - deltaPos.x, leftHeight, localPos.z);
     float3 localBinormal = float3(localPos.x, upHeight, localPos.z + deltaPos.y) - float3(localPos.x, downHeight, localPos.z - deltaPos.y);
    

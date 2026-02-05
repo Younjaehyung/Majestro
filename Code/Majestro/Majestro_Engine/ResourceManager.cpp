@@ -504,7 +504,7 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 					//insts.ue = ParseUETransform(inst_j, positionUnitScale);
 					// [수정] 로드 단계에서 월드행렬 생성 (DX12에 바로 사용 가능)
 					{
-						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world,false) * Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
+						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world, false);// *Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
 						//insts.worldMtx = ConvertTransform(insts.ue) * 
 						//	Matrix::CreateTranslation(Vec3(-9493.f, -472.0f, 15647.0f)); // UE to DX 변환
 						//
@@ -529,7 +529,7 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 				//inst.ue = ParseUETransform(ue, positionUnitScale);
 				// [수정] 로드 단계에서 월드행렬 생성
 				{
-					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, false) * Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
+					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, false);// *Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
 					//inst.worldMtx = ConvertTransform(inst.ue) *
 					//	Matrix::CreateTranslation(Vec3(-4863.0f, -472.0f, 20647.0f)); // UE to DX 변환
 

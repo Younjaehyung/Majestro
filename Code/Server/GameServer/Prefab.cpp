@@ -96,9 +96,9 @@ SkyBoxPrefab::~SkyBoxPrefab() {}
 TerrainPrefab::TerrainPrefab(World *world) {
   Entity mEntityID = world->CreateEntity();
   TransformComponent bt{};
-  bt.mLocalScale = Vec3(18.921f, 6000.f, 18.921f);
+  bt.mLocalScale = Vec3(100.f,100.f,100.f);
 
-  bt.mLocalPosition = Vec3(-25200.0f, -27.6f, -25199.f);
+  bt.mLocalPosition = Vec3(-0.5 * 505 * 100, -27.6f, -0.5 * 505 * 100);
 
   world->AddComponent<TransformComponent>(mEntityID, bt);
 

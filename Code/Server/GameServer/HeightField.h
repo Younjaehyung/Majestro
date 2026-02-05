@@ -16,7 +16,7 @@ public:
 	float GetHeightAtWorldPosition(const Vec3& worldPos) const;
 	float GetHeightValue(float u, float v) const;
 	float GetHeightValuePixel(float u, float v) const;
-
+	float GetLandscapeLocalHeightValue(float u, float v) const;
 public:
 
 	// 샘플의 크기 (해상도)

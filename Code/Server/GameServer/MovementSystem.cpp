@@ -10,25 +10,22 @@
 #include "PlayerComponent.h"
 #include "InputComponent.h"
 
-static float WrapPi(float a)
+static float WrapAngleDeg(float angleDeg)
 {
-	constexpr float PI = 3.14159265358979323846f;
-	constexpr float TAU = 6.28318530717958647692f;
-
-	while (a > PI) a -= TAU;
-	while (a < -PI) a += TAU;
-	return a;
+	while (angleDeg > 180.0f) angleDeg -= 360.0f;
+	while (angleDeg < -180.0f) angleDeg += 360.0f;
+	return angleDeg;
 }
 
 // [추가] 현재 각도를 목표 각도로 "최대 변화량(maxDelta)"만큼만 따라가게 하는 함수(천천히 회전)
-static float MoveTowardsAngle(float current, float target, float maxDelta)
+static float MoveTowardsAngleDeg(float currentDeg, float targetDeg, float maxDeltaDeg)
 {
-	float delta = WrapPi(target - current);
+	float delta = WrapAngleDeg(targetDeg - currentDeg);
 
-	if (delta > maxDelta) delta = maxDelta;
-	if (delta < -maxDelta) delta = -maxDelta;
+	if (delta > maxDeltaDeg) delta = maxDeltaDeg;
+	if (delta < -maxDeltaDeg) delta = -maxDeltaDeg;
 
-	return WrapPi(current + delta);
+	return WrapAngleDeg(currentDeg + delta);
 }
 
 
@@ -83,7 +80,7 @@ void MovementSystem::Update(float dt) {
 	if (mainCameraEntitys.empty())return;
 	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 
-	auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
+	//auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
 
 	for (auto& cameraEntity : mainCameraEntitys)
 	{
@@ -162,7 +159,7 @@ void MovementSystem::Update(float dt) {
 
 	//enemy movement
 
-	constexpr float kTurnSpeedRadPerSec = 6.0f;
+	constexpr float kTurnSpeedDegPerSec = 360.0f;
 	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -188,11 +185,12 @@ void MovementSystem::Update(float dt) {
 		dir.x *= invLen;
 		dir.z *= invLen;
 
-		const float targetYaw = atan2f(dir.x, dir.z) + 3.14159265358979323846f /*PI*/;
+		constexpr float kRadToDeg = 57.295779513082320876f;
+		const float targetYawDeg = atan2f(dir.x, dir.z) * kRadToDeg + 180.0f;
 
-		const float maxDelta = kTurnSpeedRadPerSec * dt;
+		const float maxDeltaDeg = kTurnSpeedDegPerSec * dt;
 		transformComponent->mLocalRotationE.y =
-			MoveTowardsAngle(transformComponent->mLocalRotationE.y, targetYaw, maxDelta);
+			MoveTowardsAngleDeg(transformComponent->mLocalRotationE.y, targetYawDeg, maxDeltaDeg);
 
 		// pitch/roll 고정이 필요하면 아래 주석 해제
 		// transformComponent->mLocalRotation.x = 0.0f;

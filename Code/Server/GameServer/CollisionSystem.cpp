@@ -19,8 +19,8 @@ static void AvoidCollisionByMovementState(
     World* world,
     Entity a,
     Entity b,
-    const BoxColliderComponent* colA,
-    const BoxColliderComponent* colB);
+    BoxColliderComponent* colA,
+    BoxColliderComponent* colB);
 
 CollisionSystem::CollisionSystem(World* world) : System(world)
 {
@@ -308,8 +308,8 @@ static void AvoidCollisionByMovementState(
     World* world,
     Entity a,
     Entity b,
-    const BoxColliderComponent* colA,
-    const BoxColliderComponent* colB)
+    BoxColliderComponent* colA,
+    BoxColliderComponent* colB)
 {
     if (!world || !colA || !colB)
         return;
@@ -330,6 +330,70 @@ static void AvoidCollisionByMovementState(
     const float invLen = 1.0f / std::sqrt(lenSq);
     const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen);          // A -> B
     const Vec3 tangent(-normal.z, 0.0f, normal.x);                          // 평면 접선
+
+    auto getRadiusXZ = [](const BoundingOrientedBox& obb)
+        {
+            XMFLOAT3 corners[8];
+            obb.GetCorners(corners);
+
+            float radius = 0.0f;
+            for (const auto& c : corners)
+            {
+                const float dx = c.x - obb.Center.x;
+                const float dz = c.z - obb.Center.z;
+                radius = (std::max)(radius, std::sqrt(dx * dx + dz * dz));
+            }
+
+            return radius;
+        };
+
+    const float radiusA = getRadiusXZ(colA->mWorldOBB);
+    const float radiusB = getRadiusXZ(colB->mWorldOBB);
+    const float centerDistance = std::sqrt(lenSq);
+    const float penetration = (radiusA + radiusB) - centerDistance;
+
+    if (penetration > 1e-3f)
+    {
+        auto* trA = world->GetComponent<TransformComponent>(a);
+        auto* trB = world->GetComponent<TransformComponent>(b);
+
+        const bool canMoveA = trA && !trA->mIsStatic;
+        const bool canMoveB = trB && !trB->mIsStatic;
+
+        Vec3 correctionA = Vec3::Zero;
+        Vec3 correctionB = Vec3::Zero;
+
+        if (canMoveA && canMoveB)
+        {
+            const float half = penetration * 0.5f;
+            correctionA = Vec3(-normal.x * half, 0.0f, -normal.z * half);
+            correctionB = Vec3(normal.x * half, 0.0f, normal.z * half);
+        }
+        else if (canMoveA)
+        {
+            correctionA = Vec3(-normal.x * penetration, 0.0f, -normal.z * penetration);
+        }
+        else if (canMoveB)
+        {
+            correctionB = Vec3(normal.x * penetration, 0.0f, normal.z * penetration);
+        }
+
+        if (canMoveA)
+        {
+            trA->mLocalPosition += correctionA;
+            colA->mWorldOBB.Center.x += correctionA.x;
+            colA->mWorldOBB.Center.z += correctionA.z;
+        }
+
+        if (canMoveB)
+        {
+            trB->mLocalPosition += correctionB;
+            colB->mWorldOBB.Center.x += correctionB.x;
+            colB->mWorldOBB.Center.z += correctionB.z;
+        }
+    }
+
+
 
     auto steerMovementState = [&](Entity e, const Vec3& towardOther, float tangentSign)
         {

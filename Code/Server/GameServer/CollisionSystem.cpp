@@ -352,7 +352,16 @@ static void AvoidCollisionByMovementState(
     const float centerDistance = std::sqrt(lenSq);
     const float penetration = (radiusA + radiusB) - centerDistance;
 
-    if (penetration > 1e-3f)
+    // 과도한 튕김 방지를 위한 완화 파라미터
+    constexpr float kPenetrationSlop = 0.05f;   // 이 값 이하는 무시
+    constexpr float kPushStrength = 0.35f;      // 침투량 대비 보정 비율
+    constexpr float kMaxPushPerPair = 0.8f;     // 1회 충돌당 최대 보정량
+
+    const float effectivePenetration = (std::max)(0.0f, penetration - kPenetrationSlop);
+    const float pushMagnitude = (std::min)(kMaxPushPerPair, effectivePenetration * kPushStrength);
+
+
+    if (penetration > 1e-4f)
     {
         auto* trA = world->GetComponent<TransformComponent>(a);
         auto* trB = world->GetComponent<TransformComponent>(b);
@@ -423,13 +432,13 @@ static void AvoidCollisionByMovementState(
             }
 
             // 좌/우로 비켜가도록 접선 성분 추가
-            dir += tangent * (0.45f * tangentSign);
+            dir += tangent * (0.25f * tangentSign);
 
             const float d2 = dir.x * dir.x + dir.z * dir.z;
             if (d2 < 1e-6f)
             {
                 // 이동 방향이 거의 0이면 일단 뒤로 물러나며 회피
-                dir = Vec3(-towardOther.x, -towardOther.y, -towardOther.z) + tangent * (0.35f * tangentSign);
+                dir = Vec3(-towardOther.x, -towardOther.y, -towardOther.z) + tangent * (0.2f * tangentSign);
             }
 
             const float d2n = dir.x * dir.x + dir.z * dir.z;

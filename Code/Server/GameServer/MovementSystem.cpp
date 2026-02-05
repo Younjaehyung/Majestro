@@ -83,7 +83,7 @@ void MovementSystem::Update(float dt) {
 	if (mainCameraEntitys.empty())return;
 	std::vector<Entity> playerEntitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 
-	auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
+	//auto& playerMovePool = mWorld->GetComponentPool<PlayerMovementComponent>();
 
 	for (auto& cameraEntity : mainCameraEntitys)
 	{

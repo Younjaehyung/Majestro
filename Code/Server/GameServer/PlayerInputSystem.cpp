@@ -31,11 +31,11 @@ void PlayerInputSystem::Update(float dt)
 	//std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
 
 	for (auto& e : entitys) {
-		PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(e);
+		//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(e);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(e);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(e);
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
-		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+		//NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
 
 		if (inputComp->MoveX ==0 && inputComp->MoveZ == 0) {
 			mainPlayerComponent->mSpeed = 0.f;
@@ -49,23 +49,23 @@ void PlayerInputSystem::Update(float dt)
 		}
 		
 
-		movementComponent->mMovingDirection = { 0,0,0 };
+		//movementComponent->mMovingDirection = { 0,0,0 };
 
 		if (inputComp->MoveX == -1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			movementComponent->mMovingDirection.x -= 1;
+			//movementComponent->mMovingDirection.x -= 1;
 		}
 		if (inputComp->MoveZ == 1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			movementComponent->mMovingDirection.z += 1;
+			//movementComponent->mMovingDirection.z += 1;
 		}
 		if (inputComp->MoveZ == -1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			movementComponent->mMovingDirection.z -= 1;
+			//movementComponent->mMovingDirection.z -= 1;
 		}
 		if (inputComp->MoveX == 1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			movementComponent->mMovingDirection.x += 1;
+			//movementComponent->mMovingDirection.x += 1;
 		}
 
 
@@ -88,10 +88,10 @@ void PlayerInputSystem::Update(float dt)
 
 
 		if (inputComp->IsButtonPressed(InputButtons::Q)) {
-			movementComponent->mMovingDirection.y -= 1;
+			//movementComponent->mMovingDirection.y -= 1;
 		}
 		if (inputComp->IsButtonPressed(InputButtons::E)) {
-			movementComponent->mMovingDirection.y += 1;
+			//movementComponent->mMovingDirection.y += 1;
 		}
 
 
@@ -99,8 +99,8 @@ void PlayerInputSystem::Update(float dt)
 			
 
 			//screen move
-			movementComponent->mCameraRotationX += (float)inputComp->Pitch * dt * mDPI;
-			movementComponent->mCameraRotationY += (float)inputComp->Yaw * dt * mDPI;
+			//movementComponent->mCameraRotationX += (float)inputComp->Pitch * dt * mDPI;
+			//movementComponent->mCameraRotationY += (float)inputComp->Yaw * dt * mDPI;
 
 		}
 

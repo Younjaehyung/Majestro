@@ -5,6 +5,7 @@
 #include "TransformComponent.h"
 #include "BoxColliderComponent.h"
 #include "MovementComponent.h"
+#include "InputComponent.h"
 
 #include <algorithm>
 #include <cmath>
@@ -14,6 +15,12 @@
 #include <vector>
 
 static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
+static void AvoidCollisionByMovementState(
+    World* world,
+    Entity a,
+    Entity b,
+    const BoxColliderComponent* colA,
+    const BoxColliderComponent* colB);
 
 CollisionSystem::CollisionSystem(World* world) : System(world)
 {
@@ -27,40 +34,6 @@ void CollisionSystem::Update(float dt)
 
 
     Movable2Movable(dt);
-
-    //auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
-
-    //// (B) 월드 OBB 갱신
-    //for (auto e : entities)
-    //{
-    //    auto* tr = mWorld->GetComponent<TransformComponent>(e);
-    //    auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
-    //    if (col) col->bIsColliding = false;
-    //    if (!tr || !col) continue;
-
-    //    UpdateWorldOBB(tr, col);
-    //}
-
-    //// (C) 충돌 판정 (N^2)
-    //for (size_t i = 0; i < entities.size(); ++i)
-    //{
-    //    auto a = entities[i];
-    //    auto* colA = mWorld->GetComponent<BoxColliderComponent>(a);
-
-    //    for (size_t j = i + 1; j < entities.size(); ++j)
-    //    {
-    //        auto b = entities[j];
-    //        auto* colB = mWorld->GetComponent<BoxColliderComponent>(b);
-
-    //        if (!colA || !colB) continue;
-
-    //        if (colA->mWorldOBB.Intersects(colB->mWorldOBB))
-    //        {
-    //            colA->bIsColliding = true; // [추가]
-    //            colB->bIsColliding = true; // [추가]
-    //        }
-    //    }
-    //}
 
 }
 
@@ -148,6 +121,13 @@ void CollisionSystem::Movable2Movable(float deltaTime)
                     {
                         colA->bIsColliding = true;
                         colB->bIsColliding = true;
+
+                        AvoidCollisionByMovementState(
+                            mWorld,
+                            activeEntities[i],
+                            activeEntities[j],
+                            colA,
+                            colB);
                     }
                 }
             }
@@ -176,7 +156,7 @@ void CollisionSystem::Movable2Movable(float deltaTime)
         {
             return (std::max)(minValue, (std::min)(value, maxValue));
         };
-
+        
     for (size_t i = 0; i < activeEntities.size(); ++i)
     {
         int minCellX = static_cast<int>(std::floor((minX[i] - worldMinX) * invCellSize));
@@ -265,6 +245,13 @@ void CollisionSystem::Movable2Movable(float deltaTime)
                     {
                         colA->bIsColliding = true;
                         colB->bIsColliding = true;
+
+                        AvoidCollisionByMovementState(
+                            mWorld,
+                            activeEntities[idxA],
+                            activeEntities[idxB],
+                            colA,
+                            colB);
                     }
                 }
             }
@@ -315,4 +302,101 @@ static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* c
     col->mWorldOBB.Center = XMFLOAT3(worldCenter.x, worldCenter.y, worldCenter.z);
     col->mWorldOBB.Extents = XMFLOAT3(ext.x, ext.y, ext.z);
     col->mWorldOBB.Orientation = XMFLOAT4(rF.x, rF.y, rF.z, rF.w);
+}
+
+static void AvoidCollisionByMovementState(
+    World* world,
+    Entity a,
+    Entity b,
+    const BoxColliderComponent* colA,
+    const BoxColliderComponent* colB)
+{
+    if (!world || !colA || !colB)
+        return;
+
+    Vec3 delta(
+        colB->mWorldOBB.Center.x - colA->mWorldOBB.Center.x,
+        0.0f,
+        colB->mWorldOBB.Center.z - colA->mWorldOBB.Center.z);
+
+    float lenSq = delta.x * delta.x + delta.z * delta.z;
+    if (lenSq < 1e-6f)
+    {
+        // 중심이 거의 동일하면 고정 방향으로 회피 축 지정
+        delta = Vec3(1.0f, 0.0f, 0.0f);
+        lenSq = 1.0f;
+    }
+
+    const float invLen = 1.0f / std::sqrt(lenSq);
+    const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen);          // A -> B
+    const Vec3 tangent(-normal.z, 0.0f, normal.x);                          // 평면 접선
+
+    auto steerMovementState = [&](Entity e, const Vec3& towardOther, float tangentSign)
+        {
+            Vec3 dir(0.0f, 0.0f, 0.0f);
+            bool hasDir = false;
+
+            if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
+            {
+                dir = enemyMove->mMovingDirection;
+                hasDir = true;
+            }
+            else if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
+            {
+                dir = playerMove->mMovingDirection;
+                hasDir = true;
+            }
+
+            if (!hasDir)
+                return;
+
+            // 상대쪽으로 파고드는 성분 제거
+            const float towardDot = dir.x * towardOther.x + dir.z * towardOther.z;
+            if (towardDot > 0.0f)
+            {
+                dir.x -= towardOther.x * towardDot;
+                dir.z -= towardOther.z * towardDot;
+            }
+
+            // 좌/우로 비켜가도록 접선 성분 추가
+            dir += tangent * (0.45f * tangentSign);
+
+            const float d2 = dir.x * dir.x + dir.z * dir.z;
+            if (d2 < 1e-6f)
+            {
+                // 이동 방향이 거의 0이면 일단 뒤로 물러나며 회피
+                dir = Vec3(-towardOther.x, -towardOther.y, -towardOther.z) + tangent * (0.35f * tangentSign);
+            }
+
+            const float d2n = dir.x * dir.x + dir.z * dir.z;
+            if (d2n > 1e-6f)
+            {
+                const float inv = 1.0f / std::sqrt(d2n);
+                dir.x *= inv;
+                dir.z *= inv;
+            }
+
+            if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
+            {
+                enemyMove->mMovingDirection = dir;
+            }
+            if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
+            {
+                playerMove->mMovingDirection = dir;
+            }
+            if (auto* inputComp = world->GetComponent<InputComponent>(e))
+            {
+                inputComp->MoveX = dir.x;
+                inputComp->MoveZ = dir.z;
+            }
+        };
+
+    // id 기반으로 좌/우 방향을 고정해 프레임간 진동 감소
+    const float signA = (a.GetID() < b.GetID()) ? 1.0f : -1.0f;
+    const float signB = -signA;
+
+    steerMovementState(a, normal, signA);
+
+    const Vec3 towardA(-normal.x, -normal.y, -normal.z);
+    steerMovementState(b, towardA, signB);
 }

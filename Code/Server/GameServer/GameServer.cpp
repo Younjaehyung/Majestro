@@ -5,27 +5,25 @@
 #include "ServerCore.h"
 #include "GameCore.h"
 
-GameCore                gGameCore;
-ServerCore			    gServerCore;
 Timer                   gTimer;
 
 int main()
 {
 
     gTimer.Start();
-    gServerCore.Initialize();
-	gGameCore.Initialize();
+    gServerCore->Initialize();
+	gGameCore->Initialize();
 
 
-    gServerCore.Start();
-    gGameCore.Start();
+    gServerCore->Start();
+    gGameCore->Start();
 
     while (true)
     {
         gTimer.Tick(60.f);
         //gServerCore.Update();
        // Sleep(30); // Simulate some processing delay
-		gGameCore.Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
+		gGameCore->Update(gTimer.GetTimeElapsed()); // Assuming a fixed delta time for simplicity
     }
 
 }

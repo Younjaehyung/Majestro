@@ -186,6 +186,10 @@
     <ClCompile Include="CollisionSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="FBX.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -320,6 +324,10 @@
     <ClInclude Include="CollisionSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="FBX.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

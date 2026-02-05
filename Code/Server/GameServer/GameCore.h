@@ -9,6 +9,7 @@ public:
 	void Start();
 	void Update(float deltaTime);
 	SceneManager& GetSceneManager() { return *mSceneManager; };
+	ResourceManager& GetResourceManager() { return *mResourceManager; };
 
 private:
 	void LoadGameData();

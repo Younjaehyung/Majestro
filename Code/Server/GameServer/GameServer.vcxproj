@@ -178,6 +178,7 @@
     <ClCompile Include="EnemySystem.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
+    <ClCompile Include="FBX.cpp" />
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GameServer.cpp" />
@@ -186,6 +187,7 @@
     <ClCompile Include="InputComponent.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />
     <ClCompile Include="NetIdMap.cpp" />
@@ -229,6 +231,7 @@
     <ClInclude Include="EnemySystem.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
+    <ClInclude Include="FBX.h" />
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GravityComponent.h" />
@@ -236,6 +239,7 @@
     <ClInclude Include="InputComponent.h" />
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="Mesh.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
     <ClInclude Include="NetEntityComponent.h" />

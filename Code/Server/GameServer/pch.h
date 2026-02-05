@@ -34,9 +34,40 @@ using namespace DirectX::SimpleMath;
 //#endif
 
 
+wstring s2ws(const string& s);
+string ws2s(const wstring& s);
+
 using Vec = XMVECTOR;
 using Vec2 = DirectX::SimpleMath::Vector2;
 using Vec3 = DirectX::SimpleMath::Vector3;
 using Vec4 = DirectX::SimpleMath::Vector4;
 using Matrix = DirectX::SimpleMath::Matrix;
 using Quternion = DirectX::SimpleMath::Quaternion;
+
+struct Vertex {
+	Vertex() {}
+	Vertex(Vec3 p, Vec2 u)
+		: pos(p), uv(u)
+	{
+	}
+	Vertex(Vec3 p, Vec2 u, Vec3 n, Vec3 t)
+		: pos(p), uv(u), normal(n), tangent(t)
+	{
+	}
+
+	Vec3 pos;
+	Vec2 uv;
+	Vec3 normal;
+	Vec3 tangent;
+
+
+	Vec4 weights;
+	Vec4 indices;
+};
+
+
+extern unique_ptr<class GameCore> gGameCore;
+extern unique_ptr<class ServerCore> gServerCore;
+
+#define RESOURCEMANAGER	gGameCore->GetResourceManager()
+#define SCENEMANAGER	gGameCore->GetSceneManager()

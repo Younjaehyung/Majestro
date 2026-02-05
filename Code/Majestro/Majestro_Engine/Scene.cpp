@@ -234,7 +234,18 @@ void GameScene::Initialize()
 		vfxComp.mVfx = vfx;
 	}
 	/////////////////////////////////////////////////////////////////////
+	{
+		Entity enityt = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = Vec3(0.f, 300.f, 0.f);
+		mWorld->AddComponent<TransformComponent>(enityt, t);
+		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(material);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);
 
+	}
 	/////////////////////////////////////////////////////////////////////////
 
 

@@ -116,7 +116,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (1/*ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType*/) {
+	switch (0/*ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType*/) {
 
 	case 0:
 

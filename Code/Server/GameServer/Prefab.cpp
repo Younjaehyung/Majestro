@@ -104,6 +104,8 @@ TerrainPrefab::TerrainPrefab(World *world) {
 
   auto heightField = std::make_shared<HeightField>();
   heightField->LoadHeightFieldFromPng16("../Resources/Texture/T_Height.png");
+	
+  
   // Add<HeightField>(L"TerrainHeightField", heightField);
   // Add<HeightField>(L"TerrainHeightField", heightField);
 

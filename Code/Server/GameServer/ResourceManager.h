@@ -5,8 +5,9 @@
 class Texture;
 class RAW;
 class Prefab;
-class Colider;
 class HeightField;
+class Mesh;
+class FBX;
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
 
@@ -36,9 +37,11 @@ public:
 		return mResources[static_cast<uint8>(objectType)];
 	}
 
-	void LoadResources();
 
 public:
+	void LoadResources();
+
+	shared_ptr<FBX>& LoadFBXMeshes(const wstring& path);
 
 public:
 	array<KeyObjMap, OBJECT_TYPE_COUNT> mResources;
@@ -104,10 +107,12 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::TEXTURE;
 	else if (std::is_same_v<T, RAW>)
 		return OBJECT_TYPE::RAW;
-	else if (std::is_same_v<T, Colider>)
-		return OBJECT_TYPE::COLIDER;
 	else if (std::is_same_v<T, HeightField>)
 		return OBJECT_TYPE::HEIGHTFIELD;
+	else if (std::is_same_v<T, Mesh>)
+		return OBJECT_TYPE::MESH;
+	else if (std::is_same_v<T, FBX>)
+		return OBJECT_TYPE::FBX;
 	else
 		return OBJECT_TYPE::NONE;
 }

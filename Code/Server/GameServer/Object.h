@@ -6,7 +6,8 @@ enum class OBJECT_TYPE : uint8
 	PREFAB, // PREFAB
 	TEXTURE,
 	RAW,
-	COLIDER,
+	MESH,
+	FBX,
 	HEIGHTFIELD,
 
 	END

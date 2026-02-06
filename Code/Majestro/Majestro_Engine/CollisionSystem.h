@@ -12,7 +12,7 @@ public:
 
 	void Initialize() {};
 	void Update(float deltaTime);
-
+	
 };
 
 //static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);

@@ -220,7 +220,7 @@ void GameScene::Initialize()
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
-	// LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	 LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
@@ -237,7 +237,7 @@ void GameScene::Initialize()
 	{
 		Entity enityt = mWorld->CreateEntity();
 		TransformComponent t{};
-		t.mLocalPosition = Vec3(0.f, 300.f, 0.f);
+		t.mLocalPosition = Vec3(1500.f, 720.f, 0.f);
 		mWorld->AddComponent<TransformComponent>(enityt, t);
 		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
@@ -246,6 +246,34 @@ void GameScene::Initialize()
 		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);
 
 	}
+	{
+		Entity enityt = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = Vec3(-120.f, 720.f, 0.f);
+		t.mLocalRotationE = Vec3(0.f, 90.f, 0.f);
+			t.mLocalScale = Vec3(15.f, 15.f, 15.f);
+		mWorld->AddComponent<TransformComponent>(enityt, t);
+		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"Cube");
+		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"XYZ0");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(material);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);
+
+	}
+
+	{
+		Entity enityt = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = Vec3(0.f, 720.f, 0.f);
+		mWorld->AddComponent<TransformComponent>(enityt, t);
+		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rock_04");
+		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"ZUP_Ascii_3dmax_Pivot0");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(material);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);
+
+	}
+
 	/////////////////////////////////////////////////////////////////////////
 
 

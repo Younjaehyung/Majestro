@@ -5,9 +5,10 @@
 
 struct EvDamage
 {
+    Entity instigator; // ê³µê²©ì/ 0ì´ë©´ í™˜ê²½
     Entity target;
     int32 amount;
-    Entity instigator; // 0ÀÌ¸é È¯°æ
+   
 };
 
 struct EvDespawn
@@ -22,11 +23,18 @@ struct EvSpawnRequest
     float x, y, z;
 };
 
-struct EvNetRPC // ¿¹: ´ë½Ã ½ÃÀÛ °°Àº Áï½Ã¼º ÀÌº¥Æ®
+struct EvNetRPC // ì˜ˆ: ëŒ€ì‹œ ì‹œì‘ ê°™ì€ ì¦‰ì‹œì„± ì´ë²¤íŠ¸
 {
     Entity source;
     uint16 rpcId;
-    uint32 payload; // ÇÊ¿äÇÏ¸é ¹ÙÀÌÆ®·Î È®Àå
+    uint32 payload; // í•„ìš”í•˜ë©´ ë°”ì´íŠ¸ë¡œ í™•ì¥
+};
+
+struct EVContact
+{
+    Entity a;          // ì˜ˆ: projectile
+    Entity b;          // ì˜ˆ: player
+    // í•„ìš” ì‹œ ì¶©ëŒ ì§€ì /ë…¸ë§/penetration ë“± ì¶”ê°€ ê°€ëŠ¥
 };
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC>;

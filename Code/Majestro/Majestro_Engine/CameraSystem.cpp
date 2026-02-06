@@ -39,26 +39,36 @@ void CameraSystem::Update(float dt)
 		Vec3 pos = playerPos->mLocalPosition;
 
 		if (cameraTypeComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
-			pos.y += cameraTypeComponent->mCameraHight;
+
 			transformComponent->mLocalPosition = pos;
 			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
-			pos.y += cameraTypeComponent->mCameraHight;
+
 			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 			transformComponent->FinalUpdate();
-			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
-			
-			
-			
-			
-			
+
+			Vec3 DestPos = pos + cameraTypeComponent->mOffset - cameraTypeComponent->mCameraMaxLenth * transformComponent->GetLook();
+
+
+			SweepHit best = mWorld->GetPhysicsWorld()->SphereSweepVsOBB(pos + cameraTypeComponent->mOffset, DestPos,
+				cameraTypeComponent->mCameraSphereRadius);
+
+
+			best.distance -= cameraTypeComponent->mCameraMargin;
+
+			if (best.distance < cameraTypeComponent->mCameraMinLenth)
+				best.distance = cameraTypeComponent->mCameraMinLenth;
+
+			best.distance = cameraTypeComponent->mCameraMaxLenth;
+		
+			transformComponent->mLocalPosition = pos + cameraTypeComponent->mOffset - best.distance * transformComponent->GetLook();
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
-			pos.y += cameraTypeComponent->mCameraHight;
-			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraLenth * transformComponent->GetLook();
+
+			transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraMaxLenth * transformComponent->GetLook();
 			transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 			transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 		}
@@ -90,6 +100,8 @@ void CameraSystem::Update(float dt)
 	}
 
 }
+
+
 
 
 void CameraSystem::TestUpdate(float dt)

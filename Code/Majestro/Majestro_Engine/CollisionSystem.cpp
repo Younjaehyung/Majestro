@@ -9,41 +9,26 @@
 
 static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col)
 {
-    XMVECTOR S, R, T;
+    Matrix worldMat = tr->mWorldMatrix;
 
-    // [수정] SimpleMath::Matrix -> XMMATRIX 변환
-    const XMMATRIX M = tr->mWorldMatrix; // SimpleMath::Matrix는 XMMATRIX로 암시 변환되는 경우가 많음
+    Vec3 scale;
+    Quaternion rot;
+    Vec3 trans;
 
-    if (!XMMatrixDecompose(&S, &R, &T, M))
+    if (!worldMat.Decompose(scale, rot, trans))
         return;
 
-    // scale / rotation(quat) / translation 추출
-    const XMFLOAT3 s3 = {};
-    const XMFLOAT4 r4 = {};
-    const XMFLOAT3 t3 = {};
-    XMFLOAT3 sF, tF;
-    XMFLOAT4 rF;
-    XMStoreFloat3(&sF, S);
-    XMStoreFloat3(&tF, T);
-    XMStoreFloat4(&rF, XMQuaternionNormalize(R));
 
-    const Vec3 worldPos = Vec3(tF.x, tF.y, tF.z);
+    Vec3 localCenter = col->mCenter; 
+    Vec3 worldCenter = trans + Vector3::Transform(localCenter, rot);
 
-    // 로컬 Center 오프셋을 월드 회전으로 회전
-    const XMVECTOR localCenter = XMVectorSet(col->mCenter.x, col->mCenter.y, col->mCenter.z, 0.0f);
-    const XMVECTOR rotatedOffV = XMVector3Rotate(localCenter, XMLoadFloat4(&rF));
-    XMFLOAT3 rotatedOffF;
-    XMStoreFloat3(&rotatedOffF, rotatedOffV);
+    col->mWorldOBB.Center = worldCenter;
 
-    const Vec3 worldCenter = worldPos + Vec3(rotatedOffF.x, rotatedOffF.y, rotatedOffF.z);
 
-    // Extents
-    Vec3 ext = col->mHalfExtents;
-    
+    Vec3 originalExtents = col->mHalfExtents;
+    col->mWorldOBB.Extents = originalExtents * scale;
 
-    col->mWorldOBB.Center = XMFLOAT3(worldCenter.x, worldCenter.y, worldCenter.z);
-    col->mWorldOBB.Extents = XMFLOAT3(ext.x, ext.y, ext.z);
-    col->mWorldOBB.Orientation = XMFLOAT4(rF.x, rF.y, rF.z, rF.w);
+    col->mWorldOBB.Orientation = rot;
 }
 
 CollisionSystem::CollisionSystem(World* world) : System(world)

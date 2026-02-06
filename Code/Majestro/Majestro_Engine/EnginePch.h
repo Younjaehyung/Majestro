@@ -25,6 +25,8 @@
 #include <initializer_list>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <typeindex>
 using namespace std;
 
 

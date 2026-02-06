@@ -1,6 +1,7 @@
 #pragma once
-
 #include "Component.h"
+#include "PhysicsWorld.h"
+
 
 enum class PROJECTION_TYPE
 {
@@ -132,6 +133,16 @@ public:
 	ComponentTypeID mTargetID;
 	PlayMode mPlayMode;
 	float mCameraMoveSpeed = 100;
-	float mCameraHight = 20;
-	float mCameraLenth = 300;
+
+	SweepHit mCameraSweep{};
+
+	float mCameraMaxLenth = 300;
+	float mCameraMinLenth = 60;
+
+	BoundingOrientedBox mCameraBox;
+	float mCameraSphereRadius = 25.f;
+	float mCameraMargin = 5.f;
+
+	Vec3 mOffset = Vec3(0, 100, 0);
+	Vec3 mLookAtOffset = Vec3(0, 0, -5);
 };

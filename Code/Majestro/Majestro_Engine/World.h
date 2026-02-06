@@ -6,7 +6,10 @@
 #include "SystemManager.h"
 #include "EventManager.h"
 #include "NetIdMap.h"
+#include "PhysicsWorld.h"
 #include <tuple>
+
+
 
 template<typename... Components>
 class EntityView;
@@ -14,7 +17,10 @@ class World {
 public:
     World() : mNextEntityID(1) {
     }
-    void Initialize() {mSystemManager = std::make_shared<SystemManager>(this);}
+    void Initialize() {
+        mSystemManager = std::make_shared<SystemManager>(this);
+		mPhysicsWorld = std::make_shared<PhysicsWorld>();
+    }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
     void Shutdown();
@@ -81,8 +87,11 @@ public:
     SceneId GetSceneId() const { return mSceneId; }
 
     // System Manager
-    std::shared_ptr<SystemManager> GetSystemManager() const { return mSystemManager; }
+    std::shared_ptr<SystemManager>& GetSystemManager() { return mSystemManager; }
     void SetSystemManager(std::shared_ptr<SystemManager> systemManager) { mSystemManager = systemManager; }
+
+	// Physics World
+    std::shared_ptr<PhysicsWorld>& GetPhysicsWorld() { return mPhysicsWorld; }
 
 public:
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(mSceneId, netID, entity); }
@@ -102,6 +111,7 @@ private:
 
     // System
     std::shared_ptr<SystemManager>		mSystemManager;
+    std::shared_ptr<PhysicsWorld>       mPhysicsWorld;
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };

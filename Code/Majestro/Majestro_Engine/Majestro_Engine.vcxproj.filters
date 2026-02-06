@@ -415,6 +415,9 @@
     <ClInclude Include="UITextComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
+    <ClInclude Include="PhysicsWorld.h">
+      <Filter>World\Base\World</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -677,6 +680,9 @@
     </ClCompile>
     <ClCompile Include="UITextComponent.cpp">
       <Filter>World\Component\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsWorld.cpp">
+      <Filter>World\Base\World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

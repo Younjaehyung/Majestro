@@ -1265,7 +1265,9 @@ void ResourceManager::CreateDefaultMaterial()
 	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
 
 	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx");
-
+	LoadFBX(L"..\\Resources\\FBX\\XYZ.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\ZUP_Ascii_3dmax_Pivot.fbx");
+	//LoadFBX(L"..\\Resources\\FBX\\YUP_Ascii_3dmax_Pivot.fbx");
 
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx");

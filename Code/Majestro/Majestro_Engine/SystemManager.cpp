@@ -69,7 +69,7 @@ void SystemManager::Update(float deltaTime) {
 
 void SystemManager::PreUpdate(float deltaTime)
 {
-    mEventManager->BeginPhase(EventPhase::Pre);
+  
     GetSystem<PlayerInputSystem>()->Update(deltaTime);
     GetSystem<MovementSystem>()->Update(deltaTime);
     //GetSystem<CollisionSystem>()->Update(deltaTime);
@@ -85,7 +85,7 @@ void SystemManager::NetUpdate(float deltaTime)
 
 void SystemManager::PostUpdate(float deltaTime)
 {
-    mEventManager->BeginPhase(EventPhase::Post);
+   
     //GetSystem<EnemySystem>()->Update(deltaTime);
     GetSystem<NetInterpolationSystem>()->Update(deltaTime);
     GetSystem<TransformSystem>()->Update(deltaTime);

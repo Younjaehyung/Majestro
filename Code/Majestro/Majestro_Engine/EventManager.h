@@ -4,34 +4,92 @@
 
 enum class EventPhase : uint8 { Pre, Post };
 
+struct IEventBuffer
+{
+    virtual ~IEventBuffer() = default;
+
+    // [ì¤‘ìš”] í”„ë ˆì„(ë˜ëŠ” ë‹¨ê³„) ê²½ê³„ì—ì„œ swap
+    virtual void Swap() = 0;
+
+    // read í ë¹„ìš°ê¸°(ì›í•˜ë©´)
+    virtual void ClearRead() = 0;
+};
+
+template<typename T>
+struct EventBuffer final : IEventBuffer
+{
+    std::vector<T> read;
+    std::vector<T> write;
+    void Swap()
+    {
+        read.clear();
+        read.swap(write);
+    }
+
+    void ClearRead()
+    {
+        read.clear();
+    }
+};
+
 class EventManager
 {
 public:
-    void Initialize() {}
+    EventManager() = default;
 
+    template<typename T>
+    void Enqueue(const T& e);
 
-public:
-    void PushPre(GameEvent e) { mPreWrite.emplace_back(std::move(e)); }
-    void PushPost(GameEvent e) { mPostWrite.emplace_back(std::move(e)); }
+    template<typename T, typename Fn>
+    void Consume(Fn&& fn);
 
-    void BeginPhase(EventPhase phase);
-
-    bool Pop(EventPhase phase, GameEvent& out);
-
-    // Ã³¸® Áß »õ·Î PushµÈ ÀÌº¥Æ®¸¦ ¡°°°Àº phase¿¡¼­ °è¼Ó Ã³¸®¡±ÇÏ°í ½ÍÀ¸¸é,
-    //        mPreWrite/mPostWrite¸¦ ´Ù½Ã BeginPhase·Î ³Ñ°Ü read·Î ¿Å±â¸é µÈ´Ù.
-    bool HasPendingWrites(EventPhase phase) const
+    void SwapBuffers()
     {
-        return (phase == EventPhase::Pre) ? !mPreWrite.empty() : !mPostWrite.empty();
+        for (auto& [_, ptr] : mBuffers)
+            ptr->Swap();
     }
 
+    void ClearAllRead()
+    {
+        for (auto& [_, ptr] : mBuffers)
+            ptr->ClearRead();
+    }
 
 private:
-    // [Áß¿ä] Read´Â ÇöÀç phase¿¡¼­ ¼ÒºñµÇ´Â Å¥
-    std::vector<GameEvent> mPreRead;
-    std::vector<GameEvent> mPostRead;
+    template<typename T>
+    EventBuffer<T>& GetBuffer();
 
-    // [Áß¿ä] Write´Â ½Ã½ºÅÛµéÀÌ PushÇÏ´Â Å¥(Ã³¸® Áß¿¡µµ ¾ÈÀüÇÏ°Ô Ãß°¡ °¡´É)
-    std::vector<GameEvent> mPreWrite;
-    std::vector<GameEvent> mPostWrite;
+private:
+    std::unordered_map<std::type_index, std::unique_ptr<IEventBuffer>> mBuffers;
 };
+
+template<typename T>
+void EventManager::Enqueue(const T& e)
+{
+    GetBuffer<T>().write.push_back(e);
+}
+
+// em.Consume<ContactEvent>([&](const ContactEvent& e) {}
+template<typename T, typename Fn>
+void EventManager::Consume(Fn&& fn)
+{
+    auto& buf = GetBuffer<T>();
+    for (auto& e : buf.read)
+        fn(e);
+}
+
+template<typename T>
+EventBuffer<T>& EventManager::GetBuffer()
+{
+    const std::type_index key = typeid(T);
+
+    auto it = mBuffers.find(key);
+    if (it == mBuffers.end())
+    {
+        auto owned = std::make_unique<EventBuffer<T>>();
+        auto* raw = owned.get();
+        mBuffers.emplace(key, std::move(owned));
+        return *raw;
+    }
+    return *static_cast<EventBuffer<T>*>(it->second.get());
+}

@@ -5,10 +5,10 @@
 #include "ComponentPool.h"
 #include "SystemManager.h"
 #include "EventManager.h"
+#include "PhysicsWorld.h"
 #include "NetIdMap.h"
 #include "PacketHelper.h"
 
-#include "PacketHelper.h"
 
 #include <tuple>
 
@@ -20,7 +20,10 @@ class World {
 public:
     World() : mNextEntityID(1) {
     }
-    void Initialize() {mSystemManager = std::make_shared<SystemManager>(this);}
+    void Initialize() {
+        mSystemManager = std::make_shared<SystemManager>(this);
+		mPhysicsWorld = std::make_shared<PhysicsWorld>();
+    }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
 public:
 
@@ -91,6 +94,8 @@ public:
     bool EnqueueCommand(const InputCommand& command) { return mInboundCommands.Push(command); }
     bool DequeueCommand(InputCommand& command) { return mInboundCommands.Pop(command); }
 
+	std::shared_ptr<PhysicsWorld>& GetPhysicsWorld() { return mPhysicsWorld; }
+
 public: // Network Entity ID 관리
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
 	void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(netID); }
@@ -110,6 +115,7 @@ private:
 
     // System
     std::shared_ptr<SystemManager>		mSystemManager;
+    std::shared_ptr<PhysicsWorld>		mPhysicsWorld;
 
     // Event
     std::shared_ptr<EventManager>		mEventManager;

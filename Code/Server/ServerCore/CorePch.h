@@ -30,7 +30,8 @@
 #include <memory>
 #include <fstream>
 #include <filesystem>
-
+#include <functional>
+#include <typeindex>
 
 
 using namespace std;

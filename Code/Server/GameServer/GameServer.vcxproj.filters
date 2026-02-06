@@ -190,6 +190,9 @@
       <Filter>Resource</Filter>
     </ClCompile>
     <ClCompile Include="FBX.cpp" />
+    <ClCompile Include="PhysicsWorld.cpp">
+      <Filter>Base\World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -328,6 +331,9 @@
       <Filter>Resource</Filter>
     </ClInclude>
     <ClInclude Include="FBX.h" />
+    <ClInclude Include="PhysicsWorld.h">
+      <Filter>Base\World</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

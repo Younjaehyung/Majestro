@@ -4,52 +4,92 @@
 
 enum class EventPhase : uint8 { Pre, Post };
 
+struct IEventBuffer
+{
+    virtual ~IEventBuffer() = default;
+
+    // [중요] 프레임(또는 단계) 경계에서 swap
+    virtual void Swap() = 0;
+
+    // read 큐 비우기(원하면)
+    virtual void ClearRead() = 0;
+};
+
+template<typename T>
+struct EventBuffer final : IEventBuffer
+{
+    std::vector<T> read;
+    std::vector<T> write;
+    void Swap()
+    {
+        read.clear();
+        read.swap(write);
+    }
+
+    void ClearRead()
+    {
+        read.clear();
+    }
+};
+
 class EventManager
 {
 public:
-    void Initialize() {}
-    
+    EventManager() = default;
 
-public:
-    void PushPre(GameEvent e) { mPreWrite.emplace_back(std::move(e)); }
-    void PushPost(GameEvent e) { mPostWrite.emplace_back(std::move(e)); }
+    template<typename T>
+    void Enqueue(const T& e);
 
-    void BeginPhase(EventPhase phase)
+    template<typename T, typename Fn>
+    void Consume(Fn&& fn);
+
+    void SwapBuffers()
     {
-        if (phase == EventPhase::Pre)
-        {
-            mPreRead.clear();
-            mPreRead.swap(mPreWrite);
-        }
-        else
-        {
-            mPostRead.clear();
-            mPostRead.swap(mPostWrite);
-        }
+        for (auto& [_, ptr] : mBuffers)
+            ptr->Swap();
     }
 
-    bool Pop(EventPhase phase, GameEvent& out)
+    void ClearAllRead()
     {
-        auto& read = (phase == EventPhase::Pre) ? mPreRead : mPostRead;
-        if (read.empty()) return false;
-
-        out = std::move(read.back());
-        read.pop_back();
-        return true;
-    }
-
-    // 처리 중 새로 Push된 이벤트를 “같은 phase에서 계속 처리”하고 싶으면,
-    //        mPreWrite/mPostWrite를 다시 BeginPhase로 넘겨 read로 옮기면 된다.
-    bool HasPendingWrites(EventPhase phase) const
-    {
-        return (phase == EventPhase::Pre) ? !mPreWrite.empty() : !mPostWrite.empty();
+        for (auto& [_, ptr] : mBuffers)
+            ptr->ClearRead();
     }
 
 private:
-    //현재 phase에서 소비되는 큐
-    std::vector<GameEvent> mPreRead, mPostRead;
+    template<typename T>
+    EventBuffer<T>& GetBuffer();
 
-
-    // 시스템들이 Push하는 큐(처리 중에도 안전하게 추가 가능)
-    std::vector<GameEvent> mPreWrite, mPostWrite;
+private:
+    std::unordered_map<std::type_index, std::unique_ptr<IEventBuffer>> mBuffers;
 };
+
+template<typename T>
+void EventManager::Enqueue(const T& e)
+{
+    GetBuffer<T>().write.push_back(e);
+}
+
+// em.Consume<ContactEvent>([&](const ContactEvent& e) {}
+template<typename T, typename Fn>
+void EventManager::Consume(Fn&& fn)
+{
+    auto& buf = GetBuffer<T>();
+    for (auto& e : buf.read)
+        fn(e);
+}
+
+template<typename T>
+EventBuffer<T>& EventManager::GetBuffer()
+{
+    const std::type_index key = typeid(T);
+
+    auto it = mBuffers.find(key);
+    if (it == mBuffers.end())
+    {
+        auto owned = std::make_unique<EventBuffer<T>>();
+        auto* raw = owned.get();
+        mBuffers.emplace(key, std::move(owned));
+        return *raw;
+    }
+    return *static_cast<EventBuffer<T>*>(it->second.get());
+}

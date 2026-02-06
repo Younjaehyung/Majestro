@@ -64,7 +64,7 @@ void CameraSystem::Update(float dt)
 
 			best.distance = cameraTypeComponent->mCameraMaxLenth;
 		
-			transformComponent->mLocalPosition = pos + cameraTypeComponent->mOffset - best.distance * transformComponent->GetLook();
+			transformComponent->mLocalPosition = DestPos;// pos + cameraTypeComponent->mOffset - best.distance * transformComponent->GetLook();
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 

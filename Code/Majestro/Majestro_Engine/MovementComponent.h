@@ -16,6 +16,13 @@ public:
 
 	float mCameraRotationX =0.f;
 	float mCameraRotationY =180.f;
+
+	float currentX = 0.0f;
+	float currentY = 0.0f;
+	float targetX = 0.0f;
+	float targetY = 0.0f;
+
+
 };
 
 class EnemyMovementComponent : public Component<EnemyMovementComponent>

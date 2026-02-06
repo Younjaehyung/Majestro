@@ -124,11 +124,36 @@ void PlayerInputSystem::Update(float dt)
 	if (INPUT.GetMouseState().LeftDown) {
 		//attack
 
-		//screen move
-		movementComponent->mCameraRotationX += (float)INPUT.GetMouseState().Delta.y * dt * mDPI;
-		movementComponent->mCameraRotationY += (float)INPUT.GetMouseState().Delta.x * dt * mDPI;
-		INPUT.MouseStateClear();
+
+		auto mouseDelta = INPUT.GetMouseState().Delta;
+
+		// 미세한 노이즈 제거
+		float deltaX = (std::abs(mouseDelta.y) > deadzone) ? (float)mouseDelta.y : 0.0f;
+		float deltaY = (std::abs(mouseDelta.x) > deadzone) ? (float)mouseDelta.x : 0.0f;
+
+		movementComponent->targetX += deltaX * sensitivity * mDPI;
+		movementComponent->targetY += deltaY * sensitivity * mDPI;
+
+		float alpha = std::lerp(0.0f, 1.0f, dt * lerpFactor); // dt에 비례하도록 수정
+		
+
+		movementComponent->currentX = std::lerp(movementComponent->currentX, movementComponent->targetX, alpha);
+		movementComponent->currentY = std::lerp(movementComponent->currentY, movementComponent->targetY, alpha);
+
+
+		movementComponent->mCameraRotationX = movementComponent->currentX;
+		movementComponent->mCameraRotationY = movementComponent->currentY;
+
+		// 짐벌락 방지 클램핑 (Pitch)
+		movementComponent->mCameraRotationX = std::clamp(movementComponent->mCameraRotationX, -89.0f, 89.0f);
 	}
+
+
+		////screen move
+		//movementComponent->mCameraRotationX += (float)INPUT.GetMouseState().Delta.y * dt * mDPI;
+		//movementComponent->mCameraRotationY += (float)INPUT.GetMouseState().Delta.x * dt * mDPI;
+		INPUT.MouseStateClear();
+	
 
 	mainPlayerComponent->Update(dt);
 

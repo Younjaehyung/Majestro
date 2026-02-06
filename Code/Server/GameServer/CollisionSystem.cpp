@@ -8,6 +8,7 @@
 #include "InputComponent.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -22,6 +23,168 @@ static void AvoidCollisionByMovementState(
     BoxColliderComponent* colA,
     BoxColliderComponent* colB);
 
+namespace
+{
+    struct AABB2D
+    {
+        float minX;
+        float maxX;
+        float minZ;
+        float maxZ;
+    };
+
+    struct StaticProxy
+    {
+        Entity entity;
+        BoxColliderComponent* collider;
+        AABB2D bounds;
+    };
+
+    struct DynamicProxy
+    {
+        Entity entity;
+        BoxColliderComponent* collider;
+        AABB2D bounds;
+    };
+
+    struct BVHNode
+    {
+        AABB2D bounds;
+        int left = -1;
+        int right = -1;
+        int start = 0;
+        int count = 0;
+
+        bool IsLeaf() const
+        {
+            return left < 0 && right < 0;
+        }
+    };
+
+    AABB2D BuildAABBFromOBB(const BoundingOrientedBox& obb)
+    {
+        XMFLOAT3 corners[8];
+        obb.GetCorners(corners);
+
+        AABB2D bounds{ corners[0].x, corners[0].x, corners[0].z, corners[0].z };
+
+        for (const auto& c : corners)
+        {
+            bounds.minX = (std::min)(bounds.minX, c.x);
+            bounds.maxX = (std::max)(bounds.maxX, c.x);
+            bounds.minZ = (std::min)(bounds.minZ, c.z);
+            bounds.maxZ = (std::max)(bounds.maxZ, c.z);
+        }
+
+        return bounds;
+    }
+
+    AABB2D MergeAABB(const AABB2D& a, const AABB2D& b)
+    {
+        return AABB2D{
+            (std::min)(a.minX, b.minX),
+            (std::max)(a.maxX, b.maxX),
+            (std::min)(a.minZ, b.minZ),
+            (std::max)(a.maxZ, b.maxZ)
+        };
+    }
+
+    bool OverlapAABB(const AABB2D& a, const AABB2D& b)
+    {
+        if (a.maxX < b.minX || b.maxX < a.minX)
+            return false;
+        if (a.maxZ < b.minZ || b.maxZ < a.minZ)
+            return false;
+        return true;
+    }
+
+    int BuildStaticBVHRecursive(
+        std::vector<StaticProxy>& proxies,
+        std::vector<BVHNode>& nodes,
+        int start,
+        int count)
+    {
+        const int nodeIndex = static_cast<int>(nodes.size());
+        nodes.push_back(BVHNode{});
+
+        BVHNode& node = nodes[nodeIndex];
+        node.start = start;
+        node.count = count;
+        node.bounds = proxies[start].bounds;
+
+        for (int i = 1; i < count; ++i)
+        {
+            node.bounds = MergeAABB(node.bounds, proxies[start + i].bounds);
+        }
+
+        constexpr int kLeafSize = 4;
+        if (count <= kLeafSize)
+            return nodeIndex;
+
+        const float extentX = node.bounds.maxX - node.bounds.minX;
+        const float extentZ = node.bounds.maxZ - node.bounds.minZ;
+        const bool splitX = extentX >= extentZ;
+
+        const int mid = start + count / 2;
+        std::nth_element(
+            proxies.begin() + start,
+            proxies.begin() + mid,
+            proxies.begin() + start + count,
+            [splitX](const StaticProxy& lhs, const StaticProxy& rhs)
+            {
+                const float lhsCenter = splitX
+                    ? (lhs.bounds.minX + lhs.bounds.maxX) * 0.5f
+                    : (lhs.bounds.minZ + lhs.bounds.maxZ) * 0.5f;
+                const float rhsCenter = splitX
+                    ? (rhs.bounds.minX + rhs.bounds.maxX) * 0.5f
+                    : (rhs.bounds.minZ + rhs.bounds.maxZ) * 0.5f;
+                return lhsCenter < rhsCenter;
+            });
+
+        node.left = BuildStaticBVHRecursive(proxies, nodes, start, mid - start);
+        node.right = BuildStaticBVHRecursive(proxies, nodes, mid, start + count - mid);
+        node.count = 0;
+        return nodeIndex;
+    }
+
+    void QueryStaticBVH(
+        const std::vector<BVHNode>& nodes,
+        int root,
+        const AABB2D& query,
+        std::vector<int>& outIndices)
+    {
+        if (root < 0)
+            return;
+
+        std::array<int, 128> stack{};
+        int top = 0;
+        stack[top++] = root;
+
+        while (top > 0)
+        {
+            const int nodeIndex = stack[--top];
+            const BVHNode& node = nodes[nodeIndex];
+
+            if (!OverlapAABB(node.bounds, query))
+                continue;
+
+            if (node.IsLeaf())
+            {
+                for (int i = 0; i < node.count; ++i)
+                {
+                    outIndices.push_back(node.start + i);
+                }
+                continue;
+            }
+
+            if (node.left >= 0 && top < static_cast<int>(stack.size()))
+                stack[top++] = node.left;
+            if (node.right >= 0 && top < static_cast<int>(stack.size()))
+                stack[top++] = node.right;
+        }
+    }
+}
+
 CollisionSystem::CollisionSystem(World* world) : System(world)
 {
 
@@ -34,6 +197,7 @@ void CollisionSystem::Update(float dt)
 
 
     Movable2Movable(dt);
+    Movable2Static(dt);
 
 }
 
@@ -256,6 +420,69 @@ void CollisionSystem::Movable2Movable(float deltaTime)
                 }
             }
         }
+}
+
+void CollisionSystem::Movable2Static(float deltaTime)
+{
+    auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
+
+    std::vector<StaticProxy> staticObjects;
+    std::vector<DynamicProxy> dynamicObjects;
+
+    staticObjects.reserve(entities.size());
+    dynamicObjects.reserve(entities.size());
+
+    for (auto e : entities)
+    {
+        auto* tr = mWorld->GetComponent<TransformComponent>(e);
+        auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
+        if (!tr || !col)
+            continue;
+
+        UpdateWorldOBB(tr, col);
+        const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
+
+        if (tr->mIsStatic)
+        {
+            staticObjects.push_back(StaticProxy{ e, col, bounds });
+        }
+        else
+        {
+            dynamicObjects.push_back(DynamicProxy{ e, col, bounds });
+        }
+    }
+
+    if (staticObjects.empty() || dynamicObjects.empty())
+        return;
+
+    std::vector<BVHNode> nodes;
+    nodes.reserve(staticObjects.size() * 2);
+    const int root = BuildStaticBVHRecursive(staticObjects, nodes, 0, static_cast<int>(staticObjects.size()));
+
+    std::vector<int> candidates;
+    for (auto& dyn : dynamicObjects)
+    {
+        candidates.clear();
+        QueryStaticBVH(nodes, root, dyn.bounds, candidates);
+
+        for (int candidateIndex : candidates)
+        {
+            auto& st = staticObjects[candidateIndex];
+
+            if (!dyn.collider->mWorldOBB.Intersects(st.collider->mWorldOBB))
+                continue;
+
+            dyn.collider->bIsColliding = true;
+            st.collider->bIsColliding = true;
+
+            AvoidCollisionByMovementState(
+                mWorld,
+                dyn.entity,
+                st.entity,
+                dyn.collider,
+                st.collider);
+        }
+    }
 }
 
 

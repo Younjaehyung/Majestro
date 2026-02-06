@@ -13,6 +13,7 @@
 
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
 {
+    mPhase = SysPhase::Render;
 }
 
 void UIRenderSystem::Initialize()

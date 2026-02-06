@@ -8,11 +8,13 @@ class  EventManager;
 class NetRecvSystem : public System
 {
 public:
-	NetRecvSystem(World* world, EventManager* event,shared_ptr<NetIdMap>& netIdMap);
+	NetRecvSystem(World* world) : System(world) { mPhase = SysPhase::Pre; }
+	NetRecvSystem(World* world, shared_ptr<NetIdMap>& netIdMap);
+
 	virtual ~NetRecvSystem();
 
 	void Initialize();
-	void Update(double deltaTime);
+	void Update(float deltaTime);
 
 	void ProcessOne(const InputCommand& msg);
 public:

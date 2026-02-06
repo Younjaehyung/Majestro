@@ -20,11 +20,8 @@ void EnemySystem::Update(float dt) {
 	//TransformComponent* playerPos = transformPool.GetComponent(cameraTypeComponent->mTargetID);
 
 
-	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	
-	if (enemyEntitys.empty())return;
-	
-	for (auto& entity : enemyEntitys) {
+	for (Entity entity : mWorld->View<EnemyMovementComponent>()) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
 

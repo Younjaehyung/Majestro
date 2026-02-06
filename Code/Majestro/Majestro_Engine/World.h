@@ -20,6 +20,7 @@ public:
     void Initialize() {
         mSystemManager = std::make_shared<SystemManager>(this);
 		mPhysicsWorld = std::make_shared<PhysicsWorld>();
+        mEventManager = make_shared<EventManager>();
     }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
@@ -92,7 +93,9 @@ public:
 
 	// Physics World
     std::shared_ptr<PhysicsWorld>& GetPhysicsWorld() { return mPhysicsWorld; }
-
+    
+	// Event Manager
+	std::shared_ptr<EventManager>& GetEventManager() { return mEventManager; }
 public:
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(mSceneId, netID, entity); }
     void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(mSceneId, netID); }
@@ -112,6 +115,7 @@ private:
     // System
     std::shared_ptr<SystemManager>		mSystemManager;
     std::shared_ptr<PhysicsWorld>       mPhysicsWorld;
+    std::shared_ptr<EventManager>       mEventManager;
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };

@@ -2,6 +2,7 @@
 #include "System.h"
 #include "EventManager.h"
 
+
 class SystemManager
 {
 public:
@@ -9,12 +10,11 @@ public:
     ~SystemManager();
 
     void Update(float deltaTime);
+	void RunPhase(SysPhase phase, float deltaTime);
+	void RenderPhase(SysPhase phase);
 
-
-	void NetUpdate(float deltaTime);
-    void PreUpdate(float deltaTime);
-	void PostUpdate(float deltaTime);
-	
+    void WorldBegin();
+    void WorldEnd();
 
     void Render();
 
@@ -31,62 +31,72 @@ public:
     template<typename T>
     T* GetSystem();
 
+
+    // phase별로만 의존성 그래프를 만든다.
+    std::vector<System*> TopoSortPhase(SysPhase phase, const std::vector<System*>& input);
+    void RebuildScheduleIfDirty();
 private:
-    World* mWorld;
-    std::shared_ptr<EventManager> mEventManager = make_shared<EventManager>();
+    World* mWorld = nullptr;
+   
     std::vector<std::unique_ptr<System>> mSystems;
+    std::unordered_map<std::type_index, System*> mSystemMap;
 
-    std::unordered_map<size_t, System*> mSystemMap;
+    // phase별 실행 리스트(포인터)
+    std::vector<System*> mPhaseSystems[(size_t)SysPhase::Count];
 
-    std::vector<std::unique_ptr<System>> mAwakeSystems;
-    std::vector<std::unique_ptr<System>> mStartSystems;
-    std::vector<std::unique_ptr<System>> mUpdateSystems;
-    std::vector<std::unique_ptr<System>> mLateUpdateSystems;
-    std::vector<std::unique_ptr<System>> mFinalUpdateSystems;
-    std::vector<std::unique_ptr<System>> mRenderSystems;
-
+    bool mDirtySchedule = true;
 };
+
+
+
 
 template<typename T, typename... Args>
 T* SystemManager::RegisterSystem(Args&&... args) {
-    static_assert(std::is_base_of_v<System, T>, "T must inherit from BaseSystem");
+    const std::type_index key = std::type_index(typeid(T));
+    if (mSystemMap.contains(key))
+        throw std::runtime_error("RegisterSystem: already registered");
 
-    auto system = std::make_unique<T>(mWorld, std::forward<Args>(args)...);
-    T* systemPtr = system.get();
+    auto sys = std::make_unique<T>(mWorld,  std::forward<Args>(args)...);
+    T* raw = sys.get();
 
-    mSystems.emplace_back(std::move(system));
-    mSystemMap[typeid(T).hash_code()] = systemPtr;
+    mSystemMap.emplace(key, raw);
+    mSystems.emplace_back(std::move(sys));
 
-    systemPtr->Initialize();
-    return systemPtr;
+    raw->Initialize();
+
+    // Phase 리스트에 포인터 등록
+    mPhaseSystems[(size_t)raw->GetPhase()].push_back(raw);
+
+    mDirtySchedule = true;
+    return raw;
 }
 
 template<typename T>
 T* SystemManager::UnRegisterSystem() //? 되는 코드인가
 {
-    size_t typeHash = typeid(T).hash_code();
-    auto it = mSystemMap.find(typeHash);
-    if (it != mSystemMap.end()) {
-        T* systemPtr = static_cast<T*>(it->second);
-        mSystemMap.erase(it);
-        auto sysIt = std::find_if(mSystems.begin(), mSystems.end(),
-            [systemPtr](const std::unique_ptr<System>& sys) { return sys.get() == systemPtr; });
-        if (sysIt != mSystems.end()) {
-            mSystems.erase(sysIt);
-        }
-        return systemPtr;
-    }
-	return nullptr;
+    const std::type_index key = std::type_index(typeid(T));
+    auto it = mSystemMap.find(key);
+    if (it == mSystemMap.end()) return;
+
+    System* victim = it->second;
+    mSystemMap.erase(it);
+
+    // mAllSystems에서 제거
+    std::erase_if(mSystems, [&](const std::unique_ptr<System>& p) {
+        return p.get() == victim;
+        });
+
+    // Phase 리스트에서도 제거
+    for (auto& vec : mPhaseSystems)
+        std::erase(vec, victim);
+
+    mDirtySchedule = true;
 }
 
 template<typename T>
 T* SystemManager::GetSystem() {
-    size_t typeHash = typeid(T).hash_code();
-    auto it = mSystemMap.find(typeHash);
-
-    if (it != mSystemMap.end()) {
-        return static_cast<T*>(it->second);
-    }
-
-    return nullptr;
+    const std::type_index key = std::type_index(typeid(T));
+    auto it = mSystemMap.find(key);
+    if (it == mSystemMap.end()) return nullptr;
+    return static_cast<T*>(it->second);
 }

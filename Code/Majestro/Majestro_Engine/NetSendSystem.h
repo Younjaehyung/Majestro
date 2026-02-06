@@ -25,8 +25,9 @@ enum class InputMouse : uint8 {
 class NetSendSystem : public System
 {
 public:
-	NetSendSystem(World* world, EventManager* event);
-	void Update(double deltaTime);
+	NetSendSystem(World* world);
+	virtual ~NetSendSystem() = default;
+	void Update(float deltaTime);
     void QueueGameStart();
 
     void SetCachedPlayerType(uint8 playerType){mCachedPlayerType = playerType;}

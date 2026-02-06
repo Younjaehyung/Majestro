@@ -15,10 +15,11 @@
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
 
-NetRecvSystem::NetRecvSystem(World* world, EventManager* event, shared_ptr<NetIdMap>& netIdMap)
-	: System::System(world, event)
+NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
+	: System::System(world)
 {
 	mNetIdMap = netIdMap;
+    mPhase = SysPhase::Pre;
 }
 
 NetRecvSystem::~NetRecvSystem()
@@ -38,7 +39,7 @@ void NetRecvSystem::Initialize()
 	}
 }
 
-void NetRecvSystem::Update(double deltaTime)
+void NetRecvSystem::Update(float deltaTime)
 {
 
     constexpr int kMaxMsgsPerTick = 256; // 폭주 방지

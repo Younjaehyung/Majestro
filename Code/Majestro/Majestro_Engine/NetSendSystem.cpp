@@ -16,12 +16,12 @@
 #include <bitset>
 
 
-NetSendSystem::NetSendSystem(World* world, EventManager* event) : System::System(world, event)
+NetSendSystem::NetSendSystem(World* world) : System::System(world)
 {
-
+	mPhase = SysPhase::Pre;
 }
 
-void NetSendSystem::Update(double deltaTime)
+void NetSendSystem::Update(float deltaTime)
 {
 	UpdateCachedPlayerType();
 	TrySendGameStart();

@@ -15,6 +15,7 @@
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
 {
+	mPhase = SysPhase::Pre;
 }
 
 void PlayerInputSystem::Initialize()

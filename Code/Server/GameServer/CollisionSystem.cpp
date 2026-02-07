@@ -6,6 +6,7 @@
 #include "BoxColliderComponent.h"
 #include "MovementComponent.h"
 #include "InputComponent.h"
+#include "TagComponent.h"
 
 #include <algorithm>
 #include <array>
@@ -153,16 +154,17 @@ namespace
         const AABB2D& query,
         std::vector<int>& outIndices)
     {
-        if (root < 0)
-            return;
+        if (root < 0) return;
 
-        std::array<int, 128> stack{};
-        int top = 0;
-        stack[top++] = root;
+        std::vector<int> stack;                 // [수정] 동적 스택으로 안전하게
+        stack.reserve(64);
+        stack.push_back(root);
 
-        while (top > 0)
+        while (!stack.empty())
         {
-            const int nodeIndex = stack[--top];
+            const int nodeIndex = stack.back();
+            stack.pop_back();
+
             const BVHNode& node = nodes[nodeIndex];
 
             if (!OverlapAABB(node.bounds, query))
@@ -171,16 +173,12 @@ namespace
             if (node.IsLeaf())
             {
                 for (int i = 0; i < node.count; ++i)
-                {
                     outIndices.push_back(node.start + i);
-                }
                 continue;
             }
 
-            if (node.left >= 0 && top < static_cast<int>(stack.size()))
-                stack[top++] = node.left;
-            if (node.right >= 0 && top < static_cast<int>(stack.size()))
-                stack[top++] = node.right;
+            if (node.left >= 0)  stack.push_back(node.left);
+            if (node.right >= 0) stack.push_back(node.right);
         }
     }
 }
@@ -203,7 +201,9 @@ void CollisionSystem::Update(float dt)
 
 void CollisionSystem::Movable2Movable(float deltaTime)
 {
-    auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
+    if (false == mWorld->HasComponentPool<MovableComponent>())return;
+
+    auto entities = mWorld->GetEntitiesWithComponents<MovableComponent, TransformComponent, BoxColliderComponent>();
 
     std::vector<Entity> activeEntities;
     std::vector<BoxColliderComponent*> colliders;
@@ -271,15 +271,49 @@ void CollisionSystem::Movable2Movable(float deltaTime)
         if (activeEntities.size() < 2)
             return;
 
-    auto runN2 = [&]()
+        auto runSAP = [&]()
         {
-            for (size_t i = 0; i < activeEntities.size(); ++i)
+                std::vector<uint32_t> order(activeEntities.size());
+                for (uint32_t i = 0; i < static_cast<uint32_t>(order.size()); ++i)
             {
-                auto* colA = colliders[i];
-                for (size_t j = i + 1; j < activeEntities.size(); ++j)
+                    order[i] = i;
+                }
+
+                std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs)
                 {
-                    auto* colB = colliders[j];
-                    if (!colA || !colB) continue;
+                        if (minX[lhs] == minX[rhs])
+                            return maxX[lhs] < maxX[rhs];
+                        return minX[lhs] < minX[rhs];
+                    });
+
+                std::vector<uint32_t> activeList;
+                activeList.reserve(order.size());
+
+                for (uint32_t currentIndex : order)
+                {
+                    const float currentMinX = minX[currentIndex];
+
+                    activeList.erase(
+                        std::remove_if(activeList.begin(), activeList.end(), [&](uint32_t otherIndex)
+                            {
+                                return maxX[otherIndex] < currentMinX;
+                            }),
+                        activeList.end());
+
+                    auto* colA = colliders[currentIndex];
+                    if (!colA)
+                    {
+                        activeList.push_back(currentIndex);
+                        continue;
+                    }
+
+                    for (uint32_t otherIndex : activeList)
+                    {
+                        if (maxZ[currentIndex] < minZ[otherIndex] || maxZ[otherIndex] < minZ[currentIndex])
+                            continue;
+
+                        auto* colB = colliders[otherIndex];
+                        if (!colB) continue;
 
                     if (colA->mWorldOBB.Intersects(colB->mWorldOBB))
                     {
@@ -288,12 +322,13 @@ void CollisionSystem::Movable2Movable(float deltaTime)
 
                         AvoidCollisionByMovementState(
                             mWorld,
-                            activeEntities[i],
-                            activeEntities[j],
+                            activeEntities[currentIndex],
+                            activeEntities[otherIndex],
                             colA,
                             colB);
                     }
                 }
+                    activeList.push_back(currentIndex);
             }
         };
 
@@ -308,7 +343,7 @@ void CollisionSystem::Movable2Movable(float deltaTime)
 
     if (cellCount > kMaxGridCells)
     {
-        runN2();
+        runSAP();
         return;
     }
 
@@ -424,15 +459,19 @@ void CollisionSystem::Movable2Movable(float deltaTime)
 
 void CollisionSystem::Movable2Static(float deltaTime)
 {
-    auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
+    if (false == mWorld->HasComponentPool<MovableComponent>())return;
+    if (false == mWorld->HasComponentPool<StaticComponent>())return;
+
+    auto dynamicEntities = mWorld->GetEntitiesWithComponents<MovableComponent, TransformComponent, BoxColliderComponent>();
+    auto staticEntities = mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, BoxColliderComponent>();
 
     std::vector<StaticProxy> staticObjects;
     std::vector<DynamicProxy> dynamicObjects;
 
-    staticObjects.reserve(entities.size());
-    dynamicObjects.reserve(entities.size());
+    staticObjects.reserve(staticEntities.size());
+    dynamicObjects.reserve(dynamicEntities.size());
 
-    for (auto e : entities)
+    for (auto e : staticEntities)
     {
         auto* tr = mWorld->GetComponent<TransformComponent>(e);
         auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
@@ -442,14 +481,19 @@ void CollisionSystem::Movable2Static(float deltaTime)
         UpdateWorldOBB(tr, col);
         const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
 
-        if (tr->mIsStatic)
-        {
-            staticObjects.push_back(StaticProxy{ e, col, bounds });
-        }
-        else
-        {
-            dynamicObjects.push_back(DynamicProxy{ e, col, bounds });
-        }
+        staticObjects.push_back(StaticProxy{ e, col, bounds });
+    }
+    for (auto e : dynamicEntities)
+    {
+        auto* tr = mWorld->GetComponent<TransformComponent>(e);
+        auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
+        if (!tr || !col)
+            continue;
+
+        UpdateWorldOBB(tr, col);
+        const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
+
+        dynamicObjects.push_back(DynamicProxy{ e, col, bounds });
     }
 
     if (staticObjects.empty() || dynamicObjects.empty())
@@ -530,7 +574,7 @@ static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* c
     col->mWorldOBB.Extents = XMFLOAT3(ext.x, ext.y, ext.z);
     col->mWorldOBB.Orientation = XMFLOAT4(rF.x, rF.y, rF.z, rF.w);
 }
-
+/*
 static void AvoidCollisionByMovementState(
     World* world,
     Entity a,
@@ -588,13 +632,13 @@ static void AvoidCollisionByMovementState(
     const float pushMagnitude = (std::min)(kMaxPushPerPair, effectivePenetration * kPushStrength);
 
 
-    if (penetration > 1e-4f)
+    if (penetration > 0)
     {
         auto* trA = world->GetComponent<TransformComponent>(a);
         auto* trB = world->GetComponent<TransformComponent>(b);
 
-        const bool canMoveA = trA && !trA->mIsStatic;
-        const bool canMoveB = trB && !trB->mIsStatic;
+        const bool canMoveA = trA && world->HasComponent<MovableComponent>(a);
+        const bool canMoveB = trB && world->HasComponent<MovableComponent>(b);
 
         Vec3 correctionA = Vec3::Zero;
         Vec3 correctionB = Vec3::Zero;
@@ -607,11 +651,11 @@ static void AvoidCollisionByMovementState(
         }
         else if (canMoveA)
         {
-            correctionA = Vec3(-normal.x * penetration, 0.0f, -normal.z * penetration);
+            correctionA = Vec3(-normal.x * pushMagnitude, 0.0f, -normal.z * pushMagnitude);
         }
         else if (canMoveB)
         {
-            correctionB = Vec3(normal.x * penetration, 0.0f, normal.z * penetration);
+            correctionB = Vec3(normal.x * pushMagnitude, 0.0f, normal.z * pushMagnitude);
         }
 
         if (canMoveA)
@@ -698,5 +742,166 @@ static void AvoidCollisionByMovementState(
     steerMovementState(a, normal, signA);
 
     const Vec3 towardA(-normal.x, -normal.y, -normal.z);
+    steerMovementState(b, towardA, signB);
+}*/
+
+static void AvoidCollisionByMovementState(
+    World* world,
+    Entity a,
+    Entity b,
+    BoxColliderComponent* colA,
+    BoxColliderComponent* colB)
+{
+    if (!world || !colA || !colB)
+        return;
+
+    Vec3 delta(
+        colB->mWorldOBB.Center.x - colA->mWorldOBB.Center.x,
+        0.0f,
+        colB->mWorldOBB.Center.z - colA->mWorldOBB.Center.z);
+
+    float lenSq = delta.x * delta.x + delta.z * delta.z;
+    if (lenSq < 1e-6f)
+    {
+        delta = Vec3(1.0f, 0.0f, 0.0f);
+        lenSq = 1.0f;
+    }
+
+    const float invLen = 1.0f / std::sqrt(lenSq);
+    const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen);
+    const Vec3 tangent(-normal.z, 0.0f, normal.x);
+
+    // [수정] 코너 8개+sqrt 반복 제거:
+    // OBB의 XZ 외접원 반경 근사 = sqrt(ext.x^2 + ext.z^2)
+    auto getRadiusXZ = [](const BoundingOrientedBox& obb)
+        {
+            const float ex = obb.Extents.x;
+            const float ez = obb.Extents.z;
+            return std::sqrt(ex * ex + ez * ez);
+        };
+
+    const float radiusA = getRadiusXZ(colA->mWorldOBB);
+    const float radiusB = getRadiusXZ(colB->mWorldOBB);
+    const float centerDistance = std::sqrt(lenSq);
+    const float penetration = (radiusA + radiusB) - centerDistance;
+
+    // 완화 파라미터
+    constexpr float kPenetrationSlop = 0.05f;
+    constexpr float kPushStrength = 0.35f;
+    constexpr float kMaxPushPerPair = 0.8f;
+
+    // [수정] 계산한 완화 파라미터를 실제 보정에 사용
+    const float effectivePenetration = (std::max)(0.0f, penetration - kPenetrationSlop);
+    const float pushMagnitude = (std::min)(kMaxPushPerPair, effectivePenetration * kPushStrength);
+
+    if (pushMagnitude > 0.0f) // [수정] penetration이 아니라 pushMagnitude 기준
+    {
+        auto* trA = world->GetComponent<TransformComponent>(a);
+        auto* trB = world->GetComponent<TransformComponent>(b);
+
+        const bool canMoveA = trA && world->HasComponent<MovableComponent>(a);
+        const bool canMoveB = trB && world->HasComponent<MovableComponent>(b);
+
+        Vec3 correctionA = Vec3::Zero;
+        Vec3 correctionB = Vec3::Zero;
+
+        // [수정] penetration 대신 pushMagnitude 적용 (과보정/진동 완화)
+        if (canMoveA && canMoveB)
+        {
+            const float half = pushMagnitude * 0.5f;
+            correctionA = Vec3(-normal.x * half, 0.0f, -normal.z * half);
+            correctionB = Vec3(normal.x * half, 0.0f, normal.z * half);
+        }
+        else if (canMoveA)
+        {
+            correctionA = Vec3(-normal.x * pushMagnitude, 0.0f, -normal.z * pushMagnitude);
+        }
+        else if (canMoveB)
+        {
+            correctionB = Vec3(normal.x * pushMagnitude, 0.0f, normal.z * pushMagnitude);
+        }
+
+        if (canMoveA)
+        {
+            trA->mLocalPosition += correctionA;
+
+            // [수정] 트랜스폼 변경 시 월드행렬 재계산이 필요(엔진 구조에 맞게)
+            // 아래 MarkDirty()는 예시. 네 TransformSystem이 mLocalPosition 변경을 감지 못하면 꼭 필요.
+            // trA->MarkDirty();  // [수정] (함수 없으면 너 엔진 방식으로 교체)
+
+            colA->mWorldOBB.Center.x += correctionA.x;
+            colA->mWorldOBB.Center.z += correctionA.z;
+        }
+
+        if (canMoveB)
+        {
+            trB->mLocalPosition += correctionB;
+
+            // trB->MarkDirty();  // [수정] (함수 없으면 너 엔진 방식으로 교체)
+
+            colB->mWorldOBB.Center.x += correctionB.x;
+            colB->mWorldOBB.Center.z += correctionB.z;
+        }
+    }
+
+    auto steerMovementState = [&](Entity e, const Vec3& towardOther, float tangentSign)
+        {
+            Vec3 dir(0.0f, 0.0f, 0.0f);
+            bool hasDir = false;
+
+            if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
+            {
+                dir = enemyMove->mMovingDirection;
+                hasDir = true;
+            }
+            else if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
+            {
+                dir = playerMove->mMovingDirection;
+                hasDir = true;
+            }
+
+            if (!hasDir) return;
+
+            const float towardDot = dir.x * towardOther.x + dir.z * towardOther.z;
+            if (towardDot > 0.0f)
+            {
+                dir.x -= towardOther.x * towardDot;
+                dir.z -= towardOther.z * towardDot;
+            }
+
+            dir += tangent * (0.25f * tangentSign);
+
+            float d2 = dir.x * dir.x + dir.z * dir.z;
+            if (d2 < 1e-6f)
+            {
+                dir = Vec3(-towardOther.x, 0.0f, -towardOther.z) + tangent * (0.2f * tangentSign);
+                d2 = dir.x * dir.x + dir.z * dir.z;
+            }
+
+            if (d2 > 1e-6f)
+            {
+                const float inv = 1.0f / std::sqrt(d2);
+                dir.x *= inv;
+                dir.z *= inv;
+            }
+
+            if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
+                enemyMove->mMovingDirection = dir;
+
+            if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
+                playerMove->mMovingDirection = dir;
+
+            if (auto* inputComp = world->GetComponent<InputComponent>(e))
+            {
+                inputComp->MoveX = dir.x;
+                inputComp->MoveZ = dir.z;
+            }
+        };
+
+    const float signA = (a.GetID() < b.GetID()) ? 1.0f : -1.0f;
+    const float signB = -signA;
+
+    steerMovementState(a, normal, signA);
+    const Vec3 towardA(-normal.x, 0.0f, -normal.z);
     steerMovementState(b, towardA, signB);
 }

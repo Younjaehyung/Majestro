@@ -79,6 +79,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   Vec3 half{ 10,10,10 };
   Vec3 center{ 0,10,0 };
   world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
+  world->AddComponent<MovableComponent>(mEntityID);
 
   return mEntityID;
 }
@@ -195,6 +196,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<EnemyComponent>(mEntityID);
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);
+	world->AddComponent<MovableComponent>(mEntityID);
 
 	auto& w =
 		world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);

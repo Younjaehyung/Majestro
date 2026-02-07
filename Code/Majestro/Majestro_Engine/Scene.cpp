@@ -220,7 +220,7 @@ void GameScene::Initialize()
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
-	 LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	 //LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
@@ -247,7 +247,7 @@ void GameScene::Initialize()
 
 	}
 	{
-		Entity enityt = mWorld->CreateEntity();
+		/*Entity enityt = mWorld->CreateEntity();
 		TransformComponent t{};
 		t.mLocalPosition = Vec3(-120.f, 720.f, 0.f);
 		t.mLocalRotationE = Vec3(0.f, 90.f, 0.f);
@@ -257,12 +257,12 @@ void GameScene::Initialize()
 		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"XYZ0");
 		std::vector<shared_ptr<Material>> materials;
 		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);*/
 
 	}
 
 	{
-		Entity enityt = mWorld->CreateEntity();
+		/*Entity enityt = mWorld->CreateEntity();
 		TransformComponent t{};
 		t.mLocalPosition = Vec3(0.f, 720.f, 0.f);
 		mWorld->AddComponent<TransformComponent>(enityt, t);
@@ -270,7 +270,7 @@ void GameScene::Initialize()
 		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"ZUP_Ascii_3dmax_Pivot0");
 		std::vector<shared_ptr<Material>> materials;
 		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);*/
 
 	}
 

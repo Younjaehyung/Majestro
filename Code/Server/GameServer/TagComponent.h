@@ -20,7 +20,7 @@ class MovableComponent : public Component<MovableComponent>
 
 };
 
-class ImmovableComponent : public Component<ImmovableComponent>
+class StaticComponent : public Component<StaticComponent>
 {
 
 };

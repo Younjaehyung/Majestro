@@ -22,7 +22,8 @@ static void AvoidCollisionByMovementState(
     Entity a,
     Entity b,
     BoxColliderComponent* colA,
-    BoxColliderComponent* colB);
+    BoxColliderComponent* colB,
+    float deltaTime);
 
 namespace
 {
@@ -325,7 +326,8 @@ void CollisionSystem::Movable2Movable(float deltaTime)
                             activeEntities[currentIndex],
                             activeEntities[otherIndex],
                             colA,
-                            colB);
+                            colB,
+                            deltaTime);
                     }
                 }
                     activeList.push_back(currentIndex);
@@ -450,7 +452,8 @@ void CollisionSystem::Movable2Movable(float deltaTime)
                             activeEntities[idxA],
                             activeEntities[idxB],
                             colA,
-                            colB);
+                            colB, 
+                            deltaTime);
                     }
                 }
             }
@@ -524,7 +527,8 @@ void CollisionSystem::Movable2Static(float deltaTime)
                 dyn.entity,
                 st.entity,
                 dyn.collider,
-                st.collider);
+                st.collider, 
+                deltaTime);
         }
     }
 }
@@ -574,17 +578,24 @@ static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* c
     col->mWorldOBB.Extents = XMFLOAT3(ext.x, ext.y, ext.z);
     col->mWorldOBB.Orientation = XMFLOAT4(rF.x, rF.y, rF.z, rF.w);
 }
-/*
+
+// [수정] 시간 기반 보정을 위해 dt를 인자로 받도록 시그니처 변경
 static void AvoidCollisionByMovementState(
     World* world,
     Entity a,
     Entity b,
     BoxColliderComponent* colA,
-    BoxColliderComponent* colB)
+    BoxColliderComponent* colB,
+    float deltaTime) // [수정]
 {
     if (!world || !colA || !colB)
         return;
 
+    // dt 방어
+    if (deltaTime <= 0.0f)
+        deltaTime = 1.0f / 60.0f; // [수정] 안전 기본값
+
+    // A -> B (XZ 평면)
     Vec3 delta(
         colB->mWorldOBB.Center.x - colA->mWorldOBB.Center.x,
         0.0f,
@@ -593,46 +604,47 @@ static void AvoidCollisionByMovementState(
     float lenSq = delta.x * delta.x + delta.z * delta.z;
     if (lenSq < 1e-6f)
     {
-        // 중심이 거의 동일하면 고정 방향으로 회피 축 지정
         delta = Vec3(1.0f, 0.0f, 0.0f);
         lenSq = 1.0f;
     }
 
-    const float invLen = 1.0f / std::sqrt(lenSq);
-    const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen);          // A -> B
-    const Vec3 tangent(-normal.z, 0.0f, normal.x);                          // 평면 접선
+    const float centerDistance = std::sqrt(lenSq);
+    const float invLen = 1.0f / centerDistance;
+    const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen); // A -> B
+    const Vec3 tangent(-normal.z, 0.0f, normal.x);
 
+    // --- penetration 계산(여전히 원형 근사: 빠르지만 정확도 한계 있음) ---
+    // [수정] 코너 8개 순회 제거. extents 기반 XZ 외접원 반경 근사.
     auto getRadiusXZ = [](const BoundingOrientedBox& obb)
         {
-            XMFLOAT3 corners[8];
-            obb.GetCorners(corners);
-
-            float radius = 0.0f;
-            for (const auto& c : corners)
-            {
-                const float dx = c.x - obb.Center.x;
-                const float dz = c.z - obb.Center.z;
-                radius = (std::max)(radius, std::sqrt(dx * dx + dz * dz));
-            }
-
-            return radius;
+            const float ex = obb.Extents.x;
+            const float ez = obb.Extents.z;
+            return std::sqrt(ex * ex + ez * ez);
         };
 
     const float radiusA = getRadiusXZ(colA->mWorldOBB);
     const float radiusB = getRadiusXZ(colB->mWorldOBB);
-    const float centerDistance = std::sqrt(lenSq);
+
+    // 침투량(>0이면 겹침)
     const float penetration = (radiusA + radiusB) - centerDistance;
 
-    // 과도한 튕김 방지를 위한 완화 파라미터
-    constexpr float kPenetrationSlop = 0.05f;   // 이 값 이하는 무시
-    constexpr float kPushStrength = 0.35f;      // 침투량 대비 보정 비율
-    constexpr float kMaxPushPerPair = 0.8f;     // 1회 충돌당 최대 보정량
+    // ---------------------------
+    // [수정] 시간 기반(바움가르테) 보정량 계산
+    // push = beta/dt * (penetration - slop)
+    // ---------------------------
+    constexpr float kPenetrationSlop = 0.01f;   // [수정] 슬롭 감소(관통 방지에 유리)
+    constexpr float kBeta = 0.20f;              // [수정] 0.1~0.4 튜닝 (클수록 빨리 밀어냄)
+    constexpr float kMaxPushPerPair = 2.0f;     // [수정] 기존 0.8은 관통을 만들기 쉬움(상황 따라 1~5)
 
     const float effectivePenetration = (std::max)(0.0f, penetration - kPenetrationSlop);
-    const float pushMagnitude = (std::min)(kMaxPushPerPair, effectivePenetration * kPushStrength);
 
+    // [수정] 시간 기반 보정량: dt가 커지면 더 많이 보정하여 누적 침투를 억제
+    float pushMagnitude = effectivePenetration * (kBeta / deltaTime);
 
-    if (penetration > 0)
+    // [수정] 1쌍당 과도한 보정 제한
+    pushMagnitude = (std::min)(pushMagnitude, kMaxPushPerPair);
+
+    if (pushMagnitude > 0.0f)
     {
         auto* trA = world->GetComponent<TransformComponent>(a);
         auto* trB = world->GetComponent<TransformComponent>(b);
@@ -643,9 +655,10 @@ static void AvoidCollisionByMovementState(
         Vec3 correctionA = Vec3::Zero;
         Vec3 correctionB = Vec3::Zero;
 
+        // [수정] 둘 다 움직이면 반반, 하나만 움직이면 한쪽만
         if (canMoveA && canMoveB)
         {
-            const float half = penetration * 0.5f;
+            const float half = pushMagnitude * 0.5f;
             correctionA = Vec3(-normal.x * half, 0.0f, -normal.z * half);
             correctionB = Vec3(normal.x * half, 0.0f, normal.z * half);
         }
@@ -658,9 +671,15 @@ static void AvoidCollisionByMovementState(
             correctionB = Vec3(normal.x * pushMagnitude, 0.0f, normal.z * pushMagnitude);
         }
 
+        // [수정] Transform 변경 + OBB center 동기화
+        // 주의: mLocalPosition만 바꾸면 mWorldMatrix가 즉시 갱신되지 않을 수 있음.
+        // TransformSystem이 dirty를 기반으로 WorldMatrix를 재계산한다면 여기서 dirty를 세워야 한다.
         if (canMoveA)
         {
             trA->mLocalPosition += correctionA;
+
+            // trA->MarkDirty(); // [수정] 네 엔진에 맞는 dirty 훅이 있으면 꼭 호출
+
             colA->mWorldOBB.Center.x += correctionA.x;
             colA->mWorldOBB.Center.z += correctionA.z;
         }
@@ -668,13 +687,17 @@ static void AvoidCollisionByMovementState(
         if (canMoveB)
         {
             trB->mLocalPosition += correctionB;
+
+            // trB->MarkDirty(); // [수정] 네 엔진에 맞는 dirty 훅이 있으면 꼭 호출
+
             colB->mWorldOBB.Center.x += correctionB.x;
             colB->mWorldOBB.Center.z += correctionB.z;
         }
     }
 
-
-
+    // ---------------------------
+    // 입력/이동 방향 스티어링(기존 유지)
+    // ---------------------------
     auto steerMovementState = [&](Entity e, const Vec3& towardOther, float tangentSign)
         {
             Vec3 dir(0.0f, 0.0f, 0.0f);
@@ -702,32 +725,29 @@ static void AvoidCollisionByMovementState(
                 dir.z -= towardOther.z * towardDot;
             }
 
-            // 좌/우로 비켜가도록 접선 성분 추가
+            // 접선으로 비켜가기
             dir += tangent * (0.25f * tangentSign);
 
-            const float d2 = dir.x * dir.x + dir.z * dir.z;
+            float d2 = dir.x * dir.x + dir.z * dir.z;
             if (d2 < 1e-6f)
             {
-                // 이동 방향이 거의 0이면 일단 뒤로 물러나며 회피
-                dir = Vec3(-towardOther.x, -towardOther.y, -towardOther.z) + tangent * (0.2f * tangentSign);
+                dir = Vec3(-towardOther.x, 0.0f, -towardOther.z) + tangent * (0.2f * tangentSign);
+                d2 = dir.x * dir.x + dir.z * dir.z;
             }
 
-            const float d2n = dir.x * dir.x + dir.z * dir.z;
-            if (d2n > 1e-6f)
+            if (d2 > 1e-6f)
             {
-                const float inv = 1.0f / std::sqrt(d2n);
+                const float inv = 1.0f / std::sqrt(d2);
                 dir.x *= inv;
                 dir.z *= inv;
             }
 
             if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
-            {
                 enemyMove->mMovingDirection = dir;
-            }
+
             if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
-            {
                 playerMove->mMovingDirection = dir;
-            }
+
             if (auto* inputComp = world->GetComponent<InputComponent>(e))
             {
                 inputComp->MoveX = dir.x;
@@ -735,16 +755,16 @@ static void AvoidCollisionByMovementState(
             }
         };
 
-    // id 기반으로 좌/우 방향을 고정해 프레임간 진동 감소
+    // id 기반 좌/우 고정(진동 감소)
     const float signA = (a.GetID() < b.GetID()) ? 1.0f : -1.0f;
     const float signB = -signA;
 
     steerMovementState(a, normal, signA);
-
-    const Vec3 towardA(-normal.x, -normal.y, -normal.z);
+    const Vec3 towardA(-normal.x, 0.0f, -normal.z);
     steerMovementState(b, towardA, signB);
-}*/
+}
 
+/*
 static void AvoidCollisionByMovementState(
     World* world,
     Entity a,
@@ -905,3 +925,4 @@ static void AvoidCollisionByMovementState(
     const Vec3 towardA(-normal.x, 0.0f, -normal.z);
     steerMovementState(b, towardA, signB);
 }
+*/

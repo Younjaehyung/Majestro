@@ -149,6 +149,7 @@ private: // Culling
 
 private: // Push&Clear Data
 	void PushMaterialData();
+	void PushCubeData();
 	void PushLandData();
 
 	void PushPassData();

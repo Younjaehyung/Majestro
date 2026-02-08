@@ -73,6 +73,7 @@ void RenderSystem::PushData()
 {
 	RENDERMANAGER.SetGraphicsTable();
 	PushLandData();
+	PushCubeData();
 	PushPassData();
 	PushObjectData();
 	PushLightData();
@@ -179,6 +180,20 @@ void RenderSystem::PushMaterialData()
 		index++;
 	}
 	RENDERMANAGER.GetMaterialBuffers()->PushDefaultToData(mMaterialVector.data(), static_cast<uint32>(mMaterialVector.size() * sizeof(MaterialParams)));
+
+}
+
+void RenderSystem::PushCubeData()
+{
+	passParams.SkyBoxIndex = 0;
+	shared_ptr<Material> skyboxMaterial = RESOURCEMANAGER.Get<Material>(L"Skybox");
+	if (skyboxMaterial)
+	{
+		shared_ptr<Texture> skyboxTexture = skyboxMaterial->GetTexture(DIFFUSEMAP0INDEX);
+		if (skyboxTexture && skyboxTexture->IsCubeMap())
+			passParams.SkyBoxIndex = skyboxTexture->GetCubeMapIndex();
+	}
+
 
 }
 

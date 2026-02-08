@@ -4,6 +4,31 @@
 
 #include "params.hlsl"
 
+
+// Y축 회전 행렬(간단 버전)
+float3 RotateY(float3 v, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    return float3(
+        c * v.x + s * v.z,
+        v.y,
+       -s * v.x + c * v.z
+    );
+}
+
+// ACES 톤매핑(간단 구현)
+float3 TonemapACES(float3 x)
+{
+    // Narkowicz ACES approximation
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 // -----------------------------
 // [추가] PBR 보조 함수들
 // -----------------------------

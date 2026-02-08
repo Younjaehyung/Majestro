@@ -58,6 +58,10 @@ public:
 
 	void SetImageIndex(uint32 index) { mImageMapIndex = index; }
 	uint32 GetImageIndex() { return mImageMapIndex; }
+
+	void SetCubeMapIndex(uint32 index) { mCubeMapIndex = index; }
+	uint32 GetCubeMapIndex() const { return mCubeMapIndex; }
+	bool IsCubeMap() const { return mIsCubeMap; }
 private:
 	ScratchImage			 		mOriginalImage;
 	D3D12_RESOURCE_DESC				mDescription{};
@@ -73,12 +77,14 @@ private:
 	bool	mIsMSAA{};
 	int 	mMSAACount{};
 
-
+	uint32 mCubeMapIndex{};
+	bool mIsCubeMap{};
 private:
 	uint32 mSrvIndex{};
 	uint32 mUavIndex{};
 
 	uint32 mImageMapIndex{};						// Root Signautre 내에 몇번째 인덱스인지
 	static 	uint32			mTextureCount;			// Root Signautre 내에 textureMap 개수
+	static uint32			mCubeMapCount;
 };
 

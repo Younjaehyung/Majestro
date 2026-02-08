@@ -83,7 +83,7 @@ void RenderManager::CreateGroup()
 
 
 		group->ObjectInfo = make_shared<StructuredBuffer>();
-		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 1024);
+		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 2048);
 		group->ObjectInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 

@@ -4,6 +4,7 @@
 #include "RenderManager.h"
 
 uint32 Texture::mTextureCount = 0;
+uint32 Texture::mCubeMapCount = 0;
 
 Texture::Texture() : Object(OBJECT_TYPE::TEXTURE)
 {
@@ -18,7 +19,7 @@ void Texture::Load(const wstring& path)
 {
 
 	wstring ext = std::filesystem::path(path).extension();
-
+	mIsCubeMap = false;
 	if (ext == L".dds" || ext == L".DDS")
 		::LoadFromDDSFile(path.c_str(), DDS_FLAGS_NONE, nullptr, mOriginalImage);
 	else if (ext == L".tga" || ext == L".TGA")
@@ -29,7 +30,7 @@ void Texture::Load(const wstring& path)
 	HRESULT hr = ::CreateTexture(DEVICE.Get(), mOriginalImage.GetMetadata(), &mImage);
 	if (FAILED(hr))
 		assert(nullptr);
-
+	mIsCubeMap = mOriginalImage.GetMetadata().IsCubemap();
 	vector<D3D12_SUBRESOURCE_DATA> subResources;
 
 	mDescription = mImage->GetDesc();
@@ -147,17 +148,23 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 	}
 
 	mMipLevels = mOriginalImage.GetMetadata().mipLevels;	// 임시 밈맵
+	
+	if (mMipLevels == 0)
+		mMipLevels = mDescription.MipLevels;
 
 
 
 	// Texture에 대한 SRV 서술자 설정
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // 기본 매핑 (RGBA -> RGBA)
-	srvDesc.Format = mOriginalImage.GetMetadata().format; // 텍스처의 실제 포맷
+	srvDesc.Format = mDescription.Format;
 
 
 
-	if(isMSAA > 1 && use == TextureType::TEXTURE_2D)
+	if (mIsCubeMap && use == TextureType::TEXTURE_2D) {
+		use = TextureType::TEXTURE_CUBE_ARRAY;
+	}
+	else if(isMSAA > 1 && use == TextureType::TEXTURE_2D)
 	{
 		use = TextureType::TEXTURE_MSAA;
 	}
@@ -217,21 +224,35 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 		break;
 	}
 
-
 	D3D12_CPU_DESCRIPTOR_HANDLE heapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 	uint32& lastIndex = RENDERMANAGER.GetGraphicsDescHeap()->GetLastIndex();
+	uint32 handleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	uint32 handleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);	//핸들간 간격
+	if (mIsCubeMap)
+	{
+		mCubeMapIndex = mCubeMapCount;
+		const uint32 descriptorIndex = TEXTURE_CUBE_INDEX_START + mCubeMapIndex;
+		mSrvHeapBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(heapHandleBegin, descriptorIndex * handleIncrementSize);
+		mSrvIndex = descriptorIndex;
+		mCubeMapCount++;
+		lastIndex = max(lastIndex, descriptorIndex + 1);
+		mImageMapIndex = 0;
+	}
+	else
+	{
+		mImageMapIndex = mTextureCount;
+		const uint32 descriptorIndex = TEXTURE_INDEX_START + mImageMapIndex;
+		mSrvHeapBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(heapHandleBegin, descriptorIndex * handleIncrementSize);
+		mSrvIndex = descriptorIndex;
+		mTextureCount++;
+		lastIndex = max(lastIndex, descriptorIndex + 1);
+		mCubeMapIndex = 0;
+	}
 
-	mSrvHeapBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(heapHandleBegin, lastIndex * handleIncrementSize);
-	mSrvIndex = lastIndex;
-	lastIndex++;
 
 	// SRV 생성
 	DEVICE->CreateShaderResourceView(mImage.Get(), &srvDesc, mSrvHeapBegin);
 
-	mImageMapIndex = mTextureCount;
-	mTextureCount++;
 
 	// UAV
 	if (mDescription.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)

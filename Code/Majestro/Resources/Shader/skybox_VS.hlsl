@@ -1,29 +1,31 @@
 
 #include "params.hlsl"
+#include "utils.hlsl"
 
 struct VS_IN
 {
-    float3 localPos : POSITION;
+    float3 pos : POSITION; // 단위 큐브의 로컬 좌표(-1~1)
     float2 uv : TEXCOORD;
 };
 
 struct VS_OUT
 {
-    float4 pos : SV_Position;
-    float2 uv : TEXCOORD;
+    float4 pos : SV_POSITION;
+    float3 dir : TEXCOORD0;
 };
 
 VS_OUT VS_Main(VS_IN input)
 {
-    VS_OUT output = (VS_OUT) 0;
+    VS_OUT output;
 
-    // Translation은 하지 않고 Rotation만 적용한다
-    float4 viewPos = mul(float4(input.localPos, 0), PassParams.MatView);
+   // 뷰 행렬의 회전만 반영하고 카메라 위치 이동은 제거
+    float4 viewPos = mul(float4(input.pos, 0.0f), PassParams.MatView);
     float4 clipSpacePos = mul(viewPos, PassParams.MatProjection);
-
-    // w/w=1이기 때문에 항상 깊이가 1로 유지된다
+     // skybox는 항상 가장 뒤쪽 깊이로 고정
     output.pos = clipSpacePos.xyww;
-    output.uv = input.uv;
+
+    // 큐브맵 샘플링 방향벡터
+    output.dir = normalize(input.pos);
 
     return output;
 }

@@ -162,6 +162,7 @@ struct MATERIALINFO
     int SpecularcMapIndex;
     int EmissiveMapIndex;
     int MetallicMapIndex;
+    int RoughnessMapIndex;
     int OcclusionMapIndex;
 };
 //////////////
@@ -236,6 +237,7 @@ ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////
 Texture2D<float4> Gbuffer[6] : register(t0, space0);
+Texture2DArray ShadowMaps : register(t6, space0);
  ///////////////////////////////////////////////////////////////////
 
 
@@ -266,8 +268,8 @@ StructuredBuffer<ANIMATIONMETA> AnimationMeta : register(t2, space3);
 
  ////////////////////////////TEXTURE////////////////////////////////
 StructuredBuffer<MATERIALINFO> Materials : register(t0, space4);
-TextureCube SkyBoxMaps[16] : register(t1, space4);
-Texture2D<float4> TextureMaps[2048] : register(t17, space4);
+TextureCubeArray CubeBoxMaps : register(t1, space4);
+Texture2D<float4> TextureMaps[2048] : register(t2, space4);
  ///////////////////////////////////////////////////////////////////
 
 

@@ -1,6 +1,17 @@
 #pragma once
 #include "Object.h"
 
+
+enum class TextureType : uint8
+{
+	TEXTURE_2D,
+	TEXTURE_2D_ARRAY,
+	TEXTURE_CUBE,
+	TEXTURE_CUBE_ARRAY,
+	TEXTURE_MSAA,
+	TEXTURE_MSAA_ARRAY
+};
+
 class Texture : public Object
 {
 public:
@@ -15,7 +26,7 @@ public:
 		D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV = 1, int massCount =1, int msaaQality = 1, Vec4 clearColor = Vec4());
 	//새로운 사용자 텍스쳐 생성
 
-	void CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1, int isMSAA = 0);
+	void CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1, int isMSAA = 0, TextureType use = TextureType::TEXTURE_2D);
 	//버퍼를 이용해서 텍스쳐 생성
 
 public:

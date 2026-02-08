@@ -33,9 +33,6 @@ PS_OUT PS_DirLight(VS_OUT input)
     // -----------------------------
     float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
 
-    // NOTE: 네 카메라 전방이 -Z라면, "앞에 있는 픽셀"의 viewPos.z는 보통 음수다.
-    // 지금 조건(viewPos.z <= 0)로 clip하면 화면 대부분이 잘릴 가능성이 큼.
-    // 기존 코드 유지하지만, 만약 화면이 안 나오면 이 조건을 반대로 고쳐야 함.
     if (viewPos.z <= 0.f)
         clip(-1);
 
@@ -47,14 +44,10 @@ PS_OUT PS_DirLight(VS_OUT input)
     float3 baseColor = a_r.rgb;
     float roughness = saturate(a_r.a);
 
-    // -----------------------------
-    // [수정] PBR 라이트 계산
-    // -----------------------------
+
     LightColor color = CalculateLightColorPBR(index, viewNormal, viewPos, baseColor, metallic, roughness);
 
-    // -----------------------------
-    // 그림자(기존 로직 유지)
-    // -----------------------------
+
     if (length(color.diffuse.rgb) != 0)
     {
         matrix shadowCameraVP = mul(light.MatView, light.MatProjection);

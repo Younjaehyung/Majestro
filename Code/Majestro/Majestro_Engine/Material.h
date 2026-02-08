@@ -42,6 +42,7 @@ struct MaterialParams
 	int32 SpecularcMapIndex{};
 	int32 EmissiveMapIndex{};
 	int32 MetallicMapIndex{};
+	int32 RoughnessMapIndex{};
 	int32 OcclusionMapIndex{};
 };
 

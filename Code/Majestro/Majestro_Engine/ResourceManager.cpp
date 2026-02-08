@@ -575,7 +575,7 @@ void ResourceManager::CreateDefaultRootSignature()
 
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges0 =	// g- buffer
 		{
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GBUFFER_INDEX_COUNT, 0,0), // b1~b4 몇번부터 몇개까지 레지스터를 사용할건지 작성
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, GBUFFER_INDEX_COUNT, 0,0), // t1~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성
 
 		};
 
@@ -744,7 +744,6 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::DEFERRED,
-			RASTERIZER_TYPE::CULL_NONE,
 
 		};
 

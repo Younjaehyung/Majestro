@@ -65,12 +65,61 @@ void LobbyScene::Initialize()
 	/////////////////////////////////////////////////////////////////////
 
 	{
+		Entity testCamera = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = { 100.f, 150.f, 300.f };
+		t.mLocalRotationE = { 20.f, 180.f, 0.f };
+		mWorld->AddComponent<MainCameraComponent>(testCamera);
+		mWorld->AddComponent<CameraComponent>(testCamera);
+		mWorld->AddComponent<TransformComponent>(testCamera, t);
+	}
+
+	{
 		Entity mannequinEntity = mWorld->CreateEntity();
 		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 0);
 		//mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
 		
 	}
+	
+	for (int i = 0;i < 3;++i) {
+		Entity mEntityID = mWorld->CreateEntity();
 
+		TransformComponent t{};
+		shared_ptr<Mesh> phereMesh;
+		shared_ptr<Material> material2;
+		std::vector<shared_ptr<Material>> material2s;
+		vector<shared_ptr<Animator>> anmators0;
+
+		switch (i) {
+		case 0:
+			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+			material2s.push_back(material2);
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
+			break;
+		case 1:
+			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Idle0");
+			material2s.push_back(material2);
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+			break;
+		case 2:
+			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
+			material2s.push_back(material2);
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+			break;
+		}
+
+		t.mLocalPosition = { i * 100.f, 0.f, 0.f };
+		mWorld->AddComponent<TransformComponent>(mEntityID, t);
+		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	}
+	
 
 	// MAP export json load
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.

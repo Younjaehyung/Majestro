@@ -27,6 +27,8 @@ void PlayerInputSystem::Update(float dt)
 
 	//camera setting
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
+	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
+	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
 
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);

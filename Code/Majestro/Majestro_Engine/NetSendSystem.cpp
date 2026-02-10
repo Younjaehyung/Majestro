@@ -26,6 +26,13 @@ void NetSendSystem::Update(float deltaTime)
 	UpdateCachedPlayerType();
 	TrySendGameStart();
 
+	SendRequest seq;
+	ConvertInput(&seq);
+	if (seq.Type != PKT_Type::KNONE)
+	{
+		gSendBuffer.Push(seq);
+	}
+
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
@@ -37,13 +44,6 @@ void NetSendSystem::Update(float deltaTime)
 		if (netComp == nullptr) continue;
 		//if (netComp->mIsDirty)
 		{
-			SendRequest seq;
-			ConvertInput(&seq);
-			//gSendBuffer.Push(seq);
-			if (seq.Type != PKT_Type::KNONE)
-			{
-				gSendBuffer.Push(seq);
-			}
 			
 			//netComp->mIsDirty = false;
 		}
@@ -52,17 +52,39 @@ void NetSendSystem::Update(float deltaTime)
 
 void NetSendSystem::ConvertInput(SendRequest* seq)
 {
-	
-	
+	if (INPUT.GetKeyDown(eKeyCode::G))
+	{
+		cout << "\ngame\n" << endl;
+		SendSceneChange(SceneId::Game);
+	}
+
+	if (INPUT.GetKeyDown(eKeyCode::L))
+	{
+		cout << "\nloby\n" << endl;
+		SendSceneChange(SceneId::Lobby);
+	}
+
+
+	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
+
+	//cout << "input" << endl;
 	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
 	if (playerEntities.empty())
 	{
 		seq->Type = PKT_Type::KNONE;
 		return;
 	}
+
 	Entity playerEntity = playerEntities[0];
 	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
 	
+	NetEntityComponent* netEnt = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	if (!netEnt)
+	{
+		seq->Type = PKT_Type::KNONE; // [수정] 엔티티 할당 전엔 입력 전송 보류
+		return;
+	}
+
 	mInputPacket = C2S_InputPacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
 	mInputPacket.MoveX = comp->mMovingDirection.x;
@@ -80,20 +102,6 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mDash)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SHIFT));
 	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
 	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
-	
-
-	
-	if (INPUT.GetKeyDown(eKeyCode::G))
-	{
-		cout << "\ngame\n" << endl;
-		SendSceneChange(SceneId::Game);
-	}
-
-	if (INPUT.GetKeyDown(eKeyCode::L))
-	{
-		cout << "\nloby\n" << endl;
-		SendSceneChange(SceneId::Lobby);
-	}
 
 	// Convert InputComponent data to SendRequest format
 	seq->Type = PKT_Type::C2S_PKT_INPUT;
@@ -175,7 +183,7 @@ void NetSendSystem::UpdateCachedPlayerType()
 	{
 		//SetCachedPlayerType(characterChoice->mPlayerType);
 		mCachedPlayerType = characterChoice->mPlayerType;
-		cout << (int)mCachedPlayerType << endl;
+		//cout << (int)mCachedPlayerType << endl;
 	}
 }
 

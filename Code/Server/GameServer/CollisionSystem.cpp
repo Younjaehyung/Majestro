@@ -504,6 +504,8 @@ void CollisionSystem::Movable2Static(float deltaTime)
 
     std::vector<BVHNode> nodes;
     nodes.reserve(staticObjects.size() * 2);
+
+    //1회만 실행하도록 수정
     const int root = BuildStaticBVHRecursive(staticObjects, nodes, 0, static_cast<int>(staticObjects.size()));
 
     std::vector<int> candidates;

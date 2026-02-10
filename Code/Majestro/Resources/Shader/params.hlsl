@@ -208,8 +208,7 @@ struct PASSINFO
     int TerrainSlot5;
     int TerrainSlot6;
 	int Padding1;
-    
-    float4 CascadeSplits;
+	int Padding2;
 
 };
 //////////////

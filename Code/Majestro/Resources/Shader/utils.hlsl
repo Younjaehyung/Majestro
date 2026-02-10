@@ -29,13 +29,10 @@ float3 TonemapACES(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-
-
 // -----------------------------
 // [추가] PBR 보조 함수들
 // -----------------------------
 static const float PI = 3.14159265f;
-static const int CASCADE_COUNT = 4;
 
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
@@ -68,74 +65,6 @@ float GeometrySmith(float NdotV, float NdotL, float roughness)
     float ggxV = GeometrySchlickGGX(NdotV, roughness);
     float ggxL = GeometrySchlickGGX(NdotL, roughness);
     return ggxV * ggxL;
-}
-
-// -----------------------------
-//  Cascade Shadow Mapping
-// -----------------------------
-float GetCascadeDepthView(float3 viewPos)
-{
-    return abs(viewPos.z);
-}
-
-int SelectCascadeIndex(float3 viewPos)
-{
-    float4 splitDepth = PassParams.CascadeSplits;
-    float depth = GetCascadeDepthView(viewPos);
-
-    if (depth < splitDepth.x)
-        return 0;
-    if (depth < splitDepth.y)
-        return 1;
-    if (depth < splitDepth.z)
-        return 2;
-
-    return 3;
-}
-
-float SampleCascadeShadow(float3 worldPos, float3 worldNormal, int lightIndex, int cascadeIndex)
-{
-    LIGHTINFO light = Lights[lightIndex];
-    matrix shadowVP = mul(light.MatView, light.MatProjection);
-    float4 shadowClipPos = mul(float4(worldPos, 1.0f), shadowVP);
-
-    float invW = rcp(max(shadowClipPos.w, 1e-5f));
-    float2 uv = shadowClipPos.xy * invW;
-    uv = uv * 0.5f + 0.5f;
-    uv.y = 1.0f - uv.y;
-
-    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f)
-        return 1.0f;
-
-    float depth = shadowClipPos.z * invW;
-    float3 worldLightDir = normalize(-light.direction.xyz);
-    float normalBias = saturate(1.0f - dot(normalize(worldNormal), worldLightDir)) * 0.0015f;
-    float bias = 0.0007f + normalBias;
-
-    float shadow = 0.0f;
-    float2 texel = 1.0f / float2(4096.0f, 4096.0f);
-
-    [unroll]
-    for (int y = -1; y <= 1; ++y)
-    {
-        [unroll]
-        for (int x = -1; x <= 1; ++x)
-        {
-            float2 offset = float2((float) x, (float) y) * texel;
-            float shadowDepth = ShadowMaps.SampleLevel(g_sam_0, float3(uv + offset, cascadeIndex), 0).r;
-            shadow += (depth - bias <= shadowDepth) ? 1.0f : 0.0f;
-        }
-    }
-
-    return shadow / 9.0f;
-}
-
-float CalculateCascadeShadow(float3 viewPos, float3 viewNormal,int lightIndex)
-{
-    int cascadeIndex = SelectCascadeIndex(viewPos);
-    float3 worldPos = mul(float4(viewPos, 1.0f), PassParams.MatViewInv).xyz;
-    float3 worldNormal = normalize(mul(float4(viewNormal, 0.0f), PassParams.MatViewInv).xyz);
-    return SampleCascadeShadow(worldPos, worldNormal, lightIndex, cascadeIndex);
 }
 
 // -----------------------------

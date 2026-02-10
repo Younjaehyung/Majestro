@@ -90,7 +90,6 @@ PlayerPrefab::~PlayerPrefab()
 
 Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 {
-	std::cout << "오승원" << std::endl;
 	Entity mEntityID = world->CreateEntity();
 
 	TransformComponent t{};
@@ -114,9 +113,9 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	vector<shared_ptr<Animator>> anmators0;
 
 
-	world->AddComponent<ControllerComponent>(mEntityID, t);
+	//world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (0/*ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType*/) {
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
 

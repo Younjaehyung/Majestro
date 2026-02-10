@@ -13,6 +13,8 @@ void CameraComponent::FinalUpdate(Matrix mat)
 
 	//mFrustum.FinalUpdate(mView, mProjection);
 
+	
+
 	BoundingFrustum localFrustum;
 	BoundingFrustum::CreateFromMatrix(localFrustum, mProjection);
 	Matrix viewInv = mView.Invert();

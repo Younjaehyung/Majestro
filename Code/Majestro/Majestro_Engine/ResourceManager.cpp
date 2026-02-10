@@ -548,10 +548,10 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags,bool createSRVUAV, int msaaCount,int msaaQuilty, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, int msaaCount, int msaaQuilty, Vec4 clearColor, uint16 arraySize, TextureType type)
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
-	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, createSRVUAV, msaaCount, msaaQuilty,clearColor);
+	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, createSRVUAV, msaaCount, msaaQuilty, clearColor, arraySize, type);
 	Add(name, texture);
 
 	return texture;

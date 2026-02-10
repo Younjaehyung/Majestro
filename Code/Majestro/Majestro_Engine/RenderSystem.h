@@ -14,6 +14,7 @@ class Mesh;
 class Shader;
 class Material;
 
+class CameraComponent;
 
 struct RenderParams 
 {
@@ -55,7 +56,7 @@ struct PassParams
 	int32 TerrainSlot5;
 	int32 TerrainSlot6;
 	int32 Padding1;
-	int32 Padding2;
+	Vec4 CascadeSplits = Vec4(15.f, 45.f, 120.f, 300.f);
 	/*std::array<uint32, 6> TerrainSlot{};
 	std::array<uint32, 2> TerrainSlotPadding{};*/
 
@@ -160,7 +161,7 @@ private: // Push&Clear Data
 
 private: // Render
 
-	void RenderShadowCamera(Entity&, LightComponent*, class CameraComponent*,class RenderComponent*);
+	void RenderShadowCamera(Entity& light, LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent, uint32 cascadeIndex);
 	void InstancingRender(DrawBatch&);
 
 

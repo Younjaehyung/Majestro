@@ -4,7 +4,8 @@
 enum class RENDER_TARGET_GROUP_TYPE : uint8
 {
 	SWAP_CHAIN, // BACK_BUFFER, FRONT_BUFFER
-	FINAL,
+	SCENE_SWAP_CHAIN,
+	MSAA_SWAP_CHAIN,
 	SHADOW, // SHADOW
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT
@@ -13,7 +14,7 @@ enum class RENDER_TARGET_GROUP_TYPE : uint8
 
 enum class Deferrd_TARGET_GROUP_TYPE : uint8
 {
-	SHADOW,
+	SHADOW, // SceneTarget으로 바꿔야 되지 않나?
 	POSITION,
 	NORMAL,
 	COLOR,
@@ -22,9 +23,12 @@ enum class Deferrd_TARGET_GROUP_TYPE : uint8
 	END,
 };
 
-enum class SHADOW_TARGET_TYPE : uint8
+enum class SHADOW_TARGET_TYPE : uint8	// CastShadow 맵 용도
 {
-	SHADOW,
+	SHADOW_CASCADE0,
+	SHADOW_CASCADE1,
+	SHADOW_CASCADE2,
+	SHADOW_CASCADE3,
 	END,
 };
 
@@ -85,6 +89,7 @@ public:
 
 private:
 	vector<RenderTarget>			mRenderTargets{};
+	vector<D3D12_CPU_DESCRIPTOR_HANDLE> mSliceRTVHandles{};
 	shared_ptr<Texture>				mDepthStencilTexture;
 	
 	RENDER_TARGET_GROUP_TYPE		mGroupType{};
@@ -103,6 +108,7 @@ public:
 	void Initialize();
 
 	ComPtr<ID3D12DescriptorHeap> GetRenderTargetHeap() { return mRenderTargetHeap; }
+	
 	ComPtr<ID3D12DescriptorHeap> GetDepthStencilHeap() { return mDepthStencilHeap; }
 
 	D3D12_CPU_DESCRIPTOR_HANDLE	GetRtvHeapBegin() { return mRtvHeapBegin; }

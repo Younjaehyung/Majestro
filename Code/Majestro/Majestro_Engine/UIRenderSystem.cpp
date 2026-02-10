@@ -53,8 +53,8 @@ void UIRenderSystem::Update()
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
     if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitResourceToTarget();
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
     }
     else
     {
@@ -66,7 +66,7 @@ void UIRenderSystem::Update()
     //TextUpdate();
 
     if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
     }
 }
 

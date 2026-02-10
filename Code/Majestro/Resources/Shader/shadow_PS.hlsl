@@ -9,5 +9,6 @@ struct VS_OUT
 
 float4 PS_Main(VS_OUT input) : SV_Target
 {
-    return float4(input.clipPos.z / input.clipPos.w, 0.f, 0.f, 0.f);
+    float depth = input.clipPos.z / max(input.clipPos.w, 1e-5f);
+    return float4(depth, 0.f, 0.f, 1.f);
 }

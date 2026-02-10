@@ -72,13 +72,21 @@ float4 PS_Main(VS_OUT input) : SV_Target
     }
 
     LightColor totalColor = (LightColor)0.f;
-    
+   
     for (int i = 0; i < PassParams.LightsCount; ++i)
     {
-        LightColor color = CalculateLightColor(i, viewNormal, input.viewPos);
-         totalColor.diffuse += color.diffuse;
-         totalColor.ambient += color.ambient;
-         totalColor.specular += color.specular;
+        LightColor lightColor = CalculateLightColor(i, viewNormal, input.viewPos);
+        float shadowFactor = CalculateCascadeShadow(input.viewPos, viewNormal, i);
+        // Cascaded Shadow는 Directional Light에만 적용
+        if (Lights[i].lightType == 0)
+        {
+            lightColor.diffuse *= shadowFactor;
+            lightColor.specular *= shadowFactor;
+        }
+
+        totalColor.diffuse += lightColor.diffuse;
+        totalColor.ambient += lightColor.ambient;
+        totalColor.specular += lightColor.specular;
     }
 
     color.xyz = (totalColor.diffuse.xyz * color.xyz)

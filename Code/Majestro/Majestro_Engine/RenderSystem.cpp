@@ -82,9 +82,11 @@ void RenderSystem::PushData()
 
 void RenderSystem::DefferdRendering()
 {
-	//RenderShadow();
+	
 
 	RenderGBuffer();
+
+	RenderShadow();
 
 	RenderLights();
 
@@ -111,7 +113,7 @@ void RenderSystem::ClearRTV()
 	if (RENDERMANAGER.IsMsaaEnabled()) //msaa
 	{
 		auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(
-			static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL));
+			static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN));
 		finalGroup.WaitResourceToTarget();
 		finalGroup.ClearRenderTargetView(backIndex);
 	}
@@ -121,7 +123,7 @@ void RenderSystem::ClearRTV()
 	}
 
 	// Shadow Group 초기화 
-	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
 
 	// Deferred Group 초기화 
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).ClearRenderTargetView();
@@ -162,7 +164,7 @@ void RenderSystem::PushPassData()
 	passParams.MatViewInv = mCamera->mView.Invert().Transpose();
 	passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
-	
+	passParams.CascadeSplits = Vec4(15.f, 45.f, 120.f, 300.f);
 
 	shared_ptr<GroupBuffer> groupBuffer = RENDERMANAGER.GetGroupBuffer(mFrameCount);
 	groupBuffer->PassInfo->PushData(&passParams, sizeof(PassParams));
@@ -287,11 +289,11 @@ void RenderSystem::PushLightData()
 		lightParams.Range = lightComponent->mLightInfo.Range;
 		lightParams.Angle = lightComponent->mLightInfo.Angle;
 
-		lightParams.MatWorld = transformComponent->mWorldMatrix.Transpose();;
-		lightParams.MatView = cameraComponent->mCameraParams.MatView.Transpose();
-		lightParams.MatProjection = cameraComponent->mCameraParams.MatProjection.Transpose();
-		lightParams.MatViewInv = cameraComponent->mCameraParams.MatViewInv.Transpose();
-		lightParams.MatProjectionInv = cameraComponent->mCameraParams.MatProjectionInv.Transpose();
+		lightParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
+		lightParams.MatView = cameraComponent->mView.Transpose();
+		lightParams.MatProjection = cameraComponent->mProjection.Transpose();
+		lightParams.MatViewInv = cameraComponent->mView.Invert().Transpose();
+		lightParams.MatProjectionInv = cameraComponent->mProjection.Invert().Transpose();
 
 		mLightVector.push_back(lightParams);
 
@@ -526,12 +528,12 @@ void RenderSystem::PushObjectData()
 void RenderSystem::RenderShadow()
 {
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).OMSetRenderTargets();
+	auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
 	LightComponent* lightComponent;
 	CameraComponent* cameraComponent;
 	RenderComponent* renderComponent;
 
-	for (auto& light : mWorld->GetEntitiesWithComponents<LightComponent,CameraComponent,RenderComponent>())
+	for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>())
 	{
 		lightComponent = mWorld->GetComponent<LightComponent>(light);
 		cameraComponent = mWorld->GetComponent<CameraComponent>(light);
@@ -539,7 +541,12 @@ void RenderSystem::RenderShadow()
 		if (lightComponent->mLightInfo.LightType != static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
 			continue;
 
-		RenderShadowCamera(light, lightComponent, cameraComponent, renderComponent);
+		for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex)
+		{
+			shadowGroup.OMSetRenderTargets(1, cascadeIndex);
+			shadowGroup.ClearRenderTargetView(cascadeIndex);
+			RenderShadowCamera(light, lightComponent, cameraComponent, renderComponent, cascadeIndex);
+		}
 	}
 
 
@@ -603,8 +610,8 @@ void RenderSystem::RenderFinal()
 	//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
 	if(RENDERMANAGER.IsMsaaEnabled()){//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitResourceToTarget();
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 	}
 	else
 	{
@@ -616,7 +623,7 @@ void RenderSystem::RenderFinal()
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 
 	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
 	}
 }
 
@@ -624,8 +631,8 @@ void RenderSystem::RenderForward()
 {
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitResourceToTarget();
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).OMSetRenderTargets(1, backIndex);
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 	}
 	else
 	{
@@ -648,7 +655,7 @@ void RenderSystem::RenderForward()
 		InstancingRender(drawBatch);
 	}
 	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::FINAL)).WaitTargetToResource();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
 	}
 }
 
@@ -685,57 +692,27 @@ bool RenderSystem::IsFrustumCulled(TransformComponent* trans,RenderComponent* re
 	return true;
 }
 
-void RenderSystem::RenderShadowCamera(Entity& light , LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent)
+void RenderSystem::RenderShadowCamera(Entity& light, LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent, uint32 cascadeIndex)
 {
-	//TransformComponent* transformComponent;
-	//RenderComponent* objectRenderComponent;
-	//
-	//
-	//RESOURCEMANAGER.Get<Shader>(L"Shadow")->Update();
-
-	//for ( const auto& gameObjects : mMaterialObjectBatch)
-	//{
-	//	if (gameObjects.second.empty()) {
-	//		continue;
-	//	}
-
-	//	for (const auto& gameObject : gameObjects.second) {
-
-	//		
-
-	//		transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-	//		objectRenderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+	TransformComponent* transformComponent;
+	RenderComponent* objectRenderComponent;
 
 
-	//		//if (gameObject->IsStatic())	//정적 물체인지 동적물체인지 확인해서 그림자 최적화
-	//		//	continue;
+	RESOURCEMANAGER.Get<Shader>(L"Shadow")->Update();
 
+	for (auto& drawBatch : mDeferredDrawBatchs)
+	{
+		if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::DEFERRED &&
+			drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
+		{
+			continue;
+		}
 
-	//		//if (IsCustomCulled(renderComponent->GetLayerIndex()))
-	//		//	continue;
-
-	//		if (objectRenderComponent->mCheckFrustum)
-	//		{
-	//			if (cameraComponent->mFrustum.ContainsSphere(
-	//				transformComponent->GetWorldPosition(),
-	//				transformComponent->GetBoundingSphereRadius()) == false)
-	//			{
-	//				continue;
-	//			}
-
-	//		}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-
-	//		mDummyVector.push_back(gameObject);
-
-	//	}
-
-	//	if (mDummyVector.empty()) {
-	//		continue;
-	//	}
-
-	//	//InstancingRender(mDummyVector);
-
-	//}
+		dum.BaseInstance = drawBatch.BaseInstance;
+		dum.InstanceCount = drawBatch.InstanceCount;
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 2, &(dum), 0);
+		InstancingRender(drawBatch);
+	}
 
 }
 

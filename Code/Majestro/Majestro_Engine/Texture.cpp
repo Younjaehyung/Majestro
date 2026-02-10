@@ -92,9 +92,9 @@ void Texture::Load(const wstring& path)
 
 void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, int massCount,int msaaQality, Vec4 clearColor)
+	D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV, int massCount, int msaaQality, Vec4 clearColor, uint16 arraySize, TextureType type)
 {
-	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height,1, 1, massCount, msaaQality);
+	mDescription = CD3DX12_RESOURCE_DESC::Tex2D(format, width, height, arraySize, 1, massCount, msaaQality);
 	mDescription.Flags = resFlags;
 
 
@@ -131,16 +131,17 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 
 	mIsMSAA = (massCount > 1) ? true : false;
 	mMSAACount = massCount;
+	
+	CreateFromResource(mImage, createSRVUAV, mMSAACount, type);
 
-	CreateFromResource(mImage, createSRVUAV, mMSAACount);
 
 
 }
 
-void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV, int isMSAA,TextureType use)
+void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV, int isMSAA, TextureType use)
 {
 	mImage = tex2D;
-
+	mUse = use;
 	mDescription = tex2D->GetDesc();
 
 	if (!createSRVUAV) {

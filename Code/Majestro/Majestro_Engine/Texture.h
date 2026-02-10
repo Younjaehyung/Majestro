@@ -23,7 +23,7 @@ public:
 
 	void Create(DXGI_FORMAT format, uint32 width, uint32 height,
 		const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,
-		D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV = 1, int massCount =1, int msaaQality = 1, Vec4 clearColor = Vec4());
+		D3D12_RESOURCE_FLAGS resFlags, bool createSRVUAV = 1, int massCount = 1, int msaaQality = 1, Vec4 clearColor = Vec4(), uint16 arraySize = 1, TextureType type = TextureType::TEXTURE_2D);
 	//새로운 사용자 텍스쳐 생성
 
 	void CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1, int isMSAA = 0, TextureType use = TextureType::TEXTURE_2D);
@@ -76,6 +76,7 @@ private:
 	
 	bool	mIsMSAA{};
 	int 	mMSAACount{};
+	TextureType mUse{ TextureType::TEXTURE_2D };
 
 	uint32 mCubeMapIndex{};
 	bool mIsCubeMap{};

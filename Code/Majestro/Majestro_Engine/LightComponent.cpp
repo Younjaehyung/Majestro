@@ -71,6 +71,7 @@ Entity LightFactory::CreateLight(World* world, LIGHT_TYPE type , LightComponent&
 	c.SetHeight(4096);
 
 
+
 	t.mLocalPosition = { Vec3(l.mLightInfo.Position) };
 	t.LookAt(Vec3(l.mLightInfo.Direction));
 

@@ -76,7 +76,7 @@ void GraphicsCommandQueue::RenderEnd()
 		{
 			
 
-			auto& msaaGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::FINAL));
+			auto& msaaGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN));
 			auto& swapChainGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN));
 
 			ID3D12Resource* msaaResource = msaaGroup.GetRTTexture(backIndex)->GetTex2D().Get();

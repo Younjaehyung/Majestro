@@ -17,10 +17,12 @@ struct VS_OUT
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
-    RENDERPARAMS instanceParams = InstanceParams[input.instanceID];
-    int index = instanceParams.ObjectIndex;
-   
-    output.pos = mul(float4(input.pos, 1.f), mul(Objects[index].MatWorld, mul(PassParams.MatView, PassParams.MatProjection)));
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
+    RENDERPARAMS instanceParams = InstanceParams[idx];
+    int objectIndex = instanceParams.ObjectIndex;
+
+    matrix WVP = mul(Objects[objectIndex].MatWorld, mul(PassParams.MatView, PassParams.MatProjection));
+    output.pos = mul(float4(input.pos, 1.f), WVP);
     output.clipPos = output.pos;
 
     return output;

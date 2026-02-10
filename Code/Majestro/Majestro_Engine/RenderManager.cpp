@@ -338,7 +338,7 @@ void RenderManager::CreateRenderTargetGroups()
 				D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false, mMsaaSampleCount, mMsaaQuality);
 		}
 
-		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::FINAL)].Create(RENDER_TARGET_GROUP_TYPE::FINAL, rtVec, msaaDsTexture);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)].Create(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN, rtVec, msaaDsTexture);
 	}
 
 
@@ -347,10 +347,13 @@ void RenderManager::CreateRenderTargetGroups()
 	{
 		vector<RenderTarget> rtVec(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
 
-		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"ShadowTarget",
-			DXGI_FORMAT_R32_FLOAT, 4096, 4096,	//32bit R값으로 세팅함
+		shared_ptr<Texture> shadowArrayTarget = RESOURCEMANAGER.CreateTexture(L"ShadowTargetArray",
+			DXGI_FORMAT_R32_FLOAT, 4096, 4096,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false, 1, 0, Vec4(), 4, TextureType::TEXTURE_2D_ARRAY);
+
+		for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i)
+			rtVec[i].Target = shadowArrayTarget;
 
 		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
 			DXGI_FORMAT_D32_FLOAT, 4096, 4096,
@@ -406,7 +409,7 @@ void RenderManager::CreateRenderTargetGroups()
 	for (auto& renderTargetGroup : mRenderTargetGroup) {
 		
 		if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN
-			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::FINAL) {
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN) {
 			continue;
 		}
 
@@ -414,6 +417,29 @@ void RenderManager::CreateRenderTargetGroups()
 		for (auto& renderTarget : renderTargetGroup.GetRTG()) {
 
 			
+			if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SHADOW)
+			{
+				D3D12_SHADER_RESOURCE_VIEW_DESC cascadeSrv = {};
+				cascadeSrv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+				cascadeSrv.Format = renderTarget.Target->GetTex2D()->GetDesc().Format;
+				cascadeSrv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+				cascadeSrv.Texture2DArray.MostDetailedMip = 0;
+				cascadeSrv.Texture2DArray.MipLevels = 1;
+				cascadeSrv.Texture2DArray.FirstArraySlice = 0;
+				cascadeSrv.Texture2DArray.ArraySize = renderTarget.Target->GetTex2D()->GetDesc().DepthOrArraySize;
+				cascadeSrv.Texture2DArray.PlaneSlice = 0;
+				cascadeSrv.Texture2DArray.ResourceMinLODClamp = 0.0f;
+
+				D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+				uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+				D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, static_cast<uint32>(GBUFFER_INDEX::GBUFFER_CASCADE_INDEX) * srvSize);
+				DEVICE->CreateShaderResourceView(renderTarget.Target->GetTex2D().Get(), &cascadeSrv, srvhandle);
+
+				// SHADOW 그룹은 배열 하나를 공유하므로 SRV 1회만 생성
+				i = static_cast<uint32>(GBUFFER_INDEX::GBUFFER_POSITION_INDEX);
+				break;
+			}
+
 			UINT mipLevels = 1;	// 임시 밈맵
 
 			// Texture에 대한 SRV 서술자 설정

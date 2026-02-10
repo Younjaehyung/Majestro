@@ -115,12 +115,14 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	//world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (0){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+		material2s.push_back(material2);
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011");
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
@@ -129,7 +131,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));//dash
-		//anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//attack
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//attack
 
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 

@@ -4,6 +4,8 @@
 #include "InputManager.h"
 #include "Imgui.h"
 #include "Network.h"
+#include "Scene.h"
+#include "SceneManager.h"
 
 #ifdef _IMGUI
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -42,6 +44,22 @@ void Game::ActiveGame(bool active)
 void Game::Render()
 {
 	gEngine->Render();
+}
+
+bool Game::IsGameSceneActive() const
+{
+	if (!mInitializeEnd)
+		return false;
+
+	auto activeScene = gEngine->GetSceneManager().GetActiveScene();
+	if (!activeScene)
+		return false;
+
+	auto world = activeScene->GetWorld();
+	if (!world)
+		return false;
+
+	return world->GetSceneId() == SceneId::Game;
 }
 
 int Game::ImGuiInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)

@@ -100,13 +100,10 @@ void PlayerInputSystem::Update(float dt)
 		movementComponent->mMovingDirection.x += 1;
 	}
 
-
-
 	if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
 		if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 		else cout << "fail" << endl;
 		
-
 		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		//movementComponent->mJump = true;
 		
@@ -125,7 +122,7 @@ void PlayerInputSystem::Update(float dt)
 	}
 
 
-	if (INPUT.GetMouseState().LeftDown) {
+	if (INPUT.IsMouseLookActive()) {
 		//attack
 
 

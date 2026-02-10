@@ -57,6 +57,8 @@ public:
 	void OnMouseWheel(WPARAM wParam);
 	void OnMouseButtonDown(WPARAM button);
 	void OnMouseButtonUp(WPARAM button);
+	void SetForceMouseLook(bool enable);
+	bool IsMouseLookActive() const { return mMouseState.LeftDown || mMouseLookControl; }
 	bool IsGetCapture() {
 
 		return  GetCapture() == mHwnd;
@@ -70,6 +72,7 @@ private:
 	
 	HWND mHwnd;
 	bool mHasFocus = true; // 창이 활성화 상태인지
+	bool mMouseLookControl = false;
 	MouseState mMouseState;
 
 	HCURSOR arrow = ::LoadCursor(nullptr, IDC_ARROW);

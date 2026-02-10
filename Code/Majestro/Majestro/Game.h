@@ -9,6 +9,7 @@ public:
 	void Input(UINT message);
 	void ActiveGame(bool active);
 	void Render();
+	bool IsGameSceneActive() const;
 
 	int ImGuiInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 

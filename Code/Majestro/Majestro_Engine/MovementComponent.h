@@ -9,7 +9,12 @@ public:
 	Vec3 mMovingDirection;
 	bool mJump = false;
 	bool mDash = false;
+
 	bool mAttack1 = false;
+	bool mAttack2 = false;
+	bool mSkill1 = false;
+	bool mSkill2 = false;
+	bool mSpecial = false;
 
 
 	Vec2 mCameraView;

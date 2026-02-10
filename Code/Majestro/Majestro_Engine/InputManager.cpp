@@ -98,6 +98,28 @@ void InputManager::Update() {
 	}
 }
 
+void InputManager::SetForceMouseLook(bool enable)
+{
+	if (mMouseLookControl == enable)
+		return;
+
+	mMouseLookControl = enable;
+	mMouseState.Delta = { 0,0 };
+
+	if (mMouseLookControl)
+	{
+		::GetCursorPos(&mMouseState.Position);
+		::GetCursorPos(&mMouseState.OldPosition);
+		::GetCursorPos(&mMouseState.ClickPosition);
+		::SetCapture(mHwnd);
+	}
+	else
+	{
+		if (!mMouseState.LeftDown && !mMouseState.RightDown && !mMouseState.MiddleDown && GetCapture() == mHwnd)
+			::ReleaseCapture();
+	}
+}
+
 void InputManager::OnActivateApp(bool active)
 {
 	mHasFocus = active;
@@ -112,6 +134,7 @@ void InputManager::OnActivateApp(bool active)
 		mMouseState.LeftDown = false;
 		mMouseState.RightDown = false;
 		mMouseState.MiddleDown = false;
+		mMouseLookControl = false;
 		mMouseState.Delta = { 0,0 };
 		mMouseState.WheelDelta = 0;
 
@@ -150,19 +173,22 @@ void InputManager::OnMouseMove(LPARAM lParam)
 
 	case WM_LBUTTONUP:
 		mMouseState.LeftDown = false;
-		::ReleaseCapture();
-
-		::SetCursor(arrow);
-		::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
+		if (!mMouseLookControl)
+		{
+			::ReleaseCapture();
+			::SetCursor(arrow);
+			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
+		}
 		break;
 
 	case WM_RBUTTONUP:
 		mMouseState.RightDown = false;
-		::ReleaseCapture();
+		if (!mMouseLookControl)
+			::ReleaseCapture();
 		break;
 
 	case WM_MOUSEMOVE:
-		if (mMouseState.LeftDown) { 
+		if (mMouseState.LeftDown || mMouseLookControl) {
 			::GetCursorPos(&mMouseState.Position);
 
 			mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;

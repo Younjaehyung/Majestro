@@ -5,6 +5,8 @@
 #include "framework.h"
 #include "Majestro.h"
 #include "Game.h"
+#include "Scene.h"
+#include "SceneManager.h"
 
 #define MAX_LOADSTRING 100
 
@@ -152,11 +154,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 inline HCURSOR CreateTransparentCursorMask32() //투명커서
 {
+    static HCURSOR transparentCursor = nullptr;
+    if (transparentCursor)
+        return transparentCursor;
+
     BYTE ANDmask[32 * 4] = {}; // 모두 0xFF로 채워도 됨(장치 종속 비트맵 규칙)
     memset(ANDmask, 0xFF, sizeof(ANDmask));
     BYTE XORmask[32 * 4] = {}; // 0으로 유지 → 투명
-    return CreateCursor(GetModuleHandle(nullptr), 0, 0, 32, 32, ANDmask, XORmask);
+    transparentCursor = CreateCursor(GetModuleHandle(nullptr), 0, 0, 32, 32, ANDmask, XORmask);
+    return transparentCursor;
 }
+
 
 //
 //  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -175,9 +183,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return true;
 #else
 #endif
+    const bool isGameScene = game->IsGameSceneActive();
+
+    if (isGameScene)
+    {
+        ::SetCursor(CreateTransparentCursorMask32());
+    }
+
     //if(game)game->Input(message);
     switch (message)
     {
+    case WM_SETCURSOR:
+        if (isGameScene)
+            return TRUE;
+        break;
     case WM_ACTIVATEAPP:
         game->ActiveGame(wParam != 0); // [추가]
         return 0;
@@ -189,6 +208,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_KILLFOCUS:
         game->ActiveGame(false);       // [추가]
         return 0;
+    case WM_KEYDOWN:
+        if (wParam == VK_ESCAPE)
+        {
+            DestroyWindow(hWnd);
+            return 0;
+        }
+        break;
 
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:

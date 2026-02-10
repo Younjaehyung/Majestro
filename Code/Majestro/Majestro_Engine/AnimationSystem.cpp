@@ -7,6 +7,7 @@
 #include "Animator.h"
 #include "AnimationComponent.h"
 #include "PlayerComponent.h"
+#include "TagComponent.h"
 
 #include "InputManager.h"
 
@@ -97,11 +98,18 @@ void AnimationSystem::AnimationPush(float deltaTime)
 	for (Entity entity : view) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
+		MannequinComponent* mannequinComponent = mWorld->GetComponent<MannequinComponent>(entity);
 
 		const uint32 previousClip = animCom->mAnimClipIdx;
 		if (mainPlayerComponent) {
 			animCom->mAnimClipIdx = mainPlayerComponent->mStatePacket;
 			//animCom->mAnimClipIdx = mainPlayerComponent->mLowerStatePacket;
+		}
+		if (mannequinComponent) {
+			std::vector<Entity> choicdPlayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+			ChoicePlayerComponent* choicdPlayerComponent= mWorld->GetComponent<ChoicePlayerComponent>(choicdPlayerEntities[0]);
+			if(mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType) animCom->mAnimClipIdx = 1;
+			else animCom->mAnimClipIdx = 0;
 		}
 			
 

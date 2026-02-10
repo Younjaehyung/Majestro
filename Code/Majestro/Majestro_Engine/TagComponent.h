@@ -29,4 +29,9 @@ public:
 
 class MannequinComponent : public Component<MannequinComponent>
 {
+public:
+	MannequinComponent(uint8 playerType) : mPlayerType(playerType) {};
+
+	uint8 mPlayerType;
+	bool choice;
 };

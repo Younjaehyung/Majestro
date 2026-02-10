@@ -76,8 +76,7 @@ void LobbyScene::Initialize()
 
 	{
 		Entity mannequinEntity = mWorld->CreateEntity();
-		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 0);
-		//mWorld->AddComponent<PlayerMovementComponent>(mannequinEntity);
+		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
 		
 	}
 	
@@ -96,7 +95,8 @@ void LobbyScene::Initialize()
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+			mWorld->AddComponent<MannequinComponent>(mEntityID,i);
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
@@ -104,6 +104,7 @@ void LobbyScene::Initialize()
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+			mWorld->AddComponent<MannequinComponent>(mEntityID, i);
 			break;
 		case 2:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
@@ -111,6 +112,7 @@ void LobbyScene::Initialize()
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+			mWorld->AddComponent<MannequinComponent>(mEntityID, i);
 			break;
 		}
 

@@ -2,6 +2,8 @@
 #include "SceneManager.h"
 #include "Scene.h"
 #include "NetSendSystem.h"
+#include "Engine.h"
+#include "InputManager.h"
 
 void SceneManager::Initialize()
 {
@@ -73,6 +75,8 @@ void SceneManager::LoadScene(wstring sceneName)
 	}
 
 	mActiveScene->Initialize();
+
+	INPUT.SetForceMouseLook(sceneName == L"Game");
 
 	
 

@@ -158,13 +158,6 @@ void InputManager::OnMouseMove(LPARAM lParam)
 	{
 	case WM_LBUTTONDOWN:
 		mMouseState.LeftDown = true;
-
-		mMouseState.Delta = { 0,0 };
-
-		::GetCursorPos(&mMouseState.Position);
-		::GetCursorPos(&mMouseState.OldPosition);
-		::GetCursorPos(&mMouseState.ClickPosition);
-		
 		break;
 
 	case WM_RBUTTONDOWN:
@@ -173,22 +166,14 @@ void InputManager::OnMouseMove(LPARAM lParam)
 
 	case WM_LBUTTONUP:
 		mMouseState.LeftDown = false;
-		if (!mMouseLookControl)
-		{
-			::ReleaseCapture();
-			::SetCursor(arrow);
-			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
-		}
 		break;
 
 	case WM_RBUTTONUP:
 		mMouseState.RightDown = false;
-		if (!mMouseLookControl)
-			::ReleaseCapture();
 		break;
 
 	case WM_MOUSEMOVE:
-		if (mMouseState.LeftDown || mMouseLookControl) {
+		if (mMouseLookControl) {
 			::GetCursorPos(&mMouseState.Position);
 
 			mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;

@@ -22,7 +22,7 @@ struct MouseState
 {
 	POINT Position = { 0, 0 };
 	POINT OldPosition = { 0, 0 };
-	POINT ClickPosition = { 0, 0 }; //클릭한 위치
+	POINT ClickPosition = { 500, 500 }; //클릭한 위치
 	POINT Delta = { 0, 0 }; // 이전 프레임과의 차이
 	short WheelDelta = 0;
 
@@ -58,7 +58,7 @@ public:
 	void OnMouseButtonDown(WPARAM button);
 	void OnMouseButtonUp(WPARAM button);
 	void SetForceMouseLook(bool enable);
-	bool IsMouseLookActive() const { return mMouseState.LeftDown || mMouseLookControl; }
+	bool IsMouseLookActive() const { return mMouseLookControl; }
 	bool IsGetCapture() {
 
 		return  GetCapture() == mHwnd;

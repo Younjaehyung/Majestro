@@ -218,9 +218,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-        ::SetCursor(CreateTransparentCursorMask32());
+        /*::SetCursor(CreateTransparentCursorMask32());
         SetCapture(hWnd);
-        [[fallthrough]];
+        [[fallthrough]];*/
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     case WM_MOUSEMOVE:

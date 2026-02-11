@@ -58,6 +58,10 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
     DashState::Instance(),
 
     Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance(),
 
     AimState::Instance(),
     ReRoadState::Instance(),
@@ -65,23 +69,11 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<share
 
     HitState::Instance(),
     StunState::Instance(),
-    DeadState::Instance(),
-
-    /*Attack1State::Instance(),*/
-    Attack2State::Instance(),
-    Skill1State::Instance(),
-    Skill2State::Instance(),
-    SpecialState::Instance()
+    DeadState::Instance()
+   
     };
     InitFSMFromJson(path);
     LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
-
-    //for (int i = 0; i < (int)anim.size(); i++)
-    //{
-    //    mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
-    //    cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime)  << " : " << mStateList[i]->mAnimEndTime << endl;
-    //}
-
 
 }
 
@@ -158,6 +150,10 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == DashState::Instance()) return S_Dash;
 
         if (s == Attack1State::Instance()) return S_Attack1;
+        if (s == Attack2State::Instance()) return S_Attack2;
+        if (s == Skill1State::Instance()) return S_Skill1;
+        if (s == Skill2State::Instance()) return S_Skill2;
+        if (s == SpecialState::Instance()) return S_Special;
         return 255;
         });
 

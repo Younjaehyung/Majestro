@@ -45,7 +45,27 @@
         "Attack1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime":  1.16667
+            "animEndTime": 1.16667
+        },
+        "Attack2State": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "Skill1State": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "Skill2State": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "SpecialState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
         }
     }
 }

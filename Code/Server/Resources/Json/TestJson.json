@@ -100,6 +100,62 @@
             "to": "Idle",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Attack2",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Attack2",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Skill1",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Skill1",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Skill2",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Skill2",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Special",
+            "to": "Walk",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "Special",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         }
 
 

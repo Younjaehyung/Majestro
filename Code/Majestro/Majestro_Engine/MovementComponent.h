@@ -10,8 +10,7 @@ public:
 	bool mJump = false;
 	bool mDash = false;
 
-	bool mAttack1 = false;
-	bool mAttack2 = false;
+	bool mAttack = false;
 	bool mSkill1 = false;
 	bool mSkill2 = false;
 	bool mSpecial = false;

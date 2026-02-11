@@ -101,7 +101,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 
 	if (comp->mDash)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SHIFT));
 	if (comp->mJump)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPACE));
-	if (comp->mAttack1)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
+	if (comp->mAttack)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
 
 	// Convert InputComponent data to SendRequest format
 	seq->Type = PKT_Type::C2S_PKT_INPUT;

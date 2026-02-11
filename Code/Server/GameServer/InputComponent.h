@@ -9,6 +9,9 @@ enum class InputButtons : uint8 {
     Q,
     E,
     ATTACK,
+    SKILL1,
+    SKILL2,
+    SPECIAL,
     END
 };
 

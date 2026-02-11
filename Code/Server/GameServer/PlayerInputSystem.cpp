@@ -42,10 +42,8 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 		}
 		else {
-
 			if (mainPlayerComponent->mDash) mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
 			else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
-
 		}
 		
 
@@ -78,7 +76,6 @@ void PlayerInputSystem::Update(float dt)
 		}
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
 			std::cout << "attack!!!" << std::endl;
-			
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {

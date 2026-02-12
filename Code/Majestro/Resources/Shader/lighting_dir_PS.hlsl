@@ -25,7 +25,24 @@ PS_OUT PS_DirLight(VS_OUT input)
     PS_OUT output = (PS_OUT) 0;
 
     // 라이트 선택
-    int index = 0; // Instance.LightIndex; (네 엔진 로직에 맞게 사용)
+   // 첫 번째 Directional Light를 찾아서 사용
+    int index = -1;
+    [loop]
+    for (int i = 0; i < PassParams.LightsCount; ++i)
+    {
+        if (Lights[i].lightType == 0)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    // Directional Light가 없으면 기여 없음
+    if (index < 0)
+    {
+        return output;
+    }
+
     LIGHTINFO light = Lights[index];
 
     // -----------------------------

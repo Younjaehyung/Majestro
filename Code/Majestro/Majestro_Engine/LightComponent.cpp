@@ -66,7 +66,7 @@ Entity LightFactory::CreateLight(World* world, LIGHT_TYPE type , LightComponent&
 	}
 
 	c.SetScale(1.f);
-	c.SetFar(1000.f);
+	c.SetFar(50000.f);
 	c.SetWidth(4096);
 	c.SetHeight(4096);
 

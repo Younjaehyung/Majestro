@@ -18,7 +18,8 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
  
-    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
+    RENDERPARAMS Instance = InstanceParams[idx];
     
     uint objectIndex = Instance.ObjectIndex;
     int materialIndex = Instance.MaterialInfoIndex;

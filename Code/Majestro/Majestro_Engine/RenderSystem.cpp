@@ -74,9 +74,10 @@ void RenderSystem::PushData()
 	RENDERMANAGER.SetGraphicsTable();
 	PushLandData();
 	PushCubeData();
-	PushPassData();
+	
 	PushObjectData();
 	PushLightData();
+	PushPassData();
 	PushInstanceData();
 }
 
@@ -298,6 +299,7 @@ void RenderSystem::PushLightData()
 		mLightVector.push_back(lightParams);
 
 	}		
+	passParams.LightsCount = static_cast<uint32>(mLightVector.size());
 	RENDERMANAGER.GetGroupBuffer(mFrameCount)->LightInfo->PushGraphicsData(mLightVector.data(), static_cast<uint32>(sizeof(LightParams)*mLightVector.size()));
 	
 }
@@ -562,7 +564,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent* lightComponent)
 	const float cameraFar = mCamera->mFar;
 	const Matrix invProj = mCamera->mProjection.Invert();
 	const Matrix invView = mCamera->mView.Invert();
-
+	const float cameraRange = max(cameraFar - cameraNear, 0.001f);
 	const array<Vec3, 4> ndcNearCorners = {
 		Vec3(-1.f, 1.f, 0.f),
 		Vec3(1.f, 1.f, 0.f),
@@ -588,38 +590,43 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent* lightComponent)
 	if (lightDir.LengthSquared() < 1e-4f)
 		lightDir = Vec3(0.f, -1.f, 0.f);
 	lightDir.Normalize();
-
+	constexpr float shadowMapSize = 4096.f;
 	for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex)
 	{
-		const float splitNear = (cascadeIndex == 0) ? cameraNear : CascadeSplit[cascadeIndex - 1];
+		const float splitNear = (cascadeIndex == 0) ? cameraNear : min(CascadeSplit[cascadeIndex - 1], cameraFar);
 		const float splitFar = min(CascadeSplit[cascadeIndex], cameraFar);
+		if (splitFar <= splitNear)
+		{
+			passParams.CascadeShadowVP[cascadeIndex] = Matrix::Identity.Transpose();
+			continue;
+		}
 
-		const float nearT = (splitNear - cameraNear) / max(cameraFar - cameraNear, 0.001f);
-		const float farT = (splitFar - cameraNear) / max(cameraFar - cameraNear, 0.001f);
+
+		const float nearT = (splitNear - cameraNear) / cameraRange;
+		const float farT = (splitFar - cameraNear) / cameraRange;
 
 		array<Vec3, 8> worldCorners{};
 		Vec3 frustumCenter = Vec3::Zero;
 		for (uint32 i = 0; i < 4; ++i)
 		{
-			Vec3 nearCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT);
-			Vec3 farCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT);
+			const Vec3 nearCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT);
+			const Vec3 farCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT);
 
 			worldCorners[i] = Vec3::Transform(nearCornerView, invView);
 			worldCorners[i + 4] = Vec3::Transform(farCornerView, invView);
 
-			frustumCenter += worldCorners[i];
-			frustumCenter += worldCorners[i + 4];
+			frustumCenter += worldCorners[i] + worldCorners[i + 4];
 		}
 		frustumCenter /= 8.f;
 
 		float radius = 0.f;
-		for (Vec3& corner : worldCorners)
+		for (const Vec3& corner : worldCorners)
 			radius = max(radius, (corner - frustumCenter).Length());
 
-		radius = ceil(radius * 16.f) / 16.f;
+		radius = max(ceil(radius * 16.f) / 16.f, 1.f);
 
-		Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
-		Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+		const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+		const Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
 
 		Matrix lightView = Matrix::CreateLookAt(eye, frustumCenter, up);
 
@@ -632,11 +639,21 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent* lightComponent)
 			maxExtents = Vec3::Max(maxExtents, cornerLS);
 		}
 
-		const float zMult = 10.f;
-		minExtents.z = (minExtents.z < 0) ? minExtents.z * zMult : minExtents.z / zMult;
-		maxExtents.z = (maxExtents.z < 0) ? maxExtents.z / zMult : maxExtents.z * zMult;
+		const float texelWorldSize = max((maxExtents.x - minExtents.x) / shadowMapSize, 1e-5f);
+		Vec3 centerLS = (minExtents + maxExtents) * 0.5f;
+		centerLS.x = floor(centerLS.x / texelWorldSize) * texelWorldSize;
+		centerLS.y = floor(centerLS.y / texelWorldSize) * texelWorldSize;
 
-		Matrix lightProj = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, minExtents.z, maxExtents.z);
+		const Vec3 halfExtents = (maxExtents - minExtents) * 0.5f;
+		minExtents.x = centerLS.x - halfExtents.x;
+		maxExtents.x = centerLS.x + halfExtents.x;
+		minExtents.y = centerLS.y - halfExtents.y;
+		maxExtents.y = centerLS.y + halfExtents.y;
+
+		const float zPadding = max(radius * 4.f, 50.f);
+		const float nearPlane = minExtents.z - zPadding;
+		const float farPlane = maxExtents.z + zPadding;
+		Matrix lightProj = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, nearPlane, farPlane);
 		passParams.CascadeShadowVP[cascadeIndex] = (lightView * lightProj).Transpose();
 	}
 

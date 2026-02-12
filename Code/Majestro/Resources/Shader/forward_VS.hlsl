@@ -30,7 +30,8 @@ VS_OUT VS_Main(VS_IN input)
 
     output.instanceID = input.instanceID;
 
-    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
+    RENDERPARAMS Instance = InstanceParams[idx];
     
     
     uint objectIndex = Instance.ObjectIndex;

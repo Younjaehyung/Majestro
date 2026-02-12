@@ -213,7 +213,7 @@ private:
 	std::vector<MaterialParams>		mMaterialVector;
 	std::vector<PatricleParams>		mPatricleVector;
 
-	array<float, 4> CascadeSplit = { 15.f, 45.f, 120.f, 300.f };
+	array<float, 4> CascadeSplit = { 300.f, 436.f, 596.f, 1500.f };
 	array<Matrix, 4> mCascadeView{};
 	array<Matrix, 4> mCascadeProjection{};
 private:

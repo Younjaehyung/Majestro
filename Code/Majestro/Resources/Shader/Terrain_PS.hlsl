@@ -107,5 +107,6 @@ PS_OUT PS_Main(DS_OUT input)
     // [수정] position w는 보통 1.0f가 안전 (너의 GBuffer 정책에 맞춰)
     output.position = float4(input.viewPos.xyz, 1.0f);
 
+    
     return output;
 }

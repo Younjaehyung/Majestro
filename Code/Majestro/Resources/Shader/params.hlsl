@@ -210,6 +210,7 @@ struct PASSINFO
 	int Padding1;
 	int Padding2;
 
+    matrix CascadeShadowVP[4];
 };
 //////////////
 

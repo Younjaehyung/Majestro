@@ -692,6 +692,37 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Skybox", shader);
 	}
 
+	// Terrain Shadow
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::SHADOW,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::LESS,
+			BLEND_TYPE::DEFAULT,
+			D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST
+		};
+
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\Terrain_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\TerrainShadow_PS.hlsl",
+			.HS = L"..\\Resources\\Shader\\Terrain_HS.hlsl",
+			.DS = L"..\\Resources\\Shader\\TerrainShadow_DS.hlsl",
+		};
+
+		ShaderArg arg =
+		{
+			"VS_Main",
+			"HS_Main",
+			"DS_Main",
+			"",
+			"PS_Main",
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, arg);
+		Add<Shader>(L"TerrainShadow", shader);
+	}
 
 	// Terrain
 	{

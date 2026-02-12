@@ -776,6 +776,12 @@
     <FxCompile Include="..\Resources\Shader\UI_PS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\TerrainShadow_PS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\TerrainShadow_DS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

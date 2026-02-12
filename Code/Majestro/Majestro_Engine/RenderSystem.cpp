@@ -164,7 +164,7 @@ void RenderSystem::PushPassData()
 	passParams.MatViewInv = mCamera->mView.Invert().Transpose();
 	passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
 	passParams.ScreenSize = { static_cast<float>(RENDERMANAGER.GetWindow().Width), static_cast<float>(RENDERMANAGER.GetWindow().Height) };
-	passParams.CascadeSplits = Vec4(15.f, 45.f, 120.f, 300.f);
+
 
 	shared_ptr<GroupBuffer> groupBuffer = RENDERMANAGER.GetGroupBuffer(mFrameCount);
 	groupBuffer->PassInfo->PushData(&passParams, sizeof(PassParams));
@@ -541,6 +541,9 @@ void RenderSystem::RenderShadow()
 		if (lightComponent->mLightInfo.LightType != static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
 			continue;
 
+		UpdateCascadeShadowMatrices(lightComponent);
+
+
 		for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex)
 		{
 			shadowGroup.OMSetRenderTargets(1, cascadeIndex);
@@ -548,10 +551,98 @@ void RenderSystem::RenderShadow()
 			RenderShadowCamera(light, lightComponent, cameraComponent, renderComponent, cascadeIndex);
 		}
 	}
-
+	PushPassData();
 
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).WaitTargetToResource();
 }
+
+void RenderSystem::UpdateCascadeShadowMatrices(LightComponent* lightComponent)
+{
+	const float cameraNear = mCamera->mNear;
+	const float cameraFar = mCamera->mFar;
+	const Matrix invProj = mCamera->mProjection.Invert();
+	const Matrix invView = mCamera->mView.Invert();
+
+	const array<Vec3, 4> ndcNearCorners = {
+		Vec3(-1.f, 1.f, 0.f),
+		Vec3(1.f, 1.f, 0.f),
+		Vec3(1.f, -1.f, 0.f),
+		Vec3(-1.f, -1.f, 0.f)
+	};
+	const array<Vec3, 4> ndcFarCorners = {
+		Vec3(-1.f, 1.f, 1.f),
+		Vec3(1.f, 1.f, 1.f),
+		Vec3(1.f, -1.f, 1.f),
+		Vec3(-1.f, -1.f, 1.f)
+	};
+
+	array<Vec3, 4> frustumNearView{};
+	array<Vec3, 4> frustumFarView{};
+	for (uint32 i = 0; i < 4; ++i)
+	{
+		frustumNearView[i] = Vec3::Transform(ndcNearCorners[i], invProj);
+		frustumFarView[i] = Vec3::Transform(ndcFarCorners[i], invProj);
+	}
+
+	Vec3 lightDir = Vec3(lightComponent->mLightInfo.Direction);
+	if (lightDir.LengthSquared() < 1e-4f)
+		lightDir = Vec3(0.f, -1.f, 0.f);
+	lightDir.Normalize();
+
+	for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex)
+	{
+		const float splitNear = (cascadeIndex == 0) ? cameraNear : CascadeSplit[cascadeIndex - 1];
+		const float splitFar = min(CascadeSplit[cascadeIndex], cameraFar);
+
+		const float nearT = (splitNear - cameraNear) / max(cameraFar - cameraNear, 0.001f);
+		const float farT = (splitFar - cameraNear) / max(cameraFar - cameraNear, 0.001f);
+
+		array<Vec3, 8> worldCorners{};
+		Vec3 frustumCenter = Vec3::Zero;
+		for (uint32 i = 0; i < 4; ++i)
+		{
+			Vec3 nearCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT);
+			Vec3 farCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT);
+
+			worldCorners[i] = Vec3::Transform(nearCornerView, invView);
+			worldCorners[i + 4] = Vec3::Transform(farCornerView, invView);
+
+			frustumCenter += worldCorners[i];
+			frustumCenter += worldCorners[i + 4];
+		}
+		frustumCenter /= 8.f;
+
+		float radius = 0.f;
+		for (Vec3& corner : worldCorners)
+			radius = max(radius, (corner - frustumCenter).Length());
+
+		radius = ceil(radius * 16.f) / 16.f;
+
+		Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
+		Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+
+		Matrix lightView = Matrix::CreateLookAt(eye, frustumCenter, up);
+
+		Vec3 minExtents(FLT_MAX, FLT_MAX, FLT_MAX);
+		Vec3 maxExtents(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+		for (Vec3& corner : worldCorners)
+		{
+			Vec3 cornerLS = Vec3::Transform(corner, lightView);
+			minExtents = Vec3::Min(minExtents, cornerLS);
+			maxExtents = Vec3::Max(maxExtents, cornerLS);
+		}
+
+		const float zMult = 10.f;
+		minExtents.z = (minExtents.z < 0) ? minExtents.z * zMult : minExtents.z / zMult;
+		maxExtents.z = (maxExtents.z < 0) ? maxExtents.z / zMult : maxExtents.z * zMult;
+
+		Matrix lightProj = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, minExtents.z, maxExtents.z);
+		passParams.CascadeShadowVP[cascadeIndex] = (lightView * lightProj).Transpose();
+	}
+
+	RENDERMANAGER.GetGroupBuffer(mFrameCount)->PassInfo->PushData(&passParams, sizeof(PassParams));
+}
+
 
 void RenderSystem::RenderGBuffer()
 {
@@ -698,7 +789,11 @@ void RenderSystem::RenderShadowCamera(Entity& light, LightComponent* lightCompon
 	RenderComponent* objectRenderComponent;
 
 
-	RESOURCEMANAGER.Get<Shader>(L"Shadow")->Update();
+	shared_ptr<Shader> defaultShadowShader = RESOURCEMANAGER.Get<Shader>(L"Shadow");
+	shared_ptr<Shader> terrainShadowShader = RESOURCEMANAGER.Get<Shader>(L"TerrainShadow");
+	defaultShadowShader->Update();
+
+
 
 	for (auto& drawBatch : mDeferredDrawBatchs)
 	{
@@ -707,9 +802,13 @@ void RenderSystem::RenderShadowCamera(Entity& light, LightComponent* lightCompon
 		{
 			continue;
 		}
+		if (drawBatch.PSOShader == RESOURCEMANAGER.Get<Shader>(L"Terrain"))
+			terrainShadowShader->Update();
+		else
+			defaultShadowShader->Update();
 
 		dum.BaseInstance = drawBatch.BaseInstance;
-		dum.InstanceCount = drawBatch.InstanceCount;
+		dum.InstanceCount = cascadeIndex;
 		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 2, &(dum), 0);
 		InstancingRender(drawBatch);
 	}

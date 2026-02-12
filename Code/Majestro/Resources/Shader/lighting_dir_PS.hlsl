@@ -50,28 +50,9 @@ PS_OUT PS_DirLight(VS_OUT input)
 
     if (length(color.diffuse.rgb) != 0)
     {
-        matrix shadowCameraVP = mul(light.MatView, light.MatProjection);
-
-        float4 worldPos = mul(float4(viewPos.xyz, 1.f), light.MatViewInv);
-        float4 shadowClipPos = mul(worldPos, shadowCameraVP);
-        float depth = shadowClipPos.z / shadowClipPos.w;
-
-        float2 uv = shadowClipPos.xy / shadowClipPos.w;
-        uv.y = -uv.y;
-        uv = uv * 0.5 + 0.5;
-
-        if (0 < uv.x && uv.x < 1 && 0 < uv.y && uv.y < 1)
-        {
-            float shadowDepth = Gbuffer[0].Sample(g_sam_0, uv).x;
-
-            // [권장] 바이어스는 상수보다 N·L 기반으로 키우는게 좋지만, 기존 유지
-            if (shadowDepth > 0 && depth > shadowDepth + 0.00001f)
-            {
-                // [수정] PBR에서도 shadow는 diffuse/specular 모두에 영향
-                color.diffuse *= 0.5f;
-                color.specular *= 0.0f;
-            }
-        }
+        float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
+        color.diffuse *= visibility;
+        color.specular *= visibility;
     }
 
     // 출력 (너는 diffuse/ambient를 한 버퍼에 합치고 specular는 별도 누적)

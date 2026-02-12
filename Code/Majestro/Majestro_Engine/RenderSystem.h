@@ -56,10 +56,11 @@ struct PassParams
 	int32 TerrainSlot5;
 	int32 TerrainSlot6;
 	int32 Padding1;
-	Vec4 CascadeSplits = Vec4(15.f, 45.f, 120.f, 300.f);
+	int32 Padding2;
+	
 	/*std::array<uint32, 6> TerrainSlot{};
 	std::array<uint32, 2> TerrainSlotPadding{};*/
-
+	array<Matrix, 4> CascadeShadowVP{};
 
 };
 
@@ -163,7 +164,7 @@ private: // Render
 
 	void RenderShadowCamera(Entity& light, LightComponent* lightComponent, CameraComponent* cameraComponent, RenderComponent* renderComponent, uint32 cascadeIndex);
 	void InstancingRender(DrawBatch&);
-
+	void UpdateCascadeShadowMatrices(LightComponent* lightComponent);
 
 	// deferred
 	void RenderShadow();
@@ -212,6 +213,9 @@ private:
 	std::vector<MaterialParams>		mMaterialVector;
 	std::vector<PatricleParams>		mPatricleVector;
 
+	array<float, 4> CascadeSplit = { 15.f, 45.f, 120.f, 300.f };
+	array<Matrix, 4> mCascadeView{};
+	array<Matrix, 4> mCascadeProjection{};
 private:
 	// 변수 재사용을 막기 위해 둔 Dummy Parms
 	PassParams		passParams{};

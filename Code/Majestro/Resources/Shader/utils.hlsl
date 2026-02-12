@@ -4,6 +4,7 @@
 
 #include "params.hlsl"
 
+float4 CascadeSplit = { 15.f, 45.f, 120.f, 300.f };
 
 // Y축 회전 행렬(간단 버전)
 float3 RotateY(float3 v, float angle)
@@ -320,4 +321,40 @@ void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
     tangent = normalize(info.tangent);
     normal = normalize(info.normal);
 }
+
+float SelectCascadeIndex(float viewDepth)
+{
+    if (viewDepth <= CascadeSplit.x)
+        return 0.0f;
+    if (viewDepth <= CascadeSplit.y)
+        return 1.0f;
+    if (viewDepth <= CascadeSplit.z)
+        return 2.0f;
+    return 3.0f;
+}
+
+float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
+{
+    float cascadeIndex = SelectCascadeIndex(viewPos.z);
+
+    float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
+    float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[(int) cascadeIndex]);
+
+    float3 shadowNdc = shadowClipPos.xyz / max(shadowClipPos.w, 1e-5f);
+    float2 uv = shadowNdc.xy * 0.5f + 0.5f;
+    uv.y = 1.0f - uv.y;
+
+    if (uv.x <= 0.f || uv.x >= 1.f || uv.y <= 0.f || uv.y >= 1.f)
+        return 1.0f;
+
+    float lightDepth = shadowNdc.z;
+    float shadowDepth = ShadowMaps.Sample(g_sam_0, float3(uv, cascadeIndex)).r;
+
+    float3 viewLightDir = normalize(mul(float4(lightDirWorld, 0.f), PassParams.MatView).xyz);
+    float ndotl = saturate(dot(normalize(viewNormal), -viewLightDir));
+    float bias = max(0.0005f, 0.003f * (1.0f - ndotl));
+
+    return (lightDepth - bias <= shadowDepth) ? 1.0f : 0.25f;
+}
+
 #endif

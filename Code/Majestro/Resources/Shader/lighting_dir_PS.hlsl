@@ -14,18 +14,17 @@ struct PS_OUT
     float4 specular : SV_Target1;
 };
 
-// [정리: 네 코드 기준 Gbuffer 배열 사용]
+
 // Gbuffer[0] : Shadow depth
 // Gbuffer[1] : Position (view-space xyz)
-// Gbuffer[2] : Normal+Metallic (xyz = view normal, w = metallic)   // [수정 반영]
-// Gbuffer[3] : Albedo+Roughness (rgb = baseColor, a = roughness)   // [추가 필요]
+// Gbuffer[2] : Normal+Metallic (xyz = view normal, w = metallic)  
+// Gbuffer[3] : Albedo+Roughness (rgb = baseColor, a = roughness)  
 
 PS_OUT PS_DirLight(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
 
-    // 라이트 선택
-   // 첫 번째 Directional Light를 찾아서 사용
+
     int index = -1;
     [loop]
     for (int i = 0; i < PassParams.LightsCount; ++i)
@@ -37,7 +36,7 @@ PS_OUT PS_DirLight(VS_OUT input)
         }
     }
 
-    // Directional Light가 없으면 기여 없음
+
     if (index < 0)
     {
         return output;
@@ -45,9 +44,7 @@ PS_OUT PS_DirLight(VS_OUT input)
 
     LIGHTINFO light = Lights[index];
 
-    // -----------------------------
-    // [수정] G-Buffer 샘플링 확장
-    // -----------------------------
+
     float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
 
     if (viewPos.z <= 0.f)
@@ -55,9 +52,9 @@ PS_OUT PS_DirLight(VS_OUT input)
 
     float4 n_m = Gbuffer[2].Sample(g_sam_0, input.uv);
     float3 viewNormal = normalize(n_m.xyz);
-    float metallic = saturate(n_m.w); // [수정] normal.w에서 metallic 읽기
+    float metallic = saturate(n_m.w);
 
-    float4 a_r = Gbuffer[3].Sample(g_sam_0, input.uv); // [추가] Albedo(RGB)+Roughness(A)
+    float4 a_r = Gbuffer[3].Sample(g_sam_0, input.uv); 
     float3 baseColor = a_r.rgb;
     float roughness = saturate(a_r.a);
 
@@ -72,8 +69,8 @@ PS_OUT PS_DirLight(VS_OUT input)
         color.specular *= visibility;
     }
 
-    // 출력 (너는 diffuse/ambient를 한 버퍼에 합치고 specular는 별도 누적)
-    output.diffuse = color.diffuse + color.ambient * 2.0f;
+
+    output.diffuse = color.diffuse + color.ambient;
     output.specular = color.specular;
 
     return output;

@@ -4,7 +4,7 @@
 
 #include "params.hlsl"
 
-float4 CascadeSplit = { 300.f, 436.f, 596.f, 1500.f };
+
 
 // Y축 회전 행렬(간단 버전)
 float3 RotateY(float3 v, float angle)
@@ -325,11 +325,12 @@ void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
 float SelectCascadeIndex(float viewDepth)
 {
     viewDepth = abs(viewDepth);
-    if (viewDepth <= CascadeSplit.x)
+    float4 splits = PassParams.CascadeSplitDistances;
+    if (viewDepth <= splits.x)
         return 0.0f;
-    if (viewDepth <= CascadeSplit.y)
+    if (viewDepth <= splits.y)
         return 1.0f;
-    if (viewDepth <= CascadeSplit.z)
+    if (viewDepth <= splits.z)
         return 2.0f;
     return 3.0f;
 }
@@ -343,23 +344,46 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
 
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
     float3 shadowNdc = shadowClipPos.xyz * invW;
-    float2 uv = shadowNdc.xy * 0.5f + 0.5f;
-    uv.y = 1.0f - uv.y;
+    
+    // NDC -> UV 변환
+    float2 uv;
+    uv.x = shadowNdc.x * 0.5f + 0.5f;
+    uv.y = -shadowNdc.y * 0.5f + 0.5f;
 
-    if (uv.x <= 0.f || uv.x >= 1.f || uv.y <= 0.f || uv.y >= 1.f)
+    // UV 범위 체크
+    if (uv.x <= 0.001f || uv.x >= 0.999f || uv.y <= 0.001f || uv.y >= 0.999f)
         return 1.0f;
 
     if (shadowNdc.z <= 0.f || shadowNdc.z >= 1.f)
         return 1.0f;
 
     float lightDepth = saturate(shadowNdc.z);
-    float shadowDepth = ShadowMaps.Sample(g_sam_0, float3(uv, cascadeIndex)).r;
 
-    float3 viewLightDir = normalize(mul(float4(lightDirWorld, 0.f), PassParams.MatView).xyz);
-    float ndotl = saturate(dot(normalize(viewNormal), -viewLightDir));
-    float bias = max(0.0005f, 0.003f * (1.0f - ndotl));
+    // bias 계산
+    float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
+    float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
+    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f;
+    float bias = max(0.001f, 0.005f * (1.0f - ndotl)) * cascadeBiasScale;
 
-    return (lightDepth - bias <= shadowDepth) ? 1.0f : 0.25f;
+    const float shadowMapSize = 4096.0f;
+    float2 texelSize = 1.0f / shadowMapSize;
+
+    // PCF 3x3
+    float shadow = 0.0f;
+    [unroll]
+    for (int y = -1; y <= 1; ++y)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; ++x)
+        {
+            float2 sampleUv = uv + float2(x, y) * texelSize;
+            float shadowDepth = ShadowMaps.SampleLevel(g_sam_0, float3(sampleUv, cascadeIndex), 0).r;
+            shadow += (shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f;
+        }
+    }
+    shadow /= 9.0f;
+ 
+    return 1.0f - shadow * 0.7f;
 }
 
 #endif

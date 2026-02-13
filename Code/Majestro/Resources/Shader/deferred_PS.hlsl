@@ -62,12 +62,9 @@ PS_OUT PS_Main(VS_OUT input)
         discard;
     }
     
-    // -----------------------------
-    // 2) Normal Map 적용
-    // -----------------------------
+  
     float3 viewNormal = normalize(input.viewNormal);
-
-    // [수정] != 0 -> >= 0 통일 (0번 노말맵도 유효할 수 있음)
+    
     if (materials.NormalMapIndex != 0)
     {
         float3 tangentSpaceNormal = TextureMaps[materials.NormalMapIndex].Sample(g_sam_0, input.uv).xyz;
@@ -93,29 +90,29 @@ PS_OUT PS_Main(VS_OUT input)
 
     if (materials.MetallicMapIndex != 0)
     {
-        // 네 코드처럼 r 채널 사용 (프로젝트 규약에 맞춰 유지)
+        
         metallic = TextureMaps[materials.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    metallic = 0.0f; // [수정] 기본 메탈릭 (텍스처 없을 때)
+    metallic = 0.0f;
 
   
     if (materials.RoughnessMapIndex != 0)
     {
         roughness = TextureMaps[materials.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    roughness = 0.5f; // [수정] 기본 러프니스 (텍스처 없을 때)
+    roughness = 0.5f;
         
 
     metallic = saturate(metallic);
     roughness = saturate(roughness);
 
 
-    output.position = float4(input.viewPos.xyz, 0.0f);
+    output.position = float4(input.viewPos.xyz, 1.0f);
 
-    // [수정] normal.w에 metallic 저장
+
     output.normal = float4(viewNormal.xyz, metallic);
 
-    // [수정] color.a에 roughness 저장
+
     output.color = float4(baseColor.rgb, roughness);
 
     return output;

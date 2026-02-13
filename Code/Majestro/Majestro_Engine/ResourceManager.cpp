@@ -609,7 +609,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		rootSignature->AddConstant(0, 2);
+		rootSignature->AddConstant(0, 3);
 		rootSignature->AddTable(ranges0);
 		rootSignature->AddTable(ranges1);
 		rootSignature->AddTable(ranges2);

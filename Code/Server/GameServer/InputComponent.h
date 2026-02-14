@@ -31,7 +31,7 @@ public:
     float MoveY = 0.0f;
 	float MoveZ = 0.0f;
     
-    uint8 Buttons = 0;
+    uint32 Buttons = 0;
 	uint8  Mouse = 0;
 
 

@@ -70,7 +70,7 @@ public:
 	uint32 GetState() { return (uint32)mFsm.GetState(); };
 	uint32 GetLowerState() { 
 		if (mFlags & FLAG_MOVE) {
-			if (mSpeed <= 1.f) return (uint32)S_Idle;
+			//if (mSpeed <= 1.f) return (uint32)S_Idle;
 			if(mSpeed <= mWalkSpeed) return (uint32)S_Walk;
 			if(mSpeed <= mRunSpeed) return (uint32)S_Run;
 		}

@@ -77,6 +77,7 @@ struct ANIMINSTANCE
     uint BlendClipIdx;
     uint BlendCurrentFrame;
     uint BlendNextFrame;
+
     float BlendRatio;
 
     float BlendWeight;
@@ -100,6 +101,12 @@ struct ANIMATIONMETA
     uint AnimOffset;
 };
 
+struct SKELETONBONE
+{
+    matrix Offset;
+    float BlendWeight;
+    float3 Padding;
+};
 
 //////////////
 
@@ -262,7 +269,7 @@ RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //ê³µì
  ///////////////////////////////////////////////////////////////////
 
  ///////////////////////////ANIMATION///////////////////////////////
-StructuredBuffer<matrix> SkeletonBone : register(t0, space3);
+StructuredBuffer<SKELETONBONE> SkeletonBone : register(t0, space3);
 StructuredBuffer<ANIMFRAMEPARAMS> AnimationClip : register(t1, space3);
 StructuredBuffer<ANIMATIONMETA> AnimationMeta : register(t2, space3);
  ///////////////////////////////////////////////////////////////////

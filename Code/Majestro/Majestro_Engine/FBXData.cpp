@@ -36,6 +36,29 @@ string ReadString(std::ifstream& file)
 	return utf8Str; // 기존의 s2ws 함수 사용
 }
 
+float ComputeBodyBlendWeight(const string& boneName)
+{
+	string lower = boneName;
+	std::transform(lower.begin(), lower.end(), lower.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	if (lower.find("thigh") != string::npos || lower.find("calf") != string::npos ||
+		lower.find("foot") != string::npos || lower.find("toe") != string::npos ||
+		lower.find("leg") != string::npos || lower.find("ik_foot") != string::npos)
+		return 0.f;
+
+	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
+		return 0.25f;
+
+	if (lower.find("finger") != string::npos || lower.find("chest") != string::npos ||
+		lower.find("neck") != string::npos || lower.find("head") != string::npos ||
+		lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos ||
+		lower.find("arm") != string::npos || lower.find("hand") != string::npos)
+		return 1.f;
+
+	return 1.f;
+}
+
 FBXMaterialInfo FBXData::ReadMaterialData(std::ifstream& file)
 {
 
@@ -194,7 +217,7 @@ shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 		loader.read(reinterpret_cast<char*>(&dummy), sizeof(Dummy));
 		fbxBondInfo.parentIdx = dummy.parentIdx;
 		fbxBondInfo.matOffset = dummy.matOffset; // XMFLOAT4X4 그대로
-
+		fbxBondInfo.blendWeight = ComputeBodyBlendWeight(fbxBondInfo.boneName);
 		mSkeleton->mBones.emplace_back(fbxBondInfo);
 	}
 	loader.close();

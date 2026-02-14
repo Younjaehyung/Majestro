@@ -52,11 +52,30 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
     float4 translation = lerp(AnimationClip[idx].Translation, AnimationClip[nextidx].Translation, ratio);
 
     float blendWeight = saturate(animationInst.BlendWeight);
+    
+    float boneBlendWeight = saturate(SkeletonBone[nowbone + boneidx].BlendWeight);
     if (animationInst.BlendMaskEnd > animationInst.BlendMaskStart)
     {
         const bool inMask = nowbone >= animationInst.BlendMaskStart && nowbone <= animationInst.BlendMaskEnd;
-        blendWeight *= inMask ? 1.0f : 0.0f;
+        boneBlendWeight = inMask ? 1.0f : 0.0f;
     }
+    blendWeight *= boneBlendWeight;
+    if (blendWeight > 0.0001f && animationInst.BlendClipIdx != animationInst.AnimClipIdx)
+    {
+        ANIMATIONMETA blendMeta = AnimationMeta[animationInst.BlendClipIdx];
+        uint blendFrameCount = blendMeta.NumFrame;
+        uint blendIdx = nowbone * blendFrameCount + animationInst.BlendCurrentFrame + blendMeta.AnimOffset;
+        uint blendNextIdx = nowbone * blendFrameCount + animationInst.BlendNextFrame + blendMeta.AnimOffset;
+
+        float4 blendScale = lerp(AnimationClip[blendIdx].Scale, AnimationClip[blendNextIdx].Scale, animationInst.BlendRatio);
+        float4 blendRotation = QuaternionSlerp(AnimationClip[blendIdx].Rotation, AnimationClip[blendNextIdx].Rotation, animationInst.BlendRatio);
+        float4 blendTranslation = lerp(AnimationClip[blendIdx].Translation, AnimationClip[blendNextIdx].Translation, animationInst.BlendRatio);
+
+        scale = lerp(scale, blendScale, blendWeight);
+        rotation = QuaternionSlerp(rotation, blendRotation, blendWeight);
+        translation = lerp(translation, blendTranslation, blendWeight);
+    }
+    
     if (blendWeight > 0.0001f && animationInst.BlendClipIdx != animationInst.AnimClipIdx)
     {
         ANIMATIONMETA blendMeta = AnimationMeta[animationInst.BlendClipIdx];
@@ -79,6 +98,7 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
     //if (IsExactIdentity(matbone))
     //    return;
     
-    RFinalBone[animationInst.ReulstIndex + nowbone] = mul(SkeletonBone[nowbone + boneidx], matbone);
+    RFinalBone[animationInst.ReulstIndex + nowbone] = mul(SkeletonBone[nowbone + boneidx].Offset, matbone);
+
 
 }

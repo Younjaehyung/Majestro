@@ -28,7 +28,10 @@ void AnimationSystem::Initialize()
 
 		skel->mStartOffset = skelOffset;
 		for (auto& bone : skel->GetBones()) {
-			mBoneData.emplace_back(bone.matOffset);
+			SkeletonBoneParams boneParam{};
+			boneParam.matOffset = bone.matOffset;
+			boneParam.blendWeight = bone.blendWeight;
+			mBoneData.emplace_back(boneParam);
 		}
 		skelOffset += skel->GetBones().size();
 		skel->SetSkeletonHandle(skelHandle++);
@@ -55,7 +58,8 @@ void AnimationSystem::Initialize()
 	mAnimationShader = RESOURCEMANAGER.Get<Shader>(L"AnimationComputeShader");
 	RENDERMANAGER.GetAnimationBuffers()->AnimationMeta ->PushDefaultToData(mAniClipMeta.data(), static_cast<uint32>(mAniClipMeta.size() * sizeof(AnimationClipMeta)));
 	RENDERMANAGER.GetAnimationBuffers()->AnimationClip ->PushDefaultToData(mAniKeyFrame.data(), static_cast<uint32>(mAniKeyFrame.size() * sizeof(KeyFrameInfo)));
-	RENDERMANAGER.GetAnimationBuffers()->SkeletonBone  ->PushDefaultToData(mBoneData.data(), static_cast<uint32>(mBoneData.size() * sizeof(Matrix)));
+	RENDERMANAGER.GetAnimationBuffers()->SkeletonBone->PushDefaultToData(mBoneData.data(), static_cast<uint32>(mBoneData.size() * sizeof(SkeletonBoneParams)));
+
 }
 
 

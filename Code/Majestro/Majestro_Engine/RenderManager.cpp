@@ -12,7 +12,7 @@
 #include "AnimationComponent.h"
 #include "Animator.h"
 #include "UIRenderSystem.h"
-
+#include "Skeleton.h"
 void RenderManager::Initialize(const WindowInfo& info)
 {
 	mWindow = info;
@@ -140,7 +140,7 @@ void RenderManager::CreateAnimation()
 	mAnimationBuffer = make_shared<AnimationBuffer>();
 
 	mAnimationBuffer->SkeletonBone = make_shared<StructuredBuffer>();
-	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(Matrix), 128 * 10 * 4);
+	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(SkeletonBoneParams), 128 * 10 * 4);
 	mAnimationBuffer->SkeletonBone->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_SKELETONBONE_INDEX));
 
 	mAnimationBuffer->AnimationClip = make_shared<StructuredBuffer>();

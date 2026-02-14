@@ -3,7 +3,7 @@
 #include "System.h"
 
 class Animator;
-
+struct SkeletonBoneParams;
 struct Bucket { uint32 start; uint32 count; uint32 bones; };
 
 struct CSBatchCB {
@@ -37,7 +37,7 @@ private:	// 애니메이션 시스템
 
 	vector<struct KeyFrameInfo> mAniKeyFrame;
 	vector<struct AnimationClipMeta> mAniClipMeta;
-	vector<Matrix> mBoneData;
+	vector<SkeletonBoneParams> mBoneData;
 private:
 
 	vector<struct AnimationInstance> mAnimationPass;	// Animation Instance Data

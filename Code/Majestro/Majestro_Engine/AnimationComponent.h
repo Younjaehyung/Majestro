@@ -23,6 +23,8 @@ struct AnimationInstance {
 	uint32	BlendNextFrame{};
 	float	BlendRatio{};
 
+
+
 	float	BlendWeight{};		// 0~1 (0이면 현재 클립만 사용)
 	uint32	BlendMaskStart{};	// 블렌드 마스크 시작 본 인덱스
 	uint32	BlendMaskEnd{};		// 블렌드 마스크 끝 본 인덱스(포함)

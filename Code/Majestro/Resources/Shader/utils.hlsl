@@ -5,6 +5,7 @@
 #include "params.hlsl"
 
 
+
 // Y축 회전 행렬(간단 버전)
 float3 RotateY(float3 v, float angle)
 {
@@ -320,4 +321,69 @@ void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
     tangent = normalize(info.tangent);
     normal = normalize(info.normal);
 }
+
+float SelectCascadeIndex(float viewDepth)
+{
+    viewDepth = abs(viewDepth);
+    float4 splits = PassParams.CascadeSplitDistances;
+    if (viewDepth <= splits.x)
+        return 0.0f;
+    if (viewDepth <= splits.y)
+        return 1.0f;
+    if (viewDepth <= splits.z)
+        return 2.0f;
+    return 3.0f;
+}
+
+float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
+{
+    float cascadeIndex = SelectCascadeIndex(viewPos.z);
+
+    float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
+    float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[(int) cascadeIndex]);
+
+    float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
+    float3 shadowNdc = shadowClipPos.xyz * invW;
+    
+    // NDC -> UV 변환
+    float2 uv;
+    uv.x = shadowNdc.x * 0.5f + 0.5f;
+    uv.y = -shadowNdc.y * 0.5f + 0.5f;
+
+    // UV 범위 체크
+    if (uv.x <= 0.001f || uv.x >= 0.999f || uv.y <= 0.001f || uv.y >= 0.999f)
+        return 1.0f;
+
+    if (shadowNdc.z <= 0.f || shadowNdc.z >= 1.f)
+        return 1.0f;
+
+    float lightDepth = saturate(shadowNdc.z);
+
+    // bias 계산
+    float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
+    float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
+    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f;
+    float bias = max(0.001f, 0.005f * (1.0f - ndotl)) * cascadeBiasScale;
+
+    const float shadowMapSize = 4096.0f;
+    float2 texelSize = 1.0f / shadowMapSize;
+
+    // PCF 3x3
+    float shadow = 0.0f;
+    [unroll]
+    for (int y = -1; y <= 1; ++y)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; ++x)
+        {
+            float2 sampleUv = uv + float2(x, y) * texelSize;
+            float shadowDepth = ShadowMaps.SampleLevel(g_sam_0, float3(sampleUv, cascadeIndex), 0).r;
+            shadow += (shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f;
+        }
+    }
+    shadow /= 9.0f;
+ 
+    return 1.0f - shadow * 0.7f;
+}
+
 #endif

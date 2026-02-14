@@ -32,7 +32,7 @@ struct DS_OUT
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
-    
+
     uint instanceID : InstanceID;
 };
 

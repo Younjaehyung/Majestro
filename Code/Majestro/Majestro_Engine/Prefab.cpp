@@ -92,12 +92,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
 
-	TransformComponent t{};
-	Entity testCamera = world->CreateEntity();
-	world->AddComponent<MainCameraComponent>(testCamera);
-	world->AddComponent<CameraComponent>(testCamera);
-	world->AddComponent<TransformComponent>(testCamera, t);
-	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
+	
 	
 	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
 	shared_ptr<Mesh> phereMesh;
@@ -106,7 +101,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 
 	std::vector<shared_ptr<Material>> material2s;
-	t.mLocalPosition = { 0.f, 0.f, 10.f };
+	
 	
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
@@ -115,7 +110,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	//world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (0){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
 
@@ -170,7 +165,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	}
 
-
+	TransformComponent t{};
+	t.mLocalPosition = { 0.f, 0.f, 10.f };
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
@@ -182,6 +178,13 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	if(ctx.ViewAs<S2C_SpawnPacekt>()->isLocalPlayer == 1)
 	{
 		world->AddComponent<LocalPlayerComponent>(mEntityID);
+		
+		
+		Entity testCamera = world->CreateEntity();
+		world->AddComponent<MainCameraComponent>(testCamera);
+		world->AddComponent<CameraComponent>(testCamera);
+		world->AddComponent<TransformComponent>(testCamera, t);
+		world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
 	}
 
 
@@ -382,11 +385,11 @@ Entity TerrainPrefab::Build(World* world, const InputCommand& ctx)
 DirLightPrefab::DirLightPrefab(World* world)
 {
 	LightComponent l{};
-	l.mLightInfo.Position = { Vec3(0, 1000, 500) };
+	l.mLightInfo.Position = { Vec3(0, 0, 0) };
 	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };
 	l.mLightInfo.Color.Diffuse = { Vec3(1.f, 1.f, 1.f) };
 	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.SetLightDirection(Vec3(0, 0, 1.f));
+	l.SetLightDirection(Vec3(0, -1, 1.f));
 	mEntityID = LightFactory::CreateLight(world, LIGHT_TYPE::DIRECTIONAL_LIGHT, l);
 }
 

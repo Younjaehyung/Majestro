@@ -207,9 +207,9 @@ struct PASSINFO
     int TerrainSlot4;
     int TerrainSlot5;
     int TerrainSlot6;
-	int Padding1;
-	int Padding2;
+	float4 CascadeSplitDistances;
 
+    matrix CascadeShadowVP[4];
 };
 //////////////
 
@@ -224,6 +224,7 @@ struct GLOBAL_PARAMS
 
     uint BaseInstanceID;
     uint etc;
+    uint casdcae;
 };
 //////////////
 

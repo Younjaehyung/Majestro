@@ -18,7 +18,8 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
  
-    RENDERPARAMS Instance = InstanceParams[input.instanceID];
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
+    RENDERPARAMS Instance = InstanceParams[idx];
     
     uint objectIndex = Instance.ObjectIndex;
     int materialIndex = Instance.MaterialInfoIndex;
@@ -85,6 +86,18 @@ float4 PS_Main(VS_OUT input) : SV_Target
         + totalColor.ambient.xyz * color.xyz
         + totalColor.specular.xyz;
 
+    for (int i = 0; i < PassParams.LightsCount; ++i)
+    {
+        if (Lights[i].lightType == 0)
+        {
+            float visibility = CalculateCSMShadow(input.viewPos, viewNormal, Lights[i].direction.xyz);
+            color.xyz *= visibility;
+            break;
+        }
+    }
+
+
+    
      return color;
 }
 

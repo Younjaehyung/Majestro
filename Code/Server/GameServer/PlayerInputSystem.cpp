@@ -74,20 +74,28 @@ void PlayerInputSystem::Update(float dt)
 
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		}
-		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			std::cout << "attack!!!" << std::endl;
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
-		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {
 			cout << "dash" << endl;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
+		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
+			std::cout << "attack!!!" << std::endl;
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
+		}
+		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//attack 
+			std::cout << "special" << std::endl;
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
+		}
 
 
-		if (inputComp->IsButtonPressed(InputButtons::Q)) {
+		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
+			std::cout << "skill1" << std::endl;
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 			//movementComponent->mMovingDirection.y -= 1;
 		}
-		if (inputComp->IsButtonPressed(InputButtons::E)) {
+		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
+			std::cout << "skill2" << std::endl;
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
 			//movementComponent->mMovingDirection.y += 1;
 		}
 

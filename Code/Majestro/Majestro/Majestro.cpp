@@ -224,7 +224,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     case WM_MOUSEMOVE:
-        game->Input(message);
+        game->Input(message, wParam, lParam);
         break;
     case WM_COMMAND:
         {

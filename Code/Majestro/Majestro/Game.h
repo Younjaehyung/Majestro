@@ -6,7 +6,7 @@ public:
 
 	void Initialize(const WindowInfo& info);
 	void Update();
-	void Input(UINT message);
+	void Input(UINT message, WPARAM wParam, LPARAM lParam);
 	void ActiveGame(bool active);
 	void Render();
 	bool IsGameSceneActive() const;

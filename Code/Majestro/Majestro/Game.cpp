@@ -31,9 +31,9 @@ void Game::Update()
 	SendNetworkData();
 }
 
-void Game::Input(UINT message) 
+void Game::Input(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	gEngine->GetInputManager().OnMouseMove(message);
+	gEngine->GetInputManager().OnMouseEvent(message, wParam, lParam);
 }
 
 void Game::ActiveGame(bool active)

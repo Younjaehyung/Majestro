@@ -151,10 +151,12 @@ void InputManager::MouseStateClear() {
 	mMouseState.Delta = { 0,0 };
 }
 
-void InputManager::OnMouseMove(LPARAM lParam)
+void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	
-	switch (lParam)
+	UNREFERENCED_PARAMETER(lParam);
+
+	switch (message)
 	{
 	case WM_LBUTTONDOWN:
 		mMouseState.LeftDown = true;

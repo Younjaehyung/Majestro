@@ -53,7 +53,7 @@ public:
 	}
 
 	void OnActivateApp(bool active);
-	void OnMouseMove(LPARAM lParam);
+	void OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam);
 	void OnMouseWheel(WPARAM wParam);
 	void OnMouseButtonDown(WPARAM button);
 	void OnMouseButtonUp(WPARAM button);

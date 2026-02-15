@@ -101,7 +101,7 @@ void RenderSystem::ClearRTV() {
   }
 
   // Shadow Group 초기화
-  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
+  //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
 
   // Deferred Group 초기화
   RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).ClearRenderTargetView();
@@ -139,6 +139,16 @@ void RenderSystem::PushPassData() {
       static_cast<float>(RENDERMANAGER.GetWindow().Height)};
   passParams.CascadeSplitDistances =
       Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
+
+  for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
+      LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(light);
+      if (lightComponent->mLightInfo.LightType !=
+          static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
+          continue;
+
+      UpdateCascadeShadowMatrices(lightComponent);
+  }
+
 
   shared_ptr<GroupBuffer> groupBuffer =RENDERMANAGER.GetGroupBuffer(mFrameCount);
 
@@ -482,7 +492,7 @@ void RenderSystem::RenderShadow() {
   LightComponent *lightComponent;
   CameraComponent *cameraComponent;
   RenderComponent *renderComponent;
-
+  shadowGroup.WaitResourceToTarget();
   for (auto &light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
     lightComponent = mWorld->GetComponent<LightComponent>(light);
     cameraComponent = mWorld->GetComponent<CameraComponent>(light);
@@ -491,11 +501,11 @@ void RenderSystem::RenderShadow() {
         static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
       continue;
 
-    UpdateCascadeShadowMatrices(lightComponent);
-
     for (uint32 cascadeIndex = 0;
          cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT;
          ++cascadeIndex) {
+        if (!mCascadeActive[cascadeIndex])
+            continue;
       shadowGroup.OMSetRenderTargets(1, cascadeIndex);
       shadowGroup.ClearRenderTargetView(cascadeIndex);
       RenderShadowCamera(light, lightComponent, cameraComponent,
@@ -538,15 +548,17 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
   for (uint32 cascadeIndex = 0;
        cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex) {
+     
     const float splitNear =
         (cascadeIndex == 0) ? cameraNear
                             : min(CascadeSplit[cascadeIndex - 1], cameraFar);
     const float splitFar = min(CascadeSplit[cascadeIndex], cameraFar);
     if (splitFar <= splitNear) {
+        mCascadeActive[cascadeIndex] = false;
       passParams.CascadeShadowVP[cascadeIndex] = Matrix::Identity.Transpose();
       continue;
     }
-
+    mCascadeActive[cascadeIndex] = true;
     const float nearT = (splitNear - cameraNear) / cameraRange;
     const float farT = (splitFar - cameraNear) / cameraRange;
 
@@ -608,7 +620,6 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   }
 
   passParams.CascadeSplitDistances =Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
-  RENDERMANAGER.GetGroupBuffer(mFrameCount)->PassInfo->PushData(&passParams, sizeof(PassParams));
 }
 
 void RenderSystem::RenderGBuffer() {
@@ -723,18 +734,24 @@ void RenderSystem::RenderShadowCamera(Entity &light, LightComponent *lightCompon
 
   shared_ptr<Shader> defaultShadowShader = RESOURCEMANAGER.Get<Shader>(L"Shadow");
   shared_ptr<Shader> terrainShadowShader = RESOURCEMANAGER.Get<Shader>(L"TerrainShadow");
-  defaultShadowShader->Update();
-
+  shared_ptr<Shader> terrainShader = RESOURCEMANAGER.Get<Shader>(L"Terrain");
+  int32 lastShadowShader = -1;
   for (auto &drawBatch : mDeferredDrawBatchs) {
     if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::DEFERRED &&
         drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD) {
       continue;
     }
 
-    if (drawBatch.PSOShader == RESOURCEMANAGER.Get<Shader>(L"Terrain"))
-      terrainShadowShader->Update();
-    else
-      defaultShadowShader->Update();
+    const int32 shadowShaderType =
+        (drawBatch.PSOShader == terrainShader) ? 1 : 0;
+    if (shadowShaderType != lastShadowShader) {
+        if (shadowShaderType == 1)
+            continue;
+        else
+            defaultShadowShader->Update();
+
+        lastShadowShader = shadowShaderType;
+    }
 
     dum.BaseInstance = drawBatch.BaseInstance;
     dum.InstanceCount = drawBatch.InstanceCount;

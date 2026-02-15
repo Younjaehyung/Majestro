@@ -47,16 +47,28 @@ float ComputeBodyBlendWeight(const string& boneName)
 		lower.find("leg") != string::npos || lower.find("ik_foot") != string::npos)
 		return 0.f;
 
+
+
+
+
+	if (lower.find("spine1") != string::npos)
+		return .7f;
+	if (lower.find("spine2") != string::npos)
+		return .9f;
+
+	if (lower.find("spine3") != string::npos)
+		return 1.0f;
+
 	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
-		return 0.25f;
+		return .5f;
 
 	if (lower.find("finger") != string::npos || lower.find("chest") != string::npos ||
 		lower.find("neck") != string::npos || lower.find("head") != string::npos ||
 		lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos ||
 		lower.find("arm") != string::npos || lower.find("hand") != string::npos)
-		return 1.f;
+		return 1.0f;
 
-	return 1.f;
+	return 0.5f;
 }
 
 FBXMaterialInfo FBXData::ReadMaterialData(std::ifstream& file)

@@ -83,6 +83,23 @@ struct ANIMINSTANCE
     float BlendWeight;
     uint BlendMaskStart;
     uint BlendMaskEnd;
+    uint BlendMode;
+
+    uint UpperAnimClipIdx;
+    uint UpperCurrentFrame;
+    uint UpperNextFrame;
+    float UpperRatio;
+
+    uint UpperBlendClipIdx;
+    uint UpperBlendCurrentFrame;
+    uint UpperBlendNextFrame;
+    float UpperBlendRatio;
+
+    float UpperBlendWeight;
+    float UpperLayerWeight;
+    uint UpperMaskStart;
+    uint UpperMaskEnd;
+    uint UpperBlendMode;
 };
 
 struct ANIMFRAMEPARAMS

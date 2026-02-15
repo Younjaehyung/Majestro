@@ -28,8 +28,29 @@ struct AnimationInstance {
 	float	BlendWeight{};		// 0~1 (0이면 현재 클립만 사용)
 	uint32	BlendMaskStart{};	// 블렌드 마스크 시작 본 인덱스
 	uint32	BlendMaskEnd{};		// 블렌드 마스크 끝 본 인덱스(포함)
-};								
+	uint32	BlendMode{};		// 0: Override, 1: Additive
 
+	uint32	UpperAnimClipIdx{};
+	uint32	UpperCurrentFrame{};
+	uint32	UpperNextFrame{};
+	float	UpperRatio{};
+
+	uint32	UpperBlendClipIdx{};
+	uint32	UpperBlendCurrentFrame{};
+	uint32	UpperBlendNextFrame{};
+	float	UpperBlendRatio{};
+
+	float	UpperBlendWeight{};
+	float	UpperLayerWeight{};
+	uint32	UpperMaskStart{};
+	uint32	UpperMaskEnd{};
+	uint32	UpperBlendMode{};
+};								
+enum class AnimBlendMode : uint32
+{
+	Override = 0,
+	Additive = 1,
+};
 
 struct AnimatorParams
 {
@@ -65,7 +86,23 @@ public:
 	float							mBlendDuration = 0.2f;
 	float							mBlendWeight = 0.f;
 	uint32							mBlendMaskStart = 0;	// 상하체 보간용
-	uint32							mBlendMaskEnd = 0;	
+	uint32							mBlendMaskEnd = 0;
+	AnimBlendMode				mBlendMode = AnimBlendMode::Override;
+
+	bool							mEnableUpperBodyLayer = false;
+	uint32							mUpperAnimClipIdx{};
+	uint32							mUpperBlendClipIdx{};
+
+	float							mUpperUpdateTime = 0.f;
+	float							mUpperBlendUpdateTime = 0.f;
+	float							mUpperBlendTimer = 0.f;
+	float							mUpperBlendDuration = 0.5f;
+	float							mUpperBlendWeight = 0.f;
+	float							mUpperLayerWeight = 1.f;
+	uint32							mUpperBlendMaskStart = 4;
+	uint32							mUpperBlendMaskEnd = 46;
+	AnimBlendMode				mUpperBlendMode = AnimBlendMode::Override;
+
 
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;

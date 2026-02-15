@@ -96,11 +96,11 @@ public:
 	float							mUpperUpdateTime = 0.f;
 	float							mUpperBlendUpdateTime = 0.f;
 	float							mUpperBlendTimer = 0.f;
-	float							mUpperBlendDuration = 0.5f;
+	float							mUpperBlendDuration = 0.2f;
 	float							mUpperBlendWeight = 0.f;
 	float							mUpperLayerWeight = 1.f;
-	uint32							mUpperBlendMaskStart = 4;
-	uint32							mUpperBlendMaskEnd = 46;
+	uint32							mUpperBlendMaskStart = 2;
+	uint32							mUpperBlendMaskEnd = 61;
 	AnimBlendMode				mUpperBlendMode = AnimBlendMode::Override;
 
 

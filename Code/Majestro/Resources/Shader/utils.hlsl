@@ -3,7 +3,7 @@
 
 
 #include "params.hlsl"
-
+#include "math.hlsl"
 
 
 // Y축 회전 행렬(간단 버전)
@@ -298,6 +298,63 @@ bool IsExactIdentity(float4x4 M)
            all(M[3] == float4(0, 0, 0, 1));
 }
 
+float4 QuaternionConjugate(float4 q)
+{
+    return float4(-q.xyz, q.w);
+}
+
+float4 QuaternionMultiply(float4 q1, float4 q2)
+{
+    return normalize(float4(
+        q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+        q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x,
+        q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w,
+        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z));
+}
+
+
+// 애니메이션 샘플링 함수 (코드 중복 제거)
+void SampleAnimation(
+    uint boneIndex,
+    uint frameCount,
+    uint currentFrame,
+    uint nextFrame,
+    float ratio,
+    uint animOffset,
+    out float4 outScale,
+    out float4 outRotation,
+    out float4 outTranslation)
+{
+    uint idx = boneIndex * frameCount + currentFrame + animOffset;
+    uint nextIdx = boneIndex * frameCount + nextFrame + animOffset;
+    
+    outScale = lerp(AnimationClip[idx].Scale, AnimationClip[nextIdx].Scale, ratio);
+    outRotation = QuaternionSlerp(AnimationClip[idx].Rotation, AnimationClip[nextIdx].Rotation, ratio);
+    outTranslation = lerp(AnimationClip[idx].Translation, AnimationClip[nextIdx].Translation, ratio);
+}
+
+// 경계 영역 블렌딩 가중치 계산 (상하체 분리용)
+float CalculateBlendWeight(uint boneIndex, uint rangeStart, uint rangeEnd, float featherRange)
+{
+    if (rangeEnd <= rangeStart)
+        return 0.0f;
+    
+    float b = (float) boneIndex;
+    float s = (float) rangeStart;
+    float e = (float) rangeEnd;
+    
+    // 범위 밖이면 0
+    if (b < s - featherRange || b > e + featherRange)
+        return 0.0f;
+    
+    // 상승 구간 (rangeStart 이전부터 부드럽게 증가)
+    float rise = saturate((b - (s - featherRange)) / featherRange);
+    
+    // 하강 구간 (rangeEnd 이후로 부드럽게 감소)
+    float fall = saturate(((e + featherRange) - b) / featherRange);
+    
+    return rise * fall;
+}
 
 void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
     inout float4 weight, inout float4 indices, in uint skelBaseIdx)

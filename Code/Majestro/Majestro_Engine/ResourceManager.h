@@ -49,7 +49,7 @@ public:
 	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
 
 	shared_ptr<FBXData>		LoadFBX(const wstring& path);
-	shared_ptr<FBXData> LoadFBXMesh(const wstring& path);
+	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path);
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
 	LevelImportData  LoadResourceJson(const wstring& path);

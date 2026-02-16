@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "Object.h"
-
+#include "LevelImport.h"
 class Texture;
 class RAW;
 class Prefab;
@@ -41,8 +41,9 @@ public:
 
 
 public:
+	
 	void LoadResources();
-
+	LevelImportData LoadResourceJson(const std::wstring& path);
 	shared_ptr<FBX>& LoadFBXMeshes(const wstring& path);
 
 public:

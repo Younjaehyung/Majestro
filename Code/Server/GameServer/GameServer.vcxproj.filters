@@ -189,9 +189,14 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
-    <ClCompile Include="FBX.cpp" />
     <ClCompile Include="PhysicsWorld.cpp">
       <Filter>Base\World</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelImport.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="FBX.cpp">
+      <Filter>Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -330,9 +335,14 @@
     <ClInclude Include="Mesh.h">
       <Filter>Resource</Filter>
     </ClInclude>
-    <ClInclude Include="FBX.h" />
     <ClInclude Include="PhysicsWorld.h">
       <Filter>Base\World</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelImport.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="FBX.h">
+      <Filter>Resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

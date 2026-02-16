@@ -8,7 +8,7 @@ using json = nlohmann::json;
 
 struct Basis
 {
-    Vec3 forward; // Z축으로 쓸지, forward로 쓸지는 엔진 규약에 맞춰 처리
+    Vec3 forward; 
     Vec3 right;
     Vec3 up;
 };
@@ -18,7 +18,7 @@ struct TransformData
     Vec3 position;
     Vec3 scale;
 	Vec3 rotation; // UE Euler 각도(디버깅/매핑용)
-    Basis basis;   // 회전은 basis로 안전하게 전달(UE Euler 함정 회피)
+    Basis basis;   
 };
 
 struct MeshInstance
@@ -32,7 +32,7 @@ struct MeshInstance
 
 	TransformData ue;            // ue 기준(transform.ue)
     TransformData world;         // dx 기준(transform.dx)
-    Matrix worldMtx; // [수정] DX12에 바로 넣을 월드행렬 캐시
+    Matrix worldMtx; //  DX12에 바로 넣을 월드행렬 캐시
 };
 
 struct LevelImportData
@@ -42,7 +42,7 @@ struct LevelImportData
     std::vector<MeshInstance> instances;
 };
 
-// 안전 파싱 유틸: 키 없으면 예외 (너 성격상 "틀리면 바로 잡자"라서 강경하게 감)
+
 static const json& Require(const json& j, const char* key)
 {
     auto it = j.find(key);
@@ -101,9 +101,9 @@ static TransformData ParseUETransform(const json& jUe, float positionUnitScale)
 {
     TransformData t{};
     t.position = ParseVec3(Require(jUe, "location_cm"));
-    //t.position = MulVec3(t.position, positionUnitScale); // 단위 변환 적용
+
     t.scale = ParseVec3(Require(jUe, "scale"));
-	t.rotation = ParseRot3(Require(jUe, "rotation_deg")); // Euler 각도(디버깅/매핑용)
+	t.rotation = ParseRot3(Require(jUe, "rotation_deg")); 
     t.basis = ParseBasis(Require(jUe, "basis"));
     return t;
 }
@@ -127,7 +127,7 @@ static inline Basis ConvertUeToDx(const Basis& b)
 
 static inline Vec3 NormalizeVec3(const Vec3& v)
 {
-    // [수정] basis 안정화를 위해 정규화 함수 추가
+
     DirectX::XMVECTOR vv = DirectX::XMVectorSet(v.x, v.y, v.z, 0.f);
     vv = DirectX::XMVector3Normalize(vv);
     Vec3 out{};
@@ -166,34 +166,28 @@ static inline Vec3 MulVec3(const Vec3& a, float s)
 
 static inline void OrthonormalizeBasis(Basis& b)
 {
-    // [수정] basis가 약간 틀어져도 월드행렬이 안정적으로 나오게 직교정규화
-    // 엔진 좌표계: X=right, Y=up, Z=forward(+Z) (우수계로 가정: right = up x forward)
-
+  
     b.forward = NormalizeVec3(b.forward);
 
-    // up에서 forward 성분 제거(Gram-Schmidt)
+
     b.up = SubVec3(b.up, MulVec3(b.forward, DotVec3(b.up, b.forward)));
     b.up = NormalizeVec3(b.up);
 
-    // right = up x forward  (X=right, Y=up, Z=forward(+Z) 일 때 가장 자연스러운 정의)
+  
     b.right = CrossVec3(b.up, b.forward);
     b.right = NormalizeVec3(b.right);
 
-    // forward도 다시 보정 (forward = right x up)
+  
     b.forward = CrossVec3(b.right, b.up);
     b.forward = NormalizeVec3(b.forward);
 }
 
-// [수정] "row-vector(v*M) + S*R*T" 기준으로 회전행렬 구성
-// row0 = right, row1 = up, row2 = forward
 static inline DirectX::XMMATRIX MakeRotation_RowBasis(const Basis& basis)
 {
     const Vec3 r = basis.right;
     const Vec3 u = basis.up;
     const Vec3 f = basis.forward;
 
-    // [수정] 기존 코드는 (r.x, u.x, f.x) 식으로 들어가 사실상 column-basis 형태였음.
-    // 여기서는 row-basis로 확정한다.
     return DirectX::XMMATRIX(
         r.x, r.y, r.z, 0.f,
         u.x, u.y, u.z, 0.f,
@@ -242,51 +236,32 @@ static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fro
 
     Matrix matScale = Matrix::CreateScale(sx,sy,sz);
 
-    //Matrix matTranslation = Matrix::CreateTranslation(px,py,pz);
 
-	// X축 회전행렬 생성 예시
-	//Matrix RotateX = Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
-
+ 
     return worldCpu;
 
 
 }
 
-// ========== 구현 파일 ==========
 
-// ★ 수정: 언리얼 좌표를 DirectX로 변환
 static DirectX::XMFLOAT3 ConvertPosition(const Vec3& uePos)
 {
-    // 언리얼 FBX Export는 Z-up 좌표계
-    // FbxAxisSystem::DirectX.ConvertScene()는 이미 Y-up으로 변환함
 
-    // ★ 중요: FBX 메시는 이미 변환되었으므로, 
-    // 액터의 Transform도 같은 방식으로 변환해야 함
-
-    // 언리얼 (X-Forward, Y-Right, Z-Up)
-    // → DirectX (X-Right, Y-Up, Z-Forward)
 
     return DirectX::XMFLOAT3(
-        uePos.y,  // Unreal Y (Right) → DX X (Right)
-        uePos.z,  // Unreal Z (Up)    → DX Y (Up)
-        uePos.x   // Unreal X (Fwd)   → DX Z (Forward)
+        uePos.y,  // Unreal Y (Right)  DX X (Right)
+        uePos.z,  // Unreal Z (Up)     DX Y (Up)
+        uePos.x   // Unreal X (Fwd)    DX Z (Forward)
     );
-    // * 0.01f: cm → m 변환 (FBX를 cm로 export했다면)
+   
 }
 
 static DirectX::XMVECTOR ConvertRotation(const Vec3& ueRot)
 {
-    // 언리얼 회전: Pitch(Y축), Yaw(Z축), Roll(X축)
-    // DirectX 회전: X, Y, Z 순서
 
     float pitchRad = DirectX::XMConvertToRadians(ueRot.x);
     float yawRad = DirectX::XMConvertToRadians(ueRot.y);
     float rollRad = DirectX::XMConvertToRadians(ueRot.z);
-
-    // 좌표축 변환을 고려한 회전
-    // Unreal Pitch(Y) → DX Pitch(Z)
-    // Unreal Yaw(Z)   → DX Yaw(Y)
-    // Unreal Roll(X)  → DX Roll(X)
 
    return Quaternion::CreateFromYawPitchRoll(yawRad, pitchRad, rollRad);
 
@@ -297,9 +272,9 @@ static DirectX::XMFLOAT3 ConvertScale(const Vec3& ueScale)
 {
     // 스케일도 축 재배열
     return DirectX::XMFLOAT3(
-        ueScale.y,  // Y → X
-        ueScale.z,  // Z → Y
-        ueScale.x   // X → Z
+        ueScale.y,  
+        ueScale.z,  
+        ueScale.x   
     );
 }
 

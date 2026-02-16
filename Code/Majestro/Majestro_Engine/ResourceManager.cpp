@@ -444,21 +444,18 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 	if (root.contains("actual_export_root"))
 		out.actualExportRoot = root["actual_export_root"].get<std::string>();
 
-	// [수정] JSON units 처리
-	// UE exporter가 "units":"cm"로 박아놨음. 엔진이 cm면 1.0f, 엔진이 m면 0.01f로 바꿔라.
-	float positionUnitScale = 1.0f; // 기본: cm 그대로
+	float positionUnitScale = 1.0f;
 	if (root.contains("units"))
 	{
 		const std::string units = root["units"].get<std::string>();
 		if (units == "cm")
 		{
-			// 엔진 단위가 cm라면 1.0f 유지
-			// 엔진 단위가 m라면 아래를 0.01f로 바꿔야 함.
+	
 			positionUnitScale = 1.0f;
 		}
 		else if (units == "m")
 		{
-			// exporter가 m로 내보냈을 때를 대비
+			
 			positionUnitScale = 1.0f;
 		}
 	}
@@ -496,13 +493,12 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 					insts.staticMeshAsset = meshAsset;
 					insts.fbx = fbxPath;
 
-					// exporter JSON에서 instance는 inst_j["dx"]가 바로 있음
 					const auto& dx = Require(inst_j, "dx");
 					
 					insts.world = ParseDxTransform(dx);
 					//const auto& ue = Require(inst_j, "ue");
 					//insts.ue = ParseUETransform(inst_j, positionUnitScale);
-					// [수정] 로드 단계에서 월드행렬 생성 (DX12에 바로 사용 가능)
+
 					{
 						insts.worldMtx = BuildWorldMatrix_RowMajor(insts.world, false);// *Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
 						//insts.worldMtx = ConvertTransform(insts.ue) * 
@@ -527,11 +523,10 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 				inst.world = ParseDxTransform(dx);
 				//const auto& ue = Require(cwt, "ue");
 				//inst.ue = ParseUETransform(ue, positionUnitScale);
-				// [수정] 로드 단계에서 월드행렬 생성
+
 				{
 					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, false);// *Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
-					//inst.worldMtx = ConvertTransform(inst.ue) *
-					//	Matrix::CreateTranslation(Vec3(-4863.0f, -472.0f, 20647.0f)); // UE to DX 변환
+		
 
 
 				}

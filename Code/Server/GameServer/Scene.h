@@ -10,9 +10,9 @@ public:
 	void Initialize();
 
 	void Update(float deltaTime);
+	void LoadJsonLevel(const wstring& path);
 
 	const shared_ptr<World>& GetWorld() { return mWorld; }
-
 
 
 private:

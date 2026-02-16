@@ -35,6 +35,8 @@ public:
 	void CreateCollisionMesh(FBXBMeshInfo& f);
 
 	void SetPath(const std::string& path) { mPath = path; }
+
+	BoundingOrientedBox GetOBB() const { return mOBB; }
 private:
 	BoundingOrientedBox mOBB;
 

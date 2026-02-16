@@ -74,6 +74,8 @@ public:
 	vector<shared_ptr<Mesh>>& CreateMeshFromFBX(ifstream& loader);
 	vector<shared_ptr<CollisionMesh>>& CreateColliderFromFBX(ifstream& loader);
 
+	vector<shared_ptr<Mesh>>				GetMeshs() { return mMeshs; }
+	vector<shared_ptr<CollisionMesh>>		GetColliders() { return mColliders; }
 private:
 
 	std::string						mPath;

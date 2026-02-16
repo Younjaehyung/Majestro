@@ -9,6 +9,7 @@
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
 {
+	mPhase = SysPhase::Post;
 }
 
 void NetSendSystem::Update(float dt)

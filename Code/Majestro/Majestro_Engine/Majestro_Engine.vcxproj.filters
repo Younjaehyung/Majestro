@@ -142,6 +142,9 @@
     <Filter Include="World\System\Logic\Move">
       <UniqueIdentifier>{738b7ce8-1ffc-4712-b713-1f0fdfec12e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\Shadow">
+      <UniqueIdentifier>{0edf9506-908b-4443-a394-a320e664f31b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -701,12 +704,6 @@
     <FxCompile Include="..\Resources\Shader\lighting_point_VS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\shadow_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\shadow_VS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_PS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
@@ -776,11 +773,17 @@
     <FxCompile Include="..\Resources\Shader\UI_PS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\TerrainShadow_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+    <FxCompile Include="..\Resources\Shader\shadow_PS.hlsl">
+      <Filter>World\Resource\Shader\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\shadow_VS.hlsl">
+      <Filter>World\Resource\Shader\Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\TerrainShadow_DS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\TerrainShadow_PS.hlsl">
+      <Filter>World\Resource\Shader\Shadow</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -10,6 +10,7 @@
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
+	mPhase = SysPhase::Pre;
 }
 
 void NetRecvSystem::Update(float dt)

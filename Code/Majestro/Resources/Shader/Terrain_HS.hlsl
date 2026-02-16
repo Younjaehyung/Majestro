@@ -57,9 +57,9 @@ PatchTess ConstantHS(InputPatch<VS_OUT, 3> input, int patchID : SV_PrimitiveID)
     float3 cameraPos = PassParams.MatViewInv[3].xyz; 
 
 
-    float edge0TessLevel = CalculateTessLevel(cameraPos, edge0Pos, minDistance, maxDistance, 4.f);
-    float edge1TessLevel = CalculateTessLevel(cameraPos, edge1Pos, minDistance, maxDistance, 4.f);
-    float edge2TessLevel = CalculateTessLevel(cameraPos, edge2Pos, minDistance, maxDistance, 4.f);
+    float edge0TessLevel = CalculateTessLevel(cameraPos, edge0Pos, minDistance, maxDistance, PassParams.MaxTessLevel);
+    float edge1TessLevel = CalculateTessLevel(cameraPos, edge1Pos, minDistance, maxDistance, PassParams.MaxTessLevel);
+    float edge2TessLevel = CalculateTessLevel(cameraPos, edge2Pos, minDistance, maxDistance, PassParams.MaxTessLevel);
 
 
     output.edgeTess[0] = edge0TessLevel;

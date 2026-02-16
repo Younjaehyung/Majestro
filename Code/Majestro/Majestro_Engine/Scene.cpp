@@ -437,7 +437,7 @@ void GameScene::Render()
 
 void Scene::LoadJsonLevel(const wstring& path)
 {
-	//RESOURCEMANAGER.Load<Texture>(L"normalgun", L"..\\Resources\\Texture\\MI_Trims_C_DarkGray_Normal_0.png");
+
 	int i = 0;
 	try
 	{

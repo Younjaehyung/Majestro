@@ -23,6 +23,7 @@ public:
     void Initialize() {
         mSystemManager = std::make_shared<SystemManager>(this);
 		mPhysicsWorld = std::make_shared<PhysicsWorld>();
+		mEventManager = std::make_shared<EventManager>();
     }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
 public:

@@ -4,7 +4,7 @@
 #include "NetEntityComponent.h"
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
-#include "BoxColliderComponent.h"
+#include "ColliderComponent.h"
 #include "MovementComponent.h"
 #include <unordered_set>
 

@@ -143,7 +143,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 {
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
-
+		shared_ptr<CollisionMesh> collisionMesh = make_shared<CollisionMesh>();
 		// === 1) .mesh ===
 
 		string meshName = ReadString(loader);
@@ -183,6 +183,12 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		mesh->CreateMesh(meshInfo);
 		mMeshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
+
+		
+		collisionMesh->SetName(s2ws(meshName));
+		collisionMesh->CreateMesh(meshInfo);
+		mColliders.push_back(collisionMesh);
+		RESOURCEMANAGER.Add<CollisionMesh>(collisionMesh->GetName(), collisionMesh);
 
 		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo);
 	}

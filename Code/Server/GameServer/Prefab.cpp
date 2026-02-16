@@ -14,7 +14,7 @@
 #include "TagComponent.h"
 #include "TerrainComponent.h"
 #include "TransformComponent.h"
-#include "BoxColliderComponent.h"
+#include "ColliderComponent.h"
 #include "EnemyComponent.h"
 #include "World.h"
 

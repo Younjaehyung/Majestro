@@ -10,7 +10,7 @@
 #include "LightComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
-
+#include "ColliderComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
@@ -73,7 +73,13 @@ void Scene::LoadJsonLevel(const wstring& path)
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
 
-			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, data->GetColliders().at(0)->GetOBB(), 0);
+			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, 
+				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
+
+			
+			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
+
+
 		}
 	}
 	catch (const std::exception& e)

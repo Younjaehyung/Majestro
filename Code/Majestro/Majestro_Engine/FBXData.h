@@ -1,6 +1,6 @@
 #pragma once
 #include "Object.h"
-
+class CollisionMesh;
 static string ReadString(std::ifstream& file);
 
 struct BoneWeight
@@ -130,7 +130,7 @@ public:
 public:
 	const vector<shared_ptr<class Mesh>>& GetMeshs() const { return mMeshs; }
 	const vector<shared_ptr<class Material>>& GetMaterials() const { return mMaterials; }
-
+	const vector<shared_ptr<CollisionMesh>>& GetColliders() const { return mColliders; }
 private:
 	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo);
 	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader);
@@ -146,6 +146,8 @@ private:
 	vector<shared_ptr<Material>>	mMaterials;
 	shared_ptr<Skeleton>			mSkeleton;
 	vector<shared_ptr<Animator>>	mAnimators;
+
+	vector<shared_ptr<CollisionMesh>> mColliders;
 
 };
 

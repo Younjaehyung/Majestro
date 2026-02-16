@@ -3,7 +3,7 @@
 #include "ResourceManager.h"
 #include "CollisionSystem.h"
 #include "TransformComponent.h"
-#include "BoxColliderComponent.h"
+#include "ColliderComponent.h"
 #include "MovementComponent.h"
 #include "InputComponent.h"
 #include "TagComponent.h"

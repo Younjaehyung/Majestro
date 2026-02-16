@@ -198,6 +198,9 @@
     <ClCompile Include="FBX.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
+    <ClCompile Include="ColliderComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -343,6 +346,9 @@
     </ClInclude>
     <ClInclude Include="FBX.h">
       <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="ColliderComponent.h">
+      <Filter>Component\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

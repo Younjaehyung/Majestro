@@ -22,6 +22,7 @@
 #include "MovementComponent.h"
 #include "NetSendSystem.h"
 #include "VfxComponent.h"
+#include "BoxColliderComponent.h"
 #include "Prefab.h"
 
 //#include "Camera.h"
@@ -479,7 +480,15 @@ void Scene::LoadJsonLevel(const wstring& path)
 			render.mMaterials = data->GetMaterials();
 
 			render.mMesh = data->GetMeshs().at(0);
-			
+
+
+			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
+
+
+			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
+
+
 
 		}
 	}

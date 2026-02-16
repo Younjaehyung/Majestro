@@ -5,6 +5,8 @@
 #include "MovementComponent.h"
 #include "NetTransformComponent.h"
 #include "TagComponent.h"
+#include "Engine.h"
+#include "Timer.h"
 
 NetInterpolationSystem::NetInterpolationSystem(World* world) : System(world)
 {
@@ -33,10 +35,26 @@ void NetInterpolationSystem::Update(float dt)
 			transform->mLocalRotationE = Vec3::Lerp(netTransform->mStartRotation, netTransform->mTargetRotation, t);
 		}
 		else {
-			transform->mLocalPosition = netTransform->mTargetPosition;
-			transform->mLocalRotationE = netTransform->mTargetRotation;
+
+			NetSnapshot snapshot;
+			snapshot.pos = netTransform->mTargetPosition;
+			snapshot.rotQ = netTransform->mTargetRotationQ; // 또는 Euler로 변환해서 저장
+			
+			snapshot.serverTick = netTransform->mLastSequence; // 또는 실제 서버 시간
+            snapshot.vel = netTransform->mVelocity;
+			netTransform->SetServerHz(60.0);
+			netTransform->SetSnapshotRateHz(20.0);
+			netTransform->OnSnapshot(snapshot, netTransform->mLastUpdateTime);
+			netTransform->UpdateRender(TIMER.GetTotalTime());
+			Vec3 rotE = netTransform->mRenderRotQ.ToEuler();
+			
+			transform->mLocalPosition = netTransform->mRenderPos;
+			transform->mLocalRotationE = { DirectX::XMConvertToDegrees(rotE.x),DirectX::XMConvertToDegrees(rotE.y),DirectX::XMConvertToDegrees(rotE.z) };
+		 
+			std::cout << netTransform->mTargetRotation.x << ", " << netTransform->mTargetRotation.y << ", " << netTransform->mTargetRotation.z << std::endl;
 		}
-		
+        
+
 
 		//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
 		//if (movementComponent) {

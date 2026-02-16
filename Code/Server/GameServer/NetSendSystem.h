@@ -23,5 +23,7 @@ private:
 	static constexpr int mMaxMoveBurst = 4;
 	float mMoveSendAccumulator = 0.0f;
 	float mMoveSendInterval = 1.0f / mMoveSendHz;
+
+	uint32 mSequence = 0;
 };
 

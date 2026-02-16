@@ -5,6 +5,7 @@
 #include "SceneManager.h"
 #include "Scene.h"
 #include "World.h"
+#include "Timer.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "NetIdMap.h"
@@ -90,6 +91,13 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 		netcomp->mTargetPosition.z = movePacket->z;
 		netcomp->mTargetRotation.y = movePacket->yaw;
 		netcomp->mTargetRotation.x = movePacket->pitch;
+		netcomp->mTargetRotationQ.x = movePacket->rx;
+		netcomp->mTargetRotationQ.y = movePacket->ry;
+		netcomp->mTargetRotationQ.z = movePacket->rz;
+		netcomp->mTargetRotationQ.w = movePacket->rw;
+		netcomp->mLastSequence = movePacket->Sequence;
+		netcomp->mLastUpdateTime = TIMER.GetTotalTime();
+		netcomp->mVelocity = Vec3(movePacket->vx, movePacket->vy, movePacket->vz);
         netcomp->mHasTarget = true;
 		/*std::cout << "Move Packet Processed for Entity: " <<" "<<
 			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;*/

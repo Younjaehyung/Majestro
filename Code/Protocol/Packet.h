@@ -1,5 +1,7 @@
 #pragma once
 
+static uint32 ServerTick = 0;
+
 #pragma pack(push, 1)
 
 ////////////////////////////////////////////
@@ -63,6 +65,7 @@ struct PacketUdpHeader {
 	PacketUdpHeader() = default;
 	PacketUdpHeader(uint32 size, PKT_Type type, uint32 sessId, uint32 seq)
 		: Header(size, type), SessionId(sessId), Sequence(seq) {
+		Sequence = ++ServerTick;
 	}
 };
 
@@ -191,6 +194,7 @@ struct S2C_MovePacket : public PacketUdpHeader {
 	uint32_t netEntityId{};
 	float    x{}, y{}, z{};
 	float   yaw{}, pitch{};
+	float	rx, ry, rz, rw; // rotation quaternion
 	float    vx{}, vy{}, vz{};
 	S2C_MovePacket() : PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 } {}
 	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle)

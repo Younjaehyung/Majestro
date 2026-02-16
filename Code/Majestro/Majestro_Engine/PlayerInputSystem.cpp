@@ -87,9 +87,6 @@ void PlayerInputSystem::Update(float dt)
 	movementComponent->mAttack = INPUT.GetMouseState().LeftDown;
 	movementComponent->mSkill1 = INPUT.GetKey(eKeyCode::Q);
 	movementComponent->mSkill2 = INPUT.GetKey(eKeyCode::E);
-	if (INPUT.GetMouseState().RightDown) {
-		cout << "rrrrrrrrr" << endl;
-	}
 	movementComponent->mSpecial = INPUT.GetMouseState().RightDown;
 
 	if (INPUT.GetKey(eKeyCode::A)) {

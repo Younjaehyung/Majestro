@@ -5,6 +5,7 @@
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
 #include "BoxColliderComponent.h"
+#include "MovementComponent.h"
 #include <unordered_set>
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
@@ -50,6 +51,8 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 		{
 
 			TransformComponent* transComp = mWorld->GetComponent<TransformComponent>(netComp->mOwnerEntity);
+
+			EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(netComp->mOwnerEntity);
 			/*seq->SessionId = 0;
 			seq->Type = S2C_PKT_MOVE;
 			seq->Size = sizeof(S2C_MovePacket);*/
@@ -60,6 +63,10 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 			movePkt.y = transComp->mWorldPosition.y;
 			movePkt.z = transComp->mWorldPosition.z;
 
+			movePkt.vx = transComp->mMovingVector.x;
+			movePkt.vy = transComp->mMovingVector.y;
+			movePkt.vz = transComp->mMovingVector.z;
+			
 			movePkt.yaw = transComp->mLocalRotationE.y;
 			movePkt.pitch = transComp->mLocalRotationE.x;
 			seq->StoreAs<S2C_MovePacket>(movePkt);

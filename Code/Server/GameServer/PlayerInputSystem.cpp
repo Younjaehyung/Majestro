@@ -25,13 +25,10 @@ void PlayerInputSystem::Initialize()
 void PlayerInputSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
-	//player move
 
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
-	//std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
 
 	for (auto& e : entitys) {
-		//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(e);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(e);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(e);
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
@@ -51,19 +48,15 @@ void PlayerInputSystem::Update(float dt)
 
 		if (inputComp->MoveX == -1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			//movementComponent->mMovingDirection.x -= 1;
 		}
 		if (inputComp->MoveZ == 1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			//movementComponent->mMovingDirection.z += 1;
 		}
 		if (inputComp->MoveZ == -1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			//movementComponent->mMovingDirection.z -= 1;
 		}
 		if (inputComp->MoveX == 1) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-			//movementComponent->mMovingDirection.x += 1;
 		}
 
 
@@ -91,12 +84,10 @@ void PlayerInputSystem::Update(float dt)
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
 			std::cout << "skill1" << std::endl;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
-			//movementComponent->mMovingDirection.y -= 1;
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
 			std::cout << "skill2" << std::endl;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
-			//movementComponent->mMovingDirection.y += 1;
 		}
 
 

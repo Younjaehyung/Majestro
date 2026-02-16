@@ -7,6 +7,7 @@ class PlayerMovementComponent : public Component<PlayerMovementComponent>
 {
 public:
 	Vec3 mMovingDirection;
+
 	bool mJump = false;
 
 	Vec2 mCameraView;
@@ -19,5 +20,6 @@ class EnemyMovementComponent : public Component<EnemyMovementComponent>
 {
 public:
 	Vec3 mMovingDirection;
+	float mMovingSpeed = 50.0f;
 	bool mJump = false;
 };

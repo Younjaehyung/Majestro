@@ -113,7 +113,8 @@ void MovementSystem::Update(float dt) {
 				if (desired.LengthSquared() > 0.0001f)
 					desired.Normalize();
 
-				transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
+				transformComponent->mMovingVector = desired * dt * mainPlayerComponent->mSpeed;
+				transformComponent->mLocalPosition += transformComponent->mMovingVector;
 
 				transformComponent->mLocalRotationE.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
 
@@ -167,8 +168,8 @@ void MovementSystem::Update(float dt) {
 
 		if (!transformComponent || !enemyMovementComponent) continue;
 
-		
-		transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50.0f;
+		transformComponent->mMovingVector = enemyMovementComponent->mMovingDirection * dt * enemyMovementComponent->mMovingSpeed;
+		transformComponent->mLocalPosition += transformComponent->mMovingVector;
 
 		Vec3 dir = enemyMovementComponent->mMovingDirection;
 

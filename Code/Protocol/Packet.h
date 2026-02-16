@@ -191,10 +191,15 @@ struct S2C_MovePacket : public PacketUdpHeader {
 	uint32_t netEntityId{};
 	float    x{}, y{}, z{};
 	float   yaw{}, pitch{};
+	float    vx{}, vy{}, vz{};
 	S2C_MovePacket() : PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 } {}
-	S2C_MovePacket(uint32 sessId, uint32 seq, uint32_t entityId, float posX, float posY, float posZ, float rotY, float rotP)
-		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, sessId, seq },
-		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(rotY), pitch(rotP) {
+	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle)
+		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
+		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle) {
+	}
+	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float velX, float velY, float velZ)
+		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
+		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), vx(velX), vy(velY), vz(velZ) {
 	}
 };
 

@@ -7,6 +7,7 @@ enum class OBJECT_TYPE : uint8
 	TEXTURE,
 	RAW,
 	MESH,
+	COLLIDER,
 	FBX,
 	HEIGHTFIELD,
 

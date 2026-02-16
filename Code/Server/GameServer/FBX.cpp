@@ -35,7 +35,8 @@ void FBX::Load(const wstring& path)
 
 	if (std::ifstream f(filePath + ".mesh", std::ios::binary); f) {
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
-		CreateMeshFromFBX(f);
+		//CreateMeshFromFBX(f);
+		CreateColliderFromFBX(f);
 	}
 }
 
@@ -47,6 +48,7 @@ vector<shared_ptr<Mesh>>& FBX::CreateMeshFromFBX(ifstream& loader) {
 		// === 1) .mesh ===
 
 		string meshName = ReadString(loader);
+
 
 		FBXMeshInfo metaMeshInfo{};
 		loader.read(reinterpret_cast<char*>(&metaMeshInfo), sizeof(metaMeshInfo));
@@ -83,4 +85,51 @@ vector<shared_ptr<Mesh>>& FBX::CreateMeshFromFBX(ifstream& loader) {
 	loader.close();
 
 	return mMeshs;
+}
+
+vector<shared_ptr<CollisionMesh>>& FBX::CreateColliderFromFBX(ifstream& loader)
+{
+	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
+		shared_ptr<CollisionMesh> mesh = make_shared<CollisionMesh>();
+
+		// === 1) .mesh ===
+
+		string meshName = ReadString(loader);
+
+
+		FBXMeshInfo metaMeshInfo{};
+		loader.read(reinterpret_cast<char*>(&metaMeshInfo), sizeof(metaMeshInfo));
+
+		FBXBMeshInfo meshInfo;
+
+		// Mesh Load
+		static_assert(std::is_trivially_copyable_v<Vertex>,
+			"Vertex must be trivially copyable");
+		meshInfo.Vertices.resize(metaMeshInfo.VertexCount);
+
+		if (metaMeshInfo.VertexCount)
+			loader.read(reinterpret_cast<char*>(meshInfo.Vertices.data()),
+				sizeof(Vertex) * metaMeshInfo.VertexCount);
+
+		// Indices (by material) Load
+		meshInfo.Indices.resize(metaMeshInfo.MaterialCount);
+
+		for (uint32 s = 0; s < metaMeshInfo.MaterialCount; ++s)
+		{
+			uint32 ic = 0;
+			loader.read(reinterpret_cast<char*>(&ic), sizeof(ic));
+			meshInfo.Indices[s].resize(ic);
+
+			if (ic)
+				loader.read(reinterpret_cast<char*>(meshInfo.Indices[s].data()),
+					sizeof(uint32) * ic);
+		}
+		mesh->SetName(s2ws(meshName));
+		mesh->CreateCollisionMesh(meshInfo);
+		mColliders.push_back(mesh);
+		RESOURCEMANAGER.Add<CollisionMesh>(mesh->GetName(), mesh);
+	}
+	loader.close();
+
+	return mColliders;
 }

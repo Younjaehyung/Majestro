@@ -2,6 +2,7 @@
 #include "Object.h"
 
 class Mesh;
+class CollisionMesh;
 
 static string ReadString(std::ifstream& file);
 
@@ -71,12 +72,14 @@ public:
 	
 	void Load(const wstring& path);
 	vector<shared_ptr<Mesh>>& CreateMeshFromFBX(ifstream& loader);
+	vector<shared_ptr<CollisionMesh>>& CreateColliderFromFBX(ifstream& loader);
 
 private:
 
 	std::string						mPath;
 
-	FBXFileHeader					mHeader{};
-	vector<shared_ptr<Mesh>>		mMeshs;
+	FBXFileHeader							mHeader{};
+	vector<shared_ptr<Mesh>>				mMeshs;
+	vector<shared_ptr<CollisionMesh>>		mColliders;
 };
 

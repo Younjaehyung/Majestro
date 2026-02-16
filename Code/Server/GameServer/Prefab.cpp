@@ -99,8 +99,8 @@ TerrainPrefab::TerrainPrefab(World *world) {
   TransformComponent bt{};
   bt.mLocalScale = Vec3(100.f,100.f,100.f);
 
-  bt.mLocalPosition = Vec3(-0.5 * 505 * 100, -27.6f, -0.5 * 505 * 100);
-
+  //bt.mLocalPosition = Vec3(-0.5 * 505 * 100, -27.6f, -0.5 * 505 * 100);
+  bt.mLocalPosition = Vec3(-0.5f * 504.f * 100.f, -27.6f, -0.5f * 504.f * 100.f);
   world->AddComponent<TransformComponent>(mEntityID, bt);
 
   auto heightField = std::make_shared<HeightField>();
@@ -111,7 +111,7 @@ TerrainPrefab::TerrainPrefab(World *world) {
   // Add<HeightField>(L"TerrainHeightField", heightField);
 
   TerrainComponent &terrainc =
-      world->AddComponent<TerrainComponent>(mEntityID, 505, 505, heightField);
+      world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightField);
   terrainc.mTerrainWorldPosition = bt.mLocalPosition;
   terrainc.mTerrainWorldScale = bt.mLocalScale;
 }

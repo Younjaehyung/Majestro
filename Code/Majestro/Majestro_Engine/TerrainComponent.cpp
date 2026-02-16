@@ -15,7 +15,7 @@ TerrainComponent::TerrainComponent(int width, int depth, shared_ptr<Material>& m
 		.MinMaxTessDistance = Vec2(100.f , 5000.f),
 
 
-		.MaxTessLevel = 3.0f,
+		.MaxTessLevel = 8.0f,
 		.HeightMapResolution = Vec2(heightMap->GetWidth() , heightMap->GetHeight())
 	};
 

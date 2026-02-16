@@ -16,11 +16,12 @@ class EntityView;
 class World {
 public:
     World() : mNextEntityID(1) {
+        mPhysicsWorld = std::make_shared<PhysicsWorld>();
+        mEventManager = make_shared<EventManager>();
     }
     void Initialize() {
         mSystemManager = std::make_shared<SystemManager>(this);
-		mPhysicsWorld = std::make_shared<PhysicsWorld>();
-        mEventManager = make_shared<EventManager>();
+		
     }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }

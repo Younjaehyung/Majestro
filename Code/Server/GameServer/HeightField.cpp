@@ -133,25 +133,33 @@ void HeightField::FlipVertically() {
 }
 
 float HeightField::GetHeightValue(float u, float v) const {
+    if (mWidth <= 0 || mHeight <= 0 || mSamples.empty())
+        return 0.0f;
   u = std::clamp(u, 0.0f, 1.0f);
   v = std::clamp(v, 0.0f, 1.0f);
-  float fx = u * (mWidth - 1);
-  float fy = v * (mHeight - 1);
-  uint32 x0 = static_cast<uint32>(fx);
-  uint32 y0 = static_cast<uint32>(fy);
-  uint32 x1 = min(x0 + 1, static_cast<uint32>(mWidth - 1));
-  uint32 y1 = min(y0 + 1, static_cast<uint32>(mHeight - 1));
+  const float fx = u * static_cast<float>(mWidth) - 0.5f;
+  const float fy = v * static_cast<float>(mHeight) - 0.5f;
 
-  float tx = fx - x0;
-  float ty = fy - y0;
+  const int x0 = static_cast<int>(floorf(fx));
+  const int y0 = static_cast<int>(floorf(fy));
+  const int x1 = x0 + 1;
+  const int y1 = y0 + 1;
 
-  float h00 = GetHeightValuePixel(x0, y0);
-  float h10 = GetHeightValuePixel(x1, y0);
-  float h01 = GetHeightValuePixel(x0, y1);
-  float h11 = GetHeightValuePixel(x1, y1);
+  const int cx0 = std::clamp(x0, 0, mWidth - 1);
+  const int cy0 = std::clamp(y0, 0, mHeight - 1);
+  const int cx1 = std::clamp(x1, 0, mWidth - 1);
+  const int cy1 = std::clamp(y1, 0, mHeight - 1);
 
-  float h0 = std::lerp(h00, h10, tx);
-  float h1 = std::lerp(h01, h11, tx);
+  const float tx = fx - floorf(fx);
+  const float ty = fy - floorf(fy);
+
+  const float h00 = GetHeightValuePixel(static_cast<float>(cx0), static_cast<float>(cy0));
+  const float h10 = GetHeightValuePixel(static_cast<float>(cx1), static_cast<float>(cy0));
+  const float h01 = GetHeightValuePixel(static_cast<float>(cx0), static_cast<float>(cy1));
+  const float h11 = GetHeightValuePixel(static_cast<float>(cx1), static_cast<float>(cy1));
+
+  const float h0 = std::lerp(h00, h10, tx);
+  const float h1 = std::lerp(h01, h11, tx);
   return std::lerp(h0, h1, ty);
 }
 

@@ -272,7 +272,7 @@ void GameScene::Initialize()
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
-	 //LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	// LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
@@ -480,14 +480,15 @@ void Scene::LoadJsonLevel(const wstring& path)
 			render.mMaterials = data->GetMaterials();
 
 			render.mMesh = data->GetMeshs().at(0);
-
-
-			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+			i++;
+			if (i == 1000)
+				break;
+			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
 				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
 
 
 			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-
+*/
 
 
 		}

@@ -51,7 +51,7 @@ void NetInterpolationSystem::Update(float dt)
 			transform->mLocalPosition = netTransform->mRenderPos;
 			transform->mLocalRotationE = { DirectX::XMConvertToDegrees(rotE.x),DirectX::XMConvertToDegrees(rotE.y),DirectX::XMConvertToDegrees(rotE.z) };
 		 
-			std::cout << netTransform->mTargetRotation.x << ", " << netTransform->mTargetRotation.y << ", " << netTransform->mTargetRotation.z << std::endl;
+			
 		}
         
 

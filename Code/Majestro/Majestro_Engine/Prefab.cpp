@@ -155,8 +155,12 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	case 2:
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010");
 		material2s.push_back(material2);
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack011");
+		material2s.push_back(material2);
+		/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
+		material2s.push_back(material2);*/
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));
@@ -164,7 +168,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Land"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));//dash
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack_01"));//dash
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack01"));//dash
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 		break;
 	}

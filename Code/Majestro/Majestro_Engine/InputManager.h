@@ -73,7 +73,9 @@ private:
 	HWND mHwnd;
 	bool mHasFocus = true; // 창이 활성화 상태인지
 	bool mMouseLookControl = false;
+	bool mForceMouseLookRequested = false;
 	MouseState mMouseState;
+
 
 	HCURSOR arrow = ::LoadCursor(nullptr, IDC_ARROW);
 

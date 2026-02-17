@@ -75,11 +75,6 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, 
 				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
-
-			
-			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-
-
 		}
 	}
 	catch (const std::exception& e)

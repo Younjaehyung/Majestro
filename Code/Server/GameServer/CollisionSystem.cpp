@@ -7,187 +7,23 @@
 #include "MovementComponent.h"
 #include "InputComponent.h"
 #include "TagComponent.h"
+#include "PhysicsWorld.h"
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstdint>
-#include <limits>
-#include <unordered_set>
-#include <vector>
 
-static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
-static void AvoidCollisionByMovementState(
-    World* world,
-    Entity a,
-    Entity b,
-    BoxColliderComponent* colA,
-    BoxColliderComponent* colB,
-    float deltaTime);
 
-namespace
+
+
+ CollisionSystem::CollisionSystem(World* world) : System(world)
 {
-    struct AABB2D
-    {
-        float minX;
-        float maxX;
-        float minZ;
-        float maxZ;
-    };
-
-    struct StaticProxy
-    {
-        Entity entity;
-        BoxColliderComponent* collider;
-        AABB2D bounds;
-    };
-
-    struct DynamicProxy
-    {
-        Entity entity;
-        BoxColliderComponent* collider;
-        AABB2D bounds;
-    };
-
-    struct BVHNode
-    {
-        AABB2D bounds;
-        int left = -1;
-        int right = -1;
-        int start = 0;
-        int count = 0;
-
-        bool IsLeaf() const
-        {
-            return left < 0 && right < 0;
-        }
-    };
-
-    AABB2D BuildAABBFromOBB(const BoundingOrientedBox& obb)
-    {
-        XMFLOAT3 corners[8];
-        obb.GetCorners(corners);
-
-        AABB2D bounds{ corners[0].x, corners[0].x, corners[0].z, corners[0].z };
-
-        for (const auto& c : corners)
-        {
-            bounds.minX = (std::min)(bounds.minX, c.x);
-            bounds.maxX = (std::max)(bounds.maxX, c.x);
-            bounds.minZ = (std::min)(bounds.minZ, c.z);
-            bounds.maxZ = (std::max)(bounds.maxZ, c.z);
-        }
-
-        return bounds;
-    }
-
-    AABB2D MergeAABB(const AABB2D& a, const AABB2D& b)
-    {
-        return AABB2D{
-            (std::min)(a.minX, b.minX),
-            (std::max)(a.maxX, b.maxX),
-            (std::min)(a.minZ, b.minZ),
-            (std::max)(a.maxZ, b.maxZ)
-        };
-    }
-
-    bool OverlapAABB(const AABB2D& a, const AABB2D& b)
-    {
-        if (a.maxX < b.minX || b.maxX < a.minX)
-            return false;
-        if (a.maxZ < b.minZ || b.maxZ < a.minZ)
-            return false;
-        return true;
-    }
-
-    int BuildStaticBVHRecursive(
-        std::vector<StaticProxy>& proxies,
-        std::vector<BVHNode>& nodes,
-        int start,
-        int count)
-    {
-        const int nodeIndex = static_cast<int>(nodes.size());
-        nodes.push_back(BVHNode{});
-
-        BVHNode& node = nodes[nodeIndex];
-        node.start = start;
-        node.count = count;
-        node.bounds = proxies[start].bounds;
-
-        for (int i = 1; i < count; ++i)
-        {
-            node.bounds = MergeAABB(node.bounds, proxies[start + i].bounds);
-        }
-
-        constexpr int kLeafSize = 4;
-        if (count <= kLeafSize)
-            return nodeIndex;
-
-        const float extentX = node.bounds.maxX - node.bounds.minX;
-        const float extentZ = node.bounds.maxZ - node.bounds.minZ;
-        const bool splitX = extentX >= extentZ;
-
-        const int mid = start + count / 2;
-        std::nth_element(
-            proxies.begin() + start,
-            proxies.begin() + mid,
-            proxies.begin() + start + count,
-            [splitX](const StaticProxy& lhs, const StaticProxy& rhs)
-            {
-                const float lhsCenter = splitX
-                    ? (lhs.bounds.minX + lhs.bounds.maxX) * 0.5f
-                    : (lhs.bounds.minZ + lhs.bounds.maxZ) * 0.5f;
-                const float rhsCenter = splitX
-                    ? (rhs.bounds.minX + rhs.bounds.maxX) * 0.5f
-                    : (rhs.bounds.minZ + rhs.bounds.maxZ) * 0.5f;
-                return lhsCenter < rhsCenter;
-            });
-
-        node.left = BuildStaticBVHRecursive(proxies, nodes, start, mid - start);
-        node.right = BuildStaticBVHRecursive(proxies, nodes, mid, start + count - mid);
-        node.count = 0;
-        return nodeIndex;
-    }
-
-    void QueryStaticBVH(
-        const std::vector<BVHNode>& nodes,
-        int root,
-        const AABB2D& query,
-        std::vector<int>& outIndices)
-    {
-        if (root < 0) return;
-
-        std::vector<int> stack;                 // [수정] 동적 스택으로 안전하게
-        stack.reserve(64);
-        stack.push_back(root);
-
-        while (!stack.empty())
-        {
-            const int nodeIndex = stack.back();
-            stack.pop_back();
-
-            const BVHNode& node = nodes[nodeIndex];
-
-            if (!OverlapAABB(node.bounds, query))
-                continue;
-
-            if (node.IsLeaf())
-            {
-                for (int i = 0; i < node.count; ++i)
-                    outIndices.push_back(node.start + i);
-                continue;
-            }
-
-            if (node.left >= 0)  stack.push_back(node.left);
-            if (node.right >= 0) stack.push_back(node.right);
-        }
-    }
+     mPhysicsWorld = mWorld->GetPhysicsWorld();
 }
 
-CollisionSystem::CollisionSystem(World* world) : System(world)
-{
 
-}
+ void CollisionSystem::Initialize()
+ {
+
+     
+ }
 
 void CollisionSystem::Update(float dt)
 {
@@ -234,7 +70,7 @@ void CollisionSystem::Movable2Movable(float deltaTime)
         if (col) col->bIsColliding = false;
         if (!tr || !col) continue;
 
-        UpdateWorldOBB(tr, col);
+        PhysicsWorld::UpdateWorldOBB(tr, col);
 
         XMFLOAT3 corners[8];
         col->mWorldOBB.GetCorners(corners);
@@ -466,26 +302,14 @@ void CollisionSystem::Movable2Static(float deltaTime)
     if (false == mWorld->HasComponentPool<StaticComponent>())return;
 
     auto dynamicEntities = mWorld->GetEntitiesWithComponents<MovableComponent, TransformComponent, BoxColliderComponent>();
-    auto staticEntities = mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, BoxColliderComponent>();
+    
 
-    std::vector<StaticProxy> staticObjects;
-    std::vector<DynamicProxy> dynamicObjects;
 
-    staticObjects.reserve(staticEntities.size());
-    dynamicObjects.reserve(dynamicEntities.size());
+    mDynamicObjects.clear();
 
-    for (auto e : staticEntities)
-    {
-        auto* tr = mWorld->GetComponent<TransformComponent>(e);
-        auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
-        if (!tr || !col)
-            continue;
+   // mDynamicObjects.reserve(dynamicEntities.size());
 
-        UpdateWorldOBB(tr, col);
-        const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
-
-        staticObjects.push_back(StaticProxy{ e, col, bounds });
-    }
+  
     for (auto e : dynamicEntities)
     {
         auto* tr = mWorld->GetComponent<TransformComponent>(e);
@@ -493,43 +317,39 @@ void CollisionSystem::Movable2Static(float deltaTime)
         if (!tr || !col)
             continue;
 
-        UpdateWorldOBB(tr, col);
-        const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
+        PhysicsWorld::UpdateWorldOBB(tr, col);
+        const AABB2D bounds = PhysicsWorld::BuildAABBFromOBB(col->mWorldOBB);
 
-        dynamicObjects.push_back(DynamicProxy{ e, col, bounds });
+        mDynamicObjects.push_back(DynamicProxy{ e, col, bounds });
     }
 
-    if (staticObjects.empty() || dynamicObjects.empty())
+    if (/*staticObjects.empty() ||*/ mDynamicObjects.empty())
         return;
 
-    std::vector<BVHNode> nodes;
-    nodes.reserve(staticObjects.size() * 2);
-
-    //1회만 실행하도록 수정
-    const int root = BuildStaticBVHRecursive(staticObjects, nodes, 0, static_cast<int>(staticObjects.size()));
+    
 
     std::vector<int> candidates;
-    for (auto& dyn : dynamicObjects)
+    for (auto& dyn : mDynamicObjects)
     {
         candidates.clear();
-        QueryStaticBVH(nodes, root, dyn.bounds, candidates);
+        mPhysicsWorld->QueryStaticBVH(dyn.bounds, candidates);
 
         for (int candidateIndex : candidates)
         {
-            auto& st = staticObjects[candidateIndex];
+            auto& st = mPhysicsWorld->GetStaticProxy(candidateIndex);
 
-            if (!dyn.collider->mWorldOBB.Intersects(st.collider->mWorldOBB))
+            if (!dyn.collider->mWorldOBB.Intersects(st.ColliderBox->mWorldOBB))
                 continue;
 
             dyn.collider->bIsColliding = true;
-            st.collider->bIsColliding = true;
+            st.ColliderBox->bIsColliding = true;
 
             AvoidCollisionByMovementState(
                 mWorld,
                 dyn.entity,
-                st.entity,
+                st.ColliderEntity,
                 dyn.collider,
-                st.collider, 
+                st.ColliderBox, 
                 deltaTime);
         }
     }
@@ -537,52 +357,8 @@ void CollisionSystem::Movable2Static(float deltaTime)
 
 
 
-
-
-
-//////
-
-static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col)
-{
-    XMVECTOR S, R, T;
-
-    // [수정] SimpleMath::Matrix -> XMMATRIX 변환
-    const XMMATRIX M = tr->mWorldMatrix; // SimpleMath::Matrix는 XMMATRIX로 암시 변환되는 경우가 많음
-
-    if (!XMMatrixDecompose(&S, &R, &T, M))
-        return;
-
-    // scale / rotation(quat) / translation 추출
-    const XMFLOAT3 s3 = {};
-    const XMFLOAT4 r4 = {};
-    const XMFLOAT3 t3 = {};
-    XMFLOAT3 sF, tF;
-    XMFLOAT4 rF;
-    XMStoreFloat3(&sF, S);
-    XMStoreFloat3(&tF, T);
-    XMStoreFloat4(&rF, XMQuaternionNormalize(R));
-
-    const Vec3 worldPos = Vec3(tF.x, tF.y, tF.z);
-
-    // 로컬 Center 오프셋을 월드 회전으로 회전
-    const XMVECTOR localCenter = XMVectorSet(col->mCenter.x, col->mCenter.y, col->mCenter.z, 0.0f);
-    const XMVECTOR rotatedOffV = XMVector3Rotate(localCenter, XMLoadFloat4(&rF));
-    XMFLOAT3 rotatedOffF;
-    XMStoreFloat3(&rotatedOffF, rotatedOffV);
-
-    const Vec3 worldCenter = worldPos + Vec3(rotatedOffF.x, rotatedOffF.y, rotatedOffF.z);
-
-    // Extents
-    Vec3 ext = col->mHalfExtents;
-
-
-    col->mWorldOBB.Center = XMFLOAT3(worldCenter.x, worldCenter.y, worldCenter.z);
-    col->mWorldOBB.Extents = XMFLOAT3(ext.x, ext.y, ext.z);
-    col->mWorldOBB.Orientation = XMFLOAT4(rF.x, rF.y, rF.z, rF.w);
-}
-
 // [수정] 시간 기반 보정을 위해 dt를 인자로 받도록 시그니처 변경
-static void AvoidCollisionByMovementState(
+void CollisionSystem::AvoidCollisionByMovementState(
     World* world,
     Entity a,
     Entity b,
@@ -765,6 +541,8 @@ static void AvoidCollisionByMovementState(
     const Vec3 towardA(-normal.x, 0.0f, -normal.z);
     steerMovementState(b, towardA, signB);
 }
+
+
 
 /*
 static void AvoidCollisionByMovementState(

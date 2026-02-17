@@ -6,10 +6,10 @@
 class BoxColliderComponent : public Component<BoxColliderComponent>
 {
 public:
-    BoxColliderComponent() {}
+    BoxColliderComponent();
     BoxColliderComponent(BoundingOrientedBox obb, Matrix matrix);
     BoxColliderComponent(Vec3 half) : mHalfExtents(half) {}
-    BoxColliderComponent(Vec3 half, Vec3 center) : mHalfExtents(half), mCenter(center) {}
+    BoxColliderComponent(Vec3 half, Vec3 center);
 
 public:
     // [설명] 로컬 공간 기준 박스(OBB의 로컬 정의)
@@ -24,5 +24,6 @@ public:
 
     bool bIsColliding = false;
 
+    BoundingOrientedBox mLocalOBB{};
     BoundingOrientedBox mWorldOBB{};
 };

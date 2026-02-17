@@ -489,7 +489,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			render.mMesh = data->GetMeshs().at(0);
 			i++;
-			if (i == 1000)
+			if (i == 100)
 				break;
 			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
 				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);

@@ -1,6 +1,7 @@
 #pragma once
 #include "GameEvents.h"
-#include <vector>
+
+class World;
 
 enum class EventPhase : uint8 { Pre, Post };
 
@@ -36,6 +37,7 @@ class EventManager
 {
 public:
     EventManager() = default;
+	EventManager(World* world) : mWorld(world) {}
 
     template<typename T>
     void Enqueue(const T& e);
@@ -60,6 +62,7 @@ private:
     EventBuffer<T>& GetBuffer();
 
 private:
+	World* mWorld;
     std::unordered_map<std::type_index, std::unique_ptr<IEventBuffer>> mBuffers;
 };
 

@@ -24,5 +24,7 @@ public:
 
     bool bIsColliding = false;
 
+    BoundingOrientedBox mLocalOBB{};
     BoundingOrientedBox mWorldOBB{};
+    
 };

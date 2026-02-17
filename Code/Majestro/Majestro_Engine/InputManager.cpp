@@ -100,6 +100,7 @@ void InputManager::Update() {
 
 void InputManager::SetForceMouseLook(bool enable)
 {
+	mForceMouseLookRequested = enable;
 	if (mMouseLookControl == enable)
 		return;
 
@@ -144,7 +145,10 @@ void InputManager::OnActivateApp(bool active)
 			k.bPressed = false;
 			k.state = eKeyState::None;
 		}
+		return;
 	}
+	if (mForceMouseLookRequested)
+		SetForceMouseLook(true);
 }
 
 void InputManager::MouseStateClear() {

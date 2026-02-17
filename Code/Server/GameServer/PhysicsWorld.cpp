@@ -184,6 +184,28 @@ int PhysicsWorld::BuildStaticBVHRecursive(
 	return nodeIndex;
 }
 
+float PhysicsWorld::QueryHeightAtPosition(const Vector3& position)	// To - Do : 충돌 후보 최적화
+{
+	float bestHeight = -FLT_MAX;
+	
+	for (const auto& collider : staticObjects)
+	{
+		const BoundingOrientedBox& obb = collider.ColliderBox->mWorldOBB;
+
+		const Vector3 obbCenter = obb.Center;
+		const Vector3 obbUp = Vector3(obb.Orientation.x, obb.Orientation.y, obb.Orientation.z); // OBB의 Up 벡터
+		const float distance = (position - obbCenter).Dot(obbUp);
+
+		if (distance >= 0)
+		{
+			const float height = obbCenter.y + distance; 
+			if (height > bestHeight)
+				bestHeight = height;
+		}
+	}
+	return bestHeight;
+}
+
 
 void PhysicsWorld::UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col)
 {

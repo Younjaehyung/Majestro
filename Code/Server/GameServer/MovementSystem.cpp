@@ -55,7 +55,8 @@ void MovementSystem::Update(float dt) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
-		gravityComponent->mGround = terrainGround;
+		float objectGround = mWorld->GetPhysicsWorld()->QueryHeightAtPosition(transformComponent->mLocalPosition);
+		gravityComponent->mGround = max(terrainGround, objectGround);
 
 		if (gravityComponent->mHight <= terrainGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= terrainGround) {
 			gravityComponent->mHight = terrainGround;

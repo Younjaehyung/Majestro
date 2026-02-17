@@ -1070,6 +1070,7 @@ void ResourceManager::CreateDefaultMaterial()
 		color1->SetShader(L"Terrain");
 		color1->SetTexture(Load<Texture>(L"T_Rock_BC", L"..\\Resources\\Terrain\\T_Rock_BC.png"), DIFFUSEMAP0INDEX);
 		color1->SetTexture(Load<Texture>(L"T_Rock_Layer", L"..\\Resources\\Terrain\\T_Rock_Layer.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"Noise0", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
 		color1->SetTexture(Load<Texture>(L"colors", L"..\\Resources\\Terrain\\Geom_Rock_Overgrown_B_LOD00_Rock_Overgrown_B_0_Normal.png"), NORMALMAPINDEX);
 		Add<Material>(L"Rock", color1);
 
@@ -1079,6 +1080,7 @@ void ResourceManager::CreateDefaultMaterial()
 		color2->SetShader(L"Terrain");
 		color2->SetTexture(Load<Texture>(L"T_Dirt_BC", L"..\\Resources\\Terrain\\T_Dirt_BC.png"), DIFFUSEMAP0INDEX);
 		color2->SetTexture(Load<Texture>(L"T_Dirt_Layer", L"..\\Resources\\Terrain\\T_Dirt_Layer.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"Noise1", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
 		color2->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
 		Add<Material>(L"Dirt", color2);
 
@@ -1087,6 +1089,7 @@ void ResourceManager::CreateDefaultMaterial()
 		color3->SetShader(L"Terrain");
 		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.dds"), DIFFUSEMAP0INDEX);
 		color3->SetTexture(Load<Texture>(L"T_Grass_Layer", L"..\\Resources\\Terrain\\T_Grass_Layer.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"Noise2", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
 		color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
 		Add<Material>(L"Grass", color3);
 

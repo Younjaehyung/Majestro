@@ -203,6 +203,7 @@ void RenderSystem::PushLandData() {
   passParams.TerrainSlot5 = -1;
   passParams.TerrainSlot6 = -1;
 
+
   switch (recomp->mMaterials.size()) {
   case 6:
     if (recomp->mMaterials[5]->GetID())
@@ -224,6 +225,9 @@ void RenderSystem::PushLandData() {
       passParams.TerrainSlot1 = recomp->mMaterials[0]->GetIndex();
     break;
   }
+
+
+
 }
 
 void RenderSystem::PushInstanceData() {

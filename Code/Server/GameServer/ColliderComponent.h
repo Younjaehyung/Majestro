@@ -7,6 +7,7 @@ class BoxColliderComponent : public Component<BoxColliderComponent>
 {
 public:
     BoxColliderComponent();
+	BoxColliderComponent(BoundingOrientedBox obb) : mLocalOBB(obb) {}
     BoxColliderComponent(BoundingOrientedBox obb, Matrix matrix);
     BoxColliderComponent(Vec3 half) : mHalfExtents(half) {}
     BoxColliderComponent(Vec3 half, Vec3 center);

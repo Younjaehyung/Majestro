@@ -11,11 +11,13 @@ BoxColliderComponent::BoxColliderComponent()
 	localOBB.Transform(mLocalOBB, Matrix::Identity);
 }
 
+
+
 BoxColliderComponent::BoxColliderComponent(BoundingOrientedBox obb, Matrix matrix)
 {
-	// OBB의 로컬 정의 -> 월드 정의로 변환
-	obb.BoundingOrientedBox::Transform(mLocalOBB, matrix);
 
+	obb.BoundingOrientedBox::Transform(mLocalOBB, matrix);
+	mLocalOBB = obb;
 }
 
 BoxColliderComponent::BoxColliderComponent(Vec3 half, Vec3 center)

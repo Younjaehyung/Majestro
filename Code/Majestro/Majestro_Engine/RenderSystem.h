@@ -50,8 +50,9 @@ struct PassParams {
   int32 TerrainSlot4;
   int32 TerrainSlot5;
   int32 TerrainSlot6;
+
+  int32 Padding0;
   int32 Padding1;
-  int32 Padding2;
 
   Vec4 CascadeSplitDistances;
   array<Matrix, 4> CascadeShadowVP{};

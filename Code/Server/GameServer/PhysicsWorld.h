@@ -89,6 +89,8 @@ public: //Query
         std::vector<BVHNode>& nodes,
         int start,
         int count);
+    
+	float QueryHeightAtPosition(const Vector3& position);
 public: // utils
     static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
     static void SetWorldOBB(BoundingOrientedBox obb,const TransformComponent* tr, BoxColliderComponent* col);

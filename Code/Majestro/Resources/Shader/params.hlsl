@@ -220,20 +220,17 @@ struct PASSINFO
     float MaxTessLevel;
     float TotalTime;
     
-    uint TileCountX;
-    uint TileCountZ;
-    uint LightsCount;
-    uint SkyBoxIndex;
+    int TileCountX;
+    int TileCountZ;
+    int LightsCount;
+    int SkyBoxIndex;
     
     int TerrainSlot1;
     int TerrainSlot2;
     int TerrainSlot3;
     int TerrainSlot4;
-    
     int TerrainSlot5;
     int TerrainSlot6;
-
-    
 	float4 CascadeSplitDistances;
 
     matrix CascadeShadowVP[4];

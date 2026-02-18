@@ -18,6 +18,7 @@
 RenderSystem::RenderSystem(World *world) : System::System(world) {
   mCamera = nullptr;
   mPhase = SysPhase::Render;
+  mOrder = 0;
 }
 
 void RenderSystem::Initialize() {

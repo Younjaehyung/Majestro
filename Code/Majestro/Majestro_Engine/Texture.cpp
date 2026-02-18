@@ -273,6 +273,18 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 
 }
 
+D3D12_GPU_DESCRIPTOR_HANDLE Texture::GetSrvGpuHandle()
+{
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart(), 
+		mSrvIndex, DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Texture::GetUavGpuHandle()
+{
+	return CD3DX12_GPU_DESCRIPTOR_HANDLE(RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart(), 
+		mUavIndex, DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+}
+
 float Texture::GetHeightValue(float u, float v) const
 {
 	if (mOriginalImage.GetImageCount() == 0)

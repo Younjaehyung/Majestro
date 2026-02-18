@@ -71,6 +71,12 @@ public:
 	shared_ptr<GraphicsDescriptorHeap>	GetGraphicsDescHeap()	{ return mDescHeap; }
 	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()	{ return mRenderTargetHeap; }
 
+	shared_ptr<DirectX::DX12::GraphicsMemory> GetGraphicsMemory() { return mGraphicsMemory; }
+
+	D3D12_VIEWPORT&						GetViewPort() { return mViewport; }
+	D3D12_RECT&							GetScissorRect() { return mScissorRect; }
+
+
 public:
 
 	shared_ptr<GroupBuffer>	&			GetGroupBuffer(uint32 frame)		{ return mGroupBuffer[frame]; }
@@ -106,11 +112,13 @@ private:
 	
 	
 	shared_ptr<SwapChain>						mSwapChain					= make_shared<SwapChain>();
-	shared_ptr<GraphicsDescriptorHeap>			mDescHeap			= make_shared<GraphicsDescriptorHeap>();
+	shared_ptr<GraphicsDescriptorHeap>			mDescHeap					= make_shared<GraphicsDescriptorHeap>();
 
 	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
 
 	shared_ptr<RootSignature>					mRootSignature;
+
+	shared_ptr<DirectX::DX12::GraphicsMemory>	mGraphicsMemory;
 private:
 
 

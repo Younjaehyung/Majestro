@@ -31,8 +31,11 @@ public:
 
 public:
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetSRVHandle() { return mSrvHeapBegin; }
-	D3D12_CPU_DESCRIPTOR_HANDLE GetUAVHandle() { return mUavHeapBegin; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSrvCpuHandle() { return mSrvHeapBegin; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetUavCpuHandle() { return mUavHeapBegin; }
+
+	D3D12_GPU_DESCRIPTOR_HANDLE GetSrvGpuHandle();
+	D3D12_GPU_DESCRIPTOR_HANDLE GetUavGpuHandle();
 
 	ScratchImage& GetOriginalImage() { return mOriginalImage; }
 	ComPtr<ID3D12Resource> GetTex2D() { return mImage; }

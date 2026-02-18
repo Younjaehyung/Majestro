@@ -44,7 +44,7 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mDescHeap->Initialize(FRAMEGROUP_COUNT);
 	mRenderTargetHeap->Initialize();
 
-
+	mGraphicsMemory = std::make_shared<DirectX::DX12::GraphicsMemory>(mDevice->GetDevice().Get());
 
 	CreateGroup();
 	CreateMaterial();

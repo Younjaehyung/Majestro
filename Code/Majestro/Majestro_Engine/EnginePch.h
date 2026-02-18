@@ -449,6 +449,8 @@ extern unique_ptr<class Engine> gEngine;
 #define AUDIOMANAGER	gEngine->GetAudioManager()
 
 #define DEVICE	 gEngine->GetRenderManager().GetDevice()->GetDevice()
+#define GRAPHICS_CMD_QUEUE gEngine->GetRenderManager().GetGraphicsCmdQueue()
+#define COMPUTE_CMD_QUEUE gEngine->GetRenderManager().GetComputeCmdQueue()
 #define GRAPHICS_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue ()->GetGraphicsCmdList ()
 #define RESOURCE_CMD_LIST gEngine->GetRenderManager().GetGraphicsCmdQueue()->GetResourceCmdList()
 #define COMPUTE_CMD_LIST  gEngine->GetRenderManager().GetComputeCmdQueue()->GetComputeCmdList()

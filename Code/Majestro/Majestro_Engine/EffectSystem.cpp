@@ -16,6 +16,8 @@
 EffectSystem::EffectSystem(World* world) : System::System(world)
 {
 	mPhase = SysPhase::Render;
+	mOrder = 3;
+
 }
 
 EffectSystem::~EffectSystem()

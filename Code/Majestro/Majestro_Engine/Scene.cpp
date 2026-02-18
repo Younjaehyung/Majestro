@@ -158,12 +158,27 @@ void LobbyScene::Initialize()
 
 #pragma region UI
 
+	//{
+	//	Entity text = mWorld->CreateEntity();
+	//	auto& t = mWorld->AddComponent<UITextComponent>(text);
+	//}
+
+
 	{
-		Entity text = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UITextComponent>(text);
+		Entity hpBAR = mWorld->CreateEntity();
+		shared_ptr<Texture> scorem;
+		scorem = RESOURCEMANAGER.Get<Texture>(L"HPBAR");
+
+		//auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
+		//t.mAnchor = Anchor::Center;
+		//t.mPosition = Vec2(-256.f, 468.f);
+		//t.mSize = Vec2(512.f, 256.f);
+
+
+		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR, scorem);
+		m.mPos = Vec2(256.f, 256.f);
+		m.mSize = Vec2(512.f, 256.f);
 	}
-
-
 	{
 		Entity hpBAR = mWorld->CreateEntity();
 		shared_ptr<Material> scorem;
@@ -175,7 +190,7 @@ void LobbyScene::Initialize()
 		t.mSize = Vec2(512.f, 256.f);
 
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(hpBAR, scorem);
 	}
 
 	{
@@ -188,7 +203,7 @@ void LobbyScene::Initialize()
 		t.mPosition = Vec2(-98.f, -64.f);
 		t.mSize = Vec2(196.f, 128.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Aim, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Aim, scorem);
 	}
 
 	{
@@ -201,7 +216,7 @@ void LobbyScene::Initialize()
 		t.mPosition = Vec2(212.f, -212.f);
 		t.mSize = Vec2(196.f, 128.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Ibanix_Ammo, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
 	}
 
 	{
@@ -215,7 +230,7 @@ void LobbyScene::Initialize()
 		t.mPosition = Vec2(32.f, -636.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Fanthor_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
 	}
 
 	{
@@ -229,7 +244,7 @@ void LobbyScene::Initialize()
 		t.mPosition = Vec2(32.f, -424.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Ibanix_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
 	}
 
 	{
@@ -243,7 +258,7 @@ void LobbyScene::Initialize()
 		t.mPosition = Vec2(32.f, -212.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Rudwig_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
 	}
 
 #pragma endregion
@@ -339,6 +354,13 @@ void GameScene::Initialize()
 
 
 #pragma region UI
+
+	{
+		Entity text = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UITextComponent>(text);
+	}
+
+
 	{
 		Entity hpBAR = mWorld->CreateEntity();
 		shared_ptr<Material> scorem;
@@ -346,24 +368,24 @@ void GameScene::Initialize()
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-256.f, 768.f);
+		t.mPosition = Vec2(-256.f, 468.f);
 		t.mSize = Vec2(512.f, 256.f);
 
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(hpBAR, scorem);
 	}
 
 	{
 		Entity Aim = mWorld->CreateEntity();
 		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Aim");
+		scorem = RESOURCEMANAGER.Get<Material>(L"jAims");
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-64.f, -64.f);
-		t.mSize = Vec2(128.f, 128.f);
+		t.mPosition = Vec2(-98.f, -64.f);
+		t.mSize = Vec2(196.f, 128.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Aim, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Aim, scorem);
 	}
 
 	{
@@ -376,7 +398,7 @@ void GameScene::Initialize()
 		t.mPosition = Vec2(212.f, -212.f);
 		t.mSize = Vec2(196.f, 128.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Ibanix_Ammo, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
 	}
 
 	{
@@ -390,7 +412,7 @@ void GameScene::Initialize()
 		t.mPosition = Vec2(32.f, -636.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Fanthor_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
 	}
 
 	{
@@ -404,7 +426,7 @@ void GameScene::Initialize()
 		t.mPosition = Vec2(32.f, -424.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Ibanix_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
 	}
 
 	{
@@ -418,7 +440,7 @@ void GameScene::Initialize()
 		t.mPosition = Vec2(32.f, -212.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UISpriteComponent>(Rudwig_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
 	}
 
 #pragma endregion

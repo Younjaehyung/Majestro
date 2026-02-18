@@ -1068,11 +1068,11 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> color1 = make_shared<Material>();
 		color1->SetShader(L"Terrain");
-		color1->SetTexture(Load<Texture>(L"T_Rock_BC", L"..\\Resources\\Terrain\\T_Rock_BC.png"), DIFFUSEMAP0INDEX);
-		color1->SetTexture(Load<Texture>(L"T_Rock_Layer", L"..\\Resources\\Terrain\\T_Rock_Layer.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"T_Sand_Rock_BC", L"..\\Resources\\Terrain\\T_Sand_Rock_BC.png"), DIFFUSEMAP0INDEX);
+		color1->SetTexture(Load<Texture>(L"T_Sand_Rock_Layer", L"..\\Resources\\Terrain\\T_Sand_Rock_Layer.png"), DIFFUSEMAP1INDEX);
 		color1->SetTexture(Load<Texture>(L"Noise0", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
 		color1->SetTexture(Load<Texture>(L"colors", L"..\\Resources\\Terrain\\Geom_Rock_Overgrown_B_LOD00_Rock_Overgrown_B_0_Normal.png"), NORMALMAPINDEX);
-		Add<Material>(L"Rock", color1);
+		Add<Material>(L"Sand_Rock", color1);
 
 
 		//
@@ -1087,11 +1087,27 @@ void ResourceManager::CreateDefaultMaterial()
 		//
 		shared_ptr<Material> color3 = make_shared<Material>();
 		color3->SetShader(L"Terrain");
-		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.dds"), DIFFUSEMAP0INDEX);
+		color3->SetTexture(Load<Texture>(L"T_Grass_BC", L"..\\Resources\\Terrain\\T_Grass_BC.png"), DIFFUSEMAP0INDEX);
 		color3->SetTexture(Load<Texture>(L"T_Grass_Layer", L"..\\Resources\\Terrain\\T_Grass_Layer.png"), DIFFUSEMAP1INDEX);
 		color1->SetTexture(Load<Texture>(L"Noise2", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
 		color3->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
 		Add<Material>(L"Grass", color3);
+
+		shared_ptr<Material> color4 = make_shared<Material>();
+		color4->SetShader(L"Terrain");
+		color4->SetTexture(Load<Texture>(L"T_Sand_BC", L"..\\Resources\\Terrain\\T_Sand_BC.png"), DIFFUSEMAP0INDEX);
+		color4->SetTexture(Load<Texture>(L"T_Sand_Layer", L"..\\Resources\\Terrain\\T_Sand_Layer.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"Noise3", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
+		color4->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		Add<Material>(L"Sand", color4);
+
+		shared_ptr<Material> color5 = make_shared<Material>();
+		color5->SetShader(L"Terrain");
+		color5->SetTexture(Load<Texture>(L"T_Dirt_Road_BC", L"..\\Resources\\Terrain\\T_Dirt_Road_BC.png"), DIFFUSEMAP0INDEX);
+		color5->SetTexture(Load<Texture>(L"T_Dirt_Road_Layer", L"..\\Resources\\Terrain\\T_Dirt_Road_Layer.png"), DIFFUSEMAP1INDEX);
+		color1->SetTexture(Load<Texture>(L"Noise4", L"..\\Resources\\Terrain\\T_TilingNoise02_M.png"), DIFFUSEMAP2INDEX);
+		color5->SetTexture(Get<Texture>(L"colors"), NORMALMAPINDEX);
+		Add<Material>(L"Dirt_Road", color5);
 
 		//shared_ptr<Material> color3 = make_shared<Material>();
 		//color3->SetShader(L"Terrain");

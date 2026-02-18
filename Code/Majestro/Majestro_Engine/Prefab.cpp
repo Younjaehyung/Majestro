@@ -353,8 +353,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 	std::vector<shared_ptr<Material>> materials{
 		
 		RESOURCEMANAGER.Get<Material>(L"Grass"),
-		RESOURCEMANAGER.Get<Material>(L"Rock"),
+		RESOURCEMANAGER.Get<Material>(L"Sand_Rock"),
 		RESOURCEMANAGER.Get<Material>(L"Dirt"),
+		RESOURCEMANAGER.Get<Material>(L"Sand"),
+		RESOURCEMANAGER.Get<Material>(L"Dirt_Road"),
 		//RESOURCEMANAGER.Get<Material>(L"SnowFootprints"),
 		//RESOURCEMANAGER.Get<Material>(L"Soil_Mud") ,
 		//RESOURCEMANAGER.Get<Material>(L"Asphalt")

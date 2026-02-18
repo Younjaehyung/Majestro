@@ -15,9 +15,9 @@ public:
 
 	void Update();
 public:
-	std::shared_ptr<DirectX::SpriteFont> m_font;
-
-	DirectX::SimpleMath::Vector2 m_fontPos;
-	std::shared_ptr<DirectX::SpriteBatch> m_spriteBatch;
+	std::shared_ptr<DirectX::SpriteFont> mFont;
+	std::wstring mText;
+	DirectX::SimpleMath::Vector2 mFontPos;
+	UIFontType mFontType{ UIFontType::Arial };
 };
 

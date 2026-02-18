@@ -115,13 +115,11 @@ private:
 	shared_ptr<GraphicsDescriptorHeap>			mDescHeap					= make_shared<GraphicsDescriptorHeap>();
 
 	shared_ptr<RenderTargetHeap>				mRenderTargetHeap			= make_shared<RenderTargetHeap>();
-
+	shared_ptr<DirectX::DX12::GraphicsMemory>	mGraphicsMemory;
 	shared_ptr<RootSignature>					mRootSignature;
 
-	shared_ptr<DirectX::DX12::GraphicsMemory>	mGraphicsMemory;
+	
 private:
-
-
 	array <shared_ptr<GroupBuffer>, FRAMEGROUP_COUNT>				mGroupBuffer;
 	array <shared_ptr<ParticleBuffer>, PARTICLE_GROUP_COUNT>		mParticleBuffer;
 	shared_ptr<AnimationBuffer>										mAnimationBuffer;

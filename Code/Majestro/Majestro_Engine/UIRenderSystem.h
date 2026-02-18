@@ -5,7 +5,6 @@
 #include "Mesh.h"
 
 
-
 struct UIInstanceData
 {
     Vec2	Position;  // finalPixelPos
@@ -20,6 +19,7 @@ class UIRenderSystem : public System
 {
 public:
 	UIRenderSystem(World* world);
+	virtual ~UIRenderSystem();
 	void Initialize();
 	void InitializeFont();
 
@@ -35,5 +35,6 @@ private:
 private:
 
 	shared_ptr<Mesh> mQuadMesh;
+	std::shared_ptr<DirectX::SpriteBatch> mSpriteBatch;
 	std::vector<UIInstanceData> mInstances;
 };

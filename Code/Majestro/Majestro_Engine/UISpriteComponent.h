@@ -40,6 +40,6 @@ public :
 	std::shared_ptr<Texture> mTexture;
 	Vec2 mPos;
 	Vec2 mSize;
-	std::shared_ptr<DirectX::SpriteBatch> m_spriteBatch;
+	
 };
 

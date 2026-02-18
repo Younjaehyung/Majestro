@@ -163,6 +163,11 @@ void LobbyScene::Initialize()
 	//	auto& t = mWorld->AddComponent<UITextComponent>(text);
 	//}
 
+	{
+		Entity text = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UITextComponent>(text);
+		t.mText = L"GAME START";
+	}
 
 	{
 		Entity hpBAR = mWorld->CreateEntity();
@@ -358,6 +363,7 @@ void GameScene::Initialize()
 	{
 		Entity text = mWorld->CreateEntity();
 		auto& t = mWorld->AddComponent<UITextComponent>(text);
+		t.mText = L"IN GAME";
 	}
 
 

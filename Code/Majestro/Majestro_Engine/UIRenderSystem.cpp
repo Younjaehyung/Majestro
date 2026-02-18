@@ -18,6 +18,12 @@ UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
     mOrder = 1;
 }
 
+UIRenderSystem::~UIRenderSystem()
+{
+    GRAPHICS_CMD_QUEUE->WaitForGpuComplete();
+    mSpriteBatch.reset();
+}
+
 void UIRenderSystem::Initialize()
 {
 	mQuadMesh = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
@@ -34,36 +40,25 @@ void UIRenderSystem::InitializeFont()
     DirectX::ResourceUploadBatch resourceUpload(DEVICE.Get());
     resourceUpload.Begin();
 
+    RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM,
+        DXGI_FORMAT_D32_FLOAT);
+
+    SpriteBatchPipelineStateDescription pd(rtState);
+    mSpriteBatch = std::make_shared<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
+
     for (Entity a : mWorld->View<UITextComponent>()) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
         
-        RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM,
-            DXGI_FORMAT_D32_FLOAT);
-
-        SpriteBatchPipelineStateDescription pd(rtState);
-
-		
-        textComp->m_spriteBatch = std::make_unique<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
-
-
-		textComp->m_font = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
+		textComp->mFont = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
         //textComp->m_font.reset();
 
         auto size = RENDERMANAGER.GetWindow();
-        textComp->m_fontPos.x = float(size.Width) / 2.f;
-        textComp->m_fontPos.y = float(size.Height) / 2.f;
+        textComp->mFontPos.x = float(size.Width) / 2.f;
+        textComp->mFontPos.y = float(size.Height) / 2.f;
     }
 
     for (Entity a : mWorld->View<UISpriteComponent>()) {
         auto textComp = mWorld->GetComponent<UISpriteComponent>(a);
-        
-        RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM,
-            DXGI_FORMAT_D32_FLOAT);
-
-        SpriteBatchPipelineStateDescription pd(rtState);
-
-		
-        textComp->m_spriteBatch = std::make_unique<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
 
     }
 
@@ -94,7 +89,7 @@ void UIRenderSystem::Update()
 
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
-	// SpriteUpdate();
+	SpriteUpdate();
 
     if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
         RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
@@ -111,20 +106,19 @@ void UIRenderSystem::TextUpdate()
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
        // textComp->m_spriteBatch->SetViewport(viewPort);
 
-        std::wstring output = std::wstring(L"SIBAL ") + std::wstring(L"OSW");
-        textComp->m_spriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
-        textComp->m_spriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+        std::wstring& output = textComp->mText;
+        mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
+        mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
 
        // const wchar_t* output = L"Hello World";
 
-        Vec2 origin = textComp->m_font->MeasureString(output.c_str()) / 2.f;
+        Vec2 origin = textComp->mFont->MeasureString(output.c_str()) / 2.f;
 
-        textComp->m_font->DrawString(textComp->m_spriteBatch.get(), output.c_str(),
-            textComp->m_fontPos, Colors::White, 30.f, origin);
+        textComp->mFont->DrawString(mSpriteBatch.get(), output.c_str(),
+            textComp->mFontPos, Colors::White, 30.f, origin);
        
-        
-        textComp->m_spriteBatch->End();
     }
+    mSpriteBatch->End();
 }
 
 void UIRenderSystem::CustomSpriteUpdate()
@@ -169,8 +163,8 @@ void UIRenderSystem::SpriteUpdate()
         if (!spriteComp->mVisible)
             continue;
         //spriteComp->m_spriteBatch->SetViewport(viewPort);
-        spriteComp->m_spriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
-        spriteComp->m_spriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+       mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
+       mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
         // 1) Int2 → XMUINT2 변환
         XMUINT2 textureSize(
             static_cast<uint32_t>(spriteComp->mSize.x),
@@ -184,15 +178,14 @@ void UIRenderSystem::SpriteUpdate()
         );
 
         // 3) color 인자 추가 (흰색 = 원본 색상 그대로)
-        spriteComp->m_spriteBatch->Draw(
+        mSpriteBatch->Draw(
             spriteComp->mTexture->GetSrvGpuHandle(),
             textureSize,
             position,
             Colors::White   // FXMVECTOR color
         );
-		spriteComp->m_spriteBatch->End();
-
     }
+    mSpriteBatch->End();
 }
 
 void UIRenderSystem::UploadInstanceBuffer()

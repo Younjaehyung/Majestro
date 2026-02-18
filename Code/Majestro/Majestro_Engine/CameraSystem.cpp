@@ -52,8 +52,13 @@ void CameraSystem::Update(float dt)
 				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 				transformComponent->FinalUpdate();
+				
 
-				Vec3 DestPos = pos + cameraTypeComponent->mOffset - cameraTypeComponent->mCameraMaxLenth * transformComponent->GetLook();
+				Vec3 worldOffset = transformComponent->GetRight() * cameraTypeComponent->mOffset.x
+					+ transformComponent->GetUp() * cameraTypeComponent->mOffset.y
+					+ transformComponent->GetLook() * cameraTypeComponent->mOffset.z;
+
+				Vec3 DestPos = pos + worldOffset - cameraTypeComponent->mCameraMaxLenth * transformComponent->GetLook();
 
 
 				SweepHit best = mWorld->GetPhysicsWorld()->SphereSweepVsOBB(pos + cameraTypeComponent->mOffset, DestPos,

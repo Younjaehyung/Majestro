@@ -9,7 +9,7 @@ void GraphicsDescriptorHeap::Initialize(uint32 count)	// 추후 수정중 (count
 	mGroupCount = count;
 
 	D3D12_DESCRIPTOR_HEAP_DESC desc{};	//DESCRIPTOR HEAP 세팅
-	desc.NumDescriptors = 2048;
+	desc.NumDescriptors = 4096;
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;	
 

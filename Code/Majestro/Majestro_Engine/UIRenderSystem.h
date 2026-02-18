@@ -5,6 +5,7 @@
 #include "Mesh.h"
 
 
+
 struct UIInstanceData
 {
     Vec2	Position;  // finalPixelPos
@@ -23,6 +24,7 @@ public:
 	void InitializeFont();
 
 	void Update();
+	void CustomSpriteUpdate();
 	void SpriteUpdate();
 	void TextUpdate();
 
@@ -31,6 +33,7 @@ private:
 	void InstancingRender();
 
 private:
+
 	shared_ptr<Mesh> mQuadMesh;
 	std::vector<UIInstanceData> mInstances;
 };

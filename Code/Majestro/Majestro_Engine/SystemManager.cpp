@@ -24,22 +24,20 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
     RegisterSystem<NetSendSystem>();
-
     RegisterSystem<CameraSystem>();
-    RegisterSystem<RenderSystem>();
-    // RegisterSystem<UIRenderSystem>();
 	RegisterSystem<UITransformSystem>();
-
     RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
     RegisterSystem<PlayerSystem>();
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
-    //RegisterSystem<EffectSystem>();
-    
     RegisterSystem<EnemySystem>();
     RegisterSystem<NetInterpolationSystem>();
+
+    RegisterSystem<RenderSystem>();
+    RegisterSystem<UIRenderSystem>();
+    RegisterSystem<EffectSystem>();
  //   mFinalUpdateSystems.push_back(std::move(GetSystem<EffectSystem>()));
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();

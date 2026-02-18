@@ -18,25 +18,25 @@ public:
 
     uint8 mUILayerIndex = 0;
 
-    Vec2 mPosition;     // anchor ±âÁØ ¿ÀÇÁ¼Â (pixel)
+    Vec2 mPosition;     // anchor ê¸°ì¤€ ì˜¤í”„ì…‹ (pixel)
     Vec2 mSize;         // pixel
     Vec2 mPivot;        // (0~1)
-    Vec2 mFinalPixelPos;   // ÃÖÁ¾ È­¸é ÇÈ¼¿ ÁÂÇ¥
+    Vec2 mFinalPixelPos;   // ìµœì¢… í™”ë©´ í”½ì…€ ì¢Œí‘œ
          
 };
 //
-//ÁÂ»ó´Ü Á¤·Ä UI¸¦ ¿øÇÔ(ÇÇ¹þ 0, 0)
+//ì¢Œìƒë‹¨ ì •ë ¬ UIë¥¼ ì›í•¨(í”¼ë²— 0, 0)
 //inst.Pivot = (0, 0)
-//inst.Position = (100, 50)   [ UIÀÇ ÁÂ»ó´ÜÀÌ(100, 50)¿¡ ¿È
+//inst.Position = (100, 50)   [ UIì˜ ì¢Œìƒë‹¨ì´(100, 50)ì— ì˜´
 //inst.Size = (256, 64)       [ == 256x64 px
 //
-//Áß¾Ó Á¤·Ä UI¸¦ ¿øÇÔ(ÇÇ¹þ 0.5, 0.5)
+//ì¤‘ì•™ ì •ë ¬ UIë¥¼ ì›í•¨(í”¼ë²— 0.5, 0.5)
 //inst.Pivot = (0.5, 0.5)
-//inst.Position = (960, 540)  [UIÀÇ Áß¾ÓÀÌ È­¸é Áß¾Ó¿¡ ¿È(FullHD ±âÁØ)
+//inst.Position = (960, 540)  [UIì˜ ì¤‘ì•™ì´ í™”ë©´ ì¤‘ì•™ì— ì˜´(FullHD ê¸°ì¤€)
 //inst.Size = (256, 64)
 //
-//¿ìÇÏ´Ü Á¤·Ä(ÇÇ¹þ 1, 1)
+//ìš°í•˜ë‹¨ ì •ë ¬(í”¼ë²— 1, 1)
 //inst.Pivot = (1, 1)
-//inst.Position = (ScreenW - 20, ScreenH - 20) [ UIÀÇ ¿ìÇÏ´Ü ²ÀÁþÁ¡ÀÌ °Å±â¿¡ ¿È
+//inst.Position = (ScreenW - 20, ScreenH - 20) [ UIì˜ ìš°í•˜ë‹¨ ê¼­ì§“ì ì´ ê±°ê¸°ì— ì˜´
 //inst.Size = (256, 64)
 //

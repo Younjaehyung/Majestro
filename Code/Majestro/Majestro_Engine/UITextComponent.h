@@ -1,5 +1,12 @@
 #pragma once
 #include "Component.h"
+
+enum class UIFontType
+{
+	Arial,
+	Count
+};
+
 class UITextComponent : public Component<UITextComponent>
 {
 public:

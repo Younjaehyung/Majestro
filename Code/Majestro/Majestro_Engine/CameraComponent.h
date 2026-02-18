@@ -136,13 +136,13 @@ public:
 
 	SweepHit mCameraSweep{};
 
-	float mCameraMaxLenth = 300;
-	float mCameraMinLenth = 60;
+	float mCameraMaxLenth = 20;
+	float mCameraMinLenth = 6;
 
 	BoundingOrientedBox mCameraBox;
 	float mCameraSphereRadius = 25.f;
 	float mCameraMargin = 5.f;
 
-	Vec3 mOffset = Vec3(0, 100, 0);
+	Vec3 mOffset = Vec3(80, 100, -200);
 	Vec3 mLookAtOffset = Vec3(0, 0, -5);
 };

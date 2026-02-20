@@ -44,6 +44,7 @@ void NetRecvSystem::Update(float dt)
 				//LoginProcess(mInputCommand);
 				LoginProcess(mInputCommand, true);
 				EnemySpawnProcess(mInputCommand);
+
 				break;
 			}
 			/*case PKT_Type::C2S_SCENE_CHANGE:

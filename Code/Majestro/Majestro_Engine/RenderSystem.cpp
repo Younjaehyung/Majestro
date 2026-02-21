@@ -375,29 +375,12 @@ void RenderSystem::PushObjectData() {
       if (!col || !col->bDebugDraw)
         continue;
 
-      // [핵심] TransformComponent가 제공하는 월드행렬을 그대로 사용
-      // 콜라이더 로컬 박스 변환(스케일/센터 오프셋)을 월드행렬에 합성
-
-      DirectX::SimpleMath::Vector3 s, t;
-      DirectX::SimpleMath::Quaternion r;
-
-      // SimpleMath::Matrix는 보통 Decompose를 지원합니다.
-      // (만약 컴파일 에러가 나면 아래에 XMMatrixDecompose 버전도 같이
-      // 적어두었습니다.)
-      tr->mWorldMatrix.Decompose(s, r, t);
-
-      // [수정] 스케일 없는 월드행렬 구성 (Rotation * Translation)
-      // TransformComponent가 S*R*T로 월드행렬을 만든다는 전제에 맞춰 동일한
-      // 순서를 유지합니다.
-      Matrix worldNoScale =
-          Matrix::CreateFromQuaternion(r) * Matrix::CreateTranslation(t);
-
-      // 콜라이더 로컬 변환 (이 스케일은 "충돌박스 자체 크기"이므로 유지)
+      
       Matrix colliderLocal = Matrix::CreateScale(col->mHalfExtents * 2.0f) *
                              Matrix::CreateTranslation(col->mCenter);
 
       // [수정] 스케일 없는 월드에 붙인다 -> 엔티티 Scale에 영향 받지 않음
-      Matrix boxWorld = colliderLocal * worldNoScale;
+      Matrix boxWorld = colliderLocal * tr->mWorldMatrix;
 
       objectParams.MatWorld = boxWorld.Transpose();
       mObjectVector.push_back(objectParams);

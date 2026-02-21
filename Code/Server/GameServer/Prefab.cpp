@@ -61,7 +61,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
                                            THREE_FPS);
 
   t.mLocalPosition = {0.f, 0.f, 10.f};
-  t.mLocalScale = {10.f, 10.f, 10.f};
+  t.mLocalScale = {1.f, 1.f, 1.f};
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<MainPlayerComponent>(mEntityID,
@@ -76,8 +76,8 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
       world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
   w.mSessionId = ctx.SessionId;
 
-  Vec3 half{ 10,10,10 };
-  Vec3 center{ 0,10,0 };
+  Vec3 half{ 30,100,30 };
+  Vec3 center{ 0,50,0 };
   world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
   world->AddComponent<MovableComponent>(mEntityID);
 

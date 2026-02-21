@@ -204,8 +204,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	}
 
 
-	Vec3 half{ 10,10,10 };	
-	Vec3 center{ 0,10,0 };
+	Vec3 half{ 30,100,30 };	
+	Vec3 center{ 0,50,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);

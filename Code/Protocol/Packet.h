@@ -34,6 +34,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_MOVE,
 	S2C_PKT_STATE,
 	S2C_PKT_COLLISION,
+	S2C_PKT_BULLET_ACTIVATE,
 
 
 	KMSG,
@@ -246,6 +247,18 @@ struct S2C_CollisionPacket : public PacketTcpHeader {	// 임시
 	S2C_CollisionPacket(uint64 entityId, bool isColliding)
 		: PacketTcpHeader{ sizeof(S2C_CollisionPacket), PKT_Type::S2C_PKT_COLLISION, 0.0 },
 		netEntityId(entityId), bIsColliding(isColliding) {
+	}
+};
+
+struct S2C_BulletActivatePacket : public PacketTcpHeader {
+	uint64_t ownerNetEntityId{};
+	uint64_t bulletNetEntityId{};
+	float x{}, y{}, z{};
+	float dirX{}, dirY{}, dirZ{};
+	float speed{};
+
+	S2C_BulletActivatePacket()
+		: PacketTcpHeader{ sizeof(S2C_BulletActivatePacket), PKT_Type::S2C_PKT_BULLET_ACTIVATE, 0.0 } {
 	}
 };
 

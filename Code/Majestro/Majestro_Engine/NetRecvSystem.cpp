@@ -149,7 +149,16 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 		//std::cout << "Collision Packet Processed for Entity ID: " << collisionPacket->netEntityId << " Collision State: " << boxComp->bIsColliding << std::endl;
         return;
 	}
+    else if (msg.Type == PKT_Type::S2C_PKT_BULLET_ACTIVATE) {
+        const S2C_BulletActivatePacket* bulletPacket = msg.ViewAs<S2C_BulletActivatePacket>();
+        if (bulletPacket == nullptr)
+            return;
 
+        std::cout << "Bullet Activate Packet Received - owner: " << bulletPacket->ownerNetEntityId
+            << ", bullet: " << bulletPacket->bulletNetEntityId
+            << ", pos(" << bulletPacket->x << ", " << bulletPacket->y << ", " << bulletPacket->z << ")" << std::endl;
+        return;
+    }
 
 
     switch (msg.Kind)

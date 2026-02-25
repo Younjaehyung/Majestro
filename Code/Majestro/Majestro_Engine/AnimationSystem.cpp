@@ -52,7 +52,9 @@ void AnimationSystem::Initialize()
 		mAniClipMeta.push_back(aniClip->GetClipMeta());
 		
 	}
-	
+    std::sort(mAniClipMeta.begin(), mAniClipMeta.end(), [](const AnimationClipMeta& a, const AnimationClipMeta& b) {
+        return a.AnimOffset < b.AnimOffset;
+        });
 
 	mAnimationBuckets.reserve(16);
 	mAnimationShader = RESOURCEMANAGER.Get<Shader>(L"AnimationComputeShader");
@@ -265,8 +267,10 @@ void AnimationSystem::AnimationPush(float deltaTime)
 
         // 수정: UpperMask 범위 설정 (스켈레톤 구조에 맞게 설정 필요)
         // 예: 척추(Spine) 시작 본 인덱스 ~ 머리(Head) 끝 본 인덱스
-        instance.UpperMaskStart = animCom->mUpperBlendMaskStart;
-        instance.UpperMaskEnd = animCom->mUpperBlendMaskEnd;
+        instance.UpperMaskStart = min(animCom->mUpperBlendMaskStart, instance.BoneCount > 0 ? instance.BoneCount - 1 : 0);
+        instance.UpperMaskEnd = min(animCom->mUpperBlendMaskEnd, instance.BoneCount > 0 ? instance.BoneCount - 1 : 0);
+        if (instance.UpperMaskStart > instance.UpperMaskEnd)
+            std::swap(instance.UpperMaskStart, instance.UpperMaskEnd);
         instance.UpperBlendMode = static_cast<uint32>(animCom->mUpperBlendMode);
 
         mAnimationPass.emplace_back(instance);
@@ -375,13 +379,18 @@ void AnimationSystem::AnimationDispatch()
 
 void AnimationSystem::AnimationBlend(const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio)
 {
-	const float frameRate = static_cast<float>(animClip->GetClipMeta().NumFrame / animClip->mDuration);
-	currentFrame = static_cast<uint32>(updateTime * frameRate);
-	currentFrame = min(currentFrame, animClip->mClipMeta.NumFrame - 1);
-	nextFrame = currentFrame + 1 >= animClip->mClipMeta.NumFrame ? 0 : currentFrame + 1;
+    const uint32 numFrame = max(animClip->mClipMeta.NumFrame, 1u);
+    const float duration = max(static_cast<float>(animClip->mDuration), 0.0001f);
+    const float frameDuration = duration / static_cast<float>(numFrame);
 
-	const float frameTime = currentFrame / frameRate;
-	const float nextFrameTime = nextFrame / frameRate;
-	ratio = (updateTime - frameTime) / (nextFrameTime - frameTime);
+    float localTime = fmodf(max(updateTime, 0.f), duration);
+    if (localTime < 0.f)
+        localTime += duration;
 
+    currentFrame = min(static_cast<uint32>(localTime / frameDuration), numFrame - 1);
+    nextFrame = (currentFrame + 1) % numFrame;
+
+    const float currentFrameTime = static_cast<float>(currentFrame) * frameDuration;
+    ratio = (localTime - currentFrameTime) / frameDuration;
+    ratio = std::clamp(ratio, 0.f, 1.f);
 }

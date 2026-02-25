@@ -22,7 +22,10 @@ Animator::Animator(FBXAnimClipInfo& fbxData) : Object(OBJECT_TYPE::ANIMATION)
 		mKeyFrames[bi].reserve(fbxData.KeyFrameInfo[bi].size());
 		for (uint32 ki = 0; ki < fbxData.KeyFrameInfo[bi].size(); ++ki)
 		{
-			mKeyFrames[bi].emplace_back(KeyFrameInfo(fbxData.KeyFrameInfo[bi][ki]));
+			KeyFrameInfo key = KeyFrameInfo(fbxData.KeyFrameInfo[bi][ki]);
+			if (key.rotation.LengthSquared() > 0.0f)
+				key.rotation.Normalize();
+			mKeyFrames[bi].emplace_back(key);
 		}
 	}
 }

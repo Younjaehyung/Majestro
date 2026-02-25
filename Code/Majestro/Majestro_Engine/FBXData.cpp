@@ -36,6 +36,88 @@ string ReadString(std::ifstream& file)
 	return utf8Str; // 기존의 s2ws 함수 사용
 }
 
+namespace
+{
+	inline Matrix ToMatrix(const XMFLOAT4X4& m)
+	{
+		return Matrix(m);
+	}
+
+	inline XMFLOAT4X4 ToFloat4x4(const Matrix& m)
+	{
+		XMFLOAT4X4 out{};
+		XMStoreFloat4x4(&out, m);
+		return out;
+	}
+
+	inline FBXKeyFrameInfo MakeIdentityKey(double time)
+	{
+		FBXKeyFrameInfo key{};
+		XMStoreFloat4x4(&key.MatTransform, Matrix::Identity);
+		key.Time = time;
+		return key;
+	}
+
+	void ResolveClipToModelSpace(FBXAnimClipInfo& clip, const shared_ptr<Skeleton>& skeleton)
+	{
+		if (!skeleton)
+			return;
+
+		const auto& bones = skeleton->GetBones();
+		if (clip.KeyFrameInfo.empty() || bones.empty())
+			return;
+
+		const uint32 boneCount = static_cast<uint32>(bones.size());
+		clip.KeyFrameInfo.resize(boneCount);
+
+		uint32 maxFrames = 0;
+		for (const auto& track : clip.KeyFrameInfo)
+			maxFrames = max(maxFrames, static_cast<uint32>(track.size()));
+
+		if (maxFrames == 0)
+			maxFrames = 1;
+
+		const double clipDuration = max(0.0001, clip.EndTime - clip.StartTime);
+		const double frameStep = clipDuration / static_cast<double>(maxFrames);
+
+		for (uint32 b = 0; b < boneCount; ++b)
+		{
+			auto& track = clip.KeyFrameInfo[b];
+			if (track.empty())
+			{
+				track.resize(maxFrames);
+				for (uint32 f = 0; f < maxFrames; ++f)
+					track[f] = MakeIdentityKey(clip.StartTime + frameStep * f);
+			}
+			else if (track.size() < maxFrames)
+			{
+				const FBXKeyFrameInfo last = track.back();
+				const size_t oldSize = track.size();
+				track.resize(maxFrames, last);
+				for (uint32 f = static_cast<uint32>(oldSize); f < maxFrames; ++f)
+					track[f].Time = clip.StartTime + frameStep * f;
+			}
+		}
+
+		vector<Matrix> modelPose(boneCount, Matrix::Identity);
+		for (uint32 frame = 0; frame < maxFrames; ++frame)
+		{
+			for (uint32 bone = 0; bone < boneCount; ++bone)
+			{
+				const Matrix local = ToMatrix(clip.KeyFrameInfo[bone][frame].MatTransform);
+				const int32 parent = bones[bone].parentIdx;
+
+				if (parent >= 0 && static_cast<uint32>(parent) < boneCount)
+					modelPose[bone] = local * modelPose[parent];
+				else
+					modelPose[bone] = local;
+
+				clip.KeyFrameInfo[bone][frame].MatTransform = ToFloat4x4(modelPose[bone]);
+			}
+		}
+	}
+}
+
 float ComputeBodyBlendWeight(const string& boneName)
 {
 	string lower = boneName;
@@ -52,12 +134,12 @@ float ComputeBodyBlendWeight(const string& boneName)
 
 
 	if (lower.find("spine1") != string::npos)
-		return .7f;
+		return .6f;
 	if (lower.find("spine2") != string::npos)
 		return .8f;
 
 	if (lower.find("spine3") != string::npos)
-		return 1.0f;
+		return 0.9f;
 
 	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
 		return .5f;
@@ -276,6 +358,7 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 		animClipInfo.KeyFrameInfo.resize(boneTracks);
 
 		uint32 tempCount = 0;
+		uint32 maxTrackCount = 0;
 		// 각 본 트랙
 		for (uint32 b = 0; b < boneTracks; ++b)
 		{
@@ -293,19 +376,30 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 					track[k] = binKF;
 				}
 				tempCount = kcount;
+				maxTrackCount = max(maxTrackCount, kcount);
 			}
 			else {
-				track.resize(tempCount);
-
-				for (uint32 k = 0; k < tempCount; ++k)
-				{
-					FBXKeyFrameInfo binKF;
-					track[k] = binKF;
-				}
+				const uint32 fillCount = max(tempCount, 1u);
+				track.resize(fillCount);
+				for (uint32 k = 0; k < fillCount; ++k)
+					track[k] = MakeIdentityKey(animClipInfo.StartTime);
+				maxTrackCount = max(maxTrackCount, fillCount);
 			}
 		}
+		if (maxTrackCount == 0)
+			maxTrackCount = 1;
+
+		for (auto& track : animClipInfo.KeyFrameInfo)
+		{
+			if (track.empty())
+				track.resize(maxTrackCount, MakeIdentityKey(animClipInfo.StartTime));
+			else if (track.size() < maxTrackCount)
+				track.resize(maxTrackCount, track.back());
+		}
+
+		ResolveClipToModelSpace(animClipInfo, mSkeleton);
 		mAnimators[ai]= std::make_shared<Animator>(animClipInfo);
-		mAnimators[ai]->mClipMeta.NumFrame = tempCount;
+		mAnimators[ai]->mClipMeta.NumFrame = maxTrackCount;
 		mAnimators[ai]->SetSkeleton(mSkeleton);
 		RESOURCEMANAGER.Add<Animator>(mAnimators[ai]->GetName(), mAnimators[ai]);
 	}

@@ -188,7 +188,8 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
             // else: finalUpperWeight가 0에 가까우면 Lower 그대로 사용 (하체 범위)
         }
     }
-    
+    finalRotation = normalize(finalRotation);
+    finalScale = max(finalScale, float4(0.0001f, 0.0001f, 0.0001f, 1.0f));
 
     float4 quaternionzero = float4(0.f, 0.f, 0.f, 1.f);
     matrix matbone = MatrixAffineTransformation(finalScale, quaternionzero, finalRotation, finalTranslation);

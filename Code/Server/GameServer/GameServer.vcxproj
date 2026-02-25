@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
+    <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="..\ServerCore\json.hpp" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
+    <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ColliderComponent.h" />

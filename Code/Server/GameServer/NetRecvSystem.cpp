@@ -44,6 +44,7 @@ void NetRecvSystem::Update(float dt)
 				//LoginProcess(mInputCommand);
 				LoginProcess(mInputCommand, true);
 				EnemySpawnProcess(mInputCommand);
+				BulletPoolSpawnProcess(mInputCommand);
 
 				break;
 			}
@@ -197,6 +198,20 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 			gSendQueue.Push(request);
 		}
 	}
+}
+
+void NetRecvSystem::BulletPoolSpawnProcess(InputCommand& inputCommand)
+{
+	if (!mBulletSpawnOnce)
+		return;
+
+	constexpr int kBulletPoolSize = 64;
+	for (int i = 0; i < kBulletPoolSize; ++i)
+	{
+		PrefabFactory::Spawn(mWorld, PrefabType::BULLET, inputCommand);
+	}
+
+	mBulletSpawnOnce = false;
 }
 
 std::vector<uint32> NetRecvSystem::CollectPlayerSessions() const

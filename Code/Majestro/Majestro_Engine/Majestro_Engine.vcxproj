@@ -188,6 +188,7 @@
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="BoxColliderComponent.h" />
     <ClInclude Include="Buffer.h" />
+    <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="CollisionSystem.h" />
@@ -281,6 +282,7 @@
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BoxColliderComponent.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="CollisionSystem.cpp" />

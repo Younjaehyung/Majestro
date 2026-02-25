@@ -52,6 +52,7 @@ private:
 	//void LoginProcess(InputCommand& inputCommand);
     void LoginProcess(InputCommand& inputCommand, bool broadcastToWorld);
 	void EnemySpawnProcess(InputCommand& inputCommand);
+    void BulletPoolSpawnProcess(InputCommand& inputCommand);
 
     /*void HandleSceneChange(InputCommand& inputCommand);
     bool IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const;
@@ -63,6 +64,7 @@ private:
 
     vector<uint64> mNetEntityIds{};
     bool mEnemySpawnOnce = true;
+    bool mBulletSpawnOnce = true;
 
     std::unordered_map<uint32, SceneId> mSceneBySession{};
 

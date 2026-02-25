@@ -421,6 +421,9 @@
     <ClInclude Include="PhysicsWorld.h">
       <Filter>World\Base\World</Filter>
     </ClInclude>
+    <ClInclude Include="BulletComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -686,6 +689,9 @@
     </ClCompile>
     <ClCompile Include="PhysicsWorld.cpp">
       <Filter>World\Base\World</Filter>
+    </ClCompile>
+    <ClCompile Include="BulletComponent.cpp">
+      <Filter>World\Component\Logic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

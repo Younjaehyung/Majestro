@@ -16,6 +16,7 @@
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
 #include "EnemyComponent.h"
+#include "BulletComponent.h"
 #include "World.h"
 
 
@@ -139,7 +140,6 @@ Entity TerrainPrefab::Build(World *world, const InputCommand &ctx) {
   return mEntityID;
 }
 
-
 int EnemyPrefab::mSpawnCount = 0;
 EnemyPrefab::EnemyPrefab(World* world)
 {
@@ -206,4 +206,35 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	mSpawnCount++;
 
 	return mEntityID;
+}
+
+BulletPrefab::BulletPrefab(World* world)
+{
+	mEntityID = Build(world, InputCommand{});
+}
+
+BulletPrefab::~BulletPrefab()
+{
+}
+
+Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
+{
+	Entity entity = world->CreateEntity();
+
+	TransformComponent t{};
+	t.mLocalPosition = { 0.f, 100.f, 0.f };
+	t.mLocalScale = { 0.25f, 0.25f, 0.25f };
+
+	world->AddComponent<TransformComponent>(entity, t);
+	world->AddComponent<MovableComponent>(entity);
+	world->AddComponent<BoxColliderComponent>(entity, Vec3(3.f, 3.f, 3.f));
+
+	auto& bullet = world->AddComponent<BulletComponent>(entity);
+	bullet.Activate(BulletType::Default, 0, 0, 0, Vec3::Forward, 60.0f, 2.0f, 10.0f);
+	bullet.Deactivate(); // 풀에 넣기 위해 초기 상태는 비활성
+
+	auto& net = world->AddComponent<NetEntityComponent>(entity, world, entity);
+	net.mSessionId = ctx.SessionId;
+
+	return entity;
 }

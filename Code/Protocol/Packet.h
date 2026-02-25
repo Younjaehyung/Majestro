@@ -83,6 +83,7 @@ enum class PrefabType : uint8 {
 	SKYBOX,
 	DIRLIGHT,
 	ENEMY,
+	BULLET,
 	COUNT
 };
 

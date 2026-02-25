@@ -13,7 +13,8 @@ struct SkeletonBoneParams
 {
 	Matrix	matOffset;
 	float	blendWeight = 1.f;
-	float	padding[3]{};
+	int32	parentIdx = -1;
+	float	padding[2]{};
 };
 
 class Skeleton : public Object

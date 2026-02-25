@@ -142,7 +142,7 @@ float ComputeBodyBlendWeight(const string& boneName)
 		return 0.9f;
 
 	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
-		return .5f;
+		return .0f;
 
 	if (lower.find("finger") != string::npos || lower.find("chest") != string::npos ||
 		lower.find("neck") != string::npos || lower.find("head") != string::npos ||
@@ -396,8 +396,6 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 			else if (track.size() < maxTrackCount)
 				track.resize(maxTrackCount, track.back());
 		}
-
-		ResolveClipToModelSpace(animClipInfo, mSkeleton);
 		mAnimators[ai]= std::make_shared<Animator>(animClipInfo);
 		mAnimators[ai]->mClipMeta.NumFrame = maxTrackCount;
 		mAnimators[ai]->SetSkeleton(mSkeleton);

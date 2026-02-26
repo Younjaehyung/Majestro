@@ -1259,6 +1259,26 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Ibanix_Skill_02", material);
 	}
 
+	//Title_Background
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Title_Background", L"..\\Resources\\Image\\UI\\UI_Main_Title.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Title_Background", material);
+	}
+
+	//Game_Loading_Background
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"Game_Loading_Background", L"..\\Resources\\Image\\UI\\UI_Fanthor_Loading.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Game_Loading_Background", material);
+	}
+
 
 	// DebugLine Material
 	{

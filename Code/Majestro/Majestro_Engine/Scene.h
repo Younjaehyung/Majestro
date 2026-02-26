@@ -31,6 +31,18 @@ public:
 	void Render() override;
 };
 
+class LoadingScene : public Scene
+{
+public:
+	void Initialize() override;
+	void Update(float deltaTime) override;
+	void Render() override;
+
+private:
+	Entity mLoadingText = NULL_ENTITY;
+	Entity mLoadingImage = NULL_ENTITY;
+};
+
 class GameScene : public Scene
 {
 public:

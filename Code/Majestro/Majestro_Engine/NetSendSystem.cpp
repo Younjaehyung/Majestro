@@ -127,6 +127,7 @@ void NetSendSystem::SendSceneChange(SceneId targetScene)
 
 	if (targetScene == SceneId::Game)
 	{
+		gEngine->GetSceneManager().QueueLoadingScene(L"게임 시작 대기 중...", LoadingVisualType::GameStart);
 		UpdateCachedPlayerType();
 		gEngine->GetSceneManager().StorePendingPlayerType(mCachedPlayerType);
 	}

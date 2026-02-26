@@ -9,16 +9,28 @@ void SceneManager::Initialize()
 {
 	/*mActiveScene = make_shared<Scene>();
 	mActiveScene->Initialize();*/
-	LoadScene(L"Lobby");
+	QueueLoadingScene(L"시작 씬 로딩 중...", LoadingVisualType::Startup);
+	QueueLoadScene(L"Lobby");
 }
 
 void SceneManager::Update(float deltaTime)
 {
+	if (mHasPendingLoadingScene)
+	{
+		mHasPendingLoadingScene = false;
+		if (mActiveSceneName != L"Loading")
+		{
+			LoadScene(L"Loading");
+			return;
+		}
+	}
 	if (mHasPendingSceneChange)
 	{
 		mHasPendingSceneChange = false;
 		LoadScene(mPendingSceneName);
 		mPendingSceneName.clear();
+		mIsLoading = false;
+		mLoadingMessage.clear();
 		if (mPendingGameStart)
 		{
 			mPendingGameStart = false;
@@ -65,6 +77,10 @@ void SceneManager::LoadScene(wstring sceneName)
 	{
 		mActiveScene = make_shared<LobbyScene>();
 	}
+	else if (sceneName == L"Loading")
+	{
+		mActiveScene = make_shared<LoadingScene>();
+	}
 	else if (sceneName == L"Game")
 	{
 		mActiveScene = make_shared<GameScene>();
@@ -75,6 +91,7 @@ void SceneManager::LoadScene(wstring sceneName)
 	}
 
 	mActiveScene->Initialize();
+	mActiveSceneName = sceneName;
 
 	INPUT.SetForceMouseLook(sceneName == L"Game");
 
@@ -90,6 +107,19 @@ void SceneManager::QueueLoadScene(const wstring& sceneName)
 {
 	mPendingSceneName = sceneName;
 	mHasPendingSceneChange = true;
+}
+
+void SceneManager::QueueLoadingScene(const wstring& loadingMessage, LoadingVisualType visualType)
+{
+	mLoadingMessage = loadingMessage;
+	mLoadingVisualType = visualType;
+	mIsLoading = true;
+	mHasPendingLoadingScene = true;
+}
+
+void SceneManager::SetLoadingMessage(const wstring& loadingMessage)
+{
+	mLoadingMessage = loadingMessage;
 }
 
 void SceneManager::QueueGameStartAfterLoad()

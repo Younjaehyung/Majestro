@@ -36,5 +36,6 @@ private:
 
 	shared_ptr<Mesh> mQuadMesh;
 	std::shared_ptr<DirectX::SpriteBatch> mSpriteBatch;
+	std::shared_ptr<DirectX::SpriteFont> mDefaultFont;
 	std::vector<UIInstanceData> mInstances;
 };

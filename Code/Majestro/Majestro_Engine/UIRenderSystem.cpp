@@ -46,10 +46,15 @@ void UIRenderSystem::InitializeFont()
     SpriteBatchPipelineStateDescription pd(rtState);
     mSpriteBatch = std::make_shared<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
 
+    mDefaultFont = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
+    mDefaultFont->SetDefaultCharacter(L'?');
+
     for (Entity a : mWorld->View<UITextComponent>()) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
-        
-		textComp->mFont = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
+        if (textComp == nullptr)
+            continue;
+
+        textComp->mFont = mDefaultFont;
         //textComp->m_font.reset();
 
         auto size = RENDERMANAGER.GetWindow();
@@ -98,26 +103,32 @@ void UIRenderSystem::Update()
 
 void UIRenderSystem::TextUpdate()
 {
-    if( false == mWorld->HasComponentPool<UITextComponent>())
+    if (mSpriteBatch == nullptr)
 		return;
-    std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITextComponent>() };
+    if (mDefaultFont == nullptr)
+        return;
     
+    if (false == mWorld->HasComponentPool<UITextComponent>())
+        return;
+    std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITextComponent>() };
+
+    mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
+    mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
     for (Entity a : entitys) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
-       // textComp->m_spriteBatch->SetViewport(viewPort);
+        if (textComp == nullptr || textComp->mFont == nullptr)
+            continue;
+
+        textComp->mFont = mDefaultFont;
 
         std::wstring& output = textComp->mText;
-        mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
-        mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+        Vec2 origin = mDefaultFont->MeasureString(output.c_str()) / 2.f;
 
-       // const wchar_t* output = L"Hello World";
-
-        Vec2 origin = textComp->mFont->MeasureString(output.c_str()) / 2.f;
-
-        textComp->mFont->DrawString(mSpriteBatch.get(), output.c_str(),
+        mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
             textComp->mFontPos, Colors::White, 30.f, origin);
-       
     }
+
     mSpriteBatch->End();
 }
 

@@ -1178,7 +1178,7 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"HPBAR", material);
 	}
 
-	//HPBAR
+	//fire
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"fire", L"..\\Resources\\Image\\UI\\fire.png");
 		shared_ptr<Material> material = make_shared<Material>();

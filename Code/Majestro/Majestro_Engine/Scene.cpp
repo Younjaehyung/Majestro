@@ -437,10 +437,11 @@ void GameScene::Initialize()
 #pragma region UI
 
 	{
-		std::vector<shared_ptr<Texture>> textures;
-		textures.push_back(RESOURCEMANAGER.Get<Texture>(L"fire"));
+
+		shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"fire");
 		Entity fire = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UISpriteComponent>(fire, 
+		auto& t = mWorld->AddComponent<UISpriteComponent>(fire, texture,
+			Vec2(64.f, 64.f), 4, 1.f);
 	}
 
 	{

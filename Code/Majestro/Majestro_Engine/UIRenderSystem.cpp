@@ -171,7 +171,7 @@ void UIRenderSystem::SpriteUpdate()
     for (Entity a : entitys) {
         auto spriteComp = mWorld->GetComponent<UISpriteComponent>(a);
         //auto transformComp = mWorld->GetComponent<UITransformComponent>(a);
-        if (!spriteComp->mVisible)
+        if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
             continue;
         //spriteComp->m_spriteBatch->SetViewport(viewPort);
        mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
@@ -187,13 +187,21 @@ void UIRenderSystem::SpriteUpdate()
             spriteComp->mPos.x,
             spriteComp->mPos.y
         );
+        RECT sourceRect{};
+        RECT* sourceRectPtr = nullptr;
 
+        if (spriteComp->mIsAnimated && spriteComp->mTextures.empty() && spriteComp->mFrameCount > 1)
+        {
+            sourceRect = spriteComp->GetCurrentFrameRect();
+            sourceRectPtr = &sourceRect;
+        }
         // 3) color 인자 추가 (흰색 = 원본 색상 그대로)
         mSpriteBatch->Draw(
             spriteComp->mTexture->GetSrvGpuHandle(),
             textureSize,
             position,
-            Colors::White   // FXMVECTOR color
+            sourceRectPtr,
+            Colors::White
         );
     }
     mSpriteBatch->End();

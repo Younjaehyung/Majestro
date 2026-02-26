@@ -63,6 +63,8 @@ void UIUpdateSystem::Update(float dt)
 
 void UIUpdateSystem::UpdateSpriteAnimation(float dt)
 {
+    if (false == mWorld->HasComponentPool<UISpriteComponent>())return;
+    
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UISpriteComponent>() };
 
     WindowInfo window = RENDERMANAGER.GetWindow();
@@ -73,12 +75,25 @@ void UIUpdateSystem::UpdateSpriteAnimation(float dt)
         UISpriteComponent* sp = mWorld->GetComponent<UISpriteComponent>(e);
         if (false == sp->mIsAnimated)
             continue;
+        if (sp->mAnimationLoopTime <= 0.f)
+            continue;
 
 		sp->mAnimationUpdateTime += dt;
 
-		sp->mAnimationUpdateTime = (sp->mAnimationUpdateTime >= sp->mAnimationLoopTime) ? 0.f : sp->mAnimationUpdateTime;
-        
-		sp->mTexture = sp->mTextures[static_cast<size_t>((sp->mAnimationUpdateTime / sp->mAnimationLoopTime) * sp->mTextures.size())];
+        sp->mAnimationUpdateTime = std::fmod(sp->mAnimationUpdateTime * sp->mAnimationSpeed, sp->mAnimationLoopTime);
+
+        if (!sp->mTextures.empty())
+        {
+            const float progress = sp->mAnimationUpdateTime / sp->mAnimationLoopTime;
+            const size_t frameIndex = static_cast<size_t>(progress * sp->mTextures.size()) % sp->mTextures.size();
+            sp->mTexture = sp->mTextures[frameIndex];
+        }
+        else if (sp->mFrameCount > 1)
+        {
+            const float progress = sp->mAnimationUpdateTime / sp->mAnimationLoopTime;
+            const int frameIndex = static_cast<int>(progress * sp->mFrameCount) % sp->mFrameCount;
+            sp->SetCurrentFrame(frameIndex);
+        }
 
     }
 

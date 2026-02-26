@@ -74,6 +74,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
     else if (msg.Type == PKT_Type::S2C_GAME_START) {
         cout << "GameStart" << endl;
         gEngine->GetSceneManager().SetLoadingMessage(L"게임 씬 로딩 중...");
+        gEngine->GetSceneManager().QueueLoadingScene(L"게임 씬 로딩 중...", LoadingVisualType::GameStart);
         gEngine->GetSceneManager().QueueLoadScene(L"Game");
         return;
     }
@@ -200,6 +201,7 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
         break;
     case SceneId::Game:
         gEngine->GetSceneManager().SetLoadingMessage(L"게임 씬 로딩 중...");
+        gEngine->GetSceneManager().QueueLoadingScene(L"게임 씬 로딩 중...", LoadingVisualType::GameStart);
         gEngine->GetSceneManager().QueueLoadScene(L"Game");
         gEngine->GetSceneManager().QueueGameStartAfterLoad();
         break;

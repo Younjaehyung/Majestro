@@ -47,6 +47,7 @@ void UIRenderSystem::InitializeFont()
     mSpriteBatch = std::make_shared<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
 
     mDefaultFont = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
+    mDefaultFont->SetDefaultCharacter(L'?');
 
     for (Entity a : mWorld->View<UITextComponent>()) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
@@ -122,7 +123,7 @@ void UIRenderSystem::TextUpdate()
         textComp->mFont = mDefaultFont;
 
         std::wstring& output = textComp->mText;
-        Vec2 origin = textComp->mFont->MeasureString(output.c_str()) / 2.f;
+        Vec2 origin = mDefaultFont->MeasureString(output.c_str()) / 2.f;
 
         mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
             textComp->mFontPos, Colors::White, 30.f, origin);

@@ -290,7 +290,8 @@ void LobbyScene::Render()
 /// //////////////////////////////////////////////////////////////////////////////////
 void LoadingScene::Initialize()
 {
-	mWorld->SetSceneId(SceneId::Lobby);
+	const bool isGameLoading = (gEngine->GetSceneManager().GetLoadingVisualType() == LoadingVisualType::GameStart);
+	mWorld->SetSceneId(isGameLoading ? SceneId::Game : SceneId::Lobby);
 	//PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
@@ -308,9 +309,11 @@ void LoadingScene::Initialize()
 	{
 		mLoadingImage = mWorld->CreateEntity();
 		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingImage);
-		tr.mAnchor = Anchor::Center;
-		tr.mPosition = Vec2(-256.f, -256.f);
-		tr.mSize = Vec2(512.f, 512.f);
+		WindowInfo windowInfo = RENDERMANAGER.GetWindow();
+		tr.mAnchor = Anchor::TopLeft;
+		tr.mPosition = Vec2(0.f, 0.f);
+		tr.mSize = Vec2(static_cast<float>(windowInfo.Width), static_cast<float>(windowInfo.Height));
+		tr.mPivot = Vec2(0.f, 0.f);
 
 		shared_ptr<Material> loadingMaterial = nullptr;
 		switch (gEngine->GetSceneManager().GetLoadingVisualType())

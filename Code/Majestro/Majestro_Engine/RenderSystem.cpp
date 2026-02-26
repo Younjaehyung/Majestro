@@ -184,18 +184,11 @@ void RenderSystem::PushCubeData() {
 }
 
 void RenderSystem::PushLandData() {
-  auto entity = mWorld->GetEntitiesWithComponent<TerrainComponent>();
-
-  auto terrain =
-      mWorld->GetComponent<TerrainComponent>(entity[0])->mTerrainParams;
-
-  passParams.HeightMapResolution = terrain.HeightMapResolution;
-  passParams.MaxTessLevel = terrain.MaxTessLevel;
-  passParams.MinMaxTessDistance = terrain.MinMaxTessDistance;
-  passParams.TileCountX = terrain.TileCountX;
-  passParams.TileCountZ = terrain.TileCountZ;
-
-  auto recomp = mWorld->GetComponent<RenderComponent>(entity[0]);
+  passParams.HeightMapResolution = Vec2(0.f, 0.f);
+  passParams.MaxTessLevel = 0.f;
+  passParams.MinMaxTessDistance = Vec2(0.f, 0.f);
+  passParams.TileCountX = 0;
+  passParams.TileCountZ = 0;
 
   passParams.TerrainSlot1 = -1;
   passParams.TerrainSlot2 = -1;
@@ -204,25 +197,45 @@ void RenderSystem::PushLandData() {
   passParams.TerrainSlot5 = -1;
   passParams.TerrainSlot6 = -1;
 
+  auto entity = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+  if (entity.empty())
+      return;
+
+  auto* terrainComp = mWorld->GetComponent<TerrainComponent>(entity[0]);
+  if (terrainComp == nullptr)
+      return;
+
+  auto terrain = terrainComp->mTerrainParams;
+
+  passParams.HeightMapResolution = terrain.HeightMapResolution;
+  passParams.MaxTessLevel = terrain.MaxTessLevel;
+  passParams.MinMaxTessDistance = terrain.MinMaxTessDistance;
+  passParams.TileCountX = terrain.TileCountX;
+  passParams.TileCountZ = terrain.TileCountZ;
+
+  auto* recomp = mWorld->GetComponent<RenderComponent>(entity[0]);
+  if (recomp == nullptr)
+      return;
+
 
   switch (recomp->mMaterials.size()) {
   case 6:
-    if (recomp->mMaterials[5]->GetID())
+    if (recomp->mMaterials[5] && recomp->mMaterials[5]->GetID())
       passParams.TerrainSlot6 = recomp->mMaterials[5]->GetIndex();
   case 5:
-    if (recomp->mMaterials[4]->GetID())
+    if (recomp->mMaterials[4] && recomp->mMaterials[4]->GetID())
       passParams.TerrainSlot5 = recomp->mMaterials[4]->GetIndex();
   case 4:
-    if (recomp->mMaterials[3]->GetID())
+    if (recomp->mMaterials[3] && recomp->mMaterials[3]->GetID())
       passParams.TerrainSlot4 = recomp->mMaterials[3]->GetIndex();
   case 3:
-    if (recomp->mMaterials[2]->GetID())
+    if (recomp->mMaterials[2] && recomp->mMaterials[2]->GetID())
       passParams.TerrainSlot3 = recomp->mMaterials[2]->GetIndex();
   case 2:
-    if (recomp->mMaterials[1]->GetID())
+    if (recomp->mMaterials[1] && recomp->mMaterials[1]->GetID())
       passParams.TerrainSlot2 = recomp->mMaterials[1]->GetIndex();
   case 1:
-    if (recomp->mMaterials[0]->GetID())
+    if (recomp->mMaterials[0] && recomp->mMaterials[0]->GetID())
       passParams.TerrainSlot1 = recomp->mMaterials[0]->GetIndex();
     break;
   }

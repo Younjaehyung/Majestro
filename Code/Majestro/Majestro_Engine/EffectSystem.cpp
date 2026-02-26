@@ -31,13 +31,16 @@ EffectSystem::~EffectSystem()
 
 void EffectSystem::Shutdown()
 {
-	auto resources = mWorld->GetEntitiesWithComponent<VfxComponent>();
-	for (auto& res : resources)
+	if (mWorld && mWorld->HasComponentPool<VfxComponent>())
 	{
-		VfxComponent* effect = mWorld->GetComponent<VfxComponent>(res);
-		if (effect && effect->efkHandle != -1)
+		auto resources = mWorld->GetEntitiesWithComponent<VfxComponent>();
+		for (auto& res : resources)
 		{
-			manager_->StopEffect(effect->efkHandle);
+			VfxComponent* effect = mWorld->GetComponent<VfxComponent>(res);
+			if (effect && effect->efkHandle != -1)
+			{
+				manager_->StopEffect(effect->efkHandle);
+			}
 		}
 	}
 

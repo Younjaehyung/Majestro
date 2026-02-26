@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Scene.h"
 #include "Engine.h"
+#include "SceneManager.h"
 #include "EnginePch.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
@@ -281,6 +282,78 @@ void LobbyScene::Update(float deltaTime)
 }
 
 void LobbyScene::Render()
+{
+	mWorld->Render();
+}
+
+
+/// //////////////////////////////////////////////////////////////////////////////////
+void LoadingScene::Initialize()
+{
+	mWorld->SetSceneId(SceneId::Lobby);
+	//PrefabFactory::RegisterAllPrefabs();
+	TerrainPrefab terrain{ mWorld.get() };
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+	{
+		Entity testCamera = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = { 0.f, 0.f, -10.f };
+		mWorld->AddComponent<MainCameraComponent>(testCamera);
+		mWorld->AddComponent<CameraComponent>(testCamera);
+		mWorld->AddComponent<TransformComponent>(testCamera, t);
+	}
+
+	{
+		mLoadingImage = mWorld->CreateEntity();
+		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingImage);
+		tr.mAnchor = Anchor::Center;
+		tr.mPosition = Vec2(-256.f, -256.f);
+		tr.mSize = Vec2(512.f, 512.f);
+
+		shared_ptr<Material> loadingMaterial = nullptr;
+		switch (gEngine->GetSceneManager().GetLoadingVisualType())
+		{
+		case LoadingVisualType::Startup:
+			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Title_Background");
+			break;
+		case LoadingVisualType::GameStart:
+		default:
+			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
+			break;
+		}
+
+		if (loadingMaterial == nullptr)
+			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"HPBAR");
+
+		mWorld->AddComponent<UICusSpriteComponent>(mLoadingImage, loadingMaterial);
+	}
+
+	{
+		mLoadingText = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UITextComponent>(mLoadingText);
+		t.mText = L"Loading...";
+		t.mFontPos = Vec2(0.f, 260.f);
+	}
+
+	mWorld->Initialize();
+}
+
+void LoadingScene::Update(float deltaTime)
+{
+	UITextComponent* loadingText = mWorld->GetComponent<UITextComponent>(mLoadingText);
+	if (loadingText)
+	{
+		loadingText->mText = gEngine->GetSceneManager().GetLoadingMessage();
+		if (loadingText->mText.empty())
+			loadingText->mText = L"Loading...";
+	}
+
+	mWorld->Update(deltaTime);
+}
+
+void LoadingScene::Render()
 {
 	mWorld->Render();
 }

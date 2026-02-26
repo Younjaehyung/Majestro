@@ -31,6 +31,7 @@ void AnimationSystem::Initialize()
 			SkeletonBoneParams boneParam{};
 			boneParam.matOffset = bone.matOffset;
 			boneParam.blendWeight = bone.blendWeight;
+            boneParam.parentIdx = bone.parentIdx;
 			mBoneData.emplace_back(boneParam);
 		}
 		skelOffset += skel->GetBones().size();
@@ -370,7 +371,7 @@ void AnimationSystem::AnimationDispatch()
 		CSBatchCB cb{ b.start, b.count};
 		COMPUTE_CMD_LIST->SetComputeRoot32BitConstants(/*b0*/0, 2, &cb, 0);
 
-		const uint32 groupsX = (b.bones + TX - 1) / TX;
+        const uint32 groupsX = 1;
 		const uint32 groupsY = (b.count + TY - 1) / TY;
 
 		COMPUTE_CMD_LIST->Dispatch(groupsX, groupsY, 1);

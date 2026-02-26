@@ -122,7 +122,8 @@ struct SKELETONBONE
 {
     matrix Offset;
     float BlendWeight;
-    float3 Padding;
+    int ParentIdx;
+    float2 Padding;
 };
 
 //////////////

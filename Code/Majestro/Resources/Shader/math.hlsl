@@ -73,6 +73,7 @@ matrix MatrixAffineTransformation(in float4 Scaling, in float4 RotationOrigin, i
 {
     matrix MScaling = (matrix) 0.f;
     MScaling._11_22_33 = Scaling.xyz;
+    MScaling._44 = 1.f;
     float4 VRotationOrigin = float4(RotationOrigin.xyz, 0.f);
     matrix MRotation = MatrixRotationQuaternion(RotationQuaternion);
     float4 VTranslation = float4(Translation.xyz, 0.f);

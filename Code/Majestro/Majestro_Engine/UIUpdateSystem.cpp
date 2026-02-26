@@ -4,7 +4,7 @@
 #include "RenderManager.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
-
+#include "UIComponent.h"
 
 UITransformSystem::UITransformSystem(World* world) : System::System(world)
 {
@@ -53,8 +53,33 @@ void UIUpdateSystem::Initialize()
 {
 }
 
-void UIUpdateSystem::Update()
+void UIUpdateSystem::Update(float dt)
 {
+    UpdateSpriteAnimation(dt);
 
+   
+
+}
+
+void UIUpdateSystem::UpdateSpriteAnimation(float dt)
+{
+    std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UISpriteComponent>() };
+
+    WindowInfo window = RENDERMANAGER.GetWindow();
+
+    Vec2 screenSize = { (float)window.Width ,(float)window.Height };
+    for (auto& e : entitys)
+    {
+        UISpriteComponent* sp = mWorld->GetComponent<UISpriteComponent>(e);
+        if (false == sp->mIsAnimated)
+            continue;
+
+		sp->mAnimationUpdateTime += dt;
+
+		sp->mAnimationUpdateTime = (sp->mAnimationUpdateTime >= sp->mAnimationLoopTime) ? 0.f : sp->mAnimationUpdateTime;
+        
+		sp->mTexture = sp->mTextures[static_cast<size_t>((sp->mAnimationUpdateTime / sp->mAnimationLoopTime) * sp->mTextures.size())];
+
+    }
 
 }

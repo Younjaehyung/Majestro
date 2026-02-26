@@ -1178,6 +1178,16 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"HPBAR", material);
 	}
 
+	//HPBAR
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"fire", L"..\\Resources\\Image\\UI\\fire.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"fire", material);
+	}
+
 	//IbanixPortrait
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Portrait", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_01.dds");

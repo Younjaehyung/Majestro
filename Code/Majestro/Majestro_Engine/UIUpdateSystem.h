@@ -54,5 +54,8 @@ class UIUpdateSystem : public System
 public:
     UIUpdateSystem(World* world);
     void Initialize();
-    void Update();
+	void Update(float dt);
+
+private:
+	void UpdateSpriteAnimation(float dt);
 };

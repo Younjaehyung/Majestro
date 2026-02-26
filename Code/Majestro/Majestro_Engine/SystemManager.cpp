@@ -26,6 +26,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<NetSendSystem>();
     RegisterSystem<CameraSystem>();
 	RegisterSystem<UITransformSystem>();
+	RegisterSystem<UIUpdateSystem>();
     RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();

@@ -27,17 +27,39 @@ class UISpriteComponent : public Component<UISpriteComponent>
 public:
 	UISpriteComponent() = default;
 	UISpriteComponent(shared_ptr<Texture> texture);
+	//UISpriteComponent(shared_ptr<Texture> textures, float animationTime)
+	//{
+	//	mIsAnimated = true;
+	//	mAnimationLoopTime = animationTime;
+	//	mTexture = textures[0];
+	//	mTextures = textures;
+	//}
+	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures, float animationTime)
+	{
+		mIsAnimated = true;
+		mAnimationLoopTime = animationTime;
+		mTexture = textures[0];
+		mTextures = textures;
+	}
+
 
 	~UISpriteComponent() = default;
 
 
 public :
 
+	bool mIsAnimated{ false };
+	float mAnimationUpdateTime = 0.f;
+	float mAnimationLoopTime = 0.f;
+	float mAnimationSpeed = 1.f;
+	
 
+public:
 	bool mVisible{ true };
 	bool mUIVisibility = true;
 
-	std::shared_ptr<Texture> mTexture;
+	std::vector<shared_ptr<Texture>> mTextures;
+	shared_ptr<Texture> mTexture;
 	Vec2 mPos;
 	Vec2 mSize;
 	

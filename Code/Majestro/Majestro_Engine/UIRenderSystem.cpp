@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "UIRenderSystem.h"
+#include <DirectXTK12/CommonStates.h>
 #include "Engine.h"
 #include "CommandQueue.h"
 #include "ResourceManager.h"
@@ -43,7 +44,7 @@ void UIRenderSystem::InitializeFont()
     RenderTargetState rtState(DXGI_FORMAT_R8G8B8A8_UNORM,
         DXGI_FORMAT_D32_FLOAT);
 
-    SpriteBatchPipelineStateDescription pd(rtState);
+    SpriteBatchPipelineStateDescription pd(rtState, &CommonStates::NonPremultiplied);
     mSpriteBatch = std::make_shared<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
 
     mDefaultFont = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
@@ -167,15 +168,15 @@ void UIRenderSystem::SpriteUpdate()
     if (false == mWorld->HasComponentPool<UISpriteComponent>())
         return;
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UISpriteComponent>() };
-
+    mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
+    mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
     for (Entity a : entitys) {
         auto spriteComp = mWorld->GetComponent<UISpriteComponent>(a);
         //auto transformComp = mWorld->GetComponent<UITransformComponent>(a);
         if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
             continue;
         //spriteComp->m_spriteBatch->SetViewport(viewPort);
-       mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
-       mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
         // 1) Int2 → XMUINT2 변환
         XMUINT2 textureSize(
             static_cast<uint32_t>(spriteComp->mSize.x),

@@ -116,6 +116,9 @@ void AudioManager::Shutdown() {
 
     if (!mAllBGM.empty()) {
         for (auto& bgm : mAllBGM) {
+            if (!bgm) {
+                continue;
+            }
             bgm->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
             bgm->release();
             bgm = nullptr;
@@ -158,6 +161,14 @@ void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
     //    mAllBGM[soundEnum] = nullptr;
     //} // to-do
 	uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size()) return;
+
+    // 씬 전환 등으로 동일 BGM 슬롯이 재생될 경우 기존 인스턴스를 정리해 중첩 재생을 막는다.
+    if (mAllBGM[idx]) {
+        mAllBGM[idx]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+        mAllBGM[idx]->release();
+        mAllBGM[idx] = nullptr;
+    }
 
     mBGM = mFMOD.CreateInstance(eventPath);
 	mAllBGM[idx] = mBGM;
@@ -168,6 +179,7 @@ void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
 
 void AudioManager::StopBGM(SOUNDNAME soundEnum) {
     uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size()) return;
 
     if (!mAllBGM[idx]) return;
     mAllBGM[idx]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);

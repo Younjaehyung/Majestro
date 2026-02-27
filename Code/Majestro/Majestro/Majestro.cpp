@@ -7,6 +7,8 @@
 #include "Game.h"
 #include "Scene.h"
 #include "SceneManager.h"
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
 
 #define MAX_LOADSTRING 100
 
@@ -15,12 +17,17 @@ HINSTANCE hInst;                                // 현재 인스턴스입니다.
 WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
 WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
 WindowInfo gWindowInfo;
+bool gIsInitializing = true;
+ULONG_PTR gGdiplusToken = 0;
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void DrawStartupLoadingFrame(HWND hWnd);
+bool InitializeGdiPlus();
+void ShutdownGdiPlus();
 
 unique_ptr<Game> game = make_unique<Game>();
 
@@ -31,6 +38,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+    InitializeGdiPlus();
 
     // TODO: 여기에 코드를 입력합니다.
     // 
@@ -50,6 +59,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // 애플리케이션 초기화를 수행합니다:
     if (!InitInstance (hInstance, nCmdShow))
     {
+        ShutdownGdiPlus();
         return FALSE;
     }
 
@@ -64,8 +74,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     gWindowInfo.Height = clientRect.bottom - clientRect.top;
     gWindowInfo.ScreenState = true;
 
+    DrawStartupLoadingFrame(gWindowInfo.Hwnd);
+    RedrawWindow(gWindowInfo.Hwnd, nullptr, nullptr, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
 
     game->Initialize(gWindowInfo);
+    gIsInitializing = false;
 
     // 기본 메시지 루프입니다:
     while (true)
@@ -87,6 +100,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         game->Render();
     }
 
+    ShutdownGdiPlus();
     return (int) msg.wParam;
 }
 
@@ -110,7 +124,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAJESTRO));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    /*wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);*/
+    wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wcex.lpszMenuName   = nullptr;
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -151,6 +166,69 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    return TRUE;
 }
+
+bool InitializeGdiPlus()
+{
+    if (gGdiplusToken != 0)
+        return true;
+
+    Gdiplus::GdiplusStartupInput startupInput;
+    return Gdiplus::GdiplusStartup(&gGdiplusToken, &startupInput, nullptr) == Gdiplus::Ok;
+}
+
+void ShutdownGdiPlus()
+{
+    if (gGdiplusToken == 0)
+        return;
+
+    Gdiplus::GdiplusShutdown(gGdiplusToken);
+    gGdiplusToken = 0;
+}
+
+void DrawStartupLoadingFrame(HWND hWnd)
+{
+    if (!hWnd)
+        return;
+
+    RECT rect{};
+    GetClientRect(hWnd, &rect);
+
+    HDC hdc = GetDC(hWnd);
+    if (!hdc)
+        return;
+
+    bool imageDrawn = false;
+    if (gGdiplusToken != 0)
+    {
+        Gdiplus::Graphics graphics(hdc);
+        Gdiplus::Image image(L"..\\Resources\\Image\\UI\\UI_Main_Title.png");
+        if (image.GetLastStatus() == Gdiplus::Ok)
+        {
+            const Gdiplus::Rect destRect(
+                static_cast<INT>(rect.left),
+                static_cast<INT>(rect.top),
+                static_cast<INT>(rect.right - rect.left),
+                static_cast<INT>(rect.bottom - rect.top));
+            graphics.DrawImage(&image, destRect);
+            imageDrawn = true;
+        }
+    }
+
+    if (!imageDrawn)
+    {
+        HBRUSH background = CreateSolidBrush(RGB(8, 8, 12));
+        FillRect(hdc, &rect, background);
+        DeleteObject(background);
+
+        SetBkMode(hdc, TRANSPARENT);
+        SetTextColor(hdc, RGB(230, 230, 230));
+        DrawTextW(hdc, L"LOADING...", -1, &rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    }
+
+    ReleaseDC(hWnd, hdc);
+}
+
+
 
 inline HCURSOR CreateTransparentCursorMask32() //투명커서
 {
@@ -193,6 +271,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     //if(game)game->Input(message);
     switch (message)
     {
+    case WM_ERASEBKGND:
+        if (gIsInitializing)
+            return TRUE;
+        break;
+
     case WM_SETCURSOR:
         if (isGameScene)
             return TRUE;
@@ -248,8 +331,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
+  
+            BeginPaint(hWnd, &ps);
+
+            if (gIsInitializing)
+            {
+                EndPaint(hWnd, &ps);
+                DrawStartupLoadingFrame(hWnd);
+                return 0;
+            }
+
             EndPaint(hWnd, &ps);
         }
         break;

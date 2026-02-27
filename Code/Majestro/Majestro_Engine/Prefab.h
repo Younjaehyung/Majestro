@@ -8,7 +8,7 @@ class World;
 class PlayerPrefab;
 class TerrainPrefab;
 class EnemyPrefab;
-
+class BulletPrefab;
 
 class Prefab : public Object
 {
@@ -33,6 +33,7 @@ public:
 		Register<PrefabType::PLAYER, PlayerPrefab>();
 		Register<PrefabType::TERRAIN, TerrainPrefab>();
 		Register<PrefabType::ENEMY, EnemyPrefab>();
+		Register<PrefabType::BULLET, BulletPrefab>();
 		// Register<PrefabType::ENEMY, EnemyPrefab>();
 		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
 		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();
@@ -90,6 +91,15 @@ class EnemyPrefab : public Prefab
 public:
 	EnemyPrefab(World* world);
 	~EnemyPrefab();
+public:
+	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class BulletPrefab : public Prefab
+{
+public:
+	BulletPrefab(World* world);
+	~BulletPrefab();
 public:
 	static Entity Build(World* world, const InputCommand& ctx);
 };

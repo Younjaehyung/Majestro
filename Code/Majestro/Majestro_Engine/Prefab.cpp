@@ -22,6 +22,7 @@
 #include "NetEntityComponent.h"
 #include "NetTransformComponent.h"
 #include "BoxColliderComponent.h"
+#include "BulletComponent.h"
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
 {
@@ -304,6 +305,42 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 	return mEntityID;
 }
+
+BulletPrefab::BulletPrefab(World* world)
+{
+}
+
+BulletPrefab::~BulletPrefab()
+{
+}
+
+Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
+{
+	Entity mEntityID = world->CreateEntity();
+
+	TransformComponent t{};
+	t.mLocalPosition = { 0.f, 100.f, 0.f };
+	t.mLocalScale = { 0.25f, 0.25f, 0.25f };
+
+	world->AddComponent<TransformComponent>(mEntityID, t);
+	world->AddComponent<BoxColliderComponent>(mEntityID);
+
+	auto& bulletComp = world->AddComponent<BulletComponent>(mEntityID);
+	bulletComp.Activate(BulletType::Default, 0, 0, 0, t.mLocalPosition, Vec3::Forward, 60.0f, 2.0f, 10.0f);
+	bulletComp.Deactivate();
+
+	const S2C_SpawnPacekt* spawnPacket = ctx.ViewAs<S2C_SpawnPacekt>();
+	if (spawnPacket == nullptr)
+		return mEntityID;
+
+	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
+	netComp.mOwnerEntity = mEntityID;
+	netComp.mNetEntityId = spawnPacket->netEntityId;
+	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
+
+	return mEntityID;
+}
+
 
 SkyBoxPrefab::SkyBoxPrefab(World* world)
 {

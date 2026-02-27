@@ -8,6 +8,7 @@
 #include "Timer.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
+#include "BulletComponent.h"
 #include "NetIdMap.h"
 #include "TransformComponent.h"
 #include "NetTransformComponent.h"
@@ -152,9 +153,43 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         return;
 	}
     else if (msg.Type == PKT_Type::S2C_PKT_BULLET_ACTIVATE) {
+        cout << "fire" << endl;
         const S2C_BulletActivatePacket* bulletPacket = msg.ViewAs<S2C_BulletActivatePacket>();
         if (bulletPacket == nullptr)
             return;
+
+        Entity bulletEntity = mWorld->GetEntityByNetId(bulletPacket->bulletNetEntityId);
+        if (bulletEntity == NULL_ENTITY)
+        {
+            std::cout << "Bullet Activate Packet Received but entity not found - bullet: " << bulletPacket->bulletNetEntityId << std::endl;
+            return;
+        }
+
+        BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
+        TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+        if (bulletComp == nullptr || bulletTransform == nullptr)
+            return;
+
+        Vec3 spawnPosition{ bulletPacket->x, bulletPacket->y, bulletPacket->z };
+        Vec3 direction{ bulletPacket->dirX, bulletPacket->dirY, bulletPacket->dirZ };
+        if (direction.LengthSquared() <= 0.0001f)
+            direction = Vec3::Forward;
+        direction.Normalize();
+
+        bulletTransform->mLocalPosition = spawnPosition;
+        bulletTransform->mWorldPosition = spawnPosition;
+
+        const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
+        bulletComp->Activate(
+            BulletType::Default,
+            bulletPacket->ownerNetEntityId,
+            static_cast<uint32>(bulletPacket->bulletNetEntityId),
+            generation,
+            spawnPosition,
+            direction,
+            bulletPacket->speed,
+            bulletComp->mLifeTime,
+            bulletComp->mDamage);
 
         std::cout << "Bullet Activate Packet Received - owner: " << bulletPacket->ownerNetEntityId
             << ", bullet: " << bulletPacket->bulletNetEntityId

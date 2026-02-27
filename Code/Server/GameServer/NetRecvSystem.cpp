@@ -202,16 +202,29 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 
 void NetRecvSystem::BulletPoolSpawnProcess(InputCommand& inputCommand)
 {
-	if (!mBulletSpawnOnce)
-		return;
-
-	constexpr int kBulletPoolSize = 64;
-	for (int i = 0; i < kBulletPoolSize; ++i)
+	if (mBulletSpawnOnce)
 	{
-		PrefabFactory::Spawn(mWorld, PrefabType::BULLET, inputCommand);
+		constexpr int kBulletPoolSize = 64;
+		mBulletNetEntityIds.reserve(kBulletPoolSize);
+		for (int i = 0; i < kBulletPoolSize; ++i)
+		{
+			Entity bulletEntity = PrefabFactory::Spawn(mWorld, PrefabType::BULLET, inputCommand);
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(bulletEntity);
+			if (netComp != nullptr)
+				mBulletNetEntityIds.push_back(netComp->mNetEntityId);
+		}
+
+		mBulletSpawnOnce = false;
 	}
 
-	mBulletSpawnOnce = false;
+	for (uint64 bulletNetId : mBulletNetEntityIds)
+	{
+		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, bulletNetId, PrefabType::BULLET);
+		spawnPkt.isLocalPlayer = 0;
+		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(request);
+	}
 }
 
 std::vector<uint32> NetRecvSystem::CollectPlayerSessions() const

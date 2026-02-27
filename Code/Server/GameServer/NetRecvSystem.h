@@ -63,6 +63,7 @@ private:
 private:
 
     vector<uint64> mNetEntityIds{};
+    vector<uint64> mBulletNetEntityIds{};
     bool mEnemySpawnOnce = true;
     bool mBulletSpawnOnce = true;
 

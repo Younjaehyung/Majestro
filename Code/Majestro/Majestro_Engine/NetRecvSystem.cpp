@@ -16,6 +16,7 @@
 #include "PlayerComponent.h"
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
+#include "MovementSystem.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -190,6 +191,9 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
             bulletPacket->speed,
             bulletComp->mLifeTime,
             bulletComp->mDamage);
+
+        if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
+            movementSystem->RegisterActiveBullet(bulletEntity);
 
         std::cout << "Bullet Activate Packet Received - owner: " << bulletPacket->ownerNetEntityId
             << ", bullet: " << bulletPacket->bulletNetEntityId

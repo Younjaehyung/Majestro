@@ -9,6 +9,7 @@
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
+#include "BulletComponent.h"
 
 MovementSystem::MovementSystem(World* world) : System(world)
 {
@@ -24,38 +25,6 @@ void MovementSystem::Update(float dt) {
 	//terrain
 	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
 	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
-
-	/*std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
-	for (auto& entity : gravityEntitys) {
-		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-
-		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
-		gravityComponent->mGround = terrainGround;
-
-		if (gravityComponent->mHight <= terrainGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= terrainGround) {
-			gravityComponent->mHight = terrainGround;
-			gravityComponent->mGravity = 0.0f;
-
-			gravityComponent->mFalling = false;
-		}
-		else {
-			gravityComponent->mFalling = true;
-
-			gravityComponent->mGravity += gravityComponent->mGravityA * dt;
-			gravityComponent->mHight -= gravityComponent->mGravity * dt;
-		}
-
-		NetTransformComponent * netTransformComponent = mWorld->GetComponent<NetTransformComponent>(entity);
-		if (netTransformComponent == nullptr) {
-			transformComponent->mLocalPosition.y = gravityComponent->mHight;
-		}
-		else {
-			netTransformComponent->mStartPosition.y = transformComponent->mLocalPosition.y = gravityComponent->mHight;
-		}
-		
-		
-	}*/
 
 
 	//main player movement
@@ -140,15 +109,71 @@ void MovementSystem::Update(float dt) {
 		
 	}
 
-	////enemy movement
-	//std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
-	//for (auto& entity : enemyEntitys) {
-	//	TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-	//	EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
-	//	
-	//	transformComponent->mLocalPosition += enemyMovementComponent->mMovingDirection * dt * 50;
-	//}
+	
+	//bullet move
+	for (size_t i = 0; i < mActiveBulletEntityIds.size();)
+	{
+		Entity bulletEntity{ mActiveBulletEntityIds[i] };
+		BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
+		TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+
+		if (!bulletComp || !bulletTransform || !bulletComp->mIsActive)
+		{
+			UnregisterActiveBullet(bulletEntity);
+			continue;
+		}
+
+		Vec3 direction = bulletComp->mDirection;
+		if (direction.LengthSquared() <= 0.0001f)
+			direction = Vec3::Forward;
+		direction.Normalize();
+
+		bulletTransform->mMovingVector = direction * bulletComp->mSpeed * dt;
+		bulletTransform->mLocalPosition += bulletTransform->mMovingVector;
+		bulletTransform->mWorldPosition = bulletTransform->mLocalPosition;
+
+		if (bulletComp->UpdateLifeTime(dt))
+		{
+			bulletComp->Deactivate();
+			bulletTransform->mMovingVector = Vec3::Zero;
+			UnregisterActiveBullet(bulletEntity);
+			continue;
+		}
+
+		++i;
+	}
 
 }
 
 
+void MovementSystem::RegisterActiveBullet(Entity bulletEntity)
+{
+	if (!bulletEntity.IsValid())
+		return;
+
+	const EntityID bulletId = bulletEntity.GetID();
+	for (EntityID activeBulletId : mActiveBulletEntityIds)
+	{
+		if (activeBulletId == bulletId)
+			return;
+	}
+
+	mActiveBulletEntityIds.push_back(bulletId);
+}
+
+void MovementSystem::UnregisterActiveBullet(Entity bulletEntity)
+{
+	if (!bulletEntity.IsValid())
+		return;
+
+	const EntityID bulletId = bulletEntity.GetID();
+	for (size_t i = 0; i < mActiveBulletEntityIds.size(); ++i)
+	{
+		if (mActiveBulletEntityIds[i] != bulletId)
+			continue;
+
+		mActiveBulletEntityIds[i] = mActiveBulletEntityIds.back();
+		mActiveBulletEntityIds.pop_back();
+		return;
+	}
+}

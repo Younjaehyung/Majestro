@@ -52,6 +52,7 @@ public:
 	Vec3 mLocalPosition = {};
 	Vec3 mLocalRotationE = {}; // Euler Degrees	(에디터 용)
 	Vec3 mLocalScale = { 1.f, 1.f, 1.f };
+	Vec3 mMovingVector;
 
 	Vec3 mLocalRotationR = {}; // Radians
 	Quaternion mLocalRotationQ = {}; // Quaternion

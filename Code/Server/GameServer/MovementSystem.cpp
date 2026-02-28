@@ -9,6 +9,7 @@
 #include "TagComponent.h"
 #include "PlayerComponent.h"
 #include "InputComponent.h"
+#include "BulletComponent.h"
 
 static float WrapAngleDeg(float angleDeg)
 {
@@ -199,6 +200,68 @@ void MovementSystem::Update(float dt) {
 		// transformComponent->mLocalRotation.z = 0.0f;
 	}
 
-	
+	//bullet move
+	for (size_t i = 0; i < mActiveBulletEntityIds.size();)
+	{
+		Entity entity{ mActiveBulletEntityIds[i] };
+		BulletComponent* bulletComponent = mWorld->GetComponent<BulletComponent>(entity);
+		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 
+		if (!bulletComponent || !transformComponent || !bulletComponent->mIsActive)
+		{
+			UnregisterActiveBullet(entity);
+			continue;
+		}
+
+		Vec3 direction = bulletComponent->mDirection;
+		if (direction.LengthSquared() <= 0.0001f)
+			direction = Vec3::Forward;
+		direction.Normalize();
+
+		transformComponent->mMovingVector = direction * bulletComponent->mSpeed * dt;
+		transformComponent->mLocalPosition += transformComponent->mMovingVector;
+
+		if (bulletComponent->UpdateLifeTime(dt))
+		{
+			bulletComponent->Deactivate();
+			transformComponent->mMovingVector = Vec3::Zero;
+			UnregisterActiveBullet(entity);
+			continue;
+		}
+
+		++i;
+	}
+
+}
+
+void MovementSystem::RegisterActiveBullet(Entity bulletEntity)
+{
+	if (!bulletEntity.IsValid())
+		return;
+
+	const EntityID bulletId = bulletEntity.GetID();
+	for (EntityID activeBulletId : mActiveBulletEntityIds)
+	{
+		if (activeBulletId == bulletId)
+			return;
+	}
+
+	mActiveBulletEntityIds.push_back(bulletId);
+}
+
+void MovementSystem::UnregisterActiveBullet(Entity bulletEntity)
+{
+	if (!bulletEntity.IsValid())
+		return;
+
+	const EntityID bulletId = bulletEntity.GetID();
+	for (size_t i = 0; i < mActiveBulletEntityIds.size(); ++i)
+	{
+		if (mActiveBulletEntityIds[i] != bulletId)
+			continue;
+
+		mActiveBulletEntityIds[i] = mActiveBulletEntityIds.back();
+		mActiveBulletEntityIds.pop_back();
+		return;
+	}
 }

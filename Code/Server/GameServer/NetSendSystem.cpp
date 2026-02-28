@@ -6,6 +6,7 @@
 #include "PlayerComponent.h"
 #include "ColliderComponent.h"
 #include "MovementComponent.h"
+#include "BulletComponent.h"
 #include <unordered_set>
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
@@ -47,7 +48,8 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 	{
 		netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (netComp == nullptr) continue;
-		//if (netComp->mIsDirty)
+		if (mWorld->HasComponent<BulletComponent>(entity))
+			continue;
 		{
 
 			TransformComponent* transComp = mWorld->GetComponent<TransformComponent>(netComp->mOwnerEntity);

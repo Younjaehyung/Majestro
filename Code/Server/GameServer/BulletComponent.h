@@ -22,8 +22,8 @@ public:
 	uint16 mGeneration = 0;
 
 	float mDamage = 10.0f;
-	float mSpeed = 60.0f;
-	float mLifeTime = 1.5f;
+	float mSpeed = 90.0f;
+	float mLifeTime = 3.0f;
 	float mElapsedTime = 0.0f;
 	int mPenetrationCount = 1;
 	int mHitCount = 0;

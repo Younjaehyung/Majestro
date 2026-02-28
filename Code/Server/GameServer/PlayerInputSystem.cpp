@@ -75,6 +75,7 @@ void PlayerInputSystem::Update(float dt)
 			cout << "dash" << endl;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
+
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
 			std::cout << "attack!!!" << std::endl;
 			ActivateBulletAndNotify(e);
@@ -139,7 +140,7 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 			direction = Vec3::Forward;
 		direction.Normalize();
 
-		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 2.0f + Vec3(0.f, 1.f, 0.f);
+		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
 		bulletTransform->mMovingVector = direction * bulletComp->mSpeed;
 

@@ -227,7 +227,7 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<TransformComponent>(entity, t);
 	world->AddComponent<MovableComponent>(entity);
-	world->AddComponent<BoxColliderComponent>(entity, Vec3(3.f, 3.f, 3.f));
+	//world->AddComponent<BoxColliderComponent>(entity, Vec3(3.f, 3.f, 3.f));
 
 	auto& bullet = world->AddComponent<BulletComponent>(entity);
 	bullet.Activate(BulletType::Default, 0, 0, 0, Vec3::Forward, 60.0f, 2.0f, 10.0f);

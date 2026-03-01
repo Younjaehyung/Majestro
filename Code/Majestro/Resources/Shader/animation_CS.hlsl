@@ -23,7 +23,7 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
     
 
     
-    const float featherRange = 2.0f;
+    const float featherRange = 4.0f;
 
 
      // 1) 로컬 본 포즈 계산 + 부모 누적(모델 공간) 저장
@@ -154,8 +154,8 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
                 }
                 float boneWeight = SkeletonBone[nowbone + boneidx].BlendWeight;
                 // pelvis/leg 구간은 Upper 영향 완전 차단 (하체 기준 유지)
-                //if (boneWeight < 0.7f)
-                //    boneWeight = 0.0f;
+                //if (boneWeight > 0.7f)
+                //    boneWeight = 1.0f;
                 float finalUpperWeight = saturate(animationInst.UpperLayerWeight) *
                                          saturate(boneWeight) *
                                          upperBlendWeight;

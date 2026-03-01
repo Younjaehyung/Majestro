@@ -119,7 +119,6 @@ private:           // RenderPass
 
   void DefferdRendering();
   void ForwardRendering();
-  void ParticleRendering();
 
 private: // Culling
   bool IsCustomCulled(uint8 layer) {

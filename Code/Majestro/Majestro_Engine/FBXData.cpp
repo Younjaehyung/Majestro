@@ -133,9 +133,9 @@ float ComputeBodyBlendWeight(const string& boneName)
 
 
 	if (lower.find("spine1") != string::npos)
-		return .7f;
+		return 1.0f;
 	if (lower.find("spine2") != string::npos)
-		return .8f;
+		return 1.f;
 
 	if (lower.find("spine3") != string::npos)
 		return 0.9f;

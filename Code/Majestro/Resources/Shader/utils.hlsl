@@ -420,7 +420,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
     float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
     float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f;
-    float bias = max(0.001f, 0.005f * (1.0f - ndotl)) * cascadeBiasScale;
+    float bias = max(0.00001f, 0.00005f * (1.0f - ndotl)) * cascadeBiasScale;
 
     const float shadowMapSize = 4096.0f;
     float2 texelSize = 1.0f / shadowMapSize;

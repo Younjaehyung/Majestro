@@ -258,7 +258,7 @@ struct GLOBAL_PARAMS
 ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
 ///////////////////////////////////////////////////////////////////
 /*
-	SHADOW, // SHADOW
+	SHADOW, // SHADOW [ 기존 0] 
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////

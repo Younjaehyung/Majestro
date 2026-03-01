@@ -183,8 +183,9 @@ void LobbyScene::Initialize()
 
 
 		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR, scorem);
-		m.mPos = Vec2(256.f, 256.f);
-		m.mSize = Vec2(512.f, 256.f);
+		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
+		t.mPosition = Vec2(256.f, 256.f);
+		t.mSize = Vec2(512.f, 256.f);
 	}
 	{
 		Entity hpBAR = mWorld->CreateEntity();
@@ -443,6 +444,11 @@ void GameScene::Initialize()
 		Entity fire = mWorld->CreateEntity();
 		auto& t = mWorld->AddComponent<UISpriteComponent>(fire, texture,
 			Vec2(64.f, 64.f), 4, 1.f);
+		auto& u = mWorld->AddComponent<UITransformComponent>(fire);
+		u.mAnchor = Anchor::Center;
+		u.mPosition = Vec2(0.f, 0.f);
+		u.mSize = Vec2(64, 64);
+
 	}
 
 	{

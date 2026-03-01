@@ -53,7 +53,7 @@ public :
 	int mCurrentFrame = 0;
 	int mFrameCount = 1;
 	Vec2 mFrameSize = { 0.f, 0.f };
-
+	Vec2 mAnimSize{ 0.f, 0.f };
 
 public:
 	bool mVisible{ true };
@@ -61,8 +61,8 @@ public:
 
 	std::vector<shared_ptr<Texture>> mTextures;
 	shared_ptr<Texture> mTexture;
-	Vec2 mPos;
-	Vec2 mSize;
+
+	
 	
 };
 

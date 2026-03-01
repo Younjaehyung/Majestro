@@ -8,8 +8,8 @@ UISpriteComponent::UISpriteComponent(shared_ptr<Texture> texture)
 	mTexture = texture;
 	if (mTexture)
 	{
-		mSize = { mTexture->GetWidth(), mTexture->GetHeight() };
-		mFrameSize = mSize;
+		mAnimSize = { mTexture->GetWidth(), mTexture->GetHeight() };
+		mFrameSize = mAnimSize;
 	}
 }
 
@@ -28,9 +28,9 @@ void UISpriteComponent::EnableSpriteSheetAnimation(const Vec2& frameSize, int fr
 	mAnimationUpdateTime = 0.f;
 	SetCurrentFrame(startFrame);
 
-	if (mSize.x <= 0.f || mSize.y <= 0.f)
+	if (mAnimSize.x <= 0.f || mAnimSize.y <= 0.f)
 	{
-		mSize = mFrameSize;
+		mAnimSize = mFrameSize;
 	}
 }
 

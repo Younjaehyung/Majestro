@@ -172,22 +172,28 @@ void UIRenderSystem::SpriteUpdate()
     mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
     for (Entity a : entitys) {
         auto spriteComp = mWorld->GetComponent<UISpriteComponent>(a);
-        //auto transformComp = mWorld->GetComponent<UITransformComponent>(a);
+        auto transComp = mWorld->GetComponent<UITransformComponent>(a);
+      
         if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
             continue;
-        //spriteComp->m_spriteBatch->SetViewport(viewPort);
+        XMUINT2 textureSize;
+        if (spriteComp->mIsAnimated && spriteComp->mTextures.empty() && spriteComp->mFrameCount > 1)
+        {
+            textureSize = XMUINT2(
+                static_cast<uint32_t>(spriteComp->mTexture->GetWidth()),
+                static_cast<uint32_t>(spriteComp->mTexture->GetHeight())
+            );
+           
+        }
+        else
+        {
+            textureSize = XMUINT2(
+                static_cast<uint32_t>(transComp->mSize.x),
+                static_cast<uint32_t>(transComp->mSize.y)
+            );
+		}
 
-        // 1) Int2 → XMUINT2 변환
-        XMUINT2 textureSize(
-            static_cast<uint32_t>(spriteComp->mSize.x),
-            static_cast<uint32_t>(spriteComp->mSize.y)
-        );
 
-        // 2) Vec(XMFLOAT3) → XMFLOAT2 변환 (z 성분 버림)
-        XMFLOAT2 position(
-            spriteComp->mPos.x,
-            spriteComp->mPos.y
-        );
         RECT sourceRect{};
         RECT* sourceRectPtr = nullptr;
 
@@ -200,7 +206,7 @@ void UIRenderSystem::SpriteUpdate()
         mSpriteBatch->Draw(
             spriteComp->mTexture->GetSrvGpuHandle(),
             textureSize,
-            position,
+            transComp->mFinalPixelPos,
             sourceRectPtr,
             Colors::White
         );

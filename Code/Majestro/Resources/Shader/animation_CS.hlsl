@@ -43,6 +43,7 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
             lowerTranslation
         );
 
+        // 하체 Base 레이어에 블렌드 애니메이션이 있으면 블렌드한다.
         if (animationInst.BlendWeight > 0.0001f && animationInst.BlendClipIdx != animationInst.AnimClipIdx)
         {
             ANIMATIONMETA blendMeta = AnimationMeta[animationInst.BlendClipIdx];
@@ -91,6 +92,8 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
         float4 finalRotation = lowerRotation;
         float4 finalTranslation = lowerTranslation;
 
+        // 상체 Upper 레이어가 있고, Upper 레이어의 애니메이션 클립이 Base 레이어와 다르면 
+        // Upper 레이어 애니메이션을 샘플링해서 블렌드한다.
         if (animationInst.UpperLayerWeight > 0.0001f &&
             animationInst.UpperAnimClipIdx != animationInst.AnimClipIdx)
         {
@@ -151,8 +154,8 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
                 }
                 float boneWeight = SkeletonBone[nowbone + boneidx].BlendWeight;
                 // pelvis/leg 구간은 Upper 영향 완전 차단 (하체 기준 유지)
-                if (boneWeight < 0.7f)
-                    boneWeight = 0.0f;
+                //if (boneWeight < 0.7f)
+                //    boneWeight = 0.0f;
                 float finalUpperWeight = saturate(animationInst.UpperLayerWeight) *
                                          saturate(boneWeight) *
                                          upperBlendWeight;

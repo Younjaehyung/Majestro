@@ -33,6 +33,10 @@ public:
 public:
 	uint32 mStartOffset{};
 	uint32 mEndOffset{};
+
+	uint32 mSpineBoneCount{};
+	uint32 mSpineBoneStartOffset{};
+	uint32 mSpineBoneEndOffset{};
 private:
 	std::vector<BoneInfo>	mBones;
 	uint32					mSkeletonHandle{};	// if Skeleton Enable use this Handle

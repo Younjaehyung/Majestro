@@ -132,9 +132,8 @@ float ComputeBodyBlendWeight(const string& boneName)
 
 
 
-
 	if (lower.find("spine1") != string::npos)
-		return .6f;
+		return .7f;
 	if (lower.find("spine2") != string::npos)
 		return .8f;
 
@@ -142,11 +141,15 @@ float ComputeBodyBlendWeight(const string& boneName)
 		return 0.9f;
 
 	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
-		return .0f;
+		return .5f;
 
-	if (lower.find("finger") != string::npos || lower.find("chest") != string::npos ||
+	if (lower.find("chest") != string::npos)
+		return .9f;
+	if (lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos)
+		return .9f;
+
+	if (lower.find("finger") != string::npos ||
 		lower.find("neck") != string::npos || lower.find("head") != string::npos ||
-		lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos ||
 		lower.find("arm") != string::npos || lower.find("hand") != string::npos)
 		return 1.0f;
 

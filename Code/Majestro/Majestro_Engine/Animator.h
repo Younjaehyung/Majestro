@@ -10,8 +10,7 @@ struct KeyFrameInfo
 	Vec4	translate{ 0,0,0,1 };
 
 
-	// M: XMMATRIX (행렬은 아핀 변환이어야 함: 마지막 행/열이 [0 0 0 1])
-	// M: XMMATRIX 또는 DirectX::SimpleMath::Matrix (XMMATRIX로 변환 가능해야 함)
+
 	bool DecomposeTRS(const Matrix& M, Vec4& outS, Vec4& outQ, Vec4& outT)
 	{
 		XMVECTOR S, R, T;
@@ -24,12 +23,12 @@ struct KeyFrameInfo
 			return false;
 		}
 
-		XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&outS), S);
+		outS = S;
 		outS.w = 1.f;
 
-		XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(&outQ), R); // quaternion(x,y,z,w)
+		outQ = R; // quaternion(x,y,z,w)
 
-		XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(&outT), T);
+		outT = T;
 		outT.w = 1.f;
 
 		return true;

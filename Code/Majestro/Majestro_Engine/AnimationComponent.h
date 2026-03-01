@@ -100,7 +100,7 @@ public:
 	float							mUpperBlendWeight = 0.f;
 	float							mUpperLayerWeight = 1.f;
 	uint32							mUpperBlendMaskStart = 2;
-	uint32							mUpperBlendMaskEnd = 46;
+	uint32							mUpperBlendMaskEnd = 66;
 	AnimBlendMode				mUpperBlendMode = AnimBlendMode::Override;
 
 

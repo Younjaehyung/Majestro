@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "NetRecvSystem.h"
+#include <algorithm>
+#include <chrono>
 #include "EnginePch.h"
 #include "Engine.h"
 #include "SceneManager.h"
@@ -177,6 +179,14 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
             direction = Vec3::Forward;
         direction.Normalize();
 
+        // 보정: 패킷이 네트워크/큐 대기 후 도착했다면, 그 시간만큼 탄환 위치를 앞당겨 시작한다.
+        // clock drift에 대비해 과도 보정은 상한을 둔다.
+        const double nowSec = std::chrono::duration<double>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        const double transitSec = (std::max)(0.0, nowSec - bulletPacket->SendTime);
+        const float compensationSec = static_cast<float>((std::min)(transitSec, 0.25));
+        spawnPosition += direction * bulletPacket->speed * compensationSec;
+
         bulletTransform->mLocalPosition = spawnPosition;
         bulletTransform->mWorldPosition = spawnPosition;
 
@@ -192,6 +202,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
             bulletComp->mLifeTime,
             bulletComp->mDamage);
 
+        bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
         if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
             movementSystem->RegisterActiveBullet(bulletEntity);
 

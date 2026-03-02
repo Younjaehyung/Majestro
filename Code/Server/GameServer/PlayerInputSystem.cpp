@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "PlayerInputSystem.h"
+#include <chrono>
 
 #include "PlayerSystem.h"
 #include "PlayerComponent.h"
@@ -17,6 +18,29 @@
 #include "BulletComponent.h"
 #include "MovementSystem.h"
 #include <unordered_set>
+
+namespace
+{
+	constexpr float kDegToRad = 0.01745329251994329577f;
+
+	Vec3 GetCameraForwardFromInput(const InputComponent& input)
+	{
+		const float yawRad = input.Yaw * kDegToRad;
+		const float pitchRad = -input.Pitch * kDegToRad;
+
+		const float cosPitch = std::cos(pitchRad);
+		Vec3 forward;
+		forward.x = std::sin(yawRad) * cosPitch;
+		forward.y = std::sin(pitchRad);
+		forward.z = std::cos(yawRad) * cosPitch;
+
+		if (forward.LengthSquared() <= 0.0001f)
+			return Vec3::Forward;
+
+		forward.Normalize();
+		return forward;
+	}
+}
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
 {
@@ -120,7 +144,8 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 
 	TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity);
 	NetEntityComponent* playerNetComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
-	if (playerTransform == nullptr || playerNetComp == nullptr)
+	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(playerEntity);
+	if (playerTransform == nullptr || playerNetComp == nullptr || inputComp == nullptr)
 		return;
 
 	auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
@@ -135,10 +160,7 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 		if (bulletTransform == nullptr || bulletNetComp == nullptr)
 			continue;
 
-		Vec3 direction = playerTransform->GetLook();
-		if (direction.LengthSquared() <= 0.0001f)
-			direction = Vec3::Forward;
-		direction.Normalize();
+		Vec3 direction = GetCameraForwardFromInput(*inputComp);
 
 		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
@@ -151,6 +173,8 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 			movementSystem->RegisterActiveBullet(bulletEntity);
 
 		S2C_BulletActivatePacket bulletPacket{};
+		bulletPacket.SendTime = std::chrono::duration<double>(
+			std::chrono::system_clock::now().time_since_epoch()).count();
 		bulletPacket.ownerNetEntityId = playerNetComp->mNetEntityId;
 		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
 		bulletPacket.x = bulletTransform->mWorldPosition.x;

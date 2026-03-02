@@ -380,6 +380,7 @@ void GameScene::Initialize()
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\Untitled_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -575,7 +576,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 		{
 			// 파일명만 추출
 			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\FBX\\" + name + ".fbx";
+			name = "..\\Resources\\Map\\" + name + ".fbx";
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
 
 			if (!data)
@@ -608,8 +609,8 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			render.mMesh = data->GetMeshs().at(0);
 			i++;
-			if (i == 100)
-				break;
+	/*		if (i == 550)
+				break;*/
 			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
 				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
 

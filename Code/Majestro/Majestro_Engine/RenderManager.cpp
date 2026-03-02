@@ -112,7 +112,7 @@ void RenderManager::CreateGroup()
 void RenderManager::CreateMaterial()
 {
 	mMaterialBuffer = make_shared<StructuredBuffer>();
-	mMaterialBuffer->CreateDefaultBuffer(sizeof(MaterialParams), 128);
+	mMaterialBuffer->CreateDefaultBuffer(sizeof(MaterialParams), 2048);
 	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX));
 }
 void RenderManager::CreateParticle()

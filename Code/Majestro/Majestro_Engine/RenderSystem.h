@@ -117,9 +117,7 @@ private:           // RenderPass
 
   void PushData();
 
-  void DefferdRendering();
-  void ForwardRendering();
-
+  void ClearBuffer();
 private: // Culling
   bool IsCustomCulled(uint8 layer) {
     return (mCullingMask & (1 << layer)) != 0;
@@ -136,28 +134,24 @@ private: // Push&Clear Data
   void PushInstanceData();
   void PushObjectData();
   void PushLightData();
-  void ClearBuffer();
+
+
+  void UpdateCascadeShadowMatrices(LightComponent* lightComponent);
 
 private: // Render
-  void RenderShadowCamera(Entity &light, LightComponent *lightComponent,
-                          CameraComponent *cameraComponent,
-                          RenderComponent *renderComponent,
-                          uint32 cascadeIndex);
   void InstancingRender(DrawBatch &);
-  void UpdateCascadeShadowMatrices(LightComponent *lightComponent);
 
-  // deferred
+  // shadow
   void RenderShadow();
 
-  void RenderGBuffer();
-
-  void RenderLights();
-
-  void RenderFinal(); // 2pass //clear
+  // deferred
+  void RenderDeferred(); // 2pass //clear
 
   // forward
   void RenderForward();
 
+  // post process
+  void RenderPost();
 
 private:
   uint32 mFrameCount = 0;
@@ -174,6 +168,7 @@ private: // 배치 버퍼
   std::vector<DrawItem> mDeferredDrawItems;
 
   std::vector<DrawBatch> mDeferredDrawBatchs;
+  std::vector<DrawBatch> mLightDrawBatchs;
 
   struct dummy {
     uint32 BaseInstance;
@@ -213,4 +208,11 @@ private: // 디버그용 충돌박스
   shared_ptr<Material> mDebugLineGreenMat;   // 또는 NoDepth 버전
   shared_ptr<Material> mDebugLineRedMat;     // 또는 NoDepth 버전
   bool mDrawColliders = true;
+
+private: // RenderPass
+	std::shared_ptr<class ShadowPass> mShadowPass;
+	std::shared_ptr<class GBufferPass> mGBufferPass;
+	std::shared_ptr<class LightsPass> mLightPass;
+	std::shared_ptr<class ForwardPass> mForwardPass;
+	std::shared_ptr<class PostProcessPass> mPostProcessPass;
 };

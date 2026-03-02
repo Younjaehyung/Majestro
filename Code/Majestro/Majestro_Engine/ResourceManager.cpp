@@ -947,6 +947,21 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"UI", shader);
 	}
 
+	//// UI			현재 swapChain에 박고 있음
+	//{
+	//	ShaderInfo info =
+	//	{
+	//		SHADER_TYPE::FORWARD,
+	//	};
+	//	ShaderPath shaderPath{
+	//		.VS = L"..\\Resources\\Shader\\cartoon_VS.hlsl",
+	//		.PS = L"..\\Resources\\Shader\\cartoon_PS.hlsl"
+	//	};
+	//	shared_ptr<Shader> shader = make_shared<Shader>();
+	//	shader->CreateGraphicsShader(shaderPath, info,1, ShaderArg());
+	//	Add<Shader>(L"cartoon", shader);
+	//}
+
 	// animation 
 	{
 

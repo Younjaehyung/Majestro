@@ -31,26 +31,26 @@ PS_OUT PS_Main(VS_OUT input)
 
     float4 baseColor = materials.Diffuse;
 
-    if (materials.DiffuseMap0Index != 0)
+    if (materials.DiffuseMap0Index != -1)
     {
         float4 tex0 = TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv);
         baseColor *= tex0;
     }
 
  
-    if (materials.DiffuseMap1Index != 0)
+    if (materials.DiffuseMap1Index != -1)
     {
         float4 tex1 = TextureMaps[materials.DiffuseMap1Index].Sample(g_sam_0, input.uv);
         baseColor = lerp(baseColor, tex1, tex1.a);
     }
 
-    if (materials.DiffuseMap2Index != 0)
+    if (materials.DiffuseMap2Index != -1)
     {
         float4 tex2 = TextureMaps[materials.DiffuseMap2Index].Sample(g_sam_0, input.uv);
         baseColor = lerp(baseColor, tex2, tex2.a);
     }
 
-    if (materials.DiffuseMap3Index != 0)
+    if (materials.DiffuseMap3Index != -1)
     {
         float4 tex3 = TextureMaps[materials.DiffuseMap3Index].Sample(g_sam_0, input.uv);
         baseColor = lerp(baseColor, tex3, tex3.a);
@@ -65,7 +65,7 @@ PS_OUT PS_Main(VS_OUT input)
   
     float3 viewNormal = normalize(input.viewNormal);
     
-    if (materials.NormalMapIndex != 0)
+    if (materials.NormalMapIndex != -1)
     {
         float3 tangentSpaceNormal = TextureMaps[materials.NormalMapIndex].Sample(g_sam_0, input.uv).xyz;
 
@@ -88,7 +88,7 @@ PS_OUT PS_Main(VS_OUT input)
     float roughness = materials.Roughness;
 
 
-    if (materials.MetallicMapIndex != 0)
+    if (materials.MetallicMapIndex != -1)
     {
         
         metallic = TextureMaps[materials.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
@@ -96,7 +96,7 @@ PS_OUT PS_Main(VS_OUT input)
     metallic = 0.0f;
 
   
-    if (materials.RoughnessMapIndex != 0)
+    if (materials.RoughnessMapIndex != -1)
     {
         roughness = TextureMaps[materials.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
     }

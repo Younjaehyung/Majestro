@@ -148,7 +148,7 @@
     <Filter Include="World\Resource\Shader\Cartoon">
       <UniqueIdentifier>{8e4100cc-b05d-40de-aa01-bac40fd182ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Client\Render">
+    <Filter Include="World\System\Render">
       <UniqueIdentifier>{5d8e6ec9-df86-4883-8999-f361e7f21cd8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -276,9 +276,6 @@
     </ClInclude>
     <ClInclude Include="Network.h">
       <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSystem.h">
-      <Filter>World\System\Client</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystem.h">
       <Filter>World\System\Client</Filter>
@@ -431,16 +428,25 @@
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="ShadowPass.h">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
     </ClInclude>
     <ClInclude Include="GBufferPass.h">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
     </ClInclude>
     <ClInclude Include="LightsPass.h">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
     </ClInclude>
     <ClInclude Include="ForwardPass.h">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
+      <Filter>World\System\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessPass.h">
+      <Filter>World\System\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="FinalPass.h">
+      <Filter>World\System\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -566,9 +572,6 @@
     </ClCompile>
     <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderSystem.cpp">
-      <Filter>World\System\Client</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>World\System\Client</Filter>
@@ -712,16 +715,25 @@
       <Filter>World\Component\Logic</Filter>
     </ClCompile>
     <ClCompile Include="ShadowPass.cpp">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
     </ClCompile>
     <ClCompile Include="GBufferPass.cpp">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
     </ClCompile>
     <ClCompile Include="LightsPass.cpp">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
     </ClCompile>
     <ClCompile Include="ForwardPass.cpp">
-      <Filter>World\System\Client\Render</Filter>
+      <Filter>World\System\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>World\System\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessPass.cpp">
+      <Filter>World\System\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="FinalPass.cpp">
+      <Filter>World\System\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

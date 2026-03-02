@@ -157,7 +157,7 @@ private:
   uint32 mFrameCount = 0;
 
   Entity mCameraID;
-  class CameraComponent *mCamera{};
+  CameraComponent *mCamera{};
   uint32 mCullingMask = 0;
 
   shared_ptr<RootSignature> mRootSignature;

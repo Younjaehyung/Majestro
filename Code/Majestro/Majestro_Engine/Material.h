@@ -33,17 +33,17 @@ struct MaterialParams
 	uint32 OcclusionMask{};
 	uint32 AlphaTest{};
 
-	int32 DiffuseMap0Index{};
-	int32 DiffuseMap1Index{};
-	int32 DiffuseMap2Index{};
-	int32 DiffuseMap3Index{};
+	int32 DiffuseMap0Index{ -1 };
+	int32 DiffuseMap1Index{ -1 };
+	int32 DiffuseMap2Index{ -1 };
+	int32 DiffuseMap3Index{ -1 };
 
-	int32 NormalMapIndex{};
-	int32 SpecularcMapIndex{};
-	int32 EmissiveMapIndex{};
-	int32 MetallicMapIndex{};
-	int32 RoughnessMapIndex{};
-	int32 OcclusionMapIndex{};
+	int32 NormalMapIndex{ -1 };
+	int32 SpecularcMapIndex{ -1 };
+	int32 EmissiveMapIndex{ -1 };
+	int32 MetallicMapIndex{ -1 };
+	int32 RoughnessMapIndex{ -1 };
+	int32 OcclusionMapIndex{ -1 };
 };
 
 class Material : public Object

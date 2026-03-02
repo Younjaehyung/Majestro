@@ -15,6 +15,11 @@
 #include "TerrainComponent.h"
 #include "World.h"
 
+#include "ShadowPass.h"
+#include "GBufferPass.h"
+#include "LightsPass.h"
+#include "ForwardPass.h"
+
 RenderSystem::RenderSystem(World *world) : System::System(world) {
   mCamera = nullptr;
   mPhase = SysPhase::Render;
@@ -38,6 +43,12 @@ void RenderSystem::Initialize() {
   mDeferredDrawItems.reserve(1000);
   mDeferredDrawBatchs.reserve(1000);
   mInstanceVector.reserve(1000);
+
+  mShadowPass = make_shared<ShadowPass>();
+  mGBufferPass = make_shared<GBufferPass>();
+  mLightPass = make_shared<LightsPass>();
+  
+  mForwardPass = make_shared<ForwardPass>();
 }
 
 void RenderSystem::Update() {
@@ -57,11 +68,11 @@ void RenderSystem::Update() {
 
   PushData();
 
-  DefferdRendering();
-
-  RenderFinal();
-
-  ForwardRendering();
+  RenderShadow();
+  RenderDeferred();
+  RenderForward();
+  RenderPost();
+  // m_postStack -> update();
 }
 
 void RenderSystem::PushData() {
@@ -74,18 +85,6 @@ void RenderSystem::PushData() {
   PushPassData();
   PushInstanceData();
 }
-
-void RenderSystem::DefferdRendering() {
-
-  RenderGBuffer();
-
-  RenderShadow();
-
-  RenderLights();
-}
-
-void RenderSystem::ForwardRendering() { RenderForward(); }
-
 
 void RenderSystem::ClearRTV() {
   // SwapChain Group 초기화
@@ -121,6 +120,7 @@ void RenderSystem::ClearBuffer() {
 
   mDeferredDrawItems.clear();
   mDeferredDrawBatchs.clear();
+  mLightDrawBatchs.clear();
   mInstanceVector.clear();
   // passParams = {};
 
@@ -289,6 +289,22 @@ void RenderSystem::PushLightData() {
   passParams.LightsCount = static_cast<uint32>(mLightVector.size());
   RENDERMANAGER.GetGroupBuffer(mFrameCount)->LightInfo->
       PushGraphicsData(mLightVector.data(), static_cast<uint32>(sizeof(LightParams) * mLightVector.size()));
+
+
+
+  auto lights =
+      mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent,
+      CameraComponent, RenderComponent>();
+
+
+  DrawBatch drawBatch{};
+  for (auto& light : lights) {
+      RenderComponent* lightComponent = mWorld->GetComponent<RenderComponent>(light);
+      drawBatch.PSOShader = RESOURCEMANAGER.Get<Shader>(lightComponent->mMaterials[0]->GetShaderName());
+      drawBatch.Mesh = lightComponent->mMesh;
+
+      mLightDrawBatchs.push_back(drawBatch);
+  }
 }
 
 void RenderSystem::PushObjectData() {
@@ -486,37 +502,6 @@ void RenderSystem::PushObjectData() {
           static_cast<uint32>(sizeof(objectParams) * mObjectVector.size()));
 }
 
-void RenderSystem::RenderShadow() {
-
-  auto &shadowGroup = RENDERMANAGER.GetRenderTargetGroup(
-      static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
-  LightComponent *lightComponent;
-  CameraComponent *cameraComponent;
-  RenderComponent *renderComponent;
-  shadowGroup.WaitResourceToTarget();
-  for (auto &light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
-    lightComponent = mWorld->GetComponent<LightComponent>(light);
-    cameraComponent = mWorld->GetComponent<CameraComponent>(light);
-    renderComponent = mWorld->GetComponent<RenderComponent>(light);
-    if (lightComponent->mLightInfo.LightType !=
-        static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
-      continue;
-
-    for (uint32 cascadeIndex = 0;
-         cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT;
-         ++cascadeIndex) {
-        if (!mCascadeActive[cascadeIndex])
-            continue;
-      shadowGroup.OMSetRenderTargets(1, cascadeIndex);
-      shadowGroup.ClearRenderTargetView(cascadeIndex);
-      RenderShadowCamera(light, lightComponent, cameraComponent,
-                         renderComponent, cascadeIndex);
-    }
-  }
-  
-
-  RENDERMANAGER.GetRenderTargetGroup( static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).WaitTargetToResource();
-}
 
 void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   const float cameraNear = mCamera->mNear;
@@ -623,47 +608,17 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   passParams.CascadeSplitDistances =Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
 }
 
-void RenderSystem::RenderGBuffer() {
-  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).OMSetRenderTargets();
-
-  for (auto &drawBatch : mDeferredDrawBatchs) {
-    if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::DEFERRED)
-      continue;
-
-    if (mCurrPSOID != drawBatch.PSOID) {
-      drawBatch.PSOShader->Update();
-      mCurrPSOID = drawBatch.PSOID;
-    }
-    dum.BaseInstance = drawBatch.BaseInstance;
-    dum.InstanceCount = drawBatch.InstanceCount;
-
-    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
-    InstancingRender(drawBatch);
-  }
-
-  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)) .WaitTargetToResource();
+void RenderSystem::RenderShadow()
+{
+    mShadowPass->Update(mDeferredDrawBatchs);
 }
 
-void RenderSystem::RenderLights() {
-  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).OMSetRenderTargets();
+void RenderSystem::RenderDeferred() {
 
-  auto lights =
-      mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent,
-                                        CameraComponent, RenderComponent>();
 
-  for (auto &light : lights) {
+    mGBufferPass->Update(mDeferredDrawBatchs);
+    mLightPass->Update(mLightDrawBatchs);
 
-    RenderComponent *lightComponent =mWorld->GetComponent<RenderComponent>(light);
-
-    RESOURCEMANAGER.Get<Shader>(lightComponent->mMaterials[0]->GetShaderName())->Update();
-
-    lightComponent->mMesh->Render();
-  }
-  ////리소스에서 타켓으로
-  RENDERMANAGER.GetRenderTargetGroup( static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)) .WaitTargetToResource();
-}
-
-void RenderSystem::RenderFinal() {
   // Swapchain OMSet
   int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
@@ -687,34 +642,12 @@ void RenderSystem::RenderFinal() {
 }
 
 void RenderSystem::RenderForward() {
-  int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-  if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-  } 
-  else {
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-  }
-
-  for (auto &drawBatch : mDeferredDrawBatchs) {
-    if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
-      continue;
-
-    if (mCurrPSOID != drawBatch.PSOID) {
-      drawBatch.PSOShader->Update();
-      mCurrPSOID = drawBatch.PSOID;
-    }
-    dum.BaseInstance = drawBatch.BaseInstance;
-    dum.InstanceCount = drawBatch.InstanceCount;
-
-    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
-    InstancingRender(drawBatch);
-  }
-  if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-  }
+    mForwardPass->Update(mDeferredDrawBatchs);
 }
 
+void RenderSystem::RenderPost() {
+  // m_postStack->update();
+}
 
 bool RenderSystem::IsFrustumCulled(TransformComponent *trans,
                                    RenderComponent *renderComponent) {
@@ -728,39 +661,6 @@ bool RenderSystem::IsFrustumCulled(TransformComponent *trans,
   return true;
 }
 
-void RenderSystem::RenderShadowCamera(Entity &light, LightComponent *lightComponent, 
-    CameraComponent *cameraComponent,RenderComponent *renderComponent, uint32 cascadeIndex) {
-  TransformComponent *transformComponent;
-  RenderComponent *objectRenderComponent;
-
-  shared_ptr<Shader> defaultShadowShader = RESOURCEMANAGER.Get<Shader>(L"Shadow");
-  shared_ptr<Shader> terrainShadowShader = RESOURCEMANAGER.Get<Shader>(L"TerrainShadow");
-  shared_ptr<Shader> terrainShader = RESOURCEMANAGER.Get<Shader>(L"Terrain");
-  int32 lastShadowShader = -1;
-  for (auto &drawBatch : mDeferredDrawBatchs) {
-    if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::DEFERRED &&
-        drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD) {
-      continue;
-    }
-
-    const int32 shadowShaderType =
-        (drawBatch.PSOShader == terrainShader) ? 1 : 0;
-    if (shadowShaderType != lastShadowShader) {
-        if (shadowShaderType == 1)
-            continue;
-        else
-            defaultShadowShader->Update();
-
-        lastShadowShader = shadowShaderType;
-    }
-
-    dum.BaseInstance = drawBatch.BaseInstance;
-    dum.InstanceCount = drawBatch.InstanceCount;
-    dum.Cascade = cascadeIndex;
-    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
-    InstancingRender(drawBatch);
-  }
-}
 
 void RenderSystem::InstancingRender(DrawBatch &drawBatch) {
 

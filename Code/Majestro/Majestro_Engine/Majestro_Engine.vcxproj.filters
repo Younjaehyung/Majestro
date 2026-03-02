@@ -145,6 +145,12 @@
     <Filter Include="World\Resource\Shader\Shadow">
       <UniqueIdentifier>{0edf9506-908b-4443-a394-a320e664f31b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\Cartoon">
+      <UniqueIdentifier>{8e4100cc-b05d-40de-aa01-bac40fd182ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Client\Render">
+      <UniqueIdentifier>{5d8e6ec9-df86-4883-8999-f361e7f21cd8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -424,6 +430,18 @@
     <ClInclude Include="BulletComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="ShadowPass.h">
+      <Filter>World\System\Client\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferPass.h">
+      <Filter>World\System\Client\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="LightsPass.h">
+      <Filter>World\System\Client\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ForwardPass.h">
+      <Filter>World\System\Client\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -693,6 +711,18 @@
     <ClCompile Include="BulletComponent.cpp">
       <Filter>World\Component\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowPass.cpp">
+      <Filter>World\System\Client\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferPass.cpp">
+      <Filter>World\System\Client\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="LightsPass.cpp">
+      <Filter>World\System\Client\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="ForwardPass.cpp">
+      <Filter>World\System\Client\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -790,6 +820,12 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\TerrainShadow_PS.hlsl">
       <Filter>World\Resource\Shader\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\cartoon_PS.hlsl">
+      <Filter>World\Resource\Shader\Cartoon</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\cartoon_VS.hlsl">
+      <Filter>World\Resource\Shader\Cartoon</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

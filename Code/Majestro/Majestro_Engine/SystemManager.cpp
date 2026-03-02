@@ -38,7 +38,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
 
     RegisterSystem<RenderSystem>();
     RegisterSystem<UIRenderSystem>();
-    RegisterSystem<EffectSystem>();
+  //  RegisterSystem<EffectSystem>();
  //   mFinalUpdateSystems.push_back(std::move(GetSystem<EffectSystem>()));
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();

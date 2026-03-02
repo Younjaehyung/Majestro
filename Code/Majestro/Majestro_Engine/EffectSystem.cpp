@@ -25,13 +25,27 @@ EffectSystem::~EffectSystem()
 
 	
 	Shutdown();
+	if (mEffectFenceEvent != INVALID_HANDLE_VALUE)
+	{
+		::CloseHandle(mEffectFenceEvent);
+		mEffectFenceEvent = INVALID_HANDLE_VALUE;
+	}
 	//CoUninitialize();
 	
 }
 
 void EffectSystem::Shutdown()
 {
-	if (mWorld && mWorld->HasComponentPool<VfxComponent>())
+	if (mEffectFence && mEffectFenceValue > 0)
+	{
+		if (mEffectFence->GetCompletedValue() < mEffectFenceValue)
+		{
+			mEffectFence->SetEventOnCompletion(mEffectFenceValue, mEffectFenceEvent);
+			::WaitForSingleObject(mEffectFenceEvent, INFINITE);
+		}
+	}
+
+	if ( mWorld && mWorld->HasComponentPool<VfxComponent>())
 	{
 		auto resources = mWorld->GetEntitiesWithComponent<VfxComponent>();
 		for (auto& res : resources)
@@ -54,7 +68,7 @@ void EffectSystem::Shutdown()
 
 	renderer_.Reset();
 	graphicsDevice_.Reset();
-
+	mEffectFence.Reset();
 
 	// RefPtr 기반이면 보통 nullptr 대입으로 정리됩니다.
 	//commandList_ = nullptr;
@@ -118,8 +132,11 @@ bool EffectSystem::Initialize(ID3D12Device* device, ID3D12CommandQueue* commandQ
 	manager_->SetMaterialLoader(renderer_->CreateMaterialLoader());
 	manager_->SetCurveLoader(Effekseer::MakeRefPtr<Effekseer::CurveLoader>());
 
+	if (FAILED(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mEffectFence))))
+		return false;
 
-
+	if (mEffectFenceEvent == INVALID_HANDLE_VALUE)
+		mEffectFenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
 	return (memoryPool_ != nullptr && commandList_ != nullptr);
 }
@@ -175,6 +192,13 @@ void EffectSystem::BeginFrame(ID3D12GraphicsCommandList* dxCmdList)
 	//if (!platform->NewFrame())
 	//	return;
 
+	if (mEffectFence && mEffectFenceValue > 0 && mEffectFence->GetCompletedValue() < mEffectFenceValue)
+	{
+		mEffectFence->SetEventOnCompletion(mEffectFenceValue, mEffectFenceEvent);
+		::WaitForSingleObject(mEffectFenceEvent, INFINITE);
+	}
+
+
 	// SingleFrameMemoryPool은 프레임마다 리셋하는 개념(이름 그대로) :contentReference[oaicite:16]{index=16}
 	if (memoryPool_ != nullptr) memoryPool_->NewFrame();
 
@@ -182,7 +206,7 @@ void EffectSystem::BeginFrame(ID3D12GraphicsCommandList* dxCmdList)
 	EffekseerRendererDX12::BeginCommandList(commandList_, dxCmdList);
 
 
-  EffekseerRendererDX12::BeginCommandList(commandList_, GRAPHICS_CMD_LIST.Get());
+  //EffekseerRendererDX12::BeginCommandList(commandList_, GRAPHICS_CMD_LIST.Get());
 	renderer_->SetCommandList(commandList_);
 }
 
@@ -238,6 +262,12 @@ void EffectSystem::EndFrame()
 
 	EffekseerRendererDX12::EndCommandList(commandList_);
 	EffekseerRendererDX12::ExecuteCommandList(commandList_);
+
+	if (mEffectFence)
+	{
+		mEffectFenceValue++;
+		RENDERMANAGER.GetGraphicsCmdQueue()->GetCommandQueue()->Signal(mEffectFence.Get(), mEffectFenceValue);
+	}
 }
 
 void EffectSystem::Update()
@@ -251,24 +281,29 @@ void EffectSystem::Update()
 
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
-	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-	}
-	else
-	{
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-	}
+	//if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+	//	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
+	//	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	//}
+	//else
+	//{
+	//	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+	//}
+
+	auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
+	hdrGroup.WaitResourceToTarget();
+	hdrGroup.OMSetRenderTargets();
+
 
 	RENDERMANAGER.SetGraphicsTable();
 	BeginFrame(GRAPHICS_CMD_LIST.Get());
 	Render(cameraMat, projMat);
 	EndFrame();
 
-
-	if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-	}
+	hdrGroup.WaitTargetToResource();
+	//if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+	//	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
+	//}
 }
 
 void EffectSystem::LoadResources()

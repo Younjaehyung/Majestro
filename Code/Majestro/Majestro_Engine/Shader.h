@@ -16,6 +16,7 @@ enum class SHADER_TYPE : uint8
 	BILBOARD,
 	BLUR,
 	UI,
+	ToneMap,
 	COMPOSITE,
 
 	END
@@ -84,7 +85,7 @@ class Shader : public Object
 public:
 	Shader();
 	virtual ~Shader();
-
+	void SetTargetFormat(DXGI_FORMAT format) { mShaderTargetFormat = format; }
 
 	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(),int msaaCount = 1 ,const string& vs = "VS_Main", const string& ps = "PS_Main", const string& gs = "");
 	void CreateGraphicsShader(const ShaderPath& path, ShaderInfo info = ShaderInfo(),int msaaCount = 1, ShaderArg arg = ShaderArg());
@@ -92,6 +93,7 @@ public:
 	void CreateComputeShader(const ShaderPath& path, const string& name = "CS_Main", const string& version = "cs_5_1");
 
 	void Update();
+
 
 	
 
@@ -111,9 +113,10 @@ private:
 
 private:
 
-	ShaderInfo mInfo;
-	ComPtr<ID3D12PipelineState>			mPipelineState;
+	ShaderInfo		mInfo;
+	DXGI_FORMAT		mShaderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;// DXGI_FORMAT_R16G16B16A16_FLOAT
 
+	ComPtr<ID3D12PipelineState>			mPipelineState;	
 
 	//GraphicsShader
 	ComPtr<ID3DBlob>					mVsBlob;

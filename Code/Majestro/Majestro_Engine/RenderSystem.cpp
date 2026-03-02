@@ -87,6 +87,11 @@ void RenderSystem::PushData() {
 }
 
 void RenderSystem::ClearRTV() {
+
+    // HDR Group 초기화
+    auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
+    hdrGroup.ClearRenderTargetView();
+
   // SwapChain Group 초기화
   uint8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
   // RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
@@ -622,15 +627,18 @@ void RenderSystem::RenderDeferred() {
   // Swapchain OMSet
   int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
-  // RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1,
-  // backIndex);
+
 
   if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-  } else {
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-  }
+  } //else {
+  //  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+  //}
+
+  auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
+  //hdrGroup.WaitResourceToTarget();
+  hdrGroup.OMSetRenderTargets();
 
   RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
 
@@ -639,6 +647,7 @@ void RenderSystem::RenderDeferred() {
   if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
     RENDERMANAGER.GetRenderTargetGroup( static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
   }
+  hdrGroup.WaitTargetToResource();
 }
 
 void RenderSystem::RenderForward() {
@@ -647,6 +656,24 @@ void RenderSystem::RenderForward() {
 
 void RenderSystem::RenderPost() {
   // m_postStack->update();
+    int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+
+    if (RENDERMANAGER.IsMsaaEnabled()) {
+        auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN));
+        finalGroup.WaitResourceToTarget();
+        finalGroup.OMSetRenderTargets(1, backIndex);
+    }
+    else {
+        auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN));
+        finalGroup.OMSetRenderTargets(1, backIndex);
+    }
+
+    RESOURCEMANAGER.Get<Shader>(L"ToneMap")->Update();
+    RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
+
+    if (RENDERMANAGER.IsMsaaEnabled()) {
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
+    }
 }
 
 bool RenderSystem::IsFrustumCulled(TransformComponent *trans,

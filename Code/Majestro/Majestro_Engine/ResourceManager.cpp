@@ -779,6 +779,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
+		
 		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Deferred", shader);
 	}
@@ -795,6 +796,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\forward_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
+		//shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
 		Add<Shader>(L"Forward", shader);
 	}
@@ -831,6 +833,7 @@ void ResourceManager::CreateDefaultShader()
 		.PS = L"..\\Resources\\Shader\\lighting_dir_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
+		//shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 		shader->CreateGraphicsShader(shaderPath, info,1, "VS_DirLight", "PS_DirLight");
 		Add<Shader>(L"DirLight", shader);
 	}
@@ -866,6 +869,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\final_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Final");
 		Add<Shader>(L"Final", shader);
 	}
@@ -1014,6 +1018,23 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info,4, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine_NoDepth", shader);
+	}
+
+	// ToneMap
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::ToneMap,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\tonemap_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Main");
+		Add<Shader>(L"ToneMap", shader);
 	}
 }
 

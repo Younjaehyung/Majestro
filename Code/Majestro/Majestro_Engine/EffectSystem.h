@@ -82,6 +82,9 @@ private:
     Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> memoryPool_;
     Effekseer::RefPtr<EffekseerRenderer::CommandList> commandList_;
 
+    ComPtr<ID3D12Fence> mEffectFence;
+    uint64 mEffectFenceValue = 0;
+    HANDLE mEffectFenceEvent = INVALID_HANDLE_VALUE;
 
 public:
     // 수정사항: UTF-8(std::string) -> UTF-16(std::wstring) 변환 (Windows API 사용)

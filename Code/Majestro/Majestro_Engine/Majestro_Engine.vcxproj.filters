@@ -839,6 +839,9 @@
     <FxCompile Include="..\Resources\Shader\cartoon_VS.hlsl">
       <Filter>World\Resource\Shader\Cartoon</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
+      <Filter>World\Resource\Shader\Deferred</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

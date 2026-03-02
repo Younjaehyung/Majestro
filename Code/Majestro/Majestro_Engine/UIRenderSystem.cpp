@@ -72,7 +72,6 @@ void UIRenderSystem::InitializeFont()
     uploadResourcesFinished.wait();
 
 
-
 }
 
 void UIRenderSystem::Update()
@@ -81,15 +80,17 @@ void UIRenderSystem::Update()
 
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
-    if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-    }
-    else
-    {
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-    }
-
+    //if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
+    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+    //}
+    //else
+    //{
+    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
+    //}
+    auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
+    hdrGroup.WaitResourceToTarget();
+    hdrGroup.OMSetRenderTargets();
     
     CustomSpriteUpdate();
 
@@ -97,9 +98,10 @@ void UIRenderSystem::Update()
     TextUpdate();
 	SpriteUpdate();
 
-    if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-    }
+    hdrGroup.WaitTargetToResource();
+    //if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
+    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
+    //}
 }
 
 void UIRenderSystem::TextUpdate()

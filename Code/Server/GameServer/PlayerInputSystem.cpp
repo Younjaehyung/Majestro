@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "PlayerInputSystem.h"
+#include <chrono>
 
 #include "PlayerSystem.h"
 #include "PlayerComponent.h"
@@ -151,6 +152,8 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 			movementSystem->RegisterActiveBullet(bulletEntity);
 
 		S2C_BulletActivatePacket bulletPacket{};
+		bulletPacket.SendTime = std::chrono::duration<double>(
+			std::chrono::system_clock::now().time_since_epoch()).count();
 		bulletPacket.ownerNetEntityId = playerNetComp->mNetEntityId;
 		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
 		bulletPacket.x = bulletTransform->mWorldPosition.x;

@@ -111,6 +111,7 @@ StructuredBuffer::~StructuredBuffer()
 
 void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
 {
+
 	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
@@ -120,7 +121,7 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size, D3D12_RESOURCE_FLAG_NONE);
 	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 
-	DEVICE->CreateCommittedResource(
+	HRESULT hr = DEVICE->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -128,6 +129,15 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 		nullptr,
 		IID_PPV_ARGS(&readBuffer));
 
+	if(SUCCEEDED(hr))
+	{
+		// Resource 생성 성공
+	}
+	else
+	{
+		// Resource 생성 실패
+		assert(false);
+	}
 
 	uint8* dataBegin = nullptr;
 	D3D12_RANGE readRange{ 0, 0 };

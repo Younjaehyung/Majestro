@@ -5,10 +5,17 @@
 enum class BulletType : uint8
 {
 	Default = 0,
-	Rifle,
-	Shotgun,
-	Rocket,
-	Laser,
+	BaseAttack,
+	BaseSkill1,
+	BaseSkill2,
+
+	GuitarAttack,
+	GuitarSkill1,
+	GuitarSkill2,
+
+	DrumAttack,
+	DrumSkill1,
+	DrumSkill2,
 	Max
 };
 

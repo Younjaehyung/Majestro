@@ -1,6 +1,7 @@
 #pragma once
 #include "World.h"
 #include "System.h"
+#include "BulletComponent.h"
 
 class PlayerInputSystem : public System
 {
@@ -11,7 +12,7 @@ public:
 	void Update(float dt);
 
 private:
-	void ActivateBulletAndNotify(Entity playerEntity);
+	void ActivateBulletAndNotify(Entity playerEntity, BulletType bulletType);
 	std::vector<uint32> CollectPlayerSessions() const;
 
 public:

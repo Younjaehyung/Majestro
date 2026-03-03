@@ -191,8 +191,12 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         bulletTransform->mWorldPosition = spawnPosition;
 
         const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
+        BulletType bulletType = static_cast<BulletType>(bulletPacket->bulletType);
+        if (bulletType >= BulletType::Max)
+            bulletType = BulletType::Default;
+
         bulletComp->Activate(
-            BulletType::Default,
+            bulletType,
             bulletPacket->ownerNetEntityId,
             static_cast<uint32>(bulletPacket->bulletNetEntityId),
             generation,
@@ -205,6 +209,7 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
         if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
             movementSystem->RegisterActiveBullet(bulletEntity);
+        std::cout << "type: " << (int)bulletType << std::endl;
 
         std::cout << "Bullet Activate Packet Received - owner: " << bulletPacket->ownerNetEntityId
             << ", bullet: " << bulletPacket->bulletNetEntityId

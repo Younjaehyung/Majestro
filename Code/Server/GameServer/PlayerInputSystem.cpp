@@ -40,6 +40,38 @@ namespace
 		forward.Normalize();
 		return forward;
 	}
+
+	BulletType ResolveBulletType(uint8 playerType, InputButtons actionButton)
+	{
+		switch (playerType)
+		{
+		case 1:
+			switch (actionButton)
+			{
+			case InputButtons::ATTACK: return BulletType::GuitarAttack;
+			case InputButtons::SKILL1: return BulletType::GuitarSkill1;
+			case InputButtons::SKILL2: return BulletType::GuitarSkill2;
+			default: return BulletType::Default;
+			}
+		case 2:
+			switch (actionButton)
+			{
+			case InputButtons::ATTACK: return BulletType::DrumAttack;
+			case InputButtons::SKILL1: return BulletType::DrumSkill1;
+			case InputButtons::SKILL2: return BulletType::DrumSkill2;
+			default: return BulletType::Default;
+			}
+		default:
+			switch (actionButton)
+			{
+			case InputButtons::ATTACK: return BulletType::BaseAttack;
+			case InputButtons::SKILL1: return BulletType::BaseSkill1;
+			case InputButtons::SKILL2: return BulletType::BaseSkill2;
+			default: return BulletType::Default;
+			}
+		}
+	}
+
 }
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
@@ -102,7 +134,7 @@ void PlayerInputSystem::Update(float dt)
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
 			std::cout << "attack!!!" << std::endl;
-			ActivateBulletAndNotify(e);
+			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//attack 
@@ -113,10 +145,12 @@ void PlayerInputSystem::Update(float dt)
 
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
 			std::cout << "skill1" << std::endl;
+			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
 			std::cout << "skill2" << std::endl;
+			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
 		}
 
@@ -137,7 +171,7 @@ void PlayerInputSystem::Update(float dt)
 	
 }
 
-void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
+void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity, BulletType bulletType)
 {
 	if (false == mWorld->HasComponentPool<BulletComponent>())
 		return;
@@ -167,7 +201,7 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 		bulletTransform->mMovingVector = direction * bulletComp->mSpeed;
 
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
-		bulletComp->Activate(BulletType::Default, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletComp->mSpeed, bulletComp->mLifeTime, bulletComp->mDamage);
+		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletComp->mSpeed, bulletComp->mLifeTime, bulletComp->mDamage);
 
 		if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
 			movementSystem->RegisterActiveBullet(bulletEntity);
@@ -177,6 +211,7 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity)
 			std::chrono::system_clock::now().time_since_epoch()).count();
 		bulletPacket.ownerNetEntityId = playerNetComp->mNetEntityId;
 		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
+		bulletPacket.bulletType = static_cast<uint8>(bulletType);
 		bulletPacket.x = bulletTransform->mWorldPosition.x;
 		bulletPacket.y = bulletTransform->mWorldPosition.y;
 		bulletPacket.z = bulletTransform->mWorldPosition.z;

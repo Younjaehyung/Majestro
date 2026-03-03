@@ -253,6 +253,7 @@ struct S2C_CollisionPacket : public PacketTcpHeader {	// 임시
 struct S2C_BulletActivatePacket : public PacketTcpHeader {
 	uint64_t ownerNetEntityId{};
 	uint64_t bulletNetEntityId{};
+	uint8 bulletType{};
 	float x{}, y{}, z{};
 	float dirX{}, dirY{}, dirZ{};
 	float speed{};

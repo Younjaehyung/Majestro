@@ -276,7 +276,11 @@ StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // ÏÜçÏÑ
 StructuredBuffer<UIInstanceData> UIInstances : register(t4, space1);
 StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t5, space1);
 StructuredBuffer<Matrix> SFinalBone : register(t6, space1);
+StructuredBuffer<uint2> ForwardPlusTileMeta : register(t7, space1);
+StructuredBuffer<uint> ForwardPlusLightIndices : register(t8, space1);
 RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
+RWStructuredBuffer<uint2> RWForwardPlusTileMeta : register(u1, space1);
+RWStructuredBuffer<uint> RWForwardPlusLightIndices : register(u2, space1);
 
  ///////////////////////////////////////////////////////////////////
 

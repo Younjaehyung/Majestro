@@ -1,4 +1,3 @@
-
 #include "params.hlsl"
 #include "utils.hlsl"
 
@@ -16,44 +15,50 @@ struct VS_IN
 
 struct VS_OUT
 {
-    float4 pos : SV_Position;   //문법상 고정된 이름임.
+    float4 pos : SV_Position;
     float2 uv : TEXCOORD;
     float3 viewPos : POSITION;
     float3 viewNormal : NORMAL;
-    float3 viewTangent : TANGENT;   //T
-    float3 viewBinormal : BINORMAL; //B
+    float3 viewTangent : TANGENT;
+    float3 viewBinormal : BINORMAL;
     
     uint instanceID : InstanceID;
 };
 
+
+// uint Index0 = ObjectIndex;
+// uint Index1 = MaterialInfoIndex;
+// uint Index2 = AnimationBool;
+
+    
+
+
 VS_OUT VS_Main(VS_IN input)
 {
-    VS_OUT output = (VS_OUT)0;
-
+    VS_OUT output = (VS_OUT) 0;
     output.instanceID = input.instanceID;
 
-    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
-    RENDERPARAMS Instance = InstanceParams[idx];
     
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;;
+    RENDERPARAMS instance = InstanceParams[idx];
     
-    uint objectIndex = Instance.ObjectIndex;
-
-
-    matrix WV = mul(Objects[objectIndex].MatWorld, PassParams.MatView);
+    matrix WV = mul(Objects[instance.ObjectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);
     
-    if (Instance.LightIndex >= 0)
-        Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices, AnimInstance[Instance.LightIndex].ReulstIndex);
+    if (instance.LightIndex >= 0)
+       Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices, AnimInstance[instance.LightIndex].ReulstIndex);
 
     
     output.pos = mul(float4(input.pos, 1.f), WVP);
     output.uv = input.uv;
+
+   
     
     output.viewPos = mul(float4(input.pos, 1.f), WV).xyz;
     output.viewNormal = normalize(mul(float4(input.normal, 0.f), WV).xyz);
     output.viewTangent = normalize(mul(float4(input.tangent, 0.f), WV).xyz);
     output.viewBinormal = normalize(cross(output.viewTangent, output.viewNormal));
     
+
     return output;
 }
-

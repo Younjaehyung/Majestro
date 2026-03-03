@@ -104,6 +104,23 @@ void RenderManager::CreateGroup()
 		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
 		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
+		constexpr uint32 forwardPlusTileSize = 16;
+		constexpr uint32 forwardPlusMaxWidth = 3840;
+		constexpr uint32 forwardPlusMaxHeight = 2160;
+		constexpr uint32 forwardPlusMaxLightsPerTile = 128;
+		const uint32 maxTileCountX = (forwardPlusMaxWidth + forwardPlusTileSize - 1) / forwardPlusTileSize;
+		const uint32 maxTileCountY = (forwardPlusMaxHeight + forwardPlusTileSize - 1) / forwardPlusTileSize;
+		const uint32 maxTileCount = maxTileCountX * maxTileCountY;
+
+		group->ForwardPlusTileMetaInfo = make_shared<StructuredBuffer>();
+		group->ForwardPlusTileMetaInfo->CreateDefaultBuffer(sizeof(uint32) * 2, maxTileCount);
+		group->ForwardPlusTileMetaInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FORWARDPLUS_TILE_META_INDEX), GROUP_COUNT);
+		group->ForwardPlusTileMetaInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FORWARDPLUS_TILE_META_INDEX), GROUP_COUNT);
+
+		group->ForwardPlusLightIndexInfo = make_shared<StructuredBuffer>();
+		group->ForwardPlusLightIndexInfo->CreateDefaultBuffer(sizeof(uint32), maxTileCount * forwardPlusMaxLightsPerTile);
+		group->ForwardPlusLightIndexInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FORWARDPLUS_LIGHT_INDEX), GROUP_COUNT);
+		group->ForwardPlusLightIndexInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FORWARDPLUS_LIGHT_INDEX), GROUP_COUNT);
 
 		i++;
 	}

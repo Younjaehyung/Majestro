@@ -357,11 +357,14 @@ void RenderSystem::PushObjectData() {
 
     renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
     transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-
+	animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
     if (false == IsFrustumCulled(transformComponent, renderComponent))
       continue;
     if (false == renderComponent->mVisibility)
       continue;
+    const bool useForwardPlus = (animationComponent != nullptr);
+    auto forwardPlusShader = useForwardPlus ? RESOURCEMANAGER.Get<Shader>(L"ForwardPlusCel") : nullptr;
+
 
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
     mObjectVector.push_back(objectParams); // 트랜스폼 갱신
@@ -378,9 +381,12 @@ void RenderSystem::PushObjectData() {
       renderParams = {renderComponent->mObjectIndex, material->GetIndex(),
                       index2, 0};
 
-      drawItem = {material->GetShader(),
+      auto selectedShader = (useForwardPlus && forwardPlusShader) ? forwardPlusShader : material->GetShader();
+      const uint32 selectedShaderID = (useForwardPlus && forwardPlusShader) ? forwardPlusShader->GetID() : material->GetShaderID();
+
+      drawItem = { selectedShader,
                   renderComponent->mMesh,
-                  material->GetShaderID(),
+                   selectedShaderID,
                   renderComponent->mMesh->GetID(),
                   material->GetID(),
                   subMaterialIdx++,
@@ -620,7 +626,7 @@ void RenderSystem::RenderShadow()
 
 void RenderSystem::RenderDeferred() {
 
-
+    return;
     mGBufferPass->Update(mDeferredDrawBatchs);
     mLightPass->Update(mLightDrawBatchs);
 

@@ -40,9 +40,6 @@
     <Filter Include="World\Resource\Shader\Forward">
       <UniqueIdentifier>{3b49f856-69bf-46ec-ad1b-9d94e8c31bb2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\Particle">
-      <UniqueIdentifier>{041f38b3-62c6-49d0-bcc3-60abc1d8a57b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Resource\Shader\Utils">
       <UniqueIdentifier>{06defce9-15b0-49a7-8794-682af45355e5}</UniqueIdentifier>
     </Filter>
@@ -150,6 +147,12 @@
     </Filter>
     <Filter Include="World\System\Render">
       <UniqueIdentifier>{5d8e6ec9-df86-4883-8999-f361e7f21cd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\Post">
+      <UniqueIdentifier>{041f38b3-62c6-49d0-bcc3-60abc1d8a57b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\Post\particle">
+      <UniqueIdentifier>{902396bf-bfe0-497f-b466-8d4c6bfdcdf0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -758,18 +761,6 @@
     <FxCompile Include="..\Resources\Shader\forward_VS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
-      <Filter>World\Resource\Shader\Particle</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
-      <Filter>World\Resource\Shader\Particle</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
-      <Filter>World\Resource\Shader\Particle</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
-      <Filter>World\Resource\Shader\Particle</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\deferred_VS.hlsl">
       <Filter>World\Resource\Shader\Deferred</Filter>
     </FxCompile>
@@ -839,8 +830,26 @@
     <FxCompile Include="..\Resources\Shader\cartoon_VS.hlsl">
       <Filter>World\Resource\Shader\Cartoon</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
+      <Filter>World\Resource\Shader\Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
+      <Filter>World\Resource\Shader\Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
+      <Filter>World\Resource\Shader\Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
+      <Filter>World\Resource\Shader\Post\particle</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_plus_PS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

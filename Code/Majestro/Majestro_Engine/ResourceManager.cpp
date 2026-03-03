@@ -1020,6 +1020,32 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"DebugLine_NoDepth", shader);
 	}
 
+	// Forward+ Cel (Forward)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\forward_plus_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
+		Add<Shader>(L"ForwardPlusCel", shader);
+	}
+
+	// Forward+ Tile Culling (Compute)
+	{
+		ShaderPath shaderPath{
+			.CS = L"..\\Resources\\Shader\\forward_plus_cull_CS.hlsl",
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateComputeShader(shaderPath, "CS_Main");
+		Add<Shader>(L"ForwardPlusCull", shader);
+	}
+
 	// ToneMap
 	{
 		ShaderInfo info =

@@ -3,11 +3,57 @@
 #define _MATH_HLSL_
 
 #include "params.hlsl"
+static const float PI = 3.14159265f;
+
+
+// Y축 회전 행렬(간단 버전)
+float3 RotateY(float3 v, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    return float3(
+        c * v.x + s * v.z,
+        v.y,
+       -s * v.x + c * v.z
+    );
+}
+
+
+bool IsExactIdentity(float4x4 M)
+{
+    return all(M[0] == float4(1, 0, 0, 0)) &&
+           all(M[1] == float4(0, 1, 0, 0)) &&
+           all(M[2] == float4(0, 0, 1, 0)) &&
+           all(M[3] == float4(0, 0, 0, 1));
+}
+
+float4 QuaternionConjugate(float4 q)
+{
+    return float4(-q.xyz, q.w);
+}
+
+
+float Rand(float2 co)
+{
+    return 0.5 + (frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453)) * 0.5;
+    
+    //frac : 소수점 추출
+}
 
 float4 FixQuatSign(float4 q, float4 refq)
 {
     return (dot(q, refq) < 0.0f) ? -q : q;
 }
+
+float4 QuaternionMultiply(float4 q1, float4 q2)
+{
+    return normalize(float4(
+        q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
+        q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x,
+        q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w,
+        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z));
+}
+
 
 float4 VectorPermute(uint PermuteX, uint PermuteY, uint PermuteZ, uint PermuteW, in float4 V1, in float4 V2)
 {

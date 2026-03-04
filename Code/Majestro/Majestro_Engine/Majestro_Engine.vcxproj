@@ -222,6 +222,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
+    <ClInclude Include="NavMeshLoader.h" />
     <ClInclude Include="NetEntityComponent.h" />
     <ClInclude Include="NetIdMap.h" />
     <ClInclude Include="NetInterpolationSystem.h" />
@@ -320,6 +321,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
+    <ClCompile Include="NavMeshLoader.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />
     <ClCompile Include="NetIdMap.cpp" />
     <ClCompile Include="NetInterpolationSystem.cpp" />

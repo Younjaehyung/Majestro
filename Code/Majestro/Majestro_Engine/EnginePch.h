@@ -56,31 +56,41 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "dxguid")
 #pragma comment(lib, "d3dcompiler")
 
+// DEBUG
+#pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// RecastNavigation
+#include <RecastNavigation/Detour/DetourNavMesh.h>
+#include <RecastNavigation/Detour/DetourNavMeshQuery.h>
+#include <RecastNavigation/Detour/DetourNavMeshBuilder.h>
+#include <RecastNavigation/Detour/DetourAlloc.h>
+
+
+#pragma comment(lib, "RecastNavigation/Detour.lib")
+#pragma comment(lib, "RecastNavigation/DebugUtils.lib")
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // DirectXTK12
 #include <DirectXTK12/ResourceUploadBatch.h >
 #include <DirectXTK12/SpriteBatch.h >
-
+#include <DirectXTK12/SpriteFont.h >
 //#include <DirectXTK12/CommonStates.h >
 //#include <DirectXTK12/DescriptorHeap.h >
-#include <DirectXTK12/SpriteFont.h >
 //#include <DirectXTK12/GraphicsMemory.h >
 #ifdef _DEBUG
 #pragma comment(lib, "DirectXTK12/DirectXTK12_D.lib")
 #else
 #pragma comment(lib, "DirectXTK12/DirectXTK12.lib")
 #endif
-
-
-
-//#define _IMGUI
-
-
-// DEBUG
-#pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // IMGUI
 
+//#define _IMGUI
 #include <ImGUI/imgui.h>
 #include <ImGUI/imgui_impl_win32.h>
 #include <ImGUI/imgui_impl_dx12.h>
@@ -88,7 +98,8 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "ImGUI\\example_win32_directx12.lib")
 #else
 #endif
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // DirectXTex
 #include <DirectXTex/DirectXTex.h>
 #include <DirectXTex/DirectXTex.inl>
@@ -98,7 +109,8 @@ using namespace Microsoft::WRL;
 #else
 #pragma comment(lib, "DirectXTex\\DirectXTex.lib")
 #endif
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // FMOD
 #include <FMod/fmod.hpp>
 #include <FMod/fmod_studio.hpp>
@@ -111,7 +123,8 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "FMod/fmod_vc.lib")
 #pragma comment(lib, "FMod/fmodstudio_vc.lib")
 #endif
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // EFFEKSEER
 #include <Effekseer/Effekseer/Effekseer.h>
 #include <Effekseer/EffekseerRendererDX12/EffekseerRendererDX12.h>
@@ -126,9 +139,12 @@ using namespace Microsoft::WRL;
 #pragma comment(lib, "Effekseer/EffekseerRendererDX12.lib")
 #pragma comment(lib, "Effekseer/LLGI.lib")
 #endif
+////////////////////////////////////////////////////////////////////////////////
 
 
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 using int8 = __int8;

@@ -606,7 +606,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
 			//}
 			render.mMaterials = data->GetMaterials();
-
+			render.mCheckFrustum = false;
 			render.mMesh = data->GetMeshs().at(0);
 			i++;
 	/*		if (i == 550)

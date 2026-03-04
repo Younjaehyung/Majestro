@@ -6,19 +6,8 @@
 #include "math.hlsl"
 
 
-// Y축 회전 행렬(간단 버전)
-float3 RotateY(float3 v, float angle)
-{
-    float s = sin(angle);
-    float c = cos(angle);
-    return float3(
-        c * v.x + s * v.z,
-        v.y,
-       -s * v.x + c * v.z
-    );
-}
-
-// ACES 톤매핑(간단 구현)
+/////////////////////////////////////////////////////////////////////////////////////////
+// ACES 톤매핑
 float3 TonemapACES(float3 x)
 {
     // Narkowicz ACES approximation
@@ -30,10 +19,130 @@ float3 TonemapACES(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
-// -----------------------------
-// [추가] PBR 보조 함수들
-// -----------------------------
-static const float PI = 3.14159265f;
+/////////////////////////////////////////////////////////////////////////////////////////
+// Toon Shading
+
+
+// [추가] Toon/Custom BRDF용 라이트 평가 결과
+struct EvaluatedLight
+{
+    float3 L; // surface -> light (view space)
+    float NdotL; // saturate(dot(N, L))
+    float atten; // distanceRatio (spot 포함)
+    float3 diffRGB; // light diffuse rgb
+    float3 specRGB; // light specular rgb
+    float3 ambRGB; // light ambient rgb
+    int type; // 0 dir / 1 point / else spot
+};
+
+EvaluatedLight EvaluateLightVS(int lightIndex, float3 viewPos, float3 viewNormal)
+{
+    EvaluatedLight o = (EvaluatedLight) 0;
+
+    o.type = Lights[lightIndex].lightType;
+    o.diffRGB = Lights[lightIndex].color.diffuse.rgb;
+    o.specRGB = Lights[lightIndex].color.specular.rgb;
+    o.ambRGB = Lights[lightIndex].color.ambient.rgb;
+
+    float3 viewLightDir = 0.0f; // light -> surface (너 기존 컨벤션 유지)
+    float distanceRatio = 1.0f;
+
+    if (o.type == 0)
+    {
+        // Directional
+        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
+        o.L = normalize(-viewLightDir); // surface -> light (view space)
+        o.NdotL = saturate(dot(o.L, viewNormal));
+        o.atten = 1.0f;
+    }
+    else if (o.type == 1)
+    {
+        // Point
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
+        viewLightDir = normalize(viewPos - viewLightPos); // light -> surface
+        o.L = normalize(-viewLightDir);
+        o.NdotL = saturate(dot(o.L, viewNormal));
+
+        float dist = distance(viewPos, viewLightPos);
+        if (Lights[lightIndex].range == 0.f)
+            distanceRatio = 0.f;
+        else
+            distanceRatio = saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
+
+        o.atten = distanceRatio;
+    }
+    else
+    {
+        // Spot
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
+        viewLightDir = normalize(viewPos - viewLightPos); // light -> surface
+        o.L = normalize(-viewLightDir);
+        o.NdotL = saturate(dot(o.L, viewNormal));
+
+        if (Lights[lightIndex].range == 0.f)
+        {
+            o.atten = 0.f;
+        }
+        else
+        {
+            float halfAngle = Lights[lightIndex].angle * 0.5f;
+
+            float3 viewLightVec = viewPos - viewLightPos;
+            float3 viewCenterLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
+
+            float centerDist = dot(viewLightVec, viewCenterLightDir);
+            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterLightDir));
+
+            if (centerDist < 0.f || centerDist > Lights[lightIndex].range)
+                distanceRatio = 0.f;
+            else if (lightAngle > halfAngle)
+                distanceRatio = 0.f;
+            else
+                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
+
+            o.atten = distanceRatio;
+        }
+    }
+
+    return o;
+}
+// [추가] 전신용 Toon 파라미터(임시 상수)
+static const float gToonShadowEdge = 0.50f; // 그림자 경계
+static const float gToonShadowSoft = 0.08f; // 경계 부드러움
+static const float3 gToonShadowTint = float3(0.60f, 0.65f, 0.75f); // 그림자 틴트
+
+static const float gSpecPower = 48.0f; // 스펙 날카로움
+static const float gSpecEdge = 0.25f; // 밴드 경계
+static const float gSpecSoft = 0.10f; // 밴드 소프트
+static const float gSpecIntensity = 1.00f; // 스펙 강도
+
+static const float gOtherDiffScale = 0.35f; // 보조 라이트 diffuse 약화
+static const float gOtherSpecScale = 0.25f; // 보조 라이트 spec 약화
+
+float ToonShadowStep(float NdotL)
+{
+    // [추가] step 대신 smoothstep으로 계단 경계를 안정화
+    return smoothstep(gToonShadowEdge - gToonShadowSoft, gToonShadowEdge + gToonShadowSoft, NdotL);
+}
+
+float3 ToonDiffuse(float3 baseColor, float3 lightRGB, float atten, float step01)
+{
+    float3 lit = (lightRGB * atten) * baseColor;
+    float3 shd = (lightRGB * atten) * (baseColor * gToonShadowTint);
+    return lerp(shd, lit, step01);
+}
+
+float ToonSpecBand(float NdotH)
+{
+    float s = pow(saturate(NdotH), gSpecPower);
+    return smoothstep(gSpecEdge - gSpecSoft, gSpecEdge + gSpecSoft, s);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PBR
+
 
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
@@ -68,9 +177,6 @@ float GeometrySmith(float NdotV, float NdotL, float roughness)
     return ggxV * ggxL;
 }
 
-// -----------------------------
-// [추가] PBR 라이트 계산
-// -----------------------------
 LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 viewPos,
                                   float3 baseColor, float metallic, float roughness)
 {
@@ -199,9 +305,8 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
 }
 
 
-// -----------------------------
-// (기존 함수들은 그대로 둬도 됨)
-// -----------------------------
+/////////////////////////////////////////////////////////////////////////////////////////
+// Default Lihgting (Blinn-Phong)
 LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos)
 {
     // 기존 Blinn-Phong ... (너 코드 그대로)
@@ -269,13 +374,8 @@ LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos
     return color;
 }
 
-float Rand(float2 co)
-{
-    return 0.5 + (frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453)) * 0.5;
-    
-    //frac : 소수점 추출
-}
-
+/////////////////////////////////////////////////////////////////////////////////////////
+// Terrain Tessellation
 float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, float max, float maxLv)
 {
     float distance = length(patchPos - cameraWorldPos);
@@ -290,29 +390,34 @@ float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, floa
     return level;
 }
 
-bool IsExactIdentity(float4x4 M)
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Animation
+void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
+    inout float4 weight, inout float4 indices, in uint skelBaseIdx)
 {
-    return all(M[0] == float4(1, 0, 0, 0)) &&
-           all(M[1] == float4(0, 1, 0, 0)) &&
-           all(M[2] == float4(0, 0, 1, 0)) &&
-           all(M[3] == float4(0, 0, 0, 1));
+    SkinningInfo info = (SkinningInfo) 0.f;
+
+    for (int i = 0; i < 4; ++i)
+    {
+        if (weight[i] == 0.f)
+            continue;
+
+        int boneIdx = indices[i] + skelBaseIdx;
+        matrix matBone = SFinalBone[boneIdx];
+
+        info.pos += (mul(float4(pos, 1.f), matBone) * weight[i]).xyz;
+        info.normal += (mul(float4(normal, 0.f), matBone) * weight[i]).xyz;
+        info.tangent += (mul(float4(tangent, 0.f), matBone) * weight[i]).xyz;
+    }
+
+    pos = info.pos;
+    tangent = normalize(info.tangent);
+    normal = normalize(info.normal);
 }
-
-float4 QuaternionConjugate(float4 q)
-{
-    return float4(-q.xyz, q.w);
-}
-
-float4 QuaternionMultiply(float4 q1, float4 q2)
-{
-    return normalize(float4(
-        q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y,
-        q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x,
-        q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w,
-        q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z));
-}
-
-
 // 애니메이션 샘플링 함수 (코드 중복 제거)
 void SampleAnimation(
     uint boneIndex,
@@ -356,49 +461,26 @@ float CalculateBlendWeight(uint boneIndex, uint rangeStart, uint rangeEnd, float
     return rise * fall;
 }
 
-void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
-    inout float4 weight, inout float4 indices, in uint skelBaseIdx)
-{
-    SkinningInfo info = (SkinningInfo) 0.f;
-
-    for (int i = 0; i < 4; ++i)
-    {
-        if (weight[i] == 0.f)
-            continue;
-
-        int boneIdx = indices[i] + skelBaseIdx;
-        matrix matBone = SFinalBone[boneIdx];
-
-        info.pos += (mul(float4(pos, 1.f), matBone) * weight[i]).xyz;
-        info.normal += (mul(float4(normal, 0.f), matBone) * weight[i]).xyz;
-        info.tangent += (mul(float4(tangent, 0.f), matBone) * weight[i]).xyz;
-    }
-
-    pos = info.pos;
-    tangent = normalize(info.tangent);
-    normal = normalize(info.normal);
-}
-
-float SelectCascadeIndex(float viewDepth)
+/////////////////////////////////////////////////////////////////////////////////////////
+// Shadow
+uint SelectCascadeIndex(float viewDepth)
 {
     viewDepth = abs(viewDepth);
     float4 splits = PassParams.CascadeSplitDistances;
     if (viewDepth <= splits.x)
-        return 0.0f;
+        return 0;
     if (viewDepth <= splits.y)
-        return 1.0f;
+        return 1;
     if (viewDepth <= splits.z)
-        return 2.0f;
-    return 3.0f;
+        return 2;
+    return 3;
 }
 
-float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
+
+
+float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWorld, uint cascadeIndex, out float cascadeCoverage)
 {
-    float cascadeIndex = SelectCascadeIndex(viewPos.z);
-
-    float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
-    float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[(int) cascadeIndex]);
-
+    float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
     float3 shadowNdc = shadowClipPos.xyz * invW;
     
@@ -406,41 +488,89 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     float2 uv;
     uv.x = shadowNdc.x * 0.5f + 0.5f;
     uv.y = -shadowNdc.y * 0.5f + 0.5f;
-
-    // UV 범위 체크
-    if (uv.x <= 0.001f || uv.x >= 0.999f || uv.y <= 0.001f || uv.y >= 0.999f)
-        return 1.0f;
-
-    if (shadowNdc.z <= 0.f || shadowNdc.z >= 1.f)
+    
+    const float uvGuard = 0.005f;
+    const float zGuard = 0.0005f;
+    float2 uvMinDelta = uv - uvGuard;
+    float2 uvMaxDelta = (1.0f - uvGuard) - uv;
+    float uvCoverage = saturate(min(min(uvMinDelta.x, uvMinDelta.y), min(uvMaxDelta.x, uvMaxDelta.y)) / uvGuard);
+    float zCoverage = saturate((shadowNdc.z - zGuard) / zGuard) * saturate(((1.0f - zGuard) - shadowNdc.z) / zGuard);
+    cascadeCoverage = uvCoverage * zCoverage;
+    
+    if (cascadeCoverage <= 0.0f)
         return 1.0f;
 
     float lightDepth = saturate(shadowNdc.z);
 
     // bias 계산
-    float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
+   
     float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
-    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f;
-    float bias = max(0.00001f, 0.00005f * (1.0f - ndotl)) * cascadeBiasScale;
+    float cascadeBiasScale = 1.0f + cascadeIndex * 0.25f;
+    float bias = max(0.00001f, 0.00008f * (1.0f - ndotl)) * cascadeBiasScale;
+
 
     const float shadowMapSize = 4096.0f;
     float2 texelSize = 1.0f / shadowMapSize;
 
     // PCF 3x3
+      // 근거리 캐스케이드는 더 넓은 PCF로 계단 현상 완화
+    float pcfRadius = (cascadeIndex == 0) ? 2.0f : ((cascadeIndex == 1) ? 1.5f : 1.0f);
     float shadow = 0.0f;
+    float weightSum = 0.0f;
     [unroll]
-    for (int y = -1; y <= 1; ++y)
+    for (int y = -2; y <= 2; ++y)
     {
         [unroll]
-        for (int x = -1; x <= 1; ++x)
+        for (int x = -2; x <= 2; ++x)
         {
-            float2 sampleUv = uv + float2(x, y) * texelSize;
-            float shadowDepth = ShadowMaps.SampleLevel(g_sam_0, float3(sampleUv, cascadeIndex), 0).r;
-            shadow += (shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f;
+            float2 offset = float2(x, y);
+            if (abs(offset.x) > pcfRadius || abs(offset.y) > pcfRadius)
+                continue;
+
+            float weight = 1.0f / (1.0f + dot(offset, offset));
+            float2 sampleUv = saturate(uv + offset * texelSize);
+            float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
+            shadow += ((shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
+            weightSum += weight;
         }
     }
-    shadow /= 9.0f;
- 
-    return 1.0f - shadow * 0.7f;
+    shadow /= max(weightSum, 1e-4f);
+    return 1.0f - shadow * 0.75f;
+}
+
+float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
+{
+    uint cascadeIndex = SelectCascadeIndex(viewPos.z);
+    float viewDepth = abs(viewPos.z);
+
+    float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
+    float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
+
+    float currentCoverage = 0.0f;
+    float visibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex, currentCoverage);
+
+    // 캐스케이드 경계 블렌딩으로 경계선/외곽선/깜빡임 감소
+    if (cascadeIndex < 3)
+    {
+        float4 splits = PassParams.CascadeSplitDistances;
+        float splitDist = splits[cascadeIndex];
+        float prevSplit = (cascadeIndex == 0) ? 0.0f : splits[cascadeIndex - 1];
+        float cascadeRange = max(splitDist - prevSplit, 1.0f);
+        float blendWidth = max(2.0f, cascadeRange * 0.15f);
+
+        float blendStart = splitDist - blendWidth;
+        float blend = smoothstep(blendStart, splitDist, viewDepth);
+
+        if (blend > 0.0f)
+        {
+            float nextCoverage = 0.0f;
+            float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);
+            float validBlend = blend * currentCoverage * nextCoverage;
+            visibility = lerp(visibility, nextVisibility, validBlend);
+        }
+    }
+
+    return visibility;
 }
 
 #endif

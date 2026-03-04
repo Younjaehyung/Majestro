@@ -154,6 +154,9 @@
     <Filter Include="World\Resource\Shader\Post\particle">
       <UniqueIdentifier>{902396bf-bfe0-497f-b466-8d4c6bfdcdf0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\NavMesh">
+      <UniqueIdentifier>{2553b5c1-f65a-4f0f-8e58-9bccdd5c5e10}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -451,6 +454,9 @@
     <ClInclude Include="FinalPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
+    <ClInclude Include="NavMeshLoader.h">
+      <Filter>Utils\NavMesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -738,6 +744,9 @@
     <ClCompile Include="FinalPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
+    <ClCompile Include="NavMeshLoader.cpp">
+      <Filter>Utils\NavMesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -791,9 +800,6 @@
     <FxCompile Include="..\Resources\Shader\animation_CS.hlsl">
       <Filter>World\Resource\Shader\animation</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\math.hlsl">
-      <Filter>World\Resource\Shader\Utils</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_DS.hlsl">
       <Filter>World\Resource\Shader\Terrain</Filter>
     </FxCompile>
@@ -845,11 +851,14 @@
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\math.hlsl">
+      <Filter>World\Resource\Shader\Utils</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\Forward</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

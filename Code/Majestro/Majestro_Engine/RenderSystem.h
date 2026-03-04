@@ -131,6 +131,7 @@ private: // Push&Clear Data
   void PushLandData();
 
   void PushPassData();
+  void PushShadowCascades();       // cascade VP 행렬 + 라이트 구체 사전 계산
   void PushInstanceData();
   void PushObjectData();
   void PushLightData();
@@ -166,8 +167,10 @@ private:
 private: // 배치 버퍼
   // Pass별 PSO에 따른 분류
   std::vector<DrawItem> mDeferredDrawItems;
+  std::vector<DrawItem> mShadowOnlyDrawItems; // 카메라 밖 + 라이트 프러스텀 안
 
   std::vector<DrawBatch> mDeferredDrawBatchs;
+  std::vector<DrawBatch> mShadowOnlyBatchs;   // shadow pass 전용 배치
   std::vector<DrawBatch> mLightDrawBatchs;
 
   struct dummy {
@@ -191,6 +194,10 @@ private:
   float mCascadeSplitLambda = 0.85f;
   array<Matrix, 4> mCascadeView{};
   array<Matrix, 4> mCascadeProjection{};
+
+  // 라이트 프러스텀 구체 (카메라 밖 오브젝트 shadow 컬링용)
+  array<Vec3, 4> mCascadeFrustumCenter{};
+  array<float, 4> mCascadeFrustumRadius{};
 
 private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms

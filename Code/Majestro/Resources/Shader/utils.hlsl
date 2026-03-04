@@ -549,7 +549,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     float currentCoverage = 0.0f;
     float visibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex, currentCoverage);
 
-    // 캐스케이드 경계 블렌딩으로 경계선/외곽선/깜빡임 감소
+    // 캐스케이드 경계 블렌딩 + coverage 부족 시 다음 cascade 폴백 (틈새 방지)
     if (cascadeIndex < 3)
     {
         float4 splits = PassParams.CascadeSplitDistances;
@@ -559,13 +559,18 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
         float blendWidth = max(2.0f, cascadeRange * 0.15f);
 
         float blendStart = splitDist - blendWidth;
-        float blend = smoothstep(blendStart, splitDist, viewDepth);
+        float depthBlend = smoothstep(blendStart, splitDist, viewDepth);
 
-        if (blend > 0.0f)
+        // currentCoverage = 0 이면 현재 cascade UV 밖 → 다음 cascade로 완전 폴백
+        float coverageFallback = 1.0f - currentCoverage;
+        float totalBlend = saturate(max(depthBlend, coverageFallback));
+
+        if (totalBlend > 0.0f)
         {
             float nextCoverage = 0.0f;
             float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);
-            float validBlend = blend * currentCoverage * nextCoverage;
+            // 다음 cascade에 coverage가 있을 때만 블렌딩 (없으면 기존 visibility 유지)
+            float validBlend = totalBlend * nextCoverage;
             visibility = lerp(visibility, nextVisibility, validBlend);
         }
     }

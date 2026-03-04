@@ -9,7 +9,7 @@
 void ShadowPass::Initialize() {
 }
 
-void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs, array<bool, 4>& cascadeActive) {
+void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive) {
 
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
 
@@ -25,7 +25,8 @@ void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs, array<bool, 
 
         // 각 cascade에 해당하는 DSV slice를 바인딩 (버그 1: 모든 cascade가 slice 0에 기록되던 문제 수정)
         shadowGroup.OMSetRenderTargets(0, cascadeIndex);
-        RenderShadowCamera(deferredDrawBatchs, cascadeIndex);
+        RenderShadowCamera(deferredDrawBatchs, cascadeIndex);   // 카메라 프러스텀 안
+        RenderShadowCamera(shadowOnlyBatchs, cascadeIndex);     // 카메라 밖 + 라이트 프러스텀 안
     }
 
     shadowGroup.WaitTargetToResource();

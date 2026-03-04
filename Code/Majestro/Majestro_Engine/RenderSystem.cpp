@@ -80,6 +80,7 @@ void RenderSystem::PushData() {
   PushLandData();
   PushCubeData();
 
+  PushShadowCascades(); // 라이트 구체 사전 계산 (PushObjectData보다 먼저)
   PushObjectData();
   PushLightData();
   PushPassData();
@@ -124,7 +125,9 @@ void RenderSystem::ClearBuffer() {
   mCurrPSOID = 0;
 
   mDeferredDrawItems.clear();
+  mShadowOnlyDrawItems.clear();
   mDeferredDrawBatchs.clear();
+  mShadowOnlyBatchs.clear();
   mLightDrawBatchs.clear();
   mInstanceVector.clear();
   // passParams = {};
@@ -146,15 +149,7 @@ void RenderSystem::PushPassData() {
   passParams.CascadeSplitDistances =
       Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
 
-  for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
-      LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(light);
-      if (lightComponent->mLightInfo.LightType !=
-          static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
-          continue;
-
-      UpdateCascadeShadowMatrices(lightComponent);
-  }
-
+  // UpdateCascadeShadowMatrices는 PushShadowCascades()에서 이미 처리됨
 
   shared_ptr<GroupBuffer> groupBuffer =RENDERMANAGER.GetGroupBuffer(mFrameCount);
 
@@ -358,8 +353,41 @@ void RenderSystem::PushObjectData() {
     renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
     transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
 	animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
-    if (false == IsFrustumCulled(transformComponent, renderComponent))
+    if (false == IsFrustumCulled(transformComponent, renderComponent)) {
+      // 카메라 프러스텀 밖 → 라이트 프러스텀(구체) 테스트
+      if (false == renderComponent->mVisibility) continue;
+
+      const auto& obb = renderComponent->mWorldOBB; // IsFrustumCulled에서 이미 갱신됨
+      const Vec3 objCenter(obb.Center.x, obb.Center.y, obb.Center.z);
+      const float objRadius = sqrtf(obb.Extents.x * obb.Extents.x +
+                                    obb.Extents.y * obb.Extents.y +
+                                    obb.Extents.z * obb.Extents.z);
+
+      bool inLightFrustum = false;
+      for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT && !inLightFrustum; ++ci) {
+        if (!mCascadeActive[ci]) continue;
+        if ((objCenter - mCascadeFrustumCenter[ci]).Length() < objRadius + mCascadeFrustumRadius[ci])
+          inLightFrustum = true;
+      }
+      if (!inLightFrustum) continue;
+
+      // shadow-only 오브젝트: 트랜스폼 및 드로우 아이템 등록
+      objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
+      mObjectVector.push_back(objectParams);
+      renderComponent->mObjectIndex = index++;
+      const int32 animIdx = animationComponent ? animationComponent->mAnimInstanceID : -1;
+
+      uint32 shadowSubIdx{};
+      DrawItem shadowItem{};
+      for (shared_ptr<Material>& material : renderComponent->mMaterials) {
+        renderParams = {renderComponent->mObjectIndex, material->GetIndex(), animIdx, 0};
+        shadowItem = {material->GetShader(), renderComponent->mMesh,
+                      material->GetShaderID(), renderComponent->mMesh->GetID(),
+                      material->GetID(), shadowSubIdx++, renderParams};
+        mShadowOnlyDrawItems.push_back(shadowItem);
+      }
       continue;
+    }
     if (false == renderComponent->mVisibility)
       continue;
     const bool useForwardPlus = (animationComponent != nullptr);
@@ -507,12 +535,57 @@ void RenderSystem::PushObjectData() {
     i = j; // 다음 run으로
   }
 
+  // Shadow-only 배치 생성 (mShadowOnlyDrawItems → mShadowOnlyBatchs)
+  std::sort(mShadowOnlyDrawItems.begin(), mShadowOnlyDrawItems.end(),
+            [](const DrawItem& a, const DrawItem& b) {
+              if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;
+              if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;
+              if (a.SubMeshIndex != b.SubMeshIndex) return a.SubMeshIndex < b.SubMeshIndex;
+              return a.SubMesh < b.SubMesh;
+            });
+
+  for (uint32 i = 0; i < mShadowOnlyDrawItems.size();) {
+    psoId = mShadowOnlyDrawItems[i].PSOID;
+    meshId = mShadowOnlyDrawItems[i].MeshID;
+    smIdx  = mShadowOnlyDrawItems[i].SubMesh;
+    base   = (uint32)mInstanceVector.size();
+    uint32 j = i;
+
+    while (j < mShadowOnlyDrawItems.size() &&
+           mShadowOnlyDrawItems[j].PSOID  == psoId &&
+           mShadowOnlyDrawItems[j].MeshID == meshId &&
+           mShadowOnlyDrawItems[j].SubMesh == smIdx) {
+      mInstanceVector.push_back(mShadowOnlyDrawItems[j].InstanceGPU);
+      ++j;
+    }
+
+    mBatch.PSOShader    = mShadowOnlyDrawItems[i].PSOShader;
+    mBatch.Mesh         = mShadowOnlyDrawItems[i].PMesh;
+    mBatch.PSOID        = psoId;
+    mBatch.SubMeshIndex = mShadowOnlyDrawItems[i].SubMeshIndex;
+    mBatch.BaseInstance = base;
+    mBatch.InstanceCount = (j - i);
+    mShadowOnlyBatchs.push_back(mBatch);
+
+    i = j;
+  }
+
   RENDERMANAGER.GetGroupBuffer(mFrameCount)
       ->ObjectInfo->PushGraphicsData(
           mObjectVector.data(),
           static_cast<uint32>(sizeof(objectParams) * mObjectVector.size()));
 }
 
+
+void RenderSystem::PushShadowCascades() {
+    for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
+        LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(light);
+        if (lightComponent->mLightInfo.LightType !=
+            static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
+            continue;
+        UpdateCascadeShadowMatrices(lightComponent);
+    }
+}
 
 void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   const float cameraNear = mCamera->mShadowNear;
@@ -601,6 +674,10 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
     radius = max(ceil(radius * 16.f) / 16.f, 1.f);
 
+    // 라이트 프러스텀 구체 저장 (shadow-only 컬링용)
+    mCascadeFrustumCenter[cascadeIndex] = frustumCenter;
+    mCascadeFrustumRadius[cascadeIndex] = radius;
+
     const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
     const Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
 
@@ -644,7 +721,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 void RenderSystem::RenderShadow()
 {
-    mShadowPass->Update(mDeferredDrawBatchs,mCascadeActive);
+    mShadowPass->Update(mDeferredDrawBatchs, mShadowOnlyBatchs, mCascadeActive);
 }
 
 void RenderSystem::RenderDeferred() {

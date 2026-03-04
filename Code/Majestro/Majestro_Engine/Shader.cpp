@@ -48,10 +48,11 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 	mGraphicsPipelineDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);	//DepthStencil 사용 설정
 	mGraphicsPipelineDesc.SampleMask = UINT_MAX;
 	mGraphicsPipelineDesc.PrimitiveTopologyType = GetTopologyType(info.topology);
-	mGraphicsPipelineDesc.NumRenderTargets = 1;
+	
 	mGraphicsPipelineDesc.SampleDesc.Count = 1;
 	mGraphicsPipelineDesc.SampleDesc.Quality = 0;
-	mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+
 	mGraphicsPipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	//DepthStencil포멧 설정 (DXGI_FORMAT_D32_FLOAT : Depth만 사용)
 
 	
@@ -88,8 +89,8 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.NumRenderTargets = 0;
 		break;
 	case SHADER_TYPE::SHADOW:
-		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
+		mGraphicsPipelineDesc.NumRenderTargets = 0;
+
 		break;
 	case SHADER_TYPE::BILBOARD:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
@@ -111,7 +112,10 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
-	
+	default:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		break;
 	
 	}
 

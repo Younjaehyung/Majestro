@@ -34,11 +34,11 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 	mRenderTargetCount = static_cast<uint32>(rtStru.size());
 
 	uint32 dsvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	// uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	uint32 rtvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHeapBegin = Graphics_DescHeap->GetDescriptorHeap().Get()->GetCPUDescriptorHandleForHeapStart();
+	// D3D12_CPU_DESCRIPTOR_HANDLE srvHeapBegin = Graphics_DescHeap->GetDescriptorHeap().Get()->GetCPUDescriptorHandleForHeapStart();
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeapBegin = RENDERMANAGER.GetRenderTargetHeap()->GetRtvHeapBegin();
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHeapBegin = RENDERMANAGER.GetRenderTargetHeap()->GetDsvHeapBegin();
 
@@ -49,7 +49,7 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 	mDSHeapBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeapBegin, (dsvIndex * dsvSize));
 
 	mSliceRTVHandles.clear();
-
+	mSliceDSVHandles.clear();
 
 	for (auto& target: rtStru) {
 		
@@ -58,20 +58,7 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		D3D12_CPU_DESCRIPTOR_HANDLE dsvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeapBegin, (dsvIndex * dsvSize));
 
 
-		D3D12_RESOURCE_DESC texDesc = target.Target->GetTex2D()->GetDesc();
-		if (groupType == RENDER_TARGET_GROUP_TYPE::SHADOW && texDesc.DepthOrArraySize > 1)
-		{
-			D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
-			rtvDesc.Format = texDesc.Format;
-			rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
-			rtvDesc.Texture2DArray.MipSlice = 0;
-			rtvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(mSliceRTVHandles.size());
-			rtvDesc.Texture2DArray.ArraySize = 1;
-			rtvDesc.Texture2DArray.PlaneSlice = 0;
-			DEVICE->CreateRenderTargetView(target.Target->GetTex2D().Get(), &rtvDesc, rtvhandle);
-			mSliceRTVHandles.push_back(rtvhandle);
-		}
-		else
+		if (groupType != RENDER_TARGET_GROUP_TYPE::SHADOW)
 		{
 			DEVICE->CreateRenderTargetView(target.Target->GetTex2D().Get(), nullptr, rtvhandle);
 		}
@@ -79,7 +66,22 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 
 		mDepthStencilTexture = dsTexture;
 		if (mDepthStencilTexture) {
-			DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
+			if (groupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture->GetTex2D()->GetDesc().DepthOrArraySize > 1)
+			{
+				D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+				dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+				dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+				dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+				dsvDesc.Texture2DArray.MipSlice = 0;
+				dsvDesc.Texture2DArray.FirstArraySlice = static_cast<UINT>(mSliceDSVHandles.size());
+				dsvDesc.Texture2DArray.ArraySize = 1;
+				DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), &dsvDesc, dsvhandle);
+				mSliceDSVHandles.push_back(dsvhandle);
+			}
+			else
+			{
+				DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
+			}
 			RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
 		}
 
@@ -96,11 +98,22 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 	//create시 베리어 생성
 	for (uint32 i = 0; i < rtStru.size(); ++i)
 	{
-		mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
-			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);	//랜더타켓 용도를 common으로
+		if (groupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
+		{
+			mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilTexture->GetTex2D().Get(),
+				D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
-		mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
-			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);	//common 용도를 랜더타켓으로
+			mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilTexture->GetTex2D().Get(),
+				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+		}
+		else
+		{
+			mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
+				D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+
+			mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
+				D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		}
 
 	}
 
@@ -120,12 +133,24 @@ void RenderTargetGroup::OMSetRenderTargets(uint32 count, uint32 offset)
 	if (!mSliceRTVHandles.empty() && offset < mSliceRTVHandles.size())
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = mSliceRTVHandles[offset];
-		GRAPHICS_CMD_LIST->OMSetRenderTargets(count, &rtvHandle, FALSE/*once*/, &mDSHeapBegin);
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = (!mSliceDSVHandles.empty() && offset < mSliceDSVHandles.size()) ? mSliceDSVHandles[offset] : mDSHeapBegin;
+		if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
+		{
+			GRAPHICS_CMD_LIST->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
+		}
+		else
+		{
+			GRAPHICS_CMD_LIST->OMSetRenderTargets(count, &rtvHandle, FALSE/*once*/, &dsvHandle);
+		}
 		return;
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(mRTHeapBegin, offset * size);
-	GRAPHICS_CMD_LIST->OMSetRenderTargets(count, &rtvHandle, FALSE/*once*/, &mDSHeapBegin);
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = (!mSliceDSVHandles.empty() && offset < mSliceDSVHandles.size()) ? mSliceDSVHandles[offset] : mDSHeapBegin;
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(0, nullptr, FALSE, &dsvHandle);
+	else
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(count, &rtvHandle, FALSE/*once*/, &dsvHandle);
 }
 
 void RenderTargetGroup::OMSetRenderTargets()
@@ -136,7 +161,11 @@ void RenderTargetGroup::OMSetRenderTargets()
 	GRAPHICS_CMD_LIST->RSSetViewports(1, &vp);
 	GRAPHICS_CMD_LIST->RSSetScissorRects(1, &rect);
 
-	GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE/*multi*/, &mDSHeapBegin);
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(0, nullptr, FALSE, &mDSHeapBegin);
+	else
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE/*multi*/, &mDSHeapBegin);
+
 
 }
 
@@ -150,21 +179,27 @@ void RenderTargetGroup::ClearRenderTargetView(uint32 index)
 	else
 		rtvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(mRTHeapBegin, index * size);
 
-	GRAPHICS_CMD_LIST->ClearRenderTargetView(rtvHandle, mRenderTargets[std::min<uint32>(index, mRenderTargetCount - 1)].ClearColor, 0, nullptr);
+	if (mGroupType != RENDER_TARGET_GROUP_TYPE::SHADOW)
+		GRAPHICS_CMD_LIST->ClearRenderTargetView(rtvHandle, mRenderTargets[std::min<uint32>(index, mRenderTargetCount - 1)].ClearColor, 0, nullptr);
+
 
 	//DepthStencil관련 초기화
-	GRAPHICS_CMD_LIST->ClearDepthStencilView(mDSHeapBegin, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = (!mSliceDSVHandles.empty() && index < mSliceDSVHandles.size()) ? mSliceDSVHandles[index] : mDSHeapBegin;
+	GRAPHICS_CMD_LIST->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+
 }
 
 void RenderTargetGroup::ClearRenderTargetView()
 {
 	WaitResourceToTarget();	//클리어 하기전에 리소스를 타켓으로 변환
 	uint32 size = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	if (!mSliceRTVHandles.empty())
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
 	{
-		for (uint32 i = 0; i < mSliceRTVHandles.size(); ++i)
+		if (!mSliceRTVHandles.empty())
 		{
-			GRAPHICS_CMD_LIST->ClearRenderTargetView(mSliceRTVHandles[i], mRenderTargets[0].ClearColor, 0, nullptr);
+			for (uint32 i = 0; i < mSliceRTVHandles.size(); ++i)
+				GRAPHICS_CMD_LIST->ClearRenderTargetView(mSliceRTVHandles[i], mRenderTargets[0].ClearColor, 0, nullptr);
+
 		}
 	}
 	else
@@ -177,7 +212,15 @@ void RenderTargetGroup::ClearRenderTargetView()
 	}
 
 
-	GRAPHICS_CMD_LIST->ClearDepthStencilView(mDSHeapBegin, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+	if (!mSliceDSVHandles.empty())
+	{
+		for (auto& dsvHandle : mSliceDSVHandles)
+			GRAPHICS_CMD_LIST->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+	}
+	else
+	{
+		GRAPHICS_CMD_LIST->ClearDepthStencilView(mDSHeapBegin, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+	}
 }
 
 void RenderTargetGroup::WaitTargetToResource()
@@ -188,13 +231,21 @@ void RenderTargetGroup::WaitTargetToResource()
 	barriers.reserve(mRenderTargets.size());
 	unordered_set<ID3D12Resource*> visited;
 
-	for (auto& rt : mRenderTargets)
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
 	{
-		ID3D12Resource* resource = rt.Target->GetTex2D().Get();
-		if (visited.insert(resource).second)
+		ID3D12Resource* resource = mDepthStencilTexture->GetTex2D().Get();
+		barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	}
+	else {
+		for (auto& rt : mRenderTargets)
 		{
-			barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
-				D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
+			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
+			if (visited.insert(resource).second)
+			{
+				barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
+			}
 		}
 	}
 
@@ -212,16 +263,23 @@ void RenderTargetGroup::WaitResourceToTarget()
 	barriers.reserve(mRenderTargets.size());
 	unordered_set<ID3D12Resource*> visited;
 
-	for (auto& rt : mRenderTargets)
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
 	{
-		ID3D12Resource* resource = rt.Target->GetTex2D().Get();
-		if (visited.insert(resource).second)
+		ID3D12Resource* resource = mDepthStencilTexture->GetTex2D().Get();
+		barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	}
+	else {
+		for (auto& rt : mRenderTargets)
 		{
-			barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
-				D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
+			if (visited.insert(resource).second)
+			{
+				barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+					D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
+			}
 		}
 	}
-
 	if (!barriers.empty())
 		GRAPHICS_CMD_LIST->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
 }

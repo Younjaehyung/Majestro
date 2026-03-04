@@ -106,7 +106,8 @@ void Texture::Create(DXGI_FORMAT format, uint32 width, uint32 height,
 	if (resFlags & D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 	{
 		resourceStates = D3D12_RESOURCE_STATES::D3D12_RESOURCE_STATE_DEPTH_WRITE;
-		optimizedClearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+		const DXGI_FORMAT depthClearFormat = (format == DXGI_FORMAT_R32_TYPELESS) ? DXGI_FORMAT_D32_FLOAT : format;
+		optimizedClearValue = CD3DX12_CLEAR_VALUE(depthClearFormat, 1.0f, 0);
 		pOptimizedClearValue = &optimizedClearValue;
 	}
 	else if (resFlags & D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
@@ -159,7 +160,8 @@ void Texture::CreateFromResource(ComPtr<ID3D12Resource> tex2D, bool createSRVUAV
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING; // 기본 매핑 (RGBA -> RGBA)
 	srvDesc.Format = mDescription.Format;
-
+	if (srvDesc.Format == DXGI_FORMAT_R32_TYPELESS)
+		srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 
 
 	if (mIsCubeMap && use == TextureType::TEXTURE_2D) {

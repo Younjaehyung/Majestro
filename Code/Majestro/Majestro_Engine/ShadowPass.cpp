@@ -9,11 +9,14 @@
 void ShadowPass::Initialize() {
 }
 
-void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs) {
+void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs, array<bool, 4>& cascadeActive) {
 
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
-
     shadowGroup.WaitResourceToTarget();
+
+    shadowGroup.OMSetRenderTargets();
+
+    shadowGroup.ClearRenderTargetView();
    /* for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
 
         if (lightComponent->mLightInfo.LightType !=
@@ -23,10 +26,9 @@ void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs) {
         for (uint32 cascadeIndex = 0;
             cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT;
             ++cascadeIndex) {
-            if (!mCascadeActive[cascadeIndex])
+            if (!cascadeActive[cascadeIndex])
                 continue;
-            shadowGroup.OMSetRenderTargets(1, cascadeIndex);
-            shadowGroup.ClearRenderTargetView(cascadeIndex);
+        
             RenderShadowCamera(deferredDrawBatchs, cascadeIndex);
         }
     //}

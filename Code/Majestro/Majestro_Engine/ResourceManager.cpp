@@ -870,7 +870,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
-		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Final");
+		shader->CreateGraphicsShader(shaderPath, info,/* RENDERMANAGER.GetMsaaSampleCount()*/1, "VS_Final", "PS_Final");
 		Add<Shader>(L"Final", shader);
 	}
 
@@ -921,7 +921,6 @@ void ResourceManager::CreateDefaultShader()
 		{
 			SHADER_TYPE::SHADOW,
 			RASTERIZER_TYPE::CULL_BACK,
-			DEPTH_STENCIL_TYPE::LESS,
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\shadow_VS.hlsl",
@@ -1031,7 +1030,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\forward_plus_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"ForwardPlusCel", shader);
 	}
 

@@ -91,6 +91,7 @@ public:
 private:
 	vector<RenderTarget>			mRenderTargets{};
 	vector<D3D12_CPU_DESCRIPTOR_HANDLE> mSliceRTVHandles{};
+	vector<D3D12_CPU_DESCRIPTOR_HANDLE> mSliceDSVHandles{};
 	shared_ptr<Texture>				mDepthStencilTexture;
 	
 	RENDER_TARGET_GROUP_TYPE		mGroupType{};

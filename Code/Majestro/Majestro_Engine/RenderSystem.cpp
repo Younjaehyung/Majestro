@@ -106,7 +106,7 @@ void RenderSystem::ClearRTV() {
   }
 
   // Shadow Group 초기화
-  //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
+ // RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW)).ClearRenderTargetView();
 
   // Deferred Group 초기화
   RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).ClearRenderTargetView();
@@ -515,8 +515,23 @@ void RenderSystem::PushObjectData() {
 
 
 void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
-  const float cameraNear = mCamera->mNear;
-  const float cameraFar = mCamera->mFar;
+  const float cameraNear = mCamera->mShadowNear;
+  const float cameraFar = mCamera->mShadowFar;
+
+  const float nearForSplit = max(cameraNear, 0.001f);
+  const float farForSplit = max(cameraFar, nearForSplit + 0.001f);
+  const float ratio = farForSplit / nearForSplit;
+  const float lambda = min(max(mCascadeSplitLambda, 0.0f), 1.0f);
+  constexpr float cascadeCount = static_cast<float>(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
+
+  for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
+      const float p = static_cast<float>(i + 1) / cascadeCount;
+      const float logSplit = nearForSplit * powf(ratio, p);
+      const float uniformSplit = nearForSplit + (farForSplit - nearForSplit) * p;
+      CascadeSplit[i] = lambda * logSplit + (1.0f - lambda) * uniformSplit;
+  }
+
+
   const Matrix invProj = mCamera->mProjection.Invert();
   const Matrix invView = mCamera->mView.Invert();
   const float cameraRange = max(cameraFar - cameraNear, 0.001f);
@@ -543,7 +558,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   constexpr float shadowMapSize = 4096.f;
 
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> cascadeSplits{};
-  constexpr float splitLambda = 0.9f;
+  constexpr float splitLambda = 0.5f;
   for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
       const float p = static_cast<float>(i + 1) /
           static_cast<float>(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
@@ -552,18 +567,18 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
       cascadeSplits[i] = linearSplit + (logSplit - linearSplit) * splitLambda;
   }
 
-  // 근거리 품질 확보를 위해 앞쪽 캐스케이드 범위를 제한
-  const float depthRange = cameraFar - cameraNear;
-  const array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> splitCaps = {
-      cameraNear + depthRange * 0.001f,
-      cameraNear + depthRange * 0.01f,
-      cameraNear + depthRange * 0.06f,
-      cameraFar };
-  for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
-      cascadeSplits[i] = min(cascadeSplits[i], splitCaps[i]);
-      if (i > 0)
-          cascadeSplits[i] = max(cascadeSplits[i], cascadeSplits[i - 1] + 1.0f);
-  }
+  //// 근거리 품질 확보를 위해 앞쪽 캐스케이드 범위를 제한
+  //const float depthRange = cameraFar - cameraNear;
+  //const array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> splitCaps = {
+  //    cameraNear + depthRange * 0.01f,
+  //    cameraNear + depthRange * 0.04f,
+  //    cameraNear + depthRange * 0.08f,
+  //    cameraFar };
+  //for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
+  //    cascadeSplits[i] = min(cascadeSplits[i], splitCaps[i]);
+  //    if (i > 0)
+  //        cascadeSplits[i] = max(cascadeSplits[i], cascadeSplits[i - 1] + 1.0f);
+  //}
 
 
 
@@ -609,25 +624,26 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
     Matrix lightView = Matrix::CreateLookAt(eye, frustumCenter, up);
 
-    Vec3 minExtents(FLT_MAX, FLT_MAX, FLT_MAX);
-    Vec3 maxExtents(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+    // Stable CSM: XY 투영 영역을 구체 기반 고정 크기로 유지하고, 중심을 texel 단위로 스냅한다.
+      // 이렇게 하면 카메라가 미세하게 이동해도 캐스케이드 UV가 덜 흔들린다.
+    Vec3 centerLS = Vec3::Transform(frustumCenter, lightView);
+    const float texelWorldSize = max((radius * 2.f) / shadowMapSize, 1e-5f);
+    centerLS.x = floor(centerLS.x / texelWorldSize + 0.5f) * texelWorldSize;
+    centerLS.y = floor(centerLS.y / texelWorldSize + 0.5f) * texelWorldSize;
+
+    Vec3 minExtents(centerLS.x - radius, centerLS.y - radius, FLT_MAX);
+    Vec3 maxExtents(centerLS.x + radius, centerLS.y + radius, -FLT_MAX);
+
+    float minZ = FLT_MAX;
+    float maxZ = -FLT_MAX;
     for (Vec3 &corner : worldCorners) {
-      Vec3 cornerLS = Vec3::Transform(corner, lightView);
-      minExtents = Vec3::Min(minExtents, cornerLS);
-      maxExtents = Vec3::Max(maxExtents, cornerLS);
+        const Vec3 cornerLS = Vec3::Transform(corner, lightView);
+        minZ = min(minZ, cornerLS.z);
+        maxZ = max(maxZ, cornerLS.z);
     }
 
-    const float texelWorldSize =
-        max((maxExtents.x - minExtents.x) / shadowMapSize, 1e-5f);
-    Vec3 centerLS = (minExtents + maxExtents) * 0.5f;
-    centerLS.x = floor(centerLS.x / texelWorldSize) * texelWorldSize;
-    centerLS.y = floor(centerLS.y / texelWorldSize) * texelWorldSize;
-
-    const Vec3 halfExtents = (maxExtents - minExtents) * 0.5f;
-    minExtents.x = centerLS.x - halfExtents.x;
-    maxExtents.x = centerLS.x + halfExtents.x;
-    minExtents.y = centerLS.y - halfExtents.y;
-    maxExtents.y = centerLS.y + halfExtents.y;
+    minExtents.z = minZ;
+    maxExtents.z = maxZ;
 
     // [수정] Terrain 높이 범위를 고려한 Z padding 증가
     // Terrain height: (height - 0.5) * 512 → 범위 약 -256 ~ +256
@@ -636,7 +652,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     const float zPadding = max(max(radius * 4.f, 50.f), terrainHeightRange);
     const float nearPlane = minExtents.z - zPadding;
     const float farPlane = maxExtents.z + zPadding;
-    Matrix lightProj = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, nearPlane,farPlane);
+    Matrix lightProj = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, nearPlane, farPlane);
     passParams.CascadeShadowVP[cascadeIndex] = (lightView * lightProj).Transpose();
   }
 
@@ -647,7 +663,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 void RenderSystem::RenderShadow()
 {
-    mShadowPass->Update(mDeferredDrawBatchs);
+    mShadowPass->Update(mDeferredDrawBatchs,mCascadeActive);
 }
 
 void RenderSystem::RenderDeferred() {

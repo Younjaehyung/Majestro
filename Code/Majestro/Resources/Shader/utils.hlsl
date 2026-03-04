@@ -44,7 +44,7 @@ EvaluatedLight EvaluateLightVS(int lightIndex, float3 viewPos, float3 viewNormal
     o.specRGB = Lights[lightIndex].color.specular.rgb;
     o.ambRGB = Lights[lightIndex].color.ambient.rgb;
 
-    float3 viewLightDir = 0.0f; // light -> surface (너 기존 컨벤션 유지)
+    float3 viewLightDir = 0.0f; // light -> surface
     float distanceRatio = 1.0f;
 
     if (o.type == 0)
@@ -512,28 +512,46 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     const float shadowMapSize = 4096.0f;
     float2 texelSize = 1.0f / shadowMapSize;
 
-    // PCF 3x3
-      // 근거리 캐스케이드는 더 넓은 PCF로 계단 현상 완화
-    float pcfRadius = (cascadeIndex == 0) ? 2.0f : ((cascadeIndex == 1) ? 1.5f : 1.0f);
     float shadow = 0.0f;
     float weightSum = 0.0f;
-    [unroll]
-    for (int y = -2; y <= 2; ++y)
-    {
-        [unroll]
-        for (int x = -2; x <= 2; ++x)
-        {
-            float2 offset = float2(x, y);
-            if (abs(offset.x) > pcfRadius || abs(offset.y) > pcfRadius)
-                continue;
 
-            float weight = 1.0f / (1.0f + dot(offset, offset));
-            float2 sampleUv = saturate(uv + offset * texelSize);
-            float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
-            shadow += ((shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
-            weightSum += weight;
+    if (cascadeIndex == 0)
+    {
+        // 근거리 cascade: 5x5 
+        [unroll]
+        for (int y = -2; y <= 2; ++y)
+        {
+            [unroll]
+            for (int x = -2; x <= 2; ++x)
+            {
+                float2 offset = float2(x, y);
+                float weight = 1.0f / (1.0f + dot(offset, offset));
+                float2 sampleUv = saturate(uv + offset * texelSize);
+                float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
+                shadow += ((shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
+                weightSum += weight;
+            }
         }
     }
+    else
+    {
+        // 원거리 cascade: 3x3 
+        [unroll]
+        for (int y = -1; y <= 1; ++y)
+        {
+            [unroll]
+            for (int x = -1; x <= 1; ++x)
+            {
+                float2 offset = float2(x, y);
+                float weight = 1.0f / (1.0f + dot(offset, offset));
+                float2 sampleUv = saturate(uv + offset * texelSize);
+                float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
+                shadow += ((shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
+                weightSum += weight;
+            }
+        }
+    }
+
     shadow /= max(weightSum, 1e-4f);
     return 1.0f - shadow * 0.75f;
 }
@@ -549,10 +567,11 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     float currentCoverage = 0.0f;
     float visibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex, currentCoverage);
 
-    // 캐스케이드 경계 블렌딩 + coverage 부족 시 다음 cascade 폴백 (틈새 방지)
+    float4 splits = PassParams.CascadeSplitDistances;
+
+    // 캐스케이드 경계 블렌딩 틈새 방지
     if (cascadeIndex < 3)
     {
-        float4 splits = PassParams.CascadeSplitDistances;
         float splitDist = splits[cascadeIndex];
         float prevSplit = (cascadeIndex == 0) ? 0.0f : splits[cascadeIndex - 1];
         float cascadeRange = max(splitDist - prevSplit, 1.0f);
@@ -561,7 +580,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
         float blendStart = splitDist - blendWidth;
         float depthBlend = smoothstep(blendStart, splitDist, viewDepth);
 
-        // currentCoverage = 0 이면 현재 cascade UV 밖 → 다음 cascade로 완전 폴백
+        // currentCoverage = 0 다음 cascade로
         float coverageFallback = 1.0f - currentCoverage;
         float totalBlend = saturate(max(depthBlend, coverageFallback));
 
@@ -569,10 +588,19 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
         {
             float nextCoverage = 0.0f;
             float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);
-            // 다음 cascade에 coverage가 있을 때만 블렌딩 (없으면 기존 visibility 유지)
+            // 다음 cascade에 coverage가 있을 때만 블렌딩
             float validBlend = totalBlend * nextCoverage;
             visibility = lerp(visibility, nextVisibility, validBlend);
         }
+    }
+    else // cascadeIndex == 3
+    {
+        float splitFar = splits.w;
+        float fadeStart = splitFar * 0.85f; // 마지막 15% 구간에서 서서히 사라짐
+        float depthFade = 1.0f - smoothstep(fadeStart, splitFar, viewDepth);
+        // coverage가 낮은 영역
+        float blendFactor = depthFade * currentCoverage;
+        visibility = lerp(1.0f, visibility, blendFactor);
     }
 
     return visibility;

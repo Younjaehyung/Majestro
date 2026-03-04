@@ -56,7 +56,7 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 	for (auto& collider : staticObjects)
 	{
 		
-		if (!collider.layerMask) continue;
+		//if (!collider.layerMask) continue;
 
 		SweepHit out{};
 
@@ -95,8 +95,8 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 			}
 		}
 
-		if (best.hit && best.distance < best.distance) {
-			best.colliderId = collider.ColliderEntity;
+		if (best.hit || out.distance < best.distance) {
+			out.colliderId = collider.ColliderEntity;
 			best = out;
 		}
 			

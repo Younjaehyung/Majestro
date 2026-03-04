@@ -8,7 +8,7 @@
 #include "InputComponent.h"
 #include "TagComponent.h"
 #include "PhysicsWorld.h"
-
+#include "BulletComponent.h"
 
 
 
@@ -33,7 +33,7 @@ void CollisionSystem::Update(float dt)
 
     Movable2Movable(dt);
     Movable2Static(dt);
-
+    Bullet2StaticCCD(dt);
 }
 
 void CollisionSystem::Movable2Movable(float deltaTime)
@@ -355,7 +355,73 @@ void CollisionSystem::Movable2Static(float deltaTime)
     }
 }
 
+void CollisionSystem::Bullet2StaticCCD(float deltaTime)
+{
+    (void)deltaTime;
 
+    if (false == mWorld->HasComponentPool<BulletComponent>()) return;
+    if (false == mWorld->HasComponentPool<TransformComponent>()) return;
+    if (!mPhysicsWorld) return;
+
+    auto& activeBulletEntityIds = mWorld->GetActiveBulletEntityIds();
+
+    for (size_t i = 0; i < activeBulletEntityIds.size();)
+    {
+        Entity bulletEntity{ activeBulletEntityIds[i] };
+        BulletComponent* bullet = mWorld->GetComponent<BulletComponent>(bulletEntity);
+        TransformComponent* tr = mWorld->GetComponent<TransformComponent>(bulletEntity);
+        if (!bullet || !tr || !bullet->mIsActive)
+        {
+            mWorld->UnregisterActiveBullet(bulletEntity);
+            continue;
+        }
+
+        const Vec3 movement = tr->mMovingVector;
+        if (movement.LengthSquared() <= 1e-8f)
+        {
+            ++i;
+            continue;
+        }
+
+        Vec3 direction = movement;
+        direction.Normalize();
+
+        const Vec3 endPosition = tr->mLocalPosition;
+        const Vec3 startPosition = endPosition - movement;
+
+        float bulletRadius = 0.1f;
+        BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity);
+        if (bulletCollider)
+        {
+            PhysicsWorld::UpdateWorldOBB(tr, bulletCollider);
+            bulletRadius = (std::max)(bulletRadius,
+                (std::max)(bulletCollider->mWorldOBB.Extents.x, bulletCollider->mWorldOBB.Extents.z));
+        }
+
+        const SweepHit hit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);
+        if (!hit.hit)
+        {
+            ++i;
+            continue;
+        }
+
+        tr->mLocalPosition = startPosition + direction * hit.distance;
+        tr->mMovingVector = Vec3::Zero;
+        bullet->Deactivate();
+
+        if (bulletCollider)
+            bulletCollider->bIsColliding = true;
+
+        if (hit.colliderId.IsValid())
+        {
+            BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(hit.colliderId);
+            if (staticCollider)
+                staticCollider->bIsColliding = true;
+        }
+
+        mWorld->UnregisterActiveBullet(bulletEntity);
+    }
+}
 
 // [수정] 시간 기반 보정을 위해 dt를 인자로 받도록 시그니처 변경
 void CollisionSystem::AvoidCollisionByMovementState(

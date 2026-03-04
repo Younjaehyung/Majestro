@@ -97,6 +97,12 @@ public:
 
 	std::shared_ptr<PhysicsWorld>& GetPhysicsWorld() { return mPhysicsWorld; }
 
+public: // Active Bullet Registry (scene-owned via World)
+    void RegisterActiveBullet(Entity bulletEntity);
+    void UnregisterActiveBullet(Entity bulletEntity);
+    std::vector<EntityID>& GetActiveBulletEntityIds() { return mActiveBulletEntityIds; }
+    const std::vector<EntityID>& GetActiveBulletEntityIds() const { return mActiveBulletEntityIds; }
+
 public: // Network Entity ID 관리
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(netID, entity); }
 	void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(netID); }
@@ -122,6 +128,8 @@ private:
     std::shared_ptr<EventManager>		mEventManager;
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
+
+    std::vector<EntityID> mActiveBulletEntityIds;
 
     SpscRingQueue<InputCommand, 1024> mInboundCommands;
 };

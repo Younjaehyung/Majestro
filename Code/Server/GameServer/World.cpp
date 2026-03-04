@@ -13,6 +13,8 @@ void World::DestroyEntity(Entity entity) {
     EntityID id = entity.GetID();
     if (id == NULL_ENTITY) return;
 
+    UnregisterActiveBullet(entity);
+
     // 모든 컴포넌트 풀에서 해당 엔티티의 컴포넌트 제거
     for (auto& [typeID, pool] : mComponentPools) {
         RemoveComponentFromPool(id, typeID);
@@ -31,6 +33,7 @@ void World::Clear() {
     mEntities.clear();
     mComponentPools.clear();
     mNextEntityID = 1;
+    mActiveBulletEntityIds.clear();
 }
 
 uint32 World::GetSessionIDByEntity(Entity entity)
@@ -40,6 +43,38 @@ uint32 World::GetSessionIDByEntity(Entity entity)
         return comp->mSessionId;
 
     return 0;
+}
+
+void World::RegisterActiveBullet(Entity bulletEntity)
+{
+    if (!bulletEntity.IsValid())
+        return;
+
+    const EntityID bulletId = bulletEntity.GetID();
+    for (EntityID activeBulletId : mActiveBulletEntityIds)
+    {
+        if (activeBulletId == bulletId)
+            return;
+    }
+
+    mActiveBulletEntityIds.push_back(bulletId);
+}
+
+void World::UnregisterActiveBullet(Entity bulletEntity)
+{
+    if (!bulletEntity.IsValid())
+        return;
+
+    const EntityID bulletId = bulletEntity.GetID();
+    for (size_t i = 0; i < mActiveBulletEntityIds.size(); ++i)
+    {
+        if (mActiveBulletEntityIds[i] != bulletId)
+            continue;
+
+        mActiveBulletEntityIds[i] = mActiveBulletEntityIds.back();
+        mActiveBulletEntityIds.pop_back();
+        return;
+    }
 }
 
 void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)

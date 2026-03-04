@@ -534,7 +534,10 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
   const Matrix invProj = mCamera->mProjection.Invert();
   const Matrix invView = mCamera->mView.Invert();
-  const float cameraRange = max(cameraFar - cameraNear, 0.001f);
+  // frustumNearView/FarView는 invProj(실제 투영행렬) 기반으로 mNear~mFar 범위를 커버한다.
+  // nearT/farT의 분모도 동일하게 실제 near/far 범위를 사용해야
+  // lerp 결과 z가 splitNear/splitFar와 일치한다.
+  const float cameraRange = max(mCamera->mFar - mCamera->mNear, 0.001f);
   const array<Vec3, 4> ndcNearCorners = {
       Vec3(-1.f, 1.f, 0.f), Vec3(1.f, 1.f, 0.f), Vec3(1.f, -1.f, 0.f),Vec3(-1.f, -1.f, 0.f)};
   const array<Vec3, 4> ndcFarCorners = {
@@ -574,8 +577,8 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
       continue;
     }
     mCascadeActive[cascadeIndex] = true;
-    const float nearT = (splitNear - cameraNear) / cameraRange;
-    const float farT = (splitFar - cameraNear) / cameraRange;
+    const float nearT = (splitNear - mCamera->mNear) / cameraRange;
+    const float farT = (splitFar - mCamera->mNear) / cameraRange;
 
     array<Vec3, 8> worldCorners{};
     Vec3 frustumCenter = Vec3::Zero;
@@ -627,7 +630,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     // [수정] Terrain 높이 범위를 고려한 Z padding 증가
     // Terrain height: (height - 0.5) * 512 → 범위 약 -256 ~ +256
     // 기존 padding으로는 이 높이 범위를 커버하지 못할 수 있음
-    const float terrainHeightRange = 512.0f;
+    const float terrainHeightRange = 0.0f;
     const float zPadding = max(max(radius * 4.f, 50.f), terrainHeightRange);
     const float nearPlane = minExtents.z - zPadding;
     const float farPlane = maxExtents.z + zPadding;

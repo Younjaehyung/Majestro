@@ -188,7 +188,7 @@ private:
 
   array<bool, 4> mCascadeActive = { true, true, true, true };
   array<float, 4> CascadeSplit = { 0.f, 0.f, 0.f, 0.f };
-  float mCascadeSplitLambda = 0.5f;
+  float mCascadeSplitLambda = 0.85f;
   array<Matrix, 4> mCascadeView{};
   array<Matrix, 4> mCascadeProjection{};
 

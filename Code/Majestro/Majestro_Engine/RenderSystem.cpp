@@ -557,28 +557,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
   constexpr float shadowMapSize = 4096.f;
 
-  array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> cascadeSplits{};
-  constexpr float splitLambda = 0.5f;
-  for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
-      const float p = static_cast<float>(i + 1) /
-          static_cast<float>(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
-      const float logSplit = cameraNear * pow(cameraFar / cameraNear, p);
-      const float linearSplit = cameraNear + (cameraFar - cameraNear) * p;
-      cascadeSplits[i] = linearSplit + (logSplit - linearSplit) * splitLambda;
-  }
-
-  //// 근거리 품질 확보를 위해 앞쪽 캐스케이드 범위를 제한
-  //const float depthRange = cameraFar - cameraNear;
-  //const array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> splitCaps = {
-  //    cameraNear + depthRange * 0.01f,
-  //    cameraNear + depthRange * 0.04f,
-  //    cameraNear + depthRange * 0.08f,
-  //    cameraFar };
-  //for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
-  //    cascadeSplits[i] = min(cascadeSplits[i], splitCaps[i]);
-  //    if (i > 0)
-  //        cascadeSplits[i] = max(cascadeSplits[i], cascadeSplits[i - 1] + 1.0f);
-  //}
+  // CascadeSplit[]은 함수 상단에서 mCascadeSplitLambda를 반영해 이미 계산됨
 
 
 
@@ -587,8 +566,8 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
      
     const float splitNear =
         (cascadeIndex == 0) ? cameraNear
-        : min(cascadeSplits[cascadeIndex - 1], cameraFar);
-    const float splitFar = min(cascadeSplits[cascadeIndex], cameraFar);
+        : min(CascadeSplit[cascadeIndex - 1], cameraFar);
+    const float splitFar = min(CascadeSplit[cascadeIndex], cameraFar);
     if (splitFar <= splitNear) {
         mCascadeActive[cascadeIndex] = false;
       passParams.CascadeShadowVP[cascadeIndex] = Matrix::Identity.Transpose();
@@ -657,8 +636,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   }
 
   passParams.CascadeSplitDistances =
-      Vec4(cascadeSplits[0], cascadeSplits[1], cascadeSplits[2],
-          cascadeSplits[3]);
+      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
 }
 
 void RenderSystem::RenderShadow()

@@ -211,7 +211,7 @@ void RenderTargetGroup::ClearRenderTargetView()
 		}
 	}
 
-
+	
 	if (!mSliceDSVHandles.empty())
 	{
 		for (auto& dsvHandle : mSliceDSVHandles)

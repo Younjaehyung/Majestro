@@ -364,18 +364,14 @@ void RenderManager::CreateRenderTargetGroups()
 	{
 		vector<RenderTarget> rtVec(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
 
-		shared_ptr<Texture> shadowArrayTarget = RESOURCEMANAGER.CreateTexture(L"ShadowTargetArray",
-			DXGI_FORMAT_R32_FLOAT, 4096, 4096,
+		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
+			DXGI_FORMAT_R32_TYPELESS, 4096, 4096,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, false, 1, 0, Vec4(), 4, TextureType::TEXTURE_2D_ARRAY);
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, true, 1, 0, Vec4(),
+			RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT, TextureType::TEXTURE_2D_ARRAY);
 
 		for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i)
-			rtVec[i].Target = shadowArrayTarget;
-
-		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
-			DXGI_FORMAT_D32_FLOAT, 4096, 4096,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, 0);
+			rtVec[i].Target = shadowDepthTexture;
 
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::SHADOW)].Create(RENDER_TARGET_GROUP_TYPE::SHADOW, rtVec, shadowDepthTexture);
 	}
@@ -448,7 +444,7 @@ void RenderManager::CreateRenderTargetGroups()
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC cascadeSrv = {};
 				cascadeSrv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-				cascadeSrv.Format = renderTarget.Target->GetTex2D()->GetDesc().Format;
+				cascadeSrv.Format = DXGI_FORMAT_R32_FLOAT;
 				cascadeSrv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
 				cascadeSrv.Texture2DArray.MostDetailedMip = 0;
 				cascadeSrv.Texture2DArray.MipLevels = 1;

@@ -99,8 +99,12 @@ public:
 public:
 	PROJECTION_TYPE mCameraType = PROJECTION_TYPE::PERSPECTIVE;
 
-	float mNear = 1.f;
-	float mFar = 50000.f;
+	float mNear = 1.f * 100.f;
+	float mFar = 800.f * 100.f;
+
+	float mShadowNear = 1.f * 100.f;
+	float mShadowFar = 200.f * 100.f;
+
 	float mFov = 103.f/2.0f;// XM_PI / 4.f; (오버워치 fov로 맞춤)
 	float mScale = 1.f;
 	float mWidth = 2560.0f; //2560, 1440

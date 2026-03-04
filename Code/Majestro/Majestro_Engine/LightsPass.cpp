@@ -9,6 +9,7 @@ void LightsPass::Initialize() {
 }
 
 void LightsPass::Update(std::vector<DrawBatch>& deferredDrawBatchs) {
+	
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).OMSetRenderTargets();
 
     for (auto& light : deferredDrawBatchs) {

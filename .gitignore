@@ -31,3 +31,9 @@ Code/Majestro/Executable/skybox_VS.cso
 Code/Majestro/Executable/Terrain_DS.cso
 Code/Majestro/Executable/Terrain_HS.cso
 Code/Majestro/Executable/Terrain_PS.cso
+Code/Majestro/Resources/Map/
+Code/Majestro/Executable/cartoon_PS.cso
+Code/Majestro/Executable/cartoon_VS.cso
+Code/Majestro/Executable/forward_plus_cull_CS.cso
+Code/Majestro/Executable/forward_plus_PS.cso
+Code/Majestro/Executable/tonemap_PS.cso

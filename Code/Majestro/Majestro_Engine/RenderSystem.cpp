@@ -625,7 +625,7 @@ void RenderSystem::RenderShadow()
 }
 
 void RenderSystem::RenderDeferred() {
-
+    return;
     mGBufferPass->Update(mDeferredDrawBatchs);
     mLightPass->Update(mLightDrawBatchs);
 

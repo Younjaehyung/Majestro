@@ -9,7 +9,8 @@
 #include "TagComponent.h"
 #include "PhysicsWorld.h"
 #include "BulletComponent.h"
-
+#include "NetEntityComponent.h"
+#include "GameEvents.h"
 
 
 
@@ -33,6 +34,7 @@ void CollisionSystem::Update(float dt)
 
     Movable2Movable(dt);
     Movable2Static(dt);
+    Bullet2MovableCCD(dt);
     Bullet2StaticCCD(dt);
 }
 
@@ -352,6 +354,137 @@ void CollisionSystem::Movable2Static(float deltaTime)
                 st.ColliderBox, 
                 deltaTime);
         }
+    }
+}
+
+void CollisionSystem::Bullet2MovableCCD(float deltaTime)
+{
+    (void)deltaTime;
+
+    if (false == mWorld->HasComponentPool<BulletComponent>()) return;
+    if (false == mWorld->HasComponentPool<TransformComponent>()) return;
+    if (false == mWorld->HasComponentPool<MovableComponent>()) return;
+    if (false == mWorld->HasComponentPool<BoxColliderComponent>()) return;
+
+    auto& activeBulletEntityIds = mWorld->GetActiveBulletEntityIds();
+    auto dynamicEntities = mWorld->GetEntitiesWithComponents<MovableComponent, TransformComponent, BoxColliderComponent>();
+
+    for (size_t i = 0; i < activeBulletEntityIds.size();)
+    {
+        Entity bulletEntity{ activeBulletEntityIds[i] };
+        BulletComponent* bullet = mWorld->GetComponent<BulletComponent>(bulletEntity);
+        TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+        if (!bullet || !bulletTransform || !bullet->mIsActive)
+        {
+            mWorld->UnregisterActiveBullet(bulletEntity);
+            continue;
+        }
+
+        const Vec3 movement = bulletTransform->mMovingVector;
+        if (movement.LengthSquared() <= 1e-8f)
+        {
+            ++i;
+            continue;
+        }
+
+        Vec3 direction = movement;
+        direction.Normalize();
+
+        const float segmentLength = movement.Length();
+        const Vec3 endPosition = bulletTransform->mLocalPosition;
+        const Vec3 startPosition = endPosition - movement;
+
+        float bulletRadius = 0.1f;
+        BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity);
+        if (bulletCollider)
+        {
+            PhysicsWorld::UpdateWorldOBB(bulletTransform, bulletCollider);
+            bulletRadius = (std::max)(bulletRadius,
+                (std::max)(bulletCollider->mWorldOBB.Extents.x, bulletCollider->mWorldOBB.Extents.z));
+        }
+
+        Entity hitTarget{};
+        BoxColliderComponent* hitCollider = nullptr;
+        float hitDistance = (std::numeric_limits<float>::max)();
+
+        for (Entity targetEntity : dynamicEntities)
+        {
+            if (targetEntity == bulletEntity)
+                continue;
+
+            if (mWorld->HasComponent<BulletComponent>(targetEntity))
+                continue;
+
+            NetEntityComponent* targetNetComp = mWorld->GetComponent<NetEntityComponent>(targetEntity);
+            if (targetNetComp && bullet->mOwnerNetId != 0 && targetNetComp->mNetEntityId == bullet->mOwnerNetId)
+                continue;
+
+            TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(targetEntity);
+            BoxColliderComponent* targetCollider = mWorld->GetComponent<BoxColliderComponent>(targetEntity);
+            if (!targetTransform || !targetCollider)
+                continue;
+
+            PhysicsWorld::UpdateWorldOBB(targetTransform, targetCollider);
+
+            BoundingOrientedBox expanded = targetCollider->mWorldOBB;
+            expanded.Extents.x += bulletRadius;
+            expanded.Extents.y += bulletRadius;
+            expanded.Extents.z += bulletRadius;
+
+            float candidateDistance = (std::numeric_limits<float>::max)();
+            bool candidateHit = false;
+
+            if (expanded.Contains(startPosition) != ContainmentType::DISJOINT)
+            {
+                candidateDistance = 0.0f;
+                candidateHit = true;
+            }
+            else if (expanded.Intersects(startPosition, direction, candidateDistance) &&
+                candidateDistance >= 0.0f && candidateDistance <= segmentLength)
+            {
+                candidateHit = true;
+            }
+
+            if (!candidateHit || candidateDistance >= hitDistance)
+                continue;
+
+            hitDistance = candidateDistance;
+            hitTarget = targetEntity;
+            hitCollider = targetCollider;
+        }
+
+        if (!hitTarget.IsValid())
+        {
+            ++i;
+            continue;
+        }
+
+        bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
+        bulletTransform->mMovingVector = Vec3::Zero;
+
+        if (bulletCollider)
+            bulletCollider->bIsColliding = true;
+        if (hitCollider)
+            hitCollider->bIsColliding = true;
+
+        if (auto eventManager = mWorld->GetEventManager())
+        {
+            EvDamage damageEvent{};
+            damageEvent.instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
+            damageEvent.target = hitTarget;
+            damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
+            eventManager->Enqueue<EvDamage>(damageEvent);
+        }
+
+        ++bullet->mHitCount;
+        if (bullet->mHitCount >= (std::max)(1, bullet->mPenetrationCount))
+        {
+            bullet->Deactivate();
+            mWorld->UnregisterActiveBullet(bulletEntity);
+            continue;
+        }
+
+        ++i;
     }
 }
 

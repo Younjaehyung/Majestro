@@ -154,6 +154,12 @@
     <Filter Include="World\Resource\Shader\Post\particle">
       <UniqueIdentifier>{902396bf-bfe0-497f-b466-8d4c6bfdcdf0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Map">
+      <UniqueIdentifier>{3f67fd53-45a5-4c97-a329-702e7cf40ae9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Map\NavMesh">
+      <UniqueIdentifier>{04761dc3-7576-4a02-ab8e-57be60a83cd2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -415,9 +421,6 @@
     <ClInclude Include="MovementSystem.h">
       <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
-    <ClInclude Include="LevelImport.h">
-      <Filter>World\Resource\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="NetTransformComponent.h">
       <Filter>World\Component\Server</Filter>
     </ClInclude>
@@ -453,6 +456,12 @@
     </ClInclude>
     <ClInclude Include="HealthComponent.h">
       <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelImport.h">
+      <Filter>World\Resource\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="NavMeshLoader.h">
+      <Filter>World\Resource\Map\NavMesh</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -705,9 +714,6 @@
     <ClCompile Include="MovementSystem.cpp">
       <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
-    <ClCompile Include="LevelImport.cpp">
-      <Filter>World\Resource\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="NetTransformComponent.cpp">
       <Filter>World\Component\Server</Filter>
     </ClCompile>
@@ -740,6 +746,12 @@
     </ClCompile>
     <ClCompile Include="FinalPass.cpp">
       <Filter>World\System\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelImport.cpp">
+      <Filter>World\Resource\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshLoader.cpp">
+      <Filter>World\Resource\Map\NavMesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

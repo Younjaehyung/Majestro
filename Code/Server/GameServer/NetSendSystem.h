@@ -1,6 +1,7 @@
 #pragma once
 #include "System.h"
 #include "ServerCore.h"
+#include <unordered_map>
 
 class NetEntityComponent;
 
@@ -14,6 +15,7 @@ private:
 	void ConvertMove(NetEntityComponent*, SendRequest* , float);
 	void ConvertState();
 	void SendCollision();
+	void SendHealthIfChanged();
 	std::vector<uint32> CollectPlayerSessions() const;
 private:
 	SendRequest mSendReq;
@@ -25,5 +27,6 @@ private:
 	float mMoveSendInterval = 1.0f / mMoveSendHz;
 
 	uint32 mSequence = 0;
+	std::unordered_map<uint64, std::pair<int32, int32>> mLastSentHealthByNetEntity;
 };
 

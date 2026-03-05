@@ -451,6 +451,9 @@
     <ClInclude Include="FinalPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
+    <ClInclude Include="HealthComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">

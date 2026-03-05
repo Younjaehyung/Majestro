@@ -35,7 +35,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_STATE,
 	S2C_PKT_COLLISION,
 	S2C_PKT_BULLET_ACTIVATE,
-
+	S2C_PKT_HEALTH,
 
 	KMSG,
 };
@@ -191,6 +191,19 @@ struct S2C_StatePacket : public PacketTcpHeader {
 		netEntityId(entityId), stateId(sId) {
 	}
 };
+
+struct S2C_HealthPacket : public PacketTcpHeader {
+	uint64_t netEntityId{};
+	int32_t currentHp{};
+	int32_t maxHp{};
+
+	S2C_HealthPacket() : PacketTcpHeader{ sizeof(S2C_HealthPacket), PKT_Type::S2C_PKT_HEALTH, 0.0 } {}
+	S2C_HealthPacket(uint64_t entityId, int32_t hp, int32_t maxHpValue)
+		: PacketTcpHeader{ sizeof(S2C_HealthPacket), PKT_Type::S2C_PKT_HEALTH, 0.0 },
+		netEntityId(entityId), currentHp(hp), maxHp(maxHpValue) {
+	}
+};
+
 
 struct S2C_MovePacket : public PacketUdpHeader {
 	uint32_t netEntityId{};

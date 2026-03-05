@@ -100,8 +100,14 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE		mRTHeapBegin{};
 	D3D12_CPU_DESCRIPTOR_HANDLE		mDSHeapBegin{};
 
-	D3D12_RESOURCE_BARRIER			mTargetToResource[8];	//타켓에서 리소스로 넘어갈때의 베리어
-	D3D12_RESOURCE_BARRIER			mResourceToTarget[8];	//리소스에서 랜더타켓으로 변환시 넘어가는 베리어
+	// D3D12_RESOURCE_BARRIER			mTargetToResource[8];	//타켓에서 리소스로 넘어갈때의 베리어
+	// D3D12_RESOURCE_BARRIER			mResourceToTarget[8];	//리소스에서 랜더타켓으로 변환시 넘어가는 베리어
+
+	vector<D3D12_RESOURCE_BARRIER>	mTargetToResource;
+	vector<D3D12_RESOURCE_BARRIER>	mResourceToTarget;
+
+
+
 };
 
 class RenderTargetHeap
@@ -126,6 +132,9 @@ private:
 
 	ComPtr<ID3D12DescriptorHeap>	mRenderTargetHeap;
 	ComPtr<ID3D12DescriptorHeap>	mDepthStencilHeap;
+
+	
+
 
 private:
 	uint32							mRtvHeapSize;

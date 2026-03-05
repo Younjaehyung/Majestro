@@ -96,27 +96,71 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 
 
 	//create시 베리어 생성
-	for (uint32 i = 0; i < rtStru.size(); ++i)
+	//for (uint32 i = 0; i < rtStru.size(); ++i)
+	//{
+	//	if (groupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
+	//	{
+	//		mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilTexture->GetTex2D().Get(),
+	//			D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+	//		mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilTexture->GetTex2D().Get(),
+	//			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	//	}
+	//	else
+	//	{
+	//		mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
+	//			D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
+
+	//		mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
+	//			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	//	}
+
+	//}
+
+	
+	mTargetToResource.reserve(mRenderTargets.size());
+	// unordered_set<ID3D12Resource*> visited;
+
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
 	{
-		if (groupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
+		ID3D12Resource* resource = mDepthStencilTexture->GetTex2D().Get();
+		mTargetToResource.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+			D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
+	}
+	else {
+		for (auto& rt : mRenderTargets)
 		{
-			mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilTexture->GetTex2D().Get(),
-				D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-			mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilTexture->GetTex2D().Get(),
-				D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
+		//	if (visited.insert(resource).second)
+		//	{
+				mTargetToResource.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
+		//	}
 		}
-		else
-		{
-			mTargetToResource[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
-				D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON);
-
-			mResourceToTarget[i] = CD3DX12_RESOURCE_BARRIER::Transition(rtStru[i].Target->GetTex2D().Get(),
-				D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		}
-
 	}
 
+
+	
+	mResourceToTarget.reserve(mRenderTargets.size());
+	// unordered_set<ID3D12Resource*> visited;
+
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
+	{
+		ID3D12Resource* resource = mDepthStencilTexture->GetTex2D().Get();
+		mResourceToTarget.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
+	}
+	else {
+		for (auto& rt : mRenderTargets)
+		{
+			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
+		//	if (visited.insert(resource).second)
+		//	{
+				mResourceToTarget.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
+					D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
+		//	}
+		}
+	}
 
 }
 
@@ -227,30 +271,10 @@ void RenderTargetGroup::WaitTargetToResource()
 {
 	//GRAPHICS_CMD_LIST->ResourceBarrier(mRenderTargetCount, mTargetToResource);
 
-	vector<D3D12_RESOURCE_BARRIER> barriers;
-	barriers.reserve(mRenderTargets.size());
-	unordered_set<ID3D12Resource*> visited;
+	
 
-	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
-	{
-		ID3D12Resource* resource = mDepthStencilTexture->GetTex2D().Get();
-		barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
-			D3D12_RESOURCE_STATE_DEPTH_WRITE, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE));
-	}
-	else {
-		for (auto& rt : mRenderTargets)
-		{
-			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
-			if (visited.insert(resource).second)
-			{
-				barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
-					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
-			}
-		}
-	}
-
-	if (!barriers.empty())
-		GRAPHICS_CMD_LIST->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+	if (!mTargetToResource.empty())
+		GRAPHICS_CMD_LIST->ResourceBarrier(static_cast<UINT>(mTargetToResource.size()), mTargetToResource.data());
 }
 
 
@@ -258,28 +282,8 @@ void RenderTargetGroup::WaitTargetToResource()
 void RenderTargetGroup::WaitResourceToTarget()
 {
 	//GRAPHICS_CMD_LIST->ResourceBarrier(mRenderTargetCount, mResourceToTarget);
-
-	vector<D3D12_RESOURCE_BARRIER> barriers;
-	barriers.reserve(mRenderTargets.size());
-	unordered_set<ID3D12Resource*> visited;
-
-	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
-	{
-		ID3D12Resource* resource = mDepthStencilTexture->GetTex2D().Get();
-		barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-	}
-	else {
-		for (auto& rt : mRenderTargets)
-		{
-			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
-			if (visited.insert(resource).second)
-			{
-				barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
-					D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
-			}
-		}
-	}
-	if (!barriers.empty())
-		GRAPHICS_CMD_LIST->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+	
+	
+	if (!mResourceToTarget.empty())
+		GRAPHICS_CMD_LIST->ResourceBarrier(static_cast<UINT>(mResourceToTarget.size()), mResourceToTarget.data());
 }

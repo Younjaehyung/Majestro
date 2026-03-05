@@ -204,6 +204,9 @@
     <ClCompile Include="BulletComponent.cpp">
       <Filter>Component\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="DamageSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -354,6 +357,12 @@
       <Filter>Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="BulletComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="DamageSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="HealthComponent.h">
       <Filter>Component\Logic</Filter>
     </ClInclude>
   </ItemGroup>

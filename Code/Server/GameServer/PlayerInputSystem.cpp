@@ -132,23 +132,23 @@ void PlayerInputSystem::Update(float dt)
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			std::cout << "attack!!!" << std::endl;
+			//std::cout << "attack!!!" << std::endl;
 			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//attack 
-			std::cout << "special" << std::endl;
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
+			//std::cout << "special" << std::endl;
+			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
 		}
 
 
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
-			std::cout << "skill1" << std::endl;
+			//std::cout << "skill1" << std::endl;
 			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			std::cout << "skill2" << std::endl;
+			//std::cout << "skill2" << std::endl;
 			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
 		}

@@ -10,7 +10,7 @@
 #include "NetSendSystem.h"
 #include "PlayerInputSystem.h"
 #include "CollisionSystem.h"
-
+#include "DamageSystem.h"
 
 
     //GetSystem<NetRecvSystem>()->Update(deltaTime);
@@ -39,6 +39,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<MovementSystem>();
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<CollisionSystem>();
+    RegisterSystem<DamageSystem>();
 
 }
 

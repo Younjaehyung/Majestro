@@ -32,6 +32,15 @@ void DamageSystem::Update(float deltaTime)
             health->mCurrentHp = (std::max)(0, health->mCurrentHp - appliedDamage);
             const int32 afterHp = health->mCurrentHp;
 
+            if (beforeHp != afterHp)
+            {
+                EvHealthChanged healthChanged{};
+                healthChanged.target = e.target;
+                healthChanged.currentHp = afterHp;
+                healthChanged.maxHp = health->mMaxHp;
+                eventManager->Enqueue<EvHealthChanged>(healthChanged);
+            }
+
             std::cout << "[DamageSystem] target=" << e.target.GetID()
                 << " instigator=" << e.instigator.GetID()
                 << " amount=" << e.amount

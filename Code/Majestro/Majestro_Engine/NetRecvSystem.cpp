@@ -153,6 +153,12 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         healthComp->mCurrentHp = healthPacket->currentHp;
         healthComp->mMaxHp = healthPacket->maxHp;
 
+        const int32 beforeHp = healthComp->mCurrentHp;
+        const int32 beforeMaxHp = healthComp->mMaxHp;
+        std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << healthPacket->netEntityId
+            << " hp=" << beforeHp << "/" << beforeMaxHp
+            << " -> " << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
+            << std::endl;
         return;
     }
     else if(msg.Type == PKT_Type::S2C_PKT_COLLISION) {
@@ -168,7 +174,6 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         return;
 	}
     else if (msg.Type == PKT_Type::S2C_PKT_BULLET_ACTIVATE) {
-        cout << "fire" << endl;
         const S2C_BulletActivatePacket* bulletPacket = msg.ViewAs<S2C_BulletActivatePacket>();
         if (bulletPacket == nullptr)
             return;

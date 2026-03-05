@@ -22,7 +22,7 @@ void NetSendSystem::Update(float dt)
 	ConvertMove(mNetComp, &mSendReq, dt);	//move
 	ConvertState();
 	SendCollision();
-	SendHealthIfChanged();
+	SendHealthEvents();
 	
 }
 
@@ -202,49 +202,37 @@ std::vector<uint32> NetSendSystem::CollectPlayerSessions() const
 
 
 
-void NetSendSystem::SendHealthIfChanged()
+void NetSendSystem::SendHealthEvents()
 {
-	if (false == mWorld->HasComponentPool<HealthComponent>())
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
 		return;
 
 	auto recipients = CollectPlayerSessions();
 	if (recipients.empty())
 		return;
 
-	std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, HealthComponent>();
-	for (auto& entity : entities)
-	{
-		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-		if (netComp == nullptr)
-			continue;
-
-		HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(entity);
-		if (healthComp == nullptr)
-			healthComp = mWorld->GetComponent<HealthComponent>(netComp->mOwnerEntity);
-		if (healthComp == nullptr)
-			continue;
-
-		const uint64 netEntityId = netComp->mNetEntityId;
-		const std::pair<int32, int32> currentHealth{ healthComp->mCurrentHp, healthComp->mMaxHp };
-		auto it = mLastSentHealthByNetEntity.find(netEntityId);
-		if (it != mLastSentHealthByNetEntity.end() && it->second == currentHealth)
-			continue;
-
-		mLastSentHealthByNetEntity[netEntityId] = currentHealth;
-
-		S2C_HealthPacket healthPkt;
-		healthPkt.netEntityId = netEntityId;
-		healthPkt.currentHp = currentHealth.first;
-		healthPkt.maxHp = currentHealth.second;
-
-		for (uint32 sessionId : recipients)
+	eventManager->Consume<EvHealthChanged>([&](const EvHealthChanged& e)
 		{
-			mSendReq.SessionId = sessionId;
-			mSendReq.Type = S2C_PKT_HEALTH;
-			mSendReq.Size = sizeof(S2C_HealthPacket);
-			mSendReq.StoreAs<S2C_HealthPacket>(healthPkt);
-			gSendQueue.Push(mSendReq);
-		}
-	}
-}
+			if (!e.target.IsValid())
+				return;
 
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
+			if (netComp == nullptr)
+				return;
+
+			S2C_HealthPacket healthPkt;
+			healthPkt.netEntityId = netComp->mNetEntityId;
+			healthPkt.currentHp = e.currentHp;
+			healthPkt.maxHp = e.maxHp;
+
+			for (uint32 sessionId : recipients)
+			{
+				mSendReq.SessionId = sessionId;
+				mSendReq.Type = S2C_PKT_HEALTH;
+				mSendReq.Size = sizeof(S2C_HealthPacket);
+				mSendReq.StoreAs<S2C_HealthPacket>(healthPkt);
+				gSendQueue.Push(mSendReq);
+			}
+		});
+}

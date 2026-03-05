@@ -29,4 +29,11 @@ struct EvNetRPC // 예: 대시 시작 같은 즉시성 이벤트
     uint32 payload; // 필요하면 바이트로 확장
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC>;
+struct EvHealthChanged
+{
+    Entity target;
+    int32 currentHp;
+    int32 maxHp;
+};
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged>;

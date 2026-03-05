@@ -7,6 +7,7 @@
 #include "ColliderComponent.h"
 #include "MovementComponent.h"
 #include "BulletComponent.h"
+#include "HealthComponent.h"
 #include <unordered_set>
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
@@ -21,6 +22,7 @@ void NetSendSystem::Update(float dt)
 	ConvertMove(mNetComp, &mSendReq, dt);	//move
 	ConvertState();
 	SendCollision();
+	SendHealthEvents();
 	
 }
 
@@ -200,5 +202,37 @@ std::vector<uint32> NetSendSystem::CollectPlayerSessions() const
 
 
 
+void NetSendSystem::SendHealthEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
 
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
 
+	eventManager->Consume<EvHealthChanged>([&](const EvHealthChanged& e)
+		{
+			if (!e.target.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
+			if (netComp == nullptr)
+				return;
+
+			S2C_HealthPacket healthPkt;
+			healthPkt.netEntityId = netComp->mNetEntityId;
+			healthPkt.currentHp = e.currentHp;
+			healthPkt.maxHp = e.maxHp;
+
+			for (uint32 sessionId : recipients)
+			{
+				mSendReq.SessionId = sessionId;
+				mSendReq.Type = S2C_PKT_HEALTH;
+				mSendReq.Size = sizeof(S2C_HealthPacket);
+				mSendReq.StoreAs<S2C_HealthPacket>(healthPkt);
+				gSendQueue.Push(mSendReq);
+			}
+		});
+}

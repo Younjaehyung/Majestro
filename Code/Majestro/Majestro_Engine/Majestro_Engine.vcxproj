@@ -211,6 +211,7 @@
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GravityComponent.h" />
+    <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="Imgui.h" />
     <ClInclude Include="IMGUIComponent.h" />
     <ClInclude Include="IMGUISystem.h" />

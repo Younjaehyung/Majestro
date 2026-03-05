@@ -20,6 +20,7 @@ public:
 
 	void Movable2Movable(float deltaTime);
 	void Movable2Static(float deltaTime);
+	void Bullet2MovableCCD(float deltaTime);
 	void Bullet2StaticCCD(float deltaTime);
 	
 private:

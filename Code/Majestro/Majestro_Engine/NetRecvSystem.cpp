@@ -19,6 +19,7 @@
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
 #include "MovementSystem.h"
+#include "HealthComponent.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -143,6 +144,23 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
       
       return;
     }
+    else if (msg.Type == PKT_Type::S2C_PKT_HEALTH) {
+        const S2C_HealthPacket* healthPacket = msg.ViewAs<S2C_HealthPacket>();
+        Entity e = mWorld->GetEntityByNetId(healthPacket->netEntityId);
+        HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(e);
+        if (healthComp == nullptr) return;
+
+        healthComp->mCurrentHp = healthPacket->currentHp;
+        healthComp->mMaxHp = healthPacket->maxHp;
+
+        const int32 beforeHp = healthComp->mCurrentHp;
+        const int32 beforeMaxHp = healthComp->mMaxHp;
+        std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << healthPacket->netEntityId
+            << " hp=" << beforeHp << "/" << beforeMaxHp
+            << " -> " << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
+            << std::endl;
+        return;
+    }
     else if(msg.Type == PKT_Type::S2C_PKT_COLLISION) {
 		const S2C_CollisionPacket* collisionPacket = msg.ViewAs<S2C_CollisionPacket>();
 		// msg netity id로 엔티티 찾기
@@ -156,7 +174,6 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         return;
 	}
     else if (msg.Type == PKT_Type::S2C_PKT_BULLET_ACTIVATE) {
-        cout << "fire" << endl;
         const S2C_BulletActivatePacket* bulletPacket = msg.ViewAs<S2C_BulletActivatePacket>();
         if (bulletPacket == nullptr)
             return;
@@ -209,11 +226,11 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
         if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
             movementSystem->RegisterActiveBullet(bulletEntity);
-        std::cout << "type: " << (int)bulletType << std::endl;
+        /*std::cout << "type: " << (int)bulletType << std::endl;
 
         std::cout << "Bullet Activate Packet Received - owner: " << bulletPacket->ownerNetEntityId
             << ", bullet: " << bulletPacket->bulletNetEntityId
-            << ", pos(" << bulletPacket->x << ", " << bulletPacket->y << ", " << bulletPacket->z << ")" << std::endl;
+            << ", pos(" << bulletPacket->x << ", " << bulletPacket->y << ", " << bulletPacket->z << ")" << std::endl;*/
         return;
     }
 

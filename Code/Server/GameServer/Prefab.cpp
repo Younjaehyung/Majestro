@@ -17,6 +17,7 @@
 #include "ColliderComponent.h"
 #include "EnemyComponent.h"
 #include "BulletComponent.h"
+#include "HealthComponent.h"
 #include "World.h"
 
 
@@ -197,6 +198,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);
 	world->AddComponent<MovableComponent>(mEntityID);
+	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 
 	auto& w =
 		world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);

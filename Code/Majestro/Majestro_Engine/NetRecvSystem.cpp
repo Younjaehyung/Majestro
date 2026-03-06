@@ -150,11 +150,12 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(e);
         if (healthComp == nullptr) return;
 
+        const int32 beforeHp = healthComp->mCurrentHp;
+        const int32 beforeMaxHp = healthComp->mMaxHp;
+
         healthComp->mCurrentHp = healthPacket->currentHp;
         healthComp->mMaxHp = healthPacket->maxHp;
 
-        const int32 beforeHp = healthComp->mCurrentHp;
-        const int32 beforeMaxHp = healthComp->mMaxHp;
         std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << healthPacket->netEntityId
             << " hp=" << beforeHp << "/" << beforeMaxHp
             << " -> " << healthComp->mCurrentHp << "/" << healthComp->mMaxHp

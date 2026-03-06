@@ -60,6 +60,6 @@ void DamageSystem::Update(float deltaTime)
             if (!e.target.IsValid())
                 return;
 
-            mWorld->DestroyEntity(e.target);
+            //mWorld->DestroyEntity(e.target);
         });
 }

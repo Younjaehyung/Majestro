@@ -71,10 +71,13 @@ using namespace Microsoft::WRL;
 #include <RecastNavigation/Detour/DetourNavMeshBuilder.h>
 #include <RecastNavigation/Detour/DetourAlloc.h>
 
-
+#ifdef _DEBUG
+#pragma comment(lib, "RecastNavigation/Detour-d.lib")
+#pragma comment(lib, "RecastNavigation/DebugUtils-d.lib")
+#else
 #pragma comment(lib, "RecastNavigation/Detour.lib")
 #pragma comment(lib, "RecastNavigation/DebugUtils.lib")
-
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,6 +172,12 @@ using Quaternion = DirectX::SimpleMath::Quaternion;
 
 struct Vertex {
 	Vertex() {}
+
+	Vertex(Vec3 p)
+		: pos(p)
+	{
+	}
+
 	Vertex(Vec3 p, Vec2 u)
 		: pos(p), uv(u)
 	{

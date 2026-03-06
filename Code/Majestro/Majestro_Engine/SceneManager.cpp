@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "SceneManager.h"
+#include "RenderManager.h"
 #include "Scene.h"
 #include "NetSendSystem.h"
 #include "Engine.h"
@@ -13,8 +14,11 @@ void SceneManager::Initialize()
 	QueueLoadScene(L"Lobby");
 }
 
-void SceneManager::Update(float deltaTime)
+void SceneManager::ProcessPendingSceneChanges()
 {
+	// StartRender() 이전에 호출 — 커맨드 리스트가 열리기 전에 씬 전환 처리
+	// (EffectPass::Initialize() → Effekseer::Effect::Create() GPU 업로드가
+	//  BeginCommandList 이후에 실행되면 커맨드 얼로케이터 동기화 에러 발생)
 	if (mHasPendingLoadingScene)
 	{
 		mHasPendingLoadingScene = false;
@@ -53,6 +57,10 @@ void SceneManager::Update(float deltaTime)
 			}
 		}
 	}
+}
+
+void SceneManager::Update(float deltaTime)
+{
 	if (mActiveScene == nullptr)
 		return;
 
@@ -70,6 +78,11 @@ void SceneManager::LoadScene(wstring sceneName)
 {
 	// TODO : 기존 Scene 정리
 	// TODO : 파일에서 Scene 정보 로드
+
+	// 씬 전환 전 GPU 작업 완전 완료 대기
+	// (ProcessPendingSceneChanges → StartRender 이전 호출 보장)
+	GRAPHICS_CMD_QUEUE->WaitForGpuComplete();
+
 	if(mActiveScene)
 		mActiveScene->Shudown();
 

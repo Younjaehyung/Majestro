@@ -106,7 +106,7 @@ void RenderManager::CreateGroup()
 		group->PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
 
 		group->InstanceInfo = make_shared<StructuredBuffer>();
-		group->InstanceInfo->CreateUploadBuffer(sizeof(RenderParams), 2048);
+		group->InstanceInfo->CreateUploadBuffer(sizeof(RenderParams), 4096 * 10);
 		group->InstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
 
 
@@ -116,7 +116,7 @@ void RenderManager::CreateGroup()
 
 
 		group->ObjectInfo = make_shared<StructuredBuffer>();
-		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 2048);
+		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 4096 * 10);
 		group->ObjectInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 
@@ -236,15 +236,19 @@ void RenderManager::StartRender()
 
 void RenderManager::EndRender()
 {
-	// Effekseer 커맨드 기록 종료 (HDR → UI 순서로 End)
+	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
+
+	// 커맨드 리스트를 먼저 제출 (ExecuteCommandLists + Present)
+	mGraphicsCommandQueue->RenderEnd();
+
+	// Effekseer 내부 fence 신호: ExecuteCommandLists 이후에 호출해야
+	// GPU에 커맨드가 제출된 뒤 fence가 발동되어 다음 프레임 NewFrame()이 안전하게 대기함
 	if (mEfkCmdListHDR != nullptr)
 		EffekseerRendererDX12::EndCommandList(mEfkCmdListHDR);
 
 	if (mEfkCmdListUI != nullptr)
 		EffekseerRendererDX12::EndCommandList(mEfkCmdListUI);
 
-	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
-	mGraphicsCommandQueue->RenderEnd();
 	mGraphicsCommandQueue->SignalFrame(mFrameResourceIndex, backIndex);
 
 	mFrameCurrIndex = mFrameResourceIndex;

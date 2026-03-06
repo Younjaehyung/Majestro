@@ -141,15 +141,16 @@ void LobbyScene::Initialize()
 
 	
 	/////////////////////////////////////////////////////////////////////
-	{
-		Entity vfxEntity = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
-		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
-		vfxComp.mVfx = vfx;
-	}
+	// 
+	//{
+	//	Entity vfxEntity = mWorld->CreateEntity();
+	//	TransformComponent vfxTransform{};
+	//	vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
+	//	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
+	//	mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
+	//	VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
+	//	vfxComp.mVfx = vfx;
+	//}
 
 	// vfx UI   빌보드 없는 vfx사용 예시
 	//{	// vfx UI   빌보드 없는 vfx사용
@@ -388,6 +389,25 @@ void GameScene::Initialize()
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
+
+
+	// // 씬 헤더에 멤버 추가                                                                                                                                                                      NavMeshDebugRenderer mNavMeshDebugRenderer;
+	//NavigationSystem     mNavSystem;
+
+	//// Scene::Initialize() 또는 System::Initialize()
+	//mNavSystem.Initialize("..\\Resources\\Map\\all_tiles_navmesh.bin");
+
+	//// Scene::Update() 또는 Sim 페이즈 System::Update() — 매 프레임
+	//if (mNavSystem.IsInitialized())
+	//{
+	//	// NavMesh 전체 와이어프레임 렌더링
+	//	auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
+	//	if (navMesh)
+	//		mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
+	//}
+
+	//NavigationSystem 없이 리소스 매니저에서 바로 꺼내도 됩니다 :
+
 
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.

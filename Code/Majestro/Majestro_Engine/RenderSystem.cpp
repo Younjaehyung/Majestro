@@ -23,6 +23,14 @@
 #include "EffectPass.h"
 #include "ToneMapPass.h"
 
+// 정적 멤버 정의
+std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
+
+void RenderSystem::SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color)
+{
+  sDebugLineQueue.push_back({ start, end, color });
+}
+
 RenderSystem::RenderSystem(World *world) : System::System(world) {
   mCamera = nullptr;
   mPhase = SysPhase::Render;
@@ -37,6 +45,7 @@ void RenderSystem::Initialize() {
   PushMaterialData();
 
   mWireCube = RESOURCEMANAGER.Get<Mesh>(L"WireCube");
+  mLineMesh  = RESOURCEMANAGER.Get<Mesh>(L"Line");
   mDebugLineMat = RESOURCEMANAGER.Get<Material>(L"DebugLine");
   mDebugLineNoDepthMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_NoDepth");
 
@@ -72,6 +81,14 @@ void RenderSystem::Update() {
 
   ClearRTV();
 
+  // PushObjectData()가 sDebugLineQueue를 소비하므로
+  // PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
+  {
+      auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
+      if (navMesh && navMesh->mDtNavMesh)
+          mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
+  }
+
   PushData();
 
   RenderShadow();
@@ -79,6 +96,7 @@ void RenderSystem::Update() {
   RenderForward();
   RenderEffect();
   RenderPost();
+
   // m_postStack -> update();
 }
 
@@ -476,6 +494,46 @@ void RenderSystem::PushObjectData() {
           mat->GetShader(), mWireCube, mat->GetShaderID(), mWireCube->GetID(),
           mat->GetID(), 0, RenderParams{objIndex, mat->GetIndex(), animId, 0});
     }
+  }
+
+  // ─────────────────────────────────────────────────────
+  // 디버그 라인 렌더링 (NavMesh 경로, 기타 SubmitDebugLine 호출)
+  // 단위 선분 메쉬 [(0,0,0)→(1,0,0)]에 월드 행렬로 임의의 선분을 표현
+  // ─────────────────────────────────────────────────────
+  if (mLineMesh && !sDebugLineQueue.empty()) {
+    for (const auto& req : sDebugLineQueue) {
+      // (0,0,0)→start, (1,0,0)→end 가 되도록 월드 행렬 구성
+      // row 0 = 방향 벡터(B-A), row 3 = 시작점(A)
+      Vec3 dir = req.end - req.start;
+      Matrix world(
+        dir.x,       dir.y,       dir.z,       0.f,
+        0.f,         1.f,         0.f,         0.f,
+        0.f,         0.f,         1.f,         0.f,
+        req.start.x, req.start.y, req.start.z, 1.f
+      );
+
+      objectParams.MatWorld = world.Transpose();
+      mObjectVector.push_back(objectParams);
+      const uint32 objIdx = index++;
+
+      // 색상에 따라 머티리얼 선택
+      shared_ptr<Material> mat;
+      if (req.color.x > 0.5f && req.color.y < 0.5f)
+        mat = mDebugLineRedMat;
+      else if (req.color.y > 0.5f && req.color.x < 0.5f)
+        mat = mDebugLineGreenMat;
+      else
+        mat = mDebugLineNoDepthMat;
+
+      if (!mat) continue;
+
+      mDeferredDrawItems.emplace_back(
+        mat->GetShader(), mLineMesh,
+        mat->GetShaderID(), mLineMesh->GetID(),
+        mat->GetID(), 0,
+        RenderParams{ objIdx, mat->GetIndex(), -1, 0 });
+    }
+    sDebugLineQueue.clear();
   }
 
   // std::sort(mDeferredDrawItems.begin(), mDeferredDrawItems.end(), [](auto& a,

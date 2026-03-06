@@ -7,6 +7,7 @@
 #include "System.h"
 #include "TransformComponent.h"
 #include "World.h"
+#include "NavMeshLoader.h"
 
 struct MaterialParams;
 struct PatricleParams;
@@ -56,6 +57,14 @@ struct PassParams {
 
   Vec4 CascadeSplitDistances;
   array<Matrix, 4> CascadeShadowVP{};
+};
+
+// 디버그 라인 렌더링 요청 구조체
+// NavMeshDebugRenderer::DrawLine 등에서 RenderSystem::SubmitDebugLine()으로 추가
+struct DebugLineRequest {
+  Vec3 start;
+  Vec3 end;
+  Vec4 color; // (1,0,0,1)=빨강, (0,1,0,1)=초록, 그 외=흰색
 };
 
 struct DrawItem {
@@ -112,6 +121,9 @@ public:
   void Initialize();
   void Update();
 
+  // 디버그 라인 제출 (어느 시스템에서나 호출 가능, RenderSystem이 프레임 내 소비)
+  static void SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color);
+
 private:           // RenderPass
   void ClearRTV(); // clear
 
@@ -159,7 +171,8 @@ private: // Render
 
 private:
   uint32 mFrameCount = 0;
-
+  NavigationSystem     mNavSystem;
+  NavMeshDebugRenderer mNavMeshDebugRenderer;
   Entity mCameraID;
   CameraComponent *mCamera{};
   uint32 mCullingMask = 0;
@@ -212,13 +225,16 @@ private:
   DrawBatch mBatch{};
   uint32 mCurrPSOID{};
 
-private: // 디버그용 충돌박스
+private: // 디버그용 충돌박스 / 라인
   shared_ptr<Mesh> mWireCube;
-  shared_ptr<Material> mDebugLineMat;        // 또는 NoDepth 버전
-  shared_ptr<Material> mDebugLineNoDepthMat; // 또는 NoDepth 버전
-  shared_ptr<Material> mDebugLineGreenMat;   // 또는 NoDepth 버전
-  shared_ptr<Material> mDebugLineRedMat;     // 또는 NoDepth 버전
+  shared_ptr<Mesh> mLineMesh;                // 단위 선분 메쉬 (0,0,0)→(1,0,0)
+  shared_ptr<Material> mDebugLineMat;        // 기본 (Depth Test O)
+  shared_ptr<Material> mDebugLineNoDepthMat; // 항상 보임 (Depth Test X)
+  shared_ptr<Material> mDebugLineGreenMat;   // 초록
+  shared_ptr<Material> mDebugLineRedMat;     // 빨강
   bool mDrawColliders = true;
+
+  static std::vector<DebugLineRequest> sDebugLineQueue; // 프레임당 디버그 라인 큐
 
 private: // RenderPass
 	std::shared_ptr<class ShadowPass>     mShadowPass;

@@ -10,6 +10,7 @@
 #include "Skeleton.h"
 #include "FBXData.h"
 #include "LevelImport.h"
+#include "NavMeshLoader.h"
 #include "Vfx.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
@@ -47,6 +48,11 @@ public:
 	shared_ptr<Mesh> LoadWireCubeMesh();
 	shared_ptr<Mesh> LoadSphereMesh();
 	shared_ptr<Mesh> LoadTerrainMesh(int32 sizeX, int32 sizeZ);
+	shared_ptr<Mesh> LoadLineMesh(); // 단위 선분 메쉬 [(0,0,0) → (1,0,0)], 디버그 라인용
+
+
+	shared_ptr<NavMesh> LoadNavMesh(const wstring& path);
+
 
 	shared_ptr<FBXData>		LoadFBX(const wstring& path);
 	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path);
@@ -135,6 +141,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::MATERIAL;
 	else if (std::is_same_v<T, Mesh>)
 		return OBJECT_TYPE::MESH;
+	else if (std::is_same_v<T, NavMesh>)
+		return OBJECT_TYPE::NAVMESH;
 	else if (std::is_same_v<T, CollisionMesh>)
 		return OBJECT_TYPE::COLLIDER;
 	else if (std::is_same_v<T, Animator>)

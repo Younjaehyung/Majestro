@@ -17,10 +17,31 @@ void ResourceManager::Initialize()
 	LoadSphereMesh();
 
 	LoadWireCubeMesh();
+	LoadLineMesh();
 	
 }
 
 
+
+shared_ptr<Mesh> ResourceManager::LoadLineMesh()
+{
+	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Line");
+	if (findMesh)
+		return findMesh;
+
+	// 단위 선분: (0,0,0) → (1,0,0)
+	// 디버그 렌더러에서 월드 행렬로 임의의 두 점 사이의 선분으로 변환됨
+	vector<Vertex> v(2);
+	v[0].pos = Vec3(0.f, 0.f, 0.f);
+	v[1].pos = Vec3(1.f, 0.f, 0.f);
+
+	vector<uint32> i = { 0, 1 };
+
+	shared_ptr<Mesh> mesh = make_shared<Mesh>();
+	mesh->Init(v, i);
+	Add(L"Line", mesh);
+	return mesh;
+}
 
 shared_ptr<Mesh> ResourceManager::LoadPointMesh()
 {
@@ -93,6 +114,23 @@ shared_ptr<Mesh> ResourceManager::LoadTerrainMesh(int32 sizeX, int32 sizeZ)
 	mesh->Init(vec, idx);
 	Add(L"Terrain", mesh);
 	return mesh;
+}
+
+shared_ptr<NavMesh> ResourceManager::LoadNavMesh(const wstring& path)
+{
+	shared_ptr<NavMesh> findMesh = Get<NavMesh>(path);
+	if (findMesh)
+		return findMesh;
+	findMesh = make_shared<NavMesh>();
+	findMesh->Load(path);
+	findMesh->SetName(L"NavMesh");
+	if (findMesh->mDtNavMesh == nullptr) {
+		std::cerr << "Failed to load NavMesh from path: " << ws2s(path) << "\n";
+		return nullptr;
+	}
+	Add(L"NavMesh", findMesh);
+
+	return findMesh;
 }
 
 
@@ -1358,10 +1396,11 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"DebugLine", material);
 	}
 
-	// DebugLine_NoDepth Material
+	// DebugLine_NoDepth Material (항상 보이는 흰색 라인)
 	{
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"DebugLine_NoDepth");
+		material->GetParams().Diffuse = Vec4(1.f, 1.f, 1.f, 1.f);
 		Add<Material>(L"DebugLine_NoDepth", material);
 	}
 
@@ -1434,6 +1473,9 @@ void ResourceManager::CreateDefaultMaterial()
 	
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
+
+	LoadNavMesh(L"..\\Resources\\Map\\all_tiles_navmesh.bin");
+
 //	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
 //	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
 }

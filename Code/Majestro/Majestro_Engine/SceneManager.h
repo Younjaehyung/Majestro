@@ -15,6 +15,7 @@ class SceneManager
 {
 public:
 	void Initialize();
+	void ProcessPendingSceneChanges();
 	void Update(float deltaTime);
 	void Render();
 

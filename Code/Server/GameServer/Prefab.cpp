@@ -102,7 +102,7 @@ TerrainPrefab::TerrainPrefab(World *world) {
   bt.mLocalScale = Vec3(100.f,100.f,100.f);
 
   //bt.mLocalPosition = Vec3(-0.5 * 505 * 100, -27.6f, -0.5 * 505 * 100);
-  bt.mLocalPosition = Vec3(-0.5f * 504.f * 100.f, -27.6f, -0.5f * 504.f * 100.f);
+  bt.mLocalPosition = Vec3(-0.5f * 378.f * 100.f, -27.6f, -0.5f * 378.f * 100.f);
   world->AddComponent<TransformComponent>(mEntityID, bt);
 
   auto heightField = std::make_shared<HeightField>();
@@ -113,7 +113,7 @@ TerrainPrefab::TerrainPrefab(World *world) {
   // Add<HeightField>(L"TerrainHeightField", heightField);
 
   TerrainComponent &terrainc =
-      world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightField);
+      world->AddComponent<TerrainComponent>(mEntityID, 378, 378, heightField);
   terrainc.mTerrainWorldPosition = bt.mLocalPosition;
   terrainc.mTerrainWorldScale = bt.mLocalScale;
 }
@@ -233,7 +233,7 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 	auto& bullet = world->AddComponent<BulletComponent>(entity);
 	bullet.Activate(BulletType::Default, 0, 0, 0, Vec3::Forward, 160.0f, 2.0f, 10.0f);
-	bullet.Deactivate(); // Ç®¿¡ ³Ö±â À§ÇØ ÃÊ±â »óÅÂ´Â ºñÈ°¼º
+	bullet.Deactivate(); // í’€ì— ë„£ê¸° ìœ„í•´ ì´ˆê¸° ìƒíƒœëŠ” ë¹„í™œì„±
 
 	auto& net = world->AddComponent<NetEntityComponent>(entity, world, entity);
 	net.mSessionId = ctx.SessionId;

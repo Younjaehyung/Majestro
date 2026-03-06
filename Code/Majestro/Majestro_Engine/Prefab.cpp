@@ -374,9 +374,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 	mEntityID = world->CreateEntity();
 
 	TransformComponent bt{};
+
 	bt.mLocalScale = Vec3(100, 100, 100);
 	//bt.mLocalRotationE = Vec3(0, 90, 0);
-	bt.mLocalPosition = Vec3(-0.5 * 504 * 100, -27.6f, -0.5 * 504 * 100);
+	bt.mLocalPosition = Vec3(-0.5 * 378 * 100, -41.6f, -0.5 * 378 * 100);
 
 
 	world->AddComponent<TransformComponent>(mEntityID, bt);
@@ -384,10 +385,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 	// heightmap 512x512 => 타일 511x511
 
 
-	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(504, 504);
+	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(378, 378);
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 
-	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 378, 378, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 

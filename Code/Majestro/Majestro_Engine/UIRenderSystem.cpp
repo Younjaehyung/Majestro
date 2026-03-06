@@ -12,11 +12,13 @@
 #include "UITextComponent.h"
 #include "CameraComponent.h"
 #include "TagComponent.h"
+#include "UIEffectPass.h"
+#include "Timer.h"
 
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
 {
     mPhase = SysPhase::Render;
-    mOrder = 1;
+    mOrder = 2;  // EffectSystem(1) 이후, UIEffectSystem(3) 이전
 }
 
 UIRenderSystem::~UIRenderSystem()
@@ -29,6 +31,9 @@ void UIRenderSystem::Initialize()
 {
 	mQuadMesh = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
     InitializeFont();
+
+    mUIEffectPass = make_shared<UIEffectPass>();
+    mUIEffectPass->Initialize(mWorld);
 }
 
 void UIRenderSystem::InitializeFont()
@@ -78,30 +83,17 @@ void UIRenderSystem::Update()
 {
     if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 
+    // UI 전체를 SwapChain RT에 렌더링 (ToneMap 이후)
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
-    //if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
-    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-    //}
-    //else
-    //{
-    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-    //}
-    auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
-    hdrGroup.WaitResourceToTarget();
-    hdrGroup.OMSetRenderTargets();
-    
     CustomSpriteUpdate();
 
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
-	SpriteUpdate();
+    SpriteUpdate();
 
-    hdrGroup.WaitTargetToResource();
-    //if (RENDERMANAGER.IsMsaaEnabled()) {//msaa
-    //    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-    //}
+    mUIEffectPass->Execute(DELTA_TIME);
 }
 
 void UIRenderSystem::TextUpdate()
@@ -225,12 +217,6 @@ void UIRenderSystem::UploadInstanceBuffer()
 
 void UIRenderSystem::InstancingRender()
 {
-    int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-
-
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-
-
     RESOURCEMANAGER.Get<Shader>(L"UI")->Update();
 
     mQuadMesh->Render(mInstances.size(), 0, 0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);

@@ -9,7 +9,7 @@
 void ShadowPass::Initialize() {
 }
 
-void ShadowPass::Update(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive) {
+void ShadowPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive) {
 
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
 

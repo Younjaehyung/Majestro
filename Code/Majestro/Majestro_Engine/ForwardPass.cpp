@@ -75,7 +75,7 @@ void ForwardPass::DispatchForwardPlusCull() {
 }
 
 
-void ForwardPass::Update(std::vector<DrawBatch>& deferredDrawBatchs) {
+void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 	dum = { 0, 0, 0 };
     mCurrPSOID = 0;
     mFrameIndex = RENDERMANAGER.GetFrameResourceIndex();

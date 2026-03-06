@@ -38,4 +38,6 @@ private:
 	std::shared_ptr<DirectX::SpriteBatch> mSpriteBatch;
 	std::shared_ptr<DirectX::SpriteFont> mDefaultFont;
 	std::vector<UIInstanceData> mInstances;
+
+	std::shared_ptr<class UIEffectPass> mUIEffectPass;
 };

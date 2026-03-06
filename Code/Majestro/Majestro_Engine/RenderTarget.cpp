@@ -235,7 +235,16 @@ void RenderTargetGroup::ClearRenderTargetView(uint32 index)
 
 void RenderTargetGroup::ClearRenderTargetView()
 {
-	WaitResourceToTarget();	//클리어 하기전에 리소스를 타켓으로 변환
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mFirstUse)
+	{
+		// 최초 프레임: shadow texture initial state가 DEPTH_WRITE
+		// WaitResourceToTarget(PSR→DEPTH_WRITE)을 건너뛰고 바로 클리어
+		mFirstUse = false;
+	}
+	else
+	{
+		WaitResourceToTarget();	//클리어 하기전에 리소스를 타켓으로 변환
+	}
 	uint32 size = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
 	{

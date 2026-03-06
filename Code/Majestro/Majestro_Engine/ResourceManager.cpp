@@ -1431,6 +1431,9 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx");
+	
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
+//	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
+//	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
 }

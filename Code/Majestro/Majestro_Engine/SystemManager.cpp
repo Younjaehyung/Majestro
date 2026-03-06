@@ -11,7 +11,7 @@
 #include "IMGUISystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
-#include "EffectSystem.h"
+
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
 #include "PlayerInputSystem.h"
@@ -38,8 +38,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
 
     RegisterSystem<RenderSystem>();
     RegisterSystem<UIRenderSystem>();
-  //  RegisterSystem<EffectSystem>();
- //   mFinalUpdateSystems.push_back(std::move(GetSystem<EffectSystem>()));
+
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();
 #else

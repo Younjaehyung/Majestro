@@ -16,6 +16,7 @@
 #include "AnimationComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
+#include "UIVfxComponent.h"
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
 #include "BeatComponent.h"
@@ -149,6 +150,19 @@ void LobbyScene::Initialize()
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
 		vfxComp.mVfx = vfx;
 	}
+
+	// vfx UI   빌보드 없는 vfx사용 예시
+	//{	// vfx UI   빌보드 없는 vfx사용
+	//	Entity vfxEntity = mWorld->CreateEntity();
+	//	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_o");
+	//	UIVfxComponent& vfxComp = mWorld->AddComponent<UIVfxComponent>(vfxEntity);
+	//	vfxComp.mVfx = vfx;			
+	//	vfxComp.mScreenX = 256.f;	// 좌단 0 -> 우단 ++ 
+	//	vfxComp.mScreenY = 512.f;	// 하단 0 -> 상단 ++
+	//	vfxComp.mScreenZ = 0.5f;	// vfx끼리의 layer 순서 제어 0~1 사이값 (0이 제일 최상위 layer / 가까워 지지는 않음)
+	//	vfxComp.mScale = 100.f;		// vfx의 크기 제어 (1이 원본 크기 -> 1픽셀이라고 보면 됨 100정도로 늘려야됨)
+	//	vfxComp.mIsLoop = true;		// 반복 시킬지 여부
+	//}
 	/////////////////////////////////////////////////////////////////////
 
 

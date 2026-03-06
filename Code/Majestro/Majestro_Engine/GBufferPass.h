@@ -8,7 +8,7 @@ public:
   ~GBufferPass() = default;
 
 	void Initialize();
-	void Update(std::vector<DrawBatch>& deferredDrawBatchs);
+	void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 
 	void InstancingRender(DrawBatch& drawBatch);
 private:

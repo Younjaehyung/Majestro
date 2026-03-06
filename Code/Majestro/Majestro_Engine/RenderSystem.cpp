@@ -14,11 +14,14 @@
 #include "TagComponent.h"
 #include "TerrainComponent.h"
 #include "World.h"
+#include "Timer.h"
 
 #include "ShadowPass.h"
 #include "GBufferPass.h"
 #include "LightsPass.h"
 #include "ForwardPass.h"
+#include "EffectPass.h"
+#include "ToneMapPass.h"
 
 RenderSystem::RenderSystem(World *world) : System::System(world) {
   mCamera = nullptr;
@@ -44,11 +47,14 @@ void RenderSystem::Initialize() {
   mDeferredDrawBatchs.reserve(1000);
   mInstanceVector.reserve(1000);
 
-  mShadowPass = make_shared<ShadowPass>();
+  mShadowPass  = make_shared<ShadowPass>();
   mGBufferPass = make_shared<GBufferPass>();
-  mLightPass = make_shared<LightsPass>();
-  
+  mLightPass   = make_shared<LightsPass>();
   mForwardPass = make_shared<ForwardPass>();
+  mEffectPass  = make_shared<EffectPass>();
+  mToneMapPass = make_shared<ToneMapPass>();
+
+  mEffectPass->Initialize(mWorld);
 }
 
 void RenderSystem::Update() {
@@ -71,6 +77,7 @@ void RenderSystem::Update() {
   RenderShadow();
   RenderDeferred();
   RenderForward();
+  RenderEffect();
   RenderPost();
   // m_postStack -> update();
 }
@@ -721,13 +728,13 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 void RenderSystem::RenderShadow()
 {
-    mShadowPass->Update(mDeferredDrawBatchs, mShadowOnlyBatchs, mCascadeActive);
+    mShadowPass->Execute(mDeferredDrawBatchs, mShadowOnlyBatchs, mCascadeActive);
 }
 
 void RenderSystem::RenderDeferred() {
    
-    mGBufferPass->Update(mDeferredDrawBatchs);
-    mLightPass->Update(mLightDrawBatchs);
+    mGBufferPass->Execute(mDeferredDrawBatchs);
+    mLightPass->Execute(mLightDrawBatchs);
 
   // Swapchain OMSet
   int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
@@ -756,29 +763,23 @@ void RenderSystem::RenderDeferred() {
 }
 
 void RenderSystem::RenderForward() {
-    mForwardPass->Update(mDeferredDrawBatchs);
+    mForwardPass->Execute(mDeferredDrawBatchs);
+}
+
+void RenderSystem::RenderEffect() {
+    if (mCamera == nullptr) return;
+
+    float dt = DELTA_TIME;
+    Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(mCamera->GetViewMatrix());
+    Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(mCamera->GetProjectionMatrix());
+    mEffectPass->Execute(dt, viewMat, projMat);
+
+    // Effekseer가 커맨드 리스트의 RootSignature/DescriptorHeap을 변경하므로 엔진 상태 복원
+    RENDERMANAGER.SetGraphicsTable();
 }
 
 void RenderSystem::RenderPost() {
-  // m_postStack->update();
-    int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-
-    if (RENDERMANAGER.IsMsaaEnabled()) {
-        auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN));
-        finalGroup.WaitResourceToTarget();
-        finalGroup.OMSetRenderTargets(1, backIndex);
-    }
-    else {
-        auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN));
-        finalGroup.OMSetRenderTargets(1, backIndex);
-    }
-
-    RESOURCEMANAGER.Get<Shader>(L"ToneMap")->Update();
-    RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
-
-    if (RENDERMANAGER.IsMsaaEnabled()) {
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-    }
+    mToneMapPass->Execute();
 }
 
 bool RenderSystem::IsFrustumCulled(TransformComponent *trans,

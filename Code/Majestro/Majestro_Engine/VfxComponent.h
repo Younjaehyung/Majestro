@@ -21,6 +21,9 @@ public:
 
 	float	mTotalTime = 0.f;
 	bool	mIsPlaying = false;
+	bool	mIsPaused  = false;
+	bool	mIsLoop    = false;
+	float	mScale     = 1.f;
 	::Effekseer::Vector3D mPosition = ::Effekseer::Vector3D(0.0f, 0.0f, 0.0f);
 
 };

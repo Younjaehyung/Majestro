@@ -43,6 +43,7 @@ class RenderManager
 {
 public:
 	void Initialize(const WindowInfo& info);
+	void InitEffekseer(int32_t instanceMax = 8000, int32_t squareMaxCount = 2000);
 
 	void Update();
 
@@ -75,6 +76,9 @@ public:
 	shared_ptr<RenderTargetHeap>		GetRenderTargetHeap()	{ return mRenderTargetHeap; }
 
 	shared_ptr<DirectX::DX12::GraphicsMemory> GetGraphicsMemory() { return mGraphicsMemory; }
+
+	EffekseerRenderer::RendererRef            GetEfkRendererHDR() { return mEfkRendererHDR; }
+	EffekseerRenderer::RendererRef            GetEfkRendererUI()  { return mEfkRendererUI;  }
 
 	D3D12_VIEWPORT&						GetViewPort() { return mViewport; }
 	D3D12_RECT&							GetScissorRect() { return mScissorRect; }
@@ -137,5 +141,21 @@ private:
 	WindowInfo		mWindow;
 	D3D12_VIEWPORT	mViewport{};
 	D3D12_RECT		mScissorRect{};
+private:
+	// Effekseer GPU 리소스
+	Effekseer::Backend::GraphicsDeviceRef               mEfkGraphicsDevice;
+
+	// 인게임 VFX
+	EffekseerRenderer::RendererRef                      mEfkRendererHDR;
+	Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> mEfkMemoryPoolHDR;
+	Effekseer::RefPtr<EffekseerRenderer::CommandList>   mEfkCmdListHDR;
+
+	// UI VFX
+	EffekseerRenderer::RendererRef                      mEfkRendererUI;
+	Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> mEfkMemoryPoolUI;
+	Effekseer::RefPtr<EffekseerRenderer::CommandList>   mEfkCmdListUI;
+
+
+
 };
 

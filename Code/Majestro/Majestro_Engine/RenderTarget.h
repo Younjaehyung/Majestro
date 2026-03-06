@@ -106,6 +106,9 @@ private:
 	vector<D3D12_RESOURCE_BARRIER>	mTargetToResource;
 	vector<D3D12_RESOURCE_BARRIER>	mResourceToTarget;
 
+	// SHADOW 그룹: initial state가 DEPTH_WRITE이므로 최초 프레임에서 PSR→DEPTH_WRITE 배리어 생략
+	bool mFirstUse = true;
+
 
 
 };

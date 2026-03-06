@@ -198,7 +198,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DescriptorHeap.h" />
     <ClInclude Include="Device.h" />
-    <ClInclude Include="EffectSystem.h" />
+    <ClInclude Include="EffectPass.h" />
     <ClInclude Include="EnemyComponent.h" />
     <ClInclude Include="EnemySystem.h" />
     <ClInclude Include="Engine.h" />
@@ -267,14 +267,17 @@
     <ClInclude Include="TerrainComponent.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="ToneMapPass.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="TransformSystem.h" />
     <ClInclude Include="UIComponent.h" />
+    <ClInclude Include="UIEffectPass.h" />
     <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="UISpriteComponent.h" />
     <ClInclude Include="UITextComponent.h" />
     <ClInclude Include="UITransformComponent.h" />
     <ClInclude Include="UIUpdateSystem.h" />
+    <ClInclude Include="UIVfxComponent.h" />
     <ClInclude Include="Vfx.h" />
     <ClInclude Include="VfxComponent.h" />
     <ClInclude Include="World.h" />
@@ -299,7 +302,7 @@
     <ClCompile Include="ComponentPool.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Device.cpp" />
-    <ClCompile Include="EffectSystem.cpp" />
+    <ClCompile Include="EffectPass.cpp" />
     <ClCompile Include="EnemyComponent.cpp" />
     <ClCompile Include="EnemySystem.cpp" />
     <ClCompile Include="Engine.cpp" />
@@ -370,9 +373,11 @@
     <ClCompile Include="TerrainComponent.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="ToneMapPass.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="TransformSystem.cpp" />
     <ClCompile Include="UIComponent.cpp" />
+    <ClCompile Include="UIEffectPass.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UITextComponent.cpp" />

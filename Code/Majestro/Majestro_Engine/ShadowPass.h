@@ -8,7 +8,7 @@ public:
   ~ShadowPass() = default;
 
 	void Initialize();
-	void Update(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive);
+	void Execute(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive);
 
 	void RenderShadowCamera(std::vector<DrawBatch>& drawBatchs, uint32 cascadeIndex);
 

@@ -9,7 +9,7 @@
 void GBufferPass::Initialize() {
 }
 
-void GBufferPass::Update(std::vector<DrawBatch>& deferredDrawBatchs) {
+void GBufferPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).OMSetRenderTargets();
     mCurrPSOID = 0;
     for (auto& drawBatch : deferredDrawBatchs) {

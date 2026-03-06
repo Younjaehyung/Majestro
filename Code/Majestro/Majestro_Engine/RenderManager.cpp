@@ -52,6 +52,39 @@ void RenderManager::Initialize(const WindowInfo& info)
 	//CreateParticle();
 
 	CreateRenderTargetGroups();
+	InitEffekseer();
+}
+
+void RenderManager::InitEffekseer(int32_t instanceMax, int32_t squareMaxCount)
+{
+	mEfkGraphicsDevice = EffekseerRendererDX12::CreateGraphicsDevice(
+		DEVICE.Get(),
+		mGraphicsCommandQueue->GetCommandQueue().Get(),
+		SWAP_CHAIN_BUFFER_COUNT);
+
+	// 인게임 VFX용: HDR RT 포맷 (R16G16B16A16_FLOAT) — ToneMap 전 렌더링
+	DXGI_FORMAT hdrFormats[1] = { DXGI_FORMAT_R16G16B16A16_FLOAT };
+	mEfkRendererHDR = EffekseerRendererDX12::Create(
+		mEfkGraphicsDevice,
+		hdrFormats, 1,
+		DXGI_FORMAT_D32_FLOAT,
+		false,
+		squareMaxCount);
+
+	mEfkMemoryPoolHDR = EffekseerRenderer::CreateSingleFrameMemoryPool(mEfkGraphicsDevice);
+	mEfkCmdListHDR    = EffekseerRenderer::CreateCommandList(mEfkGraphicsDevice, mEfkMemoryPoolHDR);
+
+	// UI VFX용: SwapChain 포맷 (R8G8B8A8_UNORM) — UI 위에 렌더링
+	DXGI_FORMAT uiFormats[1] = { DXGI_FORMAT_R8G8B8A8_UNORM };
+	mEfkRendererUI = EffekseerRendererDX12::Create(
+		mEfkGraphicsDevice,
+		uiFormats, 1,
+		DXGI_FORMAT_D32_FLOAT,
+		false,
+		squareMaxCount);
+
+	mEfkMemoryPoolUI = EffekseerRenderer::CreateSingleFrameMemoryPool(mEfkGraphicsDevice);
+	mEfkCmdListUI    = EffekseerRenderer::CreateCommandList(mEfkGraphicsDevice, mEfkMemoryPoolUI);
 }
 
 void RenderManager::CreateGlobal()
@@ -183,11 +216,33 @@ void RenderManager::StartRender()
 	mGraphicsCommandQueue->WaitForFence(mComputeCommandQueue->GetFence().Get(), mAnimationComputeFenceValue);
 	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
+	// 인게임 VFX (HDR renderer) 프레임 시작
+	if (mEfkMemoryPoolHDR != nullptr)
+	{
+		mEfkMemoryPoolHDR->NewFrame();
+		EffekseerRendererDX12::BeginCommandList(mEfkCmdListHDR, GRAPHICS_CMD_LIST.Get());
+		mEfkRendererHDR->SetCommandList(mEfkCmdListHDR);
+	}
+
+	// UI VFX (SwapChain renderer) 프레임 시작
+	if (mEfkMemoryPoolUI != nullptr)
+	{
+		mEfkMemoryPoolUI->NewFrame();
+		EffekseerRendererDX12::BeginCommandList(mEfkCmdListUI, GRAPHICS_CMD_LIST.Get());
+		mEfkRendererUI->SetCommandList(mEfkCmdListUI);
+	}
 }
 
 
 void RenderManager::EndRender()
 {
+	// Effekseer 커맨드 기록 종료 (HDR → UI 순서로 End)
+	if (mEfkCmdListHDR != nullptr)
+		EffekseerRendererDX12::EndCommandList(mEfkCmdListHDR);
+
+	if (mEfkCmdListUI != nullptr)
+		EffekseerRendererDX12::EndCommandList(mEfkCmdListUI);
+
 	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
 	mGraphicsCommandQueue->RenderEnd();
 	mGraphicsCommandQueue->SignalFrame(mFrameResourceIndex, backIndex);

@@ -61,9 +61,6 @@
     <Filter Include="World\Component\IMGUI">
       <UniqueIdentifier>{f3b43cef-1202-4e65-b9db-d67496978c23}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Effect">
-      <UniqueIdentifier>{13fbfe9a-7fb2-469f-8773-dbb82d5249c5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Component\Effect">
       <UniqueIdentifier>{5aee3f13-e97c-4a03-a84d-eca79442a635}</UniqueIdentifier>
     </Filter>
@@ -159,6 +156,9 @@
     </Filter>
     <Filter Include="World\Resource\Map\NavMesh">
       <UniqueIdentifier>{04761dc3-7576-4a02-ab8e-57be60a83cd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\Effect">
+      <UniqueIdentifier>{13fbfe9a-7fb2-469f-8773-dbb82d5249c5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -261,9 +261,6 @@
     </ClInclude>
     <ClInclude Include="Vfx.h">
       <Filter>World\Resource\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="EffectSystem.h">
-      <Filter>World\System\Effect</Filter>
     </ClInclude>
     <ClInclude Include="VfxComponent.h">
       <Filter>World\Component\Effect</Filter>
@@ -463,6 +460,18 @@
     <ClInclude Include="NavMeshLoader.h">
       <Filter>World\Resource\Map\NavMesh</Filter>
     </ClInclude>
+    <ClInclude Include="UIEffectPass.h">
+      <Filter>World\System\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIVfxComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectPass.h">
+      <Filter>World\System\Render\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="ToneMapPass.h">
+      <Filter>World\System\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -563,9 +572,6 @@
     </ClCompile>
     <ClCompile Include="Vfx.cpp">
       <Filter>World\Resource\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="EffectSystem.cpp">
-      <Filter>World\System\Effect</Filter>
     </ClCompile>
     <ClCompile Include="VfxComponent.cpp">
       <Filter>World\Component\Effect</Filter>
@@ -752,6 +758,15 @@
     </ClCompile>
     <ClCompile Include="NavMeshLoader.cpp">
       <Filter>World\Resource\Map\NavMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="UIEffectPass.cpp">
+      <Filter>World\System\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="EffectPass.cpp">
+      <Filter>World\System\Render\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="ToneMapPass.cpp">
+      <Filter>World\System\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

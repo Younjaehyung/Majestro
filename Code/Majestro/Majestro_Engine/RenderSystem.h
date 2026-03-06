@@ -151,6 +151,9 @@ private: // Render
   // forward
   void RenderForward();
 
+  // 인게임 VFX (HDR RT, ToneMap 전)
+  void RenderEffect();
+
   // post process
   void RenderPost();
 
@@ -218,9 +221,11 @@ private: // 디버그용 충돌박스
   bool mDrawColliders = true;
 
 private: // RenderPass
-	std::shared_ptr<class ShadowPass> mShadowPass;
-	std::shared_ptr<class GBufferPass> mGBufferPass;
-	std::shared_ptr<class LightsPass> mLightPass;
-	std::shared_ptr<class ForwardPass> mForwardPass;
+	std::shared_ptr<class ShadowPass>     mShadowPass;
+	std::shared_ptr<class GBufferPass>    mGBufferPass;
+	std::shared_ptr<class LightsPass>     mLightPass;
+	std::shared_ptr<class ForwardPass>    mForwardPass;
+	std::shared_ptr<class EffectPass>     mEffectPass;
+	std::shared_ptr<class ToneMapPass>    mToneMapPass;
 	std::shared_ptr<class PostProcessPass> mPostProcessPass;
 };

@@ -72,7 +72,7 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity * dt;
 		}
 
-		transformComponent->mLocalPosition.y = 0.0f;// gravityComponent->mHight;
+		transformComponent->mLocalPosition.y = gravityComponent->mHight;
 
 	}
 

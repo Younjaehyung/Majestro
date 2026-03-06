@@ -1239,6 +1239,34 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"HPBAR", material);
 	}
 
+	//HPBAR variants
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR_FANTHOR", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_01.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"HPBAR_FANTHOR", material);
+	}
+
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR_IBANIX", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_01.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"HPBAR_IBANIX", material);
+	}
+
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR_RUDWIG", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_01.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"HPBAR_RUDWIG", material);
+	}
+
 	//fire
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"fire", L"..\\Resources\\Image\\UI\\fire.png");

@@ -110,8 +110,14 @@ void UIUpdateSystem::EnsureHpBarUIEntities(UIHpBarComponent* hpBar)
     if (!hpBar)
         return;
 
-    shared_ptr<Material> hpBarMaterial = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-    if (!hpBarMaterial)
+    shared_ptr<Material> hpBarBackgroundMaterial = RESOURCEMANAGER.Get<Material>(hpBar->mBackgroundMaterialName);
+    shared_ptr<Material> hpBarFillMaterial = RESOURCEMANAGER.Get<Material>(hpBar->mFillMaterialName);
+    if (!hpBarBackgroundMaterial)
+        hpBarBackgroundMaterial = RESOURCEMANAGER.Get<Material>(L"HPBAR");
+    if (!hpBarFillMaterial)
+        hpBarFillMaterial = hpBarBackgroundMaterial;
+
+    if (!hpBarBackgroundMaterial || !hpBarFillMaterial)
         return;
 
     if (hpBar->mBackgroundUIEntity == NULL_ENTITY)
@@ -123,8 +129,14 @@ void UIUpdateSystem::EnsureHpBarUIEntities(UIHpBarComponent* hpBar)
         tr.mSize = Vec2(hpBar->mMaxWidth, hpBar->mHeight);
         tr.mUILayerIndex = 10;
 
-        mWorld->AddComponent<UICusSpriteComponent>(background, hpBarMaterial);
+        mWorld->AddComponent<UICusSpriteComponent>(background, hpBarBackgroundMaterial);
         hpBar->mBackgroundUIEntity = background;
+    }
+    else
+    {
+        UICusSpriteComponent* bgSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mBackgroundUIEntity);
+        if (bgSprite)
+            bgSprite->mMaterial = hpBarBackgroundMaterial;
     }
 
     if (hpBar->mFillUIEntity == NULL_ENTITY)
@@ -136,8 +148,14 @@ void UIUpdateSystem::EnsureHpBarUIEntities(UIHpBarComponent* hpBar)
         tr.mSize = Vec2(hpBar->mMaxWidth, hpBar->mHeight);
         tr.mUILayerIndex = 11;
 
-        mWorld->AddComponent<UICusSpriteComponent>(fill, hpBarMaterial);
+        mWorld->AddComponent<UICusSpriteComponent>(fill, hpBarFillMaterial);
         hpBar->mFillUIEntity = fill;
+    }
+    else
+    {
+        UICusSpriteComponent* fillSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mFillUIEntity);
+        if (fillSprite)
+            fillSprite->mMaterial = hpBarFillMaterial;
     }
 }
 

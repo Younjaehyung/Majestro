@@ -17,6 +17,7 @@
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
+#include "UIComponent.h"
 #include "UITextComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
@@ -169,36 +170,6 @@ void LobbyScene::Initialize()
 		Entity text = mWorld->CreateEntity();
 		auto& t = mWorld->AddComponent<UITextComponent>(text);
 		t.mText = L"GAME START";
-	}
-
-	{
-		Entity hpBAR = mWorld->CreateEntity();
-		shared_ptr<Texture> scorem;
-		scorem = RESOURCEMANAGER.Get<Texture>(L"HPBAR");
-
-		//auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		//t.mAnchor = Anchor::Center;
-		//t.mPosition = Vec2(-256.f, 468.f);
-		//t.mSize = Vec2(512.f, 256.f);
-
-
-		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR, scorem);
-		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mPosition = Vec2(256.f, 256.f);
-		t.mSize = Vec2(512.f, 256.f);
-	}
-	{
-		Entity hpBAR = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-256.f, 468.f);
-		t.mSize = Vec2(512.f, 256.f);
-
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(hpBAR, scorem);
 	}
 
 	{
@@ -456,21 +427,6 @@ void GameScene::Initialize()
 		Entity text = mWorld->CreateEntity();
 		auto& t = mWorld->AddComponent<UITextComponent>(text);
 		t.mText = L"IN GAME";
-	}
-
-
-	{
-		Entity hpBAR = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-256.f, 468.f);
-		t.mSize = Vec2(512.f, 256.f);
-
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(hpBAR, scorem);
 	}
 
 	{

@@ -15,6 +15,7 @@
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
+#include "UIComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
@@ -80,6 +81,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 180.f, 0.f), 20.f);
 
 	Vec3 half{ 10,10,10 };
 	Vec3 center{ 0,10,0 };
@@ -211,6 +213,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 center{ 0,50,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 180.f, 0.f), 20.f);
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
@@ -298,6 +301,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	//world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 180.f, 0.f), 20.f);
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;

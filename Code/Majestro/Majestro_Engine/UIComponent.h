@@ -27,3 +27,23 @@ public:
 	vector<shared_ptr<Material>> mMaterials;
 };
 
+class UIHpBarComponent : public Component<UIHpBarComponent>
+{
+public:
+	UIHpBarComponent() = default;
+	UIHpBarComponent(float maxWidth, Entity targetEntity = NULL_ENTITY, const Vec3& worldOffset = Vec3(0.f, 120.f, 0.f), float height = 20.f)
+		: mMaxWidth((std::max)(0.0f, maxWidth))
+		, mTargetEntity(targetEntity)
+		, mWorldOffset(worldOffset)
+		, mHeight((std::max)(0.0f, height)) {
+	}
+
+public:
+	float mMaxWidth = 180.0f;
+	float mHeight = 20.0f;
+	Entity mTargetEntity = NULL_ENTITY;
+	Vec3 mWorldOffset = Vec3(0.f, 120.f, 0.f);
+
+	Entity mBackgroundUIEntity = NULL_ENTITY;
+	Entity mFillUIEntity = NULL_ENTITY;
+};

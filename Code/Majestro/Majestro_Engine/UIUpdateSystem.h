@@ -4,7 +4,7 @@
 #include "ComponentPool.h"
 #include "UITransformComponent.h"
 
-
+class UIHpBarComponent;
 
 class UIInputSystem
 {
@@ -58,4 +58,7 @@ public:
 
 private:
 	void UpdateSpriteAnimation(float dt);
+    void UpdateHpBarUI();
+    void EnsureHpBarUIEntities(UIHpBarComponent* hpBar);
+    void SetHpBarVisibility(UIHpBarComponent* hpBar, bool visible);
 };

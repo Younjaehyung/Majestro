@@ -110,14 +110,14 @@ void UIUpdateSystem::EnsureHpBarUIEntities(UIHpBarComponent* hpBar)
     if (!hpBar)
         return;
 
-    shared_ptr<Material> hpBarBackgroundMaterial = RESOURCEMANAGER.Get<Material>(hpBar->mBackgroundMaterialName);
-    shared_ptr<Material> hpBarFillMaterial = RESOURCEMANAGER.Get<Material>(hpBar->mFillMaterialName);
-    if (!hpBarBackgroundMaterial)
-        hpBarBackgroundMaterial = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-    if (!hpBarFillMaterial)
-        hpBarFillMaterial = hpBarBackgroundMaterial;
+    shared_ptr<Texture> hpBarBackgroundTexture = RESOURCEMANAGER.Get<Texture>(hpBar->mBackgroundMaterialName);
+    shared_ptr<Texture> hpBarFillTexture = RESOURCEMANAGER.Get<Texture>(hpBar->mFillMaterialName);
+    if (!hpBarBackgroundTexture)
+        hpBarBackgroundTexture = RESOURCEMANAGER.Get<Texture>(L"HPBAR");
+    if (!hpBarFillTexture)
+        hpBarFillTexture = hpBarBackgroundTexture;
 
-    if (!hpBarBackgroundMaterial || !hpBarFillMaterial)
+    if (!hpBarBackgroundTexture || !hpBarFillTexture)
         return;
 
     if (hpBar->mBackgroundUIEntity == NULL_ENTITY)
@@ -129,14 +129,14 @@ void UIUpdateSystem::EnsureHpBarUIEntities(UIHpBarComponent* hpBar)
         tr.mSize = Vec2(hpBar->mMaxWidth, hpBar->mHeight);
         tr.mUILayerIndex = 10;
 
-        mWorld->AddComponent<UICusSpriteComponent>(background, hpBarBackgroundMaterial);
+        mWorld->AddComponent<UISpriteComponent>(background, hpBarBackgroundTexture);
         hpBar->mBackgroundUIEntity = background;
     }
     else
     {
-        UICusSpriteComponent* bgSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mBackgroundUIEntity);
+        UISpriteComponent* bgSprite = mWorld->GetComponent<UISpriteComponent>(hpBar->mBackgroundUIEntity);
         if (bgSprite)
-            bgSprite->mMaterial = hpBarBackgroundMaterial;
+            bgSprite->mTexture = hpBarBackgroundTexture;
     }
 
     if (hpBar->mFillUIEntity == NULL_ENTITY)
@@ -148,14 +148,14 @@ void UIUpdateSystem::EnsureHpBarUIEntities(UIHpBarComponent* hpBar)
         tr.mSize = Vec2(hpBar->mMaxWidth, hpBar->mHeight);
         tr.mUILayerIndex = 11;
 
-        mWorld->AddComponent<UICusSpriteComponent>(fill, hpBarFillMaterial);
+        mWorld->AddComponent<UISpriteComponent>(fill, hpBarFillTexture);
         hpBar->mFillUIEntity = fill;
     }
     else
     {
-        UICusSpriteComponent* fillSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mFillUIEntity);
+        UISpriteComponent* fillSprite = mWorld->GetComponent<UISpriteComponent>(hpBar->mFillUIEntity);
         if (fillSprite)
-            fillSprite->mMaterial = hpBarFillMaterial;
+            fillSprite->mTexture = hpBarFillTexture;
     }
 }
 
@@ -166,16 +166,20 @@ void UIUpdateSystem::SetHpBarVisibility(UIHpBarComponent* hpBar, bool visible)
 
     if (hpBar->mBackgroundUIEntity != NULL_ENTITY)
     {
-        UICusSpriteComponent* bgSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mBackgroundUIEntity);
+        UISpriteComponent* bgSprite = mWorld->GetComponent<UISpriteComponent>(hpBar->mBackgroundUIEntity);
         if (bgSprite)
             bgSprite->mVisible = visible;
     }
 
     if (hpBar->mFillUIEntity != NULL_ENTITY)
     {
-        UICusSpriteComponent* fillSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mFillUIEntity);
+        UISpriteComponent* fillSprite = mWorld->GetComponent<UISpriteComponent>(hpBar->mFillUIEntity);
         if (fillSprite)
             fillSprite->mVisible = visible;
+
+        UICusSpriteComponent* fillCusSprite = mWorld->GetComponent<UICusSpriteComponent>(hpBar->mFillUIEntity);
+        if (fillCusSprite)
+            fillCusSprite->mVisible = visible;
     }
 }
 

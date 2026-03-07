@@ -234,6 +234,27 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
             << ", pos(" << bulletPacket->x << ", " << bulletPacket->y << ", " << bulletPacket->z << ")" << std::endl;*/
         return;
     }
+    else if (msg.Type == PKT_Type::S2C_PKT_BULLET_DEACTIVATE) {
+        const S2C_BulletDeactivatePacket* bulletPacket = msg.ViewAs<S2C_BulletDeactivatePacket>();
+        if (bulletPacket == nullptr)
+            return;
+
+        Entity bulletEntity = mWorld->GetEntityByNetId(bulletPacket->bulletNetEntityId);
+        if (bulletEntity == NULL_ENTITY)
+            return;
+
+        BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
+        TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+        if (bulletComp == nullptr || bulletTransform == nullptr)
+            return;
+
+        bulletComp->Deactivate();
+        bulletTransform->mMovingVector = Vec3::Zero;
+
+        if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
+            movementSystem->UnregisterActiveBullet(bulletEntity);
+        return;
+        }
 
 
     switch (msg.Kind)

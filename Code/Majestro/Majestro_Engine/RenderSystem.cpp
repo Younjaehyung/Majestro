@@ -2,6 +2,7 @@
 
 #include "RenderSystem.h"
 #include "AnimationComponent.h"
+#include "BulletComponent.h"
 #include "BoxColliderComponent.h"
 #include "CameraComponent.h"
 #include "Engine.h"
@@ -353,6 +354,11 @@ void RenderSystem::PushObjectData() {
     renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
     transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
 	animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
+
+    if (BulletComponent* bulletComponent = mWorld->GetComponent<BulletComponent>(gameObject)) {
+        if (!bulletComponent->mIsActive)
+            continue;
+    }
     if (false == IsFrustumCulled(transformComponent, renderComponent)) {
       // 카메라 프러스텀 밖 → 라이트 프러스텀(구체) 테스트
       if (false == renderComponent->mVisibility) continue;

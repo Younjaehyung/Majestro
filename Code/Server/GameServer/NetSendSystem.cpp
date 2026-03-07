@@ -8,6 +8,7 @@
 #include "MovementComponent.h"
 #include "BulletComponent.h"
 #include "HealthComponent.h"
+#include "GameEvents.h"
 #include <unordered_set>
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
@@ -23,7 +24,7 @@ void NetSendSystem::Update(float dt)
 	ConvertState();
 	SendCollision();
 	SendHealthEvents();
-	
+	SendBulletDeactivateEvents();
 }
 
 void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
@@ -232,6 +233,39 @@ void NetSendSystem::SendHealthEvents()
 				mSendReq.Type = S2C_PKT_HEALTH;
 				mSendReq.Size = sizeof(S2C_HealthPacket);
 				mSendReq.StoreAs<S2C_HealthPacket>(healthPkt);
+				gSendQueue.Push(mSendReq);
+			}
+		});
+}
+
+void NetSendSystem::SendBulletDeactivateEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvBulletDeactivated>([&](const EvBulletDeactivated& e)
+		{
+			if (!e.bullet.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.bullet);
+			if (netComp == nullptr)
+				return;
+
+			S2C_BulletDeactivatePacket deactivatePkt;
+			deactivatePkt.bulletNetEntityId = netComp->mNetEntityId;
+
+			for (uint32 sessionId : recipients)
+			{
+				mSendReq.SessionId = sessionId;
+				mSendReq.Type = S2C_PKT_BULLET_DEACTIVATE;
+				mSendReq.Size = sizeof(S2C_BulletDeactivatePacket);
+				mSendReq.StoreAs<S2C_BulletDeactivatePacket>(deactivatePkt);
 				gSendQueue.Push(mSendReq);
 			}
 		});

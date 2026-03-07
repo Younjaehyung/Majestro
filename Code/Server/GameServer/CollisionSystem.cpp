@@ -481,6 +481,12 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         {
             bullet->Deactivate();
             mWorld->UnregisterActiveBullet(bulletEntity);
+
+            auto eventManager = mWorld->GetEventManager();
+            if (eventManager)
+            {
+                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+            }
             continue;
         }
 
@@ -553,6 +559,12 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         }
 
         mWorld->UnregisterActiveBullet(bulletEntity);
+
+        auto eventManager = mWorld->GetEventManager();
+        if (eventManager)
+        {
+            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+        }
     }
 }
 

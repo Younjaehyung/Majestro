@@ -10,6 +10,7 @@
 #include "PlayerComponent.h"
 #include "InputComponent.h"
 #include "BulletComponent.h"
+#include "GameEvents.h"
 
 static float WrapAngleDeg(float angleDeg)
 {
@@ -227,6 +228,12 @@ void MovementSystem::Update(float dt) {
 			bulletComponent->Deactivate();
 			transformComponent->mMovingVector = Vec3::Zero;
 			mWorld->UnregisterActiveBullet(entity);
+
+			auto eventManager = mWorld->GetEventManager();
+			if (eventManager)
+			{
+				eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ entity });
+			}
 			continue;
 		}
 

@@ -328,10 +328,15 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 100.f, 0.f };
-	t.mLocalScale = { 0.25f, 0.25f, 0.25f };
+	t.mLocalScale = { 10.05f, 10.05f, 10.05f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
-	world->AddComponent<BoxColliderComponent>(mEntityID);
+	//world->AddComponent<BoxColliderComponent>(mEntityID);
+
+	shared_ptr<Mesh> bulletMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+	std::vector<shared_ptr<Material>> bulletMaterials;
+	bulletMaterials.push_back(RESOURCEMANAGER.Get<Material>(L"SK_NoteBoar_Run0"));
+	world->AddComponent<RenderComponent>(mEntityID, bulletMesh, bulletMaterials);
 
 	auto& bulletComp = world->AddComponent<BulletComponent>(mEntityID);
 	bulletComp.Activate(BulletType::Default, 0, 0, 0, t.mLocalPosition, Vec3::Forward, 90.0f, 2.0f, 10.0f);

@@ -22,6 +22,21 @@ using namespace DirectX;
 using namespace DirectX::PackedVector;
 using namespace DirectX::SimpleMath;
 
+// RecastNavigation
+#include <RecastNavigation/Detour/DetourNavMesh.h>
+#include <RecastNavigation/Detour/DetourNavMeshQuery.h>
+#include <RecastNavigation/Detour/DetourNavMeshBuilder.h>
+#include <RecastNavigation/Detour/DetourAlloc.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "RecastNavigation/Detour-d.lib")
+#pragma comment(lib, "RecastNavigation/DebugUtils-d.lib")
+#else
+#pragma comment(lib, "RecastNavigation/Detour.lib")
+#pragma comment(lib, "RecastNavigation/DebugUtils.lib")
+#endif
+
+
 //
 //#include <DirectXTex/DirectXTex.h>
 //#include <DirectXTex/DirectXTex.inl>

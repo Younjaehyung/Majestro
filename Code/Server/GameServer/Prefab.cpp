@@ -15,7 +15,7 @@
 #include "TerrainComponent.h"
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
-#include "EnemyComponent.h"
+
 #include "BulletComponent.h"
 #include "HealthComponent.h"
 #include "World.h"
@@ -164,7 +164,7 @@ EnemyPrefab::EnemyPrefab(World* world)
 
 			world->AddComponent<GravityComponent>(mEntityID);
 
-			world->AddComponent<EnemyComponent>(mEntityID);
+
 			world->AddComponent<EnemyMovementComponent>(mEntityID);
 			world->AddComponent<BoxColliderComponent>(mEntityID);
 
@@ -194,7 +194,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<GravityComponent>(mEntityID);
-	world->AddComponent<EnemyComponent>(mEntityID);
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);
 	world->AddComponent<MovableComponent>(mEntityID);
@@ -233,7 +232,7 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 	auto& bullet = world->AddComponent<BulletComponent>(entity);
 	bullet.Activate(BulletType::Default, 0, 0, 0, Vec3::Forward, 160.0f, 2.0f, 10.0f);
-	bullet.Deactivate(); // Ç®¿¡ ³Ö±â À§ÇØ ÃÊ±â »óÅÂ´Â ºñÈ°¼º
+	bullet.Deactivate(); // í’€ì— ë„£ê¸° ìœ„í•´ ì´ˆê¸° ìƒíƒœëŠ” ë¹„í™œì„±
 
 	auto& net = world->AddComponent<NetEntityComponent>(entity, world, entity);
 	net.mSessionId = ctx.SessionId;

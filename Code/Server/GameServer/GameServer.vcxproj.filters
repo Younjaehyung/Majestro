@@ -207,6 +207,8 @@
     <ClCompile Include="DamageSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="NavMeshLoader.cpp" />
+    <ClCompile Include="FindPathComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -365,6 +367,8 @@
     <ClInclude Include="HealthComponent.h">
       <Filter>Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="NavMeshLoader.h" />
+    <ClInclude Include="FindPathComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

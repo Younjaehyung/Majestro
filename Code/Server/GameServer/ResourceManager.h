@@ -9,7 +9,7 @@ class HeightField;
 class Mesh;
 class CollisionMesh;
 class FBX;
-
+class NavMesh;	
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
 
@@ -114,6 +114,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::HEIGHTFIELD;
 	else if (std::is_same_v<T, Mesh>)
 		return OBJECT_TYPE::MESH;
+	else if (std::is_same_v<T, NavMesh>)
+		return OBJECT_TYPE::NAVMESH;
 	else if (std::is_same_v<T, CollisionMesh>)
 		return OBJECT_TYPE::COLLIDER;
 	else if (std::is_same_v<T, FBX>)

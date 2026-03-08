@@ -4,7 +4,7 @@
 #include "Texture.h"
 #include "TerrainComponent.h"
 #include "Mesh.h"
-
+#include "NavMeshLoader.h"
 #include "FBX.h"
 
 ResourceManager::ResourceManager()

@@ -5,6 +5,7 @@ enum class OBJECT_TYPE : uint8
 	NONE,
 	PREFAB, // PREFAB
 	TEXTURE,
+	NAVMESH,
 	RAW,
 	MESH,
 	COLLIDER,

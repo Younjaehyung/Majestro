@@ -186,6 +186,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FBX.cpp" />
+    <ClCompile Include="FindPathComponent.cpp" />
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GameServer.cpp" />
@@ -197,6 +198,7 @@
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
+    <ClCompile Include="NavMeshLoader.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />
     <ClCompile Include="NetIdMap.cpp" />
     <ClCompile Include="NetRecvSystem.cpp" />
@@ -244,6 +246,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="FBX.h" />
+    <ClInclude Include="FindPathComponent.h" />
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GravityComponent.h" />
@@ -256,6 +259,7 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
+    <ClInclude Include="NavMeshLoader.h" />
     <ClInclude Include="NetEntityComponent.h" />
     <ClInclude Include="NetIdMap.h" />
     <ClInclude Include="NetRecvSystem.h" />

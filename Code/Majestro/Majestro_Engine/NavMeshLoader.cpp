@@ -638,8 +638,8 @@ void NavMeshDebugRenderer::RenderNavMesh(dtNavMesh* navMesh)
 
                 
                 DrawLine(
-                    Vec3(v0[2] * 100.f, v0[1] * 100.f + 4500.f, v0[0] * 100.f),
-                    Vec3(v1[2] * 100.f, v1[1] * 100.f + 4500.f, v1[0] * 100.f),
+                    Vec3(v0[2] * 100.f, v0[1] * 100.f, v0[0] * 100.f),
+                    Vec3(v1[2] * 100.f, v1[1] * 100.f, v1[0] * 100.f),
                     color
                 );
               /*  DrawLine(

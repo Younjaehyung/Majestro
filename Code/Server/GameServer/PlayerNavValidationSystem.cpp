@@ -33,21 +33,17 @@ void PlayerNavValidationSystem::Update(float dt)
         prevPos.x -= tf->mMovingVector.x;
         prevPos.z -= tf->mMovingVector.z;
         // Y: 이동 전후 동일 (Y 검증은 중력 시스템에 위임)
-        prevPos.y  = tf->mLocalPosition.y;
+        prevPos.y = tf->mLocalPosition.y;
 
-        // 엔진(cm) : NavMesh(m), Y는 0으로 평탄화해 지표면 기준 XZ 검증
-        Vec3 prevM = prevPos * 0.01f;  prevM.y = 0.f;
-        Vec3 newM  = tf->mLocalPosition * 0.01f; newM.y = 0.f;
-
-        const float t = nav->Raycast(prevM, newM);
-
-        if (t < 1.0f)
+        // NavMesh 표면을 따라 이동 — 벽이 있으면 자동으로 막히는 위치로 클램프
+        Vec3 resultPos;
+        if (nav->MoveAlongSurface(prevPos, tf->mLocalPosition, resultPos))
         {
-            // 이동 가능 거리만큼 클램프
-            tf->mLocalPosition.x = prevPos.x + tf->mMovingVector.x * t;
-            tf->mLocalPosition.z = prevPos.z + tf->mMovingVector.z * t;
-            tf->mMovingVector.x *= t;
-            tf->mMovingVector.z *= t;
+            tf->mLocalPosition.x = resultPos.x;
+            tf->mLocalPosition.z = resultPos.z;
+            tf->mMovingVector.x  = resultPos.x - prevPos.x;
+            tf->mMovingVector.z  = resultPos.z - prevPos.z;
         }
+        // MoveAlongSurface가 false(NavMesh 밖)이면 검증 스킵  이동 그대로
     }
 }

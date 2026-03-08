@@ -31,9 +31,30 @@ struct NavMeshSetHeader
 
 struct NavMeshTileHeader
 {
-    dtTileRef tileRef;  // 원본 tileRef 복원용
+    dtTileRef tileRef;
     int       dataSize;
 };
+
+// ========================================
+// 좌표계 변환 헬퍼
+// NavMesh 좌표계 (m, RH):  [0]=X, [1]=Y, [2]=Z
+// 엔진 좌표계  (cm, LH):   X NavMesh[2]*100, Y NavMesh[1]*100, Z NavMesh[0]*100
+// ========================================
+
+// 엔진(cm) : NavMesh(m), 축 교환 포함
+static void EngineToNavMesh(const Vec3& e, float* nm)
+{
+    nm[0] = e.z * 0.01f;
+    nm[1] = e.y * 0.01f;
+    nm[2] = e.x * 0.01f;
+}
+
+// NavMesh(m) : 엔진(cm), 축 교환 포함
+static Vec3 NavMeshToEngine(const float* nm)
+{
+    return Vec3(nm[2] * 100.f, nm[1] * 100.f, nm[0] * 100.f);
+}
+
 
 void NavMesh::Load(const std::string& path)
 {
@@ -50,7 +71,6 @@ void NavMesh::Load(const std::string& path)
         return;
     }
 
-    // 1. 헤더 읽기 (magic + version + numTiles + dtNavMeshParams)
     NavMeshSetHeader header{};
     if (fread(&header, sizeof(NavMeshSetHeader), 1, fp) != 1)
     {
@@ -73,7 +93,6 @@ void NavMesh::Load(const std::string& path)
         return;
     }
 
-    // 2. NavMesh 객체 생성 및 초기화
     mDtNavMesh = dtAllocNavMesh();
     if (!mDtNavMesh)
     {
@@ -92,7 +111,6 @@ void NavMesh::Load(const std::string& path)
         return;
     }
 
-    // 3. 타일 데이터 로드
     for (int i = 0; i < header.numTiles; ++i)
     {
         NavMeshTileHeader tileHeader{};
@@ -117,13 +135,9 @@ void NavMesh::Load(const std::string& path)
             break;
         }
 
-        // tileRef를 복원해 addTile — 폴리곤 참조 ID가 저장 당시와 동일하게 유지됨
         status = mDtNavMesh->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, nullptr);
         if (dtStatusFailed(status))
-        {
             dtFree(data);
-            // 일부 타일 손상 가능성 — 계속 진행
-        }
     }
 
     fclose(fp);
@@ -136,7 +150,7 @@ Navigation::Navigation()
 {
 }
 
-Navigation::Navigation(World* world) : mWorld(world) 
+Navigation::Navigation(World* world) : mWorld(world)
 {
 }
 
@@ -149,21 +163,14 @@ Navigation::~Navigation()
 // 초기화 및 종료
 // ========================================
 
-bool Navigation::Initialize(shared_ptr<NavMesh>& navMesh/*const std::string& navMeshPath*/)
+bool Navigation::Initialize(shared_ptr<NavMesh>& navMesh)
 {
     if (mInitialized)
-    {
         Shutdown();
-    }
 
-
-    // 1. NavMesh 파일 로드
     if (!LoadTiledNavMesh(navMesh))
-    {
         return false;
-    }
 
-    // 2. NavMeshQuery 생성 (길찾기용)
     mNavQuery = dtAllocNavMeshQuery();
     if (!mNavQuery)
     {
@@ -171,7 +178,6 @@ bool Navigation::Initialize(shared_ptr<NavMesh>& navMesh/*const std::string& nav
         return false;
     }
 
-    // 3. NavMeshQuery 초기화
     dtStatus status = mNavQuery->init(mDtNavMesh, MAX_QUERY_NODES);
     if (dtStatusFailed(status))
     {
@@ -191,25 +197,18 @@ void Navigation::Shutdown()
         mNavQuery = nullptr;
     }
 
-    // mNavMesh 소멸자가 dtFreeNavMesh를 처리하므로 mDtNavMesh는 직접 해제하지 않음
     mNavMesh.reset();
     mDtNavMesh = nullptr;
-
     mInitialized = false;
 }
 
-// ========================================
-// NavMesh 파일 로딩
-// ========================================
-
-bool Navigation::LoadTiledNavMesh(shared_ptr<NavMesh>& navMesh /*const std::string& filepath*/)
+bool Navigation::LoadTiledNavMesh(shared_ptr<NavMesh>& navMesh)
 {
-   
     mNavMesh = navMesh;
 
     if (!mNavMesh->mDtNavMesh)
     {
-        std::cerr << "Failed to load NavMesh from path: LoadTiledNavMesh"  << "\n";
+        std::cerr << "Failed to load NavMesh: mDtNavMesh is null\n";
         return false;
     }
 
@@ -218,115 +217,38 @@ bool Navigation::LoadTiledNavMesh(shared_ptr<NavMesh>& navMesh /*const std::stri
 }
 
 // ========================================
-// 길찾기 메인 API
+// 내부 헬퍼
+// ========================================
+
+dtPolyRef Navigation::FindNearestPoly(const float* posNM, const float* extents)
+{
+    if (!mInitialized)
+        return 0;
+
+    dtQueryFilter filter;
+    filter.setIncludeFlags(0xFFFF);
+    filter.setExcludeFlags(0);
+
+    dtPolyRef nearestRef = 0;
+    float nearestPoint[3];
+    mNavQuery->findNearestPoly(posNM, extents, &filter, &nearestRef, nearestPoint);
+
+    return nearestRef;
+}
+
+// ========================================
+// 길찾기 메인 API  (엔진 좌표 입/출력)
 // ========================================
 
 PathResult Navigation::FindPath(const Vec3& start, const Vec3& end)
 {
     PathResult result;
-
     if (!mInitialized)
-    {
         return result;
-    }
 
-    // 1. 쿼리 필터 설정 (어떤 폴리곤을 통과할 수 있는지)
-    dtQueryFilter filter;
-    filter.setIncludeFlags(0xFFFF);  // 모든 플래그 포함
-    filter.setExcludeFlags(0);        // 제외 없음
-
-    // 2. 검색 범위 설정 (시작/끝점 주변 검색 박스)
-    float extents[3] = { 2.0f, 4.0f, 2.0f };  // X, Y, Z 반경 (미터)
-
-    // 3. 시작/끝 위치에서 가장 가까운 NavMesh 폴리곤 찾기
-    dtPolyRef startRef = FindNearestPoly(&start.x, extents);
-    dtPolyRef endRef = FindNearestPoly(&end.x, extents);
-
-    if (!startRef || !endRef)
-    {
-        // NavMesh에서 너무 멀리 떨어진 위치
-        return result;
-    }
-
-    // 4. NavMesh 상의 실제 시작/끝 점 찾기
-    float startPos[3], endPos[3];
-    mNavQuery->closestPointOnPoly(startRef, &start.x, startPos, nullptr);
-    mNavQuery->closestPointOnPoly(endRef, &end.x, endPos, nullptr);
-
-    // 5. A* 길찾기 실행 (폴리곤 경로 찾기)
-    dtPolyRef pathPolys[MAX_PATH_POINTS];
-    int pathPolyCount = 0;
-
-    dtStatus status = mNavQuery->findPath(
-        startRef, endRef,
-        startPos, endPos,
-        &filter,
-        pathPolys, &pathPolyCount, MAX_PATH_POINTS
-    );
-
-    if (dtStatusFailed(status) || pathPolyCount == 0)
-    {
-        return result;
-    }
-
-    // 6. 폴리곤 경로를 직선 경로로 변환 (웨이포인트 생성)
-    float straightPath[MAX_PATH_POINTS * 3];
-    unsigned char straightPathFlags[MAX_PATH_POINTS];
-    dtPolyRef straightPathRefs[MAX_PATH_POINTS];
-    int straightPathCount = 0;
-
-    status = mNavQuery->findStraightPath(
-        startPos, endPos,
-        pathPolys, pathPolyCount,
-        straightPath,
-        straightPathFlags,
-        straightPathRefs,
-        &straightPathCount,
-        MAX_PATH_POINTS,
-        DT_STRAIGHTPATH_AREA_CROSSINGS  // 영역 교차점 포함
-    );
-
-    if (dtStatusFailed(status) || straightPathCount == 0)
-    {
-        return result;
-    }
-
-    // 7. 결과 변환 (float 배열 → Vec3 벡터)
-    result.waypoints.reserve(straightPathCount);
-    for (int i = 0; i < straightPathCount; ++i)
-    {
-        Vec3 waypoint(
-            straightPath[i * 3 + 0],
-            straightPath[i * 3 + 1],
-            straightPath[i * 3 + 2]
-        );
-        result.waypoints.push_back(waypoint);
-    }
-
-    // 8. 총 경로 길이 계산
-    result.totalDistance = 0.0f;
-    for (size_t i = 1; i < result.waypoints.size(); ++i)
-    {
-        const Vec3& p1 = result.waypoints[i - 1];
-        const Vec3& p2 = result.waypoints[i];
-
-        float dx = p2.x - p1.x;
-        float dy = p2.y - p1.y;
-        float dz = p2.z - p1.z;
-        result.totalDistance += std::sqrt(dx * dx + dy * dy + dz * dz);
-    }
-
-    result.success = true;
-    return result;
-}
-
-// 고정 버퍼 — EnemyMovementComponent 경로 배열에 직접 기록
-bool Navigation::FindPath(const Vec3& start, const Vec3& end, Vec3* outPath, int& outCount, int maxCount)
-{
-    outCount = 0;
-
-    if (!mInitialized || !outPath || maxCount <= 0)
-        return false;
+    float startNM[3], endNM[3];
+    EngineToNavMesh(start, startNM);
+    EngineToNavMesh(end,   endNM);
 
     dtQueryFilter filter;
     filter.setIncludeFlags(0xFFFF);
@@ -334,87 +256,140 @@ bool Navigation::FindPath(const Vec3& start, const Vec3& end, Vec3* outPath, int
 
     float extents[3] = { 2.0f, 4.0f, 2.0f };
 
-    dtPolyRef startRef = FindNearestPoly(&start.x, extents);
-
-    // Enemy가 NavMesh 밖에 있으면 확장 반경으로 재탐색 후 가장 가까운 폴리곤에 스냅
-    float snappedStart[3] = { start.x, start.y, start.z };
-    if (!startRef)
-    {
-        float fallbackExtents[3] = { 10.0f, 20.0f, 10.0f };
-        startRef = FindNearestPoly(snappedStart, fallbackExtents);
-        if (!startRef)
-            return false; // NavMesh와 너무 멀리 떨어짐 → 폴백으로 위임
-
-        // 스냅: NavMesh 위의 가장 가까운 점을 실제 시작점으로 사용
-        mNavQuery->closestPointOnPoly(startRef, snappedStart, snappedStart, nullptr);
-    }
-
-    dtPolyRef endRef = FindNearestPoly(&end.x, extents);
-    if (!endRef)
-        return false;
+    dtPolyRef startRef = FindNearestPoly(startNM, extents);
+    dtPolyRef endRef   = FindNearestPoly(endNM,   extents);
+    if (!startRef || !endRef)
+        return result;
 
     float startPos[3], endPos[3];
-    mNavQuery->closestPointOnPoly(startRef, snappedStart, startPos, nullptr);
-    mNavQuery->closestPointOnPoly(endRef,   &end.x,       endPos,   nullptr);
+    mNavQuery->closestPointOnPoly(startRef, startNM, startPos, nullptr);
+    mNavQuery->closestPointOnPoly(endRef,   endNM,   endPos,   nullptr);
 
     dtPolyRef pathPolys[MAX_PATH_POINTS];
     int pathPolyCount = 0;
-
     dtStatus status = mNavQuery->findPath(
-        startRef, endRef,
-        startPos, endPos,
-        &filter,
-        pathPolys, &pathPolyCount, MAX_PATH_POINTS
-    );
+        startRef, endRef, startPos, endPos,
+        &filter, pathPolys, &pathPolyCount, MAX_PATH_POINTS);
 
     if (dtStatusFailed(status) || pathPolyCount == 0)
-        return false;
+        return result;
 
-    // straightPath는 스택에 고정 할당 — 힙 사용 없음
     float straightPath[MAX_PATH_POINTS * 3];
     unsigned char straightPathFlags[MAX_PATH_POINTS];
     dtPolyRef     straightPathRefs[MAX_PATH_POINTS];
     int straightPathCount = 0;
-
     status = mNavQuery->findStraightPath(
-        startPos, endPos,
-        pathPolys, pathPolyCount,
+        startPos, endPos, pathPolys, pathPolyCount,
         straightPath, straightPathFlags, straightPathRefs,
-        &straightPathCount, MAX_PATH_POINTS,
-        DT_STRAIGHTPATH_AREA_CROSSINGS
-    );
+        &straightPathCount, MAX_PATH_POINTS, DT_STRAIGHTPATH_AREA_CROSSINGS);
+
+    if (dtStatusFailed(status) || straightPathCount == 0)
+        return result;
+
+    result.waypoints.reserve(straightPathCount);
+    for (int i = 0; i < straightPathCount; ++i)
+    {
+        Vec3 wp = NavMeshToEngine(&straightPath[i * 3]);
+        result.waypoints.push_back(wp);
+
+        if (i > 0)
+        {
+            const Vec3& p1 = result.waypoints[i - 1];
+            float dx = wp.x - p1.x, dy = wp.y - p1.y, dz = wp.z - p1.z;
+            result.totalDistance += std::sqrt(dx * dx + dy * dy + dz * dz);
+        }
+    }
+
+    result.success = true;
+    return result;
+}
+
+// 힙 할당 없는 고정 버퍼 버전 — 경로 배열에 직접 기록 (엔진 좌표 입/출력)
+bool Navigation::FindPath(const Vec3& start, const Vec3& end, Vec3* outPath, int& outCount, int maxCount)
+{
+    outCount = 0;
+    if (!mInitialized || !outPath || maxCount <= 0)
+        return false;
+
+    float startNM[3], endNM[3];
+    EngineToNavMesh(start, startNM);
+    EngineToNavMesh(end,   endNM);
+
+    dtQueryFilter filter;
+    filter.setIncludeFlags(0xFFFF);
+    filter.setExcludeFlags(0);
+
+    float extents[3] = { 2.0f, 4.0f, 2.0f };
+
+    dtPolyRef startRef = FindNearestPoly(startNM, extents);
+
+    // 시작점이 NavMesh 밖이면 확장 반경으로 재탐색 후 스냅
+    if (!startRef)
+    {
+        float fallbackExtents[3] = { 10.0f, 20.0f, 10.0f };
+        startRef = FindNearestPoly(startNM, fallbackExtents);
+        if (!startRef)
+            return false;
+
+        mNavQuery->closestPointOnPoly(startRef, startNM, startNM, nullptr);
+    }
+
+    dtPolyRef endRef = FindNearestPoly(endNM, extents);
+    if (!endRef)
+        return false;
+
+    float startPos[3], endPos[3];
+    mNavQuery->closestPointOnPoly(startRef, startNM, startPos, nullptr);
+    mNavQuery->closestPointOnPoly(endRef,   endNM,   endPos,   nullptr);
+
+    dtPolyRef pathPolys[MAX_PATH_POINTS];
+    int pathPolyCount = 0;
+    dtStatus status = mNavQuery->findPath(
+        startRef, endRef, startPos, endPos,
+        &filter, pathPolys, &pathPolyCount, MAX_PATH_POINTS);
+
+    if (dtStatusFailed(status) || pathPolyCount == 0)
+        return false;
+
+    float straightPath[MAX_PATH_POINTS * 3];
+    unsigned char straightPathFlags[MAX_PATH_POINTS];
+    dtPolyRef     straightPathRefs[MAX_PATH_POINTS];
+    int straightPathCount = 0;
+    status = mNavQuery->findStraightPath(
+        startPos, endPos, pathPolys, pathPolyCount,
+        straightPath, straightPathFlags, straightPathRefs,
+        &straightPathCount, MAX_PATH_POINTS, DT_STRAIGHTPATH_AREA_CROSSINGS);
 
     if (dtStatusFailed(status) || straightPathCount == 0)
         return false;
 
     const int writeCount = min(straightPathCount, maxCount);
     for (int i = 0; i < writeCount; ++i)
-    {
-        outPath[i].x = straightPath[i * 3 + 0] * 100.f;
-        outPath[i].y = straightPath[i * 3 + 1] * 100.f;
-        outPath[i].z = straightPath[i * 3 + 2] * 100.f;
-    }
-    outCount = writeCount;
+        outPath[i] = NavMeshToEngine(&straightPath[i * 3]);
 
+    outCount = writeCount;
     return true;
 }
 
-// 이동 벡터 NavMesh 검증 — 반환: 이동 가능 거리 비율
-// startM/endM: NavMesh m 단위 (엔진 좌표 / 100.f)
-float Navigation::Raycast(const Vec3& startM, const Vec3& endM)
+// 이동 벡터 검증 — 반환: 이동 가능 거리 비율 (1.0f = 통과, <1.0f = 벽에 막힘)
+// start/end: 엔진 좌표 (cm) — 내부에서 NavMesh 좌표로 변환
+float Navigation::Raycast(const Vec3& start, const Vec3& end)
 {
     if (!mInitialized)
         return 1.0f;
 
-    // 시작점 근처 폴리곤 탐색 (Y extents 크게 → 공중에 있어도 바닥 폴리곤 탐색)
-    float extents[3] = { 0.5f, 4.0f, 0.5f };
-    dtPolyRef startRef = FindNearestPoly(&startM.x, extents);
-    if (!startRef)
-        return 1.0f; // NavMesh 밖 → 검증 스킵
+    float startNM[3], endNM[3];
+    EngineToNavMesh(start, startNM);
+    EngineToNavMesh(end,   endNM);
 
-    // 실제 폴리곤 위 스냅 좌표를 raycast 시작점으로 사용
+    // Y extents 크게 -> 플레이어가 약간 공중에 있어도 바닥 폴리곤 탐색
+    float extents[3] = { 0.5f, 4.0f, 0.5f };
+    dtPolyRef startRef = FindNearestPoly(startNM, extents);
+    if (!startRef)
+        return 1.0f; // NavMesh 밖 -> 검증 스킵
+
     float snappedStart[3];
-    mNavQuery->closestPointOnPoly(startRef, &startM.x, snappedStart, nullptr);
+    mNavQuery->closestPointOnPoly(startRef, startNM, snappedStart, nullptr);
 
     dtQueryFilter filter;
     filter.setIncludeFlags(0xFFFF);
@@ -425,99 +400,110 @@ float Navigation::Raycast(const Vec3& startM, const Vec3& endM)
     hit.maxPath = 0;
 
     dtStatus status = mNavQuery->raycast(
-        startRef,
-        snappedStart, &endM.x,
-        &filter, 0,
-        &hit
-    );
+        startRef, snappedStart, endNM,
+        &filter, 0, &hit);
 
     if (dtStatusFailed(status))
         return 1.0f;
 
-    // hit.t: FLT_MAX = 막힘 없음, 0~1 = 비율만큼만 통과
     return (hit.t < 1.0f) ? hit.t : 1.0f;
 }
 
-// ========================================
-// 유틸리티 함수들
-// ========================================
-
-// 가장 가까운 NavMesh 폴리곤 찾기
-dtPolyRef Navigation::FindNearestPoly(const float* position, const float* extents)
+// NavMesh 표면을 따라 start->end 이동, 도달 가능한 XZ 위치를 outResult로 반환
+// Y는 start.y를 그대로 유지 (중력 시스템 위임)
+bool Navigation::MoveAlongSurface(const Vec3& start, const Vec3& end, Vec3& outResult)
 {
     if (!mInitialized)
-    {
-        return 0;
-    }
+        return false;
+
+    float startNM[3], endNM[3];
+    EngineToNavMesh(start, startNM);
+    EngineToNavMesh(end,   endNM);
+
+    float extents[3] = { 2.0f, 4.0f, 2.0f };
+    dtPolyRef startRef = FindNearestPoly(startNM, extents);
+    if (!startRef)
+        return false; // NavMesh 밖 - 검증 스킵 (이동 허용)
 
     dtQueryFilter filter;
     filter.setIncludeFlags(0xFFFF);
     filter.setExcludeFlags(0);
 
-    dtPolyRef nearestRef = 0;
-    float nearestPoint[3];
+    float resultNM[3];
+    static constexpr int MAX_VISITED = 16;
+    dtPolyRef visited[MAX_VISITED];
+    int visitedCount = 0;
 
-    mNavQuery->findNearestPoly(position, extents, &filter, &nearestRef, nearestPoint);
+    dtStatus status = mNavQuery->moveAlongSurface(
+        startRef, startNM, endNM,
+        &filter, resultNM, visited, &visitedCount, MAX_VISITED);
 
-    return nearestRef;
+    if (dtStatusFailed(status))
+        return false;
+
+    // XZ만 NavMesh 결과로 교체 — Y는 엔진 중력 시스템이 관리
+    Vec3 engineResult = NavMeshToEngine(resultNM);
+    outResult.x = engineResult.x;
+    outResult.y = start.y;          // Y 유지
+    outResult.z = engineResult.z;
+    return true;
 }
 
-// 점이 NavMesh 위에 있는지 확인
+// ========================================
+// 유틸리티 함수들 (엔진 좌표 입력)
+// ========================================
+
 bool Navigation::IsPointOnNavMesh(const Vec3& point, float searchRadius)
 {
     if (!mInitialized)
-    {
         return false;
-    }
 
-    float extents[3] = { searchRadius, searchRadius * 2.0f, searchRadius };
-    dtPolyRef polyRef = FindNearestPoly(&point.x, extents);
+    float posNM[3];
+    EngineToNavMesh(point, posNM);
 
-    return polyRef != 0;
+    const float r = searchRadius * 0.01f; // cm -> m
+    float extents[3] = { r, r * 2.0f, r };
+    return FindNearestPoly(posNM, extents) != 0;
 }
 
-// NavMesh 상의 가장 가까운 점 반환
 Vec3 Navigation::GetNearestPointOnNavMesh(const Vec3& point, float searchRadius)
 {
-    Vec3 result = point;
-
     if (!mInitialized)
-    {
-        return result;
-    }
+        return point;
 
-    float extents[3] = { searchRadius, searchRadius * 2.0f, searchRadius };
-    dtPolyRef polyRef = FindNearestPoly(&point.x, extents);
+    float posNM[3];
+    EngineToNavMesh(point, posNM);
+
+    const float r = searchRadius * 0.01f;
+    float extents[3] = { r, r * 2.0f, r };
+    dtPolyRef polyRef = FindNearestPoly(posNM, extents);
 
     if (polyRef)
     {
         float nearest[3];
-        mNavQuery->closestPointOnPoly(polyRef, &point.x, nearest, nullptr);
-
-        result.x = nearest[0];
-        result.y = nearest[1];
-        result.z = nearest[2];
+        mNavQuery->closestPointOnPoly(polyRef, posNM, nearest, nullptr);
+        return NavMeshToEngine(nearest);
     }
 
-    return result;
+    return point;
 }
 
-// 특정 위치의 NavMesh 높이 가져오기
 float Navigation::GetHeightAtPosition(const Vec3& position)
 {
     if (!mInitialized)
-    {
         return position.y;
-    }
 
-    float extents[3] = { 1.0f, 10.0f, 1.0f };
-    dtPolyRef polyRef = FindNearestPoly(&position.x, extents);
+    float posNM[3];
+    EngineToNavMesh(position, posNM);
+
+    float extents[3] = { 0.01f, 0.1f, 0.01f }; // 1cm, 10cm, 1cm
+    dtPolyRef polyRef = FindNearestPoly(posNM, extents);
 
     if (polyRef)
     {
-        float height;
-        mNavQuery->getPolyHeight(polyRef, &position.x, &height);
-        return height;
+        float heightNM;
+        mNavQuery->getPolyHeight(polyRef, posNM, &heightNM);
+        return heightNM * 100.f; // m -> cm
     }
 
     return position.y;
@@ -530,39 +516,31 @@ float Navigation::GetHeightAtPosition(const Vec3& position)
 int Navigation::GetTileCount() const
 {
     if (!mDtNavMesh)
-    {
         return 0;
-    }
 
     int count = 0;
     int maxTiles = mDtNavMesh->getMaxTiles();
-
     for (int i = 0; i < maxTiles; ++i)
     {
         const dtMeshTile* tile = static_cast<const dtNavMesh*>(mDtNavMesh)->getTile(i);
         if (tile && tile->header)
             count++;
     }
-
     return count;
 }
 
 int Navigation::GetPolyCount() const
 {
     if (!mDtNavMesh)
-    {
         return 0;
-    }
 
-    int totalPolyCount = 0;
+    int total = 0;
     int maxTiles = mDtNavMesh->getMaxTiles();
-
     for (int i = 0; i < maxTiles; ++i)
     {
         const dtMeshTile* tile = static_cast<const dtNavMesh*>(mDtNavMesh)->getTile(i);
         if (tile && tile->header)
-            totalPolyCount += tile->header->polyCount;
+            total += tile->header->polyCount;
     }
-
-    return totalPolyCount;
+    return total;
 }

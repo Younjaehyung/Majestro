@@ -82,8 +82,7 @@ void EnemySystem::Update(float dt)
             shared_ptr<Navigation> nav = mWorld->GetNavSystem();
             if (nav && nav->IsInitialized())
             {
-                ok = nav->FindPath(myPos * 0.01f, playerPos * 0.01f, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
-             //   mc->mPath *= 100.f; // NavMesh는 m 단위라고 가정, 다시 cm 단위로 변환
+                ok = nav->FindPath(myPos, playerPos, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
             }
 
             if (!ok)

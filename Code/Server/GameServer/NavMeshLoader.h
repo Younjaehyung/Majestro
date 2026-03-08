@@ -41,8 +41,13 @@ public:
     bool FindPath(const Vec3& start, const Vec3& end, Vec3* outPath, int& outCount, int maxCount);
 
     // 이동 벡터 검증 — 반환값: 이동 가능 거리 비율 (1.0f = 완전 통과, <1.0f = 벽에 막힘)
-    // 입력 단위: NavMesh m (엔진 cm에서 /100.f 변환 후 전달)
-    float Raycast(const Vec3& startM, const Vec3& endM);
+    // 입력: 엔진 좌표 (cm) — 내부에서 NavMesh 좌표로 변환
+    float Raycast(const Vec3& start, const Vec3& end);
+
+    // 플레이어 이동 구간 검증 — NavMesh 표면을 따라 start→end 이동 후 도달 가능한 XZ 위치 반환
+    // 입력/출력: 엔진 좌표 (cm). Y는 start.y 그대로 유지 (중력 시스템에 위임).
+    // 반환: false = NavMesh 밖이므로 검증 스킵 (이동 허용)
+    bool MoveAlongSurface(const Vec3& start, const Vec3& end, Vec3& outResult);
 
     // 유틸리티 함수들
     bool IsPointOnNavMesh(const Vec3& point, float searchRadius = 5.0f);

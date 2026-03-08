@@ -402,6 +402,11 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             bulletRadius = (std::max)(bulletRadius,
                 (std::max)(bulletCollider->mWorldOBB.Extents.x, bulletCollider->mWorldOBB.Extents.z));
         }
+        else
+        {
+            const float scaleRadius = (std::max)(0.1f, (std::max)(bulletTransform->mLocalScale.x, bulletTransform->mLocalScale.z) * 0.5f);
+            bulletRadius = (std::max)(bulletRadius, scaleRadius);
+        }
 
         Entity hitTarget{};
         BoxColliderComponent* hitCollider = nullptr;
@@ -535,6 +540,11 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
             PhysicsWorld::UpdateWorldOBB(tr, bulletCollider);
             bulletRadius = (std::max)(bulletRadius,
                 (std::max)(bulletCollider->mWorldOBB.Extents.x, bulletCollider->mWorldOBB.Extents.z));
+        }
+        else
+        {
+            const float scaleRadius = (std::max)(0.1f, (std::max)(tr->mLocalScale.x, tr->mLocalScale.z) * 0.5f);
+            bulletRadius = (std::max)(bulletRadius, scaleRadius);
         }
 
         const SweepHit hit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);

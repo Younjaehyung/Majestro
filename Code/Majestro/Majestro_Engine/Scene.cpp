@@ -414,7 +414,7 @@ void GameScene::Initialize()
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
-	//LoadJsonLevel(L"..\\Resources\\Json\\Untitled_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\Untitled_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{

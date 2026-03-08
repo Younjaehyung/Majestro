@@ -352,7 +352,7 @@ void RenderSystem::PushObjectData() {
     }*/
 
     if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
-
+        continue;
       renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
       transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
       TerrainComponent *terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);

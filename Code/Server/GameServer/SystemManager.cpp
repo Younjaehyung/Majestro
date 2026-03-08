@@ -11,6 +11,7 @@
 #include "PlayerInputSystem.h"
 #include "CollisionSystem.h"
 #include "DamageSystem.h"
+#include "PlayerNavValidationSystem.h"
 
 
     //GetSystem<NetRecvSystem>()->Update(deltaTime);
@@ -40,6 +41,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<PlayerInputSystem>();
     RegisterSystem<CollisionSystem>();
     RegisterSystem<DamageSystem>();
+    RegisterSystem<PlayerNavValidationSystem>();
 
 }
 

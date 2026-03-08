@@ -2,7 +2,7 @@
 #include "World.h"
 #include "System.h"
 
-class NavigationSystem;
+class Navigation;
 class NavMesh;
 
 class EnemySystem : public System
@@ -19,8 +19,7 @@ private:
 
 	std::vector<Vec3> mPlayerPositions;
 
-	std::shared_ptr<NavMesh> mNavMesh;
-	std::shared_ptr<NavigationSystem> mNavSystem;
+	std::shared_ptr<NavMesh> mNavMesh; // NavMesh 리소스 생존 보장용
 
 	// 임계값 상수
 	static constexpr float ARRIVE_THRESHOLD_SQ = 4.0f * 100.f;    // 웨이포인트 도달 반경 (2m)

@@ -3,11 +3,11 @@
 
 #include "GameCore.h"
 #include "ResourceManager.h"
-
+#include "NavMeshLoader.h"
 
 #include "TransformComponent.h"
 #include "MovementComponent.h"
-#include "NavMeshLoader.h"
+
 
 
 EnemySystem::EnemySystem(World* world) : System(world)
@@ -17,18 +17,16 @@ EnemySystem::EnemySystem(World* world) : System(world)
 void EnemySystem::Initialize()
 {
 
-	mNavSystem = make_shared<NavigationSystem>();
-	
     mNavMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
-    if(mNavMesh == nullptr)
+    if (mNavMesh == nullptr)
     {
         wstring navMeshPath = L"../Resources/NavMesh/navmesh.bin";
         mNavMesh = make_shared<NavMesh>();
         mNavMesh->Load(ws2s(navMeshPath));
         RESOURCEMANAGER.Add<NavMesh>(L"NavMesh", mNavMesh);
-	}
+    }
     if (mNavMesh && mNavMesh->mDtNavMesh)
-        mNavSystem->Initialize(mNavMesh);
+        mWorld->GetNavSystem()->Initialize(mNavMesh);
 
 	
 
@@ -81,9 +79,11 @@ void EnemySystem::Update(float dt)
             mc->mTarget = playerPos;
 
             bool ok = false;
-            if (mNavSystem && mNavSystem->IsInitialized())
+            shared_ptr<Navigation> nav = mWorld->GetNavSystem();
+            if (nav && nav->IsInitialized())
             {
-                ok = mNavSystem->FindPath(myPos, playerPos, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
+                ok = nav->FindPath(myPos * 0.01f, playerPos * 0.01f, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
+             //   mc->mPath *= 100.f; // NavMesh는 m 단위라고 가정, 다시 cm 단위로 변환
             }
 
             if (!ok)
@@ -91,6 +91,11 @@ void EnemySystem::Update(float dt)
                 // NavMesh 탐색 실패 시 직선 방향 (직진)
                 mc->mPathCount   = 1;
                 mc->mPath[0]     = playerPos;
+				std::cout << "Pathfinding failed for entity " << entity.GetID() << ". Moving directly towards target." << std::endl;
+            }
+            else {
+                // 탐색 성공 시 디버그 로그
+				std::cout << "Pathfinding succeeded for entity " << entity.GetID() << ". Waypoints: " << mc->mPathCount << std::endl;
             }
 
             mc->mPathIndex = 0;

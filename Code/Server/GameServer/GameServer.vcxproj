@@ -186,7 +186,6 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FBX.cpp" />
-    <ClCompile Include="FindPathComponent.cpp" />
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GameServer.cpp" />
@@ -213,6 +212,7 @@
     <ClCompile Include="PhysicsWorld.cpp" />
     <ClCompile Include="PlayerComponent.cpp" />
     <ClCompile Include="PlayerInputSystem.cpp" />
+    <ClCompile Include="PlayerNavValidationSystem.cpp" />
     <ClCompile Include="PlayerSystem.cpp" />
     <ClCompile Include="Prefab.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
@@ -246,7 +246,6 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="FBX.h" />
-    <ClInclude Include="FindPathComponent.h" />
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GravityComponent.h" />
@@ -269,6 +268,7 @@
     <ClInclude Include="PhysicsWorld.h" />
     <ClInclude Include="PlayerComponent.h" />
     <ClInclude Include="PlayerInputSystem.h" />
+    <ClInclude Include="PlayerNavValidationSystem.h" />
     <ClInclude Include="PlayerSystem.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="ResourceManager.h" />

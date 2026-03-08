@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "MovementSystem.h"
 #include "TransformSystem.h"
+
+#include "PhysicsWorld.h"
+
 #include "TransformComponent.h"
 #include "TerrainComponent.h"
 #include "GravityComponent.h"
@@ -10,6 +13,7 @@
 #include "PlayerComponent.h"
 #include "InputComponent.h"
 #include "BulletComponent.h"
+
 
 static float WrapAngleDeg(float angleDeg)
 {
@@ -72,7 +76,7 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity * dt;
 		}
 
-		transformComponent->mLocalPosition.y = 0.0f;// gravityComponent->mHight;
+		transformComponent->mLocalPosition.y = gravityComponent->mHight;
 
 	}
 

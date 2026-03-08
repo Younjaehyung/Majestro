@@ -8,6 +8,7 @@
 #include "PhysicsWorld.h"
 #include "NetIdMap.h"
 #include "PacketHelper.h"
+#include "NavMeshLoader.h"
 
 
 #include <tuple>
@@ -21,6 +22,7 @@ public:
     World() : mNextEntityID(1) {
     }
     void Initialize() {
+        mNavSystem = std::make_shared<Navigation>(this);
         mSystemManager = std::make_shared<SystemManager>(this);
 		mPhysicsWorld = std::make_shared<PhysicsWorld>(this);
 		mEventManager = std::make_shared<EventManager>(this);
@@ -97,6 +99,8 @@ public:
 
 	std::shared_ptr<PhysicsWorld>& GetPhysicsWorld() { return mPhysicsWorld; }
 
+    std::shared_ptr<Navigation>& GetNavSystem() { return mNavSystem; }
+
 public: // Active Bullet Registry (scene-owned via World)
     void RegisterActiveBullet(Entity bulletEntity);
     void UnregisterActiveBullet(Entity bulletEntity);
@@ -123,6 +127,7 @@ private:
     // System
     std::shared_ptr<SystemManager>		mSystemManager;
     std::shared_ptr<PhysicsWorld>		mPhysicsWorld;
+    std::shared_ptr<Navigation>	        mNavSystem;
 
     // Event
     std::shared_ptr<EventManager>		mEventManager;

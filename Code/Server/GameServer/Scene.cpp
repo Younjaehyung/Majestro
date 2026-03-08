@@ -31,6 +31,8 @@ void Scene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 
 	TerrainPrefab terrain{ mWorld.get()};
+
+
 	
 	mWorld->Initialize();
 }

@@ -144,6 +144,12 @@ void ResourceManager::LoadResources()
 		//heightField->LoadHeightFieldFromRaw16("../Resources/Texture/height.raw", 2048, 2048, true);
 		//Add<HeightField>(L"TerrainHeightField", heightField);
     }
+	{
+		// NavMesh
+		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
+		navMesh->Load("../Resources/NavMesh/all_tiles_navmesh.bin");
+		Add<NavMesh>(L"NavMesh", navMesh);
+	}
 }
 
 shared_ptr<FBX>& ResourceManager::LoadFBXMeshes(const wstring& path)

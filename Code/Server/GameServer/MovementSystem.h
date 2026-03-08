@@ -3,7 +3,7 @@
 #include "System.h"
 
 
-class NavigationSystem;
+class Navigation;
 class NavMesh;
 
 

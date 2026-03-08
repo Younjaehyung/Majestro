@@ -35,6 +35,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_STATE,
 	S2C_PKT_COLLISION,
 	S2C_PKT_BULLET_ACTIVATE,
+	S2C_PKT_BULLET_DEACTIVATE,
 	S2C_PKT_HEALTH,
 
 	KMSG,
@@ -275,6 +276,15 @@ struct S2C_BulletActivatePacket : public PacketTcpHeader {
 		: PacketTcpHeader{ sizeof(S2C_BulletActivatePacket), PKT_Type::S2C_PKT_BULLET_ACTIVATE, 0.0 } {
 	}
 };
+
+struct S2C_BulletDeactivatePacket : public PacketTcpHeader {
+	uint64_t bulletNetEntityId{};
+
+	S2C_BulletDeactivatePacket()
+		: PacketTcpHeader{ sizeof(S2C_BulletDeactivatePacket), PKT_Type::S2C_PKT_BULLET_DEACTIVATE, 0.0 } {
+	}
+};
+
 
 ///////////////Client To Server///////////////
 

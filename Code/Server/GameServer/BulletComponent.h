@@ -19,6 +19,37 @@ enum class BulletType : uint8
 	Max
 };
 
+struct BulletStat
+{
+	float Damage = 10.0f;
+	float Speed = 90.0f;
+	float Size = 0.25f;
+	float LifeTime = 3.0f;
+	int PenetrationCount = 1;
+};
+
+inline BulletStat GetBulletStat(BulletType type)
+{
+	switch (type)
+	{
+	case BulletType::DrumAttack: return BulletStat{ 25.0f, 120.0f, 0.28f, 2.1f, 1 };
+	case BulletType::DrumSkill1: return BulletStat{ 75.0f, 90.0f, 0.42f, 2.7f, 2 };
+	case BulletType::DrumSkill2: return BulletStat{ 0.0f, 70.0f, 0.60f, 3.2f, 1 };
+
+	case BulletType::BaseAttack: return BulletStat{ 15.0f, 130.0f, 0.22f, 2.0f, 1 };
+	case BulletType::BaseSkill1: return BulletStat{ 75.0f, 100.0f, 0.35f, 2.6f, 2 };
+	case BulletType::BaseSkill2: return BulletStat{ 0.0f, 80.0f, 0.50f, 3.0f, 1 };
+
+	case BulletType::GuitarAttack: return BulletStat{ 25.0f, 150.0f, 0.20f, 1.8f, 1 };
+	case BulletType::GuitarSkill1: return BulletStat{ 30.0f, 120.0f, 0.30f, 2.4f, 2 };
+	case BulletType::GuitarSkill2: return BulletStat{ 0.0f, 95.0f, 0.45f, 2.8f, 1 };
+
+	case BulletType::Default:
+	default:
+		return BulletStat{};
+	}
+}
+
 // 서버 권한 불릿 컴포넌트(예시)
 class BulletComponent : public Component<BulletComponent>
 {

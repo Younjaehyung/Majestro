@@ -16,6 +16,7 @@
 #include "NetEntityComponent.h"
 #include "ServerCore.h"
 #include "BulletComponent.h"
+#include "ColliderComponent.h"
 #include <unordered_set>
 
 namespace
@@ -47,25 +48,25 @@ namespace
 		case 1:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return BulletType::GuitarAttack;
-			case InputButtons::SKILL1: return BulletType::GuitarSkill1;
-			case InputButtons::SKILL2: return BulletType::GuitarSkill2;
-			default: return BulletType::Default;
-			}
-		case 2:
-			switch (actionButton)
-			{
 			case InputButtons::ATTACK: return BulletType::DrumAttack;
 			case InputButtons::SKILL1: return BulletType::DrumSkill1;
 			case InputButtons::SKILL2: return BulletType::DrumSkill2;
 			default: return BulletType::Default;
 			}
-		default:
+		case 2:
 			switch (actionButton)
 			{
 			case InputButtons::ATTACK: return BulletType::BaseAttack;
 			case InputButtons::SKILL1: return BulletType::BaseSkill1;
 			case InputButtons::SKILL2: return BulletType::BaseSkill2;
+			default: return BulletType::Default;
+			}
+		default:
+			switch (actionButton)
+			{
+			case InputButtons::ATTACK: return BulletType::GuitarAttack;
+			case InputButtons::SKILL1: return BulletType::GuitarSkill1;
+			case InputButtons::SKILL2: return BulletType::GuitarSkill2;
 			default: return BulletType::Default;
 			}
 		}
@@ -194,13 +195,23 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity, BulletType 
 			continue;
 
 		Vec3 direction = GetCameraForwardFromInput(*inputComp);
+		const BulletStat bulletStat = GetBulletStat(bulletType);
 
 		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
-		bulletTransform->mMovingVector = direction * bulletComp->mSpeed;
+		bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
+		bulletTransform->mMovingVector = direction * bulletStat.Speed;
+
+		if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
+		{
+			const float halfSize = bulletStat.Size * 0.5f;
+			bulletCollider->mHalfExtents = Vec3(halfSize, halfSize, halfSize);
+			bulletCollider->mCenter = Vec3::Zero;
+		}
 
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
-		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletComp->mSpeed, bulletComp->mLifeTime, bulletComp->mDamage);
+		bulletComp->mPenetrationCount = bulletStat.PenetrationCount;
+		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage);
 
 		mWorld->RegisterActiveBullet(bulletEntity);
 

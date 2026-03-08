@@ -73,6 +73,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_STATE:
 	case PKT_Type::S2C_PKT_COLLISION:
 	case PKT_Type::S2C_PKT_BULLET_ACTIVATE:
+	case PKT_Type::S2C_PKT_BULLET_DEACTIVATE:
 	case PKT_Type::S2C_PKT_HEALTH:
 	{
 		ProcessTcpPackets(inputCommand, buffer);

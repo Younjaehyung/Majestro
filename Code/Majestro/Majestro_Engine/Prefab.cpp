@@ -15,6 +15,7 @@
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
+#include "UIComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
@@ -80,6 +81,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 180.f, 0.f), 20.f);
 
 	Vec3 half{ 10,10,10 };
 	Vec3 center{ 0,10,0 };
@@ -211,6 +213,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 center{ 0,50,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
@@ -298,6 +301,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	//world->AddComponent<EnemyMovementComponent>(mEntityID);
 	world->AddComponent<BoxColliderComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
@@ -324,10 +328,15 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 100.f, 0.f };
-	t.mLocalScale = { 0.25f, 0.25f, 0.25f };
+	t.mLocalScale = { 10.05f, 10.05f, 10.05f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
-	world->AddComponent<BoxColliderComponent>(mEntityID);
+	//world->AddComponent<BoxColliderComponent>(mEntityID);
+
+	shared_ptr<Mesh> bulletMesh = RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+	std::vector<shared_ptr<Material>> bulletMaterials;
+	bulletMaterials.push_back(RESOURCEMANAGER.Get<Material>(L"SK_NoteBoar_Run0"));
+	world->AddComponent<RenderComponent>(mEntityID, bulletMesh, bulletMaterials);
 
 	auto& bulletComp = world->AddComponent<BulletComponent>(mEntityID);
 	bulletComp.Activate(BulletType::Default, 0, 0, 0, t.mLocalPosition, Vec3::Forward, 90.0f, 2.0f, 10.0f);
@@ -374,9 +383,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 	mEntityID = world->CreateEntity();
 
 	TransformComponent bt{};
+
 	bt.mLocalScale = Vec3(100, 100, 100);
 	//bt.mLocalRotationE = Vec3(0, 90, 0);
-	bt.mLocalPosition = Vec3(-0.5 * 504 * 100, -27.6f, -0.5 * 504 * 100);
+	bt.mLocalPosition = Vec3(-0.5 * 378 * 100, -41.6f, -0.5 * 378 * 100);
 
 
 	world->AddComponent<TransformComponent>(mEntityID, bt);
@@ -384,10 +394,10 @@ TerrainPrefab::TerrainPrefab(World* world)
 	// heightmap 512x512 => 타일 511x511
 
 
-	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(504, 504);
+	shared_ptr<Mesh> terrain = RESOURCEMANAGER.LoadTerrainMesh(378, 378);
 	shared_ptr<Material> heightMap = RESOURCEMANAGER.Get<Material>(L"Terrain");
 
-	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 504, 504, heightMap);
+	TerrainComponent& terrainc = world->AddComponent<TerrainComponent>(mEntityID, 378, 378, heightMap);
 	terrainc.mTerrainWorldPosition = bt.mLocalPosition;
 	terrainc.mTerrainWorldScale = bt.mLocalScale;
 

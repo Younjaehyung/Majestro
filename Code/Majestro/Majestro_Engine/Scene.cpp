@@ -16,8 +16,8 @@
 #include "AnimationComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
-#include "UIVfxComponent.h"
 #include "UISpriteComponent.h"
+#include "UIComponent.h"
 #include "UITextComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
@@ -141,29 +141,15 @@ void LobbyScene::Initialize()
 
 	
 	/////////////////////////////////////////////////////////////////////
-	// 
-	//{
-	//	Entity vfxEntity = mWorld->CreateEntity();
-	//	TransformComponent vfxTransform{};
-	//	vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
-	//	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
-	//	mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
-	//	VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
-	//	vfxComp.mVfx = vfx;
-	//}
-
-	// vfx UI   빌보드 없는 vfx사용 예시
-	//{	// vfx UI   빌보드 없는 vfx사용
-	//	Entity vfxEntity = mWorld->CreateEntity();
-	//	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_o");
-	//	UIVfxComponent& vfxComp = mWorld->AddComponent<UIVfxComponent>(vfxEntity);
-	//	vfxComp.mVfx = vfx;			
-	//	vfxComp.mScreenX = 256.f;	// 좌단 0 -> 우단 ++ 
-	//	vfxComp.mScreenY = 512.f;	// 하단 0 -> 상단 ++
-	//	vfxComp.mScreenZ = 0.5f;	// vfx끼리의 layer 순서 제어 0~1 사이값 (0이 제일 최상위 layer / 가까워 지지는 않음)
-	//	vfxComp.mScale = 100.f;		// vfx의 크기 제어 (1이 원본 크기 -> 1픽셀이라고 보면 됨 100정도로 늘려야됨)
-	//	vfxComp.mIsLoop = true;		// 반복 시킬지 여부
-	//}
+	{
+		Entity vfxEntity = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
+		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
+		vfxComp.mVfx = vfx;
+	}
 	/////////////////////////////////////////////////////////////////////
 
 
@@ -184,36 +170,6 @@ void LobbyScene::Initialize()
 		Entity text = mWorld->CreateEntity();
 		auto& t = mWorld->AddComponent<UITextComponent>(text);
 		t.mText = L"GAME START";
-	}
-
-	{
-		Entity hpBAR = mWorld->CreateEntity();
-		shared_ptr<Texture> scorem;
-		scorem = RESOURCEMANAGER.Get<Texture>(L"HPBAR");
-
-		//auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		//t.mAnchor = Anchor::Center;
-		//t.mPosition = Vec2(-256.f, 468.f);
-		//t.mSize = Vec2(512.f, 256.f);
-
-
-		auto& m = mWorld->AddComponent<UISpriteComponent>(hpBAR, scorem);
-		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mPosition = Vec2(256.f, 256.f);
-		t.mSize = Vec2(512.f, 256.f);
-	}
-	{
-		Entity hpBAR = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-256.f, 468.f);
-		t.mSize = Vec2(512.f, 256.f);
-
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(hpBAR, scorem);
 	}
 
 	{
@@ -390,31 +346,12 @@ void GameScene::Initialize()
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
 
-
-	// // 씬 헤더에 멤버 추가                                                                                                                                                                      NavMeshDebugRenderer mNavMeshDebugRenderer;
-	//NavigationSystem     mNavSystem;
-
-	//// Scene::Initialize() 또는 System::Initialize()
-	//mNavSystem.Initialize("..\\Resources\\Map\\all_tiles_navmesh.bin");
-
-	//// Scene::Update() 또는 Sim 페이즈 System::Update() — 매 프레임
-	//if (mNavSystem.IsInitialized())
-	//{
-	//	// NavMesh 전체 와이어프레임 렌더링
-	//	auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
-	//	if (navMesh)
-	//		mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
-	//}
-
-	//NavigationSystem 없이 리소스 매니저에서 바로 꺼내도 됩니다 :
-
-
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
-	LoadJsonLevel(L"..\\Resources\\Json\\Untitled_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -490,21 +427,6 @@ void GameScene::Initialize()
 		Entity text = mWorld->CreateEntity();
 		auto& t = mWorld->AddComponent<UITextComponent>(text);
 		t.mText = L"IN GAME";
-	}
-
-
-	{
-		Entity hpBAR = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(hpBAR);
-		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-256.f, 468.f);
-		t.mSize = Vec2(512.f, 256.f);
-
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(hpBAR, scorem);
 	}
 
 	{

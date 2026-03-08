@@ -36,4 +36,9 @@ struct EvHealthChanged
     int32 maxHp;
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged>;
+struct EvBulletDeactivated
+{
+    Entity bullet;
+};
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvBulletDeactivated>;

@@ -402,6 +402,11 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             bulletRadius = (std::max)(bulletRadius,
                 (std::max)(bulletCollider->mWorldOBB.Extents.x, bulletCollider->mWorldOBB.Extents.z));
         }
+        else
+        {
+            const float scaleRadius = (std::max)(0.1f, (std::max)(bulletTransform->mLocalScale.x, bulletTransform->mLocalScale.z) * 0.5f);
+            bulletRadius = (std::max)(bulletRadius, scaleRadius);
+        }
 
         Entity hitTarget{};
         BoxColliderComponent* hitCollider = nullptr;
@@ -481,6 +486,12 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         {
             bullet->Deactivate();
             mWorld->UnregisterActiveBullet(bulletEntity);
+
+            auto eventManager = mWorld->GetEventManager();
+            if (eventManager)
+            {
+                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+            }
             continue;
         }
 
@@ -530,6 +541,11 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
             bulletRadius = (std::max)(bulletRadius,
                 (std::max)(bulletCollider->mWorldOBB.Extents.x, bulletCollider->mWorldOBB.Extents.z));
         }
+        else
+        {
+            const float scaleRadius = (std::max)(0.1f, (std::max)(tr->mLocalScale.x, tr->mLocalScale.z) * 0.5f);
+            bulletRadius = (std::max)(bulletRadius, scaleRadius);
+        }
 
         const SweepHit hit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);
         if (!hit.hit)
@@ -553,6 +569,12 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         }
 
         mWorld->UnregisterActiveBullet(bulletEntity);
+
+        auto eventManager = mWorld->GetEventManager();
+        if (eventManager)
+        {
+            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+        }
     }
 }
 

@@ -5,6 +5,33 @@
 #include "params.hlsl"
 #include "math.hlsl"
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// 색수차(Chromatic Aberration) 
+
+// UV를 NDC 기준 [-1, 1] 공간으로 변환
+float2 ToNDC(float2 uv)
+{
+    return uv * 2.0f - 1.0f;
+}
+
+// NDC를 UV 공간으로 역변환
+float2 ToUV(float2 ndc)
+{
+    return ndc * 0.5f + 0.5f;
+}
+
+// 화면 중심에서의 거리에 따라 오프셋 방향 벡터를 계산
+// 중심에서 멀수록 색수차가 강해지는 방사형 효과
+float2 CalcRadialOffset(float2 uv, float intensity)
+{
+    float2 ndc = ToNDC(uv); // UV → NDC
+    float dist = length(ndc); // 중심까지의 거리
+    float2 dir = normalize(ndc); // 방향 벡터
+    
+    // dist를 제곱하면 가장자리로 갈수록 급격히 강해짐
+    return dir * dist * dist * intensity;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // ACES 톤매핑
@@ -18,6 +45,13 @@ float3 TonemapACES(float3 x)
     const float e = 0.14;
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
+
+
+float Luminance(float3 v)
+{
+    return dot(v, float3(0.2126f, 0.7152f, 0.0722f));
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Toon Shading

@@ -111,7 +111,7 @@ void EnemySystem::Update(float dt)
             while (mc->mPathIndex < mc->mPathCount - 1)
             {
                 Vec3 toWp = mc->mPath[mc->mPathIndex] - myPos;
-                toWp.y    = 0.f;
+                //toWp.y    = 0.f;
                 if (toWp.LengthSquared() < ARRIVE_THRESHOLD_SQ)
                     ++mc->mPathIndex;
                 else
@@ -119,7 +119,7 @@ void EnemySystem::Update(float dt)
             }
 
             Vec3 dir = mc->mPath[mc->mPathIndex] - myPos;
-            dir.y    = 0.f;
+            //dir.y    = 0.f;
             dir.Normalize();
             mc->mMovingDirection = dir;
         }

@@ -12,6 +12,7 @@ PlayerNavValidationSystem::PlayerNavValidationSystem(World* world) : System(worl
 
 void PlayerNavValidationSystem::Update(float dt)
 {
+    // return;
     if (!mWorld->HasComponentPool<PlayerMovementComponent>()) return;
     if (!mWorld->HasComponentPool<TransformComponent>())      return;
 
@@ -40,6 +41,7 @@ void PlayerNavValidationSystem::Update(float dt)
         if (nav->MoveAlongSurface(prevPos, tf->mLocalPosition, resultPos))
         {
             tf->mLocalPosition.x = resultPos.x;
+			tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
             tf->mLocalPosition.z = resultPos.z;
             tf->mMovingVector.x  = resultPos.x - prevPos.x;
             tf->mMovingVector.z  = resultPos.z - prevPos.z;

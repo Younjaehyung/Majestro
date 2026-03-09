@@ -420,32 +420,80 @@ bool Navigation::MoveAlongSurface(const Vec3& start, const Vec3& end, Vec3& outR
     EngineToNavMesh(start, startNM);
     EngineToNavMesh(end,   endNM);
 
-    float extents[3] = { 2.0f, 4.0f, 2.0f };
-    dtPolyRef startRef = FindNearestPoly(startNM, extents);
-    if (!startRef)
-        return false; // NavMesh 밖 - 검증 스킵 (이동 허용)
-
     dtQueryFilter filter;
     filter.setIncludeFlags(0xFFFF);
     filter.setExcludeFlags(0);
+
+    // findNearestPoly를 직접 호출해 nearestPt(폴리곤 위의 가장 가까운 점)도 함께 얻음
+    float extents[3] = { 2.0f, 4.0f, 2.0f };
+    dtPolyRef startRef = 0;
+    float nearestPt[3];
+    mNavQuery->findNearestPoly(startNM, extents, &filter, &startRef, nearestPt);
+    if (!startRef)
+        return false; // NavMesh 밖
+
+    /*탐색 기준점으로부터 AABB 박스 안에서 가장 가까운 폴리곤 하나를 반환
+        - nearestPt는 폴리곤 표면 위의 점 == moveAlongSurface의 시작점으로 사용할 수 있음*/
+    //mNavQuery->findNearestPoly(
+    //    startNM,       // 탐색 기준점 (NavMesh 좌표)
+    //    extents,       // 탐색 박스 반경 [X, Y, Z] (m)
+    //    &filter,       // 이동 가능 플래그 필터
+    //    &startRef,     // OUT: 발견된 폴리곤 레퍼런스
+    //    nearestPt      // OUT: 그 폴리곤 위의 가장 가까운 점 (3D)
+    //);
+
+    // XZ 스냅 거리 확인:
+    // nearestPt가 startNM에서 0.5m(=50cm) 이상 떨어졌으면 플레이어가 NavMesh 밖에 있다는 뜻
+    // → 스냅된 위치에서 moveAlongSurface를 돌리면 전혀 다른 좌표가 반환되어 순간이동 발생
+    // NavMesh 좌표계: [0]=EngineZ, [2]=EngineX
+    const float dz = nearestPt[0] - startNM[0];
+    const float dx = nearestPt[2] - startNM[2];
+    if (dz * dz + dx * dx > 0.5f * 0.5f)
+        return false; // NavMesh 벗어남
 
     float resultNM[3];
     static constexpr int MAX_VISITED = 16;
     dtPolyRef visited[MAX_VISITED];
     int visitedCount = 0;
 
+    // nearestPt는 폴리곤 위의 점이므로 Detour moveAlongSurface API 조건 충족
     dtStatus status = mNavQuery->moveAlongSurface(
-        startRef, startNM, endNM,
+        startRef, nearestPt, endNM,
         &filter, resultNM, visited, &visitedCount, MAX_VISITED);
+
+    //NavMesh 표면을 따라 startPos에서 endPos로 이동하다 벽 / 경계에 막히면 그 직전에서 멈춤
+    //    - resultNM의 Y는 moveAlongSurface가 이동 경로 중 마지막으로 접촉한 폴리곤 표면의 Y값
+    //mNavQuery->moveAlongSurface(
+    //    startRef,      // 시작 폴리곤 레퍼런스 (startPos가 이 폴리곤 안에 있어야 함)
+    //    nearestPt,     // 시작 위치 (NavMesh 좌표, 반드시 폴리곤 내부)
+    //    endNM,         // 목표 위치 (NavMesh 좌표)
+    //    &filter,       // 필터
+    //    resultNM,      // OUT: 실제로 도달한 위치
+    //    visited,       // OUT: 통과한 폴리곤 목록
+    //    &visitedCount, // OUT: 통과한 폴리곤 수
+    //    MAX_VISITED    // visited 배열 최대 크기
+    //);
 
     if (dtStatusFailed(status))
         return false;
 
-    // XZ만 NavMesh 결과로 교체 — Y는 엔진 중력 시스템이 관리
-    Vec3 engineResult = NavMeshToEngine(resultNM);
-    outResult.x = engineResult.x;
-    outResult.y = start.y;          // Y 유지
-    outResult.z = engineResult.z;
+
+    // visited 배열의 마지막 폴리곤(= 결과 위치가 속한 폴리곤)
+    dtPolyRef resultRef = (visitedCount > 0) ? visited[visitedCount - 1] : startRef;
+    float polyHeight = resultNM[1];
+    mNavQuery->getPolyHeight(resultRef, resultNM, &polyHeight);
+    //폴리곤 내부의 임의 XZ 좌표에서 삼각형 보간으로 정확한 높이를 계산
+    //
+    //   mNavQuery->getPolyHeight(
+    //  ref,           // 폴리곤 레퍼런스
+    //  pos,           // XZ 위치 (이 폴리곤 안이어야 함)
+    //  &height        // OUT: 해당 XZ에서의 폴리곤 내부 보간 Y
+    //    );
+    //
+    //   findNearestPoly나 moveAlongSurface의 Y보다 더 정확함
+    resultNM[1] = polyHeight;
+
+    outResult = NavMeshToEngine(resultNM);
     return true;
 }
 
@@ -496,7 +544,7 @@ float Navigation::GetHeightAtPosition(const Vec3& position)
     float posNM[3];
     EngineToNavMesh(position, posNM);
 
-    float extents[3] = { 0.01f, 0.1f, 0.01f }; // 1cm, 10cm, 1cm
+    float extents[3] = { 0.5f, 4.0f, 0.5f }; // XZ ±0.5m, Y ±4m (NavMesh space)
     dtPolyRef polyRef = FindNearestPoly(posNM, extents);
 
     if (polyRef)

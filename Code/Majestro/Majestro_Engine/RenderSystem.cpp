@@ -65,6 +65,14 @@ void RenderSystem::Initialize() {
   mToneMapPass = make_shared<ToneMapPass>();
 
   mEffectPass->Initialize(mWorld);
+
+  // PushObjectData()가 sDebugLineQueue를 소비하므로
+// PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
+ /* {
+      auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
+      if (navMesh && navMesh->mDtNavMesh)
+          mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
+  }*/
 }
 
 void RenderSystem::Update() {
@@ -82,8 +90,9 @@ void RenderSystem::Update() {
 
   ClearRTV();
 
-  // PushObjectData()가 sDebugLineQueue를 소비하므로
-  // PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
+
+   //PushObjectData()가 sDebugLineQueue를 소비하므로
+    //PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
   {
       auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
       if (navMesh && navMesh->mDtNavMesh)

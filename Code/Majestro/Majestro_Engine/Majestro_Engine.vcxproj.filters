@@ -875,10 +875,16 @@
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_plus_PS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ChromaticAberration_PS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\forward_plus_PS.hlsl">
+    <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
   </ItemGroup>

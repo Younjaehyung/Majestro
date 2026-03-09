@@ -13,8 +13,8 @@ public:
 
     void Update(float dt) override;
 
-    std::vector<std::type_index> After()  const override { return { typeid(MovementSystem) }; }
-    std::vector<std::type_index> Before() const override { return { typeid(CollisionSystem) }; }
+   // std::vector<std::type_index> After()  const override { return { typeid(MovementSystem) }; }
+  //   std::vector<std::type_index> Before() const override { return { typeid(CollisionSystem) }; }
 
 private:
     // 이동 벡터 XZ 성분이 이 값 미만이면 검증 스킵

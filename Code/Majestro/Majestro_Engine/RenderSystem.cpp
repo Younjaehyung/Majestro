@@ -64,14 +64,14 @@ void RenderSystem::Initialize() {
   mLightPass   = make_shared<LightsPass>();
   mForwardPass = make_shared<ForwardPass>();
   mEffectPass  = make_shared<EffectPass>();
-  mToneMapPass = make_shared<ToneMapPass>();
+  
   mPostProcessPass = make_shared<PostProcessPass>();
   
   
   
   mEffectPass->Initialize(mWorld);
   mPostProcessPass->Initialize();
-  mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
+
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
 
@@ -101,8 +101,8 @@ void RenderSystem::Update() {
 
 
   PushData();
-
- 
+  PreProcess();
+  RenderPass();
 
 }
 
@@ -863,7 +863,7 @@ void RenderSystem::RenderEffect() {
 }
 
 void RenderSystem::RenderPost() {
-   // mToneMapPass->Execute();
+   
 	mPostProcessPass->Execute();
     
 }

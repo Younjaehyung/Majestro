@@ -17,7 +17,8 @@ void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 	}
 	else
 	{
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
+		//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets(1,backIndex);
 	}
 
 	// HDR RT는 EffectPass에서 WaitTargetToResource()로 SRV 상태

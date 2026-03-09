@@ -246,6 +246,5 @@ private: // RenderPass
 	std::shared_ptr<class LightsPass>     mLightPass;
 	std::shared_ptr<class ForwardPass>    mForwardPass;
 	std::shared_ptr<class EffectPass>     mEffectPass;
-	std::shared_ptr<class ToneMapPass>    mToneMapPass;
 	std::shared_ptr<class PostProcessPass> mPostProcessPass;
 };

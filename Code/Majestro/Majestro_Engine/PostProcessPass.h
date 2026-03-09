@@ -1,6 +1,7 @@
 #pragma once
 #include "RenderTarget.h"
 
+class ToneMapPass;
 
 class PostProcess
 {
@@ -27,13 +28,20 @@ public:
   void Initialize();
   void Execute();
 
-  void AddPass(shared_ptr<PostProcess> pass) { mPasses.push_back(pass); }
+  void AddHDRPass(shared_ptr<PostProcess> pass) { mHDRPasses.push_back(pass); }
+  void AddLDRPass(shared_ptr<PostProcess> pass) { mLDRPasses.push_back(pass); }
 
 private:
-	RENDER_TARGET_GROUP_TYPE mBeforeGroupType; 
-	RENDER_TARGET_GROUP_TYPE mAfterGroupType;
-	vector<shared_ptr<PostProcess>> mPasses;
+	RENDER_TARGET_GROUP_TYPE mLDRBeforeGroupType; 
+	RENDER_TARGET_GROUP_TYPE mLDRAfterGroupType;
+
+	RENDER_TARGET_GROUP_TYPE mHDRBeforeGroupType; 
+	RENDER_TARGET_GROUP_TYPE mHDRAfterGroupType;
 
 
+	vector<shared_ptr<PostProcess>> mHDRPasses;
+	vector<shared_ptr<PostProcess>> mLDRPasses;
+
+	std::shared_ptr<ToneMapPass> mToneMapPass;
 };
 

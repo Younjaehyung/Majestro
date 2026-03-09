@@ -108,7 +108,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
-	case SHADER_TYPE::ToneMap:
+	case SHADER_TYPE::TONEMAP:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
@@ -260,7 +260,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		break;
 	case SHADER_TYPE::FORWARD:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] =DXGI_FORMAT_R16G16B16A16_FLOAT;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		break;
 	case SHADER_TYPE::LIGHTING:
 		mGraphicsPipelineDesc.NumRenderTargets = 2;
@@ -275,15 +275,39 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.NumRenderTargets = 0;
 		break;
 	case SHADER_TYPE::SHADOW:
-		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32_FLOAT;
+		mGraphicsPipelineDesc.NumRenderTargets = 0;
+
 		break;
-	case SHADER_TYPE::ToneMap:
+	case SHADER_TYPE::BILBOARD:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
-	}
+	case SHADER_TYPE::BLUR:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::UI:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::COMPOSITE:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::TONEMAP:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case SHADER_TYPE::POST:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	default:
+		mGraphicsPipelineDesc.NumRenderTargets = 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		break;
 
+	}
 
 	switch (info.rasterizerType)
 	{

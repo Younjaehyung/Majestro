@@ -10,6 +10,8 @@ public:
 	void Initialize();
 	void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 
+	void Compute();
+
 	void InstancingRender(DrawBatch& drawBatch);
 private:
 	void DispatchForwardPlusCull();

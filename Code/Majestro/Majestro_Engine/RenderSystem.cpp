@@ -22,8 +22,10 @@
 #include "LightsPass.h"
 #include "ForwardPass.h"
 #include "EffectPass.h"
+#include "PostProcessPass.h"
 #include "ToneMapPass.h"
 
+#include "ChromaticAberrationPass.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 
@@ -63,8 +65,15 @@ void RenderSystem::Initialize() {
   mForwardPass = make_shared<ForwardPass>();
   mEffectPass  = make_shared<EffectPass>();
   mToneMapPass = make_shared<ToneMapPass>();
-
+  mPostProcessPass = make_shared<PostProcessPass>();
+  
+  
+  
   mEffectPass->Initialize(mWorld);
+  mPostProcessPass->Initialize();
+  mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
+ // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
+ // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
 
   // PushObjectData()가 sDebugLineQueue를 소비하므로
 // PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
@@ -91,23 +100,10 @@ void RenderSystem::Update() {
   ClearRTV();
 
 
-   //PushObjectData()가 sDebugLineQueue를 소비하므로
-    //PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
-  {
-      auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
-      if (navMesh && navMesh->mDtNavMesh)
-          mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
-  }
-
   PushData();
 
-  RenderShadow();
-  RenderDeferred();
-  RenderForward();
-  RenderEffect();
-  RenderPost();
+ 
 
-  // m_postStack -> update();
 }
 
 void RenderSystem::PushData() {
@@ -120,6 +116,21 @@ void RenderSystem::PushData() {
   PushLightData();
   PushPassData();
   PushInstanceData();
+}
+
+void RenderSystem::PreProcess()
+{
+    mForwardPass->Compute();
+}
+
+void RenderSystem::RenderPass()
+{
+    RenderDebugging();
+    RenderShadow();
+    RenderDeferred();
+    RenderForward();
+    RenderEffect();
+    RenderPost();
 }
 
 void RenderSystem::ClearRTV() {
@@ -852,7 +863,20 @@ void RenderSystem::RenderEffect() {
 }
 
 void RenderSystem::RenderPost() {
-    mToneMapPass->Execute();
+   // mToneMapPass->Execute();
+	mPostProcessPass->Execute();
+    
+}
+
+void RenderSystem::RenderDebugging()
+{
+     //PushObjectData()가 sDebugLineQueue를 소비하므로
+     //PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
+    {
+        auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
+        if (navMesh && navMesh->mDtNavMesh)
+            mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
+    }
 }
 
 bool RenderSystem::IsFrustumCulled(TransformComponent *trans,

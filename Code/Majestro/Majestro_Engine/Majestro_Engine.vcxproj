@@ -191,6 +191,7 @@
     <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
+    <ClInclude Include="ChromaticAberrationPass.h" />
     <ClInclude Include="CollisionSystem.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -296,6 +297,7 @@
     <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
+    <ClCompile Include="ChromaticAberrationPass.cpp" />
     <ClCompile Include="CollisionSystem.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Component.cpp" />

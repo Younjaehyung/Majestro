@@ -126,10 +126,11 @@ public:
 
 private:           // RenderPass
   void ClearRTV(); // clear
-
-  void PushData();
-
   void ClearBuffer();
+  void PushData();
+  void PreProcess();
+  void RenderPass();
+  
 private: // Culling
   bool IsCustomCulled(uint8 layer) {
     return (mCullingMask & (1 << layer)) != 0;
@@ -168,6 +169,9 @@ private: // Render
 
   // post process
   void RenderPost();
+
+  // 디버그용 충돌박스 / 라인
+  void RenderDebugging();
 
 private:
   uint32 mFrameCount = 0;

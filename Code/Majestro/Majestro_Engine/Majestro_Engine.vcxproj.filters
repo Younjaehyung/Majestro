@@ -160,6 +160,12 @@
     <Filter Include="World\System\Render\Effect">
       <UniqueIdentifier>{13fbfe9a-7fb2-469f-8773-dbb82d5249c5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Render\Post">
+      <UniqueIdentifier>{69b154bd-6480-4136-9165-883f6ab612de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\ETC">
+      <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -445,9 +451,6 @@
     <ClInclude Include="RenderSystem.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
-    <ClInclude Include="PostProcessPass.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
     <ClInclude Include="FinalPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
@@ -469,8 +472,14 @@
     <ClInclude Include="EffectPass.h">
       <Filter>World\System\Render\Effect</Filter>
     </ClInclude>
+    <ClInclude Include="ChromaticAberrationPass.h">
+      <Filter>World\System\Render\Post</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessPass.h">
+      <Filter>World\System\Render\Post</Filter>
+    </ClInclude>
     <ClInclude Include="ToneMapPass.h">
-      <Filter>World\System\Render</Filter>
+      <Filter>World\System\Render\Post</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -747,9 +756,6 @@
     <ClCompile Include="RenderSystem.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
-    <ClCompile Include="PostProcessPass.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
     <ClCompile Include="FinalPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
@@ -765,8 +771,14 @@
     <ClCompile Include="EffectPass.cpp">
       <Filter>World\System\Render\Effect</Filter>
     </ClCompile>
+    <ClCompile Include="ChromaticAberrationPass.cpp">
+      <Filter>World\System\Render\Post</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcessPass.cpp">
+      <Filter>World\System\Render\Post</Filter>
+    </ClCompile>
     <ClCompile Include="ToneMapPass.cpp">
-      <Filter>World\System\Render</Filter>
+      <Filter>World\System\Render\Post</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

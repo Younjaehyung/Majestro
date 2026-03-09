@@ -1087,7 +1087,7 @@ void ResourceManager::CreateDefaultShader()
 	{
 		ShaderInfo info =
 		{
-			SHADER_TYPE::ToneMap,
+			SHADER_TYPE::TONEMAP,
 			RASTERIZER_TYPE::CULL_BACK,
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};
@@ -1098,6 +1098,22 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Main");
 		Add<Shader>(L"ToneMap", shader);
+	}
+	
+	// ChromaticAberration
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::POST,
+
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\ChromaticAberration_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\ChromaticAberration_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
+		Add<Shader>(L"ChromaticAberration", shader);
 	}
 }
 

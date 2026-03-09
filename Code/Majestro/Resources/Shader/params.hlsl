@@ -262,8 +262,8 @@ ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////
-Texture2D<float4> Gbuffer[7] : register(t0, space0);
-Texture2DArray ShadowMaps : register(t7, space0);
+Texture2D<float4> Gbuffer[9] : register(t0, space0);
+Texture2DArray ShadowMaps : register(t9, space0);
  ///////////////////////////////////////////////////////////////////
 
 

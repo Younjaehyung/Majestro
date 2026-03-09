@@ -80,7 +80,7 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
     mCurrPSOID = 0;
     mFrameIndex = RENDERMANAGER.GetFrameResourceIndex();
 
-    DispatchForwardPlusCull();
+    //DispatchForwardPlusCull();
     auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
     hdrGroup.WaitResourceToTarget();
     hdrGroup.OMSetRenderTargets();
@@ -100,6 +100,11 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
         InstancingRender(drawBatch);
     }
     hdrGroup.WaitTargetToResource();
+}
+
+void ForwardPass::Compute()
+{
+    DispatchForwardPlusCull();
 }
 
 void ForwardPass::InstancingRender(DrawBatch& drawBatch) {

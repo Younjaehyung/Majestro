@@ -487,6 +487,25 @@ void RenderManager::CreateRenderTargetGroups()
 
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::HDR)].Create(RENDER_TARGET_GROUP_TYPE::HDR, rtVec, dsTexture);
 	}
+
+	// PostProcess Group
+	{
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PostProcessTargetA",
+			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_PROCESS_A)].Create(RENDER_TARGET_GROUP_TYPE::POST_PROCESS_A, rtVec, dsTexture);
+	}
+	{
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PostProcessTargetB",
+			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_PROCESS_B)].Create(RENDER_TARGET_GROUP_TYPE::POST_PROCESS_B, rtVec, dsTexture);
+	}
+
 	int i = 0;
 	for (auto& renderTargetGroup : mRenderTargetGroup) {
 		

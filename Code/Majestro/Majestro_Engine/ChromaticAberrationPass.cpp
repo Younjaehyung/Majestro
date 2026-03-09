@@ -1,12 +1,17 @@
 #include "pch.h"
-#include "ToneMapPass.h"
+#include "ChromaticAberrationPass.h"
 
 #include "Engine.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
 
-void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
-{
+void ChromaticAberrationPass::Initialize() {
+
+}
+
+void ChromaticAberrationPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after) {
+	if (mEnabled == false) return;
+
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
 	if (RENDERMANAGER.IsMsaaEnabled())
@@ -18,14 +23,13 @@ void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 	else
 	{
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
+		// A-> B 입력
 	}
 
 	// HDR RT는 EffectPass에서 WaitTargetToResource()로 SRV 상태
-	RESOURCEMANAGER.Get<Shader>(L"ToneMap")->Update();
+	RESOURCEMANAGER.Get<Shader>(L"ChromaticAberration")->Update();
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 
 	if (RENDERMANAGER.IsMsaaEnabled())
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-
-	// SwapChain은 RT 상태 유지 — UIRenderSystem이 이어서 렌더링
 }

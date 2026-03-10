@@ -14,7 +14,7 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
     
     // 각 채널별 샘플링 UV 계산
     // R채널은 바깥쪽으로, B채널은 안쪽으로 당겨서 분리감 표현
-    float2 offset = CalcRadialOffset(uv, 0.01f);
+    float2 offset = CalcRadialOffset(uv, 0.03f);
     
     float2 uvR = uv + offset; // R: 바깥쪽
     float2 uvG = uv; // G: 원본 (기준점)

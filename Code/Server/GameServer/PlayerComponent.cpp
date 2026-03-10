@@ -19,10 +19,10 @@ const char* ResolveStateSettingJsonPath(uint8 playerType)
         "../Resources/Json/StateSetting_Fanthor.json",
     };
 
-    if (playerType < 1 || playerType > 3)
+    if (playerType < 0 || playerType > 2)
         return kStateSettingJsonPaths[0];
-
-    return kStateSettingJsonPaths[playerType - 1];
+    
+    return kStateSettingJsonPaths[playerType];
 }
 
 static StateId NameToId(const std::string& n) {
@@ -160,6 +160,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
     };
     InitFSMFromJson(path);
 
+    cout << "playertype:" << (int)mPlayerType << endl;
     LoadStateSettingFromJson(ResolveStateSettingJsonPath(playerType));
 }
 
@@ -308,8 +309,8 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
     {
         auto& p = j["player"];
 
-        if (p.contains("walkSpeed"))
-            mWalkSpeed = p["walkSpeed"].get<float>();
+        /*if (p.contains("walkSpeed"))
+            mWalkSpeed = p["walkSpeed"].get<float>();*/
 
         if (p.contains("runSpeed"))
             mRunSpeed = p["runSpeed"].get<float>();
@@ -324,7 +325,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
             //mJumpForce = p["jumpForce"].get<float>();
 
         std::cout << "[Player Config Loaded]\n";
-        std::cout << "  WalkSpeed : " << mWalkSpeed << "\n";
+        //std::cout << "  WalkSpeed : " << mWalkSpeed << "\n";
         std::cout << "  RunSpeed  : " << mRunSpeed << "\n";
         std::cout << "  DashSpeed : " << mDashSpeed << "\n";
         std::cout << "  DashTime : " << mDashTime << "\n";

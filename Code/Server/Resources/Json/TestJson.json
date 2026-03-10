@@ -13,28 +13,14 @@
     "guards": [
         {
             "from": "Idle",
-            "to": "Walk",
-            "require": [],
-            "forbid": [ "F_STUN", "F_DEAD" ]
-        },
-
-        {
-            "from": "Walk",
             "to": "Run",
-            "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_NO_RUN" ]
-        },
-
-        {
-            "from": "Walk",
-            "to": "Idle",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD" ]
         },
 
         {
             "from": "Run",
-            "to": "Walk",
+            "to": "Idle",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD" ]
         },
@@ -48,7 +34,7 @@
 
         {
             "from": "Jump",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
         },
@@ -62,14 +48,14 @@
 
         {
             "from": "Fall",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_JUMP" ]
         },
 
         {
             "from": "Land",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
         },
@@ -83,14 +69,14 @@
 
         {
             "from": "Dash",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_MOVE" ]
         },
 
         {
             "from": "Attack1",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },
@@ -104,7 +90,7 @@
 
         {
             "from": "Attack2",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },
@@ -118,7 +104,7 @@
 
         {
             "from": "Skill1",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },
@@ -132,7 +118,7 @@
 
         {
             "from": "Skill2",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },
@@ -146,7 +132,7 @@
 
         {
             "from": "Special",
-            "to": "Walk",
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },

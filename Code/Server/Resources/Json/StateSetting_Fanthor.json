@@ -1,7 +1,7 @@
 {
     "player": {
-        "RunSpeed": 50.0,
-        "DashSpeed": 100.0,
+        "runSpeed": 50.0,
+        "dashSpeed": 100.0,
         "dashTime": 5.0
     },
 

@@ -1115,6 +1115,22 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
 		Add<Shader>(L"ChromaticAberration", shader);
 	}
+	
+	// COMPOSITE
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::COMPOSITE,
+
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\FianlComposite_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\FianlComposite_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
+		Add<Shader>(L"FianlComposite", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()

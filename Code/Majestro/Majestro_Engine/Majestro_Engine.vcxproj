@@ -208,6 +208,7 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
     <ClInclude Include="FBXData.h" />
+    <ClInclude Include="FinalCompositePass.h" />
     <ClInclude Include="FinalPass.h" />
     <ClInclude Include="ForwardPass.h" />
     <ClInclude Include="GameEvents.h" />
@@ -315,6 +316,7 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EventManager.cpp" />
     <ClCompile Include="FBXData.cpp" />
+    <ClCompile Include="FinalCompositePass.cpp" />
     <ClCompile Include="FinalPass.cpp" />
     <ClCompile Include="ForwardPass.cpp" />
     <ClCompile Include="GameEvents.cpp" />
@@ -536,7 +538,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_Main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Main</EntryPointName>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Last_PS.hlsl">
+    <FxCompile Include="..\Resources\Shader\FianlComposite_PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>
@@ -546,7 +548,7 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Last_VS.hlsl">
+    <FxCompile Include="..\Resources\Shader\FianlComposite_VS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">VS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">VS_Main</EntryPointName>

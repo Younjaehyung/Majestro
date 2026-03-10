@@ -121,17 +121,18 @@ void RenderSystem::PushData() {
 
 void RenderSystem::PreProcess()
 {
-   // mForwardPass->Compute();
+   mForwardPass->Compute();
 }
 
 void RenderSystem::RenderPass()
 {
     
-    RenderShadow();
+    // RenderShadow();
     RenderDeferred();
     RenderForward();
     RenderEffect();
     RenderPost();
+
     
 }
 

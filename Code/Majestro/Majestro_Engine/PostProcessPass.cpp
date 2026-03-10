@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 
 #include "ToneMapPass.h"
+#include "FinalCompositePass.h"
 #include "ChromaticAberrationPass.h"
 
 
@@ -23,7 +24,7 @@ void PostProcess::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 void PostProcessPass::Initialize()
 {
 	mToneMapPass = make_shared<ToneMapPass>();
-
+	mFinalCompositePass = make_shared<FinalCompositePass>();
 
     // AddLDRPass(std::make_shared<ChromaticAberrationPass>());
 }
@@ -58,8 +59,7 @@ void PostProcessPass::Execute()
         hdrBefore = RENDER_TARGET_GROUP_TYPE::HDR;
     }
 
-   // RENDER_TARGET_GROUP_TYPE ldrBefore = RENDER_TARGET_GROUP_TYPE::POST_LDR_A;
-    RENDER_TARGET_GROUP_TYPE ldrBefore = RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN;
+    RENDER_TARGET_GROUP_TYPE ldrBefore = RENDER_TARGET_GROUP_TYPE::POST_LDR_A;
     RENDER_TARGET_GROUP_TYPE ldrAfter = RENDER_TARGET_GROUP_TYPE::POST_LDR_B;
 
     // 수정: ToneMap은 HDR 입력 -> LDR 출력이어야 함
@@ -72,5 +72,5 @@ void PostProcessPass::Execute()
     }
 
     // 수정: UI / FinalComposite가 참조할 최종 결과 저장
-   // mFinalLDRGroupType = ldrBefore;
+    mFinalCompositePass->Execute(ldrBefore);
 }

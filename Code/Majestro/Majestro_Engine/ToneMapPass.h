@@ -11,3 +11,4 @@ public:
 	// HDR RT → SwapChain RT (ToneMap 셰이더)
 	virtual void Execute(RENDER_TARGET_GROUP_TYPE, RENDER_TARGET_GROUP_TYPE);
 };
+

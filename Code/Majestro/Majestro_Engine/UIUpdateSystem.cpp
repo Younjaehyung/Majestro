@@ -60,9 +60,9 @@ void UIUpdateSystem::Initialize()
 
 void UIUpdateSystem::Update(float dt)
 {
-    UpdateSpriteAnimation(dt);
+   UpdateSpriteAnimation(dt);
 
-    UpdateHpBarUI();
+   UpdateHpBarUI();
 
 }
 

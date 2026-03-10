@@ -166,6 +166,12 @@
     <Filter Include="World\Resource\Shader\ETC">
       <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Render\Deferred">
+      <UniqueIdentifier>{fa68a731-1a47-472f-b259-63f64e3d4ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\Forward">
+      <UniqueIdentifier>{91254c3f-3ca2-469b-a1b2-79d7d7c73e90}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -439,15 +445,6 @@
     <ClInclude Include="ShadowPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
-    <ClInclude Include="GBufferPass.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="LightsPass.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="ForwardPass.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
     <ClInclude Include="RenderSystem.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
@@ -483,6 +480,18 @@
     </ClInclude>
     <ClInclude Include="CompositePass.h" />
     <ClInclude Include="LastPass.h" />
+    <ClInclude Include="FinalCompositePass.h">
+      <Filter>World\System\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GBufferPass.h">
+      <Filter>World\System\Render\Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="LightsPass.h">
+      <Filter>World\System\Render\Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="ForwardPass.h">
+      <Filter>World\System\Render\Forward</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -746,15 +755,6 @@
     <ClCompile Include="ShadowPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
-    <ClCompile Include="GBufferPass.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="LightsPass.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="ForwardPass.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
     <ClCompile Include="RenderSystem.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
@@ -784,6 +784,18 @@
     </ClCompile>
     <ClCompile Include="CompositePass.cpp" />
     <ClCompile Include="LastPass.cpp" />
+    <ClCompile Include="FinalCompositePass.cpp">
+      <Filter>World\System\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="GBufferPass.cpp">
+      <Filter>World\System\Render\Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="LightsPass.cpp">
+      <Filter>World\System\Render\Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="ForwardPass.cpp">
+      <Filter>World\System\Render\Forward</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -903,10 +915,10 @@
     <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Last_PS.hlsl">
+    <FxCompile Include="..\Resources\Shader\FianlComposite_PS.hlsl">
       <Filter>World\Resource\Shader\ETC</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Last_VS.hlsl">
+    <FxCompile Include="..\Resources\Shader\FianlComposite_VS.hlsl">
       <Filter>World\Resource\Shader\ETC</Filter>
     </FxCompile>
   </ItemGroup>

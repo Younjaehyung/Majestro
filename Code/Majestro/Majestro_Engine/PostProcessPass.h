@@ -2,6 +2,8 @@
 #include "RenderTarget.h"
 
 class ToneMapPass;
+class FinalCompositePass;
+
 
 class PostProcess
 {
@@ -43,5 +45,6 @@ private:
 	vector<shared_ptr<PostProcess>> mLDRPasses;
 
 	std::shared_ptr<ToneMapPass> mToneMapPass;
+	std::shared_ptr<FinalCompositePass> mFinalCompositePass;
 };
 

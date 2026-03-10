@@ -208,6 +208,7 @@
       <Filter>System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshLoader.cpp" />
+    <ClCompile Include="PlayerNavValidationSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -367,6 +368,10 @@
       <Filter>Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshLoader.h" />
+    <ClInclude Include="PlayerNavValidationSystem.h" />
+    <ClInclude Include="ArmorComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

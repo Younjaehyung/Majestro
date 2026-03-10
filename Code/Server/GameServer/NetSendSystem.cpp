@@ -8,6 +8,7 @@
 #include "MovementComponent.h"
 #include "BulletComponent.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
 #include "GameEvents.h"
 #include <unordered_set>
 
@@ -24,6 +25,7 @@ void NetSendSystem::Update(float dt)
 	ConvertState();
 	SendCollision();
 	SendHealthEvents();
+	SendArmorEvents();
 	SendBulletDeactivateEvents();
 }
 
@@ -233,6 +235,41 @@ void NetSendSystem::SendHealthEvents()
 				mSendReq.Type = S2C_PKT_HEALTH;
 				mSendReq.Size = sizeof(S2C_HealthPacket);
 				mSendReq.StoreAs<S2C_HealthPacket>(healthPkt);
+				gSendQueue.Push(mSendReq);
+			}
+		});
+}
+
+void NetSendSystem::SendArmorEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvArmorChanged>([&](const EvArmorChanged& e)
+		{
+			if (!e.target.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
+			if (netComp == nullptr)
+				return;
+
+			S2C_ArmorPacket armorPkt;
+			armorPkt.netEntityId = netComp->mNetEntityId;
+			armorPkt.currentArmor = e.currentArmor;
+			armorPkt.maxArmor = e.maxArmor;
+
+			for (uint32 sessionId : recipients)
+			{
+				mSendReq.SessionId = sessionId;
+				mSendReq.Type = S2C_PKT_ARMOR;
+				mSendReq.Size = sizeof(S2C_ArmorPacket);
+				mSendReq.StoreAs<S2C_ArmorPacket>(armorPkt);
 				gSendQueue.Push(mSendReq);
 			}
 		});

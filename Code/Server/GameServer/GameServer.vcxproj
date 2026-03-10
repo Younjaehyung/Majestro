@@ -231,6 +231,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ServerCore\json.hpp" />
+    <ClInclude Include="ArmorComponent.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="BulletComponent.h" />

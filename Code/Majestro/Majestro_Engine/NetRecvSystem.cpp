@@ -20,6 +20,7 @@
 #include "NetSendSystem.h"
 #include "MovementSystem.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -159,6 +160,24 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << healthPacket->netEntityId
             << " hp=" << beforeHp << "/" << beforeMaxHp
             << " -> " << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
+            << std::endl;
+        return;
+    }
+    else if (msg.Type == PKT_Type::S2C_PKT_ARMOR) {
+        const S2C_ArmorPacket* armorPacket = msg.ViewAs<S2C_ArmorPacket>();
+        Entity e = mWorld->GetEntityByNetId(armorPacket->netEntityId);
+        ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(e);
+        if (armorComp == nullptr) return;
+
+        const int32 beforeArmor = armorComp->mCurrentArmor;
+        const int32 beforeMaxArmor = armorComp->mMaxArmor;
+
+        armorComp->mCurrentArmor = armorPacket->currentArmor;
+        armorComp->mMaxArmor = armorPacket->maxArmor;
+
+        std::cout << "[Client][S2C_PKT_ARMOR] netEntityId=" << armorPacket->netEntityId
+            << " armor=" << beforeArmor << "/" << beforeMaxArmor
+            << " -> " << armorComp->mCurrentArmor << "/" << armorComp->mMaxArmor
             << std::endl;
         return;
     }

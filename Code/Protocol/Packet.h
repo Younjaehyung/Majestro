@@ -37,6 +37,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_BULLET_ACTIVATE,
 	S2C_PKT_BULLET_DEACTIVATE,
 	S2C_PKT_HEALTH,
+	S2C_PKT_ARMOR,
 
 	KMSG,
 };
@@ -204,6 +205,19 @@ struct S2C_HealthPacket : public PacketTcpHeader {
 		netEntityId(entityId), currentHp(hp), maxHp(maxHpValue) {
 	}
 };
+
+struct S2C_ArmorPacket : public PacketTcpHeader {
+	uint64_t netEntityId{};
+	int32_t currentArmor{};
+	int32_t maxArmor{};
+
+	S2C_ArmorPacket() : PacketTcpHeader{ sizeof(S2C_ArmorPacket), PKT_Type::S2C_PKT_ARMOR, 0.0 } {}
+	S2C_ArmorPacket(uint64_t entityId, int32_t armor, int32_t maxArmorValue)
+		: PacketTcpHeader{ sizeof(S2C_ArmorPacket), PKT_Type::S2C_PKT_ARMOR, 0.0 },
+		netEntityId(entityId), currentArmor(armor), maxArmor(maxArmorValue) {
+	}
+};
+
 
 
 struct S2C_MovePacket : public PacketUdpHeader {

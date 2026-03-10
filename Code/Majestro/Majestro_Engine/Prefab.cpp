@@ -25,6 +25,7 @@
 #include "BoxColliderComponent.h"
 #include "BulletComponent.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
 {
@@ -118,6 +119,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
+		world->AddComponent<HealthComponent>(mEntityID, 150, 150);
+		world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
@@ -144,6 +147,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 		break;
 	case 1:
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 		
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010");
@@ -168,6 +173,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 		break;
 	case 2:
+		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010");
@@ -221,7 +228,6 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 30,100,30 };	
 	Vec3 center{ 0,50,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
-	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);

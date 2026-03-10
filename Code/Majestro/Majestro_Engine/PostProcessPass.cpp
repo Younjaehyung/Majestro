@@ -26,7 +26,7 @@ void PostProcessPass::Initialize()
 	mToneMapPass = make_shared<ToneMapPass>();
 	mFinalCompositePass = make_shared<FinalCompositePass>();
 
-    // AddLDRPass(std::make_shared<ChromaticAberrationPass>());
+    AddLDRPass(std::make_shared<ChromaticAberrationPass>());
 }
 
 void PostProcessPass::Execute()
@@ -38,6 +38,8 @@ void PostProcessPass::Execute()
 
     for (shared_ptr<PostProcess>& pass : mHDRPasses)
     {
+
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(hdrAfter)).ClearRenderTargetView();
         pass->Execute(hdrBefore, hdrAfter);
 
         if (firstHDRPass)
@@ -51,6 +53,9 @@ void PostProcessPass::Execute()
         {
             swap(hdrBefore, hdrAfter);
         }
+        // POST_HDR Group 초기화
+       
+      
     }
 
     // HDR 패스가 하나도 없으면 scene color를 그대로 tone map
@@ -59,16 +64,19 @@ void PostProcessPass::Execute()
         hdrBefore = RENDER_TARGET_GROUP_TYPE::HDR;
     }
 
-    RENDER_TARGET_GROUP_TYPE ldrBefore = RENDER_TARGET_GROUP_TYPE::POST_LDR_A;
-    RENDER_TARGET_GROUP_TYPE ldrAfter = RENDER_TARGET_GROUP_TYPE::POST_LDR_B;
+    RENDER_TARGET_GROUP_TYPE ldrBefore = RENDER_TARGET_GROUP_TYPE::POST_LDR_A; //9
+    RENDER_TARGET_GROUP_TYPE ldrAfter = RENDER_TARGET_GROUP_TYPE::POST_LDR_B;  //10
 
     // 수정: ToneMap은 HDR 입력 -> LDR 출력이어야 함
     mToneMapPass->Execute(hdrBefore, ldrBefore);
 
     for (shared_ptr<PostProcess>& pass : mLDRPasses)
     {
+        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(ldrAfter)).ClearRenderTargetView();
         pass->Execute(ldrBefore, ldrAfter);
         swap(ldrBefore, ldrAfter);
+        // POST_LDR Group 초기화
+        
     }
 
     // 수정: UI / FinalComposite가 참조할 최종 결과 저장

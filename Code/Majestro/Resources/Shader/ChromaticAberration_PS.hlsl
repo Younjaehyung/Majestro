@@ -25,10 +25,10 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
     uvG = saturate(uvG);
     uvB = saturate(uvB);
     
-    float r = Gbuffer[7].Sample(g_sam_0, uvR).r;
-    float g = Gbuffer[7].Sample(g_sam_0, uvG).g;
-    float b = Gbuffer[7].Sample(g_sam_0, uvB).b;
-    float a = Gbuffer[7].Sample(g_sam_0, uvG).a;
+    float r = Gbuffer[9].Sample(g_sam_0, uvR).r;
+    float g = Gbuffer[9].Sample(g_sam_0, uvG).g;
+    float b = Gbuffer[9].Sample(g_sam_0, uvB).b;
+    float a = Gbuffer[9].Sample(g_sam_0, uvG).a;
     
     return float4(r, g, b, a);
 }

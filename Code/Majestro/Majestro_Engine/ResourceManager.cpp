@@ -1105,7 +1105,8 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::POST,
-
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\ChromaticAberration_VS.hlsl",
@@ -1121,7 +1122,8 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::COMPOSITE,
-
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\FianlComposite_VS.hlsl",

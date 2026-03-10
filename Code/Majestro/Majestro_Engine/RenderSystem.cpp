@@ -127,7 +127,7 @@ void RenderSystem::PreProcess()
 void RenderSystem::RenderPass()
 {
     
-    // RenderShadow();
+    RenderShadow();
     RenderDeferred();
     RenderForward();
     RenderEffect();
@@ -163,6 +163,14 @@ void RenderSystem::ClearRTV() {
 
   // Lighting Group 초기화
   RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).ClearRenderTargetView();
+
+  //// POST_HDR Group 초기화
+  //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_HDR_A)).ClearRenderTargetView();
+  //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_HDR_B)).ClearRenderTargetView();
+
+  //// POST_LDR Group 초기화
+  //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_LDR_A)).ClearRenderTargetView();
+  //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_LDR_B)).ClearRenderTargetView();
 
   mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 

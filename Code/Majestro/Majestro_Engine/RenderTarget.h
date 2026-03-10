@@ -10,10 +10,11 @@ enum class RENDER_TARGET_GROUP_TYPE : uint8
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT
 	HDR, // SCENE HDR COLOR
-	POST_LDR_A, //LDR 등 효과 처리용 RT
-	POST_LDR_B, //LDR 등 효과 처리용 RT
+
 	POST_HDR_A, //HDR 등 효과 처리용 RT
 	POST_HDR_B, //HDR 등 효과 처리용 RT
+	POST_LDR_A, //LDR 등 효과 처리용 RT
+	POST_LDR_B, //LDR 등 효과 처리용 RT
 	END,
 };
 

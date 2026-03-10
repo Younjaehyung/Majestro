@@ -17,6 +17,7 @@ void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 	}
 	else
 	{
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitResourceToTarget();
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
 		
 	}
@@ -28,5 +29,6 @@ void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 	if (RENDERMANAGER.IsMsaaEnabled())
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
 
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitTargetToResource();
 	// SwapChain은 RT 상태 유지 — UIRenderSystem이 이어서 렌더링
 }

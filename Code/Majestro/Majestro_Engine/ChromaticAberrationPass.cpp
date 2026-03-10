@@ -22,8 +22,9 @@ void ChromaticAberrationPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TA
 	}
 	else
 	{
+		//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitResourceToTarget();
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
-		// A-> B 입력
+		// A-> B 입력 
 	}
 
 	// HDR RT는 EffectPass에서 WaitTargetToResource()로 SRV 상태
@@ -32,4 +33,6 @@ void ChromaticAberrationPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TA
 
 	if (RENDERMANAGER.IsMsaaEnabled())
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
+
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitTargetToResource();
 }

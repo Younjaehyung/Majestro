@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "json.hpp"
+#include <algorithm>
+#include <functional>
 #include <fstream>
 #include <limits>
 using json = nlohmann::json;
@@ -11,14 +13,15 @@ std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
-    if (n == "Walk") return S_Walk;
-	if (n == "Run")  return S_Run;
+    if (n == "WalkForward") return S_WalkForward;
+    if (n == "WalkBackward") return S_WalkBackward;
+    if (n == "WalkRight") return S_WalkRight;
+    if (n == "WalkLeft") return S_WalkLeft;
+	//if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
     if (n == "Fall")  return S_Fall;
     if (n == "Land")  return S_Land;
 	if (n == "Dash")  return S_Dash;
-
-    if (n == "Attack1")  return S_Attack1;
 
     if (n == "Aim")  return S_Aim;
     if (n == "ReRoad")  return S_ReRoad;
@@ -28,7 +31,7 @@ static StateId NameToId(const std::string& n) {
     if (n == "Stun")  return S_Stun;
     if (n == "Dead")  return S_Dead;
 
-    /*if (n == "Attack1")  return S_Attack1;*/
+    if (n == "Attack1")  return S_Attack1;
     if (n == "Attack2")  return S_Attack2;
     if (n == "Skill1")  return S_Skill1;
     if (n == "Skill2")  return S_Skill2;
@@ -37,21 +40,57 @@ static StateId NameToId(const std::string& n) {
 	return 255;
 }
 
+static std::vector<StateId> ResolveStateIdsForGuard(
+    const std::string& name,
+    const std::vector<State<MainPlayerComponent>*>& states,
+    const std::function<StateId(State<MainPlayerComponent>*)>& resolver)
+{
+    std::vector<StateId> result;
+
+    // "Walk"는 Walk 계열 상태 전체(예: WalkForward/Backward/Left/Right)에 확장 적용
+    if (name == "Walk")
+    {
+        for (auto* state : states)
+        {
+            if (!state)
+                continue;
+
+            const char* rawName = state->GetName();
+            if (!rawName)
+                continue;
+
+            const std::string stateName(rawName);
+            if (stateName.rfind("Walk", 0) != 0)
+                continue;
+
+            const StateId id = resolver(state);
+            if (id != 255 && std::find(result.begin(), result.end(), id) == result.end())
+                result.push_back(id);
+        }
+    }
+
+    if (result.empty())
+    {
+        const StateId id = NameToId(name);
+        if (id != 255)
+            result.push_back(id);
+    }
+
+    return result;
+}
+
 MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0ull)
 {
 }
 
-//MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
-//{
-//    InitFSMFromJson(path);
-//    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
-//};
-
 MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<shared_ptr<Animator>> anim*/) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
     mStateList = {
     IdleState::Instance(),
-    WalkState::Instance(),
-    RunState::Instance(),
+    WalkForwardState::Instance(),
+    WalkBackwardState::Instance(),
+    WalkRightState::Instance(),
+    WalkLeftState::Instance(),
+    //RunState::Instance(),
     JumpState::Instance(),
     FallState::Instance(),
     LandState::Instance(),
@@ -81,8 +120,11 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
 {
     mStateList = {
     IdleState::Instance(),
-    WalkState::Instance(),
-    RunState::Instance(),
+    WalkForwardState::Instance(),
+    WalkBackwardState::Instance(),
+    WalkRightState::Instance(),
+    WalkLeftState::Instance(),
+    //RunState::Instance(),
     JumpState::Instance(),
     FallState::Instance(),
     LandState::Instance(),
@@ -140,10 +182,13 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     cout << "json input" << endl;
 
     // 1) 포인터→ID 변환기 주입 (상태 이름→StateId)
-    mFsm.SetIdResolver([](State<MainPlayerComponent>* s)->StateId {
+    auto stateResolver = [](State<MainPlayerComponent>* s)->StateId {
         if (s == IdleState::Instance()) return S_Idle;
-        if (s == WalkState::Instance()) return S_Walk;
-        if (s == RunState::Instance())  return S_Run;
+        if (s == WalkForwardState::Instance()) return S_WalkForward;
+        if (s == WalkBackwardState::Instance()) return S_WalkBackward;
+        if (s == WalkRightState::Instance()) return S_WalkRight;
+        if (s == WalkLeftState::Instance()) return S_WalkLeft;
+        //if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance()) return S_Jump;
         if (s == FallState::Instance()) return S_Fall;
         if (s == LandState::Instance()) return S_Land;
@@ -155,7 +200,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == Skill2State::Instance()) return S_Skill2;
         if (s == SpecialState::Instance()) return S_Special;
         return 255;
-        });
+        };
+    mFsm.SetIdResolver(stateResolver);
 
     // 2) JSON 열기
     std::ifstream ifs(path);
@@ -195,10 +241,10 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
             const std::string fromName = g["from"].get<std::string>();
             const std::string toName = g["to"].get<std::string>();
 
-            StateId fromId = NameToId(fromName);
-            StateId toId = NameToId(toName);
+            const std::vector<StateId> fromIds = ResolveStateIdsForGuard(fromName, mStateList, stateResolver);
+            const std::vector<StateId> toIds = ResolveStateIdsForGuard(toName, mStateList, stateResolver);
 
-            if (fromId == 255 || toId == 255)
+            if (fromIds.empty() || toIds.empty())
                 continue;
 
             // speed 조건 제거 -> require / forbid만 가져간다
@@ -206,20 +252,26 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
             uint64_t forbidMask = g.contains("forbid") ? toMask(g["forbid"]) : 0ull;
 
             // FSM에 guard 등록
-            mFsm.AddGuardById(fromId, toId,
-                [reqMask, forbidMask](MainPlayerComponent* o)
+            for (StateId fromId : fromIds)
+            {
+                for (StateId toId : toIds)
                 {
-                    // require 플래그 충족?
-                    if ((o->mFlags & reqMask) != reqMask)
-                        return false;
+                    mFsm.AddGuardById(fromId, toId,
+                        [reqMask, forbidMask](MainPlayerComponent* o)
+                        {
+                            // require 플래그 충족?
+                            if ((o->mFlags & reqMask) != reqMask)
+                                return false;
 
-                    // forbid 플래그 존재하면 실패
-                    if ((o->mFlags & forbidMask) != 0)
-                        return false;
+                            // forbid 플래그 존재하면 실패
+                            if ((o->mFlags & forbidMask) != 0)
+                                return false;
 
-                    return true;
+                            return true;
+                        }
+                    );
                 }
-            );
+            }
         }
     }
 
@@ -336,46 +388,103 @@ void IdleState::Exit(MainPlayerComponent* owner) {
     StateExit(this, owner);
 }
 
-WalkState* WalkState::Instance() {
-    static WalkState inst;
+WalkForwardState* WalkForwardState::Instance() {
+    static WalkForwardState inst;
     return &inst;
 }
-void WalkState::Enter(MainPlayerComponent* owner)
+void WalkForwardState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
-void WalkState::Update(MainPlayerComponent* owner)
+void WalkForwardState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
     if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 
-    if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mWalkSpeed; } //달리기 불가 시 속도 강제 다운
-    else if (owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
+    //if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mWalkSpeed; } //달리기 불가 시 속도 강제 다운
+    //else if (owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
 }
-void WalkState::Exit(MainPlayerComponent* owner)
+void WalkForwardState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
 
-RunState* RunState::Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
-    static RunState inst;                          // 최초 호출 시 한 번만 생성
+WalkBackwardState* WalkBackwardState::Instance() {
+    static WalkBackwardState inst;
     return &inst;
 }
-void RunState::Enter(MainPlayerComponent* owner)
+void WalkBackwardState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
-void RunState::Update(MainPlayerComponent* owner)
+void WalkBackwardState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
-    if (owner->mSpeed < owner->mRunSpeed) owner->mFsm.ChangeState(owner, WalkState::Instance());
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 }
-void RunState::Exit(MainPlayerComponent* owner)
+void WalkBackwardState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
+
+WalkRightState* WalkRightState::Instance() {
+    static WalkRightState inst;
+    return &inst;
+}
+void WalkRightState::Enter(MainPlayerComponent* owner)
+{
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    StateEnter(this, owner);
+}
+void WalkRightState::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+}
+void WalkRightState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+WalkLeftState* WalkLeftState::Instance() {
+    static WalkLeftState inst;
+    return &inst;
+}
+void WalkLeftState::Enter(MainPlayerComponent* owner)
+{
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    StateEnter(this, owner);
+}
+void WalkLeftState::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+}
+void WalkLeftState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+//RunState* RunState::Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
+//    static RunState inst;                          // 최초 호출 시 한 번만 생성
+//    return &inst;
+//}
+//void RunState::Enter(MainPlayerComponent* owner)
+//{
+//    SetFlag(owner->mFlags, FLAG_MOVE);
+//    StateEnter(this, owner);
+//}
+//void RunState::Update(MainPlayerComponent* owner)
+//{
+//    StateUpdate(this, owner);
+//    if (owner->mSpeed < owner->mRunSpeed) owner->mFsm.ChangeState(owner, WalkForwardState::Instance());
+//}
+//void RunState::Exit(MainPlayerComponent* owner)
+//{
+//    StateExit(this, owner);
+//}
 
 JumpState* JumpState::Instance() {
     static JumpState inst;

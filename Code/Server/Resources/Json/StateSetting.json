@@ -12,15 +12,10 @@
             "animOnce": false,
             "animEndTime": 1.83333
         },
-        "WalkState": {
+        "WalkForwardState": {
             "time": 9999.0,
             "animOnce": false,
             "animEndTime": 1.36667
-        },
-        "RunState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 0.666667
         },
         "JumpState": {
             "time": 3.5,

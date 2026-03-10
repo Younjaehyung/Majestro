@@ -45,7 +45,7 @@ namespace
 	{
 		switch (playerType)
 		{
-		case 1:
+		case 0:
 			switch (actionButton)
 			{
 			case InputButtons::ATTACK: return BulletType::DrumAttack;
@@ -53,7 +53,7 @@ namespace
 			case InputButtons::SKILL2: return BulletType::DrumSkill2;
 			default: return BulletType::Default;
 			}
-		case 2:
+		case 1:
 			switch (actionButton)
 			{
 			case InputButtons::ATTACK: return BulletType::BaseAttack;
@@ -105,18 +105,19 @@ void PlayerInputSystem::Update(float dt)
 		
 
 		//movementComponent->mMovingDirection = { 0,0,0 };
-
+		mainPlayerComponent->mPlayerMovingDir.x = inputComp->MoveZ;
+		mainPlayerComponent->mPlayerMovingDir.y = inputComp->MoveX;
+		if (inputComp->MoveX == 1) {
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkRightState::Instance());
+		}
 		if (inputComp->MoveX == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkLeftState::Instance());
 		}
 		if (inputComp->MoveZ == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkForwardState::Instance());
 		}
 		if (inputComp->MoveZ == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-		}
-		if (inputComp->MoveX == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkBackwardState::Instance());
 		}
 
 

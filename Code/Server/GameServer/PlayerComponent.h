@@ -34,7 +34,8 @@ static std::unordered_map<std::string, uint64_t> gFlagByName = {
 };
 
 enum : StateId {
-	S_Idle = 0, S_Walk, S_Run, S_Jump, S_Fall = 4, S_Land, S_Dash,
+	S_Idle = 0, S_WalkForward, S_WalkBackward, S_WalkRight, S_WalkLeft,
+	S_Run, S_Jump, S_Fall, S_Land, S_Dash,
 	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special,
 	S_Aim, S_ReRoad, S_RhythmChange,
 	S_Hit, S_Stun, S_Dead,
@@ -70,9 +71,11 @@ public:
 	uint32 GetState() { return (uint32)mFsm.GetState(); };
 	uint32 GetLowerState() { 
 		if (mFlags & FLAG_MOVE) {
-			//if (mSpeed <= 1.f) return (uint32)S_Idle;
-			if(mSpeed <= mWalkSpeed) return (uint32)S_Walk;
-			if(mSpeed <= mRunSpeed) return (uint32)S_Run;
+			if(mPlayerMovingDir.x == 1)return (uint32)S_WalkForward;
+			if(mPlayerMovingDir.x == -1)return (uint32)S_WalkBackward;
+
+			if(mPlayerMovingDir.y == 1)return (uint32)S_WalkRight;
+			if(mPlayerMovingDir.y == -1)return (uint32)S_WalkLeft;
 		}
 
 		return (uint32)mFsm.GetState(); 
@@ -87,6 +90,8 @@ public:
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
+
+	Vec2 mPlayerMovingDir;
 
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;
@@ -118,22 +123,46 @@ public:
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
-class WalkState : public State<MainPlayerComponent> {
+class WalkForwardState : public State<MainPlayerComponent> {
 public:
-	static WalkState* Instance();
-	virtual const char* GetName() const override { return "WalkState"; }
+	static WalkForwardState* Instance();
+	virtual const char* GetName() const override { return "WalkForwardState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
-class RunState : public State<MainPlayerComponent> {
+class WalkBackwardState : public State<MainPlayerComponent> {
 public:
-	static RunState* Instance();
-	virtual const char* GetName() const override { return "RunState"; }
+	static WalkBackwardState* Instance();
+	virtual const char* GetName() const override { return "WalkBackwardState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
+class WalkRightState : public State<MainPlayerComponent> {
+public:
+	static WalkRightState* Instance();
+	virtual const char* GetName() const override { return "WalkRightState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class WalkLeftState : public State<MainPlayerComponent> {
+public:
+	static WalkLeftState* Instance();
+	virtual const char* GetName() const override { return "WalkLeftState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+//class RunState : public State<MainPlayerComponent> {
+//public:
+//	static RunState* Instance();
+//	virtual const char* GetName() const override { return "RunState"; }
+//	void Enter(MainPlayerComponent* owner) override;
+//	void Update(MainPlayerComponent* owner) override;
+//	void Exit(MainPlayerComponent* owner) override;
+//};
 class JumpState : public State<MainPlayerComponent> {
 public:
 	static JumpState* Instance();

@@ -138,7 +138,12 @@ void PlayerInputSystem::Update(float dt)
 			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
-		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//attack 
+		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {//attack
+			//std::cout << "attack!!!" << std::endl;
+			//ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReRoadState::Instance());
+		}
+		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change
 			//std::cout << "special" << std::endl;
 			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
 		}

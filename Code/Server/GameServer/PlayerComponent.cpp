@@ -97,7 +97,7 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 {
 }
 
-MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<shared_ptr<Animator>> anim*/) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
+MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
     mStateList = {
     IdleState::Instance(),
     RunForwardState::Instance(),
@@ -144,9 +144,9 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
     LandState::Instance(),
     DashState::Instance(),
 
-    AimState::Instance(),
     ReRoadState::Instance(),
     RhythmChangeState::Instance(),
+    AimState::Instance(),
 
     HitState::Instance(),
     StunState::Instance(),
@@ -214,6 +214,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == Skill1State::Instance()) return S_Skill1;
         if (s == Skill2State::Instance()) return S_Skill2;
         if (s == SpecialState::Instance()) return S_Special;
+
+        if (s == ReRoadState::Instance()) return S_ReRoad;
         return 255;
         };
     mFsm.SetIdResolver(stateResolver);

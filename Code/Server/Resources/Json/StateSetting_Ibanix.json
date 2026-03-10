@@ -6,16 +6,6 @@
     },
 
     "stateProps": {
-        "IdleState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 1.83333
-        },
-        "WalkForwardState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 1.36667
-        },
         "JumpState": {
             "time": 3.5,
             "animOnce": true,
@@ -57,6 +47,11 @@
             "animEndTime": 1.16667
         },
         "SpecialState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "ReRoadState": {
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 1.16667

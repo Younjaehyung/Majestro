@@ -156,10 +156,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011");
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //forward
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //backword
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //right
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //left
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run")); //forward
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_BackRun")); //backword
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_RightRun")); //right
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_LeftRun")); //left
 		//anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Fall"));
@@ -170,6 +170,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//skill1
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//skill2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//special
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Reload"));
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
 		break;
 	case 2:

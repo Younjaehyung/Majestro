@@ -148,7 +148,7 @@ private: // Push&Clear Data
   void PushInstanceData();
   void PushObjectData();
   void PushLightData();
-
+  void PushDebugging();
 
   void UpdateCascadeShadowMatrices(LightComponent* lightComponent);
 
@@ -170,8 +170,7 @@ private: // Render
   // post process
   void RenderPost();
 
-  // 디버그용 충돌박스 / 라인
-  void RenderDebugging();
+
 
 private:
   uint32 mFrameCount = 0;

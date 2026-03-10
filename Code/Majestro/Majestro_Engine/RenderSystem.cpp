@@ -108,6 +108,7 @@ void RenderSystem::Update() {
 
 void RenderSystem::PushData() {
   RENDERMANAGER.SetGraphicsTable();
+  // PushDebugging();
   PushLandData();
   PushCubeData();
 
@@ -120,17 +121,18 @@ void RenderSystem::PushData() {
 
 void RenderSystem::PreProcess()
 {
-    mForwardPass->Compute();
+   // mForwardPass->Compute();
 }
 
 void RenderSystem::RenderPass()
 {
-    RenderDebugging();
+    
     RenderShadow();
     RenderDeferred();
     RenderForward();
     RenderEffect();
     RenderPost();
+    
 }
 
 void RenderSystem::ClearRTV() {
@@ -868,7 +870,7 @@ void RenderSystem::RenderPost() {
     
 }
 
-void RenderSystem::RenderDebugging()
+void RenderSystem::PushDebugging()
 {
      //PushObjectData()가 sDebugLineQueue를 소비하므로
      //PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함

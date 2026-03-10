@@ -191,11 +191,13 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	
 	
 	t.mLocalPosition = { i * n, 0, j * n };
+	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
-	world->AddComponent<BoxColliderComponent>(mEntityID);
+	Vec3 half{ 50,50,50 };
+	world->AddComponent<BoxColliderComponent>(mEntityID,half);
 	world->AddComponent<MovableComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 

@@ -299,7 +299,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<AnimationComponent>(mEntityID, anmators);
 	//world->AddComponent<EnemyComponent>(mEntityID);
 	//world->AddComponent<EnemyMovementComponent>(mEntityID);
-	world->AddComponent<BoxColliderComponent>(mEntityID);
+	Vec3 half{ 50,50,50 };
+	world->AddComponent<BoxColliderComponent>(mEntityID,half);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 

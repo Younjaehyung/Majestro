@@ -205,8 +205,7 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity, BulletType 
 		if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
 		{
 			const float halfSize = bulletStat.Size * 0.5f;
-			bulletCollider->mHalfExtents = Vec3(halfSize, halfSize, halfSize);
-			bulletCollider->mCenter = Vec3::Zero;
+			bulletCollider->SetBox(Vec3(halfSize, halfSize, halfSize), Vec3::Zero);
 		}
 
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);

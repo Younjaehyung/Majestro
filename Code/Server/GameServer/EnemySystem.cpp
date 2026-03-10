@@ -90,7 +90,7 @@ void EnemySystem::Update(float dt)
                 // NavMesh 탐색 실패 시 직선 방향 (직진)
                 mc->mPathCount   = 1;
                 mc->mPath[0]     = playerPos;
-				std::cout << "Pathfinding failed for entity " << entity.GetID() << ". Moving directly towards target." << std::endl;
+				//std::cout << "Pathfinding failed for entity " << entity.GetID() << ". Moving directly towards target." << std::endl;
             }
             else {
                 // 탐색 성공 시 디버그 로그

@@ -99,6 +99,12 @@ public:
 	float mDashSpeed = 0.0f;
 	float mDashTime = 3.0f;
 
+	float mAttackCool;
+	float mSkill1Cool;
+	float mSkill2Cool;
+	uint8 mRhythm;
+
+
 	float mJumpPower = 60.f;
 	bool mFalling = false;
 	bool mDash = false;

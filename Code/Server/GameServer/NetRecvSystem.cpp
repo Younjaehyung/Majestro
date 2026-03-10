@@ -107,7 +107,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 		}
 	}
 
-	if (playertype > 2)
+	if (playertype < 1 || playertype > 3)
 	{
 		playertype = 1;
 	}
@@ -118,7 +118,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 	MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
 	if (playerComp)
 	{
-		playerComp->mPlayerType = playertype;
+		playertype = playerComp->mPlayerType;
 	}
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);

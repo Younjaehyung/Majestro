@@ -53,7 +53,13 @@ PlayerPrefab::~PlayerPrefab() {}
 
 Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   Entity mEntityID = world->CreateEntity();
-  
+
+  uint8 playerType = 1;
+  if (ctx.Type == PKT_Type::C2S_GAME_START) {
+	  const C2S_StartGamePacket* startPacket = ctx.ViewAs<C2S_StartGamePacket>();
+	  playerType = startPacket->playerType;
+  }
+
   TransformComponent t{};
   Entity testCamera = world->CreateEntity();
   world->AddComponent<MainCameraComponent>(testCamera);
@@ -67,7 +73,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<MainPlayerComponent>(mEntityID,
-                                           "../Resources/Json/TestJson.json");
+                                           "../Resources/Json/TestJson.json", playerType);
   world->AddComponent<TransformComponent>(mEntityID, t);
 
   world->AddComponent<BeatComponent>(mEntityID);

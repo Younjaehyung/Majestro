@@ -11,6 +11,20 @@ using json = nlohmann::json;
 BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
+const char* ResolveStateSettingJsonPath(uint8 playerType)
+{
+    static constexpr const char* kStateSettingJsonPaths[] = {
+        "../Resources/Json/StateSetting_Rudwig.json",
+        "../Resources/Json/StateSetting_Ibanix.json",
+        "../Resources/Json/StateSetting_Fanthor.json",
+    };
+
+    if (playerType < 1 || playerType > 3)
+        return kStateSettingJsonPaths[0];
+
+    return kStateSettingJsonPaths[playerType - 1];
+}
+
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
     if (n == "RunForward") return S_RunForward;
@@ -146,7 +160,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
     };
     InitFSMFromJson(path);
 
-    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+    LoadStateSettingFromJson(ResolveStateSettingJsonPath(playerType));
 }
 
 void MainPlayerComponent::StateCheck()

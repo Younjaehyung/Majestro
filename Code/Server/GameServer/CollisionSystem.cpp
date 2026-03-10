@@ -467,6 +467,30 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
         bulletTransform->mMovingVector = Vec3::Zero;
 
+        if (bullet->mKnockbackDistance > 0.0f)
+        {
+            TransformComponent* hitTransform = mWorld->GetComponent<TransformComponent>(hitTarget);
+            if (hitTransform)
+            {
+                Vec3 knockbackDirection = direction;
+                knockbackDirection.y = 0.0f;
+
+                if (knockbackDirection.LengthSquared() <= 1e-6f)
+                {
+                    knockbackDirection = hitTransform->mLocalPosition - bulletTransform->mLocalPosition;
+                    knockbackDirection.y = 0.0f;
+                }
+
+                if (knockbackDirection.LengthSquared() > 1e-6f)
+                {
+                    knockbackDirection.Normalize();
+                    const Vec3 knockbackVector = knockbackDirection * bullet->mKnockbackDistance;
+                    hitTransform->mLocalPosition += knockbackVector;
+                    hitTransform->mMovingVector += knockbackVector;
+                }
+            }
+        }
+
         if (bulletCollider)
             bulletCollider->bIsColliding = true;
         if (hitCollider)

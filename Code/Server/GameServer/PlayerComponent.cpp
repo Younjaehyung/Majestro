@@ -13,10 +13,10 @@ std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
-    if (n == "WalkForward") return S_WalkForward;
-    if (n == "WalkBackward") return S_WalkBackward;
-    if (n == "WalkRight") return S_WalkRight;
-    if (n == "WalkLeft") return S_WalkLeft;
+    if (n == "RunForward") return S_RunForward;
+    if (n == "RunBackward") return S_RunBackward;
+    if (n == "RunRight") return S_RunRight;
+    if (n == "RunLeft") return S_RunLeft;
 	//if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
     if (n == "Fall")  return S_Fall;
@@ -47,8 +47,8 @@ static std::vector<StateId> ResolveStateIdsForGuard(
 {
     std::vector<StateId> result;
 
-    // "Walk"는 Walk 계열 상태 전체(예: WalkForward/Backward/Left/Right)에 확장 적용
-    if (name == "Walk")
+    // "Run"는 Run 계열 상태 전체(예: RunForward/Backward/Left/Right)에 확장 적용
+    if (name == "Run")
     {
         for (auto* state : states)
         {
@@ -60,7 +60,7 @@ static std::vector<StateId> ResolveStateIdsForGuard(
                 continue;
 
             const std::string stateName(rawName);
-            if (stateName.rfind("Walk", 0) != 0)
+            if (stateName.rfind("Run", 0) != 0)
                 continue;
 
             const StateId id = resolver(state);
@@ -86,10 +86,10 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 MainPlayerComponent::MainPlayerComponent(const std::string& path/*, vector<shared_ptr<Animator>> anim*/) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
     mStateList = {
     IdleState::Instance(),
-    WalkForwardState::Instance(),
-    WalkBackwardState::Instance(),
-    WalkRightState::Instance(),
-    WalkLeftState::Instance(),
+    RunForwardState::Instance(),
+    RunBackwardState::Instance(),
+    RunRightState::Instance(),
+    RunLeftState::Instance(),
     //RunState::Instance(),
     JumpState::Instance(),
     FallState::Instance(),
@@ -120,10 +120,10 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
 {
     mStateList = {
     IdleState::Instance(),
-    WalkForwardState::Instance(),
-    WalkBackwardState::Instance(),
-    WalkRightState::Instance(),
-    WalkLeftState::Instance(),
+    RunForwardState::Instance(),
+    RunBackwardState::Instance(),
+    RunRightState::Instance(),
+    RunLeftState::Instance(),
     //RunState::Instance(),
     JumpState::Instance(),
     FallState::Instance(),
@@ -184,10 +184,10 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     // 1) 포인터→ID 변환기 주입 (상태 이름→StateId)
     auto stateResolver = [](State<MainPlayerComponent>* s)->StateId {
         if (s == IdleState::Instance()) return S_Idle;
-        if (s == WalkForwardState::Instance()) return S_WalkForward;
-        if (s == WalkBackwardState::Instance()) return S_WalkBackward;
-        if (s == WalkRightState::Instance()) return S_WalkRight;
-        if (s == WalkLeftState::Instance()) return S_WalkLeft;
+        if (s == RunForwardState::Instance()) return S_RunForward;
+        if (s == RunBackwardState::Instance()) return S_RunBackward;
+        if (s == RunRightState::Instance()) return S_RunRight;
+        if (s == RunLeftState::Instance()) return S_RunLeft;
         //if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance()) return S_Jump;
         if (s == FallState::Instance()) return S_Fall;
@@ -388,81 +388,81 @@ void IdleState::Exit(MainPlayerComponent* owner) {
     StateExit(this, owner);
 }
 
-WalkForwardState* WalkForwardState::Instance() {
-    static WalkForwardState inst;
+RunForwardState* RunForwardState::Instance() {
+    static RunForwardState inst;
     return &inst;
 }
-void WalkForwardState::Enter(MainPlayerComponent* owner)
+void RunForwardState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
-void WalkForwardState::Update(MainPlayerComponent* owner)
+void RunForwardState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
     if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 
-    //if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mWalkSpeed; } //달리기 불가 시 속도 강제 다운
+    //if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mRunSpeed; } //달리기 불가 시 속도 강제 다운
     //else if (owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
 }
-void WalkForwardState::Exit(MainPlayerComponent* owner)
+void RunForwardState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
 
-WalkBackwardState* WalkBackwardState::Instance() {
-    static WalkBackwardState inst;
+RunBackwardState* RunBackwardState::Instance() {
+    static RunBackwardState inst;
     return &inst;
 }
-void WalkBackwardState::Enter(MainPlayerComponent* owner)
+void RunBackwardState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
-void WalkBackwardState::Update(MainPlayerComponent* owner)
+void RunBackwardState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
     if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 }
-void WalkBackwardState::Exit(MainPlayerComponent* owner)
+void RunBackwardState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
 
-WalkRightState* WalkRightState::Instance() {
-    static WalkRightState inst;
+RunRightState* RunRightState::Instance() {
+    static RunRightState inst;
     return &inst;
 }
-void WalkRightState::Enter(MainPlayerComponent* owner)
+void RunRightState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
-void WalkRightState::Update(MainPlayerComponent* owner)
+void RunRightState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
     if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 }
-void WalkRightState::Exit(MainPlayerComponent* owner)
+void RunRightState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }
 
-WalkLeftState* WalkLeftState::Instance() {
-    static WalkLeftState inst;
+RunLeftState* RunLeftState::Instance() {
+    static RunLeftState inst;
     return &inst;
 }
-void WalkLeftState::Enter(MainPlayerComponent* owner)
+void RunLeftState::Enter(MainPlayerComponent* owner)
 {
     SetFlag(owner->mFlags, FLAG_MOVE);
     StateEnter(this, owner);
 }
-void WalkLeftState::Update(MainPlayerComponent* owner)
+void RunLeftState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
     if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 }
-void WalkLeftState::Exit(MainPlayerComponent* owner)
+void RunLeftState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

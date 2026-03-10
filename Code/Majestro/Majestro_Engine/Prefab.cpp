@@ -126,7 +126,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Walk"));/*Anim_Rudwig_Walk*/
+		//anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Land"));
@@ -148,10 +151,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011");
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //forward
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //backword
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //right
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk")); //left
 		//anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Fall"));
@@ -175,7 +178,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		material2s.push_back(material2);*/
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+		//anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Land"));

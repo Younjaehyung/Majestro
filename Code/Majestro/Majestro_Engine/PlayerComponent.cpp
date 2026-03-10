@@ -161,10 +161,10 @@ void MainPlayerComponent::StateCheck()
 
 void MainPlayerComponent::Update(float dt) 
 {
-    mStateTime += dt;
-    mDt = dt;
-    StateCheck();
-    mFsm.Update(this);
+    //mStateTime += dt;
+    //mDt = dt;
+    //StateCheck();
+    //mFsm.Update(this);
 }
 
 void MainPlayerComponent::InitFSMOnce()

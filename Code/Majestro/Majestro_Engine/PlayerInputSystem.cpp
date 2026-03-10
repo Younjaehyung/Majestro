@@ -77,8 +77,8 @@ void PlayerInputSystem::Update(float dt)
 		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
 	}
 	else {
-		if (mainPlayerComponent->GetState() == S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-		else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
+		//if (mainPlayerComponent->GetState() == S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
+		//else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
 	}
 
 	movementComponent->mMovingDirection = { 0,0,0 };
@@ -111,7 +111,7 @@ void PlayerInputSystem::Update(float dt)
 		
 	}
 	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
-		mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 
 	}
 

@@ -108,16 +108,16 @@ void PlayerInputSystem::Update(float dt)
 		mainPlayerComponent->mPlayerMovingDir.x = inputComp->MoveZ;
 		mainPlayerComponent->mPlayerMovingDir.y = inputComp->MoveX;
 		if (inputComp->MoveX == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkRightState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunRightState::Instance());
 		}
 		if (inputComp->MoveX == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkLeftState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunLeftState::Instance());
 		}
 		if (inputComp->MoveZ == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkForwardState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunForwardState::Instance());
 		}
 		if (inputComp->MoveZ == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkBackwardState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunBackwardState::Instance());
 		}
 
 

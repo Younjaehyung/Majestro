@@ -500,9 +500,9 @@ float4 PS_Main(VS_OUT input) : SV_Target
     toon.SpecMask = specMask; // LightMap R채널
 
     // Rim 파라미터
-    const float3 rimColor = float3(1.0f, 1.0f, 1.0f); // 흰색 rim
-    const float rimPower = 8.0f; // rim 두께 제어
-    const float rimThreshold = 0.25f; // rim 컷오프
+    const float3 rimColor     = float3(1.0f, 1.0f, 1.0f); // rim 색상
+    const float  rimWidth     = 4.0f;   // 오프셋 픽셀 수 (1~4 튜닝)
+    const float  rimDepthThres = 0.005f; // depth 차이 임계값 (0.005~0.03 튜닝)
 
     // ─── Forward+ Tile 인덱스 계산 (기존과 동일) ───────────
     const uint2 pixelCoord = uint2(input.pos.xy);
@@ -514,7 +514,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // ─── [변경] 조명 누적 루프 (Toon 버전) ─────────────────
     LightColor totalColor = (LightColor) 0.f;
     bool directionalShadowApplied = false;
-    float mainShadowFactor = 1.f; // Rim Light 계산에서 재사용
+    float mainShadowFactor = 0.f; // Rim Light 계산에서 재사용
 
     [loop]
     for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
@@ -554,10 +554,14 @@ float4 PS_Main(VS_OUT input) : SV_Target
         //}
     }
 
-    // ─── [신규] Rim Light 적용 ─────────────────────────────
+    // ─── [신규] Rim Light 적용 (Depth-based Screen-Space) ──
     float3 rim = CalculateRimLight(
-        viewNormal, input.viewPos,
-        rimColor, rimPower, rimThreshold, rimMask,
+        input.pos.xy,
+        viewNormal,
+        rimColor,
+        rimWidth,
+        rimDepthThres,
+        rimMask,
         mainShadowFactor);
 
     // ─── [변경] 최종 색상 합성 ─────────────────────────────
@@ -576,7 +580,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
     color.xyz = totalColor.diffuse.xyz       // Toon diffuse (baseColor 포함)
           + ambientContrib // [수정] 스케일 다운된 ambient
-          + totalColor.specular.xyz;
+          + totalColor.specular.xyz
           + rim;
     color.xyz = color.xyz / (color.xyz + 1.0f);
     return color;

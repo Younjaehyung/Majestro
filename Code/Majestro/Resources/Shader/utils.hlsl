@@ -181,48 +181,59 @@ float ToonSpecBand(float NdotH)
 // ============================================================
 //  CalculateRimLight
 //
-//  [기법] Fresnel 기반 윤곽 하이라이트 (Rim Light)
+//  [기법] Depth-based Screen-Space Rim Light (원신 스타일)
 //
-//  원신/젠존제 스타일 특징:
-//   - 캐릭터 윤곽선을 따라 밝은 빛이 감싸는 효과
-//   - 조명 반대쪽(그림자 면) 윤곽에서 더 강하게 나타남
-//   - NdotV가 낮을수록 (= 카메라에서 수직에 가까울수록) 강해짐
+//  Fresnel 기반의 문제점:
+//   - NdotV로 계산하면 실루엣 외에 몸체 내부 굴곡(팔뚝 옆면 등)에도 rim이 발생
 //
-//  [용어]
-//   Fresnel Effect: 표면을 비스듬히 볼수록 반사가 강해지는 광학 현상
-//                   1 - NdotV 로 근사함
-//   rimPower      : 지수가 클수록 rim이 얇아지고 날카로워짐
-//   rimThreshold  : step으로 너무 약한 rim을 잘라냄
+//  원신 방식:
+//   - View Normal의 스크린 투영 방향으로 N픽셀 오프셋
+//   - 오프셋 위치의 Depth를 Gbuffer[0]에서 샘플링
+//   - 현재 픽셀 Depth와 차이가 크다 = 뒤에 다른 오브젝트/배경 = 실루엣 엣지
+//   - 실루엣 엣지에만 rim 적용 → 몸체 내부 굴곡 제외
 //
 //  [파라미터]
+//   screenPos    : input.pos.xy (현재 픽셀 화면 좌표)
+//   viewNormal   : View Space Normal (normalize된)
+//   rimColor     : rim 색상
+//   rimWidth     : 오프셋 픽셀 수 (권장 1~3)
+//   rimDepthThres: depth 차이 임계값 (권장 0.005~0.02)
+//   rimMask      : LightMap A채널 마스크
 //   shadowFactor : 0 = 그림자 면, 1 = 밝은 면
-//                  그림자 면에서 rim이 더 강하게 나타남
+//                  그림자 면에서 rim을 더 강조 (역광 연출)
 // ============================================================
 float3 CalculateRimLight(
-    float3 viewNormal,
-    float3 viewPos,
-    float3 rimColor,
-    float rimPower,
-    float rimThreshold,
-    float rimMask,
-    float shadowFactor)
+    float2  screenPos,
+    float3  viewNormal,
+    float3  rimColor,
+    float   rimWidth,
+    float   rimDepthThres,
+    float   rimMask,
+    float   shadowFactor)
 {
-    float3 N = normalize(viewNormal);
-    float3 V = normalize(-viewPos);
-    float NdotV = saturate(dot(N, V));
+    // View Normal XY를 스크린 공간 오프셋 방향으로 근사
+    // View Space Normal.xy는 카메라 기준 좌우/상하 방향 → 스크린 방향과 근사 일치
+    float2 normalSS = normalize(viewNormal.xy + 1e-5f);
+    int2   offset   = int2(normalSS * rimWidth);
 
-    // Fresnel 근사: 1 - NdotV (엣지에서 1에 가까워짐)
-    float rim = pow(1.f - NdotV, rimPower);
+    int3   curCoord = int3((int2)screenPos,          0);
+    int3   offCoord = int3((int2)screenPos + offset, 0);
 
-    // [원신 스타일] 그림자 면에서 rim이 더 강하게
-    // shadowFactor=0(어두운 면)일수록 rim을 강조
-    float rimBoost = lerp(1.2f, 0.4f, shadowFactor);
-    rim *= rimBoost;
+    // Gbuffer[0] = PRE_DEPTH (R32_FLOAT SRV)
+    // R32_FLOAT SRV를 float4로 읽으면 .r = depth, .gba = 0/1
+    float  curDepth = Gbuffer[0].Load(curCoord).r;
+    float  offDepth = Gbuffer[0].Load(offCoord).r;
 
-    // 너무 옅은 rim은 smoothstep으로 컷오프 (하드한 rim 라인 표현)
-    rim = smoothstep(rimThreshold - 0.01f, rimThreshold + 0.04f, rim);
+    // 오프셋 위치가 현재보다 카메라에 가깝다 (더 작은 depth)
+    // = 실루엣 엣지 (뒤에 다른 오브젝트/배경이 있음)
+    float  depthDiff = curDepth - offDepth;
+    float  rim       = step(rimDepthThres, depthDiff);
 
-    return rimColor * rim * rimMask;
+    // [원신 스타일] 그림자 면(shadowFactor=0)에서 rim 더 강하게 (역광 연출)
+    float  rimBoost  = lerp(1.2f, 0.5f, shadowFactor);
+    rim *= rimBoost * rimMask;
+
+    return rimColor * saturate(rim);
 }
 
 

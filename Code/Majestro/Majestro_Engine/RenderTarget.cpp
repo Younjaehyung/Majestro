@@ -115,6 +115,22 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		mRenderTargets.push_back(rtStru[i]);
 	}
 
+	// ─── Read-only DSV 생성 (Rim Light: DEPTH_READ | PIXEL_SHADER_RESOURCE 동시 접근용) ───
+	// SHADOW는 Texture2DArray slice DSV를 사용하므로 제외
+	// ForwardPass에서 Gbuffer[0]을 SRV로 읽으면서 depth test도 수행하기 위함
+	if (mDepthStencilTexture && mSliceDSVHandles.empty())
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE roDsvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeapBegin, dsvIndex * dsvSize);
+		mDSHeapBeginReadOnly = roDsvHandle;
+
+		D3D12_DEPTH_STENCIL_VIEW_DESC roDsvDesc = {};
+		roDsvDesc.Format                 = DXGI_FORMAT_D32_FLOAT;
+		roDsvDesc.ViewDimension          = D3D12_DSV_DIMENSION_TEXTURE2D;
+		roDsvDesc.Flags                  = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+		roDsvDesc.Texture2D.MipSlice     = 0;
+		DEVICE->CreateDepthStencilView(mDepthStencilTexture->GetTex2D().Get(), &roDsvDesc, roDsvHandle);
+		RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
+	}
 
 	//create시 베리어 생성
 	//for (uint32 i = 0; i < rtStru.size(); ++i)
@@ -300,6 +316,35 @@ void RenderTargetGroup::ClearRenderTargetView()
 	{
 		GRAPHICS_CMD_LIST->ClearDepthStencilView(mDSHeapBegin, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 	}
+}
+
+void RenderTargetGroup::OMSetRenderTargetsReadOnlyDepth()
+{
+	float width  = 0.f;
+	float height = 0.f;
+
+	if (!mRenderTargets.empty())
+	{
+		width  = static_cast<float>(mRenderTargets[0].Target->GetWidth());
+		height = static_cast<float>(mRenderTargets[0].Target->GetHeight());
+	}
+	else if (mDepthStencilTexture)
+	{
+		width  = static_cast<float>(mDepthStencilTexture->GetWidth());
+		height = static_cast<float>(mDepthStencilTexture->GetHeight());
+	}
+
+	D3D12_VIEWPORT vp   = D3D12_VIEWPORT{ 0.f, 0.f, width, height, 0.f, 1.f };
+	D3D12_RECT     rect = D3D12_RECT{ 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+
+	GRAPHICS_CMD_LIST->RSSetViewports(1, &vp);
+	GRAPHICS_CMD_LIST->RSSetScissorRects(1, &rect);
+
+	// read-only DSV 사용: DEPTH_READ 상태에서 depth test 가능, depth write 불가
+	if (mDSHeapBeginReadOnly.ptr != 0)
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE, &mDSHeapBeginReadOnly);
+	else
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE, nullptr);
 }
 
 void RenderTargetGroup::WaitTargetToResource()

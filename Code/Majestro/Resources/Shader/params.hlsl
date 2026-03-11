@@ -230,11 +230,34 @@ struct PASSINFO
     int TerrainSlot2;
     int TerrainSlot3;
     int TerrainSlot4;
+    
     int TerrainSlot5;
     int TerrainSlot6;
+    
+    
 	float4 CascadeSplitDistances;
 
     matrix CascadeShadowVP[4];
+    
+    int PassTexture1;
+    int PassTexture2;
+    int PassTexture3;
+    int PassTexture4;
+    
+    int PassTexture5;
+    int PassTexture6;
+    int PassTexture7;
+    int PassTexture8;
+    
+    float4 PassValue1;
+    float4 PassValue2;
+    float4 PassValue3;
+    float4 PassValue4;
+    
+    float4 PassValue5;
+    float4 PassValue6;
+    float4 PassValue7;
+    float4 PassValue8;
 };
 //////////////
 

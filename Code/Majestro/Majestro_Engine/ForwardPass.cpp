@@ -9,18 +9,6 @@
 void ForwardPass::Initialize() {
 }
 
-void ForwardPass::SetComputeTableOnGraphicsCmdList() {
-    auto descHeap = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap();
-    auto handle = descHeap->GetGPUDescriptorHandleForHeapStart();
-    const uint32 handleSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-    GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(1, CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, GBUFFER_INDEX_START, handleSize));
-    GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(2, CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, GROUP_START + (mFrameIndex * GROUP_COUNT), handleSize));
-    GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(3, CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, PARTICLE_INDEX_START, handleSize));
-    GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(4, CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, ANIMATION_INDEX_START, handleSize));
-    GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(5, CD3DX12_GPU_DESCRIPTOR_HANDLE(handle, TEXTURE_MATERIALS_INDEX_START, handleSize));
-}
-
 void ForwardPass::DispatchForwardPlusCull() {
     const uint32 tileCountX = (RENDERMANAGER.GetWindow().Width + FORWARD_PLUS_TILE_SIZE - 1) / FORWARD_PLUS_TILE_SIZE;
     const uint32 tileCountY = (RENDERMANAGER.GetWindow().Height + FORWARD_PLUS_TILE_SIZE - 1) / FORWARD_PLUS_TILE_SIZE;
@@ -40,27 +28,27 @@ void ForwardPass::DispatchForwardPlusCull() {
         D3D12_RESOURCE_STATE_COMMON,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 
-    GRAPHICS_CMD_LIST->ResourceBarrier(1, &toTileMetaUav);
-    GRAPHICS_CMD_LIST->ResourceBarrier(1, &toLightIndexUav);
+    COMPUTE_CMD_LIST->ResourceBarrier(1, &toTileMetaUav);
+    COMPUTE_CMD_LIST->ResourceBarrier(1, &toLightIndexUav);
 
-    GRAPHICS_CMD_LIST->SetComputeRootSignature(RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get());
+    COMPUTE_CMD_LIST->SetComputeRootSignature(RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature")->GetRootSignature().Get());
     ID3D12DescriptorHeap* descHeap = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap().Get();
-    GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);
-    SetComputeTableOnGraphicsCmdList();
+    COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);
+    RENDERMANAGER.SetComputTable();
 
     auto cullShader = RESOURCEMANAGER.Get<Shader>(L"ForwardPlusCull");
-    GRAPHICS_CMD_LIST->SetPipelineState(cullShader->GetPipelineState().Get());
+    COMPUTE_CMD_LIST->SetPipelineState(cullShader->GetPipelineState().Get());
 
     dum.BaseInstance = tileCountX;
     dum.InstanceCount = tileCountY;
     dum.Cascade = FORWARD_PLUS_MAX_LIGHTS_PER_TILE;
-    GRAPHICS_CMD_LIST->SetComputeRoot32BitConstants(0, 3, &(dum), 0);
-    GRAPHICS_CMD_LIST->Dispatch(tileCountX, tileCountY, 1);
+    COMPUTE_CMD_LIST->SetComputeRoot32BitConstants(0, 3, &(dum), 0);
+    COMPUTE_CMD_LIST->Dispatch(tileCountX, tileCountY, 1);
 
     auto uavBarrier0 = CD3DX12_RESOURCE_BARRIER::UAV(tileMetaResource);
     auto uavBarrier1 = CD3DX12_RESOURCE_BARRIER::UAV(lightIndexResource);
-    GRAPHICS_CMD_LIST->ResourceBarrier(1, &uavBarrier0);
-    GRAPHICS_CMD_LIST->ResourceBarrier(1, &uavBarrier1);
+    COMPUTE_CMD_LIST->ResourceBarrier(1, &uavBarrier0);
+    COMPUTE_CMD_LIST->ResourceBarrier(1, &uavBarrier1);
 
     auto toTileMetaSrv = CD3DX12_RESOURCE_BARRIER::Transition(tileMetaResource,
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
@@ -70,8 +58,8 @@ void ForwardPass::DispatchForwardPlusCull() {
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
         D3D12_RESOURCE_STATE_COMMON);
 
-    GRAPHICS_CMD_LIST->ResourceBarrier(1, &toTileMetaSrv);
-    GRAPHICS_CMD_LIST->ResourceBarrier(1, &toLightIndexSrv);
+    COMPUTE_CMD_LIST->ResourceBarrier(1, &toTileMetaSrv);
+    COMPUTE_CMD_LIST->ResourceBarrier(1, &toLightIndexSrv);
 }
 
 
@@ -82,8 +70,21 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 
     // DispatchForwardPlusCull();
     auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
+
+    // ─── Depth 상태 전환: DEPTH_WRITE → DEPTH_READ | PIXEL_SHADER_RESOURCE ──────
+    // ForwardPass PS에서 Gbuffer[0](depthPreTexture)을 SRV로 읽어 Rim Light를 계산.
+    // DEPTH_READ 상태에서도 read-only DSV를 통해 depth test 수행 가능.
+    auto  depthTex      = hdrGroup.GetDSTexture();
+    auto* depthResource = depthTex->GetTex2D().Get();
+
+    auto toDepthRead = CD3DX12_RESOURCE_BARRIER::Transition(
+        depthResource,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE,
+        D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+    GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthRead);
+
     hdrGroup.WaitResourceToTarget();
-    hdrGroup.OMSetRenderTargets();
+    hdrGroup.OMSetRenderTargetsReadOnlyDepth(); // read-only DSV로 depth test 유지
 
     for (auto& drawBatch : deferredDrawBatchs) {
         if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
@@ -100,6 +101,14 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
         InstancingRender(drawBatch);
     }
     hdrGroup.WaitTargetToResource();
+
+    // ─── Depth 상태 복구: DEPTH_READ | PIXEL_SHADER_RESOURCE → DEPTH_WRITE ──────
+    // 이후 패스(EffectPass 등)가 depth write를 사용할 수 있도록 복구.
+    auto toDepthWrite = CD3DX12_RESOURCE_BARRIER::Transition(
+        depthResource,
+        D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        D3D12_RESOURCE_STATE_DEPTH_WRITE);
+    GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthWrite);
 }
 
 void ForwardPass::Compute()

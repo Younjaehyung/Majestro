@@ -134,7 +134,9 @@ void PlayerInputSystem::Update(float dt)
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			//std::cout << "attack!!!" << std::endl;
+			std::cout << "attack!!!" << std::endl;
+
+			//DrumAttack
 			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
@@ -155,9 +157,15 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			//std::cout << "skill2" << std::endl;
-			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2));
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
+			if (mainPlayerComponent->mPlayerType == 1)
+			{
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+			}
+			else
+			{
+				ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2));
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
+			}
 		}
 
 
@@ -217,6 +225,7 @@ void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity, BulletType 
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
 		bulletComp->mPenetrationCount = bulletStat.PenetrationCount;
 		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance);
+		bulletComp->mIsMeleeAttack = bulletStat.IsMeleeAttack;
 
 		mWorld->RegisterActiveBullet(bulletEntity);
 

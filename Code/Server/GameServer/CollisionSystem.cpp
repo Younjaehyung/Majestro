@@ -439,15 +439,26 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             float candidateDistance = (std::numeric_limits<float>::max)();
             bool candidateHit = false;
 
-            if (expanded.Contains(startPosition) != ContainmentType::DISJOINT)
+            if (bullet->mIsMeleeAttack)
             {
-                candidateDistance = 0.0f;
-                candidateHit = true;
+                if (expanded.Contains(endPosition) != ContainmentType::DISJOINT)
+                {
+                    candidateDistance = 0.0f;
+                    candidateHit = true;
+                };
             }
-            else if (expanded.Intersects(startPosition, direction, candidateDistance) &&
-                candidateDistance >= 0.0f && candidateDistance <= segmentLength)
+            else
             {
-                candidateHit = true;
+                if (expanded.Contains(startPosition) != ContainmentType::DISJOINT)
+                {
+                    candidateDistance = 0.0f;
+                    candidateHit = true;
+                }
+                else if (expanded.Intersects(startPosition, direction, candidateDistance) &&
+                    candidateDistance >= 0.0f && candidateDistance <= segmentLength)
+                {
+                    candidateHit = true;
+                }
             }
 
             if (!candidateHit || candidateDistance >= hitDistance)
@@ -464,7 +475,10 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             continue;
         }
 
-        bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
+        if (bullet->mIsMeleeAttack)
+            bulletTransform->mLocalPosition = endPosition;
+        else
+            bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
         bulletTransform->mMovingVector = Vec3::Zero;
 
         if (bullet->mKnockbackDistance > 0.0f)
@@ -569,6 +583,12 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         {
             const float scaleRadius = (std::max)(0.1f, (std::max)(tr->mLocalScale.x, tr->mLocalScale.z) * 0.5f);
             bulletRadius = (std::max)(bulletRadius, scaleRadius);
+        }
+
+        if (bullet->mIsMeleeAttack)
+        {
+            ++i;
+            continue;
         }
 
         const SweepHit hit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);

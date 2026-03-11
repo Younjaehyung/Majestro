@@ -238,7 +238,7 @@ private: // 디버그용 충돌박스 / 라인
   shared_ptr<Material> mDebugLineNoDepthMat; // 항상 보임 (Depth Test X)
   shared_ptr<Material> mDebugLineGreenMat;   // 초록
   shared_ptr<Material> mDebugLineRedMat;     // 빨강
-  bool mDrawColliders = true;
+  bool mDrawColliders = false;
 
   static std::vector<DebugLineRequest> sDebugLineQueue; // 프레임당 디버그 라인 큐
 

@@ -26,7 +26,7 @@ void PostProcessPass::Initialize()
 	mToneMapPass = make_shared<ToneMapPass>();
 	mFinalCompositePass = make_shared<FinalCompositePass>();
 
-    AddLDRPass(std::make_shared<ChromaticAberrationPass>());
+   // AddLDRPass(std::make_shared<ChromaticAberrationPass>());
 }
 
 void PostProcessPass::Execute()

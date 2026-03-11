@@ -497,7 +497,7 @@ void RenderSystem::PushObjectData() {
   }
 
   // collison box
-  if (mWireCube) {
+  if (mDrawColliders && mWireCube) {
     auto colliderEntities =
         mWorld->GetEntitiesWithComponents<TransformComponent,
                                           BoxColliderComponent>();

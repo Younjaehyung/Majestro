@@ -34,7 +34,7 @@ inline BulletStat GetBulletStat(BulletType type)
 {
 	switch (type)
 	{
-	case BulletType::DrumAttack: return BulletStat{ 10.0f, 80.0f, 1000.20f, 1.12f, 12.0f, 1,true };
+	case BulletType::DrumAttack: return BulletStat{ 1.0f, 10.0f, 1000.20f, 0.12f, 12.0f, 1,true };
 	case BulletType::DrumSkill1: return BulletStat{ 75.0f, 90.0f, 0.42f, 2.7f, 36.0f, 2 };
 	case BulletType::DrumSkill2: return BulletStat{ 0.0f, 70.0f, 0.60f, 3.2f, 55.0f, 1 };
 

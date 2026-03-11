@@ -411,6 +411,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         Entity hitTarget{};
         BoxColliderComponent* hitCollider = nullptr;
         float hitDistance = (std::numeric_limits<float>::max)();
+        std::vector<std::pair<Entity, BoxColliderComponent*>> meleeHitTargets;
 
         for (Entity targetEntity : dynamicEntities)
         {
@@ -461,7 +462,16 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 }
             }
 
-            if (!candidateHit || candidateDistance >= hitDistance)
+            if (!candidateHit)
+                continue;
+
+            if (bullet->mIsMeleeAttack)
+            {
+                meleeHitTargets.emplace_back(targetEntity, targetCollider);
+                continue;
+            }
+
+            if (candidateDistance >= hitDistance)
                 continue;
 
             hitDistance = candidateDistance;
@@ -469,7 +479,13 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             hitCollider = targetCollider;
         }
 
-        if (!hitTarget.IsValid())
+        if (bullet->mIsMeleeAttack && meleeHitTargets.empty())
+        {
+            ++i;
+            continue;
+        }
+
+        if (!bullet->mIsMeleeAttack && !hitTarget.IsValid())
         {
             ++i;
             continue;
@@ -481,9 +497,12 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
         bulletTransform->mMovingVector = Vec3::Zero;
 
-        if (bullet->mKnockbackDistance > 0.0f)
+        auto applyKnockback = [&](Entity target)
         {
-            TransformComponent* hitTransform = mWorld->GetComponent<TransformComponent>(hitTarget);
+            if (bullet->mKnockbackDistance <= 0.0f)
+                return;
+
+                TransformComponent* hitTransform = mWorld->GetComponent<TransformComponent>(target);
             if (hitTransform)
             {
                 Vec3 knockbackDirection = direction;
@@ -503,23 +522,44 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                     hitTransform->mMovingVector += knockbackVector;
                 }
             }
-        }
+            };
 
         if (bulletCollider)
             bulletCollider->bIsColliding = true;
-        if (hitCollider)
-            hitCollider->bIsColliding = true;
+        const auto enqueueDamage = [&](Entity target)
+            {
+                if (auto eventManager = mWorld->GetEventManager())
+                {
+                    EvDamage damageEvent{};
+                    damageEvent.instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
+                    damageEvent.target = target;
+                    damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
+                    eventManager->Enqueue<EvDamage>(damageEvent);
+                }
+            };
 
-        if (auto eventManager = mWorld->GetEventManager())
+        if (bullet->mIsMeleeAttack)
         {
-            EvDamage damageEvent{};
-            damageEvent.instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
-            damageEvent.target = hitTarget;
-            damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
-            eventManager->Enqueue<EvDamage>(damageEvent);
+            for (auto& [target, targetCollider] : meleeHitTargets)
+            {
+                if (targetCollider)
+                    targetCollider->bIsColliding = true;
+
+                applyKnockback(target);
+                enqueueDamage(target);
+                ++bullet->mHitCount;
+            }
+        }
+        else
+        {
+            if (hitCollider)
+                hitCollider->bIsColliding = true;
+
+            applyKnockback(hitTarget);
+            enqueueDamage(hitTarget);
+            ++bullet->mHitCount;
         }
 
-        ++bullet->mHitCount;
         if (bullet->mHitCount >= (std::max)(1, bullet->mPenetrationCount))
         {
             bullet->Deactivate();

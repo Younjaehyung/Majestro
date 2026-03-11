@@ -155,6 +155,9 @@ private: // Push&Clear Data
 private: // Render
   void InstancingRender(DrawBatch &);
 
+  // depth prepass
+  void RenderDepthPrePass();
+
   // shadow
   void RenderShadow();
 
@@ -240,6 +243,7 @@ private: // 디버그용 충돌박스 / 라인
   static std::vector<DebugLineRequest> sDebugLineQueue; // 프레임당 디버그 라인 큐
 
 private: // RenderPass
+	std::shared_ptr<class DepthPrePass>   mDepthPrePass;
 	std::shared_ptr<class ShadowPass>     mShadowPass;
 	std::shared_ptr<class GBufferPass>    mGBufferPass;
 	std::shared_ptr<class LightsPass>     mLightPass;

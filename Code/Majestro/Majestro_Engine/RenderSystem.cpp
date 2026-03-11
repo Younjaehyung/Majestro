@@ -17,6 +17,7 @@
 #include "World.h"
 #include "Timer.h"
 
+#include "DepthPrePass.h"
 #include "ShadowPass.h"
 #include "GBufferPass.h"
 #include "LightsPass.h"
@@ -59,6 +60,7 @@ void RenderSystem::Initialize() {
   mDeferredDrawBatchs.reserve(1000);
   mInstanceVector.reserve(1000);
 
+  mDepthPrePass = make_shared<DepthPrePass>();
   mShadowPass  = make_shared<ShadowPass>();
   mGBufferPass = make_shared<GBufferPass>();
   mLightPass   = make_shared<LightsPass>();
@@ -68,7 +70,7 @@ void RenderSystem::Initialize() {
   mPostProcessPass = make_shared<PostProcessPass>();
   
   
-  
+  mDepthPrePass->Initialize();
   mEffectPass->Initialize(mWorld);
   mPostProcessPass->Initialize();
 
@@ -126,7 +128,7 @@ void RenderSystem::PreProcess()
 
 void RenderSystem::RenderPass()
 {
-    
+    RenderDepthPrePass();
     RenderShadow();
     RenderDeferred();
     RenderForward();
@@ -907,4 +909,9 @@ void RenderSystem::InstancingRender(DrawBatch &drawBatch) {
 
   drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, 
       0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
+}
+
+void RenderSystem::RenderDepthPrePass()
+{
+    mDepthPrePass->Execute(mDeferredDrawBatchs);
 }

@@ -6,7 +6,9 @@ enum class RENDER_TARGET_GROUP_TYPE : uint8
 	SWAP_CHAIN, // BACK_BUFFER, FRONT_BUFFER
 	SCENE_SWAP_CHAIN,
 	MSAA_SWAP_CHAIN,
+	
 	SHADOW, // SHADOW
+	PRE_DEPTH, // 그림자 맵 렌더링 시 깊이 정보만 필요한 경우 (예: 라이트 구체 계산)
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT
 	HDR, // SCENE HDR COLOR
@@ -20,7 +22,7 @@ enum class RENDER_TARGET_GROUP_TYPE : uint8
 
 enum class Deferrd_TARGET_GROUP_TYPE : uint8
 {
-	SHADOW, // SceneTarget으로 바꿔야 되지 않나?
+	//SHADOW, // SceneTarget으로 바꿔야 되지 않나?
 	POSITION,
 	NORMAL,
 	COLOR,

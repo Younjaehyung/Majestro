@@ -58,7 +58,7 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		D3D12_CPU_DESCRIPTOR_HANDLE dsvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeapBegin, (dsvIndex * dsvSize));
 
 
-		if (groupType != RENDER_TARGET_GROUP_TYPE::SHADOW)
+		if (groupType != RENDER_TARGET_GROUP_TYPE::SHADOW && groupType != RENDER_TARGET_GROUP_TYPE::PRE_DEPTH)
 		{
 			DEVICE->CreateRenderTargetView(target.Target->GetTex2D().Get(), nullptr, rtvhandle);
 		}
@@ -80,7 +80,13 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 			}
 			else
 			{
-				DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), nullptr, dsvhandle);
+				// R32_TYPELESS 텍스처는 nullptr desc 불가 → D32_FLOAT로 명시
+				D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+				dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+				dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+				dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+				dsvDesc.Texture2D.MipSlice = 0;
+				DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), &dsvDesc, dsvhandle);
 			}
 			RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
 		}
@@ -89,7 +95,22 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		
 	}
 
-	//mRenderTargets.insert(mRenderTargets.end(), rtStru.begin(), rtStru.end());
+	// PRE_DEPTH: rtStru가 비어있어도 DSV는 반드시 생성해야 함
+	if (rtStru.empty() && dsTexture)
+	{
+		mDepthStencilTexture = dsTexture;
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(dsvHeapBegin, dsvIndex * dsvSize);
+		mDSHeapBegin = dsvhandle;
+
+		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+		dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+		dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+		dsvDesc.Texture2D.MipSlice = 0;
+		DEVICE->CreateDepthStencilView(dsTexture->GetTex2D().Get(), &dsvDesc, dsvhandle);
+		RENDERMANAGER.GetRenderTargetHeap()->SetDsvIndex(++dsvIndex);
+	}
+
 	for (uint32 i = 0; i < rtStru.size(); ++i) {
 		mRenderTargets.push_back(rtStru[i]);
 	}
@@ -131,18 +152,14 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		for (auto& rt : mRenderTargets)
 		{
 			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
-		//	if (visited.insert(resource).second)
-		//	{
 				mTargetToResource.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
 					D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COMMON));
-		//	}
 		}
 	}
 
 
-	
+
 	mResourceToTarget.reserve(mRenderTargets.size());
-	// unordered_set<ID3D12Resource*> visited;
 
 	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mDepthStencilTexture)
 	{
@@ -154,11 +171,8 @@ void RenderTargetGroup::Create(RENDER_TARGET_GROUP_TYPE groupType, vector<Render
 		for (auto& rt : mRenderTargets)
 		{
 			ID3D12Resource* resource = rt.Target->GetTex2D().Get();
-		//	if (visited.insert(resource).second)
-		//	{
 				mResourceToTarget.push_back(CD3DX12_RESOURCE_BARRIER::Transition(resource,
 					D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_RENDER_TARGET));
-		//	}
 		}
 	}
 
@@ -199,18 +213,31 @@ void RenderTargetGroup::OMSetRenderTargets(uint32 count, uint32 offset)
 
 void RenderTargetGroup::OMSetRenderTargets()
 {
-	D3D12_VIEWPORT vp = D3D12_VIEWPORT{ 0.f, 0.f, mRenderTargets[0].Target->GetWidth() , mRenderTargets[0].Target->GetHeight(), 0.f, 1.f };
-	D3D12_RECT rect = D3D12_RECT{ 0, 0, static_cast<LONG>(mRenderTargets[0].Target->GetWidth()),  static_cast<LONG>(mRenderTargets[0].Target->GetHeight()) };
+	float width  = 0.f;
+	float height = 0.f;
+
+	if (!mRenderTargets.empty())
+	{
+		width  = static_cast<float>(mRenderTargets[0].Target->GetWidth());
+		height = static_cast<float>(mRenderTargets[0].Target->GetHeight());
+	}
+	else if (mDepthStencilTexture)
+	{
+		// PRE_DEPTH처럼 컬러 RT 없이 Depth만 있는 경우
+		width  = static_cast<float>(mDepthStencilTexture->GetWidth());
+		height = static_cast<float>(mDepthStencilTexture->GetHeight());
+	}
+
+	D3D12_VIEWPORT vp = D3D12_VIEWPORT{ 0.f, 0.f, width, height, 0.f, 1.f };
+	D3D12_RECT rect = D3D12_RECT{ 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
 	GRAPHICS_CMD_LIST->RSSetViewports(1, &vp);
 	GRAPHICS_CMD_LIST->RSSetScissorRects(1, &rect);
 
-	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
+	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW || mGroupType == RENDER_TARGET_GROUP_TYPE::PRE_DEPTH)
 		GRAPHICS_CMD_LIST->OMSetRenderTargets(0, nullptr, FALSE, &mDSHeapBegin);
 	else
 		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE/*multi*/, &mDSHeapBegin);
-
-
 }
 
 void RenderTargetGroup::ClearRenderTargetView(uint32 index)
@@ -235,10 +262,9 @@ void RenderTargetGroup::ClearRenderTargetView(uint32 index)
 
 void RenderTargetGroup::ClearRenderTargetView()
 {
-	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW && mFirstUse)
+	// SHADOW, PRE_DEPTH: 텍스처 초기 상태가 DEPTH_WRITE이므로 첫 프레임엔 배리어 불필요
+	if ((mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW || mGroupType == RENDER_TARGET_GROUP_TYPE::PRE_DEPTH) && mFirstUse)
 	{
-		// 최초 프레임: shadow texture initial state가 DEPTH_WRITE
-		// WaitResourceToTarget(PSR→DEPTH_WRITE)을 건너뛰고 바로 클리어
 		mFirstUse = false;
 	}
 	else

@@ -14,10 +14,11 @@ enum class SHADER_TYPE : uint8
 	COMPUTE,
 	SHADOW,
 	BILBOARD,
+	DEPTH_PREPASS,
 	BLUR,
 	UI,
 	TONEMAP,
-	POST,
+	LDRPOST,
 	COMPOSITE,
 
 	END
@@ -41,6 +42,7 @@ enum class DEPTH_STENCIL_TYPE : uint8	//깊이 판별시 어떤 방식
 	NO_DEPTH_TEST, // 깊이 테스트(X) + 깊이 기록(O)
 	NO_DEPTH_TEST_NO_WRITE, // 깊이 테스트(X) + 깊이 기록(X)
 	LESS_NO_WRITE, // 깊이 테스트(O) + 깊이 기록(X)
+	EQUAL_NO_WRITE,
 };
 
 enum class BLEND_TYPE : uint8
@@ -97,7 +99,7 @@ public:
 
 
 	
-
+	BLEND_TYPE GetBlendType() { return mInfo.blendType; }
 	SHADER_TYPE GetShaderType() { return mInfo.shaderType; }
 	ComPtr<ID3D12PipelineState> GetPipelineState() { return mPipelineState; }
 

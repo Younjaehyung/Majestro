@@ -62,7 +62,7 @@ void UIUpdateSystem::Update(float dt)
 {
    UpdateSpriteAnimation(dt);
 
-   UpdateHpBarUI();
+   // UpdateHpBarUI();
 
 }
 

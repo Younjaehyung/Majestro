@@ -157,20 +157,26 @@
     <Filter Include="World\Resource\Map\NavMesh">
       <UniqueIdentifier>{04761dc3-7576-4a02-ab8e-57be60a83cd2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Render\Effect">
-      <UniqueIdentifier>{13fbfe9a-7fb2-469f-8773-dbb82d5249c5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\System\Render\Post">
-      <UniqueIdentifier>{69b154bd-6480-4136-9165-883f6ab612de}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Resource\Shader\ETC">
       <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Render\Deferred">
+    <Filter Include="World\System\Render\06.Deferred">
       <UniqueIdentifier>{fa68a731-1a47-472f-b259-63f64e3d4ac5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Render\Forward">
+    <Filter Include="World\System\Render\07.Effect">
+      <UniqueIdentifier>{13fbfe9a-7fb2-469f-8773-dbb82d5249c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\05.Forward">
       <UniqueIdentifier>{91254c3f-3ca2-469b-a1b2-79d7d7c73e90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\08.Post">
+      <UniqueIdentifier>{69b154bd-6480-4136-9165-883f6ab612de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\04.Shadow">
+      <UniqueIdentifier>{a88b9c28-584b-4fa4-acb5-08a2f169c7a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\03.Pre-pass">
+      <UniqueIdentifier>{0298a83f-589a-4841-a414-bfb0e36dc61b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -246,9 +252,6 @@
     </ClInclude>
     <ClInclude Include="UIComponent.h">
       <Filter>World\Component\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIRenderSystem.h">
-      <Filter>World\System\UI</Filter>
     </ClInclude>
     <ClInclude Include="UIUpdateSystem.h">
       <Filter>World\System\UI</Filter>
@@ -442,13 +445,7 @@
     <ClInclude Include="BulletComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="ShadowPass.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
     <ClInclude Include="RenderSystem.h">
-      <Filter>World\System\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="FinalPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
     <ClInclude Include="HealthComponent.h">
@@ -467,30 +464,40 @@
       <Filter>World\Component\UI</Filter>
     </ClInclude>
     <ClInclude Include="EffectPass.h">
-      <Filter>World\System\Render\Effect</Filter>
+      <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
     <ClInclude Include="ChromaticAberrationPass.h">
-      <Filter>World\System\Render\Post</Filter>
+      <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="PostProcessPass.h">
-      <Filter>World\System\Render\Post</Filter>
+      <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="ToneMapPass.h">
-      <Filter>World\System\Render\Post</Filter>
-    </ClInclude>
-    <ClInclude Include="CompositePass.h" />
-    <ClInclude Include="LastPass.h" />
-    <ClInclude Include="FinalCompositePass.h">
-      <Filter>World\System\Render</Filter>
+      <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="GBufferPass.h">
-      <Filter>World\System\Render\Deferred</Filter>
+      <Filter>World\System\Render\06.Deferred</Filter>
     </ClInclude>
     <ClInclude Include="LightsPass.h">
-      <Filter>World\System\Render\Deferred</Filter>
+      <Filter>World\System\Render\06.Deferred</Filter>
     </ClInclude>
     <ClInclude Include="ForwardPass.h">
-      <Filter>World\System\Render\Forward</Filter>
+      <Filter>World\System\Render\05.Forward</Filter>
+    </ClInclude>
+    <ClInclude Include="FinalCompositePass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="FinalPass.h">
+      <Filter>World\System\Render\06.Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowPass.h">
+      <Filter>World\System\Render\04.Shadow</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthPrePass.h">
+      <Filter>World\System\Render\03.Pre-pass</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRenderSystem.h">
+      <Filter>World\System\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -565,9 +572,6 @@
     </ClCompile>
     <ClCompile Include="UIComponent.cpp">
       <Filter>World\Component\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="UIRenderSystem.cpp">
-      <Filter>World\System\UI</Filter>
     </ClCompile>
     <ClCompile Include="UIUpdateSystem.cpp">
       <Filter>World\System\UI</Filter>
@@ -752,13 +756,7 @@
     <ClCompile Include="BulletComponent.cpp">
       <Filter>World\Component\Logic</Filter>
     </ClCompile>
-    <ClCompile Include="ShadowPass.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
     <ClCompile Include="RenderSystem.cpp">
-      <Filter>World\System\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="FinalPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
     <ClCompile Include="LevelImport.cpp">
@@ -771,30 +769,40 @@
       <Filter>World\System\UI</Filter>
     </ClCompile>
     <ClCompile Include="EffectPass.cpp">
-      <Filter>World\System\Render\Effect</Filter>
+      <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
     <ClCompile Include="ChromaticAberrationPass.cpp">
-      <Filter>World\System\Render\Post</Filter>
+      <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="PostProcessPass.cpp">
-      <Filter>World\System\Render\Post</Filter>
+      <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="ToneMapPass.cpp">
-      <Filter>World\System\Render\Post</Filter>
-    </ClCompile>
-    <ClCompile Include="CompositePass.cpp" />
-    <ClCompile Include="LastPass.cpp" />
-    <ClCompile Include="FinalCompositePass.cpp">
-      <Filter>World\System\Render</Filter>
+      <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="GBufferPass.cpp">
-      <Filter>World\System\Render\Deferred</Filter>
+      <Filter>World\System\Render\06.Deferred</Filter>
     </ClCompile>
     <ClCompile Include="LightsPass.cpp">
-      <Filter>World\System\Render\Deferred</Filter>
+      <Filter>World\System\Render\06.Deferred</Filter>
     </ClCompile>
     <ClCompile Include="ForwardPass.cpp">
-      <Filter>World\System\Render\Forward</Filter>
+      <Filter>World\System\Render\05.Forward</Filter>
+    </ClCompile>
+    <ClCompile Include="FinalCompositePass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="FinalPass.cpp">
+      <Filter>World\System\Render\06.Deferred</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowPass.cpp">
+      <Filter>World\System\Render\04.Shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthPrePass.cpp">
+      <Filter>World\System\Render\03.Pre-pass</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderSystem.cpp">
+      <Filter>World\System\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -920,6 +928,12 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\FianlComposite_VS.hlsl">
       <Filter>World\Resource\Shader\ETC</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\depth_prepass_PS.hlsl">
+      <Filter>World\Resource\Shader\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\depth_prepass_VS.hlsl">
+      <Filter>World\Resource\Shader\Shadow</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

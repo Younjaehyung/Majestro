@@ -1,0 +1,37 @@
+#include "params.hlsl"
+#include "utils.hlsl"
+
+struct VS_IN
+{
+    float3 pos : POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float4 weight : BONEWEIGHT;
+    float4 indices : BONEINDICES;
+
+    uint instanceID : SV_InstanceID;
+};
+
+struct VS_OUT
+{
+    float4 pos : SV_Position;
+};
+
+VS_OUT VS_Main(VS_IN input)
+{
+    VS_OUT output = (VS_OUT) 0;
+
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
+    RENDERPARAMS instance = InstanceParams[idx];
+
+    matrix WV  = mul(Objects[instance.ObjectIndex].MatWorld, PassParams.MatView);
+    matrix WVP = mul(WV, PassParams.MatProjection);
+
+    if (instance.LightIndex >= 0)
+        Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices, AnimInstance[instance.LightIndex].ReulstIndex);
+
+    output.pos = mul(float4(input.pos, 1.f), WVP);
+
+    return output;
+}

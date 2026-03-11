@@ -253,8 +253,8 @@ enum class RCONSTANT_INDEX : uint8		//rootConstant
 
 enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
 { // t레지스터 space 0 
-	GBUFFER_SHADOW_INDEX,			// 0 
-	
+	GBUFFER_PREDEPTH_INDEX,			// 0 
+
 	GBUFFER_POSITION_INDEX,			// 1 
 	GBUFFER_NORMAL_INDEX,			// 2 
 	GBUFFER_ALBEDO_INDEX,			// 3 
@@ -262,7 +262,7 @@ enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
 	GBUFFER_DIFFUSE_INDEX,			// 4 
 	GBUFFER_SPECULAR_INDEX,			// 5 
 	
-	GBUFFER_HDR_INDEX,			//6
+	GBUFFER_HDR_INDEX,				//6	
 
 	GBUFFER_POSTA_INDEX,			//7
 	GBUFFER_POSTB_INDEX,			//8

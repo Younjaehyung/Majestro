@@ -419,6 +419,23 @@ void RenderManager::CreateRenderTargetGroups()
 
 
 	//======공용=======
+	
+		// PRE_DEPTH는 별도 RT 없이 기존 dsTexture를 재사용
+		// 단, SRV 접근을 위해 R32_TYPELESS로 새로 생성
+		shared_ptr<Texture> depthPreTexture = RESOURCEMANAGER.CreateTexture(
+			L"SceneDepth",
+			DXGI_FORMAT_R32_TYPELESS, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE,
+			D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, true);
+
+		{
+			vector<RenderTarget> rtVec(0); // 컬러 RT 없음
+			mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::PRE_DEPTH)]
+				.Create(RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, rtVec, depthPreTexture);
+		}
+
+
 	// Shadow Group
 	{
 		vector<RenderTarget> rtVec(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
@@ -455,7 +472,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 
-		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, rtVec, dsTexture);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)].Create(RENDER_TARGET_GROUP_TYPE::G_BUFFER, rtVec, depthPreTexture);
 	}
 
 
@@ -474,7 +491,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0);
 
 
-		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, dsTexture);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::LIGHTING)].Create(RENDER_TARGET_GROUP_TYPE::LIGHTING, rtVec, depthPreTexture);
 	}
 	// HDR Group
 	{
@@ -485,7 +502,7 @@ void RenderManager::CreateRenderTargetGroups()
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
-		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::HDR)].Create(RENDER_TARGET_GROUP_TYPE::HDR, rtVec, dsTexture);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::HDR)].Create(RENDER_TARGET_GROUP_TYPE::HDR, rtVec, depthPreTexture);
 	}
 
 	// PostProcess Group
@@ -522,18 +539,35 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_LDR_B)].Create(RENDER_TARGET_GROUP_TYPE::POST_LDR_B, rtVec, dsTexture);
 	}
+	// PRE_DEPTH SRV: rtVec가 비어있으므로 루프 밖에서 별도 생성
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+		uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC depthSrv = {};
+		depthSrv.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+		depthSrv.Format = DXGI_FORMAT_R32_FLOAT;
+		depthSrv.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+		depthSrv.Texture2D.MipLevels = 1;
+
+		D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			cpuhandle, static_cast<uint32>(GBUFFER_INDEX::GBUFFER_PREDEPTH_INDEX) * srvSize);
+		DEVICE->CreateShaderResourceView(depthPreTexture->GetTex2D().Get(), &depthSrv, srvhandle);
+	}
+
 	int i = 0;
 	for (auto& renderTargetGroup : mRenderTargetGroup) {
-		
+
 		if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN
-			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN) {
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::PRE_DEPTH) {
 			continue;
 		}
 
 
 		for (auto& renderTarget : renderTargetGroup.GetRTG()) {
 
-			
+
 			if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SHADOW)
 			{
 				D3D12_SHADER_RESOURCE_VIEW_DESC cascadeSrv = {};

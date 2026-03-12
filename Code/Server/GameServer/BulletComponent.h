@@ -8,14 +8,17 @@ enum class BulletType : uint8
 	BaseAttack,
 	BaseSkill1,
 	BaseSkill2,
+	BaseSkill3,
 
 	GuitarAttack,
 	GuitarSkill1,
 	GuitarSkill2,
+	GuitarSkill3,
 
 	DrumAttack,
 	DrumSkill1,
 	DrumSkill2,
+	DrumSkill3,
 	Max
 };
 

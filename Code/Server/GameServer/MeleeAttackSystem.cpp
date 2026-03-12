@@ -6,6 +6,7 @@
 #include "TransformComponent.h"
 #include "InputComponent.h"
 #include "HealthComponent.h"
+#include "BulletComponent.h"
 
 namespace
 {
@@ -36,15 +37,14 @@ namespace
 		float radius = 2.0f;
 	};
 
-	MeleeAttackStat GetMeleeAttackStat(MeleeAttackType type)
+	MeleeAttackStat GetMeleeAttackStat(BulletType type)
 	{
 		switch (type)
 		{
-		case MeleeAttackType::DrumAttack:
-			return { 1.0f, 3.0f, 5.0f };
-		case MeleeAttackType::GuitarAttack:
+		case BulletType::DrumAttack:
+			return { 10.0f, 3.0f, 100.0f };
+		case BulletType::GuitarAttack:
 			return { 25.0f, 3.0f, 2.2f };
-		case MeleeAttackType::Default:
 		default:
 			return {};
 		}
@@ -84,7 +84,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	if (!eventManager)
 		return;
 
-	const MeleeAttackStat stat = GetMeleeAttackStat(request.attackType);
+	const MeleeAttackStat stat = GetMeleeAttackStat(request.bulletType);
 	const Vec3 forward = GetCameraForwardFromInput(*attackerInput);
 	const Vec3 attackCenter = attackerTransform->mWorldPosition + forward * stat.forwardDistance;
 	const float radiusSq = stat.radius * stat.radius;

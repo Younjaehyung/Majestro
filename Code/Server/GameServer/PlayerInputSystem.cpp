@@ -19,7 +19,7 @@
 
 namespace
 {
-	void EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, BulletType bulletType)
+	bool EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, BulletType bulletType)
 	{
 		switch (bulletType)
 		{
@@ -53,6 +53,7 @@ namespace
 			case InputButtons::ATTACK: return BulletType::DrumAttack;
 			case InputButtons::SKILL1: return BulletType::DrumSkill1;
 			case InputButtons::SKILL2: return BulletType::DrumSkill2;
+			case InputButtons::RELOAD: return BulletType::DrumSkill3;
 			default: return BulletType::Default;
 			}
 		case 1:
@@ -61,6 +62,7 @@ namespace
 			case InputButtons::ATTACK: return BulletType::BaseAttack;
 			case InputButtons::SKILL1: return BulletType::BaseSkill1;
 			case InputButtons::SKILL2: return BulletType::BaseSkill2;
+			case InputButtons::RELOAD: return BulletType::BaseSkill3;
 			default: return BulletType::Default;
 			}
 		default:
@@ -69,6 +71,7 @@ namespace
 			case InputButtons::ATTACK: return BulletType::GuitarAttack;
 			case InputButtons::SKILL1: return BulletType::GuitarSkill1;
 			case InputButtons::SKILL2: return BulletType::GuitarSkill2;
+			case InputButtons::RELOAD: return BulletType::GuitarSkill3;
 			default: return BulletType::Default;
 			}
 		}
@@ -140,17 +143,18 @@ void PlayerInputSystem::Update(float dt)
 
 			if (auto eventManager = mWorld->GetEventManager())
 			{
-				if (mainPlayerComponent->mPlayerType == 0)
-					eventManager->Enqueue<EvMeleeAttackRequest>({ e, MeleeAttackType::DrumAttack });
-				else if (mainPlayerComponent->mPlayerType == 1)
-					eventManager->Enqueue<EvRangedAttackRequest>({ e, BulletType::BaseAttack });
-				else
-					eventManager->Enqueue<EvMeleeAttackRequest>({ e, MeleeAttackType::GuitarAttack });
+				const BulletType bulletType = ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 			}
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
-		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {//attack
-			//std::cout << "attack!!!" << std::endl;
-			//ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
+		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
+			//std::cout << "reroad" << std::endl;
+			if (auto eventManager = mWorld->GetEventManager())
+			{
+				const BulletType bulletType = ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+			}
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReRoadState::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change

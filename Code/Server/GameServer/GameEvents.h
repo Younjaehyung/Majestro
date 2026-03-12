@@ -4,12 +4,6 @@
 #include "Entity.h"
 
 enum class BulletType : uint8;
-enum class MeleeAttackType : uint8
-{
-    Default = 0,
-    DrumAttack,
-    GuitarAttack
-};
 
 
 struct EvDamage
@@ -72,7 +66,7 @@ struct EvRangedAttackRequest
 struct EvMeleeAttackRequest
 {
     Entity shooter;
-    MeleeAttackType attackType;
+    BulletType bulletType;
 };
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvBuffBulletRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;

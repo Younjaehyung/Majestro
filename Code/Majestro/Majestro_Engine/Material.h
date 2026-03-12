@@ -44,6 +44,9 @@ struct MaterialParams
 	int32 MetallicMapIndex{ -1 };
 	int32 RoughnessMapIndex{ -1 };
 	int32 OcclusionMapIndex{ -1 };
+
+	int32 ExtTex[8]{ -1,-1,-1,-1,-1,-1,-1,-1 }; // 머티리얼별 자유 텍스처 슬롯 8개 (-1 = 미사용)
+	Vec4  ExtValue[4]{};                          // 머티리얼별 자유 파라미터 슬롯 4개
 };
 
 class Material : public Object

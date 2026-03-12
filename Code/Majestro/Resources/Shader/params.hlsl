@@ -189,6 +189,9 @@ struct MATERIALINFO
     int MetallicMapIndex;
     int RoughnessMapIndex;
     int OcclusionMapIndex;
+
+    int  ExtTex[8];     // 머티리얼별 자유 텍스처 슬롯 8개 (-1 = 미사용)
+    float4 ExtValue[4]; // 머티리얼별 자유 파라미터 슬롯 4개
 };
 //////////////
 
@@ -239,25 +242,25 @@ struct PASSINFO
 
     matrix CascadeShadowVP[4];
     
-    int PassTexture1;
-    int PassTexture2;
-    int PassTexture3;
-    int PassTexture4;
+    //int PassTexture1;
+    //int PassTexture2;
+    //int PassTexture3;
+    //int PassTexture4;
     
-    int PassTexture5;
-    int PassTexture6;
-    int PassTexture7;
-    int PassTexture8;
+    //int PassTexture5;
+    //int PassTexture6;
+    //int PassTexture7;
+    //int PassTexture8;
     
-    float4 PassValue1;
-    float4 PassValue2;
-    float4 PassValue3;
-    float4 PassValue4;
+    //float4 PassValue1;
+    //float4 PassValue2;
+    //float4 PassValue3;
+    //float4 PassValue4;
     
-    float4 PassValue5;
-    float4 PassValue6;
-    float4 PassValue7;
-    float4 PassValue8;
+    //float4 PassValue5;
+    //float4 PassValue6;
+    //float4 PassValue7;
+    //float4 PassValue8;
 };
 //////////////
 
@@ -273,6 +276,15 @@ struct GLOBAL_PARAMS
     uint BaseInstanceID;
     uint etc;
     uint casdcae;
+    uint PassCustomIndex; // PASS_CUSTOM_DATA 테이블 행 인덱스 (PASS_CUSTOM_INDEX 열거형)
+};
+//////////////
+
+//////////////PassCustom
+struct PASS_CUSTOM_DATA
+{
+    int  ExtTex[8];     // 자유 텍스처 슬롯 (TextureMaps 배열 인덱스, -1 = 미사용)
+    float4 ExtValue[4]; // 자유 파라미터 슬롯 (float4 × 4)
 };
 //////////////
 
@@ -301,6 +313,7 @@ StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t5, space1);
 StructuredBuffer<Matrix> SFinalBone : register(t6, space1);
 StructuredBuffer<uint2> ForwardPlusTileMeta : register(t7, space1);
 StructuredBuffer<uint> ForwardPlusLightIndices : register(t8, space1);
+StructuredBuffer<PASS_CUSTOM_DATA> PassCustomTable : register(t9, space1); // pass별 커스텀 텍스처/파라미터 테이블
 RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
 RWStructuredBuffer<uint2> RWForwardPlusTileMeta : register(u1, space1);
 RWStructuredBuffer<uint> RWForwardPlusLightIndices : register(u2, space1);

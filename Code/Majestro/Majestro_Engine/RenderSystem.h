@@ -142,8 +142,8 @@ private: // Push&Clear Data
   void PushMaterialData();
   void PushCubeData();
   void PushLandData();
-
   void PushPassData();
+  void PushFrameData();
   void PushShadowCascades();       // cascade VP 행렬 + 라이트 구체 사전 계산
   void PushInstanceData();
   void PushObjectData();
@@ -188,6 +188,8 @@ private:
 
 private: // 배치 버퍼
   // Pass별 PSO에 따른 분류
+  std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)> mPassTable{};
+
   std::vector<DrawItem> mDeferredDrawItems;
   std::vector<DrawItem> mShadowOnlyDrawItems; // 카메라 밖 + 라이트 프러스텀 안
 

@@ -297,6 +297,7 @@ enum class GROUP_SRV_INDEX : uint8		//DescriptorTable SRV
 	SRV_FINALUBONE_INDEX,
 	SRV_FORWARDPLUS_TILE_META_INDEX,
 	SRV_FORWARDPLUS_LIGHT_INDEX,
+	SRV_PASS_CUSTOM_INDEX,			// pass별 커스텀 텍스처/파라미터 테이블 (t9, space1)
 	GROUP_SRV_END,
 	//SRV_PARTICLE_INDEX,
 	//UAV_PARTICLE_INDEX,
@@ -313,6 +314,22 @@ enum class GROUP_UAV_INDEX : uint8		//DescriptorTable UAV
 };
 
 
+
+// pass별 커스텀 텍스처/파라미터 데이터 (PassCustomTable 테이블의 행)
+struct PassCustomData {
+	int32 ExtTex[8]{ -1,-1,-1,-1,-1,-1,-1,-1 }; // 자유 텍스처 슬롯 (TextureMaps 인덱스, -1 = 미사용)
+	Vec4  ExtValue[4]{};                          // 자유 파라미터 슬롯 (float4 × 4)
+};
+
+// PassCustomTable 테이블 행 인덱스 — 각 pass가 자신의 행을 사용
+enum class PASS_CUSTOM_INDEX : uint32 {
+	FORWARD_PASS   ,//= 0
+	POST_HDR_PASS,//= 1
+	POST_LDR_PASS,//= 2
+	POST_CA_PASS,//	=3
+	CARTOON_PASS,//
+	PASS_CUSTOM_COUNT
+};
 
 enum class PARTICLE_INDEX : uint8		//
 {

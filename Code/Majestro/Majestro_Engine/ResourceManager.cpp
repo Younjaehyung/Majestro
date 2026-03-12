@@ -642,7 +642,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		rootSignature->AddConstant(0, 3);
+		rootSignature->AddConstant(0, 4); // GLOBAL_PARAMS: BaseInstanceID, etc, casdcae, PassCustomIndex
 		rootSignature->AddTable(ranges0);
 		rootSignature->AddTable(ranges1);
 		rootSignature->AddTable(ranges2);

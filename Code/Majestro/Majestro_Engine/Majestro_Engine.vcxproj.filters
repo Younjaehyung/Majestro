@@ -935,6 +935,12 @@
     <FxCompile Include="..\Resources\Shader\depth_prepass_VS.hlsl">
       <Filter>World\Resource\Shader\Shadow</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\outline_PS.hlsl">
+      <Filter>World\Resource\Shader\Cartoon</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\outline_VS.hlsl">
+      <Filter>World\Resource\Shader\Cartoon</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

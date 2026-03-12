@@ -118,6 +118,7 @@ void RenderSystem::PushData() {
   PushObjectData();
   PushLightData();
   PushPassData();
+  PushFrameData();
   PushInstanceData();
 }
 
@@ -196,7 +197,7 @@ void RenderSystem::ClearBuffer() {
   mDummyVector.clear();
 }
 
-void RenderSystem::PushPassData() {
+void RenderSystem::PushFrameData() {
 
   passParams.MatView = mCamera->mView.Transpose();
   passParams.MatProjection = mCamera->mProjection.Transpose();
@@ -301,6 +302,12 @@ void RenderSystem::PushLandData() {
 
 
 
+}
+
+void RenderSystem::PushPassData()
+{
+    auto& groupBuf = RENDERMANAGER.GetGroupBuffer(mFrameCount);
+    groupBuf->PassCustomTableInfo->PushGraphicsData(mPassTable.data(), sizeof(mPassTable));
 }
 
 void RenderSystem::PushInstanceData() {

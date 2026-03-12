@@ -22,6 +22,7 @@ struct GroupBuffer {
 	shared_ptr<StructuredBuffer> AnimResultInfo;
 	shared_ptr<StructuredBuffer> ForwardPlusTileMetaInfo;
 	shared_ptr<StructuredBuffer> ForwardPlusLightIndexInfo;
+	shared_ptr<StructuredBuffer> PassCustomTableInfo;  // pass별 커스텀 텍스처/파라미터 테이블
 
 
 };

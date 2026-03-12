@@ -155,6 +155,11 @@ void RenderManager::CreateGroup()
 		group->ForwardPlusLightIndexInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FORWARDPLUS_LIGHT_INDEX), GROUP_COUNT);
 		group->ForwardPlusLightIndexInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FORWARDPLUS_LIGHT_INDEX), GROUP_COUNT);
 
+		// pass별 커스텀 텍스처/파라미터 테이블: 각 pass가 자신의 행(PASS_CUSTOM_INDEX)을 사용
+		group->PassCustomTableInfo = make_shared<StructuredBuffer>();
+		group->PassCustomTableInfo->CreateUploadBuffer(sizeof(PassCustomData), static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT));
+		group->PassCustomTableInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PASS_CUSTOM_INDEX), GROUP_COUNT);
+
 		i++;
 	}
 

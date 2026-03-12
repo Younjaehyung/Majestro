@@ -86,6 +86,10 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
     hdrGroup.WaitResourceToTarget();
     hdrGroup.OMSetRenderTargetsReadOnlyDepth(); // read-only DSV로 depth test 유지
 
+    // ForwardPass 전용 PassCustomTable 행 인덱스 설정 (DWORD[3] 단독 업데이트)
+    const uint32 passCustomIdx = static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS);
+    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &passCustomIdx, 3);
+
     for (auto& drawBatch : deferredDrawBatchs) {
         if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
             continue;

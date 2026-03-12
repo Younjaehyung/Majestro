@@ -209,6 +209,12 @@
     </ClCompile>
     <ClCompile Include="NavMeshLoader.cpp" />
     <ClCompile Include="PlayerNavValidationSystem.cpp" />
+    <ClCompile Include="BulletFireEventSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="MeleeAttackSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -371,6 +377,12 @@
     <ClInclude Include="PlayerNavValidationSystem.h" />
     <ClInclude Include="ArmorComponent.h">
       <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BulletFireEventSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MeleeAttackSystem.h">
+      <Filter>System\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

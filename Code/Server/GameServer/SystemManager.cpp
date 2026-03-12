@@ -9,6 +9,8 @@
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
 #include "PlayerInputSystem.h"
+#include "BulletFireEventSystem.h"
+#include "MeleeAttackSystem.h"
 #include "CollisionSystem.h"
 #include "DamageSystem.h"
 #include "PlayerNavValidationSystem.h"
@@ -39,6 +41,8 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
     RegisterSystem<PlayerInputSystem>();
+    RegisterSystem<MeleeAttackSystem>();
+    RegisterSystem<BulletFireEventSystem>();
     RegisterSystem<CollisionSystem>();
     RegisterSystem<DamageSystem>();
     RegisterSystem<PlayerNavValidationSystem>();

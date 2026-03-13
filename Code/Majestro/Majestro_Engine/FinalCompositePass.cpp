@@ -18,7 +18,7 @@ void FinalCompositePass::SetData(std::array<PassCustomData, static_cast<uint32>(
 {
 	mBefore = before;
 	mAfter = after;
-	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::COMPOSITE_PASS)].PreviousStep = static_cast<int32>(before);
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::COMPOSITE_PASS)].PreviousStep = static_cast<int32>(ToGBufferIndex(before));
 }
 
 void FinalCompositePass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)

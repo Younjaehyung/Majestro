@@ -14,7 +14,7 @@ void ChromaticAberrationPass::SetData(std::array<PassCustomData, static_cast<uin
 {
 	mBefore = before;
 	mAfter = after;
-	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_CA_PASS)].PreviousStep = static_cast<int32>(before);
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_CA_PASS)].PreviousStep = static_cast<int32>(ToGBufferIndex(before));
 
 }
 

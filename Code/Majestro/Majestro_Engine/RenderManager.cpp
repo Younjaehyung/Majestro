@@ -645,6 +645,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (i ) * srvSize);
 			DEVICE->CreateShaderResourceView(renderTarget.Target->GetTex2D().Get(), &srvDesc, srvhandle);
 			renderTarget.Target->SetSrvHandle(srvhandle);
+			renderTarget.TReg = i;
 			i++;
 		}
 

@@ -1,12 +1,16 @@
 #pragma once
 #include "RenderTarget.h"
+#include "RenderPass.h"
 
-class FinalCompositePass
+class FinalCompositePass : public RenderPass
 {
 public:
 	FinalCompositePass() = default;
 	~FinalCompositePass() = default;
 	// HDR RT + GBuffer RT → SwapChain RT (합성 셰이더)
-	void Execute(RENDER_TARGET_GROUP_TYPE);
+	void Initialize();
+	void SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
+		RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after) override;
+	void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 };
 

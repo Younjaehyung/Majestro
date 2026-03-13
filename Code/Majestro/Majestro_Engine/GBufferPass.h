@@ -1,7 +1,8 @@
 #pragma once
+#include "RenderPass.h"
 #include "RenderSystem.h"
 
-class GBufferPass
+class GBufferPass : public RenderPass
 {
 public:
   GBufferPass() = default;

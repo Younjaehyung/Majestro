@@ -1,10 +1,10 @@
 #pragma once
 #include "World.h"
-
+#include "RenderPass.h"
 using EfkString = std::basic_string<EFK_CHAR>;
 class VfxComponent;
 
-class EffectPass
+class EffectPass : public RenderPass
 {
 public:
 	EffectPass() = default;

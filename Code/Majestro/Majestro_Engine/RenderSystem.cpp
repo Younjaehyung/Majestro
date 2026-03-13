@@ -23,7 +23,7 @@
 #include "LightsPass.h"
 #include "ForwardPass.h"
 #include "EffectPass.h"
-#include "PostProcessPass.h"
+#include "RenderPass.h"
 #include "ToneMapPass.h"
 
 #include "ChromaticAberrationPass.h"
@@ -66,13 +66,14 @@ void RenderSystem::Initialize() {
   mLightPass   = make_shared<LightsPass>();
   mForwardPass = make_shared<ForwardPass>();
   mEffectPass  = make_shared<EffectPass>();
-  
   mPostProcessPass = make_shared<PostProcessPass>();
   
   
   mDepthPrePass->Initialize();
   mEffectPass->Initialize(mWorld);
   mPostProcessPass->Initialize();
+
+  
 
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
@@ -216,6 +217,17 @@ void RenderSystem::PushFrameData() {
   groupBuffer->PassInfo->PushData(&passParams, sizeof(PassParams));
 }
 
+void RenderSystem::PushDebugging()
+{
+    //PushObjectData()가 sDebugLineQueue를 소비하므로
+    //PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
+    {
+        auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
+        if (navMesh && navMesh->mDtNavMesh)
+            mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
+    }
+}
+
 void RenderSystem::PushMaterialData() {
 
   uint32 index{};
@@ -306,6 +318,15 @@ void RenderSystem::PushLandData() {
 
 void RenderSystem::PushPassData()
 {
+    mDepthPrePass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH);
+    mShadowPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::SHADOW);
+    mGBufferPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::SHADOW, RENDER_TARGET_GROUP_TYPE::G_BUFFER);
+    mLightPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::LIGHTING);
+    mForwardPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::HDR);
+    mEffectPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::HDR);
+    mPostProcessPass->SetData(mPassTable);
+
+
     auto& groupBuf = RENDERMANAGER.GetGroupBuffer(mFrameCount);
     groupBuf->PassCustomTableInfo->PushGraphicsData(mPassTable.data(), sizeof(mPassTable));
 }
@@ -830,6 +851,16 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
       Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
 }
 
+
+
+
+
+
+void RenderSystem::RenderDepthPrePass()
+{
+    mDepthPrePass->Execute(mDeferredDrawBatchs);
+}
+
 void RenderSystem::RenderShadow()
 {
     mShadowPass->Execute(mDeferredDrawBatchs, mShadowOnlyBatchs, mCascadeActive);
@@ -884,20 +915,11 @@ void RenderSystem::RenderEffect() {
 
 void RenderSystem::RenderPost() {
    
-	mPostProcessPass->Execute();
+	mPostProcessPass->Execute(mDeferredDrawBatchs);
     
 }
 
-void RenderSystem::PushDebugging()
-{
-     //PushObjectData()가 sDebugLineQueue를 소비하므로
-     //PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
-    {
-        auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
-        if (navMesh && navMesh->mDtNavMesh)
-            mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
-    }
-}
+
 
 bool RenderSystem::IsFrustumCulled(TransformComponent *trans,
                                    RenderComponent *renderComponent) {
@@ -918,7 +940,4 @@ void RenderSystem::InstancingRender(DrawBatch &drawBatch) {
       0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 }
 
-void RenderSystem::RenderDepthPrePass()
-{
-    mDepthPrePass->Execute(mDeferredDrawBatchs);
-}
+

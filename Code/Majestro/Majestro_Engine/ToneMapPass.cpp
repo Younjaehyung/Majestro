@@ -5,7 +5,20 @@
 #include "RenderManager.h"
 #include "ResourceManager.h"
 
-void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+#include "RenderSystem.h"
+
+void ToneMapPass::Initialize() {
+}
+
+void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
+	RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+	mBefore = before;
+	mAfter = after;
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_TONEMAP_PASS)].PreviousStep = static_cast<int32>(before);
+}
+
+void ToneMapPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
@@ -17,8 +30,8 @@ void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 	}
 	else
 	{
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitResourceToTarget();
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitResourceToTarget();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).OMSetRenderTargets();
 		
 	}
 
@@ -29,6 +42,6 @@ void ToneMapPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_T
 	if (RENDERMANAGER.IsMsaaEnabled())
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitTargetToResource();
-	// SwapChain은 RT 상태 유지 — UIRenderSystem이 이어서 렌더링
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitTargetToResource();
+
 }

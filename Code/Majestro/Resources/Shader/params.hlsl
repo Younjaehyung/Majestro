@@ -285,6 +285,8 @@ struct PASS_CUSTOM_DATA
 {
     int  ExtTex[8];     // 자유 텍스처 슬롯 (TextureMaps 배열 인덱스, -1 = 미사용)
     float4 ExtValue[4]; // 자유 파라미터 슬롯 (float4 × 4)
+    
+    int PreviousStep;
 };
 //////////////
 

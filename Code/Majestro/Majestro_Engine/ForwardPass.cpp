@@ -9,6 +9,12 @@
 void ForwardPass::Initialize() {
 }
 
+void ForwardPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+    mBefore = before;
+	mAfter = after;
+}
+
 void ForwardPass::DispatchForwardPlusCull() {
     const uint32 tileCountX = (RENDERMANAGER.GetWindow().Width + FORWARD_PLUS_TILE_SIZE - 1) / FORWARD_PLUS_TILE_SIZE;
     const uint32 tileCountY = (RENDERMANAGER.GetWindow().Height + FORWARD_PLUS_TILE_SIZE - 1) / FORWARD_PLUS_TILE_SIZE;

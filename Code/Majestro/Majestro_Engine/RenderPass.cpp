@@ -1,24 +1,36 @@
 #include "pch.h"
-#include "PostProcessPass.h"
+#include "RenderPass.h"
 
-#include "RenderManager.h"
+
 #include "Engine.h"
 #include "ResourceManager.h"
+#include "RenderManager.h"
 
+#include "RenderSystem.h"
 #include "ToneMapPass.h"
 #include "FinalCompositePass.h"
 #include "ChromaticAberrationPass.h"
 
 
 
-void PostProcess::Initialize()
+void RenderPass::Initialize()
 {
 }
 
-void PostProcess::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+void RenderPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
+    RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+    mBefore = before;
+    mAfter = after;
+}
+
+void RenderPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
 	if (mEnabled == false) return;
 }
+
+
+
 
 
 void PostProcessPass::Initialize()
@@ -29,18 +41,18 @@ void PostProcessPass::Initialize()
    // AddLDRPass(std::make_shared<ChromaticAberrationPass>());
 }
 
-void PostProcessPass::Execute()
+void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& passTable)
 {
     RENDER_TARGET_GROUP_TYPE hdrBefore = RENDER_TARGET_GROUP_TYPE::HDR;
     RENDER_TARGET_GROUP_TYPE hdrAfter = RENDER_TARGET_GROUP_TYPE::POST_HDR_A;
 
     bool firstHDRPass = true;
 
-    for (shared_ptr<PostProcess>& pass : mHDRPasses)
+    for (shared_ptr<RenderPass>& pass : mHDRPasses)
     {
 
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(hdrAfter)).ClearRenderTargetView();
-        pass->Execute(hdrBefore, hdrAfter);
+      
+        pass->SetData(passTable, hdrBefore, hdrAfter);
 
         if (firstHDRPass)
         {
@@ -54,8 +66,8 @@ void PostProcessPass::Execute()
             swap(hdrBefore, hdrAfter);
         }
         // POST_HDR Group 초기화
-       
-      
+
+
     }
 
     // HDR 패스가 하나도 없으면 scene color를 그대로 tone map
@@ -68,17 +80,38 @@ void PostProcessPass::Execute()
     RENDER_TARGET_GROUP_TYPE ldrAfter = RENDER_TARGET_GROUP_TYPE::POST_LDR_B;  //10
 
     // 수정: ToneMap은 HDR 입력 -> LDR 출력이어야 함
-    mToneMapPass->Execute(hdrBefore, ldrBefore);
+    mToneMapPass->SetData(passTable, hdrBefore, ldrBefore);
 
-    for (shared_ptr<PostProcess>& pass : mLDRPasses)
+    for (shared_ptr<RenderPass>& pass : mLDRPasses)
     {
-        RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(ldrAfter)).ClearRenderTargetView();
-        pass->Execute(ldrBefore, ldrAfter);
+       
+        pass->SetData(passTable, ldrBefore, ldrAfter);
         swap(ldrBefore, ldrAfter);
         // POST_LDR Group 초기화
-        
+
     }
 
     // 수정: UI / FinalComposite가 참조할 최종 결과 저장
-    mFinalCompositePass->Execute(ldrBefore);
+    mFinalCompositePass->SetData(passTable, ldrBefore, ldrBefore);
+}
+
+void PostProcessPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
+{
+    for (shared_ptr<RenderPass>& pass : mHDRPasses)
+    {
+
+        pass->Execute(deferredDrawBatchs);
+    }
+
+    // 수정: ToneMap은 HDR 입력 -> LDR 출력이어야 함
+    mToneMapPass->Execute(deferredDrawBatchs);
+
+    for (shared_ptr<RenderPass>& pass : mLDRPasses)
+    {
+        
+        pass->Execute(deferredDrawBatchs);
+    }
+
+    // 수정: UI / FinalComposite가 참조할 최종 결과 저장
+    mFinalCompositePass->Execute(deferredDrawBatchs);
 }

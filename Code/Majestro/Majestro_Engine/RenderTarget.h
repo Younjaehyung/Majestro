@@ -69,6 +69,7 @@ struct RenderTarget
 	float ClearColor[4] = {0.0f,0.0f ,0.0f ,0.0f };
 
 	D3D12_CPU_DESCRIPTOR_HANDLE		mHeapBegin{};
+	int32	TReg = 0;
 };
 
 class RenderTargetGroup{

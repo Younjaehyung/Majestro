@@ -1,14 +1,18 @@
 #pragma once
-#include "PostProcessPass.h"
+#include "RenderPass.h"
 #include "RenderTarget.h"
 
-class ToneMapPass : public PostProcess
+class ToneMapPass : public RenderPass
 {
 public:
 	ToneMapPass() = default;
 	~ToneMapPass() = default;
 
+	virtual void Initialize();
+	virtual void SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
+		RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after);
+
 	// HDR RT → SwapChain RT (ToneMap 셰이더)
-	virtual void Execute(RENDER_TARGET_GROUP_TYPE, RENDER_TARGET_GROUP_TYPE);
+	virtual void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 };
 

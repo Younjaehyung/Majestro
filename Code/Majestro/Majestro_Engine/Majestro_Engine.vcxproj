@@ -243,7 +243,7 @@
     <ClInclude Include="PlayerComponent.h" />
     <ClInclude Include="PlayerInputSystem.h" />
     <ClInclude Include="PlayerSystem.h" />
-    <ClInclude Include="PostProcessPass.h" />
+    <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="RecvBuffer.h" />
     <ClInclude Include="RenderComponent.h" />
@@ -353,7 +353,7 @@
     <ClCompile Include="PlayerComponent.cpp" />
     <ClCompile Include="PlayerInputSystem.cpp" />
     <ClCompile Include="PlayerSystem.cpp" />
-    <ClCompile Include="PostProcessPass.cpp" />
+    <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Prefab.cpp" />
     <ClCompile Include="RecvBuffer.cpp" />
     <ClCompile Include="RenderComponent.cpp" />

@@ -227,6 +227,8 @@ void err_display(int errcode);
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 
+#pragma region RootSignature
+
 
 enum class mRootParmetersIndex : uint8
 {
@@ -319,14 +321,17 @@ enum class GROUP_UAV_INDEX : uint8		//DescriptorTable UAV
 struct PassCustomData {
 	int32 ExtTex[8]{ -1,-1,-1,-1,-1,-1,-1,-1 }; // 자유 텍스처 슬롯 (TextureMaps 인덱스, -1 = 미사용)
 	Vec4  ExtValue[4]{};                          // 자유 파라미터 슬롯 (float4 × 4)
+	int32 PreviousStep{ -1 };
 };
 
 // PassCustomTable 테이블 행 인덱스 — 각 pass가 자신의 행을 사용
 enum class PASS_CUSTOM_INDEX : uint32 {
 	FORWARD_PASS   ,//= 0
 	POST_HDR_PASS,//= 1
-	POST_LDR_PASS,//= 2
-	POST_CA_PASS,//	=3
+	POST_TONEMAP_PASS,// = 2
+	POST_LDR_PASS,//= 3
+	POST_CA_PASS,//	=4
+	COMPOSITE_PASS,//=5
 	CARTOON_PASS,//
 	PASS_CUSTOM_COUNT
 };
@@ -369,6 +374,8 @@ enum {	// space 번호
 	, TEXTURE_SPACE = 4
 
 };
+#pragma endregion
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		이 곳에는 DescriptorHeap기준 세팅시 Group별로 부여된							  //
@@ -428,7 +435,7 @@ enum {	// space 번호
 /// 0 ..1024(~1023)
 
 //////////////////////////////////
-#pragma endregion
+
 
 enum {
 
@@ -464,7 +471,7 @@ enum {
 
 	, PARTICLE_INDEX_START = GROUP_START + (GROUP_COUNT * FRAMEGROUP_COUNT)
 	, PARTICLE_GROUP_COUNT = 1// 파티클 시스템 종류 개수 (파티클 이미터 개수)
-	, PARTICLE_INDEX_COUNT = (static_cast<uint8>(PARTICLE_INDEX::PARTICLE_INDEX_END)* PARTICLE_GROUP_COUNT)	//UAV_TEXTURE + UAV_STRUCTURED(1)
+	, PARTICLE_INDEX_COUNT = (static_cast<uint8>(PARTICLE_INDEX::PARTICLE_INDEX_END) * PARTICLE_GROUP_COUNT)	//UAV_TEXTURE + UAV_STRUCTURED(1)
 
 	, ANIMATION_INDEX_START = PARTICLE_INDEX_START + PARTICLE_INDEX_COUNT
 	, ANIMATION_INDEX_COUNT = (static_cast<uint8>(ANIMATION_INDEX::ANIMATION_INDEX_END))	//UAV_TEXTURE + UAV_STRUCTURED(1)
@@ -477,18 +484,23 @@ enum {
 
 	, TEXTURE_INDEX_START = TEXTURE_CUBE_INDEX_START + TEXTURE_CUBE_INDEX_COUNT
 	, TEXTURE_INDEX_COUNT = TEXTURE_SRV_COUNT
-	
+
 	, IMGUI_INDEX_START = TEXTURE_INDEX_START + TEXTURE_INDEX_COUNT
 	, IMGUI_INDEX_COUNT = 1
 
 	, UI_INDEX_START = IMGUI_INDEX_START + IMGUI_INDEX_COUNT
 	, UI_INDEX_COUNT = 1
-	
 
 
-	, ALL_DESCRIPTOR_COUNT = GBUFFER_INDEX_COUNT + (GROUP_COUNT * FRAMEGROUP_COUNT) + PARTICLE_INDEX_COUNT + 
+
+	, ALL_DESCRIPTOR_COUNT = GBUFFER_INDEX_COUNT + (GROUP_COUNT * FRAMEGROUP_COUNT) + PARTICLE_INDEX_COUNT +
 	TEXTURE_CUBE_INDEX_COUNT + TEXTURE_INDEX_COUNT + IMGUI_INDEX_COUNT + UI_INDEX_COUNT
 };
+
+
+
+
+#pragma endregion
 
 
 

@@ -1,7 +1,8 @@
 #pragma once
+#include "RenderPass.h"
 #include "RenderSystem.h"
 
-class LightsPass
+class LightsPass : public RenderPass
 {
 public:
   LightsPass() = default;

@@ -9,7 +9,17 @@ void ChromaticAberrationPass::Initialize() {
 
 }
 
-void ChromaticAberrationPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after) {
+void ChromaticAberrationPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
+	RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+	mBefore = before;
+	mAfter = after;
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_CA_PASS)].PreviousStep = static_cast<int32>(before);
+
+}
+
+void ChromaticAberrationPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
+{
 	if (mEnabled == false) return;
 
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
@@ -22,8 +32,8 @@ void ChromaticAberrationPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TA
 	}
 	else
 	{
-		//RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitResourceToTarget();
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).OMSetRenderTargets();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).ClearRenderTargetView();
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).OMSetRenderTargets();
 		// A-> B 입력 
 	}
 
@@ -34,5 +44,5 @@ void ChromaticAberrationPass::Execute(RENDER_TARGET_GROUP_TYPE before, RENDER_TA
 	if (RENDERMANAGER.IsMsaaEnabled())
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(after)).WaitTargetToResource();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitTargetToResource();
 }

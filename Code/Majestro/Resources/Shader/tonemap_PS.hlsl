@@ -13,7 +13,9 @@ float3 ReinhardToneMap(float3 hdr)
 
 float4 PS_Main(VS_OUT input) : SV_Target
 {
-    float3 hdrColor = Gbuffer[6].Sample(g_sam_0, input.uv).rgb;
+    PASS_CUSTOM_DATA index = PassCustomTable[2];
+    
+    float3 hdrColor = Gbuffer[index.PreviousStep].Sample(g_sam_0, input.uv).rgb;
     float3 mapped = TonemapACES(hdrColor);
     float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 2.2f);
     //gammaCorrected = lerp(gammaCorrected, Luminance(gammaCorrected), 1.0f - 1.1f);

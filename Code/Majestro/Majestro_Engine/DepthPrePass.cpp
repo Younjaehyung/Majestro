@@ -9,9 +9,16 @@ void DepthPrePass::Initialize() {
 	depthShader = RESOURCEMANAGER.Get<Shader>(L"DepthPrepass");
 }
 
+void DepthPrePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+    mBefore = before;
+	mAfter = after;
+
+}
+
 void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
     auto& depthGroup = RENDERMANAGER.GetRenderTargetGroup(
-        static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::PRE_DEPTH));
+        static_cast<uint32>(mAfter));
 
     // ClearRenderTargetView 내부에서 배리어 + DSV 클리어 처리
     // 렌더 후 WaitTargetToResource 호출 안 함 → DEPTH_WRITE 상태 유지

@@ -12,6 +12,8 @@
 struct MaterialParams;
 struct PatricleParams;
 
+class RenderPass;
+
 class Mesh;
 class Shader;
 class Material;
@@ -252,4 +254,6 @@ private: // RenderPass
 	std::shared_ptr<class ForwardPass>    mForwardPass;
 	std::shared_ptr<class EffectPass>     mEffectPass;
 	std::shared_ptr<class PostProcessPass> mPostProcessPass;
+
+
 };

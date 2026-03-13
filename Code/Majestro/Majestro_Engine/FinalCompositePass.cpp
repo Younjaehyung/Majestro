@@ -8,7 +8,20 @@
 #include "ToneMapPass.h"
 #include "ChromaticAberrationPass.h"
 
-void FinalCompositePass::Execute(RENDER_TARGET_GROUP_TYPE before)
+void FinalCompositePass::Initialize() 
+{
+
+}
+
+void FinalCompositePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
+	RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+	mBefore = before;
+	mAfter = after;
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::COMPOSITE_PASS)].PreviousStep = static_cast<int32>(before);
+}
+
+void FinalCompositePass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 

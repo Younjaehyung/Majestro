@@ -9,6 +9,13 @@
 void ShadowPass::Initialize() {
 }
 
+void ShadowPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
+{
+    mBefore = before;
+	mAfter = after;
+
+}
+
 void ShadowPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive) {
 
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));

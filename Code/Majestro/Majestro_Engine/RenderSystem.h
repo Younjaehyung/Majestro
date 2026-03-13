@@ -169,6 +169,9 @@ private: // Render
   // forward
   void RenderForward();
 
+  // outline (Inverted Hull, ForwardPass 직후 동일 HDR RT에 렌더)
+  void RenderOutline();
+
   // 인게임 VFX (HDR RT, ToneMap 전)
   void RenderEffect();
 
@@ -252,6 +255,7 @@ private: // RenderPass
 	std::shared_ptr<class GBufferPass>    mGBufferPass;
 	std::shared_ptr<class LightsPass>     mLightPass;
 	std::shared_ptr<class ForwardPass>    mForwardPass;
+	std::shared_ptr<class OutlinePass>    mOutlinePass;
 	std::shared_ptr<class EffectPass>     mEffectPass;
 	std::shared_ptr<class PostProcessPass> mPostProcessPass;
 

@@ -1154,6 +1154,23 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
 		Add<Shader>(L"DepthPrepass", shader);
 	}
+
+	// Outline (Inverted Hull)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_FRONT,
+			DEPTH_STENCIL_TYPE::LESS_EQUAL,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\outline_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\outline_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"Outline", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()

@@ -235,6 +235,7 @@
     <ClInclude Include="NetTransformComponent.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="OutlinePass.h" />
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="ParticleSystem.h" />
@@ -340,6 +341,7 @@
     <ClCompile Include="NetTransformComponent.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="OutlinePass.cpp" />
     <ClCompile Include="PacketHelper.cpp" />
     <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />

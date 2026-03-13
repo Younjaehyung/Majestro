@@ -3,6 +3,7 @@
 #include "RenderSystem.h"
 class ToneMapPass;
 class FinalCompositePass;
+class OutlinePass;
 
 // RENDER_TARGET_GROUP_TYPE → GBUFFER_INDEX 변환
 // subRtIndex: G_BUFFER(0=Position,1=Normal,2=Color), LIGHTING(0=Diffuse,1=Specular) 등 멀티 RT 그룹에서의 내부 인덱스

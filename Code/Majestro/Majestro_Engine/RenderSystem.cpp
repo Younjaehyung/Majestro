@@ -22,6 +22,7 @@
 #include "GBufferPass.h"
 #include "LightsPass.h"
 #include "ForwardPass.h"
+#include "OutlinePass.h"
 #include "EffectPass.h"
 #include "RenderPass.h"
 #include "ToneMapPass.h"
@@ -64,8 +65,9 @@ void RenderSystem::Initialize() {
   mShadowPass  = make_shared<ShadowPass>();
   mGBufferPass = make_shared<GBufferPass>();
   mLightPass   = make_shared<LightsPass>();
-  mForwardPass = make_shared<ForwardPass>();
-  mEffectPass  = make_shared<EffectPass>();
+  mForwardPass  = make_shared<ForwardPass>();
+  mOutlinePass  = make_shared<OutlinePass>();
+  mEffectPass   = make_shared<EffectPass>();
   mPostProcessPass = make_shared<PostProcessPass>();
   
   
@@ -134,6 +136,7 @@ void RenderSystem::RenderPass()
     RenderShadow();
     RenderDeferred();
     RenderForward();
+    RenderOutline();
     RenderEffect();
     RenderPost();
 
@@ -323,7 +326,8 @@ void RenderSystem::PushPassData()
     mGBufferPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::SHADOW, RENDER_TARGET_GROUP_TYPE::G_BUFFER);
     mLightPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::LIGHTING);
     mForwardPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::HDR);
-    mEffectPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::HDR);
+    mOutlinePass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::HDR,       RENDER_TARGET_GROUP_TYPE::HDR);
+    mEffectPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,  RENDER_TARGET_GROUP_TYPE::HDR);
     mPostProcessPass->SetData(mPassTable);
 
 
@@ -901,6 +905,10 @@ void RenderSystem::RenderForward() {
     mForwardPass->Execute(mDeferredDrawBatchs);
 }
 
+void RenderSystem::RenderOutline() {
+    mOutlinePass->Execute(mDeferredDrawBatchs);
+}
+
 void RenderSystem::RenderEffect() {
     if (mCamera == nullptr) return;
 
@@ -939,5 +947,3 @@ void RenderSystem::InstancingRender(DrawBatch &drawBatch) {
   drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, 
       0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 }
-
-

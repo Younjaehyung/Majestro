@@ -499,6 +499,9 @@
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\UI</Filter>
     </ClInclude>
+    <ClInclude Include="OutlinePass.h">
+      <Filter>World\System\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -802,6 +805,9 @@
       <Filter>World\System\Render\03.Pre-pass</Filter>
     </ClCompile>
     <ClCompile Include="UIRenderSystem.cpp">
+      <Filter>World\System\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="OutlinePass.cpp">
       <Filter>World\System\UI</Filter>
     </ClCompile>
   </ItemGroup>

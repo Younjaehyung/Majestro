@@ -8,7 +8,7 @@ using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 
-BOOL STATE_DEBUG = FALSE;
+BOOL STATE_DEBUG = TRUE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 const char* ResolveStateSettingJsonPath(uint8 playerType)
@@ -564,6 +564,7 @@ void DashState::Enter(MainPlayerComponent* owner)
     owner->mDash = true;
     owner->mDashTimer = 0.f;
     StateEnter(this, owner);
+    if (owner->mPlayerType == 2) owner->mNextState = S_ReRoad;
 }
 void DashState::Update(MainPlayerComponent* owner)
 {
@@ -571,6 +572,9 @@ void DashState::Update(MainPlayerComponent* owner)
 }
 void DashState::Exit(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 0)owner->mPendingAction = PendingAction::Skill1;
+    if (owner->mPlayerType == 2)owner->mPendingAction = PendingAction::Reload;
+
     StateExit(this, owner);
 }
 
@@ -724,6 +728,7 @@ void Skill1State::Enter(MainPlayerComponent* owner)
 }
 void Skill1State::Update(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 1) owner->mFsm.ChangeState(owner, DashState::Instance());
     StateUpdate(this, owner);
 }
 void Skill1State::Exit(MainPlayerComponent* owner)
@@ -742,6 +747,7 @@ void Skill2State::Enter(MainPlayerComponent* owner)
 void Skill2State::Update(MainPlayerComponent* owner)
 {
     if(owner->mPlayerType ==1) owner->mFsm.ChangeState(owner, DashState::Instance());
+    if(owner->mPlayerType ==2) owner->mFsm.ChangeState(owner, DashState::Instance());
     StateUpdate(this, owner);
 }
 void Skill2State::Exit(MainPlayerComponent* owner)

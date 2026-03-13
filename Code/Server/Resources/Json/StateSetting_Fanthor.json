@@ -1,7 +1,7 @@
 {
     "player": {
         "runSpeed": 50.0,
-        "dashSpeed": 100.0,
+        "dashSpeed": 1000.0,
         "dashTime": 5.0
     },
 
@@ -57,6 +57,11 @@
             "animEndTime": 1.16667
         },
         "SpecialState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "ReRoadState": {
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 1.16667

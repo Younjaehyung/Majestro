@@ -58,6 +58,15 @@ enum PlayerFlags : uint64_t
 inline void SetFlag(uint64_t& f, uint64_t m) { f |= m; }   // 켜기
 inline void ClearFlag(uint64_t& f, uint64_t m) { f &= ~m; }   // 끄기
 
+enum class PendingAction : uint8_t
+{
+	None,
+	Attack,
+	Skill1,
+	Skill2,
+	Reload
+};
+
 class MainPlayerComponent : public Component<MainPlayerComponent>
 {
 public:
@@ -88,6 +97,7 @@ public:
 public:
 	uint8 mPlayerType;
 public:
+	PendingAction mPendingAction = PendingAction::None;
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
 

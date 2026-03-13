@@ -35,7 +35,7 @@ namespace
 			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
 			return true;
 
-		case SkillType::BaseSkill2:
+		
 		case SkillType::DrumSkill2:
 		case SkillType::GuitarSkill2:
 			eventManager.Enqueue<EvBuffBulletRequest>({ shooter, bulletType });
@@ -43,7 +43,7 @@ namespace
 
 		case SkillType::Default:
 		default:
-			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
+			//eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
 			return true;
 		}
 	}
@@ -102,7 +102,31 @@ void PlayerInputSystem::Update(float dt)
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(e);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(e);
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
-		//NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+		
+		//연속행동
+		if (mainPlayerComponent->mPendingAction != PendingAction::None)
+		{
+			if (auto eventManager = mWorld->GetEventManager())
+			{
+				InputButtons button = InputButtons::ATTACK;
+
+				switch (mainPlayerComponent->mPendingAction)
+				{
+				case PendingAction::Attack: button = InputButtons::ATTACK; break;
+				case PendingAction::Skill1: button = InputButtons::SKILL1; break;
+				case PendingAction::Skill2: button = InputButtons::SKILL2; break;
+				case PendingAction::Reload: button = InputButtons::RELOAD; break;
+				default: break;
+				}
+
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, button);
+
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+			}
+
+			mainPlayerComponent->mPendingAction = PendingAction::None; // 소비 완료
+		}
+
 
 		if (inputComp->MoveX ==0 && inputComp->MoveZ == 0) {
 			mainPlayerComponent->mSpeed = 0.f;
@@ -133,9 +157,6 @@ void PlayerInputSystem::Update(float dt)
 
 
 		if (inputComp->IsButtonPressed(InputButtons::SPACE)) {
-			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
-			else cout << "fail" << endl;
-
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {
@@ -143,9 +164,9 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
 
-		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			std::cout << "attack!!!" << std::endl;
 
+		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
+			//std::cout << "attack!!!" << std::endl;
 			if (auto eventManager = mWorld->GetEventManager())
 			{
 				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
@@ -153,21 +174,6 @@ void PlayerInputSystem::Update(float dt)
 			}
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 		}
-		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
-			//std::cout << "reroad" << std::endl;
-			if (auto eventManager = mWorld->GetEventManager())
-			{
-				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
-				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-			}
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReRoadState::Instance());
-		}
-		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change
-			//std::cout << "special" << std::endl;
-			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
-		}
-
-
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
 			//std::cout << "skill1" << std::endl;
 			if (auto eventManager = mWorld->GetEventManager())
@@ -184,6 +190,23 @@ void PlayerInputSystem::Update(float dt)
 				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 			}
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
+		}
+
+		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
+			//std::cout << "reroad" << std::endl;
+			if (auto eventManager = mWorld->GetEventManager())
+			{
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+			}
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReRoadState::Instance());
+		}
+		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
+			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
+			else cout << "fail" << endl;
+
+			//std::cout << "special" << std::endl;
+			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
 		}
 
 

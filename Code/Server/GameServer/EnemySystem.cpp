@@ -94,7 +94,7 @@ void EnemySystem::Update(float dt)
             }
             else {
                 // 탐색 성공 시 디버그 로그
-				std::cout << "Pathfinding succeeded for entity " << entity.GetID() << ". Waypoints: " << mc->mPathCount << std::endl;
+				//std::cout << "Pathfinding succeeded for entity " << entity.GetID() << ". Waypoints: " << mc->mPathCount << std::endl;
             }
 
             mc->mPathIndex = 0;

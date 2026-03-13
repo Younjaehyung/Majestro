@@ -741,6 +741,7 @@ void Skill2State::Enter(MainPlayerComponent* owner)
 }
 void Skill2State::Update(MainPlayerComponent* owner)
 {
+    if(owner->mPlayerType ==1) owner->mFsm.ChangeState(owner, DashState::Instance());
     StateUpdate(this, owner);
 }
 void Skill2State::Exit(MainPlayerComponent* owner)

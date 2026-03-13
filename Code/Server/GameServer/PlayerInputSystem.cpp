@@ -19,60 +19,65 @@
 
 namespace
 {
-	bool EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, BulletType bulletType)
+	bool EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType)
 	{
 		switch (bulletType)
 		{
-		case BulletType::BaseAttack:
-		case BulletType::BaseSkill1:
-		case BulletType::DrumSkill1:
-		case BulletType::GuitarSkill1:
+		case SkillType::DrumAttack:
+		case SkillType::GuitarAttack:
+			eventManager.Enqueue<EvMeleeAttackRequest>({ shooter, bulletType });
+			return true;
+
+		case SkillType::BaseAttack:
+		case SkillType::BaseSkill1:
+		case SkillType::DrumSkill1:
+		case SkillType::GuitarSkill1:
 			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
-			break;
+			return true;
 
-		case BulletType::BaseSkill2:
-		case BulletType::DrumSkill2:
-		case BulletType::GuitarSkill2:
+		case SkillType::BaseSkill2:
+		case SkillType::DrumSkill2:
+		case SkillType::GuitarSkill2:
 			eventManager.Enqueue<EvBuffBulletRequest>({ shooter, bulletType });
-			break;
+			return true;
 
-		case BulletType::Default:
+		case SkillType::Default:
 		default:
 			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
-			break;
+			return true;
 		}
 	}
 
-	BulletType ResolveBulletType(uint8 playerType, InputButtons actionButton)
+	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton)
 	{
 		switch (playerType)
 		{
 		case 0:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return BulletType::DrumAttack;
-			case InputButtons::SKILL1: return BulletType::DrumSkill1;
-			case InputButtons::SKILL2: return BulletType::DrumSkill2;
-			case InputButtons::RELOAD: return BulletType::DrumSkill3;
-			default: return BulletType::Default;
+			case InputButtons::ATTACK: return SkillType::DrumAttack;
+			case InputButtons::SKILL1: return SkillType::DrumSkill1;
+			case InputButtons::SKILL2: return SkillType::DrumSkill2;
+			case InputButtons::RELOAD: return SkillType::DrumSkill3;
+			default: return SkillType::Default;
 			}
 		case 1:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return BulletType::BaseAttack;
-			case InputButtons::SKILL1: return BulletType::BaseSkill1;
-			case InputButtons::SKILL2: return BulletType::BaseSkill2;
-			case InputButtons::RELOAD: return BulletType::BaseSkill3;
-			default: return BulletType::Default;
+			case InputButtons::ATTACK: return SkillType::BaseAttack;
+			case InputButtons::SKILL1: return SkillType::BaseSkill1;
+			case InputButtons::SKILL2: return SkillType::BaseSkill2;
+			case InputButtons::RELOAD: return SkillType::BaseSkill3;
+			default: return SkillType::Default;
 			}
 		default:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return BulletType::GuitarAttack;
-			case InputButtons::SKILL1: return BulletType::GuitarSkill1;
-			case InputButtons::SKILL2: return BulletType::GuitarSkill2;
-			case InputButtons::RELOAD: return BulletType::GuitarSkill3;
-			default: return BulletType::Default;
+			case InputButtons::ATTACK: return SkillType::GuitarAttack;
+			case InputButtons::SKILL1: return SkillType::GuitarSkill1;
+			case InputButtons::SKILL2: return SkillType::GuitarSkill2;
+			case InputButtons::RELOAD: return SkillType::GuitarSkill3;
+			default: return SkillType::Default;
 			}
 		}
 	}
@@ -143,7 +148,7 @@ void PlayerInputSystem::Update(float dt)
 
 			if (auto eventManager = mWorld->GetEventManager())
 			{
-				const BulletType bulletType = ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
 				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 			}
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
@@ -152,7 +157,7 @@ void PlayerInputSystem::Update(float dt)
 			//std::cout << "reroad" << std::endl;
 			if (auto eventManager = mWorld->GetEventManager())
 			{
-				const BulletType bulletType = ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
 				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 			}
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReRoadState::Instance());
@@ -167,25 +172,18 @@ void PlayerInputSystem::Update(float dt)
 			//std::cout << "skill1" << std::endl;
 			if (auto eventManager = mWorld->GetEventManager())
 			{
-				const BulletType bulletType = ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
 				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 			}
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			if (mainPlayerComponent->mPlayerType == 1)
+			if (auto eventManager = mWorld->GetEventManager())
 			{
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2);
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 			}
-			else
-			{
-				if (auto eventManager = mWorld->GetEventManager())
-				{
-					const BulletType bulletType = ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2);
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				}
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
-			}
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
 		}
 
 

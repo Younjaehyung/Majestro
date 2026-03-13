@@ -58,7 +58,7 @@ void BulletFireEventSystem::Update(float dt)
 	}
 }
 
-void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, BulletType bulletType)
+void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillType bulletType)
 {
 	if (false == mWorld->HasComponentPool<BulletComponent>())
 		return;

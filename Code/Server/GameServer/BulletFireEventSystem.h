@@ -9,6 +9,6 @@ public:
 	void Update(float dt) override;
 
 private:
-	void ActivateBulletAndNotify(Entity playerEntity, BulletType bulletType);
+	void ActivateBulletAndNotify(Entity playerEntity, SkillType bulletType);
 	std::vector<uint32> CollectPlayerSessions() const;
 };

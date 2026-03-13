@@ -37,13 +37,13 @@ namespace
 		float radius = 2.0f;
 	};
 
-	MeleeAttackStat GetMeleeAttackStat(BulletType type)
+	MeleeAttackStat GetMeleeAttackStat(SkillType type)
 	{
 		switch (type)
 		{
-		case BulletType::DrumAttack:
+		case SkillType::DrumAttack:
 			return { 10.0f, 3.0f, 100.0f };
-		case BulletType::GuitarAttack:
+		case SkillType::GuitarAttack:
 			return { 25.0f, 3.0f, 2.2f };
 		default:
 			return {};

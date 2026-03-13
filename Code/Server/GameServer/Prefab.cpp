@@ -255,7 +255,7 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 	//world->AddComponent<BoxColliderComponent>(entity, Vec3(3.f, 3.f, 3.f));
 
 	auto& bullet = world->AddComponent<BulletComponent>(entity);
-	bullet.Activate(BulletType::Default, 0, 0, 0, Vec3::Forward, 160.0f, 2.0f, 10.0f, 0.f);
+	bullet.Activate(SkillType::Default, 0, 0, 0, Vec3::Forward, 160.0f, 2.0f, 10.0f, 0.f);
 	bullet.Deactivate(); // 풀에 넣기 위해 초기 상태는 비활성
 
 	auto& net = world->AddComponent<NetEntityComponent>(entity, world, entity);

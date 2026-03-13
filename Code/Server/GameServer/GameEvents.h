@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "Entity.h"
 
-enum class BulletType : uint8;
+enum class SkillType : uint8;
 
 
 struct EvDamage
@@ -54,19 +54,19 @@ struct EvBulletDeactivated
 struct EvBuffBulletRequest
 {
     Entity shooter;
-    BulletType bulletType;
+    SkillType bulletType;
 };
 
 struct EvRangedAttackRequest
 {
     Entity shooter;
-    BulletType bulletType;
+    SkillType bulletType;
 };
 
 struct EvMeleeAttackRequest
 {
     Entity shooter;
-    BulletType bulletType;
+    SkillType bulletType;
 };
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvBuffBulletRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;

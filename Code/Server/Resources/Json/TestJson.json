@@ -69,7 +69,7 @@
 
         {
             "from": "Dash",
-            "to": "Run",
+            "to": "Run", 
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_MOVE" ]
         },

@@ -98,6 +98,7 @@ public:
 	uint8 mPlayerType;
 public:
 	PendingAction mPendingAction = PendingAction::None;
+	bool mStateThrew = true;
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
 
@@ -122,7 +123,7 @@ public:
 	uint64_t mFlags = 0ull;
 	bool mAnimEnd = false;
 	float mStateTimer = 0.0f;
-	float mDashTimer = 0.0f;
+	float mDashEnd = 0.0f;
 	float mDt = 0.0f;
 
 };

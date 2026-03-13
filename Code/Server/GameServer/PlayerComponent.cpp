@@ -4,12 +4,19 @@
 #include <functional>
 #include <fstream>
 #include <limits>
+#include <chrono>
 using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 
-BOOL STATE_DEBUG = TRUE;
+BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
+
+static float GetSteadyTimeSeconds()
+{
+    const auto now = std::chrono::steady_clock::now().time_since_epoch();
+    return std::chrono::duration<float>(now).count();
+}
 
 const char* ResolveStateSettingJsonPath(uint8 playerType)
 {
@@ -167,12 +174,23 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
 void MainPlayerComponent::StateCheck()
 {
     if (mSpeed < 1.f)ClearFlag(mFlags, FLAG_MOVE);
-    if (mDash && mDashTime <= mDashTimer) {
-        mDash = false;
-        mFsm.ChangeState(this, IdleState::Instance());
+    if (mDash) {
+        if (mDashEnd <= GetSteadyTimeSeconds()) {
+            mDash = false;
+            //dash end
+            if (mPlayerType == 0) {
+                mStateThrew = false;
+                mPendingAction = PendingAction::Skill1;
+            }
+            if (mPlayerType == 2)mPendingAction = PendingAction::Reload;
+            mFsm.ChangeState(this, IdleState::Instance());
+        }
+        else {
+            mFsm.ChangeState(this, DashState::Instance());
+        }
     }
 
-    else 
+
     if (mFalling) {
         mFsm.ChangeState(this, FallState::Instance());
     }
@@ -183,7 +201,7 @@ void MainPlayerComponent::Update(float dt)
     mStateTimer += dt;
     mDt = dt;
 
-    if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
+    //if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
     StateCheck();
     mFsm.Update(this);
 }
@@ -561,10 +579,11 @@ DashState* DashState::Instance() {
 }
 void DashState::Enter(MainPlayerComponent* owner)
 {
-    owner->mDash = true;
-    owner->mDashTimer = 0.f;
+    if (not owner->mDash) {
+        owner->mDash = true;
+        owner->mDashEnd = GetSteadyTimeSeconds() + owner->mDashTime;
+    }
     StateEnter(this, owner);
-    if (owner->mPlayerType == 2) owner->mNextState = S_ReRoad;
 }
 void DashState::Update(MainPlayerComponent* owner)
 {
@@ -572,9 +591,6 @@ void DashState::Update(MainPlayerComponent* owner)
 }
 void DashState::Exit(MainPlayerComponent* owner)
 {
-    if (owner->mPlayerType == 0)owner->mPendingAction = PendingAction::Skill1;
-    if (owner->mPlayerType == 2)owner->mPendingAction = PendingAction::Reload;
-
     StateExit(this, owner);
 }
 
@@ -728,11 +744,12 @@ void Skill1State::Enter(MainPlayerComponent* owner)
 }
 void Skill1State::Update(MainPlayerComponent* owner)
 {
-    if (owner->mPlayerType == 1) owner->mFsm.ChangeState(owner, DashState::Instance());
+    if (owner->mPlayerType == 0 && owner->mStateThrew) owner->mFsm.ChangeState(owner, DashState::Instance());
     StateUpdate(this, owner);
 }
 void Skill1State::Exit(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 0)owner->mStateThrew = true;
     StateExit(this, owner);
 }
 

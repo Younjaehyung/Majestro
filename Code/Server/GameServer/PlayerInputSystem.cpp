@@ -109,19 +109,24 @@ void PlayerInputSystem::Update(float dt)
 			if (auto eventManager = mWorld->GetEventManager())
 			{
 				InputButtons button = InputButtons::ATTACK;
+				State<MainPlayerComponent>* pendingState = nullptr;
 
 				switch (mainPlayerComponent->mPendingAction)
 				{
-				case PendingAction::Attack: button = InputButtons::ATTACK; break;
-				case PendingAction::Skill1: button = InputButtons::SKILL1; break;
-				case PendingAction::Skill2: button = InputButtons::SKILL2; break;
-				case PendingAction::Reload: button = InputButtons::RELOAD; break;
+				case PendingAction::Attack: button = InputButtons::ATTACK; pendingState = Attack1State::Instance(); break;
+				case PendingAction::Skill1: button = InputButtons::SKILL1; pendingState = Skill1State::Instance(); break;
+				case PendingAction::Skill2: button = InputButtons::SKILL2; pendingState = Skill2State::Instance(); break;
+				case PendingAction::Reload: button = InputButtons::RELOAD; pendingState = ReRoadState::Instance(); break;
 				default: break;
 				}
 
 				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, button);
 
 				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+				if (pendingState)
+				{
+					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, pendingState);
+				}
 			}
 
 			mainPlayerComponent->mPendingAction = PendingAction::None; // 소비 완료

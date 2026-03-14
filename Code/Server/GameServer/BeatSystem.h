@@ -13,11 +13,13 @@ public:
 	void Initialize();
 	void Update(float dt);
 
+public:
+	float mBpmSeconds = 60.f / mBpm;
+
 private:
 	int mBpm = 168.0f;
 	int mBeat =0;
 
-	float mBpmSeconds = 60.f / mBpm;
 	float mSeconds = 0.0f;
 	float mBonusTime = 0.2;
 };

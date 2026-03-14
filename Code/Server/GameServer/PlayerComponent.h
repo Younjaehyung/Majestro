@@ -37,7 +37,7 @@ enum : StateId {
 	S_Idle = 0, S_RunForward, S_RunBackward, S_RunRight, S_RunLeft,
 	S_Jump, S_Fall, S_Land, S_Dash,
 	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special,
-	S_ReRoad, S_RhythmChange, S_Aim,
+	S_Reload, S_RhythmChange, S_Aim,
 	S_Hit, S_Stun, S_Dead,
 
 };
@@ -104,8 +104,8 @@ public:
 
 	Vec2 mPlayerMovingDir;
 
-	float mSpeed = 0.0f;
-	float mWalkSpeed = 0.0f;
+public:
+	//float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;
 	float mDashSpeed = 0.0f;
 	float mDashTime = 3.0f;
@@ -113,8 +113,17 @@ public:
 	float mAttackCool;
 	float mSkill1Cool;
 	float mSkill2Cool;
+	float mReloadCool;
+
+public:
+	float mNextAttackTime;
+	float mNextSkill1Time;
+	float mNextSkill2Time;
+	float mNextReloadTime;
 	uint8 mRhythm;
 
+
+	float mSpeed = 0.0f;
 
 	float mJumpPower = 60.f;
 	bool mFalling = false;
@@ -221,11 +230,11 @@ public:
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
-class ReRoadState : public State<MainPlayerComponent> {
+class ReloadState : public State<MainPlayerComponent> {
 public:
-	static ReRoadState* Instance();
+	static ReloadState* Instance();
 
-	virtual const char* GetName() const override { return "ReRoadState"; }
+	virtual const char* GetName() const override { return "ReloadState"; }
 
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;

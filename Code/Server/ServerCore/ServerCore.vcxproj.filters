@@ -66,6 +66,9 @@
     <ClInclude Include="PacketHelper.h">
       <Filter>Packet</Filter>
     </ClInclude>
+    <ClInclude Include="TimeUtils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Session.cpp">

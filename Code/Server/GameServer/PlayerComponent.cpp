@@ -4,19 +4,13 @@
 #include <functional>
 #include <fstream>
 #include <limits>
-#include <chrono>
 using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
+#include "TimeUtils.h"
 
 BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
-
-static float GetSteadyTimeSeconds()
-{
-    const auto now = std::chrono::steady_clock::now().time_since_epoch();
-    return std::chrono::duration<float>(now).count();
-}
 
 const char* ResolveStateSettingJsonPath(uint8 playerType)
 {
@@ -45,7 +39,7 @@ static StateId NameToId(const std::string& n) {
 	if (n == "Dash")  return S_Dash;
 
     if (n == "Aim")  return S_Aim;
-    if (n == "ReRoad")  return S_ReRoad;
+    if (n == "Reload")  return S_Reload;
     if (n == "RhythmChange")  return S_RhythmChange;
 
     if (n == "Hit")  return S_Hit;
@@ -124,7 +118,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
     SpecialState::Instance(),
 
     AimState::Instance(),
-    ReRoadState::Instance(),
+    ReloadState::Instance(),
     RhythmChangeState::Instance(),
 
     HitState::Instance(),
@@ -151,7 +145,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerTy
     LandState::Instance(),
     DashState::Instance(),
 
-    ReRoadState::Instance(),
+    ReloadState::Instance(),
     RhythmChangeState::Instance(),
     AimState::Instance(),
 
@@ -199,7 +193,7 @@ void MainPlayerComponent::StateCheck()
 void MainPlayerComponent::Update(float dt) 
 {
     mStateTimer += dt;
-    mDt = dt;
+    //mDt = dt;
 
     //if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
     StateCheck();
@@ -233,7 +227,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == Skill2State::Instance()) return S_Skill2;
         if (s == SpecialState::Instance()) return S_Special;
 
-        if (s == ReRoadState::Instance()) return S_ReRoad;
+        if (s == ReloadState::Instance()) return S_Reload;
         return 255;
         };
     mFsm.SetIdResolver(stateResolver);
@@ -341,6 +335,18 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         if (p.contains("dashTime"))
             mDashTime = p["dashTime"].get<float>();
 
+        if (p.contains("attackCool"))
+            mAttackCool = p["attackCool"].get<float>();
+
+        if (p.contains("skill1Cool"))
+            mSkill1Cool = p["skill1Cool"].get<float>();
+
+        if (p.contains("skill2Cool"))
+            mSkill2Cool = p["skill2Cool"].get<float>();
+
+        if (p.contains("reloadCool"))
+            mReloadCool = p["reloadCool"].get<float>();
+
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();
 
@@ -349,6 +355,10 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         std::cout << "  RunSpeed  : " << mRunSpeed << "\n";
         std::cout << "  DashSpeed : " << mDashSpeed << "\n";
         std::cout << "  DashTime : " << mDashTime << "\n";
+        std::cout << "  AttackCool : " << mAttackCool << "\n";
+        std::cout << "  Skill1Cool : " << mSkill1Cool << "\n";
+        std::cout << "  Skill2Cool : " << mSkill2Cool << "\n";
+        std::cout << "  ReloadCool : " << mReloadCool << "\n";
     }
     // 2) STATE PROPERTY 로딩
     if (!j.contains("stateProps"))
@@ -404,8 +414,6 @@ void StateExit(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
 {
     if (STATE_DEBUG) { std::cout << "Exit " << s->GetName() << "\n"; }
 }
-
-
 
 IdleState* IdleState::Instance() {
     static IdleState inst;
@@ -612,19 +620,19 @@ void AimState::Exit(MainPlayerComponent* owner)
     StateExit(this, owner);
 }
 
-ReRoadState* ReRoadState::Instance() {
-    static ReRoadState inst;
+ReloadState* ReloadState::Instance() {
+    static ReloadState inst;
     return &inst;
 }
-void ReRoadState::Enter(MainPlayerComponent* owner)
+void ReloadState::Enter(MainPlayerComponent* owner)
 {
     StateEnter(this, owner);
 }
-void ReRoadState::Update(MainPlayerComponent* owner)
+void ReloadState::Update(MainPlayerComponent* owner)
 {
     StateUpdate(this, owner);
 }
-void ReRoadState::Exit(MainPlayerComponent* owner)
+void ReloadState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

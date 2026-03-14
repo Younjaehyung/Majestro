@@ -2,7 +2,11 @@
     "player": {
         "runSpeed": 100.0,
         "dashSpeed": 1000.0,
-        "dashTime": 5.0
+        "dashTime": 1.0,
+        "attackCool": 1,
+        "skill1Cool": 2,
+        "skill2Cool": 16,
+        "reloadCool": 16
     },
 
     "stateProps": {

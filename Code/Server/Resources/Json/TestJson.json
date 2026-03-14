@@ -145,14 +145,14 @@
         },
 
         {
-            "from": "ReRoad",
+            "from": "Reload",
             "to": "Idle",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },
 
         {
-            "from": "ReRoad",
+            "from": "Reload",
             "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]

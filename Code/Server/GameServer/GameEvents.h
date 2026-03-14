@@ -49,6 +49,11 @@ struct EvArmorChanged
 struct EvBulletDeactivated
 {
     Entity bullet;
+    float impactX = 0.0f;
+    float impactY = 0.0f;
+    float impactZ = 0.0f;
+    bool hasImpact = false;
+    uint8 impactReason = 0;
 };
 
 struct EvBuffBulletRequest

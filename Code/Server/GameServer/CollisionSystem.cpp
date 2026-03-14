@@ -568,7 +568,13 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             auto eventManager = mWorld->GetEventManager();
             if (eventManager)
             {
-                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
+                    bulletEntity,
+                    bulletTransform->mLocalPosition.x,
+                    bulletTransform->mLocalPosition.y,
+                    bulletTransform->mLocalPosition.z,
+                    true,
+                    1 });
             }
             continue;
         }
@@ -657,7 +663,13 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         auto eventManager = mWorld->GetEventManager();
         if (eventManager)
         {
-            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
+                bulletEntity,
+                tr->mLocalPosition.x,
+                tr->mLocalPosition.y,
+                tr->mLocalPosition.z,
+                true,
+                2 });
         }
     }
 }

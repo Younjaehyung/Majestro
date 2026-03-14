@@ -21,6 +21,8 @@
 #include "MovementSystem.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "VfxComponent.h"
+#include "ResourceManager.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -269,6 +271,24 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 
         bulletComp->Deactivate();
         bulletTransform->mMovingVector = Vec3::Zero;
+
+        if (/*bulletPacket->hasImpact*/true)
+        {
+            Entity impactVfxEntity = mWorld->CreateEntity();
+            TransformComponent impactTransform{};
+            impactTransform.mLocalPosition = Vec3(bulletPacket->impactX, bulletPacket->impactY, bulletPacket->impactZ);
+            mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
+
+            VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
+            //cout << "bullet type:" << (int)bulletComp->mType << endl;
+            if (bulletComp->mType == BulletType::BaseAttack) {
+                cout << "base attack" << endl;
+                
+            }
+            impactVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
+            impactVfx.mScale = 10.f;
+            impactVfx.mIsLoop = true;
+        }
 
         if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
             movementSystem->UnregisterActiveBullet(bulletEntity);

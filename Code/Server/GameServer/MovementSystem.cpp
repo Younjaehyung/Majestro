@@ -236,7 +236,13 @@ void MovementSystem::Update(float dt) {
 			auto eventManager = mWorld->GetEventManager();
 			if (eventManager)
 			{
-				eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ entity });
+				eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
+					entity,
+					transformComponent->mLocalPosition.x,
+					transformComponent->mLocalPosition.y,
+					transformComponent->mLocalPosition.z,
+					false,
+					0 });
 			}
 			continue;
 		}

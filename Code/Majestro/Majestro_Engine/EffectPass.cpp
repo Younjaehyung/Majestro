@@ -63,6 +63,7 @@ Effekseer::Handle EffectPass::Play(VfxComponent* comp, float x, float y, float z
 {
 	Effekseer::Handle handle = mManager->Play(comp->mVfx->mEffect, x, y, z);
 	comp->mIsPlaying = true;
+	comp->efkHandle = handle;
 	return handle;
 }
 
@@ -70,6 +71,7 @@ Effekseer::Handle EffectPass::Play(VfxComponent* comp, const Effekseer::Vector3D
 {
 	Effekseer::Handle handle = mManager->Play(comp->mVfx->mEffect, position);
 	comp->mIsPlaying = true;
+	comp->efkHandle = handle;
 	return handle;
 }
 

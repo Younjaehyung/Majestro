@@ -296,6 +296,11 @@ void NetSendSystem::SendBulletDeactivateEvents()
 
 			S2C_BulletDeactivatePacket deactivatePkt;
 			deactivatePkt.bulletNetEntityId = netComp->mNetEntityId;
+			deactivatePkt.impactX = e.impactX;
+			deactivatePkt.impactY = e.impactY;
+			deactivatePkt.impactZ = e.impactZ;
+			deactivatePkt.hasImpact = e.hasImpact;
+			deactivatePkt.impactReason = e.impactReason;
 
 			for (uint32 sessionId : recipients)
 			{

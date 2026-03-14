@@ -347,6 +347,9 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         if (p.contains("reloadCool"))
             mReloadCool = p["reloadCool"].get<float>();
 
+        if (p.contains("maxBullet"))
+            mMaxBullet = p["maxBullet"].get<float>();
+
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();
 
@@ -626,6 +629,8 @@ ReloadState* ReloadState::Instance() {
 }
 void ReloadState::Enter(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 1)owner->mNowBullet = owner->mMaxBullet;
+    if (owner->mPlayerType == 2) { (std::min)(owner->mNowBullet + 1, owner->mMaxBullet); }
     StateEnter(this, owner);
 }
 void ReloadState::Update(MainPlayerComponent* owner)

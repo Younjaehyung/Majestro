@@ -98,7 +98,6 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
 		bulletComp->mPenetrationCount = bulletStat.PenetrationCount;
 		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance);
-		bulletComp->mIsMeleeAttack = bulletStat.IsMeleeAttack;
 
 		mWorld->RegisterActiveBullet(bulletEntity);
 

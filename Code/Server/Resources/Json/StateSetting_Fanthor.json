@@ -4,9 +4,10 @@
         "dashSpeed": 1000.0,
         "dashTime": 1.0,
         "attackCool": 1,
-        "skill1Cool": 16,
+        "skill1Cool": 8,
         "skill2Cool": 2,
-        "reloadCool": 1
+        "reloadCool": 1,
+        "maxBullet" : 5
     },
 
     "stateProps": {

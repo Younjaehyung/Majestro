@@ -411,7 +411,6 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         Entity hitTarget{};
         BoxColliderComponent* hitCollider = nullptr;
         float hitDistance = (std::numeric_limits<float>::max)();
-        std::vector<std::pair<Entity, BoxColliderComponent*>> meleeHitTargets;
 
         for (Entity targetEntity : dynamicEntities)
         {
@@ -440,36 +439,19 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             float candidateDistance = (std::numeric_limits<float>::max)();
             bool candidateHit = false;
 
-            if (bullet->mIsMeleeAttack)
+            if (expanded.Contains(startPosition) != ContainmentType::DISJOINT)
             {
-                if (expanded.Contains(endPosition) != ContainmentType::DISJOINT)
-                {
-                    candidateDistance = 0.0f;
-                    candidateHit = true;
-                };
+                candidateDistance = 0.0f;
+                candidateHit = true;
             }
-            else
+            else if (expanded.Intersects(startPosition, direction, candidateDistance) &&
+                candidateDistance >= 0.0f && candidateDistance <= segmentLength)
             {
-                if (expanded.Contains(startPosition) != ContainmentType::DISJOINT)
-                {
-                    candidateDistance = 0.0f;
-                    candidateHit = true;
-                }
-                else if (expanded.Intersects(startPosition, direction, candidateDistance) &&
-                    candidateDistance >= 0.0f && candidateDistance <= segmentLength)
-                {
-                    candidateHit = true;
-                }
+                candidateHit = true;
             }
 
             if (!candidateHit)
                 continue;
-
-            if (bullet->mIsMeleeAttack)
-            {
-                meleeHitTargets.emplace_back(targetEntity, targetCollider);
-                continue;
-            }
 
             if (candidateDistance >= hitDistance)
                 continue;
@@ -479,22 +461,13 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             hitCollider = targetCollider;
         }
 
-        if (bullet->mIsMeleeAttack && meleeHitTargets.empty())
+        if (!hitTarget.IsValid())
         {
             ++i;
             continue;
         }
 
-        if (!bullet->mIsMeleeAttack && !hitTarget.IsValid())
-        {
-            ++i;
-            continue;
-        }
-
-        if (bullet->mIsMeleeAttack)
-            bulletTransform->mLocalPosition = endPosition;
-        else
-            bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
+        bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
         bulletTransform->mMovingVector = Vec3::Zero;
 
         auto applyKnockback = [&](Entity target)
@@ -538,27 +511,12 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 }
             };
 
-        if (bullet->mIsMeleeAttack)
-        {
-            for (auto& [target, targetCollider] : meleeHitTargets)
-            {
-                if (targetCollider)
-                    targetCollider->bIsColliding = true;
+        if (hitCollider)
+            hitCollider->bIsColliding = true;
 
-                applyKnockback(target);
-                enqueueDamage(target);
-                ++bullet->mHitCount;
-            }
-        }
-        else
-        {
-            if (hitCollider)
-                hitCollider->bIsColliding = true;
-
-            applyKnockback(hitTarget);
-            enqueueDamage(hitTarget);
-            ++bullet->mHitCount;
-        }
+        applyKnockback(hitTarget);
+        enqueueDamage(hitTarget);
+        ++bullet->mHitCount;
 
         if (bullet->mHitCount >= (std::max)(1, bullet->mPenetrationCount))
         {
@@ -629,12 +587,6 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         {
             const float scaleRadius = (std::max)(0.1f, (std::max)(tr->mLocalScale.x, tr->mLocalScale.z) * 0.5f);
             bulletRadius = (std::max)(bulletRadius, scaleRadius);
-        }
-
-        if (bullet->mIsMeleeAttack)
-        {
-            ++i;
-            continue;
         }
 
         const SweepHit hit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);

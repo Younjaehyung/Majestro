@@ -19,6 +19,7 @@ inline GBUFFER_INDEX ToGBufferIndex(RENDER_TARGET_GROUP_TYPE type, uint32 subRtI
 	case RENDER_TARGET_GROUP_TYPE::POST_HDR_B: return GBUFFER_INDEX::GBUFFER_POSTB_INDEX;
 	case RENDER_TARGET_GROUP_TYPE::POST_LDR_A: return GBUFFER_INDEX::GBUFFER_POSTC_INDEX;
 	case RENDER_TARGET_GROUP_TYPE::POST_LDR_B: return GBUFFER_INDEX::GBUFFER_POSTD_INDEX;
+	case RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR: return GBUFFER_INDEX::GBUFFER_MOTIONVEC_INDEX;
 	case RENDER_TARGET_GROUP_TYPE::SHADOW:     return GBUFFER_INDEX::GBUFFER_CASCADE_INDEX;
 	default:                                   return GBUFFER_INDEX::GBUFFER_INDEX_END;
 	}
@@ -47,6 +48,7 @@ protected:
 
 class PostProcessPass
 {
+	// 모든 PostProcessPass는 HDR_POST -> ToneMapPass -> LDR_POST FinalCompositePass 순으로 실행된다고 가정
 public:
 	PostProcessPass() = default;
 	~PostProcessPass() = default;

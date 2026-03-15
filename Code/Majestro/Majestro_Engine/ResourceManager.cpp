@@ -1120,6 +1120,40 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
 		Add<Shader>(L"ChromaticAberration", shader);
 	}
+
+	// MotionVector (velocity 계산 → MOTION_VECTOR RT 출력, R16G16B16A16_FLOAT)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\MotionVector_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\MotionVector_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
+		Add<Shader>(L"MotionVector", shader);
+	}
+
+	// MotionBlur (HDR RT에서 blur 적용, R16G16B16A16_FLOAT)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\MotionVector_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\MotionBlur_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
+		Add<Shader>(L"MotionBlur", shader);
+	}
 	
 	// COMPOSITE
 	{
@@ -1170,6 +1204,17 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Outline", shader);
+	}
+
+	// Motion Vector (CS)
+	{
+		ShaderPath shaderPath{
+			.CS = L"..\\Resources\\Shader\\forward_plus_cull_CS.hlsl",
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateComputeShader(shaderPath, "CS_Main");
+		Add<Shader>(L"ForwardPlusCull", shader);
 	}
 }
 

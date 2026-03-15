@@ -10,6 +10,7 @@
 #include "ToneMapPass.h"
 #include "FinalCompositePass.h"
 #include "ChromaticAberrationPass.h"
+#include "MotionBlurPass.h"
 
 
 
@@ -36,9 +37,13 @@ void RenderPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 void PostProcessPass::Initialize()
 {
 	mToneMapPass = make_shared<ToneMapPass>();
-	mFinalCompositePass = make_shared<FinalCompositePass>();
+	
+    mFinalCompositePass = make_shared<FinalCompositePass>();
+
+  
 
    // AddLDRPass(std::make_shared<ChromaticAberrationPass>());
+   
 }
 
 void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& passTable)
@@ -50,7 +55,7 @@ void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PAS
 
     for (shared_ptr<RenderPass>& pass : mHDRPasses)
     {
-
+		if (pass->IsEnabled() == false) continue;
       
         pass->SetData(passTable, hdrBefore, hdrAfter);
 
@@ -73,6 +78,7 @@ void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PAS
     // HDR 패스가 하나도 없으면 scene color를 그대로 tone map
     if (mHDRPasses.empty())
     {
+
         hdrBefore = RENDER_TARGET_GROUP_TYPE::HDR;
     }
 
@@ -84,7 +90,7 @@ void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PAS
 
     for (shared_ptr<RenderPass>& pass : mLDRPasses)
     {
-       
+        if (pass->IsEnabled() == false) continue;
         pass->SetData(passTable, ldrBefore, ldrAfter);
         swap(ldrBefore, ldrAfter);
         // POST_LDR Group 초기화
@@ -99,7 +105,7 @@ void PostProcessPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
     for (shared_ptr<RenderPass>& pass : mHDRPasses)
     {
-
+        if (pass->IsEnabled() == false) continue;
         pass->Execute(deferredDrawBatchs);
     }
 
@@ -108,7 +114,7 @@ void PostProcessPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 
     for (shared_ptr<RenderPass>& pass : mLDRPasses)
     {
-        
+        if (pass->IsEnabled() == false) continue;
         pass->Execute(deferredDrawBatchs);
     }
 

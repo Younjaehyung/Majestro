@@ -544,6 +544,15 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_LDR_B)].Create(RENDER_TARGET_GROUP_TYPE::POST_LDR_B, rtVec, dsTexture);
 	}
+	// Motion Vector Group (velocity.xy → R16G16B16A16_FLOAT 사용)
+	{
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"MotionVectorTarget",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR)].Create(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR, rtVec, dsTexture);
+	}
 	// PRE_DEPTH SRV: rtVec가 비어있으므로 루프 밖에서 별도 생성
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();

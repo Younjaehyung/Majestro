@@ -17,6 +17,9 @@
 #include "World.h"
 #include "Timer.h"
 
+#include "PlayerComponent.h"
+
+
 #include "DepthPrePass.h"
 #include "ShadowPass.h"
 #include "GBufferPass.h"
@@ -28,6 +31,8 @@
 #include "ToneMapPass.h"
 
 #include "ChromaticAberrationPass.h"
+#include "MotionVectorPass.h"
+#include "MotionBlurPass.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 
@@ -75,7 +80,12 @@ void RenderSystem::Initialize() {
   mEffectPass->Initialize(mWorld);
   mPostProcessPass->Initialize();
 
-  
+  mMotionVectorPass = make_shared<MotionVectorPass>();
+  mMotionVectorPass->Initialize();
+
+  // MotionBlur를 HDR PostProcess 체인에 등록
+  mMotionBlurPass = make_shared<MotionBlurPass>();
+  mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
@@ -104,7 +114,7 @@ void RenderSystem::Update() {
 
   ClearRTV();
 
-
+  PassUpdate();
   PushData();
   PreProcess();
   RenderPass();
@@ -171,6 +181,9 @@ void RenderSystem::ClearRTV() {
   // Lighting Group 초기화
   RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).ClearRenderTargetView();
 
+  // Motion Vector Group 초기화
+  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR)).ClearRenderTargetView();
+
   //// POST_HDR Group 초기화
   //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_HDR_A)).ClearRenderTargetView();
   //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_HDR_B)).ClearRenderTargetView();
@@ -201,12 +214,47 @@ void RenderSystem::ClearBuffer() {
   mDummyVector.clear();
 }
 
+void RenderSystem::PassUpdate()
+{
+    // 플레이어 상태에 따른 포스트프로세스 제어
+    if (mMotionBlurPass)
+    {
+        if (false == mWorld->HasComponentPool<LocalPlayerComponent>())
+            return;
+        
+			
+
+        bool enableBlur = false;
+        auto players = mWorld->GetEntitiesWithComponent<LocalPlayerComponent>();
+        for (auto e : players)
+        {
+            auto* player = mWorld->GetComponent<MainPlayerComponent>(e);
+
+            int state = player->mStatePacket;
+            enableBlur = (state == S_Land);
+			std::cout << "state: " << (int)state << " | enableBlur: " << enableBlur << std::endl;
+            break;
+        }
+        mMotionBlurPass->SetEnabled(enableBlur);
+    }
+
+
+}
+
 void RenderSystem::PushFrameData() {
 
-  passParams.MatView = mCamera->mView.Transpose();
-  passParams.MatProjection = mCamera->mProjection.Transpose();
-  passParams.MatViewInv = mCamera->mView.Invert().Transpose();
-  passParams.MatProjectionInv = mCamera->mProjection.Invert().Transpose();
+
+
+  passParams.MatPrevView = passParams.MatView;
+  passParams.MatPrevProjection = passParams.MatProjection;
+  passParams.MatPrevViewInv = passParams.MatViewInv;
+  passParams.MatPrevProjectionInv   = passParams.MatProjectionInv;
+
+  passParams.MatView            = mCamera->mView.Transpose();
+  passParams.MatProjection      = mCamera->mProjection.Transpose();
+  passParams.MatViewInv         = mCamera->mView.Invert().Transpose();
+  passParams.MatProjectionInv   = mCamera->mProjection.Invert().Transpose();
+
   passParams.ScreenSize = {
       static_cast<float>(RENDERMANAGER.GetWindow().Width),
       static_cast<float>(RENDERMANAGER.GetWindow().Height)};
@@ -328,6 +376,7 @@ void RenderSystem::PushPassData()
     mForwardPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::HDR);
     mOutlinePass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::HDR,       RENDER_TARGET_GROUP_TYPE::HDR);
     mEffectPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,  RENDER_TARGET_GROUP_TYPE::HDR);
+    mMotionVectorPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR);
     mPostProcessPass->SetData(mPassTable);
 
 
@@ -899,6 +948,7 @@ void RenderSystem::RenderDeferred() {
     RENDERMANAGER.GetRenderTargetGroup( static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
   }
   hdrGroup.WaitTargetToResource();
+  mMotionVectorPass->Execute(mDeferredDrawBatchs);
 }
 
 void RenderSystem::RenderForward() {
@@ -922,9 +972,9 @@ void RenderSystem::RenderEffect() {
 }
 
 void RenderSystem::RenderPost() {
+    // MotionVector는 ToneMap 전에 먼저 계산 (HDR RT가 완성된 직후)
    
 	mPostProcessPass->Execute(mDeferredDrawBatchs);
-    
 }
 
 

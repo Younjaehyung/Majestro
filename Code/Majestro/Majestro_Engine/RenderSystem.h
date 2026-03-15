@@ -30,6 +30,11 @@ struct RenderParams {
 
 struct PassParams {
 
+  Matrix MatPrevView;
+  Matrix MatPrevProjection;
+  Matrix MatPrevViewInv;       // view의 역행렬
+  Matrix MatPrevProjectionInv; // Projection의 역행렬	(사용은 선택)
+
   Matrix MatView;
   Matrix MatProjection;
   Matrix MatViewInv;       // view의 역행렬
@@ -129,6 +134,7 @@ public:
 private:           // RenderPass
   void ClearRTV(); // clear
   void ClearBuffer();
+  void PassUpdate();
   void PushData();
   void PreProcess();
   void RenderPass();
@@ -256,8 +262,10 @@ private: // RenderPass
 	std::shared_ptr<class LightsPass>     mLightPass;
 	std::shared_ptr<class ForwardPass>    mForwardPass;
 	std::shared_ptr<class OutlinePass>    mOutlinePass;
-	std::shared_ptr<class EffectPass>     mEffectPass;
-	std::shared_ptr<class PostProcessPass> mPostProcessPass;
+	std::shared_ptr<class EffectPass>       mEffectPass;
+	std::shared_ptr<class PostProcessPass>  mPostProcessPass;
+	std::shared_ptr<class MotionVectorPass> mMotionVectorPass;
 
+	std::shared_ptr<class MotionBlurPass> mMotionBlurPass;
 
 };

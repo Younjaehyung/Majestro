@@ -476,7 +476,7 @@ DirLightPrefab::DirLightPrefab(World* world)
 	l.mLightInfo.Color.Ambient = { Vec3(0.1f, 0.1f, 0.1f) };
 	l.mLightInfo.Color.Diffuse = { Vec3(1.f, 1.f, 1.f) };
 	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.SetLightDirection(Vec3(-0.5, -0.5, 0.5f));
+	l.SetLightDirection(Vec3(0.f, -0.5, 0.f));
 	mEntityID = LightFactory::CreateLight(world, LIGHT_TYPE::DIRECTIONAL_LIGHT, l);
 }
 

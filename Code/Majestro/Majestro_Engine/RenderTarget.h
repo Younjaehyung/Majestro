@@ -17,6 +17,7 @@ enum class RENDER_TARGET_GROUP_TYPE : uint8
 	POST_HDR_B, //HDR 등 효과 처리용 RT
 	POST_LDR_A, //LDR 등 효과 처리용 RT
 	POST_LDR_B, //LDR 등 효과 처리용 RT
+	MOTION_VECTOR, // 모션 벡터 (velocity.xy)
 	END,
 };
 

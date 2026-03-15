@@ -212,6 +212,11 @@ struct UIInstanceData
 //////////////Pass
 struct PASSINFO
 {
+    matrix MatPrevView;
+    matrix MatPrevProjection;
+    Matrix MatPrevViewInv; // view의 역행렬
+    Matrix MatPrevProjectionInv; // Projection의 역행렬	(사용은 선택)
+    
     matrix MatView;
     matrix MatProjection;
     Matrix MatViewInv; // view의 역행렬
@@ -299,8 +304,8 @@ ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////
-Texture2D<float4> Gbuffer[11] : register(t0, space0);
-Texture2DArray ShadowMaps : register(t11, space0);
+Texture2D<float4> Gbuffer[12] : register(t0, space0);
+Texture2DArray ShadowMaps : register(t12, space0);
  ///////////////////////////////////////////////////////////////////
 
 

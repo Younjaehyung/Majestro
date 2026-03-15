@@ -469,7 +469,10 @@
     <ClInclude Include="ChromaticAberrationPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
-    <ClInclude Include="RenderPass.h">
+    <ClInclude Include="MotionVectorPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionBlurPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="ToneMapPass.h">
@@ -504,6 +507,9 @@
     </ClInclude>
     <ClInclude Include="ArmorComponent.h">
       <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderPass.h">
+      <Filter>World\System\Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -780,7 +786,10 @@
     <ClCompile Include="ChromaticAberrationPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
-    <ClCompile Include="RenderPass.cpp">
+    <ClCompile Include="MotionVectorPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionBlurPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="ToneMapPass.cpp">
@@ -812,6 +821,9 @@
     </ClCompile>
     <ClCompile Include="OutlinePass.cpp">
       <Filter>World\System\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderPass.cpp">
+      <Filter>World\System\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -949,6 +961,18 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_VS.hlsl">
       <Filter>World\Resource\Shader\Cartoon</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionVector_PS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionVector_VS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionVector_CS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

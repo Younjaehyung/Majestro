@@ -9,8 +9,13 @@ public:
     BoxColliderComponent();
 	BoxColliderComponent(BoundingOrientedBox obb) : mLocalOBB(obb) {}
     BoxColliderComponent(BoundingOrientedBox obb, Matrix matrix);
-    BoxColliderComponent(Vec3 half) : mHalfExtents(half) {}
+    BoxColliderComponent(Vec3 half) : mHalfExtents(half) { RebuildLocalOBB(); }
     BoxColliderComponent(Vec3 half, Vec3 center);
+
+    void SetHalfExtents(const Vec3& halfExtents);
+    void SetCenter(const Vec3& center);
+    void SetBox(const Vec3& halfExtents, const Vec3& center);
+    void RebuildLocalOBB();
 
 public:
     // [설명] 로컬 공간 기준 박스(OBB의 로컬 정의)

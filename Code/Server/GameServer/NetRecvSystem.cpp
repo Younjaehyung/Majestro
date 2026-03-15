@@ -6,6 +6,10 @@
 #include "InputComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
+#include "HealthComponent.h"
+#include "MovementComponent.h"
+#include "GameEvents.h"
+#include "EventManager.h"
 #include <unordered_set>
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
@@ -107,7 +111,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 		}
 	}
 
-	if (playertype > 2)
+	if (playertype < 1 || playertype > 3)
 	{
 		playertype = 1;
 	}
@@ -118,7 +122,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 	MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
 	if (playerComp)
 	{
-		playerComp->mPlayerType = playertype;
+		playertype = playerComp->mPlayerType;
 	}
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
@@ -198,6 +202,25 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 			gSendQueue.Push(request);
 		}
 	}
+
+	auto eventManager = mWorld->GetEventManager();
+	if (eventManager == nullptr)
+		return;
+
+	auto enemyEntities = mWorld->GetEntitiesWithComponents<NetEntityComponent, EnemyMovementComponent, HealthComponent>();
+	for (auto enemy : enemyEntities)
+	{
+		HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(enemy);
+		if (healthComp == nullptr)
+			continue;
+
+		EvHealthChanged healthChanged{};
+		healthChanged.target = enemy;
+		healthChanged.currentHp = healthComp->mCurrentHp;
+		healthChanged.maxHp = healthComp->mMaxHp;
+		eventManager->Enqueue<EvHealthChanged>(healthChanged);
+	}
+
 }
 
 void NetRecvSystem::BulletPoolSpawnProcess(InputCommand& inputCommand)

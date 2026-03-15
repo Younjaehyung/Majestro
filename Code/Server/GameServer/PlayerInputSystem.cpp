@@ -1,10 +1,8 @@
 #include "pch.h"
 #include "PlayerInputSystem.h"
-#include <chrono>
 
 #include "PlayerSystem.h"
 #include "PlayerComponent.h"
-#include "TransformComponent.h"
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "InputManager.h"
@@ -16,58 +14,71 @@
 #include "NetEntityComponent.h"
 #include "ServerCore.h"
 #include "BulletComponent.h"
-#include "ColliderComponent.h"
-#include <unordered_set>
+#include "EventManager.h"
+#include "GameEvents.h"
+#include "TimeUtils.h"
+#include "BeatSystem.h"
 
 namespace
 {
-	constexpr float kDegToRad = 0.01745329251994329577f;
-
-	Vec3 GetCameraForwardFromInput(const InputComponent& input)
+	bool EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType)
 	{
-		const float yawRad = input.Yaw * kDegToRad;
-		const float pitchRad = -input.Pitch * kDegToRad;
+		switch (bulletType)
+		{
+		case SkillType::DrumAttack:
+		case SkillType::GuitarAttack:
+			eventManager.Enqueue<EvMeleeAttackRequest>({ shooter, bulletType });
+			return true;
 
-		const float cosPitch = std::cos(pitchRad);
-		Vec3 forward;
-		forward.x = std::sin(yawRad) * cosPitch;
-		forward.y = std::sin(pitchRad);
-		forward.z = std::cos(yawRad) * cosPitch;
+		case SkillType::BaseAttack:
+		case SkillType::BaseSkill1:
+		case SkillType::DrumSkill1:
+		case SkillType::GuitarSkill1:
+			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
+			return true;
 
-		if (forward.LengthSquared() <= 0.0001f)
-			return Vec3::Forward;
+		
+		case SkillType::DrumSkill2:
+			eventManager.Enqueue<EvBuffBulletRequest>({ shooter, bulletType });
+			return true;
 
-		forward.Normalize();
-		return forward;
+		case SkillType::Default:
+		default:
+			//eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
+			return true;
+		}
 	}
 
-	BulletType ResolveBulletType(uint8 playerType, InputButtons actionButton)
+	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton)
 	{
 		switch (playerType)
 		{
+		case 0:
+			switch (actionButton)
+			{
+			case InputButtons::ATTACK: return SkillType::DrumAttack;
+			case InputButtons::SKILL1: return SkillType::DrumSkill1;
+			case InputButtons::SKILL2: return SkillType::DrumSkill2;
+			case InputButtons::RELOAD: return SkillType::DrumSkill3;
+			default: return SkillType::Default;
+			}
 		case 1:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return BulletType::DrumAttack;
-			case InputButtons::SKILL1: return BulletType::DrumSkill1;
-			case InputButtons::SKILL2: return BulletType::DrumSkill2;
-			default: return BulletType::Default;
-			}
-		case 2:
-			switch (actionButton)
-			{
-			case InputButtons::ATTACK: return BulletType::BaseAttack;
-			case InputButtons::SKILL1: return BulletType::BaseSkill1;
-			case InputButtons::SKILL2: return BulletType::BaseSkill2;
-			default: return BulletType::Default;
+			case InputButtons::ATTACK: return SkillType::BaseAttack;
+			case InputButtons::SKILL1: return SkillType::BaseSkill1;
+			case InputButtons::SKILL2: return SkillType::BaseSkill2;
+			case InputButtons::RELOAD: return SkillType::BaseSkill3;
+			default: return SkillType::Default;
 			}
 		default:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return BulletType::GuitarAttack;
-			case InputButtons::SKILL1: return BulletType::GuitarSkill1;
-			case InputButtons::SKILL2: return BulletType::GuitarSkill2;
-			default: return BulletType::Default;
+			case InputButtons::ATTACK: return SkillType::GuitarAttack;
+			case InputButtons::SKILL1: return SkillType::GuitarSkill1;
+			case InputButtons::SKILL2: return SkillType::GuitarSkill2;
+			case InputButtons::RELOAD: return SkillType::GuitarSkill3;
+			default: return SkillType::Default;
 			}
 		}
 	}
@@ -92,7 +103,36 @@ void PlayerInputSystem::Update(float dt)
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(e);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(e);
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
-		//NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+		
+		//연속행동
+		if (mainPlayerComponent->mPendingAction != PendingAction::None)
+		{
+			if (auto eventManager = mWorld->GetEventManager())
+			{
+				InputButtons button = InputButtons::ATTACK;
+				State<MainPlayerComponent>* pendingState = nullptr;
+
+				switch (mainPlayerComponent->mPendingAction)
+				{
+				case PendingAction::Attack: button = InputButtons::ATTACK; pendingState = Attack1State::Instance(); break;
+				case PendingAction::Skill1: button = InputButtons::SKILL1; pendingState = Skill1State::Instance(); break;
+				case PendingAction::Skill2: button = InputButtons::SKILL2; pendingState = Skill2State::Instance(); break;
+				case PendingAction::Reload: button = InputButtons::RELOAD; pendingState = ReloadState::Instance(); break;
+				default: break;
+				}
+
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, button);
+
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+				if (pendingState)
+				{
+					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, pendingState);
+				}
+			}
+
+			mainPlayerComponent->mPendingAction = PendingAction::None; // 소비 완료
+		}
+
 
 		if (inputComp->MoveX ==0 && inputComp->MoveZ == 0) {
 			mainPlayerComponent->mSpeed = 0.f;
@@ -105,53 +145,91 @@ void PlayerInputSystem::Update(float dt)
 		
 
 		//movementComponent->mMovingDirection = { 0,0,0 };
-
+		mainPlayerComponent->mPlayerMovingDir.x = inputComp->MoveZ;
+		mainPlayerComponent->mPlayerMovingDir.y = inputComp->MoveX;
+		if (inputComp->MoveX == 1) {
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunRightState::Instance());
+		}
 		if (inputComp->MoveX == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunLeftState::Instance());
 		}
 		if (inputComp->MoveZ == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunForwardState::Instance());
 		}
 		if (inputComp->MoveZ == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
-		}
-		if (inputComp->MoveX == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, WalkState::Instance());
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunBackwardState::Instance());
 		}
 
 
 
 		if (inputComp->IsButtonPressed(InputButtons::SPACE)) {
-			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
-			else cout << "fail" << endl;
-
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SHIFT)) {
-			cout << "dash" << endl;
+			//cout << "dash" << endl;
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
 
+		auto systemManager = mWorld->GetSystemManager();
+		auto* beatSystem = systemManager->GetSystem<BeatSystem>();
+		
+		const float Beat = beatSystem->mBpmSeconds;
+		const float now = GetSteadyTimeSeconds();
+
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
 			//std::cout << "attack!!!" << std::endl;
-			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK));
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
+			if (mainPlayerComponent->mNextAttackTime <= now ) {
+				if (auto eventManager = mWorld->GetEventManager())
+				{
+					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
+					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+				}
+				mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
+			}
 		}
-		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//attack 
-			//std::cout << "special" << std::endl;
-			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
-		}
-
-
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
 			//std::cout << "skill1" << std::endl;
-			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1));
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
+			if (mainPlayerComponent->mNextSkill1Time <= now) {
+				if (auto eventManager = mWorld->GetEventManager())
+				{
+					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
+					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+				}
+				mainPlayerComponent->mNextSkill1Time = now + Beat * mainPlayerComponent->mSkill1Cool;
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
+			}
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			//std::cout << "skill2" << std::endl;
-			ActivateBulletAndNotify(e, ResolveBulletType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2));
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
+			if (mainPlayerComponent->mNextSkill2Time <= now) {
+				if (auto eventManager = mWorld->GetEventManager())
+				{
+					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2);
+					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+				}
+				mainPlayerComponent->mNextSkill2Time = now + Beat * mainPlayerComponent->mSkill2Cool;
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
+			}
+		}
+
+		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
+			//std::cout << "reroad" << std::endl;
+			if (mainPlayerComponent->mNextReloadTime <= now) {
+				if (auto eventManager = mWorld->GetEventManager())
+				{
+					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
+					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+				}
+				mainPlayerComponent->mNextReloadTime = now + Beat * mainPlayerComponent->mReloadCool;
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReloadState::Instance());
+			}
+		}
+		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
+			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
+			else cout << "fail" << endl;
+
+			//std::cout << "special" << std::endl;
+			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
 		}
 
 
@@ -169,95 +247,4 @@ void PlayerInputSystem::Update(float dt)
 	}
 
 	
-}
-
-void PlayerInputSystem::ActivateBulletAndNotify(Entity playerEntity, BulletType bulletType)
-{
-	if (false == mWorld->HasComponentPool<BulletComponent>())
-		return;
-
-	TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity);
-	NetEntityComponent* playerNetComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
-	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(playerEntity);
-	if (playerTransform == nullptr || playerNetComp == nullptr || inputComp == nullptr)
-		return;
-
-	auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
-	for (auto bulletEntity : bulletEntities)
-	{
-		BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
-		if (bulletComp == nullptr || bulletComp->mIsActive)
-			continue;
-
-		TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
-		NetEntityComponent* bulletNetComp = mWorld->GetComponent<NetEntityComponent>(bulletEntity);
-		if (bulletTransform == nullptr || bulletNetComp == nullptr)
-			continue;
-
-		Vec3 direction = GetCameraForwardFromInput(*inputComp);
-		const BulletStat bulletStat = GetBulletStat(bulletType);
-
-		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
-		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
-		bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
-		bulletTransform->mMovingVector = direction * bulletStat.Speed;
-
-		if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
-		{
-			const float halfSize = bulletStat.Size * 0.5f;
-			bulletCollider->mHalfExtents = Vec3(halfSize, halfSize, halfSize);
-			bulletCollider->mCenter = Vec3::Zero;
-		}
-
-		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
-		bulletComp->mPenetrationCount = bulletStat.PenetrationCount;
-		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage);
-
-		mWorld->RegisterActiveBullet(bulletEntity);
-
-		S2C_BulletActivatePacket bulletPacket{};
-		bulletPacket.SendTime = std::chrono::duration<double>(
-			std::chrono::system_clock::now().time_since_epoch()).count();
-		bulletPacket.ownerNetEntityId = playerNetComp->mNetEntityId;
-		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
-		bulletPacket.bulletType = static_cast<uint8>(bulletType);
-		bulletPacket.x = bulletTransform->mWorldPosition.x;
-		bulletPacket.y = bulletTransform->mWorldPosition.y;
-		bulletPacket.z = bulletTransform->mWorldPosition.z;
-		bulletPacket.dirX = direction.x;
-		bulletPacket.dirY = direction.y;
-		bulletPacket.dirZ = direction.z;
-		bulletPacket.speed = bulletComp->mSpeed;
-
-		auto recipients = CollectPlayerSessions();
-		for (uint32 sessionId : recipients)
-		{
-			SendRequest request{ sessionId, PKT_Type::S2C_PKT_BULLET_ACTIVATE, sizeof(S2C_BulletActivatePacket) };
-			request.StoreAs<S2C_BulletActivatePacket>(bulletPacket);
-			gSendQueue.Push(request);
-		}
-
-		return;
-	}
-}
-
-std::vector<uint32> PlayerInputSystem::CollectPlayerSessions() const
-{
-	if (false == mWorld->HasComponentPool<NetEntityComponent>())
-		return {};
-
-	std::unordered_set<uint32> sessionSet;
-	auto players = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
-	sessionSet.reserve(players.size());
-
-	for (auto entity : players)
-	{
-		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-		if (netComp == nullptr || netComp->mSessionId == 0)
-			continue;
-
-		sessionSet.insert(netComp->mSessionId);
-	}
-
-	return std::vector<uint32>(sessionSet.begin(), sessionSet.end());
 }

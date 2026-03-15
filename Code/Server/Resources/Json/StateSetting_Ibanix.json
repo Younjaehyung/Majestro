@@ -1,21 +1,16 @@
 {
     "player": {
-        "RunSpeed": 50.0,
-        "DashSpeed": 100.0,
-        "dashTime": 5.0
+        "runSpeed": 100.0,
+        "dashSpeed": 1000.0,
+        "dashTime": 1.0,
+        "attackCool": 1,
+        "skill1Cool": 16,
+        "skill2Cool": 2,
+        "reloadCool": 1,
+        "maxBullet" : 10
     },
 
     "stateProps": {
-        "IdleState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 1.83333
-        },
-        "WalkForwardState": {
-            "time": 9999.0,
-            "animOnce": false,
-            "animEndTime": 1.36667
-        },
         "JumpState": {
             "time": 3.5,
             "animOnce": true,
@@ -57,6 +52,11 @@
             "animEndTime": 1.16667
         },
         "SpecialState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "ReloadState": {
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 1.16667

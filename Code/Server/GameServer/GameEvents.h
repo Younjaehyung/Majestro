@@ -3,6 +3,9 @@
 #include <cstdint>
 #include "Entity.h"
 
+enum class SkillType : uint8;
+
+
 struct EvDamage
 {
     Entity target;
@@ -36,9 +39,39 @@ struct EvHealthChanged
     int32 maxHp;
 };
 
+struct EvArmorChanged
+{
+    Entity target;
+    int32 currentArmor;
+    int32 maxArmor;
+};
+
 struct EvBulletDeactivated
 {
     Entity bullet;
+    float impactX = 0.0f;
+    float impactY = 0.0f;
+    float impactZ = 0.0f;
+    bool hasImpact = false;
+    uint8 impactReason = 0;
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvBulletDeactivated>;
+struct EvBuffBulletRequest
+{
+    Entity shooter;
+    SkillType bulletType;
+};
+
+struct EvRangedAttackRequest
+{
+    Entity shooter;
+    SkillType bulletType;
+};
+
+struct EvMeleeAttackRequest
+{
+    Entity shooter;
+    SkillType bulletType;
+};
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvBuffBulletRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;

@@ -1,8 +1,13 @@
 {
     "player": {
-        "RunSpeed": 50.0,
-        "DashSpeed": 100.0,
-        "dashTime": 5.0
+        "runSpeed": 50.0,
+        "dashSpeed": 1000.0,
+        "dashTime": 1.0,
+        "attackCool": 1,
+        "skill1Cool": 8,
+        "skill2Cool": 2,
+        "reloadCool": 1,
+        "maxBullet" : 5
     },
 
     "stateProps": {
@@ -57,6 +62,11 @@
             "animEndTime": 1.16667
         },
         "SpecialState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "ReloadState": {
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 1.16667

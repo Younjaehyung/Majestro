@@ -30,7 +30,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<AnimationSystem>();
     RegisterSystem<AudioSystem>();
     RegisterSystem<TransformSystem>();
-    RegisterSystem<PlayerSystem>();
+    //RegisterSystem<PlayerSystem>();
     RegisterSystem<BeatSystem>();
     RegisterSystem<MovementSystem>();
     RegisterSystem<EnemySystem>();

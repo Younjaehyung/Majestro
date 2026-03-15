@@ -11,7 +11,7 @@ std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {
 	if (n == "Idle") return S_Idle;
-    if (n == "Walk") return S_Walk;
+    
 	if (n == "Run")  return S_Run;
 	if (n == "Jump")  return S_Jump;
 	if (n == "Fall")  return S_Fall;
@@ -69,8 +69,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
     SpecialState::Instance()
     };
 
-    InitFSMFromJson(path);
-    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+    //InitFSMFromJson(path);
+    //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 };
 
 MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
@@ -99,8 +99,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     Skill2State::Instance(),
     SpecialState::Instance()
     };
-    InitFSMFromJson(path);
-    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+    //InitFSMFromJson(path);
+    //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 
     for (int i = 0; i < (int)anim.size(); i++)
     {
@@ -138,8 +138,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     DeadState::Instance()
 
     };
-    InitFSMFromJson(path);
-    LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
+    //InitFSMFromJson(path);
+    //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 
     for (int i = 0; i < (int)anim.size(); i++)
     {
@@ -161,10 +161,10 @@ void MainPlayerComponent::StateCheck()
 
 void MainPlayerComponent::Update(float dt) 
 {
-    mStateTime += dt;
-    mDt = dt;
-    StateCheck();
-    mFsm.Update(this);
+    //mStateTime += dt;
+    //mDt = dt;
+    //StateCheck();
+    //mFsm.Update(this);
 }
 
 void MainPlayerComponent::InitFSMOnce()
@@ -178,7 +178,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     // 1) 포인터→ID 변환기 주입 (상태 이름→StateId)
     mFsm.SetIdResolver([](State<MainPlayerComponent>* s)->StateId {
         if (s == IdleState::Instance()) return S_Idle;
-        if (s == WalkState::Instance()) return S_Walk;
+        //if (s == WalkState::Instance()) return S_Walk;
         if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance()) return S_Jump;
         if (s == FallState::Instance()) return S_Fall;

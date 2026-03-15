@@ -16,6 +16,7 @@ private:
 	void ConvertState();
 	void SendCollision();
 	void SendHealthEvents();
+	void SendArmorEvents();
 	void SendBulletDeactivateEvents();
 	std::vector<uint32> CollectPlayerSessions() const;
 private:

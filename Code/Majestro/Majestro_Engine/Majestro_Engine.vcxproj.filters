@@ -502,6 +502,9 @@
     <ClInclude Include="OutlinePass.h">
       <Filter>World\System\UI</Filter>
     </ClInclude>
+    <ClInclude Include="ArmorComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">

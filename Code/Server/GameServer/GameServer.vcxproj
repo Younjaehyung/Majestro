@@ -174,6 +174,7 @@
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BulletComponent.cpp" />
+    <ClCompile Include="BulletFireEventSystem.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ColliderComponent.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="LevelImport.cpp" />
     <ClCompile Include="LightComponent.cpp" />
+    <ClCompile Include="MeleeAttackSystem.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NavMeshLoader.cpp" />
@@ -231,9 +233,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ServerCore\json.hpp" />
+    <ClInclude Include="ArmorComponent.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="BulletComponent.h" />
+    <ClInclude Include="BulletFireEventSystem.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ColliderComponent.h" />
@@ -255,6 +259,7 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="LevelImport.h" />
     <ClInclude Include="LightComponent.h" />
+    <ClInclude Include="MeleeAttackSystem.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />

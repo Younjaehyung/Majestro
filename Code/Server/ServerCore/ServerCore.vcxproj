@@ -177,6 +177,7 @@
     <ClInclude Include="Session.h" />
     <ClInclude Include="SocketUtils.h" />
     <ClInclude Include="Timer.h" />
+    <ClInclude Include="TimeUtils.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>

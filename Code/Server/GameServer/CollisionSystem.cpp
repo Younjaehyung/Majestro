@@ -450,7 +450,10 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 candidateHit = true;
             }
 
-            if (!candidateHit || candidateDistance >= hitDistance)
+            if (!candidateHit)
+                continue;
+
+            if (candidateDistance >= hitDistance)
                 continue;
 
             hitDistance = candidateDistance;
@@ -467,21 +470,54 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
         bulletTransform->mMovingVector = Vec3::Zero;
 
+        auto applyKnockback = [&](Entity target)
+        {
+            if (bullet->mKnockbackDistance <= 0.0f)
+                return;
+
+                TransformComponent* hitTransform = mWorld->GetComponent<TransformComponent>(target);
+            if (hitTransform)
+            {
+                Vec3 knockbackDirection = direction;
+                knockbackDirection.y = 0.0f;
+
+                if (knockbackDirection.LengthSquared() <= 1e-6f)
+                {
+                    knockbackDirection = hitTransform->mLocalPosition - bulletTransform->mLocalPosition;
+                    knockbackDirection.y = 0.0f;
+                }
+
+                if (knockbackDirection.LengthSquared() > 1e-6f)
+                {
+                    knockbackDirection.Normalize();
+                    const Vec3 knockbackVector = knockbackDirection * bullet->mKnockbackDistance;
+                    hitTransform->mLocalPosition += knockbackVector;
+                    hitTransform->mMovingVector += knockbackVector;
+                }
+            }
+            };
+
         if (bulletCollider)
             bulletCollider->bIsColliding = true;
+        const auto enqueueDamage = [&](Entity target)
+            {
+                if (auto eventManager = mWorld->GetEventManager())
+                {
+                    EvDamage damageEvent{};
+                    damageEvent.instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
+                    damageEvent.target = target;
+                    damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
+                    eventManager->Enqueue<EvDamage>(damageEvent);
+                }
+            };
+
         if (hitCollider)
             hitCollider->bIsColliding = true;
 
-        if (auto eventManager = mWorld->GetEventManager())
-        {
-            EvDamage damageEvent{};
-            damageEvent.instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
-            damageEvent.target = hitTarget;
-            damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
-            eventManager->Enqueue<EvDamage>(damageEvent);
-        }
-
+        applyKnockback(hitTarget);
+        enqueueDamage(hitTarget);
         ++bullet->mHitCount;
+
         if (bullet->mHitCount >= (std::max)(1, bullet->mPenetrationCount))
         {
             bullet->Deactivate();
@@ -490,7 +526,13 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             auto eventManager = mWorld->GetEventManager();
             if (eventManager)
             {
-                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
+                    bulletEntity,
+                    bulletTransform->mLocalPosition.x,
+                    bulletTransform->mLocalPosition.y,
+                    bulletTransform->mLocalPosition.z,
+                    true,
+                    1 });
             }
             continue;
         }
@@ -573,7 +615,13 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         auto eventManager = mWorld->GetEventManager();
         if (eventManager)
         {
-            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
+                bulletEntity,
+                tr->mLocalPosition.x,
+                tr->mLocalPosition.y,
+                tr->mLocalPosition.z,
+                true,
+                2 });
         }
     }
 }

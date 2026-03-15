@@ -20,6 +20,9 @@
 #include "NetSendSystem.h"
 #include "MovementSystem.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
+#include "VfxComponent.h"
+#include "ResourceManager.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -162,6 +165,24 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
             << std::endl;
         return;
     }
+    else if (msg.Type == PKT_Type::S2C_PKT_ARMOR) {
+        const S2C_ArmorPacket* armorPacket = msg.ViewAs<S2C_ArmorPacket>();
+        Entity e = mWorld->GetEntityByNetId(armorPacket->netEntityId);
+        ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(e);
+        if (armorComp == nullptr) return;
+
+        const int32 beforeArmor = armorComp->mCurrentArmor;
+        const int32 beforeMaxArmor = armorComp->mMaxArmor;
+
+        armorComp->mCurrentArmor = armorPacket->currentArmor;
+        armorComp->mMaxArmor = armorPacket->maxArmor;
+
+        std::cout << "[Client][S2C_PKT_ARMOR] netEntityId=" << armorPacket->netEntityId
+            << " armor=" << beforeArmor << "/" << beforeMaxArmor
+            << " -> " << armorComp->mCurrentArmor << "/" << armorComp->mMaxArmor
+            << std::endl;
+        return;
+    }
     else if(msg.Type == PKT_Type::S2C_PKT_COLLISION) {
 		const S2C_CollisionPacket* collisionPacket = msg.ViewAs<S2C_CollisionPacket>();
 		// msg netity id로 엔티티 찾기
@@ -250,6 +271,24 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
 
         bulletComp->Deactivate();
         bulletTransform->mMovingVector = Vec3::Zero;
+
+        if (/*bulletPacket->hasImpact*/true)
+        {
+            Entity impactVfxEntity = mWorld->CreateEntity();
+            TransformComponent impactTransform{};
+            impactTransform.mLocalPosition = Vec3(bulletPacket->impactX, bulletPacket->impactY, bulletPacket->impactZ);
+            mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
+
+            VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
+            //cout << "bullet type:" << (int)bulletComp->mType << endl;
+            if (bulletComp->mType == BulletType::BaseAttack) {
+                cout << "base attack" << endl;
+                
+            }
+            impactVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
+            impactVfx.mScale = 10.f;
+            impactVfx.mIsLoop = true;
+        }
 
         if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
             movementSystem->UnregisterActiveBullet(bulletEntity);

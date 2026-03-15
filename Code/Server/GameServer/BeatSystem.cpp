@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "BeatSystem.h"
 #include "BeatComponent.h"
+#include "TimeUtils.h"
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
 	mBpmSeconds = 60.f / (float)mBpm;
+	GetSteadyTimeSeconds();
 }
 
 void BeatSystem::Initialize()

@@ -18,6 +18,7 @@
 
 #include "BulletComponent.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
 #include "World.h"
 
 
@@ -53,7 +54,13 @@ PlayerPrefab::~PlayerPrefab() {}
 
 Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   Entity mEntityID = world->CreateEntity();
-  
+
+  uint8 playerType = 1;
+  if (ctx.Type == PKT_Type::C2S_GAME_START) {
+	  const C2S_StartGamePacket* startPacket = ctx.ViewAs<C2S_StartGamePacket>();
+	  playerType = startPacket->playerType;
+  }
+
   TransformComponent t{};
   Entity testCamera = world->CreateEntity();
   world->AddComponent<MainCameraComponent>(testCamera);
@@ -65,9 +72,24 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   t.mLocalPosition = {0.f, 0.f, 10.f};
   t.mLocalScale = {1.f, 1.f, 1.f};
 
+  switch (playerType) {
+  case 0:
+	  world->AddComponent<ArmorComponent>(mEntityID, 150, 150);
+	  world->AddComponent<HealthComponent>(mEntityID, 200, 0);
+	  break;
+  case 1:
+	  world->AddComponent<ArmorComponent>(mEntityID, 100, 100);
+	  world->AddComponent<HealthComponent>(mEntityID, 50, 0);
+	  break;
+  case 2:
+	  world->AddComponent<ArmorComponent>(mEntityID, 125, 125);
+	  world->AddComponent<HealthComponent>(mEntityID, 50, 0);
+	  break;
+  }
+
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<MainPlayerComponent>(mEntityID,
-                                           "../Resources/Json/TestJson.json");
+                                           "../Resources/Json/TestJson.json", playerType);
   world->AddComponent<TransformComponent>(mEntityID, t);
 
   world->AddComponent<BeatComponent>(mEntityID);
@@ -191,11 +213,13 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	
 	
 	t.mLocalPosition = { i * n, 0, j * n };
+	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
-	world->AddComponent<BoxColliderComponent>(mEntityID);
+	Vec3 half{ 50,50,50 };
+	world->AddComponent<BoxColliderComponent>(mEntityID,half);
 	world->AddComponent<MovableComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 
@@ -231,7 +255,7 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 	//world->AddComponent<BoxColliderComponent>(entity, Vec3(3.f, 3.f, 3.f));
 
 	auto& bullet = world->AddComponent<BulletComponent>(entity);
-	bullet.Activate(BulletType::Default, 0, 0, 0, Vec3::Forward, 160.0f, 2.0f, 10.0f);
+	bullet.Activate(SkillType::Default, 0, 0, 0, Vec3::Forward, 160.0f, 2.0f, 10.0f, 0.f);
 	bullet.Deactivate(); // 풀에 넣기 위해 초기 상태는 비활성
 
 	auto& net = world->AddComponent<NetEntityComponent>(entity, world, entity);

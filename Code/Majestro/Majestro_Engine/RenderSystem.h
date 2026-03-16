@@ -267,5 +267,5 @@ private: // RenderPass
 	std::shared_ptr<class MotionVectorPass> mMotionVectorPass;
 
 	std::shared_ptr<class MotionBlurPass> mMotionBlurPass;
-
+	std::shared_ptr<class LuminancePass> mLuminancePass;
 };

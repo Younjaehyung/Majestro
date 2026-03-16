@@ -1216,6 +1216,21 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateComputeShader(shaderPath, "CS_Main");
 		Add<Shader>(L"ForwardPlusCull", shader);
 	}
+
+	// Luminance
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::LDRPOST,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\Luminance_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"Luminance", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()
@@ -1564,6 +1579,11 @@ void ResourceManager::CreateDefaultMaterial()
 		mat->SetShader(L"DebugLine");
 		mat->GetParams().Diffuse = Vec4(1.f, 0.f, 0.f, 1.f);
 		Add<Material>(L"DebugLine_Red", mat);
+	}
+	
+	{
+		auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
+		
 	}
 
 	// GameObject

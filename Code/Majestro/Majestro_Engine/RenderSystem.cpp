@@ -33,6 +33,7 @@
 #include "ChromaticAberrationPass.h"
 #include "MotionVectorPass.h"
 #include "MotionBlurPass.h"
+#include "LuminancePass.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 
@@ -82,10 +83,16 @@ void RenderSystem::Initialize() {
 
   mMotionVectorPass = make_shared<MotionVectorPass>();
   mMotionVectorPass->Initialize();
+  
+
 
   // MotionBlur를 HDR PostProcess 체인에 등록
   mMotionBlurPass = make_shared<MotionBlurPass>();
   mPostProcessPass->AddHDRPass(mMotionBlurPass);
+
+    mLuminancePass = make_shared<LuminancePass>();
+  mPostProcessPass->AddLDRPass(mLuminancePass);
+  
 
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());

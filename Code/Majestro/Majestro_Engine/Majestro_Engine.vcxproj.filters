@@ -511,6 +511,7 @@
     <ClInclude Include="RenderPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
+    <ClInclude Include="LuminancePass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -825,6 +826,7 @@
     <ClCompile Include="RenderPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
+    <ClCompile Include="LuminancePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -972,6 +974,12 @@
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Luminance_PS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Luminance_VS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
   </ItemGroup>

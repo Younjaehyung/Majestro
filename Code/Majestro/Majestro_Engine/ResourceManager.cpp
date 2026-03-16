@@ -1076,6 +1076,24 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"ForwardPlusCel", shader);
 	}
 
+	// solid_PS (Forward)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::EQUAL_NO_WRITE
+
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\solid_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"Solid", shader);
+	}
+
 	// Forward+ Tile Culling (Compute)
 	{
 		ShaderPath shaderPath{

@@ -91,7 +91,7 @@ void RenderSystem::Initialize() {
   mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
     mLuminancePass = make_shared<LuminancePass>();
-  mPostProcessPass->AddLDRPass(mLuminancePass);
+ // mPostProcessPass->AddLDRPass(mLuminancePass);
   
 
  // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
@@ -153,7 +153,7 @@ void RenderSystem::RenderPass()
     RenderShadow();
     RenderDeferred();
     RenderForward();
-    RenderOutline();
+ //   RenderOutline();
     RenderEffect();
     RenderPost();
 

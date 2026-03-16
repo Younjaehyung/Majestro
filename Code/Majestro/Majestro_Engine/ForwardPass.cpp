@@ -107,6 +107,8 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
         dum.BaseInstance = drawBatch.BaseInstance;
         dum.InstanceCount = drawBatch.InstanceCount;
 
+		RESOURCEMANAGER.Get<Shader>(L"Solid")->Update(); // ForwardPlusCull에서 작성한 타일 메타/라이트 인덱스 버퍼를 읽는 셰이더도 업데이트 필요
+
         GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
         InstancingRender(drawBatch);
     }

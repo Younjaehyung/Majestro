@@ -982,6 +982,9 @@
     <FxCompile Include="..\Resources\Shader\Luminance_VS.hlsl">
       <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\solid_PS.hlsl">
+      <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

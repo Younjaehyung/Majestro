@@ -4,7 +4,13 @@
 #include "Entity.h"
 
 enum class SkillType : uint8;
-
+enum class EffectSpawnReason : uint8
+{
+    Fire = 0,
+    CollisionEntity = 1,
+    CollisionStatic = 2,
+    LifetimeExpired = 3,
+};
 
 struct EvDamage
 {
@@ -49,11 +55,15 @@ struct EvArmorChanged
 struct EvBulletDeactivated
 {
     Entity bullet;
-    float impactX = 0.0f;
-    float impactY = 0.0f;
-    float impactZ = 0.0f;
-    bool hasImpact = false;
-    uint8 impactReason = 0;
+};
+
+struct EvEffectSpawn
+{
+    uint8 effectType = 0;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    EffectSpawnReason reason = EffectSpawnReason::Fire;
 };
 
 struct EvBuffBulletRequest
@@ -74,4 +84,4 @@ struct EvMeleeAttackRequest
     SkillType bulletType;
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvBuffBulletRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvEffectSpawn, EvBuffBulletRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;

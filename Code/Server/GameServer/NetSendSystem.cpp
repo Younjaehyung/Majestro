@@ -27,6 +27,7 @@ void NetSendSystem::Update(float dt)
 	SendHealthEvents();
 	SendArmorEvents();
 	SendBulletDeactivateEvents();
+	SendEffectSpawnEvents();
 }
 
 void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
@@ -296,18 +297,43 @@ void NetSendSystem::SendBulletDeactivateEvents()
 
 			S2C_BulletDeactivatePacket deactivatePkt;
 			deactivatePkt.bulletNetEntityId = netComp->mNetEntityId;
-			deactivatePkt.impactX = e.impactX;
-			deactivatePkt.impactY = e.impactY;
-			deactivatePkt.impactZ = e.impactZ;
-			deactivatePkt.hasImpact = e.hasImpact;
-			deactivatePkt.impactReason = e.impactReason;
-
+			
 			for (uint32 sessionId : recipients)
 			{
 				mSendReq.SessionId = sessionId;
 				mSendReq.Type = S2C_PKT_BULLET_DEACTIVATE;
 				mSendReq.Size = sizeof(S2C_BulletDeactivatePacket);
 				mSendReq.StoreAs<S2C_BulletDeactivatePacket>(deactivatePkt);
+				gSendQueue.Push(mSendReq);
+			}
+		});
+}
+
+void NetSendSystem::SendEffectSpawnEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvEffectSpawn>([&](const EvEffectSpawn& e)
+		{
+			S2C_EffectSpawnPacket effectPkt;
+			effectPkt.effectType = e.effectType;
+			effectPkt.x = e.x;
+			effectPkt.y = e.y;
+			effectPkt.z = e.z;
+			effectPkt.reason = static_cast<uint8>(e.reason);
+
+			for (uint32 sessionId : recipients)
+			{
+				mSendReq.SessionId = sessionId;
+				mSendReq.Type = S2C_PKT_EFFECT_SPAWN;
+				mSendReq.Size = sizeof(S2C_EffectSpawnPacket);
+				mSendReq.StoreAs<S2C_EffectSpawnPacket>(effectPkt);
 				gSendQueue.Push(mSendReq);
 			}
 		});

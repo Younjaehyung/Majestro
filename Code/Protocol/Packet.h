@@ -36,6 +36,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_COLLISION,
 	S2C_PKT_BULLET_ACTIVATE,
 	S2C_PKT_BULLET_DEACTIVATE,
+	S2C_PKT_EFFECT_SPAWN,
 	S2C_PKT_HEALTH,
 	S2C_PKT_ARMOR,
 
@@ -293,17 +294,23 @@ struct S2C_BulletActivatePacket : public PacketTcpHeader {
 
 struct S2C_BulletDeactivatePacket : public PacketTcpHeader {
 	uint64_t bulletNetEntityId{};
-	float impactX{};
-	float impactY{};
-	float impactZ{};
-	bool hasImpact{};
-	uint8 impactReason{};
 
 	S2C_BulletDeactivatePacket()
 		: PacketTcpHeader{ sizeof(S2C_BulletDeactivatePacket), PKT_Type::S2C_PKT_BULLET_DEACTIVATE, 0.0 } {
 	}
 };
 
+struct S2C_EffectSpawnPacket : public PacketTcpHeader {
+	uint8 effectType{};
+	float x{};
+	float y{};
+	float z{};
+	uint8 reason{};
+
+	S2C_EffectSpawnPacket()
+		: PacketTcpHeader{ sizeof(S2C_EffectSpawnPacket), PKT_Type::S2C_PKT_EFFECT_SPAWN, 0.0 } {
+	}
+};
 
 ///////////////Client To Server///////////////
 

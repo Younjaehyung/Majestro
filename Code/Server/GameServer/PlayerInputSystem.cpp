@@ -26,14 +26,14 @@ namespace
 		switch (bulletType)
 		{
 		case SkillType::DrumAttack:
+		case SkillType::DrumSkill1:
 		case SkillType::GuitarAttack:
+		case SkillType::GuitarSkill1:
 			eventManager.Enqueue<EvMeleeAttackRequest>({ shooter, bulletType });
 			return true;
 
 		case SkillType::BaseAttack:
 		case SkillType::BaseSkill1:
-		case SkillType::DrumSkill1:
-		case SkillType::GuitarSkill1:
 			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
 			return true;
 
@@ -49,7 +49,7 @@ namespace
 		}
 	}
 
-	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton)
+	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton, uint8 rhythm=0)
 	{
 		switch (playerType)
 		{
@@ -74,7 +74,12 @@ namespace
 		default:
 			switch (actionButton)
 			{
-			case InputButtons::ATTACK: return SkillType::GuitarAttack;
+			case InputButtons::ATTACK: 
+				switch(rhythm){
+				case 0:
+				default: return SkillType::GuitarAttack;
+				}
+			
 			case InputButtons::SKILL1: return SkillType::GuitarSkill1;
 			case InputButtons::SKILL2: return SkillType::GuitarSkill2;
 			case InputButtons::RELOAD: return SkillType::GuitarSkill3;

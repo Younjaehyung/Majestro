@@ -7,20 +7,27 @@
 
 // 단일 Bullet 엔티티에서 다양한 탄종을 표현하기 위한 타입.
 // 네트워크 전송 시 enum 값을 uint8로 직렬화해서 사용.
-enum class BulletType : uint8
+enum class SkillType : uint8
 {
 	Default = 0,
 	BaseAttack,
 	BaseSkill1,
 	BaseSkill2,
+	BaseSkill3,
 
 	GuitarAttack,
 	GuitarSkill1,
 	GuitarSkill2,
+	GuitarSkill3,
 
 	DrumAttack,
 	DrumSkill1,
 	DrumSkill2,
+	DrumSkill3,
+
+	GuitarAttack_1,
+	GuitarAttack_2,
+	GuitarAttack_3,
 	Max
 };
 
@@ -32,7 +39,7 @@ public:
 	BulletComponent() = default;
 
 	void Activate(
-		BulletType type,
+		SkillType type,
 		uint64 ownerNetId,
 		uint32 bulletNetId,
 		uint16 generation,
@@ -95,7 +102,7 @@ public:
 
 public:
 	// Server/Network (authority)
-	BulletType mType = BulletType::Default;
+	SkillType mType = SkillType::Default;
 	uint64 mOwnerNetId = 0;
 	uint32 mBulletNetId = 0;
 	uint16 mGeneration = 0;

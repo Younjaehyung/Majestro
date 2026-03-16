@@ -18,6 +18,7 @@ private:
 	void SendHealthEvents();
 	void SendArmorEvents();
 	void SendBulletDeactivateEvents();
+	void SendEffectSpawnEvents();
 	std::vector<uint32> CollectPlayerSessions() const;
 private:
 	SendRequest mSendReq;

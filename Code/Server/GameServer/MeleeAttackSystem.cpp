@@ -35,6 +35,7 @@ namespace
 		float damage = 10.0f;
 		float forwardDistance = 3.0f;
 		float radius = 2.0f;
+		float knockbackDistance = 0.0f;
 	};
 
 	MeleeAttackStat GetMeleeAttackStat(SkillType type)
@@ -42,9 +43,13 @@ namespace
 		switch (type)
 		{
 		case SkillType::DrumAttack:
-			return { 10.0f, 3.0f, 100.0f };
+			return { 25.0f, 3.0f, 100.0f , 0.0f};
+		case SkillType::DrumSkill1:
+			return { 75.0f, 3.0f, 100.0f , 0.0f };
 		case SkillType::GuitarAttack:
-			return { 25.0f, 3.0f, 2.2f };
+			return { 25.0f, 3.0f, 100.2f, 0.0f };
+		case SkillType::GuitarSkill1:
+			return { 30.0f, 3.0f, 100.2f, 0.0f };
 		default:
 			return {};
 		}
@@ -103,6 +108,21 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		delta.y = 0.0f;
 		if (delta.LengthSquared() > radiusSq)
 			continue;
+
+		if (stat.knockbackDistance > 0.0f)
+		{
+			Vec3 knockbackDirection = targetTransform->mWorldPosition - attackerTransform->mWorldPosition;
+			knockbackDirection.y = 0.0f;
+
+			if (knockbackDirection.LengthSquared() > 1e-6f)
+			{
+				knockbackDirection.Normalize();
+				const Vec3 knockbackVector = knockbackDirection * stat.knockbackDistance;
+				targetTransform->mLocalPosition += knockbackVector;
+				targetTransform->mMovingVector += knockbackVector;
+			}
+		}
+
 
 		EvDamage damageEvent{};
 		damageEvent.instigator = request.shooter;

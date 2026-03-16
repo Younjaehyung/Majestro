@@ -357,7 +357,7 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<RenderComponent>(mEntityID, bulletMesh, bulletMaterials);
 
 	auto& bulletComp = world->AddComponent<BulletComponent>(mEntityID);
-	bulletComp.Activate(BulletType::Default, 0, 0, 0, t.mLocalPosition, Vec3::Forward, 90.0f, 2.0f, 10.0f);
+	bulletComp.Activate(SkillType::Default, 0, 0, 0, t.mLocalPosition, Vec3::Forward, 90.0f, 2.0f, 10.0f);
 	bulletComp.Deactivate();
 
 	const S2C_SpawnPacekt* spawnPacket = ctx.ViewAs<S2C_SpawnPacekt>();

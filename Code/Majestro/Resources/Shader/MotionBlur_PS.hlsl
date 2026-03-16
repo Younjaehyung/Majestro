@@ -16,7 +16,7 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
 {
     float2 uv = input.uv;
 
-    PASS_CUSTOM_DATA data = PassCustomTable[POST_MOTIONBLUR_PASS_IDX];
+    PASS_CUSTOM_DATA data = PassCustomTable[GlobalParams.PassCustomIndex];
 
     // MOTION_VECTOR RT에서 velocity 읽기 (ExtTex[0]에 GBUFFER_MOTIONVEC_INDEX 저장)
     int mvIdx = data.ExtTex[0];

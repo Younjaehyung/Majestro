@@ -193,6 +193,7 @@
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
+    <ClInclude Include="FogPass.h" />
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MotionVectorPass.h" />
     <ClInclude Include="MotionBlurPass.h" />
@@ -305,6 +306,7 @@
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ChromaticAberrationPass.cpp" />
+    <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MotionVectorPass.cpp" />
     <ClCompile Include="MotionBlurPass.cpp" />
@@ -524,6 +526,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Final</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Fog_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CS_Main</EntryPointName>

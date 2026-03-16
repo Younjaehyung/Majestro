@@ -30,6 +30,7 @@
 #include "RenderPass.h"
 #include "ToneMapPass.h"
 
+#include "FogPass.h"
 #include "ChromaticAberrationPass.h"
 #include "MotionVectorPass.h"
 #include "MotionBlurPass.h"
@@ -84,11 +85,12 @@ void RenderSystem::Initialize() {
   mMotionVectorPass = make_shared<MotionVectorPass>();
   mMotionVectorPass->Initialize();
   
-
-
-  // MotionBlur를 HDR PostProcess 체인에 등록
+  // MotionBlur 먼저, Fog 나중: MotionBlur 결과에 Fog를 덮어야 포그가 항상 유지됨
   mMotionBlurPass = make_shared<MotionBlurPass>();
   mPostProcessPass->AddHDRPass(mMotionBlurPass);
+
+  mFogPass = make_shared<FogPass>();
+  mPostProcessPass->AddHDRPass(mFogPass);
 
     mLuminancePass = make_shared<LuminancePass>();
  // mPostProcessPass->AddLDRPass(mLuminancePass);
@@ -153,7 +155,7 @@ void RenderSystem::RenderPass()
     RenderShadow();
     RenderDeferred();
     RenderForward();
- //   RenderOutline();
+    RenderOutline();
     RenderEffect();
     RenderPost();
 

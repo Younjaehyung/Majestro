@@ -511,7 +511,12 @@
     <ClInclude Include="RenderPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
-    <ClInclude Include="LuminancePass.h" />
+    <ClInclude Include="FogPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="LuminancePass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -826,7 +831,12 @@
     <ClCompile Include="RenderPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
-    <ClCompile Include="LuminancePass.cpp" />
+    <ClCompile Include="FogPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="LuminancePass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -984,6 +994,9 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\solid_PS.hlsl">
       <Filter>World\Resource\Shader\Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Fog_PS.hlsl">
+      <Filter>World\Resource\Shader\Post</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

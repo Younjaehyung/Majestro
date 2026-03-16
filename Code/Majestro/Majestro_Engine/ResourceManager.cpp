@@ -1249,6 +1249,21 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Luminance", shader);
 	}
+
+	// Fog
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\Fog_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"Fog", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()

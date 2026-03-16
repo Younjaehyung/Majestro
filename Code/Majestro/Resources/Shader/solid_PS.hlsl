@@ -16,6 +16,6 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
    // 임시 RED
-    return float4(0.9f, 0.0f, 0.0f, 1.0f);
+    return float4(1.0f, 1.0f, 1.0f, 1.0f);
 
 }

@@ -16,7 +16,8 @@ void OutlinePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 	mBefore = before;
 	mAfter = after;
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].PreviousStep = static_cast<int32>(ToGBufferIndex(before));
-	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].ExtValue[0] = Vec4(0.0015f, 0.0f, 0.0f, 0.0f);
+	//dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].ExtValue[0] = Vec4(0.0015f, 0.0f, 0.0f, 0.0f);
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].ExtValue[0] = Vec4(0.0015f, 0.3f, 0.6f, 0.0f);
 }
 
 void OutlinePass::Execute(std::vector<DrawBatch>& drawBatches)

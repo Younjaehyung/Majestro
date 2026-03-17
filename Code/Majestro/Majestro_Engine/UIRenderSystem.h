@@ -30,7 +30,7 @@ public:
 
 private:
     void UploadInstanceBuffer();
-	void InstancingRender();
+	void InstancingRender(uint32 count, uint32 startInstance = 0);
 
 private:
 
@@ -39,5 +39,6 @@ private:
 	std::shared_ptr<DirectX::SpriteFont> mDefaultFont;
 	std::vector<UIInstanceData> mInstances;
 
-	std::shared_ptr<class UIEffectPass> mUIEffectPass;
+	std::shared_ptr<class UIEffectPass>            mUIEffectPass;
+	std::shared_ptr<class AudioVisualizerPass>     mVisualizerPass;
 };

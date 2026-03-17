@@ -185,6 +185,9 @@
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="AudioSystem.h" />
+    <ClInclude Include="AudioVisualizerComponent.h" />
+    <ClInclude Include="AudioVisualizerPass.h" />
+    <ClInclude Include="AudioVisualizerSystem.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="BoxColliderComponent.h" />
@@ -298,6 +301,9 @@
     <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="AudioSystem.cpp" />
+    <ClCompile Include="AudioVisualizerComponent.cpp" />
+    <ClCompile Include="AudioVisualizerPass.cpp" />
+    <ClCompile Include="AudioVisualizerSystem.cpp" />
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BoxColliderComponent.cpp" />
@@ -473,6 +479,16 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">VS_Main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_Main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Main</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\visualizer_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <None Include="SimpleMath.inl" />
   </ItemGroup>

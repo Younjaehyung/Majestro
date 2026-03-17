@@ -34,21 +34,6 @@
     <Filter Include="World\Resource\Shader">
       <UniqueIdentifier>{a87ffd82-97ab-44cf-a036-614ab1754d04}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\Deferred">
-      <UniqueIdentifier>{9ff8d14e-9792-4fb6-a3c3-3635c6b5f956}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\Forward">
-      <UniqueIdentifier>{3b49f856-69bf-46ec-ad1b-9d94e8c31bb2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\Utils">
-      <UniqueIdentifier>{06defce9-15b0-49a7-8794-682af45355e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\animation">
-      <UniqueIdentifier>{38130558-6394-44be-a0f6-beb19ba95322}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\Terrain">
-      <UniqueIdentifier>{3d125a3a-65f0-4fc2-880e-902c962f85b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Component\UI">
       <UniqueIdentifier>{1fa1ef34-c658-498c-8e55-651acb2a8764}</UniqueIdentifier>
     </Filter>
@@ -136,29 +121,17 @@
     <Filter Include="World\System\Logic\Move">
       <UniqueIdentifier>{738b7ce8-1ffc-4712-b713-1f0fdfec12e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\Shadow">
-      <UniqueIdentifier>{0edf9506-908b-4443-a394-a320e664f31b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Resource\Shader\Cartoon">
       <UniqueIdentifier>{8e4100cc-b05d-40de-aa01-bac40fd182ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\Render">
       <UniqueIdentifier>{5d8e6ec9-df86-4883-8999-f361e7f21cd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\Post">
-      <UniqueIdentifier>{041f38b3-62c6-49d0-bcc3-60abc1d8a57b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\Post\particle">
-      <UniqueIdentifier>{902396bf-bfe0-497f-b466-8d4c6bfdcdf0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\Resource\Map">
       <UniqueIdentifier>{3f67fd53-45a5-4c97-a329-702e7cf40ae9}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\Resource\Map\NavMesh">
       <UniqueIdentifier>{04761dc3-7576-4a02-ab8e-57be60a83cd2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\ETC">
-      <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\Render\06.Deferred">
       <UniqueIdentifier>{fa68a731-1a47-472f-b259-63f64e3d4ac5}</UniqueIdentifier>
@@ -177,6 +150,36 @@
     </Filter>
     <Filter Include="World\System\Render\03.Pre-pass">
       <UniqueIdentifier>{0298a83f-589a-4841-a414-bfb0e36dc61b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\98.Terrain">
+      <UniqueIdentifier>{3d125a3a-65f0-4fc2-880e-902c962f85b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\00.Utils">
+      <UniqueIdentifier>{06defce9-15b0-49a7-8794-682af45355e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\01.Shadow">
+      <UniqueIdentifier>{0edf9506-908b-4443-a394-a320e664f31b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\80.Post">
+      <UniqueIdentifier>{041f38b3-62c6-49d0-bcc3-60abc1d8a57b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\80.Post\particle">
+      <UniqueIdentifier>{902396bf-bfe0-497f-b466-8d4c6bfdcdf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\80.Post\Style">
+      <UniqueIdentifier>{2479dc8e-8b80-4959-9582-5b1b0bb176ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\50.Forward">
+      <UniqueIdentifier>{3b49f856-69bf-46ec-ad1b-9d94e8c31bb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\40.Deferred">
+      <UniqueIdentifier>{9ff8d14e-9792-4fb6-a3c3-3635c6b5f956}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\99.animation">
+      <UniqueIdentifier>{38130558-6394-44be-a0f6-beb19ba95322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\60.ETC">
+      <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -502,9 +505,6 @@
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\UI</Filter>
     </ClInclude>
-    <ClInclude Include="OutlinePass.h">
-      <Filter>World\System\UI</Filter>
-    </ClInclude>
     <ClInclude Include="ArmorComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
@@ -515,6 +515,18 @@
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="LuminancePass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="OutlinePass.h">
+      <Filter>World\System\Render\05.Forward</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVisualizerSystem.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVisualizerPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVisualizerComponent.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
   </ItemGroup>
@@ -825,9 +837,6 @@
     <ClCompile Include="UIRenderSystem.cpp">
       <Filter>World\System\UI</Filter>
     </ClCompile>
-    <ClCompile Include="OutlinePass.cpp">
-      <Filter>World\System\UI</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
@@ -837,91 +846,103 @@
     <ClCompile Include="LuminancePass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
+    <ClCompile Include="OutlinePass.cpp">
+      <Filter>World\System\Render\05.Forward</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVisualizerSystem.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVisualizerPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVisualizerComponent.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
-      <Filter>World\Resource\Shader\Utils</Filter>
+      <Filter>World\Resource\Shader\00.Utils</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\params.hlsl">
-      <Filter>World\Resource\Shader\Utils</Filter>
+      <Filter>World\Resource\Shader\00.Utils</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\deferred_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lighting_point_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lighting_point_VS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_PS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_VS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\deferred_VS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\skybox_PS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\skybox_VS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lighting_dir_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lighting_dir_VS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\final_PS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\final_VS.hlsl">
-      <Filter>World\Resource\Shader\Deferred</Filter>
+      <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\texture_PS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\texture_VS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\animation_CS.hlsl">
-      <Filter>World\Resource\Shader\animation</Filter>
+      <Filter>World\Resource\Shader\99.animation</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\math.hlsl">
-      <Filter>World\Resource\Shader\Utils</Filter>
+      <Filter>World\Resource\Shader\00.Utils</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_DS.hlsl">
-      <Filter>World\Resource\Shader\Terrain</Filter>
+      <Filter>World\Resource\Shader\98.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_HS.hlsl">
-      <Filter>World\Resource\Shader\Terrain</Filter>
+      <Filter>World\Resource\Shader\98.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_PS.hlsl">
-      <Filter>World\Resource\Shader\Terrain</Filter>
+      <Filter>World\Resource\Shader\98.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_VS.hlsl">
-      <Filter>World\Resource\Shader\Terrain</Filter>
+      <Filter>World\Resource\Shader\98.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\UI_VS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\UI_PS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\shadow_PS.hlsl">
-      <Filter>World\Resource\Shader\Shadow</Filter>
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\shadow_VS.hlsl">
-      <Filter>World\Resource\Shader\Shadow</Filter>
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\TerrainShadow_DS.hlsl">
-      <Filter>World\Resource\Shader\Shadow</Filter>
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\TerrainShadow_PS.hlsl">
-      <Filter>World\Resource\Shader\Shadow</Filter>
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\cartoon_PS.hlsl">
       <Filter>World\Resource\Shader\Cartoon</Filter>
@@ -930,43 +951,37 @@
       <Filter>World\Resource\Shader\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
-      <Filter>World\Resource\Shader\Post\particle</Filter>
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
-      <Filter>World\Resource\Shader\Post\particle</Filter>
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
-      <Filter>World\Resource\Shader\Post\particle</Filter>
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
-      <Filter>World\Resource\Shader\Post\particle</Filter>
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_PS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\ChromaticAberration_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\FianlComposite_PS.hlsl">
-      <Filter>World\Resource\Shader\ETC</Filter>
+      <Filter>World\Resource\Shader\60.ETC</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\FianlComposite_VS.hlsl">
-      <Filter>World\Resource\Shader\ETC</Filter>
+      <Filter>World\Resource\Shader\60.ETC</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\depth_prepass_PS.hlsl">
-      <Filter>World\Resource\Shader\Shadow</Filter>
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\depth_prepass_VS.hlsl">
-      <Filter>World\Resource\Shader\Shadow</Filter>
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_PS.hlsl">
       <Filter>World\Resource\Shader\Cartoon</Filter>
@@ -975,28 +990,37 @@
       <Filter>World\Resource\Shader\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionVector_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionVector_VS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionVector_CS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Luminance_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Luminance_VS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\solid_PS.hlsl">
-      <Filter>World\Resource\Shader\Forward</Filter>
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Fog_PS.hlsl">
-      <Filter>World\Resource\Shader\Post</Filter>
+      <Filter>World\Resource\Shader\80.Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\visualizer_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\solid_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Luminance_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Luminance_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ChromaticAberration_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

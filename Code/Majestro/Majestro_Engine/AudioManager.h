@@ -69,25 +69,36 @@ public:
     // 리스너는 매 프레임 동기화 (카메라 기반)
     void SetListener(const FMOD_3D_ATTRIBUTES& attr, int index = 0);
 
-    // FmodBackend& Backend(); // 필요 시 하위로 빠질 수 있게
-
-
     // ... 기존
     void SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed = false);
     void SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed = false);
 
-
-
-        // 선택: 레벨 전환 시 묶음 프리로드/언로드
+    // 선택: 레벨 전환 시 묶음 프리로드/언로드
     void PreloadBanks(std::initializer_list<std::string> banks);
     void UnloadBanks(std::initializer_list<std::string> banks);
+
+    // ── 오디오 비주얼라이저용 FFT DSP ──────────────────────────────────
+    // Initialize() 이후에 호출할 것.
+    // windowSize: FFT 창 크기 (2의 거듭제곱, 클수록 주파수 해상도 ↑ / 시간 해상도 ↓)
+    void InitSpectrumDSP(int windowSize = 1024);
+    void ShutdownSpectrumDSP();
+
+    // 매 프레임 스펙트럼 데이터 폴링. outSpectrum.size() == windowSize / 2
+    // DSP가 초기화되지 않았거나 데이터가 없으면 false 반환
+    bool GetSpectrumData(std::vector<float>& outSpectrum);
+
+    // InitSpectrumDSP() 시 캐시된 FMOD 소프트웨어 샘플레이트 반환 (Hz)
+    float GetSpectrumSampleRate() const { return mSpectrumSampleRate; }
+    // ────────────────────────────────────────────────────────────────────
+
 private:
     FmodBackend mFMOD;
     FMOD::Studio::EventInstance* mBGM = nullptr;
 	std::vector<FMOD::Studio::EventInstance*> mAllBGM;
-    // 스레드세이프 큐/핸들 캐시 등
 
-    
+    // FFT DSP
+    FMOD::DSP* mSpectrumDSP      = nullptr;
+    float      mSpectrumSampleRate = 44100.f;
 };
 
 

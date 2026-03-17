@@ -989,6 +989,25 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"UI", shader);
 	}
 
+	// AudioVisualizer — UI_VS.hlsl 재사용, visualizer_PS.hlsl 전용 PS
+	// UIInstanceData의 MaterialIndex를 바 인덱스로, ZOrder를 정규화 높이로 재해석
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\UI_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\visualizer_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"AudioVisualizer", shader);
+	}
+
 	//// UI			현재 swapChain에 박고 있음
 	//{
 	//	ShaderInfo info =
@@ -1616,7 +1635,7 @@ void ResourceManager::CreateDefaultMaterial()
 	
 	{
 		auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
-		
+		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Texture\\T_TilingNoise02_M.png");
 	}
 
 	// GameObject

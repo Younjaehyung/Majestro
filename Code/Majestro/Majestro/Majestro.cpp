@@ -93,9 +93,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
+
+            // DestroyWindow 등으로 WM_QUIT가 큐에 쌓인 경우 즉시 탈출
+            MSG peekQuit{};
+            if (PeekMessage(&peekQuit, nullptr, WM_QUIT, WM_QUIT, PM_NOREMOVE))
+            {
+                msg = peekQuit;
+                break;
+            }
         }
-        
-        
+
         game->Update();
         game->Render();
     }

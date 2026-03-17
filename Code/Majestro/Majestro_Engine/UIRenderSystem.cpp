@@ -13,6 +13,7 @@
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "UIEffectPass.h"
+#include "AudioVisualizerPass.h"
 #include "Timer.h"
 
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
@@ -34,6 +35,9 @@ void UIRenderSystem::Initialize()
 
     mUIEffectPass = make_shared<UIEffectPass>();
     mUIEffectPass->Initialize(mWorld);
+
+    mVisualizerPass = make_shared<AudioVisualizerPass>();
+    mVisualizerPass->Initialize(mWorld);
 }
 
 void UIRenderSystem::InitializeFont()
@@ -131,7 +135,6 @@ void UIRenderSystem::CustomSpriteUpdate()
 {
     mInstances.clear();
 
-
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<UITransformComponent, UICusSpriteComponent>() };
 
     for (auto& e : entitys)
@@ -152,9 +155,22 @@ void UIRenderSystem::CustomSpriteUpdate()
         mInstances.push_back(data);
     }
 
-    UploadInstanceBuffer();
-    InstancingRender();
+    // ── 비주얼라이저 바 데이터를 인스턴스 벡터 뒤에 추가 ──────────────
+    // UIInfo 버퍼 레이아웃: [일반 UI (0..N-1)] [바 데이터 (N..N+M-1)]
+    // DrawIndexedInstanced의 StartInstanceLocation으로 각 파트를 독립적으로 드로우
+    uint32 regularCount = static_cast<uint32>(mInstances.size());
+    if (mVisualizerPass)
+        mVisualizerPass->AppendBarInstances(mInstances);
+    uint32 barCount = static_cast<uint32>(mInstances.size()) - regularCount;
 
+    UploadInstanceBuffer();
+
+    // 일반 UI 스프라이트 드로우 (startInstance = 0)
+    InstancingRender(regularCount, 0);
+
+    // 비주얼라이저 바 드로우 (startInstance = regularCount, 전용 셰이더)
+    if (mVisualizerPass && barCount > 0)
+        mVisualizerPass->Execute(regularCount, barCount);
 }
 
 void UIRenderSystem::SpriteUpdate()
@@ -210,15 +226,20 @@ void UIRenderSystem::SpriteUpdate()
 
 void UIRenderSystem::UploadInstanceBuffer()
 {
-    uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
-    RENDERMANAGER.GetGroupBuffer(mFrameCount)->UIInfo->PushGraphicsData(mInstances.data(), static_cast<uint32>(sizeof(UIInstanceData) * mInstances.size()));
-
+    if (mInstances.empty())
+        return;
+    uint32 frameIdx = RENDERMANAGER.GetFrameResourceIndex();
+    RENDERMANAGER.GetGroupBuffer(frameIdx)->UIInfo->PushGraphicsData(
+        mInstances.data(),
+        static_cast<uint32>(sizeof(UIInstanceData) * mInstances.size()));
 }
 
-void UIRenderSystem::InstancingRender()
+void UIRenderSystem::InstancingRender(uint32 count, uint32 startInstance)
 {
+    if (count == 0)
+        return;
     RESOURCEMANAGER.Get<Shader>(L"UI")->Update();
-
-    mQuadMesh->Render(mInstances.size(), 0, 0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
-
+    // startInstance → DrawIndexedInstanced의 StartInstanceLocation
+    // SV_InstanceID = startInstance + 0 ~ startInstance + count - 1
+    mQuadMesh->Render(count, 0, 0, startInstance);
 }

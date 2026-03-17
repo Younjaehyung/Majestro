@@ -106,7 +106,7 @@ void RenderManager::CreateGroup()
 		group->PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
 
 		group->InstanceInfo = make_shared<StructuredBuffer>();
-		group->InstanceInfo->CreateUploadBuffer(sizeof(RenderParams), 4096 * 20);
+		group->InstanceInfo->CreateUploadBuffer(sizeof(RenderParams), 4096 * 40);
 		group->InstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
 
 
@@ -116,7 +116,7 @@ void RenderManager::CreateGroup()
 
 
 		group->ObjectInfo = make_shared<StructuredBuffer>();
-		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 4096 * 20);
+		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 4096 * 40);
 		group->ObjectInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 
@@ -125,7 +125,7 @@ void RenderManager::CreateGroup()
 		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
 		group->UIInfo = make_shared<StructuredBuffer>();
-		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), 32);
+		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), 256);
 		group->UIInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_UI_INDEX), GROUP_COUNT);
 
 		group->AnimInstanceInfo = make_shared<StructuredBuffer>();

@@ -114,6 +114,9 @@ void AudioManager::Initialize(const std::string& bankRoot) {
 
 void AudioManager::Shutdown() {
 
+    // FFT DSP가 남아 있으면 먼저 해제 (Studio 릴리즈 전에 수행해야 함)
+    ShutdownSpectrumDSP();
+
     if (!mAllBGM.empty()) {
         for (auto& bgm : mAllBGM) {
             if (!bgm) {
@@ -213,4 +216,75 @@ void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const
     // ����(Discrete Labeled) �Ķ���͸� ���ڿ� �󺧷� ���� ����
     FMOD_CHECK(mAllBGM[idx]->setParameterByNameWithLabel(name, label, ignoreSeekSpeed));
 }
+
+// ── 오디오 비주얼라이저용 FFT DSP ───────────────────────────────────────
+
+void AudioManager::InitSpectrumDSP(int windowSize)
+{
+    if (mSpectrumDSP)
+        return;  // 이미 초기화됨
+
+    // 소프트웨어 샘플레이트 캐시
+    int sr = 44100;
+    FMOD_CHECK(mFMOD.GetCore()->getSoftwareFormat(&sr, nullptr, nullptr));
+    mSpectrumSampleRate = static_cast<float>(sr);
+
+    // 마스터 채널 그룹에 FFT DSP 삽입 (Studio 이벤트도 Core 채널 그룹을 통과)
+    FMOD::ChannelGroup* masterGroup = nullptr;
+    FMOD_CHECK(mFMOD.GetCore()->getMasterChannelGroup(&masterGroup));
+
+    FMOD::DSP* dsp = nullptr;
+    FMOD_CHECK(mFMOD.GetCore()->createDSPByType(FMOD_DSP_TYPE_FFT, &dsp));
+    FMOD_CHECK(dsp->setParameterInt(FMOD_DSP_FFT_WINDOWSIZE, windowSize));
+
+    // DSP chain 맨 앞에 추가 (전체 출력 오디오 캡처)
+    FMOD_CHECK(masterGroup->addDSP(0, dsp));
+    mSpectrumDSP = dsp;
+}
+
+void AudioManager::ShutdownSpectrumDSP()
+{
+    if (!mSpectrumDSP)
+        return;
+
+    FMOD::ChannelGroup* masterGroup = nullptr;
+    if (mFMOD.GetCore())
+        mFMOD.GetCore()->getMasterChannelGroup(&masterGroup);
+
+    if (masterGroup)
+        masterGroup->removeDSP(mSpectrumDSP);
+
+    mSpectrumDSP->release();
+    mSpectrumDSP = nullptr;
+}
+
+bool AudioManager::GetSpectrumData(std::vector<float>& outSpectrum)
+{
+    if (!mSpectrumDSP)
+        return false;
+
+    FMOD_DSP_PARAMETER_FFT* fftData = nullptr;
+    FMOD_RESULT r = mSpectrumDSP->getParameterData(
+        FMOD_DSP_FFT_SPECTRUMDATA,
+        reinterpret_cast<void**>(&fftData),
+        nullptr, nullptr, 0);
+
+    if (r != FMOD_OK || !fftData || fftData->numchannels == 0 || fftData->length == 0)
+        return false;
+
+    int len = fftData->length;
+    outSpectrum.resize(static_cast<size_t>(len));
+
+    // 채널 평균 → 모노 스펙트럼
+    for (int i = 0; i < len; i++)
+    {
+        float sum = 0.f;
+        for (int ch = 0; ch < fftData->numchannels; ch++)
+            sum += fftData->spectrum[ch][i];
+        outSpectrum[i] = sum / static_cast<float>(fftData->numchannels);
+    }
+    return true;
+}
+
+// ────────────────────────────────────────────────────────────────────────
 

@@ -5,6 +5,7 @@
 #include "EnginePch.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
+#include "AudioManager.h"
 #include "World.h"
 #include "Component.h"
 #include "TransformComponent.h"
@@ -25,6 +26,7 @@
 #include "NetSendSystem.h"
 #include "VfxComponent.h"
 #include "BoxColliderComponent.h"
+#include "AudioVisualizerComponent.h"
 #include "Prefab.h"
 
 
@@ -504,6 +506,18 @@ void GameScene::Initialize()
 
 
 	mWorld->Initialize();
+
+	AUDIOMANAGER.InitSpectrumDSP(2048);
+
+	Entity visEntity = mWorld->CreateEntity();
+	AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
+
+	// 선택: 위치/크기 커스터마이징
+	vis.basePosition = Vec2(2048.f, 1060.f);  // 화면 하단 중앙
+	vis.barWidth = 12.f;
+	vis.barSpacing = 3.f;
+	vis.maxBarHeight = 250.f;
+	vis.gain = 8.f;
 }
 
 

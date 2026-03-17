@@ -41,7 +41,8 @@ void ToneMapPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 
 	if (RENDERMANAGER.IsMsaaEnabled())
 		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitTargetToResource();
+	else
+		// MSAA 모드에서는 mAfter(POST_LDR_A)를 RT로 전환한 적 없으므로 WaitTargetToResource 호출 금지
+		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitTargetToResource();
 
 }

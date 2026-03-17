@@ -90,7 +90,7 @@ void RenderSystem::Initialize() {
   mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
   mFogPass = make_shared<FogPass>();
-  mPostProcessPass->AddHDRPass(mFogPass);
+ // mPostProcessPass->AddHDRPass(mFogPass);
 
     mLuminancePass = make_shared<LuminancePass>();
  // mPostProcessPass->AddLDRPass(mLuminancePass);
@@ -939,7 +939,7 @@ void RenderSystem::RenderDeferred() {
 
 
   if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitResourceToTarget();
+    // ClearRTV()에서 이미 COMMON→RT 전환 완료 — WaitResourceToTarget 중복 호출 제거
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
   } //else {
   //  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);

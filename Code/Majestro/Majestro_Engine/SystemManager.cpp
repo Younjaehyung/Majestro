@@ -18,6 +18,7 @@
 #include "EnemySystem.h"
 #include "CollisionSystem.h"
 #include "NetInterpolationSystem.h"
+#include "AudioVisualizerSystem.h"
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
@@ -35,7 +36,7 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<MovementSystem>();
     RegisterSystem<EnemySystem>();
     RegisterSystem<NetInterpolationSystem>();
-
+    RegisterSystem<AudioVisualizerSystem>();
     RegisterSystem<RenderSystem>();
     RegisterSystem<UIRenderSystem>();
 

@@ -35,7 +35,7 @@ void FogPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
 	if (!mEnabled) return;
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(mAfter)).WaitResourceToTarget();
+	// ClearRenderTargetView()가 내부적으로 WaitResourceToTarget(COMMON→RT)을 처리하므로 별도 호출 불필요
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(mAfter)).ClearRenderTargetView();
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(mAfter)).OMSetRenderTargets();
 

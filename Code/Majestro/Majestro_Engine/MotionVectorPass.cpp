@@ -27,7 +27,7 @@ void MotionVectorPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 	auto& mvGroup = RENDERMANAGER.GetRenderTargetGroup(
 		static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR));
 
-	mvGroup.WaitResourceToTarget();
+	// ClearRenderTargetView()가 내부적으로 WaitResourceToTarget(COMMON→RT)을 처리하므로 별도 호출 불필요
 	mvGroup.ClearRenderTargetView();
 	mvGroup.OMSetRenderTargets();
 

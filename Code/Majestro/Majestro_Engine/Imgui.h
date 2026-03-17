@@ -23,7 +23,8 @@ public:
 		ID3D12CommandQueue* commandQueue
     );
 
-	void Render(ID3D12GraphicsCommandList* cmd, ID3D12DescriptorHeap* srvHeap);
+	void BeginFrame();
+	void EndFrame(ID3D12GraphicsCommandList* cmd, ID3D12DescriptorHeap* srvHeap);
     void Shutdown();
 	void DemoWindow();
 

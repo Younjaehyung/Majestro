@@ -64,11 +64,15 @@ void Engine::Update()
 
 void Engine::Render()
 {
-	
+#ifdef _IMGUI
+	// NewFrame()을 씬 렌더 이전에 호출해야 IMGUIRenderSystem::Update()의 위젯이 프레임에 포함됨
+	ImGuiManager::Get().BeginFrame();
+#endif
+
 	mSceneManager->Render();
 
 #ifdef _IMGUI
-	ImGuiManager::Get().Render(mRenderManager->GetGraphicsCmdQueue()->GetGraphicsCmdList().Get(),
+	ImGuiManager::Get().EndFrame(mRenderManager->GetGraphicsCmdQueue()->GetGraphicsCmdList().Get(),
 		mRenderManager->GetLegacyGraphicsDescriptorHeap());
 #else
 #endif

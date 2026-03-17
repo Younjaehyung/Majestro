@@ -56,19 +56,23 @@ void ImGuiManager::Initialize(HWND hwnd,
 
 }
 
-void ImGuiManager::Render(ID3D12GraphicsCommandList* cmd, ID3D12DescriptorHeap* srvHeap)
+void ImGuiManager::BeginFrame()
 {
-    // Start the Dear ImGui frame
+    // ImGui 프레임 시작 — 이후 mSceneManager->Render()에서 IMGUIRenderSystem이 위젯을 등록
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    DemoWindow();
+    //DemoWindow();
+}
+
+void ImGuiManager::EndFrame(ID3D12GraphicsCommandList* cmd, ID3D12DescriptorHeap* srvHeap)
+{
+    // 모든 위젯 등록 완료 후 렌더링 제출
     ImGui::Render();
 
     cmd->SetDescriptorHeaps(1, &srvHeap);
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmd);
-
 }
 
 void ImGuiManager::Shutdown()

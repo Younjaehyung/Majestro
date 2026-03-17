@@ -83,10 +83,10 @@ void LobbyScene::Initialize()
 	{
 		Entity mannequinEntity = mWorld->CreateEntity();
 		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
-		
+
 	}
-	
-	for (int i = 0;i < 3;++i) {
+
+	for (int i = 0; i < 3; ++i) {
 		Entity mEntityID = mWorld->CreateEntity();
 
 		TransformComponent t{};
@@ -106,7 +106,7 @@ void LobbyScene::Initialize()
 			material2s.push_back(material2);*/
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
-			mWorld->AddComponent<MannequinComponent>(mEntityID,i);
+			mWorld->AddComponent<MannequinComponent>(mEntityID, i);
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
@@ -135,13 +135,13 @@ void LobbyScene::Initialize()
 		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
 	}
-	
+
 
 	// MAP export json load
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 	// 
 
-	
+
 	/////////////////////////////////////////////////////////////////////
 	{
 		Entity vfxEntity = mWorld->CreateEntity();
@@ -249,6 +249,38 @@ void LobbyScene::Initialize()
 
 
 	mWorld->Initialize();
+	//{
+	//	AUDIOMANAGER.InitSpectrumDSP(4096 * 4);
+
+	//	Entity visEntity = mWorld->CreateEntity();
+	//	AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
+
+	//	// 선택: 위치/크기 커스터마이징
+	//	vis.basePosition = Vec2(2560.f, 1240.f);  // 화면 하단 중앙
+	//	vis.barWidth = 7.f;
+	//	vis.barSpacing = 3.f;
+	//	vis.maxBarHeight = 250.f;
+	//	vis.gain = 8.f;
+	//}
+
+	{
+		AUDIOMANAGER.InitSpectrumDSP(4096 * 4);
+
+		Entity visEntity = mWorld->CreateEntity();
+		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
+
+		// 선택: 위치/크기 커스터마이징
+		vis.basePosition = Vec2(2560.f/2, 700.f);  // 화면 하단 중앙
+		vis.barWidth = 6.f;
+		vis.barSpacing = 0.5f;
+		vis.maxBarHeight = 25.f;
+		vis.gain = 8.f;
+
+#ifdef _IMGUI
+		AudioVisualizerIMGUI& visImgui = mWorld->AddComponent<AudioVisualizerIMGUI>(visEntity);
+		visImgui.target = &vis;
+#endif
+	}
 }
 
 void LobbyScene::Update(float deltaTime)
@@ -507,17 +539,7 @@ void GameScene::Initialize()
 
 	mWorld->Initialize();
 
-	AUDIOMANAGER.InitSpectrumDSP(2048);
 
-	Entity visEntity = mWorld->CreateEntity();
-	AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
-
-	// 선택: 위치/크기 커스터마이징
-	vis.basePosition = Vec2(2048.f, 1060.f);  // 화면 하단 중앙
-	vis.barWidth = 12.f;
-	vis.barSpacing = 3.f;
-	vis.maxBarHeight = 250.f;
-	vis.gain = 8.f;
 }
 
 

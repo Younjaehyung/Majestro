@@ -6,6 +6,7 @@ enum class PropertyType
 	Bool,
 	Int,
 	Float,
+	Vec2,
 	Vec3,
 	Color,
 };
@@ -15,7 +16,7 @@ struct EditorProperty
 {
 	std::string name;
 	PropertyType type;
-	void* data;              // ╫га╕ ╨╞╪Ж аж╪р
+	void* data;              // О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫ж╪О©╫
 	float min = 0.0f;
 	float max = 0.0f;
 };

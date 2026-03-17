@@ -225,7 +225,7 @@ void AudioManager::InitSpectrumDSP(int windowSize)
         return;  // 이미 초기화됨
 
     // 소프트웨어 샘플레이트 캐시
-    int sr = 44100;
+    int sr = 84100;
     FMOD_CHECK(mFMOD.GetCore()->getSoftwareFormat(&sr, nullptr, nullptr));
     mSpectrumSampleRate = static_cast<float>(sr);
 

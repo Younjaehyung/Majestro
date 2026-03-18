@@ -277,8 +277,19 @@ void LobbyScene::Initialize()
 		vis.gain = 8.f;
 
 #ifdef _IMGUI
-		AudioVisualizerIMGUI& visImgui = mWorld->AddComponent<AudioVisualizerIMGUI>(visEntity);
-		visImgui.target = &vis;
+
+		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
+		std::vector<EditorProperty> props;
+		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
+		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
+		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
+		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
+		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
+		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
+		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
+		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
+		visImgui.RegisterEditorProperties(props);
+		visImgui.SetName("Audio Visualizer");
 #endif
 	}
 }

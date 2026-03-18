@@ -20,33 +20,19 @@ void IMGUIRenderSystem::Update()
 #ifdef _IMGUI
     ImGui::Begin("Inspector");
 
-	//std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<IMGUIComponent>() };
-
- //   for (auto& entity : entitys)
- //   {
- //       IMGUIComponent* comp = mWorld->GetComponent<IMGUIComponent>(entity);
- //       if (ImGui::CollapsingHeader(comp->GetName()))
- //       {
- //           std::vector<EditorProperty> props;
-	//		
- //           comp->RegisterEditorProperties(props);
-
- //           for (auto& prop : props)
- //               DrawProperty(prop);
- //       }
- //   }
-
-    // AudioVisualizerIMGUI — Component<AudioVisualizerIMGUI> 직접 상속이므로 별도 순회
-
-    if (mWorld->HasComponentPool<AudioVisualizerIMGUI>())
+    if (mWorld->HasComponentPool<IMGUIComponent>())
     {
-        for (auto& entity : mWorld->GetEntitiesWithComponent<AudioVisualizerIMGUI>())
+        std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<IMGUIComponent>() };
+
+        for (auto& entity : entitys)
         {
-            AudioVisualizerIMGUI* comp = mWorld->GetComponent<AudioVisualizerIMGUI>(entity);
+            IMGUIComponent* comp = mWorld->GetComponent<IMGUIComponent>(entity);
             if (!comp) continue;
-            comp->Draw();
-            if (ImGui::CollapsingHeader("Audio Visualizer"))
+
+            if (ImGui::CollapsingHeader(comp->GetName()))
             {
+               
+
                 for (auto& prop : comp->mProps)
                     DrawProperty(prop);
             }

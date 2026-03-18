@@ -30,8 +30,9 @@ public:
 	virtual ~IMGUIComponent() = default;
 	virtual void SetName(const std::string& name) { mName = name; }
 	virtual const char* GetName() const { return mName.c_str(); }
-	virtual void RegisterEditorProperties(std::vector<EditorProperty>& props) {}
+	virtual void RegisterEditorProperties(std::vector<EditorProperty>& props) { mProps = props; }
 public:
 	std::string mName = "IMGUIComponent";
+	std::vector<EditorProperty> mProps;
 };
 

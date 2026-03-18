@@ -92,6 +92,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\Effekseer;$(SolutionDir)Majestro_Engine\;$(SolutionDir)Library\Include\</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -130,6 +131,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\Effekseer;$(SolutionDir)Majestro_Engine\;$(SolutionDir)Library\Include\</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

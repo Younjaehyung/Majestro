@@ -5,6 +5,10 @@
 #include "params.hlsl"
 static const float PI = 3.14159265f;
 
+float Hash(float n)
+{
+    return frac(sin(n) * 43758.5453f);
+}
 
 // Y축 회전 행렬(간단 버전)
 float3 RotateY(float3 v, float angle)

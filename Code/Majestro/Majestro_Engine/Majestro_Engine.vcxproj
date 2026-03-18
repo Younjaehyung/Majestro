@@ -92,6 +92,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -139,6 +140,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -188,6 +190,9 @@
     <ClInclude Include="AudioVisualizerComponent.h" />
     <ClInclude Include="AudioVisualizerPass.h" />
     <ClInclude Include="AudioVisualizerSystem.h" />
+    <ClInclude Include="CircularVisualizerComponent.h" />
+    <ClInclude Include="CircularVisualizerPass.h" />
+    <ClInclude Include="CircularVisualizerSystem.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="BoxColliderComponent.h" />
@@ -200,6 +205,7 @@
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MotionVectorPass.h" />
     <ClInclude Include="MotionBlurPass.h" />
+    <ClInclude Include="BloomPass.h" />
     <ClInclude Include="CollisionSystem.h" />
     <ClInclude Include="CommandQueue.h" />
     <ClInclude Include="Component.h" />
@@ -304,6 +310,9 @@
     <ClCompile Include="AudioVisualizerComponent.cpp" />
     <ClCompile Include="AudioVisualizerPass.cpp" />
     <ClCompile Include="AudioVisualizerSystem.cpp" />
+    <ClCompile Include="CircularVisualizerComponent.cpp" />
+    <ClCompile Include="CircularVisualizerPass.cpp" />
+    <ClCompile Include="CircularVisualizerSystem.cpp" />
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BoxColliderComponent.cpp" />
@@ -316,6 +325,7 @@
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MotionVectorPass.cpp" />
     <ClCompile Include="MotionBlurPass.cpp" />
+    <ClCompile Include="BloomPass.cpp" />
     <ClCompile Include="CollisionSystem.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -428,6 +438,16 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CS_Main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CS_Main</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CS_Main</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\bloom_blur_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\cartoon_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

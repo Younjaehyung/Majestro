@@ -532,7 +532,6 @@
     <ClInclude Include="CircularVisualizerComponent.h" />
     <ClInclude Include="CircularVisualizerPass.h" />
     <ClInclude Include="CircularVisualizerSystem.h" />
-    <ClInclude Include="BloomPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -865,7 +864,6 @@
     <ClCompile Include="CircularVisualizerComponent.cpp" />
     <ClCompile Include="CircularVisualizerPass.cpp" />
     <ClCompile Include="CircularVisualizerSystem.cpp" />
-    <ClCompile Include="BloomPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -1029,9 +1027,6 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
       <Filter>World\Resource\Shader\80.Post\Style</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\bloom_blur_PS.hlsl">
-      <Filter>World\System\Render\08.Post</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

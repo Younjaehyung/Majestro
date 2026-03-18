@@ -9,6 +9,9 @@ void ImGuiManager::Initialize(HWND hwnd,
     ID3D12CommandQueue* commandQueue
     )
 {
+#ifdef _IMGUI
+
+
 
 
     IMGUI_CHECKVERSION();
@@ -53,37 +56,48 @@ void ImGuiManager::Initialize(HWND hwnd,
 
 
     ImGui::StyleColorsDark();
-
+#endif 
 }
 
 void ImGuiManager::BeginFrame()
 {
+#ifdef _IMGUI
+
     // ImGui 프레임 시작 — 이후 mSceneManager->Render()에서 IMGUIRenderSystem이 위젯을 등록
     ImGui_ImplDX12_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
     //DemoWindow();
+#endif 
 }
 
 void ImGuiManager::EndFrame(ID3D12GraphicsCommandList* cmd, ID3D12DescriptorHeap* srvHeap)
 {
+#ifdef _IMGUI
+
     // 모든 위젯 등록 완료 후 렌더링 제출
     ImGui::Render();
 
     cmd->SetDescriptorHeaps(1, &srvHeap);
     ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmd);
+#endif 
 }
 
 void ImGuiManager::Shutdown()
 {
+#ifdef _IMGUI
+
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();
+#endif 
 }
 
 void ImGuiManager::DemoWindow()
 {
+#ifdef _IMGUI
+
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -131,4 +145,5 @@ void ImGuiManager::DemoWindow()
         //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
     }
+#endif
 }

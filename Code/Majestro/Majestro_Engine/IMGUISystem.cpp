@@ -17,6 +17,7 @@ void IMGUIRenderSystem::Initialize()
 
 void IMGUIRenderSystem::Update()
 {
+#ifdef _IMGUI
     ImGui::Begin("Inspector");
 
 	//std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<IMGUIComponent>() };
@@ -36,7 +37,7 @@ void IMGUIRenderSystem::Update()
  //   }
 
     // AudioVisualizerIMGUI — Component<AudioVisualizerIMGUI> 직접 상속이므로 별도 순회
-#ifdef _IMGUI
+
     if (mWorld->HasComponentPool<AudioVisualizerIMGUI>())
     {
         for (auto& entity : mWorld->GetEntitiesWithComponent<AudioVisualizerIMGUI>())
@@ -51,14 +52,15 @@ void IMGUIRenderSystem::Update()
             }
         }
     }
-#endif
+
 
     ImGui::End();
-
+#endif
 }
 
 void IMGUIRenderSystem::DrawProperty(EditorProperty& prop)
 {
+#ifdef _IMGUI
         switch (prop.type)
         {
         case PropertyType::Bool:
@@ -90,5 +92,6 @@ void IMGUIRenderSystem::DrawProperty(EditorProperty& prop)
             );
             break;
         }
+#endif
 }
 

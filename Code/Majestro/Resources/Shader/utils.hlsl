@@ -58,6 +58,27 @@ float Luminance(float3 v)
 }
 
 
+float3 Uncharted2Partial(float3 x)
+{
+    float A = 0.15f; // Shoulder Strength
+    float B = 0.50f; // Linear Strength
+    float C = 0.10f; // Linear Angle
+    float D = 0.20f; // Toe Strength
+    float E = 0.02f; // Toe Numerator
+    float F = 0.30f; // Toe Denominator
+    return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
+}
+
+float3 Uncharted2Filmic(float3 color)
+{
+    float ExposureBias = 5.0f;
+    float3 curr = Uncharted2Partial(color * ExposureBias);
+    
+    float W = 8.2f; // 화이트 포인트
+    float3 whiteScale = 1.0f / Uncharted2Partial(float3(W, W, W));
+    return curr * whiteScale;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Toon Shading
 

@@ -96,6 +96,12 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         TransformComponent* comp =  mWorld->GetComponent<TransformComponent>(e);
         NetTransformComponent* netcomp =  mWorld->GetComponent<NetTransformComponent>(e);
 		if(comp == nullptr || netcomp == nullptr ) return;
+
+		// 오래된 UDP 패킷 무시: out-of-order 도착한 패킷은 버림
+		if (netcomp->mLastSequence != 0 &&
+			!NetTransformComponent::IsNewer(movePacket->Sequence, netcomp->mLastSequence))
+			return;
+
 		netcomp->mTargetPosition.x = movePacket->x;
 		netcomp->mTargetPosition.y = movePacket->y;
 		netcomp->mTargetPosition.z = movePacket->z;

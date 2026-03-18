@@ -57,11 +57,17 @@ void NetTransformComponent::UpdateRender(double localNowSec)
     if (exTicksF >= 0.0 && exTicksF <= mMaxExtrapolationTicksF)
     {
         const float exSec = (float)(exTicksF * mFixedDtSec);
-        mRenderPos = L.pos + L.vel * exSec;
-        mRenderRotQ = L.rotQ; // 각속도 있으면 회전도 외삽 가능
-        
+        // 외삽이 길어질수록 속도를 점진적으로 줄여 패킷 손실 시 날아가는 현상 방지
+        const float damping = max(0.0f, 1.0f - (float)(exTicksF / mMaxExtrapolationTicksF));
+        mRenderPos = L.pos + L.vel * (exSec * damping);
+        mRenderRotQ = L.rotQ;
     }
-    // 너무 크면 hold 또는 감쇠(옵션)
+    else
+    {
+        // 외삽 한계 초과: 마지막 수신 위치에서 홀드
+        mRenderPos = L.pos;
+        mRenderRotQ = L.rotQ;
+    }
 }
 
 

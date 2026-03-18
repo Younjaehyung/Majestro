@@ -26,11 +26,20 @@ void NetSendSystem::Update(float deltaTime)
 	UpdateCachedPlayerType();
 	TrySendGameStart();
 
-	SendRequest seq;
-	ConvertInput(&seq);
-	if (seq.Type != PKT_Type::KNONE)
+	// 이벤트성 입력(점프/공격/스킬 등): 새로 눌린 순간 TCP로 즉시 전송
+	TrySendActionEvents();
+
+	// 이동 입력: 30Hz 주기로 UDP 전송 (매 프레임 전송하지 않음)
+	mInputAccumulator += deltaTime;
+	if (mInputAccumulator >= kInputSendInterval)
 	{
-		gSendBuffer.Push(seq);
+		mInputAccumulator -= kInputSendInterval;
+		SendRequest seq;
+		ConvertInput(&seq);
+		if (seq.Type != PKT_Type::KNONE)
+		{
+			gSendBuffer.Push(seq);
+		}
 	}
 
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
@@ -44,7 +53,7 @@ void NetSendSystem::Update(float deltaTime)
 		if (netComp == nullptr) continue;
 		//if (netComp->mIsDirty)
 		{
-			
+
 			//netComp->mIsDirty = false;
 		}
 	}
@@ -190,6 +199,48 @@ void NetSendSystem::UpdateCachedPlayerType()
 		mCachedPlayerType = characterChoice->mPlayerType;
 		//cout << (int)mCachedPlayerType << endl;
 	}
+}
+
+void NetSendSystem::TrySendActionEvents()
+{
+	if (!mWorld->HasComponentPool<NetEntityComponent>()) return;
+
+	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
+	if (playerEntities.empty()) return;
+
+	Entity playerEntity = playerEntities[0];
+	PlayerMovementComponent* comp = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
+	NetEntityComponent* netEnt = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	if (!comp || !netEnt) return;
+
+	// 이번 프레임 이벤트성 버튼 상태 수집
+	uint32 currButtons = 0;
+	if (comp->mJump)    currButtons |= (1 << static_cast<uint8>(InputButtons::SPACE));
+	if (comp->mDash)    currButtons |= (1 << static_cast<uint8>(InputButtons::SHIFT));
+	if (comp->mAttack)  currButtons |= (1 << static_cast<uint8>(InputButtons::ATTACK));
+	if (comp->mSkill1)  currButtons |= (1 << static_cast<uint8>(InputButtons::SKILL1));
+	if (comp->mSkill2)  currButtons |= (1 << static_cast<uint8>(InputButtons::SKILL2));
+	if (comp->mReload)  currButtons |= (1 << static_cast<uint8>(InputButtons::RELOAD));
+	if (comp->mSpecial) currButtons |= (1 << static_cast<uint8>(InputButtons::SPECIAL));
+
+	// 이전 프레임 대비 새로 눌린 버튼만 추출 (눌린 순간 only)
+	const uint32 newlyPressed = currButtons & ~mPrevButtons;
+	mPrevButtons = currButtons;
+
+	if (newlyPressed == 0) return;
+
+	// 새로 눌린 버튼이 있으면 TCP로 즉시 전송 (손실 없이 서버 보장 전달)
+	C2S_ActionPacket actionPkt;
+	actionPkt.netEntityId = netEnt->mNetEntityId;
+	actionPkt.Buttons = newlyPressed;
+	actionPkt.Yaw = comp->mCameraRotationY;
+	actionPkt.Pitch = comp->mCameraRotationX;
+
+	SendRequest actionSeq;
+	actionSeq.Type = PKT_Type::C2S_PKT_ACTION;
+	actionSeq.SIze = sizeof(C2S_ActionPacket);
+	actionSeq.StoreAs(actionPkt);
+	gSendBuffer.Push(actionSeq);
 }
 
 

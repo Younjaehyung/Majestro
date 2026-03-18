@@ -90,7 +90,7 @@ void RenderSystem::Initialize() {
   mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
   mFogPass = make_shared<FogPass>();
- // mPostProcessPass->AddHDRPass(mFogPass);
+  mPostProcessPass->AddHDRPass(mFogPass);
 
     mLuminancePass = make_shared<LuminancePass>();
  // mPostProcessPass->AddLDRPass(mLuminancePass);

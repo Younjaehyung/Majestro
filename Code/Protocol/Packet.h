@@ -342,6 +342,16 @@ struct C2S_LogoutPacket : public PacketTcpHeader {
 	}
 };
 
+// 이벤트성 입력(점프/공격/스킬 등 새로 눌린 순간)을 TCP로 즉시 전송하는 패킷
+// UDP 이동 패킷과 달리 손실 없이 서버에 보장 전달
+struct C2S_ActionPacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+	uint32 Buttons{};   // 새로 눌린 버튼 비트마스크
+	float  Yaw{};
+	float  Pitch{};
+	C2S_ActionPacket() : PacketTcpHeader{ sizeof(C2S_ActionPacket), PKT_Type::C2S_PKT_ACTION, 0.0 } {}
+};
+
 struct C2S_InputPacket : public PacketUdpHeader {
 	uint64 netEntityId{};
 

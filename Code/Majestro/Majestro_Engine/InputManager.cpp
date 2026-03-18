@@ -12,45 +12,9 @@ int ASCII[(UINT)eKeyCode::End] = {
 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 VK_F1, VK_F2, VK_F3, VK_F4,
 VK_ESCAPE,
+VK_OEM_3,   // ` 백틱
 
 };
-
-inline HCURSOR CreateTransparentCursor() {
-	ICONINFO ii{};
-	ii.fIcon = FALSE; // 커서
-	ii.xHotspot = 0;
-	ii.yHotspot = 0;
-
-	BITMAPV5HEADER bi{};
-	bi.bV5Size = sizeof(bi);
-	bi.bV5Width = 1;
-	bi.bV5Height = -1;        // top-down
-	bi.bV5Planes = 1;
-	bi.bV5BitCount = 32;
-	bi.bV5Compression = BI_BITFIELDS;
-	bi.bV5RedMask = 0x00FF0000;
-	bi.bV5GreenMask = 0x0000FF00;
-	bi.bV5BlueMask = 0x000000FF;
-	bi.bV5AlphaMask = 0xFF000000;
-
-	void* bits = nullptr;
-	HDC hdc = GetDC(nullptr);
-	HBITMAP color = CreateDIBSection(hdc, (BITMAPINFO*)&bi, DIB_RGB_COLORS, &bits, nullptr, 0);
-	ReleaseDC(nullptr, hdc);
-	((DWORD*)bits)[0] = 0x00000000; // 완전 투명 픽셀
-
-	HBITMAP mask = CreateBitmap(1, 1, 1, 1, nullptr); // 형식상 필요
-
-	ii.hbmColor = color;
-	ii.hbmMask = mask;
-
-	HCURSOR cur = (HCURSOR)CreateIconIndirect(&ii);
-
-	// CreateIconIndirect가 자체 복사본을 가지므로 원본 비트맵은 해제 가능
-	DeleteObject(color);
-	DeleteObject(mask);
-	return cur;
-}
 
 
 
@@ -98,6 +62,24 @@ void InputManager::Update() {
 	}
 }
 
+void InputManager::HideCursor()
+{
+	if (!mCursorHidden)
+	{
+		ShowCursor(FALSE);
+		mCursorHidden = true;
+	}
+}
+
+void InputManager::ShowCursorRestore()
+{
+	if (mCursorHidden)
+	{
+		ShowCursor(TRUE);
+		mCursorHidden = false;
+	}
+}
+
 void InputManager::SetForceMouseLook(bool enable)
 {
 	mForceMouseLookRequested = enable;
@@ -105,19 +87,20 @@ void InputManager::SetForceMouseLook(bool enable)
 		return;
 
 	mMouseLookControl = enable;
-	mMouseState.Delta = { 0,0 };
+	mMouseState.Delta = { 0, 0 };
 
 	if (mMouseLookControl)
 	{
+		// 현재 커서 위치를 고정점으로 저장
 		::GetCursorPos(&mMouseState.Position);
 		::GetCursorPos(&mMouseState.OldPosition);
 		::GetCursorPos(&mMouseState.ClickPosition);
-		::SetCapture(mHwnd);
+
+		HideCursor();
 	}
 	else
 	{
-		if (!mMouseState.LeftDown && !mMouseState.RightDown && !mMouseState.MiddleDown && GetCapture() == mHwnd)
-			::ReleaseCapture();
+		ShowCursorRestore();
 	}
 }
 
@@ -127,19 +110,18 @@ void InputManager::OnActivateApp(bool active)
 
 	if (!mHasFocus)
 	{
-		// [추가] 포커스 잃을 때: 캡처 해제 (Alt+Tab 등으로 Up 메시지가 안 올 수 있음)
-		if (GetCapture() == mHwnd)
-			::ReleaseCapture();
+		// 포커스 잃을 때: 커서 복원 (Alt+Tab 등으로 Up 메시지가 안 올 수 있음)
+		ShowCursorRestore();
+		mMouseLookControl = false;
 
-		// [추가] 마우스 버튼 상태 초기화
+		// 마우스 버튼 상태 초기화
 		mMouseState.LeftDown = false;
 		mMouseState.RightDown = false;
 		mMouseState.MiddleDown = false;
-		mMouseLookControl = false;
-		mMouseState.Delta = { 0,0 };
+		mMouseState.Delta = { 0, 0 };
 		mMouseState.WheelDelta = 0;
 
-		// [추가] 키 상태 초기화 (Sticky 입력 방지)
+		// 키 상태 초기화 (Sticky 입력 방지)
 		for (auto& k : mKeys)
 		{
 			k.bPressed = false;
@@ -147,17 +129,18 @@ void InputManager::OnActivateApp(bool active)
 		}
 		return;
 	}
+
+	// 포커스 복귀 시 마우스 룩 재설정
 	if (mForceMouseLookRequested)
 		SetForceMouseLook(true);
 }
 
 void InputManager::MouseStateClear() {
-	mMouseState.Delta = { 0,0 };
+	mMouseState.Delta = { 0, 0 };
 }
 
 void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	
 	UNREFERENCED_PARAMETER(lParam);
 
 	switch (message)
@@ -185,7 +168,8 @@ void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 			mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;
 			mMouseState.Delta.y += mMouseState.Position.y - mMouseState.OldPosition.y;
 
-			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y); 
+			// 커서를 고정 위치로 복귀 (다음 WM_MOUSEMOVE에서 Delta=0이 됨)
+			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
 			mMouseState.OldPosition = mMouseState.ClickPosition;
 			mMouseState.Position = mMouseState.ClickPosition;
 		}
@@ -203,7 +187,6 @@ void InputManager::OnMouseWheel(WPARAM wParam)
 
 void InputManager::OnMouseButtonDown(WPARAM button)
 {
-	::SetCapture(mHwnd);
 	if (button == MK_LBUTTON) mMouseState.LeftDown = true;
 	if (button == MK_RBUTTON) mMouseState.RightDown = true;
 	if (button == MK_MBUTTON) mMouseState.MiddleDown = true;
@@ -211,8 +194,6 @@ void InputManager::OnMouseButtonDown(WPARAM button)
 
 void InputManager::OnMouseButtonUp(WPARAM button)
 {
-
-	::ReleaseCapture();
 	switch (button)
 	{
 	case WM_LBUTTONUP:
@@ -225,7 +206,6 @@ void InputManager::OnMouseButtonUp(WPARAM button)
 		mMouseState.MiddleDown = false;
 		break;
 	default:
-
 		if ((button & MK_LBUTTON) == 0) mMouseState.LeftDown = false;
 		if ((button & MK_RBUTTON) == 0) mMouseState.RightDown = false;
 		if ((button & MK_MBUTTON) == 0) mMouseState.MiddleDown = false;

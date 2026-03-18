@@ -15,7 +15,7 @@ enum class eKeyCode {
 	Z, X, C, V, B, N, M, LEFT, RIGHT, DOWN, UP, SPACE, SHIFT,
 	_0, _1, _2, _3, _4, _5, _6, _7, _8, _9,
 	F1, F2, F3, F4,
-	ESC, End,
+	ESC, GRAVE, End,
 };
 
 struct MouseState
@@ -59,26 +59,22 @@ public:
 	void OnMouseButtonUp(WPARAM button);
 	void SetForceMouseLook(bool enable);
 	bool IsMouseLookActive() const { return mMouseLookControl; }
-	bool IsGetCapture() {
-
-		return  GetCapture() == mHwnd;
-	}
 
 	const MouseState& GetMouseState() const { return mMouseState; }
 	void MouseStateClear();
 
 
 private:
-	
+	void HideCursor();
+	void ShowCursorRestore();
+
 	HWND mHwnd;
-	bool mHasFocus = true; // 창이 활성화 상태인지
+	bool mHasFocus = true;                         // 창이 활성화 상태인지
 	bool mMouseLookControl = false;
 	bool mForceMouseLookRequested = false;
+	bool mCursorHidden = false;                    // ShowCursor 상태 추적
 	MouseState mMouseState;
 
-
-	HCURSOR arrow = ::LoadCursor(nullptr, IDC_ARROW);
-
-	std::vector<Key> mKeys; //공통된 class를 가진 객체들이 공유
+	std::vector<Key> mKeys;
 };
 

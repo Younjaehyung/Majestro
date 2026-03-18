@@ -81,27 +81,28 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     gIsInitializing = false;
 
     // 기본 메시지 루프입니다:
-    while (true)
+    bool bQuit = false;
+    while (!bQuit)
     {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+        // 큐에 쌓인 모든 메시지를 한 프레임에 소진
+        // WM_MOUSEMOVE가 아무리 쌓여도 ESC/WM_QUIT를 즉시 처리할 수 있음
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
         {
             if (msg.message == WM_QUIT)
+            {
+                bQuit = true;
                 break;
+            }
 
             if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
             {
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
             }
-
-            // DestroyWindow 등으로 WM_QUIT가 큐에 쌓인 경우 즉시 탈출
-            MSG peekQuit{};
-            if (PeekMessage(&peekQuit, nullptr, WM_QUIT, WM_QUIT, PM_NOREMOVE))
-            {
-                msg = peekQuit;
-                break;
-            }
         }
+
+        if (bQuit)
+            break;
 
         game->Update();
         game->Render();
@@ -237,18 +238,6 @@ void DrawStartupLoadingFrame(HWND hWnd)
 
 
 
-inline HCURSOR CreateTransparentCursorMask32() //투명커서
-{
-    static HCURSOR transparentCursor = nullptr;
-    if (transparentCursor)
-        return transparentCursor;
-
-    BYTE ANDmask[32 * 4] = {}; // 모두 0xFF로 채워도 됨(장치 종속 비트맵 규칙)
-    memset(ANDmask, 0xFF, sizeof(ANDmask));
-    BYTE XORmask[32 * 4] = {}; // 0으로 유지 → 투명
-    transparentCursor = CreateCursor(GetModuleHandle(nullptr), 0, 0, 32, 32, ANDmask, XORmask);
-    return transparentCursor;
-}
 
 
 //
@@ -266,16 +255,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #ifdef _IMGUI
 	if (game->ImGuiInput(hWnd, message, wParam, lParam))
         return true;
-#else
 #endif
-    const bool isGameScene = game->IsGameSceneActive();
 
-    if (isGameScene)
-    {
-        ::SetCursor(CreateTransparentCursorMask32());
-    }
-
-    //if(game)game->Input(message);
     switch (message)
     {
     case WM_ERASEBKGND:
@@ -283,21 +264,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             return TRUE;
         break;
 
+    // ShowCursor(FALSE)로 커서를 숨긴 상태에서도 DefWindowProc이 커서를 복원할 수 있으므로 차단
     case WM_SETCURSOR:
-        if (isGameScene)
+        if (LOWORD(lParam) == HTCLIENT && game->IsGameSceneActive())
             return TRUE;
         break;
+
     case WM_ACTIVATEAPP:
-        game->ActiveGame(wParam != 0); // [추가]
-        return 0;
+        game->ActiveGame(wParam != 0);
+        return DefWindowProc(hWnd, message, wParam, lParam); // DirectX 내부 상태 처리를 위해 필수
 
     case WM_SETFOCUS:
-        game->ActiveGame(true);        // [추가]
-        return 0;
+        game->ActiveGame(true);
+        return DefWindowProc(hWnd, message, wParam, lParam);
 
     case WM_KILLFOCUS:
-        game->ActiveGame(false);       // [추가]
-        return 0;
+        game->ActiveGame(false);
+        return DefWindowProc(hWnd, message, wParam, lParam);
+
     case WM_KEYDOWN:
         if (wParam == VK_ESCAPE)
         {
@@ -308,9 +292,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-        /*::SetCursor(CreateTransparentCursorMask32());
-        SetCapture(hWnd);
-        [[fallthrough]];*/
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
     case WM_MOUSEMOVE:

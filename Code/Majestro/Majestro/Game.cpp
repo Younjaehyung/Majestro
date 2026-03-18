@@ -36,6 +36,7 @@ void Game::Input(UINT message, WPARAM wParam, LPARAM lParam)
 	gEngine->GetInputManager().OnMouseEvent(message, wParam, lParam);
 }
 
+
 void Game::ActiveGame(bool active)
 {
 	if(mInitializeEnd)gEngine->GetInputManager().OnActivateApp(active);

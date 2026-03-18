@@ -84,11 +84,13 @@ void PlayerInputSystem::Update(float dt)
 	movementComponent->mMovingDirection = { 0,0,0 };
 	movementComponent->mJump = INPUT.GetKey(eKeyCode::SPACE);
 	movementComponent->mDash = INPUT.GetKey(eKeyCode::SHIFT);
-	movementComponent->mAttack = INPUT.GetMouseState().LeftDown;
+	// 디버그 모드(마우스 룩 비활성)에서는 마우스 클릭을 게임에 반영하지 않음
+	const bool mouseLook = INPUT.IsMouseLookActive();
+	movementComponent->mAttack = mouseLook && INPUT.GetMouseState().LeftDown;
 	movementComponent->mSkill1 = INPUT.GetKey(eKeyCode::Q);
 	movementComponent->mSkill2 = INPUT.GetKey(eKeyCode::E);
 	movementComponent->mReload = INPUT.GetKey(eKeyCode::R);
-	movementComponent->mSpecial = INPUT.GetMouseState().RightDown;
+	movementComponent->mSpecial = mouseLook && INPUT.GetMouseState().RightDown;
 
 	if (INPUT.GetKey(eKeyCode::A)) {
 		movementComponent->mMovingDirection.x -= 1;
@@ -124,6 +126,12 @@ void PlayerInputSystem::Update(float dt)
 		movementComponent->mMovingDirection.y += 1;
 	}
 
+
+	// ` 키로 인게임 카메라 조작 ↔ ImGui 디버그 조작 토글
+	if (INPUT.GetKeyDown(eKeyCode::GRAVE))
+	{
+		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());
+	}
 
 	if (INPUT.IsMouseLookActive()) {
 		//attack

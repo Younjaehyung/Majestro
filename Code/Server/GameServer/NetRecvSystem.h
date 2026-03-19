@@ -46,7 +46,7 @@ class NetRecvSystem : public System
 public:
 	NetRecvSystem(World* world);
 	void Update(float dt) override;
-	void RecvInput(uint32 sessionId, const C2S_InputPacket& inputFrame);
+	void RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame);
 private:
 
 	//void LoginProcess(InputCommand& inputCommand);

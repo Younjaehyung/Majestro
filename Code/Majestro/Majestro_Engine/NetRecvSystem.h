@@ -2,6 +2,8 @@
 #include "System.h"
 #include "NetIdMap.h"
 #include "PacketHelper.h"
+#include <functional>
+#include <array>
 
 class  EventManager;
 
@@ -17,26 +19,38 @@ public:
 	void Update(float deltaTime);
 
 	void ProcessOne(const InputCommand& msg);
-public:
+
+private:
+	void RegisterHandlers();
 
 	void HandleSpawn(const InputCommand& msg);
 	void HandleDespawn(const InputCommand& msg);
-	void HandleReplicationDelta(const InputCommand& msg);
+	void HandleMove(const InputCommand& msg);
+	void HandleState(const InputCommand& msg);
+	void HandleHealth(const InputCommand& msg);
+	void HandleArmor(const InputCommand& msg);
+	void HandleCollision(const InputCommand& msg);
+	void HandleBulletActivate(const InputCommand& msg);
+	void HandleBulletDeactivate(const InputCommand& msg);
+	void HandleEffectSpawn(const InputCommand& msg);
+	void HandleGameStart(const InputCommand& msg);
 	void HandleSceneChangeResult(const InputCommand& msg);
-private:
-	//void ApplyNetTransformDelta(PacketReader& r, Entity e, uint32_t fieldMask);
-	//void ApplyNetHealthDelta(PacketReader& r, Entity e, uint32_t fieldMask);
+	void HandleReplicationDelta(const InputCommand& msg);
 
 	Entity CreateEntityFromArchetype(uint32_t archetypeId);
+
 private:
+	using Handler = std::function<void(const InputCommand&)>;
+	std::array<Handler, static_cast<size_t>(KMSG) + 1> mHandlers{};
+
 	shared_ptr<NetIdMap> mNetIdMap = nullptr;
 
 	InputCommand mInputCommand{};
-	
+
 	bool mIsPlayer = false;
 	SceneId mCurrentScene = SceneId::Lobby;
 
-	bool mStopProcessing = false;	
+	bool mStopProcessing = false;
 
 };
 

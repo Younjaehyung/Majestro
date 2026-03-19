@@ -189,6 +189,8 @@ struct MATERIALINFO
     int MetallicMapIndex;
     int RoughnessMapIndex;
     int OcclusionMapIndex;
+    
+    int MaskMapIndex;
 
     int  ExtTex[8];     // 머티리얼별 자유 텍스처 슬롯 8개 (-1 = 미사용)
     float4 ExtValue[4]; // 머티리얼별 자유 파라미터 슬롯 4개

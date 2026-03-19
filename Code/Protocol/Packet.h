@@ -18,7 +18,7 @@ enum PKT_Type : uint32 {
 	C2S_GAME_START,
 	C2S_SCENE_CHANGE,
 	C2S_PKT_LOGOUT,
-	C2S_PKT_INPUT,
+	C2S_PKT_MOVE,
 	C2S_PKT_ACTION,
 
 
@@ -359,7 +359,7 @@ struct C2S_ActionPacket : public PacketTcpHeader {
 	C2S_ActionPacket() : PacketTcpHeader{ sizeof(C2S_ActionPacket), PKT_Type::C2S_PKT_ACTION, 0.0 } {}
 };
 
-struct C2S_InputPacket : public PacketUdpHeader {
+struct C2S_MovePacket : public PacketUdpHeader {
 	uint64 netEntityId{};
 
 	uint32   Seq = 0;     // 클라 입력 시퀀스(증가)
@@ -371,7 +371,7 @@ struct C2S_InputPacket : public PacketUdpHeader {
 	float    Yaw = 0.0f;
 	float    Pitch = 0.0f;
 
-	C2S_InputPacket() : PacketUdpHeader{ sizeof(C2S_InputPacket), PKT_Type::C2S_PKT_INPUT, 0, 0 } {}
+	C2S_MovePacket() : PacketUdpHeader{ sizeof(C2S_MovePacket), PKT_Type::C2S_PKT_MOVE, 0, 0 } {}
 };
 
 struct S2C_SceneChangeResultPacket : public PacketTcpHeader {

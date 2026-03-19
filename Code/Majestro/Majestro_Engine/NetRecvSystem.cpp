@@ -37,6 +37,8 @@ NetRecvSystem::~NetRecvSystem()
 
 void NetRecvSystem::Initialize()
 {
+    RegisterHandlers();
+
     if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
@@ -46,6 +48,25 @@ void NetRecvSystem::Initialize()
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
         mWorld->NetIdBinding(netComp->mNetEntityId, entity);
 	}
+}
+
+void NetRecvSystem::RegisterHandlers()
+{
+    auto reg = [&](PKT_Type type, Handler h) {
+        mHandlers[static_cast<size_t>(type)] = std::move(h);
+    };
+
+    reg(PKT_Type::S2C_PKT_SPAWN,             [this](auto& m){ HandleSpawn(m); });
+    reg(PKT_Type::S2C_PKT_MOVE,              [this](auto& m){ HandleMove(m); });
+    reg(PKT_Type::S2C_PKT_STATE,             [this](auto& m){ HandleState(m); });
+    reg(PKT_Type::S2C_PKT_HEALTH,            [this](auto& m){ HandleHealth(m); });
+    reg(PKT_Type::S2C_PKT_ARMOR,             [this](auto& m){ HandleArmor(m); });
+    reg(PKT_Type::S2C_PKT_COLLISION,         [this](auto& m){ HandleCollision(m); });
+    reg(PKT_Type::S2C_PKT_BULLET_ACTIVATE,   [this](auto& m){ HandleBulletActivate(m); });
+    reg(PKT_Type::S2C_PKT_BULLET_DEACTIVATE, [this](auto& m){ HandleBulletDeactivate(m); });
+    reg(PKT_Type::S2C_PKT_EFFECT_SPAWN,      [this](auto& m){ HandleEffectSpawn(m); });
+    reg(PKT_Type::S2C_GAME_START,            [this](auto& m){ HandleGameStart(m); });
+    reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -70,265 +91,201 @@ void NetRecvSystem::Update(float deltaTime)
 
 void NetRecvSystem::ProcessOne(const InputCommand& msg)
 {
-
-    if (msg.Type == PKT_Type::S2C_PKT_SPAWN) {
-		std::cout << "Spawn Packet Received in NetRecvSystem" << std::endl;
-        HandleSpawn(msg);
-        return;
-    }
-    else if (msg.Type == PKT_Type::S2C_SCENE_CHANGE_RESULT) {
-        HandleSceneChangeResult(msg);
-    }
-    else if (msg.Type == PKT_Type::S2C_GAME_START) {
-        cout << "GameStart" << endl;
-        gEngine->GetSceneManager().SetLoadingMessage(L"게임 씬 로딩 중...");
-        gEngine->GetSceneManager().QueueLoadingScene(L"게임 씬 로딩 중...", LoadingVisualType::GameStart);
-        gEngine->GetSceneManager().QueueLoadScene(L"Game");
-        return;
-    }
-    else if (msg.Type == PKT_Type::S2C_PKT_MOVE) {
-        const S2C_MovePacket* movePacket = msg.ViewAs<S2C_MovePacket>();
-        //std::cout << "State Packet Received in NetRecvSystem for Entity ID: " << statePacket->netEntityId << " with State ID: " << static_cast<int>(statePacket->stateId) << std::endl;
-
-		// msg netity id로 엔티티 찾기
-		Entity e = mWorld->GetEntityByNetId(movePacket->netEntityId);
-
-        TransformComponent* comp =  mWorld->GetComponent<TransformComponent>(e);
-        NetTransformComponent* netcomp =  mWorld->GetComponent<NetTransformComponent>(e);
-		if(comp == nullptr || netcomp == nullptr ) return;
-
-		// 오래된 UDP 패킷 무시: out-of-order 도착한 패킷은 버림
-		if (netcomp->mLastSequence != 0 &&
-			!NetTransformComponent::IsNewer(movePacket->Sequence, netcomp->mLastSequence))
-			return;
-
-		netcomp->mTargetPosition.x = movePacket->x;
-		netcomp->mTargetPosition.y = movePacket->y;
-		netcomp->mTargetPosition.z = movePacket->z;
-		netcomp->mTargetRotation.y = movePacket->yaw;
-		netcomp->mTargetRotation.x = movePacket->pitch;
-		netcomp->mTargetRotationQ.x = movePacket->rx;
-		netcomp->mTargetRotationQ.y = movePacket->ry;
-		netcomp->mTargetRotationQ.z = movePacket->rz;
-		netcomp->mTargetRotationQ.w = movePacket->rw;
-		netcomp->mLastSequence = movePacket->Sequence;
-		netcomp->mLastUpdateTime = TIMER.GetTotalTime();
-		netcomp->mVelocity = Vec3(movePacket->vx, movePacket->vy, movePacket->vz);
-        netcomp->mHasTarget = true;
-		/*std::cout << "Move Packet Processed for Entity: " <<" "<<
-			comp->mWorldPosition.x << ", " << comp->mWorldPosition.y << ", " << comp->mWorldPosition.z << std::endl;*/
-        return;
-    }
-    else if (msg.Type == PKT_Type::S2C_PKT_STATE) {
-      const S2C_StatePacket* statePacket = msg.ViewAs<S2C_StatePacket>();
-	   // msg netity id로 엔티티 찾기
-      Entity e = mWorld->GetEntityByNetId(statePacket->netEntityId);
-      MainPlayerComponent* playercomp = mWorld->GetComponent<MainPlayerComponent>(e);
-      NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
-      NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(e);
-      if (comp == nullptr || playercomp == nullptr) return;
-
-      playercomp->mStatePacket = statePacket->stateId;
-      playercomp->mLowerStatePacket = statePacket->lowerStateId;
-	  netTransform->mElapsed = 0.0f;
-      /*switch (statePacket->stateId)
-      {
-         case S_Idle:
-             playercomp->mFsm.ChangeState(playercomp, IdleState::Instance());
-			 break;
-        case S_Walk:
-			playercomp->mFsm.ChangeState(playercomp, WalkState::Instance());
-			std::cout << "State Changed to Walk for Entity: " << e.GetID() << std::endl;
-            break;
-        case S_Run:
-			playercomp->mFsm.ChangeState(playercomp, DashState::Instance());
-            break;
-		case S_Jump:
-            playercomp->mFsm.ChangeState(playercomp, JumpState::Instance());
-            break;
-        default:
-			break;
-
-      }*/
-      
-      return;
-    }
-    else if (msg.Type == PKT_Type::S2C_PKT_HEALTH) {
-        const S2C_HealthPacket* healthPacket = msg.ViewAs<S2C_HealthPacket>();
-        Entity e = mWorld->GetEntityByNetId(healthPacket->netEntityId);
-        HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(e);
-        if (healthComp == nullptr) return;
-
-        const int32 beforeHp = healthComp->mCurrentHp;
-        const int32 beforeMaxHp = healthComp->mMaxHp;
-
-        healthComp->mCurrentHp = healthPacket->currentHp;
-        healthComp->mMaxHp = healthPacket->maxHp;
-
-        std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << healthPacket->netEntityId
-            << " hp=" << beforeHp << "/" << beforeMaxHp
-            << " -> " << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
-            << std::endl;
-        return;
-    }
-    else if (msg.Type == PKT_Type::S2C_PKT_ARMOR) {
-        const S2C_ArmorPacket* armorPacket = msg.ViewAs<S2C_ArmorPacket>();
-        Entity e = mWorld->GetEntityByNetId(armorPacket->netEntityId);
-        ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(e);
-        if (armorComp == nullptr) return;
-
-        const int32 beforeArmor = armorComp->mCurrentArmor;
-        const int32 beforeMaxArmor = armorComp->mMaxArmor;
-
-        armorComp->mCurrentArmor = armorPacket->currentArmor;
-        armorComp->mMaxArmor = armorPacket->maxArmor;
-
-        std::cout << "[Client][S2C_PKT_ARMOR] netEntityId=" << armorPacket->netEntityId
-            << " armor=" << beforeArmor << "/" << beforeMaxArmor
-            << " -> " << armorComp->mCurrentArmor << "/" << armorComp->mMaxArmor
-            << std::endl;
-        return;
-    }
-    else if(msg.Type == PKT_Type::S2C_PKT_COLLISION) {
-		const S2C_CollisionPacket* collisionPacket = msg.ViewAs<S2C_CollisionPacket>();
-		// msg netity id로 엔티티 찾기
-		Entity e = mWorld->GetEntityByNetId(collisionPacket->netEntityId);
-		NetEntityComponent* comp = mWorld->GetComponent<NetEntityComponent>(e);
-		if (comp == nullptr) return;
-		BoxColliderComponent* boxComp = mWorld->GetComponent<BoxColliderComponent>(e);
-		if (boxComp == nullptr) return;
-		boxComp->bIsColliding = collisionPacket->bIsColliding;
-		//std::cout << "Collision Packet Processed for Entity ID: " << collisionPacket->netEntityId << " Collision State: " << boxComp->bIsColliding << std::endl;
-        return;
-	}
-    else if (msg.Type == PKT_Type::S2C_PKT_BULLET_ACTIVATE) {
-        const S2C_BulletActivatePacket* bulletPacket = msg.ViewAs<S2C_BulletActivatePacket>();
-        if (bulletPacket == nullptr)
-            return;
-
-        Entity bulletEntity = mWorld->GetEntityByNetId(bulletPacket->bulletNetEntityId);
-        if (bulletEntity == NULL_ENTITY)
-        {
-            std::cout << "Bullet Activate Packet Received but entity not found - bullet: " << bulletPacket->bulletNetEntityId << std::endl;
-            return;
-        }
-
-        BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
-        TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
-        if (bulletComp == nullptr || bulletTransform == nullptr)
-            return;
-
-        Vec3 spawnPosition{ bulletPacket->x, bulletPacket->y, bulletPacket->z };
-        Vec3 direction{ bulletPacket->dirX, bulletPacket->dirY, bulletPacket->dirZ };
-        if (direction.LengthSquared() <= 0.0001f)
-            direction = Vec3::Forward;
-        direction.Normalize();
-
-        // 보정: 패킷이 네트워크/큐 대기 후 도착했다면, 그 시간만큼 탄환 위치를 앞당겨 시작한다.
-        // clock drift에 대비해 과도 보정은 상한을 둔다.
-        const double nowSec = std::chrono::duration<double>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-        const double transitSec = (std::max)(0.0, nowSec - bulletPacket->SendTime);
-        const float compensationSec = static_cast<float>((std::min)(transitSec, 0.25));
-        spawnPosition += direction * bulletPacket->speed * compensationSec;
-
-        bulletTransform->mLocalPosition = spawnPosition;
-        bulletTransform->mWorldPosition = spawnPosition;
-
-        const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
-        SkillType bulletType = static_cast<SkillType>(bulletPacket->bulletType);
-        if (bulletType >= SkillType::Max)
-            bulletType = SkillType::Default;
-
-        bulletComp->Activate(
-            bulletType,
-            bulletPacket->ownerNetEntityId,
-            static_cast<uint32>(bulletPacket->bulletNetEntityId),
-            generation,
-            spawnPosition,
-            direction,
-            bulletPacket->speed,
-            bulletComp->mLifeTime,
-            bulletComp->mDamage);
-
-        bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
-        if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
-            movementSystem->RegisterActiveBullet(bulletEntity);
-        /*std::cout << "type: " << (int)bulletType << std::endl;
-
-        std::cout << "Bullet Activate Packet Received - owner: " << bulletPacket->ownerNetEntityId
-            << ", bullet: " << bulletPacket->bulletNetEntityId
-            << ", pos(" << bulletPacket->x << ", " << bulletPacket->y << ", " << bulletPacket->z << ")" << std::endl;*/
-        return;
-    }
-    else if (msg.Type == PKT_Type::S2C_PKT_BULLET_DEACTIVATE) {
-        const S2C_BulletDeactivatePacket* bulletPacket = msg.ViewAs<S2C_BulletDeactivatePacket>();
-        if (bulletPacket == nullptr)
-            return;
-
-        Entity bulletEntity = mWorld->GetEntityByNetId(bulletPacket->bulletNetEntityId);
-        if (bulletEntity == NULL_ENTITY)
-            return;
-
-        BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
-        TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
-        if (bulletComp == nullptr || bulletTransform == nullptr)
-            return;
-
-        bulletComp->Deactivate();
-        bulletTransform->mMovingVector = Vec3::Zero;
-
-
-        if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
-            movementSystem->UnregisterActiveBullet(bulletEntity);
-        return;
-       }
-    else if (msg.Type == PKT_Type::S2C_PKT_EFFECT_SPAWN) {
-        const S2C_EffectSpawnPacket* effectPacket = msg.ViewAs<S2C_EffectSpawnPacket>();
-        if (effectPacket == nullptr)
-            return;
-
-        constexpr uint8 kEffectSpawnReasonFire = 0;
-        if (effectPacket->reason == kEffectSpawnReasonFire)
-            return;
-
-        Entity impactVfxEntity = mWorld->CreateEntity();
-        TransformComponent impactTransform{};
-        impactTransform.mLocalPosition = Vec3(effectPacket->x, effectPacket->y, effectPacket->z);
-        mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
-
-        VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
-
-        const SkillType effectType = static_cast<SkillType>(effectPacket->effectType);
-        switch (effectType) {
-        case SkillType::BaseAttack:
-        case SkillType::BaseSkill1:
-        case SkillType::BaseSkill2:
-        default:
-            impactVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
-            break;
-        }
-        
-        impactVfx.mScale = 10.f;
-        impactVfx.mIsLoop = true;
-        return;
-        }
-
-
-    switch (msg.Kind)
+    const size_t idx = static_cast<size_t>(msg.Type);
+    if (idx < mHandlers.size() && mHandlers[idx])
     {
-    case MsgKind::ReplicationDelta:
-        HandleReplicationDelta(msg);
-        break;
-    case MsgKind::Spawn:
-        HandleSpawn(msg);
-        break;
-    case MsgKind::Despawn:
-        HandleDespawn(msg);
-        break;
-    default:
-        break;
+        mHandlers[idx](msg);
+        return;
     }
+#ifdef _DEBUG
+    std::cout << "[NetRecvSystem] 미등록 패킷 타입: " << static_cast<int>(msg.Type) << std::endl;
+#endif
+}
+
+void NetRecvSystem::HandleMove(const InputCommand& msg)
+{
+    const S2C_MovePacket* pkt = msg.ViewAs<S2C_MovePacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    TransformComponent* transform = mWorld->GetComponent<TransformComponent>(e);
+    NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(e);
+    if (!transform || !netTransform) return;
+
+    // 오래된 UDP 패킷 무시: out-of-order 도착한 패킷은 버림
+    if (netTransform->mLastSequence != 0 &&
+        !NetTransformComponent::IsNewer(pkt->Sequence, netTransform->mLastSequence))
+        return;
+
+    netTransform->mTargetPosition   = { pkt->x, pkt->y, pkt->z };
+    netTransform->mTargetRotation.y = pkt->yaw;
+    netTransform->mTargetRotation.x = pkt->pitch;
+    netTransform->mTargetRotationQ  = { pkt->rx, pkt->ry, pkt->rz, pkt->rw };
+    netTransform->mLastSequence     = pkt->Sequence;
+    netTransform->mLastUpdateTime   = TIMER.GetTotalTime();
+    netTransform->mVelocity         = { pkt->vx, pkt->vy, pkt->vz };
+    netTransform->mHasTarget        = true;
+}
+
+void NetRecvSystem::HandleState(const InputCommand& msg)
+{
+    const S2C_StatePacket* pkt = msg.ViewAs<S2C_StatePacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
+    NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+    NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(e);
+    if (!netComp || !playerComp) return;
+
+    playerComp->mStatePacket      = pkt->stateId;
+    playerComp->mLowerStatePacket = pkt->lowerStateId;
+    netTransform->mElapsed        = 0.0f;
+}
+
+void NetRecvSystem::HandleHealth(const InputCommand& msg)
+{
+    const S2C_HealthPacket* pkt = msg.ViewAs<S2C_HealthPacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(e);
+    if (!healthComp) return;
+
+    std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << pkt->netEntityId
+        << " hp=" << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
+        << " -> " << pkt->currentHp << "/" << pkt->maxHp << std::endl;
+
+    healthComp->mCurrentHp = pkt->currentHp;
+    healthComp->mMaxHp     = pkt->maxHp;
+}
+
+void NetRecvSystem::HandleArmor(const InputCommand& msg)
+{
+    const S2C_ArmorPacket* pkt = msg.ViewAs<S2C_ArmorPacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(e);
+    if (!armorComp) return;
+
+    std::cout << "[Client][S2C_PKT_ARMOR] netEntityId=" << pkt->netEntityId
+        << " armor=" << armorComp->mCurrentArmor << "/" << armorComp->mMaxArmor
+        << " -> " << pkt->currentArmor << "/" << pkt->maxArmor << std::endl;
+
+    armorComp->mCurrentArmor = pkt->currentArmor;
+    armorComp->mMaxArmor     = pkt->maxArmor;
+}
+
+void NetRecvSystem::HandleCollision(const InputCommand& msg)
+{
+    const S2C_CollisionPacket* pkt = msg.ViewAs<S2C_CollisionPacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    BoxColliderComponent* boxComp = mWorld->GetComponent<BoxColliderComponent>(e);
+    if (!boxComp) return;
+
+    boxComp->bIsColliding = pkt->bIsColliding;
+}
+
+void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
+{
+    const S2C_BulletActivatePacket* pkt = msg.ViewAs<S2C_BulletActivatePacket>();
+    if (!pkt) return;
+
+    Entity bulletEntity = mWorld->GetEntityByNetId(pkt->bulletNetEntityId);
+    if (bulletEntity == NULL_ENTITY)
+    {
+        std::cout << "Bullet Activate: 엔티티 없음 - bullet: " << pkt->bulletNetEntityId << std::endl;
+        return;
+    }
+
+    BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
+    TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+    if (!bulletComp || !bulletTransform) return;
+
+    Vec3 spawnPosition{ pkt->x, pkt->y, pkt->z };
+    Vec3 direction{ pkt->dirX, pkt->dirY, pkt->dirZ };
+    if (direction.LengthSquared() <= 0.0001f)
+        direction = Vec3::Forward;
+    direction.Normalize();
+
+    // 네트워크 지연만큼 탄환 위치를 앞당겨 보정 (최대 0.25초 상한)
+    const double nowSec = std::chrono::duration<double>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    const float compensationSec = static_cast<float>(
+        (std::min)((std::max)(0.0, nowSec - pkt->SendTime), 0.25));
+    spawnPosition += direction * pkt->speed * compensationSec;
+
+    bulletTransform->mLocalPosition = spawnPosition;
+    bulletTransform->mWorldPosition = spawnPosition;
+
+    SkillType bulletType = static_cast<SkillType>(pkt->bulletType);
+    if (bulletType >= SkillType::Max)
+        bulletType = SkillType::Default;
+
+    bulletComp->Activate(
+        bulletType,
+        pkt->ownerNetEntityId,
+        static_cast<uint32>(pkt->bulletNetEntityId),
+        static_cast<uint16>(bulletComp->mGeneration + 1),
+        spawnPosition,
+        direction,
+        pkt->speed,
+        bulletComp->mLifeTime,
+        bulletComp->mDamage);
+
+    bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
+
+    if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
+        movementSystem->RegisterActiveBullet(bulletEntity);
+}
+
+void NetRecvSystem::HandleBulletDeactivate(const InputCommand& msg)
+{
+    const S2C_BulletDeactivatePacket* pkt = msg.ViewAs<S2C_BulletDeactivatePacket>();
+    if (!pkt) return;
+
+    Entity bulletEntity = mWorld->GetEntityByNetId(pkt->bulletNetEntityId);
+    if (bulletEntity == NULL_ENTITY) return;
+
+    BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
+    TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+    if (!bulletComp || !bulletTransform) return;
+
+    bulletComp->Deactivate();
+    bulletTransform->mMovingVector = Vec3::Zero;
+
+    if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
+        movementSystem->UnregisterActiveBullet(bulletEntity);
+}
+
+void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
+{
+    const S2C_EffectSpawnPacket* pkt = msg.ViewAs<S2C_EffectSpawnPacket>();
+    if (!pkt) return;
+
+    constexpr uint8 kEffectSpawnReasonFire = 0;
+    if (pkt->reason == kEffectSpawnReasonFire) return;
+
+    Entity impactVfxEntity = mWorld->CreateEntity();
+    TransformComponent impactTransform{};
+    impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
+    mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
+
+    VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
+    impactVfx.mVfx    = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
+    impactVfx.mScale  = 10.f;
+    impactVfx.mIsLoop = true;
+}
+
+void NetRecvSystem::HandleGameStart(const InputCommand& msg)
+{
+    cout << "GameStart" << endl;
+    gEngine->GetSceneManager().SetLoadingMessage(L"게임 씬 로딩 중...");
+    gEngine->GetSceneManager().QueueLoadingScene(L"게임 씬 로딩 중...", LoadingVisualType::GameStart);
+    gEngine->GetSceneManager().QueueLoadScene(L"Game");
 }
 
 void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
@@ -388,15 +345,16 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 
 void NetRecvSystem::HandleDespawn(const InputCommand& msg)
 {
-    uint32_t netId = 0;
-   // if (!r.Read(netId)) return;
+    const S2C_SpawnPacekt* pkt = msg.ViewAs<S2C_SpawnPacekt>();
+    if (!pkt) return;
 
+    const uint32_t netId = static_cast<uint32_t>(pkt->netEntityId);
     Entity e = mWorld->GetEntityByNetId(netId);
-    if (e == 0) return;
+    if (e == NULL_ENTITY) return;
 
     // TODO: ECS 엔티티 삭제는 별도 명령으로 처리 권장
     // mCmd->DestroyEntity(e);
-    
+
     mWorld->NetIdUnbinding(netId);
 }
 

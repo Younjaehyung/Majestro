@@ -25,9 +25,9 @@ void NetRecvSystem::Update(float dt)
 	while (processed < kMaxMsgsPerTick && mWorld->DequeueCommand(mInputCommand)) {
 		switch (mInputCommand.Type)
 		{
-			case PKT_Type::C2S_PKT_INPUT:
+			case PKT_Type::C2S_PKT_MOVE:
 			{
-				const C2S_InputPacket* inputFrame = mInputCommand.ViewAs<C2S_InputPacket>();
+				const C2S_MovePacket* inputFrame = mInputCommand.ViewAs<C2S_MovePacket>();
 				if (inputFrame)
 				{
 					
@@ -63,7 +63,7 @@ void NetRecvSystem::Update(float dt)
 	}
 }
 
-void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFrame)
+void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame)
 {
 	if (!mWorld->HasComponentPool<InputComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
 		return;
@@ -78,7 +78,7 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_InputPacket& inputFram
 
 		if (netComp->mSessionId == sessionId)
 		{
-			//std::cout << "[NetRecvSystem] C2S_PKT_INPUT received from SessionID: " << mInputCommand.SessionId << std::endl;
+			//std::cout << "[NetRecvSystem] C2S_PKT_MOVE received from SessionID: " << mInputCommand.SessionId << std::endl;
 
 			// 중복/역순 입력 방지
 			/*if (inputFrame.Seq <= inputComp->lastSeq)

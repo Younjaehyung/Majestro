@@ -21,58 +21,41 @@ NetSendSystem::NetSendSystem(World* world) : System::System(world)
 	mPhase = SysPhase::Pre;
 }
 
+void NetSendSystem::UpdateCachedPlayerType()
+{
+
+	if (!mWorld->HasComponentPool<ChoicePlayerComponent>())
+		return;
+
+	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+	if (choiceplayerEntities.empty())
+		return;
+
+	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
+
+	if (characterChoice)
+	{
+		//SetCachedPlayerType(characterChoice->mPlayerType);
+		mCachedPlayerType = characterChoice->mPlayerType;
+		//cout << (int)mCachedPlayerType << endl;
+	}
+}
+
 void NetSendSystem::Update(float deltaTime)
 {
 	UpdateCachedPlayerType();
 	TrySendGameStart();
+	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
+	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
 
-	// 이벤트성 입력(점프/공격/스킬 등): 새로 눌린 순간 TCP로 즉시 전송
-	TrySendActionEvents();
-
-	// 이동 입력: 30Hz 주기로 UDP 전송 (매 프레임 전송하지 않음)
-	mInputAccumulator += deltaTime;
-	if (mInputAccumulator >= kInputSendInterval)
-	{
-		mInputAccumulator -= kInputSendInterval;
-		SendRequest seq;
-		ConvertInput(&seq);
-		if (seq.Type != PKT_Type::KNONE)
-		{
-			gSendBuffer.Push(seq);
-		}
-	}
-
-	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
-
-	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
-
-	for(auto& entity : entities)
-	{
-		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-
-		if (netComp == nullptr) continue;
-		//if (netComp->mIsDirty)
-		{
-
-			//netComp->mIsDirty = false;
-		}
-	}
+	if (mMovementRate.Tick(deltaTime))           // 30Hz 주기 전송 (UDP)
+		TrySendMovement();
 }
+
+
 
 void NetSendSystem::ConvertInput(SendRequest* seq)
 {
-	if (INPUT.GetKeyDown(eKeyCode::G))
-	{
-		cout << "\ngame\n" << endl;
-		SendSceneChange(SceneId::Game);
-	}
-
-	if (INPUT.GetKeyDown(eKeyCode::L))
-	{
-		cout << "\nloby\n" << endl;
-		SendSceneChange(SceneId::Lobby);
-	}
-
 
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
@@ -94,7 +77,7 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 		return;
 	}
 
-	mInputPacket = C2S_InputPacket();
+	mInputPacket = C2S_MovePacket();
 	mInputPacket.netEntityId = mWorld->GetComponent<NetEntityComponent>(playerEntity)->mNetEntityId;
 	mInputPacket.MoveX = comp->mMovingDirection.x;
 	mInputPacket.MoveY = comp->mJump;
@@ -117,8 +100,8 @@ void NetSendSystem::ConvertInput(SendRequest* seq)
 	if (comp->mSpecial)			mInputPacket.Buttons |= (1 << static_cast<uint8>(InputButtons::SPECIAL));
 
 	// Convert InputComponent data to SendRequest format
-	seq->Type = PKT_Type::C2S_PKT_INPUT;
-	seq->SIze = sizeof(C2S_InputPacket);
+	seq->Type = PKT_Type::C2S_PKT_MOVE;
+	seq->SIze = sizeof(C2S_MovePacket);
 	
 	seq->StoreAs(mInputPacket);
 
@@ -129,7 +112,6 @@ void NetSendSystem::QueueGameStart()
 {
 	mPendingGameStart = true;
 	mHasSentGameStart = false;
-
 }
 
 void NetSendSystem::SendSceneChange(SceneId targetScene)
@@ -144,11 +126,10 @@ void NetSendSystem::SendSceneChange(SceneId targetScene)
 
 
 	C2S_SceneChangePacket changePacket(targetScene);
-	SendRequest changeSeq;
-	changeSeq.Type = PKT_Type::C2S_SCENE_CHANGE;
-	changeSeq.SIze = sizeof(C2S_SceneChangePacket);
-	changeSeq.StoreAs(changePacket);
-	gSendBuffer.Push(changeSeq);
+	mSendData.Type = PKT_Type::C2S_SCENE_CHANGE;
+	mSendData.SIze = sizeof(C2S_SceneChangePacket);
+	mSendData.StoreAs(changePacket);
+	gSendBuffer.Push(mSendData);
 
 }
 
@@ -172,34 +153,16 @@ void NetSendSystem::TrySendGameStart()
 	startPacket.SessionId = clientId;
 	startPacket.Sequence = 0;
 
-	SendRequest startSeq;
-	startSeq.Type = PKT_Type::C2S_GAME_START;
-	startSeq.SIze = sizeof(C2S_StartGamePacket);
-	startSeq.StoreAs(startPacket);
-	gSendBuffer.Push(startSeq);
+	
+	mSendData.Type = PKT_Type::C2S_GAME_START;
+	mSendData.SIze = sizeof(C2S_StartGamePacket);
+	mSendData.StoreAs(startPacket);
+	gSendBuffer.Push(mSendData);
 	mHasSentGameStart = true;
 	mPendingGameStart = false;
 }
 
-void NetSendSystem::UpdateCachedPlayerType()
-{
 
-	if (!mWorld->HasComponentPool<ChoicePlayerComponent>() )
-		return;
-
-	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
-	if (choiceplayerEntities.empty())
-		return;
-
-	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
-
-	if (characterChoice)
-	{
-		//SetCachedPlayerType(characterChoice->mPlayerType);
-		mCachedPlayerType = characterChoice->mPlayerType;
-		//cout << (int)mCachedPlayerType << endl;
-	}
-}
 
 void NetSendSystem::TrySendActionEvents()
 {
@@ -230,18 +193,42 @@ void NetSendSystem::TrySendActionEvents()
 	if (newlyPressed == 0) return;
 
 	// 새로 눌린 버튼이 있으면 TCP로 즉시 전송 (손실 없이 서버 보장 전달)
-	C2S_ActionPacket actionPkt;
-	actionPkt.netEntityId = netEnt->mNetEntityId;
-	actionPkt.Buttons = newlyPressed;
-	actionPkt.Yaw = comp->mCameraRotationY;
-	actionPkt.Pitch = comp->mCameraRotationX;
+	{
+		mActionPkt.netEntityId = netEnt->mNetEntityId;
+		mActionPkt.Buttons = newlyPressed;
+		mActionPkt.Yaw = comp->mCameraRotationY;
+		mActionPkt.Pitch = comp->mCameraRotationX;
 
-	SendRequest actionSeq;
-	actionSeq.Type = PKT_Type::C2S_PKT_ACTION;
-	actionSeq.SIze = sizeof(C2S_ActionPacket);
-	actionSeq.StoreAs(actionPkt);
-	gSendBuffer.Push(actionSeq);
+		
+		mSendData.Type = PKT_Type::C2S_PKT_ACTION;
+		mSendData.SIze = sizeof(C2S_ActionPacket);
+		mSendData.StoreAs(mActionPkt);
+		gSendBuffer.Push(mSendData);
+	}
 }
 
+void NetSendSystem::TrySendMovement()
+{
+	ConvertInput(&mSendData);
+	if (mSendData.Type != PKT_Type::KNONE)
+	{
+		gSendBuffer.Push(mSendData);
+	}
+}
+
+void NetSendSystem::TrySendScene()
+{
+	if (INPUT.GetKeyDown(eKeyCode::G))
+	{
+		cout << "\ngame\n" << endl;
+		SendSceneChange(SceneId::Game);
+	}
+
+	if (INPUT.GetKeyDown(eKeyCode::L))
+	{
+		cout << "\nloby\n" << endl;
+		SendSceneChange(SceneId::Lobby);
+	}
+}
 
 

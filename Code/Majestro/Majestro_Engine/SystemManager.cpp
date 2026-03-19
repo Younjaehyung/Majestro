@@ -22,21 +22,33 @@
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
+    // INPUT
     RegisterSystem<PlayerInputSystem>();
+
+	// NETWORK
     RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
     RegisterSystem<NetSendSystem>();
-    RegisterSystem<CameraSystem>();
-	RegisterSystem<UITransformSystem>();
-	RegisterSystem<UIUpdateSystem>();
+
+	// GAME
     RegisterSystem<AnimationSystem>();
-    RegisterSystem<AudioSystem>();
-    RegisterSystem<TransformSystem>();
-    //RegisterSystem<PlayerSystem>();
-    RegisterSystem<BeatSystem>();
-    RegisterSystem<MovementSystem>();
+    RegisterSystem<CameraSystem>();
+    
+    
     RegisterSystem<EnemySystem>();
-    RegisterSystem<NetInterpolationSystem>();
+    //RegisterSystem<PlayerSystem>();
+    RegisterSystem<TransformSystem>();
+    RegisterSystem<MovementSystem>();
+   
+
     RegisterSystem<AudioVisualizerSystem>();
+
+    RegisterSystem<UITransformSystem>();
+    RegisterSystem<UIUpdateSystem>();
+
+    RegisterSystem<AudioSystem>();
+    RegisterSystem<BeatSystem>();
+    RegisterSystem<NetInterpolationSystem>();
+	// RENDER
     RegisterSystem<RenderSystem>();
     RegisterSystem<UIRenderSystem>();
 

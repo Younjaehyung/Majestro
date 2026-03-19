@@ -57,6 +57,9 @@ void Material::SetTexture(shared_ptr<Texture> mImageMapIndex, uint8 texturetype)
 	case OCCLUSIONMAPINDEX:
 		mParams.OcclusionMapIndex = mImageMapIndex->GetImageIndex();
 		break;
+	case MASKMAPINDEX:
+		mParams.MaskMapIndex = mImageMapIndex->GetImageIndex();
+		break;
 
 	default:
 		
@@ -185,6 +188,7 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 		}test = false;
 	SetTexture(texture, OCCLUSIONMAPINDEX);
 	}
+
 
 }
 //

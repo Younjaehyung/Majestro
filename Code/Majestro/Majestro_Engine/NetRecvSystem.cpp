@@ -16,6 +16,7 @@
 #include "NetTransformComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
+#include "TagComponent.h"
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
 #include "MovementSystem.h"
@@ -117,14 +118,38 @@ void NetRecvSystem::HandleMove(const InputCommand& msg)
         !NetTransformComponent::IsNewer(pkt->Sequence, netTransform->mLastSequence))
         return;
 
-    netTransform->mTargetPosition   = { pkt->x, pkt->y, pkt->z };
-    netTransform->mTargetRotation.y = pkt->yaw;
-    netTransform->mTargetRotation.x = pkt->pitch;
-    netTransform->mTargetRotationQ  = { pkt->rx, pkt->ry, pkt->rz, pkt->rw };
-    netTransform->mLastSequence     = pkt->Sequence;
-    netTransform->mLastUpdateTime   = TIMER.GetTotalTime();
-    netTransform->mVelocity         = { pkt->vx, pkt->vy, pkt->vz };
-    netTransform->mHasTarget        = true;
+    netTransform->mLastSequence   = pkt->Sequence;
+    netTransform->mLastUpdateTime = TIMER.GetTotalTime();
+
+    if (mWorld->GetComponent<LocalPlayerComponent>(e))
+    {
+        // 로컬 플레이어: 현재 위치 → 서버 보정 위치로 Lerp
+        // mStartPosition을 현재 위치로 갱신해야 올바른 구간에서 보간됨
+        netTransform->mStartPosition   = transform->mLocalPosition;
+        netTransform->mStartRotation   = transform->mLocalRotationE;
+        netTransform->mTargetPosition  = { pkt->x, pkt->y, pkt->z };
+        netTransform->mTargetRotation  = { pkt->pitch, pkt->yaw, 0.f };
+        netTransform->mElapsed         = 0.0f;
+        netTransform->mHasTarget       = true;
+    }
+    else
+    {
+        // 원격 엔티티: 스냅샷 버퍼에 삽입 → NetInterpolationSystem이 매 프레임 UpdateRender로 보간/외삽
+        NetSnapshot snapshot;
+        snapshot.serverTick = pkt->Sequence;
+        snapshot.pos        = { pkt->x, pkt->y, pkt->z };
+        snapshot.vel        = { pkt->vx, pkt->vy, pkt->vz };
+        snapshot.rotQ       = { pkt->rx, pkt->ry, pkt->rz, pkt->rw };
+        netTransform->OnSnapshot(snapshot, static_cast<double>(TIMER.GetTotalTime()));
+#ifdef _DEBUG
+        static double sLastRecvTime = 0.0;
+        const double now = static_cast<double>(TIMER.GetTotalTime());
+        std::cout << "[MOVE] interval=" << (now - sLastRecvTime) * 1000.0 << "ms"
+                  << " bufSize=" << netTransform->mBuffer.size()
+                  << " interpDelayTicks=" << netTransform->mInterpDelayTicksF << std::endl;
+        sLastRecvTime = now;
+#endif
+    }
 }
 
 void NetRecvSystem::HandleState(const InputCommand& msg)
@@ -330,7 +355,11 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 	std::cout << "HandleSpawn called with netId: " << netId << " archetypeId: " << archetypeId << std::endl;
     if (mWorld->GetEntityByNetId(netId) == NULL_ENTITY) {
         Entity e = CreateEntityFromArchetype(archetypeId);
-		std::cout << "Entity created with ID: " << e.GetID() << std::endl;
+        mWorld->NetIdBinding(netId, e);
+		std::cout << "HandleSpawn: netId=" << netId << " -> entityId=" << e.GetID() << std::endl;
+    }
+    else {
+        std::cout << "HandleSpawn: netId=" << netId << " 이미 존재, 스킵" << std::endl;
     }
        
 

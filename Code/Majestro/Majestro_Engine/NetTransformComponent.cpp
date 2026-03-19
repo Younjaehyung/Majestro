@@ -3,6 +3,12 @@
 
 void NetTransformComponent::OnSnapshot(const NetSnapshot& s, double localRecvSec)
 {
+    if (!mHasAnchor)
+    {
+        // 최초 수신 시 1회 파라미터 계산
+        RecomputeTickParams();
+    }
+
     if (!mHasAnchor || IsNewer(s.serverTick, mAnchorServerTick))
     {
         mAnchorServerTick = s.serverTick;
@@ -10,11 +16,8 @@ void NetTransformComponent::OnSnapshot(const NetSnapshot& s, double localRecvSec
         mHasAnchor = true;
     }
 
-    // tick 기준 정렬 삽입
     InsertSorted(s);
-
-    // 너무 오래된 스냅샷 제거 (tick 기반)
-    PruneOld(2.0); // 2초 보관
+    PruneOld(2.0);
 }
 
 void NetTransformComponent::UpdateRender(double localNowSec)
@@ -174,13 +177,12 @@ void NetTransformComponent::PruneOld(double keepSec)
 
 void NetTransformComponent::RecomputeTickParams()
 {
-    // 스냅샷 간격(초)
     const double snapshotIntervalSec = 1.0 / mSnapshotHz;
 
+    // 스냅샷 간격의 1.5배 or 2프레임 중 큰 값
+    // 기존 max(0.10, 2.5배)는 최소 100ms로 너무 커서 버퍼 범위 밖으로 renderTickF가 떨어졌음
+    const double interpDelaySec = max(2.0 / mServerHz, 1.5 * snapshotIntervalSec);
 
-    const double interpDelaySec = max(0.10, 2.5 * snapshotIntervalSec);
-
-    // 모두 tick로 환산해 저장
-    mInterpDelayTicksF = interpDelaySec * mServerHz;
+    mInterpDelayTicksF      = interpDelaySec * mServerHz;
     mMaxExtrapolationTicksF = mMaxExtrapolationSec * mServerHz;
 }

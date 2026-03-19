@@ -23,50 +23,37 @@ void NetInterpolationSystem::Update(float dt)
 		NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(entity);
 		TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity);
 		if (!netTransform || !transform) continue;
-		if (!netTransform->mHasTarget) continue;
 
-		netTransform->mElapsed += dt;
-		const float duration = (netTransform->mDuration <= 0.0f) ? 0.0001f : netTransform->mDuration;
-		float t = netTransform->mElapsed / duration;
-		if (t > 1.0f) t = 1.0f;
-
-		if (mWorld->GetComponent<LocalPlayerComponent>(entity)) {
-			transform->mLocalPosition = Vec3::Lerp(netTransform->mStartPosition, netTransform->mTargetPosition, t);
-			transform->mLocalRotationE = Vec3::Lerp(netTransform->mStartRotation, netTransform->mTargetRotation, t);
-		}
-		else {
-
-			NetSnapshot snapshot;
-			snapshot.pos = netTransform->mTargetPosition;
-			snapshot.rotQ = netTransform->mTargetRotationQ; // 또는 Euler로 변환해서 저장
-			
-			snapshot.serverTick = netTransform->mLastSequence; // 또는 실제 서버 시간
-            snapshot.vel = netTransform->mVelocity;
-			netTransform->SetServerHz(60.0);
-			netTransform->SetSnapshotRateHz(20.0);
-			netTransform->OnSnapshot(snapshot, netTransform->mLastUpdateTime);
-			netTransform->UpdateRender(TIMER.GetTotalTime());
-			Vec3 rotE = netTransform->mRenderRotQ.ToEuler();
-			
-			transform->mLocalPosition = netTransform->mRenderPos;
-			transform->mLocalRotationE = { DirectX::XMConvertToDegrees(rotE.x),DirectX::XMConvertToDegrees(rotE.y),DirectX::XMConvertToDegrees(rotE.z) };
-		 
-			
-		}
-        
-
-
-		//PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
-		//if (movementComponent) {
-		//	movementComponent->mCameraRotationX = transform->mLocalRotation.x;
-		//	movementComponent->mCameraRotationY = transform->mLocalRotation.y;
-		//}
-			
-
-
-		if (t >= 1.0f)
+		if (mWorld->GetComponent<LocalPlayerComponent>(entity))
 		{
-			netTransform->mHasTarget = false;
+			// 로컬 플레이어: 서버 보정값으로 Lerp (새 패킷이 올 때만 mHasTarget = true)
+			if (!netTransform->mHasTarget) continue;
+
+			netTransform->mElapsed += dt;
+			const float duration = (netTransform->mDuration <= 0.0f) ? 0.0001f : netTransform->mDuration;
+			const float t = min(netTransform->mElapsed / duration, 1.0f);
+
+			transform->mLocalPosition  = Vec3::Lerp(netTransform->mStartPosition, netTransform->mTargetPosition, t);
+			transform->mLocalRotationE = Vec3::Lerp(netTransform->mStartRotation,  netTransform->mTargetRotation,  t);
+
+			if (t >= 1.0f)
+				netTransform->mHasTarget = false;
+		}
+		else
+		{
+			// 원격 엔티티: 스냅샷 버퍼 보간 + dead reckoning
+			// mHasAnchor 이후 매 프레임 실행 — 패킷이 없는 구간도 외삽 계속
+			if (!netTransform->mHasAnchor) continue;
+
+			netTransform->UpdateRender(static_cast<double>(TIMER.GetTotalTime()));
+
+			Vec3 rotE = netTransform->mRenderRotQ.ToEuler();
+			transform->mLocalPosition  = netTransform->mRenderPos;
+			transform->mLocalRotationE = {
+				DirectX::XMConvertToDegrees(rotE.x),
+				DirectX::XMConvertToDegrees(rotE.y),
+				DirectX::XMConvertToDegrees(rotE.z)
+			};
 		}
 	}
 }

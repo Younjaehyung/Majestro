@@ -47,7 +47,7 @@ public:
 	double mMaxExtrapolationSec = 0.15; // 유지(튜닝 편의)
 
 	// [추가] 서버-now tick 추정용 앵커
-		bool    mHasAnchor = false;
+	bool    mHasAnchor = false;
 	uint32_t mAnchorServerTick = 0;
 	double  mAnchorLocalSec = 0.0;
 

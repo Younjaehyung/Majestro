@@ -47,8 +47,9 @@ inline BulletStat GetBulletStat(SkillType type)
 	case SkillType::BaseSkill1: return BulletStat{ 75.0f, 100.0f, 0.35f, 2.6f, 50.0f, 2 };
 	//case SkillType::BaseSkill2: return BulletStat{ 0.0f, 80.0f, 0.50f, 3.0f, 40.0f, 1 };
 
-	case SkillType::GuitarSkill1: return BulletStat{ 30.0f, 120.0f, 0.30f, 2.4f, 20.0f, 2 };
-	case SkillType::GuitarSkill2: return BulletStat{ 0.0f, 95.0f, 0.45f, 2.8f, 32.0f, 1 };
+	case SkillType::GuitarAttack_1: return BulletStat{ 30.0f, 120.0f, 0.30f, 2.4f, 20.0f, 2 };
+	case SkillType::GuitarAttack_2: return BulletStat{ 0.0f, 95.0f, 0.45f, 2.8f, 32.0f, 1 };
+	case SkillType::GuitarAttack_3: return BulletStat{ 0.0f, 95.0f, 0.45f, 2.8f, 32.0f, 1 };
 
 	case SkillType::Default:
 	default:

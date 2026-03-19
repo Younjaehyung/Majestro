@@ -282,6 +282,10 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         if (effectPacket == nullptr)
             return;
 
+        constexpr uint8 kEffectSpawnReasonFire = 0;
+        if (effectPacket->reason == kEffectSpawnReasonFire)
+            return;
+
         Entity impactVfxEntity = mWorld->CreateEntity();
         TransformComponent impactTransform{};
         impactTransform.mLocalPosition = Vec3(effectPacket->x, effectPacket->y, effectPacket->z);

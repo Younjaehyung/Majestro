@@ -630,7 +630,7 @@ ReloadState* ReloadState::Instance() {
 void ReloadState::Enter(MainPlayerComponent* owner)
 {
     if (owner->mPlayerType == 1)owner->mNowBullet = owner->mMaxBullet;
-    if (owner->mPlayerType == 2) { (std::min)(owner->mNowBullet + 1, owner->mMaxBullet); }
+    if (owner->mPlayerType == 2) owner->mNowBullet = (std::min)(owner->mNowBullet + 1, owner->mMaxBullet); 
     StateEnter(this, owner);
 }
 void ReloadState::Update(MainPlayerComponent* owner)
@@ -719,6 +719,8 @@ Attack1State* Attack1State::Instance() {
 }
 void Attack1State::Enter(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 1) owner->mNowBullet =(std::max)(0, owner->mNowBullet - 1);
+    if (owner->mPlayerType == 2) owner->mNowBullet = (std::max)(0, owner->mNowBullet - 1);
     StateEnter(this, owner);
 }
 void Attack1State::Update(MainPlayerComponent* owner)
@@ -753,6 +755,7 @@ Skill1State* Skill1State::Instance() {
 }
 void Skill1State::Enter(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 1)owner->mNowBullet = (std::max)(0, owner->mNowBullet - 1);
     StateEnter(this, owner);
 }
 void Skill1State::Update(MainPlayerComponent* owner)

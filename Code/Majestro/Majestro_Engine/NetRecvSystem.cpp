@@ -236,9 +236,9 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         bulletTransform->mWorldPosition = spawnPosition;
 
         const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
-        BulletType bulletType = static_cast<BulletType>(bulletPacket->bulletType);
-        if (bulletType >= BulletType::Max)
-            bulletType = BulletType::Default;
+        SkillType bulletType = static_cast<SkillType>(bulletPacket->bulletType);
+        if (bulletType >= SkillType::Max)
+            bulletType = SkillType::Default;
 
         bulletComp->Activate(
             bulletType,
@@ -278,26 +278,39 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         bulletComp->Deactivate();
         bulletTransform->mMovingVector = Vec3::Zero;
 
-        if (/*bulletPacket->hasImpact*/true)
-        {
-            Entity impactVfxEntity = mWorld->CreateEntity();
-            TransformComponent impactTransform{};
-            impactTransform.mLocalPosition = Vec3(bulletPacket->impactX, bulletPacket->impactY, bulletPacket->impactZ);
-            mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
-
-            VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
-            //cout << "bullet type:" << (int)bulletComp->mType << endl;
-            if (bulletComp->mType == BulletType::BaseAttack) {
-                cout << "base attack" << endl;
-                
-            }
-            impactVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
-            impactVfx.mScale = 10.f;
-            impactVfx.mIsLoop = true;
-        }
 
         if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
             movementSystem->UnregisterActiveBullet(bulletEntity);
+        return;
+       }
+    else if (msg.Type == PKT_Type::S2C_PKT_EFFECT_SPAWN) {
+        const S2C_EffectSpawnPacket* effectPacket = msg.ViewAs<S2C_EffectSpawnPacket>();
+        if (effectPacket == nullptr)
+            return;
+
+        constexpr uint8 kEffectSpawnReasonFire = 0;
+        if (effectPacket->reason == kEffectSpawnReasonFire)
+            return;
+
+        Entity impactVfxEntity = mWorld->CreateEntity();
+        TransformComponent impactTransform{};
+        impactTransform.mLocalPosition = Vec3(effectPacket->x, effectPacket->y, effectPacket->z);
+        mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
+
+        VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
+
+        const SkillType effectType = static_cast<SkillType>(effectPacket->effectType);
+        switch (effectType) {
+        case SkillType::BaseAttack:
+        case SkillType::BaseSkill1:
+        case SkillType::BaseSkill2:
+        default:
+            impactVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
+            break;
+        }
+        
+        impactVfx.mScale = 10.f;
+        impactVfx.mIsLoop = true;
         return;
         }
 

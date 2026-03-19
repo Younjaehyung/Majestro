@@ -526,13 +526,14 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             auto eventManager = mWorld->GetEventManager();
             if (eventManager)
             {
-                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
-                    bulletEntity,
+                //effectSpawn
+                eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+                eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+                    static_cast<uint8>(bullet->mType),
                     bulletTransform->mLocalPosition.x,
                     bulletTransform->mLocalPosition.y,
                     bulletTransform->mLocalPosition.z,
-                    true,
-                    1 });
+                    EffectSpawnReason::CollisionEntity });
             }
             continue;
         }
@@ -615,13 +616,14 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
         auto eventManager = mWorld->GetEventManager();
         if (eventManager)
         {
-            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{
-                bulletEntity,
+            //effectSpawn
+            eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
+            eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+                static_cast<uint8>(bullet->mType),
                 tr->mLocalPosition.x,
                 tr->mLocalPosition.y,
                 tr->mLocalPosition.z,
-                true,
-                2 });
+                EffectSpawnReason::CollisionStatic });
         }
     }
 }

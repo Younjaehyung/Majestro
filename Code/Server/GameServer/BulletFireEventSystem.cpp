@@ -101,6 +101,17 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 
 		mWorld->RegisterActiveBullet(bulletEntity);
 
+		//effectSpawn
+		if (auto eventManager = mWorld->GetEventManager())
+		{
+			eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+				static_cast<uint8>(bulletType),
+				bulletTransform->mWorldPosition.x,
+				bulletTransform->mWorldPosition.y,
+				bulletTransform->mWorldPosition.z,
+				EffectSpawnReason::Fire });
+		}
+
 		S2C_BulletActivatePacket bulletPacket{};
 		bulletPacket.SendTime = std::chrono::duration<double>(
 			std::chrono::system_clock::now().time_since_epoch()).count();

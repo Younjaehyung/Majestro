@@ -1634,7 +1634,7 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 	
 	{
-		auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
+		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Texture\\T_TilingNoise02_M.png");
 	}
 

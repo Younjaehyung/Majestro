@@ -408,9 +408,16 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             bulletRadius = (std::max)(bulletRadius, scaleRadius);
         }
 
-        Entity hitTarget{};
-        BoxColliderComponent* hitCollider = nullptr;
-        float hitDistance = (std::numeric_limits<float>::max)();
+        struct BulletHitCandidate
+        {
+            Entity Target{};
+            BoxColliderComponent* Collider = nullptr;
+            float Distance = (std::numeric_limits<float>::max)();
+        };
+
+        std::vector<BulletHitCandidate> hitCandidates;
+        hitCandidates.reserve(dynamicEntities.size());
+        float nearestHitDistance = (std::numeric_limits<float>::max)();
 
         for (Entity targetEntity : dynamicEntities)
         {
@@ -453,22 +460,22 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             if (!candidateHit)
                 continue;
 
-            if (candidateDistance >= hitDistance)
-                continue;
-
-            hitDistance = candidateDistance;
-            hitTarget = targetEntity;
-            hitCollider = targetCollider;
+            nearestHitDistance = (std::min)(nearestHitDistance, candidateDistance);
+            hitCandidates.push_back(BulletHitCandidate{ targetEntity, targetCollider, candidateDistance });
         }
 
-        if (!hitTarget.IsValid())
+        if (hitCandidates.empty())
         {
             ++i;
             continue;
         }
 
-        bulletTransform->mLocalPosition = startPosition + direction * hitDistance;
-        bulletTransform->mMovingVector = Vec3::Zero;
+        const bool shouldPenetrate = bullet->mbPenetrates;
+        if (!shouldPenetrate)
+        {
+            bulletTransform->mLocalPosition = startPosition + direction * nearestHitDistance;
+            bulletTransform->mMovingVector = Vec3::Zero;
+        }
 
         auto applyKnockback = [&](Entity target)
         {
@@ -511,14 +518,22 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 }
             };
 
-        if (hitCollider)
-            hitCollider->bIsColliding = true;
+        for (const BulletHitCandidate& hitCandidate : hitCandidates)
+        {
+            if (!shouldPenetrate && hitCandidate.Distance > nearestHitDistance)
+                continue;
 
-        applyKnockback(hitTarget);
-        enqueueDamage(hitTarget);
-        ++bullet->mHitCount;
+            if (hitCandidate.Collider)
+                hitCandidate.Collider->bIsColliding = true;
 
-        if (bullet->mHitCount >= (std::max)(1, bullet->mPenetrationCount))
+            applyKnockback(hitCandidate.Target);
+            enqueueDamage(hitCandidate.Target);
+
+            if (!shouldPenetrate)
+                break;
+        }
+
+        if (!shouldPenetrate)
         {
             bullet->Deactivate();
             mWorld->UnregisterActiveBullet(bulletEntity);

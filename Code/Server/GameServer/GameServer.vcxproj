@@ -175,6 +175,7 @@
   <ItemGroup>
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
+    <ClCompile Include="BuffComponent.cpp" />
     <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="BulletFireEventSystem.cpp" />
     <ClCompile Include="CameraComponent.cpp" />

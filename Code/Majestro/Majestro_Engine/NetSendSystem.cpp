@@ -26,6 +26,12 @@ void NetSendSystem::Update(float deltaTime)
 	UpdateCachedPlayerType();
 	TrySendGameStart();
 
+	if (INPUT.GetKeyDown(eKeyCode::G))
+	{
+		cout << "\ngame\n" << endl;
+		SendSceneChange(SceneId::Game);
+	}
+
 	// 이벤트성 입력(점프/공격/스킬 등): 새로 눌린 순간 TCP로 즉시 전송
 	TrySendActionEvents();
 
@@ -61,11 +67,6 @@ void NetSendSystem::Update(float deltaTime)
 
 void NetSendSystem::ConvertInput(SendRequest* seq)
 {
-	if (INPUT.GetKeyDown(eKeyCode::G))
-	{
-		cout << "\ngame\n" << endl;
-		SendSceneChange(SceneId::Game);
-	}
 
 	if (INPUT.GetKeyDown(eKeyCode::L))
 	{

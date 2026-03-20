@@ -31,6 +31,12 @@ struct MouseState
 	bool MiddleDown = false;
 };
 
+enum class eMouseInputMode
+{
+	LegacyRelative,
+	RecenterRelative,
+};
+
 class InputManager
 {
 public:
@@ -59,6 +65,8 @@ public:
 	void OnMouseButtonUp(WPARAM button);
 	void SetForceMouseLook(bool enable);
 	bool IsMouseLookActive() const { return mMouseLookControl; }
+	void SetMouseInputMode(eMouseInputMode mode);
+	eMouseInputMode GetMouseInputMode() const { return mMouseInputMode; }
 
 	const MouseState& GetMouseState() const { return mMouseState; }
 	void MouseStateClear();
@@ -73,6 +81,7 @@ private:
 	bool mMouseLookControl = false;
 	bool mForceMouseLookRequested = false;
 	bool mCursorHidden = false;                    // ShowCursor 상태 추적
+	eMouseInputMode mMouseInputMode = eMouseInputMode::LegacyRelative;
 	MouseState mMouseState;
 
 	std::vector<Key> mKeys;

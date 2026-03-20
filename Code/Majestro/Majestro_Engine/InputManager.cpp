@@ -93,8 +93,20 @@ void InputManager::SetForceMouseLook(bool enable)
 	{
 		// 현재 커서 위치를 고정점으로 저장
 		::GetCursorPos(&mMouseState.Position);
-		::GetCursorPos(&mMouseState.OldPosition);
+		//::GetCursorPos(&mMouseState.OldPosition);
 		::GetCursorPos(&mMouseState.ClickPosition);
+
+		if (mMouseInputMode == eMouseInputMode::LegacyRelative)
+		{
+			POINT clientPos = mMouseState.Position;
+			::ScreenToClient(mHwnd, &clientPos);
+			mMouseState.Position = clientPos;
+			mMouseState.OldPosition = clientPos;
+		}
+		else
+		{
+			mMouseState.OldPosition = mMouseState.Position;
+		}
 
 		HideCursor();
 	}
@@ -135,6 +147,33 @@ void InputManager::OnActivateApp(bool active)
 		SetForceMouseLook(true);
 }
 
+void InputManager::SetMouseInputMode(eMouseInputMode mode)
+{
+	if (mMouseInputMode == mode)
+		return;
+
+	mMouseInputMode = mode;
+	mMouseState.Delta = { 0, 0 };
+
+	if (!mMouseLookControl)
+		return;
+
+	::GetCursorPos(&mMouseState.Position);
+	::GetCursorPos(&mMouseState.ClickPosition);
+
+	if (mMouseInputMode == eMouseInputMode::LegacyRelative)
+	{
+		POINT clientPos = mMouseState.Position;
+		::ScreenToClient(mHwnd, &clientPos);
+		mMouseState.Position = clientPos;
+		mMouseState.OldPosition = clientPos;
+	}
+	else
+	{
+		mMouseState.OldPosition = mMouseState.Position;
+	}
+}
+
 void InputManager::MouseStateClear() {
 	mMouseState.Delta = { 0, 0 };
 }
@@ -163,15 +202,29 @@ void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_MOUSEMOVE:
 		if (mMouseLookControl) {
-			::GetCursorPos(&mMouseState.Position);
+			if (mMouseInputMode == eMouseInputMode::LegacyRelative)
+			{
+				POINT clientPos = {
+					static_cast<LONG>(static_cast<SHORT>(LOWORD(lParam))),
+					static_cast<LONG>(static_cast<SHORT>(HIWORD(lParam)))
+				};
+				mMouseState.Position = clientPos;
+				mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;
+				mMouseState.Delta.y += mMouseState.Position.y - mMouseState.OldPosition.y;
+				mMouseState.OldPosition = mMouseState.Position;
+			}
+			else
+			{
+				::GetCursorPos(&mMouseState.Position);
 
-			mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;
-			mMouseState.Delta.y += mMouseState.Position.y - mMouseState.OldPosition.y;
+				mMouseState.Delta.x += mMouseState.Position.x - mMouseState.OldPosition.x;
+				mMouseState.Delta.y += mMouseState.Position.y - mMouseState.OldPosition.y;
 
-			// 커서를 고정 위치로 복귀 (다음 WM_MOUSEMOVE에서 Delta=0이 됨)
-			::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
-			mMouseState.OldPosition = mMouseState.ClickPosition;
-			mMouseState.Position = mMouseState.ClickPosition;
+				// 커서를 고정 위치로 복귀 (다음 WM_MOUSEMOVE에서 Delta=0이 됨)
+				::SetCursorPos(mMouseState.ClickPosition.x, mMouseState.ClickPosition.y);
+				mMouseState.OldPosition = mMouseState.ClickPosition;
+				mMouseState.Position = mMouseState.ClickPosition;
+			}
 		}
 		break;
 	default:

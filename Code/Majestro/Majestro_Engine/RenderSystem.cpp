@@ -226,7 +226,7 @@ void RenderSystem::ClearBuffer() {
 void RenderSystem::PassUpdate()
 {
     // 플레이어 상태에 따른 포스트프로세스 제어
-    if (mMotionBlurPass)
+   /* if (mMotionBlurPass)
     {
         if (false == mWorld->HasComponentPool<LocalPlayerComponent>())
             return;
@@ -245,7 +245,7 @@ void RenderSystem::PassUpdate()
             break;
         }
         mMotionBlurPass->SetEnabled(enableBlur);
-    }
+    }*/
 
 
 }

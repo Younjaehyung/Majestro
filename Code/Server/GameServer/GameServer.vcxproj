@@ -239,6 +239,7 @@
     <ClInclude Include="ArmorComponent.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
+    <ClInclude Include="BuffComponent.h" />
     <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="BulletFireEventSystem.h" />
     <ClInclude Include="CameraComponent.h" />

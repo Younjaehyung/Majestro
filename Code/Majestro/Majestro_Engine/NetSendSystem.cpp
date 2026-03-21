@@ -122,10 +122,10 @@ void NetSendSystem::TrySendActionEvents()
 	std::cout << "Buttons bitmask: " << std::bitset<8>(pkt.Buttons) << std::endl;
 	
 
-	// 이전 프레임 대비 새로 눌린 버튼만 전송 (눌린 순간 only)
-	const uint32 newlyPressed = pkt.Buttons & ~mPrevButtons;
+	// 이전 프레임 대비 변화된 버튼(press/release 모두)이 있을 때만 전송
+	const uint32 changed = pkt.Buttons ^ mPrevButtons;
 	mPrevButtons = pkt.Buttons;
-	if (newlyPressed == 0) return;
+	if (changed == 0) return;
 
 	pkt.netEntityId = netEnt->mNetEntityId;
 	pkt.Yaw         = comp->mCameraRotationY;

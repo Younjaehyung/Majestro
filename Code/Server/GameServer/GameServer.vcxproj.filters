@@ -387,6 +387,7 @@
     <ClInclude Include="MeleeAttackSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="BuffComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

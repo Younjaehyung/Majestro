@@ -11,7 +11,7 @@ public:
 
 	void Update(float deltaTime);
 	void LoadJsonLevel(const wstring& path);
-
+	void LoadCollisionJson(const wstring& path);
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 
 

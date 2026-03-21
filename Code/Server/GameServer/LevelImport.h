@@ -19,6 +19,10 @@ struct TransformData
     Vec3 scale;
     Vec3 rotation; // UE Euler 각도(디버깅/매핑용)
     Basis basis;
+
+    Matrix translationMtx; // 이동만 있는 행렬 캐시 (scale/rotation 제외, UE->DX 변환 후)
+    Matrix rotationMtx; // 회전만 있는 행렬 캐시 (scale/translation 제외, UE->DX 변환 후)
+    Matrix scaleMtx; // 스케일만 있는 행렬 캐시 (translation 제외)
 };
 
 struct MeshInstance
@@ -33,6 +37,7 @@ struct MeshInstance
     TransformData ue;            // ue 기준(transform.ue)
     TransformData world;         // dx 기준(transform.dx)
     Matrix worldMtx; //  DX12에 바로 넣을 월드행렬 캐시
+	
 };
 
 struct LevelImportData
@@ -196,7 +201,7 @@ static inline DirectX::XMMATRIX MakeRotation_RowBasis(const Basis& basis)
     );
 }
 
-static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fromUe = false)
+static inline Matrix BuildWorldMatrix_RowMajor(TransformData& dx, bool fromUe = false)
 {
     Vec3 r = dx.basis.right;
     Vec3 u = dx.basis.up;
@@ -219,7 +224,7 @@ static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fro
        px,      py,      pz,      1.f
     };
 
-    const Matrix RotationOnly =
+    Matrix RotationOnly =
     {
         r.x, r.y, r.z, 0.f,
         u.x, u.y, u.z, 0.f,
@@ -227,19 +232,12 @@ static inline Matrix BuildWorldMatrix_RowMajor(const TransformData& dx, bool fro
         0.f, 0.f, 0.f, 1.f
     };
 
-    const Matrix Identity =
-    {
-        1.f, 0.f, 0.f, 0.f,
-        0.f, 1.f, 0.f, 0.f,
-        0.f, 0.f, 1.f, 0.f,
-        0.f, 0.f, 0.f, 1.f };
 
-    Matrix matScale = Matrix::CreateScale(sx, sy, sz);
-
-
+    dx.translationMtx = Matrix::CreateTranslation(px,py,pz);
+    dx.rotationMtx = RotationOnly;
+    dx.scaleMtx = Matrix::CreateScale(sx, sy, sz);
 
     return worldCpu;
-
 
 }
 

@@ -96,9 +96,21 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame
 	}
 }
 
-void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWorld) 
+void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWorld)
 {
-	///uint32 ssessionId = 0;//mInputCommand.SessionId;
+	// 이미 같은 세션의 플레이어가 존재하면 무시 (중복 패킷 방어)
+	if (mWorld->HasComponentPool<NetEntityComponent>() &&
+		mWorld->HasComponentPool<MainPlayerComponent>())
+	{
+		auto existingEntities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
+		for (auto entity : existingEntities)
+		{
+			NetEntityComponent* existingNetComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			if (existingNetComp && existingNetComp->mSessionId == inputCommand.SessionId)
+				return;
+		}
+	}
+
 	uint8 playertype = 1;
 
 	if (inputCommand.Type == PKT_Type::C2S_GAME_START)

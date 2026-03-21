@@ -80,7 +80,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 		break;
 	}
 	case PKT_Type::PKT_UDP:
-	case PKT_Type::C2S_PKT_INPUT:
+	case PKT_Type::C2S_PKT_MOVE:
 	case PKT_Type::C2S_PKT_LOGIN:
 	case PKT_Type::C2S_GAME_START: {
 		ProcessUdpPackets(inputCommand, buffer, header.Size);

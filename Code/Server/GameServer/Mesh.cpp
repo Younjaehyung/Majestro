@@ -97,3 +97,26 @@ void CollisionMesh::CreateCollisionMesh(FBXBMeshInfo& f)
 		sizeof(Vec3)
 	);
 }
+
+void CollisionMesh::CreateCollisionMesh(vector<Vertex>& f)
+{
+	CreateVertexBuffer(f);
+
+	if (mVertexBuffer.empty())
+		return;
+
+	// 모든 정점의 위치를 추출
+	vector<Vec3> positions(mVertexBuffer.size());
+	for (size_t i = 0; i < mVertexBuffer.size(); ++i)
+	{
+		positions[i] = mVertexBuffer[i].pos;
+	}
+
+	// 모든 점을 한 번에 전달하여 OBB 생성
+	BoundingOrientedBox::CreateFromPoints(
+		mOBB,
+		positions.size(),
+		positions.data(),
+		sizeof(Vec3)
+	);
+}

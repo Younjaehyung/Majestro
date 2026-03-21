@@ -21,30 +21,21 @@ void NetSendSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
-	ConvertMove(mNetComp, &mSendReq, dt);	//move
+	
 	ConvertState();
 	SendCollision();
 	SendHealthEvents();
 	SendArmorEvents();
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
+
+	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
+		ConvertMove(mNetComp, &mSendReq, dt);	//move
 }
 
 void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
 {
 	
-	mMoveSendAccumulator += dt;
-	if (mMoveSendAccumulator < mMoveSendInterval)
-	{
-		return;
-	}
-
-	if (mMoveSendAccumulator > (mMoveSendInterval * mMaxMoveBurst))
-	{
-		mMoveSendAccumulator = mMoveSendInterval * mMaxMoveBurst;
-	}
-	mMoveSendAccumulator -= mMoveSendInterval;
-
 	auto recipients = CollectPlayerSessions();
 	if (recipients.empty())
 		return;

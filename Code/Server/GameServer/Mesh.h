@@ -33,6 +33,7 @@ public:
 	void CreateIndexBuffer(const vector<uint32>& buffer);
 
 	void CreateCollisionMesh(FBXBMeshInfo& f);
+	void CreateCollisionMesh(vector<Vertex>& f);
 
 	void SetPath(const std::string& path) { mPath = path; }
 

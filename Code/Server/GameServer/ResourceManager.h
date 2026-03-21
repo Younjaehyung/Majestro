@@ -45,7 +45,7 @@ public:
 	void LoadResources();
 	LevelImportData LoadResourceJson(const std::wstring& path);
 	shared_ptr<FBX>& LoadFBXMeshes(const wstring& path);
-
+	shared_ptr<Mesh> LoadMCubeMesh();
 public:
 	array<KeyObjMap, OBJECT_TYPE_COUNT> mResources;
 

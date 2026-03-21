@@ -32,7 +32,7 @@ void Scene::Initialize()
 
 	TerrainPrefab terrain{ mWorld.get()};
 
-
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	
 	mWorld->Initialize();
 }
@@ -77,6 +77,50 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, 
 				data->GetColliders().at(0)->GetOBB());
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Load failed: " << e.what() << "\n";
+	}
+}
+
+void Scene::LoadCollisionJson(const wstring& path)
+{
+	int i = 0;
+	try
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+
+		for (const auto& inst : level.instances)
+		{
+			if (std::string::npos != inst.fbx.find("CRX_Sphere")) {
+				std::cout << "A" << std::endl;
+			}
+
+			if (std::string::npos == inst.fbx.find("CRX_Cube"))
+				continue;
+
+			BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
+
+
+			Entity entity = mWorld->CreateEntity();
+			TransformComponent transform{};
+			
+			transform.mWorldMatrix = inst.world.rotationMtx * inst.world.translationMtx;
+
+			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+			trans.mIsStatic = true;
+
+
+
+			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+				obb, transform.mWorldMatrix); */
+			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+				Vec3(inst.world.scale.x * 50.f, inst.world.scale.y * 50.f, inst.world.scale.z * 50.f), Vec3(0.f,0.f,0.f));
+			++i;
+			mWorld->AddComponent<StaticComponent>(entity); 
+			std::cout << i << std::endl;
 		}
 	}
 	catch (const std::exception& e)

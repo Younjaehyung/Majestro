@@ -104,6 +104,8 @@ void PlayerInputSystem::Initialize()
 void PlayerInputSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
+	auto eventManager = mWorld->GetEventManager();
+	if (not eventManager) return;
 
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 
@@ -115,8 +117,7 @@ void PlayerInputSystem::Update(float dt)
 		//연속행동
 		if (mainPlayerComponent->mPendingAction != PendingAction::None)
 		{
-			if (auto eventManager = mWorld->GetEventManager())
-			{
+			
 				InputButtons button = InputButtons::ATTACK;
 				State<MainPlayerComponent>* pendingState = nullptr;
 
@@ -136,7 +137,7 @@ void PlayerInputSystem::Update(float dt)
 				{
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, pendingState);
 				}
-			}
+			
 
 			mainPlayerComponent->mPendingAction = PendingAction::None; // 소비 완료
 		}
@@ -185,32 +186,28 @@ void PlayerInputSystem::Update(float dt)
 		const float now = GetSteadyTimeSeconds();
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			//std::cout << "attack!!!" << std::endl;
+			std::cout << "attack!!!" << std::endl;
 			if (mainPlayerComponent->mNextAttackTime <= now ) {
 				if (mainPlayerComponent->mPlayerType == 1 && mainPlayerComponent->mNowBullet > 0) {
-					if (auto eventManager = mWorld->GetEventManager())
-					{
 						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
 						EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					}
+					
 					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 				}
 				else if(mainPlayerComponent->mPlayerType == 2) {
-					if (auto eventManager = mWorld->GetEventManager())
-					{
+					
 						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, mainPlayerComponent->mNowBullet);
 						EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					}
+				
 					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 				}
 				else if (mainPlayerComponent->mPlayerType == 0) {
-					if (auto eventManager = mWorld->GetEventManager())
-					{
-						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, mainPlayerComponent->mNowBullet);
+					
+						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
 						EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					}
+					
 					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 				}
@@ -220,22 +217,19 @@ void PlayerInputSystem::Update(float dt)
 			//std::cout << "skill1" << std::endl;
 			if (not mainPlayerComponent->mPlayerType == 1) {
 				if (mainPlayerComponent->mNextSkill1Time <= now) {
-					if (auto eventManager = mWorld->GetEventManager())
-					{
-						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
-						EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					}
+					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
+					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
+					
 					mainPlayerComponent->mNextSkill1Time = now + Beat * mainPlayerComponent->mSkill1Cool;
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 				}
 			}
 			else if (mainPlayerComponent->mNowBullet > 0) {
 				if (mainPlayerComponent->mNextSkill1Time <= now) {
-					if (auto eventManager = mWorld->GetEventManager())
-					{
+					
 						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
 						EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					}
+					
 					mainPlayerComponent->mNextSkill1Time = now + Beat * mainPlayerComponent->mSkill1Cool;
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
 				}
@@ -243,11 +237,10 @@ void PlayerInputSystem::Update(float dt)
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
 			if (mainPlayerComponent->mNextSkill2Time <= now) {
-				if (auto eventManager = mWorld->GetEventManager())
-				{
+				
 					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2);
 					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				}
+				
 				mainPlayerComponent->mNextSkill2Time = now + Beat * mainPlayerComponent->mSkill2Cool;
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
 			}
@@ -256,11 +249,10 @@ void PlayerInputSystem::Update(float dt)
 		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
 			//std::cout << "reroad" << std::endl;
 			if (mainPlayerComponent->mNextReloadTime <= now) {
-				if (auto eventManager = mWorld->GetEventManager())
-				{
+				
 					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
 					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				}
+				
 				mainPlayerComponent->mNextReloadTime = now + Beat * mainPlayerComponent->mReloadCool;
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReloadState::Instance());
 			}
@@ -268,6 +260,9 @@ void PlayerInputSystem::Update(float dt)
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
 			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 			else cout << "fail" << endl;
+
+			mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm + 1) % 3;
+			if (mainPlayerComponent->mRhythm != mainPlayerComponent->mNextRhythm) mainPlayerComponent->mHasQueuedRhythmChange = true;
 
 			//std::cout << "special" << std::endl;
 			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());

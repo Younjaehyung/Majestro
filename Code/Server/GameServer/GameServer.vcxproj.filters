@@ -215,6 +215,9 @@
     <ClCompile Include="MeleeAttackSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="BuffComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

@@ -120,7 +120,9 @@ public:
 	float mNextSkill1Time;
 	float mNextSkill2Time;
 	float mNextReloadTime;
-	uint8 mRhythm;
+	uint8 mRhythm =0;
+	uint8 mNextRhythm =0;
+	bool mHasQueuedRhythmChange = false;
 
 
 	float mSpeed = 0.0f;

@@ -22,7 +22,7 @@
             "from": "Run",
             "to": "Idle",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_MOVE" ]
         },
 
         {

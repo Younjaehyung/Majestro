@@ -62,7 +62,7 @@ void UIUpdateSystem::Update(float dt)
 {
    UpdateSpriteAnimation(dt);
 
-   // UpdateHpBarUI();
+   UpdateHpBarUI();
 
 }
 
@@ -187,9 +187,7 @@ void UIUpdateSystem::UpdateHpBarUI()
 {
     if (!mWorld->HasComponentPool<UIHpBarComponent>() ||
         !mWorld->HasComponentPool<HealthComponent>() ||
-        !mWorld->HasComponentPool<TransformComponent>() ||
-        !mWorld->HasComponentPool<UITransformComponent>() ||
-        !mWorld->HasComponentPool<UICusSpriteComponent>())
+        !mWorld->HasComponentPool<TransformComponent>())
     {
         return;
     }

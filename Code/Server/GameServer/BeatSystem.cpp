@@ -2,6 +2,7 @@
 #include "BeatSystem.h"
 #include "BeatComponent.h"
 #include "TimeUtils.h"
+#include "PlayerComponent.h"
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
@@ -33,6 +34,18 @@ void BeatSystem::Update(float dt)
 		beatComponent->mBeat = this->mBeat;
 		if (s*s < mBonusTime* mBonusTime)beatComponent->mBouns = true;
 		else beatComponent->mBouns = false;
+
+
+		if (mBeat % 4 == 0) {
+			if (auto* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity))
+			{
+				if (mainPlayerComponent->mHasQueuedRhythmChange)
+				{
+					mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
+					mainPlayerComponent->mHasQueuedRhythmChange = false;
+				}
+			}
+		}
 	}
 	
 }

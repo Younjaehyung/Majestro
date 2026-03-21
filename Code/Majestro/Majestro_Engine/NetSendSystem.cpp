@@ -21,6 +21,7 @@ NetSendSystem::NetSendSystem(World* world) : System::System(world)
 	mPhase = SysPhase::Pre;
 }
 
+
 void NetSendSystem::UpdateCachedPlayerType()
 {
 

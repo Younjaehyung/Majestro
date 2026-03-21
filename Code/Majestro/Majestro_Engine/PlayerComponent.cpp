@@ -10,31 +10,32 @@ BOOL STATE_DEBUG = TRUE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 static StateId NameToId(const std::string& n) {
-	if (n == "Idle") return S_Idle;
-    
-	if (n == "Run")  return S_Run;
-	if (n == "Jump")  return S_Jump;
-	if (n == "Fall")  return S_Fall;
-	if (n == "Land")  return S_Land;
-	if (n == "Dash")  return S_Dash;
-
-    if (n == "Attack1")  return S_Attack1;
+    if (n == "Idle") return S_Idle;
+    if (n == "RunForward") return S_RunForward;
+    if (n == "RunBackward") return S_RunBackward;
+    if (n == "RunRight") return S_RunRight;
+    if (n == "RunLeft") return S_RunLeft;
+    //if (n == "Run")  return S_Run;
+    if (n == "Jump")  return S_Jump;
+    if (n == "Fall")  return S_Fall;
+    if (n == "Land")  return S_Land;
+    if (n == "Dash")  return S_Dash;
 
     if (n == "Aim")  return S_Aim;
-    if (n == "ReRoad")  return S_ReRoad;
+    if (n == "Reload")  return S_Reload;
     if (n == "RhythmChange")  return S_RhythmChange;
 
     if (n == "Hit")  return S_Hit;
     if (n == "Stun")  return S_Stun;
     if (n == "Dead")  return S_Dead;
 
-    /*if (n == "Attack1")  return S_Attack1;*/
+    if (n == "Attack1")  return S_Attack1;
     if (n == "Attack2")  return S_Attack2;
     if (n == "Skill1")  return S_Skill1;
     if (n == "Skill2")  return S_Skill2;
     if (n == "Special")  return S_Special;
-    
-	return 255;
+
+    return 255;
 }
 
 MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0ull)
@@ -179,7 +180,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     mFsm.SetIdResolver([](State<MainPlayerComponent>* s)->StateId {
         if (s == IdleState::Instance()) return S_Idle;
         //if (s == WalkState::Instance()) return S_Walk;
-        if (s == RunState::Instance())  return S_Run;
+        //if (s == RunState::Instance())  return S_Run;
         if (s == JumpState::Instance()) return S_Jump;
         if (s == FallState::Instance()) return S_Fall;
         if (s == LandState::Instance()) return S_Land;

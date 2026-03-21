@@ -32,7 +32,7 @@ void Scene::Initialize()
 
 	TerrainPrefab terrain{ mWorld.get()};
 
-	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	
 	mWorld->Initialize();
 }
@@ -100,26 +100,28 @@ void Scene::LoadCollisionJson(const wstring& path)
 
 			if (std::string::npos == inst.fbx.find("CRX_Cube"))
 				continue;
+			shared_ptr<Mesh> data = RESOURCEMANAGER.LoadMCubeMesh();
 
-			BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
+			std::vector<Vec3> localVertices;
+			for (const Vertex& v : data->GetVertexBuffer())
+				localVertices.push_back(v.pos);
 
+			BoundingOrientedBox localObb;
+			BoundingOrientedBox::CreateFromPoints(localObb, localVertices.size(), localVertices.data(), sizeof(Vec3));
 
 			Entity entity = mWorld->CreateEntity();
-			TransformComponent transform{};
-			
-			transform.mWorldMatrix = inst.world.rotationMtx * inst.world.translationMtx;
 
+			// mLocalOBB = localObb (단위 박스)
+			// PhysicsWorld::Initialize에서 mLocalOBB.Transform(worldMatrix) → mWorldOBB 올바르게 계산됨
+			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, localObb, inst.worldMtx);
+
+			// worldMatrix를 반드시 설정해야 PhysicsWorld::Initialize가 올바른 위치로 변환함
+			TransformComponent transform{};
+			transform.mWorldMatrix = inst.worldMtx;
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
-
-
-
-			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-				obb, transform.mWorldMatrix); */
-			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-				Vec3(inst.world.scale.x * 50.f, inst.world.scale.y * 50.f, inst.world.scale.z * 50.f), Vec3(0.f,0.f,0.f));
+			mWorld->AddComponent<StaticComponent>(entity);
 			++i;
-			mWorld->AddComponent<StaticComponent>(entity); 
 			std::cout << i << std::endl;
 		}
 	}

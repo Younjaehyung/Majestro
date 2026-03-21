@@ -47,6 +47,7 @@ public:
 	NetRecvSystem(World* world);
 	void Update(float dt) override;
 	void RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame);
+	void RecvAction(uint32 sessionId, const C2S_ActionPacket& inputFrame);
 private:
 
 	//void LoginProcess(InputCommand& inputCommand);

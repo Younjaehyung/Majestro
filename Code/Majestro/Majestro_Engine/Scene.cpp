@@ -397,7 +397,7 @@ void GameScene::Initialize()
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
-	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -650,7 +650,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 
 			// 파일명만 추출
 			shared_ptr<Mesh> data = RESOURCEMANAGER.LoadMCubeMesh();
-			BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
+			//BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
 			
 
 			Entity entity = mWorld->CreateEntity();
@@ -671,11 +671,11 @@ void Scene::LoadCollisionJson(const wstring& path)
 #endif
 
 			
-			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-				obb, transform.mWorldMatrix);
+			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+				obb, transform.mWorldMatrix);*/
 
 
-			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
+			//mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
 			++i;
 			std::cout << i << std::endl;
 

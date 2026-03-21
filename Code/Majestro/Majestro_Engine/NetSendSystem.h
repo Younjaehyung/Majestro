@@ -1,7 +1,7 @@
 #pragma once
 #include "System.h"
 #include "NetIdMap.h"
-
+#include "Network.h"
 class  EventManager;
 
 enum class InputButtons : uint8 {
@@ -57,19 +57,24 @@ public:
     void SetCachedPlayerType(uint8 playerType){mCachedPlayerType = playerType;}
 
 public:
-	void ConvertInput(SendRequest* seq);
     void SendSceneChange(SceneId targetScene);
 private:
     void TrySendGameStart();
+    void TrySendMovement();       // 이동 입력 주기 전송 (UDP, 30Hz)
+    void TrySendScene();          // 씬 전환 요청 (TCP)
+    void TrySendActionEvents();   // 이벤트성 입력(점프/공격 등) 즉시 전송 (TCP)
     void UpdateCachedPlayerType();
 
-    void TrySendMovement();    // 이동 입력 주기 전송 (UDP)
-    void TrySendScene();    // 이동 입력 주기 전송 (UDP)
-    void TrySendActionEvents();// 이벤트성 입력(점프/공격 등 새로 눌린 버튼) 즉시 전송 (TCP)
-
-    SendRequest mSendData{};
-	C2S_MovePacket mInputPacket{};
-    C2S_ActionPacket mActionPkt{};
+    // 패킷 헤더에서 타입을 읽어 SendBuffer에 Push
+    template<typename T>
+    void SendPacket(const T& pkt)
+    {
+        SendRequest req{};
+        req.Type = reinterpret_cast<const PacketHeader*>(&pkt)->PacketType;
+        req.SIze = sizeof(T);
+        req.StoreAs(pkt);
+        gSendBuffer.Push(req);
+    }
 
     bool mHasSentGameStart = false;
     bool mPendingGameStart = false;

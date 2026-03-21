@@ -15,7 +15,7 @@ public:
 
 	void SetPath(const std::string& path) { mPath = path; }
 
-
+	vector<Vertex>& GetVertexBuffer() { return mVertexBuffer; }
 private:
 	vector<uint32>					mIndexBuffer;
 	vector<Vertex>					mVertexBuffer;

@@ -240,7 +240,7 @@ void RenderSystem::PassUpdate()
             auto* player = mWorld->GetComponent<MainPlayerComponent>(e);
 
             int state = player->mStatePacket;
-            enableBlur = (state == S_Land);
+            enableBlur = (state == S_Dash);
 			std::cout << "state: " << (int)state << " | enableBlur: " << enableBlur << std::endl;
             break;
         }

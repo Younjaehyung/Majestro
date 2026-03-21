@@ -10,9 +10,9 @@ BoxColliderComponent::BoxColliderComponent()
 
 BoxColliderComponent::BoxColliderComponent(BoundingOrientedBox obb, Matrix matrix)
 {
-
-	obb.BoundingOrientedBox::Transform(mLocalOBB, matrix);
+	// obb을 로컬 OBB로 저장하고, worldMatrix로 mWorldOBB를 즉시 계산
 	mLocalOBB = obb;
+	obb.BoundingOrientedBox::Transform(mWorldOBB, matrix);
 }
 
 BoxColliderComponent::BoxColliderComponent(Vec3 half, Vec3 center)

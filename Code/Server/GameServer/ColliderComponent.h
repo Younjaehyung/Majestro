@@ -7,7 +7,7 @@ class BoxColliderComponent : public Component<BoxColliderComponent>
 {
 public:
     BoxColliderComponent();
-	BoxColliderComponent(BoundingOrientedBox obb) : mLocalOBB(obb) {}
+	BoxColliderComponent(BoundingOrientedBox obb) : mWorldOBB(obb) {}
     BoxColliderComponent(BoundingOrientedBox obb, Matrix matrix);
     BoxColliderComponent(Vec3 half) : mHalfExtents(half) { RebuildLocalOBB(); }
     BoxColliderComponent(Vec3 half, Vec3 center);
@@ -29,7 +29,7 @@ public:
     bool bNoDepth = false; // true면 항상 보이게(Depth Test X)
 
     bool bIsColliding = false;
-
+	bool bIsInitialized = false;
     BoundingOrientedBox mLocalOBB{};
     BoundingOrientedBox mWorldOBB{};
 };

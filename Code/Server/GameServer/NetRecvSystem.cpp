@@ -35,6 +35,16 @@ void NetRecvSystem::Update(float dt)
 				}
 				break;
 			}
+			case PKT_Type::C2S_PKT_ACTION:
+			{
+				const C2S_ActionPacket* inputFrame = mInputCommand.ViewAs<C2S_ActionPacket>();
+				if (inputFrame)
+				{
+					
+					RecvAction(mInputCommand.SessionId, *inputFrame);
+				}
+				break;
+			}
 			case PKT_Type::C2S_PKT_LOGIN:
 			{
 				//LoginProcess(mInputCommand);
@@ -63,6 +73,35 @@ void NetRecvSystem::Update(float dt)
 	}
 }
 
+void NetRecvSystem::RecvAction(uint32 sessionId, const C2S_ActionPacket& inputFrame)
+{
+	if (!mWorld->HasComponentPool<InputComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	auto view = mWorld->GetEntitiesWithComponent<InputComponent>();
+	for (auto entity : view)
+	{
+		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(entity);
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (inputComp == nullptr || netComp == nullptr)
+			continue;
+
+		if (netComp->mSessionId == sessionId)
+		{
+			//std::cout << "[NetRecvSystem] C2S_PKT_MOVE received from SessionID: " << mInputCommand.SessionId << std::endl;
+
+			// 중복/역순 입력 방지
+			/*if (inputFrame.Seq <= inputComp->lastSeq)
+				return;*/
+	
+			inputComp->Buttons = inputFrame.Buttons;
+
+
+			break;
+		}
+	}
+}
+
 void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame)
 {
 	if (!mWorld->HasComponentPool<InputComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
@@ -86,7 +125,7 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame
 			inputComp->MoveX = inputFrame.MoveX;
 			inputComp->MoveY = inputFrame.MoveY;
 			inputComp->MoveZ = inputFrame.MoveZ;
-			inputComp->Buttons = inputFrame.Buttons;
+			//inputComp->Buttons = inputFrame.Buttons;
 			inputComp->Yaw = inputFrame.Yaw;
 			inputComp->Pitch = inputFrame.Pitch;
 			inputComp->lastSeq = inputFrame.Seq;

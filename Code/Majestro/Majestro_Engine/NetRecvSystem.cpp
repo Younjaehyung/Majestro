@@ -144,9 +144,9 @@ void NetRecvSystem::HandleMove(const InputCommand& msg)
 #ifdef _DEBUG
         static double sLastRecvTime = 0.0;
         const double now = static_cast<double>(TIMER.GetTotalTime());
-        std::cout << "[MOVE] interval=" << (now - sLastRecvTime) * 1000.0 << "ms"
+       /* std::cout << "[MOVE] interval=" << (now - sLastRecvTime) * 1000.0 << "ms"
                   << " bufSize=" << netTransform->mBuffer.size()
-                  << " interpDelayTicks=" << netTransform->mInterpDelayTicksF << std::endl;
+                  << " interpDelayTicks=" << netTransform->mInterpDelayTicksF << std::endl;*/
         sLastRecvTime = now;
 #endif
     }

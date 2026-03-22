@@ -147,7 +147,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 		break;
 	case 1:
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 100, 10);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 		
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");

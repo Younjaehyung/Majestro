@@ -3,7 +3,30 @@
 #include <cstdint>
 #include "Entity.h"
 
-enum class SkillType : uint8;
+enum class SkillType : uint8
+{
+    Default = 0,
+    BaseAttack,
+    BaseSkill1,
+    BaseSkill2,
+    BaseSkill3,
+
+    GuitarAttack,
+    GuitarSkill1,
+    GuitarSkill2,
+    GuitarSkill3,
+
+    DrumAttack,
+    DrumSkill1,
+    DrumSkill2,
+    DrumSkill3,
+
+    GuitarAttack_1,
+    GuitarAttack_2,
+    GuitarAttack_3,
+    Max
+};
+
 enum class EffectSpawnReason : uint8
 {
     Fire = 0,
@@ -66,10 +89,10 @@ struct EvEffectSpawn
     EffectSpawnReason reason = EffectSpawnReason::Fire;
 };
 
-struct EvBuffBulletRequest
+struct EvBuffRequest
 {
-    Entity shooter;
-    SkillType bulletType;
+    Entity target;
+    SkillType skillType;
 };
 
 struct EvRangedAttackRequest
@@ -84,4 +107,4 @@ struct EvMeleeAttackRequest
     SkillType bulletType;
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvEffectSpawn, EvBuffBulletRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;

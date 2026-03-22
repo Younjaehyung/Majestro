@@ -19,6 +19,7 @@
 #include "BulletComponent.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "BuffComponent.h"
 #include "World.h"
 
 
@@ -74,20 +75,21 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
   switch (playerType) {
   case 0:
-	  world->AddComponent<ArmorComponent>(mEntityID, 150, 150);
-	  world->AddComponent<HealthComponent>(mEntityID, 200, 0);
+	  world->AddComponent<HealthComponent>(mEntityID, 150, 150);
+	  world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 	  break;
   case 1:
-	  world->AddComponent<ArmorComponent>(mEntityID, 100, 100);
-	  world->AddComponent<HealthComponent>(mEntityID, 50, 0);
+	  world->AddComponent<HealthComponent>(mEntityID, 100, 10);
+	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
   case 2:
-	  world->AddComponent<ArmorComponent>(mEntityID, 125, 125);
-	  world->AddComponent<HealthComponent>(mEntityID, 50, 0);
+	  world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
   }
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
+  world->AddComponent<BuffComponent>(mEntityID, t);
   world->AddComponent<MainPlayerComponent>(mEntityID,
                                            "../Resources/Json/TestJson.json", playerType);
   world->AddComponent<TransformComponent>(mEntityID, t);

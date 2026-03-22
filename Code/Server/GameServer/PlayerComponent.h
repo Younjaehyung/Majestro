@@ -128,7 +128,7 @@ public:
 
 	float mSpeed = 0.0f;
 
-	float mJumpPower = 60.f;
+	float mJumpPower = 360.f;
 	bool mFalling = false;
 	bool mDash = false;
 

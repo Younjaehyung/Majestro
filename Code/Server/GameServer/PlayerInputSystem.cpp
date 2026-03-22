@@ -40,7 +40,8 @@ namespace
 
 		
 		case SkillType::DrumSkill2:
-			eventManager.Enqueue<EvBuffBulletRequest>({ shooter, bulletType });
+		case SkillType::DrumSkill3:
+			eventManager.Enqueue<EvBuffRequest>({ shooter, bulletType });
 			return true;
 
 		case SkillType::Default:
@@ -249,10 +250,8 @@ void PlayerInputSystem::Update(float dt)
 		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
 			//std::cout << "reroad" << std::endl;
 			if (mainPlayerComponent->mNextReloadTime <= now) {
-				
-					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				
+				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
+				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 				mainPlayerComponent->mNextReloadTime = now + Beat * mainPlayerComponent->mReloadCool;
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReloadState::Instance());
 			}

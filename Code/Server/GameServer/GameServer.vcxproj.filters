@@ -390,6 +390,9 @@
     <ClInclude Include="BuffComponent.h">
       <Filter>Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="GameTimer.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

@@ -1,17 +1,18 @@
 #include "pch.h"
 #include "BeatSystem.h"
 #include "BeatComponent.h"
-#include "TimeUtils.h"
+
 #include "PlayerComponent.h"
 #include "ArmorComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "BuffComponent.h"
+#include "GameTimer.h"
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
 	mBpmSeconds = 60.f / (float)mBpm;
-	GetSteadyTimeSeconds();
+	
 }
 
 void BeatSystem::Initialize()
@@ -108,7 +109,7 @@ void BeatSystem::ApplyPendingBuffRequests()
 			if (buffComponent == nullptr)
 				continue;
 
-			const float now = GetSteadyTimeSeconds();
+			const float now = GetServerTotalTimeSeconds();
 
 			BuffData buff;
 			buff.mKind = EffectKind::Buff;

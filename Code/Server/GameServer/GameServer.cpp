@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <iostream>
 #include "CorePch.h"
-#include "Timer.h"
+#include "GameTimer.h"
 #include "ServerCore.h"
 #include "GameCore.h"
 

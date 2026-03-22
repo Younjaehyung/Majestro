@@ -16,8 +16,9 @@
 #include "BulletComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
-#include "TimeUtils.h"
 #include "BeatSystem.h"
+#include "GameTimer.h"
+
 
 namespace
 {
@@ -184,7 +185,7 @@ void PlayerInputSystem::Update(float dt)
 		auto* beatSystem = systemManager->GetSystem<BeatSystem>();
 		
 		const float Beat = beatSystem->mBpmSeconds;
-		const float now = GetSteadyTimeSeconds();
+		const float now = GetServerTotalTimeSeconds();
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
 			std::cout << "attack!!!" << std::endl;

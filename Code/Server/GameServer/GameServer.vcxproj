@@ -256,6 +256,7 @@
     <ClInclude Include="FBX.h" />
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GameEvents.h" />
+    <ClInclude Include="GameTimer.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="HeightField.h" />

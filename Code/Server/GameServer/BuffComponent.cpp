@@ -1,55 +1,37 @@
-#pragma once
-#include "pch.h"
-#include "Component.h"
-#include "TimeUtils.h"
-#include <algorithm>
+#include "BuffComponent.h"
 
-enum class EffectKind
+BuffData* BuffComponent::FindBuff(BuffType type)
 {
-    Buff,
-    Debuff
-};
+    auto it = std::find_if(mBuffs.begin(), mBuffs.end(), [type](const BuffData& buff)
+    {
+        return buff.mType == type;
+    });
+    return (it == mBuffs.end()) ? nullptr : &(*it);
+}
 
-enum class DurationPolicy
+BuffData& BuffComponent::AddOrRefresh(const BuffData& buff)
 {
-    UntilSignal,
-    Timed,
-};
 
-enum class BuffExecutionType
+    if (BuffData* existing = FindBuff(buff.mType))
+    {
+        *existing = buff;
+        return *existing;
+    }
+
+    mBuffs.push_back(buff);
+    return mBuffs.back();
+}
+
+bool BuffComponent::RemoveBuff(BuffType type)
 {
-    Persistent, // 존재하는 동안 계속 적용
-    Periodic    // 특정 간격마다 이벤트 발생
-};
+    const auto previousEnd = std::remove_if(mBuffs.begin(), mBuffs.end(), [type](const BuffData& buff)
+        {
+            return buff.mType == type;
+        });
 
+    if (previousEnd == mBuffs.end())
+    return false;
 
-enum class BuffType
-{
-    AttackUp,
-    MoveSpeedUp,
-    ShieldOverTime,
-    HealOverTime,
-    //de buff
-    ShieldDown
-};
-struct BuffData
-{
-    EffectKind mKind = EffectKind::Buff;
-    BuffType mType = BuffType::AttackUp;
-    DurationPolicy mDurationPolicy = DurationPolicy::Timed; //종료 신호까지 영구 지속, 시간적용
-    BuffExecutionType mExecutionType = BuffExecutionType::Persistent; // 수정사항: 지속형 / 틱형 구분
-
-    float mEndTime = 0.0f;
-
-    float mTickInterval = 0.0f;
-    float mNextTriggerTime = 0.0f;
-
-};
-
-class BuffComponent : public Component<BuffComponent>
-{
-public:
-    BuffComponent() = default;
-    
-    std::vector<BuffData> mBuffs;
-};
+    mBuffs.erase(previousEnd, mBuffs.end());
+    return true;
+}

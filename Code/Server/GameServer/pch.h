@@ -12,6 +12,7 @@
 #endif
 
 #include "CorePch.h"
+#include "GameTimer.h"
 
 #include "SimpleMath.h"
 #include <DirectXMath.h>

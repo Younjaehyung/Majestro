@@ -7,7 +7,7 @@
 using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
-#include "TimeUtils.h"
+#include "GameTimer.h"
 
 BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
@@ -169,7 +169,7 @@ void MainPlayerComponent::StateCheck()
 {
     if (mSpeed < 1.f)ClearFlag(mFlags, FLAG_MOVE);
     if (mDash) {
-        if (mDashEnd <= GetSteadyTimeSeconds()) {
+        if (mDashEnd <= GetServerTotalTimeSeconds()) {
             mDash = false;
             //dash end
             if (mPlayerType == 0) {
@@ -592,7 +592,7 @@ void DashState::Enter(MainPlayerComponent* owner)
 {
     if (not owner->mDash) {
         owner->mDash = true;
-        owner->mDashEnd = GetSteadyTimeSeconds() + owner->mDashTime;
+        owner->mDashEnd = GetServerTotalTimeSeconds() + owner->mDashTime;
     }
     StateEnter(this, owner);
 }

@@ -395,11 +395,11 @@
     <ClInclude Include="NavMeshLoader.h">
       <Filter>Resource</Filter>
     </ClInclude>
-    <ClInclude Include="GameMode.h">
-      <Filter>Script</Filter>
-    </ClInclude>
     <ClInclude Include="GameTimer.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMode.h">
+      <Filter>Script</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

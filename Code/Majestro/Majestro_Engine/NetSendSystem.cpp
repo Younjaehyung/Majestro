@@ -55,29 +55,8 @@ void NetSendSystem::Update(float deltaTime)
 
 
 
-
-void NetSendSystem::QueueGameStart()
-{
-	mPendingGameStart = true;
-	mHasSentGameStart = false;
-}
-
-void NetSendSystem::SendSceneChange(SceneId targetScene)
-{
-	if (targetScene == SceneId::Game)
-	{
-		gEngine->GetSceneManager().QueueLoadingScene(L"게임 시작 대기 중...", LoadingVisualType::GameStart);
-		UpdateCachedPlayerType();
-		gEngine->GetSceneManager().StorePendingPlayerType(mCachedPlayerType);
-	}
-
-	SendPacket(C2S_SceneChangePacket(targetScene));
-}
-
 void NetSendSystem::TrySendGameStart()
 {
-	if (!mPendingGameStart || mHasSentGameStart)
-		return;
 
 	UpdateCachedPlayerType();
 
@@ -91,8 +70,7 @@ void NetSendSystem::TrySendGameStart()
 	startPacket.SessionId   = clientId;
 
 	SendPacket(startPacket);
-	mHasSentGameStart = true;
-	mPendingGameStart = false;
+
 }
 
 
@@ -159,17 +137,10 @@ void NetSendSystem::TrySendMovement()
 
 void NetSendSystem::TrySendScene()
 {
-	if (INPUT.GetKeyDown(eKeyCode::G))
-	{
-		cout << "\ngame\n" << endl;
-		SendSceneChange(SceneId::Game);
-	}
-
-	if (INPUT.GetKeyDown(eKeyCode::L))
-	{
-		cout << "\nloby\n" << endl;
-		SendSceneChange(SceneId::Lobby);
-	}
+	mWorld->GetEventManager()->Consume<EvNetSceneChange>([this](const EvNetSceneChange& e) {
+		UpdateCachedPlayerType();
+		SendPacket(C2S_SceneChangePacket(e.targetScene));
+	});
 }
 
 

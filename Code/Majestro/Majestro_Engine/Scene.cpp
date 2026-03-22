@@ -29,13 +29,33 @@
 #include "AudioVisualizerComponent.h"
 #include "Prefab.h"
 
+#include "RenderSystem.h"
+#include "CameraSystem.h"
+#include "AudioSystem.h"
+#include "TransformSystem.h"
+#include "AnimationSystem.h"
+#include "PlayerSystem.h"
+#include "UIRenderSystem.h"
+#include "UIUpdateSystem.h"
+#include "IMGUISystem.h"
+#include "BeatSystem.h"
+#include "MovementSystem.h"
 
-//#include "Camera.h"
-//
-//#include "ConstantBuffer.h"
-//#include "Light.h"
-//#include "Resources.h"
+#include "NetRecvSystem.h"
+#include "NetSendSystem.h"
+#include "PlayerInputSystem.h"
+#include "EnemySystem.h"
+#include "CollisionSystem.h"
+#include "NetInterpolationSystem.h"
+#include "AudioVisualizerSystem.h"
+#include "InputManager.h"
+#include "GameMode.h"
 
+
+Scene::Scene()
+{
+
+}
 
 void Scene::Initialize()
 {
@@ -44,12 +64,15 @@ void Scene::Initialize()
 
 void Scene::Update(float deltaTime)
 {
-	//mWorld->Update(deltaTime);
+	std::cerr << "Scene Update: " << (int32)mSceneId;
+	mGameMode->PreUpdate(deltaTime);
+	mWorld->Update(deltaTime);
+	mGameMode->PostUpdate(deltaTime);
 }
 
 void Scene::Render()
 {
-	//mWorld->Render();
+	mWorld->Render();
 }
 
 void Scene::Shudown()
@@ -58,10 +81,193 @@ void Scene::Shudown()
 
 }
 
+void Scene::LoadJsonLevel(const wstring& path)
+{
+
+	int i = 0;
+	try
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+
+		for (const auto& inst : level.instances)
+		{
+			// 파일명만 추출
+			std::string name = filesystem::path(inst.fbx).filename().stem().string();
+			name = "..\\Resources\\Map\\" + name + ".fbx";
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
+
+			if (!data)
+			{
+				std::cerr << "FBX load failed (null data): " << name << "\n";
+				break;
+			}
+			else if (data->GetMaterials().empty()) {
+				std::cerr << "FBX load failed Material (null data): " << name << "\n";
+				continue;
+			}
+			else if (data->GetMeshs().empty()) {
+				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				continue;
+			}
+
+			Entity entity = mWorld->CreateEntity();
+			TransformComponent transform{};
+			transform.mWorldMatrix = inst.worldMtx;
+
+			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+			trans.mIsStatic = true;
+
+			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+
+			//for (const auto& mat : data->GetMaterials()) {
+			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
+			//}
+			render.mMaterials = data->GetMaterials();
+			render.mCheckFrustum = false;
+			render.mMesh = data->GetMeshs().at(0);
+			i++;
+			/*		if (i == 550)
+						break;*/
+						/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+							data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
+
+
+						mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
+			*/
+
+
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Load failed: " << e.what() << "\n";
+	}
+}
+
+void Scene::LoadCollisionJson(const wstring& path)
+{
+	int i = 0;
+	try
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+
+		for (const auto& inst : level.instances)
+		{
+			if (std::string::npos != inst.fbx.find("CRX_Sphere")) {
+				std::cout << "A" << std::endl;
+			}
+
+			if (std::string::npos == inst.fbx.find("CRX_Cube"))
+				continue;
+
+
+			// 파일명만 추출
+			shared_ptr<Mesh> data = RESOURCEMANAGER.LoadMCubeMesh();
+			//BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
+
+
+			Entity entity = mWorld->CreateEntity();
+			TransformComponent transform{};
+			transform.mWorldMatrix = inst.worldMtx;
+
+			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+			trans.mIsStatic = true;
+
+
+#ifdef _DEBUG
+			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+			std::vector<std::shared_ptr<Material>> materials;
+			materials.push_back(RESOURCEMANAGER.Get<Material>(L"Skybox"));
+			render.mMaterials = materials;
+			render.mCheckFrustum = false;
+			render.mMesh = data;
+#endif
+
+
+			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+				obb, transform.mWorldMatrix);*/
+
+
+				//mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
+			++i;
+			std::cout << i << std::endl;
+
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Load failed: " << e.what() << "\n";
+	}
+}
+
+void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
+{
+	if (gameMode) {
+		mGameMode = gameMode;
+
+		mGameMode->SetScene(shared_from_this()); // GameMode에 씬 참조 전달
+	}
+	
+}
+
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+
+void MainMenuScene::Initialize()
+{
+	mWorld->SetSceneId(mSceneId);
+	//PlayerPrefab player{mWorld.get()};
+	PrefabFactory::RegisterAllPrefabs();
+	TerrainPrefab terrain{ mWorld.get() };
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
+// 
+	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+
+
+	/////////////////////////////////////////////////////////////////////////
+	{
+		Entity testCamera = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = { -7944.051237f,  1880.474238f, -13680.832254f };
+		t.mLocalRotationE = { -3.400000f, -81.999999f, 0.f };
+		mWorld->AddComponent<MainCameraComponent>(testCamera);
+		mWorld->AddComponent<CameraComponent>(testCamera);
+		mWorld->AddComponent<TransformComponent>(testCamera, t);
+	}
+
+	mWorld->Initialize();
+
+
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+
+	mSceneId = SceneId::MainMenu;
+
+}
+
+
+
+
+
 void LobbyScene::Initialize()
 {
 	//PlayerPrefab player{mWorld.get()};
-	mWorld->SetSceneId(SceneId::Lobby);
+	mWorld->SetSceneId(mSceneId);
 	PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
@@ -249,6 +455,28 @@ void LobbyScene::Initialize()
 
 
 	mWorld->Initialize();
+
+	// INPUT
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+
+	// NETWORK
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+
+
 	//{
 	//	AUDIOMANAGER.InitSpectrumDSP(4096 * 4);
 
@@ -294,22 +522,12 @@ void LobbyScene::Initialize()
 	}
 }
 
-void LobbyScene::Update(float deltaTime)
-{
-	mWorld->Update(deltaTime);
-}
-
-void LobbyScene::Render()
-{
-	mWorld->Render();
-}
-
 
 /// //////////////////////////////////////////////////////////////////////////////////
 void LoadingScene::Initialize()
 {
-	const bool isGameLoading = (gEngine->GetSceneManager().GetLoadingVisualType() == LoadingVisualType::GameStart);
-	mWorld->SetSceneId(isGameLoading ? SceneId::Game : SceneId::Lobby);
+	
+	mWorld->SetSceneId(mSceneId);
 	//PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
@@ -334,17 +552,17 @@ void LoadingScene::Initialize()
 		tr.mPivot = Vec2(0.f, 0.f);
 
 		shared_ptr<Material> loadingMaterial = nullptr;
-		switch (gEngine->GetSceneManager().GetLoadingVisualType())
-		{
-		case LoadingVisualType::Startup:
-			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Title_Background");
-			break;
-		case LoadingVisualType::GameStart:
-		default:
-			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
-			break;
-		}
-
+		//switch (gEngine->GetSceneManager().Get)
+		//{
+		//case SceneCommandType::LoadingThenScene:
+		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Title_Background");
+		//	break;
+		//case SceneCommandType::LoadScene:
+		//default:
+		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
+		//	break;
+		//}
+		loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
 		if (loadingMaterial == nullptr)
 			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"HPBAR");
 
@@ -374,16 +592,14 @@ void LoadingScene::Update(float deltaTime)
 	mWorld->Update(deltaTime);
 }
 
-void LoadingScene::Render()
-{
-	mWorld->Render();
-}
-
-
 /// //////////////////////////////////////////////////////////////////////////////////
-void GameScene::Initialize()
+
+
+
+
+void FirstScene::Initialize()
 {
-	mWorld->SetSceneId(SceneId::Game);
+	mWorld->SetSceneId(mSceneId);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };
@@ -419,7 +635,7 @@ void GameScene::Initialize()
 		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 		std::vector<shared_ptr<Material>> materials;
 		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);
 
 	}
 	{
@@ -551,139 +767,231 @@ void GameScene::Initialize()
 
 	mWorld->Initialize();
 
+	// INPUT
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+
+	// NETWORK
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+
 
 }
 
-
-void GameScene::Update(float deltaTime)
+void SecondScene::Initialize()
 {
-	mWorld->Update(deltaTime);
+	mWorld->SetSceneId(mSceneId);
+	//PlayerPrefab player{mWorld.get()};
+	PrefabFactory::RegisterAllPrefabs();
+	TerrainPrefab terrain{ mWorld.get() };
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+	//EnemyPrefab	enemys {mWorld.get() };
+
+// MAP export json load
+// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
+// 
+	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+
+	/////////////////////////////////////////////////////////////////////
+	{
+		Entity vfxEntity = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
+		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
+		vfxComp.mVfx = vfx;
+	}
+	/////////////////////////////////////////////////////////////////////
+	{
+		Entity enityt = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = Vec3(1500.f, 720.f, 0.f);
+		mWorld->AddComponent<TransformComponent>(enityt, t);
+		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(material);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);
+
+	}
+	{
+		/*Entity enityt = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = Vec3(-120.f, 720.f, 0.f);
+		t.mLocalRotationE = Vec3(0.f, 90.f, 0.f);
+			t.mLocalScale = Vec3(15.f, 15.f, 15.f);
+		mWorld->AddComponent<TransformComponent>(enityt, t);
+		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"Cube");
+		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"XYZ0");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(material);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);*/
+
+	}
+
+	{
+		/*Entity enityt = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = Vec3(0.f, 720.f, 0.f);
+		mWorld->AddComponent<TransformComponent>(enityt, t);
+		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rock_04");
+		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"ZUP_Ascii_3dmax_Pivot0");
+		std::vector<shared_ptr<Material>> materials;
+		materials.push_back(material);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);*/
+
+	}
+
+	/////////////////////////////////////////////////////////////////////////
+
+
+
+#pragma region UI
+
+	{
+
+		shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"fire");
+		Entity fire = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UISpriteComponent>(fire, texture,
+			Vec2(64.f, 64.f), 4, 1.f);
+		auto& u = mWorld->AddComponent<UITransformComponent>(fire);
+		u.mAnchor = Anchor::Center;
+		u.mPosition = Vec2(0.f, 0.f);
+		u.mSize = Vec2(64, 64);
+
+	}
+
+	{
+		Entity text = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UITextComponent>(text);
+		t.mText = L"IN GAME";
+	}
+
+	{
+		Entity Aim = mWorld->CreateEntity();
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"jAims");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
+		t.mAnchor = Anchor::Center;
+		t.mPosition = Vec2(-98.f, -64.f);
+		t.mSize = Vec2(196.f, 128.f);
+
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Aim, scorem);
+	}
+
+	{
+		Entity Ibanix_Ammo = mWorld->CreateEntity();
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Ammo");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Ammo);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(212.f, -212.f);
+		t.mSize = Vec2(196.f, 128.f);
+
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
+	}
+
+	{
+		Entity Fanthor_Portrait = mWorld->CreateEntity();
+
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(32.f, -636.f);
+		t.mSize = Vec2(196.f, 196.f);
+
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
+	}
+
+	{
+		Entity Ibanix_Portrait = mWorld->CreateEntity();
+
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Portrait");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Portrait);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(32.f, -424.f);
+		t.mSize = Vec2(196.f, 196.f);
+
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
+	}
+
+	{
+		Entity Rudwig_Portrait = mWorld->CreateEntity();
+
+		shared_ptr<Material> scorem;
+		scorem = RESOURCEMANAGER.Get<Material>(L"Rudwig_Portrait");
+
+		auto& t = mWorld->AddComponent<UITransformComponent>(Rudwig_Portrait);
+		t.mAnchor = Anchor::BottomLeft;
+		t.mPosition = Vec2(32.f, -212.f);
+		t.mSize = Vec2(196.f, 196.f);
+
+		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
+	}
+
+#pragma endregion
+
+	/////////////////////////////////////////////////////////////////////////
+
+
+
+	mWorld->Initialize();
+
+	//// INPUT
+	//mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+
+	//// NETWORK
+	//mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	//mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+
+
+
 }
 
 
-void GameScene::Render()
+void VictoryScene::Initialize()
 {
-	mWorld->Render();
+	mWorld->Initialize();
 }
 
-
-
-void Scene::LoadJsonLevel(const wstring& path)
+void LoseScene::Initialize()
 {
+	mWorld->Initialize();
 
-	int i = 0;
-	try
-	{
-		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
-
-		for (const auto& inst : level.instances)
-		{
-			// 파일명만 추출
-			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\Map\\" + name + ".fbx";
-			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
-
-			if (!data)
-			{
-				std::cerr << "FBX load failed (null data): " << name << "\n";
-				break;
-			}
-			else if (data->GetMaterials().empty()) {
-				std::cerr << "FBX load failed Material (null data): " << name << "\n";
-				continue;
-			}
-			else if (data->GetMeshs().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
-				continue;
-			}
-
-			Entity entity = mWorld->CreateEntity();
-			TransformComponent transform{};
-			transform.mWorldMatrix = inst.worldMtx;
-
-			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
-			trans.mIsStatic = true;
-
-			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
-
-			//for (const auto& mat : data->GetMaterials()) {
-			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
-			//}
-			render.mMaterials = data->GetMaterials();
-			render.mCheckFrustum = false;
-			render.mMesh = data->GetMeshs().at(0);
-			i++;
-	/*		if (i == 550)
-				break;*/
-			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-				data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
-
-
-			mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-*/
-
-
-		}
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Load failed: " << e.what() << "\n";
-	}
 }
-
-void Scene::LoadCollisionJson(const wstring& path)
-{
-	int i = 0;
-	try
-	{
-		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
-
-		for (const auto& inst : level.instances)
-		{
-			if (std::string::npos != inst.fbx.find("CRX_Sphere")) {
-				std::cout << "A" << std::endl;
-			}
-
-			if (std::string::npos== inst.fbx.find("CRX_Cube"))
-				continue;
-
-
-			// 파일명만 추출
-			shared_ptr<Mesh> data = RESOURCEMANAGER.LoadMCubeMesh();
-			//BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
-			
-
-			Entity entity = mWorld->CreateEntity();
-			TransformComponent transform{};
-			transform.mWorldMatrix = inst.worldMtx;
-
-			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
-			trans.mIsStatic = true;
-
-
-#ifdef _DEBUG
-			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
-			std::vector<std::shared_ptr<Material>> materials;
-			materials.push_back(RESOURCEMANAGER.Get<Material>(L"Skybox"));
-			render.mMaterials = materials;
-			render.mCheckFrustum = false;
-			render.mMesh = data;
-#endif
-
-			
-			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-				obb, transform.mWorldMatrix);*/
-
-
-			//mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-			++i;
-			std::cout << i << std::endl;
-
-		}
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Load failed: " << e.what() << "\n";
-	}
-}
-

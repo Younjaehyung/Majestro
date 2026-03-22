@@ -62,12 +62,12 @@ PS_OUT PS_DirLight(VS_OUT input)
     LightColor color = CalculateLightColorPBR(index, viewNormal, viewPos, baseColor, metallic, roughness);
 
 
-    if (length(color.diffuse.rgb) != 0)
-    {
-        float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
-        color.diffuse *= visibility;
-        color.specular *= visibility;
-    }
+    //if (length(color.diffuse.rgb) != 0)
+    //{
+    //    float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
+    //    color.diffuse *= visibility;
+    //    color.specular *= visibility;
+    //}
 
 
     output.diffuse = color.diffuse + color.ambient;

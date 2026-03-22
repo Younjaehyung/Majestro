@@ -21,7 +21,7 @@ public:
 private:
 	//std::vector<Scene*> mScene;
 
-	void LoadScene(wstring sceneName);
+	void LoadScene(SceneId id);
 	bool HandleSceneChange(const InputCommand& command);
 	bool IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const;
 	SceneId GetOrCreateSceneState(uint64 sessionId);
@@ -34,15 +34,18 @@ public:
 	shared_ptr<Scene> GetActiveScene() { return mActiveScene; }
 
 private:
-//	shared_ptr<Scene> LoadTestScene();
-
+	void FactoryScene();	// 전체 씬을 생성하는 함수 (예: 로비 씬, 게임 씬 등)
+	
+	// Scene 전환
+	void TransitionToScene();	// 씬 전환을 처리하는 함수 (예: 로비에서 게임으로, 게임에서 로비로 등)
 private:
-	shared_ptr<Scene> mActiveScene;
 
 	//std::unordered_map<uint64, shared_ptr<Scene>> mScenesBySession;
 	std::unordered_map<uint64, shared_ptr<Scene>> mLobbyScenesBySession;
 	std::unordered_map<uint64, SceneId> mSceneBySession;
-	shared_ptr<Scene> mGameScene;
+
+	std::array<shared_ptr<Scene>, (size_t)SceneId::End> mGameScenes; // 모든 씬을 저장하는 배열
+	shared_ptr<Scene> mActiveScene;
 
 
 	//layer를 양쪽에서 찾을 수 있게 매핑

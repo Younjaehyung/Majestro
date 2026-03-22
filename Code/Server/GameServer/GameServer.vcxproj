@@ -192,6 +192,7 @@
     <ClCompile Include="FBX.cpp" />
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="GameEvents.cpp" />
+    <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
     <ClCompile Include="HeightField.cpp" />
@@ -256,6 +257,7 @@
     <ClInclude Include="FBX.h" />
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GameEvents.h" />
+    <ClInclude Include="GameMode.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="HeightField.h" />

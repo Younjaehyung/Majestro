@@ -2,7 +2,7 @@
 #include "SceneManager.h"
 #include "Scene.h"
 #include "ServerCore.h"
-
+#include "GameMode.h"
 void SceneManager::Initialize()
 {
 	//mActiveScene = make_shared<Scene>();
@@ -10,18 +10,76 @@ void SceneManager::Initialize()
 	//mScenesBySession.clear();
 	mLobbyScenesBySession.clear();
 	mSceneBySession.clear();
-	mGameScene.reset();
+	mActiveScene.reset();
 
+	FactoryScene();
+}
+
+void SceneManager::FactoryScene()
+{
+	{	// LOBBYSCENE
+		shared_ptr<Scene> lobbyScene = make_shared<LobbyScene>();
+		shared_ptr<GameMode> gameMode = make_shared<LobbyGameMode>();
+
+		lobbyScene->Initialize();
+		lobbyScene->SetGameMode(gameMode);
+		mGameScenes[(size_t)SceneId::Lobby]=lobbyScene;
+	}
+
+
+	{	// GAMESCENE
+		shared_ptr<Scene> firstScene = make_shared<FirstScene>();
+		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
+		firstScene->Initialize();
+		firstScene->SetGameMode(gameMode);
+		mGameScenes[(size_t)SceneId::FirstGame] = firstScene;
+		mActiveScene = firstScene;
+	}
+	{
+
+		shared_ptr<Scene> secondScene = make_shared<SecondScene>();
+		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
+		secondScene->Initialize();
+		secondScene->SetGameMode(gameMode);
+		mGameScenes[(size_t)SceneId::SecondGame] = secondScene;
+	}
+
+
+
+	{	// RESULTSCENE
+		shared_ptr<Scene> victoryScene = make_shared<VictoryScene>();
+		shared_ptr<GameMode> gameMode = make_shared<ResultGameMode>();
+		victoryScene->Initialize();
+		victoryScene->SetGameMode(gameMode);
+		mGameScenes[(size_t)SceneId::VGame] = victoryScene;
+	}
+	{
+		shared_ptr<Scene> loseScene = make_shared<LoseScene>();
+		shared_ptr<GameMode> gameMode = make_shared<ResultGameMode>();
+		loseScene->Initialize();
+		loseScene->SetGameMode(gameMode);
+		mGameScenes[(size_t)SceneId::LGame] = loseScene;
+	}
+
+	
+
+}
+
+void SceneManager::TransitionToScene()
+{
+	if (mActiveScene)
+	{
+		shared_ptr<GameMode>& currentGameMode = mActiveScene->GetGameMode();
+		if (currentGameMode && currentGameMode->IsSceneChanging()) {
+			LoadScene(currentGameMode->GetTargetSceneId());
+			currentGameMode->IsSceneChanging() = false;
+		}
+			
+	}
 }
 
 void SceneManager::Update(float deltaTime)
 {
-	/*if (mActiveScene == nullptr)
-		return;
-	mActiveScene->Update(deltaTime);*/
-
-
-	//for (const auto& [sessionId, scene] : mScenesBySession)
 	for (const auto& [sessionId, scene] : mLobbyScenesBySession)
 	{
 		if (scene == nullptr)
@@ -30,24 +88,22 @@ void SceneManager::Update(float deltaTime)
 		scene->Update(deltaTime);
 	}
 
-	if (mGameScene)
+	if (mActiveScene)
 	{
-		mGameScene->Update(deltaTime);
+		mActiveScene->Update(deltaTime);
 	}
 
-
+	TransitionToScene();
 }
 
 
-void SceneManager::LoadScene(wstring sceneName)
+void SceneManager::LoadScene(SceneId id)
 {
-	// TODO : 기존 Scene 정리
-	// TODO : 파일에서 Scene 정보 로드
+	if(mActiveScene)
+		mActiveScene->Release();
 
-	//mActiveScene = LoadTestScene();
-
-	//mActiveScene->Initialize();
-
+	mActiveScene = mGameScenes[(size_t)id];
+	mActiveScene->mIsStarted = true;
 }
 
 void SceneManager::InitializeSession(uint64 sessionId)
@@ -66,15 +122,7 @@ void SceneManager::InitializeSession(uint64 sessionId)
 	mSceneBySession[sessionId] = SceneId::Lobby;
 }
 
-void SceneManager::RemoveSession(uint64 sessionId)
-{
 
-	//mScenesBySession.erase(sessionId);
-	mLobbyScenesBySession.erase(sessionId);
-	mSceneBySession.erase(sessionId);
-
-
-}
 
 void SceneManager::LoadScene(uint64 sessionId, wstring sceneName)
 {
@@ -101,9 +149,9 @@ shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
 		sceneState = stateIt->second;
 	}
 
-	if (sceneState == SceneId::Game)
+	if (sceneState == SceneId::FirstGame)
 	{
-		return mGameScene;
+		return mActiveScene;
 	}
 
 	auto findIt = mLobbyScenesBySession.find(sessionId);
@@ -162,11 +210,11 @@ bool SceneManager::HandleSceneChange(const InputCommand& command)
 	if (isApproved)
 	{
 		mSceneBySession[command.SessionId] = requestedScene;
-		if (requestedScene == SceneId::Game && !mGameScene)
+		if (requestedScene == SceneId::FirstGame && !mActiveScene)
 		{
 			auto scene = make_shared<Scene>();
 			scene->Initialize();
-			mGameScene = std::move(scene);
+			mActiveScene = std::move(scene);
 		}
 		else if (requestedScene == SceneId::Lobby)
 		{
@@ -196,8 +244,8 @@ bool SceneManager::IsSceneChangeAllowed(SceneId currentScene, SceneId requestedS
 	switch (currentScene)
 	{
 	case SceneId::Lobby:
-		return requestedScene == SceneId::Game;
-	case SceneId::Game:
+		return requestedScene == SceneId::FirstGame;
+	case SceneId::FirstGame:
 		return requestedScene == SceneId::Lobby;
 	default:
 		return false;
@@ -224,3 +272,9 @@ uint8 SceneManager::LayerNameToIndex(const wstring& name)
 	return findIt->second;
 }
 
+
+void SceneManager::RemoveSession(uint64 sessionId)
+{
+	mLobbyScenesBySession.erase(sessionId);
+	mSceneBySession.erase(sessionId);
+}

@@ -135,6 +135,8 @@ void UIRenderSystem::CustomSpriteUpdate()
 {
     mInstances.clear();
 
+    if (false == mWorld->HasComponentPool<UICusSpriteComponent>()) return;
+
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<UITransformComponent, UICusSpriteComponent>() };
 
     for (auto& e : entitys)

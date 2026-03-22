@@ -52,12 +52,12 @@ public:
 	NetSendSystem(World* world);
 	virtual ~NetSendSystem() = default;
 	void Update(float deltaTime);
-    void QueueGameStart();
+
 
     void SetCachedPlayerType(uint8 playerType){mCachedPlayerType = playerType;}
 
 public:
-    void SendSceneChange(SceneId targetScene);
+
 private:
     void TrySendGameStart();
     void TrySendMovement();       // 이동 입력 주기 전송 (UDP, 30Hz)
@@ -76,8 +76,6 @@ private:
         gSendBuffer.Push(req);
     }
 
-    bool mHasSentGameStart = false;
-    bool mPendingGameStart = false;
     uint8 mCachedPlayerType = 0;
 
     RateLimiter mMovementRate{ 30.f };  // 이동 입력 30Hz

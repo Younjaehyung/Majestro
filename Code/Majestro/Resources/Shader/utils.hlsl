@@ -568,7 +568,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
 
-    float3 diffuse = (kD * baseColor) / PI;
+    float3 diffuse = (kD * baseColor); // * PI;
 
     // -----------------------------
     // 3) 라이트 색/세기 적용 (너 구조에 맞게 diffuse/specular로 분리)
@@ -579,7 +579,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float3 radianceD = lightDiffuseRGB * distanceRatio;
     float3 radianceS = lightSpecularRGB * distanceRatio;
 
-    float3 outDiffuse = diffuse * radianceD * NdotL * 10.f; // 라이트가 약한 파이프라인이면 이쪽이 편함
+    float3 outDiffuse = diffuse * radianceD * NdotL;/* * 10.f;*/ // 라이트가 약한 파이프라인이면 이쪽이 편함
 
    // float3 outDiffuse  = diffuse  * radianceD * NdotL;
     float3 outSpecular = specular * radianceS * NdotL;

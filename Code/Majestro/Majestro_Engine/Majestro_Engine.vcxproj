@@ -202,6 +202,7 @@
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
     <ClInclude Include="FogPass.h" />
+    <ClInclude Include="GameMode.h" />
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MotionVectorPass.h" />
     <ClInclude Include="MotionBlurPass.h" />
@@ -321,6 +322,7 @@
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ChromaticAberrationPass.cpp" />
     <ClCompile Include="FogPass.cpp" />
+    <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MotionVectorPass.cpp" />
     <ClCompile Include="MotionBlurPass.cpp" />

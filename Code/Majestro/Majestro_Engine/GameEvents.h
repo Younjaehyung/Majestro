@@ -37,4 +37,9 @@ struct EVContact
     // 필요 시 충돌 지점/노말/penetration 등 추가 가능
 };
 
+struct EvNetSceneChange
+{
+    SceneId targetScene;
+};
+
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC>;

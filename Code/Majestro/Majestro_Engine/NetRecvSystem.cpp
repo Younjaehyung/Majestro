@@ -308,9 +308,8 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 void NetRecvSystem::HandleGameStart(const InputCommand& msg)
 {
     cout << "GameStart" << endl;
-    gEngine->GetSceneManager().SetLoadingMessage(L"게임 씬 로딩 중...");
-    gEngine->GetSceneManager().QueueLoadingScene(L"게임 씬 로딩 중...", LoadingVisualType::GameStart);
-    gEngine->GetSceneManager().QueueLoadScene(L"Game");
+    mStopProcessing = true;
+	gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
 }
 
 void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
@@ -331,13 +330,10 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
     switch (mCurrentScene)
     {
     case SceneId::Lobby:
-        gEngine->GetSceneManager().QueueLoadScene(L"Lobby");
+		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Lobby, L"로비 씬 로딩 중...");
         break;
-    case SceneId::Game:
-        gEngine->GetSceneManager().SetLoadingMessage(L"게임 씬 로딩 중...");
-        gEngine->GetSceneManager().QueueLoadingScene(L"게임 씬 로딩 중...", LoadingVisualType::GameStart);
-        gEngine->GetSceneManager().QueueLoadScene(L"Game");
-        gEngine->GetSceneManager().QueueGameStartAfterLoad();
+    case SceneId::FirstGame:
+		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
         break;
     default:
         break;

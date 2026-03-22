@@ -16,7 +16,7 @@ public:
 	void Execute(float dt);
 
 	Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f);
-	Effekseer::Handle    Play(UIVfxComponent* comp);
+	Effekseer::Handle    Play(UIVfxComponent* comp, float screenX, float screenY);
 
 	void LoadResources();
 

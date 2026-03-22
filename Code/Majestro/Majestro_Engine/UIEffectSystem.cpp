@@ -8,6 +8,7 @@
 #include "Timer.h"
 
 #include "UIVfxComponent.h"
+#include "UITransformComponent.h"
 #include "Vfx.h"
 
 UIEffectSystem::UIEffectSystem(World* world) : System::System(world)
@@ -60,11 +61,11 @@ Effekseer::EffectRef UIEffectSystem::LoadEffect(const std::string_view path, flo
 	return Effekseer::Effect::Create(uiManager_, efkPath.c_str(), magnification);
 }
 
-Effekseer::Handle UIEffectSystem::Play(UIVfxComponent* comp)
+Effekseer::Handle UIEffectSystem::Play(UIVfxComponent* comp, float screenX, float screenY)
 {
 	Effekseer::Handle handle = uiManager_->Play(
 		comp->mVfx->mEffect,
-		comp->mScreenX, comp->mScreenY, comp->mScreenZ);
+		screenX, screenY, comp->mScreenZ);
 	comp->mIsPlaying = true;
 	comp->efkHandle  = handle;
 	return handle;
@@ -85,10 +86,19 @@ void UIEffectSystem::Update()
 		UIVfxComponent* comp = mWorld->GetComponent<UIVfxComponent>(e);
 		if (comp == nullptr || comp->mVfx == nullptr) continue;
 
-		// efkHandle == -1 이면 아직 미재생 → Play 호출
-		// 씬에서 mIsPlaying=true로 미리 설정해도 정상 동작
+		// 위치는 UITransformComponent에서만 읽음 — 없으면 렌더 스킵
+		UITransformComponent* tr = mWorld->GetComponent<UITransformComponent>(e);
+		if (!tr) continue;
+
+		float screenX = tr->mFinalPixelPos.x;
+		float screenY = tr->mFinalPixelPos.y;
+
+		// 이미 재생 중인 이펙트 위치 갱신
+		if (comp->efkHandle != -1)
+			uiManager_->SetLocation(comp->efkHandle, { screenX, screenY, comp->mScreenZ });
+
 		if (comp->efkHandle == -1)
-			Play(comp);
+			Play(comp, screenX, screenY);
 	}
 
 	// Manager Update와 SetTime은 프레임당 1회

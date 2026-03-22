@@ -120,9 +120,15 @@ void UIRenderSystem::TextUpdate()
             continue;
 
         textComp->mFont = mDefaultFont;
+        
+		auto posComp = mWorld->GetComponent<UITransformComponent>(a);
+        if(posComp) {
+            textComp->mFontPos = posComp->mFinalPixelPos;
+		}
 
         std::wstring& output = textComp->mText;
         Vec2 origin = mDefaultFont->MeasureString(output.c_str()) / 2.f;
+
 
         mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
             textComp->mFontPos, Colors::White, 30.f, origin);

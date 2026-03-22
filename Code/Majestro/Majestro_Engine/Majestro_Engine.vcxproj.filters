@@ -256,6 +256,12 @@
     <ClInclude Include="UIComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
+    <ClInclude Include="UIButtonComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIButtonSystem.h">
+      <Filter>World\System\UI</Filter>
+    </ClInclude>
     <ClInclude Include="UIUpdateSystem.h">
       <Filter>World\System\UI</Filter>
     </ClInclude>
@@ -314,9 +320,6 @@
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="CameraSystem.h">
-      <Filter>World\System\Logic</Filter>
-    </ClInclude>
-    <ClInclude Include="PlayerSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="TransformSystem.h">
@@ -537,6 +540,9 @@
     <ClInclude Include="GameMode.h">
       <Filter>World\Script</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -610,6 +616,9 @@
     </ClCompile>
     <ClCompile Include="UIComponent.cpp">
       <Filter>World\Component\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButtonSystem.cpp">
+      <Filter>World\System\UI</Filter>
     </ClCompile>
     <ClCompile Include="UIUpdateSystem.cpp">
       <Filter>World\System\UI</Filter>

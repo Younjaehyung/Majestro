@@ -19,6 +19,7 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "UIComponent.h"
+#include "UIVfxComponent.h"
 #include "UITextComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
@@ -50,6 +51,8 @@
 #include "AudioVisualizerSystem.h"
 #include "InputManager.h"
 #include "GameMode.h"
+#include "UIButtonComponent.h"
+#include "UIButtonSystem.h"
 
 
 Scene::Scene()
@@ -244,6 +247,120 @@ void MainMenuScene::Initialize()
 		mWorld->AddComponent<TransformComponent>(testCamera, t);
 	}
 
+	/////////////////////////////////////////////////////////////////////////
+	// 메인메뉴 버튼 UI
+	/////////////////////////////////////////////////////////////////////////
+	{
+		const Vec2  btnSize  = { 320.f, 72.f };
+		const float startX	 =  50.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
+		const float startY   = 0.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
+		const float gap      = 100.f;
+
+		// 버튼 생성 헬퍼 람다
+		auto MakeButton = [&](const wchar_t* name, const wchar_t* label,
+		                      float offsetY, std::function<void()> onClick)
+		{
+			// 버튼별 머티리얼 생성 후 ResourceManager에 등록 (GPU 인덱스 필수)
+			auto mat = RESOURCEMANAGER.Get<Texture>(name);
+
+			Entity e = mWorld->CreateEntity();
+
+			// 위치·크기
+			auto& tr     = mWorld->AddComponent<UITransformComponent>(e);
+			tr.mAnchor   = Anchor::Center;
+			tr.mPosition = Vec2(0.f, offsetY);
+			tr.mSize     = btnSize;
+			tr.mPivot    = Vec2(0.5f, 0.5f);
+			tr.mUILayerIndex = 5;
+
+			// 스프라이트 (색상 박스)
+			mWorld->AddComponent<UISpriteComponent>(e, mat);
+
+			// 텍스트 레이블 (UIButtonSystem이 매 프레임 mFontPos 갱신)
+			auto& txt  = mWorld->AddComponent<UITextComponent>(e);
+			txt.mText  = label;
+
+			// 버튼 컴포넌트
+			auto& btn      = mWorld->AddComponent<UIButtonComponent>(e);
+			btn.mBaseSize  = btnSize;
+			btn.mOnClick   = std::move(onClick);
+
+			// 초기 색상 설정
+			//mat->GetParams().Diffuse = btn.mNormalColor;
+		};
+
+
+		auto MakeVFXButton = [&](const wchar_t* name, const wchar_t* label,
+			Vec2 offset, std::function<void()> onClick)
+			{
+				// 버튼별 머티리얼 생성 후 ResourceManager에 등록 (GPU 인덱스 필수)
+				auto mat = RESOURCEMANAGER.Get<Vfx>(name);
+
+				Entity e = mWorld->CreateEntity();
+
+				// 위치·크기
+				auto& tr = mWorld->AddComponent<UITransformComponent>(e);
+				tr.mAnchor = Anchor::Center;
+				tr.mPosition = offset;
+				tr.mSize = btnSize;
+				tr.mPivot = Vec2(0.5f, 0.5f);
+				tr.mUILayerIndex = 5;
+
+				// 스프라이트 (색상 박스)
+				mWorld->AddComponent<UIVfxComponent>(e, mat, true, 100.f);
+
+				// 텍스트 레이블 (UIButtonSystem이 매 프레임 mFontPos 갱신)
+				auto& txt = mWorld->AddComponent<UITextComponent>(e);
+				txt.mText = label;
+
+				// 버튼 컴포넌트
+				auto& btn = mWorld->AddComponent<UIButtonComponent>(e);
+				btn.mBaseSize = btnSize;
+				btn.mOnClick = std::move(onClick);
+
+				// 초기 색상 설정
+				//mat->GetParams().Diffuse = btn.mNormalColor;
+			};
+
+		// ── 게임 시작 ──
+		MakeVFXButton(L"UI_TItle", L"GAMESTART", Vec2(startX,startY), []()
+		{
+			gEngine->GetSceneManager().RequestScene(SceneId::Lobby);
+		});
+
+		// ── 설정 (미구현 플레이스홀더) ──
+		MakeVFXButton(L"UI_TItle", L"SETTING", Vec2(startX, startY + gap), []()
+		{
+			// TODO: 설정 씬 또는 팝업 구현 후 연결
+		});
+
+		// ── 나가기 ──
+		MakeVFXButton(L"UI_TItle", L"EXIT", Vec2(startX, startY +gap * 2.f), []()
+		{
+			PostQuitMessage(0);
+		});
+	}
+
+
+	//-- -
+	//	UIVfxComponent 사용 방법
+	//	위치는 반드시 UITransformComponent로 설정해야 함
+	//
+	//	auto& tr = mWorld->AddComponent<UITransformComponent>(e);
+	//	tr.mAnchor   = Anchor::Center;
+	//	tr.mPosition = Vec2(0.f, -60.f);
+	//	tr.mSize     = Vec2(300.f, 80.f);  // 히트테스트 영역 (버튼이면)
+	//	tr.mPivot    = Vec2(0.5f, 0.5f);
+	//
+	//	auto& vfx = mWorld->AddComponent<UIVfxComponent>(e);
+	//	vfx.mVfx    = RESOURCEMANAGER.Get<Vfx>(L"MenuEffect");
+	//	vfx.mIsLoop = true;
+	//
+	//	// 버튼 인터랙션이 필요하면 UIButtonComponent 추가
+	//	auto& btn = mWorld->AddComponent<UIButtonComponent>(e);
+	//	btn.mBaseSize = tr.mSize;
+	//	btn.mOnClick = []() { gEngine->GetSceneManager().RequestScene(SceneId::Lobby); };
+
 	mWorld->Initialize();
 
 
@@ -252,6 +369,7 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();

@@ -18,9 +18,12 @@ public:
 	virtual void Enter() { mIsStarted = true; }
 	virtual void Exit() { mIsStarted = false; }
 
+	
+
 	void LoadJsonLevel(const wstring& path);
 	void LoadCollisionJson(const wstring& path);
 	const shared_ptr<World>& GetWorld() { return mWorld; }
+
 
 	void SetGameMode(shared_ptr<GameMode>& gameMode);
 	shared_ptr<GameMode>& GetGameMode() { return mGameMode; }
@@ -47,7 +50,8 @@ class MainMenuScene : public Scene
 public:
 	MainMenuScene() { mSceneId = SceneId::MainMenu; }
 	void Initialize() override;
-
+	
+	
 };
 
 class LobbyScene : public Scene

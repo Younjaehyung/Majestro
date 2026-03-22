@@ -7,6 +7,7 @@
 #include "RenderManager.h"
 
 #include "UIVfxComponent.h"
+#include "UITransformComponent.h"
 #include "Vfx.h"
 
 UIEffectPass::~UIEffectPass()
@@ -55,11 +56,11 @@ Effekseer::EffectRef UIEffectPass::LoadEffect(const std::string_view path, float
 	return Effekseer::Effect::Create(mManager, efkPath.c_str(), magnification);
 }
 
-Effekseer::Handle UIEffectPass::Play(UIVfxComponent* comp)
+Effekseer::Handle UIEffectPass::Play(UIVfxComponent* comp, float screenX, float screenY)
 {
 	Effekseer::Handle handle = mManager->Play(
 		comp->mVfx->mEffect,
-		comp->mScreenX, comp->mScreenY, comp->mScreenZ);
+		screenX, screenY, comp->mScreenZ);
 	comp->mIsPlaying = true;
 	comp->efkHandle  = handle;
 	return handle;
@@ -73,19 +74,29 @@ void UIEffectPass::Execute(float dt)
 	for (auto& e : mWorld->GetEntitiesWithComponent<UIVfxComponent>())
 	{
 		UIVfxComponent* comp = mWorld->GetComponent<UIVfxComponent>(e);
-		if (comp == nullptr || comp->mVfx == nullptr) continue;
+		if (comp == nullptr || comp->mVfx == nullptr || comp->mVfx->mEffect == nullptr) continue;
+
+		// 위치는 UITransformComponent에서만 읽음 — 없으면 렌더 스킵
+		UITransformComponent* tr = mWorld->GetComponent<UITransformComponent>(e);
+		if (!tr) continue;
+
+		float screenX = tr->mFinalPixelPos.x;
+		float screenY = tr->mFinalPixelPos.y;
+
+		if (comp->efkHandle != -1)
+			mManager->SetLocation(comp->efkHandle, { screenX, screenY, comp->mScreenZ });
 
 		if (!comp->mIsPlaying)
-			Play(comp);
+			Play(comp, screenX, screenY);
 		else if (comp->mIsLoop && !comp->mIsPaused && !mManager->Exists(comp->efkHandle))
 		{
 			comp->mIsPlaying = false;
 			comp->mTotalTime = 0.f;
-			Play(comp);
+			Play(comp, screenX, screenY);
 		}
 
 		mManager->SetPaused(comp->efkHandle, comp->mIsPaused);
-		mManager->SetScale(comp->efkHandle, comp->mScale, comp->mScale, comp->mScale);
+		mManager->SetScale(comp->efkHandle, comp->mScale, comp->mScale, 1.0f);
 
 		if (!comp->mIsPaused)
 			comp->mTotalTime += dt;
@@ -128,11 +139,11 @@ Effekseer::Matrix44 UIEffectPass::BuildOrthoProjection()
 	float W = static_cast<float>(window.Width);
 	float H = static_cast<float>(window.Height);
 
-	// Y 반전 없음 → Effekseer +Y = 화면 위
-	// 위치 지정 시 mScreenY = (H - pixelY) 로 변환해서 사용
+	// Y 반전 → 픽셀 좌표(Y+=화면아래)를 NDC(Y+=화면위)로 변환
+	// UIEffectSystem.BuildOrthoProjection()과 동일 축 방향
 	Effekseer::Matrix44 ortho{};
 	ortho.Values[0][0] =  2.f / W;
-	ortho.Values[1][1] =  2.f / H;
+	ortho.Values[1][1] = 2.f / H;
 	ortho.Values[2][2] =  1.f;
 	ortho.Values[3][0] = -1.f;
 	ortho.Values[3][1] = -1.f;
@@ -142,5 +153,13 @@ Effekseer::Matrix44 UIEffectPass::BuildOrthoProjection()
 
 void UIEffectPass::LoadResources()
 {
-	// UIVfx 전용 리소스가 별도로 있다면 여기서 로드
+	// UI 렌더러 Manager로 모든 Vfx 이펙트를 로드
+	// (EffectPass가 3D 렌더러로 로드한 mEffect를 UI 렌더러 버전으로 덮어씀)
+	auto& resources = RESOURCEMANAGER.GetAllResources<Vfx>();
+	for (auto& res : resources)
+	{
+		shared_ptr<Vfx> effect = static_pointer_cast<Vfx>(res.second);
+		if (effect && !effect->mEffectPath.empty())
+			effect->mEffect = LoadEffect(ws2s(effect->mEffectPath));
+	}
 }

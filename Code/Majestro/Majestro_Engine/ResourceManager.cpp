@@ -1774,6 +1774,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 
 	LoadNavMesh(L"..\\Resources\\Map\\all_tiles_navmesh.bin");
 

@@ -35,6 +35,6 @@ float4 PS_Final(VS_OUT input) : SV_Target
 
 
     
-    output = (color * lightPower) * specular.a;
+    output = (color * lightPower) + specular;
     return output;
 }

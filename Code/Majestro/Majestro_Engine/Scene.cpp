@@ -252,8 +252,8 @@ void MainMenuScene::Initialize()
 	/////////////////////////////////////////////////////////////////////////
 	{
 		const Vec2  btnSize  = { 320.f, 72.f };
-		const float startX	 =  50.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
-		const float startY   = 0.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
+		const float startX	 =  850.f;   // 화면 중앙 기준 X 오프셋 (위쪽 버튼)
+		const float startY   =  270.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
 		const float gap      = 100.f;
 
 		// 버튼 생성 헬퍼 람다
@@ -317,28 +317,58 @@ void MainMenuScene::Initialize()
 				auto& btn = mWorld->AddComponent<UIButtonComponent>(e);
 				btn.mBaseSize = btnSize;
 				btn.mOnClick = std::move(onClick);
+				btn.mVfxNormalScale = 100.f;
+				btn.mVfxHoveredScale = 115.f;
+				btn.mVfxPressedScale = 90.f;
 
 				// 초기 색상 설정
 				//mat->GetParams().Diffuse = btn.mNormalColor;
+
+				return e;
 			};
 
 		// ── 게임 시작 ──
-		MakeVFXButton(L"UI_TItle", L"GAMESTART", Vec2(startX,startY), []()
+		Entity e1 = MakeVFXButton(L"UI_TItle", L"GAMESTART", Vec2(startX,startY), [&]()
 		{
-			gEngine->GetSceneManager().RequestScene(SceneId::Lobby);
+				Network::GetInstance().Awake();
+				mGameMode->mTargetSceneId = SceneId::Lobby;
+				mGameMode->IsSceneChanging() = true;
 		});
 
+#ifdef _IMGUI
+
+		
+		UITransformComponent* vis = mWorld->GetComponent<UITransformComponent>(e1);
+		std::vector<EditorProperty> props;
+		props.push_back({ "Base Position1",  PropertyType::Vec2,  &(vis->mPosition),  0.f,    0.f });
+		
+#endif
+
 		// ── 설정 (미구현 플레이스홀더) ──
-		MakeVFXButton(L"UI_TItle", L"SETTING", Vec2(startX, startY + gap), []()
+		Entity e2 = MakeVFXButton(L"UI_TItle", L"SETTING", Vec2(startX, startY + gap), []()
 		{
 			// TODO: 설정 씬 또는 팝업 구현 후 연결
 		});
 
+#ifdef _IMGUI
+
+		vis = mWorld->GetComponent<UITransformComponent>(e2);
+		props.push_back({ "Base Position2",  PropertyType::Vec2,  &(vis->mPosition),  0.f,    0.f });
+#endif
+
 		// ── 나가기 ──
-		MakeVFXButton(L"UI_TItle", L"EXIT", Vec2(startX, startY +gap * 2.f), []()
+		Entity e3 = MakeVFXButton(L"UI_TItle", L"EXIT", Vec2(startX, startY +gap * 2.f), []()
 		{
 			PostQuitMessage(0);
 		});
+
+#ifdef _IMGUI
+		vis = mWorld->GetComponent<UITransformComponent>(e3);
+		props.push_back({ "Base Position3",  PropertyType::Vec2,  &(vis->mPosition),  0.f,    0.f });
+		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(e1);
+		visImgui.RegisterEditorProperties(props);
+		visImgui.SetName("Menu");
+#endif
 	}
 
 
@@ -375,6 +405,7 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 
 	mSceneId = SceneId::MainMenu;
+
 
 }
 
@@ -492,11 +523,6 @@ void LobbyScene::Initialize()
 	//	auto& t = mWorld->AddComponent<UITextComponent>(text);
 	//}
 
-	{
-		Entity text = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UITextComponent>(text);
-		t.mText = L"GAME START";
-	}
 
 	{
 		Entity Aim = mWorld->CreateEntity();
@@ -687,12 +713,6 @@ void LoadingScene::Initialize()
 		mWorld->AddComponent<UICusSpriteComponent>(mLoadingImage, loadingMaterial);
 	}
 
-	{
-		mLoadingText = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UITextComponent>(mLoadingText);
-		t.mText = L"Loading...";
-		t.mFontPos = Vec2(0.f, 260.f);
-	}
 
 	mWorld->Initialize();
 }
@@ -803,11 +823,6 @@ void FirstScene::Initialize()
 
 	}
 
-	{
-		Entity text = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UITextComponent>(text);
-		t.mText = L"IN GAME";
-	}
 
 	{
 		Entity Aim = mWorld->CreateEntity();

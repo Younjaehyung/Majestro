@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "BuffComponent.h"
 
 BuffData* BuffComponent::FindBuff(BuffType type)
@@ -16,6 +17,11 @@ BuffData& BuffComponent::AddOrRefresh(const BuffData& buff)
     {
         *existing = buff;
         return *existing;
+    }
+
+    if (buff.mType == BuffType::BuffPowerUp) {
+        buffPowerUp = true;
+        
     }
 
     mBuffs.push_back(buff);

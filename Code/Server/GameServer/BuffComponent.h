@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include "Component.h"
-#include "TimeUtils.h"
 #include <algorithm>
 
 enum class EffectKind
@@ -27,6 +26,7 @@ enum class BuffType
 {
     AttackUp,
     MoveSpeedUp,
+    BuffPowerUp,
     ShieldOverTime,
     HealOverTime,
     //de buff
@@ -57,6 +57,9 @@ public:
 
     std::vector<BuffData> mBuffs;
 
+
     float mAttackMultiplier = 1.0f;
     float mMoveSpeedMultiplier = 1.0f;
+
+    bool buffPowerUp = false;
 };

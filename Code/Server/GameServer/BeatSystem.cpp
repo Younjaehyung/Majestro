@@ -6,7 +6,7 @@
 #include "ArmorComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
-
+#include "BuffComponent.h"
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
@@ -48,15 +48,15 @@ void BeatSystem::Update(float dt)
 			{
 				if (mainPlayerComponent->mHasQueuedRhythmChange)
 				{
-					mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
-					mainPlayerComponent->mHasQueuedRhythmChange = false;
-
 					if (mainPlayerComponent->mPlayerType == 0) {
 
 					}
 					if (mainPlayerComponent->mPlayerType == 1) {
 
 					}
+
+					mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
+					mainPlayerComponent->mHasQueuedRhythmChange = false;
 				}
 
 
@@ -104,7 +104,23 @@ void BeatSystem::ApplyPendingBuffRequests()
 		}
 		else if (request.skillType == SkillType::DrumSkill3)
 		{
-			
+			BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(request.target);
+			if (buffComponent == nullptr)
+				continue;
+
+			const float now = GetSteadyTimeSeconds();
+
+			BuffData buff;
+			buff.mKind = EffectKind::Buff;
+			buff.mType = BuffType::BuffPowerUp;
+			buff.mDurationPolicy = DurationPolicy::Timed;
+			buff.mExecutionType = BuffExecutionType::Persistent;
+			buff.mEndTime = now + 5.0f; // 5초 지속
+
+			buffComponent->AddOrRefresh(buff);
+
+			// 현재 구조에서는 실제 효과도 직접 반영
+			buffComponent->mMoveSpeedMultiplier = 1.5f;
 		}
 	}
 

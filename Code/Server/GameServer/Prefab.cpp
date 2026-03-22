@@ -89,7 +89,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   }
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
-  world->AddComponent<BuffComponent>(mEntityID, t);
+  world->AddComponent<BuffComponent>(mEntityID);
   world->AddComponent<MainPlayerComponent>(mEntityID,
                                            "../Resources/Json/TestJson.json", playerType);
   world->AddComponent<TransformComponent>(mEntityID, t);

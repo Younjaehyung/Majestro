@@ -50,11 +50,6 @@ void BulletFireEventSystem::Update(float dt)
 			{
 				ActivateBulletAndNotify(e.shooter, e.bulletType);
 			});
-
-		eventManager->Consume<EvBuffBulletRequest>([&](const EvBuffBulletRequest& e)
-			{
-				ActivateBulletAndNotify(e.shooter, e.bulletType);
-			});
 	}
 }
 

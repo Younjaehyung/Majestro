@@ -187,7 +187,7 @@ if (!nav || !nav->IsInitialized()) return;
 			mainPlayerComponent->mFalling = gravityComponent->mFalling;
 			if (inputComponent->IsButtonPressed(InputButtons::SPACE)) {
 				if (not mainPlayerComponent->mFalling) {
-					gravityComponent->mHight += 10.0f;
+					gravityComponent->mHight += 20.0f;
 					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
 				}
 				mainPlayerComponent->mFalling = true;

@@ -202,6 +202,7 @@
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
     <ClInclude Include="FogPass.h" />
+    <ClInclude Include="GameMode.h" />
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MotionVectorPass.h" />
     <ClInclude Include="MotionBlurPass.h" />
@@ -293,6 +294,8 @@
     <ClInclude Include="UISpriteComponent.h" />
     <ClInclude Include="UITextComponent.h" />
     <ClInclude Include="UITransformComponent.h" />
+    <ClInclude Include="UIButtonComponent.h" />
+    <ClInclude Include="UIButtonSystem.h" />
     <ClInclude Include="UIUpdateSystem.h" />
     <ClInclude Include="UIVfxComponent.h" />
     <ClInclude Include="Vfx.h" />
@@ -321,6 +324,7 @@
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ChromaticAberrationPass.cpp" />
     <ClCompile Include="FogPass.cpp" />
+    <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MotionVectorPass.cpp" />
     <ClCompile Include="MotionBlurPass.cpp" />
@@ -413,6 +417,7 @@
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UITextComponent.cpp" />
     <ClCompile Include="UITransformComponent.cpp" />
+    <ClCompile Include="UIButtonSystem.cpp" />
     <ClCompile Include="UIUpdateSystem.cpp" />
     <ClCompile Include="Vfx.cpp" />
     <ClCompile Include="VfxComponent.cpp" />

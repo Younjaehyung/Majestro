@@ -53,8 +53,7 @@ void Engine::Update()
 	// 씬 전환은 StartRender() 이전에 처리
 	// GPU 커맨드 리스트(BeginCommandList)가 열리기 전에 씬 초기화가 완료되어야
 	// Effekseer Effect::Create() GPU 업로드와 커맨드 얼로케이터 충돌을 방지
-	mSceneManager->ProcessPendingSceneChanges();
-
+	mSceneManager->ProcessCommands();
 	mRenderManager->StartRender();
 	mTimer->Tick();
 	mInputManager->Update();

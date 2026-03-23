@@ -22,7 +22,7 @@ void NetSendSystem::Update(float dt)
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
 	
-	ConvertState();
+	SendAction();
 	SendCollision();
 	SendHealthEvents();
 	SendArmorEvents();
@@ -98,7 +98,7 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 
 }
 
-void NetSendSystem::ConvertState()
+void NetSendSystem::SendAction()
 {
 	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
 

@@ -93,10 +93,15 @@ enum class PrefabType : uint8 {
 
 enum class SceneId : uint8
 {
-	Lobby = 0,
-	Game = 1,
+	MainMenu =0,
+	Lobby,
+	Loading,
+	FirstGame ,
+	SecondGame ,
+	VGame,
+	LGame,
+	End
 };
-
 enum class MsgKind : uint8
 {
 	KNONE = 0,

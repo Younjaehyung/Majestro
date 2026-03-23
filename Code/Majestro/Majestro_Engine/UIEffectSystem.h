@@ -20,8 +20,8 @@ public:
 	// 이펙트 로드 (EffectSystem과 독립적으로 로드)
 	Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f);
 
-	// 스크린 픽셀 좌표로 재생
-	Effekseer::Handle Play(UIVfxComponent* comp);
+	// UITransformComponent.mFinalPixelPos 기준으로 재생
+	Effekseer::Handle Play(UIVfxComponent* comp, float screenX, float screenY);
 
 	void LoadResources();
 

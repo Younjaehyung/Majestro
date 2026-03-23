@@ -21,6 +21,8 @@ void UITransformSystem::Initialize()
 
 void UITransformSystem::Update(float dt)
 {
+    if (mWorld->HasComponentPool<UITransformComponent>() == false) return;
+
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITransformComponent>() };
 
 	WindowInfo window = RENDERMANAGER.GetWindow();

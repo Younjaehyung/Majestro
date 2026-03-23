@@ -207,7 +207,6 @@
     <ClCompile Include="DamageSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
-    <ClCompile Include="NavMeshLoader.cpp" />
     <ClCompile Include="PlayerNavValidationSystem.cpp" />
     <ClCompile Include="BulletFireEventSystem.cpp">
       <Filter>System\Logic</Filter>
@@ -217,6 +216,12 @@
     </ClCompile>
     <ClCompile Include="BuffComponent.cpp">
       <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="NavMeshLoader.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="GameMode.cpp">
+      <Filter>Script</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -376,7 +381,6 @@
     <ClInclude Include="HealthComponent.h">
       <Filter>Component\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="NavMeshLoader.h" />
     <ClInclude Include="PlayerNavValidationSystem.h" />
     <ClInclude Include="ArmorComponent.h">
       <Filter>Component\Logic</Filter>
@@ -387,11 +391,15 @@
     <ClInclude Include="MeleeAttackSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="BuffComponent.h">
-      <Filter>Component\Logic</Filter>
+    <ClInclude Include="BuffComponent.h" />
+    <ClInclude Include="NavMeshLoader.h">
+      <Filter>Resource</Filter>
     </ClInclude>
     <ClInclude Include="GameTimer.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="GameMode.h">
+      <Filter>Script</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

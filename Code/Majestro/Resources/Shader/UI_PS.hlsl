@@ -24,9 +24,15 @@ float4 PS_Main(VS_OUT input) : SV_Target
     MATERIALINFO materials = Materials[materialIndex];
     
     if (materialIndex)
-        color = TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv);
+    {
+        // 텍스처가 있으면 샘플링, 없으면 Diffuse 색상 직접 사용
+        if (materials.DiffuseMap0Index >= 0)
+            color = TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv);
+        else
+            color = materials.Diffuse;
+    }
 
-    if (color.a < 0.1f)
+    if (color.a < 0.05f)
         discard;
 
 

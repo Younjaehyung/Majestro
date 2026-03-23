@@ -22,35 +22,35 @@
 
 SystemManager::SystemManager(World* world) : mWorld(world) 
 {
-    // INPUT
-    RegisterSystem<PlayerInputSystem>();
+ //   // INPUT
+ //   RegisterSystem<PlayerInputSystem>();
 
-	// NETWORK
-    RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
-    RegisterSystem<NetSendSystem>();
+	//// NETWORK
+ //   RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+ //   RegisterSystem<NetSendSystem>();
 
-	// GAME
-    RegisterSystem<AnimationSystem>();
-    RegisterSystem<CameraSystem>();
-    
-    
-    RegisterSystem<EnemySystem>();
-    //RegisterSystem<PlayerSystem>();
-    RegisterSystem<TransformSystem>();
-    RegisterSystem<MovementSystem>();
-   
+	//// GAME
+ //   RegisterSystem<AnimationSystem>();
+ //   RegisterSystem<CameraSystem>();
+ //   
+ //   
+ //   RegisterSystem<EnemySystem>();
+ //   //RegisterSystem<PlayerSystem>();
+ //   RegisterSystem<TransformSystem>();
+ //   RegisterSystem<MovementSystem>();
+ //  
 
-    RegisterSystem<AudioVisualizerSystem>();
+ //   RegisterSystem<AudioVisualizerSystem>();
 
-    RegisterSystem<UITransformSystem>();
-    RegisterSystem<UIUpdateSystem>();
+ //   RegisterSystem<UITransformSystem>();
+ //   RegisterSystem<UIUpdateSystem>();
 
-    RegisterSystem<AudioSystem>();
-    RegisterSystem<BeatSystem>();
-    RegisterSystem<NetInterpolationSystem>();
-	// RENDER
-    RegisterSystem<RenderSystem>();
-    RegisterSystem<UIRenderSystem>();
+ //   RegisterSystem<AudioSystem>();
+ //   RegisterSystem<BeatSystem>();
+ //   RegisterSystem<NetInterpolationSystem>();
+	//// RENDER
+ //   RegisterSystem<RenderSystem>();
+ //   RegisterSystem<UIRenderSystem>();
 
 #ifdef _IMGUI
 	RegisterSystem<IMGUIRenderSystem>();

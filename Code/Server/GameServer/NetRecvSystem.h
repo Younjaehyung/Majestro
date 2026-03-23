@@ -1,78 +1,34 @@
 #pragma once
 #include "System.h"
 
-static constexpr int kCap = 32;
-
-struct InputFrame
-{
-    uint32   Seq = 0;     // 클라 입력 시퀀스(증가)
-    float    Dt = 0.0f;   // 선택: 클라 프레임 dt (서버에서는 보통 무시하거나 참고)
-    float    MoveX = 0.0f; // -1~1
-    float    MoveY = 0.0f; // -1~1
-	float    MoveZ = 0.0f; // -1~1
-    uint8    Buttons = 0;  // 비트플래그 (점프/발사/대시 등)
-    float    Yaw = 0.0f;
-    float    Pitch = 0.0f;
-};
-
-struct InputBuffer
-{
- 
-    InputFrame Buf[kCap]{};
-    int Head = 0;
-    int Tail = 0;
-
-    bool Push(const InputFrame& f)
-    {
-        int next = (Tail + 1) % kCap;
-        if (next == Head) return false; // full
-        Buf[Tail] = f;
-        Tail = next;
-        return true;
-    }
-
-    bool Pop(InputFrame& out)
-    {
-        if (Head == Tail) return false; // empty
-        out = Buf[Head];
-        Head = (Head + 1) % kCap;
-        return true;
-    }
-};
-
 class NetRecvSystem : public System
 {
-
 public:
 	NetRecvSystem(World* world);
 	void Update(float dt) override;
+
+private:
 	void RecvInput(uint32 sessionId, const C2S_MovePacket& inputFrame);
 	void RecvAction(uint32 sessionId, const C2S_ActionPacket& inputFrame);
-private:
 
-	//void LoginProcess(InputCommand& inputCommand);
-    void LoginProcess(InputCommand& inputCommand, bool broadcastToWorld);
+	void HandleGameStart(InputCommand& inputCommand);
+
+	void SpawnPlayer(InputCommand& inputCommand);
+	void SendSpawnToSelf(uint32 sessionId, Entity e, uint8 playerType);
+	void BroadcastSpawnToOthers(uint32 sessionId, Entity e, uint8 playerType);
+	void SendExistingPlayersToNewClient(uint32 newSessionId);
+
 	void EnemySpawnProcess(InputCommand& inputCommand);
-    void BulletPoolSpawnProcess(InputCommand& inputCommand);
+	void BulletPoolSpawnProcess(InputCommand& inputCommand);
 
-    /*void HandleSceneChange(InputCommand& inputCommand);
-    bool IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const;
-    SceneId GetOrCreateScene(uint32 sessionId);*/
-    std::vector<uint32> CollectPlayerSessions() const;
-
+	Entity FindEntityBySession(uint32 sessionId) const;
+	std::vector<uint32> CollectPlayerSessions() const;
 
 private:
+	vector<uint64> mNetEntityIds{};
+	vector<uint64> mBulletNetEntityIds{};
+	bool mEnemySpawnOnce = true;
+	bool mBulletSpawnOnce = true;
 
-    vector<uint64> mNetEntityIds{};
-    vector<uint64> mBulletNetEntityIds{};
-    bool mEnemySpawnOnce = true;
-    bool mBulletSpawnOnce = true;
-
-    std::unordered_map<uint32, SceneId> mSceneBySession{};
-
-
-
-	InputBuffer mInputBuffer;
 	InputCommand mInputCommand;
 };
-

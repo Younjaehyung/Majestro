@@ -21,14 +21,14 @@ void Game::Initialize(const WindowInfo& info)
 	gEngine->Initialize(info);
 
 	Network::GetInstance().Initialize();
-	Network::GetInstance().Awake();
+	
 }
 
 void Game::Update()
 {
-	ReceiveNetworkData();
+
 	gEngine->Update();
-	SendNetworkData();
+
 }
 
 void Game::Input(UINT message, WPARAM wParam, LPARAM lParam)
@@ -60,7 +60,7 @@ bool Game::IsGameSceneActive() const
 	if (!world)
 		return false;
 
-	return world->GetSceneId() == SceneId::Game;
+	return true;
 }
 
 int Game::ImGuiInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -71,28 +71,4 @@ int Game::ImGuiInput(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #else
 #endif
 	return false;
-}
-
-void Game::ReceiveNetworkData()
-{
-	
-}
-
-void Game::SendNetworkData()
-{
-	/*SendRequest sendCommand;
-
-	sendCommand.Type = C2S_PKT_INPUT;
-	if(gEngine->GetInputManager().GetKey(eKeyCode::A))
-	sendCommand.input.x = -1;
-	if(gEngine->GetInputManager().GetKey(eKeyCode::D))
-	sendCommand.input.x = 1;
-
-	if(gEngine->GetInputManager().GetKey(eKeyCode::W))
-	sendCommand.input.y = 1;
-
-	if(gEngine->GetInputManager().GetKey(eKeyCode::S))
-	sendCommand.input.y = -1;
-
-	gSendBuffer.Push(sendCommand);*/
 }

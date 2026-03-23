@@ -34,7 +34,7 @@ public:
 
 private:
 	void ConvertMove(NetEntityComponent*, SendRequest* , float);
-	void ConvertState();
+	void SendAction();
 	void SendCollision();
 	void SendHealthEvents();
 	void SendArmorEvents();

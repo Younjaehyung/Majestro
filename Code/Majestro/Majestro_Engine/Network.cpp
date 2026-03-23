@@ -52,7 +52,7 @@ void Network::Awake()
 
 bool Network::ConnectToServer(const char* ipAddress, int port)
 {
-
+	if (mIsRunning) return true;
 	mTcpSocket = socket(AF_INET, SOCK_STREAM, 0);
 	mUdpSocket = socket(AF_INET, SOCK_DGRAM, 0);
 

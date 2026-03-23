@@ -582,7 +582,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
           + ambientContrib // [수정] 스케일 다운된 ambient
           + totalColor.specular.xyz
           + rim;
-    color.xyz = color.xyz / (color.xyz + 1.0f);
+   // color.xyz = color.xyz / (color.xyz + 1.0f);
     return color;
 
 }

@@ -528,7 +528,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     // 라이트가 닿지 않으면 early-out
     if (NdotL <= 0.0f || distanceRatio <= 0.0f)
     {
-        color.ambient = Lights[lightIndex].color.ambient * distanceRatio;
+        color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
         return color;
     }
 
@@ -568,27 +568,21 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
 
-    float3 diffuse = (kD * baseColor) / PI;
+    float3 diffuse = kD * baseColor;
 
     // -----------------------------
-    // 3) 라이트 색/세기 적용 (너 구조에 맞게 diffuse/specular로 분리)
+    // 3) 라이트 색/세기 적용
     // -----------------------------
-    float3 lightDiffuseRGB = Lights[lightIndex].color.diffuse.rgb;
-    float3 lightSpecularRGB = Lights[lightIndex].color.specular.rgb;
+    float3 radiance = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
 
-    float3 radianceD = lightDiffuseRGB * distanceRatio;
-    float3 radianceS = lightSpecularRGB * distanceRatio;
-
-    float3 outDiffuse = diffuse * radianceD * NdotL * 10.f; // 라이트가 약한 파이프라인이면 이쪽이 편함
-
-   // float3 outDiffuse  = diffuse  * radianceD * NdotL;
-    float3 outSpecular = specular * radianceS * NdotL;
+    float3 outDiffuse  = diffuse  * radiance * NdotL;
+    float3 outSpecular = specular * radiance * NdotL;
 
     color.diffuse = float4(outDiffuse, 1.0f);
     color.specular = float4(outSpecular, 1.0f);
 
-    // ambient는 기존 파이프라인 유지 (IBL을 아직 안 한다는 전제)
-    color.ambient = Lights[lightIndex].color.ambient * distanceRatio;
+    // ambient: baseColor로 변조하여 표면 알베도 반영
+    color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
 
     return color;
 }
@@ -817,7 +811,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
                 float weight = 1.0f / (1.0f + dot(offset, offset));
                 float2 sampleUv = saturate(uv + offset * texelSize);
                 float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
-                shadow += ((shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
+                shadow += ((shadowDepth < 1.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
                 weightSum += weight;
             }
         }
@@ -835,7 +829,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
                 float weight = 1.0f / (1.0f + dot(offset, offset));
                 float2 sampleUv = saturate(uv + offset * texelSize);
                 float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
-                shadow += ((shadowDepth > 0.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
+                shadow += ((shadowDepth < 1.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
                 weightSum += weight;
             }
         }

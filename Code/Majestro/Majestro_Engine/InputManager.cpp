@@ -226,6 +226,15 @@ void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 				mMouseState.Position = mMouseState.ClickPosition;
 			}
 		}
+		else
+		{
+			// 마우스 룩 모드 아닐 때 (UI 모드): lParam의 클라이언트 좌표로 갱신
+			// UIButtonSystem HitTest가 이 값을 사용하므로 반드시 갱신 필요
+			mMouseState.Position = {
+				static_cast<LONG>(static_cast<SHORT>(LOWORD(lParam))),
+				static_cast<LONG>(static_cast<SHORT>(HIWORD(lParam)))
+			};
+		}
 		break;
 	default:
 		break;

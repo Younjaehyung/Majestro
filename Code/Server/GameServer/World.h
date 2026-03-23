@@ -89,7 +89,7 @@ public:
     uint32  GetSessionIDByEntity(Entity entity);
 
     // System Manager
-    std::shared_ptr<SystemManager> GetSystemManager() const { return mSystemManager; }
+    std::shared_ptr<SystemManager>& GetSystemManager() { return mSystemManager; }
 	void SetSystemManager(std::shared_ptr<SystemManager> systemManager) { mSystemManager = systemManager; }
 
 	std::shared_ptr<EventManager>& GetEventManager() { return mEventManager; }

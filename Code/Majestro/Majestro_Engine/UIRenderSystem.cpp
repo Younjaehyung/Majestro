@@ -94,10 +94,12 @@ void UIRenderSystem::Update()
     CustomSpriteUpdate();
 
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
-    TextUpdate();
+    //TextUpdate();
     SpriteUpdate();
 
     mUIEffectPass->Execute(DELTA_TIME);
+    RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
+    TextUpdate();
 }
 
 void UIRenderSystem::TextUpdate()
@@ -120,12 +122,23 @@ void UIRenderSystem::TextUpdate()
             continue;
 
         textComp->mFont = mDefaultFont;
+        
+		auto posComp = mWorld->GetComponent<UITransformComponent>(a);
+        if(posComp) {
+            textComp->mFontPos = posComp->mFinalPixelPos;
+		}
 
         std::wstring& output = textComp->mText;
-        Vec2 origin = mDefaultFont->MeasureString(output.c_str()) / 2.f;
+
+        // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록
+        XMVECTOR textSizeVec = mDefaultFont->MeasureString(output.c_str());
+        XMFLOAT2 textSize;
+        XMStoreFloat2(&textSize, textSizeVec);
+        XMFLOAT2 origin = { textSize.x * posComp->mPivot.x,
+                             textSize.y * posComp->mPivot.y };
 
         mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
-            textComp->mFontPos, Colors::White, 30.f, origin);
+            textComp->mFontPos, Colors::White, 0.f, origin);
     }
 
     mSpriteBatch->End();
@@ -134,6 +147,8 @@ void UIRenderSystem::TextUpdate()
 void UIRenderSystem::CustomSpriteUpdate()
 {
     mInstances.clear();
+
+    if (false == mWorld->HasComponentPool<UICusSpriteComponent>()) return;
 
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<UITransformComponent, UICusSpriteComponent>() };
 
@@ -212,13 +227,29 @@ void UIRenderSystem::SpriteUpdate()
             sourceRect = spriteComp->GetCurrentFrameRect();
             sourceRectPtr = &sourceRect;
         }
-        // 3) color 인자 추가 (흰색 = 원본 색상 그대로)
+
+        // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록
+        // sourceRect 있으면 프레임 크기 기준, 없으면 textureSize(=mSize) 기준
+        XMFLOAT2 origin;
+        if (sourceRectPtr != nullptr)
+        {
+            origin = { transComp->mPivot.x * (float)(sourceRect.right  - sourceRect.left),
+                       transComp->mPivot.y * (float)(sourceRect.bottom - sourceRect.top) };
+        }
+        else
+        {
+            origin = { transComp->mPivot.x * (float)textureSize.x,
+                       transComp->mPivot.y * (float)textureSize.y };
+        }
+
         mSpriteBatch->Draw(
             spriteComp->mTexture->GetSrvGpuHandle(),
             textureSize,
             transComp->mFinalPixelPos,
             sourceRectPtr,
-            Colors::White
+            Colors::White,
+            0.f,    // rotation
+            origin  // pivot 적용
         );
     }
     mSpriteBatch->End();

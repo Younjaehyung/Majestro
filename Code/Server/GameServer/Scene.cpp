@@ -16,30 +16,41 @@
 #include "MovementComponent.h"
 #include "LevelImport.h"
 #include "Mesh.h"
-
 #include "Prefab.h"
-//#include "Camera.h"
-//
-//#include "ConstantBuffer.h"
-//#include "Light.h"
-//#include "Resources.h"
 
+#include "GameMode.h"
+#include "SystemManager.h"
+#include "CameraSystem.h"
+#include "TransformSystem.h"
+#include "PlayerSystem.h"
+#include "EnemySystem.h"
+#include "BeatSystem.h"
+#include "MovementSystem.h"
+#include "NetRecvSystem.h"
+#include "NetSendSystem.h"
+#include "PlayerInputSystem.h"
+#include "BulletFireEventSystem.h"
+#include "MeleeAttackSystem.h"
+#include "CollisionSystem.h"
+#include "DamageSystem.h"
+#include "PlayerNavValidationSystem.h"
 
 void Scene::Initialize()
 {
-	//PlayerPrefab p{ mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 
 	TerrainPrefab terrain{ mWorld.get()};
 
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	
+	mGameMode = make_shared<WaveGameMode>();
 	mWorld->Initialize();
 }
 
 void Scene::Update(float deltaTime)
 {
 	mWorld->Update(deltaTime);
+	mGameMode->Update(deltaTime);
 }
 
 
@@ -133,4 +144,77 @@ void Scene::LoadCollisionJson(const wstring& path)
 
 
 
+void FirstScene::Initialize()
+{
+	//PlayerPrefab p{ mWorld.get()};
+	PrefabFactory::RegisterAllPrefabs();
 
+	TerrainPrefab terrain{ mWorld.get() };
+
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	mWorld->Initialize();
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();        // 8. 카메라 업데이트
+	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
+	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
+	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 최신 mWorldMatrix로 충돌 판정
+	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지 처리
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+
+	mSceneId = SceneId::FirstGame;
+}
+
+void SecondScene::Initialize()
+{
+	//PlayerPrefab p{ mWorld.get()};
+	PrefabFactory::RegisterAllPrefabs();
+
+	TerrainPrefab terrain{ mWorld.get() };
+
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	mWorld->Initialize();
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();        // 8. 카메라 업데이트
+	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
+	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
+	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 최신 mWorldMatrix로 충돌 판정
+	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지 처리
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+
+	mSceneId = SceneId::SecondGame;
+}
+
+void LobbyScene::Initialize()
+{
+	mWorld->Initialize();
+	mSceneId = SceneId::Lobby;
+}
+
+void VictoryScene::Initialize()
+{
+	mWorld->Initialize();
+	mSceneId = SceneId::VGame;
+}
+
+void LoseScene::Initialize()
+{
+	mWorld->Initialize();
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+	mSceneId = SceneId::LGame;
+}

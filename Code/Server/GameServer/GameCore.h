@@ -16,6 +16,7 @@ private:
 	void UpdateGameLogic(float deltaTime);
 
 private:
+
 	std::unique_ptr<SceneManager> mSceneManager;
 	std::unique_ptr<ResourceManager> mResourceManager;
 };

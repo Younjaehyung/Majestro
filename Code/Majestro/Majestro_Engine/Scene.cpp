@@ -372,6 +372,59 @@ void MainMenuScene::Initialize()
 	}
 
 
+	for (int i = 0; i < 3; ++i) {
+		Entity mEntityID = mWorld->CreateEntity();
+
+		TransformComponent t{};
+		shared_ptr<Mesh> phereMesh;
+		shared_ptr<Material> material2;
+		std::vector<shared_ptr<Material>> material2s;
+		vector<shared_ptr<Animator>> anmators0;
+
+		switch (i) {
+		case 0:
+			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+			material2s.push_back(material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011");
+			material2s.push_back(material2);
+			/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
+			material2s.push_back(material2);*/
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
+			t.mLocalPosition = { -8703.f, 1711.0f,-13849.0f };
+			break;
+		case 1:
+			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010");
+			material2s.push_back(material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011");
+			material2s.push_back(material2);
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
+			t.mLocalPosition = { -9171.0f, 1711.0f, -13372.f };
+			break;
+		case 2:
+			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010");
+			material2s.push_back(material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack011");
+			material2s.push_back(material2);
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
+			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
+			t.mLocalPosition = { -8834.f, 1711.0f,-12656.0f };
+			break;
+		}
+
+		
+		mWorld->AddComponent<TransformComponent>(mEntityID, t);
+		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	}
+
 	//-- -
 	//	UIVfxComponent 사용 방법
 	//	위치는 반드시 UITransformComponent로 설정해야 함
@@ -395,6 +448,7 @@ void MainMenuScene::Initialize()
 
 
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();

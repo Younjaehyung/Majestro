@@ -1,12 +1,13 @@
 #pragma once
 #include "RenderTarget.h"
-#include "RenderSystem.h"
+
 class ToneMapPass;
 class FinalCompositePass;
 class OutlinePass;
+struct DrawBatch;
+class  CameraComponent;
+class World;
 
-// RENDER_TARGET_GROUP_TYPE → GBUFFER_INDEX 변환
-// subRtIndex: G_BUFFER(0=Position,1=Normal,2=Color), LIGHTING(0=Diffuse,1=Specular) 등 멀티 RT 그룹에서의 내부 인덱스
 inline GBUFFER_INDEX ToGBufferIndex(RENDER_TARGET_GROUP_TYPE type, uint32 subRtIndex = 0)
 {
 	switch (type)
@@ -26,6 +27,44 @@ inline GBUFFER_INDEX ToGBufferIndex(RENDER_TARGET_GROUP_TYPE type, uint32 subRtI
 	default:                                   return GBUFFER_INDEX::GBUFFER_INDEX_END;
 	}
 }
+
+
+
+
+struct RenderContext
+{
+	std::vector<DrawBatch>* deferredBatchs = nullptr;  // 일반 렌더 배치
+	std::vector<DrawBatch>* shadowBatchs = nullptr;  // 카메라 밖 Shadow-only 배치
+	std::vector<DrawBatch>* lightBatchs = nullptr;  // 라이트 배치
+
+	std::array<bool, 4>* cascadeActive = nullptr;  // 활성 캐스케이드 플래그
+
+	CameraComponent* camera = nullptr;
+	float                         deltaTime = 0.f;
+	uint32                        frameIndex = 0;
+};
+
+
+class IRenderPipeline
+{
+public:
+	virtual ~IRenderPipeline() = default;
+
+
+	virtual void Initialize(World* world) = 0;
+
+
+	virtual void OnResize(uint32 width, uint32 height) {}
+
+	// PushPassData()가 GPU 업로드 전에 호출 — 각 Pass의 SetData() 담당
+	virtual void SetupPassTable(
+		std::array<PassCustomData,
+		static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& table) = 0;
+
+	// Compute Shader 사전 연산 | RenderSystem::PreProcess() 역할
+	virtual void PreCompute(const RenderContext& ctx) {}
+	virtual void Execute(const RenderContext& ctx) = 0;
+};
 
 
 class RenderPass
@@ -61,6 +100,14 @@ public:
 
   void AddHDRPass(shared_ptr<RenderPass> pass) { mHDRPasses.push_back(pass); }
   void AddLDRPass(shared_ptr<RenderPass> pass) { mLDRPasses.push_back(pass); }
+  void RemoveHDRPass(shared_ptr<RenderPass> pass) {
+      auto it = std::find(mHDRPasses.begin(), mHDRPasses.end(), pass);
+      if (it != mHDRPasses.end()) mHDRPasses.erase(it);
+  }
+  void RemoveLDRPass(shared_ptr<RenderPass> pass) {
+      auto it = std::find(mLDRPasses.begin(), mLDRPasses.end(), pass);
+      if (it != mLDRPasses.end()) mLDRPasses.erase(it);
+  }
 
 private:
 	RENDER_TARGET_GROUP_TYPE mLDRBeforeGroupType; 

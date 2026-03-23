@@ -201,8 +201,12 @@
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
+    <ClInclude Include="EffectFlagComponent.h" />
+    <ClInclude Include="EffectFlagSystem.h" />
     <ClInclude Include="FogPass.h" />
     <ClInclude Include="GameMode.h" />
+    <ClInclude Include="GameRenderPipeline.h" />
+    <ClInclude Include="LobbyRenderPipeline.h" />
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MotionVectorPass.h" />
     <ClInclude Include="MotionBlurPass.h" />
@@ -347,8 +351,10 @@
     <ClCompile Include="FinalPass.cpp" />
     <ClCompile Include="ForwardPass.cpp" />
     <ClCompile Include="GameEvents.cpp" />
+    <ClCompile Include="GameRenderPipeline.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
+    <ClCompile Include="LobbyRenderPipeline.cpp" />
     <ClCompile Include="Imgui.cpp" />
     <ClCompile Include="IMGUIComponent.cpp" />
     <ClCompile Include="IMGUISystem.cpp" />

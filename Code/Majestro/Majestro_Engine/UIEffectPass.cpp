@@ -139,10 +139,10 @@ Effekseer::Matrix44 UIEffectPass::BuildOrthoProjection()
 	float W = static_cast<float>(window.Width);
 	float H = static_cast<float>(window.Height);
 
-	// 픽셀 좌표(Y+=화면아래) → NDC 변환, UIEffectSystem.BuildOrthoProjection()과 동일
+	// 픽셀 좌표(Y+=화면아래)  NDC 변환, UIEffectSystem.BuildOrthoProjection()과 동일
 	Effekseer::Matrix44 ortho{};
 	ortho.Values[0][0] =  2.f / W;
-	ortho.Values[1][1] = -2.f / H;  // Y 반전: 픽셀 Y+(아래) → NDC Y-(아래)
+	ortho.Values[1][1] = -2.f / H;  // Y 반전: 픽셀 Y+(아래)  NDC Y-(아래)
 	ortho.Values[2][2] =  1.f;
 	ortho.Values[3][0] = -1.f;
 	ortho.Values[3][1] =  1.f;

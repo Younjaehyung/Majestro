@@ -1,6 +1,7 @@
 #pragma once
 #include "Buffer.h"
 #include "ComponentPool.h"
+#include "RenderPass.h"
 #include "LightComponent.h"
 #include "RenderComponent.h"
 #include "Shader.h"
@@ -12,7 +13,6 @@
 struct MaterialParams;
 struct PatricleParams;
 
-class RenderPass;
 
 class Mesh;
 class Shader;
@@ -131,13 +131,15 @@ public:
   // 디버그 라인 제출 (어느 시스템에서나 호출 가능, RenderSystem이 프레임 내 소비)
   static void SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color);
 
+  // 파이프라인 교체
+  // 씬 Initialize()에서 호출 — pipeline->Initialize(mWorld)
+  void SetPipeline(shared_ptr<IRenderPipeline> pipeline);
+  shared_ptr<IRenderPipeline> GetPipeline() const { return mActivePipeline; }
+
 private:           // RenderPass
   void ClearRTV(); // clear
   void ClearBuffer();
-  void PassUpdate();
   void PushData();
-  void PreProcess();
-  void RenderPass();
   
 private: // Culling
   bool IsCustomCulled(uint8 layer) {
@@ -163,29 +165,6 @@ private: // Push&Clear Data
 private: // Render
   void InstancingRender(DrawBatch &);
 
-  // depth prepass
-  void RenderDepthPrePass();
-
-  // shadow
-  void RenderShadow();
-
-  // deferred
-  void RenderDeferred(); // 2pass //clear
-
-  // forward
-  void RenderForward();
-
-  // outline (Inverted Hull, ForwardPass 직후 동일 HDR RT에 렌더)
-  void RenderOutline();
-
-  // 인게임 VFX (HDR RT, ToneMap 전)
-  void RenderEffect();
-
-  // post process
-  void RenderPost();
-
-
-
 private:
   uint32 mFrameCount = 0;
   NavigationSystem     mNavSystem;
@@ -193,6 +172,8 @@ private:
   Entity mCameraID;
   CameraComponent *mCamera{};
   uint32 mCullingMask = 0;
+
+  shared_ptr<IRenderPipeline> mActivePipeline;  // 현재 활성 파이프라인
 
   shared_ptr<RootSignature> mRootSignature;
   ComponentPool<RenderComponent> *mRenderComponentPool = nullptr;
@@ -255,18 +236,4 @@ private: // 디버그용 충돌박스 / 라인
 
   static std::vector<DebugLineRequest> sDebugLineQueue; // 프레임당 디버그 라인 큐
 
-private: // RenderPass
-	std::shared_ptr<class DepthPrePass>   mDepthPrePass;
-	std::shared_ptr<class ShadowPass>     mShadowPass;
-	std::shared_ptr<class GBufferPass>    mGBufferPass;
-	std::shared_ptr<class LightsPass>     mLightPass;
-	std::shared_ptr<class ForwardPass>    mForwardPass;
-	std::shared_ptr<class OutlinePass>    mOutlinePass;
-	std::shared_ptr<class EffectPass>       mEffectPass;
-	std::shared_ptr<class PostProcessPass>  mPostProcessPass;
-	std::shared_ptr<class MotionVectorPass> mMotionVectorPass;
-
-	std::shared_ptr<class FogPass> mFogPass;
-	std::shared_ptr<class MotionBlurPass> mMotionBlurPass;
-	std::shared_ptr<class LuminancePass> mLuminancePass;
 };

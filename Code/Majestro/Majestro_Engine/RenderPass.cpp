@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "RenderPass.h"
-
+#include "RenderSystem.h"
 
 #include "Engine.h"
 #include "ResourceManager.h"

@@ -31,6 +31,8 @@
 #include "Prefab.h"
 
 #include "RenderSystem.h"
+#include "GameRenderPipeline.h"
+#include "LobbyRenderPipeline.h"
 #include "CameraSystem.h"
 #include "AudioSystem.h"
 #include "TransformSystem.h"
@@ -455,7 +457,8 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemMM->SetPipeline(make_shared<LobbyRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 
 	mSceneId = SceneId::MainMenu;
@@ -671,7 +674,8 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	auto* renderSystemLB = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemLB->SetPipeline(make_shared<LobbyRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 
 
@@ -971,7 +975,8 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	auto* renderSystemFS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 
 

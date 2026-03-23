@@ -18,23 +18,8 @@
 #include "Timer.h"
 
 #include "PlayerComponent.h"
-
-
-#include "DepthPrePass.h"
-#include "ShadowPass.h"
-#include "GBufferPass.h"
-#include "LightsPass.h"
-#include "ForwardPass.h"
-#include "OutlinePass.h"
-#include "EffectPass.h"
-#include "RenderPass.h"
-#include "ToneMapPass.h"
-
-#include "FogPass.h"
-#include "ChromaticAberrationPass.h"
-#include "MotionVectorPass.h"
-#include "MotionBlurPass.h"
-#include "LuminancePass.h"
+#include "EffectFlagComponent.h"
+#include "GameRenderPipeline.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 
@@ -68,52 +53,12 @@ void RenderSystem::Initialize() {
   mDeferredDrawBatchs.reserve(1000);
   mInstanceVector.reserve(1000);
 
-  mDepthPrePass = make_shared<DepthPrePass>();
-  mShadowPass  = make_shared<ShadowPass>();
-  mGBufferPass = make_shared<GBufferPass>();
-  mLightPass   = make_shared<LightsPass>();
-  mForwardPass  = make_shared<ForwardPass>();
-  mOutlinePass  = make_shared<OutlinePass>();
-  mEffectPass   = make_shared<EffectPass>();
-  mPostProcessPass = make_shared<PostProcessPass>();
-  
-  
-  mDepthPrePass->Initialize();
-  mEffectPass->Initialize(mWorld);
-  mPostProcessPass->Initialize();
-
-  mMotionVectorPass = make_shared<MotionVectorPass>();
-  mMotionVectorPass->Initialize();
-  
-  // MotionBlur 먼저, Fog 나중: MotionBlur 결과에 Fog를 덮어야 포그가 항상 유지됨
-  mMotionBlurPass = make_shared<MotionBlurPass>();
-  mPostProcessPass->AddHDRPass(mMotionBlurPass);
-
-  mFogPass = make_shared<FogPass>();
-  mPostProcessPass->AddHDRPass(mFogPass);
-
-    mLuminancePass = make_shared<LuminancePass>();
- // mPostProcessPass->AddLDRPass(mLuminancePass);
-  
-
- // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
- // mPostProcessPass->AddPass(std::make_shared<ChromaticAberrationPass>());
-
-  // PushObjectData()가 sDebugLineQueue를 소비하므로
-// PushData() 이전에 디버그 라인을 먼저 큐에 추가해야 함
- /* {
-      auto navMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
-      if (navMesh && navMesh->mDtNavMesh)
-          mNavMeshDebugRenderer.RenderNavMesh(navMesh->mDtNavMesh);
-  }*/
 }
 
 void RenderSystem::Update() {
   if (false == mWorld->HasComponentPool<MainCameraComponent>())
     return;
-  /*std::vector<Entity> camera{
-  mWorld->GetEntitiesWithComponent<MainCameraComponent>()[0]}; mCamera =
-  mWorld->GetComponent<CameraComponent>(camera[0]);*/
+
   auto cameraView = mWorld->View<MainCameraComponent>();
   auto cameraIt = cameraView.begin();
   if (cameraIt == cameraView.end()) {
@@ -121,13 +66,23 @@ void RenderSystem::Update() {
   }
   mCamera = mWorld->GetComponent<CameraComponent>(*cameraIt);
 
+  if (!mActivePipeline) return;
+
   ClearRTV();
-
-  PassUpdate();
   PushData();
-  PreProcess();
-  RenderPass();
 
+  // 컨텍스트 구성 — 파이프라인에 렌더 데이터 전달
+  RenderContext ctx;
+  ctx.deferredBatchs = &mDeferredDrawBatchs;
+  ctx.shadowBatchs   = &mShadowOnlyBatchs;
+  ctx.lightBatchs    = &mLightDrawBatchs;
+  ctx.cascadeActive  = &mCascadeActive;
+  ctx.camera         = mCamera;
+  ctx.deltaTime      = DELTA_TIME;
+  ctx.frameIndex     = mFrameCount;
+
+  mActivePipeline->PreCompute(ctx);
+  mActivePipeline->Execute(ctx);
 }
 
 void RenderSystem::PushData() {
@@ -136,7 +91,7 @@ void RenderSystem::PushData() {
   PushLandData();
   PushCubeData();
 
-  PushShadowCascades(); // 라이트 구체 사전 계산 (PushObjectData보다 먼저)
+  PushShadowCascades(); // 라이트 구체 사전 계산 
   PushObjectData();
   PushLightData();
   PushPassData();
@@ -144,22 +99,10 @@ void RenderSystem::PushData() {
   PushInstanceData();
 }
 
-void RenderSystem::PreProcess()
+void RenderSystem::SetPipeline(shared_ptr<IRenderPipeline> pipeline)
 {
-   mForwardPass->Compute();
-}
-
-void RenderSystem::RenderPass()
-{
-    RenderDepthPrePass();
-    RenderShadow();
-    RenderDeferred();
-    RenderForward();
-    RenderOutline();
-    RenderEffect();
-    RenderPost();
-
-    
+    pipeline->Initialize(mWorld);
+    mActivePipeline = pipeline;
 }
 
 void RenderSystem::ClearRTV() {
@@ -221,33 +164,6 @@ void RenderSystem::ClearBuffer() {
   mLightVector.clear();
   mObjectVector.clear();
   mDummyVector.clear();
-}
-
-void RenderSystem::PassUpdate()
-{
-    // 플레이어 상태에 따른 포스트프로세스 제어
-    if (mMotionBlurPass)
-    {
-        if (false == mWorld->HasComponentPool<LocalPlayerComponent>())
-            return;
-        
-			
-
-        bool enableBlur = false;
-        auto players = mWorld->GetEntitiesWithComponent<LocalPlayerComponent>();
-        for (auto e : players)
-        {
-            auto* player = mWorld->GetComponent<MainPlayerComponent>(e);
-
-            int state = player->mStatePacket;
-            enableBlur = (state == S_Dash);
-			std::cout << "state: " << (int)state << " | enableBlur: " << enableBlur << std::endl;
-            break;
-        }
-        mMotionBlurPass->SetEnabled(enableBlur);
-    }
-
-
 }
 
 void RenderSystem::PushFrameData() {
@@ -378,15 +294,9 @@ void RenderSystem::PushLandData() {
 
 void RenderSystem::PushPassData()
 {
-    mDepthPrePass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH);
-    mShadowPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::SHADOW);
-    mGBufferPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::SHADOW, RENDER_TARGET_GROUP_TYPE::G_BUFFER);
-    mLightPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::LIGHTING);
-    mForwardPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::HDR);
-    mOutlinePass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::HDR,       RENDER_TARGET_GROUP_TYPE::HDR);
-    mEffectPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,  RENDER_TARGET_GROUP_TYPE::HDR);
-    mMotionVectorPass->SetData(mPassTable, RENDER_TARGET_GROUP_TYPE::PRE_DEPTH, RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR);
-    mPostProcessPass->SetData(mPassTable);
+
+    if (mActivePipeline)
+        mActivePipeline->SetupPassTable(mPassTable);
 
 
     auto& groupBuf = RENDERMANAGER.GetGroupBuffer(mFrameCount);
@@ -411,7 +321,7 @@ void RenderSystem::PushLightData() {
   LightComponent *lightComponent;
   RenderComponent *renderComponent;
   CameraComponent *cameraComponent;
-  // push 시작 (vector에 값 밀어 넣기)
+
   for (auto &entity : entities) {
     transformComponent = mWorld->GetComponent<TransformComponent>(entity);
     lightComponent = mWorld->GetComponent<LightComponent>(entity);
@@ -508,7 +418,7 @@ void RenderSystem::PushObjectData() {
             continue;
     }
     if (false == IsFrustumCulled(transformComponent, renderComponent)) {
-      // 카메라 프러스텀 밖 → 라이트 프러스텀(구체) 테스트
+      // 카메라 프러스텀 밖에서 라이트 프러스텀(구체) 테스트
       if (false == renderComponent->mVisibility) continue;
 
       const auto& obb = renderComponent->mWorldOBB; // IsFrustumCulled에서 이미 갱신됨
@@ -560,8 +470,13 @@ void RenderSystem::PushObjectData() {
     DrawItem drawItem{};
     for (shared_ptr<Material> &material : renderComponent->mMaterials) {
 
+      // EffectFlagComponent가 있으면 object3에 플래그 주입 (PSO 변경 없이 쉐이더 분기)
+      uint32 effectFlag = 0;
+      if (auto* efx = mWorld->GetComponent<EffectFlagComponent>(gameObject))
+          effectFlag = static_cast<uint32>(efx->flag);
+
       renderParams = {renderComponent->mObjectIndex, material->GetIndex(),
-                      index2, 0};
+                      index2, effectFlag};
 
       auto selectedShader = (useForwardPlus && forwardPlusShader) ? forwardPlusShader : material->GetShader();
       const uint32 selectedShaderID = (useForwardPlus && forwardPlusShader) ? forwardPlusShader->GetID() : material->GetShaderID();
@@ -627,11 +542,11 @@ void RenderSystem::PushObjectData() {
 
   // ─────────────────────────────────────────────────────
   // 디버그 라인 렌더링 (NavMesh 경로, 기타 SubmitDebugLine 호출)
-  // 단위 선분 메쉬 [(0,0,0)→(1,0,0)]에 월드 행렬로 임의의 선분을 표현
+  // 단위 선분 메쉬 [(0,0,0)->(1,0,0)]에 월드 행렬로 임의의 선분을 표현
   // ─────────────────────────────────────────────────────
   if (mLineMesh && !sDebugLineQueue.empty()) {
     for (const auto& req : sDebugLineQueue) {
-      // (0,0,0)→start, (1,0,0)→end 가 되도록 월드 행렬 구성
+      // (0,0,0) : start, (1,0,0) : end 가 되도록 월드 행렬 구성
       // row 0 = 방향 벡터(B-A), row 3 = 시작점(A)
       Vec3 dir = req.end - req.start;
       Matrix world(
@@ -915,76 +830,6 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 
 
-
-
-
-void RenderSystem::RenderDepthPrePass()
-{
-    mDepthPrePass->Execute(mDeferredDrawBatchs);
-}
-
-void RenderSystem::RenderShadow()
-{
-    mShadowPass->Execute(mDeferredDrawBatchs, mShadowOnlyBatchs, mCascadeActive);
-}
-
-void RenderSystem::RenderDeferred() {
-   
-    mGBufferPass->Execute(mDeferredDrawBatchs);
-    mLightPass->Execute(mLightDrawBatchs);
-
-  // Swapchain OMSet
-  int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-
-
-
-  if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
-    // ClearRTV()에서 이미 COMMON→RT 전환 완료 — WaitResourceToTarget 중복 호출 제거
-    RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-  } //else {
-  //  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
-  //}
-
-  auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
-  //hdrGroup.WaitResourceToTarget();
-  hdrGroup.OMSetRenderTargets();
-
-  RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
-
-  RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
-
-  if (RENDERMANAGER.IsMsaaEnabled()) { // msaa
-    RENDERMANAGER.GetRenderTargetGroup( static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-  }
-  hdrGroup.WaitTargetToResource();
-  mMotionVectorPass->Execute(mDeferredDrawBatchs);
-}
-
-void RenderSystem::RenderForward() {
-    mForwardPass->Execute(mDeferredDrawBatchs);
-}
-
-void RenderSystem::RenderOutline() {
-    mOutlinePass->Execute(mDeferredDrawBatchs);
-}
-
-void RenderSystem::RenderEffect() {
-    if (mCamera == nullptr) return;
-
-    float dt = DELTA_TIME;
-    Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(mCamera->GetViewMatrix());
-    Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(mCamera->GetProjectionMatrix());
-    mEffectPass->Execute(dt, viewMat, projMat);
-
-    // Effekseer가 커맨드 리스트의 RootSignature/DescriptorHeap을 변경하므로 엔진 상태 복원
-    RENDERMANAGER.SetGraphicsTable();
-}
-
-void RenderSystem::RenderPost() {
-    // MotionVector는 ToneMap 전에 먼저 계산 (HDR RT가 완성된 직후)
-   
-	mPostProcessPass->Execute(mDeferredDrawBatchs);
-}
 
 
 

@@ -181,6 +181,9 @@
     <Filter Include="World\Resource\Shader\60.ETC">
       <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Render\00.Pipeline">
+      <UniqueIdentifier>{a9b288e8-a61f-400b-8cac-2c07a2211362}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -543,6 +546,18 @@
     <ClInclude Include="PlayerSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="GameRenderPipeline.h">
+      <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyRenderPipeline.h">
+      <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectFlagComponent.h">
+      <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectFlagSystem.h">
+      <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -882,6 +897,12 @@
     </ClCompile>
     <ClCompile Include="GameMode.cpp">
       <Filter>World\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="GameRenderPipeline.cpp">
+      <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyRenderPipeline.cpp">
+      <Filter>World\System\Render\00.Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -28,6 +28,7 @@
 #include "VfxComponent.h"
 #include "BoxColliderComponent.h"
 #include "AudioVisualizerComponent.h"
+#include "EffectFlagComponent.h"
 #include "Prefab.h"
 
 #include "RenderSystem.h"
@@ -386,9 +387,17 @@ void MainMenuScene::Initialize()
 		switch (i) {
 		case 0:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_010S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010S");
+			material2->SetShader(L"Solid");
 			material2s.push_back(material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011");
+
+
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_011S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011S");
+			material2->SetShader(L"Solid");
 			material2s.push_back(material2);
 			/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 			material2s.push_back(material2);*/
@@ -399,9 +408,16 @@ void MainMenuScene::Initialize()
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_010S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010S");
+			material2->SetShader(L"Solid");
 			material2s.push_back(material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_011S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011S");
+			material2->SetShader(L"Solid");
+
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
@@ -410,9 +426,17 @@ void MainMenuScene::Initialize()
 			break;
 		case 2:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_010S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010S");
+
+			material2->SetShader(L"Solid");
 			material2s.push_back(material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack011");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack011")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_011S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011S");
+			material2->SetShader(L"Solid");
+
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
@@ -425,6 +449,8 @@ void MainMenuScene::Initialize()
 		mWorld->AddComponent<TransformComponent>(mEntityID, t);
 		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
+		/*EffectFlagComponent& effect = mWorld->AddComponent<EffectFlagComponent>(mEntityID);
+		effect.mFlag = EffectFlag::Infinite;*/
 	}
 
 	//-- -

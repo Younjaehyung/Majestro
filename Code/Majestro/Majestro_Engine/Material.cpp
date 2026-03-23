@@ -76,6 +76,9 @@ shared_ptr<Material> Material::Clone()
 	material->SetShader(mShaderName);
 	material->mParams = mParams;
 	material->mTextures = mTextures;
+	material->mShaderID = mShaderID;
+	material->mStructuredBufferIndex = mStructuredBufferIndex;
+	material->mShader = mShader;
 
 	return material;
 }

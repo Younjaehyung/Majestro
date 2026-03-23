@@ -454,9 +454,6 @@ void RenderSystem::PushObjectData() {
     }
     if (false == renderComponent->mVisibility)
       continue;
-    const bool useForwardPlus = (animationComponent != nullptr);
-    auto forwardPlusShader = useForwardPlus ? RESOURCEMANAGER.Get<Shader>(L"ForwardPlusCel") : nullptr;
-
 
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
     mObjectVector.push_back(objectParams); // 트랜스폼 갱신
@@ -473,17 +470,15 @@ void RenderSystem::PushObjectData() {
       // EffectFlagComponent가 있으면 object3에 플래그 주입 (PSO 변경 없이 쉐이더 분기)
       uint32 effectFlag = 0;
       if (auto* efx = mWorld->GetComponent<EffectFlagComponent>(gameObject))
-          effectFlag = static_cast<uint32>(efx->flag);
+          effectFlag = static_cast<uint32>(efx->mFlag);
 
       renderParams = {renderComponent->mObjectIndex, material->GetIndex(),
                       index2, effectFlag};
 
-      auto selectedShader = (useForwardPlus && forwardPlusShader) ? forwardPlusShader : material->GetShader();
-      const uint32 selectedShaderID = (useForwardPlus && forwardPlusShader) ? forwardPlusShader->GetID() : material->GetShaderID();
 
-      drawItem = { selectedShader,
+      drawItem = { material->GetShader(),
                   renderComponent->mMesh,
-                   selectedShaderID,
+                   material->GetShaderID(),
                   renderComponent->mMesh->GetID(),
                   material->GetID(),
                   subMaterialIdx++,

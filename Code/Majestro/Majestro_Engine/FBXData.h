@@ -123,7 +123,7 @@ public:
 	FBXData();
 	virtual ~FBXData();
 	
-	virtual void Load(const wstring& path);
+	virtual void Load(const wstring& path, const wstring& shader = L"Deferred");
 	void LoadMeshOnly(const wstring& path);
 	FBXMaterialInfo ReadMaterialData(std::ifstream& file);
 	FBXFileHeader	GetFBXFileHeader() { return mHeader; };
@@ -132,8 +132,8 @@ public:
 	const vector<shared_ptr<class Material>>& GetMaterials() const { return mMaterials; }
 	const vector<shared_ptr<CollisionMesh>>& GetColliders() const { return mColliders; }
 private:
-	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo);
-	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader);
+	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, const wstring& shader);
+	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader, const wstring& shader = L"Deferred");
 	shared_ptr<class Skeleton> CreateSkeletonFromFBX(ifstream& loader);
 	vector<shared_ptr<class Animator>>& CreateAnimatorFromFBX(ifstream& loader);
 private:

@@ -55,7 +55,7 @@ public:
 	shared_ptr<NavMesh> LoadNavMesh(const wstring& path);
 
 
-	shared_ptr<FBXData>		LoadFBX(const wstring& path);
+	shared_ptr<FBXData>		LoadFBX(const wstring& path, const wstring& shader = L"Deferred");
 	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path);
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);

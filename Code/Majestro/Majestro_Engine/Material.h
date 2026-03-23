@@ -79,7 +79,7 @@ private:
 	wstring				mShaderName;
 	uint32				mShaderID;
 	uint32				mStructuredBufferIndex{};
-	shared_ptr<Shader>	mShader;	//쉐이더 지울 예정
+	shared_ptr<Shader>	mShader;
 	MaterialParams		mParams{};	//머테리얼 parm
 	array<shared_ptr<Texture>, MATERIAL_TEXTURE_COUNT> mTextures;	//텍스쳐들
 

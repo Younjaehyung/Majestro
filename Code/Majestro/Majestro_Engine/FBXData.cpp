@@ -191,7 +191,7 @@ FBXData::~FBXData()
 {
 }
 
-void FBXData::Load(const wstring& path)
+void FBXData::Load(const wstring& path, const wstring& shader)
 {
 	mPath = ws2s(path);
 	std::string filePath{ filesystem::path(mPath).parent_path().string() + "\\" + filesystem::path(mPath).filename().stem().string()};
@@ -199,7 +199,7 @@ void FBXData::Load(const wstring& path)
 
 	if (std::ifstream f(filePath + ".mesh", std::ios::binary);f) {
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
-		CreateMeshFromFBX(f);
+		CreateMeshFromFBX(f, shader);
 	}
 	if (std::ifstream f(filePath + ".skel", std::ios::binary); f) {
 		CreateSkeletonFromFBX(f);
@@ -224,7 +224,7 @@ void FBXData::LoadMeshOnly(const wstring& path)
 
 }
 
-vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
+vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, const wstring& shader)
 {
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
@@ -275,7 +275,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 		mColliders.push_back(collisionMesh);
 		RESOURCEMANAGER.Add<CollisionMesh>(collisionMesh->GetName(), collisionMesh);*/
 
-		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo);
+		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
 	}
 	loader.close();
 	cout << "Materials OVER" << endl;
@@ -283,7 +283,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader)
 	return mMeshs;
 }
 
-vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo)
+vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, const wstring& shader)
 {
 	// Materials
 
@@ -295,7 +295,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 		meshInfo.Materials.push_back(ReadMaterialData(loader));
 
 		mMaterials[s]->CreateMaterial(meshInfo.Materials[s]);
-		mMaterials[s]->SetShader(L"Deferred");	//to-do
+		mMaterials[s]->SetShader(shader);
 		RESOURCEMANAGER.Add<Material>(mMaterials[s]->GetName(), mMaterials[s]);
 	}
 	

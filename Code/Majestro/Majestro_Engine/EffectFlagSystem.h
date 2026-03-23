@@ -28,11 +28,11 @@ public:
         for (auto entity : mWorld->View<EffectFlagComponent>())
         {
             auto* efx = mWorld->GetComponent<EffectFlagComponent>(entity);
-            if (efx->duration <= 0.f)
+            if (efx->mDuration <= 0.f)
                 continue; 
 
-            efx->elapsed += dt;
-            if (efx->elapsed >= efx->duration)
+            efx->mElapsed += dt;
+            if (efx->mElapsed >= efx->mDuration)
                 toRemove.push_back(entity);
         }
 

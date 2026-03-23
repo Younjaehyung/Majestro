@@ -49,11 +49,88 @@ void BeatSystem::Update(float dt)
 			{
 				if (mainPlayerComponent->mHasQueuedRhythmChange)
 				{
-					if (mainPlayerComponent->mPlayerType == 0) {
+					BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(entity);
+					if (buffComponent == nullptr)
+						continue;
+					BuffData buff;
+					BuffType rBuff = BuffType::AttackUp;
 
+					if (mainPlayerComponent->mPlayerType == 0) {
+						switch (mainPlayerComponent->mNextRhythm) {
+						case 0:
+							buff.mKind = EffectKind::Buff;
+							buff.mType = BuffType::AttackUp;
+							buff.mDurationPolicy = DurationPolicy::UntilSignal;
+							buff.mExecutionType = BuffExecutionType::Persistent;
+							break;
+						case 1:
+							buff.mKind = EffectKind::Buff;
+							buff.mType = BuffType::ScoreBoost;
+							buff.mDurationPolicy = DurationPolicy::UntilSignal;
+							buff.mExecutionType = BuffExecutionType::Persistent;
+							break;
+						case 2:
+							buff.mKind = EffectKind::Buff;
+							buff.mType = BuffType::MoveSpeedUp;
+							buff.mDurationPolicy = DurationPolicy::UntilSignal;
+							buff.mExecutionType = BuffExecutionType::Persistent;
+							break;
+						}
+						switch (mainPlayerComponent->mRhythm) {
+						case 0:
+							rBuff = BuffType::AttackUp;
+							break;
+						case 1:
+							rBuff = BuffType::ScoreBoost;
+							break;
+						case 2:
+							rBuff = BuffType::MoveSpeedUp;
+							break;
+						}
 					}
 					if (mainPlayerComponent->mPlayerType == 1) {
+						switch (mainPlayerComponent->mNextRhythm) {
+						case 0:
+							buff.mKind = EffectKind::Buff;
+							buff.mType = BuffType::ScoreOverTime;
+							buff.mDurationPolicy = DurationPolicy::UntilSignal;
+							buff.mExecutionType = BuffExecutionType::Persistent;
+							break;
+						case 1:
+							buff.mKind = EffectKind::Buff;
+							buff.mType = BuffType::ShieldOverTime;
+							buff.mDurationPolicy = DurationPolicy::UntilSignal;
+							buff.mExecutionType = BuffExecutionType::Persistent;
+							break;
+						case 2:
+							buff.mKind = EffectKind::Buff;
+							buff.mType = BuffType::HealOverTime;
+							buff.mDurationPolicy = DurationPolicy::UntilSignal;
+							buff.mExecutionType = BuffExecutionType::Persistent;
+							break;
+						}
+						switch (mainPlayerComponent->mRhythm) {
+						case 0:
+							rBuff = BuffType::ScoreOverTime;
+							break;
+						case 1:
+							rBuff = BuffType::ShieldOverTime;
+							break;
+						case 2:
+							rBuff = BuffType::HealOverTime;
+							break;
+						}
+					}
 
+					std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
+					for (Entity player : players)
+					{
+						BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(player);
+						if (buffComp == nullptr)
+							continue;
+
+						buffComp->AddOrRefresh(buff);
+						buffComp->RemoveBuff(rBuff);
 					}
 
 					mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
@@ -96,32 +173,51 @@ void BeatSystem::ApplyPendingBuffRequests()
 		if (armorComponent == nullptr)
 			continue;
 
+		BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(request.target);
+		if (buffComponent == nullptr)
+			continue;
+
+		const float now = GetServerTotalTimeSeconds();
+
 		if (request.skillType == SkillType::DrumSkill2)
 		{
 			armorComponent->mMaxArmor += 160;
 			armorComponent->mCurrentArmor = (std::min)(armorComponent->mCurrentArmor + 160, armorComponent->mMaxArmor);
 
 			eventManager->Enqueue<EvArmorChanged>({ request.target, armorComponent->mCurrentArmor, armorComponent->mMaxArmor });
+
+			BuffData buff;
+			buff.mKind = EffectKind::Debuff;
+			buff.mType = BuffType::ShieldDown;
+			buff.mDurationPolicy = DurationPolicy::Timed;
+			buff.mExecutionType = BuffExecutionType::Periodic;
+			buff.mEndTime = now + mBeat*16; 
+
+			buff.mTickInterval = mBeat;
+			buff.mNextTriggerTime = now + mBeat;
+
+			buffComponent->AddOrRefresh(buff);
+
 		}
 		else if (request.skillType == SkillType::DrumSkill3)
 		{
-			BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(request.target);
-			if (buffComponent == nullptr)
-				continue;
-
-			const float now = GetServerTotalTimeSeconds();
 
 			BuffData buff;
 			buff.mKind = EffectKind::Buff;
 			buff.mType = BuffType::BuffPowerUp;
 			buff.mDurationPolicy = DurationPolicy::Timed;
 			buff.mExecutionType = BuffExecutionType::Persistent;
-			buff.mEndTime = now + 5.0f; // 5초 지속
+			buff.mEndTime = now + mBeat*8; 
 
-			buffComponent->AddOrRefresh(buff);
+			std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
+			for (Entity player : players)
+			{
+				BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(player);
+				if (buffComp == nullptr)
+					continue;
 
-			// 현재 구조에서는 실제 효과도 직접 반영
-			buffComponent->mMoveSpeedMultiplier = 1.5f;
+				buffComp->AddOrRefresh(buff);
+			}
 		}
 	}
 

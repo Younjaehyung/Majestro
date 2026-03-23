@@ -16,6 +16,14 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
    // 임시 RED
-    return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    
+    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
+    RENDERPARAMS instance = InstanceParams[idx];
+    uint materialIndex = instance.MaterialInfoIndex;
+    MATERIALINFO materials = Materials[materialIndex];
+    
+    
+    
+    return float4(materials.ExtValue[0]);
 
 }

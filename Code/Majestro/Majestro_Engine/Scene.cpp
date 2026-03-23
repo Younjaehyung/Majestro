@@ -391,6 +391,7 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010S");
 			material2->SetShader(L"Solid");
+			material2->GetParams().ExtValue[0] = Vec4(0.f, 0.8f, 0.f, 1.f); // RimPower
 			material2s.push_back(material2);
 
 
@@ -398,9 +399,9 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011S");
 			material2->SetShader(L"Solid");
+			material2->GetParams().ExtValue[0] = Vec4(0.f, 0.5f, 0.5f, 1.f); // RimPower
 			material2s.push_back(material2);
-			/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
-			material2s.push_back(material2);*/
+
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
@@ -412,12 +413,16 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010S");
 			material2->SetShader(L"Solid");
+			material2->GetParams().ExtValue[0] = Vec4(0.f, 0.f, 8.f, 1.f); // RimPower
 			material2s.push_back(material2);
+
+
+
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011")->Clone();
 			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011S");
 			material2->SetShader(L"Solid");
-
+			material2->GetParams().ExtValue[0] = Vec4(0.5f, 0.f, 5.f, 1.f); // RimPower
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
@@ -429,14 +434,16 @@ void MainMenuScene::Initialize()
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010")->Clone();
 			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010S");
-
+			material2->GetParams().ExtValue[0] = Vec4(0.8f, 0.8f, 0.f, 1.f); // RimPower
 			material2->SetShader(L"Solid");
 			material2s.push_back(material2);
+
+
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack011")->Clone();
 			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011S");
 			material2->SetShader(L"Solid");
-
+			material2->GetParams().ExtValue[0] = Vec4(0.f,0.5f,0.5f,1.f); // RimPower
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));

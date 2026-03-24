@@ -116,7 +116,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	//world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
 		world->AddComponent<HealthComponent>(mEntityID, 150, 150);
@@ -143,7 +143,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//skill2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Attack_01"));//special
 
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
 
 		break;
 	case 1:
@@ -171,7 +171,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Skill_02"));//skill2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//special
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Reload"));
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
 		break;
 	case 2:
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
@@ -200,7 +200,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack01"));//skill2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack01"));//special
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Reload"));
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
 		break;
 	}
 
@@ -297,28 +297,36 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
 
-	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Noteboar_Body");
-	std::vector<shared_ptr<Material>> material2s;
-
-
-	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"SK_NoteBoar_Run0");
-	material2s.push_back(material2);
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 0.f, 0.f };
-	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
+	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
+
+	shared_ptr<Mesh> phereMesh;
+	std::vector<shared_ptr<Material>> material2s;
+	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"SM_Noteboar_Body.001|Action"));
+
+	phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
+	material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+	material2s.push_back(material2);
+	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
+
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {
+	case 0:
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		break;
+	}
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
-	//world->AddComponent<GravityComponent>(mEntityID);
+	
 	world->AddComponent<AnimationComponent>(mEntityID, anmators);
-	//world->AddComponent<EnemyComponent>(mEntityID);
-	//world->AddComponent<EnemyMovementComponent>(mEntityID);
-	Vec3 half{ 50,50,50 };
-	world->AddComponent<BoxColliderComponent>(mEntityID,half);
-	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	
+	Vec3 center{ 0,50,0 };
+	Vec3 half{ 50,100,50 };
+	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
+
 	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);

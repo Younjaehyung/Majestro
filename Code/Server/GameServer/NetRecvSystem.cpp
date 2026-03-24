@@ -6,6 +6,7 @@
 #include "InputComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "HealthComponent.h"
 #include "MovementComponent.h"
 #include "GameEvents.h"
@@ -177,7 +178,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 	}
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-	spawnPkt.isPlayerType = playertype;
+	spawnPkt.Type = playertype;
 
 	// 로그인 한 클라이언트에게 자신의 Spawn 패킷 전송
 	{
@@ -217,7 +218,7 @@ void NetRecvSystem::LoginProcess(InputCommand& inputCommand, bool broadcastToWor
 
 
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-		spawnPkt.isPlayerType = playerComp ? playerComp->mPlayerType : 1;
+		spawnPkt.Type = playerComp ? playerComp->mPlayerType : 1;
 
 		SendRequest request{ inputCommand.SessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
@@ -242,6 +243,11 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 
 	for (uint64 id :mNetEntityIds) {
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, id, PrefabType::ENEMY);
+		if (Entity enemyEntity = mWorld->GetEntityByNetId(id); enemyEntity.IsValid()) {
+			if (EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(enemyEntity)) {
+				spawnPkt.Type = enemyComp->mEnemyType;
+			}
+		}
 
 		// 로그인 한 클라이언트에게 자신의 Spawn 패킷 전송
 		for (uint32 sessionId : CollectPlayerSessions())

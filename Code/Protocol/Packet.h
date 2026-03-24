@@ -242,7 +242,7 @@ struct S2C_SpawnPacekt : public PacketTcpHeader {
 	uint32 SessionId{};
 	uint64 netEntityId{};
 	uint8  isLocalPlayer{};
-	uint8  isPlayerType{};
+	uint8  Type{};
 	MsgKind kind = MsgKind::Spawn;
 	PrefabType prefabType{ PrefabType::NONE };
 

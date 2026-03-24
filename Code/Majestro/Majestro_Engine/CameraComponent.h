@@ -102,7 +102,7 @@ public:
 	float mNear = 1.f * 100.f;
 	float mFar = 800.f * 100.f;
 
-	float mShadowNear = 10.f;
+	float mShadowNear = 1.f;
 	float mShadowFar = 8000.f;
 
 	float mFov = 103.f/2.0f;// XM_PI / 4.f; (오버워치 fov로 맞춤)

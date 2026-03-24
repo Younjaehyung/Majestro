@@ -536,7 +536,6 @@
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="CircularVisualizerComponent.h" />
-    <ClInclude Include="CircularVisualizerSystem.h" />
     <ClInclude Include="CircularVisualizerPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
@@ -891,7 +890,6 @@
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="CircularVisualizerComponent.cpp" />
-    <ClCompile Include="CircularVisualizerSystem.cpp" />
     <ClCompile Include="CircularVisualizerPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>

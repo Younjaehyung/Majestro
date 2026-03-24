@@ -115,7 +115,7 @@ void UIButtonSystem::Update(float dt)
 
         // ── 크기 스케일 갱신 (BaseSize 기준) ─────────────────
         if (btn->mBaseSize.x > 0.f)
-            tr->mSize = btn->mBaseSize * targetScale;
+            tr->mFinalSize = btn->mBaseSize * targetScale;
 
         // ── VFX 스케일 갱신 ───────────────────────────────────
         // UICusSpriteComponent 없이 VFX만 사용하는 버튼도 시각 피드백 지원

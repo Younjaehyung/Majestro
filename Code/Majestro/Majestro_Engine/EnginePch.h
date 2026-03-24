@@ -27,6 +27,8 @@
 #include <fstream>
 #include <functional>
 #include <typeindex>
+#include <random>
+#include <algorithm>
 #include <unordered_set>
 using namespace std;
 

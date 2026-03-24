@@ -94,7 +94,7 @@ void UIRenderSystem::Update()
     CustomSpriteUpdate();
 
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
-    //TextUpdate();
+    TextUpdate();
     SpriteUpdate();
 
     mUIEffectPass->Execute(DELTA_TIME);
@@ -162,7 +162,7 @@ void UIRenderSystem::CustomSpriteUpdate()
 
         UIInstanceData data;
         data.Position = tr->mFinalPixelPos;
-        data.Size = tr->mSize;
+        data.Size = tr->mFinalSize;
         data.Pivot = tr->mPivot;
         data.MaterialIndex = sp->mMaterial->GetIndex();
         data.ZOrder = static_cast<float>(tr->mUILayerIndex);
@@ -213,8 +213,8 @@ void UIRenderSystem::SpriteUpdate()
         else
         {
             textureSize = XMUINT2(
-                static_cast<uint32_t>(transComp->mSize.x),
-                static_cast<uint32_t>(transComp->mSize.y)
+                static_cast<uint32_t>(transComp->mFinalSize.x),
+                static_cast<uint32_t>(transComp->mFinalSize.y)
             );
 		}
 

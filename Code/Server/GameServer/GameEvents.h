@@ -24,6 +24,10 @@ enum class SkillType : uint8
     GuitarAttack_1,
     GuitarAttack_2,
     GuitarAttack_3,
+
+    //mop
+    HornAttack,
+
     Max
 };
 

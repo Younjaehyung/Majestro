@@ -8,6 +8,8 @@
 #include "TransformComponent.h"
 #include "MovementComponent.h"
 
+#include "BeatSystem.h"
+
 
 
 EnemySystem::EnemySystem(World* world) : System(world)
@@ -39,6 +41,10 @@ void EnemySystem::Update(float dt)
 
     if (!mWorld->HasComponentPool<EnemyMovementComponent>()) return;
     if (!mWorld->HasComponentPool<TransformComponent>())     return;
+
+    auto systemManager = mWorld->GetSystemManager();
+    auto* beatSystem = systemManager->GetSystem<BeatSystem>();
+    const float Beat = beatSystem->mBpmSeconds;
 
     auto& transformPool = mWorld->GetComponentPool<TransformComponent>();
 

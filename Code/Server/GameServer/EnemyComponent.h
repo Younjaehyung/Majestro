@@ -17,6 +17,8 @@ public:
 		switch(mEnemyType){
 		case EnemyType::HornMan:
 			mAttackCool = 16;
+			AttackRange = 300.f;
+			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			break;
 		}
@@ -25,6 +27,9 @@ public:
 public:
 	uint8 mEnemyType = 0;
 	float mSpeed;
+
+	float AttackRange = 100;
+	float AttackRangeSq = 100;
 
 	float mAttackCool;
 	float mNextAttackTime;

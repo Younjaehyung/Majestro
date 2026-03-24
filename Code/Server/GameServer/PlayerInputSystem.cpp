@@ -262,8 +262,12 @@ void PlayerInputSystem::Update(float dt)
 			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 			else cout << "fail" << endl;
 
-			mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm + 1) % 3;
-			if (mainPlayerComponent->mRhythm != mainPlayerComponent->mNextRhythm) mainPlayerComponent->mHasQueuedRhythmChange = true;
+			if (mainPlayerComponent->mNextRythmChangeTime <= now) {
+				mainPlayerComponent->mNextRythmChangeTime = now + 0.1f;
+				mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm + 1) % 3;
+				if (mainPlayerComponent->mRhythm != mainPlayerComponent->mNextRhythm) mainPlayerComponent->mHasQueuedRhythmChange = true;
+
+			}
 
 			//std::cout << "special" << std::endl;
 			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());

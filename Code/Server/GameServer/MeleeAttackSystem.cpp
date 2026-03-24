@@ -8,6 +8,8 @@
 #include "HealthComponent.h"
 #include "BulletComponent.h"
 #include "BuffComponent.h"
+#include "PlayerComponent.h"
+#include "EnemyComponent.h"
 
 namespace
 {
@@ -81,6 +83,11 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	if (!request.shooter.IsValid())
 		return;
 
+	const bool attackerIsPlayer = mWorld->HasComponent<MainPlayerComponent>(request.shooter);
+	const bool attackerIsEnemy = mWorld->HasComponent<EnemyComponent>(request.shooter);
+	if (!attackerIsPlayer && !attackerIsEnemy)
+		return;
+
 	TransformComponent* attackerTransform = mWorld->GetComponent<TransformComponent>(request.shooter);
 	InputComponent* attackerInput = mWorld->GetComponent<InputComponent>(request.shooter);
 	if (!attackerTransform || !attackerInput)
@@ -100,6 +107,14 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	{
 		if (!target.IsValid() || target == request.shooter)
 			continue;
+
+		const bool targetIsPlayer = mWorld->HasComponent<MainPlayerComponent>(target);
+		const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
+		if (attackerIsPlayer && !targetIsEnemy)
+			continue;
+		if (attackerIsEnemy && !targetIsPlayer)
+			continue;
+
 
 		TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
 		if (!targetTransform)

@@ -80,7 +80,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 	  world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 	  break;
   case 1:
-	  world->AddComponent<HealthComponent>(mEntityID, 100, 10);
+	  world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
   case 2:

@@ -9,6 +9,10 @@
 #include "MovementComponent.h"
 
 #include "BeatSystem.h"
+#include "EnemyComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
+#include "GameTimer.h"
 
 
 
@@ -62,6 +66,9 @@ void EnemySystem::Update(float dt)
     // 플레이어 없으면 리턴
     if (mPlayerPositions.empty()) return;
 
+    std::shared_ptr<EventManager> eventManager = mWorld->GetEventManager();
+    const float now = GetServerTotalTimeSeconds();
+
     int entityIndex = 0;
     for (auto& entity : mWorld->GetEntitiesWithComponent<EnemyMovementComponent>())
     {
@@ -73,6 +80,34 @@ void EnemySystem::Update(float dt)
 
         const Vec3 myPos      = tf->mLocalPosition;
         const Vec3 playerPos  = PathFinder(myPos);
+
+        EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
+        float nearestPlayerDistSq = (std::numeric_limits<float>::max)();
+        for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
+        {
+            TransformComponent* playerTf = transformPool.GetComponent(playerEntity.GetID());
+            if (!playerTf)
+                continue;
+
+            const float distSq = Vec3::DistanceSquared(myPos, playerTf->mLocalPosition);
+            nearestPlayerDistSq = (std::min)(nearestPlayerDistSq, distSq);
+        }
+
+        if (enemyComp->mEnemyType == EnemyType::HornMan && nearestPlayerDistSq <= enemyComp->AttackRangeSq)
+        {
+            mc->mMovingDirection = Vec3::Zero;
+            mc->mPathCount = 0;
+            mc->mPathIndex = 0;
+
+            if (eventManager && enemyComp->mNextAttackTime <= now)
+            {
+                eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
+                enemyComp->mNextAttackTime = now + Beat * enemyComp->mAttackCool;
+            }
+
+            ++entityIndex;
+            continue;
+        }
 
         // ---- 재탐색 판단 ----
         mc->mPathTimer -= dt;

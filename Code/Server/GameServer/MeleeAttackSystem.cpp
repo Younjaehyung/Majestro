@@ -7,6 +7,7 @@
 #include "InputComponent.h"
 #include "HealthComponent.h"
 #include "BulletComponent.h"
+#include "BuffComponent.h"
 
 namespace
 {
@@ -123,11 +124,12 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 			}
 		}
 
+		BuffComponent* attackerBuff = mWorld->GetComponent<BuffComponent>(request.shooter);
 
 		EvDamage damageEvent{};
 		damageEvent.instigator = request.shooter;
 		damageEvent.target = target;
-		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage));
+		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage* attackerBuff->mAttackMultiplier));
 		eventManager->Enqueue<EvDamage>(damageEvent);
 	}
 }

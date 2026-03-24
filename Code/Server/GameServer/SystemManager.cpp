@@ -5,6 +5,7 @@
 #include "PlayerSystem.h"
 #include "EnemySystem.h"
 #include "BeatSystem.h"
+#include "BuffSystem.h"
 #include "MovementSystem.h"
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
@@ -36,16 +37,17 @@ SystemManager::SystemManager(World* world) : mWorld(world)
     RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
     RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
     RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
-    RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
-    RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
-    RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
-    RegisterSystem<CameraSystem>();        // 8. 카메라 업데이트
-    RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
-    RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
-    RegisterSystem<CollisionSystem>();     // 11. 최신 mWorldMatrix로 충돌 판정
-    RegisterSystem<DamageSystem>();        // 12. 데미지 처리
-    RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
-    RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+    RegisterSystem<BuffSystem>();          // 5. 버프 틱/만료 처리
+    RegisterSystem<PlayerInputSystem>();   // 6. 입력 처리
+    RegisterSystem<MovementSystem>();      // 7. mLocalPosition += v*dt
+    RegisterSystem<TransformSystem>();     // 8. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
+    RegisterSystem<CameraSystem>();        // 9. 카메라 업데이트
+    RegisterSystem<MeleeAttackSystem>();   // 10. 근접 공격
+    RegisterSystem<BulletFireEventSystem>(); // 11. 투사체 발사
+    RegisterSystem<CollisionSystem>();     // 12. 최신 mWorldMatrix로 충돌 판정
+    RegisterSystem<DamageSystem>();        // 13. 데미지 처리
+    RegisterSystem<PlayerNavValidationSystem>(); // 14. Nav 검증
+    RegisterSystem<NetSendSystem>();       // 15. 상태 송신 (가장 마지막)
 
 }
 

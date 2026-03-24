@@ -10,6 +10,7 @@
 #include "InputComponent.h"
 #include "ColliderComponent.h"
 #include "PlayerComponent.h"
+#include "BuffComponent.h"
 #include "ServerCore.h"
 #include "GameEvents.h"
 
@@ -61,6 +62,7 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 	TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity);
 	NetEntityComponent* playerNetComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
 	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(playerEntity);
+	BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(playerEntity);
 	if (playerTransform == nullptr || playerNetComp == nullptr || inputComp == nullptr)
 		return;
 
@@ -77,7 +79,8 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			continue;
 
 		Vec3 direction = GetCameraForwardFromInput(*inputComp);
-		const BulletStat bulletStat = GetBulletStat(bulletType);
+		BulletStat bulletStat = GetBulletStat(bulletType);
+		bulletStat.Damage *= buffComp->mAttackMultiplier;
 
 		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;

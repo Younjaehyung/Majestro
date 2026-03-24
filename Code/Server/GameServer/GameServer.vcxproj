@@ -176,6 +176,7 @@
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BuffComponent.cpp" />
+    <ClCompile Include="BuffSystem.cpp" />
     <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="BulletFireEventSystem.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
@@ -240,6 +241,7 @@
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="BuffComponent.h" />
+    <ClInclude Include="BuffSystem.h" />
     <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="BulletFireEventSystem.h" />
     <ClInclude Include="CameraComponent.h" />

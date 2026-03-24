@@ -218,6 +218,9 @@
     <ClCompile Include="BuffComponent.cpp">
       <Filter>Component\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="BuffSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -392,6 +395,9 @@
     </ClInclude>
     <ClInclude Include="GameTimer.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="BuffSystem.h">
+      <Filter>System\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

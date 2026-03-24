@@ -1754,10 +1754,10 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Reload.fbx");
 
 
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack01.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_01.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx");

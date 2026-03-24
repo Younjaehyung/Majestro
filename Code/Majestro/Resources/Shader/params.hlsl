@@ -243,11 +243,18 @@ struct PASSINFO
     
     int TerrainSlot5;
     int TerrainSlot6;
-    
-    
+    int IrradianceIndex;      // CubeBoxMaps 배열 인덱스 (IBL Diffuse)
+    int PreFilteredEnvIndex;  // CubeBoxMaps 배열 인덱스 (IBL Specular)
+
 	float4 CascadeSplitDistances;
 
     matrix CascadeShadowVP[4];
+
+    // IBL 추가 파라미터 (C++ PassParams 끝 필드와 동일)
+    int BrdfLutIndex;         // TextureMaps 배열 인덱스 (BRDF LUT 2D)
+    int PreFilteredMipLevels; // pre-filtered 큐브맵 mip 단계 수
+    int IBLPadding0;
+    int IBLPadding1;
     
     //int PassTexture1;
     //int PassTexture2;
@@ -343,8 +350,8 @@ StructuredBuffer<ANIMATIONMETA> AnimationMeta : register(t2, space3);
 
  ////////////////////////////TEXTURE////////////////////////////////
 StructuredBuffer<MATERIALINFO> Materials : register(t0, space4);
-TextureCubeArray CubeBoxMaps : register(t1, space4);
-Texture2D<float4> TextureMaps[2048] : register(t2, space4);
+TextureCube CubeBoxMaps[15] : register(t1, space4);
+Texture2D<float4> TextureMaps[2048] : register(t16, space4);
  ///////////////////////////////////////////////////////////////////
 
 

@@ -8,6 +8,26 @@ struct DrawBatch;
 class  CameraComponent;
 class World;
 
+// ──────────────────────────────────────────────────────────────
+// 컬러 그레이딩 파라미터 (ToneMapPass 에서 사용)
+// ──────────────────────────────────────────────────────────────
+struct ColorGradingParams
+{
+	float  Saturation        = 1.0f;  // 채도 (1.0 = 기본, 0.0 = 흑백)
+	float  Contrast          = 1.0f;  // 대비 (1.0 = 기본)
+	float  Brightness        = 0.0f;  // 밝기 보정 (0.0 = 기본)
+	bool   Enabled           = true; // 컬러 그레이딩 활성화
+
+	Vec3   ShadowTint        = { 0.0f, 0.0f, 0.0f }; // 어두운 영역 색조 RGB 오프셋
+	float  ShadowStrength    = 0.5f;
+
+	Vec3   MidtoneTint       = { 0.0f, 0.0f, 0.0f }; // 중간 영역 색조 RGB 오프셋
+	float  MidtoneStrength   = 0.5f;
+
+	Vec3   HighlightTint     = { 0.0f, 0.0f, 0.0f }; // 밝은 영역 색조 RGB 오프셋
+	float  HighlightStrength = 0.0f;
+};
+
 inline GBUFFER_INDEX ToGBufferIndex(RENDER_TARGET_GROUP_TYPE type, uint32 subRtIndex = 0)
 {
 	switch (type)
@@ -108,6 +128,9 @@ public:
       auto it = std::find(mLDRPasses.begin(), mLDRPasses.end(), pass);
       if (it != mLDRPasses.end()) mLDRPasses.erase(it);
   }
+
+  void SetColorGrading(const ColorGradingParams& params);
+  const ColorGradingParams& GetColorGrading() const;
 
 private:
 	RENDER_TARGET_GROUP_TYPE mLDRBeforeGroupType; 

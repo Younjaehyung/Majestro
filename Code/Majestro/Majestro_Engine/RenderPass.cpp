@@ -101,6 +101,18 @@ void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PAS
     mFinalCompositePass->SetData(passTable, ldrBefore, ldrBefore);
 }
 
+void PostProcessPass::SetColorGrading(const ColorGradingParams& params)
+{
+	if (mToneMapPass) mToneMapPass->SetColorGrading(params);
+}
+
+const ColorGradingParams& PostProcessPass::GetColorGrading() const
+{
+	static const ColorGradingParams sDefault{};
+	if (!mToneMapPass) return sDefault;
+	return mToneMapPass->GetColorGrading();
+}
+
 void PostProcessPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
     for (shared_ptr<RenderPass>& pass : mHDRPasses)

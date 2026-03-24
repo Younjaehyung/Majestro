@@ -71,10 +71,10 @@ float3 Uncharted2Partial(float3 x)
 
 float3 Uncharted2Filmic(float3 color)
 {
-    float ExposureBias = 5.0f;
+    float ExposureBias = 2.0f;
     float3 curr = Uncharted2Partial(color * ExposureBias);
     
-    float W = 8.2f; // 화이트 포인트
+    float W =11.2f; // 화이트 포인트
     float3 whiteScale = 1.0f / Uncharted2Partial(float3(W, W, W));
     return curr * whiteScale;
 }
@@ -390,7 +390,8 @@ LightColor CalculateLightColorToon(
     //  shadowColor = baseColor × shadowTint × lightColor  (어두운 영역: 색조 변환)
     //  결과 = lerp(shadowColor, litColor, shadowFactor)
     // ─────────────────────────────────────────────────────────
-    float3 lightRGB = saturate(Lights[lightIndex].color.diffuse.rgb) * distanceRatio;
+    float lightLuminance = dot(saturate(Lights[lightIndex].color.diffuse.rgb), float3(0.2126, 0.7152, 0.0722));
+    float3 lightRGB = float3(lightLuminance, lightLuminance, lightLuminance) * distanceRatio;
 
     float3 litColor = baseColor; // 밝은 면: baseColor 원본 유지
     float3 shadColor = baseColor * toon.ShadowTint; // 어두운 면: tint만 적용
@@ -568,7 +569,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
 
-    float3 diffuse = kD * baseColor;
+    float3 diffuse = kD;
 
     // -----------------------------
     // 3) 라이트 색/세기 적용
@@ -798,7 +799,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float shadow = 0.0f;
     float weightSum = 0.0f;
 
-    if (cascadeIndex == 0)
+    if (cascadeIndex == 0 || cascadeIndex == 1)
     {
         // 근거리 cascade: 5x5 
         [unroll]
@@ -836,14 +837,19 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     }
 
     shadow /= max(weightSum, 1e-4f);
-    return 1.0f - shadow * 0.75f;
+    return 1.0f - shadow * 0.9f;
 }
 
 float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
 {
-    uint cascadeIndex = SelectCascadeIndex(viewPos.z);
+
     float viewDepth = abs(viewPos.z);
 
+    if (viewDepth > PassParams.CascadeSplitDistances.w)
+        return 1.0f;
+
+    uint cascadeIndex = SelectCascadeIndex(viewDepth);
+    
     float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
     float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
 
@@ -887,6 +893,77 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     }
 
     return visibility;
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// IBL (Image-Based Lighting)
+
+// roughness를 고려한 Fresnel — 환경광에서 F 계산 시 사용
+// FresnelSchlick과 달리 최대값을 (1 - roughness)로 제한해 거친 표면에서 과도한 반사를 방지
+float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+    float3 maxVal = max(float3(1.0f - roughness, 1.0f - roughness, 1.0f - roughness), F0);
+    return F0 + (maxVal - F0) * pow(saturate(1.0f - cosTheta), 5.0f);
+}
+
+// IBL 계산 결과 — diffuse와 specular를 분리해서 반환
+// diffuse → DiffuseLightTarget (final pass에서 albedo와 곱해짐)
+// specular → SpecularLightTarget (final pass에서 albedo 없이 그대로 더해짐)
+struct IBLResult
+{
+    float3 diffuse;
+    float3 specular;
+};
+
+// IBL ambient 기여 계산
+// N_view, V_view: view-space 법선/시선 벡터
+// baseColor, metallic, roughness: G-Buffer에서 읽은 PBR 파라미터
+IBLResult CalculateIBLAmbient(float3 N_view, float3 V_view,
+                               float3 baseColor, float metallic, float roughness)
+{
+    IBLResult result = (IBLResult) 0;
+
+    // IBL 텍스처가 준비되지 않으면 기여 없음
+    if (PassParams.IrradianceIndex < 0 ||
+        PassParams.PreFilteredEnvIndex < 0 ||
+        PassParams.BrdfLutIndex < 0)
+        return result;
+
+    // view-space → world-space 변환
+    // 기존 코드에서 mul(dir, MatView) = world→view 이므로, 역방향은 MatViewInv 사용
+    float3 N = normalize(mul(float4(N_view, 0.f), PassParams.MatViewInv).xyz);
+    float3 V = normalize(mul(float4(V_view, 0.f), PassParams.MatViewInv).xyz);
+    float3 R = reflect(-V, N); // specular IBL 샘플링에 사용할 반사 방향
+
+    float NdotV = saturate(dot(N, V));
+    roughness = max(roughness, 0.04f);
+
+    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
+    float3 F  = FresnelSchlickRoughness(NdotV, F0, roughness);
+
+    float3 kS = F;
+    float3 kD = (1.0f - kS) * (1.0f - metallic);
+
+    // --- Diffuse IBL ---
+    // Irradiance Map: 반구 전체 radiance의 cosine-weighted 적분 결과
+    // DiffuseLightTarget에 들어가므로 baseColor 포함 (final: albedo * diffuseIBL)
+    float3 irradiance = CubeBoxMaps[PassParams.IrradianceIndex].SampleLevel(g_sam_0, N, 0.0f).rgb;
+    result.diffuse = kD * irradiance;
+
+    // --- Specular IBL ---
+    // Pre-filtered Map: roughness에 따른 mip 레벨로 샘플링 (split-sum 근사의 Li 항)
+    // SpecularLightTarget에 들어가므로 albedo 곱 없이 반환 (final: + specularIBL)
+    float mipLevel          = roughness * (float) (PassParams.PreFilteredMipLevels - 1);
+    float3 prefilteredColor = CubeBoxMaps[PassParams.PreFilteredEnvIndex].SampleLevel(g_sam_0, R, mipLevel).rgb;
+
+    // BRDF LUT: (NdotV, roughness) → (scale, bias) — split-sum 근사의 BRDF 적분 항
+    // g_sam_Terrain(s1)은 CLAMP 모드로 LUT 경계 오류를 방지
+    float2 brdf = TextureMaps[PassParams.BrdfLutIndex].Sample(
+        g_sam_Terrain, float2(NdotV, 1.0f - roughness)).rg; // [수정 2]
+    result.specular = prefilteredColor * (F * brdf.x + brdf.y) ; // [수정 1]
+    return result;
 }
 
 #endif

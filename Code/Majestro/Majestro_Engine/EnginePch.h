@@ -452,7 +452,7 @@ enum {
 
 	, TEXTURE_SRV_COUNT = 2048	// texture(SRV) 개수
 	, TEXTURE_UAV_COUNT = 1024	// texture(UAV) 개수
-	, TEXTURE_CUBE_COUNT = 1	// texture(CUBE) 개수
+	, TEXTURE_CUBE_COUNT = 15	// texture(CUBE) 개수
 	, PARTICLE_COUNT = 4096		// particle(CUBE) 개수
 
 	, GBUFFER_INDEX_START = 0

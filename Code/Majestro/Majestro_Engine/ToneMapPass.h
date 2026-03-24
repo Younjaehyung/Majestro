@@ -14,5 +14,11 @@ public:
 
 	// HDR RT → SwapChain RT (ToneMap 셰이더)
 	virtual void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
+
+	void SetColorGrading(const ColorGradingParams& params) { mColorGrading = params; }
+	const ColorGradingParams& GetColorGrading() const { return mColorGrading; }
+
+private:
+	ColorGradingParams mColorGrading;
 };
 

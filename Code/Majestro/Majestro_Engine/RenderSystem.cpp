@@ -220,6 +220,7 @@ void RenderSystem::PushMaterialData() {
 }
 
 void RenderSystem::PushCubeData() {
+  // 스카이박스
   passParams.SkyBoxIndex = 0;
   shared_ptr<Material> skyboxMaterial =
       RESOURCEMANAGER.Get<Material>(L"Skybox");
@@ -229,6 +230,25 @@ void RenderSystem::PushCubeData() {
     if (skyboxTexture && skyboxTexture->IsCubeMap())
       passParams.SkyBoxIndex = skyboxTexture->GetCubeMapIndex();
   }
+
+  // IBL 큐브맵 인덱스
+  passParams.IrradianceIndex     = -1;
+  passParams.PreFilteredEnvIndex = -1;
+  passParams.BrdfLutIndex        = -1;
+  passParams.PreFilteredMipLevels = 8;
+
+  auto irradianceTex = RESOURCEMANAGER.Get<Texture>(L"IBL_Irradiance");
+  if (irradianceTex && irradianceTex->IsCubeMap())
+    passParams.IrradianceIndex = static_cast<int32>(irradianceTex->GetCubeMapIndex());
+
+  auto preFilteredTex = RESOURCEMANAGER.Get<Texture>(L"IBL_PreFiltered");
+  if (preFilteredTex && preFilteredTex->IsCubeMap())
+    passParams.PreFilteredEnvIndex = static_cast<int32>(preFilteredTex->GetCubeMapIndex());
+
+  // BRDF LUT는 2D 텍스처 → TextureMaps 배열 인덱스
+  auto brdfLutTex = RESOURCEMANAGER.Get<Texture>(L"IBL_BrdfLut");
+  if (brdfLutTex)
+    passParams.BrdfLutIndex = static_cast<int32>(brdfLutTex->GetImageIndex());
 }
 
 void RenderSystem::PushLandData() {
@@ -741,8 +761,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 
 
-  for (uint32 cascadeIndex = 0;
-       cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex) {
+  for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex) {
      
     const float splitNear =
         (cascadeIndex == 0) ? cameraNear
@@ -760,10 +779,8 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     array<Vec3, 8> worldCorners{};
     Vec3 frustumCenter = Vec3::Zero;
     for (uint32 i = 0; i < 4; ++i) {
-      const Vec3 nearCornerView =
-          Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT);
-      const Vec3 farCornerView =
-          Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT);
+      const Vec3 nearCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT);
+      const Vec3 farCornerView = Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT);
 
       worldCorners[i] = Vec3::Transform(nearCornerView, invView);
       worldCorners[i + 4] = Vec3::Transform(farCornerView, invView);
@@ -784,15 +801,20 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
     const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
     const Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
-
     Matrix lightView = Matrix::CreateLookAt(eye, frustumCenter, up);
 
-    // Stable CSM: XY 투영 영역을 구체 기반 고정 크기로 유지하고, 중심을 texel 단위로 스냅한다.
-      // 이렇게 하면 카메라가 미세하게 이동해도 캐스케이드 UV가 덜 흔들린다.
+
     Vec3 centerLS = Vec3::Transform(frustumCenter, lightView);
     const float texelWorldSize = max((radius * 2.f) / shadowMapSize, 1e-5f);
     centerLS.x = floor(centerLS.x / texelWorldSize + 0.5f) * texelWorldSize;
     centerLS.y = floor(centerLS.y / texelWorldSize + 0.5f) * texelWorldSize;
+
+    const Matrix invLightView = lightView.Invert();
+    const Vec3 snappedCenterWorld = Vec3::Transform(centerLS, invLightView);
+
+    // [수정] 스냅된 월드 중심으로 lightView 재생성
+    const Vec3 snappedEye = snappedCenterWorld - lightDir * (radius * 2.f);
+    lightView = Matrix::CreateLookAt(snappedEye, snappedCenterWorld, up);
 
     Vec3 minExtents(centerLS.x - radius, centerLS.y - radius, FLT_MAX);
     Vec3 maxExtents(centerLS.x + radius, centerLS.y + radius, -FLT_MAX);
@@ -808,9 +830,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     minExtents.z = minZ;
     maxExtents.z = maxZ;
 
-    // [수정] Terrain 높이 범위를 고려한 Z padding 증가
-    // Terrain height: (height - 0.5) * 512 → 범위 약 -256 ~ +256
-    // 기존 padding으로는 이 높이 범위를 커버하지 못할 수 있음
+
     const float terrainHeightRange = 0.0f;
     const float zPadding = max(max(radius * 4.f, 50.f), terrainHeightRange);
     const float nearPlane = minExtents.z - zPadding;

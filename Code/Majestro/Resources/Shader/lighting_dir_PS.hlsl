@@ -65,13 +65,18 @@ PS_OUT PS_DirLight(VS_OUT input)
     if (length(color.diffuse.rgb) != 0)
     {
         float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
-        color.diffuse *= visibility;
+        color.diffuse  *= visibility;
         color.specular *= visibility;
     }
 
+    // IBL ambient — 기존 단색 ambient를 환경맵 기반으로 대체
+    // diffuse  → DiffuseLightTarget  : final pass에서 albedo와 곱해짐
+    // specular → SpecularLightTarget : final pass에서 albedo 없이 더해짐 (metallic 왜곡 방지)
+    float3 V_view = normalize(-viewPos);
+    IBLResult ibl = CalculateIBLAmbient(viewNormal, V_view, baseColor, metallic, roughness);
 
-    output.diffuse = color.diffuse + color.ambient;
-    output.specular = color.specular;
+    output.diffuse  = color.diffuse  + float4(ibl.diffuse,  1.0f);
+    output.specular = color.specular + float4(ibl.specular, 0.0f);
 
     return output;
 }

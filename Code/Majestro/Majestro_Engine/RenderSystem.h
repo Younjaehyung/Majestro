@@ -59,11 +59,17 @@ struct PassParams {
   int32 TerrainSlot5;
   int32 TerrainSlot6;
 
-  int32 Padding0;
-  int32 Padding1;
+  int32 IrradianceIndex{-1};     // CubeBoxMaps 배열 인덱스 (IBL Diffuse)
+  int32 PreFilteredEnvIndex{-1}; // CubeBoxMaps 배열 인덱스 (IBL Specular)
 
   Vec4 CascadeSplitDistances;
   array<Matrix, 4> CascadeShadowVP{};
+
+  // IBL 추가 파라미터 (구조체 끝, HLSL과 레이아웃 동일)
+  int32 BrdfLutIndex{-1};        // TextureMaps 배열 인덱스 (BRDF LUT 2D)
+  int32 PreFilteredMipLevels{8}; // pre-filtered 큐브맵 mip 단계 수
+  int32 IBLPadding0{};
+  int32 IBLPadding1{};
 };
 
 // 디버그 라인 렌더링 요청 구조체

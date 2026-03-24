@@ -95,7 +95,8 @@ public:
 	float mStateTime=0.0f;
 	float mDt=0.0f;
 
-
+	// 플레이어 custom 변수들
+	float mDashTime = 0.0f;
 };
 
 //player base --------------------------------------------------

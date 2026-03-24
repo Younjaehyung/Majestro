@@ -198,8 +198,7 @@ void GameRenderPipeline::RenderDepthPrePass(const RenderContext& ctx)
 void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 {
     mShadowPass->Execute(
-        *ctx.deferredBatchs,
-        *ctx.shadowBatchs,
+        *ctx.cascadeBatchs,
         const_cast<std::array<bool, 4>&>(*ctx.cascadeActive));
 }
 

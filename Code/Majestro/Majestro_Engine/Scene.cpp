@@ -1000,6 +1000,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();

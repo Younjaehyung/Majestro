@@ -132,9 +132,9 @@ class CameraTypeComponent : public Component<CameraTypeComponent>
 {
 public:
 	CameraTypeComponent(PlayMode mode): mPlayMode(mode) {}
-	CameraTypeComponent(ComponentTypeID targetID, PlayMode mode ): mPlayMode(mode), mTargetID(targetID) {}
+	CameraTypeComponent(EntityID targetID, PlayMode mode ): mPlayMode(mode), mTargetID(targetID) {}
 public:
-	ComponentTypeID mTargetID;
+	EntityID mTargetID;
 	PlayMode mPlayMode;
 	float mCameraMoveSpeed = 100;
 

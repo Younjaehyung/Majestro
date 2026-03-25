@@ -62,10 +62,13 @@ void MovementSystem::Update(float dt) {
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
 		float objectGround = mWorld->GetPhysicsWorld()->QueryHeightAtPosition(transformComponent->mLocalPosition);
-		gravityComponent->mGround = max(terrainGround, objectGround);
+		float baseGround = terrainGround;
+		if (mWorld->HasComponent<PlayerMovementComponent>(entity))
+			baseGround = gravityComponent->mGround; // NavMesh 높이(PlayerNav/Movement에서 기록)를 terrainGround 대신 사용
+		//gravityComponent->mGround = max(baseGround, objectGround);
 
-		if (gravityComponent->mHight <= terrainGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= terrainGround) {
-			gravityComponent->mHight = terrainGround;
+		if (gravityComponent->mHight <= gravityComponent->mGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= gravityComponent->mGround) {
+			gravityComponent->mHight = gravityComponent->mGround;
 			gravityComponent->mGravity = 0.0f;
 
 			gravityComponent->mFalling = false;
@@ -77,7 +80,7 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity * dt;
 		}
 
-	//	transformComponent->mLocalPosition.y = gravityComponent->mHight;
+		transformComponent->mLocalPosition.y = gravityComponent->mHight;
 
 	}
 
@@ -173,11 +176,17 @@ if (!nav || !nav->IsInitialized()) return;
 			if (nav->MoveAlongSurface(prevPos, tf->mLocalPosition, resultPos))
 			{
 				tf->mLocalPosition.x = resultPos.x;
-				tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
+				//tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
 				tf->mLocalPosition.z = resultPos.z;
 				tf->mMovingVector.x = resultPos.x - prevPos.x;
-				tf->mMovingVector.y = resultPos.y - prevPos.y;
+				tf->mMovingVector.y = 0;
 				tf->mMovingVector.z = resultPos.z - prevPos.z;
+
+				GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+				if (gravityComp) {
+					gravityComp->mGround = resultPos.y;
+					//gravityComp->mHight = resultPos.y; // NavMesh 높이는 중력 단계에서 적용되도록 저장만 수행
+				}
 			}
 			// MoveAlongSurface가 false(NavMesh 밖)이면 검증 스킵  이동 그대로
 

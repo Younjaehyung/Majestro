@@ -10,6 +10,7 @@
 
 #include "BeatSystem.h"
 #include "EnemyComponent.h"
+#include "GravityComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "GameTimer.h"
@@ -160,9 +161,22 @@ void EnemySystem::Update(float dt)
             }
 
             Vec3 dir = mc->mPath[mc->mPathIndex] - myPos;
-            //dir.y    = 0.f;
-            dir.Normalize();
-            mc->mMovingDirection = dir;
+            GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+            if (gravityComp)
+            {
+                gravityComp->mGround = mc->mPath[mc->mPathIndex].y; // 몬스터도 NavMesh 높이를 중력 기준면으로 사용
+                //gravityComp->mHight = mc->mPath[mc->mPathIndex].y;
+            }
+            dir.y = 0.f;
+            if (dir.LengthSquared() > 1e-8f)
+            {
+                dir.Normalize();
+                mc->mMovingDirection = dir;
+            }
+            else
+            {
+                mc->mMovingDirection = Vec3::Zero;
+            }
         }
 
         ++entityIndex;

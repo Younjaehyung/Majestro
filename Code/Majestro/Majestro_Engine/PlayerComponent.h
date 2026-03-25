@@ -95,7 +95,8 @@ public:
 	float mStateTime=0.0f;
 	float mDt=0.0f;
 
-
+	int mMaxBullet;
+	int mNowBullet;
 };
 
 //player base --------------------------------------------------

@@ -107,6 +107,19 @@ void MovementSystem::Update(float dt) {
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 			MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
 
+			//jump
+			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
+
+			mainPlayerComponent->mFalling = gravityComponent->mFalling;
+			if (inputComponent->IsButtonPressed(InputButtons::SPACE)) {
+				if (not mainPlayerComponent->mFalling) {
+					gravityComponent->mHight += 20.0f;
+					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+				}
+				mainPlayerComponent->mFalling = true;
+
+			}
+
 			//float correction{ 0 };
 			//if (mainPlayerComponent->mPlayerType == 1 || mainPlayerComponent->mPlayerType == 2) correction = 3.14159265358979323846f;
 
@@ -189,19 +202,6 @@ if (!nav || !nav->IsInitialized()) return;
 				}
 			}
 			// MoveAlongSurface가 false(NavMesh 밖)이면 검증 스킵  이동 그대로
-
-			//jump
-			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-
-			mainPlayerComponent->mFalling = gravityComponent->mFalling;
-			if (inputComponent->IsButtonPressed(InputButtons::SPACE)) {
-				if (not mainPlayerComponent->mFalling) {
-					gravityComponent->mHight += 20.0f;
-					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
-				}
-				mainPlayerComponent->mFalling = true;
-
-			}
 
 
 		}

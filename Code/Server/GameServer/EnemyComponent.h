@@ -17,7 +17,7 @@ public:
 		switch(mEnemyType){
 		case EnemyType::HornMan:
 			mAttackCool = 16;
-			AttackRange = 10.f;
+			AttackRange = 1000.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			break;

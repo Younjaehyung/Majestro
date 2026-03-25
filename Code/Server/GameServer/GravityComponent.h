@@ -11,5 +11,5 @@ public:
 	float mGround = 0.0f;
 	bool mFalling;
 
-	float mHeightInterpolation = 5.0f;
+	float mHeightInterpolation = 3.0f;
 };

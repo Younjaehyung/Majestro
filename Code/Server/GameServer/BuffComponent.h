@@ -25,8 +25,11 @@ enum class BuffExecutionType
 enum class BuffType
 {
     AttackUp,
+    ScoreBoost,
     MoveSpeedUp,
     BuffPowerUp,
+
+    ScoreOverTime,
     ShieldOverTime,
     HealOverTime,
     //de buff
@@ -52,6 +55,8 @@ public:
     BuffComponent() = default;
 
     BuffData* FindBuff(BuffType type);
+    void ApplyBuffEffect(const BuffData& buff);
+    void RemoveBuffEffect(const BuffData& buff);
     BuffData& AddOrRefresh(const BuffData& buff);
     bool RemoveBuff(BuffType type);
 

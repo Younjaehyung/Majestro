@@ -1769,10 +1769,26 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Reload.fbx", L"ForwardPlusCel");
 
 
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack01.fbx", L"ForwardPlusCel");
+//<<<<<<< HEAD
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack01.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_BackRun.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_RightRun.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_LeftRun.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Reload.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_01.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_02.fbx", L"ForwardPlusCel");
+//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Rhythm.fbx", L"ForwardPlusCel");
+//=======
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx", L"ForwardPlusCel");

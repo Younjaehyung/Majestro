@@ -18,7 +18,7 @@
 #include "GameEvents.h"
 #include "BeatSystem.h"
 #include "GameTimer.h"
-
+#include "BuffComponent.h"
 
 namespace
 {
@@ -115,6 +115,7 @@ void PlayerInputSystem::Update(float dt)
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(e);
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(e);
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
+		BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
 		
 		//연속행동
 		if (mainPlayerComponent->mPendingAction != PendingAction::None)
@@ -151,7 +152,7 @@ void PlayerInputSystem::Update(float dt)
 		}
 		else {
 			if (mainPlayerComponent->mDash) mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-			else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
+			else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed * buffComp->mMoveSpeedMultiplier;
 		}
 		
 
@@ -188,7 +189,7 @@ void PlayerInputSystem::Update(float dt)
 		const float now = GetServerTotalTimeSeconds();
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			std::cout << "attack!!!" << std::endl;
+			//std::cout << "attack!!!" << std::endl;
 			if (mainPlayerComponent->mNextAttackTime <= now ) {
 				if (mainPlayerComponent->mPlayerType == 1 && mainPlayerComponent->mNowBullet > 0) {
 						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);

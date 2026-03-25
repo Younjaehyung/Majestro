@@ -189,10 +189,12 @@ private: // 배치 버퍼
   std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)> mPassTable{};
 
   std::vector<DrawItem> mDeferredDrawItems;
-  std::vector<DrawItem> mShadowOnlyDrawItems; // 카메라 밖 + 라이트 프러스텀 안
+
+
+  std::array<std::vector<DrawItem>,  4> mCascadeDrawItems{};
+  std::array<std::vector<DrawBatch>, 4> mCascadeDrawBatchs{};
 
   std::vector<DrawBatch> mDeferredDrawBatchs;
-  std::vector<DrawBatch> mShadowOnlyBatchs;   // shadow pass 전용 배치
   std::vector<DrawBatch> mLightDrawBatchs;
 
   struct dummy {
@@ -217,9 +219,13 @@ private:
   array<Matrix, 4> mCascadeView{};
   array<Matrix, 4> mCascadeProjection{};
 
-  // 라이트 프러스텀 구체 (카메라 밖 오브젝트 shadow 컬링용)
-  array<Vec3, 4> mCascadeFrustumCenter{};
+  // 라이트 프러스텀 구체 (shadow 컬링용)
+  array<Vec3, 4>  mCascadeFrustumCenter{};
   array<float, 4> mCascadeFrustumRadius{};
+
+
+  array<Vec3, 4> mCascadeLightRight{};
+  array<Vec3, 4> mCascadeLightUp{};
 
 private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms

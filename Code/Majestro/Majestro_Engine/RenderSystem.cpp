@@ -73,9 +73,9 @@ void RenderSystem::Update() {
 
   // 컨텍스트 구성 — 파이프라인에 렌더 데이터 전달
   RenderContext ctx;
-  ctx.deferredBatchs = &mDeferredDrawBatchs;
-  ctx.shadowBatchs   = &mShadowOnlyBatchs;
-  ctx.lightBatchs    = &mLightDrawBatchs;
+  ctx.deferredBatchs  = &mDeferredDrawBatchs;
+  ctx.cascadeBatchs   = &mCascadeDrawBatchs;
+  ctx.lightBatchs     = &mLightDrawBatchs;
   ctx.cascadeActive  = &mCascadeActive;
   ctx.camera         = mCamera;
   ctx.deltaTime      = DELTA_TIME;
@@ -154,9 +154,9 @@ void RenderSystem::ClearBuffer() {
   mCurrPSOID = 0;
 
   mDeferredDrawItems.clear();
-  mShadowOnlyDrawItems.clear();
+  for (auto& items   : mCascadeDrawItems)  items.clear();
+  for (auto& batches : mCascadeDrawBatchs) batches.clear();
   mDeferredDrawBatchs.clear();
-  mShadowOnlyBatchs.clear();
   mLightDrawBatchs.clear();
   mInstanceVector.clear();
   // passParams = {};
@@ -447,13 +447,18 @@ void RenderSystem::PushObjectData() {
                                     obb.Extents.y * obb.Extents.y +
                                     obb.Extents.z * obb.Extents.z);
 
-      bool inLightFrustum = false;
-      for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT && !inLightFrustum; ++ci) {
+
+      uint8 shadowCascadeMask = 0;
+      for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
         if (!mCascadeActive[ci]) continue;
-        if ((objCenter - mCascadeFrustumCenter[ci]).Length() < objRadius + mCascadeFrustumRadius[ci])
-          inLightFrustum = true;
+        const Vec3 toObj      = objCenter - mCascadeFrustumCenter[ci];
+        const float projX     = fabsf(toObj.Dot(mCascadeLightRight[ci]));
+        const float projY     = fabsf(toObj.Dot(mCascadeLightUp[ci]));
+        const float halfExtent = mCascadeFrustumRadius[ci] + objRadius;
+        if (projX < halfExtent && projY < halfExtent)
+          shadowCascadeMask |= static_cast<uint8>(1 << ci);
       }
-      if (!inLightFrustum) continue;
+      if (!shadowCascadeMask) continue;  // 어떤 cascade에도 속하지 않으면 생략
 
       // shadow-only 오브젝트: 트랜스폼 및 드로우 아이템 등록
       objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
@@ -468,7 +473,11 @@ void RenderSystem::PushObjectData() {
         shadowItem = {material->GetShader(), renderComponent->mMesh,
                       material->GetShaderID(), renderComponent->mMesh->GetID(),
                       material->GetID(), shadowSubIdx++, renderParams};
-        mShadowOnlyDrawItems.push_back(shadowItem);
+        // 교차하는 cascade에만 추가
+        for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
+          if (shadowCascadeMask & static_cast<uint8>(1 << ci))
+            mCascadeDrawItems[ci].push_back(shadowItem);
+        }
       }
       continue;
     }
@@ -495,7 +504,6 @@ void RenderSystem::PushObjectData() {
       renderParams = {renderComponent->mObjectIndex, material->GetIndex(),
                       index2, effectFlag};
 
-
       drawItem = { material->GetShader(),
                   renderComponent->mMesh,
                    material->GetShaderID(),
@@ -504,6 +512,12 @@ void RenderSystem::PushObjectData() {
                   subMaterialIdx++,
                   renderParams};
       mDeferredDrawItems.push_back(drawItem);
+
+
+      for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
+        if (mCascadeActive[ci])
+          mCascadeDrawItems[ci].push_back(drawItem);
+      }
       /*mDeferredDrawItems.emplace_back(
               material->GetShader(),
               renderComponent->mMesh,
@@ -659,39 +673,43 @@ void RenderSystem::PushObjectData() {
     i = j; // 다음 run으로
   }
 
-  // Shadow-only 배치 생성 (mShadowOnlyDrawItems → mShadowOnlyBatchs)
-  std::sort(mShadowOnlyDrawItems.begin(), mShadowOnlyDrawItems.end(),
-            [](const DrawItem& a, const DrawItem& b) {
-              if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;
-              if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;
-              if (a.SubMeshIndex != b.SubMeshIndex) return a.SubMeshIndex < b.SubMeshIndex;
-              return a.SubMesh < b.SubMesh;
-            });
+  // cascade별 배치 생성 (mCascadeDrawItems[ci] → mCascadeDrawBatchs[ci])
+  for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
+    if (!mCascadeActive[ci] || mCascadeDrawItems[ci].empty()) continue;
 
-  for (uint32 i = 0; i < mShadowOnlyDrawItems.size();) {
-    psoId = mShadowOnlyDrawItems[i].PSOID;
-    meshId = mShadowOnlyDrawItems[i].MeshID;
-    smIdx  = mShadowOnlyDrawItems[i].SubMesh;
-    base   = (uint32)mInstanceVector.size();
-    uint32 j = i;
+    std::sort(mCascadeDrawItems[ci].begin(), mCascadeDrawItems[ci].end(),
+              [](const DrawItem& a, const DrawItem& b) {
+                if (a.PSOID != b.PSOID) return a.PSOID < b.PSOID;
+                if (a.MeshID != b.MeshID) return a.MeshID < b.MeshID;
+                if (a.SubMeshIndex != b.SubMeshIndex) return a.SubMeshIndex < b.SubMeshIndex;
+                return a.SubMesh < b.SubMesh;
+              });
 
-    while (j < mShadowOnlyDrawItems.size() &&
-           mShadowOnlyDrawItems[j].PSOID  == psoId &&
-           mShadowOnlyDrawItems[j].MeshID == meshId &&
-           mShadowOnlyDrawItems[j].SubMesh == smIdx) {
-      mInstanceVector.push_back(mShadowOnlyDrawItems[j].InstanceGPU);
-      ++j;
+    for (uint32 i = 0; i < mCascadeDrawItems[ci].size();) {
+      psoId  = mCascadeDrawItems[ci][i].PSOID;
+      meshId = mCascadeDrawItems[ci][i].MeshID;
+      smIdx  = mCascadeDrawItems[ci][i].SubMesh;
+      base   = (uint32)mInstanceVector.size();
+      uint32 j = i;
+
+      while (j < mCascadeDrawItems[ci].size() &&
+             mCascadeDrawItems[ci][j].PSOID  == psoId &&
+             mCascadeDrawItems[ci][j].MeshID == meshId &&
+             mCascadeDrawItems[ci][j].SubMesh == smIdx) {
+        mInstanceVector.push_back(mCascadeDrawItems[ci][j].InstanceGPU);
+        ++j;
+      }
+
+      mBatch.PSOShader    = mCascadeDrawItems[ci][i].PSOShader;
+      mBatch.Mesh         = mCascadeDrawItems[ci][i].PMesh;
+      mBatch.PSOID        = psoId;
+      mBatch.SubMeshIndex = mCascadeDrawItems[ci][i].SubMeshIndex;
+      mBatch.BaseInstance = base;
+      mBatch.InstanceCount = (j - i);
+      mCascadeDrawBatchs[ci].push_back(mBatch);
+
+      i = j;
     }
-
-    mBatch.PSOShader    = mShadowOnlyDrawItems[i].PSOShader;
-    mBatch.Mesh         = mShadowOnlyDrawItems[i].PMesh;
-    mBatch.PSOID        = psoId;
-    mBatch.SubMeshIndex = mShadowOnlyDrawItems[i].SubMeshIndex;
-    mBatch.BaseInstance = base;
-    mBatch.InstanceCount = (j - i);
-    mShadowOnlyBatchs.push_back(mBatch);
-
-    i = j;
   }
 
   RENDERMANAGER.GetGroupBuffer(mFrameCount)
@@ -755,7 +773,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   lightDir.Normalize();
 
 
-  constexpr float shadowMapSize = 4096.f;
+  constexpr float shadowMapSize = 2048.f;
 
   // CascadeSplit[]은 함수 상단에서 mCascadeSplitLambda를 반영해 이미 계산됨
 
@@ -803,6 +821,10 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     const Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
     Matrix lightView = Matrix::CreateLookAt(eye, frustumCenter, up);
 
+    // Light 공간 XY 축 저장 — AABB 컬링에 사용 (행렬 Row 0/1 = Right/Up)
+    mCascadeLightRight[cascadeIndex] = Vec3(lightView._11, lightView._12, lightView._13);
+    mCascadeLightUp[cascadeIndex]    = Vec3(lightView._21, lightView._22, lightView._23);
+
 
     Vec3 centerLS = Vec3::Transform(frustumCenter, lightView);
     const float texelWorldSize = max((radius * 2.f) / shadowMapSize, 1e-5f);
@@ -848,8 +870,8 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 
 
-bool RenderSystem::IsFrustumCulled(TransformComponent *trans,
-                                   RenderComponent *renderComponent) {
+bool RenderSystem::IsFrustumCulled(TransformComponent *trans, RenderComponent *renderComponent) 
+{
   if (renderComponent->mCheckFrustum && mCamera) {
     // if (trans->mIsDirty)
     renderComponent->UpdateWorldOBB(trans);

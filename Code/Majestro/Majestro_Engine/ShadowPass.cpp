@@ -6,8 +6,7 @@
 #include "RenderManager.h"
 #include "ResourceManager.h"
 
-void ShadowPass::Initialize() {
-}
+void ShadowPass::Initialize() {}
 
 void ShadowPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
 {
@@ -16,31 +15,29 @@ void ShadowPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUS
 
 }
 
-void ShadowPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs, std::vector<DrawBatch>& shadowOnlyBatchs, array<bool, 4>& cascadeActive) {
-
+void ShadowPass::Execute(std::array<std::vector<DrawBatch>, 4>& cascadeDrawBatchs, array<bool, 4>& cascadeActive)
+{
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
 
-    // ClearRenderTargetView 내부에서 WaitResourceToTarget(PSR→DEPTH_WRITE)을 처리하므로
-    // 외부 WaitResourceToTarget 호출 제거 (버그 2: 이중 배리어 전환 방지)
+    // ClearRenderTargetView 내부에서 WaitResourceToTarget(PSR→DEPTH_WRITE)을 처리
     shadowGroup.ClearRenderTargetView();  // 모든 cascade slice 클리어
 
-    for (uint32 cascadeIndex = 0;
-        cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT;
-        ++cascadeIndex) {
+    for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex) {
         if (!cascadeActive[cascadeIndex])
             continue;
 
-        // 각 cascade에 해당하는 DSV slice를 바인딩 (버그 1: 모든 cascade가 slice 0에 기록되던 문제 수정)
+        // 각 cascade에 해당하는 DSV slice를 바인딩
         shadowGroup.OMSetRenderTargets(0, cascadeIndex);
-        RenderShadowCamera(deferredDrawBatchs, cascadeIndex);   // 카메라 프러스텀 안
-        RenderShadowCamera(shadowOnlyBatchs, cascadeIndex);     // 카메라 밖 + 라이트 프러스텀 안
+
+        // 해당 cascade 구체와 교차하는 오브젝트만 렌더 (퍼-캐스케이드 컬링)
+        RenderShadowCamera(cascadeDrawBatchs[cascadeIndex], cascadeIndex);
     }
 
     shadowGroup.WaitTargetToResource();
-
 }
 
-void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, uint32 cascadeIndex) {
+void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, uint32 cascadeIndex) 
+{
     shared_ptr<Shader> defaultShadowShader = RESOURCEMANAGER.Get<Shader>(L"Shadow");
     shared_ptr<Shader> terrainShadowShader = RESOURCEMANAGER.Get<Shader>(L"TerrainShadow");
     shared_ptr<Shader> terrainShader = RESOURCEMANAGER.Get<Shader>(L"Terrain");
@@ -51,8 +48,7 @@ void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, 
             continue;
         }
 
-        const int32 shadowShaderType =
-            (drawBatch.PSOShader == terrainShader) ? 1 : 0;
+        const int32 shadowShaderType = (drawBatch.PSOShader == terrainShader) ? 1 : 0;
         if (shadowShaderType != lastShadowShader) {
             if (shadowShaderType == 1)
                 continue;
@@ -70,7 +66,8 @@ void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, 
     }
 }
 
-void ShadowPass::InstancingRender(DrawBatch& drawBatch) {
+void ShadowPass::InstancingRender(DrawBatch& drawBatch) 
+{
     drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex,
         0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 }

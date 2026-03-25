@@ -793,7 +793,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float bias = max(0.00001f, 0.00008f * (1.0f - ndotl)) * cascadeBiasScale;
 
 
-    const float shadowMapSize = 4096.0f;
+    const float shadowMapSize = 2048.0f;
     float2 texelSize = 1.0f / shadowMapSize;
 
     float shadow = 0.0f;

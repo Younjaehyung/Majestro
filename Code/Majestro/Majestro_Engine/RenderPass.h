@@ -53,9 +53,11 @@ inline GBUFFER_INDEX ToGBufferIndex(RENDER_TARGET_GROUP_TYPE type, uint32 subRtI
 
 struct RenderContext
 {
-	std::vector<DrawBatch>* deferredBatchs = nullptr;  // 일반 렌더 배치
-	std::vector<DrawBatch>* shadowBatchs = nullptr;  // 카메라 밖 Shadow-only 배치
-	std::vector<DrawBatch>* lightBatchs = nullptr;  // 라이트 배치
+	std::vector<DrawBatch>* deferredBatchs = nullptr;  // 일반 렌더 배치 (GBuffer/Forward)
+	std::vector<DrawBatch>* lightBatchs = nullptr;     // 라이트 배치
+
+	// cascade별 그림자 배치 — 각 인덱스에는 해당 cascade 구체와 교차하는 오브젝트만 포함
+	std::array<std::vector<DrawBatch>, 4>* cascadeBatchs = nullptr;
 
 	std::array<bool, 4>* cascadeActive = nullptr;  // 활성 캐스케이드 플래그
 

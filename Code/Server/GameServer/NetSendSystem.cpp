@@ -26,6 +26,7 @@ void NetSendSystem::Update(float dt)
 	SendCollision();
 	SendHealthEvents();
 	SendArmorEvents();
+	SendAmmoEvents();
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
 
@@ -266,6 +267,35 @@ void NetSendSystem::SendArmorEvents()
 			}
 		});
 }
+
+void NetSendSystem::SendAmmoEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	eventManager->Consume<EvAmmoChanged>([&](const EvAmmoChanged& e)
+		{
+			if (!e.target.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
+			if (netComp == nullptr || netComp->mSessionId == 0)
+				return;
+
+			S2C_AmmoPacket ammoPkt;
+			ammoPkt.netEntityId = netComp->mNetEntityId;
+			ammoPkt.currentAmmo = e.currentAmmo;
+			ammoPkt.maxAmmo = e.maxAmmo;
+
+			mSendReq.SessionId = netComp->mSessionId;
+			mSendReq.Type = S2C_PKT_AMMO;
+			mSendReq.Size = sizeof(S2C_AmmoPacket);
+			mSendReq.StoreAs<S2C_AmmoPacket>(ammoPkt);
+			gSendQueue.Push(mSendReq);
+		});
+}
+
 
 void NetSendSystem::SendBulletDeactivateEvents()
 {

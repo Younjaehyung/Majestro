@@ -79,6 +79,13 @@ struct EvArmorChanged
     int32 maxArmor;
 };
 
+struct EvAmmoChanged
+{
+    Entity target;
+    int32 currentAmmo;
+    int32 maxAmmo;
+};
+
 struct EvBulletDeactivated
 {
     Entity bullet;
@@ -111,4 +118,7 @@ struct EvMeleeAttackRequest
     SkillType bulletType;
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
+    EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;
+

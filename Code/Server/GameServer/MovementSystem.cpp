@@ -11,6 +11,7 @@
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "InputComponent.h"
 #include "BulletComponent.h"
 #include "GameEvents.h"
@@ -263,7 +264,35 @@ if (!nav || !nav->IsInitialized()) return;
 
 		const float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
 		if (lenSq <= 1e-8f)
-			continue;
+		{
+			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
+			if (!enemyComp) continue;
+
+			const Vec3 myPos = transformComponent->mLocalPosition;
+			float nearestPlayerDistSq = (std::numeric_limits<float>::max)();
+			Vec3 lookDir = Vec3::Zero;
+
+			for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
+			{
+				TransformComponent* playerTf = mWorld->GetComponent<TransformComponent>(playerEntity);
+				if (!playerTf) continue;
+
+				Vec3 toPlayer = playerTf->mLocalPosition - myPos;
+				toPlayer.y = 0.f;
+				const float distSq = toPlayer.LengthSquared();
+				if (distSq < nearestPlayerDistSq)
+				{
+					nearestPlayerDistSq = distSq;
+					lookDir = toPlayer;
+				}
+			}
+
+			// 공격 사거리 내에서는 이동하지 않아도 타겟을 바라보도록 회전만 갱신
+			if (nearestPlayerDistSq > enemyComp->AttackRangeSq || lookDir.LengthSquared() <= 1e-8f)
+				continue;
+
+			dir = lookDir;
+		}
 
 		dir.y = 0.0f;
 		const float flatLenSq = dir.x * dir.x + dir.z * dir.z;
@@ -275,7 +304,7 @@ if (!nav || !nav->IsInitialized()) return;
 		dir.z *= invLen;
 
 		constexpr float kRadToDeg = 57.295779513082320876f;
-		const float targetYawDeg = atan2f(dir.x, dir.z) * kRadToDeg + 180.0f;
+		const float targetYawDeg = atan2f(dir.x, dir.z) * kRadToDeg;
 
 		const float maxDeltaDeg = kTurnSpeedDegPerSec * dt;
 		transformComponent->mLocalRotationE.y =

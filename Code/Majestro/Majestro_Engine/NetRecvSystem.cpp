@@ -62,6 +62,7 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_STATE,             [this](auto& m){ HandleState(m); });
     reg(PKT_Type::S2C_PKT_HEALTH,            [this](auto& m){ HandleHealth(m); });
     reg(PKT_Type::S2C_PKT_ARMOR,             [this](auto& m){ HandleArmor(m); });
+    reg(PKT_Type::S2C_PKT_AMMO,              [this](auto& m){ HandleAmmo(m); });
     reg(PKT_Type::S2C_PKT_COLLISION,         [this](auto& m){ HandleCollision(m); });
     reg(PKT_Type::S2C_PKT_BULLET_ACTIVATE,   [this](auto& m){ HandleBulletActivate(m); });
     reg(PKT_Type::S2C_PKT_BULLET_DEACTIVATE, [this](auto& m){ HandleBulletDeactivate(m); });
@@ -201,6 +202,20 @@ void NetRecvSystem::HandleArmor(const InputCommand& msg)
     armorComp->mCurrentArmor = pkt->currentArmor;
     armorComp->mMaxArmor     = pkt->maxArmor;
 }
+
+void NetRecvSystem::HandleAmmo(const InputCommand& msg)
+{
+    const S2C_AmmoPacket* pkt = msg.ViewAs<S2C_AmmoPacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
+    if (!playerComp) return;
+
+    playerComp->mNowBullet = pkt->currentAmmo;
+    playerComp->mMaxBullet = pkt->maxAmmo;
+}
+
 
 void NetRecvSystem::HandleCollision(const InputCommand& msg)
 {

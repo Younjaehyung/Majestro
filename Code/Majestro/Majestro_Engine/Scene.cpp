@@ -431,7 +431,7 @@ void MainMenuScene::Initialize()
 			break;
 		case 2:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack010")->Clone();
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010")->Clone();
 			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010S");
 			material2->GetParams().ExtValue[0] = Vec4(0.8f, 0.8f, 0.f, 1.f); // RimPower
@@ -439,7 +439,7 @@ void MainMenuScene::Initialize()
 			material2s.push_back(material2);
 
 
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack011")->Clone();
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011")->Clone();
 			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011S");
 			material2->SetShader(L"Solid");
@@ -1030,6 +1030,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();

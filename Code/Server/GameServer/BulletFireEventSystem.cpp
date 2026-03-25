@@ -10,6 +10,9 @@
 #include "InputComponent.h"
 #include "ColliderComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
+#include "MovementComponent.h"
+#include "BuffComponent.h"
 #include "ServerCore.h"
 #include "GameEvents.h"
 
@@ -58,10 +61,16 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 	if (false == mWorld->HasComponentPool<BulletComponent>())
 		return;
 
-	TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity);
-	NetEntityComponent* playerNetComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	TransformComponent* shooterTransform = mWorld->GetComponent<TransformComponent>(playerEntity);
+	NetEntityComponent* shooterNetComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
 	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(playerEntity);
-	if (playerTransform == nullptr || playerNetComp == nullptr || inputComp == nullptr)
+	BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(playerEntity);
+	const bool shooterIsPlayer = mWorld->HasComponent<MainPlayerComponent>(playerEntity);
+	const bool shooterIsEnemy = mWorld->HasComponent<EnemyComponent>(playerEntity);
+
+	if (shooterTransform == nullptr || shooterNetComp == nullptr)
+		return;
+	if (!shooterIsPlayer && !shooterIsEnemy)
 		return;
 
 	auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
@@ -76,10 +85,44 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		if (bulletTransform == nullptr || bulletNetComp == nullptr)
 			continue;
 
-		Vec3 direction = GetCameraForwardFromInput(*inputComp);
-		const BulletStat bulletStat = GetBulletStat(bulletType);
+		Vec3 direction = Vec3::Forward;
+		if (shooterIsPlayer)
+		{
+			if (inputComp == nullptr)
+				return;
 
-		bulletTransform->mWorldPosition = playerTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
+			direction = GetCameraForwardFromInput(*inputComp);
+		}
+		else
+		{
+			float nearestDistSq = (std::numeric_limits<float>::max)();
+			Vec3 nearestPlayerPosition = shooterTransform->mWorldPosition;
+			for (auto playerTarget : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+			{
+				TransformComponent* playerTargetTransform = mWorld->GetComponent<TransformComponent>(playerTarget);
+				if (!playerTargetTransform)
+					continue;
+
+				const float distSq = Vec3::DistanceSquared(shooterTransform->mWorldPosition, playerTargetTransform->mWorldPosition);
+				if (distSq < nearestDistSq)
+				{
+					nearestDistSq = distSq;
+					nearestPlayerPosition = playerTargetTransform->mWorldPosition;
+				}
+			}
+
+			direction = nearestPlayerPosition - shooterTransform->mWorldPosition;
+			if (direction.LengthSquared() <= 0.0001f)
+				direction = shooterTransform->GetLook();
+			if (direction.LengthSquared() <= 0.0001f)
+				direction = Vec3::Forward;
+			direction.Normalize();
+		}
+		BulletStat bulletStat = GetBulletStat(bulletType);
+		const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
+		bulletStat.Damage *= attackMultiplier;
+
+		bulletTransform->mWorldPosition = shooterTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
 		bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
 		bulletTransform->mMovingVector = direction * bulletStat.Speed;
@@ -92,8 +135,8 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
 		bulletComp->mbPenetrates = bulletStat.bPenetrates;
-		bulletComp->Activate(bulletType, playerNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance);
-
+		bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance);
+		
 		mWorld->RegisterActiveBullet(bulletEntity);
 
 		//effectSpawn
@@ -110,7 +153,7 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		S2C_BulletActivatePacket bulletPacket{};
 		bulletPacket.SendTime = std::chrono::duration<double>(
 			std::chrono::system_clock::now().time_since_epoch()).count();
-		bulletPacket.ownerNetEntityId = playerNetComp->mNetEntityId;
+		bulletPacket.ownerNetEntityId = shooterNetComp->mNetEntityId;
 		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
 		bulletPacket.bulletType = static_cast<uint8>(bulletType);
 		bulletPacket.x = bulletTransform->mWorldPosition.x;

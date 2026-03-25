@@ -10,6 +10,7 @@
 #include "MovementComponent.h"
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "ResourceManager.h"
 #include "TagComponent.h"
 #include "TerrainComponent.h"
@@ -79,7 +80,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 	  world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 	  break;
   case 1:
-	  world->AddComponent<HealthComponent>(mEntityID, 100, 10);
+	  world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
   case 2:
@@ -215,14 +216,32 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	
 	
 	t.mLocalPosition = { i * n, 0, j * n };
-	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
+	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
-	Vec3 half{ 50,50,50 };
-	world->AddComponent<BoxColliderComponent>(mEntityID,half);
+	Vec3 center{ 0,50,0 };
+	Vec3 half{ 50,100,50 };
+	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
 	world->AddComponent<MovableComponent>(mEntityID);
+
+
+
+	world->AddComponent<EnemyComponent>(mEntityID,EnemyType::HornMan, 40);
+
+	switch (0) {
+	case EnemyType::HornMan:
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		break;
+	case 1:
+		world->AddComponent<HealthComponent>(mEntityID, 100, 10);
+		break;
+	case 2:
+		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+		break;
+	}
+
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 
 	auto& w =

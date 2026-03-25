@@ -29,6 +29,7 @@ private:
 	void HandleState(const InputCommand& msg);
 	void HandleHealth(const InputCommand& msg);
 	void HandleArmor(const InputCommand& msg);
+	void HandleAmmo(const InputCommand& msg);
 	void HandleCollision(const InputCommand& msg);
 	void HandleBulletActivate(const InputCommand& msg);
 	void HandleBulletDeactivate(const InputCommand& msg);

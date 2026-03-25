@@ -41,10 +41,17 @@ void PlayerNavValidationSystem::Update(float dt)
         if (nav->MoveAlongSurface(prevPos, tf->mLocalPosition, resultPos))
         {
             tf->mLocalPosition.x = resultPos.x;
-			tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
+			//tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
             tf->mLocalPosition.z = resultPos.z;
             tf->mMovingVector.x  = resultPos.x - prevPos.x;
+            tf->mMovingVector.y = 0;
             tf->mMovingVector.z  = resultPos.z - prevPos.z;
+
+            GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+            if (gravityComp) {
+                gravityComp->mGround = resultPos.y;
+                //gravityComp->mHight = resultPos.y; // NavMesh 높이는 중력 단계에서 최종 반영
+            }
         }
         // MoveAlongSurface가 false(NavMesh 밖)이면 검증 스킵  이동 그대로
     }

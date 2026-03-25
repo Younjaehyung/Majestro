@@ -12,7 +12,8 @@
 #include "NetEntityComponent.h"
 #include "GameEvents.h"
 
-
+#include "PlayerComponent.h"
+#include "EnemyComponent.h"
 
  CollisionSystem::CollisionSystem(World* world) : System(world)
 {
@@ -506,12 +507,38 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
 
         if (bulletCollider)
             bulletCollider->bIsColliding = true;
+        const auto canDamageTarget = [&](Entity instigator, Entity target) -> bool
+            {
+                if (!instigator.IsValid() || !target.IsValid())
+                    return false;
+
+                const bool instigatorIsPlayer = mWorld->HasComponent<MainPlayerComponent>(instigator);
+                const bool instigatorIsEnemy = mWorld->HasComponent<EnemyComponent>(instigator);
+                if (!instigatorIsPlayer && !instigatorIsEnemy)
+                    return false;
+
+                const bool targetIsPlayer = mWorld->HasComponent<MainPlayerComponent>(target);
+                const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
+
+                if (instigatorIsPlayer)
+                    return targetIsEnemy;
+
+                if (instigatorIsEnemy)
+                    return targetIsPlayer;
+
+                return false;
+            };
+
         const auto enqueueDamage = [&](Entity target)
             {
                 if (auto eventManager = mWorld->GetEventManager())
                 {
+                    Entity instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
+                    if (!canDamageTarget(instigator, target))
+                        return;
+
                     EvDamage damageEvent{};
-                    damageEvent.instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
+                    damageEvent.instigator = instigator;
                     damageEvent.target = target;
                     damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
                     eventManager->Enqueue<EvDamage>(damageEvent);

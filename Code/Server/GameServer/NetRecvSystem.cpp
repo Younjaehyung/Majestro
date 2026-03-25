@@ -129,7 +129,7 @@ void NetRecvSystem::SendSpawnToSelf(uint32 sessionId, Entity e, uint8 playerType
 	if (netComp == nullptr) return;
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(sessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-	spawnPkt.isPlayerType  = playerType;
+	spawnPkt.Type = playerType;
 	spawnPkt.isLocalPlayer = 1;
 
 	SendRequest request{ sessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
@@ -143,7 +143,7 @@ void NetRecvSystem::BroadcastSpawnToOthers(uint32 sessionId, Entity e, uint8 pla
 	if (netComp == nullptr) return;
 
 	S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(sessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-	spawnPkt.isPlayerType  = playerType;
+	spawnPkt.Type = playerType;
 	spawnPkt.isLocalPlayer = 0;
 
 	for (uint32 otherSessionId : CollectPlayerSessions())
@@ -166,7 +166,7 @@ void NetRecvSystem::SendExistingPlayersToNewClient(uint32 newSessionId)
 		if (netComp->mSessionId == newSessionId || netComp->mSessionId == 0) continue;
 
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
-		spawnPkt.isPlayerType = playerComp ? playerComp->mPlayerType : 1;
+		spawnPkt.Type = playerComp ? playerComp->mPlayerType : 1;
 
 		SendRequest request{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);

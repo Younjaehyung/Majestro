@@ -8,6 +8,13 @@
 #include "TransformComponent.h"
 #include "MovementComponent.h"
 
+#include "BeatSystem.h"
+#include "EnemyComponent.h"
+#include "GravityComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
+#include "GameTimer.h"
+
 
 
 EnemySystem::EnemySystem(World* world) : System(world)
@@ -40,6 +47,10 @@ void EnemySystem::Update(float dt)
     if (!mWorld->HasComponentPool<EnemyMovementComponent>()) return;
     if (!mWorld->HasComponentPool<TransformComponent>())     return;
 
+    auto systemManager = mWorld->GetSystemManager();
+    auto* beatSystem = systemManager->GetSystem<BeatSystem>();
+    const float Beat = beatSystem->mBpmSeconds;
+
     auto& transformPool = mWorld->GetComponentPool<TransformComponent>();
 
     // 프레임 별 플레이어 위치 목록을 미리 수집
@@ -56,6 +67,9 @@ void EnemySystem::Update(float dt)
     // 플레이어 없으면 리턴
     if (mPlayerPositions.empty()) return;
 
+    std::shared_ptr<EventManager> eventManager = mWorld->GetEventManager();
+    const float now = GetServerTotalTimeSeconds();
+
     int entityIndex = 0;
     for (auto& entity : mWorld->GetEntitiesWithComponent<EnemyMovementComponent>())
     {
@@ -67,6 +81,34 @@ void EnemySystem::Update(float dt)
 
         const Vec3 myPos      = tf->mLocalPosition;
         const Vec3 playerPos  = PathFinder(myPos);
+
+        EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
+        float nearestPlayerDistSq = (std::numeric_limits<float>::max)();
+        for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
+        {
+            TransformComponent* playerTf = transformPool.GetComponent(playerEntity.GetID());
+            if (!playerTf)
+                continue;
+
+            const float distSq = Vec3::DistanceSquared(myPos, playerTf->mLocalPosition);
+            nearestPlayerDistSq = (std::min)(nearestPlayerDistSq, distSq);
+        }
+
+        if (enemyComp->mEnemyType == EnemyType::HornMan && nearestPlayerDistSq <= enemyComp->AttackRangeSq)
+        {
+            mc->mMovingDirection = Vec3::Zero;
+            mc->mPathCount = 0;
+            mc->mPathIndex = 0;
+
+            if (eventManager && enemyComp->mNextAttackTime <= now)
+            {
+                eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
+                enemyComp->mNextAttackTime = now + Beat * enemyComp->mAttackCool;
+            }
+
+            ++entityIndex;
+            continue;
+        }
 
         // ---- 재탐색 판단 ----
         mc->mPathTimer -= dt;
@@ -119,9 +161,22 @@ void EnemySystem::Update(float dt)
             }
 
             Vec3 dir = mc->mPath[mc->mPathIndex] - myPos;
-            //dir.y    = 0.f;
-            dir.Normalize();
-            mc->mMovingDirection = dir;
+            GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+            if (gravityComp)
+            {
+                gravityComp->mGround = mc->mPath[mc->mPathIndex].y; // 몬스터도 NavMesh 높이를 중력 기준면으로 사용
+                //gravityComp->mHight = mc->mPath[mc->mPathIndex].y;
+            }
+            dir.y = 0.f;
+            if (dir.LengthSquared() > 1e-8f)
+            {
+                dir.Normalize();
+                mc->mMovingDirection = dir;
+            }
+            else
+            {
+                mc->mMovingDirection = Vec3::Zero;
+            }
         }
 
         ++entityIndex;

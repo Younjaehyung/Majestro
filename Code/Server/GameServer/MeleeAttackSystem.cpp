@@ -7,6 +7,9 @@
 #include "InputComponent.h"
 #include "HealthComponent.h"
 #include "BulletComponent.h"
+#include "BuffComponent.h"
+#include "PlayerComponent.h"
+#include "EnemyComponent.h"
 
 namespace
 {
@@ -80,6 +83,11 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	if (!request.shooter.IsValid())
 		return;
 
+	const bool attackerIsPlayer = mWorld->HasComponent<MainPlayerComponent>(request.shooter);
+	const bool attackerIsEnemy = mWorld->HasComponent<EnemyComponent>(request.shooter);
+	if (!attackerIsPlayer && !attackerIsEnemy)
+		return;
+
 	TransformComponent* attackerTransform = mWorld->GetComponent<TransformComponent>(request.shooter);
 	InputComponent* attackerInput = mWorld->GetComponent<InputComponent>(request.shooter);
 	if (!attackerTransform || !attackerInput)
@@ -99,6 +107,14 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	{
 		if (!target.IsValid() || target == request.shooter)
 			continue;
+
+		const bool targetIsPlayer = mWorld->HasComponent<MainPlayerComponent>(target);
+		const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
+		if (attackerIsPlayer && !targetIsEnemy)
+			continue;
+		if (attackerIsEnemy && !targetIsPlayer)
+			continue;
+
 
 		TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
 		if (!targetTransform)
@@ -123,11 +139,12 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 			}
 		}
 
+		BuffComponent* attackerBuff = mWorld->GetComponent<BuffComponent>(request.shooter);
 
 		EvDamage damageEvent{};
 		damageEvent.instigator = request.shooter;
 		damageEvent.target = target;
-		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage));
+		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage* attackerBuff->mAttackMultiplier));
 		eventManager->Enqueue<EvDamage>(damageEvent);
 	}
 }

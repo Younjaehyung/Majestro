@@ -11,6 +11,7 @@
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "InputComponent.h"
 #include "BulletComponent.h"
 #include "GameEvents.h"
@@ -62,10 +63,13 @@ void MovementSystem::Update(float dt) {
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
 		float objectGround = mWorld->GetPhysicsWorld()->QueryHeightAtPosition(transformComponent->mLocalPosition);
-		gravityComponent->mGround = max(terrainGround, objectGround);
+		float baseGround = terrainGround;
+		if (mWorld->HasComponent<PlayerMovementComponent>(entity))
+			baseGround = gravityComponent->mGround; // NavMesh 높이(PlayerNav/Movement에서 기록)를 terrainGround 대신 사용
+		//gravityComponent->mGround = max(baseGround, objectGround);
 
-		if (gravityComponent->mHight <= terrainGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= terrainGround) {
-			gravityComponent->mHight = terrainGround;
+		if (gravityComponent->mHight <= gravityComponent->mGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= gravityComponent->mGround) {
+			gravityComponent->mHight = gravityComponent->mGround;
 			gravityComponent->mGravity = 0.0f;
 
 			gravityComponent->mFalling = false;
@@ -77,7 +81,7 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity * dt;
 		}
 
-	//	transformComponent->mLocalPosition.y = gravityComponent->mHight;
+		transformComponent->mLocalPosition.y = gravityComponent->mHight;
 
 	}
 
@@ -103,6 +107,19 @@ void MovementSystem::Update(float dt) {
 
 			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 			MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
+
+			//jump
+			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
+
+			mainPlayerComponent->mFalling = gravityComponent->mFalling;
+			if (inputComponent->IsButtonPressed(InputButtons::SPACE)) {
+				if (not mainPlayerComponent->mFalling) {
+					gravityComponent->mHight += 20.0f;
+					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
+				}
+				mainPlayerComponent->mFalling = true;
+
+			}
 
 			//float correction{ 0 };
 			//if (mainPlayerComponent->mPlayerType == 1 || mainPlayerComponent->mPlayerType == 2) correction = 3.14159265358979323846f;
@@ -173,26 +190,19 @@ if (!nav || !nav->IsInitialized()) return;
 			if (nav->MoveAlongSurface(prevPos, tf->mLocalPosition, resultPos))
 			{
 				tf->mLocalPosition.x = resultPos.x;
-				tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
+				//tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
 				tf->mLocalPosition.z = resultPos.z;
 				tf->mMovingVector.x = resultPos.x - prevPos.x;
-				tf->mMovingVector.y = resultPos.y - prevPos.y;
+				tf->mMovingVector.y = 0;
 				tf->mMovingVector.z = resultPos.z - prevPos.z;
+
+				GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+				if (gravityComp) {
+					gravityComp->mGround = resultPos.y;
+					//gravityComp->mHight = resultPos.y; // NavMesh 높이는 중력 단계에서 적용되도록 저장만 수행
+				}
 			}
 			// MoveAlongSurface가 false(NavMesh 밖)이면 검증 스킵  이동 그대로
-
-			//jump
-			GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-
-			mainPlayerComponent->mFalling = gravityComponent->mFalling;
-			if (inputComponent->IsButtonPressed(InputButtons::SPACE)) {
-				if (not mainPlayerComponent->mFalling) {
-					gravityComponent->mHight += 20.0f;
-					gravityComponent->mGravity -= mainPlayerComponent->mJumpPower;
-				}
-				mainPlayerComponent->mFalling = true;
-
-			}
 
 
 		}
@@ -254,7 +264,35 @@ if (!nav || !nav->IsInitialized()) return;
 
 		const float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
 		if (lenSq <= 1e-8f)
-			continue;
+		{
+			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
+			if (!enemyComp) continue;
+
+			const Vec3 myPos = transformComponent->mLocalPosition;
+			float nearestPlayerDistSq = (std::numeric_limits<float>::max)();
+			Vec3 lookDir = Vec3::Zero;
+
+			for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
+			{
+				TransformComponent* playerTf = mWorld->GetComponent<TransformComponent>(playerEntity);
+				if (!playerTf) continue;
+
+				Vec3 toPlayer = playerTf->mLocalPosition - myPos;
+				toPlayer.y = 0.f;
+				const float distSq = toPlayer.LengthSquared();
+				if (distSq < nearestPlayerDistSq)
+				{
+					nearestPlayerDistSq = distSq;
+					lookDir = toPlayer;
+				}
+			}
+
+			// 공격 사거리 내에서는 이동하지 않아도 타겟을 바라보도록 회전만 갱신
+			if (nearestPlayerDistSq > enemyComp->AttackRangeSq || lookDir.LengthSquared() <= 1e-8f)
+				continue;
+
+			dir = lookDir;
+		}
 
 		dir.y = 0.0f;
 		const float flatLenSq = dir.x * dir.x + dir.z * dir.z;
@@ -266,7 +304,7 @@ if (!nav || !nav->IsInitialized()) return;
 		dir.z *= invLen;
 
 		constexpr float kRadToDeg = 57.295779513082320876f;
-		const float targetYawDeg = atan2f(dir.x, dir.z) * kRadToDeg + 180.0f;
+		const float targetYawDeg = atan2f(dir.x, dir.z) * kRadToDeg;
 
 		const float maxDeltaDeg = kTurnSpeedDegPerSec * dt;
 		transformComponent->mLocalRotationE.y =

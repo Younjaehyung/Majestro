@@ -39,6 +39,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_EFFECT_SPAWN,
 	S2C_PKT_HEALTH,
 	S2C_PKT_ARMOR,
+	S2C_PKT_AMMO,
 
 	KMSG,
 };
@@ -224,8 +225,17 @@ struct S2C_ArmorPacket : public PacketTcpHeader {
 	}
 };
 
+struct S2C_AmmoPacket : public PacketTcpHeader {
+	uint64_t netEntityId{};
+	int32_t currentAmmo{};
+	int32_t maxAmmo{};
 
-
+	S2C_AmmoPacket() : PacketTcpHeader{ sizeof(S2C_AmmoPacket), PKT_Type::S2C_PKT_AMMO, 0.0 } {}
+	S2C_AmmoPacket(uint64_t entityId, int32_t ammo, int32_t maxAmmoValue)
+		: PacketTcpHeader{ sizeof(S2C_AmmoPacket), PKT_Type::S2C_PKT_AMMO, 0.0 },
+		netEntityId(entityId), currentAmmo(ammo), maxAmmo(maxAmmoValue) {
+	}
+};
 struct S2C_MovePacket : public PacketUdpHeader {
 	uint32_t netEntityId{};
 	float    x{}, y{}, z{};
@@ -247,7 +257,7 @@ struct S2C_SpawnPacekt : public PacketTcpHeader {
 	uint32 SessionId{};
 	uint64 netEntityId{};
 	uint8  isLocalPlayer{};
-	uint8  isPlayerType{};
+	uint8  Type{};
 	MsgKind kind = MsgKind::Spawn;
 	PrefabType prefabType{ PrefabType::NONE };
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "System.h"
 #include "ServerCore.h"
-#include <unordered_map>
 
 class NetEntityComponent;
 
@@ -38,6 +37,7 @@ private:
 	void SendCollision();
 	void SendHealthEvents();
 	void SendArmorEvents();
+	void SendAmmoEvents();
 	void SendBulletDeactivateEvents();
 	void SendEffectSpawnEvents();
 	std::vector<uint32> CollectPlayerSessions() const;

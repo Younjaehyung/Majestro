@@ -97,6 +97,9 @@ public:
 
 	// 플레이어 custom 변수들
 	float mDashTime = 0.0f;
+
+	int mNowBullet = 0;
+	int mMaxBullet = 0;
 };
 
 //player base --------------------------------------------------

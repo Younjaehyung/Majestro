@@ -94,19 +94,25 @@ void BeatSystem::Update(float dt)
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::ScoreOverTime;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
-							buff.mExecutionType = BuffExecutionType::Persistent;
+							buff.mExecutionType = BuffExecutionType::Periodic;
+							buff.mTickInterval = mBpmSeconds;
+							buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
 							break;
 						case 1:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::ShieldOverTime;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
-							buff.mExecutionType = BuffExecutionType::Persistent;
+							buff.mExecutionType = BuffExecutionType::Periodic;
+							buff.mTickInterval = mBpmSeconds;
+							buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
 							break;
 						case 2:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::HealOverTime;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
-							buff.mExecutionType = BuffExecutionType::Persistent;
+							buff.mExecutionType = BuffExecutionType::Periodic;
+							buff.mTickInterval = mBpmSeconds;
+							buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
 							break;
 						}
 						switch (mainPlayerComponent->mRhythm) {
@@ -135,6 +141,8 @@ void BeatSystem::Update(float dt)
 
 					mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
 					mainPlayerComponent->mHasQueuedRhythmChange = false;
+
+					cout << "Rhythm Changed:" << (int)mainPlayerComponent->mRhythm << endl;
 				}
 
 
@@ -191,10 +199,10 @@ void BeatSystem::ApplyPendingBuffRequests()
 			buff.mType = BuffType::ShieldDown;
 			buff.mDurationPolicy = DurationPolicy::Timed;
 			buff.mExecutionType = BuffExecutionType::Periodic;
-			buff.mEndTime = now + mBeat*16; 
+			buff.mEndTime = now + mBpmSeconds *16;
 
-			buff.mTickInterval = mBeat;
-			buff.mNextTriggerTime = now + mBeat;
+			buff.mTickInterval = mBpmSeconds;
+			buff.mNextTriggerTime = now + mBpmSeconds;
 
 			buffComponent->AddOrRefresh(buff);
 
@@ -207,7 +215,7 @@ void BeatSystem::ApplyPendingBuffRequests()
 			buff.mType = BuffType::BuffPowerUp;
 			buff.mDurationPolicy = DurationPolicy::Timed;
 			buff.mExecutionType = BuffExecutionType::Persistent;
-			buff.mEndTime = now + mBeat*8; 
+			buff.mEndTime = now + mBpmSeconds *8;
 
 			std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
 			for (Entity player : players)

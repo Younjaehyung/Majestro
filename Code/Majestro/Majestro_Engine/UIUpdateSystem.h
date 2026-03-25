@@ -63,7 +63,7 @@ private:
     void UpdateActiveUIEntities(float dt);
     void EnsureHpBarUIEntities(UIHpBarComponent* hpBar);
     void SetHpBarVisibility(UIHpBarComponent* hpBar, bool visible);
-
+	void UpdateTextContext(float dt);
 private:
     // 저주파 에너지 감지에 사용할 포인트 수
     static constexpr int kBassPoints = 6;

@@ -951,8 +951,28 @@ void FirstScene::Initialize()
 		t.mAnchor = Anchor::BottomLeft;
 		t.mPosition = Vec2(32.f, -636.f);
 		t.mSize = Vec2(196.f, 196.f);
+		t.mPivot = Vec2(0.5f, 0.5f);
 
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UIActionComponent>(Fanthor_Portrait);
+		m.mDuration = 0.5f;
+		m.mActor = UIActor::Player;
+		m.mState = UIActionState::Bounce;
+		m.mIsLoop = true;
+		m.mBounceAmplitude =20.f;
+		m.mBounceFrequency = 2.f;
+		m.mBounceDamping = 10.f;
+		mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
+
+#ifdef _IMGUI
+
+		std::vector<EditorProperty> props;
+		props.push_back({ "Fanthor_Portrait Position1",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
+		props.push_back({ "Fanthor_Portrait Bounce",  PropertyType::Float,  &(m.mBounceDamping),  -10.f, 10.f});
+		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(Fanthor_Portrait);
+		visImgui.RegisterEditorProperties(props);
+		visImgui.SetName("Menu");
+#endif
+
 	}
 
 	{
@@ -966,7 +986,11 @@ void FirstScene::Initialize()
 		t.mPosition = Vec2(32.f, -424.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UIActionComponent>(Ibanix_Portrait);
+		m.mDuration = 30.f;
+		m.mActor = UIActor::Player;
+		m.mState = UIActionState::Vibration;
+		mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
 	}
 
 	{
@@ -980,8 +1004,15 @@ void FirstScene::Initialize()
 		t.mPosition = Vec2(32.f, -212.f);
 		t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
+		auto& m = mWorld->AddComponent<UIActionComponent>(Rudwig_Portrait);
+		m.mDuration = 30.f;
+		m.mActor = UIActor::Player;
+		m.mState = UIActionState::Vibration;
+		mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
 	}
+
+
+
 
 #pragma endregion
 

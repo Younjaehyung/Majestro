@@ -76,7 +76,7 @@ public:
 	// Hover 효과를 위한 변수
 	float mHoverScale = 1.2f; // 호버 시 크기 배율
     float mCurrentScale = 1.0f; // 현재 크기 배율
-	float mDefaultScale = 1.0f; // 기본 크기 배율
+	float mDefaultScale = 0.0f; // 기본 크기 배율
 
 	// Bounce 애니메이션을 위한 변수
 	bool mIsLoop = false; // 애니메이션 무한 반복 여부

@@ -6,6 +6,7 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "UIComponent.h"
+#include "UITextComponent.h"
 #include "HealthComponent.h"
 #include "TagComponent.h"
 #include "TransformComponent.h"
@@ -69,7 +70,7 @@ void UIUpdateSystem::Update(float dt)
    UpdateAudioVisualizer(dt);
    UpdateActiveUIEntities(dt);
    UpdateHpBarUI();
-
+   UpdateTextContext(dt);
 }
 
 void UIUpdateSystem::UpdateSpriteAnimation(float dt)
@@ -187,6 +188,22 @@ void UIUpdateSystem::SetHpBarVisibility(UIHpBarComponent* hpBar, bool visible)
         if (fillCusSprite)
             fillCusSprite->mVisible = visible;
     }
+}
+
+void UIUpdateSystem::UpdateTextContext(float dt)
+{
+    if (!mWorld->HasComponentPool<UITextComponent>())
+         return;
+     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITextComponent>() };
+     for (auto& e : entitys)
+     {
+         UITextComponent* text = mWorld->GetComponent<UITextComponent>(e);
+         if (!text || !text->mIsDirty)
+             continue;
+         // 텍스트 업데이트 로직 (예: 동적 값 반영)
+         // 예시에서는 단순히 더티 플래그만 초기화
+         text->mIsDirty = false;
+	 }
 }
 
 void UIUpdateSystem::UpdateHpBarUI()
@@ -424,10 +441,16 @@ void UIUpdateSystem::UpdateActiveUIEntities(float dt)
             uiTrans->mFinalSize = uiTrans->mSize * (uiAction->mDefaultScale + (uiAction->mHoverScale - uiAction->mDefaultScale) * progress);
 		}
         else if (uiAction->mState == UIActionState::Bounce) {
-			float progress = uiAction->mElapsedTime / uiAction->mDuration;
-            float bounce = std::sin(progress * uiAction->mBounceFrequency * 2.f * 3.14159f) * uiAction->mBounceAmplitude;
-            float damping = std::exp(-progress * uiAction->mBounceDamping);
-			uiTrans->mFinalSize = uiTrans->mSize * (uiAction->mDefaultScale + bounce * damping);
+			// 제자리에서 크기가 튕기는 애니메이션
+			// sprite의 center가 좌상단임을 참고해서 scale이 커질수록 위치를 보정해준다.
+
+			float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
+            float bounce = std::sin(progress * 3.14159f);// *uiAction->mBounceAmplitude;
+			float damping = std::exp(-progress * uiAction->mBounceDamping);
+
+			std::cerr << "bounce: " << bounce << ", damping: " << damping << std::endl;
+
+            uiTrans->mFinalSize = uiTrans->mSize * (1.f + bounce * damping);
 		}
 
 
@@ -438,10 +461,11 @@ void UIUpdateSystem::UpdateActiveUIEntities(float dt)
         
         
         
-        if ( !uiAction->mIsLoop && uiAction->mElapsedTime >= uiAction->mDuration) {
-            uiAction->mIsActive = false;
+        if (uiAction->mElapsedTime >= uiAction->mDuration) {
+            
+            if(!uiAction->mIsLoop)  uiAction->mIsActive = false;
+
             uiAction->mElapsedTime = 0.f;
-           
 		}
 
     }

@@ -195,15 +195,15 @@ void RenderManager::CreateAnimation()
 	mAnimationBuffer = make_shared<AnimationBuffer>();
 
 	mAnimationBuffer->SkeletonBone = make_shared<StructuredBuffer>();
-	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(SkeletonBoneParams), 128 * 10 * 4);
+	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(SkeletonBoneParams), 128 * 10 * 5);
 	mAnimationBuffer->SkeletonBone->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_SKELETONBONE_INDEX));
 
 	mAnimationBuffer->AnimationClip = make_shared<StructuredBuffer>();
-	mAnimationBuffer->AnimationClip->CreateDefaultBuffer(sizeof(KeyFrameInfo), 2'400'000 * 2);
+	mAnimationBuffer->AnimationClip->CreateDefaultBuffer(sizeof(KeyFrameInfo), 2'400'000 * 5);
 	mAnimationBuffer->AnimationClip->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_ANIMATIONCLIP_INDEX));
 
 	mAnimationBuffer->AnimationMeta = make_shared<StructuredBuffer>();
-	mAnimationBuffer->AnimationMeta->CreateDefaultBuffer(sizeof(AnimationClipMeta), 64);
+	mAnimationBuffer->AnimationMeta->CreateDefaultBuffer(sizeof(AnimationClipMeta), 128);
 	mAnimationBuffer->AnimationMeta->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_ANIMATIONMETA_INDEX));
 
 }

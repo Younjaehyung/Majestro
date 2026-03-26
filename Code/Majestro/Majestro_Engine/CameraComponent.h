@@ -149,4 +149,20 @@ public:
 
 	Vec3 mOffset = Vec3(80, 100, -200);
 	Vec3 mLookAtOffset = Vec3(0, 0, -5);
+
+	// 카메라 쉐이크
+	float mShakeRemaining = 0.f;   // 남은 진동 시간
+	float mShakeDuration  = 0.f;   // 초기 지속 시간 (decay 계산용)
+	float mShakeMagnitude = 0.f;   // 최대 흔들림 각도 (degree)
+	float mShakeFrequency = 20.f;  // 진동 주파수 (Hz)
+	float mShakeTimeAcc   = 0.f;   // sin 누적 시간
+
+	void TriggerShake(float magnitude, float duration, float frequency = 20.f)
+	{
+		mShakeMagnitude = magnitude;
+		mShakeDuration  = duration;
+		mShakeRemaining = duration;
+		mShakeFrequency = frequency;
+		mShakeTimeAcc   = 0.f;
+	}
 };

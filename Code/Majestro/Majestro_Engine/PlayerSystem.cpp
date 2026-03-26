@@ -39,16 +39,48 @@ void PlayerSystem::Update(float dt)
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(mainPlayer->mTargetID);
 		
 
+		//if(mainPlayerComponent->mStatePacket == S_Attack1)
+		//{
+		//	mainPlayerComponent->mShakeCameraTime += dt;
+
+
+		//	cameraComponent->mFov = lerp(cameraComponent->mFov, (103.f / 2.0f) + 0.2f, mainPlayerComponent->mDashTime);
+		//	
+		//}
+		//else
+		//{
+		//	mainPlayerComponent->mShakeCameraTime = 0.f;
+		//	cameraComponent->
+		//}
+
+
+
 		if(mainPlayerComponent->mStatePacket == S_Dash)
 		{
 			mainPlayerComponent->mDashTime += dt;
 			cameraComponent->mFov = lerp(cameraComponent->mFov, (103.f / 2.0f) + 0.2f, mainPlayerComponent->mDashTime);
-			
+
 		}
 		else
 		{
 			mainPlayerComponent->mDashTime = 0.f;
 			cameraComponent->mFov = 103.f / 2.0f;
+		}
+
+		// 공격 상태 진입 시 카메라 쉐이크 트리거
+		{
+			uint32 entityID = entity.GetID();
+			int32  currState = mainPlayerComponent->mStatePacket;
+
+			if (currState )
+			{
+				bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
+				                  || currState == S_Skill1  || currState == S_Skill2
+				                  || currState == S_Special);
+				if (bAttackState)
+					mainPlayer->TriggerShake(0.5f, 0.25f, 20.f);
+
+			}
 		}
 
 	}

@@ -35,3 +35,18 @@ public:
 	uint8 mPlayerType;
 	bool choice;
 };
+
+enum class UITag : uint8
+{
+	None,
+	BulletCount,
+
+};
+
+class UIComponent : public Component<UIComponent>
+{
+public:
+	UIComponent() = default;
+	UIComponent(UITag& tag) : mTag(tag) {};
+	UITag mTag = UITag::None;
+};

@@ -42,4 +42,9 @@ struct EvNetSceneChange
     SceneId targetScene;
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC>;
+struct EvBulletCountChanged {
+    int current{};
+    int max{};
+};
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged>;

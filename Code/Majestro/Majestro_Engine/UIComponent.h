@@ -6,26 +6,12 @@
 class Mesh;
 class Material;
 
-
-class UIComponent : public Component<UIComponent>
+// UIScriptComponent.h
+class UIScriptComponent : public Component<UIScriptComponent>
 {
 public:
-	UIComponent() {}
-
-public:
-	//Anchor mAnchor = Anchor::TopLeft;
-
-
-    Vec2 position;     // anchor 기준 오프셋 (pixel)
-    Vec2 size;         // pixel
-    Vec2 pivot;        // (0~1)
-	Vec2 finalPixelPos;   // 최종 화면 픽셀 좌표
-
-
-
-	uint8 mUILayerIndex = 0;
-	bool mUIVisibility = true;
-	vector<shared_ptr<Material>> mMaterials;
+	std::function<void(float dt)> mOnUpdate;  // 매 프레임 호출
+	std::function<void()>         mOnInit;    // 최초 1회
 };
 
 class UIHpBarComponent : public Component<UIHpBarComponent>

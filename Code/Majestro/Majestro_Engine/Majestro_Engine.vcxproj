@@ -419,8 +419,6 @@
     <ClCompile Include="UIEffectPass.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
-    <ClCompile Include="UITextComponent.cpp" />
-    <ClCompile Include="UITransformComponent.cpp" />
     <ClCompile Include="UIButtonSystem.cpp" />
     <ClCompile Include="UIUpdateSystem.cpp" />
     <ClCompile Include="Vfx.cpp" />

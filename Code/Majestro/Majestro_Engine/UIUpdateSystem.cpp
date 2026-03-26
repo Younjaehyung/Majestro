@@ -66,11 +66,22 @@ void UIUpdateSystem::Initialize()
 
 void UIUpdateSystem::Update(float dt)
 {
+   UpdateScripts(dt);
    UpdateSpriteAnimation(dt);
    UpdateAudioVisualizer(dt);
    UpdateActiveUIEntities(dt);
    UpdateHpBarUI();
    UpdateTextContext(dt);
+}
+
+void UIUpdateSystem::UpdateScripts(float dt)
+{
+    if (!mWorld->HasComponentPool<UIScriptComponent>()) return;
+    for (auto e : mWorld->GetEntitiesWithComponent<UIScriptComponent>())
+    {
+        auto* sc = mWorld->GetComponent<UIScriptComponent>(e);
+        if (sc->mOnUpdate) sc->mOnUpdate(dt);
+    }
 }
 
 void UIUpdateSystem::UpdateSpriteAnimation(float dt)

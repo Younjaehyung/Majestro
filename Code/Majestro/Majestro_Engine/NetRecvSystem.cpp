@@ -178,9 +178,9 @@ void NetRecvSystem::HandleHealth(const InputCommand& msg)
     HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(e);
     if (!healthComp) return;
 
-    std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << pkt->netEntityId
-        << " hp=" << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
-        << " -> " << pkt->currentHp << "/" << pkt->maxHp << std::endl;
+    //std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << pkt->netEntityId
+    //    << " hp=" << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
+    //    << " -> " << pkt->currentHp << "/" << pkt->maxHp << std::endl;
 
     healthComp->mCurrentHp = pkt->currentHp;
     healthComp->mMaxHp     = pkt->maxHp;
@@ -195,9 +195,7 @@ void NetRecvSystem::HandleArmor(const InputCommand& msg)
     ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(e);
     if (!armorComp) return;
 
-    std::cout << "[Client][S2C_PKT_ARMOR] netEntityId=" << pkt->netEntityId
-        << " armor=" << armorComp->mCurrentArmor << "/" << armorComp->mMaxArmor
-        << " -> " << pkt->currentArmor << "/" << pkt->maxArmor << std::endl;
+    
 
     armorComp->mCurrentArmor = pkt->currentArmor;
     armorComp->mMaxArmor     = pkt->maxArmor;
@@ -214,6 +212,11 @@ void NetRecvSystem::HandleAmmo(const InputCommand& msg)
 
     playerComp->mNowBullet = pkt->currentAmmo;
     playerComp->mMaxBullet = pkt->maxAmmo;
+
+
+    mWorld->GetEventManager()->Enqueue(EvBulletCountChanged{
+    pkt->currentAmmo, pkt->maxAmmo
+        });
 }
 
 

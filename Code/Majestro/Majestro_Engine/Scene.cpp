@@ -221,6 +221,7 @@ void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
+#pragma region Menu Scenes
 
 void MainMenuScene::Initialize()
 {
@@ -757,8 +758,10 @@ void LobbyScene::Initialize()
 	}
 }
 
+#pragma endregion
 
 /// //////////////////////////////////////////////////////////////////////////////////
+#pragma region Loading Scenes
 void LoadingScene::Initialize()
 {
 	
@@ -820,12 +823,12 @@ void LoadingScene::Update(float deltaTime)
 
 	mWorld->Update(deltaTime);
 }
-
+#pragma endregion
 /// //////////////////////////////////////////////////////////////////////////////////
 
 
 
-
+#pragma region Game Scenes
 void FirstScene::Initialize()
 {
 	mWorld->SetSceneId(mSceneId);
@@ -1241,7 +1244,9 @@ void SecondScene::Initialize()
 
 
 }
+#pragma endregion
 
+#pragma region Victory / Lose Scene
 
 void VictoryScene::Initialize()
 {
@@ -1253,3 +1258,5 @@ void LoseScene::Initialize()
 	mWorld->Initialize();
 
 }
+
+#pragma endregion

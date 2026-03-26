@@ -57,6 +57,7 @@ public:
     void Update(float dt);
 
 private:
+	void UpdateScripts(float dt);
     void UpdateSpriteAnimation(float dt);
     void UpdateHpBarUI();
     void UpdateAudioVisualizer(float dt);

@@ -37,14 +37,6 @@ protected:
 	SceneId							mSceneId = SceneId::MainMenu;
 };
 
-class UIScene : public Scene
-{
-};
-
-class GameScene : public Scene
-{
-};
-
 class MainMenuScene : public Scene
 {
 public:

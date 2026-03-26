@@ -640,9 +640,6 @@
     <ClCompile Include="UISpriteComponent.cpp">
       <Filter>World\Component\UI</Filter>
     </ClCompile>
-    <ClCompile Include="UITransformComponent.cpp">
-      <Filter>World\Component\UI</Filter>
-    </ClCompile>
     <ClCompile Include="SystemManager.cpp">
       <Filter>World\Base\System</Filter>
     </ClCompile>
@@ -807,9 +804,6 @@
     </ClCompile>
     <ClCompile Include="NetTransformComponent.cpp">
       <Filter>World\Component\Server</Filter>
-    </ClCompile>
-    <ClCompile Include="UITextComponent.cpp">
-      <Filter>World\Component\UI</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsWorld.cpp">
       <Filter>World\Base\World</Filter>

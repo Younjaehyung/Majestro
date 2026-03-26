@@ -59,7 +59,7 @@
         "ReloadState": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 2.16667
         }
     }
 }

@@ -15,6 +15,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::PKT_LOGIN:
 	case PKT_Type::PKT_SERVER:
 	case PKT_Type::C2S_PKT_LOGIN:
+	case PKT_Type::C2S_GAME_START:
 	case PKT_Type::C2S_PKT_ACTION:
 	case PKT_Type::C2S_SCENE_CHANGE:
 		SerializeTcpPacket(pkt, sendBuffer);
@@ -23,7 +24,6 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 
 	// UDP
 	case PKT_Type::PKT_UDP:
-	case PKT_Type::C2S_GAME_START:
 	case PKT_Type::C2S_PKT_MOVE:
 		SerializeUdpPacket(pkt, sendBuffer);
 		break;

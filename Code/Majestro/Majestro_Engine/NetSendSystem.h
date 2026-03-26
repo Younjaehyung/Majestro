@@ -77,6 +77,8 @@ private:
     }
 
     uint8 mCachedPlayerType = 0;
+    bool mHasSentGameStart = false;
+    bool mPendingGameStart = false;
 
     RateLimiter mMovementRate{ 30.f };  // 이동 입력 30Hz
 

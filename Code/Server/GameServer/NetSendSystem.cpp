@@ -278,7 +278,7 @@ void NetSendSystem::SendAmmoEvents()
 		{
 			if (!e.target.IsValid())
 				return;
-
+			cout << "send ammo" << endl;
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
 			if (netComp == nullptr || netComp->mSessionId == 0)
 				return;

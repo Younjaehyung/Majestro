@@ -214,6 +214,8 @@ void NetRecvSystem::HandleAmmo(const InputCommand& msg)
 
     playerComp->mNowBullet = pkt->currentAmmo;
     playerComp->mMaxBullet = pkt->maxAmmo;
+
+    cout << "ammo: " << playerComp->mNowBullet << endl;
 }
 
 

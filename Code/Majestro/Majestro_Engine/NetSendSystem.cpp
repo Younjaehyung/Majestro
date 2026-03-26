@@ -57,11 +57,16 @@ void NetSendSystem::Update(float deltaTime)
 
 void NetSendSystem::TrySendGameStart()
 {
+	if (!mPendingGameStart)
+		return;
+
+	if (mHasSentGameStart)
+		return;
 
 	UpdateCachedPlayerType();
 
-	cout << "start Game" << endl;
-	cout << "send Pack Player type " << (int)mCachedPlayerType << endl;
+	//cout << "start Game" << endl;
+	//cout << "send Pack Player type " << (int)mCachedPlayerType << endl;
 
 	const uint32 clientId = Network::GetInstance().mClientId;
 	C2S_StartGamePacket startPacket;
@@ -70,7 +75,8 @@ void NetSendSystem::TrySendGameStart()
 	startPacket.SessionId   = clientId;
 
 	SendPacket(startPacket);
-
+	mHasSentGameStart = true;
+	mPendingGameStart = false;
 }
 
 
@@ -139,6 +145,8 @@ void NetSendSystem::TrySendScene()
 {
 	mWorld->GetEventManager()->Consume<EvNetSceneChange>([this](const EvNetSceneChange& e) {
 		UpdateCachedPlayerType();
+		mHasSentGameStart = false;
+		mPendingGameStart = (e.targetScene == SceneId::FirstGame);
 		SendPacket(C2S_SceneChangePacket(e.targetScene));
 	});
 }

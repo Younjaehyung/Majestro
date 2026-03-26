@@ -70,7 +70,7 @@ void Scene::Initialize()
 
 void Scene::Update(float deltaTime)
 {
-	std::cerr << "Scene Update: " << (int32)mSceneId;
+	//std::cerr << "Scene Update: " << (int32)mSceneId;
 	mGameMode->PreUpdate(deltaTime);
 	mWorld->Update(deltaTime);
 	mGameMode->PostUpdate(deltaTime);

@@ -296,7 +296,7 @@ void PlayerInputSystem::Update(float dt)
 			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
 		}
 
-		cout << "bullet: " << mainPlayerComponent->mNowBullet << endl;
+		//cout << "bullet: " << mainPlayerComponent->mNowBullet << endl;
 		if (inputComp->IsMousePressed(InputMouse::LEFT)) {
 			
 

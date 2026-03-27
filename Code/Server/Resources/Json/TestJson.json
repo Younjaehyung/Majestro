@@ -69,7 +69,7 @@
 
         {
             "from": "Dash",
-            "to": "Run", 
+            "to": "Run",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_MOVE" ]
         },
@@ -78,6 +78,13 @@
             "from": "Attack1",
             "to": "Run",
             "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
+        },
+
+        {
+            "from": "Attack1",
+            "to": "Idle",
+            "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         },
 
@@ -85,7 +92,7 @@
             "from": "Attack2",
             "to": "Run",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
         },
 
         {
@@ -99,7 +106,7 @@
             "from": "Skill1",
             "to": "Run",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
         },
 
         {
@@ -113,7 +120,7 @@
             "from": "Skill2",
             "to": "Run",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
         },
 
         {
@@ -127,7 +134,7 @@
             "from": "Special",
             "to": "Run",
             "require": [],
-            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
         },
 
         {
@@ -140,6 +147,13 @@
         {
             "from": "Reload",
             "to": "Run",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
+        },
+
+        {
+            "from": "Reload",
+            "to": "Idle",
             "require": [],
             "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
         }

@@ -9,7 +9,7 @@ using json = nlohmann::json;
 #include "StateMachine.h"
 #include "GameTimer.h"
 
-BOOL STATE_DEBUG = FALSE;
+BOOL STATE_DEBUG = TRUE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 const char* ResolveStateSettingJsonPath(uint8 playerType)
@@ -192,7 +192,7 @@ void MainPlayerComponent::StateCheck()
 
 void MainPlayerComponent::Update(float dt) 
 {
-    mStateTimer += dt;
+   // mStateTimer += dt;
     //mDt = dt;
 
     //if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
@@ -400,14 +400,15 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 //-------------------------------------------------------------------------------------------------
 void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 {
-    owner->mStateTimer = 0.0f;
+    owner->mStateEnd = GetServerTotalTimeSeconds()  + s->mAnimEndTime;
     owner->mNextState = S_Idle;
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }
     if (s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
-    if (s->mAnimOnce && owner->mStateTimer >= s->mAnimEndTime) {
+    if (s->mAnimOnce && owner->mStateEnd <= GetServerTotalTimeSeconds()) {
+        cout << "end anim!!!!!!!!!!!!!!!!!!!!!" << endl;
         if (s->mAnimOnce) ClearFlag(owner->mFlags, FLAG_ANIM);
         owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }

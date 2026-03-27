@@ -136,6 +136,8 @@ private:
 	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader, const wstring& shader = L"Deferred");
 	shared_ptr<class Skeleton> CreateSkeletonFromFBX(ifstream& loader);
 	vector<shared_ptr<class Animator>>& CreateAnimatorFromFBX(ifstream& loader);
+
+	float ComputeBodyBlendWeight(const string& boneName, float& isSpine);
 private:
 
 

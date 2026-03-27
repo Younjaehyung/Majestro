@@ -557,6 +557,9 @@
     <ClInclude Include="EffectFlagSystem.h">
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="AnimationGraph.h">
+      <Filter>World\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -896,6 +899,9 @@
     <ClCompile Include="LobbyRenderPipeline.cpp">
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationGraph.cpp">
+      <Filter>World\Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -1031,9 +1037,6 @@
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionVector_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\MotionVector_CS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">

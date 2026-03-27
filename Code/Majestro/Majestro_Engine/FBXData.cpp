@@ -118,43 +118,6 @@ namespace
 	}
 }
 
-float ComputeBodyBlendWeight(const string& boneName)
-{
-	string lower = boneName;
-	std::transform(lower.begin(), lower.end(), lower.begin(),
-		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-
-	if (lower.find("thigh") != string::npos || lower.find("calf") != string::npos ||
-		lower.find("foot") != string::npos || lower.find("toe") != string::npos ||
-		lower.find("leg") != string::npos || lower.find("ik_foot") != string::npos)
-		return 0.f;
-
-
-
-
-	if (lower.find("spine1") != string::npos)
-		return 1.0f;
-	if (lower.find("spine2") != string::npos)
-		return 1.f;
-
-	if (lower.find("spine3") != string::npos)
-		return 0.9f;
-
-	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
-		return .5f;
-
-	if (lower.find("chest") != string::npos)
-		return .9f;
-	if (lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos)
-		return .9f;
-
-	if (lower.find("finger") != string::npos ||
-		lower.find("neck") != string::npos || lower.find("head") != string::npos ||
-		lower.find("arm") != string::npos || lower.find("hand") != string::npos)
-		return 1.0f;
-
-	return 1.0f;
-}
 
 FBXMaterialInfo FBXData::ReadMaterialData(std::ifstream& file)
 {
@@ -304,6 +267,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 
 shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 {
+	float isup = 0.f;
 	mSkeleton = make_shared<Skeleton>();
 	mSkeleton->mBones.reserve(mHeader.BoneCount);
 	struct Dummy {
@@ -320,10 +284,57 @@ shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 		loader.read(reinterpret_cast<char*>(&dummy), sizeof(Dummy));
 		fbxBondInfo.parentIdx = dummy.parentIdx;
 		fbxBondInfo.matOffset = dummy.matOffset; // XMFLOAT4X4 그대로
-		fbxBondInfo.blendWeight = ComputeBodyBlendWeight(fbxBondInfo.boneName);
+		fbxBondInfo.blendWeight = ComputeBodyBlendWeight(fbxBondInfo.boneName, isup);
 		mSkeleton->mBones.emplace_back(fbxBondInfo);
 	}
 	loader.close();
+
+	// ── Spine 경계 인덱스 자동 계산 ────────────────────────────────────────
+	// 스켈레톤 본 배열 순서: [ Spine 구간 | Upper 구간 | Lower 구간 ]
+	//   blendWeight == 0.5  → Spine 전환 구간 (pelvis, spine)
+	//   blendWeight  > 0.5  → 완전 상체 (spine1/2/3, arm, head 등)
+	//   blendWeight == 0.0  → 완전 하체 (thigh, calf, foot 등)
+	//
+	// mSpineBoneStartOffset: UpperMask 시작 인덱스
+	//   = blendWeight > 0 인 첫 번째 본 (Spine 전환 구간 시작)
+	//   스켈레톤 순서가 Spine|Upper|Lower 라면 인덱스 0이 pelvis 이므로 0을 반환한다.
+	//   Lower|Spine|Upper 순서라면 하체 다음 첫 번째 비하체 본 인덱스를 반환한다.
+	//
+	// mSpineBoneEndOffset: UpperMask 끝 인덱스
+	//   = blendWeight == 0 이 처음 나타나기 직전 인덱스 (Lower 구간 시작 전)
+	//   Lower 본이 없으면 마지막 본까지 사용.
+	{
+		const auto& bones = mSkeleton->mBones;
+		const uint32 boneCount = static_cast<uint32>(bones.size());
+		mSkeleton->mBoneCount   = boneCount;
+		mSkeleton->mStartOffset = 0;
+		mSkeleton->mEndOffset = boneCount-1;
+		mSkeleton->mSpineBoneEndOffset = boneCount > 0 ? boneCount - 1 : 0;
+
+		// UpperMask 시작: blendWeight > 0 인 첫 번째 본
+		mSkeleton->mSpineBoneStartOffset = 0;
+		for (uint32 i = 0; i < boneCount; ++i)
+		{
+			if (bones[i].boneName == "Bip001 Spine1")
+			{
+				mSkeleton->mSpineBoneStartOffset = i;
+				break;
+			}
+		}
+
+		// UpperMask 끝: blendWeight > 0 인 마지막 본 (하체 구간 제외)
+		// Lower 본들이 마지막에 몰려 있는 경우를 대비해 뒤에서 역방향으로 탐색
+		for (int32 i = static_cast<int32>(boneCount) - 1; i >= 0; --i)
+		{
+			if ((bones[i].boneName == "Bip001 HeadNub") || (bones[i].boneName == "Bip001 Ponytail1Nub"))
+			{
+				mSkeleton->mSpineBoneEndOffset = static_cast<uint32>(i);
+				// break;
+			}
+		}
+	}
+	// ───────────────────────────────────────────────────────────────────────
+
 	RESOURCEMANAGER.Add(s2ws(fileName),mSkeleton);
 
 	return mSkeleton;
@@ -409,6 +420,77 @@ vector<shared_ptr<Animator>>& FBXData::CreateAnimatorFromFBX(ifstream& loader)
 	return mAnimators;
 }
 
+float FBXData::ComputeBodyBlendWeight(const string& boneName, float& isUpper)
+{
+	string lower = boneName;
+	/*std::transform(lower.begin(), lower.end(), lower.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });*/
+
+	//if (lower.find("thigh") != string::npos || lower.find("calf") != string::npos ||
+	//	lower.find("foot") != string::npos || lower.find("toe") != string::npos ||
+	//	lower.find("Toe") != string::npos || lower.find("toe") != string::npos ||
+	//	lower.find("leg") != string::npos || lower.find("ik_foot") != string::npos)
+	//	return 0.f;
+
+
+
+
+	////if (lower.find("spine1") != string::npos)
+	////	return 0.5f;
+	////if (lower.find("spine2") != string::npos)
+	////	return 0.7f;
+
+	////if (lower.find("spine3") != string::npos)
+	////	return 0.9f;
+
+	//if (lower.find("pelvis") != string::npos || lower.find("Spine") != string::npos)
+	//	return .5f;
+
+	//if (lower.find("chest") != string::npos)
+	//	return .9f;
+
+	//if (lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos)
+	//	return .9f;
+
+	//if (lower.find("finger") != string::npos ||
+	//	lower.find("neck") != string::npos || lower.find("head") != string::npos ||
+	//	lower.find("arm") != string::npos || lower.find("hand") != string::npos)
+	//	return 1.0f;
+
+	//if (lower.find("Bip001") != string::npos)
+	//	return .5f;
+
+	
+	// [버그 수정] 구체적인 조건을 먼저 검사해야 함.
+	// 이전 코드는 "Bip001"이 가장 먼저 있어서 모든 Bip001 본이 0.00f를 반환했고
+	// 뒤의 Spine/상체 조건들은 절대 도달하지 않는 dead code였음.
+
+		// 하체 본 (먼저 체크)
+		if (lower.find("Thigh") != string::npos || lower.find("Calf") != string::npos
+			|| lower.find("Foot") != string::npos || lower.find("Toe") != string::npos) return 0.00f;
+
+		if (lower.find("Prop1") != string::npos) return 0.00f;
+
+		// 완전 상체 본
+		if (lower.find("Bip001 Neck") != string::npos) return 1.00f;
+		if (lower.find("Head") != string::npos || lower.find("HeadNub") != string::npos
+			|| lower.find("Ponytail") != string::npos) return 1.00f;
+		if (lower.find("Clavicle") != string::npos || lower.find("UpperArm") != string::npos
+			|| lower.find("Forearm") != string::npos) return 1.00f;
+		if (lower.find("Hand") != string::npos || lower.find("Finger") != string::npos) return 1.00f;
+
+		// 척추 전환 구간 (구체적인 것 먼저)
+		if (lower.find("Bip001 Spine3") != string::npos) return 0.90f;
+		if (lower.find("Bip001 Spine2") != string::npos) return 0.75f;
+		if (lower.find("Bip001 Spine1") != string::npos) return 0.55f;
+		if (lower.find("Bip001 Spine") != string::npos) return 0.35f;
+		if (lower.find("Bip001 Pelvis") != string::npos) return 0.20f;
+
+		// 기본 Bip001 루트 (가장 마지막에 체크)
+		if (lower.find("Bip001") != string::npos) return 0.00f;
+
+	return 0.5f;
+}
 
 
 ////////////////////////////////////////////////////

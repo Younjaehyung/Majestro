@@ -65,22 +65,27 @@ struct SkinningInfo
 
 struct ANIMINSTANCE
 {
+    uint EntityID;
     uint SkeletonID;
+    uint BoneCount;
+    uint ReulstIndex;
+    float UpperLayerWeight;
+    
     uint AnimClipIdx;
     uint CurrentFrame;
     uint NextFrame;
     float Ratio;
     
-    uint BoneCount;
-    uint ReulstIndex;
-    uint EntityID;
+    
+    
+    
+    
     uint BlendClipIdx;
     uint BlendCurrentFrame;
     uint BlendNextFrame;
-
     float BlendRatio;
-
     float BlendWeight;
+    
     uint BlendMaskStart;
     uint BlendMaskEnd;
     uint BlendMode;
@@ -94,9 +99,9 @@ struct ANIMINSTANCE
     uint UpperBlendCurrentFrame;
     uint UpperBlendNextFrame;
     float UpperBlendRatio;
-
     float UpperBlendWeight;
-    float UpperLayerWeight;
+    
+    
     uint UpperMaskStart;
     uint UpperMaskEnd;
     uint UpperBlendMode;

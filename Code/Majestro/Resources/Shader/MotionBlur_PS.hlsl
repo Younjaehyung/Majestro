@@ -6,8 +6,8 @@
 #define POST_MOTIONBLUR_PASS_IDX 8
 #define MOTION_BLUR_SAMPLES      16
 #define MAX_BLUR_RADIUS          0.02f
-#define LINE_COUNT      10          // 전체 슬롯 수 (선의 최대 밀도)
-#define LINE_SHARPNESS  3.0f      // 높을수록 선이 가늘고 날카로움
+#define LINE_COUNT      100          // 전체 슬롯 수 (선의 최대 밀도)
+#define LINE_SHARPNESS  10.0f      // 높을수록 선이 가늘고 날카로움
 struct VS_OUT
 {
     float4 pos : SV_Position;
@@ -89,7 +89,7 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
     float lineExists = step(1.0f - speedLineDensity, rand0);
 
  // 굵기 변화
-    float sharpness = lerp(50.0f, 20.0f, rand1);
+    float sharpness = lerp(5.0f, 2.0f, rand1);
 
     float peak = slotLocal * (1.0f - slotLocal) * 4.0f;
     float SR_line = pow(peak, sharpness);
@@ -97,7 +97,7 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
 
  // 거리 마스킹
     SR_line *= smoothstep(0.35f, 0.45f, dist);
-    SR_line *= smoothstep(0.75f, 0.45f, dist);
+    SR_line *= smoothstep(0.45f, 0.15f, dist);
 
  // 글로우 레이어
 

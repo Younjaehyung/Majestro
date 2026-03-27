@@ -63,6 +63,29 @@ void AnimationSystem::Initialize()
 	RENDERMANAGER.GetAnimationBuffers()->AnimationClip ->PushDefaultToData(mAniKeyFrame.data(), static_cast<uint32>(mAniKeyFrame.size() * sizeof(KeyFrameInfo)));
 	RENDERMANAGER.GetAnimationBuffers()->SkeletonBone->PushDefaultToData(mBoneData.data(), static_cast<uint32>(mBoneData.size() * sizeof(SkeletonBoneParams)));
 
+	// ── 엔티티별 BoneCount · UpperMask 자동 설정 ──────────────────────────
+	// [버그 수정] AnimationInstance.BoneCount가 0인 채로 남아 팔레트 오프셋이
+	// 모두 0이 되는 문제 수정. Skeleton에서 실제 본 개수를 읽어 초기화한다.
+	// [버그 수정] mUpperBlendMaskStart/End 하드코딩(2/66) 제거.
+	// FBXData.cpp 로딩 시 계산된 Skeleton의 Spine 인덱스로 설정한다.
+	if (mWorld->HasComponentPool<AnimationComponent>())
+	{
+		auto view = mWorld->View<AnimationComponent>();
+		for (Entity entity : view)
+		{
+			AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
+			if (!animCom || animCom->mAnimClips.empty()) continue;
+
+			auto& skel = animCom->mAnimClips[0]->GetSkeleton();
+			if (!skel) continue;
+
+			animCom->mAnimInstance.BoneCount = skel->mBoneCount;
+			animCom->mUpperBlendMaskStart    = skel->mSpineBoneStartOffset;
+			animCom->mUpperBlendMaskEnd      = skel->mSpineBoneEndOffset;
+		}
+	}
+	// ────────────────────────────────────────────────────────────────────────
+
 }
 
 
@@ -95,184 +118,260 @@ void AnimationSystem::AnimationPush(float deltaTime)
         MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
         MannequinComponent* mannequinComponent = mWorld->GetComponent<MannequinComponent>(entity);
 
-        const uint32 previousClip = animCom->mAnimClipIdx;
+        if (animCom->mAnimClips.empty()) continue;
+        const uint32 clipCount = static_cast<uint32>(animCom->mAnimClips.size());
+
+        const uint32 previousLowerClip = animCom->mLowerAnimClipIdx;
         const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
 
-        if (mainPlayerComponent) {
-            animCom->mAnimClipIdx = mainPlayerComponent->mLowerStatePacket;
-            animCom->mUpperAnimClipIdx = mainPlayerComponent->mStatePacket;
 
-            // 수정: 참고 코드처럼 상하체가 다를 때만 Upper 레이어 활성화
-            if (animCom->mAnimClipIdx != animCom->mUpperAnimClipIdx) {
-                animCom->mEnableUpperBodyLayer = true;
-                animCom->mUpperLayerWeight = 1.0f; // 수정: 명시적으로 1.0 설정
-            }
-            else {
-                animCom->mEnableUpperBodyLayer = false;
-                animCom->mUpperLayerWeight = 0.0f; // 수정: 비활성화 시 0.0
-            }
+        // ── 1. 서버 패킷 / 외부 입력으로부터 클립 인덱스 수신 ─────────────
+        if (mainPlayerComponent)
+        {
+            const uint32 newLower = min(mainPlayerComponent->mLowerStatePacket, clipCount - 1);
+            const uint32 newUpper = min(mainPlayerComponent->mStatePacket,      clipCount - 1);
+            animCom->mLowerAnimClipIdx = newLower;
+            animCom->mUpperAnimClipIdx = newUpper;
+
+        // std::cout << "Lower Clip: " << mainPlayerComponent->mLowerStatePacket << ", Upper Clip: " << mainPlayerComponent->mStatePacket << std::endl;
         }
 
-        if (mannequinComponent) {
+		
+
+        if (mannequinComponent)
+        {
             std::vector<Entity> choicdPlayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
             ChoicePlayerComponent* choicdPlayerComponent = mWorld->GetComponent<ChoicePlayerComponent>(choicdPlayerEntities[0]);
-            if (mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType)
-                animCom->mAnimClipIdx = 1;
-            else
-                animCom->mAnimClipIdx = 0;
+            animCom->mLowerAnimClipIdx = (mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType) ? 1u : 0u;
         }
 
-        // 수정: 참고 코드처럼 Upper가 비활성화면 Lower와 동일하게 설정
-        if (animCom->mEnableUpperBodyLayer == false) {
-            animCom->mUpperAnimClipIdx = animCom->mAnimClipIdx;
-            animCom->mUpperLayerWeight = 0.0f;
+        // ── 2. Upper 레이어 활성/비활성 목표 결정 ────────────────────────
+        // [수정] 상체/하체가 다르면 Upper 레이어를 켠다.
+        const bool upperNeeded = (animCom->mLowerAnimClipIdx != animCom->mUpperAnimClipIdx);
+
+        if (upperNeeded)
+        {
+            animCom->mEnableUpperBodyLayer = true;
+            animCom->mUpperLayerTargetWeight = 1.0f;
+        }
+        else
+        {
+            animCom->mUpperLayerTargetWeight = 0.0f;
         }
 
-        // 애니메이션 전환 감지 (Lower)
-        if (animCom->mAnimClipIdx != previousClip) {
-            animCom->mBlendClipIdx = previousClip;
-            animCom->mBlendUpdateTime = animCom->mUpdateTime;
-            animCom->mBlendTimer = 0.f;
-            animCom->mBlendWeight = 1.f;
-            animCom->mUpdateTime = 0.f;
+        // [수정] UpperLayerWeight를 목표값으로 보간
+        {
+            const float targetW = animCom->mUpperLayerTargetWeight;
+            const float currentW = animCom->mUpperLayerWeight;
+
+            if (currentW < targetW)
+            {
+                const float step = (animCom->mUpperLayerEnterDuration > 0.f)
+                    ? deltaTime / animCom->mUpperLayerEnterDuration : 1.f;
+                animCom->mUpperLayerWeight = min(targetW, currentW + step);
+            }
+            else if (currentW > targetW)
+            {
+                const float step = (animCom->mUpperLayerExitDuration > 0.f)
+                    ? deltaTime / animCom->mUpperLayerExitDuration : 1.f;
+                animCom->mUpperLayerWeight = max(targetW, currentW - step);
+            }
+
+            if (animCom->mUpperLayerWeight <= 0.f && targetW <= 0.f)
+                animCom->mEnableUpperBodyLayer = false;
         }
 
-        // 애니메이션 전환 감지 (Upper)
-        if (animCom->mEnableUpperBodyLayer && animCom->mUpperAnimClipIdx != previousUpperClip) {
-            animCom->mUpperBlendClipIdx = previousUpperClip;
-            animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
-            animCom->mUpperBlendTimer = 0.f;
-            animCom->mUpperBlendWeight = 1.f;
-            animCom->mUpperUpdateTime = 0.f;
+        // ── 3. Upper 레이어 가중치 점진적 보간 (0/1 즉각 전환 제거) ────────
+        //{
+        //    const float targetW  = animCom->mUpperLayerTargetWeight;
+        //    const float currentW = animCom->mUpperLayerWeight;
+        //    if (currentW < targetW)
+        //    {
+        //        const float step = (animCom->mUpperLayerEnterDuration > 0.f)
+        //            ? deltaTime / animCom->mUpperLayerEnterDuration : 1.f;
+        //        animCom->mUpperLayerWeight = min(targetW, currentW + step);
+        //    }
+        //    else if (currentW > targetW)
+        //    {
+        //        const float step = (animCom->mUpperLayerExitDuration > 0.f)
+        //            ? deltaTime / animCom->mUpperLayerExitDuration : 1.f;
+        //        animCom->mUpperLayerWeight = max(targetW, currentW - step);
+        //    }
+        //    // 완전히 0 에 수렴하면 레이어 비활성화
+        //    if (animCom->mUpperLayerWeight <= 0.f && targetW <= 0.f)
+        //        animCom->mEnableUpperBodyLayer = false;
+        //}
+
+        // ── 4. Lower 클립 전환 감지 → 블렌딩 시작 ──────────────────────
+        if (animCom->mLowerAnimClipIdx != previousLowerClip)
+        {
+            animCom->mLowerBlendClipIdx    = previousLowerClip;
+            animCom->mLowerBlendUpdateTime = animCom->mLowerUpdateTime;
+            animCom->mLowerBlendTimer      = 0.f;
+            animCom->mLowerBlendWeight     = 1.f;
+            animCom->mLowerUpdateTime      = 0.f;
+
+            // AnimationGraph 가 있으면 전환별 duration 조회
+            if (animCom->mAnimationGraph)
+                animCom->mLowerBlendDuration = animCom->mAnimationGraph->GetLowerDuration(
+                    previousLowerClip, animCom->mLowerAnimClipIdx);
         }
 
-        // 타이머 업데이트
-        animCom->mUpdateTime += deltaTime;
+        // ── 5. Upper 클립 전환 감지 → 블렌딩 시작 ──────────────────────
+        // [버그 수정] 최초 활성화 시 previousUpperClip 오염 방지:
+        // Upper가 막 켜졌을 때는 블렌딩 없이 바로 재생, 이미 켜진 상태에서 클립이
+        // 변경될 때만 블렌딩을 시작한다.
+        //if (!wasUpperEnabled && animCom->mEnableUpperBodyLayer)
+        //{
+        //    // 최초 활성화: 블렌딩 없이 Upper 클립 즉시 재생
+        //    animCom->mUpperBlendWeight = 0.f;
+        //    animCom->mUpperBlendTimer  = 0.f;
+        //    animCom->mUpperUpdateTime  = 0.f;
+        //}
+        //else 
+        //if (animCom->mUpperAnimClipIdx != previousUpperClip)
+        //{
+        //    // 이미 활성화 상태에서 클립 변경
+        //    animCom->mUpperBlendClipIdx    = previousUpperClip;
+        //    animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
+        //    animCom->mUpperBlendTimer      = 0.f;
+        //    animCom->mUpperBlendWeight     = 1.f;
+        //    animCom->mUpperUpdateTime      = 0.f;
+
+        //    // AnimationGraph 가 있으면 전환별 duration 조회
+        //    if (animCom->mAnimationGraph)
+        //        animCom->mUpperBlendDuration = animCom->mAnimationGraph->GetUpperDuration(
+        //            previousUpperClip, animCom->mUpperAnimClipIdx);
+        //}
+
+        // ── 6. 재생 시간 전진 ─────────────────────────────────────────
+        animCom->mLowerUpdateTime += deltaTime;
         animCom->mUpperUpdateTime += deltaTime;
 
-        shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimClipIdx);
+        shared_ptr<Animator>& lowerAnimClip      = animCom->mAnimClips.at(animCom->mLowerAnimClipIdx);
         shared_ptr<Animator>& upperAnimClip = animCom->mAnimClips.at(animCom->mUpperAnimClipIdx);
 
-        // 루핑 처리
-        if (animCom->mUpdateTime >= animClip->mDuration)
-            animCom->mUpdateTime = 0.f;
-        if (animCom->mUpperUpdateTime >= upperAnimClip->mDuration)
-            animCom->mUpperUpdateTime = 0.f;
+        // [버그 수정] 루핑: 초과분을 버리지 않고 fmod로 정확하게 처리
+        const float lowerDur = max(static_cast<float>(lowerAnimClip->mDuration),      0.0001f);
+        const float upperDur = max(static_cast<float>(upperAnimClip->mDuration), 0.0001f);
+        animCom->mLowerUpdateTime      = fmodf(animCom->mLowerUpdateTime,      lowerDur);
+        animCom->mUpperUpdateTime = fmodf(animCom->mUpperUpdateTime, upperDur);
 
-        // Lower 프레임 계산
-        uint32 currentFrame = 0;
-        uint32 nextFrame = 0;
-        float ratio = 0.f;
-        AnimationBlend(animClip, animCom->mUpdateTime, currentFrame, nextFrame, ratio);
-
-        // Upper 프레임 계산
-        uint32 upperCurrentFrame = 0;
-        uint32 upperNextFrame = 0;
-        float upperRatio = 0.f;
+        // ── 7. 프레임 계산 ───────────────────────────────────────────
+        uint32 currentFrame = 0, nextFrame = 0;       float ratio = 0.f;
+        uint32 upperCurrentFrame = 0, upperNextFrame = 0; float upperRatio = 0.f;
+        AnimationBlend(lowerAnimClip,      animCom->mLowerUpdateTime,      currentFrame,      nextFrame,      ratio);
         AnimationBlend(upperAnimClip, animCom->mUpperUpdateTime, upperCurrentFrame, upperNextFrame, upperRatio);
 
-        // Lower 블렌드 처리
-        uint32 blendClipIdx = animCom->mBlendClipIdx;
-        uint32 blendClipHandle = animClip->GetAnimClipHandle();
-        uint32 blendCurrentFrame = 0;
-        uint32 blendNextFrame = 0;
-        float blendRatio = 0.f;
+        // ── 8. Lower 블렌딩 처리 ─────────────────────────────────────
+        uint32 blendClipIdx = animCom->mLowerBlendClipIdx;
+        uint32 blendClipHandle = lowerAnimClip->GetAnimClipHandle();
+        uint32 blendCurrentFrame = 0, blendNextFrame = 0; float blendRatio = 0.f;
 
-        if (animCom->mBlendWeight > 0.f && blendClipIdx < animCom->mAnimClips.size()) {
-            animCom->mBlendTimer += deltaTime;
-            if (animCom->mBlendDuration > 0.f)
-                animCom->mBlendWeight = max(0.f, 1.f - (animCom->mBlendTimer / animCom->mBlendDuration));
-            else
-                animCom->mBlendWeight = 0.f;
+        if (animCom->mLowerBlendWeight > 0.f && blendClipIdx < clipCount)
+        {
+            animCom->mLowerBlendTimer += deltaTime;
+            animCom->mLowerBlendWeight = (animCom->mLowerBlendDuration > 0.f)
+                ? max(0.f, 1.f - animCom->mLowerBlendTimer / animCom->mLowerBlendDuration)
+                : 0.f;
 
             shared_ptr<Animator>& blendClip = animCom->mAnimClips.at(blendClipIdx);
             blendClipHandle = blendClip->GetAnimClipHandle();
-            animCom->mBlendUpdateTime += deltaTime;
-            if (animCom->mBlendUpdateTime >= blendClip->mDuration)
-                animCom->mBlendUpdateTime = 0.f;
-
-            AnimationBlend(blendClip, animCom->mBlendUpdateTime, blendCurrentFrame, blendNextFrame, blendRatio);
+            animCom->mLowerBlendUpdateTime += deltaTime;
+            animCom->mLowerBlendUpdateTime = fmodf(animCom->mLowerBlendUpdateTime,
+                max(static_cast<float>(blendClip->mDuration), 0.0001f));
+            AnimationBlend(blendClip, animCom->mLowerBlendUpdateTime, blendCurrentFrame, blendNextFrame, blendRatio);
         }
-        else {
-            animCom->mBlendWeight = 0.f;
-            animCom->mBlendTimer = 0.f;
+        else
+        {
+            animCom->mLowerBlendWeight = 0.f;
+            animCom->mLowerBlendTimer  = 0.f;
         }
 
-        // Upper 블렌드 처리
+        // ── 9. Upper 블렌딩 처리 ─────────────────────────────────────
         uint32 upperBlendClipIdx = animCom->mUpperBlendClipIdx;
         uint32 upperBlendClipHandle = upperAnimClip->GetAnimClipHandle();
-        uint32 upperBlendCurrentFrame = 0;
-        uint32 upperBlendNextFrame = 0;
-        float upperBlendRatio = 0.f;
+        uint32 upperBlendCurrentFrame = 0, upperBlendNextFrame = 0; float upperBlendRatio = 0.f;
 
-        if (animCom->mEnableUpperBodyLayer &&
-            animCom->mUpperBlendWeight > 0.f &&
-            upperBlendClipIdx < animCom->mAnimClips.size())
+        if ( animCom->mUpperBlendWeight > 0.f &&
+            upperBlendClipIdx < clipCount)
         {
             animCom->mUpperBlendTimer += deltaTime;
-            if (animCom->mUpperBlendDuration > 0.f)
-                animCom->mUpperBlendWeight = max(0.f, 1.f - (animCom->mUpperBlendTimer / animCom->mUpperBlendDuration));
-            else
-                animCom->mUpperBlendWeight = 0.f;
+            animCom->mUpperBlendWeight = (animCom->mUpperBlendDuration > 0.f)
+                ? max(0.f, 1.f - animCom->mUpperBlendTimer / animCom->mUpperBlendDuration)
+                : 0.f;
 
             shared_ptr<Animator>& upperBlendClip = animCom->mAnimClips.at(upperBlendClipIdx);
             upperBlendClipHandle = upperBlendClip->GetAnimClipHandle();
             animCom->mUpperBlendUpdateTime += deltaTime;
-            if (animCom->mUpperBlendUpdateTime >= upperBlendClip->mDuration)
-                animCom->mUpperBlendUpdateTime = 0.f;
-
+            animCom->mUpperBlendUpdateTime = fmodf(animCom->mUpperBlendUpdateTime,
+                max(static_cast<float>(upperBlendClip->mDuration), 0.0001f));
             AnimationBlend(upperBlendClip, animCom->mUpperBlendUpdateTime,
                 upperBlendCurrentFrame, upperBlendNextFrame, upperBlendRatio);
         }
-        else {
+        else
+        {
             animCom->mUpperBlendWeight = 0.f;
-            animCom->mUpperBlendTimer = 0.f;
+            animCom->mUpperBlendTimer  = 0.f;
         }
 
-        // AnimationInstance 구성
+        // ── 10. AnimationInstance 구성 ───────────────────────────────
+        const uint32 boneCount = animCom->mAnimInstance.BoneCount;
+
         AnimationInstance instance{};
-        instance.SkeletonID = animClip->GetSkeleton()->GetSkeletonHandle();
-        instance.AnimClipID = animClip->GetAnimClipHandle();
-        instance.CurrentFrame = currentFrame;
-        instance.NextFrame = nextFrame;
-        instance.Ratio = ratio;
-        instance.BoneCount = animCom->mAnimInstance.BoneCount;
-        instance.ReulstIndex = 0;
         instance.EntityID = entity.GetID();
+        instance.SkeletonID    = lowerAnimClip->GetSkeleton()->GetSkeletonHandle();
+        instance.BoneCount = boneCount;
+        instance.ReulstIndex = 0;
+        instance.UpperLayerWeight = animCom->mUpperLayerWeight;  // 점진적 보간 값
 
-        // Lower 블렌드 정보
-        instance.BlendClipID = blendClipHandle;
-        instance.BlendCurrentFrame = blendCurrentFrame;
-        instance.BlendNextFrame = blendNextFrame;
-        instance.BlendRatio = blendRatio;
-        instance.BlendWeight = animCom->mBlendWeight;
-        instance.BlendMaskStart = animCom->mBlendMaskStart;
-        instance.BlendMaskEnd = animCom->mBlendMaskEnd;
-        instance.BlendMode = static_cast<uint32>(animCom->mBlendMode);
+		// Lower 클립
+        instance.LowerAnimClipID    = lowerAnimClip->GetAnimClipHandle();
+        instance.LowerCurrentFrame  = currentFrame;
+        instance.LowerNextFrame     = nextFrame;
+        instance.LowerRatio         = ratio;
+        
+        
+        
 
-        // Upper 애니메이션 정보
-        instance.UpperAnimClipIdx = upperAnimClip->GetAnimClipHandle();
+        // Lower 블렌드
+        instance.LowerBlendClipIdx       = blendClipHandle;
+        instance.LowerBlendCurrentFrame = blendCurrentFrame;
+        instance.LowerBlendNextFrame    = blendNextFrame;
+        instance.LowerBlendRatio        = blendRatio;
+        instance.LowerBlendWeight       = animCom->mLowerBlendWeight;
+
+
+        instance.BlendMaskStart    = 0;
+        instance.BlendMaskEnd      = boneCount;
+        instance.BlendMode         = static_cast<uint32>(animCom->mLowerBlendMode);
+
+
+
+
+
+
+
+        // Upper 클립
+        instance.UpperAnimClipID  = upperAnimClip->GetAnimClipHandle();
         instance.UpperCurrentFrame = upperCurrentFrame;
-        instance.UpperNextFrame = upperNextFrame;
-        instance.UpperRatio = upperRatio;
+        instance.UpperNextFrame    = upperNextFrame;
+        instance.UpperRatio        = upperRatio;
 
-        // Upper 블렌드 정보
-        instance.UpperBlendClipIdx = upperBlendClipHandle;
-        instance.UpperBlendCurrentFrame = upperBlendCurrentFrame;
-        instance.UpperBlendNextFrame = upperBlendNextFrame;
-        instance.UpperBlendRatio = upperBlendRatio;
-        instance.UpperBlendWeight = animCom->mEnableUpperBodyLayer ? animCom->mUpperBlendWeight : 0.f;
+        // Upper 블렌드
+        instance.UpperBlendClipIdx       = upperBlendClipHandle;
+        instance.UpperBlendCurrentFrame  = upperBlendCurrentFrame;
+        instance.UpperBlendNextFrame     = upperBlendNextFrame;
+        instance.UpperBlendRatio         = upperBlendRatio;
+        instance.UpperBlendWeight        = animCom->mUpperBlendWeight;
+        
 
-        // 수정: 참고 코드처럼 UpperLayerWeight를 명확히 0 또는 1로 설정
-        instance.UpperLayerWeight = animCom->mEnableUpperBodyLayer ? animCom->mUpperLayerWeight : 0.f;
 
-        // 수정: UpperMask 범위 설정 (스켈레톤 구조에 맞게 설정 필요)
-        // 예: 척추(Spine) 시작 본 인덱스 ~ 머리(Head) 끝 본 인덱스
-        instance.UpperMaskStart = min(animCom->mUpperBlendMaskStart, instance.BoneCount > 0 ? instance.BoneCount - 1 : 0);
-        instance.UpperMaskEnd = min(animCom->mUpperBlendMaskEnd, instance.BoneCount > 0 ? instance.BoneCount - 1 : 0);
-        if (instance.UpperMaskStart > instance.UpperMaskEnd)
-            std::swap(instance.UpperMaskStart, instance.UpperMaskEnd);
+        instance.UpperMaskStart = min(animCom->mUpperBlendMaskStart, boneCount - 1);
+        instance.UpperMaskEnd   = min(animCom->mUpperBlendMaskEnd, boneCount - 1);
         instance.UpperBlendMode = static_cast<uint32>(animCom->mUpperBlendMode);
+        if (mainPlayerComponent)
+            std::cout << "Lower Clip: " << mainPlayerComponent->mLowerStatePacket << "," << instance.LowerAnimClipID << ", Upper Clip: " << mainPlayerComponent->mStatePacket <<" "<< instance.UpperAnimClipID << std::endl;
 
         mAnimationPass.emplace_back(instance);
     }

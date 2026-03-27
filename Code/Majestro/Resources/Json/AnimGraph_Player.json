@@ -1,0 +1,26 @@
+{
+    "defaultLowerDuration": 0.2,
+    "defaultUpperDuration": 0.15,
+    "upperEnterDuration": 0.15,
+    "upperExitDuration": 0.1,
+
+    "lower": [
+        { "from": 0, "to": 1, "duration": 0.2,  "curve": "EaseOut"   },
+        { "from": 0, "to": 2, "duration": 0.25, "curve": "EaseOut"   },
+        { "from": 1, "to": 0, "duration": 0.2,  "curve": "EaseIn"    },
+        { "from": 1, "to": 2, "duration": 0.15, "curve": "Linear"    },
+        { "from": 2, "to": 0, "duration": 0.3,  "curve": "EaseIn"    },
+        { "from": 2, "to": 1, "duration": 0.15, "curve": "Linear"    },
+        { "from": "*", "to": 4, "duration": 0.1,  "curve": "EaseOut" },
+        { "from": "*", "to": 5, "duration": 0.1,  "curve": "EaseOut" },
+        { "from": 4, "to": 0, "duration": 0.25, "curve": "EaseIn"    },
+        { "from": 5, "to": 0, "duration": 0.25, "curve": "EaseIn"    }
+    ],
+
+    "upper": [
+        { "from": "*", "to": 3, "duration": 0.05, "curve": "Linear"   },
+        { "from": 3, "to": "*", "duration": 0.1,  "curve": "EaseIn"   },
+        { "from": "*", "to": 4, "duration": 0.08, "curve": "Linear"   },
+        { "from": "*", "to": 6, "duration": 0.05, "curve": "Linear"   }
+    ]
+}

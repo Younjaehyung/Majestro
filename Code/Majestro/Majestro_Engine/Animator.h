@@ -72,7 +72,7 @@ public:
 	virtual void Load(const wstring& path) {};
 
 	void SetSkeleton(shared_ptr<Skeleton> sk);
-	shared_ptr<Skeleton> GetSkeleton() { return mSkeleton; }
+	shared_ptr<Skeleton>& GetSkeleton() { return mSkeleton; }
 
 	void SetAnimClipOffset(uint32 handle) { mClipMeta.AnimOffset = handle; }
 	uint32 GetAnimClipOffset() { return  mClipMeta.AnimOffset; }

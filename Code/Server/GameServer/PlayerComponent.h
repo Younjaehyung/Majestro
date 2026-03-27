@@ -79,6 +79,7 @@ public:
 	void Update(float dt);
 	uint32 GetState() { return (uint32)mFsm.GetState(); };
 	uint32 GetLowerState() { 
+		if (mFalling)return (uint32)S_Fall;
 		if (mDash)return (uint32)S_Dash;
 		if (mFlags & FLAG_MOVE) {
 			if(mPlayerMovingDir.x == 1)return (uint32)S_RunForward;

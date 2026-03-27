@@ -68,6 +68,7 @@ void EnemySystem::Update(float dt)
     if (mPlayerPositions.empty()) return;
 
     std::shared_ptr<EventManager> eventManager = mWorld->GetEventManager();
+    shared_ptr<Navigation> navSystem = mWorld->GetNavSystem();
     const float now = GetServerTotalTimeSeconds();
 
     int entityIndex = 0;
@@ -122,9 +123,9 @@ void EnemySystem::Update(float dt)
 
             bool ok = false;
             shared_ptr<Navigation> nav = mWorld->GetNavSystem();
-            if (nav && nav->IsInitialized())
+            if (navSystem && navSystem->IsInitialized())
             {
-                ok = nav->FindPath(myPos, playerPos, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
+                ok = navSystem->FindPath(myPos, playerPos, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
             }
 
             if (!ok)
@@ -164,8 +165,10 @@ void EnemySystem::Update(float dt)
             GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
             if (gravityComp)
             {
-                gravityComp->mGround = mc->mPath[mc->mPathIndex].y; // 몬스터도 NavMesh 높이를 중력 기준면으로 사용
-                //gravityComp->mHight = mc->mPath[mc->mPathIndex].y;
+                if (navSystem && navSystem->IsInitialized())
+                    gravityComp->mGround = navSystem->GetHeightAtPosition(myPos);
+                else
+                    gravityComp->mGround = myPos.y;
             }
             dir.y = 0.f;
             if (dir.LengthSquared() > 1e-8f)
@@ -185,13 +188,20 @@ void EnemySystem::Update(float dt)
 
 Vec3 EnemySystem::PathFinder(const Vec3& from)
 {
+    auto FlatDistSq = [](const Vec3& a, const Vec3& b) -> float
+        {
+            const float dx = a.x - b.x;
+            const float dz = a.z - b.z;
+            return dx * dx + dz * dz;
+        };
 
     Vec3  nearest = mPlayerPositions[0];
-    float minDistSq = Vec3::DistanceSquared(from, nearest);
+    float minDistSq = FlatDistSq(from, nearest);
     for (size_t i = 1; i < mPlayerPositions.size(); ++i)
     {
-        float d = Vec3::DistanceSquared(from, mPlayerPositions[i]);
+        const float d = FlatDistSq(from, mPlayerPositions[i]);
         if (d < minDistSq) { minDistSq = d; nearest = mPlayerPositions[i]; }
     }
+    nearest.y = from.y;
     return nearest;
 }

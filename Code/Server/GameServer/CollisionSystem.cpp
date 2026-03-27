@@ -14,6 +14,22 @@
 
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
+#include "HealthComponent.h"
+
+namespace
+{
+    bool IsDeadEnemy(World* world, Entity entity)
+    {
+        if (!world || !entity.IsValid())
+            return false;
+
+        if (!world->HasComponent<EnemyComponent>(entity))
+            return false;
+
+        const HealthComponent* health = world->GetComponent<HealthComponent>(entity);
+        return health && health->mCurrentHp <= 0;
+    }
+}
 
  CollisionSystem::CollisionSystem(World* world) : System(world)
 {
@@ -72,6 +88,7 @@ void CollisionSystem::Movable2Movable(float deltaTime)
         auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
         if (col) col->bIsColliding = false;
         if (!tr || !col) continue;
+        if (IsDeadEnemy(mWorld, e)) continue;
 
         PhysicsWorld::UpdateWorldOBB(tr, col);
 
@@ -315,6 +332,9 @@ void CollisionSystem::Movable2Static(float deltaTime)
   
     for (auto e : dynamicEntities)
     {
+        if (IsDeadEnemy(mWorld, e))
+            continue;
+
         auto* tr = mWorld->GetComponent<TransformComponent>(e);
         auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
         if (!tr || !col)
@@ -419,10 +439,34 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
         std::vector<BulletHitCandidate> hitCandidates;
         hitCandidates.reserve(dynamicEntities.size());
         float nearestHitDistance = (std::numeric_limits<float>::max)();
+        const Entity instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
+        const auto canDamageTarget = [&](Entity attacker, Entity target) -> bool
+            {
+                if (!attacker.IsValid() || !target.IsValid())
+                    return false;
+
+                const bool attackerIsPlayer = mWorld->HasComponent<MainPlayerComponent>(attacker);
+                const bool attackerIsEnemy = mWorld->HasComponent<EnemyComponent>(attacker);
+                if (!attackerIsPlayer && !attackerIsEnemy)
+                    return false;
+
+                const bool targetIsPlayer = mWorld->HasComponent<MainPlayerComponent>(target);
+                const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
+
+                if (attackerIsPlayer)
+                    return targetIsEnemy;
+
+                if (attackerIsEnemy)
+                    return targetIsPlayer;
+
+                return false;
+            };
 
         for (Entity targetEntity : dynamicEntities)
         {
             if (targetEntity == bulletEntity)
+                continue;
+            if (IsDeadEnemy(mWorld, targetEntity))
                 continue;
 
             if (mWorld->HasComponent<BulletComponent>(targetEntity))
@@ -430,6 +474,8 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
 
             NetEntityComponent* targetNetComp = mWorld->GetComponent<NetEntityComponent>(targetEntity);
             if (targetNetComp && bullet->mOwnerNetId != 0 && targetNetComp->mNetEntityId == bullet->mOwnerNetId)
+                continue;
+            if (instigator.IsValid() && !canDamageTarget(instigator, targetEntity))
                 continue;
 
             TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(targetEntity);
@@ -507,33 +553,11 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
 
         if (bulletCollider)
             bulletCollider->bIsColliding = true;
-        const auto canDamageTarget = [&](Entity instigator, Entity target) -> bool
-            {
-                if (!instigator.IsValid() || !target.IsValid())
-                    return false;
-
-                const bool instigatorIsPlayer = mWorld->HasComponent<MainPlayerComponent>(instigator);
-                const bool instigatorIsEnemy = mWorld->HasComponent<EnemyComponent>(instigator);
-                if (!instigatorIsPlayer && !instigatorIsEnemy)
-                    return false;
-
-                const bool targetIsPlayer = mWorld->HasComponent<MainPlayerComponent>(target);
-                const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
-
-                if (instigatorIsPlayer)
-                    return targetIsEnemy;
-
-                if (instigatorIsEnemy)
-                    return targetIsPlayer;
-
-                return false;
-            };
-
+        
         const auto enqueueDamage = [&](Entity target)
             {
                 if (auto eventManager = mWorld->GetEventManager())
                 {
-                    Entity instigator = mWorld->GetEntityByNetId(bullet->mOwnerNetId);
                     if (!canDamageTarget(instigator, target))
                         return;
 

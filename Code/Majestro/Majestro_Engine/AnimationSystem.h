@@ -1,6 +1,7 @@
 #pragma once
 #include "World.h"
 #include "System.h"
+#include "AnimationGraph.h"
 
 class Animator;
 struct SkeletonBoneParams;
@@ -28,6 +29,9 @@ private:	// COMPUTE 애니메이션 시스템
 
 	
 	void AnimationDispatch();
+
+	// 블렌딩 타이머 t(0~1)에 커브를 적용해 보간 진행률을 반환한다.
+	static float ApplyCurve(float t, AnimBlendCurve curve);
 
 
 private:	// 애니메이션 시스템

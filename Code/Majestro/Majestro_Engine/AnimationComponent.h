@@ -81,6 +81,7 @@ public:
 
 	float							mLowerBlendDuration = 0.2f;
 	float							mLowerBlendWeight = 0.f;
+	AnimBlendCurve					mLowerBlendCurve = AnimBlendCurve::EaseInOut;
 
 	uint32							mLowerBlendMaskStart = 0;	// 상하체 보간용
 	uint32							mLowerBlendMaskEnd = 0;
@@ -97,6 +98,7 @@ public:
 
 	float							mUpperBlendDuration = 0.05f;	// 상체 전환 보간 시간
 	float							mUpperBlendWeight = 0.f;
+	AnimBlendCurve					mUpperBlendCurve = AnimBlendCurve::EaseInOut;
 
 
 	// Upper 마스크 범위

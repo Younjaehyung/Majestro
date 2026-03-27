@@ -121,8 +121,9 @@ void AnimationSystem::AnimationPush(float deltaTime)
         if (animCom->mAnimClips.empty()) continue;
         const uint32 clipCount = static_cast<uint32>(animCom->mAnimClips.size());
 
-        const uint32 previousLowerClip = animCom->mLowerAnimClipIdx;
-        const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
+        const uint32 previousLowerClip  = animCom->mLowerAnimClipIdx;
+        const uint32 previousUpperClip  = animCom->mUpperAnimClipIdx;
+        const bool   wasUpperEnabled    = animCom->mEnableUpperBodyLayer;
 
 
         // ── 1. 서버 패킷 / 외부 입력으로부터 클립 인덱스 수신 ─────────────
@@ -181,28 +182,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
                 animCom->mEnableUpperBodyLayer = false;
         }
 
-        // ── 3. Upper 레이어 가중치 점진적 보간 (0/1 즉각 전환 제거) ────────
-        //{
-        //    const float targetW  = animCom->mUpperLayerTargetWeight;
-        //    const float currentW = animCom->mUpperLayerWeight;
-        //    if (currentW < targetW)
-        //    {
-        //        const float step = (animCom->mUpperLayerEnterDuration > 0.f)
-        //            ? deltaTime / animCom->mUpperLayerEnterDuration : 1.f;
-        //        animCom->mUpperLayerWeight = min(targetW, currentW + step);
-        //    }
-        //    else if (currentW > targetW)
-        //    {
-        //        const float step = (animCom->mUpperLayerExitDuration > 0.f)
-        //            ? deltaTime / animCom->mUpperLayerExitDuration : 1.f;
-        //        animCom->mUpperLayerWeight = max(targetW, currentW - step);
-        //    }
-        //    // 완전히 0 에 수렴하면 레이어 비활성화
-        //    if (animCom->mUpperLayerWeight <= 0.f && targetW <= 0.f)
-        //        animCom->mEnableUpperBodyLayer = false;
-        //}
-
-        // ── 4. Lower 클립 전환 감지 → 블렌딩 시작 ──────────────────────
+        // ── 3. Lower 클립 전환 감지 → 블렌딩 시작 ──────────────────────
         if (animCom->mLowerAnimClipIdx != previousLowerClip)
         {
             animCom->mLowerBlendClipIdx    = previousLowerClip;
@@ -211,40 +191,44 @@ void AnimationSystem::AnimationPush(float deltaTime)
             animCom->mLowerBlendWeight     = 1.f;
             animCom->mLowerUpdateTime      = 0.f;
 
-            // AnimationGraph 가 있으면 전환별 duration 조회
             if (animCom->mAnimationGraph)
+            {
                 animCom->mLowerBlendDuration = animCom->mAnimationGraph->GetLowerDuration(
                     previousLowerClip, animCom->mLowerAnimClipIdx);
+                animCom->mLowerBlendCurve = animCom->mAnimationGraph->GetLowerCurve(
+                    previousLowerClip, animCom->mLowerAnimClipIdx);
+            }
         }
 
-        // ── 5. Upper 클립 전환 감지 → 블렌딩 시작 ──────────────────────
-        // [버그 수정] 최초 활성화 시 previousUpperClip 오염 방지:
-        // Upper가 막 켜졌을 때는 블렌딩 없이 바로 재생, 이미 켜진 상태에서 클립이
-        // 변경될 때만 블렌딩을 시작한다.
-        //if (!wasUpperEnabled && animCom->mEnableUpperBodyLayer)
-        //{
-        //    // 최초 활성화: 블렌딩 없이 Upper 클립 즉시 재생
-        //    animCom->mUpperBlendWeight = 0.f;
-        //    animCom->mUpperBlendTimer  = 0.f;
-        //    animCom->mUpperUpdateTime  = 0.f;
-        //}
-        //else 
-        //if (animCom->mUpperAnimClipIdx != previousUpperClip)
-        //{
-        //    // 이미 활성화 상태에서 클립 변경
-        //    animCom->mUpperBlendClipIdx    = previousUpperClip;
-        //    animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
-        //    animCom->mUpperBlendTimer      = 0.f;
-        //    animCom->mUpperBlendWeight     = 1.f;
-        //    animCom->mUpperUpdateTime      = 0.f;
+        // ── 4. Upper 클립 전환 감지 → 블렌딩 시작 ──────────────────────
+        // 최초 활성화(wasUpperEnabled == false)일 때는 블렌딩 없이 즉시 재생.
+        // 이미 활성화된 상태에서 클립이 바뀔 때만 블렌딩을 시작한다.
+        if (!wasUpperEnabled && animCom->mEnableUpperBodyLayer)
+        {
+            // 최초 활성화: 이전 클립 흔적 없이 Upper 즉시 시작
+            animCom->mUpperBlendWeight = 0.f;
+            animCom->mUpperBlendTimer  = 0.f;
+            animCom->mUpperUpdateTime  = 0.f;
+        }
+        else if (wasUpperEnabled && animCom->mUpperAnimClipIdx != previousUpperClip)
+        {
+            // 이미 활성화 상태에서 클립 변경 → 이전 포즈에서 부드럽게 전환
+            animCom->mUpperBlendClipIdx    = previousUpperClip;
+            animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
+            animCom->mUpperBlendTimer      = 0.f;
+            animCom->mUpperBlendWeight     = 1.f;
+            animCom->mUpperUpdateTime      = 0.f;
 
-        //    // AnimationGraph 가 있으면 전환별 duration 조회
-        //    if (animCom->mAnimationGraph)
-        //        animCom->mUpperBlendDuration = animCom->mAnimationGraph->GetUpperDuration(
-        //            previousUpperClip, animCom->mUpperAnimClipIdx);
-        //}
+            if (animCom->mAnimationGraph)
+            {
+                animCom->mUpperBlendDuration = animCom->mAnimationGraph->GetUpperDuration(
+                    previousUpperClip, animCom->mUpperAnimClipIdx);
+                animCom->mUpperBlendCurve = animCom->mAnimationGraph->GetUpperCurve(
+                    previousUpperClip, animCom->mUpperAnimClipIdx);
+            }
+        }
 
-        // ── 6. 재생 시간 전진 ─────────────────────────────────────────
+        // ── 5. 재생 시간 전진 ─────────────────────────────────────────
         animCom->mLowerUpdateTime += deltaTime;
         animCom->mUpperUpdateTime += deltaTime;
 
@@ -257,13 +241,13 @@ void AnimationSystem::AnimationPush(float deltaTime)
         animCom->mLowerUpdateTime      = fmodf(animCom->mLowerUpdateTime,      lowerDur);
         animCom->mUpperUpdateTime = fmodf(animCom->mUpperUpdateTime, upperDur);
 
-        // ── 7. 프레임 계산 ───────────────────────────────────────────
+        // ── 6. 프레임 계산 ───────────────────────────────────────────
         uint32 currentFrame = 0, nextFrame = 0;       float ratio = 0.f;
         uint32 upperCurrentFrame = 0, upperNextFrame = 0; float upperRatio = 0.f;
         AnimationBlend(lowerAnimClip,      animCom->mLowerUpdateTime,      currentFrame,      nextFrame,      ratio);
         AnimationBlend(upperAnimClip, animCom->mUpperUpdateTime, upperCurrentFrame, upperNextFrame, upperRatio);
 
-        // ── 8. Lower 블렌딩 처리 ─────────────────────────────────────
+        // ── 7. Lower 블렌딩 처리 ─────────────────────────────────────
         uint32 blendClipIdx = animCom->mLowerBlendClipIdx;
         uint32 blendClipHandle = lowerAnimClip->GetAnimClipHandle();
         uint32 blendCurrentFrame = 0, blendNextFrame = 0; float blendRatio = 0.f;
@@ -271,9 +255,13 @@ void AnimationSystem::AnimationPush(float deltaTime)
         if (animCom->mLowerBlendWeight > 0.f && blendClipIdx < clipCount)
         {
             animCom->mLowerBlendTimer += deltaTime;
-            animCom->mLowerBlendWeight = (animCom->mLowerBlendDuration > 0.f)
-                ? max(0.f, 1.f - animCom->mLowerBlendTimer / animCom->mLowerBlendDuration)
-                : 0.f;
+            if (animCom->mLowerBlendDuration > 0.f)
+            {
+                const float rawT = animCom->mLowerBlendTimer / animCom->mLowerBlendDuration;
+                animCom->mLowerBlendWeight = max(0.f, 1.f - ApplyCurve(rawT, animCom->mLowerBlendCurve));
+            }
+            else
+                animCom->mLowerBlendWeight = 0.f;
 
             shared_ptr<Animator>& blendClip = animCom->mAnimClips.at(blendClipIdx);
             blendClipHandle = blendClip->GetAnimClipHandle();
@@ -288,18 +276,21 @@ void AnimationSystem::AnimationPush(float deltaTime)
             animCom->mLowerBlendTimer  = 0.f;
         }
 
-        // ── 9. Upper 블렌딩 처리 ─────────────────────────────────────
+        // ── 8. Upper 블렌딩 처리 ─────────────────────────────────────
         uint32 upperBlendClipIdx = animCom->mUpperBlendClipIdx;
         uint32 upperBlendClipHandle = upperAnimClip->GetAnimClipHandle();
         uint32 upperBlendCurrentFrame = 0, upperBlendNextFrame = 0; float upperBlendRatio = 0.f;
 
-        if ( animCom->mUpperBlendWeight > 0.f &&
-            upperBlendClipIdx < clipCount)
+        if (animCom->mUpperBlendWeight > 0.f && upperBlendClipIdx < clipCount)
         {
             animCom->mUpperBlendTimer += deltaTime;
-            animCom->mUpperBlendWeight = (animCom->mUpperBlendDuration > 0.f)
-                ? max(0.f, 1.f - animCom->mUpperBlendTimer / animCom->mUpperBlendDuration)
-                : 0.f;
+            if (animCom->mUpperBlendDuration > 0.f)
+            {
+                const float rawT = animCom->mUpperBlendTimer / animCom->mUpperBlendDuration;
+                animCom->mUpperBlendWeight = max(0.f, 1.f - ApplyCurve(rawT, animCom->mUpperBlendCurve));
+            }
+            else
+                animCom->mUpperBlendWeight = 0.f;
 
             shared_ptr<Animator>& upperBlendClip = animCom->mAnimClips.at(upperBlendClipIdx);
             upperBlendClipHandle = upperBlendClip->GetAnimClipHandle();
@@ -315,7 +306,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
             animCom->mUpperBlendTimer  = 0.f;
         }
 
-        // ── 10. AnimationInstance 구성 ───────────────────────────────
+        // ── 9. AnimationInstance 구성 ────────────────────────────────
         const uint32 boneCount = animCom->mAnimInstance.BoneCount;
 
         AnimationInstance instance{};
@@ -370,8 +361,6 @@ void AnimationSystem::AnimationPush(float deltaTime)
         instance.UpperMaskStart = min(animCom->mUpperBlendMaskStart, boneCount - 1);
         instance.UpperMaskEnd   = min(animCom->mUpperBlendMaskEnd, boneCount - 1);
         instance.UpperBlendMode = static_cast<uint32>(animCom->mUpperBlendMode);
-        if (mainPlayerComponent)
-            std::cout << "Lower Clip: " << mainPlayerComponent->mLowerStatePacket << "," << instance.LowerAnimClipID << ", Upper Clip: " << mainPlayerComponent->mStatePacket <<" "<< instance.UpperAnimClipID << std::endl;
 
         mAnimationPass.emplace_back(instance);
     }
@@ -493,4 +482,25 @@ void AnimationSystem::AnimationBlend(const shared_ptr<Animator>& animClip, float
     const float currentFrameTime = static_cast<float>(currentFrame) * frameDuration;
     ratio = (localTime - currentFrameTime) / frameDuration;
     ratio = std::clamp(ratio, 0.f, 1.f);
+}
+
+float AnimationSystem::ApplyCurve(float t, AnimBlendCurve curve)
+{
+    t = std::clamp(t, 0.f, 1.f);
+    switch (curve)
+    {
+    case AnimBlendCurve::EaseIn:
+        // 천천히 시작 → 빠르게 끝 (2차 곡선)
+        return t * t;
+    case AnimBlendCurve::EaseOut:
+        // 빠르게 시작 → 천천히 끝 (반전 2차 곡선)
+        return 1.f - (1.f - t) * (1.f - t);
+    case AnimBlendCurve::EaseInOut:
+        // 시작·끝 모두 부드럽게
+        return t < 0.5f
+            ? 2.f * t * t
+            : 1.f - 2.f * (1.f - t) * (1.f - t);
+    default:
+        return t; // Linear
+    }
 }

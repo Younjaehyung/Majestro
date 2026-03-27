@@ -311,12 +311,13 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
 	material2s.push_back(material2);
 	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack"));
+	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
 	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
 
 	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {
 	case 0:
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<EnemyComponent>(mEntityID, 0);
 		break;
 	}
 

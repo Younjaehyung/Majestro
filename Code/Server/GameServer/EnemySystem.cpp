@@ -10,6 +10,7 @@
 
 #include "BeatSystem.h"
 #include "EnemyComponent.h"
+#include "HealthComponent.h"
 #include "GravityComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
@@ -84,6 +85,17 @@ void EnemySystem::Update(float dt)
         const Vec3 playerPos  = PathFinder(myPos);
 
         EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
+        HealthComponent* enemyHealthComp = mWorld->GetComponent<HealthComponent>(entity);
+        if (enemyComp == nullptr) { ++entityIndex; continue; }
+
+        if (enemyHealthComp && enemyHealthComp->mCurrentHp <= 0)
+        {
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Dead);
+            mc->mMovingDirection = Vec3::Zero;
+            ++entityIndex;
+            continue;
+        }
+       
         float nearestPlayerDistSq = (std::numeric_limits<float>::max)();
         for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
         {
@@ -97,6 +109,7 @@ void EnemySystem::Update(float dt)
 
         if (enemyComp->mEnemyType == EnemyType::HornMan && nearestPlayerDistSq <= enemyComp->AttackRangeSq)
         {
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
             mc->mMovingDirection = Vec3::Zero;
             mc->mPathCount = 0;
             mc->mPathIndex = 0;
@@ -175,10 +188,12 @@ void EnemySystem::Update(float dt)
             {
                 dir.Normalize();
                 mc->mMovingDirection = dir;
+                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
             }
             else
             {
                 mc->mMovingDirection = Vec3::Zero;
+                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
             }
         }
 

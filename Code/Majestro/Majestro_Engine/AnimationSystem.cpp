@@ -7,6 +7,7 @@
 #include "Animator.h"
 #include "AnimationComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "TagComponent.h"
 
 #include "InputManager.h"
@@ -93,7 +94,9 @@ void AnimationSystem::AnimationPush(float deltaTime)
     for (Entity entity : view) {
         AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
         MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
+        EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
         MannequinComponent* mannequinComponent = mWorld->GetComponent<MannequinComponent>(entity);
+
 
         const uint32 previousClip = animCom->mAnimClipIdx;
         const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
@@ -111,6 +114,10 @@ void AnimationSystem::AnimationPush(float deltaTime)
                 animCom->mEnableUpperBodyLayer = false;
                 animCom->mUpperLayerWeight = 0.0f; // 수정: 비활성화 시 0.0
             }
+        }
+
+        if (enemyComponent) {
+            animCom->mAnimClipIdx = enemyComponent->mAnimStatePacket;
         }
 
         if (mannequinComponent) {

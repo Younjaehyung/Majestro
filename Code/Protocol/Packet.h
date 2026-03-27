@@ -103,6 +103,7 @@ enum class SceneId : uint8
 	LGame,
 	End
 };
+
 enum class MsgKind : uint8
 {
 	KNONE = 0,

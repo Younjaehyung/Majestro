@@ -16,6 +16,7 @@
 #include "NetTransformComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "TagComponent.h"
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
@@ -160,13 +161,23 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
 
     Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
     MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
+    EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(e);
     NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
     NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(e);
-    if (!netComp || !playerComp) return;
+    if (!netComp) return;
 
-    playerComp->mStatePacket      = pkt->stateId;
-    playerComp->mLowerStatePacket = pkt->lowerStateId;
-    netTransform->mElapsed        = 0.0f;
+    if (playerComp)
+    {
+        playerComp->mStatePacket = pkt->stateId;
+        playerComp->mLowerStatePacket = pkt->lowerStateId;
+    }
+    else if (enemyComp)
+    {
+        enemyComp->mAnimStatePacket = pkt->stateId;
+    }
+
+    if (netTransform)
+        netTransform->mElapsed = 0.0f;
 }
 
 void NetRecvSystem::HandleHealth(const InputCommand& msg)

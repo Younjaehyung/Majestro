@@ -7,6 +7,13 @@ enum EnemyType {
 	HornMan,
 };
 
+enum class EnemyAnimState : uint8
+{
+	Run = 0,
+	Attack = 1,
+	Dead = 2,
+};
+
 class EnemyComponent : public Component<EnemyComponent>
 {
 public:
@@ -26,6 +33,7 @@ public:
 
 public:
 	uint8 mEnemyType = 0;
+	uint8 mAnimState;
 	float mSpeed;
 
 	float AttackRange = 100;

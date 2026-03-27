@@ -4,6 +4,7 @@
 #include "NetEntityComponent.h"
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "ColliderComponent.h"
 #include "MovementComponent.h"
 #include "BulletComponent.h"
@@ -101,21 +102,16 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 
 void NetSendSystem::SendAction()
 {
-	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
-
 	auto recipients = CollectPlayerSessions();
 	if (recipients.empty())
 		return;
 
-	std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
-	for (auto& entity : entities)
+	if (mWorld->HasComponentPool<MainPlayerComponent>())
 	{
-		//if (netComp->mIsDirty)
+		std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
+		for (auto& entity : entities)
 		{
 
-			/*mSendReq.SessionId = 0;
-			mSendReq.Type = S2C_PKT_STATE;
-			mSendReq.Size = sizeof(S2C_StatePacket);*/
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(netComp->mOwnerEntity);
 			S2C_StatePacket statePkt;
@@ -133,7 +129,32 @@ void NetSendSystem::SendAction()
 				gSendQueue.Push(mSendReq);
 			}
 		}
+	}
 
+	if (mWorld->HasComponentPool<EnemyComponent>())
+	{
+		std::vector<Entity> entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, EnemyComponent>();
+		for (auto& entity : entities)
+		{
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(netComp->mOwnerEntity);
+			if (!netComp || !enemyComp)
+				continue;
+
+			S2C_StatePacket statePkt;
+			statePkt.netEntityId = netComp->mNetEntityId;
+			statePkt.stateId = enemyComp->mAnimState;
+			statePkt.lowerStateId = enemyComp->mAnimState;
+
+			for (uint32 sessionId : recipients)
+			{
+				mSendReq.SessionId = sessionId;
+				mSendReq.Type = S2C_PKT_STATE;
+				mSendReq.Size = sizeof(S2C_StatePacket);
+				mSendReq.StoreAs<S2C_StatePacket>(statePkt);
+				gSendQueue.Push(mSendReq);
+			}
+		}
 	}
 }
 

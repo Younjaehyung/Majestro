@@ -148,7 +148,7 @@ bool EnemySystem::HandleAttackState(
     if (nearestPlayerDistSq > enemyComp->AttackRangeSq)
         return false;
 
-    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    //enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
     movementComp->mMovingDirection = Vec3::Zero;
     movementComp->mPathCount = 0;
     movementComp->mPathIndex = 0;
@@ -157,6 +157,16 @@ bool EnemySystem::HandleAttackState(
     {
         eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
         enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+        enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+    }
+
+    if (nowSeconds <= enemyComp->mAttackAnimEndTime)
+    {
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    }
+    else
+    {
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
     }
 
     return true;

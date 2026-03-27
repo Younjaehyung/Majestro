@@ -42,5 +42,6 @@ public:
 	float mAttackCool;
 	float mNextAttackTime;
 
-
+	float mAttackAnimEndTime = 0.0f;
+	float mAttackAnimTime = 1.0f;
 };

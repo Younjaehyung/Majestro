@@ -1,9 +1,13 @@
 #pragma once
 #include "World.h"
 #include "System.h"
+#include "EnemyComponent.h"
+#include <unordered_map>
 
 class Navigation;
 class NavMesh;
+class EventManager;
+class EnemyMovementComponent;
 
 class EnemySystem : public System
 {
@@ -16,6 +20,26 @@ public:
 
 	Vec3 PathFinder(const Vec3& from);  // 가장 가까운 플레이어 위치 탐색
 private:
+	bool HandleAttackState(
+		const Entity& entity,
+		EnemyComponent* enemyComp,
+		EnemyMovementComponent* movementComp,
+		float nearestPlayerDistSq,
+		float beatSeconds,
+		float nowSeconds,
+		const std::shared_ptr<EventManager>& eventManager);
+
+	void HandleRunState(
+		const Entity& entity,
+		EnemyComponent* enemyComp,
+		EnemyMovementComponent* movementComp,
+		const Vec3& myPos,
+		const Vec3& playerPos,
+		const std::shared_ptr<Navigation>& navSystem,
+		float dt,
+		int entityIndex);
+
+	void HaltByState(EnemyComponent* enemyComp, EnemyMovementComponent* movementComp, EnemyAnimState state);
 
 	std::vector<Vec3> mPlayerPositions;
 

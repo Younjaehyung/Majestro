@@ -90,8 +90,7 @@ void EnemySystem::Update(float dt)
 
         if (enemyHealthComp && enemyHealthComp->mCurrentHp <= 0)
         {
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Dead);
-            mc->mMovingDirection = Vec3::Zero;
+            HaltByState(enemyComp, mc, EnemyAnimState::Dead);
             ++entityIndex;
             continue;
         }
@@ -107,98 +106,151 @@ void EnemySystem::Update(float dt)
             nearestPlayerDistSq = (std::min)(nearestPlayerDistSq, distSq);
         }
 
+        EnemyAnimState currentState = EnemyAnimState::Run;
         if (enemyComp->mEnemyType == EnemyType::HornMan && nearestPlayerDistSq <= enemyComp->AttackRangeSq)
-        {
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
-            mc->mMovingDirection = Vec3::Zero;
-            mc->mPathCount = 0;
-            mc->mPathIndex = 0;
+            currentState = EnemyAnimState::Attack;
 
-            if (eventManager && enemyComp->mNextAttackTime <= now)
-            {
-                eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
-                enemyComp->mNextAttackTime = now + Beat * enemyComp->mAttackCool;
-            }
+        if (currentState == EnemyAnimState::Attack && HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
+        {
+            ++entityIndex;
+            continue;
+        }
+
+        if (currentState != EnemyAnimState::Run)
+        {
+            HaltByState(enemyComp, mc, currentState);
 
             ++entityIndex;
             continue;
         }
 
-        // ---- 재탐색 판단 ----
-        mc->mPathTimer -= dt;
-
-        const bool targetMoved = Vec3::DistanceSquared(playerPos, mc->mTarget) > RETARGET_THRESHOLD_SQ;
-        const bool needRepath  = (mc->mPathTimer <= 0.f) || targetMoved || (mc->mPathCount == 0);
-
-        if (needRepath)
-        {
-            mc->mTarget = playerPos;
-
-            bool ok = false;
-            shared_ptr<Navigation> nav = mWorld->GetNavSystem();
-            if (navSystem && navSystem->IsInitialized())
-            {
-                ok = navSystem->FindPath(myPos, playerPos, mc->mPath, mc->mPathCount, ENEMY_MAX_WAYPOINTS);
-            }
-
-            if (!ok)
-            {
-                // NavMesh 탐색 실패 시 직선 방향 (직진)
-                mc->mPathCount   = 1;
-                mc->mPath[0]     = playerPos;
-				//std::cout << "Pathfinding failed for entity " << entity.GetID() << ". Moving directly towards target." << std::endl;
-            }
-            else {
-                // 탐색 성공 시 디버그 로그
-				//std::cout << "Pathfinding succeeded for entity " << entity.GetID() << ". Waypoints: " << mc->mPathCount << std::endl;
-            }
-
-            mc->mPathIndex = 0;
-
-            // 재탐색 쿨타임 — 엔티티 인덱스로 분산시켜 동일 프레임 스파이크 방지
-            const float stagger  = mc->mPathInterval / 20.f; // 최대 20개 분산
-            mc->mPathTimer = mc->mPathInterval + (entityIndex % 20) * stagger;
-        }
-
-        // ---- 경로 추적 ----
-        if (mc->mPathCount > 0 && mc->mPathIndex < mc->mPathCount)
-        {
-            // 현재 웨이포인트에 도달했으면 다음으로
-            while (mc->mPathIndex < mc->mPathCount - 1)
-            {
-                Vec3 toWp = mc->mPath[mc->mPathIndex] - myPos;
-                //toWp.y    = 0.f;
-                if (toWp.LengthSquared() < ARRIVE_THRESHOLD_SQ)
-                    ++mc->mPathIndex;
-                else
-                    break;
-            }
-
-            Vec3 dir = mc->mPath[mc->mPathIndex] - myPos;
-            GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
-            if (gravityComp)
-            {
-                if (navSystem && navSystem->IsInitialized())
-                    gravityComp->mGround = navSystem->GetHeightAtPosition(myPos);
-                else
-                    gravityComp->mGround = myPos.y;
-            }
-            dir.y = 0.f;
-            if (dir.LengthSquared() > 1e-8f)
-            {
-                dir.Normalize();
-                mc->mMovingDirection = dir;
-                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
-            }
-            else
-            {
-                mc->mMovingDirection = Vec3::Zero;
-                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
-            }
-        }
+        HandleRunState(entity, enemyComp, mc, myPos, playerPos, navSystem, dt, entityIndex);
 
         ++entityIndex;
     }
+}
+
+bool EnemySystem::HandleAttackState(
+    const Entity& entity,
+    EnemyComponent* enemyComp,
+    EnemyMovementComponent* movementComp,
+    float nearestPlayerDistSq,
+    float beatSeconds,
+    float nowSeconds,
+    const std::shared_ptr<EventManager>& eventManager)
+{
+    if (!enemyComp || !movementComp)
+        return false;
+
+    if (enemyComp->mEnemyType != EnemyType::HornMan)
+        return false;
+
+    if (nearestPlayerDistSq > enemyComp->AttackRangeSq)
+        return false;
+
+    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    movementComp->mMovingDirection = Vec3::Zero;
+    movementComp->mPathCount = 0;
+    movementComp->mPathIndex = 0;
+
+    if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+    {
+        eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
+        enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+    }
+
+    return true;
+}
+
+void EnemySystem::HandleRunState(
+    const Entity& entity,
+    EnemyComponent* enemyComp,
+    EnemyMovementComponent* movementComp,
+    const Vec3& myPos,
+    const Vec3& playerPos,
+    const std::shared_ptr<Navigation>& navSystem,
+    float dt,
+    int entityIndex)
+{
+    if (!enemyComp || !movementComp)
+        return;
+
+    // ---- 재탐색 판단 ----
+    movementComp->mPathTimer -= dt;
+
+    const bool targetMoved = Vec3::DistanceSquared(playerPos, movementComp->mTarget) > RETARGET_THRESHOLD_SQ;
+    const bool needRepath = (movementComp->mPathTimer <= 0.f) || targetMoved || (movementComp->mPathCount == 0);
+
+    if (needRepath)
+    {
+        movementComp->mTarget = playerPos;
+
+        bool ok = false;
+        if (navSystem && navSystem->IsInitialized())
+        {
+            ok = navSystem->FindPath(myPos, playerPos, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
+        }
+
+        if (!ok)
+        {
+            // NavMesh 탐색 실패 시 직선 방향 (직진)
+            movementComp->mPathCount = 1;
+            movementComp->mPath[0] = playerPos;
+        }
+
+        movementComp->mPathIndex = 0;
+
+        // 재탐색 쿨타임 — 엔티티 인덱스로 분산시켜 동일 프레임 스파이크 방지
+        const float stagger = movementComp->mPathInterval / 20.f; // 최대 20개 분산
+        movementComp->mPathTimer = movementComp->mPathInterval + (entityIndex % 20) * stagger;
+    }
+
+    // ---- 경로 추적 ----
+    if (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount)
+    {
+        // 현재 웨이포인트에 도달했으면 다음으로
+        while (movementComp->mPathIndex < movementComp->mPathCount - 1)
+        {
+            Vec3 toWp = movementComp->mPath[movementComp->mPathIndex] - myPos;
+            if (toWp.LengthSquared() < ARRIVE_THRESHOLD_SQ)
+                ++movementComp->mPathIndex;
+            else
+                break;
+        }
+
+        Vec3 dir = movementComp->mPath[movementComp->mPathIndex] - myPos;
+        GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+        if (gravityComp)
+        {
+            if (navSystem && navSystem->IsInitialized())
+                gravityComp->mGround = navSystem->GetHeightAtPosition(myPos);
+            else
+                gravityComp->mGround = myPos.y;
+        }
+        dir.y = 0.f;
+        if (dir.LengthSquared() > 1e-8f)
+        {
+            dir.Normalize();
+            movementComp->mMovingDirection = dir;
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+        }
+        else
+        {
+            movementComp->mMovingDirection = Vec3::Zero;
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+        }
+    }
+}
+
+void EnemySystem::HaltByState(EnemyComponent* enemyComp, EnemyMovementComponent* movementComp, EnemyAnimState state)
+{
+    if (!enemyComp || !movementComp)
+        return;
+
+    enemyComp->mAnimState = static_cast<uint8>(state);
+    movementComp->mMovingDirection = Vec3::Zero;
+    movementComp->mPathCount = 0;
+    movementComp->mPathIndex = 0;
 }
 
 Vec3 EnemySystem::PathFinder(const Vec3& from)

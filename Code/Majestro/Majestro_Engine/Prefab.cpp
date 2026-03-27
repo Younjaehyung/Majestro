@@ -209,7 +209,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
-	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	auto& anim = world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	anim.mUpperRefClipIdx = 0;	// mAnimClips[0] = 각 캐릭터의 Idle 애니메이션 (Additive 레퍼런스, 배열 인덱스)
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);

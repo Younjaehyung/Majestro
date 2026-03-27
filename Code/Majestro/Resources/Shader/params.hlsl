@@ -105,6 +105,13 @@ struct ANIMINSTANCE
     uint UpperMaskStart;
     uint UpperMaskEnd;
     uint UpperBlendMode;
+
+    // Additive 레퍼런스 포즈
+    // 0xFFFFFFFF = 미설정 → Override 폴백
+    uint  RefClipIdx;
+    uint  RefCurrentFrame;
+    uint  RefNextFrame;
+    float RefRatio;
 };
 
 struct ANIMFRAMEPARAMS

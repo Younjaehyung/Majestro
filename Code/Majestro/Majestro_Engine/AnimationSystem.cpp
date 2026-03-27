@@ -306,7 +306,23 @@ void AnimationSystem::AnimationPush(float deltaTime)
             animCom->mUpperBlendTimer  = 0.f;
         }
 
-        // ── 9. AnimationInstance 구성 ────────────────────────────────
+        // ── 9. Additive 레퍼런스 포즈 계산 ──────────────────────────
+        // mUpperRefClipIdx가 설정된 경우 해당 클립의 첫 프레임을 레퍼런스로 사용.
+        // UINT32_MAX(기본값)이면 RefClipID를 sentinel(0xFFFFFFFF)로 설정해
+        // HLSL에서 Override 모드로 폴백한다.
+        uint32 refClipHandle    = 0xFFFFFFFFu;
+        uint32 refCurrentFrame  = 0, refNextFrame = 0; float refRatio = 0.f;
+
+        const uint32 refClipIdx = animCom->mUpperRefClipIdx;
+        if (refClipIdx != UINT32_MAX && refClipIdx < clipCount)
+        {
+            shared_ptr<Animator>& refClip = animCom->mAnimClips.at(refClipIdx);
+            refClipHandle = refClip->GetAnimClipHandle();
+            // 레퍼런스는 첫 프레임 고정 (중립 정지 포즈)
+            AnimationBlend(refClip, 0.f, refCurrentFrame, refNextFrame, refRatio);
+        }
+
+        // ── 10. AnimationInstance 구성 ───────────────────────────────
         const uint32 boneCount = animCom->mAnimInstance.BoneCount;
 
         AnimationInstance instance{};
@@ -361,6 +377,12 @@ void AnimationSystem::AnimationPush(float deltaTime)
         instance.UpperMaskStart = min(animCom->mUpperBlendMaskStart, boneCount - 1);
         instance.UpperMaskEnd   = min(animCom->mUpperBlendMaskEnd, boneCount - 1);
         instance.UpperBlendMode = static_cast<uint32>(animCom->mUpperBlendMode);
+
+        // Additive 레퍼런스 포즈
+        instance.RefClipID       = refClipHandle;
+        instance.RefCurrentFrame = refCurrentFrame;
+        instance.RefNextFrame    = refNextFrame;
+        instance.RefRatio        = refRatio;
 
         mAnimationPass.emplace_back(instance);
     }

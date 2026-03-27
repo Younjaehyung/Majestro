@@ -233,19 +233,68 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
         //    saturate(boneWeight);
 
         // ============================================================
-        // [수정] 본의 BlendWeight × UpperLayerWeight 를 최종 가중치로 사용.
-        // BlendWeight 만 쓰면 UpperLayerWeight 보간이 반영되지 않아
-        // Upper 레이어 활성/비활성 전환이 동작하지 않음.
+        // 최종 가중치: UpperLayerWeight(점진적 보간) × 본별 BlendWeight
         // ============================================================
-        float boneBlendWeight = SkeletonBone[nowbone + boneidx].BlendWeight;
+        float boneBlendWeight  = SkeletonBone[nowbone + boneidx].BlendWeight;
         float finalUpperWeight = saturate(animationInst.UpperLayerWeight) * boneBlendWeight;
 
-        LayerPose finalPose = ComposeMaskedPose(
-            lowerPose,
-            upperPose,
-            finalUpperWeight,
-            animationInst.UpperBlendMode
-        );
+        // ============================================================
+        // 상하체 합성 (하이브리드 방식)
+        //
+        // ▸ 척추 전환 영역 (0 < boneBlendWeight < 1, RefClipIdx 설정 시)
+        //     → Additive: delta = upper - ref, final = lower + delta * w
+        //       부모 좌표계 오염 없이 조준 방향을 보정한다.
+        //
+        // ▸ 완전 상체 본 (boneBlendWeight ≥ 1, 팔/어깨/목/머리)
+        //     → Override: upper 포즈를 그대로 사용
+        //       Additive로 걷기 팔 동작 + 조준 델타가 합산되면 팔이 꼬임.
+        //
+        // ▸ 완전 하체 본 (boneBlendWeight = 0) / RefClipIdx 미설정
+        //     → Override 폴백
+        // ============================================================
+        LayerPose finalPose;
+
+        bool isTransitionBone = (boneBlendWeight > 0.0001f && boneBlendWeight < 0.9999f);
+
+        if (animationInst.RefClipIdx != 0xFFFFFFFFu && isTransitionBone)
+        {
+            // ── Additive 경로: 척추 전환 영역만 적용 ──────────────
+            LayerPose refPose = SamplePose(
+                nowbone,
+                animationInst.RefClipIdx,
+                animationInst.RefCurrentFrame,
+                animationInst.RefNextFrame,
+                animationInst.RefRatio
+            );
+
+            const float4 identityRot   = float4(0.f, 0.f, 0.f, 1.f);
+            const float4 identityScale = float4(1.f, 1.f, 1.f, 1.f);
+
+            // delta = upper - ref  (쿼터니언: conjugate(ref) * upper)
+            float4 deltaRot   = QuaternionMultiply(QuaternionConjugate(refPose.Rotation), upperPose.Rotation);
+            float4 deltaTrans = upperPose.Translation - refPose.Translation;
+            float4 deltaScale = upperPose.Scale / max(refPose.Scale,
+                                    float4(0.0001f, 0.0001f, 0.0001f, 0.0001f));
+
+            // delta에 가중치 적용 (UpperLayerWeight × boneBlendWeight)
+            float4 weightedDeltaRot   = QuaternionSlerp(identityRot,   deltaRot,   finalUpperWeight);
+            float4 weightedDeltaScale = lerp(identityScale, deltaScale, finalUpperWeight);
+
+            // final = lower + delta * w
+            finalPose.Rotation    = QuaternionMultiply(lowerPose.Rotation, weightedDeltaRot);
+            finalPose.Scale       = lowerPose.Scale * weightedDeltaScale;
+            finalPose.Translation = lowerPose.Translation + deltaTrans * finalUpperWeight;
+        }
+        else
+        {
+            // ── Override 경로: 팔/머리(weight=1), 하체(weight=0), RefClipIdx 미설정 ──
+            finalPose = ComposeMaskedPose(
+                lowerPose,
+                upperPose,
+                finalUpperWeight,
+                animationInst.UpperBlendMode
+            );
+        }
         //LayerPose finalPose = lowerPose;
         //if (animationInst.UpperMaskStart < nowbone && animationInst.UpperMaskEnd >= nowbone)
         //{

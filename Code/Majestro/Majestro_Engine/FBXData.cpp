@@ -479,12 +479,13 @@ float FBXData::ComputeBodyBlendWeight(const string& boneName, float& isUpper)
 			|| lower.find("Forearm") != string::npos) return 1.00f;
 		if (lower.find("Hand") != string::npos || lower.find("Finger") != string::npos) return 1.00f;
 
-		// 척추 전환 구간 (구체적인 것 먼저)
-		if (lower.find("Bip001 Spine3") != string::npos) return 0.90f;
-		if (lower.find("Bip001 Spine2") != string::npos) return 0.75f;
-		if (lower.find("Bip001 Spine1") != string::npos) return 0.55f;
-		if (lower.find("Bip001 Spine") != string::npos) return 0.35f;
-		if (lower.find("Bip001 Pelvis") != string::npos) return 0.20f;
+		// Additive 블렌딩이므로 그라데이션을 사용해도 부모 좌표계 오염이 없다.
+		// Pelvis에 소량의 delta를 더하면 허리가 자연스럽게 조준 방향으로 기운다.
+		if (lower.find("Bip001 Spine3") != string::npos) return 1.00f;
+		if (lower.find("Bip001 Spine2") != string::npos) return 0.90f;
+		if (lower.find("Bip001 Spine1") != string::npos) return 0.75f;
+		if (lower.find("Bip001 Spine")  != string::npos) return 0.40f;
+		if (lower.find("Bip001 Pelvis") != string::npos) return 0.15f;
 
 		// 기본 Bip001 루트 (가장 마지막에 체크)
 		if (lower.find("Bip001") != string::npos) return 0.00f;

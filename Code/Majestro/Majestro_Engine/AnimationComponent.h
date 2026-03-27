@@ -52,6 +52,13 @@ struct AnimationInstance {
 	uint32	UpperMaskStart{};
 	uint32	UpperMaskEnd{};
 	uint32	UpperBlendMode{};
+
+	// Additive 레퍼런스 포즈
+	// 0xFFFFFFFF = 미설정 → Override 폴백
+	uint32	RefClipID{0xFFFFFFFFu};
+	uint32	RefCurrentFrame{};
+	uint32	RefNextFrame{};
+	float	RefRatio{};
 };								
 enum class AnimBlendMode : uint32
 {
@@ -106,6 +113,12 @@ public:
 	uint32							mUpperBlendMaskEnd = 0;
 	AnimBlendMode					mUpperBlendMode = AnimBlendMode::Override;
 
+
+	// ─── Additive 레퍼런스 클립 ────────────────────────────────────────────
+	// 상체 Additive 블렌딩 기준이 되는 중립 포즈 클립 인덱스.
+	// 프리팹/씬 초기화 코드에서 캐릭터마다 직접 지정한다.
+	// UINT32_MAX(기본값)이면 Override 방식으로 동작한다.
+	uint32							mUpperRefClipIdx = UINT32_MAX;
 
 	bool							mEnableUpperBodyLayer = false;	// 상체 레이어 활성화 여부
 	bool							mBoneFinalUpdated = false;

@@ -17,4 +17,5 @@ public:
 	uint8 mEnemyType = 0;
 
 	int mAnimStatePacket;
+	float mDeadElapsedTime = 0.f;
 };

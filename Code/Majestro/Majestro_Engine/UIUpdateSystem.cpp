@@ -13,6 +13,7 @@
 #include "CircularVisualizerComponent.h"
 #include "AudioManager.h"
 #include "CameraComponent.h"
+#include "GameEvents.h"
 
 UITransformSystem::UITransformSystem(World* world) : System::System(world)
 {
@@ -420,12 +421,26 @@ void UIUpdateSystem::UpdateAudioVisualizer(float dt)
 void UIUpdateSystem::UpdateActiveUIEntities(float dt)
 {
     if (false == mWorld->HasComponentPool<UIActionComponent>())return;
+
+    // 이번 프레임에 박자 이벤트가 왔는지 확인
+    bool beatFired = false;
+    mWorld->GetEventManager()->Consume<EvBeat>([&](const EvBeat&) {
+        beatFired = true;
+    });
+
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UIActionComponent>() };
     for (auto& e : entitys)
     {
         UIActionComponent* uiAction = mWorld->GetComponent<UIActionComponent>(e);
         UITransformComponent* uiTrans = mWorld->GetComponent<UITransformComponent>(e);
-        
+
+        // 박자 이벤트 수신 시 Bounce 애니메이션 리셋
+        if (beatFired && uiAction->mState == UIActionState::Bounce)
+        {
+            uiAction->mElapsedTime = 0.f;
+            uiAction->mIsActive = true;
+        }
+
         if (false == uiAction->mIsActive) continue;
 		uiAction->mElapsedTime += dt;
 
@@ -434,7 +449,7 @@ void UIUpdateSystem::UpdateActiveUIEntities(float dt)
             uiAction->mOnCustomAction();
             continue;
         }
-        
+
         if (uiAction->mState == UIActionState::Vibration) {
             if (uiAction->mOnCustomAction)
             {
@@ -452,16 +467,10 @@ void UIUpdateSystem::UpdateActiveUIEntities(float dt)
             uiTrans->mFinalSize = uiTrans->mSize * (uiAction->mDefaultScale + (uiAction->mHoverScale - uiAction->mDefaultScale) * progress);
 		}
         else if (uiAction->mState == UIActionState::Bounce) {
-			// 제자리에서 크기가 튕기는 애니메이션
-			// sprite의 center가 좌상단임을 참고해서 scale이 커질수록 위치를 보정해준다.
-
-			float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
-            float bounce = std::sin(progress * 3.14159f);// *uiAction->mBounceAmplitude;
-			float damping = std::exp(-progress * uiAction->mBounceDamping);
-
-			std::cerr << "bounce: " << bounce << ", damping: " << damping << std::endl;
-
-            uiTrans->mFinalSize = uiTrans->mSize * (1.f + bounce * damping);
+            // 박자에 맞춰 한 번 튕기는 애니메이션 (mDuration: 튕김 지속 시간)
+            float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
+            float bounce = std::sin(progress * 3.14159f) * uiAction->mBounceAmplitude;
+            uiTrans->mFinalSize = uiTrans->mSize * (1.f + bounce);
 		}
 
 

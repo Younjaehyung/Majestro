@@ -84,10 +84,9 @@ public:
 	bool mIsLoop = false; // 애니메이션 무한 반복 여부
 	float mDuration = 0.2f; // 애니메이션 지속 시간 (초)
 	float mElapsedTime = 0.f; // 애니메이션 경과 시간
-	float mBounceAmplitude = 0.2f; // Bounce 애니메이션 크기 변화 정도 (배율)
+	float mBounceAmplitude = 0.05f; // Bounce 애니메이션 크기 변화 정도 (배율)
 	float mBounceFrequency = 5.f; // Bounce 애니메이션 빈도 (Hz)
 	float mBounceDamping = 5.f; // Bounce 애니메이션 감쇠 정도 (높을수록 빨리 진동이 줄어듦)
-    
 	// Vibration 효과를 위한 변수
 	float mVibrationAmplitude = 5.f; // 진동 시 위치 흔들림 정도 (픽셀)
 	float mVibrationFrequency = 20.f; // 진동 시 흔들림 빈도 (Hz)

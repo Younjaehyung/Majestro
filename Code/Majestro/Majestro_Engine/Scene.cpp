@@ -944,39 +944,39 @@ void FirstScene::Initialize()
 		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
 	}
 
-	{
-		Entity Fanthor_Portrait = mWorld->CreateEntity();
-
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(32.f, -636.f);
-		t.mSize = Vec2(196.f, 196.f);
-		t.mPivot = Vec2(0.5f, 0.5f);
-
-		auto& m = mWorld->AddComponent<UIActionComponent>(Fanthor_Portrait);
-		m.mDuration = 0.5f;
-		m.mActor = UIActor::Player;
-		m.mState = UIActionState::Bounce;
-		m.mIsLoop = true;
-		m.mBounceAmplitude =20.f;
-		m.mBounceFrequency = 2.f;
-		m.mBounceDamping = 10.f;
-		mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
-
-#ifdef _IMGUI
-
-		std::vector<EditorProperty> props;
-		props.push_back({ "Fanthor_Portrait Position1",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props.push_back({ "Fanthor_Portrait Bounce",  PropertyType::Float,  &(m.mBounceDamping),  -10.f, 10.f});
-		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(Fanthor_Portrait);
-		visImgui.RegisterEditorProperties(props);
-		visImgui.SetName("Menu");
-#endif
-
-	}
+//	{
+//		Entity Fanthor_Portrait = mWorld->CreateEntity();
+//
+//		shared_ptr<Material> scorem;
+//		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
+//
+//		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
+//		t.mAnchor = Anchor::BottomLeft;
+//		t.mPosition = Vec2(32.f, -636.f);
+//		t.mSize = Vec2(196.f, 196.f);
+//		t.mPivot = Vec2(0.5f, 0.5f);
+//
+//		auto& m = mWorld->AddComponent<UIActionComponent>(Fanthor_Portrait);
+//		m.mDuration = 0.5f;
+//		m.mActor = UIActor::Player;
+//		m.mState = UIActionState::Bounce;
+//		m.mIsLoop = true;
+//		m.mBounceAmplitude =20.f;
+//		m.mBounceFrequency = 2.f;
+//		m.mBounceDamping = 10.f;
+//		mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
+//
+//#ifdef _IMGUI
+//
+//		std::vector<EditorProperty> props;
+//		props.push_back({ "Fanthor_Portrait Position1",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
+//		props.push_back({ "Fanthor_Portrait Bounce",  PropertyType::Float,  &(m.mBounceDamping),  -10.f, 10.f});
+//		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(Fanthor_Portrait);
+//		visImgui.RegisterEditorProperties(props);
+//		visImgui.SetName("Menu");
+//#endif
+//
+//	}
 
 	/*{
 		Entity Ibanix_Portrait = mWorld->CreateEntity();

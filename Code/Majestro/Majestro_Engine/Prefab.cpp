@@ -508,6 +508,11 @@ BillboardPrefab::~BillboardPrefab()
 
 HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 {
+	const float  BounceAmplitude = 0.05f;
+	const float  mBounceFrequency = 2.f;
+	const float  mBounceDamping = 10.0f;
+
+
 #ifdef _IMGUI
 
 	std::vector<EditorProperty> props;
@@ -640,9 +645,9 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		m.mActor = UIActor::Player;
 		m.mState = UIActionState::Bounce;
 		m.mIsLoop = true;
-		m.mBounceAmplitude = 20.f;
-		m.mBounceFrequency = 2.f;
-		m.mBounceDamping = 10.f;
+		m.mBounceAmplitude = BounceAmplitude;
+		m.mBounceFrequency = mBounceFrequency;
+		m.mBounceDamping = mBounceDamping;
 		world->AddComponent<UISpriteComponent>(Portrait1, scorem);
 #ifdef _IMGUI
 
@@ -792,9 +797,9 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		m.mActor = UIActor::Player;
 		m.mState = UIActionState::Bounce;
 		m.mIsLoop = true;
-		m.mBounceAmplitude = 20.f;
-		m.mBounceFrequency = 2.f;
-		m.mBounceDamping = 10.f;
+		m.mBounceAmplitude = BounceAmplitude;
+		m.mBounceFrequency = mBounceFrequency;
+		m.mBounceDamping = mBounceDamping;
 		world->AddComponent<UISpriteComponent>(Portrait1, scorem);
 #ifdef _IMGUI
 
@@ -941,9 +946,9 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		m.mActor = UIActor::Player;
 		m.mState = UIActionState::Bounce;
 		m.mIsLoop = true;
-		m.mBounceAmplitude = 20.f;
-		m.mBounceFrequency = 2.f;
-		m.mBounceDamping = 10.f;
+		m.mBounceAmplitude = BounceAmplitude;
+		m.mBounceFrequency = mBounceFrequency;
+		m.mBounceDamping = mBounceDamping;
 		world->AddComponent<UISpriteComponent>(Portrait1, scorem);
 #ifdef _IMGUI
 

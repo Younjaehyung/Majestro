@@ -47,4 +47,8 @@ struct EvBulletCountChanged {
     int max{};
 };
 
+struct EvBeat {
+    int beat; // 현재 박자 번호
+};
+
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged>;

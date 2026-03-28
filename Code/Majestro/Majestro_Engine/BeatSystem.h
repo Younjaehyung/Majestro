@@ -14,10 +14,11 @@ public:
 	void Update(float dt);
 
 private:
-	int mBpm = 168.0f;
-	int mBeat =0;
+	int mBpm = 167;
+	int mBeat = 0;
+	int mLastFiredBeat = -1; // 마지막으로 이벤트를 발행한 박자 번호
 
 	float mBpmSeconds = 60.f / mBpm;
 	float mSeconds = 0.0f;
-	float mBonusTime = 0.2;
+	float mBonusTime = 0.2f;
 };

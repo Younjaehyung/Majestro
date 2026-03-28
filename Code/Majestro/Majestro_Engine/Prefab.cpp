@@ -835,7 +835,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		}
 		auto& t = world->AddComponent<UITransformComponent>(Portrait);
 		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
+		t.mPosition = Vec2(64.f, -640.f);
 		t.mSize = Vec2(160, 160);
 		t.mUILayerIndex = 1;
 
@@ -866,7 +866,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		}
 		auto& t = world->AddComponent<UITransformComponent>(Portrait);
 		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
+		t.mPosition = Vec2(64.f, -640.f);
 		t.mSize = Vec2(160, 160);
 		t.mUILayerIndex = 2;
 
@@ -901,7 +901,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		}
 		auto& t = world->AddComponent<UITransformComponent>(Portrait);
 		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
+		t.mPosition = Vec2(64.f, -640.f);
 		t.mSize = Vec2(160, 160);
 		t.mUILayerIndex = 3;
 
@@ -937,7 +937,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 		}
 		auto& t = world->AddComponent<UITransformComponent>(Portrait1);
 		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
+		t.mPosition = Vec2(64.f, -640.f);
 		t.mSize = Vec2(160, 160);
 		t.mUILayerIndex = 4;
 

@@ -13,6 +13,7 @@ private:
     uint32 mCurrPSOID{};
     struct dummy { uint32 BaseInstance, InstanceCount, Cascade; } dum;
 
-	shared_ptr<Shader> depthShader; // depth prepass용 PSO
+	shared_ptr<Shader> depthShader;      // 일반 불투명 depth prepass PSO
+	shared_ptr<Shader> depthShaderAlpha; // 알파 컷아웃 식생 depth prepass PSO
 };
 

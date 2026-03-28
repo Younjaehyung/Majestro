@@ -36,32 +36,40 @@ void ShadowPass::Execute(std::array<std::vector<DrawBatch>, 4>& cascadeDrawBatch
     shadowGroup.WaitTargetToResource();
 }
 
-void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, uint32 cascadeIndex) 
+void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, uint32 cascadeIndex)
 {
     shared_ptr<Shader> defaultShadowShader = RESOURCEMANAGER.Get<Shader>(L"Shadow");
-    shared_ptr<Shader> terrainShadowShader = RESOURCEMANAGER.Get<Shader>(L"TerrainShadow");
-    shared_ptr<Shader> terrainShader = RESOURCEMANAGER.Get<Shader>(L"Terrain");
-    int32 lastShadowShader = -1;
+    shared_ptr<Shader> alphaShadowShader   = RESOURCEMANAGER.Get<Shader>(L"ShadowAlpha");
+    shared_ptr<Shader> terrainShader       = RESOURCEMANAGER.Get<Shader>(L"Terrain");
+
+    // 1) 일반 불투명 오브젝트
+    defaultShadowShader->Update();
     for (auto& drawBatch : deferredDrawBatchs) {
-        if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::DEFERRED &&
-            drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD) {
+        const SHADER_TYPE type = drawBatch.PSOShader->GetShaderType();
+        if (type != SHADER_TYPE::DEFERRED && type != SHADER_TYPE::FORWARD)
             continue;
-        }
+        if (drawBatch.PSOShader == terrainShader)
+            continue;
+        if (drawBatch.PSOShader->GetBlendType() == BLEND_TYPE::ALPHA_TEST)
+            continue;
 
-        const int32 shadowShaderType = (drawBatch.PSOShader == terrainShader) ? 1 : 0;
-        if (shadowShaderType != lastShadowShader) {
-            if (shadowShaderType == 1)
-                continue;
-            else
-                defaultShadowShader->Update();
-
-            lastShadowShader = shadowShaderType;
-        }
-
-        dum.BaseInstance = drawBatch.BaseInstance;
+        dum.BaseInstance  = drawBatch.BaseInstance;
         dum.InstanceCount = drawBatch.InstanceCount;
-        dum.Cascade = cascadeIndex;
-        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
+        dum.Cascade       = cascadeIndex;
+        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &dum, 0);
+        InstancingRender(drawBatch);
+    }
+
+    // 2) 알파 컷아웃 식생 — 텍스처 알파로 clip해 올바른 그림자 실루엣
+    alphaShadowShader->Update();
+    for (auto& drawBatch : deferredDrawBatchs) {
+        if (drawBatch.PSOShader->GetBlendType() != BLEND_TYPE::ALPHA_TEST)
+            continue;
+
+        dum.BaseInstance  = drawBatch.BaseInstance;
+        dum.InstanceCount = drawBatch.InstanceCount;
+        dum.Cascade       = cascadeIndex;
+        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &dum, 0);
         InstancingRender(drawBatch);
     }
 }

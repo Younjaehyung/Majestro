@@ -40,8 +40,10 @@ void OutlinePass::Execute(std::vector<DrawBatch>& drawBatches)
 
 	for (auto& drawBatch : drawBatches)
 	{
-		// FORWARD 타입 배치만 처리
+		// 카툰 셰이딩 오브젝트만 처리 (알파 컷아웃 식생 제외)
 		if (drawBatch.PSOShader->GetShaderType() != SHADER_TYPE::FORWARD)
+			continue;
+		if (drawBatch.PSOShader->GetBlendType() == BLEND_TYPE::ALPHA_TEST)
 			continue;
 
 		mDum.BaseInstance  = drawBatch.BaseInstance;

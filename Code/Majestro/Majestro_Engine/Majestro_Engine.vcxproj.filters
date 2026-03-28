@@ -976,6 +976,12 @@
     <FxCompile Include="..\Resources\Shader\shadow_VS.hlsl">
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\shadow_alpha_PS.hlsl">
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\shadow_alpha_VS.hlsl">
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\TerrainShadow_DS.hlsl">
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
@@ -1018,7 +1024,13 @@
     <FxCompile Include="..\Resources\Shader\depth_prepass_PS.hlsl">
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\depth_prepass_alpha_PS.hlsl">
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\depth_prepass_VS.hlsl">
+      <Filter>World\Resource\Shader\01.Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\depth_prepass_alpha_VS.hlsl">
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_PS.hlsl">
@@ -1059,6 +1071,9 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
       <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_alpha_PS.hlsl">
+      <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

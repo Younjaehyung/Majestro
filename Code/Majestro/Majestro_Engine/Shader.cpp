@@ -204,6 +204,13 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		rt.SrcBlend = D3D12_BLEND_ONE;
 		rt.DestBlend = D3D12_BLEND_ONE;
 		break;
+	case BLEND_TYPE::ALPHA_TEST:
+		// 알파 컷아웃: PS에서 clip()으로 처리, 블렌딩 없음 (DEFAULT와 동일)
+		rt.BlendEnable = FALSE;
+		rt.LogicOpEnable = FALSE;
+		rt.SrcBlend = D3D12_BLEND_ONE;
+		rt.DestBlend = D3D12_BLEND_ZERO;
+		break;
 	}
 
 
@@ -405,6 +412,13 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		rt.LogicOpEnable = FALSE;
 		rt.SrcBlend = D3D12_BLEND_ONE;
 		rt.DestBlend = D3D12_BLEND_ONE;
+		break;
+	case BLEND_TYPE::ALPHA_TEST:
+		// 알파 컷아웃: PS에서 clip()으로 처리, 블렌딩 없음 (DEFAULT와 동일)
+		rt.BlendEnable = FALSE;
+		rt.LogicOpEnable = FALSE;
+		rt.SrcBlend = D3D12_BLEND_ONE;
+		rt.DestBlend = D3D12_BLEND_ZERO;
 		break;
 	}
 

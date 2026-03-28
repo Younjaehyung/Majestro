@@ -1040,6 +1040,24 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Shadow", shader);
 	}
 
+	// Shadow (알파 컷아웃 식생 전용 — 텍스처 알파 clip 후 depth 기록)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::SHADOW,
+			RASTERIZER_TYPE::CULL_NONE,  // 풀잎 양면
+			DEPTH_STENCIL_TYPE::LESS,
+			BLEND_TYPE::ALPHA_TEST,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\shadow_alpha_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\shadow_alpha_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"ShadowAlpha", shader);
+	}
+
 
 	// UI			현재 swapChain에 박고 있음
 	{
@@ -1163,6 +1181,27 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"ForwardPlusCel", shader);
+	}
+
+	// Forward Alpha (식생 알파 컷아웃 전용)
+	// CULL_NONE     : 풀잎 양면 렌더
+	// LESS_EQUAL    : DepthPrePass 없이 직접 깊이 기록
+	// ALPHA_TEST    : DepthPrePass에서 스킵됨
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::LESS_EQUAL,
+			BLEND_TYPE::ALPHA_TEST,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\forward_alpha_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"ForwardAlpha", shader);
 	}
 
 	// solid_PS (Forward)
@@ -1294,6 +1333,24 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
 		Add<Shader>(L"DepthPrepass", shader);
+	}
+
+	// Depth-Prepass (알파 컷아웃 식생 전용 — 텍스처 알파 clip 후 depth 기록)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::DEPTH_PREPASS,
+			RASTERIZER_TYPE::CULL_NONE,  // 풀잎 양면
+			DEPTH_STENCIL_TYPE::LESS,
+			BLEND_TYPE::ALPHA_TEST,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\depth_prepass_alpha_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\depth_prepass_alpha_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
+		Add<Shader>(L"DepthPrepassAlpha", shader);
 	}
 
 	// Outline (Inverted Hull)

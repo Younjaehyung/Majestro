@@ -50,6 +50,7 @@ enum class BLEND_TYPE : uint8
 	DEFAULT,
 	ALPHA_BLEND,
 	ONE_TO_ONE_BLEND,
+	ALPHA_TEST,	// 알파 컷아웃 식생용: 블렌딩 없음, DepthPrePass 스킵
 	END,
 };
 

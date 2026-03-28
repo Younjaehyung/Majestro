@@ -224,7 +224,7 @@ void FBXData::LoadMeshOnly(const wstring& path)
 
 }
 
-vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, const wstring& shader)
+vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring shader)
 {
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
@@ -274,6 +274,9 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, const wst
 		collisionMesh->CreateMesh(meshInfo);
 		mColliders.push_back(collisionMesh);
 		RESOURCEMANAGER.Add<CollisionMesh>(collisionMesh->GetName(), collisionMesh);*/
+
+		if (meshName.find("Bush") != string::npos || meshName.find("Tree") != string::npos || meshName.find("Fern") != string::npos || meshName.find("Grass") != string::npos)
+			shader = L"ForwardAlpha";
 
 		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
 	}

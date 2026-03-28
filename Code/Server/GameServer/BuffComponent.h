@@ -24,6 +24,8 @@ enum class BuffExecutionType
 
 enum class BuffType
 {
+    None,
+
     AttackUp,
     ScoreBoost,
     MoveSpeedUp,

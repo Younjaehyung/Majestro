@@ -96,6 +96,9 @@ void InputManager::Update() {
 
 
 	}
+	mMouseRightDownEvent = (!mPrevRightDown && mMouseState.RightDown);
+	mMouseRightUpEvent = (mPrevRightDown && !mMouseState.RightDown);
+	mPrevRightDown = mMouseState.RightDown;
 }
 
 void InputManager::OnActivateApp(bool active)
@@ -114,6 +117,9 @@ void InputManager::OnActivateApp(bool active)
 		mMouseState.MiddleDown = false;
 		mMouseState.Delta = { 0,0 };
 		mMouseState.WheelDelta = 0;
+		mPrevRightDown = false;
+		mMouseRightDownEvent = false;
+		mMouseRightUpEvent = false;
 
 		// [추가] 키 상태 초기화 (Sticky 입력 방지)
 		for (auto& k : mKeys)

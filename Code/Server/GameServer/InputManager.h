@@ -51,6 +51,15 @@ public:
 	bool GetKeyUp(eKeyCode code) {
 		return mKeys[(UINT)code].state == eKeyState::Up;
 	}
+	bool GetMouseRightDown() const {
+		return mMouseRightDownEvent;
+	}
+	bool GetMouseRight() const {
+		return mMouseState.RightDown;
+	}
+	bool GetMouseRightUp() const {
+		return mMouseRightUpEvent;
+	}
 
 	void OnActivateApp(bool active);
 	void OnMouseMove(LPARAM lParam);
@@ -71,6 +80,9 @@ private:
 	HWND mHwnd;
 	bool mHasFocus = true; // 창이 활성화 상태인지
 	MouseState mMouseState;
+	bool mPrevRightDown = false;
+	bool mMouseRightDownEvent = false;
+	bool mMouseRightUpEvent = false;
 
 	HCURSOR arrow = ::LoadCursor(nullptr, IDC_ARROW);
 

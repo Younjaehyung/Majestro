@@ -3,6 +3,8 @@
 #include "AudioManager.h"
 #include "AudioSystem.h"
 #include "InputManager.h"
+#include "BeatSystem.h"
+#include "PlayerComponent.h"
 
 AudioSystem::AudioSystem(World* world) : System::System(world)
 {
@@ -31,13 +33,12 @@ void AudioSystem::Update(float deltaTime)
 
     time += deltaTime;
 
-    if(INPUT.GetKeyDown(eKeyCode::_1)){
+    /*if(INPUT.GetKeyDown(eKeyCode::_1)){
         AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 1.f, true);
 	}
     if(INPUT.GetKeyDown(eKeyCode::_2)){
         AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 1.f, true);
 	}
-
 
     if(INPUT.GetKeyDown(eKeyCode::_3)){
         AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
@@ -51,8 +52,64 @@ void AudioSystem::Update(float deltaTime)
 	}
     if(INPUT.GetKeyDown(eKeyCode::_6)){
         AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);
-	}
+	}*/
 
+    if (!mWorld->HasComponentPool<MainPlayerComponent>())
+        return;
+
+    auto playerEntities = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
+    if (playerEntities.empty())
+        return;
+
+    for (Entity playerEntity : playerEntities)
+    {
+        MainPlayerComponent* playerComponent = mWorld->GetComponent<MainPlayerComponent>(playerEntity);
+        if (playerComponent == nullptr)
+            continue;
+
+        if (playerComponent->mHasQueuedRhythmChange)
+        {
+            playerComponent->mRhythm = playerComponent->mNextRhythm;
+            playerComponent->mHasQueuedRhythmChange = false;
+        }
+
+        ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mRhythm);
+    }
+
+}
+
+
+void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
+{
+    if (playerType > 2)
+        return;
+
+    switch (playerType)
+    {
+    case 0: // Drum player
+        if (rhythm == 1)
+            AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);
+        else
+            AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);
+        break;
+
+    case 1: // Bass player
+        if (rhythm == 1)
+            AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 1.f, true);
+        else
+            AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 1.f, true);
+        break;
+
+    case 2: // Elec player
+        if (rhythm == 1)
+            AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);
+        else
+            AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
+        break;
+
+    default:
+        return;
+    }
 
 }
 

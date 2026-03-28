@@ -100,6 +100,10 @@ public:
 
 	int mNowBullet = 0;
 	int mMaxBullet = 0;
+
+	uint8 mRhythm = 0;
+	uint8 mNextRhythm = 0;
+	bool mHasQueuedRhythmChange = false;
 };
 
 //player base --------------------------------------------------

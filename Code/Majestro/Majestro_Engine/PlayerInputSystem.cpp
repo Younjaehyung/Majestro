@@ -118,6 +118,14 @@ void PlayerInputSystem::Update(float dt)
 
 	}
 
+	if (INPUT.GetMouseRightDown())
+	{
+		mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm+1)%4 ;
+		if(mainPlayerComponent->mNextRhythm != mainPlayerComponent->mRhythm) 
+			mainPlayerComponent->mHasQueuedRhythmChange = true;
+
+		cout << "next rythm:" << (int)mainPlayerComponent->mNextRhythm << endl;
+	}
 
 	if (INPUT.GetKey(eKeyCode::Q)) {
 		movementComponent->mMovingDirection.y -= 1;

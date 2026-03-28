@@ -53,23 +53,23 @@ void BeatSystem::Update(float dt)
 					if (buffComponent == nullptr)
 						continue;
 					BuffData buff;
-					BuffType rBuff = BuffType::AttackUp;
+					BuffType rBuff = BuffType::None;
 
 					if (mainPlayerComponent->mPlayerType == 0) {
 						switch (mainPlayerComponent->mNextRhythm) {
-						case 0:
+						case 1:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::AttackUp;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
 							buff.mExecutionType = BuffExecutionType::Persistent;
 							break;
-						case 1:
+						case 2:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::ScoreBoost;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
 							buff.mExecutionType = BuffExecutionType::Persistent;
 							break;
-						case 2:
+						case 3:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::MoveSpeedUp;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
@@ -77,20 +77,20 @@ void BeatSystem::Update(float dt)
 							break;
 						}
 						switch (mainPlayerComponent->mRhythm) {
-						case 0:
+						case 1:
 							rBuff = BuffType::AttackUp;
 							break;
-						case 1:
+						case 2:
 							rBuff = BuffType::ScoreBoost;
 							break;
-						case 2:
+						case 3:
 							rBuff = BuffType::MoveSpeedUp;
 							break;
 						}
 					}
 					if (mainPlayerComponent->mPlayerType == 1) {
 						switch (mainPlayerComponent->mNextRhythm) {
-						case 0:
+						case 1:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::ScoreOverTime;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
@@ -98,7 +98,7 @@ void BeatSystem::Update(float dt)
 							buff.mTickInterval = mBpmSeconds;
 							buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
 							break;
-						case 1:
+						case 2:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::ShieldOverTime;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
@@ -106,7 +106,7 @@ void BeatSystem::Update(float dt)
 							buff.mTickInterval = mBpmSeconds;
 							buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
 							break;
-						case 2:
+						case 3:
 							buff.mKind = EffectKind::Buff;
 							buff.mType = BuffType::HealOverTime;
 							buff.mDurationPolicy = DurationPolicy::UntilSignal;
@@ -116,13 +116,13 @@ void BeatSystem::Update(float dt)
 							break;
 						}
 						switch (mainPlayerComponent->mRhythm) {
-						case 0:
+						case 1:
 							rBuff = BuffType::ScoreOverTime;
 							break;
-						case 1:
+						case 2:
 							rBuff = BuffType::ShieldOverTime;
 							break;
-						case 2:
+						case 3:
 							rBuff = BuffType::HealOverTime;
 							break;
 						}
@@ -135,8 +135,12 @@ void BeatSystem::Update(float dt)
 						if (buffComp == nullptr)
 							continue;
 
-						buffComp->AddOrRefresh(buff);
-						buffComp->RemoveBuff(rBuff);
+						if (mainPlayerComponent->mNextRhythm != 0)
+							buffComp->AddOrRefresh(buff);
+
+						if (mainPlayerComponent->mRhythm != 0)
+							buffComp->RemoveBuff(rBuff);
+						
 					}
 
 					mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;

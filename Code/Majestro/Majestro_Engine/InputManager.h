@@ -57,6 +57,15 @@ public:
 	bool GetKeyUp(eKeyCode code) {
 		return mKeys[(UINT)code].state == eKeyState::Up;
 	}
+	bool GetMouseRightDown() const {
+		return mMouseRightDownEvent;
+	}
+	bool GetMouseRight() const {
+		return mMouseState.RightDown;
+	}
+	bool GetMouseRightUp() const {
+		return mMouseRightUpEvent;
+	}
 
 	void OnActivateApp(bool active);
 	void OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam);
@@ -83,6 +92,9 @@ private:
 	bool mCursorHidden = false;                    // ShowCursor 상태 추적
 	eMouseInputMode mMouseInputMode = eMouseInputMode::LegacyRelative;
 	MouseState mMouseState;
+	bool mPrevRightDown = false;
+	bool mMouseRightDownEvent = false;
+	bool mMouseRightUpEvent = false;
 
 	std::vector<Key> mKeys;
 };

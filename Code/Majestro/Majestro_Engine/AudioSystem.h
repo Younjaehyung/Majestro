@@ -13,5 +13,6 @@ public:
 	void Shutdown();
 private:
 	float time{};
+	void ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm);
 };
 

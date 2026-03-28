@@ -14,6 +14,8 @@ enum class Anchor
 class UITransformComponent : public Component<UITransformComponent>
 {
 public: // 통일된 UI 위치
+
+
     Anchor mAnchor = Anchor::TopLeft;
 
     uint8 mUILayerIndex = 0;

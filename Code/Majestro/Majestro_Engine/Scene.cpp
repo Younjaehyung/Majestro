@@ -978,7 +978,7 @@ void FirstScene::Initialize()
 
 	}
 
-	{
+	/*{
 		Entity Ibanix_Portrait = mWorld->CreateEntity();
 
 		shared_ptr<Material> scorem;
@@ -995,24 +995,10 @@ void FirstScene::Initialize()
 		m.mState = UIActionState::Vibration;
 		mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
 	}
+*/
 
-	{
-		Entity Rudwig_Portrait = mWorld->CreateEntity();
+	
 
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Rudwig_Portrait");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Rudwig_Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(32.f, -212.f);
-		t.mSize = Vec2(196.f, 196.f);
-
-		auto& m = mWorld->AddComponent<UIActionComponent>(Rudwig_Portrait);
-		m.mDuration = 30.f;
-		m.mActor = UIActor::Player;
-		m.mState = UIActionState::Vibration;
-		mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
-	}
 
 
 

@@ -127,3 +127,20 @@ public:
 	~TerrainPrefab();
 	static Entity Build(World* world, const InputCommand& ctx);
 };
+
+// 초상화
+class HUDPortraitPrefab : public Prefab
+{
+public:
+
+	HUDPortraitPrefab(World* world, uint8 playerType);
+	~HUDPortraitPrefab();
+	
+};
+
+class HUDHPBarPrefab : public Prefab
+{
+public:
+	HUDHPBarPrefab(World* world, Entity ownerEntity);
+	~HUDHPBarPrefab();
+};

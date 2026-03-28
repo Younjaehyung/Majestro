@@ -69,11 +69,13 @@ void AudioSystem::Update(float deltaTime)
 
         if (playerComponent->mHasQueuedRhythmChange)
         {
-            playerComponent->mRhythm = playerComponent->mNextRhythm;
+            ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
+            //playerComponent->mRhythm = playerComponent->mNextRhythm;
+            //playerComponent->mHasQueuedRhythmChange = false;
+
             playerComponent->mHasQueuedRhythmChange = false;
         }
 
-        ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mRhythm);
     }
 
 }
@@ -84,27 +86,61 @@ void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
     if (playerType > 2)
         return;
 
+
     switch (playerType)
     {
     case 0: // Drum player
-        if (rhythm == 1)
-            AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);
-        else
-            AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);
+        switch (rhythm)
+        {
+        case 0:
+            AUDIOMANAGER.SetBGMParam("To Drum00", SOUNDNAME::Drum, 0.f, true);
+            break;
+        case 1:
+            AUDIOMANAGER.SetBGMParam("To Drum01", SOUNDNAME::Drum, 0.25f, true);
+            break;
+        case 2:
+            AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 0.50f, true);
+            break;
+        case 3:
+            AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 0.75f, true);
+            break;
+        }
         break;
 
     case 1: // Bass player
-        if (rhythm == 1)
-            AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 1.f, true);
-        else
-            AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 1.f, true);
+        switch (rhythm)
+        {
+        case 0:
+            AUDIOMANAGER.SetBGMParam("To Bass00", SOUNDNAME::Bass, 0.f, true);
+            break;
+        case 1:
+            AUDIOMANAGER.SetBGMParam("To Bass01", SOUNDNAME::Bass, 0.25f, true);
+            break;
+        case 2:
+            AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 0.50f, true);
+            break;
+        case 3:
+            AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 0.75f, true);
+            break;
+        }
         break;
 
     case 2: // Elec player
-        if (rhythm == 1)
-            AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);
-        else
-            AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
+        switch (rhythm)
+        {
+        case 0:
+            AUDIOMANAGER.SetBGMParam("To Elec00", SOUNDNAME::Elec, 0.f, true);
+            break;
+        case 1:
+            AUDIOMANAGER.SetBGMParam("To Elec01", SOUNDNAME::Elec, 0.25f, true);
+            break;
+        case 2:
+            AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 0.50f, true);
+            break;
+        case 3:
+            AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 0.75f, true);
+            break;
+        }
         break;
 
     default:

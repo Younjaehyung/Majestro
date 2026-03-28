@@ -176,14 +176,13 @@ void MainPlayerComponent::StateCheck()
                 mStateThrew = false;
                 mPendingAction = PendingAction::Skill1;
             }
-            if (mPlayerType == 2)mPendingAction = PendingAction::Reload;
             mFsm.ChangeState(this, IdleState::Instance());
         }
         else {
-            mFsm.ChangeState(this, DashState::Instance());
+            if(mPlayerType != 2)
+                mFsm.ChangeState(this, DashState::Instance());
         }
     }
-
 
     if (mFalling) {
         mFsm.ChangeState(this, FallState::Instance());
@@ -776,16 +775,21 @@ Skill2State* Skill2State::Instance() {
 }
 void Skill2State::Enter(MainPlayerComponent* owner)
 {
+    if (not owner->mDash) {
+        owner->mDash = true;
+        owner->mDashEnd = GetServerTotalTimeSeconds() + owner->mDashTime;
+    }
     StateEnter(this, owner);
 }
 void Skill2State::Update(MainPlayerComponent* owner)
 {
     if(owner->mPlayerType ==1) owner->mFsm.ChangeState(owner, DashState::Instance());
-    if(owner->mPlayerType ==2) owner->mFsm.ChangeState(owner, DashState::Instance());
+    //if(owner->mPlayerType ==2) owner->mFsm.ChangeState(owner, DashState::Instance());
     StateUpdate(this, owner);
 }
 void Skill2State::Exit(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == 2) owner->mNowBullet = (std::min)(owner->mNowBullet + 1, owner->mMaxBullet);
     StateExit(this, owner);
 }
 

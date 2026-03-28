@@ -1725,22 +1725,22 @@ void ResourceManager::CreateDefaultMaterial()
 	
 		
 		
-		Load<Texture>(L"UI_Rudwig_Portrait_0", L"..\\Resources\\Texture\\UI_Rudwig_Portrait_0.png");
-		Load<Texture>(L"UI_Rudwig_Portrait_1", L"..\\Resources\\Texture\\UI_Rudwig_Portrait_1.png");
-		Load<Texture>(L"UI_Rudwig_Portrait_Head_0", L"..\\Resources\\Texture\\UI_Rudwig_Portrait_Head_0.png");
-		Load<Texture>(L"UI_Rudwig_Portrait_Head_1", L"..\\Resources\\Texture\\UI_Rudwig_Portrait_Head_1.png");
+		Load<Texture>(L"UI_Rudwig_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_0.png");
+		Load<Texture>(L"UI_Rudwig_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_1.png");
+		Load<Texture>(L"UI_Rudwig_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_Head_0.png");
+		Load<Texture>(L"UI_Rudwig_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_Head_1.png");
 		
 		
 
-		Load<Texture>(L"UI_Ibanix_Portrait_0", L"..\\Resources\\Texture\\UI_Ibanix_Portrait_0.png");
-		Load<Texture>(L"UI_Ibanix_Portrait_1", L"..\\Resources\\Texture\\UI_Ibanix_Portrait_1.png");
-		Load<Texture>(L"UI_Ibanix_Portrait_Head_0", L"..\\Resources\\Texture\\UI_Ibanix_Portrait_Head_0.png");
-		Load<Texture>(L"UI_Ibanix_Portrait_Head_1", L"..\\Resources\\Texture\\UI_Ibanix_Portrait_Head_1.png");
+		Load<Texture>(L"UI_Ibanix_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_0.png");
+		Load<Texture>(L"UI_Ibanix_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_1.png");
+		Load<Texture>(L"UI_Ibanix_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_Head_0.png");
+		Load<Texture>(L"UI_Ibanix_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_Head_1.png");
 	
-		Load<Texture>(L"UI_Fanthor_Portrait_0", L"..\\Resources\\Texture\\UI_Fanthor_Portrait_0.png");
-		Load<Texture>(L"UI_Fanthor_Portrait_1", L"..\\Resources\\Texture\\UI_Fanthor_Portrait_1.png");
-		Load<Texture>(L"UI_Fanthor_Portrait_Head_0", L"..\\Resources\\Texture\\UI_Fanthor_Portrait_Head_0.png");
-		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Texture\\UI_Fanthor_Portrait_Head_1.png");
+		Load<Texture>(L"UI_Fanthor_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_0.png");
+		Load<Texture>(L"UI_Fanthor_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_1.png");
+		Load<Texture>(L"UI_Fanthor_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_0.png");
+		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_1.png");
 		
 		
 

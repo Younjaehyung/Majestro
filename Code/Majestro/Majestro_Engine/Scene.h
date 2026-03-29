@@ -47,7 +47,7 @@ public:
 	LoadingScene() = default;
 	
 	virtual void Initialize();
-	virtual void Release() { Shudown();  mWorld->Clear(); }
+	virtual void Release() { Shudown();}
 	virtual void Update(float deltaTime);
 	virtual void Render();
 	virtual void Shudown();

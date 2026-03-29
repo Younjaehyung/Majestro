@@ -79,8 +79,8 @@ void SystemManager::Render()
 
 void SystemManager::Shutdown()
 {
-  /*  for (auto& s : mSystems)
-        s->Shutdown();*/
+    //for (auto& s : mSystems)
+    //    s->Shutdown();
 }
 
 void SystemManager::WorldBegin()

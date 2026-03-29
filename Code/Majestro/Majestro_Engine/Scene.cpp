@@ -379,7 +379,7 @@ void LoadingScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();

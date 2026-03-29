@@ -183,6 +183,7 @@ void RenderSystem::PushFrameData() {
   passParams.ScreenSize = {
       static_cast<float>(RENDERMANAGER.GetWindow().Width),
       static_cast<float>(RENDERMANAGER.GetWindow().Height)};
+  passParams.TotalTime = TIMER.GetTotalTime();
   passParams.CascadeSplitDistances =
       Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
 

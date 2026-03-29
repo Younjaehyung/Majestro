@@ -1075,6 +1075,9 @@
     <FxCompile Include="..\Resources\Shader\forward_alpha_PS.hlsl">
       <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_alpha_VS.hlsl">
+      <Filter>World\Resource\Shader\50.Forward</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

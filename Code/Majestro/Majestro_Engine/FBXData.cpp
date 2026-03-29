@@ -275,10 +275,11 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring s
 		mColliders.push_back(collisionMesh);
 		RESOURCEMANAGER.Add<CollisionMesh>(collisionMesh->GetName(), collisionMesh);*/
 
-		if (meshName.find("Bush") != string::npos || meshName.find("Tree") != string::npos || meshName.find("Fern") != string::npos || meshName.find("Grass") != string::npos)
-			shader = L"ForwardAlpha";
+		
 
-		CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
+		auto& mats = CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
+
+
 	}
 	loader.close();
 	cout << "Materials OVER" << endl;
@@ -286,9 +287,10 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring s
 	return mMeshs;
 }
 
-vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, const wstring& shader)
+vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, wstring shader)
 {
 	// Materials
+
 
 	meshInfo.Materials.reserve(metaInfo.MaterialCount);
 	mMaterials.resize(metaInfo.MaterialCount);
@@ -298,7 +300,24 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 		meshInfo.Materials.push_back(ReadMaterialData(loader));
 
 		mMaterials[s]->CreateMaterial(meshInfo.Materials[s]);
-		mMaterials[s]->SetShader(shader);
+
+		std::wstring name = mMaterials[s]->mParamsName.DiffuseMap0Index;
+		bool isVegetation = (name.find(L"Leaves") != std::wstring::npos
+			|| name.find(L"Grass") != std::wstring::npos
+			|| name.find(L"Fern") != std::wstring::npos);
+		if (isVegetation) {
+			// 풀
+			//	ExtValue[0]: (세기, 주파수, 방향X, 방향Z)
+			// - 세기 - 주파수  방향(1, 0.3) :  X축 방향 바람
+			mMaterials[s]->GetParams().ExtValue[0] = Vec4(0.15f, 1.2f, 1.0f, 0.3f);
+			mMaterials[s]->SetShader(L"ForwardAlpha");
+		}
+		else {
+			mMaterials[s]->SetShader(shader);
+		}
+			
+
+	
 		RESOURCEMANAGER.Add<Material>(mMaterials[s]->GetName(), mMaterials[s]);
 	}
 	

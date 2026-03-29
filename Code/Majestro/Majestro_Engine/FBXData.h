@@ -132,7 +132,7 @@ public:
 	const vector<shared_ptr<class Material>>& GetMaterials() const { return mMaterials; }
 	const vector<shared_ptr<CollisionMesh>>& GetColliders() const { return mColliders; }
 private:
-	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, const wstring& shader);
+	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, wstring shader);
 	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader, wstring shader = L"Deferred");
 	shared_ptr<class Skeleton> CreateSkeletonFromFBX(ifstream& loader);
 	vector<shared_ptr<class Animator>>& CreateAnimatorFromFBX(ifstream& loader);

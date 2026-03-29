@@ -1196,7 +1196,7 @@ void ResourceManager::CreateDefaultShader()
 			BLEND_TYPE::ALPHA_TEST,
 		};
 		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
+			.VS = L"..\\Resources\\Shader\\forward_alpha_VS.hlsl",
 			.PS = L"..\\Resources\\Shader\\forward_alpha_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();

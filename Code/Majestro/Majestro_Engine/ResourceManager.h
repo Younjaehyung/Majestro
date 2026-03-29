@@ -99,6 +99,7 @@ inline shared_ptr<T> ResourceManager::Load(const wstring& key, const wstring& pa
 
 	shared_ptr<T> object = make_shared<T>();
 	object->Load(path);
+	object->SetName(key);
 	keyObjMap[key] = object;
 	//없으면 로딩
 

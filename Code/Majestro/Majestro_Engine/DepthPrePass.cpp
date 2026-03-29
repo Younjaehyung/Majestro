@@ -23,7 +23,7 @@ void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
 
     // ClearRenderTargetView 내부에서 배리어 + DSV 클리어 처리
     // 렌더 후 WaitTargetToResource 호출 안 함 → DEPTH_WRITE 상태 유지
-    // (이후 G_BUFFER, ForwardPass 등이 같은 depth texture로 depth test 사용)
+
     depthGroup.ClearRenderTargetView();
     depthGroup.OMSetRenderTargets();
 
@@ -47,7 +47,7 @@ void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
         InstancingRender(batch);
     }
 
-    // 2) 알파 컷아웃 식생 depth 기록 (FogPass가 올바른 depth를 읽도록)
+    //알파 있는 depth 기록
     depthShaderAlpha->Update();
     for (auto& batch : drawBatchs) {
         if (batch.PSOShader->GetBlendType() != BLEND_TYPE::ALPHA_TEST)

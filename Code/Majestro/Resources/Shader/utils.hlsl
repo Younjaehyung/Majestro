@@ -7,6 +7,37 @@
 
 
 
+float3 CalcWindOffset(float3 worldPos, float localY, float4 windParam)
+{
+    // worldPos : 월드 공간 좌표 (위상 계산에 사용)
+    // localY   : 로컬 공간 Y 좌표 (뿌리 기준 높이, 0 이하면 흔들림 없음)
+    // windParam: (세기, 주파수, 방향X, 방향Z)
+    
+    float strength = windParam.x;
+    float freq = windParam.y;
+    float2 dir = windParam.zw;
+
+    if (strength <= 0.0f)
+        return float3(0.0f, 0.0f, 0.0f);
+
+    float dirLen = length(dir);
+    dir = (dirLen > 0.0001f) ? (dir / dirLen) : float2(1.0f, 0.0f);
+
+
+    float phase = dot(worldPos.xz, float2(0.15f, 0.23f));
+    float t = PassParams.TotalTime * freq;
+
+    // 풀포기마다 다른 타이밍 세 주파수 혼합
+    float wave = sin(t + phase) * 0.60f
+               + sin(t * 2.13f + phase * 1.40f) * 0.25f
+               + sin(t * 0.47f + phase * 0.83f) * 0.15f;
+
+    // 뿌리(Y <= 0)는 고정, 위로 갈수록 세게 흔들림
+    float amp = max(0.0f, localY) * strength;
+    float2 ofs2D = dir * wave * amp;
+
+    return float3(ofs2D.x, 0.0f, ofs2D.y);
+}
 
 
 

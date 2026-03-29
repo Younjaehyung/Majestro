@@ -87,6 +87,105 @@ void Scene::Shudown()
 
 }
 
+
+
+void Scene::LoadJsonLevelFBX(const wstring& path) {
+	int i = 0;
+	try
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+
+		for (const auto& inst : level.instances)
+		{
+			// 파일명만 추출
+			std::string name = filesystem::path(inst.fbx).filename().stem().string();
+			name = "..\\Resources\\Map\\" + name + ".fbx";
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
+
+			if (!data)
+			{
+				std::cerr << "FBX load failed (null data): " << name << "\n";
+				break;
+			}
+			else if (data->GetMaterials().empty()) {
+				std::cerr << "FBX load failed Material (null data): " << name << "\n";
+				continue;
+			}
+			else if (data->GetMeshs().empty()) {
+				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				continue;
+			}
+
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Load failed: " << e.what() << "\n";
+	}
+}
+void Scene::LoadJsonLevelData(const wstring& path) {
+	int i = 0;
+	try
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+
+		for (const auto& inst : level.instances)
+		{
+			// 파일명만 추출
+			std::string name = filesystem::path(inst.fbx).filename().stem().string();
+			/*name = "..\\Resources\\Map\\" + name + ".fbx";*/
+			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(s2ws(name));
+
+			if (!data)
+			{
+				std::cerr << "FBX load failed (null data): " << name << "\n";
+				break;
+			}
+			else if (data->GetMaterials().empty()) {
+				std::cerr << "FBX load failed Material (null data): " << name << "\n";
+				continue;
+			}
+			else if (data->GetMeshs().empty()) {
+				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				continue;
+			}
+
+			Entity entity = mWorld->CreateEntity();
+			TransformComponent transform{};
+			transform.mWorldMatrix = inst.worldMtx;
+
+			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+			trans.mIsStatic = true;
+
+			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+
+			//for (const auto& mat : data->GetMaterials()) {
+			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
+			//}
+			render.mMaterials = data->GetMaterials();
+			render.mCheckFrustum = false;
+			render.mMesh = data->GetMeshs().at(0);
+			i++;
+			/*		if (i == 550)
+						break;*/
+						/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
+							data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
+
+
+						mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
+			*/
+
+
+		}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Load failed: " << e.what() << "\n";
+	}
+}
+
+
+
 void Scene::LoadJsonLevel(const wstring& path)
 {
 
@@ -218,6 +317,157 @@ void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+
+#pragma region Loading Scenes
+void LoadingScene::Initialize()
+{
+	PrefabFactory::RegisterAllPrefabs();
+	TerrainPrefab terrain{ mWorld.get() };
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+	{
+		Entity testCamera = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = { 0.f, 0.f, -10.f };
+		mWorld->AddComponent<MainCameraComponent>(testCamera);
+		mWorld->AddComponent<CameraComponent>(testCamera);
+		mWorld->AddComponent<TransformComponent>(testCamera, t);
+	}
+
+	{
+		Entity mLoadingImage = mWorld->CreateEntity();
+		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingImage);
+		WindowInfo windowInfo = RENDERMANAGER.GetWindow();
+		tr.mAnchor = Anchor::TopLeft;
+		tr.mPosition = Vec2(0.f, 0.f);
+		tr.mSize = Vec2(static_cast<float>(windowInfo.Width), static_cast<float>(windowInfo.Height));
+		tr.mPivot = Vec2(0.f, 0.f);
+
+
+		//switch (gEngine->GetSceneManager().Get)
+		//{
+		//case SceneCommandType::LoadingThenScene:
+		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Title_Background");
+		//	break;
+		//case SceneCommandType::LoadScene:
+		//default:
+		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
+		//	break;
+		//}
+		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"NoiseTex");
+		
+
+		mWorld->AddComponent<UISpriteComponent>(mLoadingImage, loadingMaterial);
+	}
+
+	{
+		mProgressBar = mWorld->CreateEntity();
+		auto& tr = mWorld->AddComponent<UITransformComponent>(mProgressBar);
+		tr.mAnchor = Anchor::BottomLeft;
+		tr.mPosition = Vec2(50.f, -50.f);
+		tr.mSize = Vec2(0.f, 30.f); // 초기 크기 (진행률에 따라 변경)
+		tr.mPivot = Vec2(0.f, 0.5f);
+		mProgressBarMaxWidth = 400.f; // 최대 너비 설정
+		shared_ptr<Texture> progressBarMaterial = RESOURCEMANAGER.Get<Texture>(L"HPBAR");
+		mWorld->AddComponent<UISpriteComponent>(mProgressBar, progressBarMaterial);
+	}
+
+
+
+	mWorld->Initialize();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemMM->SetPipeline(make_shared<LobbyRenderPipeline>());
+	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+}
+
+void LoadingScene::Shudown()
+{
+	mWorld->Shutdown();
+}
+
+void LoadingScene::Render()
+{
+	mWorld->Render();
+}
+
+
+bool LoadingScene::LoadScene(SceneId id)
+{
+	mTargetSceneId = id;
+
+	std::wstring mapPath;
+	switch ((uint8)id) {
+	case (uint8)SceneId::FirstGame: {
+		mapPath= L"..\\Resources\\Json\\Map001_Export.json";
+		}
+			break;
+	case (uint8)SceneId::SecondGame: {
+		mapPath = L"..\\Resources\\Json\\Map001_Export.json";
+		}
+			break;
+	default:
+		return false;
+		break;
+	}
+
+	LevelImportData level = RESOURCEMANAGER.LoadResourceJson(mapPath);
+	for (const auto& inst : level.instances)
+	{
+		mLoadTasks.push([this, inst]() {
+			// FBX 1개 로딩
+			std::string name = filesystem::path(inst.fbx).filename().stem().string();
+			name = "..\\Resources\\Map\\" + name + ".fbx";
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
+			});
+	}
+	mTotalTaskCount = (int32)mLoadTasks.size();
+
+	return true;
+}
+
+void LoadingScene::ProcessTask()
+{
+	if (!mLoadTasks.empty())
+	{
+		auto task = mLoadTasks.front();
+		task(); // 작업 실행
+		mLoadTasks.pop();
+	}
+}
+
+
+void LoadingScene::Update(float deltaTime)
+{
+	 // 진행률로 프로그레스바 UI 크기 갱신
+      float progress = GetProgress();
+      UITransformComponent* bar = mWorld->GetComponent<UITransformComponent>(mProgressBar);
+      if (bar)
+          bar->mSize.x = mProgressBarMaxWidth * progress;
+
+
+
+	/*UITextComponent* loadingText = mWorld->GetComponent<UITextComponent>("AA");
+	if (loadingText)
+	{
+		loadingText->mText = gEngine->GetSceneManager().GetLoadingMessage();
+		if (loadingText->mText.empty())
+			loadingText->mText = L"Loading...";
+	}*/
+
+	mWorld->Update(deltaTime);
+}
+
+#pragma endregion
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
@@ -236,7 +486,7 @@ void MainMenuScene::Initialize()
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
-	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
+	//LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 
@@ -684,69 +934,7 @@ void LobbyScene::Initialize()
 #pragma endregion
 
 /// //////////////////////////////////////////////////////////////////////////////////
-#pragma region Loading Scenes
-void LoadingScene::Initialize()
-{
-	
-	mWorld->SetSceneId(mSceneId);
-	//PrefabFactory::RegisterAllPrefabs();
-	TerrainPrefab terrain{ mWorld.get() };
-	SkyBoxPrefab skybox{ mWorld.get() };
-	DirLightPrefab light{ mWorld.get() };
 
-	{
-		Entity testCamera = mWorld->CreateEntity();
-		TransformComponent t{};
-		t.mLocalPosition = { 0.f, 0.f, -10.f };
-		mWorld->AddComponent<MainCameraComponent>(testCamera);
-		mWorld->AddComponent<CameraComponent>(testCamera);
-		mWorld->AddComponent<TransformComponent>(testCamera, t);
-	}
-
-	{
-		mLoadingImage = mWorld->CreateEntity();
-		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingImage);
-		WindowInfo windowInfo = RENDERMANAGER.GetWindow();
-		tr.mAnchor = Anchor::TopLeft;
-		tr.mPosition = Vec2(0.f, 0.f);
-		tr.mSize = Vec2(static_cast<float>(windowInfo.Width), static_cast<float>(windowInfo.Height));
-		tr.mPivot = Vec2(0.f, 0.f);
-
-		shared_ptr<Material> loadingMaterial = nullptr;
-		//switch (gEngine->GetSceneManager().Get)
-		//{
-		//case SceneCommandType::LoadingThenScene:
-		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Title_Background");
-		//	break;
-		//case SceneCommandType::LoadScene:
-		//default:
-		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
-		//	break;
-		//}
-		loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
-		if (loadingMaterial == nullptr)
-			loadingMaterial = RESOURCEMANAGER.Get<Material>(L"HPBAR");
-
-		mWorld->AddComponent<UICusSpriteComponent>(mLoadingImage, loadingMaterial);
-	}
-
-
-	mWorld->Initialize();
-}
-
-void LoadingScene::Update(float deltaTime)
-{
-	UITextComponent* loadingText = mWorld->GetComponent<UITextComponent>(mLoadingText);
-	if (loadingText)
-	{
-		loadingText->mText = gEngine->GetSceneManager().GetLoadingMessage();
-		if (loadingText->mText.empty())
-			loadingText->mText = L"Loading...";
-	}
-
-	mWorld->Update(deltaTime);
-}
-#pragma endregion
 /// //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -767,7 +955,7 @@ void FirstScene::Initialize()
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
-	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
+	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	/////////////////////////////////////////////////////////////////////
@@ -959,6 +1147,8 @@ void FirstScene::Initialize()
 
 
 }
+
+
 
 void SecondScene::Initialize()
 {

@@ -101,7 +101,8 @@ enum class SceneId : uint8
 	SecondGame ,
 	VGame,
 	LGame,
-	End
+	End,
+
 };
 
 enum class MsgKind : uint8

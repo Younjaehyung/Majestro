@@ -1,11 +1,12 @@
 #pragma once
 class Scene;
+class LoadingScene;
 class SceneManager;
 
 enum class SceneCommandType
 {
 	None,
-	LoadScene,
+	ImmediateLoad,
 	LoadingThenScene,
 
 };
@@ -34,7 +35,7 @@ public:
 	static SceneCommand LoadScene(SceneId id)
 	{
 		SceneCommand cmd;
-		cmd.type = SceneCommandType::LoadScene;
+		cmd.type = SceneCommandType::ImmediateLoad;
 		cmd.targetScene = id;
 		return cmd;
 	}
@@ -114,7 +115,7 @@ public: // Scene 전환
 
 	void CheckGameModeSceneRequest();	// 씬 전환을 처리하는 함수 (예: 로비에서 게임으로, 게임에서 로비로 등)
 	void LoadScene(SceneId id);	// 즉시 씬을 로드하는 함수 (예: 게임 시작 시 첫 씬 로드)
-
+	void ReleaseScene();	// 씬을 해제하는 함수 (예: 메모리 관리 등)
 public:	// utility
 	shared_ptr<Scene> GetActiveScene() { return mActiveScene; }
 	const wstring& GetLoadingMessage() const { return mLoadingMessage; }
@@ -127,6 +128,9 @@ public:	// utility
 private:
 	std::array< shared_ptr<Scene>, (uint8)SceneId::End> mGameScenes;	// 씬 ID에 따른 씬 포인터 배열
 	shared_ptr<Scene> mActiveScene;
+	shared_ptr<LoadingScene> mLoadingScene;
+	bool mIsLoading = false;
+
 	SceneCommand	mSceneCommand;	// 씬 전환 명령 구조체
 	SceneCommandProcessor          mProcessor{ this };
 

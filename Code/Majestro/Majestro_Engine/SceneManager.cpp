@@ -29,7 +29,7 @@ bool SceneCommandProcessor::Process()
 
 	switch (cmd.type)
 	{
-	case SceneCommandType::LoadScene:
+	case SceneCommandType::ImmediateLoad:
 		ExecuteLoadScene(cmd);
 		break;
 
@@ -44,22 +44,20 @@ bool SceneCommandProcessor::Process()
 	return true;
 }
 
-
+// 씬 즉시 전환
 void SceneCommandProcessor::ExecuteLoadScene(const SceneCommand& cmd)
 {
 	mOwner->LoadScene(cmd.targetScene);
 }
 
+
+// 로딩창에서 로딩 후 씬 전환
 void SceneCommandProcessor::ExecuteLoadingThenScene(const SceneCommand& cmd)
 {
-	// 1프레임: 로딩씬 먼저 표시
-	mOwner->LoadScene(SceneId::Loading);
+	mOwner->ReleaseScene();
 	mOwner->SetLoadingMessage(cmd.loadingMessage);
+	mOwner->mIsLoading = mOwner->mLoadingScene->LoadScene(cmd.targetScene);
 
-	// 다음 프레임에 실제 씬 전환 예약
-	SceneCommand nextCmd = cmd;
-	nextCmd.type = SceneCommandType::LoadScene;
-	mPending = std::move(nextCmd);
 }
 
 
@@ -71,23 +69,24 @@ void SceneCommandProcessor::ExecuteLoadingThenScene(const SceneCommand& cmd)
 void SceneManager::Initialize()
 {
 	FactoryScene();
-	RequestSceneWithLoading(
-		SceneId::MainMenu,
-		L"시작 씬 로딩 중...");
+	LoadScene(SceneId::MainMenu);  // 첫 씬은 즉시 로드
 }
 
 void SceneManager::FactoryScene()
 {
+	{
+		mLoadingScene = make_shared<LoadingScene>();
+		mLoadingScene->Initialize();
 
+
+	}
 
 
 	{	// MainMenuScene
 		shared_ptr<Scene> mainMenuScene = make_shared<MainMenuScene>();
 		shared_ptr<GameMode> gameMode = make_shared<MenuGameMode>();
-		//mainMenuScene->Initialize();
 		mainMenuScene->SetGameMode(gameMode);
-		mGameScenes[(uint8)SceneId::MainMenu]= mainMenuScene;
-		mActiveScene = mainMenuScene;
+		mGameScenes[(uint8)SceneId::MainMenu] = mainMenuScene;
 	}
 	{	// LOBBYSCENE
 		shared_ptr<Scene> lobbyScene = make_shared<LobbyScene>();
@@ -97,13 +96,7 @@ void SceneManager::FactoryScene()
 		lobbyScene->SetGameMode(gameMode);
 		mGameScenes[(uint8)SceneId::Lobby]=lobbyScene;
 	}
-	{
-		shared_ptr<Scene> loadingScene = make_shared<LoadingScene>();
-		//loadingScene->Initialize();
-		mGameScenes[(uint8)SceneId::Loading] = loadingScene;
 
-
-	}
 
 
 	{	// GAMESCENE
@@ -161,6 +154,25 @@ void SceneManager::CheckGameModeSceneRequest()
 
 void SceneManager::Update(float deltaTime)
 {
+
+
+	if (mIsLoading)
+	{
+		if (!mLoadingScene->IsLoadDone())
+			mLoadingScene->ProcessTask();   // 태스크 1개 실행
+		else
+		{
+			mLoadingScene->Release();
+
+			LoadScene(mLoadingScene->mTargetSceneId);
+			mIsLoading = false;
+			return;
+		}
+		mLoadingScene->Update(deltaTime);   // 프로그레스바 갱신
+		return;
+	}
+
+
 	if (mActiveScene == nullptr)
 		return;
 	
@@ -170,21 +182,27 @@ void SceneManager::Update(float deltaTime)
 
 void SceneManager::Render()
 {
-
+	if (mIsLoading)
+	{
+		mLoadingScene->Render();
+		return;
+	}
 	mActiveScene->Render();
 }
 
 void SceneManager::LoadScene(SceneId id)
 {
+	mActiveScene = mGameScenes[(size_t)id];
+	mActiveScene->Initialize();
+	mActiveScene->Enter();
+}
+
+void SceneManager::ReleaseScene()
+{
 	if (mActiveScene) {
 		mActiveScene->Exit();
 		mActiveScene->Release();
 	}
-		
-
-	mActiveScene = mGameScenes[(size_t)id];
-	mActiveScene->Initialize();
-	mActiveScene->Enter();
 }
 
 void SceneManager::SetLoadingMessage(const wstring& loadingMessage)

@@ -266,6 +266,8 @@ void RenderSystem::PushLandData() {
   passParams.TerrainSlot5 = -1;
   passParams.TerrainSlot6 = -1;
 
+  if (false == mWorld->HasComponentPool<TerrainComponent>())
+      return;
   auto entity = mWorld->GetEntitiesWithComponent<TerrainComponent>();
   if (entity.empty())
       return;

@@ -355,7 +355,7 @@ void LoadingScene::Initialize()
 		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
 		//	break;
 		//}
-		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"NoiseTex");
+		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01");
 		
 
 		mWorld->AddComponent<UISpriteComponent>(mLoadingImage, loadingMaterial);

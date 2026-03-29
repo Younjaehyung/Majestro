@@ -225,7 +225,11 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<CameraComponent>(testCamera);
 		world->AddComponent<TransformComponent>(testCamera, t);
 		world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
-		HUDPortraitPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+
+		HUDPortraitPrefab::HUDPortraitPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+		HUDWeaponPrefab::HUDWeaponPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
+		HUDMusicPrefab::HUDMusicPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
+		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 	}
 
 
@@ -974,12 +978,297 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 {
 }
 
-HUDHPBarPrefab::HUDHPBarPrefab(World* world, Entity ownerEntity)
+HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
+	{
+		const float  BounceAmplitude = 0.05f;
+		const float  mBounceFrequency = 2.f;
+		const float  mBounceDamping = 10.0f;
 
+
+#ifdef _IMGUI
+
+		std::vector<EditorProperty> props;
+#endif
+		{	// BACK 0
+			Entity weapon = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_HP_0");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_HP_0");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_HP_0");
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(weapon);
+			t.mAnchor = Anchor::Center;
+			t.mPosition = Vec2(0.f, 576.f);
+			t.mSize = Vec2(512.f, 96.f);
+			t.mPivot = Vec2(0.5f, 0.5f);
+			t.mUILayerIndex = 1;
+
+			world->AddComponent<UISpriteComponent>(weapon, scorem);
+#ifdef _IMGUI
+
+
+
+			props.push_back({ "Back Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Back Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+		}
+		{	// BACK 1
+			Entity sound = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Weapon_0");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Weapon_0");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Weapon_0");
+				break;
+			}
+//			auto& t = world->AddComponent<UITransformComponent>(sound);
+//			t.mAnchor = Anchor::BottomLeft;
+//			t.mPosition = Vec2(300.f, -240.f);
+//			t.mSize = Vec2(128.f, 64.f);
+//			t.mUILayerIndex = 2;
+//
+//
+//			world->AddComponent<UISpriteComponent>(sound, scorem);
+//#ifdef _IMGUI
+//
+//			props.push_back({ "Back Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+//			props.push_back({ "Back Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+//
+//#endif
+
+
+
+
+
+#ifdef _IMGUI
+
+
+			IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(sound);
+			visImgui.RegisterEditorProperties(props);
+			visImgui.SetName("HP");
+#endif
+		}
+
+
+
+
+	}
 }
 
 HUDHPBarPrefab::~HUDHPBarPrefab()
 {
 
+}
+
+HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEntity)
+{
+
+	{
+		const float  BounceAmplitude = 0.05f;
+		const float  mBounceFrequency = 2.f;
+		const float  mBounceDamping = 10.0f;
+
+
+#ifdef _IMGUI
+
+		std::vector<EditorProperty> props;
+#endif
+		{	// BACK 0
+			Entity weapon = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Display_0");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Display_01");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Display_0");
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(weapon);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = Vec2(352.f, -160.f);
+			t.mSize = Vec2(128.f, 96.f);
+			t.mUILayerIndex = 1;
+			t.mPivot = Vec2(0.5f, 0.5f);
+			world->AddComponent<UISpriteComponent>(weapon, scorem);
+#ifdef _IMGUI
+
+
+
+			props.push_back({ "Weaponback pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Weaponback size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+		}
+		{	// BACK 1
+			Entity sound = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Weapon_0");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Weapon_0");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Weapon_0");
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(sound);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = Vec2(432.f, -160.f);
+			t.mSize = Vec2(128.f, 64.f);
+			t.mUILayerIndex = 2;
+			t.mPivot = Vec2(0.5f, 0.5f);
+
+			world->AddComponent<UISpriteComponent>(sound, scorem);
+#ifdef _IMGUI
+
+			props.push_back({ "Weapon pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Weapon size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+
+
+
+
+			
+#ifdef _IMGUI
+		
+
+			IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(sound);
+			visImgui.RegisterEditorProperties(props);
+			visImgui.SetName("Weapon");
+#endif
+		}
+
+
+
+
+	}
+}
+
+HUDWeaponPrefab::~HUDWeaponPrefab()
+{
+}
+
+
+
+HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntity)
+{
+	{
+		const float  BounceAmplitude = 0.05f;
+		const float  mBounceFrequency = 2.f;
+		const float  mBounceDamping = 10.0f;
+
+
+#ifdef _IMGUI
+
+		std::vector<EditorProperty> props;
+#endif
+		{	// BACK 0
+			
+			Entity back = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Display_0");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Display_01");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Display_0");
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(back);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = Vec2(352.f, -96.f);
+			t.mSize = Vec2(128.f, 96.f);
+			t.mUILayerIndex = 2;
+			t.mPivot = Vec2(0.5f, 0.5f);
+
+			world->AddComponent<UISpriteComponent>(back, scorem);
+#ifdef _IMGUI
+
+
+
+			props.push_back({ "MusicBack pos ",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "MusicBack size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+		}
+		{	// BACK 1
+			Entity sound = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_0");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_0");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_0");
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(sound);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = Vec2(480.f, -88.f);
+			t.mSize = Vec2(256.f, 96.f);
+			t.mUILayerIndex = 1;
+			t.mPivot = Vec2(0.5f, 0.5f);
+			world->AddComponent<UISpriteComponent>(sound, scorem);
+
+#ifdef _IMGUI
+
+			props.push_back({ "MusicName pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "MusicName size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+
+
+
+
+
+#ifdef _IMGUI
+
+
+			IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(sound);
+			visImgui.RegisterEditorProperties(props);
+			visImgui.SetName("Music");
+#endif
+		}
+
+
+
+
+	}
+}
+
+HUDMusicPrefab::~HUDMusicPrefab()
+{
 }

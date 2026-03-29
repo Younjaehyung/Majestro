@@ -141,6 +141,20 @@ public:
 class HUDHPBarPrefab : public Prefab
 {
 public:
-	HUDHPBarPrefab(World* world, Entity ownerEntity);
+	HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntity);
 	~HUDHPBarPrefab();
+};
+
+class HUDWeaponPrefab : public Prefab
+{
+public:
+	HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEntity);
+	~HUDWeaponPrefab();
+};
+
+class HUDMusicPrefab : public Prefab
+{
+	public:
+	HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntity);
+	~HUDMusicPrefab();
 };

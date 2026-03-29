@@ -1799,6 +1799,30 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_0.png");
 		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_1.png");
 		
+		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
+
+
+
+
+		Load<Texture>(L"UI_Ibanix_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Weapon_0.png");
+		Load<Texture>(L"UI_Fanthor_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Weapon_0.png");
+		Load<Texture>(L"UI_Rudwig_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Weapon_0.png");
+
+		Load<Texture>(L"UI_Fanthor_Display_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Display_0.png");
+		Load<Texture>(L"UI_Ibanix_Display_01", L"..\\Resources\\Image\\UI\\UI_Ibanix_Display_01.png");
+		Load<Texture>(L"UI_Rudwig_Display_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Display_0.png");
+
+
+		Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
+		Load<Texture>(L"UI_Rudwig_HP_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_0.png");
+		Load<Texture>(L"UI_Ibanix_HP_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_0.png");
+		
+
+
+		Load<Texture>(L"UI_Fanthor_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_0.png");
+		Load<Texture>(L"UI_Ibanix_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_0.png");
+		Load<Texture>(L"UI_Rudwig_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_0.png");
+		
 		
 
 	

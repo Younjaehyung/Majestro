@@ -9,7 +9,7 @@ using json = nlohmann::json;
 #include "StateMachine.h"
 #include "GameTimer.h"
 
-BOOL STATE_DEBUG = TRUE;
+BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 const char* ResolveStateSettingJsonPath(uint8 playerType)

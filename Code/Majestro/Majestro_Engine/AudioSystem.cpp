@@ -5,10 +5,31 @@
 #include "InputManager.h"
 #include "BeatSystem.h"
 #include "PlayerComponent.h"
+#include "Network.h"
+#include "NetEntityComponent.h"
 
 namespace
 {
     constexpr float kRhythmCompareEpsilon = 0.001f;
+
+    void SendRhythmChangedPacket(World* world, Entity playerEntity, uint8 prevRhythm, uint8 changedRhythm, uint8 playerType)
+    {
+        NetEntityComponent* netEntityComponent = world->GetComponent<NetEntityComponent>(playerEntity);
+        if (netEntityComponent == nullptr)
+            return;
+
+        C2S_RhythmChangedPacket pkt{};
+        pkt.netEntityId = netEntityComponent->mNetEntityId;
+        pkt.previousRhythm = prevRhythm;
+        pkt.changedRhythm = changedRhythm;
+        pkt.playerType = playerType;
+
+        SendRequest req{};
+        req.Type = PKT_Type::C2S_PKT_RHYTHM_CHANGED;
+        req.SIze = sizeof(C2S_RhythmChangedPacket);
+        req.StoreAs(pkt);
+        gSendBuffer.Push(req);
+    }
 }
 
 AudioSystem::AudioSystem(World* world) : System::System(world)
@@ -82,7 +103,7 @@ void AudioSystem::Update(float deltaTime)
             
             if (IsCurrentRhythmMatched(playerComponent->mPlayerType, playerComponent->mNextRhythm))
             {
-                
+                SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mNextRhythm, playerComponent->mPlayerType);
                 playerComponent->mRhythm = playerComponent->mNextRhythm;
 
                 //cout << "rythm change succese :" << (int)playerComponent->mRhythm << endl;

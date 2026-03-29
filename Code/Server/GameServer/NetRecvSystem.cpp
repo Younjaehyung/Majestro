@@ -38,6 +38,12 @@ void NetRecvSystem::Update(float dt)
 				if (pkt) RecvAction(mInputCommand.SessionId, *pkt);
 				break;
 			}
+			case PKT_Type::C2S_PKT_RHYTHM_CHANGED:
+			{
+				const C2S_RhythmChangedPacket* pkt = mInputCommand.ViewAs<C2S_RhythmChangedPacket>();
+				if (pkt) RecvRhythmChanged(mInputCommand.SessionId, *pkt);
+				break;
+			}
 			case PKT_Type::C2S_GAME_START:
 			{
 				HandleGameStart(mInputCommand);
@@ -75,6 +81,36 @@ void NetRecvSystem::RecvAction(uint32 sessionId, const C2S_ActionPacket& pkt)
 	if (inputComp == nullptr) return;
 
 	inputComp->Buttons = pkt.Buttons;
+}
+
+void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedPacket& pkt)
+{
+	Entity e = FindEntityBySession(sessionId);
+	if (!e.IsValid())
+		return;
+
+	MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
+	if (playerComp == nullptr)
+		return;
+
+	if (pkt.netEntityId != 0)
+	{
+		NetEntityComponent* netEntityComp = mWorld->GetComponent<NetEntityComponent>(e);
+		if (netEntityComp && netEntityComp->mNetEntityId != pkt.netEntityId)
+			return;
+	}
+
+	const uint8 previousRhythm = static_cast<uint8>(pkt.previousRhythm % 4);
+	const uint8 changedRhythm = static_cast<uint8>(pkt.changedRhythm % 4);
+	if (previousRhythm != playerComp->mRhythm)
+		return;
+
+	if (changedRhythm == playerComp->mRhythm)
+		return;
+
+	playerComp->mRhythm = previousRhythm;
+	playerComp->mNextRhythm = changedRhythm;
+	playerComp->mHasQueuedRhythmChange = true;
 }
 
 // ─── 게임 시작 처리 ──────────────────────────────────────────

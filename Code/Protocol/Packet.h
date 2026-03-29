@@ -20,6 +20,7 @@ enum PKT_Type : uint32 {
 	C2S_PKT_LOGOUT,
 	C2S_PKT_MOVE,
 	C2S_PKT_ACTION,
+	C2S_PKT_RHYTHM_CHANGED,
 
 
 	// Server -> Client
@@ -374,6 +375,16 @@ struct C2S_ActionPacket : public PacketTcpHeader {
 	float  Pitch{};
 	C2S_ActionPacket() : PacketTcpHeader{ sizeof(C2S_ActionPacket), PKT_Type::C2S_PKT_ACTION, 0.0 } {}
 };
+
+struct C2S_RhythmChangedPacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+	uint8 previousRhythm{};
+	uint8 changedRhythm{};
+	uint8 playerType{};
+	uint8 reserved{};
+	C2S_RhythmChangedPacket() : PacketTcpHeader{ sizeof(C2S_RhythmChangedPacket), PKT_Type::C2S_PKT_RHYTHM_CHANGED, 0.0 } {}
+};
+
 
 struct C2S_MovePacket : public PacketUdpHeader {
 	uint64 netEntityId{};

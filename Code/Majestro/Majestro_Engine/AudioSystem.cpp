@@ -6,6 +6,11 @@
 #include "BeatSystem.h"
 #include "PlayerComponent.h"
 
+namespace
+{
+    constexpr float kRhythmCompareEpsilon = 0.001f;
+}
+
 AudioSystem::AudioSystem(World* world) : System::System(world)
 {
 }
@@ -70,8 +75,18 @@ void AudioSystem::Update(float deltaTime)
         if (playerComponent->mHasQueuedRhythmChange)
         {
             ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
-            playerComponent->mRhythm = playerComponent->mNextRhythm;
             playerComponent->mHasQueuedRhythmChange = false;
+        }
+
+        if (playerComponent->mRhythm != playerComponent->mNextRhythm) {
+            
+            if (IsCurrentRhythmMatched(playerComponent->mPlayerType, playerComponent->mNextRhythm))
+            {
+                
+                playerComponent->mRhythm = playerComponent->mNextRhythm;
+
+                //cout << "rythm change succese :" << (int)playerComponent->mRhythm << endl;
+            }
         }
 
     }
@@ -145,6 +160,68 @@ void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
         return;
     }
 
+}
+
+bool AudioSystem::IsCurrentRhythmMatched(uint8 playerType, uint8 rhythm) const
+{
+    const SOUNDNAME soundEnum = GetSoundNameByPlayerType(playerType);
+    if (soundEnum == SOUNDNAME::End) {
+        return false;
+    }
+
+    std::string currentMarker;
+    if (!AUDIOMANAGER.GetBGMTimelineMarker(soundEnum, currentMarker))
+        return false;
+
+    const char* expectedMarker = GetExpectedMarkerByPlayerType(playerType, rhythm);
+    if (expectedMarker == nullptr) {
+        return false;
+    }
+
+    return currentMarker == expectedMarker;
+}
+
+SOUNDNAME AudioSystem::GetSoundNameByPlayerType(uint8 playerType)
+{
+    switch (playerType)
+    {
+    case 0: return SOUNDNAME::Drum;
+    case 1: return SOUNDNAME::Bass;
+    case 2: return SOUNDNAME::Elec;
+    default: return SOUNDNAME::End;
+    }
+}
+
+const char* AudioSystem::GetExpectedMarkerByPlayerType(uint8 playerType, uint8 rhythm)
+{
+    switch (playerType) {
+    case 0:
+        switch (rhythm % 4) {
+        case 0: return "Drum00";
+        case 1: return "Drum01";
+        case 2: return "Drum02";
+        case 3: return "Drum03";
+        default: return nullptr;
+        }
+    case 1:
+        switch (rhythm % 4) {
+        case 0: return "Bass00";
+        case 1: return "Bass01";
+        case 2: return "Bass02";
+        case 3: return "Bass03";
+        default: return nullptr;
+        }
+    case 2:
+        switch (rhythm % 4) {
+        case 0: return "Elec00";
+        case 1: return "Elec01";
+        case 2: return "Elec02";
+        case 3: return "Elec03";
+        default: return nullptr;
+        }
+    default:
+        return nullptr;
+    }
 }
 
 

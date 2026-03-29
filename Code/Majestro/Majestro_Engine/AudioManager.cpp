@@ -106,6 +106,7 @@ void AudioManager::Initialize(const std::string& bankRoot) {
     mFMOD.LoadBank("Master.strings.bank", /*preloadSampleData=*/false);
 
 	mAllBGM.resize(static_cast<size_t>(SOUNDNAME::End) + 1, nullptr);
+    mCurrentBGMMarkers.resize(static_cast<size_t>(SOUNDNAME::End) + 1);
 
 	// 모든 mAllBGM을 nullptr로 초기화
 
@@ -118,16 +119,15 @@ void AudioManager::Shutdown() {
     ShutdownSpectrumDSP();
 
     if (!mAllBGM.empty()) {
-        for (auto& bgm : mAllBGM) {
-            if (!bgm) {
+        for (size_t i = 0; i < mAllBGM.size(); ++i) {
+            if (!mAllBGM[i]) {
                 continue;
             }
-            bgm->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-            bgm->release();
-            bgm = nullptr;
+            ReleaseBGMInstance(mAllBGM[i], static_cast<SOUNDNAME>(i));
         }
         mAllBGM.clear();
     }
+    mCurrentBGMMarkers.clear();
 
     mFMOD.Shutdown();
 }
@@ -168,13 +168,18 @@ void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
 
     // 씬 전환 등으로 동일 BGM 슬롯이 재생될 경우 기존 인스턴스를 정리해 중첩 재생을 막는다.
     if (mAllBGM[idx]) {
-        mAllBGM[idx]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-        mAllBGM[idx]->release();
-        mAllBGM[idx] = nullptr;
+        ReleaseBGMInstance(mAllBGM[idx], soundEnum);
     }
 
     mBGM = mFMOD.CreateInstance(eventPath);
 	mAllBGM[idx] = mBGM;
+    auto* callbackData = new BGMCallbackData{ this, soundEnum };
+    FMOD_CHECK(mBGM->setUserData(callbackData));
+    FMOD_CHECK(mBGM->setCallback(&AudioManager::OnBGMEventCallback, FMOD_STUDIO_EVENT_CALLBACK_TIMELINE_MARKER));
+    {
+        std::lock_guard<std::mutex> lock(mMarkerMutex);
+        mCurrentBGMMarkers[idx].clear();
+    }
     // �ʿ� �� �Ķ����/���� ����� ����
     FMOD_CHECK(mBGM->start());
     // �����ϸ� ������ ���̹Ƿ� release�� ���⼭ ���� ����(Shutdown/StopBGM����)
@@ -185,9 +190,7 @@ void AudioManager::StopBGM(SOUNDNAME soundEnum) {
     if (idx >= mAllBGM.size()) return;
 
     if (!mAllBGM[idx]) return;
-    mAllBGM[idx]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-    mAllBGM[idx]->release();
-    mAllBGM[idx] = nullptr;
+    ReleaseBGMInstance(mAllBGM[idx], soundEnum);
 }
 
 void AudioManager::SetGlobalParam(const char* name, float v) {
@@ -216,6 +219,145 @@ void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const
     // ����(Discrete Labeled) �Ķ���͸� ���ڿ� �󺧷� ���� ����
     FMOD_CHECK(mAllBGM[idx]->setParameterByNameWithLabel(name, label, ignoreSeekSpeed));
 }
+
+bool AudioManager::GetBGMParam(const char* name, SOUNDNAME soundEnum, float& outValue, float* outFinalValue) const {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) {
+        return false;
+    }
+
+    float finalValue = 0.f;
+    FMOD_RESULT result = mAllBGM[idx]->getParameterByName(name, &outValue, &finalValue);
+    if (result != FMOD_OK) {
+        return false;
+    }
+
+    if (outFinalValue) {
+        *outFinalValue = finalValue;
+    }
+    return true;
+}
+
+bool AudioManager::IsBGMPlaying(SOUNDNAME soundEnum) const {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) {
+        return false;
+    }
+
+    FMOD_STUDIO_PLAYBACK_STATE state = FMOD_STUDIO_PLAYBACK_STOPPED;
+    FMOD_CHECK(mAllBGM[idx]->getPlaybackState(&state));
+    return state == FMOD_STUDIO_PLAYBACK_PLAYING || state == FMOD_STUDIO_PLAYBACK_STARTING;
+}
+
+bool AudioManager::GetBGMEventPath(SOUNDNAME soundEnum, std::string& outEventPath) const {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) {
+        return false;
+    }
+
+    FMOD::Studio::EventDescription* desc = nullptr;
+    FMOD_RESULT result = mAllBGM[idx]->getDescription(&desc);
+    if (result != FMOD_OK || desc == nullptr) {
+        return false;
+    }
+
+    int requiredSize = 0;
+    result = desc->getPath(nullptr, 0, &requiredSize);
+    if (result != FMOD_OK && result != FMOD_ERR_TRUNCATED) {
+        return false;
+    }
+    if (requiredSize <= 0) {
+        return false;
+    }
+
+    std::string eventPath(static_cast<size_t>(requiredSize), '\0');
+    result = desc->getPath(eventPath.data(), requiredSize, &requiredSize);
+    if (result != FMOD_OK) {
+        return false;
+    }
+
+    if (requiredSize > 0 && eventPath[static_cast<size_t>(requiredSize - 1)] == '\0') {
+        eventPath.resize(static_cast<size_t>(requiredSize - 1));
+    }
+    else {
+        eventPath.resize(static_cast<size_t>(requiredSize));
+    }
+
+    outEventPath = std::move(eventPath);
+    return true;
+}
+
+bool AudioManager::GetBGMTimelineMarker(SOUNDNAME soundEnum, std::string& outMarker) const {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mCurrentBGMMarkers.size()) {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> lock(mMarkerMutex);
+    if (mCurrentBGMMarkers[idx].empty()) {
+        return false;
+    }
+
+    outMarker = mCurrentBGMMarkers[idx];
+    return true;
+}
+
+FMOD_RESULT F_CALLBACK AudioManager::OnBGMEventCallback(
+    FMOD_STUDIO_EVENT_CALLBACK_TYPE type,
+    FMOD_STUDIO_EVENTINSTANCE* event,
+    void* parameters) {
+    if (type != FMOD_STUDIO_EVENT_CALLBACK_TIMELINE_MARKER || event == nullptr || parameters == nullptr) {
+        return FMOD_OK;
+    }
+
+    auto* instance = reinterpret_cast<FMOD::Studio::EventInstance*>(event);
+    void* userData = nullptr;
+    if (instance->getUserData(&userData) != FMOD_OK || userData == nullptr) {
+        return FMOD_OK;
+    }
+
+    auto* callbackData = static_cast<BGMCallbackData*>(userData);
+    if (callbackData->owner == nullptr) {
+        return FMOD_OK;
+    }
+
+    auto* marker = static_cast<FMOD_STUDIO_TIMELINE_MARKER_PROPERTIES*>(parameters);
+    callbackData->owner->UpdateBGMTimelineMarker(callbackData->soundEnum, marker->name);
+    return FMOD_OK;
+}
+
+void AudioManager::UpdateBGMTimelineMarker(SOUNDNAME soundEnum, const char* markerName) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mCurrentBGMMarkers.size()) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(mMarkerMutex);
+    mCurrentBGMMarkers[idx] = (markerName != nullptr) ? markerName : "";
+}
+
+void AudioManager::ReleaseBGMInstance(FMOD::Studio::EventInstance*& instance, SOUNDNAME soundEnum) {
+    if (!instance) {
+        return;
+    }
+
+    void* userData = nullptr;
+    instance->setCallback(nullptr, FMOD_STUDIO_EVENT_CALLBACK_TIMELINE_MARKER);
+    if (instance->getUserData(&userData) == FMOD_OK && userData != nullptr) {
+        delete static_cast<BGMCallbackData*>(userData);
+        instance->setUserData(nullptr);
+    }
+    instance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+    instance->release();
+    instance = nullptr;
+
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx < mCurrentBGMMarkers.size()) {
+        std::lock_guard<std::mutex> lock(mMarkerMutex);
+        mCurrentBGMMarkers[idx].clear();
+    }
+}
+
 
 // ── 오디오 비주얼라이저용 FFT DSP ───────────────────────────────────────
 

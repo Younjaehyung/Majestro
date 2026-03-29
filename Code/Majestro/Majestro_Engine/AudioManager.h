@@ -1,5 +1,15 @@
 #pragma once
+//#include <string>
+//#include <vector>
+//#include <unordered_map>
+//#include <initializer_list>
+#include <mutex>
+#include <FMod/fmod_studio.h>
+#include <FMod/fmod_studio.hpp>
 
+#ifndef F_CALLBACK
+#define F_CALLBACK
+#endif
 
 inline void FMOD_CHECK(FMOD_RESULT r) {
     if (r != FMOD_OK) {
@@ -76,6 +86,10 @@ public:
     // 선택: 레벨 전환 시 묶음 프리로드/언로드
     void PreloadBanks(std::initializer_list<std::string> banks);
     void UnloadBanks(std::initializer_list<std::string> banks);
+    bool GetBGMParam(const char* name, SOUNDNAME soundEnum, float& outValue, float* outFinalValue = nullptr) const;
+    bool IsBGMPlaying(SOUNDNAME soundEnum) const;
+    bool GetBGMEventPath(SOUNDNAME soundEnum, std::string& outEventPath) const;
+    bool GetBGMTimelineMarker(SOUNDNAME soundEnum, std::string& outMarker) const;
 
     // ── 오디오 비주얼라이저용 FFT DSP ──────────────────────────────────
     // Initialize() 이후에 호출할 것.
@@ -92,9 +106,19 @@ public:
     // ────────────────────────────────────────────────────────────────────
 
 private:
+    struct BGMCallbackData {
+        AudioManager* owner = nullptr;
+        SOUNDNAME soundEnum = SOUNDNAME::End;
+    };
+    static FMOD_RESULT F_CALLBACK OnBGMEventCallback(FMOD_STUDIO_EVENT_CALLBACK_TYPE type, FMOD_STUDIO_EVENTINSTANCE* event, void* parameters);
+    void UpdateBGMTimelineMarker(SOUNDNAME soundEnum, const char* markerName);
+    void ReleaseBGMInstance(FMOD::Studio::EventInstance*& instance, SOUNDNAME soundEnum);
+
     FmodBackend mFMOD;
     FMOD::Studio::EventInstance* mBGM = nullptr;
 	std::vector<FMOD::Studio::EventInstance*> mAllBGM;
+    std::vector<std::string> mCurrentBGMMarkers;
+    mutable std::mutex mMarkerMutex;
 
     // FFT DSP
     FMOD::DSP* mSpectrumDSP      = nullptr;

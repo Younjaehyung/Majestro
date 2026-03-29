@@ -282,8 +282,8 @@ void PlayerInputSystem::Update(float dt)
 			}
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
-			if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
-			else cout << "fail" << endl;
+			//if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
+			//else cout << "fail" << endl;
 
 			/*if (mainPlayerComponent->mNextRythmChangeTime <= now) {
 				mainPlayerComponent->mNextRythmChangeTime = now + 0.1f;

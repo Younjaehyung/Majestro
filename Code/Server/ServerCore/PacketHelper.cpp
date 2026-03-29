@@ -76,7 +76,8 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::PKT_TCP:
 	case PKT_Type::PKT_LOGIN:
 	case PKT_Type::C2S_SCENE_CHANGE:
-	case PKT_Type::C2S_PKT_ACTION:{
+	case PKT_Type::C2S_PKT_ACTION:
+	case PKT_Type::C2S_PKT_RHYTHM_CHANGED: {
 		ProcessTcpPackets(inputCommand, buffer , header.Size);
 		break;
 	}

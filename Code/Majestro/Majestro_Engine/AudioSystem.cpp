@@ -5,6 +5,32 @@
 #include "InputManager.h"
 #include "BeatSystem.h"
 #include "PlayerComponent.h"
+#include "Network.h"
+#include "NetEntityComponent.h"
+
+namespace
+{
+    constexpr float kRhythmCompareEpsilon = 0.001f;
+
+    void SendRhythmChangedPacket(World* world, Entity playerEntity, uint8 prevRhythm, uint8 changedRhythm, uint8 playerType)
+    {
+        NetEntityComponent* netEntityComponent = world->GetComponent<NetEntityComponent>(playerEntity);
+        if (netEntityComponent == nullptr)
+            return;
+
+        C2S_RhythmChangedPacket pkt{};
+        pkt.netEntityId = netEntityComponent->mNetEntityId;
+        pkt.previousRhythm = prevRhythm;
+        pkt.changedRhythm = changedRhythm;
+        pkt.playerType = playerType;
+
+        SendRequest req{};
+        req.Type = PKT_Type::C2S_PKT_RHYTHM_CHANGED;
+        req.SIze = sizeof(C2S_RhythmChangedPacket);
+        req.StoreAs(pkt);
+        gSendBuffer.Push(req);
+    }
+}
 
 AudioSystem::AudioSystem(World* world) : System::System(world)
 {
@@ -69,11 +95,21 @@ void AudioSystem::Update(float deltaTime)
 
         if (playerComponent->mHasQueuedRhythmChange)
         {
-            playerComponent->mRhythm = playerComponent->mNextRhythm;
+            ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
             playerComponent->mHasQueuedRhythmChange = false;
         }
 
-        ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mRhythm);
+        if (playerComponent->mRhythm != playerComponent->mNextRhythm) {
+            
+            if (IsCurrentRhythmMatched(playerComponent->mPlayerType, playerComponent->mNextRhythm))
+            {
+                SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mNextRhythm, playerComponent->mPlayerType);
+                playerComponent->mRhythm = playerComponent->mNextRhythm;
+
+                //cout << "rythm change succese :" << (int)playerComponent->mRhythm << endl;
+            }
+        }
+
     }
 
 }
@@ -84,33 +120,129 @@ void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
     if (playerType > 2)
         return;
 
+
     switch (playerType)
     {
     case 0: // Drum player
-        if (rhythm == 1)
-            AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);
-        else
-            AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);
+        switch (rhythm)
+        {
+        case 0:
+            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.f, true);
+            break;
+        case 1:
+            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.25f, true);
+            break;
+        case 2:
+            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.50f, true);
+            break;
+        case 3:
+            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.75f, true);
+            break;
+        }
         break;
 
     case 1: // Bass player
-        if (rhythm == 1)
-            AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 1.f, true);
-        else
-            AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 1.f, true);
+        switch (rhythm)
+        {
+        case 0:
+            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.f, true);
+            break;
+        case 1:
+            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.25f, true);
+            break;
+        case 2:
+            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.50f, true);
+            break;
+        case 3:
+            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.75f, true);
+            break;
+        }
         break;
 
     case 2: // Elec player
-        if (rhythm == 1)
-            AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);
-        else
-            AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
+        switch (rhythm)
+        {
+        case 0:
+            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.f, true);
+            break;
+        case 1:
+            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.25f, true);
+            break;
+        case 2:
+            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.50f, true);
+            break;
+        case 3:
+            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.75f, true);
+            break;
+        }
         break;
 
     default:
         return;
     }
 
+}
+
+bool AudioSystem::IsCurrentRhythmMatched(uint8 playerType, uint8 rhythm) const
+{
+    const SOUNDNAME soundEnum = GetSoundNameByPlayerType(playerType);
+    if (soundEnum == SOUNDNAME::End) {
+        return false;
+    }
+
+    std::string currentMarker;
+    if (!AUDIOMANAGER.GetBGMTimelineMarker(soundEnum, currentMarker))
+        return false;
+
+    const char* expectedMarker = GetExpectedMarkerByPlayerType(playerType, rhythm);
+    if (expectedMarker == nullptr) {
+        return false;
+    }
+
+    return currentMarker == expectedMarker;
+}
+
+SOUNDNAME AudioSystem::GetSoundNameByPlayerType(uint8 playerType)
+{
+    switch (playerType)
+    {
+    case 0: return SOUNDNAME::Drum;
+    case 1: return SOUNDNAME::Bass;
+    case 2: return SOUNDNAME::Elec;
+    default: return SOUNDNAME::End;
+    }
+}
+
+const char* AudioSystem::GetExpectedMarkerByPlayerType(uint8 playerType, uint8 rhythm)
+{
+    switch (playerType) {
+    case 0:
+        switch (rhythm % 4) {
+        case 0: return "Drum00";
+        case 1: return "Drum01";
+        case 2: return "Drum02";
+        case 3: return "Drum03";
+        default: return nullptr;
+        }
+    case 1:
+        switch (rhythm % 4) {
+        case 0: return "Bass00";
+        case 1: return "Bass01";
+        case 2: return "Bass02";
+        case 3: return "Bass03";
+        default: return nullptr;
+        }
+    case 2:
+        switch (rhythm % 4) {
+        case 0: return "Elec00";
+        case 1: return "Elec01";
+        case 2: return "Elec02";
+        case 3: return "Elec03";
+        default: return nullptr;
+        }
+    default:
+        return nullptr;
+    }
 }
 
 

@@ -103,8 +103,8 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 	mParams.Specular = fbxMat.MaterialValueInfo.Specular;
 	mParams.Emission = fbxMat.MaterialValueInfo.Emission;
 
-	mParams.Metallic = fbxMat.MaterialValueInfo.Metallic;
-	mParams.Roughness = fbxMat.MaterialValueInfo.Roughness;
+	mParams.Metallic = 0;// fbxMat.MaterialValueInfo.Metallic;
+	mParams.Roughness = 1.0f; fbxMat.MaterialValueInfo.Roughness;
 	mParams.OcclusionMask = fbxMat.MaterialValueInfo.OcclusionMask;
 	mParams.AlphaTest = fbxMat.MaterialValueInfo.AlphaTest;
 

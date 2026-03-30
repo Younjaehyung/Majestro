@@ -868,7 +868,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     }
 
     shadow /= max(weightSum, 1e-4f);
-    return 1.0f - shadow * 0.9f;
+    return 1.0f - shadow * 0.95f;
 }
 
 float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)

@@ -13,6 +13,7 @@ void LightComponent::SetLightDirection(Vec3 direction)
 	direction.Normalize();
 
 	mLightInfo.Direction = direction;
+	mLightInfo.Direction.w = 0.0f;
 
 	//GetTransform()->LookAt(direction);
 }
@@ -71,7 +72,7 @@ Entity LightFactory::CreateLight(World* world, LIGHT_TYPE type , LightComponent&
 	c.SetHeight(4096);
 
 
-
+	l.mLightInfo.LightType = static_cast<int32>(type);
 	t.mLocalPosition = { Vec3(l.mLightInfo.Position) };
 	t.LookAt(Vec3(l.mLightInfo.Direction));
 

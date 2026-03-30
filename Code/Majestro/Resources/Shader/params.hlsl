@@ -17,7 +17,8 @@ struct LIGHTINFO
     int		    lightType;
     float	    range;
     float	    angle;
-
+    int         padding; //데이터 사이즈용 padding
+    
     matrix MatWorld;
     matrix MatView;
     matrix MatProjection;

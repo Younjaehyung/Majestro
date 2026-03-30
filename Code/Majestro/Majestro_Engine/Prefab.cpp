@@ -491,9 +491,10 @@ DirLightPrefab::DirLightPrefab(World* world)
 	LightComponent l{};
 	l.mLightInfo.Position = { Vec3(0, 0, 0) };
 	l.mLightInfo.Color.Ambient = { Vec3(0.5f, 0.5f, 0.5f) };
-	l.mLightInfo.Color.Diffuse = { Vec3(0.5f, 0.5f, 0.2f) };
+	l.mLightInfo.Color.Diffuse = { Vec3(1.0f, 1.0f, 1.0f) };
 	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
-	l.SetLightDirection(Vec3(-0.1f, -0.3f, -0.1f));
+	l.SetLightDirection(Vec3(-0.0713f, -0.6448f, 0.7610f));
+	// 방향벡터이므로 각도를 계산해서 넣어줘야할듯
 	mEntityID = LightFactory::CreateLight(world, LIGHT_TYPE::DIRECTIONAL_LIGHT, l);
 }
 

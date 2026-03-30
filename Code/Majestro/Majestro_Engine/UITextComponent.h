@@ -4,6 +4,7 @@
 enum class UIFontType
 {
 	Arial,
+	Esamanru,
 	Count
 };
 

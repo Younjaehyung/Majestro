@@ -92,12 +92,12 @@ PS_OUT PS_Main(VS_OUT input)
     {
         metallic = TextureMaps[materials.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    metallic = 0.0f;
+
     if (materials.RoughnessMapIndex != -1)
     {
         roughness = TextureMaps[materials.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    roughness = 1.0f;
+
 
     metallic = saturate(metallic);
     roughness = saturate(roughness);

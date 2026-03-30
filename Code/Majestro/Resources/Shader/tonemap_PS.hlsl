@@ -52,18 +52,14 @@ float3 Tonemap_Uchimura(float3 x)
 // 컬러 그레이딩
 //
 // PassCustomTable[2].ExtValue 레이아웃:
-//   ExtValue[0] = (Saturation, Contrast, Brightness, Enabled)
-//                  채도(1=기본)  대비(1=기본)  밝기(0=기본)  (0=비활성)
+//   ExtValue[0] = (Saturation, Contrast, Brightness, Exposure)
+//                  채도(1=기본)  대비(1=기본)  밝기(0=기본)  노출(1=기본, 톤매핑 전 적용)
 //   ExtValue[1] = (ShadowTint.rgb,  ShadowStrength)   어두운 영역 색조
 //   ExtValue[2] = (MidtoneTint.rgb, MidtoneStrength)  중간 영역 색조
 //   ExtValue[3] = (HighlightTint.rgb, HighlightStrength) 밝은 영역 색조
 // ──────────────────────────────────────────────────────────────
 float3 ApplyColorGrading(float3 color, PASS_CUSTOM_DATA data)
 {
-    float enabled = data.ExtValue[0].w;
-    if (enabled < 0.5f)
-        return color;
-
     float saturation = data.ExtValue[0].x; // 1.0 = 기본
     float contrast   = data.ExtValue[0].y; // 1.0 = 기본
     float brightness = data.ExtValue[0].z; // 0.0 = 기본
@@ -106,8 +102,12 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
     float3 hdrColor = Gbuffer[data.PreviousStep].Sample(g_sam_0, input.uv).rgb;
 
+    // 노출 보정 (톤매핑 전 HDR 공간에서 적용)
+    float exposure = data.ExtValue[0].w; // 1.0 = 기본
+    hdrColor *= exposure;
+
     // 톤매핑 (HDR → LDR)
-    float3 mapped = Tonemap_Uchimura(hdrColor);
+    float3 mapped = TonemapACES(hdrColor);
 
     // 컬러 그레이딩 (톤매핑 후, 감마 보정 전)
     mapped = ApplyColorGrading(mapped, data);

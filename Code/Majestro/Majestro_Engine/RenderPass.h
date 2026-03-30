@@ -16,10 +16,10 @@ struct ColorGradingParams
 	float  Saturation        = 1.0f;  // 채도 (1.0 = 기본, 0.0 = 흑백)
 	float  Contrast          = 1.0f;  // 대비 (1.0 = 기본)
 	float  Brightness        = 0.0f;  // 밝기 보정 (0.0 = 기본)
-	bool   Enabled           = true; // 컬러 그레이딩 활성화
+	float  Exposure          = 1.5f;  // 노출 보정 (1.0 = 기본, 톤매핑 전 HDR 배율)
 
 	Vec3   ShadowTint        = { 0.0f, 0.0f, 0.0f }; // 어두운 영역 색조 RGB 오프셋
-	float  ShadowStrength    = 0.5f;
+	float  ShadowStrength    = 1.0f;
 
 	Vec3   MidtoneTint       = { 0.0f, 0.0f, 0.0f }; // 중간 영역 색조 RGB 오프셋
 	float  MidtoneStrength   = 0.5f;

@@ -20,12 +20,13 @@ void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 	entry.PreviousStep = static_cast<int32>(ToGBufferIndex(before));
 
 	// 컬러 그레이딩 파라미터 업로드
-	// ExtValue[0] = (Saturation, Contrast, Brightness, Enabled)
+	// ExtValue[0] = (Saturation, Contrast, Brightness, Exposure)
+	//   Exposure: 톤매핑 전 HDR 배율. 1.0 = 기본, >1 = 밝게, <1 = 어둡게
 	entry.ExtValue[0] = Vec4(
 		mColorGrading.Saturation,
 		mColorGrading.Contrast,
 		mColorGrading.Brightness,
-		mColorGrading.Enabled ? 1.0f : 0.0f);
+		mColorGrading.Exposure);
 
 	// ExtValue[1] = (ShadowTint.rgb, ShadowStrength)
 	entry.ExtValue[1] = Vec4(

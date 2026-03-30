@@ -1276,16 +1276,25 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 		{	// BACK 1
 			Entity sound = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
+			std::vector<shared_ptr<Texture>> scorem;
 			switch (playerType) {
 			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_0");
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_0"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_1"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_2"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_3"));
 				break;
 			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_0");
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_0"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_1"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_2"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_3"));
 				break;
 			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_0");
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_0"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_1"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_2"));
+				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_3"));
 				break;
 			}
 			auto& t = world->AddComponent<UITransformComponent>(sound);
@@ -1295,6 +1304,11 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 			t.mUILayerIndex = 1;
 			t.mPivot = Vec2(0.5f, 0.5f);
 			world->AddComponent<UISpriteComponent>(sound, scorem);
+			UIScriptComponent& script = world->AddComponent<UIScriptComponent>(sound);
+
+			
+
+
 
 #ifdef _IMGUI
 

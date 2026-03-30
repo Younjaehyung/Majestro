@@ -51,4 +51,9 @@ struct EvBeat {
     int beat; // 현재 박자 번호
 };
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged>;
+struct EvRhythmChanged {
+	int musicNum; // 리듬변경이 발생한 박자 번호
+};
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
+    EvRhythmChanged>;

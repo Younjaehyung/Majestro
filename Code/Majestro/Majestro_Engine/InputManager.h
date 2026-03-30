@@ -37,6 +37,14 @@ enum class eMouseInputMode
 	RecenterRelative,
 };
 
+enum class eMouseButton
+{
+	Left = 0,
+	Right,
+	Middle,
+	End
+};
+
 class InputManager
 {
 public:
@@ -57,15 +65,33 @@ public:
 	bool GetKeyUp(eKeyCode code) {
 		return mKeys[(UINT)code].state == eKeyState::Up;
 	}
+
+
+	bool GetMouseDown(eMouseButton button) const {
+		return mMouseDownEvent[static_cast<size_t>(button)];
+	}
+	bool GetMouse(eMouseButton button) const {
+		return mMousePressed[static_cast<size_t>(button)];
+	}
+	bool GetMouseUp(eMouseButton button) const {
+		return mMouseUpEvent[static_cast<size_t>(button)];
+	}
+	bool GetMouseLeftDown() const { return GetMouseDown(eMouseButton::Left); }
+	bool GetMouseLeft() const { return GetMouse(eMouseButton::Left); }
+	bool GetMouseLeftUp() const { return GetMouseUp(eMouseButton::Left); }
+
 	bool GetMouseRightDown() const {
-		return mMouseRightDownEvent;
+		return GetMouseDown(eMouseButton::Right);
 	}
 	bool GetMouseRight() const {
-		return mMouseState.RightDown;
+		return GetMouse(eMouseButton::Right);
 	}
 	bool GetMouseRightUp() const {
-		return mMouseRightUpEvent;
+		return GetMouseUp(eMouseButton::Right);
 	}
+	bool GetMouseMiddleDown() const { return GetMouseDown(eMouseButton::Middle); }
+	bool GetMouseMiddle() const { return GetMouse(eMouseButton::Middle); }
+	bool GetMouseMiddleUp() const { return GetMouseUp(eMouseButton::Middle); }
 
 	void OnActivateApp(bool active);
 	void OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam);
@@ -92,9 +118,11 @@ private:
 	bool mCursorHidden = false;                    // ShowCursor 상태 추적
 	eMouseInputMode mMouseInputMode = eMouseInputMode::LegacyRelative;
 	MouseState mMouseState;
-	bool mPrevRightDown = false;
-	bool mMouseRightDownEvent = false;
-	bool mMouseRightUpEvent = false;
+
+	bool mPrevMousePressed[static_cast<size_t>(eMouseButton::End)] = { false, false, false };
+	bool mMousePressed[static_cast<size_t>(eMouseButton::End)] = { false, false, false };
+	bool mMouseDownEvent[static_cast<size_t>(eMouseButton::End)] = { false, false, false };
+	bool mMouseUpEvent[static_cast<size_t>(eMouseButton::End)] = { false, false, false };
 
 	std::vector<Key> mKeys;
 };

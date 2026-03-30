@@ -92,6 +92,18 @@ void PlayerInputSystem::Update(float dt)
 	movementComponent->mReload = INPUT.GetKey(eKeyCode::R);
 	movementComponent->mSpecial = mouseLook && INPUT.GetMouseState().RightDown;
 
+
+	if (INPUT.GetMouseRightDown())
+	{
+		mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm + 1) % 4;
+		if (mainPlayerComponent->mNextRhythm != mainPlayerComponent->mRhythm)
+			mainPlayerComponent->mHasQueuedRhythmChange = true;
+
+		cout << "next rythm:" << (int)mainPlayerComponent->mNextRhythm << endl;
+		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ mainPlayerComponent->mNextRhythm });
+	}
+
+
 	if (INPUT.GetKey(eKeyCode::A)) {
 		movementComponent->mMovingDirection.x -= 1;
 	}
@@ -118,14 +130,7 @@ void PlayerInputSystem::Update(float dt)
 
 	}
 
-	if (INPUT.GetMouseRightDown())
-	{
-		mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm+1)%4 ;
-		if(mainPlayerComponent->mNextRhythm != mainPlayerComponent->mRhythm) 
-			mainPlayerComponent->mHasQueuedRhythmChange = true;
-
-		cout << "next rythm:" << (int)mainPlayerComponent->mNextRhythm << endl;
-	}
+	
 
 	if (INPUT.GetKey(eKeyCode::Q)) {
 		movementComponent->mMovingDirection.y -= 1;

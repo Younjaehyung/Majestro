@@ -1305,7 +1305,18 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 			t.mPivot = Vec2(0.5f, 0.5f);
 			world->AddComponent<UISpriteComponent>(sound, scorem);
 			UIScriptComponent& script = world->AddComponent<UIScriptComponent>(sound);
+			script.mOnUpdate = [world, sound, scorem](float deltaTime) {
+				
+				world->GetEventManager()->Consume<EvRhythmChanged>([world, sound, scorem](const EvRhythmChanged& e) {
+					// 비트 이벤트가 발생할 때마다 텍스처 변경
+					UISpriteComponent* sprite = world->GetComponent<UISpriteComponent>(sound);
+					if (sprite) {
+						sprite->mTexture = scorem[e.musicNum]; // 리듬 단계에 따라 텍스처 변경
+					}
+					});
 
+				
+				};
 			
 
 

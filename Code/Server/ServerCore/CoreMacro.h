@@ -37,7 +37,7 @@
 }
 
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 
 static std::mutex logMutex;
 
@@ -91,10 +91,10 @@ static void LogDebugW(const std::wstring& msg) {
 	OutputDebugStringW(output.c_str());
 }
 
-#else
+//#else
 
 
-#endif
+//#endif
 
 /*
 LogHelper("DEBUG", "Entity[{}] State: {}, Pos: ({:.2f}, {:.2f})",

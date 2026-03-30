@@ -61,9 +61,16 @@ void InputManager::Update() {
 
 	}
 
-	mMouseRightDownEvent = (!mPrevRightDown && mMouseState.RightDown);
-	mMouseRightUpEvent = (mPrevRightDown && !mMouseState.RightDown);
-	mPrevRightDown = mMouseState.RightDown;
+	mMousePressed[static_cast<size_t>(eMouseButton::Left)] = mMouseState.LeftDown;
+	mMousePressed[static_cast<size_t>(eMouseButton::Right)] = mMouseState.RightDown;
+	mMousePressed[static_cast<size_t>(eMouseButton::Middle)] = mMouseState.MiddleDown;
+
+	for (size_t i = 0; i < static_cast<size_t>(eMouseButton::End); ++i)
+	{
+		mMouseDownEvent[i] = (!mPrevMousePressed[i] && mMousePressed[i]);
+		mMouseUpEvent[i] = (mPrevMousePressed[i] && !mMousePressed[i]);
+		mPrevMousePressed[i] = mMousePressed[i];
+	}
 }
 
 void InputManager::HideCursor()
@@ -136,10 +143,13 @@ void InputManager::OnActivateApp(bool active)
 		mMouseState.MiddleDown = false;
 		mMouseState.Delta = { 0, 0 };
 		mMouseState.WheelDelta = 0;
-		mPrevRightDown = false;
-		mMouseRightDownEvent = false;
-		mMouseRightUpEvent = false;
-
+		for (size_t i = 0; i < static_cast<size_t>(eMouseButton::End); ++i)
+		{
+			mPrevMousePressed[i] = false;
+			mMousePressed[i] = false;
+			mMouseDownEvent[i] = false;
+			mMouseUpEvent[i] = false;
+		}
 		// 키 상태 초기화 (Sticky 입력 방지)
 		for (auto& k : mKeys)
 		{
@@ -198,6 +208,9 @@ void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_RBUTTONDOWN:
 		mMouseState.RightDown = true;
 		break;
+	case WM_MBUTTONDOWN:
+		mMouseState.MiddleDown = true;
+		break;
 
 	case WM_LBUTTONUP:
 		mMouseState.LeftDown = false;
@@ -205,6 +218,9 @@ void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_RBUTTONUP:
 		mMouseState.RightDown = false;
+		break;
+	case WM_MBUTTONUP:
+		mMouseState.MiddleDown = false;
 		break;
 
 	case WM_MOUSEMOVE:

@@ -572,9 +572,9 @@ void MainMenuScene::Initialize()
 				auto& btn = mWorld->AddComponent<UIButtonComponent>(e);
 				btn.mBaseSize = btnSize;
 				btn.mOnClick = std::move(onClick);
-				btn.mVfxNormalScale = 100.f;
-				btn.mVfxHoveredScale = 115.f;
-				btn.mVfxPressedScale = 90.f;
+				btn.mVfxNormalScale = 200.f;
+				btn.mVfxHoveredScale = 250.f;
+				btn.mVfxPressedScale = 180.f;
 
 				// 초기 색상 설정
 				//mat->GetParams().Diffuse = btn.mNormalColor;
@@ -583,7 +583,7 @@ void MainMenuScene::Initialize()
 			};
 
 		// ── 게임 시작 ──
-		Entity e1 = MakeVFXButton(L"UI_TItle", L"GAMESTART", Vec2(startX,startY), [&]()
+		Entity e1 = MakeVFXButton(L"VFX_UI_Select", L"GAMESTART", Vec2(startX,startY), [&]()
 		{
 				Network::GetInstance().Awake();
 				mGameMode->mTargetSceneId = SceneId::Lobby;
@@ -600,7 +600,7 @@ void MainMenuScene::Initialize()
 #endif
 
 		// ── 설정 (미구현 플레이스홀더) ──
-		Entity e2 = MakeVFXButton(L"UI_TItle", L"SETTING", Vec2(startX, startY + gap), []()
+		Entity e2 = MakeVFXButton(L"VFX_UI_Select", L"SETTING", Vec2(startX, startY + gap), []()
 		{
 			// TODO: 설정 씬 또는 팝업 구현 후 연결
 		});
@@ -612,7 +612,7 @@ void MainMenuScene::Initialize()
 #endif
 
 		// ── 나가기 ──
-		Entity e3 = MakeVFXButton(L"UI_TItle", L"EXIT", Vec2(startX, startY +gap * 2.f), []()
+		Entity e3 = MakeVFXButton(L"VFX_UI_Select", L"EXIT", Vec2(startX, startY +gap * 2.f), []()
 		{
 			PostQuitMessage(0);
 		});

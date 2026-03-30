@@ -486,16 +486,17 @@ void MainMenuScene::Initialize()
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
-	//LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
+	LoadJsonLevel(L"..\\Resources\\Json\\Map_Title_Export.json");
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 
 	/////////////////////////////////////////////////////////////////////////
 	{
 		Entity testCamera = mWorld->CreateEntity();
-		TransformComponent t{};
-		t.mLocalPosition = { -7944.051237f,  1880.474238f, -13680.832254f };
-		t.mLocalRotationE = { -3.400000f, -81.999999f, 0.f };
+		TransformComponent t{}; // (X=-4067.259336,Y=370.260839,Z=468.280987)
+
+		t.mLocalPosition = { 370.f,  490.f, -4058.f };
+		t.mLocalRotationE = { -18.f, -142.0f, 0.f };
 		mWorld->AddComponent<MainCameraComponent>(testCamera);
 		mWorld->AddComponent<CameraComponent>(testCamera);
 		mWorld->AddComponent<TransformComponent>(testCamera, t);

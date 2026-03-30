@@ -102,6 +102,13 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	const Vec3 attackCenter = attackerTransform->mWorldPosition + forward * stat.forwardDistance;
 	const float radiusSq = stat.radius * stat.radius;
 
+	eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+		static_cast<uint8>(request.bulletType),
+		attackCenter.x,
+		attackCenter.y,
+		attackCenter.z,
+		EffectSpawnReason::Fire });
+
 	auto candidates = mWorld->GetEntitiesWithComponents<TransformComponent, HealthComponent>();
 	for (Entity target : candidates)
 	{
@@ -140,11 +147,19 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		}
 
 		BuffComponent* attackerBuff = mWorld->GetComponent<BuffComponent>(request.shooter);
+		const float attackMultiplier = attackerBuff ? attackerBuff->mAttackMultiplier : 1.0f;
 
 		EvDamage damageEvent{};
 		damageEvent.instigator = request.shooter;
 		damageEvent.target = target;
-		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage* attackerBuff->mAttackMultiplier));
+		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage * attackMultiplier));
 		eventManager->Enqueue<EvDamage>(damageEvent);
+
+		eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+			static_cast<uint8>(request.bulletType),
+			targetTransform->mWorldPosition.x,
+			targetTransform->mWorldPosition.y,
+			targetTransform->mWorldPosition.z,
+			EffectSpawnReason::CollisionEntity });
 	}
 }

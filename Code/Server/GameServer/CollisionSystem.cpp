@@ -580,6 +580,16 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             applyKnockback(hitCandidate.Target);
             enqueueDamage(hitCandidate.Target);
 
+            if (auto eventManager = mWorld->GetEventManager())
+            {
+                eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+                    static_cast<uint8>(bullet->mType),
+                    bulletTransform->mLocalPosition.x,
+                    bulletTransform->mLocalPosition.y,
+                    bulletTransform->mLocalPosition.z,
+                    EffectSpawnReason::CollisionEntity });
+            }
+
             if (!shouldPenetrate)
                 break;
         }
@@ -594,12 +604,6 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             {
                 //effectSpawn
                 eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
-                eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
-                    static_cast<uint8>(bullet->mType),
-                    bulletTransform->mLocalPosition.x,
-                    bulletTransform->mLocalPosition.y,
-                    bulletTransform->mLocalPosition.z,
-                    EffectSpawnReason::CollisionEntity });
             }
             continue;
         }

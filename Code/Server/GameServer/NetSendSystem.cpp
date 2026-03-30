@@ -370,6 +370,8 @@ void NetSendSystem::SendEffectSpawnEvents()
 			effectPkt.z = e.z;
 			effectPkt.reason = static_cast<uint8>(e.reason);
 
+			cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
+
 			for (uint32 sessionId : recipients)
 			{
 				mSendReq.SessionId = sessionId;

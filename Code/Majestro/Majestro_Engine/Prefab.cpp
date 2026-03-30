@@ -23,9 +23,11 @@
 #include "NetEntityComponent.h"
 #include "NetTransformComponent.h"
 #include "BoxColliderComponent.h"
+#include "UITextComponent.h"
 #include "BulletComponent.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
 {
@@ -1121,7 +1123,57 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 
 #endif
 		}
-		{	// BACK 1
+		{	// Bullet
+			Entity bullet = world->CreateEntity();
+
+			UITextComponent& text = world->AddComponent<UITextComponent>(bullet);
+			text.mText = L"EMPTY";
+			switch (playerType) {
+			case 0:
+			{
+				text.mText = L"OO";
+				
+			}
+				break;
+			case 1:
+			{
+
+
+				text.mText = L"8/8";
+				// [&] 대신 world·bullet을 값으로 캡처 — 생성자 종료 후 댕글링 방지
+				text.mOnTextChanged = [world, bullet]() {
+					world->GetEventManager()->Consume<EvBulletCountChanged>([world, bullet](const EvBulletCountChanged& e) {
+						UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
+						if (t) t->mText = std::to_wstring(e.current) + L"/" + std::to_wstring(e.max);
+						});
+					};
+			}
+				break;
+			case 2:
+			{
+				text.mText = L"OO";
+			}
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(bullet);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = Vec2(576.f, -160.f);
+			t.mSize = Vec2(128.f, 96.f);
+			t.mUILayerIndex = 1;
+			t.mPivot = Vec2(0.5f, 0.5f);
+			//world->AddComponent<UISpriteComponent>(bullet, scorem);
+			
+			
+#ifdef _IMGUI
+
+
+
+			props.push_back({ "Bullet pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Bullet size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+		}
+		{	// Weapon
 			Entity sound = world->CreateEntity();
 
 			shared_ptr<Texture> scorem;

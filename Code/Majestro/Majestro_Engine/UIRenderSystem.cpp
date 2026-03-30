@@ -118,10 +118,12 @@ void UIRenderSystem::TextUpdate()
 
     for (Entity a : entitys) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
-        if (textComp == nullptr || textComp->mFont == nullptr)
+        if (textComp == nullptr)
             continue;
 
-        textComp->mFont = mDefaultFont;
+        // InitializeFont() 이후에 생성된 엔티티(런타임 스폰)도 폰트를 할당
+        if (textComp->mFont == nullptr)
+            textComp->mFont = mDefaultFont;
         
 		auto posComp = mWorld->GetComponent<UITransformComponent>(a);
         if(posComp) {

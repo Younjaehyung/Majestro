@@ -210,10 +210,11 @@ void UIUpdateSystem::UpdateTextContext(float dt)
      for (auto& e : entitys)
      {
          UITextComponent* text = mWorld->GetComponent<UITextComponent>(e);
-         if (!text || !text->mIsDirty)
+         if (!text || !text->mOnTextChanged )
              continue;
-         // 텍스트 업데이트 로직 (예: 동적 값 반영)
-         // 예시에서는 단순히 더티 플래그만 초기화
+
+         // 이벤트 소비형 콜백은 매 프레임 호출 (mIsDirty 무관)
+         text->mOnTextChanged();
          text->mIsDirty = false;
 	 }
 }

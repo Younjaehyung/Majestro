@@ -158,3 +158,4 @@ class HUDMusicPrefab : public Prefab
 	HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntity);
 	~HUDMusicPrefab();
 };
+

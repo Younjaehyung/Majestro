@@ -28,8 +28,13 @@ enum class SkillType : uint8
 	GuitarAttack_1,
 	GuitarAttack_2,
 	GuitarAttack_3,
+
+	//mop
+	HornAttack,
+
 	Max
 };
+
 
 // 서버/로직 권한용 불릿 컴포넌트.
 // 판정/수명/동기화에 필요한 데이터만 유지.

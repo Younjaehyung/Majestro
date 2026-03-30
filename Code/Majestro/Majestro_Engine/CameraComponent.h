@@ -157,7 +157,7 @@ public:
 	float mShakeFrequency = 20.f;  // 진동 주파수 (Hz)
 	float mShakeTimeAcc   = 0.f;   // sin 누적 시간
 
-	void TriggerShake(float magnitude, float duration, float frequency = 20.f)
+	void TriggerShake(float magnitude, float duration, float frequency)
 	{
 		mShakeMagnitude = magnitude;
 		mShakeDuration  = duration;

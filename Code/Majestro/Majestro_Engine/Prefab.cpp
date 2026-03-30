@@ -1334,8 +1334,25 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 
 	}
+
+	{	// BACK 0
+
+		Entity Bot = world->CreateEntity();
+
+		shared_ptr<Texture> scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ingame_Back");
+	
+		auto& t = world->AddComponent<UITransformComponent>(Bot);
+		t.mAnchor = Anchor::Center;
+		t.mSize = Vec2(2560.f, 1440.f);
+		t.mUILayerIndex = 2;
+		t.mPivot = Vec2(0.5f, 0.5f);
+
+		world->AddComponent<UISpriteComponent>(Bot, scorem);
+	}
+
 }
 
 HUDMusicPrefab::~HUDMusicPrefab()
 {
+
 }

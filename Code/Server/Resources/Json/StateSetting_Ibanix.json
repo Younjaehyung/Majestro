@@ -1,6 +1,6 @@
 {
     "player": {
-        "runSpeed": 300.0,
+        "runSpeed": 500.0,
         "dashSpeed": 1000.0,
         "dashTime": 1.0,
         "attackCool": 2,

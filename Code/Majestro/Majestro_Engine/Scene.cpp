@@ -201,6 +201,13 @@ void Scene::LoadJsonLevel(const wstring& path)
 			name = "..\\Resources\\Map\\" + name + ".fbx";
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
 
+			if (name.find("SM_Keyboard") != string::npos)
+			{
+
+				std::cout << "A" << std::endl;
+				
+			}
+
 			if (!data)
 			{
 				std::cerr << "FBX load failed (null data): " << name << "\n";
@@ -590,6 +597,8 @@ void MainMenuScene::Initialize()
 				mGameMode->IsSceneChanging() = true;
 		});
 
+
+
 #ifdef _IMGUI
 
 		
@@ -643,7 +652,7 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010S");
 			material2->SetShader(L"Solid");
-			material2->GetParams().ExtValue[0] = Vec4(0.f, 0.8f, 0.f, 1.f); // RimPower
+			material2->GetParams().ExtValue[0] = Vec4(0.9f, 0.8f, 0.1f, 1.f); // RimPower
 			material2s.push_back(material2);
 
 
@@ -651,13 +660,13 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011S");
 			material2->SetShader(L"Solid");
-			material2->GetParams().ExtValue[0] = Vec4(0.f, 0.5f, 0.5f, 1.f); // RimPower
+			material2->GetParams().ExtValue[0] = Vec4(0.8f, 0.7f, 0.0f, 1.f); // RimPower
 			material2s.push_back(material2);
 
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
 			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
-			t.mLocalPosition = { -8703.f, 1711.0f,-13849.0f };
+			t.mLocalPosition = { 139.0f, 454.0f,-4461.0f };
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
@@ -665,7 +674,7 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010S");
 			material2->SetShader(L"Solid");
-			material2->GetParams().ExtValue[0] = Vec4(0.f, 0.f, 8.f, 1.f); // RimPower
+			material2->GetParams().ExtValue[0] = Vec4(0.2f, 0.6f, 0.2f, 1.f); // RimPower
 			material2s.push_back(material2);
 
 
@@ -674,19 +683,20 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011S");
 			material2->SetShader(L"Solid");
-			material2->GetParams().ExtValue[0] = Vec4(0.5f, 0.f, 5.f, 1.f); // RimPower
+			material2->GetParams().ExtValue[0] = Vec4(0.1f, 0.5f, 0.1f, 1.f); // RimPower
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
 			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
-			t.mLocalPosition = { -9171.0f, 1711.0f, -13372.f };
+			t.mLocalPosition = { 71.0f, 454.0f, -4136.0f };
+			t.mLocalRotationE = { 0.f, 90.f, 0.f };
 			break;
 		case 2:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010")->Clone();
 			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_010S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010S");
-			material2->GetParams().ExtValue[0] = Vec4(0.8f, 0.8f, 0.f, 1.f); // RimPower
+			material2->GetParams().ExtValue[0] = Vec4(0.7f, 0.3f, 0.6f, 1.f); // RimPower
 			material2->SetShader(L"Solid");
 			material2s.push_back(material2);
 
@@ -695,12 +705,13 @@ void MainMenuScene::Initialize()
 			RESOURCEMANAGER.Add<Material>(L"Anim_Fanthor_Attack_011S", material2);
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011S");
 			material2->SetShader(L"Solid");
-			material2->GetParams().ExtValue[0] = Vec4(0.f,0.5f,0.5f,1.f); // RimPower
+			material2->GetParams().ExtValue[0] = Vec4(0.6f, 0.2f, 0.5f, 1.f); // RimPower
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
 			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
-			t.mLocalPosition = { -8834.f, 1711.0f,-12656.0f };
+			t.mLocalPosition = { 66.0f, 454.0,-4270.0f };
+			t.mLocalRotationE = { 0.f, 90.f, 0.f };
 			break;
 		}
 
@@ -1037,8 +1048,8 @@ void FirstScene::Initialize()
 
 		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-98.f, -64.f);
-		t.mSize = Vec2(196.f, 128.f);
+		t.mPosition = Vec2(-64.f, -64.f);
+		t.mSize = Vec2(128.f, 128.f);
 
 		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Aim, scorem);
 	}

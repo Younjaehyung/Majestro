@@ -564,7 +564,7 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 		else if (units == "m")
 		{
 			
-			positionUnitScale = 1.0f;
+			positionUnitScale = 100.0f;
 		}
 	}
 
@@ -604,6 +604,7 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 					const auto& dx = Require(inst_j, "dx");
 					
 					insts.world = ParseDxTransform(dx);
+					// insts.world.scale = insts.world.scale * positionUnitScale; // UE에서 cm 단위로 export 했을 때, DX에서 m 단위로 사용하려면 100배 해줘야 함
 					//const auto& ue = Require(inst_j, "ue");
 					//insts.ue = ParseUETransform(inst_j, positionUnitScale);
 
@@ -1732,6 +1733,16 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Title_Background", material);
 	}
 
+	//Ingame_Background
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"UI");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"Ingame_Back", material);
+	}
+
 	//Game_Loading_Background
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"Game_Loading_Background", L"..\\Resources\\Image\\UI\\UI_Fanthor_Loading.png");
@@ -1800,8 +1811,8 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_1.png");
 		
 		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
-
-
+		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
+		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 
 
 		Load<Texture>(L"UI_Ibanix_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Weapon_0.png");
@@ -1923,6 +1934,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_Select\\VFX_UI_Select.efk");
 
 	LoadNavMesh(L"..\\Resources\\Map\\all_tiles_navmesh.bin");
 

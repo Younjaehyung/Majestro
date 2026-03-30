@@ -72,14 +72,45 @@ void PlayerSystem::Update(float dt)
 			uint32 entityID = entity.GetID();
 			int32  currState = mainPlayerComponent->mStatePacket;
 
-			if (currState )
-			{
-				bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
-				                  || currState == S_Skill1  || currState == S_Skill2
-				                  || currState == S_Special);
-				if (bAttackState)
-					mainPlayer->TriggerShake(0.5f, 0.25f, 20.f);
+			//mainPlayerComponent->mPlayerType = 0 1 2
 
+
+			// TriggerShake(float magnitude, float duration, float frequency)
+			switch (mainPlayerComponent->mPlayerType) 
+			{
+			case 0:
+				if (currState)
+				{
+					bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
+						|| currState == S_Skill1 || currState == S_Skill2
+						|| currState == S_Special);
+					if (bAttackState)
+						mainPlayer->TriggerShake(1.5f, 0.25f, 20.f);
+
+				}
+				break;
+			case 1:
+				if (currState)
+				{
+					bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
+						|| currState == S_Skill1 || currState == S_Skill2
+						|| currState == S_Special);
+					if (bAttackState)
+						mainPlayer->TriggerShake(0.5f, 0.25f, 20.f);
+
+				}
+				break;
+			case 2: 
+				if (currState)
+				{
+					bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
+						|| currState == S_Skill1 || currState == S_Skill2
+						|| currState == S_Special);
+					if (bAttackState)
+						mainPlayer->TriggerShake(0.5f, 0.25f, 20.f);
+
+				}
+				break;
 			}
 		}
 

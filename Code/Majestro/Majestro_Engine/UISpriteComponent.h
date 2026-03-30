@@ -35,6 +35,11 @@ public:
 		mTexture = textures[0];
 		mTextures = textures;
 	}
+	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures)
+	{
+		mTexture = textures[0];
+		mTextures = textures;
+	}
 
 
 	~UISpriteComponent() = default;

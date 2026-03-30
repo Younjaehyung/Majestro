@@ -36,6 +36,8 @@ namespace
 		case SkillType::BaseAttack:
 		case SkillType::BaseSkill1:
 		case SkillType::GuitarAttack_1:
+		case SkillType::GuitarAttack_2:
+		case SkillType::GuitarAttack_3:
 			eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
 			return true;
 
@@ -52,7 +54,7 @@ namespace
 		}
 	}
 
-	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton, uint8 rhythm=-1)
+	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton, uint8 rhythm=0)
 	{
 		switch (playerType)
 		{
@@ -79,9 +81,9 @@ namespace
 			{
 			case InputButtons::ATTACK: 
 				switch(rhythm){
-				case 0:  return SkillType::GuitarAttack_1;
-				case 1:  return SkillType::GuitarAttack_2;
-				case 2:  return SkillType::GuitarAttack_3;
+				case 1:  return SkillType::GuitarAttack_1;
+				case 2:  return SkillType::GuitarAttack_2;
+				case 3:  return SkillType::GuitarAttack_3;
 				default: return SkillType::GuitarAttack;
 				}
 			
@@ -219,7 +221,11 @@ void PlayerInputSystem::Update(float dt)
 				}
 				else if(mainPlayerComponent->mPlayerType == 2) {
 					const int prevAmmo = mainPlayerComponent->mNowBullet;
-					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, mainPlayerComponent->mNowBullet);
+					SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, 0);
+					if (mainPlayerComponent->mNowBullet > 0) {
+						bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, mainPlayerComponent->mRhythm);
+						cout << "change :" << (int)bulletType << endl;
+					}
 					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
 				
 					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;

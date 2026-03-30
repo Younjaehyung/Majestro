@@ -1920,6 +1920,8 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 
 	LoadNavMesh(L"..\\Resources\\Map\\all_tiles_navmesh.bin");

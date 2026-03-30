@@ -319,19 +319,55 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 {
     const S2C_EffectSpawnPacket* pkt = msg.ViewAs<S2C_EffectSpawnPacket>();
     if (!pkt) return;
+    /*constexpr uint8 kEffectSpawnReasonFire = 0;
+    if (pkt->reason == kEffectSpawnReasonFire) return;*/
 
-    constexpr uint8 kEffectSpawnReasonFire = 0;
-    if (pkt->reason == kEffectSpawnReasonFire) return;
+    const SkillType effectSkillType = static_cast<SkillType>(pkt->effectType);
+
+    auto isBaseSkill = [](SkillType type)
+        {
+            return type == SkillType::BaseAttack ||
+                type == SkillType::BaseSkill1 ||
+                type == SkillType::BaseSkill2;
+        };
+
+    const wchar_t* effectName = nullptr;
+    float effectScale = 1.0f;
+    bool effectLoop = false;
+
+    switch (pkt->reason)
+    {
+    case 0:
+        if (effectSkillType == SkillType::GuitarAttack)
+        {
+            effectName = L"VFX_Fanthor_Slash_01";
+            effectScale = 30.0f;
+        }
+        break;
+    case 1:
+        if (isBaseSkill(effectSkillType))
+        {
+            effectName = L"VFX_Ibanix_Attack_Hit_01";
+            effectScale = 30.0f;
+        }
+        break;
+    }
+
+
+    if (!effectName) return;
+    shared_ptr<Vfx> selectedVfx = RESOURCEMANAGER.Get<Vfx>(effectName);
+    if (!selectedVfx) return;
 
     Entity impactVfxEntity = mWorld->CreateEntity();
     TransformComponent impactTransform{};
     impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
     mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
 
+
     VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
-    impactVfx.mVfx    = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_Hit_01");
-    impactVfx.mScale  = 10.f;
-    impactVfx.mIsLoop = true;
+    impactVfx.mVfx = selectedVfx;
+    impactVfx.mScale = effectScale;
+    impactVfx.mIsLoop = effectLoop;
 }
 
 void NetRecvSystem::HandleGameStart(const InputCommand& msg)

@@ -369,6 +369,32 @@ void LoadingScene::Initialize()
 	}
 
 	{
+
+		shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Circle");
+		Entity Loading_Circle = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UISpriteComponent>(Loading_Circle, texture,
+			Vec2(1024.f, 1024.f), 5, 1.f);
+		auto& u = mWorld->AddComponent<UITransformComponent>(Loading_Circle);
+		u.mAnchor = Anchor::TopLeft;
+		u.mPosition = Vec2(-256.f, -256.f);
+		u.mSize = Vec2(1440, 1440);
+
+	}
+
+	{
+
+		shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Circle");
+		Entity Loading_Circle = mWorld->CreateEntity();
+		auto& t = mWorld->AddComponent<UISpriteComponent>(Loading_Circle, texture,
+			Vec2(1024.f, 1024.f), 5, 0.5f);
+		auto& u = mWorld->AddComponent<UITransformComponent>(Loading_Circle);
+		u.mAnchor = Anchor::BottomRight;
+		u.mPosition = Vec2(-768.f, -512.f);
+		u.mSize = Vec2(1536, 1536);
+
+	}
+
+	{
 		mProgressBar = mWorld->CreateEntity();
 		auto& tr = mWorld->AddComponent<UITransformComponent>(mProgressBar);
 		tr.mAnchor = Anchor::BottomLeft;

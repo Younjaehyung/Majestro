@@ -227,6 +227,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         if (s == SpecialState::Instance()) return S_Special;
 
         if (s == ReloadState::Instance()) return S_Reload;
+        if (s == RhythmChangeState::Instance()) return S_RhythmChange;
         return 255;
         };
     mFsm.SetIdResolver(stateResolver);

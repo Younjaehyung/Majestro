@@ -147,7 +147,10 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 				bulletTransform->mWorldPosition.x,
 				bulletTransform->mWorldPosition.y,
 				bulletTransform->mWorldPosition.z,
-				EffectSpawnReason::Fire });
+				EffectSpawnReason::Fire,
+				bulletTransform->mLocalRotationE.x,
+				bulletTransform->mLocalRotationE.y,
+				bulletTransform->mLocalRotationE.z });
 		}
 
 		S2C_BulletActivatePacket bulletPacket{};

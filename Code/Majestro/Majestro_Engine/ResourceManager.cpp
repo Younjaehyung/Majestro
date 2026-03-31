@@ -1821,6 +1821,7 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_1.png");
 		
 		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
+		Load<Texture>(L"UI_Loading_Circle", L"..\\Resources\\Image\\UI\\UI_Loading_Circle.png");
 		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
 		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 

@@ -130,6 +130,7 @@ void BeatSystem::Update(float dt)
 				}
 
 				std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
+				
 				for (Entity player : players)
 				{
 					BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(player);
@@ -146,6 +147,7 @@ void BeatSystem::Update(float dt)
 
 				mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
 				mainPlayerComponent->mHasQueuedRhythmChange = false;
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RhythmChangeState::Instance());
 
 				cout << "Rhythm Changed:" << (int)mainPlayerComponent->mRhythm << endl;
 			}

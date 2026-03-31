@@ -342,12 +342,15 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     float effectScale = 1.0f;
     bool effectLoop = false;
 
+
+    TransformComponent impactTransform{};
     switch (pkt->reason)
     {
     case 0:
         if (effectSkillType == SkillType::GuitarAttack)
         {
             effectName = L"VFX_Fanthor_Slash_01";
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY+180, pkt->rotZ);
             effectScale = 30.0f;
         }
         break;
@@ -355,6 +358,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         if (isBaseSkill(effectSkillType))
         {
             effectName = L"VFX_Ibanix_Attack_Hit_01";
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
             effectScale = 30.0f;
         }
         break;
@@ -366,11 +370,12 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     if (!selectedVfx) return;
 
     Entity impactVfxEntity = mWorld->CreateEntity();
-    TransformComponent impactTransform{};
+   
     impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
     mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
 
 
+    cout << "rot:" << pkt->rotY << endl;
     VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
     impactVfx.mVfx = selectedVfx;
     impactVfx.mScale = effectScale;

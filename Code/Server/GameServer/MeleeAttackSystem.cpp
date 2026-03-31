@@ -101,13 +101,18 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	const Vec3 forward = GetCameraForwardFromInput(*attackerInput);
 	const Vec3 attackCenter = attackerTransform->mWorldPosition + forward * stat.forwardDistance;
 	const float radiusSq = stat.radius * stat.radius;
+	const Vec3 attackerRotation = attackerTransform->mLocalRotationE;
 
 	eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
 		static_cast<uint8>(request.bulletType),
 		attackCenter.x,
 		attackCenter.y,
 		attackCenter.z,
-		EffectSpawnReason::Fire });
+		EffectSpawnReason::Fire,
+		attackerRotation.x,
+		attackerRotation.y,
+		attackerRotation.z
+		});
 
 	auto candidates = mWorld->GetEntitiesWithComponents<TransformComponent, HealthComponent>();
 	for (Entity target : candidates)
@@ -160,6 +165,9 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 			targetTransform->mWorldPosition.x,
 			targetTransform->mWorldPosition.y,
 			targetTransform->mWorldPosition.z,
-			EffectSpawnReason::CollisionEntity });
+			EffectSpawnReason::CollisionEntity,
+			attackerRotation.x,
+			attackerRotation.y,
+			attackerRotation.z });
 	}
 }

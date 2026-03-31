@@ -220,6 +220,14 @@ void UIRenderSystem::SpriteUpdate()
             );
 		}
 
+        // visible range를 사용할 때는 UV 계산 기준이 실제 텍스처 크기여야 비율이 정확함
+        if (spriteComp->mUseVisibleRange)
+        {
+            textureSize = XMUINT2(
+                static_cast<uint32_t>(spriteComp->mTexture->GetWidth()),
+                static_cast<uint32_t>(spriteComp->mTexture->GetHeight())
+            );
+        }
 
         RECT sourceRect{};
         RECT* sourceRectPtr = nullptr;
@@ -228,6 +236,62 @@ void UIRenderSystem::SpriteUpdate()
         {
             sourceRect = spriteComp->GetCurrentFrameRect();
             sourceRectPtr = &sourceRect;
+        }
+        else if (spriteComp->mUseVisibleRange)
+        {
+            sourceRect = RECT{
+                0,
+                0,
+                static_cast<LONG>(textureSize.x),
+                static_cast<LONG>(textureSize.y)
+            };
+            sourceRectPtr = &sourceRect;
+        }
+
+        // sourceRect가 이미 잡혀있다면(애니메이션/기본), 가시 구간 크롭을 추가 적용
+        LONG baseWidth = 0;
+        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
+        {
+            const LONG fullWidth = sourceRect.right - sourceRect.left;
+            baseWidth = fullWidth;
+            LONG startOffset = 0;
+            LONG endOffset = fullWidth;
+
+            if (spriteComp->mVisibleRangeUsePixels)
+            {
+                startOffset = static_cast<LONG>(spriteComp->mVisibleStartX);
+                endOffset = static_cast<LONG>(spriteComp->mVisibleEndX);
+            }
+            else
+            {
+                startOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleStartX);
+                endOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleEndX);
+            }
+
+            sourceRect.left += std::clamp(startOffset, 0L, fullWidth);
+            sourceRect.right = sourceRect.left + std::clamp(endOffset - startOffset, 0L, fullWidth);
+        }
+
+        // sourceRect가 이미 잡혀있다면(애니메이션/기본), 가시 구간 크롭을 추가 적용
+        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
+        {
+            const LONG fullWidth = sourceRect.right - sourceRect.left;
+            LONG startOffset = 0;
+            LONG endOffset = fullWidth;
+
+            if (spriteComp->mVisibleRangeUsePixels)
+            {
+                startOffset = static_cast<LONG>(spriteComp->mVisibleStartX);
+                endOffset = static_cast<LONG>(spriteComp->mVisibleEndX);
+            }
+            else
+            {
+                startOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleStartX);
+                endOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleEndX);
+            }
+
+            sourceRect.left += std::clamp(startOffset, 0L, fullWidth);
+            sourceRect.right = sourceRect.left + std::clamp(endOffset - startOffset, 0L, fullWidth);
         }
 
         // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록
@@ -244,15 +308,44 @@ void UIRenderSystem::SpriteUpdate()
                        transComp->mPivot.y * (float)textureSize.y };
         }
 
-        mSpriteBatch->Draw(
-            spriteComp->mTexture->GetSrvGpuHandle(),
-            textureSize,
-            transComp->mFinalPixelPos,
-            sourceRectPtr,
-            Colors::White,
-            0.f,    // rotation
-            origin  // pivot 적용
-        );
+        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
+        {
+            const LONG croppedWidth = sourceRect.right - sourceRect.left;
+            float visibleRatio = 1.f;
+            if (baseWidth > 0)
+                visibleRatio = std::clamp(static_cast<float>(croppedWidth) / static_cast<float>(baseWidth), 0.f, 1.f);
+
+            const float destWidth = spriteComp->mVisibleRangeKeepDestinationSize
+                ? transComp->mFinalSize.x
+                : transComp->mFinalSize.x * visibleRatio;
+            const float destHeight = transComp->mFinalSize.y;
+
+            const LONG left = static_cast<LONG>(transComp->mFinalPixelPos.x - (transComp->mPivot.x * destWidth));
+            const LONG top = static_cast<LONG>(transComp->mFinalPixelPos.y - (transComp->mPivot.y * destHeight));
+            const LONG right = left + static_cast<LONG>(destWidth);
+            const LONG bottom = top + static_cast<LONG>(destHeight);
+            const RECT destRect{ left, top, right, bottom };
+
+            mSpriteBatch->Draw(
+                spriteComp->mTexture->GetSrvGpuHandle(),
+                textureSize,
+                destRect,
+                sourceRectPtr,
+                Colors::White
+            );
+        }
+        else
+        {
+            mSpriteBatch->Draw(
+                spriteComp->mTexture->GetSrvGpuHandle(),
+                textureSize,
+                transComp->mFinalPixelPos,
+                sourceRectPtr,
+                Colors::White,
+                0.f,    // rotation
+                origin  // pivot 적용
+            );
+        }
     }
     mSpriteBatch->End();
 }

@@ -84,7 +84,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 180.f, 0.f), 20.f);
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f);
 
 	Vec3 half{ 10,10,10 };
 	Vec3 center{ 0,10,0 };
@@ -241,7 +241,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 30,100,30 };	
 	Vec3 center{ 0,50,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
-	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
@@ -341,7 +341,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 50,100,50 };
 	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
-	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 20.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
+	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
@@ -987,17 +987,13 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
 	{
-		const float  BounceAmplitude = 0.05f;
-		const float  mBounceFrequency = 2.f;
-		const float  mBounceDamping = 10.0f;
-
 
 #ifdef _IMGUI
 
 		std::vector<EditorProperty> props;
 #endif
 		{	// BACK 0
-			Entity weapon = world->CreateEntity();
+			Entity back = world->CreateEntity();
 
 			shared_ptr<Texture> scorem;
 			switch (playerType) {
@@ -1011,61 +1007,138 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_HP_0");
 				break;
 			}
-			auto& t = world->AddComponent<UITransformComponent>(weapon);
+			auto& t = world->AddComponent<UITransformComponent>(back);
 			t.mAnchor = Anchor::Center;
 			t.mPosition = Vec2(0.f, 576.f);
-			t.mSize = Vec2(512.f, 96.f);
+			t.mSize = Vec2(768.f, 96.f);
 			t.mPivot = Vec2(0.5f, 0.5f);
 			t.mUILayerIndex = 1;
 
-			world->AddComponent<UISpriteComponent>(weapon, scorem);
+			world->AddComponent<UISpriteComponent>(back, scorem);
 #ifdef _IMGUI
 
 
 
-			props.push_back({ "Back Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-			props.push_back({ "Back Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+			props.push_back({ "Background HP Back Pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Background HP Back Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
 
 #endif
 		}
 		{	// BACK 1
-			Entity sound = world->CreateEntity();
+			Entity hpback = world->CreateEntity();
 
 			shared_ptr<Texture> scorem;
 			switch (playerType) {
 			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Weapon_0");
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1");
 				break;
 			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Weapon_0");
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1");
 				break;
 			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Weapon_0");
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1");
 				break;
 			}
-//			auto& t = world->AddComponent<UITransformComponent>(sound);
-//			t.mAnchor = Anchor::BottomLeft;
-//			t.mPosition = Vec2(300.f, -240.f);
-//			t.mSize = Vec2(128.f, 64.f);
-//			t.mUILayerIndex = 2;
-//
-//
-//			world->AddComponent<UISpriteComponent>(sound, scorem);
-//#ifdef _IMGUI
-//
-//			props.push_back({ "Back Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-//			props.push_back({ "Back Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-//
-//#endif
+			auto& t = world->AddComponent<UITransformComponent>(hpback);
+			t.mAnchor = Anchor::Center;
+			t.mPosition = Vec2(-256.f, 548.f);
+			t.mSize = Vec2(512.f, 96.f);
+			t.mPivot = Vec2(0.0f, 0.0f);
+			t.mUILayerIndex = 3;
 
 
+			world->AddComponent<UISpriteComponent>(hpback, scorem);
+#ifdef _IMGUI
+
+			props.push_back({ "Back HP Back Pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Back HP Back Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+		}
+		{
+
+			Entity hp = world->CreateEntity();
+
+			shared_ptr<Texture> scorem;
+			switch (playerType) {
+			case 0:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2");
+				break;
+			case 1:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2");
+				break;
+			case 2:
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2");
+				break;
+			}
+			auto& t = world->AddComponent<UITransformComponent>(hp);
+			t.mAnchor = Anchor::Center;
+			t.mPosition = Vec2(-256.f, 548.f);
+			t.mSize = Vec2(512.f, 96.f);
+			t.mPivot = Vec2(0.0f, 0.0f);
+			t.mUILayerIndex = 2;
+
+
+			world->AddComponent<UISpriteComponent>(hp, scorem);
+			world->AddComponent<UIScriptComponent>(hp).mOnUpdate = (hp, [world, hp, ownerEntity](float dt) {
+
+
+				world->GetEventManager()->Consume<EvHealthChanged>([world, hp, ownerEntity](const EvHealthChanged& e) {
+					if (e.target != ownerEntity) return;
+					// 피 딱 잘리게 0~1 사이로 정규화해서 넣어주면 될듯
+					// 그러기 위해 pivot이 0,0이 되어야할듯
+					UISpriteComponent* s = world->GetComponent<UISpriteComponent>(hp);
+					s->SetVisibleRangeKeepDestinationSize(false);
+
+
+					s->SetVisibleRangeNormalized(0.f,( (float) e.hp / e.maxHp));
+					std::cout << "Health Changed: " << e.hp << "/" << e.maxHp << std::endl;
+
+					});
+			});
+#ifdef _IMGUI
+
+			props.push_back({ "Back Hp Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Back Hp Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+
+		}
+		{
+
+			Entity hp = world->CreateEntity();
+			auto& t = world->AddComponent<UITransformComponent>(hp);
+			t.mAnchor = Anchor::Center;
+			t.mPosition = Vec2(-256.f, 548.f);
+			t.mSize = Vec2(512.f, 96.f);
+			t.mPivot = Vec2(0.0f, 0.0f);
+			t.mUILayerIndex = 2;
+
+			auto& text = world->AddComponent<UITextComponent>(hp);
+			text.mText = L"HP";
+				text.mOnTextChanged = [world, hp]() {
+					world->GetEventManager()->Consume<EvHealthChanged>([world, hp](const EvHealthChanged& e) {
+						UITextComponent* t = world->GetComponent<UITextComponent>(hp);
+						if (t) t->mText = std::to_wstring(e.hp) + L"/" + std::to_wstring(e.maxHp);
+						});
+					};
+
+			
+#ifdef _IMGUI
+
+			props.push_back({ "Font Hp Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
+			props.push_back({ "Font Hp Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+
+#endif
+
+		
 
 
 
 #ifdef _IMGUI
 
 
-			IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(sound);
+			IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(hp);
 			visImgui.RegisterEditorProperties(props);
 			visImgui.SetName("HP");
 #endif
@@ -1142,10 +1215,10 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 			{
 
 
-				text.mText = L"8/8";
-				// [&] 대신 world·bullet을 값으로 캡처 — 생성자 종료 후 댕글링 방지
+				text.mText = L"10/10";
 				text.mOnTextChanged = [world, bullet]() {
 					world->GetEventManager()->Consume<EvBulletCountChanged>([world, bullet](const EvBulletCountChanged& e) {
+						if (e.target != bullet) return;
 						UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
 						if (t) t->mText = std::to_wstring(e.current) + L"/" + std::to_wstring(e.max);
 						});
@@ -1154,7 +1227,14 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 				break;
 			case 2:
 			{
-				text.mText = L"OO";
+				text.mText = L"5/5";
+				text.mOnTextChanged = [world, bullet]() {
+					world->GetEventManager()->Consume<EvBulletCountChanged>([world, bullet](const EvBulletCountChanged& e) {
+						if (e.target != bullet) return;
+						UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
+						if (t) t->mText = std::to_wstring(e.current) + L"/" + std::to_wstring(e.max);
+						});
+					};
 			}
 				break;
 			}

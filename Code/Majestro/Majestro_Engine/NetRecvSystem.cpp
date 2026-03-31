@@ -202,6 +202,10 @@ void NetRecvSystem::HandleHealth(const InputCommand& msg)
 
     healthComp->mCurrentHp = pkt->currentHp;
     healthComp->mMaxHp     = pkt->maxHp;
+
+    mWorld->GetEventManager()->Enqueue(EvHealthChanged{
+       e, pkt->currentHp, pkt->maxHp
+		});
 }
 
 void NetRecvSystem::HandleArmor(const InputCommand& msg)
@@ -217,6 +221,10 @@ void NetRecvSystem::HandleArmor(const InputCommand& msg)
 
     armorComp->mCurrentArmor = pkt->currentArmor;
     armorComp->mMaxArmor     = pkt->maxArmor;
+
+    mWorld->GetEventManager()->Enqueue(EvHpArmorChanged{
+        e, pkt->currentArmor, pkt->maxArmor
+        });
 }
 
 void NetRecvSystem::HandleAmmo(const InputCommand& msg)
@@ -233,7 +241,7 @@ void NetRecvSystem::HandleAmmo(const InputCommand& msg)
 
 
     mWorld->GetEventManager()->Enqueue(EvBulletCountChanged{
-    pkt->currentAmmo, pkt->maxAmmo
+    e, pkt->currentAmmo, pkt->maxAmmo
         });
 }
 

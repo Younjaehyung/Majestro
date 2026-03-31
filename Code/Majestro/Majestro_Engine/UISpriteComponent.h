@@ -47,7 +47,10 @@ public:
 	void EnableSpriteSheetAnimation(const Vec2& frameSize, int frameCount, float animationTime, int startFrame = 0);
 	void SetCurrentFrame(int frameIndex);
 	RECT GetCurrentFrameRect() const;
-
+	void SetVisibleRangeNormalized(float startX, float endX);
+	void SetVisibleRangePixels(float startPx, float endPx);
+	void SetVisibleRangeKeepDestinationSize(bool keepSize);
+	void ClearVisibleRange();
 public :
 
 	bool mIsAnimated{ false };
@@ -60,6 +63,13 @@ public :
 	Vec2 mFrameSize = { 0.f, 0.f };
 	Vec2 mAnimSize{ 0.f, 0.f };
 
+
+	// sourceRect 크롭(0~1)
+	bool mUseVisibleRange = false;
+	bool mVisibleRangeUsePixels = false;
+	bool mVisibleRangeKeepDestinationSize = false;
+	float mVisibleStartX = 0.f;
+	float mVisibleEndX = 1.f;
 public:
 	bool mVisible{ true };
 	bool mUIVisibility = true;

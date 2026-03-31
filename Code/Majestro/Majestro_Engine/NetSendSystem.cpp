@@ -103,7 +103,7 @@ void NetSendSystem::TrySendActionEvents()
 	if (comp->mReload)  pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::RELOAD));
 	if (comp->mSpecial) pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::SPECIAL));
 
-	std::cout << "Buttons bitmask: " << std::bitset<8>(pkt.Buttons) << std::endl;
+	//std::cout << "Buttons bitmask: " << std::bitset<8>(pkt.Buttons) << std::endl;
 	
 
 	// 이전 프레임 대비 변화된 버튼(press/release 모두)이 있을 때만 전송

@@ -42,8 +42,25 @@ struct EvNetSceneChange
     SceneId targetScene;
 };
 
+struct EvHealthChanged
+{
+    Entity target;
+    int32 hp;     // HP 
+	int32 maxHp;       // 최대 HP
+    // 변화량이 필요하면 여기다가 추가
+};
+
+struct EvHpArmorChanged
+{
+    Entity target;
+
+    int32 armor;  // 방어구 
+	int32 maxArmor;     // 최대 방어구
+    // 변화량이 필요하면 여기다가 추가
+};
 
 struct EvBulletCountChanged {
+	Entity target;
     int current{};
     int max{};
 };
@@ -57,4 +74,4 @@ struct EvRhythmChanged {
 };
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
-    EvRhythmChanged>;
+    EvRhythmChanged, EvHpArmorChanged>;

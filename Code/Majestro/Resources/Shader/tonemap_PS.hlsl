@@ -115,5 +115,23 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // 감마 보정
     float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 2.0f);
    // float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 1.8f);
+    
+    
+    // 비네트
+    //float2 d = input.uv - float2(0.5f, 0.5f);
+    //d.x *= PassParams.ScreenSize.x / PassParams.ScreenSize.y; // 화면 종횡비 보정
+    //float dist = length(d);
+
+    //float vignette = 1.0f - smoothstep(0.35f, 0.60f, dist);
+    //gammaCorrected.rgb *= vignette;
+    
+    
+    
+    // gradient overlay
+    float mask = smoothstep(0.93f, 1.0f, input.uv.y);
+    float3 overlayColor = float3(0.0f, 0.0f, 0.0f);
+
+    gammaCorrected.rgb = lerp(gammaCorrected.rgb, overlayColor, mask * 0.4f);
+    
     return float4(gammaCorrected, 1.0f);
 }

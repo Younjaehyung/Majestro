@@ -414,6 +414,13 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
             impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
             effectScale = 30.0f;
         }
+        else if (effectSkillType == SkillType::GuitarSkill1)
+        {
+            effectName = L"VFX_Fanthor_Skill_01";
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
+            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
+            effectScale = 30.0f;
+        }
         break;
     case 1:
         if (isBaseSkill(effectSkillType))

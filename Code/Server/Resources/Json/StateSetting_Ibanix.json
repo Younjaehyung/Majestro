@@ -14,7 +14,7 @@
         "JumpState": {
             "time": 3.5,
             "animOnce": true,
-            "animEndTime": 0.833333
+            "animEndTime": 0.666667
         },
         "FallState": {
             "time": 3.5,
@@ -34,22 +34,22 @@
         "Attack1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 1.0666
         },
         "Attack2State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 0.666667
         },
         "Skill1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 0.666667
         },
         "Skill2State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 0.666667
         },
         "SpecialState": {
             "time": 0.35,
@@ -64,7 +64,7 @@
         "RhythmChange": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 0.5
         }
     }
 }

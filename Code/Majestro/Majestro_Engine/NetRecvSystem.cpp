@@ -170,6 +170,7 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
     {
         playerComp->mStatePacket = pkt->stateId;
         playerComp->mLowerStatePacket = pkt->lowerStateId;
+        cout << "state:" << playerComp->mStatePacket << endl;
     }
     else if (enemyComp)
     {
@@ -178,6 +179,9 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
 
     if (netTransform)
         netTransform->mElapsed = 0.0f;
+
+
+   
 }
 
 void NetRecvSystem::HandleHealth(const InputCommand& msg)

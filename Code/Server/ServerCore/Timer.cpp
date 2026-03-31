@@ -22,14 +22,13 @@ void Timer::Tick(float fLockFPS)
     float fTimeElapsed = static_cast<float>(
         (mCurrentPerformanceCounter - mLastPerformanceCounter) * mTimeScale);
 
-    // [수정] Busy-wait → Sleep 혼합 방식으로 CPU 점유율 개선
+
     if (fLockFPS > 0.0f)
     {
         const float targetTime = 1.0f / fLockFPS;
         while (fTimeElapsed < targetTime)
         {
-            if ((targetTime - fTimeElapsed) > 0.002f)
-                ::Sleep(1);
+            
             ::QueryPerformanceCounter((LARGE_INTEGER*)&mCurrentPerformanceCounter);
             fTimeElapsed = static_cast<float>(
                 (mCurrentPerformanceCounter - mLastPerformanceCounter) * mTimeScale);
@@ -38,11 +37,10 @@ void Timer::Tick(float fLockFPS)
 
     mLastPerformanceCounter = mCurrentPerformanceCounter;
 
-    // [수정] 스파이크 필터 조건 수정 (1.0f 비교 → 0.1f 상한선)
-    // 0.1초(100ms) 이상의 프레임은 스파이크로 간주하여 샘플에서 제외
+
     if (fTimeElapsed < 0.1f)
     {
-        // [수정] memmove → 링 버퍼 방식으로 O(N) → O(1)
+
         mFrameTime[mWriteIndex % MAX_SAMPLE_COUNT] = fTimeElapsed;
         ++mWriteIndex;
         if (mSampleCount < MAX_SAMPLE_COUNT) ++mSampleCount;

@@ -2,8 +2,8 @@
 #include "Network.h"
 #include "PacketHelper.h"
 
-SpscRingQueue<SendRequest, 128>		gSendBuffer;
-SpscRingQueue<InputCommand, 128>	gRecvBuffer;
+SpscRingQueue<SendRequest, 1024>		gSendBuffer;
+SpscRingQueue<InputCommand, 1024>	gRecvBuffer;
 
 Network::Network()
 {

@@ -64,6 +64,13 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& pkt)
 	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 	if (inputComp == nullptr) return;
 
+	// 최신 입력만 반영 (out-of-order/중복 드롭)
+	if (inputComp->lastSeq != 0)
+	{
+		if (!IsNewerSeq(pkt.Seq, inputComp->lastSeq))
+			return;
+	}
+
 	inputComp->MoveX  = pkt.MoveX;
 	inputComp->MoveY  = pkt.MoveY;
 	inputComp->MoveZ  = pkt.MoveZ;

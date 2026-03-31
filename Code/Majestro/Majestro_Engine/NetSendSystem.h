@@ -85,6 +85,6 @@ private:
 
     // 이전 프레임 버튼 상태 (새로 눌린 버튼 감지용)
     uint32 mPrevButtons = 0;
-
+    uint32 mMoveSeq = 0;
 };
 

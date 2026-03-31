@@ -132,6 +132,8 @@ void NetSendSystem::TrySendMovement()
 
 	C2S_MovePacket pkt{};
 	pkt.netEntityId = netEnt->mNetEntityId;
+	pkt.Seq = ++mMoveSeq;
+	pkt.Dt = mMovementRate.Interval;
 	pkt.MoveX       = comp->mMovingDirection.x;
 	pkt.MoveY       = comp->mJump;
 	pkt.MoveZ       = comp->mMovingDirection.z;

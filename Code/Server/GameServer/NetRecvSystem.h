@@ -25,6 +25,8 @@ private:
 	Entity FindEntityBySession(uint32 sessionId) const;
 	std::vector<uint32> CollectPlayerSessions() const;
 
+
+	bool IsNewerSeq(uint32 lhs, uint32 rhs){return static_cast<int32>(lhs - rhs) > 0;}
 private:
 	vector<uint64> mNetEntityIds{};
 	vector<uint64> mBulletNetEntityIds{};

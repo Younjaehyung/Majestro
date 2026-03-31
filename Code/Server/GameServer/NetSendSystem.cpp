@@ -373,7 +373,7 @@ void NetSendSystem::SendEffectSpawnEvents()
 			effectPkt.rotY = e.rotY;
 			effectPkt.rotZ = e.rotZ;
 
-			cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
+			//cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
 
 			for (uint32 sessionId : recipients)
 			{

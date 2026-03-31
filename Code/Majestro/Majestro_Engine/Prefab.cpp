@@ -198,7 +198,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Jump"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Fall"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Land"));
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Run"));//dash
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Skill_02"));//dash
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack_01"));//attack1
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack_01"));//attack2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Skill_01"));//skill1

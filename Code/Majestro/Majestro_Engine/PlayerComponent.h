@@ -80,6 +80,10 @@ public:
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
+
+	int mPrevStatePacket;
+	int mPrevLowerStatePacket;
+
 	int mStatePacket;
 	int mLowerStatePacket;
 

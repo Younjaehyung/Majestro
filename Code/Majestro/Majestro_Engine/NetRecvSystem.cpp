@@ -168,8 +168,13 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
 
     if (playerComp)
     {
+        playerComp->mPrevStatePacket = playerComp->mStatePacket;
+        playerComp->mPrevLowerStatePacket = playerComp->mLowerStatePacket;
+
         playerComp->mStatePacket = pkt->stateId;
         playerComp->mLowerStatePacket = pkt->lowerStateId;
+
+       
     }
     else if (enemyComp)
     {
@@ -178,6 +183,8 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
 
     if (netTransform)
         netTransform->mElapsed = 0.0f;
+
+
 }
 
 void NetRecvSystem::HandleHealth(const InputCommand& msg)

@@ -67,7 +67,9 @@ void PlayerSystem::Update(float dt)
 			cameraComponent->mFov = 103.f / 2.0f;
 		}
 
+		
 		// 공격 상태 진입 시 카메라 쉐이크 트리거
+		if (mainPlayerComponent->mStatePacket != mainPlayerComponent->mPrevStatePacket)
 		{
 			uint32 entityID = entity.GetID();
 			int32  currState = mainPlayerComponent->mStatePacket;
@@ -85,8 +87,8 @@ void PlayerSystem::Update(float dt)
 						|| currState == S_Skill1 || currState == S_Skill2
 						|| currState == S_Special);
 					if (bAttackState)
-						mainPlayer->TriggerShake(1.5f, 0.25f, 20.f);
-
+						mainPlayer->TriggerShake(1.5f, 0.05f, 20.f);
+					std::cout << "ATTACK!@" << std::endl;
 				}
 				break;
 			case 1:
@@ -96,7 +98,7 @@ void PlayerSystem::Update(float dt)
 						|| currState == S_Skill1 || currState == S_Skill2
 						|| currState == S_Special);
 					if (bAttackState)
-						mainPlayer->TriggerShake(0.5f, 0.25f, 20.f);
+						mainPlayer->TriggerShake(0.5f, 0.05f, 20.f);
 
 				}
 				break;
@@ -107,7 +109,7 @@ void PlayerSystem::Update(float dt)
 						|| currState == S_Skill1 || currState == S_Skill2
 						|| currState == S_Special);
 					if (bAttackState)
-						mainPlayer->TriggerShake(0.5f, 0.25f, 20.f);
+						mainPlayer->TriggerShake(0.5f, 0.05f, 20.f);
 
 				}
 				break;

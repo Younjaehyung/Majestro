@@ -1785,7 +1785,17 @@ void ResourceManager::CreateDefaultMaterial()
 		mat->GetParams().Diffuse = Vec4(1.f, 0.f, 0.f, 1.f);
 		Add<Material>(L"DebugLine_Red", mat);
 	}
+
+	{
+		shared_ptr<Texture> texture = Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"ForwardAlpha");
+		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+
+		Add<Material>(L"UI_Logo", material);
+	}
 	
+
 	{
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Image\\Noise\\T_TilingNoise02_M.png");
@@ -1844,6 +1854,8 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_1.png");
 		Load<Texture>(L"UI_Fanthor_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_2.png");
 		Load<Texture>(L"UI_Fanthor_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_3.png");
+
+
 		
 		
 

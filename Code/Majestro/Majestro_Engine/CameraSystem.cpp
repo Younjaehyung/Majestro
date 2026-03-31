@@ -102,19 +102,19 @@ void CameraSystem::Update(float dt)
 
 			}
 			// 카메라 쉐이크: 공격 등의 임팩트 시 pitch를 sin 파형으로 진동
-		if (cameraTypeComponent && cameraTypeComponent->mShakeRemaining > 0.f)
-		{
-			cameraTypeComponent->mShakeRemaining -= dt;
-			cameraTypeComponent->mShakeTimeAcc   += dt;
+			if (cameraTypeComponent && cameraTypeComponent->mShakeRemaining > 0.f)
+			{
+				cameraTypeComponent->mShakeRemaining -= dt;
+				cameraTypeComponent->mShakeTimeAcc   += dt;
 
-			float decay      = cameraTypeComponent->mShakeRemaining / cameraTypeComponent->mShakeDuration;
-			float shakeAngle = sinf(cameraTypeComponent->mShakeTimeAcc * cameraTypeComponent->mShakeFrequency * XM_2PI)
-			                   * cameraTypeComponent->mShakeMagnitude * decay;
+				float decay      = cameraTypeComponent->mShakeRemaining / cameraTypeComponent->mShakeDuration;
+				float shakeAngle = sinf(cameraTypeComponent->mShakeTimeAcc * cameraTypeComponent->mShakeFrequency * XM_2PI)
+								   * cameraTypeComponent->mShakeMagnitude * decay;
 
-			transformComponent->mLocalRotationE.x += shakeAngle;
-		}
+				transformComponent->mLocalRotationE.x += shakeAngle;
+			}
 
-		transformComponent->FinalUpdate();
+			transformComponent->FinalUpdate();
 		}
 
 		cameraComponent->FinalUpdate(transformComponent->GetWorldMatrix().Invert());

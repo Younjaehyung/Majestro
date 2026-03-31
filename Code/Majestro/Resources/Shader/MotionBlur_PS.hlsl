@@ -6,8 +6,8 @@
 #define POST_MOTIONBLUR_PASS_IDX 8
 #define MOTION_BLUR_SAMPLES      16
 #define MAX_BLUR_RADIUS          0.02f
-#define LINE_COUNT      10          // 전체 슬롯 수 (선의 최대 밀도)
-#define LINE_SHARPNESS  3.0f      // 높을수록 선이 가늘고 날카로움
+#define LINE_COUNT      14          // 전체 슬롯 수 (선의 최대 밀도)
+#define LINE_SHARPNESS  1.0f      // 높을수록 선이 가늘고 날카로움
 struct VS_OUT
 {
     float4 pos : SV_Position;
@@ -85,38 +85,40 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
 
     float rand0 = Hash(slotIndex + timeSlot * (float) LINE_COUNT);
     float rand1 = Hash(slotIndex + timeSlot * (float) LINE_COUNT + 1.0f);
+    float rand2 = Hash(slotIndex * 11.7f + 3.1f);
 
     float lineExists = step(1.0f - speedLineDensity, rand0);
 
  // 굵기 변화
-    float sharpness = lerp(50.0f, 20.0f, rand1);
+    float sharpness = lerp(6.0f, 3.0f, rand1) * LINE_SHARPNESS;
 
     float peak = slotLocal * (1.0f - slotLocal) * 4.0f;
     float SR_line = pow(peak, sharpness);
     SR_line *= lineExists;
 
  // 거리 마스킹
-    SR_line *= smoothstep(0.35f, 0.45f, dist);
-    SR_line *= smoothstep(0.75f, 0.45f, dist);
+    SR_line *= smoothstep(0.22f, 0.46f, dist);
+    SR_line *= smoothstep(0.82f, 0.50f, dist);
 
  // 글로우 레이어
 
-    float glowSharpness = max(1.0f, sharpness * 0.08f);
+    float glowSharpness = max(1.0f, sharpness * 0.35f);
     float glow = pow(peak, glowSharpness);
     glow *= lineExists;
-    glow *= smoothstep(0.30f, 0.42f, dist);
-    glow *= smoothstep(0.58f, 0.44f, dist);
-    glow *= 0.4f; // 글로우는 선보다 어둡게
+    glow *= smoothstep(0.18f, 0.44f, dist);
+    glow *= smoothstep(0.90f, 0.46f, dist);
+    glow *= 0.55f;
 
  // 잔상 느낌
     float fade = dashBlend * dashBlend;
+    float flutter = 0.88f + 0.12f * sin(time * 6.0f + slotIndex * 3.1f + rand2 * 6.28318f);
+    
+    SR_line *= speedLineIntensity * fade * flutter;
+    glow *= speedLineIntensity * fade * flutter;
 
-    SR_line *= speedLineIntensity * fade;
-    glow *= speedLineIntensity * fade;
 
-
-    result.rgb += lineColor * glow * 0.4f; 
-    result.rgb = lerp(result.rgb, lineColor * 1.5f, saturate(SR_line));
+    result.rgb += lineColor * glow * 0.22f;
+    result.rgb += lineColor * SR_line * 0.12f;
 
 
     return result;

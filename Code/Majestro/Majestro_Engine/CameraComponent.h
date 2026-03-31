@@ -159,10 +159,14 @@ public:
 
 	void TriggerShake(float magnitude, float duration, float frequency)
 	{
+		if (duration <= 0.f || magnitude <= 0.f || frequency <= 0.f)
+			return;
+
+
 		mShakeMagnitude = magnitude;
-		mShakeDuration  = duration;
+		mShakeDuration = duration;
 		mShakeRemaining = duration;
 		mShakeFrequency = frequency;
-		mShakeTimeAcc   = 0.f;
+		mShakeTimeAcc = 0.f;
 	}
 };

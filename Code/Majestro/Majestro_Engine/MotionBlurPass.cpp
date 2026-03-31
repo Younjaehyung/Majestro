@@ -23,10 +23,11 @@ void MotionBlurPass::SetData(
 		= static_cast<int32>(GBUFFER_INDEX::GBUFFER_MOTIONVEC_INDEX);
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_MOTIONBLUR_PASS)].ExtTex[1]
 		= RESOURCEMANAGER.Get<Texture>(L"NoiseTex")->GetSrvIndex();
+
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_MOTIONBLUR_PASS)].ExtValue[0]
-		= Vec4(TIMER.GetTotalTime(), 1.0f, 0.2f, 0.8f); // ExtValue[0].x: 시간에 따른 노이즈 애니메이션, yzw: 임의의 노이즈 패턴 스케일과 강도 조절용 (현재는 고정값)
+		= Vec4(TIMER.GetTotalTime(), 0.2f, 0.08f, 0.15f); // ExtValue[0].x: 시간에 따른 노이즈 애니메이션, yzw: 임의의 노이즈 패턴 스케일과 강도 조절용 (현재는 고정값)
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_MOTIONBLUR_PASS)].ExtValue[1]
-		= Vec4(TIMER.GetTotalTime(), 0.4, 0.8, 1.0); // ExtValue[1].x: 시간에 따른 블러 애니메이션, yzw: 임의의 블러 스케일과 강도 조절용 (현재는 고정값)
+		= Vec4(TIMER.GetTotalTime(), 0.2, 0.2, 0.2); // ExtValue[1].x: 시간에 따른 블러 애니메이션, yzw: 임의의 블러 스케일과 강도 조절용 (현재는 고정값)
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_MOTIONBLUR_PASS)].ExtValue[2]
 		= Vec4(TIMER.GetTotalTime(), 1.0, 0.3, 0.2); 
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_MOTIONBLUR_PASS)].ExtValue[3]

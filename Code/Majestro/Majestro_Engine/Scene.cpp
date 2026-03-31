@@ -496,6 +496,25 @@ void MainMenuScene::Initialize()
 	LoadJsonLevel(L"..\\Resources\\Json\\Map_Title_Export.json");
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
+	{ // Title LOGO
+		Entity logo = mWorld->CreateEntity();
+		shared_ptr<Mesh> data = RESOURCEMANAGER.Get<Mesh>(L"Rectangle");
+		std::vector<std::shared_ptr<Material>> materials = { RESOURCEMANAGER.Get<Material>(L"UI_Logo") };
+
+		RenderComponent& render = mWorld->AddComponent<RenderComponent>(logo);
+		render.mMaterials = materials;
+		render.mCheckFrustum = false;
+		render.mMesh = data;
+
+		TransformComponent& transform = mWorld->AddComponent<TransformComponent>(logo);
+		transform.mLocalPosition = { 66.0f, 44.0,-4270.0f };
+		transform.mLocalScale = { 300.f, 300.f, 0.f};
+		//transform.mLocalRotationE = { -18.f, -142.0f, 0.f };
+
+
+
+
+	}
 
 	/////////////////////////////////////////////////////////////////////////
 	{

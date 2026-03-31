@@ -1,4 +1,4 @@
-﻿// Majestro.cpp : 애플리케이션에 대한 진입점을 정의합니다.
+// Majestro.cpp : 애플리케이션에 대한 진입점을 정의합니다.
 //
 
 #include "pch.h"
@@ -209,7 +209,7 @@ void DrawStartupLoadingFrame(HWND hWnd)
     if (gGdiplusToken != 0)
     {
         Gdiplus::Graphics graphics(hdc);
-        Gdiplus::Image image(L"..\\Resources\\Image\\UI\\UI_Main_Title.png");
+        Gdiplus::Image image(L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
         if (image.GetLastStatus() == Gdiplus::Ok)
         {
             const Gdiplus::Rect destRect(

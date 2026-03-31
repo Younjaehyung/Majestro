@@ -65,6 +65,16 @@
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 1.16667
+        },
+        "ReloadState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
+        },
+        "RhythmChange": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.16667
         }
     }
 }

@@ -98,6 +98,9 @@ struct EvEffectSpawn
     float y = 0.0f;
     float z = 0.0f;
     EffectSpawnReason reason = EffectSpawnReason::Fire;
+    float rotX = 0.0f;
+    float rotY = 0.0f;
+    float rotZ = 0.0f;
 };
 
 struct EvBuffRequest

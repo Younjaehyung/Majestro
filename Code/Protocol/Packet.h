@@ -324,6 +324,9 @@ struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 	float y{};
 	float z{};
 	uint8 reason{};
+	float rotX{};
+	float rotY{};
+	float rotZ{};
 
 	S2C_EffectSpawnPacket()
 		: PacketTcpHeader{ sizeof(S2C_EffectSpawnPacket), PKT_Type::S2C_PKT_EFFECT_SPAWN, 0.0 } {

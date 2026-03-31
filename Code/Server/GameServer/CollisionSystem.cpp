@@ -587,7 +587,11 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                     bulletTransform->mLocalPosition.x,
                     bulletTransform->mLocalPosition.y,
                     bulletTransform->mLocalPosition.z,
-                    EffectSpawnReason::CollisionEntity });
+                    EffectSpawnReason::CollisionEntity,
+                    bulletTransform->mLocalRotationE.x,
+                    bulletTransform->mLocalRotationE.y,
+                    bulletTransform->mLocalRotationE.z });
+
             }
 
             if (!shouldPenetrate)
@@ -689,11 +693,14 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
             //effectSpawn
             eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ bulletEntity });
             eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
-                static_cast<uint8>(bullet->mType),
-                tr->mLocalPosition.x,
-                tr->mLocalPosition.y,
-                tr->mLocalPosition.z,
-                EffectSpawnReason::CollisionStatic });
+                    static_cast<uint8>(bullet->mType),
+                    tr->mLocalPosition.x,
+                    tr->mLocalPosition.y,
+                    tr->mLocalPosition.z,
+                    EffectSpawnReason::CollisionStatic,
+                    tr->mLocalRotationE.x,
+                    tr->mLocalRotationE.y,
+                    tr->mLocalRotationE.z });
         }
     }
 }

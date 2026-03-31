@@ -369,6 +369,9 @@ void NetSendSystem::SendEffectSpawnEvents()
 			effectPkt.y = e.y;
 			effectPkt.z = e.z;
 			effectPkt.reason = static_cast<uint8>(e.reason);
+			effectPkt.rotX = e.rotX;
+			effectPkt.rotY = e.rotY;
+			effectPkt.rotZ = e.rotZ;
 
 			cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
 

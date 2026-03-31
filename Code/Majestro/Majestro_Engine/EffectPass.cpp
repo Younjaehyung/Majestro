@@ -10,6 +10,12 @@
 #include "VfxComponent.h"
 #include "Vfx.h"
 
+namespace
+{
+	constexpr float kDegToRad = 0.01745329251994329577f;
+}
+
+
 EffectPass::~EffectPass()
 {
 	if (mWorld && mWorld->HasComponentPool<VfxComponent>())
@@ -107,6 +113,16 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 		mManager->SetPaused(comp->efkHandle, comp->mIsPaused);
 		mManager->SetScale(comp->efkHandle, comp->mScale, comp->mScale, comp->mScale);
+		if (tr != nullptr)
+		{
+			mManager->SetLocation(comp->efkHandle, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+			mManager->SetRotation(
+				comp->efkHandle,
+				tr->mLocalRotationE.x * kDegToRad,
+				tr->mLocalRotationE.y * kDegToRad,
+				tr->mLocalRotationE.z * kDegToRad);
+		}
+
 
 		if (!comp->mIsPaused)
 		{

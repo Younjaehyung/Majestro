@@ -140,14 +140,14 @@ public:
 
 	SweepHit mCameraSweep{};
 
-	float mCameraMaxLenth = 20;
+	float mCameraMaxLenth = 250;
 	float mCameraMinLenth = 6;
 
 	BoundingOrientedBox mCameraBox;
 	float mCameraSphereRadius = 25.f;
 	float mCameraMargin = 5.f;
 
-	Vec3 mOffset = Vec3(80, 100, -200);
+	Vec3 mOffset = Vec3(80, 160, 0);
 	Vec3 mLookAtOffset = Vec3(0, 0, -5);
 
 	// 카메라 쉐이크

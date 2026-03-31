@@ -170,7 +170,7 @@ void PlayerInputSystem::Update(float dt)
 		movementComponent->mCameraRotationY = movementComponent->currentY;
 
 		// 짐벌락 방지 클램핑 (Pitch)
-		movementComponent->mCameraRotationX = std::clamp(movementComponent->mCameraRotationX, -89.0f, 89.0f);
+		movementComponent->mCameraRotationX = std::clamp(movementComponent->mCameraRotationX, -60.0f, 60.0f);
 	}
 
 

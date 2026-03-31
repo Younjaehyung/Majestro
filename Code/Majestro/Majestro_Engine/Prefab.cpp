@@ -213,7 +213,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 0.f, 10.f };
 	world->AddComponent<TransformComponent>(mEntityID, t);
-	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
@@ -223,7 +223,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	if(ctx.ViewAs<S2C_SpawnPacekt>()->isLocalPlayer == 1)
 	{
 		world->AddComponent<LocalPlayerComponent>(mEntityID);
-		
+		render.mCheckFrustum = false;
 		
 		Entity testCamera = world->CreateEntity();
 		world->AddComponent<MainCameraComponent>(testCamera);

@@ -48,31 +48,53 @@ void CameraSystem::Update(float dt)
 				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
-
 				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 				transformComponent->FinalUpdate();
-				
-
-				Vec3 worldOffset = transformComponent->GetRight() * cameraTypeComponent->mOffset.x
-					+ transformComponent->GetUp() * cameraTypeComponent->mOffset.y
-					+ transformComponent->GetLook() * cameraTypeComponent->mOffset.z;
-
-				Vec3 DestPos = pos + worldOffset - cameraTypeComponent->mCameraMaxLenth * transformComponent->GetLook();
 
 
-				SweepHit best = mWorld->GetPhysicsWorld()->SphereSweepVsOBB(pos + cameraTypeComponent->mOffset, DestPos,
+
+				Vec3 look = transformComponent->GetLook();
+				Vec3 yawForward = look;
+				yawForward.y = 0.0f;
+
+				if (yawForward.LengthSquared() <= 0.0001f)
+					yawForward = Vec3::Forward;
+				else
+					yawForward.Normalize();
+
+				Vec3 yawRight = Vec3::Up.Cross(yawForward);
+				if (yawRight.LengthSquared() <= 0.0001f)
+					yawRight = transformComponent->GetRight();
+				else
+					yawRight.Normalize();
+
+				Vec3 worldOffset = yawRight * cameraTypeComponent->mOffset.x
+					+ Vec3::Up * cameraTypeComponent->mOffset.y
+					+ yawForward * cameraTypeComponent->mOffset.z;
+
+				Vec3 pivot = pos + worldOffset;
+				Vec3 DestPos = pivot - cameraTypeComponent->mCameraMaxLenth * look;
+
+				SweepHit best = mWorld->GetPhysicsWorld()->SphereSweepVsOBB(pivot, DestPos,
 					cameraTypeComponent->mCameraSphereRadius);
 
+				float cameraDistance = cameraTypeComponent->mCameraMaxLenth;
+				if (best.hit)
+				{
+					cameraDistance = best.distance - cameraTypeComponent->mCameraMargin;
+					if (cameraDistance < cameraTypeComponent->mCameraMinLenth)
+						cameraDistance = cameraTypeComponent->mCameraMinLenth;
+					if (cameraDistance > cameraTypeComponent->mCameraMaxLenth)
+						cameraDistance = cameraTypeComponent->mCameraMaxLenth;
+				}
 
-				best.distance -= cameraTypeComponent->mCameraMargin;
+				transformComponent->mLocalPosition = pivot - cameraDistance * look;
 
-				if (best.distance < cameraTypeComponent->mCameraMinLenth)
-					best.distance = cameraTypeComponent->mCameraMinLenth;
+				if (transformComponent->mLocalPosition.y < pos.y) {
+					transformComponent->mLocalPosition.y = pos.y;
+				}
 
-				best.distance = cameraTypeComponent->mCameraMaxLenth;
-
-				transformComponent->mLocalPosition = DestPos;// pos + cameraTypeComponent->mOffset - best.distance * transformComponent->GetLook();
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 

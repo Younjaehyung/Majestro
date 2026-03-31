@@ -288,6 +288,7 @@ void PlayerInputSystem::Update(float dt)
 			}
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RhythmChangeState::Instance());
 			//if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
 			//else cout << "fail" << endl;
 

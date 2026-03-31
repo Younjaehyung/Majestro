@@ -737,7 +737,6 @@ void CollisionSystem::AvoidCollisionByMovementState(
     const float centerDistance = std::sqrt(lenSq);
     const float invLen = 1.0f / centerDistance;
     const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen); // A -> B
-    const Vec3 tangent(-normal.z, 0.0f, normal.x);
 
     // --- penetration 계산(여전히 원형 근사: 빠르지만 정확도 한계 있음) ---
     // [수정] 코너 8개 순회 제거. extents 기반 XZ 외접원 반경 근사.
@@ -778,21 +777,33 @@ void CollisionSystem::AvoidCollisionByMovementState(
         const bool canMoveA = trA && world->HasComponent<MovableComponent>(a);
         const bool canMoveB = trB && world->HasComponent<MovableComponent>(b);
 
+        constexpr float kMoveEpsilonSq = 1e-6f;
+        const auto wasMoving = [&](TransformComponent* tr) -> bool
+            {
+                if (!tr) return false;
+                const float vx = tr->mMovingVector.x;
+                const float vz = tr->mMovingVector.z;
+                return (vx * vx + vz * vz) > kMoveEpsilonSq;
+            };
+
+        const bool wasMovingA = wasMoving(trA);
+        const bool wasMovingB = wasMoving(trB);
+
         Vec3 correctionA = Vec3::Zero;
         Vec3 correctionB = Vec3::Zero;
 
         // [수정] 둘 다 움직이면 반반, 하나만 움직이면 한쪽만
-        if (canMoveA && canMoveB)
+        if (canMoveA && canMoveB && wasMovingA && wasMovingB)
         {
             const float half = pushMagnitude * 0.5f;
             correctionA = Vec3(-normal.x * half, 0.0f, -normal.z * half);
             correctionB = Vec3(normal.x * half, 0.0f, normal.z * half);
         }
-        else if (canMoveA)
+        else if (canMoveA && wasMovingA)
         {
             correctionA = Vec3(-normal.x * pushMagnitude, 0.0f, -normal.z * pushMagnitude);
         }
-        else if (canMoveB)
+        else if (canMoveB && wasMovingB)
         {
             correctionB = Vec3(normal.x * pushMagnitude, 0.0f, normal.z * pushMagnitude);
         }
@@ -822,71 +833,35 @@ void CollisionSystem::AvoidCollisionByMovementState(
     }
 
     // ---------------------------
-    // 입력/이동 방향 스티어링(기존 유지)
+    // 이동 중이던 엔티티만 정지 처리
     // ---------------------------
-    auto steerMovementState = [&](Entity e, const Vec3& towardOther, float tangentSign)
+    auto stopIfMoving = [&](Entity e)
         {
-            Vec3 dir(0.0f, 0.0f, 0.0f);
-            bool hasDir = false;
-
-            if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
-            {
-                dir = enemyMove->mMovingDirection;
-                hasDir = true;
-            }
-            else if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
-            {
-                dir = playerMove->mMovingDirection;
-                hasDir = true;
-            }
-
-            if (!hasDir)
+            auto* tr = world->GetComponent<TransformComponent>(e);
+            if (!tr)
                 return;
 
-            // 상대쪽으로 파고드는 성분 제거
-            const float towardDot = dir.x * towardOther.x + dir.z * towardOther.z;
-            if (towardDot > 0.0f)
-            {
-                dir.x -= towardOther.x * towardDot;
-                dir.z -= towardOther.z * towardDot;
-            }
+            const float v2 = tr->mMovingVector.x * tr->mMovingVector.x + tr->mMovingVector.z * tr->mMovingVector.z;
+            if (v2 <= 1e-6f)
+                return;
 
-            // 접선으로 비켜가기
-            dir += tangent * (0.25f * tangentSign);
-
-            float d2 = dir.x * dir.x + dir.z * dir.z;
-            if (d2 < 1e-6f)
-            {
-                dir = Vec3(-towardOther.x, 0.0f, -towardOther.z) + tangent * (0.2f * tangentSign);
-                d2 = dir.x * dir.x + dir.z * dir.z;
-            }
-
-            if (d2 > 1e-6f)
-            {
-                const float inv = 1.0f / std::sqrt(d2);
-                dir.x *= inv;
-                dir.z *= inv;
-            }
+            tr->mMovingVector.x = 0.0f;
+            tr->mMovingVector.z = 0.0f;
 
             if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
-                enemyMove->mMovingDirection = dir;
+                enemyMove->mMovingDirection = Vec3::Zero;
 
             if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
-                playerMove->mMovingDirection = dir;
+                playerMove->mMovingDirection = Vec3::Zero;
 
             if (auto* inputComp = world->GetComponent<InputComponent>(e))
             {
-                inputComp->MoveX = dir.x;
-                inputComp->MoveZ = dir.z;
+                inputComp->MoveX = 0.0f;
+                inputComp->MoveZ = 0.0f;
             }
         };
 
-    // id 기반 좌/우 고정(진동 감소)
-    const float signA = (a.GetID() < b.GetID()) ? 1.0f : -1.0f;
-    const float signB = -signA;
-
-    steerMovementState(a, normal, signA);
-    const Vec3 towardA(-normal.x, 0.0f, -normal.z);
-    steerMovementState(b, towardA, signB);
+    stopIfMoving(a);
+    stopIfMoving(b);
 }
 

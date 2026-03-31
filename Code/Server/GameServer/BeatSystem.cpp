@@ -147,8 +147,6 @@ void BeatSystem::Update(float dt)
 
 				mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
 				mainPlayerComponent->mHasQueuedRhythmChange = false;
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RhythmChangeState::Instance());
-				mainPlayerComponent->Update(dt);
 
 				cout << "Rhythm Changed:" << (int)mainPlayerComponent->mRhythm << endl;
 			}

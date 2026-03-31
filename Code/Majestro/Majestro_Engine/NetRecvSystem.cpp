@@ -26,6 +26,35 @@
 #include "VfxComponent.h"
 #include "ResourceManager.h"
 
+namespace
+{
+    struct BulletVfxSpec
+    {
+        const wchar_t* effectName;
+        float scale;
+    };
+
+    BulletVfxSpec ResolveBulletVfxSpec(SkillType type)
+    {
+        switch (type)
+        {
+        case SkillType::GuitarAttack:
+        case SkillType::GuitarAttack_1:
+        case SkillType::GuitarAttack_2:
+        case SkillType::GuitarAttack_3:
+            return { L"VFX_Fanthor_Slash_01", 12.0f };
+
+        case SkillType::BaseAttack:
+        case SkillType::BaseSkill1:
+            return  { L"VFX_Ibanix_Bullet", 12.0f };
+
+        case SkillType::HornAttack:
+        default:
+            return { L"VFX_Ibanix_Bullet", 2.0f };
+        }
+    }
+}
+
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
 {
@@ -299,6 +328,22 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
 
     bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
 
+    const BulletVfxSpec vfxSpec = ResolveBulletVfxSpec(bulletType);
+    VfxComponent* bulletVfx = mWorld->GetComponent<VfxComponent>(bulletEntity);
+    if (bulletVfx == nullptr)
+        bulletVfx = &mWorld->AddComponent<VfxComponent>(bulletEntity);
+
+    if (bulletVfx)
+    {
+        if (shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(vfxSpec.effectName))
+            bulletVfx->mVfx = vfx;
+
+        bulletVfx->mScale = vfxSpec.scale;
+        bulletVfx->mIsLoop = true;
+        bulletVfx->mIsPaused = false;
+        bulletVfx->mIsPlaying = false;
+    }
+
     if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
         movementSystem->RegisterActiveBullet(bulletEntity);
 }
@@ -313,9 +358,16 @@ void NetRecvSystem::HandleBulletDeactivate(const InputCommand& msg)
 
     BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
     TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+    VfxComponent* bulletVfx = mWorld->GetComponent<VfxComponent>(bulletEntity);
     if (!bulletComp || !bulletTransform) return;
 
     bulletComp->Deactivate();
+    if (bulletVfx)
+    {
+        bulletVfx->mIsPaused = true;
+        bulletVfx->mScale = 0.0f;
+        bulletVfx->mIsPlaying = true;
+    }
     bulletTransform->mMovingVector = Vec3::Zero;
 
     if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
@@ -350,7 +402,8 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         if (effectSkillType == SkillType::GuitarAttack)
         {
             effectName = L"VFX_Fanthor_Slash_01";
-            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY+180, pkt->rotZ);
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
+            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
             effectScale = 30.0f;
         }
         break;
@@ -359,6 +412,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         {
             effectName = L"VFX_Ibanix_Attack_Hit_01";
             impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
+            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
             effectScale = 30.0f;
         }
         break;
@@ -371,7 +425,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 
     Entity impactVfxEntity = mWorld->CreateEntity();
    
-    impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
+    
     mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
 
 

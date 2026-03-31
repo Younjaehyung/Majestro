@@ -51,7 +51,7 @@ public: // Init
 public: // 외부통신용
 	void Initialize();
 	
-	void Awake();
+	bool Awake();
 	void Stop();
 	void Shutdown();
 

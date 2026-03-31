@@ -23,6 +23,7 @@ Network::~Network()
 		mNetworkThread.join();
 	}
 	ReleaseServer();
+	WSACleanup();
 }
 
 void Network::Initialize() {
@@ -36,17 +37,18 @@ void Network::Initialize() {
 	}
 }
 
-void Network::Awake()
+bool Network::Awake()
 {
 
 	if(ConnectToServer())
 	{
 		std::cout << "Connected to server successfully." << std::endl;
+		return true;
 	}
 	else
 	{
 		std::cout << "Failed to awake to server." << std::endl;
-		return;
+		return false;
 	}
 }
 
@@ -133,7 +135,7 @@ void Network::ReleaseServer()
 	mTcpSocket = INVALID_SOCKET;
 	mUdpSocket = INVALID_SOCKET;
 
-	WSACleanup();
+	
 }
 
 void Network::NetworkUpdate()

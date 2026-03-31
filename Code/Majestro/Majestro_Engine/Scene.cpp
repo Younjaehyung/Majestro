@@ -644,9 +644,11 @@ void MainMenuScene::Initialize()
 		// ── 게임 시작 ──
 		Entity e1 = MakeVFXButton(L"VFX_UI_Select", L"GAMESTART", Vec2(startX,startY), [&]()
 		{
-				Network::GetInstance().Awake();
-				mGameMode->mTargetSceneId = SceneId::Lobby;
-				mGameMode->IsSceneChanging() = true;
+				if (Network::GetInstance().Awake()) {
+					mGameMode->mTargetSceneId = SceneId::Lobby;
+					mGameMode->IsSceneChanging() = true;
+				}
+				
 		});
 
 

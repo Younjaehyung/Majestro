@@ -533,9 +533,16 @@ void MainMenuScene::Initialize()
 		render.mMesh = data;
 
 		TransformComponent& transform = mWorld->AddComponent<TransformComponent>(logo);
-		transform.mLocalPosition = { 66.0f, 44.0,-4270.0f };
-		transform.mLocalScale = { 300.f, 300.f, 0.f};
-		//transform.mLocalRotationE = { -18.f, -142.0f, 0.f };
+		transform.mLocalPosition = { 274.f, 648.f, -4270.f };
+		transform.mLocalRotationE = { 0.f, 180.0f, 0.0f };
+		transform.mLocalScale = { 300.f, 300.f, 1.f};
+
+		IMGUIComponent& imgui = mWorld->AddComponent<IMGUIComponent>(logo);
+		std::vector< EditorProperty> props;
+		props.push_back({ "Position", PropertyType::Vec3, &(transform.mLocalPosition), 0.f, 0.f });
+		props.push_back({ "Rot", PropertyType::Vec3, &(transform.mLocalRotationE), 0.f, 0.f });
+		imgui.RegisterEditorProperties(props);
+		imgui.SetName("TITLE");
 
 
 
@@ -624,9 +631,9 @@ void MainMenuScene::Initialize()
 				auto& btn = mWorld->AddComponent<UIButtonComponent>(e);
 				btn.mBaseSize = btnSize;
 				btn.mOnClick = std::move(onClick);
-				btn.mVfxNormalScale = 200.f;
-				btn.mVfxHoveredScale = 250.f;
-				btn.mVfxPressedScale = 180.f;
+				btn.mVfxNormalScale = 100.f;
+				btn.mVfxHoveredScale = 150.f;
+				btn.mVfxPressedScale = 130.f;
 
 				// 초기 색상 설정
 				//mat->GetParams().Diffuse = btn.mNormalColor;
@@ -799,7 +806,7 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
-	renderSystemMM->SetPipeline(make_shared<LobbyRenderPipeline>());
+	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 
 	mSceneId = SceneId::MainMenu;

@@ -1205,6 +1205,25 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"ForwardAlpha", shader);
 	}
 
+	// ForwardBillboard (로고·간판 등 월드 공간 쿼드 전용)                                                                                                                                                                                                                                  1209 +  // ForwardPass가 read-only DSV를 바인딩하므로 depth write 불가 → LESS_NO_WRITE 사용
+    // ALPHA_BLEND : 알파 반투명 지원
+    {
+      ShaderInfo info =
+      {
+        SHADER_TYPE::FORWARD,
+        RASTERIZER_TYPE::CULL_NONE,
+        DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+        BLEND_TYPE::ALPHA_BLEND,
+      };
+      ShaderPath shaderPath{
+        .VS = L"..\\Resources\\Shader\\forward_alpha_VS.hlsl",
+        .PS = L"..\\Resources\\Shader\\forward_alpha_PS.hlsl"
+      };
+      shared_ptr<Shader> shader = make_shared<Shader>();
+      shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+      Add<Shader>(L"ForwardBillboard", shader);
+    }
+
 	// solid_PS (Forward)
 	{
 		ShaderInfo info =
@@ -1791,7 +1810,7 @@ void ResourceManager::CreateDefaultMaterial()
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"ForwardAlpha");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-
+		material->GetParams().Diffuse = Vec4(1.f, 1.f, 1.f, 1.f);  // ← 이 줄 추가
 		Add<Material>(L"UI_Logo", material);
 	}
 	

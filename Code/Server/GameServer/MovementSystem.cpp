@@ -172,7 +172,7 @@ void MovementSystem::Update(float dt) {
 			if (!tf) continue;
 			static constexpr float MIN_MOVE_SQ = 0.01f * 0.01f; // cm 단위
 			shared_ptr<Navigation>& nav = mWorld->GetNavSystem();
-if (!nav || !nav->IsInitialized()) return;
+			if (!nav || !nav->IsInitialized()) return;
 			// XZ 이동량이 거의 없으면 검증 불필요
 			const float moveXSq = tf->mMovingVector.x * tf->mMovingVector.x
 				+ tf->mMovingVector.z * tf->mMovingVector.z;

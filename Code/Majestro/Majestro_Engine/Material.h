@@ -24,7 +24,7 @@ enum
 
 struct MaterialParams
 {
-	Vec4 Diffuse{};
+	Vec4 Diffuse{ 1.f, 1.f, 1.f, 1.f };
 	Vec4 Ambient{};
 	Vec4 Specular{};
 	Vec3 Emission{};

@@ -99,8 +99,8 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 	std::cout << "Create Materail ID" << GetID() << std::endl;
 
 	mParams.Diffuse =/* fbxMat.MaterialValueInfo.Diffuse;*/Vec4(1.0f,1.0f,1.0f,1.0f);
-	mParams.Ambient = fbxMat.MaterialValueInfo.Ambient;
-	mParams.Specular = fbxMat.MaterialValueInfo.Specular;
+	mParams.Ambient = /*fbxMat.MaterialValueInfo.Ambient;*/ Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	mParams.Specular = /*fbxMat.MaterialValueInfo.Specular; */ Vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	mParams.Emission = fbxMat.MaterialValueInfo.Emission;
 
 	mParams.Metallic = 0;// fbxMat.MaterialValueInfo.Metallic;

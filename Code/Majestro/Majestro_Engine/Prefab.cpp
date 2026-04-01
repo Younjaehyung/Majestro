@@ -1111,8 +1111,9 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 			auto& text = world->AddComponent<UITextComponent>(hp);
 			text.mText = L"HP";
-				text.mOnTextChanged = [world, hp]() {
-					world->GetEventManager()->Consume<EvHealthChanged>([world, hp](const EvHealthChanged& e) {
+				text.mOnTextChanged = [world, hp, ownerEntity]() {
+					world->GetEventManager()->Consume<EvHealthChanged>([world, hp, ownerEntity](const EvHealthChanged& e) {
+						if (e.target != ownerEntity) return;
 						UITextComponent* t = world->GetComponent<UITextComponent>(hp);
 						if (t) t->mText = std::to_wstring(e.hp) + L"/" + std::to_wstring(e.maxHp);
 						});

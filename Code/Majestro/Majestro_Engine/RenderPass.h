@@ -13,10 +13,10 @@ class World;
 // ──────────────────────────────────────────────────────────────
 struct ColorGradingParams
 {
-	float  Saturation        = 1.0f;  // 채도 (1.0 = 기본, 0.0 = 흑백)
-	float  Contrast          = 1.0f;  // 대비 (1.0 = 기본)
+	float  Saturation        = 1.5f;  // 채도 (1.0 = 기본, 0.0 = 흑백)
+	float  Contrast          = 0.9f;  // 대비 (1.0 = 기본)
 	float  Brightness        = 0.0f;  // 밝기 보정 (0.0 = 기본)
-	float  Exposure          = 1.5f;  // 노출 보정 (1.0 = 기본, 톤매핑 전 HDR 배율)
+	float  Exposure          = 1.0f;  // 노출 보정 (1.0 = 기본, 톤매핑 전 HDR 배율)
 
 	Vec3   ShadowTint        = { 0.0f, 0.0f, 0.0f }; // 어두운 영역 색조 RGB 오프셋
 	float  ShadowStrength    = 1.0f;

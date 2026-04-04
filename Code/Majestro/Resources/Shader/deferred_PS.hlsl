@@ -109,7 +109,42 @@ PS_OUT PS_Main(VS_OUT input)
     output.normal = float4(viewNormal.xyz, metallic);
 
 
+    // ── 에미시브 처리 ──────────────────────────────────────────────────
+    // 에미시브 세기를 output.color.a (roughness 슬롯)에 저장.
+    // final_PS.hlsl에서 albedo * lightPower 와 별도로 더해
+    // 조명에 영향받지 않는 순수 발광 값이 HDR SceneColor에 도달하도록 함.
+    //
+    //   Gbuffer[3] 레이아웃:
+    //     .rgb = baseColor
+    //     .a   = roughness (에미시브 없는 경우)
+    //          = -roughness (에미시브 있는 경우 — 부호 플래그)
+    //           에미시브 세기는 별도 채널이 없으므로 materials.Emission.x를 roughness 자리에 패킹
+    //
+    // 주의: 에미시브가 있는 픽셀은 roughness를 에미시브 강도로 덮어쓴다.
+    //        final_PS.hlsl에서 Gbuffer[3].a < 0 이면 에미시브 픽셀로 판별.
+    // ─────────────────────────────────────────────────────────────────────
+    float3 emissiveColor = float3(0, 0, 0);
+    float  emissiveStrength = 1000.f;
+
+    if (materials.EmissiveMapIndex != -1)
+    {
+        // 에미시브 맵: [0,1] LDR 텍스처 → HDR 에너지로 스케일업
+        // 스케일 배율(100)은 머티리얼의 Emission.x로 제어 가능
+        float scale = (materials.Emission.x > 0.f) ? materials.Emission.x : 100.f;
+        emissiveColor    = TextureMaps[materials.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb * scale;
+        emissiveStrength = dot(emissiveColor, float3(0.2126f, 0.7152f, 0.0722f)); // luminance
+    }
+
+    // .a = roughness (양수) 또는 에미시브 세기 (음수 플래그로 구분)
+    // final_PS에서 abs(a) = roughness, sign(a) < 0 = 에미시브 픽셀
     output.color = float4(baseColor.rgb, roughness);
+
+    if (emissiveStrength > 0.f)
+    {
+        // 에미시브 픽셀: rgb에 에미시브 색 저장, a를 음수로 플래깅
+        // (baseColor는 lighting pass에서 사용 안 함 — 에미시브가 덮어씀)
+        output.color = float4(emissiveColor, -roughness - 0.001f);
+    }
 
     return output;
 }

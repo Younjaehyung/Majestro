@@ -276,7 +276,12 @@ enum class GBUFFER_INDEX : uint8		//DescriptorTable SRV
 
 	GBUFFER_CASCADE_INDEX,			//12
 
-
+	// Bloom 멀티스케일 피라미드 SRV 슬롯
+	// BloomMips[4] (t13~t16, space0) 에 매핑됨 — params.hlsl 참조
+	GBUFFER_BLOOM_MIP0_INDEX,		//13  1/2 해상도 (bright extract + 최종 누적)
+	GBUFFER_BLOOM_MIP1_INDEX,		//14  1/4 해상도
+	GBUFFER_BLOOM_MIP2_INDEX,		//15  1/8 해상도
+	GBUFFER_BLOOM_MIP3_INDEX,		//16  1/16 해상도 (leaf)
 
 	GBUFFER_INDEX_END
 };
@@ -340,6 +345,12 @@ enum class PASS_CUSTOM_INDEX : uint32 {
 	POST_MOTIONVEC_PASS,  //=8
 	POST_MOTIONBLUR_PASS, //=9
 	POST_LUMINANCE_PASS, //=10
+
+	// Bloom 멀티스케일 피라미드 패스
+	POST_BLOOM_BRIGHT_PASS,    // =11 HDR SceneColor → MIP0 (soft-knee 추출)
+	POST_BLOOM_DS_PASS,        // =12 다운샘플 (13-tap Karis)
+	POST_BLOOM_US_PASS,        // =13 업샘플 (tent filter, ONE_TO_ONE_BLEND)
+	POST_BLOOM_COMP_PASS,      // =14 Composite: HDR + MIP0 → output
 
 	PASS_CUSTOM_COUNT
 };

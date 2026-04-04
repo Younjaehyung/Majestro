@@ -26,6 +26,7 @@
 #include "CameraComponent.h"
 #include "PlayerComponent.h" 
 #include "TagComponent.h"
+#include "BloomPass.h"
 
 
 void GameRenderPipeline::Initialize(World* world)
@@ -58,6 +59,17 @@ void GameRenderPipeline::Initialize(World* world)
 
     mLuminancePass = make_shared<LuminancePass>();
     // mPostProcessPass->AddLDRPass(mLuminancePass);
+
+    // Bloom — HDR 멀티스케일 피라미드 (반드시 마지막 HDR 패스로 추가)
+    // Bright Extract → 13-tap Downsample → tent Upsample (additive) → Composite
+    // Composite 결과가 ToneMapPass의 입력이 됨.
+    mBloomPass = make_shared<BloomPass>();
+    mBloomPass->SetThreshold(1.0f);         // HDR 단위 (에미시브 밝기가 1.0 이상일 때 bloom 기여)
+    mBloomPass->SetKnee(0.5f);              // soft-knee 폭 (threshold * 0.5 권장)
+    mBloomPass->SetPrefilterStrength(1.0f);
+    mBloomPass->SetUpsampleStrength(0.85f); // 업샘플 단계별 기여 배율
+    mBloomPass->SetBloomIntensity(1.0f);    // 최종 HDR + bloom 합산 배율
+    mPostProcessPass->AddHDRPass(mBloomPass);
 }
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)

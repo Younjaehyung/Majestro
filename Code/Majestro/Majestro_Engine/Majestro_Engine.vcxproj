@@ -190,6 +190,7 @@
     <ClInclude Include="AudioVisualizerComponent.h" />
     <ClInclude Include="AudioVisualizerPass.h" />
     <ClInclude Include="AudioVisualizerSystem.h" />
+    <ClInclude Include="BloomPass.h" />
     <ClInclude Include="CircularVisualizerComponent.h" />
     <ClInclude Include="CircularVisualizerPass.h" />
     <ClInclude Include="BeatComponent.h" />
@@ -315,6 +316,7 @@
     <ClCompile Include="AudioVisualizerComponent.cpp" />
     <ClCompile Include="AudioVisualizerPass.cpp" />
     <ClCompile Include="AudioVisualizerSystem.cpp" />
+    <ClCompile Include="BloomPass.cpp" />
     <ClCompile Include="CircularVisualizerComponent.cpp" />
     <ClCompile Include="CircularVisualizerPass.cpp" />
     <ClCompile Include="BeatComponent.cpp" />

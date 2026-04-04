@@ -557,6 +557,9 @@
     <ClInclude Include="EffectFlagSystem.h">
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="BloomPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -895,6 +898,9 @@
     </ClCompile>
     <ClCompile Include="LobbyRenderPipeline.cpp">
       <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="BloomPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -316,6 +316,9 @@ ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
  ///////////////////////////G-BUFFER/////////////////////////////////
 Texture2D<float4> Gbuffer[12] : register(t0, space0);
 Texture2DArray ShadowMaps : register(t12, space0);
+// Bloom 피라미드 MIP RT (GBUFFER_BLOOM_MIP0_INDEX=13 ~ MIP3=16)
+// 인덱스: 0=1/2해상도(MIP0), 1=1/4(MIP1), 2=1/8(MIP2), 3=1/16(MIP3)
+Texture2D<float4> BloomMips[4] : register(t13, space0);
  ///////////////////////////////////////////////////////////////////
 
 

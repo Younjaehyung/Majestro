@@ -13,6 +13,7 @@ class MotionVectorPass;
 class FogPass;
 class MotionBlurPass;
 class LuminancePass;
+class BloomPass;
 
 
 // DepthPrePass / Shadow / GBuffer / Deferred Lighting /
@@ -61,6 +62,7 @@ private:
     shared_ptr<FogPass>          mFogPass;
     shared_ptr<MotionBlurPass>   mMotionBlurPass;
     shared_ptr<LuminancePass>    mLuminancePass;
+    shared_ptr<BloomPass>        mBloomPass;
 
     World* mWorld    = nullptr;
     bool   mIsPaused = false;

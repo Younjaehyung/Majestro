@@ -1401,6 +1401,8 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"ForwardPlusCull", shader);
 	}
 
+
+
 	// Luminance
 	{
 		ShaderInfo info =
@@ -1429,6 +1431,87 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Fog", shader);
+	}
+
+	// ─────────────────────────────────────────────────────────────────────
+	// Bloom 멀티스케일 피라미드 쉐이더
+	//  BloomBright     : HDR SceneColor → soft-knee 추출 → BLOOM_MIP0
+	//  BloomDownsample : 13-tap Karis average 다운샘플 (MIP0→MIP1→MIP2→MIP3)
+	//  BloomUpsample   : 3×3 tent filter 업샘플 (★ ONE_TO_ONE_BLEND 필수)
+	//  BloomComposite  : HDR + BLOOM_MIP0 → ToneMapPass 입력 HDR RT
+	// ─────────────────────────────────────────────────────────────────────
+
+	// BloomBright — HDR SceneColor에서 발광 영역 추출 (DEFAULT blend)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::TONEMAP,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::DEFAULT,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\bloom_bright_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Final", "PS_Main");
+		Add<Shader>(L"BloomBright", shader);
+	}
+
+	// BloomDownsample — 13-tap Karis average 다운샘플 (DEFAULT blend)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::TONEMAP,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::DEFAULT,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\bloom_downsample_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Final", "PS_Main");
+		Add<Shader>(L"BloomDownsample", shader);
+	}
+
+	// BloomUpsample — tent filter 업샘플
+	// ★ ONE_TO_ONE_BLEND: dst RT에 additive 누적 (Clear 없이 기존 downsampled 값 보존)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::TONEMAP,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ONE_TO_ONE_BLEND,  // ★ additive blend 필수
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\bloom_upsample_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Final", "PS_Main");
+		Add<Shader>(L"BloomUpsample", shader);
+	}
+
+	// BloomComposite — FinalHDR = HDR SceneColor + Bloom (ToneMapPass 입력)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::TONEMAP,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::DEFAULT,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\bloom_composite_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Final", "PS_Main");
+		Add<Shader>(L"BloomComposite", shader);
 	}
 }
 

@@ -18,6 +18,13 @@ enum class RENDER_TARGET_GROUP_TYPE : uint8
 	POST_LDR_A, //LDR 등 효과 처리용 RT
 	POST_LDR_B, //LDR 등 효과 처리용 RT
 	MOTION_VECTOR, // 모션 벡터 (velocity.xy)
+
+	// Bloom 멀티스케일 피라미드
+	// Bright Extract → 다운샘플 체인 → 업샘플 누적 → Composite
+	BLOOM_MIP0,   // 1/2 해상도 (bright extract 대상 & 최종 bloom 누적 결과)
+	BLOOM_MIP1,   // 1/4 해상도
+	BLOOM_MIP2,   // 1/8 해상도
+	BLOOM_MIP3,   // 1/16 해상도 (leaf — 가장 넓은 글로우 기여)
 	END,
 };
 

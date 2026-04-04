@@ -553,6 +553,89 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR)].Create(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR, rtVec, dsTexture);
 	}
+
+	// ─────────────────────────────────────────────────────────────────────
+	// Bloom 멀티스케일 피라미드 RT
+	//   포맷: R16G16B16A16_FLOAT  (HDR bloom을 tone-map 전에 합성하기 위해 HDR 포맷 유지)
+	//   해상도: 1/2, 1/4, 1/8, 1/16
+	//   dsTexture: 풀해상도를 그대로 넘겨도 DX12는 RT가 더 작아도 허용.
+	//              bloom 패스는 depth write/test 없이 실행하므로 실질적 문제 없음.
+	// ─────────────────────────────────────────────────────────────────────
+	{
+		// MIP0 — 1/2 해상도 (bright extract 대상 + 최종 bloom 누적 결과)
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"BloomMip0",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width / 2, mWindow.Height / 2,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP0)].Create(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP0, rtVec, dsTexture);
+	}
+	{
+		// MIP1 — 1/4 해상도
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"BloomMip1",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width / 4, mWindow.Height / 4,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP1)].Create(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP1, rtVec, dsTexture);
+	}
+	{
+		// MIP2 — 1/8 해상도
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"BloomMip2",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width / 8, mWindow.Height / 8,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP2)].Create(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP2, rtVec, dsTexture);
+	}
+	{
+		// MIP3 — 1/16 해상도 (leaf — 가장 넓은 글로우 기여)
+		vector<RenderTarget> rtVec(1);
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"BloomMip3",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width / 16, mWindow.Height / 16,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
+		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP3)].Create(RENDER_TARGET_GROUP_TYPE::BLOOM_MIP3, rtVec, dsTexture);
+	}
+	// ─────────────────────────────────────────────────────────────────────
+	// Bloom MIP SRV 수동 등록 (슬롯 13~16, BloomMips[0..3] → t13~t16 space0)
+	// 자동 루프에서 제외했으므로 여기서 명시적으로 생성한다.
+	// 포맷은 생성 시와 동일한 R16G16B16A16_FLOAT으로 고정.
+	// ─────────────────────────────────────────────────────────────────────
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE cpuBase = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+		uint32 srvStride = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		static const RENDER_TARGET_GROUP_TYPE kBloomGroups[4] = {
+			RENDER_TARGET_GROUP_TYPE::BLOOM_MIP0,
+			RENDER_TARGET_GROUP_TYPE::BLOOM_MIP1,
+			RENDER_TARGET_GROUP_TYPE::BLOOM_MIP2,
+			RENDER_TARGET_GROUP_TYPE::BLOOM_MIP3,
+		};
+		static const GBUFFER_INDEX kBloomGbufIdx[4] = {
+			GBUFFER_INDEX::GBUFFER_BLOOM_MIP0_INDEX,
+			GBUFFER_INDEX::GBUFFER_BLOOM_MIP1_INDEX,
+			GBUFFER_INDEX::GBUFFER_BLOOM_MIP2_INDEX,
+			GBUFFER_INDEX::GBUFFER_BLOOM_MIP3_INDEX,
+		};
+
+		for (int mip = 0; mip < 4; ++mip)
+		{
+			auto& rt = mRenderTargetGroup[static_cast<uint8>(kBloomGroups[mip])].GetRTG()[0];
+
+			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			srvDesc.Format                  = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			srvDesc.ViewDimension           = D3D12_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.Texture2D.MipLevels     = 1;
+
+			uint32 slot = static_cast<uint32>(kBloomGbufIdx[mip]);
+			D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuBase, slot * srvStride);
+			DEVICE->CreateShaderResourceView(rt.Target->GetTex2D().Get(), &srvDesc, srvHandle);
+			rt.Target->SetSrvHandle(srvHandle);
+		}
+	}
+
 	// PRE_DEPTH SRV: rtVec가 비어있으므로 루프 밖에서 별도 생성
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
@@ -574,7 +657,12 @@ void RenderManager::CreateRenderTargetGroups()
 
 		if (renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN
 			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN
-			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::PRE_DEPTH) {
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::PRE_DEPTH
+			// Bloom MIP RT는 아래에서 수동으로 SRV 등록 (슬롯 13~16)
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::BLOOM_MIP0
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::BLOOM_MIP1
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::BLOOM_MIP2
+			|| renderTargetGroup.GetGroupType() == RENDER_TARGET_GROUP_TYPE::BLOOM_MIP3) {
 			continue;
 		}
 

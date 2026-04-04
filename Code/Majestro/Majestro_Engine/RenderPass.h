@@ -13,19 +13,19 @@ class World;
 // ──────────────────────────────────────────────────────────────
 struct ColorGradingParams
 {
-	float  Saturation        = 1.5f;  // 채도 (1.0 = 기본, 0.0 = 흑백)
-	float  Contrast          = 0.9f;  // 대비 (1.0 = 기본)
+	float  Saturation        = 1.15f;  // 채도 (1.0 = 기본, 0.0 = 흑백)
+	float  Contrast          = 1.08f;  // 대비 (1.0 = 기본)
 	float  Brightness        = 0.0f;  // 밝기 보정 (0.0 = 기본)
 	float  Exposure          = 1.0f;  // 노출 보정 (1.0 = 기본, 톤매핑 전 HDR 배율)
 
-	Vec3   ShadowTint        = { 0.0f, 0.0f, 0.0f }; // 어두운 영역 색조 RGB 오프셋
-	float  ShadowStrength    = 1.0f;
+	Vec3   ShadowTint        = { 0.0f, 0.01f, 0.02f }; // 어두운 영역 색조 RGB 오프셋
+	float  ShadowStrength    = 0.12f;
 
-	Vec3   MidtoneTint       = { 0.0f, 0.0f, 0.0f }; // 중간 영역 색조 RGB 오프셋
-	float  MidtoneStrength   = 0.5f;
+	Vec3   MidtoneTint       = { 0.01f, 0.005f, 0.0f }; // 중간 영역 색조 RGB 오프셋
+	float  MidtoneStrength   = 0.08f;
 
-	Vec3   HighlightTint     = { 0.0f, 0.0f, 0.0f }; // 밝은 영역 색조 RGB 오프셋
-	float  HighlightStrength = 0.0f;
+	Vec3   HighlightTint     = { 0.015f, 0.005f, 0.0f }; // 밝은 영역 색조 RGB 오프셋
+	float  HighlightStrength = 0.05f;
 };
 
 inline GBUFFER_INDEX ToGBufferIndex(RENDER_TARGET_GROUP_TYPE type, uint32 subRtIndex = 0)

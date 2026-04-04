@@ -113,7 +113,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     mapped = ApplyColorGrading(mapped, data);
 
     // 감마 보정
-    float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 2.0f);
+    float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 2.2f);
    // float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 1.8f);
     
     

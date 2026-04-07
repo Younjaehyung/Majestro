@@ -244,7 +244,7 @@ void PlayerInputSystem::Update(float dt)
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
 			//std::cout << "skill1" << std::endl;
-			if (not mainPlayerComponent->mPlayerType == 1) {
+			if (mainPlayerComponent->mPlayerType != 1) {
 				if (mainPlayerComponent->mNextSkill1Time <= now) {
 					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
 					EnqueueAttackEventByCategory(*eventManager, e, bulletType);

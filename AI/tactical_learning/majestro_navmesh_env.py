@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import heapq
+import importlib
 import math
+import os
 import random
 import struct
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence, Tuple
@@ -271,8 +274,9 @@ class MajestroNavMeshEnv(gym.Env):
         observed_other_agents: int = 3,
         agent_radius: float = 90.0,
         success_radius: float = 120.0,
-        goal_spawn_min_scale: float = 4.0,
-        agent_spawn_min_scale: float = 2.0,
+        goal_spawn_min_scale: float = 0.001,
+        agent_spawn_min_scale: float = 0.00001,
+        agent_spawn_max_scale: float = 0.0001,
         max_steps: int = 512,
         seed: int = 1,
         grid_resolution: int = 256,
@@ -306,6 +310,7 @@ class MajestroNavMeshEnv(gym.Env):
         self.success_radius = float(success_radius)
         self.goal_spawn_min_scale = float(goal_spawn_min_scale)
         self.agent_spawn_min_scale = float(agent_spawn_min_scale)
+        self.agent_spawn_max_scale = float(max(agent_spawn_max_scale, self.agent_spawn_min_scale))
         self.max_steps = int(max_steps)
         self.base_max_steps = int(max_steps)
         self.grid_resolution = int(grid_resolution)
@@ -345,6 +350,9 @@ class MajestroNavMeshEnv(gym.Env):
         self._geo_goal_rc = None
         self._grid_tri_indices: List[List[int]] = []
         self._free_cells = None
+        self._detour_wrapper = None
+        self._detour_enabled = False
+        self._detour_last_error = ""
 
         self.agent_pos = np.zeros(2, dtype=np.float32)
         self.goal_pos = np.zeros(2, dtype=np.float32)
@@ -363,8 +371,9 @@ class MajestroNavMeshEnv(gym.Env):
         self.steps = 0
 
         self._build_raster_cache()
+        self._init_detour_wrapper()
 
-        obs_dim = 3 + 3 + 3 + 2 + self.observed_other_agents * 3 + 1 + 1
+        obs_dim = 3 + 3 + 3 + 2 + self.observed_other_agents * 3 + 1
         self.single_agent_obs_dim = int(obs_dim)
         self.single_agent_act_dim = 2
         self.observation_space = spaces.Box(
@@ -379,6 +388,59 @@ class MajestroNavMeshEnv(gym.Env):
             shape=(self.num_agents, self.single_agent_act_dim),
             dtype=np.float32,
         )
+
+    def _init_detour_wrapper(self) -> None:
+        self._detour_wrapper = None
+        self._detour_enabled = False
+        self._detour_last_error = ""
+
+        module_name = "detour_navmesh_py"
+        module_dir_env = os.environ.get("DETOUR_MODULE_DIR", "").strip()
+        search_dirs = []
+        if module_dir_env:
+            search_dirs.append(module_dir_env)
+        search_dirs.extend(
+            [
+                str(Path(__file__).resolve().parent / "native" / "runtime"),
+                str(Path(__file__).resolve().parent / "native"),
+                "/tmp/sac_detour_build",
+            ]
+        )
+
+        added_paths = []
+        try:
+            for module_dir in search_dirs:
+                if not module_dir:
+                    continue
+                if not Path(module_dir).exists():
+                    continue
+                if module_dir not in sys.path:
+                    sys.path.insert(0, module_dir)
+                    added_paths.append(module_dir)
+
+            module = importlib.import_module(module_name)
+            wrapper = module.DetourNavMeshWrapper()
+            if not wrapper.load_navmesh(self.navmesh_path):
+                self._detour_last_error = str(wrapper.last_error())
+                return
+            self._detour_wrapper = wrapper
+            self._detour_enabled = True
+        except Exception as exc:
+            self._detour_last_error = str(exc)
+        finally:
+            for added in added_paths:
+                if added in sys.path:
+                    sys.path.remove(added)
+
+    def _world3_to_detour_xyz(self, world3: np.ndarray) -> Tuple[float, float, float]:
+        return (
+            float(world3[2]) / 100.0,
+            float(world3[1]) / 100.0,
+            float(world3[0]) / 100.0,
+        )
+
+    def _detour_xyz_to_world3(self, x: float, y: float, z: float) -> np.ndarray:
+        return np.array([float(z) * 100.0, float(y) * 100.0, float(x) * 100.0], dtype=np.float32)
 
     def _build_raster_cache(self) -> None:
         span = self.bounds_max - self.bounds_min
@@ -750,6 +812,117 @@ class MajestroNavMeshEnv(gym.Env):
             return self.goal_pos.copy()
         return self._grid_rc_to_world(best[0], best[1]).astype(np.float32)
 
+    def _detour_next_waypoint(self, pos: np.ndarray, height: Optional[float] = None) -> Optional[np.ndarray]:
+        if not self._detour_enabled or self._detour_wrapper is None:
+            return None
+
+        cur_h = float(self.agent_height if height is None else height)
+        start3 = np.array([float(pos[0]), cur_h, float(pos[1])], dtype=np.float32)
+        goal3 = np.array([float(self.goal_pos[0]), float(self.goal_height), float(self.goal_pos[1])], dtype=np.float32)
+        sx, sy, sz = self._world3_to_detour_xyz(start3)
+        gx, gy, gz = self._world3_to_detour_xyz(goal3)
+
+        try:
+            waypoint = self._detour_wrapper.find_next_waypoint(sx, sy, sz, gx, gy, gz)
+        except Exception as exc:
+            self._detour_last_error = str(exc)
+            return None
+        if waypoint is None:
+            return None
+
+        wx, wy, wz = waypoint
+        world3 = self._detour_xyz_to_world3(wx, wy, wz)
+        return world3[[0, 2]].astype(np.float32)
+
+    def recover_fallback_path_world(
+        self,
+        start_pos: np.ndarray,
+        start_height: Optional[float] = None,
+        max_len: int = 256,
+    ) -> List[np.ndarray]:
+        pos = np.asarray(start_pos, dtype=np.float32).reshape(-1)[:2].copy()
+        cur_height = float(self.agent_height if start_height is None else start_height)
+
+        if self._detour_enabled:
+            pts: List[np.ndarray] = [pos.copy()]
+            seen = set()
+            step_eps = max(self._grid_cell_size * 0.25, 1.0)
+            for _ in range(max_len):
+                key = (round(float(pos[0]), 2), round(float(pos[1]), 2))
+                if key in seen:
+                    break
+                seen.add(key)
+
+                waypoint = self._detour_next_waypoint(pos, height=cur_height)
+                if waypoint is None:
+                    break
+                if float(np.linalg.norm(waypoint - pos)) <= step_eps:
+                    break
+                pts.append(waypoint.copy())
+                pos = waypoint
+                h = self._sample_height(pos)
+                if h is not None:
+                    cur_height = float(h)
+                if float(np.linalg.norm(self.goal_pos - pos)) <= max(self.step_size, self._grid_cell_size):
+                    pts.append(self.goal_pos.copy())
+                    break
+            return pts
+
+        if self._geo_map is None:
+            return []
+
+        rc = self._pos_to_geo_rc(pos)
+        rows, cols = self._geo_map.shape
+
+        def find_valid_start(r: int, c: int, radius: int = 3) -> Optional[Tuple[int, int]]:
+            if 0 <= r < rows and 0 <= c < cols and np.isfinite(self._geo_map[r, c]):
+                return r, c
+            for rad in range(1, radius + 1):
+                r0 = max(0, r - rad)
+                r1 = min(rows - 1, r + rad)
+                c0 = max(0, c - rad)
+                c1 = min(cols - 1, c + rad)
+                best = None
+                best_val = np.inf
+                for rr in range(r0, r1 + 1):
+                    for cc in range(c0, c1 + 1):
+                        v = float(self._geo_map[rr, cc])
+                        if np.isfinite(v) and v < best_val:
+                            best = (rr, cc)
+                            best_val = v
+                if best is not None:
+                    return best
+            return None
+
+        cur = find_valid_start(rc[0], rc[1], radius=3)
+        if cur is None:
+            return []
+
+        neighbors = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+        pts = [pos.copy()]
+        cur_val = float(self._geo_map[cur[0], cur[1]])
+
+        for _ in range(max_len):
+            if self._geo_goal_rc is not None and cur == self._geo_goal_rc:
+                break
+            best = None
+            best_val = cur_val
+            for dr, dc in neighbors:
+                rr = cur[0] + dr
+                cc = cur[1] + dc
+                if rr < 0 or rr >= rows or cc < 0 or cc >= cols:
+                    continue
+                v = float(self._geo_map[rr, cc])
+                if np.isfinite(v) and v + 1e-6 < best_val:
+                    best = (rr, cc)
+                    best_val = v
+            if best is None:
+                break
+            cur = best
+            cur_val = best_val
+            pts.append(self._grid_rc_to_world(cur[0], cur[1]))
+        return pts
+
     def _role_value(self, agent_index: int) -> np.ndarray:
         denom = max(1, ROLE_COUNT - 1)
         role_id = int(np.clip(self.agent_role_ids[agent_index], 0, ROLE_COUNT - 1))
@@ -915,8 +1088,6 @@ class MajestroNavMeshEnv(gym.Env):
         vel_norm = self.agent_velocities[agent_index] / max(self.step_size, 1.0)
 
         other_obs, fail_code = self._sense_local_space(agent_index, scale)
-        role_value = self._role_value(agent_index)
-
         obs = np.concatenate(
             [
                 agent_norm.astype(np.float32),
@@ -924,7 +1095,6 @@ class MajestroNavMeshEnv(gym.Env):
                 delta_norm.astype(np.float32),
                 vel_norm.astype(np.float32),
                 other_obs,
-                role_value,
                 np.array([fail_code], dtype=np.float32),
             ]
         )
@@ -933,12 +1103,29 @@ class MajestroNavMeshEnv(gym.Env):
     def _pack_observation(self) -> np.ndarray:
         return np.stack([self._pack_single_observation(i) for i in range(self.num_agents)], axis=0).astype(np.float32)
 
-    def _sample_spawn_point(self, avoid_points: List[np.ndarray], min_dist: float, tries: int = 128) -> Tuple[np.ndarray, float]:
+    def _sample_spawn_point(
+            self,
+            avoid_points: List[np.ndarray],
+            min_dist: float,
+            tries: int = 128,
+            anchor: Optional[np.ndarray] = None,
+            max_dist: Optional[float] = None,
+    ) -> Tuple[np.ndarray, float]:
         min_dist_sq = min_dist * min_dist
+        max_dist_sq = None
+        anchor_pos = None
+        if anchor is not None and max_dist is not None and float(max_dist) > 0.0:
+            max_dist_sq = float(max_dist) * float(max_dist)
+            anchor_pos = np.asarray(anchor, dtype=np.float32).reshape(-1)[:2]
         for _ in range(tries):
             idx = int(self.rng.randrange(len(self._free_cells)))
             rc = tuple(int(x) for x in self._free_cells[idx])
             pos = self._grid_rc_to_world(rc[0], rc[1])
+            if max_dist_sq is not None and anchor_pos is not None:
+                adx = float(pos[0] - anchor_pos[0])
+                adz = float(pos[1] - anchor_pos[1])
+                if adx * adx + adz * adz > max_dist_sq:
+                    continue
             ok = True
             for avoid in avoid_points:
                 dx = float(pos[0] - avoid[0])
@@ -948,6 +1135,33 @@ class MajestroNavMeshEnv(gym.Env):
                     break
             if ok:
                 return pos, float(self._height_map[rc[0], rc[1]])
+
+        if anchor_pos is not None and max_dist_sq is not None:
+            best_pos = None
+            best_height = None
+            best_d2 = None
+            for rc in self._free_cells:
+                pos = self._grid_rc_to_world(int(rc[0]), int(rc[1]))
+                adx = float(pos[0] - anchor_pos[0])
+                adz = float(pos[1] - anchor_pos[1])
+                anchor_d2 = adx * adx + adz * adz
+                if anchor_d2 > max_dist_sq:
+                    continue
+                ok = True
+                for avoid in avoid_points:
+                    dx = float(pos[0] - avoid[0])
+                    dz = float(pos[1] - avoid[1])
+                    if dx * dx + dz * dz < min_dist_sq:
+                        ok = False
+                        break
+                if not ok:
+                    continue
+                if best_d2 is None or anchor_d2 < best_d2:
+                    best_pos = pos
+                    best_height = float(self._height_map[int(rc[0]), int(rc[1])])
+                    best_d2 = anchor_d2
+            if best_pos is not None:
+                return best_pos.astype(np.float32), float(best_height)
 
         idx = int(self.rng.randrange(len(self._free_cells)))
         rc = tuple(int(x) for x in self._free_cells[idx])
@@ -964,8 +1178,14 @@ class MajestroNavMeshEnv(gym.Env):
         self.agent_heights[0] = self.agent_height
         avoid = [self.agent_pos.copy(), self.goal_pos.copy()]
         min_dist = max(self.agent_radius * 1.0, self.success_radius * self.agent_spawn_min_scale)
+        max_dist = max(min_dist, self.success_radius * self.agent_spawn_max_scale)
         for idx in range(1, self.num_agents):
-            pos, height = self._sample_spawn_point(avoid, min_dist=min_dist)
+            pos, height = self._sample_spawn_point(
+                avoid,
+                min_dist=min_dist,
+                anchor=self.agent_pos,
+                max_dist=max_dist,
+            )
             self.agent_positions[idx] = pos
             self.agent_heights[idx] = height
             avoid.append(pos.copy())
@@ -1073,7 +1293,9 @@ class MajestroNavMeshEnv(gym.Env):
             sensor_fail_codes[idx] = fail_code
             target_offset = np.clip(acts[idx], -1.0, 1.0) * self.tactical_target_radius
             if fail_code > 0.5:
-                waypoint = self._geo_next_waypoint(old_pos, max_search=3)
+                waypoint = self._detour_next_waypoint(old_pos, height=float(self.agent_heights[idx]))
+                if waypoint is None:
+                    waypoint = self._geo_next_waypoint(old_pos, max_search=3)
                 desired_target = self.goal_pos.copy() if waypoint is None else waypoint
             else:
                 desired_target = old_pos + target_offset

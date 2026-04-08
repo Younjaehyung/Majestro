@@ -57,9 +57,9 @@ struct RenderContext
 	std::vector<DrawBatch>* lightBatchs = nullptr;     // 라이트 배치
 
 	// cascade별 그림자 배치 — 각 인덱스에는 해당 cascade 구체와 교차하는 오브젝트만 포함
-	std::array<std::vector<DrawBatch>, 4>* cascadeBatchs = nullptr;
+	std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>* cascadeBatchs = nullptr;
 
-	std::array<bool, 4>* cascadeActive = nullptr;  // 활성 캐스케이드 플래그
+	std::array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>* cascadeActive = nullptr;  // 활성 캐스케이드 플래그
 
 	CameraComponent* camera = nullptr;
 	float                         deltaTime = 0.f;

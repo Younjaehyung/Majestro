@@ -191,8 +191,8 @@ private: // 배치 버퍼
   std::vector<DrawItem> mDeferredDrawItems;
 
 
-  std::array<std::vector<DrawItem>,  4> mCascadeDrawItems{};
-  std::array<std::vector<DrawBatch>, 4> mCascadeDrawBatchs{};
+  std::array<std::vector<DrawItem>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeDrawItems{};
+  std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeDrawBatchs{};
 
   std::vector<DrawBatch> mDeferredDrawBatchs;
   std::vector<DrawBatch> mLightDrawBatchs;
@@ -213,19 +213,20 @@ private:
   std::vector<MaterialParams> mMaterialVector;
   std::vector<PatricleParams> mPatricleVector;
 
-  array<bool, 4> mCascadeActive = { true, true, true, true };
-  array<float, 4> CascadeSplit = { 0.f, 0.f, 0.f, 0.f };
-  float mCascadeSplitLambda = 0.8f;
-  array<Matrix, 4> mCascadeView{};
-  array<Matrix, 4> mCascadeProjection{};
+  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
+  array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };
+  float mCascadeSplitLambda = 0.55f;
+  array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
+  array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
 
   // 라이트 프러스텀 구체 (shadow 컬링용)
-  array<Vec3, 4>  mCascadeFrustumCenter{};
-  array<float, 4> mCascadeFrustumRadius{};
+  array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>  mCascadeFrustumCenter{};
+  array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeFrustumRadius{};
 
 
-  array<Vec3, 4> mCascadeLightRight{};
-  array<Vec3, 4> mCascadeLightUp{};
+  array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeLightRight{};
+  array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeLightUp{};
+  bool mHasDirectionalShadow = false;
 
 private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms

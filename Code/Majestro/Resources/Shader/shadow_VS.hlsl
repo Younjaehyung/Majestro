@@ -30,7 +30,7 @@ VS_OUT VS_Main(VS_IN input)
     int index = instance.ObjectIndex;
 
   
-    uint cascadeIndex = min(GlobalParams.casdcae, 3);
+    uint cascadeIndex = min(GlobalParams.casdcae, 2);
     matrix shadowVP = PassParams.CascadeShadowVP[cascadeIndex];
     
     

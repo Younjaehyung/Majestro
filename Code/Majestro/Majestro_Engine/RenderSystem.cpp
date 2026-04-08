@@ -184,8 +184,11 @@ void RenderSystem::PushFrameData() {
       static_cast<float>(RENDERMANAGER.GetWindow().Width),
       static_cast<float>(RENDERMANAGER.GetWindow().Height)};
   passParams.TotalTime = TIMER.GetTotalTime();
-  passParams.CascadeSplitDistances =
-      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
+  if (mHasDirectionalShadow && mCamera)
+      passParams.CascadeSplitDistances =
+      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mShadowFar);
+  else
+      passParams.CascadeSplitDistances = Vec4(0.f, 0.f, 0.f, 0.f);
 
   // UpdateCascadeShadowMatrices는 PushShadowCascades()에서 이미 처리됨
 
@@ -723,18 +726,33 @@ void RenderSystem::PushObjectData() {
 
 
 void RenderSystem::PushShadowCascades() {
+    mHasDirectionalShadow = false;
+
+    for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
+        mCascadeActive[ci] = false;
+        CascadeSplit[ci] = 0.f;
+        passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
+    }
+
+    for (uint32 ci = RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ci < 4; ++ci)
+        passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
+
     for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
         LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(light);
         if (lightComponent->mLightInfo.LightType !=
             static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
             continue;
         UpdateCascadeShadowMatrices(lightComponent);
+        mHasDirectionalShadow = true;
+        break;
     }
+    if (!mHasDirectionalShadow)
+        passParams.CascadeSplitDistances = Vec4(0.f, 0.f, 0.f, 0.f);
 }
 
 void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
-  const float cameraNear = mCamera->mShadowNear;
-  const float cameraFar = mCamera->mShadowFar;
+    const float cameraNear = max(mCamera->mShadowNear, mCamera->mNear);
+    const float cameraFar = min(max(mCamera->mShadowFar, cameraNear + 0.001f), mCamera->mFar);
 
   const float nearForSplit = max(cameraNear, 0.001f);
   const float farForSplit = max(cameraFar, nearForSplit + 0.001f);
@@ -794,8 +812,8 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
       continue;
     }
     mCascadeActive[cascadeIndex] = true;
-    const float nearT = (splitNear - mCamera->mNear) / cameraRange;
-    const float farT = (splitFar - mCamera->mNear) / cameraRange;
+    const float nearT = min(max((splitNear - mCamera->mNear) / cameraRange, 0.0f), 1.0f);
+    const float farT = min(max((splitFar - mCamera->mNear) / cameraRange, 0.0f), 1.0f);
 
     array<Vec3, 8> worldCorners{};
     Vec3 frustumCenter = Vec3::Zero;
@@ -865,7 +883,10 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   }
 
   passParams.CascadeSplitDistances =
-      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], CascadeSplit[3]);
+      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], cameraFar);
+
+  for (uint32 ci = RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ci < 4; ++ci)
+      passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
 }
 
 

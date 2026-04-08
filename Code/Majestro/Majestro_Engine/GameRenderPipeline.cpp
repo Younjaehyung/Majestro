@@ -237,7 +237,7 @@ void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 {
     mShadowPass->Execute(
         *ctx.cascadeBatchs,
-        const_cast<std::array<bool, 4>&>(*ctx.cascadeActive));
+        const_cast<std::array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>&>(*ctx.cascadeActive));
 }
 
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)

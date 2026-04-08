@@ -15,7 +15,7 @@ void ShadowPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUS
 
 }
 
-void ShadowPass::Execute(std::array<std::vector<DrawBatch>, 4>& cascadeDrawBatchs, array<bool, 4>& cascadeActive)
+void ShadowPass::Execute(std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeDrawBatchs, array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeActive)
 {
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
 

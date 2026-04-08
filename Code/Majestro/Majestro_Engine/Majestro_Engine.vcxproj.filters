@@ -184,6 +184,15 @@
     <Filter Include="World\System\Render\00.Pipeline">
       <UniqueIdentifier>{a9b288e8-a61f-400b-8cac-2c07a2211362}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\Render\08.Post\HDR">
+      <UniqueIdentifier>{b4f8f728-ab2e-4742-8412-903ddf55e60f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\08.Post\LDR">
+      <UniqueIdentifier>{66d96ce9-e9ff-4971-81ff-e0abd2cbf329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\08.Post\ETC">
+      <UniqueIdentifier>{9a36c340-8aed-44fb-af15-ee033162ffd0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -475,18 +484,6 @@
     <ClInclude Include="EffectPass.h">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
-    <ClInclude Include="ChromaticAberrationPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="MotionVectorPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="MotionBlurPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="ToneMapPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
     <ClInclude Include="GBufferPass.h">
       <Filter>World\System\Render\06.Deferred</Filter>
     </ClInclude>
@@ -495,9 +492,6 @@
     </ClInclude>
     <ClInclude Include="ForwardPass.h">
       <Filter>World\System\Render\05.Forward</Filter>
-    </ClInclude>
-    <ClInclude Include="FinalCompositePass.h">
-      <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="FinalPass.h">
       <Filter>World\System\Render\06.Deferred</Filter>
@@ -517,31 +511,10 @@
     <ClInclude Include="RenderPass.h">
       <Filter>World\System\Render</Filter>
     </ClInclude>
-    <ClInclude Include="FogPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="GodRayPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="LuminancePass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
     <ClInclude Include="OutlinePass.h">
       <Filter>World\System\Render\05.Forward</Filter>
     </ClInclude>
-    <ClInclude Include="AudioVisualizerSystem.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="AudioVisualizerPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
-    <ClInclude Include="AudioVisualizerComponent.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
     <ClInclude Include="CircularVisualizerComponent.h" />
-    <ClInclude Include="CircularVisualizerPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
     <ClInclude Include="GameMode.h">
       <Filter>World\Script</Filter>
     </ClInclude>
@@ -559,6 +532,42 @@
     </ClInclude>
     <ClInclude Include="EffectFlagSystem.h">
       <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="GodRayPass.h">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClInclude>
+    <ClInclude Include="FogPass.h">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClInclude>
+    <ClInclude Include="LuminancePass.h">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionBlurPass.h">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClInclude>
+    <ClInclude Include="ChromaticAberrationPass.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVisualizerSystem.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVisualizerPass.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVisualizerComponent.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClInclude>
+    <ClInclude Include="CircularVisualizerPass.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClInclude>
+    <ClInclude Include="FinalCompositePass.h">
+      <Filter>World\System\Render\08.Post\LDR</Filter>
+    </ClInclude>
+    <ClInclude Include="ToneMapPass.h">
+      <Filter>World\System\Render\08.Post\LDR</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionVectorPass.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -829,18 +838,6 @@
     <ClCompile Include="EffectPass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
-    <ClCompile Include="ChromaticAberrationPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="MotionVectorPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="MotionBlurPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="ToneMapPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
     <ClCompile Include="GBufferPass.cpp">
       <Filter>World\System\Render\06.Deferred</Filter>
     </ClCompile>
@@ -849,9 +846,6 @@
     </ClCompile>
     <ClCompile Include="ForwardPass.cpp">
       <Filter>World\System\Render\05.Forward</Filter>
-    </ClCompile>
-    <ClCompile Include="FinalCompositePass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="FinalPass.cpp">
       <Filter>World\System\Render\06.Deferred</Filter>
@@ -868,31 +862,10 @@
     <ClCompile Include="RenderPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
-    <ClCompile Include="FogPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="GodRayPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="LuminancePass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
     <ClCompile Include="OutlinePass.cpp">
       <Filter>World\System\Render\05.Forward</Filter>
     </ClCompile>
-    <ClCompile Include="AudioVisualizerSystem.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="AudioVisualizerPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
-    <ClCompile Include="AudioVisualizerComponent.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
     <ClCompile Include="CircularVisualizerComponent.cpp" />
-    <ClCompile Include="CircularVisualizerPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
     <ClCompile Include="GameMode.cpp">
       <Filter>World\Script</Filter>
     </ClCompile>
@@ -901,6 +874,42 @@
     </ClCompile>
     <ClCompile Include="LobbyRenderPipeline.cpp">
       <Filter>World\System\Render\00.Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="GodRayPass.cpp">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="FogPass.cpp">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="LuminancePass.cpp">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionBlurPass.cpp">
+      <Filter>World\System\Render\08.Post\HDR</Filter>
+    </ClCompile>
+    <ClCompile Include="ChromaticAberrationPass.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVisualizerSystem.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVisualizerPass.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVisualizerComponent.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="CircularVisualizerPass.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="FinalCompositePass.cpp">
+      <Filter>World\System\Render\08.Post\LDR</Filter>
+    </ClCompile>
+    <ClCompile Include="ToneMapPass.cpp">
+      <Filter>World\System\Render\08.Post\LDR</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionVectorPass.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -10,15 +10,15 @@ public:
 
 	void Initialize();
 	void SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after) override;
-	void Execute(std::array<std::vector<DrawBatch>, 4>& cascadeDrawBatchs, array<bool, 4>& cascadeActive);
+	void Execute(std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeDrawBatchs, array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeActive);
 
 	void RenderShadowCamera(std::vector<DrawBatch>& drawBatchs, uint32 cascadeIndex);
 
 	void InstancingRender(DrawBatch& drawBatch);
 private:
 
-	array<Matrix, 4> mCascadeView{};
-	array<Matrix, 4> mCascadeProjection{};
+	array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
+	array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
 
 	struct dummy {
 		uint32 BaseInstance;

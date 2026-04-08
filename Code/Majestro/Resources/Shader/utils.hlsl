@@ -811,7 +811,7 @@ uint SelectCascadeIndex(float viewDepth)
         return 1;
     if (viewDepth <= splits.z)
         return 2;
-    return 3;
+    return 2;
 }
 
 
@@ -857,10 +857,10 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     {
         // 근거리 cascade: 5x5 
         [unroll]
-        for (int y = -2; y <= 2; ++y)
+        for (int y = -1; y <= 1; ++y)
         {
             [unroll]
-            for (int x = -2; x <= 2; ++x)
+            for (int x = -1; x <= 1; ++x)
             {
                 float2 offset = float2(x, y);
                 float weight = 1.0f / (1.0f + dot(offset, offset));
@@ -913,7 +913,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     float4 splits = PassParams.CascadeSplitDistances;
 
     // 캐스케이드 경계 블렌딩 틈새 방지
-    if (cascadeIndex < 3)
+    if (cascadeIndex < 2)
     {
         float splitDist = splits[cascadeIndex];
         float prevSplit = (cascadeIndex == 0) ? 0.0f : splits[cascadeIndex - 1];
@@ -936,7 +936,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
             visibility = lerp(visibility, nextVisibility, validBlend);
         }
     }
-    else // cascadeIndex == 3
+    else // cascadeIndex == 2 (마지막 캐스케이드)
     {
         float splitFar = splits.w;
         float fadeStart = splitFar * 0.85f; // 마지막 15% 구간에서 서서히 사라짐

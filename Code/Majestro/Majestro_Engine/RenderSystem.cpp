@@ -296,18 +296,23 @@ void RenderSystem::PushLandData() {
   case 6:
     if (recomp->mMaterials[5] && recomp->mMaterials[5]->GetID())
       passParams.TerrainSlot6 = recomp->mMaterials[5]->GetIndex();
+    //
   case 5:
     if (recomp->mMaterials[4] && recomp->mMaterials[4]->GetID())
       passParams.TerrainSlot5 = recomp->mMaterials[4]->GetIndex();
+    //
   case 4:
     if (recomp->mMaterials[3] && recomp->mMaterials[3]->GetID())
       passParams.TerrainSlot4 = recomp->mMaterials[3]->GetIndex();
+    //
   case 3:
     if (recomp->mMaterials[2] && recomp->mMaterials[2]->GetID())
       passParams.TerrainSlot3 = recomp->mMaterials[2]->GetIndex();
+    //
   case 2:
     if (recomp->mMaterials[1] && recomp->mMaterials[1]->GetID())
       passParams.TerrainSlot2 = recomp->mMaterials[1]->GetIndex();
+    //
   case 1:
     if (recomp->mMaterials[0] && recomp->mMaterials[0]->GetID())
       passParams.TerrainSlot1 = recomp->mMaterials[0]->GetIndex();
@@ -734,8 +739,6 @@ void RenderSystem::PushShadowCascades() {
         passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
     }
 
-    for (uint32 ci = RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ci < 4; ++ci)
-        passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
 
     for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
         LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(light);
@@ -793,10 +796,6 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     lightDir = Vec3(0.f, -1.f, 0.f);
   lightDir.Normalize();
 
-
-  constexpr float shadowMapSize = 2048.f;
-
-  // CascadeSplit[]은 함수 상단에서 mCascadeSplitLambda를 반영해 이미 계산됨
 
 
 
@@ -885,8 +884,6 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   passParams.CascadeSplitDistances =
       Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], cameraFar);
 
-  for (uint32 ci = RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ci < 4; ++ci)
-      passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
 }
 
 

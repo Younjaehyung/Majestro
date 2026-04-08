@@ -1,6 +1,9 @@
 #ifndef _PARAMS_HLSL_
 #define _PARAMS_HLSL_
 
+
+#define RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT 3
+
 //////////////Light
 struct LightColor
 {
@@ -249,7 +252,7 @@ struct PASSINFO
 
 	float4 CascadeSplitDistances;
 
-    matrix CascadeShadowVP[4];
+    matrix CascadeShadowVP[RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT];
 
     // IBL 추가 파라미터 (C++ PassParams 끝 필드와 동일)
     int BrdfLutIndex;         // TextureMaps 배열 인덱스 (BRDF LUT 2D)

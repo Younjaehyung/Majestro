@@ -243,16 +243,20 @@ struct S2C_MovePacket : public PacketUdpHeader {
 	uint32_t netEntityId{};
 	float    x{}, y{}, z{};
 	float   yaw{}, pitch{};
-	float	rx, ry, rz, rw; // rotation quaternion
+	float	rx{}, ry{}, rz{}, rw{}; // rotation quaternion
 	float    vx{}, vy{}, vz{};
 	S2C_MovePacket() : PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 } {}
 	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
-		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle) {
+		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), rx(0), ry(0), rz(0), rw(1) {
 	}
 	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float velX, float velY, float velZ)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
-		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), vx(velX), vy(velY), vz(velZ) {
+		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), vx(velX), vy(velY), vz(velZ), rx(0), ry(0), rz(0), rw(1) {
+	}
+	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float rotX, float rotY, float rotZ, float rotW)
+		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
+		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), rx(rotX), ry(rotY), rz(rotZ), rw(rotW) {
 	}
 };
 

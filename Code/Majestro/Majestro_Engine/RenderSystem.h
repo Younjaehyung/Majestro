@@ -63,7 +63,7 @@ struct PassParams {
   int32 PreFilteredEnvIndex{-1}; // CubeBoxMaps 배열 인덱스 (IBL Specular)
 
   Vec4 CascadeSplitDistances;
-  array<Matrix, 4> CascadeShadowVP{};
+  array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeShadowVP{};
 
   // IBL 추가 파라미터 (구조체 끝, HLSL과 레이아웃 동일)
   int32 BrdfLutIndex{-1};        // TextureMaps 배열 인덱스 (BRDF LUT 2D)
@@ -218,7 +218,7 @@ private:
   float mCascadeSplitLambda = 0.55f;
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
-
+  float shadowMapSize = 4096.f;
   // 라이트 프러스텀 구체 (shadow 컬링용)
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>  mCascadeFrustumCenter{};
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeFrustumRadius{};

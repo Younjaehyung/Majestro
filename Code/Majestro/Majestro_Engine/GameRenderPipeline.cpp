@@ -62,7 +62,7 @@ void GameRenderPipeline::Initialize(World* world)
 
     // VLS GodRay — Fog 다음에 HDR 체인에 등록
     mGodRayPass = make_shared<GodRayPass>();
-    mGodRayPass->SetIntensity(3.75f);
+    mGodRayPass->SetIntensity(1.75f);
     mGodRayPass->SetNumSteps(32);
     mGodRayPass->SetMaxRayLen(8000.0f);
     mGodRayPass->SetScatterCoeff(0.00008f);

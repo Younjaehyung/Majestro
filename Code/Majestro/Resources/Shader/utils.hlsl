@@ -6,6 +6,29 @@
 #include "math.hlsl"
 
 
+// Henyey-Greenstein Mie 산란 위상 함수
+float MiePhase(float cosTheta, float g)
+{
+    float g2 = g * g;
+    float denom = 1.0f + g2 - 2.0f * g * cosTheta;
+    return (1.0f - g2) / (4.0f * 3.14159265f * pow(max(denom, 0.0001f), 1.5f));
+}
+
+// 낮은-차이 노이즈(Bayer-like dither) — 레이마칭 밴딩 억제
+float BayerDither(float2 screenPos)
+{
+    uint2 p = uint2(screenPos) & 3u; // 4×4 타일
+    uint idx = p.y * 4u + p.x;
+    // 4×4 Bayer 행렬 (정규화된 0~1)
+    static const float bayer[16] =
+    {
+        0.0f / 16.f, 8.0f / 16.f, 2.0f / 16.f, 10.0f / 16.f,
+       12.0f / 16.f, 4.0f / 16.f, 14.0f / 16.f, 6.0f / 16.f,
+        3.0f / 16.f, 11.0f / 16.f, 1.0f / 16.f, 9.0f / 16.f,
+       15.0f / 16.f, 7.0f / 16.f, 13.0f / 16.f, 5.0f / 16.f,
+    };
+    return bayer[idx];
+}
 
 float3 CalcWindOffset(float3 worldPos, float localY, float4 windParam)
 {

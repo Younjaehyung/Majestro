@@ -15,6 +15,8 @@
 #include "MotionBlurPass.h"
 #include "LuminancePass.h"
 #include "ToneMapPass.h"
+#include "GodRayPass.h"
+#include "LightComponent.h"
 
 
 #include "Engine.h"
@@ -53,11 +55,24 @@ void GameRenderPipeline::Initialize(World* world)
     mMotionBlurPass = make_shared<MotionBlurPass>();
     mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
-    mFogPass = make_shared<FogPass>();
-    mPostProcessPass->AddHDRPass(mFogPass);
+   
 
     mLuminancePass = make_shared<LuminancePass>();
     // mPostProcessPass->AddLDRPass(mLuminancePass);
+
+    // VLS GodRay — Fog 다음에 HDR 체인에 등록
+    mGodRayPass = make_shared<GodRayPass>();
+    mGodRayPass->SetIntensity(3.75f);
+    mGodRayPass->SetNumSteps(32);
+    mGodRayPass->SetMaxRayLen(8000.0f);
+    mGodRayPass->SetScatterCoeff(0.00008f);
+    mGodRayPass->SetMieAsymmetry(0.76f);
+    mGodRayPass->SetSunColor(Vec3(1.0f, 0.97f, 0.82f));
+    mGodRayPass->SetAbsorptionCoeff(0.00002f);
+    mPostProcessPass->AddHDRPass(mGodRayPass);
+
+    mFogPass = make_shared<FogPass>();
+    mPostProcessPass->AddHDRPass(mFogPass);
 }
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)
@@ -100,6 +115,24 @@ void GameRenderPipeline::SetupPassTable(
     mMotionVectorPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,
         RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR);
+
+    // GodRay: 매 프레임 DirectionalLight 방향을 읽어 갱신
+    if (mGodRayPass && mWorld && mWorld->HasComponentPool<LightComponent>())
+    {
+        auto lights = mWorld->GetEntitiesWithComponent<LightComponent>();
+        for (auto e : lights)
+        {
+            auto* light = mWorld->GetComponent<LightComponent>(e);
+            if (light && light->GetLightType() == LIGHT_TYPE::DIRECTIONAL_LIGHT)
+            {
+                Vec3 dir = Vec3(light->mLightInfo.Direction.x,
+                                light->mLightInfo.Direction.y,
+                                light->mLightInfo.Direction.z);
+                mGodRayPass->SetSunDirection(dir);
+                break;
+            }
+        }
+    }
 
     mPostProcessPass->SetData(table);
 }
@@ -169,6 +202,11 @@ void GameRenderPipeline::SetMotionBlurEnabled(bool on)
 void GameRenderPipeline::SetFogEnabled(bool on)
 {
     if (mFogPass) mFogPass->SetEnabled(on);
+}
+
+void GameRenderPipeline::SetGodRayEnabled(bool on)
+{
+    if (mGodRayPass) mGodRayPass->SetEnabled(on);
 }
 
 void GameRenderPipeline::SetOutlineEnabled(bool on)

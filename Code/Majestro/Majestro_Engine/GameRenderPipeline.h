@@ -13,6 +13,7 @@ class MotionVectorPass;
 class FogPass;
 class MotionBlurPass;
 class LuminancePass;
+class GodRayPass;
 
 
 // DepthPrePass / Shadow / GBuffer / Deferred Lighting /
@@ -42,6 +43,9 @@ public:
     void SetMotionBlurEnabled(bool on);
     void SetFogEnabled(bool on);
     void SetOutlineEnabled(bool on);
+    void SetGodRayEnabled(bool on);
+
+    GodRayPass* GetGodRayPass() const { return mGodRayPass.get(); }
 
     // 동적 HDR PostProcess 추가/제거
     void AddHDREffect(shared_ptr<class RenderPass> pass);
@@ -61,6 +65,7 @@ private:
     shared_ptr<FogPass>          mFogPass;
     shared_ptr<MotionBlurPass>   mMotionBlurPass;
     shared_ptr<LuminancePass>    mLuminancePass;
+    shared_ptr<GodRayPass>       mGodRayPass;
 
     World* mWorld    = nullptr;
     bool   mIsPaused = false;

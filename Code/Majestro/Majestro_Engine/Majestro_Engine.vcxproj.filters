@@ -520,6 +520,9 @@
     <ClInclude Include="FogPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
+    <ClInclude Include="GodRayPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
     <ClInclude Include="LuminancePass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
@@ -868,6 +871,9 @@
     <ClCompile Include="FogPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
+    <ClCompile Include="GodRayPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
     <ClCompile Include="LuminancePass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
@@ -1077,6 +1083,9 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_alpha_VS.hlsl">
       <Filter>World\Resource\Shader\50.Forward</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

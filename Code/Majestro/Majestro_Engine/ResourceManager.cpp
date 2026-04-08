@@ -1430,6 +1430,23 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Fog", shader);
 	}
+
+	// GodRay — Volumetric Light Scattering (레이마칭 + CSM Shadow)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\godray_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"GodRay", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()

@@ -8,6 +8,8 @@ class PostProcessPass;
 class FogPass;
 class GBufferPass;
 class LightsPass;
+class ShadowPass;
+class OutlinePass;
 
 // 로비 / 메인메뉴 / 로딩 / 결과 씬용 간소 파이프라인
 // ForwardPass / EffectPass / PostProcess(ToneMap + FinalComposite)
@@ -29,12 +31,14 @@ public:
     void RenderDeferred(const RenderContext& ctx);
 private:
     shared_ptr<DepthPrePass>        mDepthPrePass;
+    shared_ptr<ShadowPass>          mShadowPass;
     shared_ptr<ForwardPass>         mForwardPass;
     shared_ptr<EffectPass>          mEffectPass;
     shared_ptr<PostProcessPass>     mPostProcessPass;
     shared_ptr<FogPass>             mFogPass;
     shared_ptr<GBufferPass>         mGBufferPass;
     shared_ptr<LightsPass>          mLightPass;
+    shared_ptr<OutlinePass>         mOutlinePass;
 
     World* mWorld = nullptr;
 };

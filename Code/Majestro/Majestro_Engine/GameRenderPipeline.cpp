@@ -39,23 +39,30 @@ void GameRenderPipeline::Initialize(World* world)
     mShadowPass      = make_shared<ShadowPass>();
     mGBufferPass     = make_shared<GBufferPass>();
     mLightPass       = make_shared<LightsPass>();
+    mMotionVectorPass = make_shared<MotionVectorPass>();
     mForwardPass     = make_shared<ForwardPass>();
     mOutlinePass     = make_shared<OutlinePass>();
     mEffectPass      = make_shared<EffectPass>();
     mPostProcessPass = make_shared<PostProcessPass>();
 
     mDepthPrePass->Initialize();
+	mShadowPass->Initialize();
+	mGBufferPass->Initialize();
+	mLightPass->Initialize();
+    mMotionVectorPass->Initialize();
+	mForwardPass->Initialize();
+	mOutlinePass->Initialize();
     mEffectPass->Initialize(world);
     mPostProcessPass->Initialize();
 
-    mMotionVectorPass = make_shared<MotionVectorPass>();
-    mMotionVectorPass->Initialize();
 
-
+    
+   
     mMotionBlurPass = make_shared<MotionBlurPass>();
     mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
-   
+    mFogPass = make_shared<FogPass>();
+    mPostProcessPass->AddHDRPass(mFogPass);
 
     mLuminancePass = make_shared<LuminancePass>();
     // mPostProcessPass->AddLDRPass(mLuminancePass);
@@ -71,8 +78,7 @@ void GameRenderPipeline::Initialize(World* world)
     mGodRayPass->SetAbsorptionCoeff(0.00002f);
     mPostProcessPass->AddHDRPass(mGodRayPass);
 
-    mFogPass = make_shared<FogPass>();
-    mPostProcessPass->AddHDRPass(mFogPass);
+    
 }
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)

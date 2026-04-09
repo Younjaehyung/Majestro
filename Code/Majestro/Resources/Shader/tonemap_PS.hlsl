@@ -70,8 +70,8 @@ float3 ApplyColorGrading(float3 color, PASS_CUSTOM_DATA data)
     // 대비 보정 (0.5 기준 선형 스케일)
     color = saturate((color - 0.5f) * contrast + 0.5f);
 
-    // 채도 보정 (Rec.709 휘도 가중치)
-    float lum = dot(color, float3(0.2126f, 0.7152f, 0.0722f));
+    // 채도 보정 (Rec.2020 휘도 가중치)
+    float lum = dot(color, float3(0.2627f, 0.6780f, 0.0593f));
     color = saturate(lerp(lum.xxx, color, saturation));
 
     // Shadow / Midtone / Highlight 색조
@@ -83,7 +83,7 @@ float3 ApplyColorGrading(float3 color, PASS_CUSTOM_DATA data)
     float  highlightStr   = data.ExtValue[3].w;
 
     // 각 영역 마스크 (0~1)
-    float curLum        = dot(color, float3(0.2126f, 0.7152f, 0.0722f));
+    float curLum = dot(color, float3(0.2627f, 0.6780f, 0.0593f));
     float shadowMask    = 1.0f - smoothstep(0.0f,  0.45f, curLum);
     float highlightMask = smoothstep(0.55f, 1.0f,  curLum);
     float midtoneMask   = saturate(1.0f - shadowMask - highlightMask);

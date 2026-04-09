@@ -2,6 +2,7 @@
 #include "LobbyRenderPipeline.h"
 
 #include "DepthPrePass.h"
+#include "ShadowPass.h"
 #include "ForwardPass.h"
 #include "EffectPass.h"
 #include "RenderPass.h"   // PostProcessPass
@@ -9,6 +10,7 @@
 #include "ToneMapPass.h"
 #include "GBufferPass.h"
 #include "LightsPass.h"
+#include "OutlinePass.h"
 
 #include "Engine.h"
 #include "RenderManager.h"
@@ -29,15 +31,23 @@ void LobbyRenderPipeline::Initialize(World* world)
     
 
     mDepthPrePass       = make_shared<DepthPrePass>();
+    mShadowPass         = make_shared<ShadowPass>();
+    mGBufferPass        = make_shared<GBufferPass>();
+    mLightPass          = make_shared<LightsPass>();
     mForwardPass        = make_shared<ForwardPass>();
+    mOutlinePass        = make_shared<OutlinePass>();
     mEffectPass         = make_shared<EffectPass>();
     mPostProcessPass    = make_shared<PostProcessPass>();
-	mGBufferPass        = make_shared<GBufferPass>();
-	mLightPass          = make_shared<LightsPass>();   
+	
 
     mEffectPass->Initialize(world);
     mPostProcessPass->Initialize();
     mDepthPrePass->Initialize();
+    mShadowPass->Initialize();
+    mGBufferPass->Initialize();
+    mLightPass->Initialize();
+    mForwardPass->Initialize();
+    mOutlinePass->Initialize();
 
 
     mFogPass = make_shared<FogPass>();
@@ -57,8 +67,24 @@ void LobbyRenderPipeline::SetupPassTable(
         RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,
 		RENDER_TARGET_GROUP_TYPE::PRE_DEPTH);
 
+    mShadowPass->SetData(table,
+        RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,
+        RENDER_TARGET_GROUP_TYPE::SHADOW);
+
+    mGBufferPass->SetData(table,
+        RENDER_TARGET_GROUP_TYPE::SHADOW,
+        RENDER_TARGET_GROUP_TYPE::G_BUFFER);
+
+    mLightPass->SetData(table,
+        RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,
+        RENDER_TARGET_GROUP_TYPE::LIGHTING);
+
     mForwardPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,
+        RENDER_TARGET_GROUP_TYPE::HDR);
+
+    mOutlinePass->SetData(table,
+        RENDER_TARGET_GROUP_TYPE::HDR,
         RENDER_TARGET_GROUP_TYPE::HDR);
 
     mEffectPass->SetData(table,

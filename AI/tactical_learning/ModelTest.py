@@ -19,6 +19,16 @@ ROLE_NAMES = {
     1: "flank_l",
     2: "flank_r",
     3: "cover",
+    4: "base",
+    5: "surround",
+}
+
+HEURISTIC_SHORT = {
+    "fixed": "fix",
+    "balanced": "bal",
+    "pressure": "prs",
+    "encircle": "enc",
+    "mobility": "mob",
 }
 
 ROLE_COLORS = {
@@ -26,7 +36,11 @@ ROLE_COLORS = {
     1: (110, 220, 255),
     2: (255, 210, 90),
     3: (180, 140, 255),
+    4: (160, 255, 160),
+    5: (255, 140, 200),
 }
+
+DETOUR_PATH_COLOR = (80, 255, 220)
 
 
 def make_world_to_screen(bounds_min, bounds_max, scale):
@@ -62,6 +76,7 @@ except Exception:
         front = False
         flank = False
         cover = False
+        surround = False
         for role_id, success in zip(role_ids, success_mask):
             if not bool(success):
                 continue
@@ -71,12 +86,14 @@ except Exception:
                 flank = True
             elif int(role_id) == 3:
                 cover = True
-        return bool(front and flank and cover)
+            elif int(role_id) == 5:
+                surround = True
+        return bool(front and flank and cover and surround)
 
-    ROLE_IDS = (0, 1, 2, 3)
+    ROLE_IDS = (0, 1, 2, 3, 4, 5)
 
     def role_name(role_id):
-        return {0: "front", 1: "flank_left", 2: "flank_right", 3: "cover"}.get(int(role_id), f"role_{int(role_id)}")
+        return {0: "front", 1: "flank_left", 2: "flank_right", 3: "cover", 4: "base_move", 5: "surround"}.get(int(role_id), f"role_{int(role_id)}")
 
     def get_env_role_ids(env, count):
         role_ids = getattr(env, "agent_role_ids", None)
@@ -301,18 +318,22 @@ def evaluate_once(env, role_bundles, max_steps=None, scale=0.03, screen_bundle=N
 
             sensor_fail_codes = final_info.get("sensor_fail_code")
             fail_arr = None if sensor_fail_codes is None else np.asarray(sensor_fail_codes, dtype=np.float32).reshape(-1)
+            agent_role_rules = final_info.get("agent_role_rules")
+            if agent_role_rules is None:
+                default_rule = getattr(env, "role_rule", "fixed")
+                agent_role_rules = [default_rule] * len(agent_trajs)
+            else:
+                agent_role_rules = list(agent_role_rules)
             if fail_arr is not None:
                 for idx, pos in enumerate(np.asarray(env.agent_positions, dtype=np.float32)):
                     if idx >= len(fail_arr) or fail_arr[idx] <= 0.5:
                         continue
-                    role_id = int(role_ids[idx]) if idx < len(role_ids) else 0
-                    color = ROLE_COLORS.get(role_id, (160, 160, 160))
                     start_height = None
                     if idx < len(env.agent_heights):
                         start_height = float(env.agent_heights[idx])
                     path = recover_descent_path_world(env, pos, start_height=start_height, max_len=256)
                     if len(path) >= 2:
-                        pygame.draw.lines(screen, color, False, [world_to_screen(p) for p in path], 1)
+                        pygame.draw.lines(screen, DETOUR_PATH_COLOR, False, [world_to_screen(p) for p in path], 2)
 
             for idx, points in enumerate(agent_trajs):
                 if len(points) < 2:
@@ -345,10 +366,12 @@ def evaluate_once(env, role_bundles, max_steps=None, scale=0.03, screen_bundle=N
                     color = ROLE_COLORS.get(role_id, (200, 140, 70))
                     sx, sy = world_to_screen(other)
                     pygame.draw.circle(screen, color, (sx, sy), 4)
-                    if fail_arr is not None and idx < len(fail_arr):
-                        fail_text = f"F:{int(fail_arr[idx] > 0.5)}"
-                        surf = font.render(fail_text, True, color)
-                        screen.blit(surf, (sx + 6, sy - 10))
+                    rule_name = str(agent_role_rules[idx]) if idx < len(agent_role_rules) else str(getattr(env, "role_rule", "fixed"))
+                    rule_short = HEURISTIC_SHORT.get(rule_name, rule_name[:3])
+                    role_label = ROLE_NAMES.get(role_id, str(role_id))
+                    label = f"{rule_short}->{role_label}"
+                    surf = font.render(label, True, color)
+                    screen.blit(surf, (sx + 6, sy - 10))
 
             pygame.draw.circle(screen, (230, 90, 90), world_to_screen(goal_pos), 6)
             pygame.draw.circle(screen, (255, 255, 255), world_to_screen(env.agent_pos), 5, 1)
@@ -447,10 +470,17 @@ if __name__ == "__main__":
     ap.add_argument("--goal-spawn-min-scale", type=float, default=4.0)
     ap.add_argument("--agent-spawn-min-scale", type=float, default=2.0)
     ap.add_argument("--agent-spawn-max-scale", type=float, default=3.0)
+    ap.add_argument("--role-rule", type=str, default="fixed", choices=["fixed", "balanced", "pressure", "encircle", "mobility"])
+    ap.add_argument("--agent-role-rules", type=str, default=None,
+                    help="Comma-separated per-agent heuristic list. Length must be 1 or num_agents. Example: balanced,pressure,encircle,mobility,fixed")
     args = ap.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     actor_path = args.actor_path
+    agent_role_rules = None
+    if args.agent_role_rules:
+        agent_role_rules = [part.strip() for part in args.agent_role_rules.split(",") if part.strip()]
+
     env = build_env(
         seed=args.seed,
         move_step_size=args.move_step_size,
@@ -462,6 +492,8 @@ if __name__ == "__main__":
         goal_spawn_min_scale=args.goal_spawn_min_scale,
         agent_spawn_min_scale=args.agent_spawn_min_scale,
         agent_spawn_max_scale=args.agent_spawn_max_scale,
+        role_rule=args.role_rule,
+        agent_role_rules=agent_role_rules,
     )
 
     if not os.path.exists(actor_path):

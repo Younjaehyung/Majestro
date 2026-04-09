@@ -11,6 +11,7 @@
 #include "GBufferPass.h"
 #include "LightsPass.h"
 #include "OutlinePass.h"
+#include "DualKawaseBlurPass.h"
 
 #include "Engine.h"
 #include "RenderManager.h"
@@ -49,9 +50,17 @@ void LobbyRenderPipeline::Initialize(World* world)
     mForwardPass->Initialize();
     mOutlinePass->Initialize();
 
+    // Dual Kawase 이미시브 블룸 — GodRay 이후 HDR 체인에 등록
+    mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
+    mEmissiveBloomPass->Initialize(4);      // 4단계 (W/2 -> W/4 -> W/8 -> W/16)
+    mEmissiveBloomPass->SetThreshold(1.0f); // LDR 범위 초과 밝기부터 추출
+    mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
+    mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
 
     mFogPass = make_shared<FogPass>();
     mPostProcessPass->AddHDRPass(mFogPass);
+
+
 }
 
 void LobbyRenderPipeline::OnResize(uint32 w, uint32 h)

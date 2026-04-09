@@ -16,6 +16,7 @@
 #include "LuminancePass.h"
 #include "ToneMapPass.h"
 #include "GodRayPass.h"
+#include "DualKawaseBlurPass.h"
 #include "LightComponent.h"
 
 
@@ -67,7 +68,6 @@ void GameRenderPipeline::Initialize(World* world)
     mLuminancePass = make_shared<LuminancePass>();
     // mPostProcessPass->AddLDRPass(mLuminancePass);
 
-    // VLS GodRay — Fog 다음에 HDR 체인에 등록
     mGodRayPass = make_shared<GodRayPass>();
     mGodRayPass->SetIntensity(1.75f);
     mGodRayPass->SetNumSteps(32);
@@ -78,7 +78,13 @@ void GameRenderPipeline::Initialize(World* world)
     mGodRayPass->SetAbsorptionCoeff(0.00002f);
     mPostProcessPass->AddHDRPass(mGodRayPass);
 
-    
+    mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
+    mEmissiveBloomPass->Initialize(4);      // 4단계 (W/2 ->W/4 -> W/8 -> W/16)
+    mEmissiveBloomPass->SetThreshold(1.0f); // LDR 범위 초과 밝기부터 추출
+    mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
+    mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
+
+
 }
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)
@@ -218,6 +224,11 @@ void GameRenderPipeline::SetGodRayEnabled(bool on)
 void GameRenderPipeline::SetOutlineEnabled(bool on)
 {
     if (mOutlinePass) mOutlinePass->SetEnabled(on);
+}
+
+void GameRenderPipeline::SetEmissiveBloomEnabled(bool on)
+{
+    if (mEmissiveBloomPass) mEmissiveBloomPass->SetEnabled(on);
 }
 
 void GameRenderPipeline::AddHDREffect(shared_ptr<RenderPass> pass)

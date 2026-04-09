@@ -12,7 +12,7 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
     float2 uv = input.uv;
 
     // PRE_DEPTH에서 깊이값 읽기
-    float depth = Gbuffer[8].Sample(g_sam_0, uv).r;
+    float depth = Gbuffer[9].Sample(g_sam_0, uv).r;
 
     // 배경(sky)은 velocity 0
     if (depth >= 1.0f)

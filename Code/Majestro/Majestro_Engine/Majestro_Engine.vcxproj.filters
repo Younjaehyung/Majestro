@@ -193,6 +193,9 @@
     <Filter Include="World\System\Render\08.Post\ETC">
       <UniqueIdentifier>{9a36c340-8aed-44fb-af15-ee033162ffd0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\80.Post\bloom">
+      <UniqueIdentifier>{9ac568dc-5abb-48bd-a667-bb49df0a764f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -569,6 +572,9 @@
     <ClInclude Include="MotionVectorPass.h">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
+    <ClInclude Include="DualKawaseBlurPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -911,6 +917,9 @@
     <ClCompile Include="MotionVectorPass.cpp">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
+    <ClCompile Include="DualKawaseBlurPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -1054,18 +1063,6 @@
     <FxCompile Include="..\Resources\Shader\outline_VS.hlsl">
       <Filter>World\Resource\Shader\Cartoon</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\MotionVector_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\MotionVector_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\MotionVector_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\Fog_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
@@ -1094,7 +1091,28 @@
       <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionVector_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\MotionVector_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\emissive_composite_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\emissive_extract_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\kawase_down_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\kawase_up_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

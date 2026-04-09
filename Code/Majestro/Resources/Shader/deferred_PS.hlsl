@@ -15,8 +15,9 @@ struct VS_OUT
 struct PS_OUT
 {
     float4 position : SV_Target0; // view-space pos
-    float4 normal : SV_Target1; // xyz = view normal, w = metallic   [수정]
-    float4 color : SV_Target2; // rgb = baseColor,   a = roughness  [수정]
+    float4 normal   : SV_Target1; // xyz = view normal, w = metallic
+    float4 color    : SV_Target2; // rgb = baseColor,   a = roughness
+    float4 emissive : SV_Target3; // rgb = emissive
 };
 
 PS_OUT PS_Main(VS_OUT input)
@@ -102,14 +103,17 @@ PS_OUT PS_Main(VS_OUT input)
     metallic = saturate(metallic);
     roughness = saturate(roughness);
 
+    float3 emissive = materials.Emission;
+    if(materials.EmissiveMapIndex != -1)
+    {
+        emissive = TextureMaps[materials.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
+    }
+    
 
     output.position = float4(input.viewPos.xyz, 1.0f);
-
-
-    output.normal = float4(viewNormal.xyz, metallic);
-
-
-    output.color = float4(baseColor.rgb, roughness);
+    output.normal   = float4(viewNormal.xyz, metallic);
+    output.color    = float4(baseColor.rgb, roughness);
+    output.emissive = float4(emissive, 1.0f); // 이미시브 블룸 소스
 
     return output;
 }

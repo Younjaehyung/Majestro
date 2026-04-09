@@ -29,7 +29,7 @@ shared_ptr<Mesh> ResourceManager::LoadLineMesh()
 	if (findMesh)
 		return findMesh;
 
-	// 단위 선분: (0,0,0) → (1,0,0)
+	// 단위 선분: (0,0,0)  (1,0,0)
 	// 디버그 렌더러에서 월드 행렬로 임의의 두 점 사이의 선분으로 변환됨
 	vector<Vertex> v(2);
 	v[0].pos = Vec3(0.f, 0.f, 0.f);
@@ -1446,6 +1446,60 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"GodRay", shader);
+	}
+	
+	// Emissive
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+
+		// Emissive Bright Extract
+		{
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\emissive_extract_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"KawaseExtract", shader);
+		}
+
+		// Dual Kawase Downsample
+		{
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\kawase_down_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"KawaseDown", shader);
+		}
+
+		// Dual Kawase Upsample
+		{
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\kawase_up_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"KawaseUp", shader);
+		}
+
+		// Emissive Bloom Composite
+		{
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\emissive_composite_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"KawaseComposite", shader);
+		}
 	}
 }
 

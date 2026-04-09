@@ -14,6 +14,7 @@ class FogPass;
 class MotionBlurPass;
 class LuminancePass;
 class GodRayPass;
+class DualKawaseBlurPass;
 
 
 // DepthPrePass / Shadow / GBuffer / Deferred Lighting /
@@ -44,8 +45,10 @@ public:
     void SetFogEnabled(bool on);
     void SetOutlineEnabled(bool on);
     void SetGodRayEnabled(bool on);
+    void SetEmissiveBloomEnabled(bool on);
 
-    GodRayPass* GetGodRayPass() const { return mGodRayPass.get(); }
+    GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
+    DualKawaseBlurPass*  GetEmissiveBloom() const { return mEmissiveBloomPass.get(); }
 
     // 동적 HDR PostProcess 추가/제거
     void AddHDREffect(shared_ptr<class RenderPass> pass);
@@ -65,7 +68,8 @@ private:
     shared_ptr<FogPass>          mFogPass;
     shared_ptr<MotionBlurPass>   mMotionBlurPass;
     shared_ptr<LuminancePass>    mLuminancePass;
-    shared_ptr<GodRayPass>       mGodRayPass;
+    shared_ptr<GodRayPass>          mGodRayPass;
+    shared_ptr<DualKawaseBlurPass>  mEmissiveBloomPass;
 
     World* mWorld    = nullptr;
     bool   mIsPaused = false;

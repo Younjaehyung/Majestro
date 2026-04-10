@@ -575,6 +575,9 @@
     <ClInclude Include="DualKawaseBlurPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
+    <ClInclude Include="FXAAPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
     <ClInclude Include="HBAOPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
@@ -923,6 +926,9 @@
     <ClCompile Include="DualKawaseBlurPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
+    <ClCompile Include="FXAAPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
     <ClCompile Include="HBAOPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
@@ -989,9 +995,6 @@
       <Filter>World\Resource\Shader\98.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_PS.hlsl">
-      <Filter>World\Resource\Shader\98.Terrain</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\Terrain_VS.hlsl">
       <Filter>World\Resource\Shader\98.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\UI_VS.hlsl">
@@ -1119,6 +1122,18 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\kawase_up_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Terrain_VS.hlsl">
+      <Filter>World\Resource\Shader\98.Terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\hbao_blur_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\hbao_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\fxaa_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

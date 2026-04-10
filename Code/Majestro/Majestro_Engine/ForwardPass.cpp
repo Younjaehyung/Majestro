@@ -13,6 +13,7 @@ void ForwardPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 {
     mBefore = before;
 	mAfter = after;
+
 }
 
 void ForwardPass::DispatchForwardPlusCull() {

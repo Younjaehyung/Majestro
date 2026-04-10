@@ -1431,7 +1431,7 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Fog", shader);
 	}
 
-	// HBAO+ — Horizon-Based Ambient Occlusion Plus
+	// HBAO+
 	{
 		ShaderInfo info =
 		{
@@ -1440,7 +1440,7 @@ void ResourceManager::CreateDefaultShader()
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};
 
-		// HBAO 메인 계산 (G-Buffer Position/Normal → AO)
+		// HBAO 메인 계산 (G-Buffer Position/Normal -> AO)
 		{
 			ShaderPath shaderPath{
 				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
@@ -1532,6 +1532,23 @@ void ResourceManager::CreateDefaultShader()
 			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 			Add<Shader>(L"KawaseComposite", shader);
 		}
+	}
+
+	// FXAA 
+	{
+		ShaderInfo fxaaInfo =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\fxaa_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, fxaaInfo, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"FXAA", shader);
 	}
 }
 
@@ -2025,6 +2042,8 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Skill_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Skill_02.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Rhythm.fbx", L"ForwardPlusCel");
+
+
 
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx", L"ForwardPlusCel");

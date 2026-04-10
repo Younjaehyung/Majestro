@@ -12,7 +12,4 @@ public:
 	virtual void Execute(std::vector<DrawBatch>& drawBatches) override;
 
 private:
-	void InstancingRender(DrawBatch& drawBatch);
-
-	struct { uint32 BaseInstance; uint32 InstanceCount; uint32 Cascade; } mDum{};
 };

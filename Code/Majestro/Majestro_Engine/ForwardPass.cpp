@@ -46,10 +46,10 @@ void ForwardPass::DispatchForwardPlusCull() {
     auto cullShader = RESOURCEMANAGER.Get<Shader>(L"ForwardPlusCull");
     COMPUTE_CMD_LIST->SetPipelineState(cullShader->GetPipelineState().Get());
 
-    dum.BaseInstance = tileCountX;
-    dum.InstanceCount = tileCountY;
-    dum.Cascade = FORWARD_PLUS_MAX_LIGHTS_PER_TILE;
-    COMPUTE_CMD_LIST->SetComputeRoot32BitConstants(0, 3, &(dum), 0);
+    mDum.BaseInstance = tileCountX;
+    mDum.InstanceCount = tileCountY;
+    mDum.Cascade = FORWARD_PLUS_MAX_LIGHTS_PER_TILE;
+    COMPUTE_CMD_LIST->SetComputeRoot32BitConstants(0, 3, &(mDum), 0);
     COMPUTE_CMD_LIST->Dispatch(tileCountX, tileCountY, 1);
 
     auto uavBarrier0 = CD3DX12_RESOURCE_BARRIER::UAV(tileMetaResource);
@@ -71,7 +71,7 @@ void ForwardPass::DispatchForwardPlusCull() {
 
 
 void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
-	dum = { 0, 0, 0 };
+	mDum = { 0, 0, 0 };
     mCurrPSOID = 0;
     mFrameIndex = RENDERMANAGER.GetFrameResourceIndex();
 
@@ -105,10 +105,10 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
             drawBatch.PSOShader->Update();
             mCurrPSOID = drawBatch.PSOID;
         }
-        dum.BaseInstance = drawBatch.BaseInstance;
-        dum.InstanceCount = drawBatch.InstanceCount;
+        mDum.BaseInstance = drawBatch.BaseInstance;
+        mDum.InstanceCount = drawBatch.InstanceCount;
 
-        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
+        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(mDum), 0);
         InstancingRender(drawBatch);
     }
     hdrGroup.WaitTargetToResource();
@@ -125,9 +125,4 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 void ForwardPass::Compute()
 {
     DispatchForwardPlusCull();
-}
-
-void ForwardPass::InstancingRender(DrawBatch& drawBatch) {
-    drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex,
-        0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 }

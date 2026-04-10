@@ -64,10 +64,11 @@ float4 PS_Main(VS_OUT input, bool isFrontFace : SV_IsFrontFace) : SV_Target
     float roughness = mtl.Roughness;
     if (mtl.MetallicMapIndex >= 0)
         metallic  = TextureMaps[mtl.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
+    // RoughnessMap 우선, 없으면 SpecularcMap 슬롯(FBX Roughness 채널) 폴백
     if (mtl.RoughnessMapIndex >= 0)
         roughness = TextureMaps[mtl.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
-    metallic  = 0.0f;  
-    roughness = 1.0f;  
+    else if (mtl.SpecularcMapIndex >= 0)
+        roughness = TextureMaps[mtl.SpecularcMapIndex].Sample(g_sam_0, input.uv).r;
     metallic  = saturate(metallic);
     roughness = saturate(roughness);
 

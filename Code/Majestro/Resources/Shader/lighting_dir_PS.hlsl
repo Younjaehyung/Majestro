@@ -69,21 +69,19 @@ PS_OUT PS_DirLight(VS_OUT input)
         color.specular *= visibility;
     }
 
-    // IBL ambient — 기존 단색 ambient를 환경맵 기반으로 대체
-    // diffuse  → DiffuseLightTarget  : final pass에서 albedo와 곱해짐
-    // specular → SpecularLightTarget : final pass에서 albedo 없이 더해짐 (metallic 왜곡 방지)
+
     float3 V_view = normalize(-viewPos);
     IBLResult ibl = CalculateIBLAmbient(viewNormal, V_view, baseColor, metallic, roughness);
 
-    // HBAO+ AO 적용: IBL ambient 전용 (직접광에는 영향 없음)
-    // LIGHTS_PASS 슬롯(ExtTex[0])에서 AO 텍스처 인덱스 조회
+
+    float ao = Gbuffer[4].Sample(g_sam_0, input.uv).a;
+
+
     PASS_CUSTOM_DATA passData = PassCustomTable[GlobalParams.PassCustomIndex];
-    float ao = 1.0f;
-    int   aoIdx = passData.ExtTex[0];
+    int aoIdx = passData.ExtTex[0];
     if (aoIdx >= 0)
     {
-        float2 screenUV = input.uv;
-        ao = TextureMaps[aoIdx].Sample(g_sam_0, screenUV).r;
+        ao *= TextureMaps[aoIdx].Sample(g_sam_0, input.uv).r;
     }
 
     output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao, 1.0f);

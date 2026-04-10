@@ -1560,7 +1560,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Skybox");
-		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\skybox2EnvHDR.dds"), DIFFUSEMAP0INDEX);
+		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\skybox.dds"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Skybox", material);
 
 		// IBL 텍스처 로드

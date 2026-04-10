@@ -23,6 +23,6 @@ void LightsPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 
         light.Mesh->Render();
     }
-    ////리소스에서 타켓으로
+
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).WaitTargetToResource();
 }

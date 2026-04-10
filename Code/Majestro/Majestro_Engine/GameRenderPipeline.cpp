@@ -48,14 +48,10 @@ void GameRenderPipeline::Initialize(World* world)
     mEffectPass      = make_shared<EffectPass>();
     mPostProcessPass = make_shared<PostProcessPass>();
 
-    // HBAO+: GBufferPass 결과(Position, Normal)를 바로 쓸 수 있도록
-    // LightsPass 보다 먼저 초기화 (Initialize 순서는 실행 순서와 무관)
+
     mHBAOPass = make_shared<HBAOPass>();
     mHBAOPass->Initialize();
-    // radius: 씬 단위계에 맞게 조정 (1단위=1cm → 50~200, 1단위=1m → 0.5~2.0)
-    // MAX_SCREEN_RADIUS_PX=150 으로 픽셀 반경이 클램프되므로
-    // radius는 "의도한 최대 AO 거리 (뷰 공간 단위)"만 제어
-    mHBAOPass->SetRadius(1.0f);
+    mHBAOPass->SetRadius(50.f);
     mHBAOPass->SetBias(0.1f);       // 자기-차폐 방지 (값 높을수록 AO 줄어듦)
     mHBAOPass->SetIntensity(1.2f);  // 전반적 강도
     mHBAOPass->SetFalloff(2.0f);
@@ -82,7 +78,7 @@ void GameRenderPipeline::Initialize(World* world)
     mFogPass = make_shared<FogPass>();
     mPostProcessPass->AddHDRPass(mFogPass);
 
-    mLuminancePass = make_shared<LuminancePass>();
+    // mLuminancePass = make_shared<LuminancePass>();
     // mPostProcessPass->AddLDRPass(mLuminancePass);
 
     mGodRayPass = make_shared<GodRayPass>();
@@ -101,8 +97,7 @@ void GameRenderPipeline::Initialize(World* world)
     mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
     mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
 
-    // FXAA: ToneMap 이후 LDR 단계에서 엣지 앤티얼라이싱
-    // (AddLDRPass로 등록 → ToneMapPass 완료 후 POST_LDR 핑퐁 체인에 삽입됨)
+    // FXAA:
     mFXAAPass = make_shared<FXAAPass>();
     mFXAAPass->Initialize();
     mFXAAPass->SetParams(
@@ -135,11 +130,9 @@ void GameRenderPipeline::SetupPassTable(
         RENDER_TARGET_GROUP_TYPE::SHADOW,
         RENDER_TARGET_GROUP_TYPE::G_BUFFER);
 
-    // HBAO+: G-Buffer(Position=Gbuffer[1], Normal=Gbuffer[2]) 입력, AO RT 출력
-    // LightsPass 의 LIGHTS_PASS 슬롯에 AO 텍스처 인덱스도 함께 기록
     mHBAOPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::G_BUFFER,
-        RENDER_TARGET_GROUP_TYPE::G_BUFFER); // before/after 는 내부 RT 방식이라 미사용
+        RENDER_TARGET_GROUP_TYPE::G_BUFFER);
 
     mLightPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,

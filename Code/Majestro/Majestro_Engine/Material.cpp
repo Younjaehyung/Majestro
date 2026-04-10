@@ -53,6 +53,8 @@ void Material::SetTexture(shared_ptr<Texture> mImageMapIndex, uint8 texturetype)
 	case SPECULARCMAPINDEX:
 		mParams.SpecularcMapIndex = mImageMapIndex->GetImageIndex();
 		mParamsName.SpecularcMapIndex = mImageMapIndex->GetName();
+		mParams.RoughnessMapIndex = mImageMapIndex->GetImageIndex();
+		mParamsName.RoughnessMapIndex = mImageMapIndex->GetName();
 		break;
 	case EMISSIVEMAPINDEX:
 		mParams.EmissiveMapIndex = mImageMapIndex->GetImageIndex();

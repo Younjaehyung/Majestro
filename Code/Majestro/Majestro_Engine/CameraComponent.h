@@ -100,7 +100,7 @@ public:
 	PROJECTION_TYPE mCameraType = PROJECTION_TYPE::PERSPECTIVE;
 
 	float mNear = 1.f * 100.f;
-	float mFar = 800.f * 100.f;
+	float mFar = 200.f * 100.f;
 
 	float mShadowNear = 1.f;
 	float mShadowFar = 8000.f;

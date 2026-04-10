@@ -16,6 +16,7 @@ public:
 private:
     void UploadInstanceBuffer();
 	void DrawProperty(EditorProperty& prop);
+    void DrawCameraInspector();
 
 private:
 

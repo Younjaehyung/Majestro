@@ -31,7 +31,8 @@ private:
 		BoxColliderComponent* colA,
 		BoxColliderComponent* colB,
 		float deltaTime);
-
+private:
+	std::unordered_set<uint64_t> checkedPairs;
 	
 private:
 	std::shared_ptr<PhysicsWorld> mPhysicsWorld;

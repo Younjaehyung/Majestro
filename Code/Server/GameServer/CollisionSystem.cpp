@@ -269,8 +269,7 @@ void CollisionSystem::Movable2Movable(float deltaTime)
     }
 
     
-    std::unordered_set<uint64_t> checkedPairs;
-    checkedPairs.reserve(indices.size());
+    checkedPairs.clear();
 
     
         for (size_t cell = 0; cell < cellCount; ++cell)

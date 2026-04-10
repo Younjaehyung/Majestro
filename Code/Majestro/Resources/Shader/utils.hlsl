@@ -83,7 +83,7 @@ float2 ToUV(float2 ndc)
 // 중심에서 멀수록 색수차가 강해지는 방사형 효과
 float2 CalcRadialOffset(float2 uv, float intensity)
 {
-    float2 ndc = ToNDC(uv); // UV → NDC
+    float2 ndc = ToNDC(uv); // UV -> NDC
     float dist = length(ndc); // 중심까지의 거리
     float2 dir = normalize(ndc); // 방향 벡터
     
@@ -93,8 +93,8 @@ float2 CalcRadialOffset(float2 uv, float intensity)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// ACES 톤매핑
-float3 TonemapACES(float3 x)
+// 톤매핑
+float3 TonemapACES(float3 x) // ACES
 {
     // Narkowicz ACES approximation
     const float a = 2.51;
@@ -137,7 +137,7 @@ float3 Uncharted2Filmic(float3 color)
 // Toon Shading
 
 
-// [추가] Toon/Custom BRDF용 라이트 평가 결과
+// Toon/Custom BRDF용 라이트 평가 결과
 struct EvaluatedLight
 {
     float3 L; // surface -> light (view space)
@@ -220,7 +220,7 @@ EvaluatedLight EvaluateLightVS(int lightIndex, float3 viewPos, float3 viewNormal
 
     return o;
 }
-// [추가] 전신용 Toon 파라미터(임시 상수)
+// 전신용 Toon 파라미터(임시 상수)
 static const float gToonShadowEdge = 0.50f; // 그림자 경계
 static const float gToonShadowSoft = 0.08f; // 경계 부드러움
 static const float3 gToonShadowTint = float3(0.60f, 0.65f, 0.75f); // 그림자 틴트
@@ -287,7 +287,7 @@ float3 CalculateRimLight(
     float   shadowFactor)
 {
     // View Normal XY를 스크린 공간 오프셋 방향으로 근사
-    // View Space Normal.xy는 카메라 기준 좌우/상하 방향 → 스크린 방향과 근사 일치
+    // View Space Normal.xy는 카메라 기준 좌우/상하 방향 -> 스크린 방향과 근사 일치
     float2 normalSS = normalize(viewNormal.xy + 1e-5f);
     int2   offset   = int2(normalSS * rimWidth);
 
@@ -304,7 +304,7 @@ float3 CalculateRimLight(
     float  depthDiff = curDepth - offDepth;
     float  rim       = step(rimDepthThres, depthDiff);
 
-    // [원신 스타일] 그림자 면(shadowFactor=0)에서 rim 더 강하게 (역광 연출)
+    // 그림자 면(shadowFactor=0)에서 rim 더 강하게 (역광 연출)
     float  rimBoost  = lerp(1.2f, 0.5f, shadowFactor);
     rim *= rimBoost * rimMask;
 
@@ -325,6 +325,15 @@ struct ToonShadingParams
     float SpecShininess; // 스펙큘러 pow 지수          (클수록 좁고 날카롭게)
     float SpecThreshold; // 스펙큘러 하드컷 위치       (0.6 = 60% 이상에서만)
     float SpecMask; // 스펙큘러 강도 마스크        (LightMap.r에서 읽음)
+
+    // Ramp Texture
+    // >= 0 : TextureMaps[RampTexIdx]를 1D Ramp로 샘플링
+    //         U = Half-Lambert NdotL [0=그림자, 1=밝은면]
+    //         V = 0.5 (1D lookup)
+    //         R 채널 = shadowFactor (0=shadColor, 1=litColor)
+    //  -1   : ShadowThreshold/ShadowSmoothness 기반 smoothstep 폴백
+
+    int RampTexIdx;
 };
 
 // ============================================================
@@ -351,9 +360,6 @@ LightColor CalculateLightColorToon(
     float distanceRatio = 1.f;
     float rawNdotL = 0.f; // 리매핑 전 원본 NdotL [-1, 1]
 
-    // ─────────────────────────────────────────────────────────
-    //  1) 라이트 방향 / 감쇠 계산  (기존 PBR 구조 그대로 유지)
-    // ─────────────────────────────────────────────────────────
     if (Lights[lightIndex].lightType == 0)
     {
         // Directional Light
@@ -404,35 +410,53 @@ LightColor CalculateLightColorToon(
     if (distanceRatio <= 0.f)
         return color;
 
-    // ─────────────────────────────────────────────────────────
+    
     //  2) Toon Shadow Factor 계산
     //
     //  [핵심 기법] NdotL → shadowFactor 변환
     //
-    //  PBR:  NdotL을 그대로 곱해서 자연스러운 그라디언트
-    //  Toon: smoothstep으로 경계를 만들어 단계적(flat) 명암 표현
+    //  ※ Half-Lambert(rawNdotL * 0.5 + 0.5) 를 사용하지 않는다.
+    //    Half-Lambert는 그림자 면(-NdotL)에도 그라디언트를 남겨
+    //    PBR처럼 보이게 만든다.
+    //    셀셰이딩에는 saturate(rawNdotL) 이 올바르다:
+    //      - NdotL < 0 → 전부 0 (그림자, flat)
+    //      - NdotL > 0 → [0,1] (밝은 면, flat)
+    //      - 경계만 smoothstep/ramp 로 처리
     //
-    //  rawNdotL [-1, 1] → [0, 1] 리매핑 후 smoothstep 적용
-    //  ShadowThreshold  = 경계 위치 (0.5 = 하프램버트 기준 중간)
-    //  ShadowSmoothness = 경계 폭   (0.0 = 완전 하드, 0.1 = 원신 스타일 미세 소프트)
-    // ─────────────────────────────────────────────────────────
-    float ndotL01 = rawNdotL * 0.5f + 0.5f; // Half-Lambert 리매핑 [-1,1] → [0,1]
+    //  ShadowThreshold  = 경계 위치 [0~1]
+    //                     (0.5 = NdotL 0.5 = 빛과 60° 이하에서 shadow)
+    //  ShadowSmoothness = 경계 폭   (0.0 = 완전 하드, 클수록 소프트)
+   
+    float ndotL01    = saturate(rawNdotL); // Lambert [0,1] — 그림자 면은 0으로 클램프
     float halfSmooth = toon.ShadowSmoothness * 0.5f;
 
-    float shadowFactor = smoothstep(
-        toon.ShadowThreshold - halfSmooth,
-        toon.ShadowThreshold + halfSmooth,
-        ndotL01
-    );
-
-    // [원신 스타일] Outer Shadow: 약간 더 넓은 smoothstep을 min()으로 겹침
-    // → 그림자 경계 직전에 약하게 pre-shadow 느낌을 줌
-    float outerShadow = smoothstep(
-        toon.ShadowThreshold - halfSmooth * 3.f,
-        toon.ShadowThreshold + halfSmooth,
-        ndotL01
-    );
-    shadowFactor = min(shadowFactor, outerShadow);
+    float shadowFactor;
+    if (toon.RampTexIdx >= 0)
+    {
+        // ── Ramp Texture 모드 ─────────────────────────────────
+        // TextureMaps[RampTexIdx] : 가로 1D Ramp 텍스처 (최소 256×1)
+        //   U = ndotL01 (0=그림자, 1=밝은면)
+        //   V = 0.5 (1D이므로 중앙 고정)
+        //   R 채널 = shadowFactor 값
+        //
+        // 샘플러: g_sam_Terrain (CLAMP, s1) — UV 경계 wrap 방지
+        shadowFactor = TextureMaps[toon.RampTexIdx].Sample(
+            g_sam_Terrain,
+            float2(ndotL01, 0.5f)
+        ).r;
+    }
+    else
+    {
+        // ── smoothstep 폴백 (RampTexIdx == -1) ───────────────
+        // 경계 전/후가 완전히 flat해야 셀셰이딩처럼 보임
+        // outerShadow(min 처리)를 사용하면 경계 앞에 pre-shadow
+        // 그라디언트가 생겨 PBR처럼 보이므로 제거
+        shadowFactor = smoothstep(
+            toon.ShadowThreshold - halfSmooth,
+            toon.ShadowThreshold + halfSmooth,
+            ndotL01
+        );
+    }
 
     // ─────────────────────────────────────────────────────────
     //  3) 2-Tone Shadow Ramp (Toon 색상 블렌딩)
@@ -647,7 +671,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
 // Default Lihgting (Blinn-Phong)
 LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos)
 {
-    // 기존 Blinn-Phong ... (너 코드 그대로)
+    // 기존 Blinn-Phong
     LightColor color = (LightColor) 0.f;
 
     float3 viewLightDir = (float3) 0.f;
@@ -734,6 +758,8 @@ float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, floa
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Animation
+
+
 void Skinning(inout float3 pos, inout float3 normal, inout float3 tangent,
     inout float4 weight, inout float4 indices, in uint skelBaseIdx)
 {

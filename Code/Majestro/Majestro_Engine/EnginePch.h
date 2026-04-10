@@ -353,6 +353,8 @@ enum class PASS_CUSTOM_INDEX : uint32 {
 	POST_HBAO_BLUR_PASS,  //=17 Cross-bilateral separable blur
 	LIGHTS_PASS,          //=18 LightsPass용 (AO 텍스처 인덱스 전달)
 
+	POST_FXAA_PASS,       //=19 FXAA LDR 앤티얼라이싱
+
 	PASS_CUSTOM_COUNT
 };
 

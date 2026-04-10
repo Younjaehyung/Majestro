@@ -375,19 +375,6 @@
 
 // ============================================================
 //  ForwardPlus_ToonPS.hlsl
-//  Anime-Style Toon Shading (Genshin Impact / ZZZ Style)
-//
-//  참고:
-//   - NiloCat UnityURPToonLitShaderExample (LightingEquation.hlsl)
-//   - Genshin Impact shader breakdown (Adrian Mendez, ArtStation)
-//
-//  기존 PBR PS에서 변경된 핵심 포인트:
-//   1. CalculateLightColorPBR  → CalculateLightColorToon
-//   2. smoothstep NdotL 명암 경계 (hard cel-shading)
-//   3. Shadow Color Tint (그림자 영역에 색조 적용)
-//   4. Step-based Toon Specular (GGX 대신 하드컷 하이라이트)
-//   5. Rim Light (Fresnel 기반 윤곽 하이라이트)
-//   6. LightMap 지원 추가 (원신 스타일 RGBA 라이트맵)
 //
 //  MATERIALINFO에 추가해야 할 필드 (TODO):
 //   float4  ShadowColor;        // 그림자 색 tint (default: 0.5, 0.55, 0.65, 1)
@@ -411,7 +398,7 @@
 
 
 // ============================================================
-//  VS_OUT (기존 그대로 유지)
+//  VS_OUT
 // ============================================================
 struct VS_OUT
 {
@@ -429,11 +416,19 @@ struct VS_OUT
 // ============================================================
 float4 PS_Main(VS_OUT input) : SV_Target
 {
+    // Forward+ Tile 인덱스 계산
+    const uint2 pixelCoord = uint2(input.pos.xy);
+    const uint tileCountX = (uint) ceil(PassParams.ScreenSize.x / FORWARD_PLUS_TILE_SIZE);
+    const uint2 tileCoord = pixelCoord / FORWARD_PLUS_TILE_SIZE;
+    const uint tileIndex = tileCoord.y * tileCountX + tileCoord.x;
+    const uint2 tileMeta = ForwardPlusTileMeta[tileIndex];
+    
+    
     const uint idx = GlobalParams.BaseInstanceID + input.instanceID;
     const RENDERPARAMS instance = InstanceParams[idx];
     const MATERIALINFO mtl = Materials[instance.MaterialInfoIndex];
 
-    // ─── Diffuse 텍스처 샘플링 (기존과 동일) ────────────────
+    // Diffuse 텍스처
     float4 color = mtl.Diffuse;
     if (mtl.DiffuseMap0Index >= 0)
         color *= TextureMaps[mtl.DiffuseMap0Index].Sample(g_sam_0, input.uv);
@@ -455,7 +450,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     if (color.a < 0.01f)
         discard;
 
-    // ─── Normal Map (기존과 동일) ──────────────────────────
+    // Normal Map (기존과 동일)
     float3 viewNormal = normalize(input.viewNormal);
     if (mtl.NormalMapIndex >= 0)
     {
@@ -468,16 +463,14 @@ float4 PS_Main(VS_OUT input) : SV_Target
         viewNormal = normalize(mul(n, tbn));
     }
 
-    // ─── [신규] LightMap 샘플링 ────────────────────────────
+    // LightMap 샘플링
     //  원신 스타일 RGBA LightMap 구조:
     //   R : Specular Mask      (스펙큘러 강도, 1=반짝임 있음)
     //   G : Shadow Threshold   (재질마다 다른 명암 경계 오프셋)
     //   B : Specular Type      (0~0.33: Skin/Hair, 0.67~1: Metal)
     //   A : Rim Mask           (Rim이 나타날 영역 마스크)
     //
-    //  [TODO] MATERIALINFO에 LightMapIndex 필드 추가 필요
-    //         없으면 fallback 기본값 사용
-    // ─────────────────────────────────────────────────────
+    //      MATERIALINFO에 LightMapIndex 필드 추가 필요
     float4 lightMap = float4(0.2f, 0.5f, 0.0f, 0.6f); // 기본값 (LightMap 없을 때)
     //if (mtl.LightMapIndex >= 0)
     //    lightMap = TextureMaps[mtl.LightMapIndex].Sample(g_sam_0, input.uv);
@@ -486,32 +479,33 @@ float4 PS_Main(VS_OUT input) : SV_Target
     float shadowBias = (lightMap.g - 0.5f) * 0.15f; // G채널 → shadow threshold 오프셋
     float rimMask = lightMap.a; // Rim 마스크
 
-    // ─── [신규] ToonShadingParams 설정 ─────────────────────
-    //  [TODO] 아래 값들은 추후 MATERIALINFO의 Toon 전용 필드에서 읽어야 함
-    //         (mtl.ShadowThreshold, mtl.ShadowSmoothness, mtl.ShadowColor 등)
-    //         현재는 원신 스타일 기본값으로 하드코딩
-
     ToonShadingParams toon;
-    toon.ShadowThreshold = 0.5f + shadowBias; // LightMap G채널 보정 반영
-    toon.ShadowSmoothness = 0.05f; // 원신 스타일: 약간 부드러운 경계
+    // ShadowThreshold: NdotL 기준 경계값 (0.5 = 빛 방향 60도 이하에서 shadow)
+    // shadowBias: LightMap G채널로 머티리얼마다 경계 미세 조정 (-0.075 ~ +0.075)
+    toon.ShadowThreshold  = 0.5f + shadowBias;
+    // ShadowSmoothness: 0.0 = 완전 하드, 0.02 = 매우 얇은 소프트 (앤티얼라이싱 수준)
+    // 너무 크면 PBR처럼 보임
+    toon.ShadowSmoothness = 0.02f;
     toon.ShadowTint = float3(0.50f, 0.55f, 0.65f); // 청회색 tint (원신 그림자 기본 색조)
     toon.SpecShininess = 50.0f; // 날카로운 하이라이트
     toon.SpecThreshold = 0.55f; // 스펙큘러 컷오프
     toon.SpecMask = specMask; // LightMap R채널
+
+    //  Ramp Texture 
+    // MATERIALINFO.ExtTex[0] = Ramp Texture의 TextureMaps[] 인덱스
+    //   >= 0 : Ramp Texture 샘플링으로 shadowFactor 결정
+    //   -1   : ShadowThreshold/Smoothness 기반 smoothstep 폴백
+    //
+    toon.RampTexIdx = mtl.ExtTex[0];
 
     // Rim 파라미터
     const float3 rimColor     = float3(1.0f, 1.0f, 1.0f); // rim 색상
     const float  rimWidth     = 4.0f;   // 오프셋 픽셀 수 (1~4 튜닝)
     const float  rimDepthThres = 0.005f; // depth 차이 임계값 (0.005~0.03 튜닝)
 
-    // ─── Forward+ Tile 인덱스 계산 (기존과 동일) ───────────
-    const uint2 pixelCoord = uint2(input.pos.xy);
-    const uint tileCountX = (uint) ceil(PassParams.ScreenSize.x / FORWARD_PLUS_TILE_SIZE);
-    const uint2 tileCoord = pixelCoord / FORWARD_PLUS_TILE_SIZE;
-    const uint tileIndex = tileCoord.y * tileCountX + tileCoord.x;
-    const uint2 tileMeta = ForwardPlusTileMeta[tileIndex];
 
-    // ─── [변경] 조명 누적 루프 (Toon 버전) ─────────────────
+
+    // 조명 누적 루프 (Toon 버전)
     LightColor totalColor = (LightColor) 0.f;
     bool directionalShadowApplied = false;
     float mainShadowFactor = 0.f; // Rim Light 계산에서 재사용
@@ -521,7 +515,6 @@ float4 PS_Main(VS_OUT input) : SV_Target
     {
         const uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
 
-        // [변경] CalculateLightColorPBR → CalculateLightColorToon
         const LightColor lc = CalculateLightColorToon(
             lightIndex, viewNormal, input.viewPos, color.rgb, toon);
 
@@ -529,7 +522,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         totalColor.ambient += lc.ambient;
         totalColor.specular += lc.specular;
 
-        //// ── CSM Shadow (DirectionalLight에만 적용, 기존 구조 유지) ──
+        //// ── CSM Shadow (DirectionalLight에만 적용) ──
         //if (!directionalShadowApplied && Lights[lightIndex].lightType == 0)
         //{
         //    const float visibility = CalculateCSMShadow(
@@ -554,7 +547,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         //}
     }
 
-    // ─── [신규] Rim Light 적용 (Depth-based Screen-Space) ──
+    // Rim Light 적용 (Depth-based Screen-Space)
     float3 rim = CalculateRimLight(
         input.pos.xy,
         viewNormal,
@@ -564,22 +557,16 @@ float4 PS_Main(VS_OUT input) : SV_Target
         rimMask,
         mainShadowFactor);
 
-    // ─── [변경] 최종 색상 합성 ─────────────────────────────
-    //  기존 PBR 합성:
-    //    result = (diffuse × baseColor) + (ambient × baseColor) + specular
-    //
-    //  [변경] Toon 합성:
+    // 최종 색상 합성
+    //   Toon 합성:
     //    result = diffuse + (ambient × baseColor) + specular + rim
     //
-    //  이유: CalculateLightColorToon의 diffuse에 이미 baseColor가 포함됨
-    //        (내부에서 litColor = baseColor × lightRGB 로 계산)
-    //        ambient는 환경광 × baseColor로 별도 처리
     float3 ambientContrib = totalColor.ambient.xyz * color.xyz;
 // ambient도 너무 강하면 날아가므로 saturate로 제한
     ambientContrib = saturate(ambientContrib) * 0.5f; // ambient 기여도 제한
 
     color.xyz = totalColor.diffuse.xyz       // Toon diffuse (baseColor 포함)
-          + ambientContrib // [수정] 스케일 다운된 ambient
+          + ambientContrib
           + totalColor.specular.xyz
           + rim;
    // color.xyz = color.xyz / (color.xyz + 1.0f);

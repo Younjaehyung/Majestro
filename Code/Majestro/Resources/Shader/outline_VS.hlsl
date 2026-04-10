@@ -35,7 +35,7 @@ VS_OUT VS_Main(VS_IN input)
 
     PASS_CUSTOM_DATA data = PassCustomTable[GlobalParams.PassCustomIndex];
 
-    
+
     // 아웃라인 두께
     MATERIALINFO mat = Materials[inst.MaterialInfoIndex];
     float outlineWidth = data.ExtValue[0].x;
@@ -50,6 +50,9 @@ VS_OUT VS_Main(VS_IN input)
     float4 clipPos = mul(float4(input.pos, 1.0f), WVP);
     clipPos.xy += viewNormal.xy * outlineWidth * clipPos.w;
 
+    // 깊이 바이어스:  NDC 공간 기준 약간 뒤로 밀기. 
+    clipPos.z += 0.003f * clipPos.w;
+    
     o.pos = clipPos;
     return o;
 }

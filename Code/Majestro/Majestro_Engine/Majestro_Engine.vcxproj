@@ -201,6 +201,7 @@
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
     <ClInclude Include="DualKawaseBlurPass.h" />
+    <ClInclude Include="HBAOPass.h" />
     <ClInclude Include="EffectFlagComponent.h" />
     <ClInclude Include="EffectFlagSystem.h" />
     <ClInclude Include="FogPass.h" />
@@ -328,6 +329,7 @@
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ChromaticAberrationPass.cpp" />
     <ClCompile Include="DualKawaseBlurPass.cpp" />
+    <ClCompile Include="HBAOPass.cpp" />
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="GodRayPass.cpp" />
     <ClCompile Include="GameMode.cpp" />

@@ -75,8 +75,19 @@ PS_OUT PS_DirLight(VS_OUT input)
     float3 V_view = normalize(-viewPos);
     IBLResult ibl = CalculateIBLAmbient(viewNormal, V_view, baseColor, metallic, roughness);
 
-    output.diffuse  = color.diffuse  + float4(ibl.diffuse,  1.0f);
-    output.specular = color.specular + float4(ibl.specular, 0.0f);
+    // HBAO+ AO 적용: IBL ambient 전용 (직접광에는 영향 없음)
+    // LIGHTS_PASS 슬롯(ExtTex[0])에서 AO 텍스처 인덱스 조회
+    PASS_CUSTOM_DATA passData = PassCustomTable[GlobalParams.PassCustomIndex];
+    float ao = 1.0f;
+    int   aoIdx = passData.ExtTex[0];
+    if (aoIdx >= 0)
+    {
+        float2 screenUV = input.uv;
+        ao = TextureMaps[aoIdx].Sample(g_sam_0, screenUV).r;
+    }
+
+    output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao, 1.0f);
+    output.specular = color.specular + float4(ibl.specular * ao, 0.0f);
 
     return output;
 }

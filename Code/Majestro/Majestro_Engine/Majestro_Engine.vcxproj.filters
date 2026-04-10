@@ -575,6 +575,9 @@
     <ClInclude Include="DualKawaseBlurPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
+    <ClInclude Include="HBAOPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -918,6 +921,9 @@
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
     <ClCompile Include="DualKawaseBlurPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="HBAOPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
   </ItemGroup>

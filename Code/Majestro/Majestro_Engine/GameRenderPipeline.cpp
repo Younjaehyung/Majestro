@@ -17,6 +17,7 @@
 #include "ToneMapPass.h"
 #include "GodRayPass.h"
 #include "DualKawaseBlurPass.h"
+#include "HBAOPass.h"
 #include "LightComponent.h"
 
 
@@ -45,6 +46,18 @@ void GameRenderPipeline::Initialize(World* world)
     mOutlinePass     = make_shared<OutlinePass>();
     mEffectPass      = make_shared<EffectPass>();
     mPostProcessPass = make_shared<PostProcessPass>();
+
+    // HBAO+: GBufferPass 결과(Position, Normal)를 바로 쓸 수 있도록
+    // LightsPass 보다 먼저 초기화 (Initialize 순서는 실행 순서와 무관)
+    mHBAOPass = make_shared<HBAOPass>();
+    mHBAOPass->Initialize();
+    mHBAOPass->SetRadius(0.5f);
+    mHBAOPass->SetBias(0.03f);
+    mHBAOPass->SetIntensity(1.5f);
+    mHBAOPass->SetFalloff(1.5f);
+    mHBAOPass->SetNumDirections(4);
+    mHBAOPass->SetNumSteps(4);
+    mHBAOPass->SetBlurRadius(3.0f);
 
     mDepthPrePass->Initialize();
 	mShadowPass->Initialize();
@@ -107,6 +120,12 @@ void GameRenderPipeline::SetupPassTable(
     mGBufferPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::SHADOW,
         RENDER_TARGET_GROUP_TYPE::G_BUFFER);
+
+    // HBAO+: G-Buffer(Position=Gbuffer[1], Normal=Gbuffer[2]) 입력, AO RT 출력
+    // LightsPass 의 LIGHTS_PASS 슬롯에 AO 텍스처 인덱스도 함께 기록
+    mHBAOPass->SetData(table,
+        RENDER_TARGET_GROUP_TYPE::G_BUFFER,
+        RENDER_TARGET_GROUP_TYPE::G_BUFFER); // before/after 는 내부 RT 방식이라 미사용
 
     mLightPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::PRE_DEPTH,
@@ -231,6 +250,11 @@ void GameRenderPipeline::SetEmissiveBloomEnabled(bool on)
     if (mEmissiveBloomPass) mEmissiveBloomPass->SetEnabled(on);
 }
 
+void GameRenderPipeline::SetHBAOEnabled(bool on)
+{
+    if (mHBAOPass) mHBAOPass->SetEnabled(on);
+}
+
 void GameRenderPipeline::AddHDREffect(shared_ptr<RenderPass> pass)
 {
     if (mPostProcessPass) mPostProcessPass->AddHDRPass(pass);
@@ -259,9 +283,12 @@ void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
-   
+
     mGBufferPass->Execute(*ctx.deferredBatchs);
 
+    // HBAO+: G-Buffer 완성 직후, 조명 계산 전에 AO 생성
+    // (Gbuffer[1]=Position, Gbuffer[2]=Normal 이 PSR 상태로 준비되어 있음)
+    mHBAOPass->Execute(*ctx.deferredBatchs);
 
     mLightPass->Execute(*ctx.lightBatchs);
 

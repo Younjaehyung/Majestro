@@ -349,6 +349,10 @@ enum class PASS_CUSTOM_INDEX : uint32 {
 	POST_KAWASE_UP_PASS,        //=14 Dual Kawase 업샘플
 	POST_KAWASE_COMPOSITE_PASS, //=15 이미시브 합성
 
+	POST_HBAO_PASS,       //=16 HBAO+ 메인 계산
+	POST_HBAO_BLUR_PASS,  //=17 Cross-bilateral separable blur
+	LIGHTS_PASS,          //=18 LightsPass용 (AO 텍스처 인덱스 전달)
+
 	PASS_CUSTOM_COUNT
 };
 

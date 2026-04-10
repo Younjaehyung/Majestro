@@ -9,8 +9,13 @@ void LightsPass::Initialize() {
 }
 
 void LightsPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
-	
+
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).OMSetRenderTargets();
+
+    // LIGHTS_PASS 슬롯에서 AO 텍스처 인덱스를 읽도록 PassCustomIndex 설정
+    // lighting_dir_PS.hlsl 에서 TextureMaps[ExtTex[0]] 로 AO 샘플링
+    uint32 lightsPassIdx = static_cast<uint32>(PASS_CUSTOM_INDEX::LIGHTS_PASS);
+    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &lightsPassIdx, 3);
 
     for (auto& light : deferredDrawBatchs) {
 

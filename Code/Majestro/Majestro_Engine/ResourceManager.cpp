@@ -1431,6 +1431,38 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Fog", shader);
 	}
 
+	// HBAO+ — Horizon-Based Ambient Occlusion Plus
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+
+		// HBAO 메인 계산 (G-Buffer Position/Normal → AO)
+		{
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\hbao_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"HBAO", shader);
+		}
+
+		// HBAO Cross-bilateral Separable Blur (가로/세로 공용)
+		{
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\hbao_blur_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"HBAOBlur", shader);
+		}
+	}
+
 	// GodRay — Volumetric Light Scattering (레이마칭 + CSM Shadow)
 	{
 		ShaderInfo info =

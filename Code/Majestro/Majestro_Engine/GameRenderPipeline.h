@@ -16,6 +16,7 @@ class LuminancePass;
 class GodRayPass;
 class DualKawaseBlurPass;
 class HBAOPass;
+class FXAAPass;
 
 
 // DepthPrePass / Shadow / GBuffer / Deferred Lighting /
@@ -28,6 +29,7 @@ public:
 
     void Initialize(World* world)   override;
     void OnResize(uint32 w, uint32 h) override;
+    void DrawImGui()                override;
 
     void SetupPassTable(
         std::array<PassCustomData,
@@ -47,10 +49,13 @@ public:
     void SetOutlineEnabled(bool on);
     void SetGodRayEnabled(bool on);
     void SetEmissiveBloomEnabled(bool on);
+    void SetFXAAEnabled(bool on);
+    void SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
     DualKawaseBlurPass*  GetEmissiveBloom() const { return mEmissiveBloomPass.get(); }
     HBAOPass*            GetHBAOPass()      const { return mHBAOPass.get(); }
+    FXAAPass*            GetFXAAPass()      const { return mFXAAPass.get(); }
 
     void SetHBAOEnabled(bool on);
 
@@ -75,6 +80,7 @@ private:
     shared_ptr<GodRayPass>          mGodRayPass;
     shared_ptr<DualKawaseBlurPass>  mEmissiveBloomPass;
     shared_ptr<HBAOPass>            mHBAOPass;
+    shared_ptr<FXAAPass>            mFXAAPass;
 
     World* mWorld    = nullptr;
     bool   mIsPaused = false;

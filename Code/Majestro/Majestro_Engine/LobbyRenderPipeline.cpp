@@ -131,6 +131,91 @@ void LobbyRenderPipeline::Execute(const RenderContext& ctx)
     mPostProcessPass->Execute(*ctx.deferredBatchs);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ImGui 디버그 창 (로비 파이프라인)
+// ─────────────────────────────────────────────────────────────────────────────
+
+void LobbyRenderPipeline::DrawImGui()
+{
+#ifdef _IMGUI
+    if (!ImGui::Begin("Render Pipeline"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    // ── Pass On/Off ───────────────────────────────────────────────────────────
+    if (ImGui::CollapsingHeader("Pass On/Off", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        bool fogOn = mFogPass ? mFogPass->IsEnabled() : false;
+        if (ImGui::Checkbox("Fog", &fogOn) && mFogPass)
+            mFogPass->SetEnabled(fogOn);
+
+        bool bloomOn = mEmissiveBloomPass ? mEmissiveBloomPass->IsEnabled() : false;
+        if (ImGui::Checkbox("EmissiveBloom", &bloomOn) && mEmissiveBloomPass)
+            mEmissiveBloomPass->SetEnabled(bloomOn);
+
+        bool outlineOn = mOutlinePass ? mOutlinePass->IsEnabled() : false;
+        if (ImGui::Checkbox("Outline", &outlineOn) && mOutlinePass)
+            mOutlinePass->SetEnabled(outlineOn);
+    }
+
+    // ── EmissiveBloom 파라미터 ────────────────────────────────────────────────
+    if (mEmissiveBloomPass && ImGui::CollapsingHeader("EmissiveBloom 파라미터"))
+    {
+        float threshold = mEmissiveBloomPass->GetThreshold();
+        if (ImGui::SliderFloat("Threshold##EB", &threshold, 0.0f, 3.0f))
+            mEmissiveBloomPass->SetThreshold(threshold);
+
+        float intensity = mEmissiveBloomPass->GetIntensity();
+        if (ImGui::SliderFloat("Intensity##EB", &intensity, 0.0f, 3.0f))
+            mEmissiveBloomPass->SetIntensity(intensity);
+    }
+
+    // ── ColorGrading ─────────────────────────────────────────────────────────
+    if (mPostProcessPass && ImGui::CollapsingHeader("ColorGrading"))
+    {
+        ColorGradingParams p = mPostProcessPass->GetColorGrading();
+        bool changed = false;
+
+        changed |= ImGui::SliderFloat("Saturation##CG",  &p.Saturation,  0.0f, 3.0f);
+        changed |= ImGui::SliderFloat("Contrast##CG",    &p.Contrast,    0.0f, 3.0f);
+        changed |= ImGui::SliderFloat("Brightness##CG",  &p.Brightness, -1.0f, 1.0f);
+        changed |= ImGui::SliderFloat("Exposure##CG",    &p.Exposure,    0.1f, 5.0f);
+
+        ImGui::Separator();
+        float shadow[3] = { p.ShadowTint.x, p.ShadowTint.y, p.ShadowTint.z };
+        if (ImGui::ColorEdit3("ShadowTint##CG", shadow))
+        {
+            p.ShadowTint = Vec3(shadow[0], shadow[1], shadow[2]);
+            changed = true;
+        }
+        changed |= ImGui::SliderFloat("ShadowStrength##CG",    &p.ShadowStrength,    0.0f, 1.0f);
+
+        float mid[3] = { p.MidtoneTint.x, p.MidtoneTint.y, p.MidtoneTint.z };
+        if (ImGui::ColorEdit3("MidtoneTint##CG", mid))
+        {
+            p.MidtoneTint = Vec3(mid[0], mid[1], mid[2]);
+            changed = true;
+        }
+        changed |= ImGui::SliderFloat("MidtoneStrength##CG",   &p.MidtoneStrength,   0.0f, 1.0f);
+
+        float hi[3] = { p.HighlightTint.x, p.HighlightTint.y, p.HighlightTint.z };
+        if (ImGui::ColorEdit3("HighlightTint##CG", hi))
+        {
+            p.HighlightTint = Vec3(hi[0], hi[1], hi[2]);
+            changed = true;
+        }
+        changed |= ImGui::SliderFloat("HighlightStrength##CG", &p.HighlightStrength, 0.0f, 1.0f);
+
+        if (changed)
+            mPostProcessPass->SetColorGrading(p);
+    }
+
+    ImGui::End();
+#endif
+}
+
 void LobbyRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
    

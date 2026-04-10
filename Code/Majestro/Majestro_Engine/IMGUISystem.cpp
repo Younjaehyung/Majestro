@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "ResourceManager.h"
 #include "RenderManager.h"
+#include "RenderSystem.h"
 #include "AudioVisualizerComponent.h"
 
 IMGUIRenderSystem::IMGUIRenderSystem(World* world) : System::System(world)
@@ -41,6 +42,13 @@ void IMGUIRenderSystem::Update()
 
 
     ImGui::End();
+
+    // 현재 활성 파이프라인의 Pass on/off 및 파라미터 조절 창
+    if (auto* renderSys = mWorld->GetSystemManager()->GetSystem<RenderSystem>())
+    {
+        if (auto pipeline = renderSys->GetPipeline())
+            pipeline->DrawImGui();
+    }
 #endif
 }
 

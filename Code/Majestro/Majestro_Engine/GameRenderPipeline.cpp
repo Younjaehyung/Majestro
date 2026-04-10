@@ -18,6 +18,7 @@
 #include "GodRayPass.h"
 #include "DualKawaseBlurPass.h"
 #include "HBAOPass.h"
+#include "FXAAPass.h"
 #include "LightComponent.h"
 
 
@@ -51,10 +52,13 @@ void GameRenderPipeline::Initialize(World* world)
     // LightsPass 보다 먼저 초기화 (Initialize 순서는 실행 순서와 무관)
     mHBAOPass = make_shared<HBAOPass>();
     mHBAOPass->Initialize();
-    mHBAOPass->SetRadius(0.5f);
-    mHBAOPass->SetBias(0.03f);
-    mHBAOPass->SetIntensity(1.5f);
-    mHBAOPass->SetFalloff(1.5f);
+    // radius: 씬 단위계에 맞게 조정 (1단위=1cm → 50~200, 1단위=1m → 0.5~2.0)
+    // MAX_SCREEN_RADIUS_PX=150 으로 픽셀 반경이 클램프되므로
+    // radius는 "의도한 최대 AO 거리 (뷰 공간 단위)"만 제어
+    mHBAOPass->SetRadius(1.0f);
+    mHBAOPass->SetBias(0.1f);       // 자기-차폐 방지 (값 높을수록 AO 줄어듦)
+    mHBAOPass->SetIntensity(1.2f);  // 전반적 강도
+    mHBAOPass->SetFalloff(2.0f);
     mHBAOPass->SetNumDirections(4);
     mHBAOPass->SetNumSteps(4);
     mHBAOPass->SetBlurRadius(3.0f);
@@ -97,6 +101,16 @@ void GameRenderPipeline::Initialize(World* world)
     mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
     mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
 
+    // FXAA: ToneMap 이후 LDR 단계에서 엣지 앤티얼라이싱
+    // (AddLDRPass로 등록 → ToneMapPass 완료 후 POST_LDR 핑퐁 체인에 삽입됨)
+    mFXAAPass = make_shared<FXAAPass>();
+    mFXAAPass->Initialize();
+    mFXAAPass->SetParams(
+        0.125f,  // edgeThreshold    : 루마 대비 감지 임계값 (낮을수록 더 많은 엣지 처리)
+        0.0625f, // edgeThresholdMin : 어두운 영역 컷오프 (매우 어두운 픽셀 처리 생략)
+        0.75f    // subpixQuality    : 서브픽셀 블렌드 강도 (0=꺼짐, 1=최대)
+    );
+    mPostProcessPass->AddLDRPass(mFXAAPass);
 
 }
 
@@ -255,6 +269,16 @@ void GameRenderPipeline::SetHBAOEnabled(bool on)
     if (mHBAOPass) mHBAOPass->SetEnabled(on);
 }
 
+void GameRenderPipeline::SetFXAAEnabled(bool on)
+{
+    if (mFXAAPass) mFXAAPass->SetEnabled(on);
+}
+
+void GameRenderPipeline::SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality)
+{
+    if (mFXAAPass) mFXAAPass->SetParams(edgeThreshold, edgeThresholdMin, subpixQuality);
+}
+
 void GameRenderPipeline::AddHDREffect(shared_ptr<RenderPass> pass)
 {
     if (mPostProcessPass) mPostProcessPass->AddHDRPass(pass);
@@ -347,4 +371,182 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
 void GameRenderPipeline::RenderPost(const RenderContext& ctx)
 {
     mPostProcessPass->Execute(*ctx.deferredBatchs);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ImGui 디버그 창 (게임 파이프라인)
+// ─────────────────────────────────────────────────────────────────────────────
+
+void GameRenderPipeline::DrawImGui()
+{
+#ifdef _IMGUI
+    if (!ImGui::Begin("Render Pipeline"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    // ── Pass On/Off ───────────────────────────────────────────────────────────
+    if (ImGui::CollapsingHeader("Pass On/Off", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        bool fogOn = mFogPass ? mFogPass->IsEnabled() : false;
+        if (ImGui::Checkbox("Fog",              &fogOn))          SetFogEnabled(fogOn);
+
+        bool godRayOn = mGodRayPass ? mGodRayPass->IsEnabled() : false;
+        if (ImGui::Checkbox("GodRay (VLS)",     &godRayOn))       SetGodRayEnabled(godRayOn);
+
+        bool bloomOn = mEmissiveBloomPass ? mEmissiveBloomPass->IsEnabled() : false;
+        if (ImGui::Checkbox("EmissiveBloom",    &bloomOn))        SetEmissiveBloomEnabled(bloomOn);
+
+        bool outlineOn = mOutlinePass ? mOutlinePass->IsEnabled() : false;
+        if (ImGui::Checkbox("Outline",          &outlineOn))      SetOutlineEnabled(outlineOn);
+
+        bool hbaoOn = mHBAOPass ? mHBAOPass->IsEnabled() : false;
+        if (ImGui::Checkbox("HBAO+",            &hbaoOn))         SetHBAOEnabled(hbaoOn);
+
+        bool fxaaOn = mFXAAPass ? mFXAAPass->IsEnabled() : false;
+        if (ImGui::Checkbox("FXAA",             &fxaaOn))         SetFXAAEnabled(fxaaOn);
+
+        // MotionBlur는 대시 중 자동 활성화 — 수동 오버라이드만 허용
+        ImGui::BeginDisabled(true);
+        bool blurOn = mMotionBlurPass ? mMotionBlurPass->IsEnabled() : false;
+        ImGui::Checkbox("MotionBlur (auto: Dash)", &blurOn);
+        ImGui::EndDisabled();
+    }
+
+    // ── GodRay 파라미터 ───────────────────────────────────────────────────────
+    if (mGodRayPass && ImGui::CollapsingHeader("GodRay 파라미터"))
+    {
+        float intensity = mGodRayPass->GetIntensity();
+        if (ImGui::SliderFloat("Intensity##GR", &intensity, 0.0f, 10.0f))
+            mGodRayPass->SetIntensity(intensity);
+
+        int steps = mGodRayPass->GetNumSteps();
+        if (ImGui::SliderInt("NumSteps##GR", &steps, 8, 128))
+            mGodRayPass->SetNumSteps(steps);
+
+        float maxRayLen = mGodRayPass->GetMaxRayLen();
+        if (ImGui::DragFloat("MaxRayLen##GR", &maxRayLen, 100.0f, 100.0f, 20000.0f))
+            mGodRayPass->SetMaxRayLen(maxRayLen);
+
+        float scatter = mGodRayPass->GetScatterCoeff();
+        if (ImGui::SliderFloat("ScatterCoeff##GR", &scatter, 0.00001f, 0.001f, "%.6f"))
+            mGodRayPass->SetScatterCoeff(scatter);
+
+        float mie = mGodRayPass->GetMieAsymmetry();
+        if (ImGui::SliderFloat("MieAsymmetry##GR", &mie, -1.0f, 1.0f))
+            mGodRayPass->SetMieAsymmetry(mie);
+
+        float absorption = mGodRayPass->GetAbsorptionCoeff();
+        if (ImGui::SliderFloat("AbsorptionCoeff##GR", &absorption, 0.0f, 0.001f, "%.6f"))
+            mGodRayPass->SetAbsorptionCoeff(absorption);
+
+        const Vec3& sc = mGodRayPass->GetSunColor();
+        float col[3] = { sc.x, sc.y, sc.z };
+        if (ImGui::ColorEdit3("SunColor##GR", col))
+            mGodRayPass->SetSunColor(Vec3(col[0], col[1], col[2]));
+    }
+
+    // ── EmissiveBloom 파라미터 ────────────────────────────────────────────────
+    if (mEmissiveBloomPass && ImGui::CollapsingHeader("EmissiveBloom 파라미터"))
+    {
+        float threshold = mEmissiveBloomPass->GetThreshold();
+        if (ImGui::SliderFloat("Threshold##EB", &threshold, 0.0f, 3.0f))
+            mEmissiveBloomPass->SetThreshold(threshold);
+
+        float intensity = mEmissiveBloomPass->GetIntensity();
+        if (ImGui::SliderFloat("Intensity##EB", &intensity, 0.0f, 3.0f))
+            mEmissiveBloomPass->SetIntensity(intensity);
+    }
+
+    // ── HBAO+ 파라미터 ────────────────────────────────────────────────────────
+    if (mHBAOPass && ImGui::CollapsingHeader("HBAO+ 파라미터"))
+    {
+        float radius = mHBAOPass->GetRadius();
+        if (ImGui::SliderFloat("Radius##HBAO", &radius, 0.05f, 5.0f))
+            mHBAOPass->SetRadius(radius);
+
+        float bias = mHBAOPass->GetBias();
+        if (ImGui::SliderFloat("Bias##HBAO", &bias, 0.0f, 0.2f))
+            mHBAOPass->SetBias(bias);
+
+        float hbaoIntensity = mHBAOPass->GetIntensity();
+        if (ImGui::SliderFloat("Intensity##HBAO", &hbaoIntensity, 0.0f, 5.0f))
+            mHBAOPass->SetIntensity(hbaoIntensity);
+
+        float falloff = mHBAOPass->GetFalloff();
+        if (ImGui::SliderFloat("Falloff##HBAO", &falloff, 0.1f, 5.0f))
+            mHBAOPass->SetFalloff(falloff);
+
+        int numDirs = mHBAOPass->GetNumDirections();
+        if (ImGui::SliderInt("NumDirections##HBAO", &numDirs, 2, 16))
+            mHBAOPass->SetNumDirections(numDirs);
+
+        int numSteps = mHBAOPass->GetNumSteps();
+        if (ImGui::SliderInt("NumSteps##HBAO", &numSteps, 2, 16))
+            mHBAOPass->SetNumSteps(numSteps);
+
+        float blurRad = mHBAOPass->GetBlurRadius();
+        if (ImGui::SliderFloat("BlurRadius##HBAO", &blurRad, 0.0f, 10.0f))
+            mHBAOPass->SetBlurRadius(blurRad);
+    }
+
+    // ── FXAA 파라미터 ─────────────────────────────────────────────────────────
+    if (mFXAAPass && ImGui::CollapsingHeader("FXAA 파라미터"))
+    {
+        float edgeThr    = mFXAAPass->GetEdgeThreshold();
+        float edgeThrMin = mFXAAPass->GetEdgeThresholdMin();
+        float subpix     = mFXAAPass->GetSubpixQuality();
+
+        bool changed = false;
+        changed |= ImGui::SliderFloat("EdgeThreshold##FXAA",    &edgeThr,    0.063f, 0.333f);
+        changed |= ImGui::SliderFloat("EdgeThresholdMin##FXAA", &edgeThrMin, 0.031f, 0.083f);
+        changed |= ImGui::SliderFloat("SubpixQuality##FXAA",    &subpix,     0.0f,   1.0f);
+
+        if (changed)
+            mFXAAPass->SetParams(edgeThr, edgeThrMin, subpix);
+    }
+
+    // ── ColorGrading ─────────────────────────────────────────────────────────
+    if (mPostProcessPass && ImGui::CollapsingHeader("ColorGrading"))
+    {
+        ColorGradingParams p = mPostProcessPass->GetColorGrading();
+        bool changed = false;
+
+        changed |= ImGui::SliderFloat("Saturation##CG",  &p.Saturation,  0.0f, 3.0f);
+        changed |= ImGui::SliderFloat("Contrast##CG",    &p.Contrast,    0.0f, 3.0f);
+        changed |= ImGui::SliderFloat("Brightness##CG",  &p.Brightness, -1.0f, 1.0f);
+        changed |= ImGui::SliderFloat("Exposure##CG",    &p.Exposure,    0.1f, 5.0f);
+
+        ImGui::Separator();
+        float shadow[3] = { p.ShadowTint.x, p.ShadowTint.y, p.ShadowTint.z };
+        if (ImGui::ColorEdit3("ShadowTint##CG", shadow))
+        {
+            p.ShadowTint = Vec3(shadow[0], shadow[1], shadow[2]);
+            changed = true;
+        }
+        changed |= ImGui::SliderFloat("ShadowStrength##CG",    &p.ShadowStrength,    0.0f, 1.0f);
+
+        float mid[3] = { p.MidtoneTint.x, p.MidtoneTint.y, p.MidtoneTint.z };
+        if (ImGui::ColorEdit3("MidtoneTint##CG", mid))
+        {
+            p.MidtoneTint = Vec3(mid[0], mid[1], mid[2]);
+            changed = true;
+        }
+        changed |= ImGui::SliderFloat("MidtoneStrength##CG",   &p.MidtoneStrength,   0.0f, 1.0f);
+
+        float hi[3] = { p.HighlightTint.x, p.HighlightTint.y, p.HighlightTint.z };
+        if (ImGui::ColorEdit3("HighlightTint##CG", hi))
+        {
+            p.HighlightTint = Vec3(hi[0], hi[1], hi[2]);
+            changed = true;
+        }
+        changed |= ImGui::SliderFloat("HighlightStrength##CG", &p.HighlightStrength, 0.0f, 1.0f);
+
+        if (changed)
+            mPostProcessPass->SetColorGrading(p);
+    }
+
+    ImGui::End();
+#endif
 }

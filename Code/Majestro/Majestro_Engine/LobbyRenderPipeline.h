@@ -22,6 +22,7 @@ public:
 
     void Initialize(World* world)   override;
     void OnResize(uint32 w, uint32 h) override;
+    void DrawImGui()                override;
 
     void SetupPassTable(
         std::array<PassCustomData,

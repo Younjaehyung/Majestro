@@ -20,13 +20,26 @@ public:
     void SetSunDirection(const Vec3& dir) { mSunDir = dir; }
 
 
-    void SetIntensity(float v)       { mIntensity = v; }
-    void SetNumSteps(int v)          { mNumSteps = v; }
-    void SetMaxRayLen(float v)       { mMaxRayLen = v; }
-    void SetScatterCoeff(float v)    { mScatterCoeff = v; }
-    void SetMieAsymmetry(float g)    { mMieG = g; }
-    void SetSunColor(const Vec3& c)  { mSunColor = c; }
-    void SetAbsorptionCoeff(float v) { mAbsorptionCoeff = v; }
+    void  SetIntensity(float v)        { mIntensity = v; }
+    float GetIntensity()       const   { return mIntensity; }
+
+    void  SetNumSteps(int v)           { mNumSteps = v; }
+    int   GetNumSteps()        const   { return mNumSteps; }
+
+    void  SetMaxRayLen(float v)        { mMaxRayLen = v; }
+    float GetMaxRayLen()       const   { return mMaxRayLen; }
+
+    void  SetScatterCoeff(float v)     { mScatterCoeff = v; }
+    float GetScatterCoeff()    const   { return mScatterCoeff; }
+
+    void  SetMieAsymmetry(float g)     { mMieG = g; }
+    float GetMieAsymmetry()    const   { return mMieG; }
+
+    void       SetSunColor(const Vec3& c) { mSunColor = c; }
+    const Vec3& GetSunColor()      const  { return mSunColor; }
+
+    void  SetAbsorptionCoeff(float v)  { mAbsorptionCoeff = v; }
+    float GetAbsorptionCoeff() const   { return mAbsorptionCoeff; }
 
 private:
     Vec3  mSunDir          = Vec3(0.f, -1.f, 0.f); // World Space, 태양으로부터 비추는 방향

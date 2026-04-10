@@ -118,14 +118,19 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	//world->AddComponent<ControllerComponent>(mEntityID, t);
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type){// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case 0:
+	{
 		world->AddComponent<HealthComponent>(mEntityID, 150, 150);
 		world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+
+		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default.png", L"..\\Resources\\Texture\\Ramp_Normal.png");
+		material2->GetParams().ExtTex[0] = rampTex->GetImageIndex();
+
 		material2s.push_back(material2);
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011");
 		material2s.push_back(material2);
@@ -148,14 +153,19 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Rhythm"));
 
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
-
+	}
 		break;
 	case 1:
+	{
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
-		
+
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010");
+
+		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default.png", L"..\\Resources\\Texture\\Ramp_Normal.png");
+		material2->GetParams().ExtTex[0] = rampTex->GetImageIndex();
+
 		material2s.push_back(material2);
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011");
 		material2s.push_back(material2);
@@ -177,13 +187,20 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Reload"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Rhythm"));
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+	}
 		break;
 	case 2:
+	{
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010");
+
+		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default.png", L"..\\Resources\\Texture\\Ramp_Normal.png");
+		material2->GetParams().ExtTex[0] = rampTex->GetImageIndex();
+
+
 		material2s.push_back(material2);
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011");
 		material2s.push_back(material2);
@@ -207,8 +224,11 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Reload"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Rhythm"));
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+	}
 		break;
 	}
+
+
 
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 0.f, 10.f };

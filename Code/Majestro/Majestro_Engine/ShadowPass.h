@@ -13,17 +13,9 @@ public:
 	void Execute(std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeDrawBatchs, array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeActive);
 
 	void RenderShadowCamera(std::vector<DrawBatch>& drawBatchs, uint32 cascadeIndex);
-
-	void InstancingRender(DrawBatch& drawBatch);
 private:
 
 	array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
 	array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
-
-	struct dummy {
-		uint32 BaseInstance;
-		uint32 InstanceCount;
-		uint32 Cascade;
-	} dum;
 };
 

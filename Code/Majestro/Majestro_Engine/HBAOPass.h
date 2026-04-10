@@ -55,7 +55,7 @@ public:
 
     
     void  SetRadius(float r)       { mRadius = r; }        // 뷰 공간 AO 반경(월드 단위)
-    float GetRadius()       const  { return mRadius; }
+    float GetRadius()       const  { return mRadius; }     //(1단위 = 1cm -> 50~200, 1단위 = 1m -> 0.5~2.0)
 
     void  SetBias(float b)         { mBias = b; }          // 자기-차폐 방지 오프셋
     float GetBias()         const  { return mBias; }

@@ -6,8 +6,8 @@
 #include "ResourceManager.h"
 
 void DepthPrePass::Initialize() {
-	depthShader      = RESOURCEMANAGER.Get<Shader>(L"DepthPrepass");
-	depthShaderAlpha = RESOURCEMANAGER.Get<Shader>(L"DepthPrepassAlpha");
+	mDepthShader      = RESOURCEMANAGER.Get<Shader>(L"DepthPrepass");
+	mDepthAlphaShader = RESOURCEMANAGER.Get<Shader>(L"DepthPrepassAlpha");
 }
 
 void DepthPrePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
@@ -27,10 +27,11 @@ void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
     depthGroup.ClearRenderTargetView();
     depthGroup.OMSetRenderTargets();
 
-    depthShader->Update();
+   
     mCurrPSOID = 0;
 
-    // 1) 일반 불투명 오브젝트 depth 기록
+    // 일반 불투명 오브젝트 depth 기록
+    mDepthShader->Update();
     for (auto& batch : drawBatchs) {
         const SHADER_TYPE type = batch.PSOShader->GetShaderType();
         if (type != SHADER_TYPE::DEFERRED && type != SHADER_TYPE::FORWARD)
@@ -47,8 +48,8 @@ void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
         InstancingRender(batch);
     }
 
-    //알파 있는 depth 기록
-    depthShaderAlpha->Update();
+    // alpha 있는 depth 기록
+    mDepthAlphaShader->Update();
     for (auto& batch : drawBatchs) {
         if (batch.PSOShader->GetBlendType() != BLEND_TYPE::ALPHA_TEST)
             continue;
@@ -59,8 +60,4 @@ void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
         InstancingRender(batch);
     }
     // depth texture는 DEPTH_WRITE 상태 유지 (G_BUFFER, Forward에서 depth test 가능)
-}
-
-void DepthPrePass::InstancingRender(DrawBatch& drawBatch) {
-    drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, 0, 0);
 }

@@ -20,17 +20,12 @@ void GBufferPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
             drawBatch.PSOShader->Update();
             mCurrPSOID = drawBatch.PSOID;
         }
-        dum.BaseInstance = drawBatch.BaseInstance;
-        dum.InstanceCount = drawBatch.InstanceCount;
+        mDum.BaseInstance = drawBatch.BaseInstance;
+        mDum.InstanceCount = drawBatch.InstanceCount;
 
-        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(dum), 0);
+        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(mDum), 0);
         InstancingRender(drawBatch);
     }
 
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).WaitTargetToResource();
-}
-
-void GBufferPass::InstancingRender(DrawBatch& drawBatch) {
-    drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex,
-        0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
 }

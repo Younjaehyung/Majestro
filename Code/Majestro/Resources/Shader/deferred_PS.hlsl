@@ -94,9 +94,14 @@ PS_OUT PS_Main(VS_OUT input)
         metallic = TextureMaps[materials.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
     }
 
+    // RoughnessMap 우선, 없으면 SpecularcMap 슬롯(FBX Roughness 채널) 폴백
     if (materials.RoughnessMapIndex != -1)
     {
         roughness = TextureMaps[materials.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
+    }
+    else if (materials.SpecularcMapIndex != -1)
+    {
+        roughness = TextureMaps[materials.SpecularcMapIndex].Sample(g_sam_0, input.uv).r;
     }
 
 
@@ -108,12 +113,18 @@ PS_OUT PS_Main(VS_OUT input)
     {
         emissive = TextureMaps[materials.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
     }
-    
+
+    // OcclusionMap(AO) → emissive.a에 패킹해 G-Buffer로 전달
+    float materialAO = 1.0f;
+    if (materials.OcclusionMapIndex != -1)
+    {
+        materialAO = TextureMaps[materials.OcclusionMapIndex].Sample(g_sam_0, input.uv).r;
+    }
 
     output.position = float4(input.viewPos.xyz, 1.0f);
     output.normal   = float4(viewNormal.xyz, metallic);
     output.color    = float4(baseColor.rgb, roughness);
-    output.emissive = float4(emissive, 1.0f); // 이미시브 블룸 소스
+    output.emissive = float4(emissive, materialAO); // a채널 = material AO
 
     return output;
 }

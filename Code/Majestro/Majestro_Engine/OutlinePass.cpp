@@ -55,8 +55,3 @@ void OutlinePass::Execute(std::vector<DrawBatch>& drawBatches)
 
 	hdrGroup.WaitTargetToResource();
 }
-
-void OutlinePass::InstancingRender(DrawBatch& drawBatch)
-{
-	drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex, 0, 0);
-}

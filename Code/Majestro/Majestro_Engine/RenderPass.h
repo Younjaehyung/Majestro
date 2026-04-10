@@ -101,13 +101,15 @@ public:
 	virtual void SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, 
 		RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after);
 	virtual void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
+	virtual void Compute() {};
 
 	virtual bool IsEnabled() const { return mEnabled; }
 	virtual void SetEnabled(bool enabled) { mEnabled = enabled; }
+	virtual void InstancingRender(DrawBatch& drawBatch);
 protected:
 	RENDER_TARGET_GROUP_TYPE mBefore;
 	RENDER_TARGET_GROUP_TYPE mAfter;
-
+	struct dummy { uint32 BaseInstance, InstanceCount, Cascade; } mDum;
 
 	bool mEnabled = true;
 };

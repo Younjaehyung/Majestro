@@ -96,11 +96,15 @@ PS_OUT PS_Main(VS_OUT input)
     metallic = 0.0f;
 
   
+    // RoughnessMap 우선, 없으면 SpecularcMap 슬롯(FBX Roughness 채널) 폴백
     if (materials.RoughnessMapIndex != -1)
     {
         roughness = TextureMaps[materials.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    roughness = 0.5f;
+    else if (materials.SpecularcMapIndex != -1)
+    {
+        roughness = TextureMaps[materials.SpecularcMapIndex].Sample(g_sam_0, input.uv).r;
+    }
         
 
     metallic = saturate(metallic);

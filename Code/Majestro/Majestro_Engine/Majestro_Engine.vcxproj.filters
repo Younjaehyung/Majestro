@@ -575,11 +575,11 @@
     <ClInclude Include="DualKawaseBlurPass.h">
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
-    <ClInclude Include="FXAAPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClInclude>
     <ClInclude Include="HBAOPass.h">
       <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="FXAAPass.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -926,11 +926,11 @@
     <ClCompile Include="DualKawaseBlurPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
-    <ClCompile Include="FXAAPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
-    </ClCompile>
     <ClCompile Include="HBAOPass.cpp">
       <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="FXAAPass.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1099,9 +1099,6 @@
     <FxCompile Include="..\Resources\Shader\forward_alpha_VS.hlsl">
       <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post\bloom</Filter>
     </FxCompile>
@@ -1133,6 +1130,9 @@
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\fxaa_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
   </ItemGroup>

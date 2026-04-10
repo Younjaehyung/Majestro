@@ -415,42 +415,52 @@ LightColor CalculateLightColorToon(
     //
     //  [핵심 기법] NdotL → shadowFactor 변환
     //
-    //  ※ Half-Lambert(rawNdotL * 0.5 + 0.5) 를 사용하지 않는다.
-    //    Half-Lambert는 그림자 면(-NdotL)에도 그라디언트를 남겨
-    //    PBR처럼 보이게 만든다.
-    //    셀셰이딩에는 saturate(rawNdotL) 이 올바르다:
-    //      - NdotL < 0 → 전부 0 (그림자, flat)
-    //      - NdotL > 0 → [0,1] (밝은 면, flat)
-    //      - 경계만 smoothstep/ramp 로 처리
+    //  [모드 분리]
     //
-    //  ShadowThreshold  = 경계 위치 [0~1]
-    //                     (0.5 = NdotL 0.5 = 빛과 60° 이하에서 shadow)
-    //  ShadowSmoothness = 경계 폭   (0.0 = 완전 하드, 클수록 소프트)
-   
-    float ndotL01    = saturate(rawNdotL); // Lambert [0,1] — 그림자 면은 0으로 클램프
+    //  ── Ramp Texture 모드 (RampTexIdx >= 0) ──────────────────
+    //    입력: Half-Lambert  rawNdotL * 0.5 + 0.5  → [0, 1]
+    //      U=0.0 : NdotL=-1 (완전히 빛 반대)
+    //      U=0.5 : NdotL= 0 (빛과 수직)  ← 명암 경계를 여기에 두는 것이 일반적
+    //      U=1.0 : NdotL=+1 (완전히 빛 방향)
+    //    → ramp 텍스처의 픽셀 색이 shadowFactor를 직접 결정하므로
+    //      텍스처 편집만으로 경계 위치/소프트니스/다단계 톤 조정 가능
+    //
+    //  ── smoothstep 폴백 모드 (RampTexIdx == -1) ─────────────
+    //    입력: Regular Lambert  saturate(rawNdotL)  → [0, 1]
+    //      그림자 면(NdotL≤0)은 모두 0으로 클램프 → shadow flat
+    //      경계는 ShadowThreshold/ShadowSmoothness로 조정
+    //    → 텍스처 없이 코드 상수만으로 하드 셀셰이딩 구현
+    //
+    //  ShadowThreshold  = 폴백 경계 위치 [0~1]  (0.5 권장)
+    //  ShadowSmoothness = 폴백 경계 폭   (0.0 = 완전 하드, 0.02 = 앤티얼라이싱 수준)
+    // ─────────────────────────────────────────────────────────
     float halfSmooth = toon.ShadowSmoothness * 0.5f;
 
     float shadowFactor;
     if (toon.RampTexIdx >= 0)
     {
         // ── Ramp Texture 모드 ─────────────────────────────────
-        // TextureMaps[RampTexIdx] : 가로 1D Ramp 텍스처 (최소 256×1)
-        //   U = ndotL01 (0=그림자, 1=밝은면)
-        //   V = 0.5 (1D이므로 중앙 고정)
-        //   R 채널 = shadowFactor 값
+        // Half-Lambert로 U 계산: 전체 각도 범위를 ramp에 매핑
+        // 텍스처 R 채널이 shadowFactor를 직접 정의
+        //
+        // Ramp 텍스처 제작 가이드:
+        //   왼쪽(U=0~0.45) : shadow 영역 → R=0
+        //   U≈0.45~0.55    : 경계 구간 → R=0→1 (하드면 계단, 소프트면 그라디언트)
+        //   오른쪽(U=0.55~1): lit 영역  → R=1
+        //   최소 크기: 256×8 px, CLAMP 모드로 임포트
         //
         // 샘플러: g_sam_Terrain (CLAMP, s1) — UV 경계 wrap 방지
+        float halfLambert = rawNdotL * 0.5f + 0.5f; // [-1,1] → [0,1]
         shadowFactor = TextureMaps[toon.RampTexIdx].Sample(
             g_sam_Terrain,
-            float2(ndotL01, 0.5f)
+            float2(halfLambert, 0.5f)
         ).r;
     }
     else
     {
         // ── smoothstep 폴백 (RampTexIdx == -1) ───────────────
-        // 경계 전/후가 완전히 flat해야 셀셰이딩처럼 보임
-        // outerShadow(min 처리)를 사용하면 경계 앞에 pre-shadow
-        // 그라디언트가 생겨 PBR처럼 보이므로 제거
+        // Regular Lambert: 그림자 면 전체를 0으로 클램프 → flat shadow
+        float ndotL01 = saturate(rawNdotL);
         shadowFactor = smoothstep(
             toon.ShadowThreshold - halfSmooth,
             toon.ShadowThreshold + halfSmooth,

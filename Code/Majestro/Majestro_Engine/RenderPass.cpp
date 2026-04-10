@@ -30,6 +30,11 @@ void RenderPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 	if (mEnabled == false) return;
 }
 
+void RenderPass::InstancingRender(DrawBatch& drawBatch)
+{
+    drawBatch.Mesh->Render(drawBatch.InstanceCount, drawBatch.SubMeshIndex,
+        0, 0 /*drawBatch.SubMeshIndex+ drawBatch.ParamsINX*/);
+}
 
 
 

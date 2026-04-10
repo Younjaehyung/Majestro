@@ -15,7 +15,8 @@ void MotionVectorPass::SetData(
 {
 	mBefore = before;
 	mAfter = after;
-	// PS에서 PRE_DEPTH를 Gbuffer[GBUFFER_PREDEPTH_INDEX]로 직접 접근
+
+	// PRE_DEPTH 값 읽기
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_MOTIONVEC_PASS)].PreviousStep
 		= static_cast<int32>(ToGBufferIndex(RENDER_TARGET_GROUP_TYPE::PRE_DEPTH));
 }
@@ -27,7 +28,7 @@ void MotionVectorPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 	auto& mvGroup = RENDERMANAGER.GetRenderTargetGroup(
 		static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR));
 
-	// ClearRenderTargetView()가 내부적으로 WaitResourceToTarget(COMMON→RT)을 처리하므로 별도 호출 불필요
+	
 	mvGroup.ClearRenderTargetView();
 	mvGroup.OMSetRenderTargets();
 

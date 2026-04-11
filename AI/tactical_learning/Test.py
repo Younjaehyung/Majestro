@@ -83,9 +83,9 @@ def main():
     ap.add_argument("--goal-spawn-min-scale", type=float, default=4.0)
     ap.add_argument("--agent-spawn-min-scale", type=float, default=2.0)
     ap.add_argument("--agent-spawn-max-scale", type=float, default=3.0)
-    ap.add_argument("--role-rule", type=str, default="fixed", choices=["fixed", "balanced", "pressure", "encircle", "mobility"])
-    ap.add_argument("--agent-role-rules", type=str, default=None,
-                    help="Comma-separated per-agent heuristic list. Length must be 1 or num_agents. Example: balanced,pressure,encircle,mobility,fixed")
+    ap.add_argument("--role-rule", type=str, default="fixed", choices=["fixed", "melee_dps", "ranged_dps"])
+    ap.add_argument("--agent-role-rules", type=str, default="melee_dps,melee_dps,melee_dps,ranged_dps,ranged_dps",
+                    help="Comma-separated per-agent heuristic list. Length must be 1 or num_agents. Example: fixed,melee_dps,ranged_dps")
 
     args = ap.parse_args()
 

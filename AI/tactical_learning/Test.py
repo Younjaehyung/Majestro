@@ -52,7 +52,7 @@ def main():
     # Updates & exploration
     ap.add_argument("--updates-per-step", type=int, default=2)
     ap.add_argument("--alpha-floor", type=float, default=0.03)
-    ap.add_argument("--alpha-ceiling", type=float, default=0.90)
+    ap.add_argument("--alpha-ceiling", type=float, default=2.00)
 
     # Best saving
     ap.add_argument("--save-best-online", action="store_true", default=True)
@@ -79,7 +79,7 @@ def main():
     ap.add_argument("--num-other-agents", type=int, default=4)
     ap.add_argument("--observed-other-agents", type=int, default=3)
     ap.add_argument("--agent-radius", type=float, default=90.0)
-    ap.add_argument("--sense-radius", type=float, default=600.0)
+    ap.add_argument("--sense-radius", type=float, default=1000.0)
     ap.add_argument("--goal-spawn-min-scale", type=float, default=4.0)
     ap.add_argument("--agent-spawn-min-scale", type=float, default=2.0)
     ap.add_argument("--agent-spawn-max-scale", type=float, default=3.0)

@@ -524,13 +524,13 @@ LightColor CalculateLightColorToon(
 
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
-    // [추가] Schlick Fresnel
+    //Schlick Fresnel
     return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
 float DistributionGGX(float NdotH, float roughness)
 {
-    // [추가] GGX / Trowbridge-Reitz NDF
+    //GGX / Trowbridge-Reitz NDF
     float a = roughness * roughness;
     float a2 = a * a;
 
@@ -540,7 +540,7 @@ float DistributionGGX(float NdotH, float roughness)
 
 float GeometrySchlickGGX(float NdotX, float roughness)
 {
-    // [추가] Schlick-GGX geometry term (k formulation)
+    // Schlick-GGX geometry term (k formulation)
     float r = roughness + 1.0f;
     float k = (r * r) / 8.0f; // UE4에서 흔히 쓰는 근사
 
@@ -549,7 +549,7 @@ float GeometrySchlickGGX(float NdotX, float roughness)
 
 float GeometrySmith(float NdotV, float NdotL, float roughness)
 {
-    // [추가] Smith geometry (separable)
+    // Smith geometry (separable)
     float ggxV = GeometrySchlickGGX(NdotV, roughness);
     float ggxL = GeometrySchlickGGX(NdotL, roughness);
     return ggxV * ggxL;
@@ -560,25 +560,22 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
 {
     LightColor color = (LightColor) 0.f;
 
-    float3 viewLightDir = (float3) 0.f; // "light -> surface" 방향으로 유지(너 기존과 동일)
+    float3 viewLightDir = (float3) 0.f;
     float distanceRatio = 1.f;
     float NdotL = 0.f;
 
-    // -----------------------------
-    // 1) 기존과 동일하게 라이트 방향/감쇠 계산
-    // -----------------------------
     if (Lights[lightIndex].lightType == 0)
     {
         // Directional
         viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        NdotL = saturate(dot(-viewLightDir, viewNormal)); // L = -viewLightDir
+        NdotL = saturate(dot(-viewLightDir, viewNormal)); 
     }
     else if (Lights[lightIndex].lightType == 1)
     {
         // Point
         float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos); // light -> surface
-        NdotL = saturate(dot(-viewLightDir, viewNormal)); // surface -> light
+        viewLightDir = normalize(viewPos - viewLightPos);
+        NdotL = saturate(dot(-viewLightDir, viewNormal));
 
         float dist = distance(viewPos, viewLightPos);
         if (Lights[lightIndex].range == 0.f)
@@ -614,7 +611,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
         }
     }
 
-    // 라이트가 닿지 않으면 early-out
+
     if (NdotL <= 0.0f || distanceRatio <= 0.0f)
     {
         color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
@@ -626,11 +623,9 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     // -----------------------------
     float3 N = normalize(viewNormal);
 
-    // [수정] view-space에서 카메라는 원점, viewPos는 "카메라->픽셀" 방향 위치로 쓰는 게 일반적
-    // V는 "픽셀->카메라" 방향이므로 -viewPos
     float3 V = normalize(-viewPos);
 
-    // 너 기존 정의에 맞춰 L = surface->light = -viewLightDir
+  
     float3 L = normalize(-viewLightDir);
 
     float3 H = normalize(V + L);
@@ -639,10 +634,10 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float NdotH = saturate(dot(N, H));
     float VdotH = saturate(dot(V, H));
 
-    // [중요] roughness 0 근처에서 스파이크/NaN 방지
+ 
     roughness = max(roughness, 0.04f);
 
-    // F0: 비금속은 0.04, 금속은 baseColor
+  
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
 
     float D = DistributionGGX(NdotH, roughness);
@@ -653,7 +648,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float denom = max(4.0f * NdotV * NdotL, 1e-6f);
     float3 specular = numerator / denom;
 
-    // Diffuse는 금속에서 사라짐
+   
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
 
@@ -670,7 +665,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     color.diffuse = float4(outDiffuse, 1.0f);
     color.specular = float4(outSpecular, 1.0f);
 
-    // ambient: baseColor로 변조하여 표면 알베도 반영
+  
     color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
 
     return color;
@@ -857,12 +852,12 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
     float3 shadowNdc = shadowClipPos.xyz * invW;
-    
+
     // NDC -> UV 변환
     float2 uv;
     uv.x = shadowNdc.x * 0.5f + 0.5f;
     uv.y = -shadowNdc.y * 0.5f + 0.5f;
-    
+
     const float uvGuard = 0.005f;
     const float zGuard = 0.0005f;
     float2 uvMinDelta = uv - uvGuard;
@@ -870,17 +865,17 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float uvCoverage = saturate(min(min(uvMinDelta.x, uvMinDelta.y), min(uvMaxDelta.x, uvMaxDelta.y)) / uvGuard);
     float zCoverage = saturate((shadowNdc.z - zGuard) / zGuard) * saturate(((1.0f - zGuard) - shadowNdc.z) / zGuard);
     cascadeCoverage = uvCoverage * zCoverage;
-    
+
     if (cascadeCoverage <= 0.0f)
         return 1.0f;
 
     float lightDepth = saturate(shadowNdc.z);
 
     // bias 계산
-   
+    // 기울어진 표면(ndotl 작음)일수록 self-shadowing 오차가 커지므로 slope-scale bias 적용
     float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
-    float cascadeBiasScale = 1.0f + cascadeIndex * 0.25f;
-    float bias = max(0.00001f, 0.00008f * (1.0f - ndotl)) * cascadeBiasScale;
+    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f;
+    float bias = max(0.0005f, 0.003f * (1.0f - ndotl)) * cascadeBiasScale;
 
 
     const float shadowMapSize = 4096.0f;
@@ -888,24 +883,25 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
 
     float shadow = 0.0f;
     float weightSum = 0.0f;
+    float compareDepth = lightDepth - bias;
 
-
-        // 원거리 cascade: 3x3 
+    // 3x3 가중 PCF — SampleCmpLevelZero로 텍셀당 하드웨어 bilinear 보간 적용
+    [unroll]
+    for (int y = -1; y <= 1; ++y)
+    {
         [unroll]
-        for (int y = -1; y <= 1; ++y)
+        for (int x = -1; x <= 1; ++x)
         {
-            [unroll]
-            for (int x = -1; x <= 1; ++x)
-            {
-                float2 offset = float2(x, y);
-                float weight = 1.0f / (1.0f + dot(offset, offset));
-                float2 sampleUv = saturate(uv + offset * texelSize);
-                float shadowDepth = ShadowMaps.SampleLevel(g_sam_Terrain, float3(sampleUv, cascadeIndex), 0).r;
-                shadow += ((shadowDepth < 1.0f && lightDepth - bias > shadowDepth) ? 1.0f : 0.0f) * weight;
-                weightSum += weight;
-            }
+            float2 offset = float2(x, y);
+            float weight = 1.0f / (1.0f + dot(offset, offset));
+            float2 sampleUv = uv + offset * texelSize; // BORDER 모드이므로 saturate 불필요
+            // LESS_EQUAL 비교: storedDepth <= compareDepth → 1(그림자), 아니면 0(조명)
+            // 인접 4 텍셀 비교 결과를 GPU가 bilinear 보간 → 계단 현상 완화
+            float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
+            shadow += shadowVal * weight;
+            weightSum += weight;
         }
-    
+    }
 
     shadow /= max(weightSum, 1e-4f);
     return 1.0f - shadow * 0.95f;
@@ -942,7 +938,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
         float coverageFallback = 1.0f - currentCoverage;
         float totalBlend = saturate(max(depthBlend, coverageFallback));
 
-        if (totalBlend > 0.0f)
+    if (totalBlend > 0.0f && (cascadeIndex + 1u) < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT)
         {
             float nextCoverage = 0.0f;
             float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);

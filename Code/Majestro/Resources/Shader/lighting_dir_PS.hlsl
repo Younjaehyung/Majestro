@@ -61,13 +61,9 @@ PS_OUT PS_DirLight(VS_OUT input)
 
     LightColor color = CalculateLightColorPBR(index, viewNormal, viewPos, baseColor, metallic, roughness);
 
-
-    if (length(color.diffuse.rgb) != 0)
-    {
-        float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
-        color.diffuse  *= visibility;
-        color.specular *= visibility;
-    }
+    float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
+    color.diffuse  *= visibility;
+    color.specular *= visibility;
 
 
     float3 V_view = normalize(-viewPos);
@@ -84,8 +80,10 @@ PS_OUT PS_DirLight(VS_OUT input)
         ao *= TextureMaps[aoIdx].Sample(g_sam_0, input.uv).r;
     }
 
-    output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao, 1.0f);
-    output.specular = color.specular + float4(ibl.specular * ao, 0.0f);
+    // IBL도 그림자 영역에서 완전히 차단하지 않고 최소값(0.15)을 유지하면서 감쇠
+    float iblVisibility = lerp(0.55f, 1.f, visibility);
+    output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao * iblVisibility, 1.0f);
+    output.specular = color.specular + float4(ibl.specular * ao * iblVisibility, 0.0f);
 
     return output;
 }

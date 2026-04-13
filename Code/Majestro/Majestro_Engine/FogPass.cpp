@@ -24,7 +24,7 @@ void FogPass::SetData(
 		= Vec4(0.75f, 0.80f, 0.88f, 0.0f);
 	// ExtValue[1]: fogStart, fogEnd, fogHeightStart, fogHeightEnd
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_FOG_PASS)].ExtValue[1]
-		= Vec4(7000.f, 15000.0f, -5.0f, 15.0f);
+		= Vec4(3000.f, 15000.0f, -5.0f, 15.0f);
 	// ExtValue[2]: heightFogWeight (0이면 height fog 비활성)
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::POST_FOG_PASS)].ExtValue[2]
 		= Vec4(0.0f, 0.0f, 0.0f, 0.0f);

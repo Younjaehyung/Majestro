@@ -20,6 +20,8 @@ struct PS_OUT
     float4 emissive : SV_Target3; // rgb = emissive
 };
 
+
+
 PS_OUT PS_Main(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
@@ -99,11 +101,6 @@ PS_OUT PS_Main(VS_OUT input)
     {
         roughness = TextureMaps[materials.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
     }
-    else if (materials.SpecularcMapIndex != -1)
-    {
-        roughness = TextureMaps[materials.SpecularcMapIndex].Sample(g_sam_0, input.uv).r;
-    }
-
 
     metallic = saturate(metallic);
     roughness = saturate(roughness);

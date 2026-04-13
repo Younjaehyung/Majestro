@@ -827,10 +827,19 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     }
     frustumCenter /= 8.f;
 
-    float radius = 0.f;
-    for (const Vec3 &corner : worldCorners)
-      radius = max(radius, (corner - frustumCenter).Length());
 
+    Vec3 centerView = Vec3::Zero;
+    for (uint32 i = 0; i < 4; ++i) {
+      centerView += Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT);
+      centerView += Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT);
+    }
+    centerView /= 8.f;
+
+    float radius = 0.f;
+    for (uint32 i = 0; i < 4; ++i) {
+      radius = max(radius, (Vec3::Lerp(frustumNearView[i], frustumFarView[i], nearT) - centerView).Length());
+      radius = max(radius, (Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT) - centerView).Length());
+    }
     radius = max(ceil(radius * 16.f) / 16.f, 1.f);
 
     // 라이트 프러스텀 구체 저장 (shadow-only 컬링용)

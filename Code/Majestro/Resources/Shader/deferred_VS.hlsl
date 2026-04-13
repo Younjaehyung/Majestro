@@ -57,7 +57,7 @@ VS_OUT VS_Main(VS_IN input)
     output.viewPos = mul(float4(input.pos, 1.f), WV).xyz;
     output.viewNormal = normalize(mul(float4(input.normal, 0.f), WV).xyz);
     output.viewTangent = normalize(mul(float4(input.tangent, 0.f), WV).xyz);
-    output.viewBinormal = normalize(cross(output.viewTangent, output.viewNormal));
+    output.viewBinormal = normalize(cross(output.viewNormal, output.viewTangent));
     
 
     return output;

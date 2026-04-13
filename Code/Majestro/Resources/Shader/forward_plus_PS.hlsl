@@ -479,6 +479,24 @@ float4 PS_Main(VS_OUT input) : SV_Target
     float shadowBias = (lightMap.g - 0.5f) * 0.15f; // G채널 → shadow threshold 오프셋
     float rimMask = lightMap.a; // Rim 마스크
 
+    // Metallic / Roughness / AO 샘플
+
+    float metallic = mtl.Metallic;
+    if (mtl.MetallicMapIndex >= 0)
+        metallic = TextureMaps[mtl.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
+    metallic = saturate(metallic);
+
+    float roughness = mtl.Roughness;
+    if (mtl.RoughnessMapIndex >= 0)
+        roughness = TextureMaps[mtl.RoughnessMapIndex].Sample(g_sam_0, input.uv).r;
+    roughness = saturate(roughness);
+
+    float ao = 1.0f;
+    if (mtl.OcclusionMapIndex >= 0)
+        ao = TextureMaps[mtl.OcclusionMapIndex].Sample(g_sam_0, input.uv).r;
+    ao = saturate(ao);
+
+    
     ToonShadingParams toon;
     // ShadowThreshold: NdotL 기준 경계값 (0.5 = 빛 방향 60도 이하에서 shadow)
     // shadowBias: LightMap G채널로 머티리얼마다 경계 미세 조정 (-0.075 ~ +0.075)
@@ -486,12 +504,18 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // ShadowSmoothness: 0.0 = 완전 하드, 0.02 = 매우 얇은 소프트 (앤티얼라이싱 수준)
     // 너무 크면 PBR처럼 보임
     toon.ShadowSmoothness = 0.02f;
-    toon.ShadowTint = float3(0.50f, 0.55f, 0.65f); // 청회색 tint (원신 그림자 기본 색조)
-    toon.SpecShininess = 50.0f; // 날카로운 하이라이트
-    toon.SpecThreshold = 0.55f; // 스펙큘러 컷오프
-    toon.SpecMask = specMask; // LightMap R채널
 
-    //  Ramp Texture 
+    // Metallic: 높을수록 그림자 색이 청회색  베이스컬러 색조로 이동 (금속 느낌)
+    toon.ShadowTint = lerp(float3(0.50f, 0.55f, 0.65f), color.rgb * 0.4f, metallic);
+
+    // Roughness: 낮을수록 날카로운 점 하이라이트 / 높을수록 넓고 약한 하이라이트
+    toon.SpecShininess = lerp(200.0f, 5.0f, roughness);
+    toon.SpecThreshold = lerp(0.70f,  0.30f, roughness);
+
+    // Metallic: 높을수록 스펙큘러 강하게 (LightMap R채널과 합산)
+    toon.SpecMask = saturate(specMask + metallic * 0.8f);
+
+    //  Ramp Texture
     // MATERIALINFO.ExtTex[0] = Ramp Texture의 TextureMaps[] 인덱스
     //   >= 0 : Ramp Texture 샘플링으로 shadowFactor 결정
     //   -1   : ShadowThreshold/Smoothness 기반 smoothstep 폴백
@@ -562,8 +586,9 @@ float4 PS_Main(VS_OUT input) : SV_Target
     //    result = diffuse + (ambient × baseColor) + specular + rim
     //
     float3 ambientContrib = totalColor.ambient.xyz * color.xyz;
-// ambient도 너무 강하면 날아가므로 saturate로 제한
-    ambientContrib = saturate(ambientContrib) * 0.5f; // ambient 기여도 제한
+    // ambient도 너무 강하면 날아가므로 saturate로 제한
+    // AO: 구석진 곳의 ambient를 억제 (diffuse는 그대로 유지)
+    ambientContrib = saturate(ambientContrib) * 0.5f * ao;
 
     color.xyz = totalColor.diffuse.xyz       // Toon diffuse (baseColor 포함)
           + ambientContrib

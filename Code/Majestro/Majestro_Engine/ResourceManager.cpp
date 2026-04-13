@@ -745,7 +745,19 @@ void ResourceManager::CreateDefaultRootSignature()
 		samplerDesc2.MaxLOD = D3D12_FLOAT32_MAX;
 		rootSignature->AddSampler(samplerDesc2);
 
-
+		// s2: 그림자 PCF 비교 샘플러 (SamplerComparisonState)
+		CD3DX12_STATIC_SAMPLER_DESC samplerDescShadow(2);
+		samplerDescShadow.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+		samplerDescShadow.AddressU = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		samplerDescShadow.AddressV = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		samplerDescShadow.AddressW = D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+		samplerDescShadow.MipLODBias = 0.0f;
+		samplerDescShadow.MaxAnisotropy = 1;
+		samplerDescShadow.ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER;
+		samplerDescShadow.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+		samplerDescShadow.MinLOD = 0.0f;
+		samplerDescShadow.MaxLOD = D3D12_FLOAT32_MAX;
+		rootSignature->AddSampler(samplerDescShadow);
 
 		rootSignature->CreateGraphicsRootSignature();
 
@@ -1030,7 +1042,7 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::SHADOW,
-			RASTERIZER_TYPE::CULL_BACK,
+			RASTERIZER_TYPE::CULL_NONE,
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\shadow_VS.hlsl",
@@ -2027,7 +2039,7 @@ void ResourceManager::CreateDefaultMaterial()
 	//LoadFBX(L"..\\Resources\\FBX\\XYZ.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\ZUP_Ascii_3dmax_Pivot.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\YUP_Ascii_3dmax_Pivot.fbx");
-
+	
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx", L"ForwardPlusCel");
@@ -2044,7 +2056,8 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Rhythm.fbx", L"ForwardPlusCel");
 
 
-
+	
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Base.fbx", L"ForwardPlusCel"); 
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Jump.fbx", L"ForwardPlusCel");

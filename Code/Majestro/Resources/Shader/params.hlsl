@@ -367,5 +367,6 @@ Texture2D<float4> TextureMaps[2048] : register(t16, space4);
 
 SamplerState g_sam_0 : register(s0);
 SamplerState g_sam_Terrain : register(s1);
+SamplerComparisonState g_sam_shadow : register(s2); // 그림자 PCF 비교 샘플러
 
 #endif

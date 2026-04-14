@@ -107,7 +107,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     hdrColor *= exposure;
 
     // 톤매핑 (HDR → LDR)
-    float3 mapped = TonemapACES(hdrColor);
+    float3 mapped = Tonemap_Uchimura(hdrColor);
 
     // 컬러 그레이딩 (톤매핑 후, 감마 보정 전)
     mapped = ApplyColorGrading(mapped, data);

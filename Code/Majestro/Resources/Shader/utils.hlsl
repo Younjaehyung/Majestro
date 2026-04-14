@@ -277,7 +277,7 @@ float ToonSpecBand(float NdotH)
 //   shadowFactor : 0 = 그림자 면, 1 = 밝은 면
 //                  그림자 면에서 rim을 더 강조 (역광 연출)
 // ============================================================
-float3 CalculateRimLight(
+float3 CalculateRimDepthLight(
     float2  screenPos,
     float3  viewNormal,
     float3  rimColor,
@@ -311,6 +311,85 @@ float3 CalculateRimLight(
     return rimColor * saturate(rim);
 }
 
+float3 CalculateRimLightSS(
+    float2 screenPos,
+    float3 viewNormal,
+    float3 viewDir,
+    float3 mainLightDirVS,
+    float viewDepth,
+    float3 rimColor,
+    float rimWidth,
+    float rimFeather,
+    float rimIntensity,
+    float rimMask,
+    float shadowFactor)
+{
+    float3 N = normalize(viewNormal);
+    float3 V = normalize(viewDir);
+
+
+    float2 L_View = normalize(mainLightDirVS.xy + 1e-5f);
+    float2 N_View = normalize(N.xy + 1e-5f);
+
+    // NdotL 기반 길이 보정
+    float lDotN = saturate(dot(N_View, L_View) + rimWidth * 0.1f);
+
+    // 스크린 좌표 오프셋
+    int2 offset = int2(N_View * lDotN * rimWidth);
+    int2 pixelPos = int2(screenPos);
+
+    // 안전 clamp (화면 밖 접근 방지)
+    int2 maxPix = int2(PassParams.ScreenSize) - int2(1, 1);
+    int2 curPix = clamp(pixelPos, int2(0, 0), maxPix);
+    int2 offPix = clamp(pixelPos + offset, int2(0, 0), maxPix);
+
+    int3 curCoord = int3(curPix, 0);
+    int3 offCoord = int3(offPix, 0);
+
+    // PRE_DEPTH 로드
+    float curDepth = Gbuffer[0].Load(curCoord).r;
+    float offDepth = Gbuffer[0].Load(offCoord).r;
+    float depthDiff = curDepth - offDepth;
+
+    // depth 기반 feather
+    float depthScale = max(viewDepth, 1e-3f);
+    float edge0 = 0.24f * rimFeather * depthScale;
+    float edge1 = 0.25f * depthScale;
+    float edge = smoothstep(edge0, edge1, depthDiff);
+
+    // Fresnel 보조 (실루엣 강조)
+    float f = 1.0f - saturate(dot(V, N));
+    float fresnelBoost = smoothstep(0.2f, 1.0f, f);
+
+    // 그림자/마스크/강도
+    float shadowMul = lerp(1.2f, 0.6f, saturate(shadowFactor));
+    float intensity = edge * fresnelBoost * shadowMul * rimIntensity * rimMask;
+
+    return rimColor * saturate(intensity);
+}
+
+float3 CalculateFresnelRimLight(
+    float3 viewPos, float3 viewNormal, float3 rimColor, float rimPower, float rimMask)
+{
+    float3 V = normalize(-viewPos);
+    float3 N = normalize(viewNormal);
+
+   // fresnel 기반 rim 입력
+    float f = 1.0f - saturate(dot(V, N));
+
+
+    float rimMin = 0.75f;
+    float rimMax = 1.f;
+    float rimSmooth = 0.30f;
+    float3 rimColorRGB = float3(1.0f, 1.0f, 1.0f);
+    float rimStrength = rimMask; // 또는 1.0f, 혹은 rimMask * 0.8f
+
+    float rim = smoothstep(rimMin, rimMax, f);
+    rim = smoothstep(0.0f, rimSmooth, rim);
+
+    rimColor = rim * rimColorRGB * rimStrength;
+    return rimColor;
+}
 
 // ============================================================
 //  ToonShadingParams
@@ -327,11 +406,11 @@ struct ToonShadingParams
     float SpecMask; // 스펙큘러 강도 마스크        (LightMap.r에서 읽음)
 
     // Ramp Texture
-    // >= 0 : TextureMaps[RampTexIdx]를 1D Ramp로 샘플링
+    // >= 0 : TextureMaps[RampTexIdx]를 1D RampTexutre
     //         U = Half-Lambert NdotL [0=그림자, 1=밝은면]
     //         V = 0.5 (1D lookup)
     //         R 채널 = shadowFactor (0=shadColor, 1=litColor)
-    //  -1   : ShadowThreshold/ShadowSmoothness 기반 smoothstep 폴백
+    //  -1   : ShadowThreshold/ShadowSmoothness 기반 smoothstep
 
     int RampTexIdx;
 };
@@ -404,115 +483,37 @@ LightColor CalculateLightColorToon(
         }
     }
 
-    // Ambient는 라이트가 닿지 않아도 반환 (환경광이므로)
-    color.ambient = Lights[lightIndex].color.ambient * distanceRatio;
-
     if (distanceRatio <= 0.f)
         return color;
 
     
-    //  2) Toon Shadow Factor 계산
-    //
-    //  [핵심 기법] NdotL → shadowFactor 변환
-    //
-    //  [모드 분리]
-    //
-    //  ── Ramp Texture 모드 (RampTexIdx >= 0) ──────────────────
-    //    입력: Half-Lambert  rawNdotL * 0.5 + 0.5  → [0, 1]
-    //      U=0.0 : NdotL=-1 (완전히 빛 반대)
-    //      U=0.5 : NdotL= 0 (빛과 수직)  ← 명암 경계를 여기에 두는 것이 일반적
-    //      U=1.0 : NdotL=+1 (완전히 빛 방향)
-    //    → ramp 텍스처의 픽셀 색이 shadowFactor를 직접 결정하므로
-    //      텍스처 편집만으로 경계 위치/소프트니스/다단계 톤 조정 가능
-    //
-    //  ── smoothstep 폴백 모드 (RampTexIdx == -1) ─────────────
-    //    입력: Regular Lambert  saturate(rawNdotL)  → [0, 1]
-    //      그림자 면(NdotL≤0)은 모두 0으로 클램프 → shadow flat
-    //      경계는 ShadowThreshold/ShadowSmoothness로 조정
-    //    → 텍스처 없이 코드 상수만으로 하드 셀셰이딩 구현
-    //
-    //  ShadowThreshold  = 폴백 경계 위치 [0~1]  (0.5 권장)
-    //  ShadowSmoothness = 폴백 경계 폭   (0.0 = 완전 하드, 0.02 = 앤티얼라이싱 수준)
-    // ─────────────────────────────────────────────────────────
-    float halfSmooth = toon.ShadowSmoothness * 0.5f;
+    float shadowFactor = 0.0f;
 
-    float shadowFactor;
     if (toon.RampTexIdx >= 0)
     {
-        // ── Ramp Texture 모드 ─────────────────────────────────
-        // Half-Lambert로 U 계산: 전체 각도 범위를 ramp에 매핑
-        // 텍스처 R 채널이 shadowFactor를 직접 정의
-        //
-        // Ramp 텍스처 제작 가이드:
-        //   왼쪽(U=0~0.45) : shadow 영역 → R=0
-        //   U≈0.45~0.55    : 경계 구간 → R=0→1 (하드면 계단, 소프트면 그라디언트)
-        //   오른쪽(U=0.55~1): lit 영역  → R=1
-        //   최소 크기: 256×8 px, CLAMP 모드로 임포트
-        //
-        // 샘플러: g_sam_Terrain (CLAMP, s1) — UV 경계 wrap 방지
-        float halfLambert = rawNdotL * 0.5f + 0.5f; // [-1,1] → [0,1]
-        shadowFactor = TextureMaps[toon.RampTexIdx].Sample(
-            g_sam_Terrain,
-            float2(halfLambert, 0.5f)
-        ).r;
+        float halfLambert = rawNdotL * 0.5f + 0.5f;
+        shadowFactor = TextureMaps[toon.RampTexIdx]
+        .Sample(g_sam_Terrain, float2(halfLambert, 0.5f)).r;
     }
     else
     {
-        // ── smoothstep 폴백 (RampTexIdx == -1) ───────────────
-        // Regular Lambert: 그림자 면 전체를 0으로 클램프 → flat shadow
+        float halfSmooth = toon.ShadowSmoothness * 0.5f;
         float ndotL01 = saturate(rawNdotL);
         shadowFactor = smoothstep(
-            toon.ShadowThreshold - halfSmooth,
-            toon.ShadowThreshold + halfSmooth,
-            ndotL01
-        );
+        toon.ShadowThreshold - halfSmooth,
+        toon.ShadowThreshold + halfSmooth,
+        ndotL01);
     }
-
-    // ─────────────────────────────────────────────────────────
-    //  3) 2-Tone Shadow Ramp (Toon 색상 블렌딩)
-    //
-    //  PBR:  baseColor × NdotL (자연스러운 그라디언트)
-    //  Toon: lit 영역과 shadow 영역의 색이 서로 다름
-    //
-    //  litColor   = baseColor × lightColor        (밝은 영역)
-    //  shadowColor = baseColor × shadowTint × lightColor  (어두운 영역: 색조 변환)
-    //  결과 = lerp(shadowColor, litColor, shadowFactor)
-    // ─────────────────────────────────────────────────────────
-    float lightLuminance = dot(saturate(Lights[lightIndex].color.diffuse.rgb), float3(0.2126, 0.7152, 0.0722));
-    float3 lightRGB = float3(lightLuminance, lightLuminance, lightLuminance) * distanceRatio;
-
-    float3 litColor = baseColor; // 밝은 면: baseColor 원본 유지
-    float3 shadColor = baseColor * toon.ShadowTint; // 어두운 면: tint만 적용
-    float3 diffResult = lerp(shadColor, litColor, shadowFactor);
-    diffResult *= lightRGB; // 라이트 색/강도를 마지막에 곱함
+    float smooth = smoothstep(0.f, shadowFactor, rawNdotL);
+    float3 litColor = float3(1.f, 1.f, 1.f);
+    float3 shadColor = float3(224.f / 255.f, 187.f / 255.f, 178.f / 255.f);
+    float3 lerpColor = lerp(shadColor, litColor, smooth);
 
 
-    // ─────────────────────────────────────────────────────────
-    //  4) Toon Specular (Step-Based Hard Specular)
-    //
-    //  PBR:  GGX 분포함수로 부드러운 하이라이트
-    //  Toon: pow(NdotH, shininess) → step()으로 하드컷
-    //        → 애니 캐릭터의 날카로운 머리카락/금속 하이라이트 표현
-    //
-    //  [주의] 그림자 영역에서는 스펙큘러 억제 (shadowFactor 곱)
-    //         → 그림자 안에서 반짝이는 부자연스러운 현상 방지
-    // ─────────────────────────────────────────────────────────
-    float3 N = normalize(viewNormal);
-    float3 V = normalize(-viewPos); // View-Space: 카메라 방향
-    float3 L = normalize(-viewLightDir); // Light 방향 (surface → light)
-    float3 H = normalize(V + L); // Half Vector
-    float NdotH = saturate(dot(N, H));
-
-    // pow → step 변환이 Toon Specular의 핵심
-    float specIntensity = pow(NdotH, toon.SpecShininess);
-    float specStep = step(toon.SpecThreshold, specIntensity) * toon.SpecMask;
-    float3 specRGB = saturate(Lights[lightIndex].color.specular.rgb);
-    float3 specResult = specRGB * specStep * 0.6f * distanceRatio; // 0.6f = 강도 제한
-    specResult *= shadowFactor;
-
-    color.diffuse = float4(diffResult, 1.f);
-    color.specular = float4(specResult, 1.f);
-
+    color.diffuse = float4(baseColor * lerpColor, 1.0f);
+    color.specular = float4(0, 0, 0, 1);
+    color.ambient = Lights[lightIndex].color.ambient * distanceRatio;
+    
     return color;
 }
 
@@ -759,8 +760,6 @@ float CalculateTessLevel(float3 cameraWorldPos, float3 patchPos, float min, floa
 
 
 
-
-
 /////////////////////////////////////////////////////////////////////////////////////////
 // Animation
 
@@ -842,18 +841,19 @@ uint SelectCascadeIndex(float viewDepth)
         return 1;
     if (viewDepth <= splits.z)
         return 2;
-    return 2;
+    return RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1;
 }
 
 
 
 float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWorld, uint cascadeIndex, out float cascadeCoverage)
 {
+    const float shadowMapSize = 4096.0f;
+
     float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
     float3 shadowNdc = shadowClipPos.xyz * invW;
 
-    // NDC -> UV 변환
     float2 uv;
     uv.x = shadowNdc.x * 0.5f + 0.5f;
     uv.y = -shadowNdc.y * 0.5f + 0.5f;
@@ -864,29 +864,52 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float2 uvMaxDelta = (1.0f - uvGuard) - uv;
     float uvCoverage = saturate(min(min(uvMinDelta.x, uvMinDelta.y), min(uvMaxDelta.x, uvMaxDelta.y)) / uvGuard);
     float zCoverage = saturate((shadowNdc.z - zGuard) / zGuard) * saturate(((1.0f - zGuard) - shadowNdc.z) / zGuard);
-    cascadeCoverage = uvCoverage * zCoverage; // cascade 영역 내에서만 그림자 계산, 영역 밖은 완전 밝음 (1.0f)
-                                               // 블랜딩
+    cascadeCoverage = uvCoverage * zCoverage;
 
-    if (cascadeCoverage <= 0.0f)    // cascade 영역 밖  그림자 없음
+    if (cascadeCoverage <= 0.0f)
         return 1.0f;
 
-    float lightDepth = saturate(shadowNdc.z);
+    float3 lightDirN = normalize(lightDirWorld);
+    float ndotl = saturate(dot(worldNormal, -lightDirN));
 
-    // bias 계산
-    // 기울어진 표면(ndotl 작음)일수록 self-shadowing 오차가 커지므로 slope-scale bias 적용
-    float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
-    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f; // cascade마다 bias 증가 (원근감 보정)
-    float bias = max(0.0005f, 0.003f * (1.0f - ndotl)) * cascadeBiasScale;
+   
+    float xScale = length(float3(
+        PassParams.CascadeShadowVP[cascadeIndex]._11, // row1, col1
+        PassParams.CascadeShadowVP[cascadeIndex]._21, // row2, col1
+        PassParams.CascadeShadowVP[cascadeIndex]._31)); // row3, col1
+    float texelWorldSize = 2.0f / (shadowMapSize * max(xScale, 1e-5f));
+
+  
+    float4 biasedWorldPos = float4(worldPos.xyz, 1.0f);
+
+    float4 biasedClip = mul(biasedWorldPos, PassParams.CascadeShadowVP[cascadeIndex]);
+    float biasedInvW = rcp(max(abs(biasedClip.w), 1e-5f));
+    float3 biasedNdc = biasedClip.xyz * biasedInvW;
+
+    float2 sampleUvBase;
+    sampleUvBase.x = biasedNdc.x * 0.5f + 0.5f;
+    sampleUvBase.y = -biasedNdc.y * 0.5f + 0.5f;
+    float lightDepth = saturate(biasedNdc.z);
+
+    float zScale = length(float3(
+        PassParams.CascadeShadowVP[cascadeIndex]._13,
+        PassParams.CascadeShadowVP[cascadeIndex]._23,
+        PassParams.CascadeShadowVP[cascadeIndex]._33));
 
 
-    const float shadowMapSize = 4096.0f;
+    float sinTheta = sqrt(max(0.0f, 1.0f - ndotl * ndotl));
+    float slopeFactor = sinTheta / max(ndotl, 0.02f);
+  
+    float worldDepthBias = texelWorldSize * (0.5f + 1.5f * slopeFactor);
+    
+    /
+    float bias = worldDepthBias * zScale; 
+
     float2 texelSize = 1.0f / shadowMapSize;
-
     float shadow = 0.0f;
     float weightSum = 0.0f;
     float compareDepth = lightDepth - bias;
 
-    // 3x3 가중 PCF — SampleCmpLevelZero로 텍셀당 하드웨어 bilinear 보간 적용
     [unroll]
     for (int y = -1; y <= 1; ++y)
     {
@@ -895,8 +918,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
         {
             float2 offset = float2(x, y);
             float weight = 1.0f / (1.0f + dot(offset, offset));
-            float2 sampleUv = uv + offset * texelSize; // BORDER 모드이므로 saturate 불필요
-           // Greater 비교 (ShadowMaps.SampleCmpLevelZero은 compareDepth보다 샘플이 크면 1.0f, 작으면 0.0f 반환)
+            float2 sampleUv = sampleUvBase + offset * texelSize;
             float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
             shadow += shadowVal * weight;
             weightSum += weight;
@@ -909,48 +931,52 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
 
 float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
 {
-
     float viewDepth = abs(viewPos.z);
 
     if (viewDepth > PassParams.CascadeSplitDistances.w)
         return 1.0f;
 
     uint cascadeIndex = SelectCascadeIndex(viewDepth);
-    
+
     float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
     float3 worldNormal = normalize(mul(float4(viewNormal, 0.f), PassParams.MatViewInv).xyz);
+
+    float3 lightDirN = normalize(lightDirWorld);
+    float ndotl = dot(worldNormal, -lightDirN);
+    float shadowFade = smoothstep(0.0f, 0.1f, ndotl);
+
+    if (shadowFade < 0.001f)
+        return 0.0f;
 
     float currentCoverage = 0.0f;
     float visibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex, currentCoverage);
 
     float4 splits = PassParams.CascadeSplitDistances;
 
+    float splitDist = splits[cascadeIndex];
 
-        float splitDist = splits[cascadeIndex];
-        float prevSplit = (cascadeIndex == 0) ? 0.0f : splits[cascadeIndex - 1];
-        float cascadeRange = max(splitDist - prevSplit, 1.0f);
-        float blendWidth = max(2.0f, cascadeRange * 0.15f);
 
-        float blendStart = splitDist - blendWidth;
-        float depthBlend = smoothstep(blendStart, splitDist, viewDepth);
+    uint prevIndex = (cascadeIndex == 0u) ? 0u : (cascadeIndex - 1u);
+    float prevSplit = (cascadeIndex == 0u) ? 0.0f : splits[prevIndex]; 
 
-        // currentCoverage = 0 다음 cascade로
-        float coverageFallback = 1.0f - currentCoverage;
-        float totalBlend = saturate(max(depthBlend, coverageFallback));
+    float cascadeRange = max(splitDist - prevSplit, 1.0f);
+    float blendWidth = max(2.0f, cascadeRange * 0.15f);
+    float blendStart = splitDist - blendWidth;
+    float depthBlend = smoothstep(blendStart, splitDist, viewDepth);
+
+    float coverageFallback = 1.0f - currentCoverage;
+    float totalBlend = saturate(max(depthBlend, coverageFallback));
 
     if (totalBlend > 0.0f && (cascadeIndex + 1u) < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT)
-        {
-            float nextCoverage = 0.0f;
-            float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);
-            // 다음 cascade에 coverage가 있을 때만 블렌딩
-            float validBlend = totalBlend * nextCoverage;
-            visibility = lerp(visibility, nextVisibility, validBlend);
-        }
+    {
+        float nextCoverage = 0.0f;
+        float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);
+        float validBlend = totalBlend * nextCoverage;
+        visibility = lerp(visibility, nextVisibility, validBlend);
+    }
 
-
-    return visibility;
+    return visibility * shadowFade;
 }
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////

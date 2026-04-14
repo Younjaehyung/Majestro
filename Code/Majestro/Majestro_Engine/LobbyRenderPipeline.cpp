@@ -116,7 +116,7 @@ void LobbyRenderPipeline::Execute(const RenderContext& ctx)
     mDepthPrePass->Execute(*ctx.deferredBatchs);
     RenderDeferred(ctx);
     mForwardPass->Execute(*ctx.deferredBatchs);
-
+    mOutlinePass->Execute(*ctx.deferredBatchs);
     // Effekseer VFX
     if (ctx.camera)
     {

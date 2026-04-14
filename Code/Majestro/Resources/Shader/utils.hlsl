@@ -864,9 +864,10 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float2 uvMaxDelta = (1.0f - uvGuard) - uv;
     float uvCoverage = saturate(min(min(uvMinDelta.x, uvMinDelta.y), min(uvMaxDelta.x, uvMaxDelta.y)) / uvGuard);
     float zCoverage = saturate((shadowNdc.z - zGuard) / zGuard) * saturate(((1.0f - zGuard) - shadowNdc.z) / zGuard);
-    cascadeCoverage = uvCoverage * zCoverage;
+    cascadeCoverage = uvCoverage * zCoverage; // cascade 영역 내에서만 그림자 계산, 영역 밖은 완전 밝음 (1.0f)
+                                               // 블랜딩
 
-    if (cascadeCoverage <= 0.0f)
+    if (cascadeCoverage <= 0.0f)    // cascade 영역 밖  그림자 없음
         return 1.0f;
 
     float lightDepth = saturate(shadowNdc.z);
@@ -874,7 +875,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     // bias 계산
     // 기울어진 표면(ndotl 작음)일수록 self-shadowing 오차가 커지므로 slope-scale bias 적용
     float ndotl = saturate(dot(worldNormal, -normalize(lightDirWorld)));
-    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f;
+    float cascadeBiasScale = 1.0f + cascadeIndex * 0.5f; // cascade마다 bias 증가 (원근감 보정)
     float bias = max(0.0005f, 0.003f * (1.0f - ndotl)) * cascadeBiasScale;
 
 
@@ -895,8 +896,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
             float2 offset = float2(x, y);
             float weight = 1.0f / (1.0f + dot(offset, offset));
             float2 sampleUv = uv + offset * texelSize; // BORDER 모드이므로 saturate 불필요
-            // LESS_EQUAL 비교: storedDepth <= compareDepth → 1(그림자), 아니면 0(조명)
-            // 인접 4 텍셀 비교 결과를 GPU가 bilinear 보간 → 계단 현상 완화
+           // Greater 비교 (ShadowMaps.SampleCmpLevelZero은 compareDepth보다 샘플이 크면 1.0f, 작으면 0.0f 반환)
             float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
             shadow += shadowVal * weight;
             weightSum += weight;

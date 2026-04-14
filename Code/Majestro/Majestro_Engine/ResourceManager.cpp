@@ -757,6 +757,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		samplerDescShadow.BorderColor = D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
 		samplerDescShadow.MinLOD = 0.0f;
 		samplerDescShadow.MaxLOD = D3D12_FLOAT32_MAX;
+
 		rootSignature->AddSampler(samplerDescShadow);
 
 		rootSignature->CreateGraphicsRootSignature();
@@ -2040,6 +2041,7 @@ void ResourceManager::CreateDefaultMaterial()
 	//LoadFBX(L"..\\Resources\\FBX\\ZUP_Ascii_3dmax_Pivot.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\YUP_Ascii_3dmax_Pivot.fbx");
 	
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Base.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx", L"ForwardPlusCel");
@@ -2090,6 +2092,7 @@ void ResourceManager::CreateDefaultMaterial()
 //	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_02.fbx", L"ForwardPlusCel");
 //	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Rhythm.fbx", L"ForwardPlusCel");
 //=======
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Base.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx", L"ForwardPlusCel");

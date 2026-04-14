@@ -62,9 +62,10 @@ void RenderSystem::Update() {
   auto cameraView = mWorld->View<MainCameraComponent>();
   auto cameraIt = cameraView.begin();
   if (cameraIt == cameraView.end()) {
-    return;
+      return;
   }
-  mCamera = mWorld->GetComponent<CameraComponent>(*cameraIt);
+  mCameraID = *cameraIt;
+  mCamera = mWorld->GetComponent<CameraComponent>(mCameraID);
 
   if (!mActivePipeline) return;
 

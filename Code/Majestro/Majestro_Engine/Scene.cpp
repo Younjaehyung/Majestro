@@ -860,9 +860,9 @@ void LobbyScene::Initialize()
 		switch (i) {
 		case 0:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0");
 			material2s.push_back(material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1");
 			material2s.push_back(material2);
 			/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 			material2s.push_back(material2);*/
@@ -872,9 +872,9 @@ void LobbyScene::Initialize()
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base0");
 			material2s.push_back(material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_011");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base1");
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
@@ -882,9 +882,9 @@ void LobbyScene::Initialize()
 			break;
 		case 2:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base0");
 			material2s.push_back(material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base1");
 			material2s.push_back(material2);
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));

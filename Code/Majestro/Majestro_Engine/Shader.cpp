@@ -92,6 +92,10 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 	case SHADER_TYPE::SHADOW:
 		mGraphicsPipelineDesc.NumRenderTargets = 0;
 
+		mGraphicsPipelineDesc.RasterizerState.DepthBias = 2000;
+		mGraphicsPipelineDesc.RasterizerState.SlopeScaledDepthBias = 2.0f;
+		mGraphicsPipelineDesc.RasterizerState.DepthBiasClamp = 0.0f;
+		
 		break;
 	case SHADER_TYPE::BILBOARD:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;

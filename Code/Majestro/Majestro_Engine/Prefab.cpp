@@ -126,13 +126,13 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0");
 
 		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default.png", L"..\\Resources\\Texture\\Ramp_Normal.png");
 		material2->GetParams().ExtTex[0] = rampTex->GetImageIndex();
 
 		material2s.push_back(material2);
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1");
 		material2s.push_back(material2);
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
@@ -195,14 +195,14 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_010");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base0");
 
 		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default.png", L"..\\Resources\\Texture\\Ramp_Normal.png");
 		material2->GetParams().ExtTex[0] = rampTex->GetImageIndex();
 
 
 		material2s.push_back(material2);
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Attack_011");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base1");
 		material2s.push_back(material2);
 		/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Idle0");
 		material2s.push_back(material2);*/

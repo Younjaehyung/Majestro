@@ -46,7 +46,13 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
     
-
+     // Forward+ Tile 인덱스 계산
+    const uint2 pixelCoord = uint2(input.pos.xy);
+    const uint tileCountX = (uint) ceil(PassParams.ScreenSize.x / FORWARD_PLUS_TILE_SIZE);
+    const uint2 tileCoord = pixelCoord / FORWARD_PLUS_TILE_SIZE;
+    const uint tileIndex = tileCoord.y * tileCountX + tileCoord.x;
+    const uint2 tileMeta = ForwardPlusTileMeta[tileIndex];
+    
     
     const uint idx = GlobalParams.BaseInstanceID + input.instanceID;
     const RENDERPARAMS instance = InstanceParams[idx];
@@ -87,15 +93,6 @@ float4 PS_Main(VS_OUT input) : SV_Target
             normalize(input.viewNormal));
         viewNormal = normalize(mul(n, tbn));
     }
-
-
-    
-    // Forward+ Tile 인덱스 계산
-    const uint2 pixelCoord = uint2(input.pos.xy);
-    const uint tileCountX = (uint) ceil(PassParams.ScreenSize.x / FORWARD_PLUS_TILE_SIZE);
-    const uint2 tileCoord = pixelCoord / FORWARD_PLUS_TILE_SIZE;
-    const uint tileIndex = tileCoord.y * tileCountX + tileCoord.x;
-    const uint2 tileMeta = ForwardPlusTileMeta[tileIndex];
     
     ////////////////////////////////////////////////////////////////////////
 
@@ -112,21 +109,31 @@ float4 PS_Main(VS_OUT input) : SV_Target
         lightMap = TextureMaps[mtl.ExtTex[1]].Sample(g_sam_0, input.uv);
 
     float specMask = lightMap.r; // 스펙큘러 강도 마스크
-    float shadowBias = (lightMap.g - 0.5f) * 0.15f; // G채널 → shadow threshold 오프셋
+    float responseMask = lightMap.b; // 메탈 반사 응답 보정
+    float shadowBias = (lightMap.g - 0.5f) * 0.15f; // G채널 : shadow threshold 오프셋
     float rimMask = lightMap.a; // Rim 마스크
+ 
 
-    float3 Lmain = float3(0, 0, 1);
-        [loop]
+    
+    
+    float3 dirLightDIr = float3(0, 0, 1);
+    [loop]
     for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
     {
         uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
         if (Lights[lightIndex].lightType == 0) // directional
         {
             float3 viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-            Lmain = normalize(-viewLightDir); // surface -> light
+            dirLightDIr = normalize(-viewLightDir); // surface -> light
             break;
         }
     }
+    
+    float3 V = normalize(-input.viewPos);
+    float3 N = normalize(viewNormal);
+    float3 H = normalize(V + dirLightDIr);
+    float nDotLMain = saturate(dot(N, dirLightDIr));
+    float nDotHMain = saturate(dot(N, H));
     
     ////////////////////////////////////////////////////////////////////////
     // Metallic / Roughness / AO
@@ -137,8 +144,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         metallic = TextureMaps[mtl.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
 
         
-        // view-space 기준
-        float3 V = normalize(-input.viewPos);
+        
 
         // 기본 N
         float3 metalN = viewNormal;
@@ -160,7 +166,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
        
 
         // 이미지 코드의 MetallicUV = dot(N, normalize(V + L))
-        float metallicUV = saturate(dot(metalN, normalize(V + Lmain)));
+        float metallicUV = saturate(dot(metalN, normalize(V + dirLightDIr)));
 
         // gradient tex 샘플 (ExtTex[2])
        
@@ -201,27 +207,21 @@ float4 PS_Main(VS_OUT input) : SV_Target
     toon.SpecThreshold = lerp(0.70f, 0.30f, roughness);
 
     // Metallic: 높을수록 스펙큘러 강하게 (LightMap R채널과 합산)
-    toon.SpecMask = saturate(specMask + metallic * 0.8f);
+    toon.SpecMask = specMask;
     toon.RampTexIdx = mtl.ExtTex[0];
     
     
-   
-  
-   
-
      ////////////////////////////////////////////////////////////////////////
 
     // Light Loop (Forward+ Tile에 포함된 라이트만 계산)
     LightColor totalColor = (LightColor) 0.f;
     bool directionalShadowApplied = false;
     float mainShadowFactor = 0.f; // Rim Light 계산에서 재사용
-    float3 mainLightDirVS = float3(0, 0, 1);
+
     [loop]
     for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
     {
         const uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
-        float3 viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        mainLightDirVS = normalize(-viewLightDir);
         const LightColor lc = CalculateLightColorToon(
             lightIndex, viewNormal, input.viewPos, color.rgb, toon);
 
@@ -257,7 +257,26 @@ float4 PS_Main(VS_OUT input) : SV_Target
     }
 
     ////////////////////////////////////////////////////////////////////////
-     // Rim 파라미터
+  
+
+    ////////////////////////////////////////////////////////////////////////
+    // Metal
+
+    float3 nprMetalSpec = CalculateToonSpecular(
+        nDotLMain,
+        nDotHMain,
+        N,
+        color.rgb,
+        metallic,
+        roughness,
+        responseMask,
+        1.0f);
+
+
+    // 기존 spec 누적에 추가
+    totalColor.specular.xyz += nprMetalSpec + (metallicGrad * metallic);
+    ////////////////////////////////////////////////////////////////////////
+      // Rim 파라미터
     const float3 rimColor = float3(1.0f, 1.0f, 1.0f); // rim 색상
     const float rimWidth = 4.0f; // 오프셋 픽셀 수 (1~4 튜닝)
     const float rimDepthThres = 0.005f; // depth 차이 임계값 (0.005~0.03 튜닝)
@@ -275,41 +294,32 @@ float4 PS_Main(VS_OUT input) : SV_Target
     //    mainShadowFactor);
    // float3 rim = CalculateFresnelRimLight(input.viewPos, input.viewNormal, rimColor, toon.SpecThreshold, rimMask);
     
-    float3 V = normalize(-input.viewPos);
+
     float viewDepth = max(-input.viewPos.z, 1e-3f);
     
     float3 rim = CalculateRimLightSS(
     input.pos.xy, // screenPos
     viewNormal, // viewNormal
     V, // viewDir
-    mainLightDirVS, // mainLightDirVS
+    dirLightDIr, // mainLightDirVS
     viewDepth, // viewDepth
     rimColor, // rimColor
     rimWidth, // rimWidth
     rimFeather, // rimFeather
     rimIntensity, // rimIntensity
     rimMask, // rimMask (lightMap.a)
-    mainShadowFactor // shadowFactor
-);
+    mainShadowFactor); // shadowFactor
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////
+    //   Toon 합성:
+    //   result = diffuse + specular + rim
+    color.xyz = totalColor.diffuse.xyz
+          + totalColor.specular.xyz
+          + rim;
 
     
-
-    ////////////////////////////////////////////////////////////////////////
-    // 최종 색상 합성
-    //   Toon 합성:
-    //    result = diffuse + (ambient × baseColor) + specular + rim
-    float3 ambientContrib = totalColor.ambient.xyz * color.rgb;
-    // ambient도 너무 강하면 날아가므로 saturate로 제한
-    // AO: 구석진 곳의 ambient를 억제 (diffuse는 그대로 유지)
-    ambientContrib = saturate(ambientContrib) * 0.5f * ao;
-    float3 metallicSpec = metallicGrad * metallic;
-    ////////////////////////////////////////////////////////////////////////
-    color.xyz = totalColor.diffuse.xyz // Toon diffuse (baseColor 포함)
-          + ambientContrib
-          + totalColor.specular.xyz
-          + metallicSpec
-          + rim;
-   // color.xyz = color.xyz / (color.xyz + 1.0f);
     return color;
 
 }

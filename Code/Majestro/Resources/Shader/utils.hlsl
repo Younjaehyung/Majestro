@@ -415,6 +415,50 @@ struct ToonShadingParams
     int RampTexIdx;
 };
 
+float3 CalculateToonSpecular(
+    float NdotL,
+    float NdotH,
+    float3 viewNormal,
+    float3 baseColor,
+    float metallicMask,
+    float roughnessMask,
+    float responseMask,
+    float metalIntensity)
+{
+    const float3 DielectricF0 = float3(0.04f, 0.04f, 0.04f);
+
+   
+    float specularPow = lerp(128.0f, 8.0f, saturate(roughnessMask));
+    float specularNorm = (specularPow + 8.0f) / 8.0f;
+
+    //  metallic 기반으로 spec color 계산
+    float3 specularColor = lerp(DielectricF0, baseColor, saturate(metallicMask));
+
+    float rawSpec = specularNorm * pow(saturate(NdotH), specularPow);
+
+
+    float specularContrib = smoothstep(0.4f, 0.5f, rawSpec);
+
+   
+    float2 m = normalize(viewNormal.xy + 1e-5f);
+    float2 metalRadius2 = saturate(1.0f - m) * saturate(1.0f + m);
+    float metalRadius = saturate(max(metalRadius2.x, metalRadius2.y));
+
+    float metalFactor =
+        saturate(step(0.5f, metalRadius) + 0.25f) *
+        0.5f *
+        saturate(step(0.15f, metalRadius) + 0.25f) *
+        lerp(metalIntensity * 0.5f, metalIntensity, saturate(responseMask));
+
+    float metalMask = smoothstep(0.7f, 0.95f, metallicMask);
+    float3 metalColor = metalFactor * baseColor * metalMask;
+
+    float lightMask = smoothstep(0.0f, 0.1f, saturate(NdotL));
+
+    return specularColor * (specularContrib * lightMask * saturate(responseMask))
+         + metalColor;
+}
+
 // ============================================================
 //  CalculateLightColorToon
 //
@@ -504,15 +548,15 @@ LightColor CalculateLightColorToon(
         toon.ShadowThreshold + halfSmooth,
         ndotL01);
     }
-    float smooth = smoothstep(0.f, shadowFactor, rawNdotL);
+
     float3 litColor = float3(1.f, 1.f, 1.f);
     float3 shadColor = float3(224.f / 255.f, 187.f / 255.f, 178.f / 255.f);
-    float3 lerpColor = lerp(shadColor, litColor, smooth);
-
+    float3 lerpColor = lerp(shadColor, litColor, shadowFactor);
+    float4 colorLight = Lights[lightIndex].color.ambient * distanceRatio;
 
     color.diffuse = float4(baseColor * lerpColor, 1.0f);
     color.specular = float4(0, 0, 0, 1);
-    color.ambient = Lights[lightIndex].color.ambient * distanceRatio;
+    color.ambient = colorLight;
     
     return color;
 }
@@ -902,7 +946,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
   
     float worldDepthBias = texelWorldSize * (0.5f + 1.5f * slopeFactor);
     
-    /
+    
     float bias = worldDepthBias * zScale; 
 
     float2 texelSize = 1.0f / shadowMapSize;

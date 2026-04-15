@@ -415,6 +415,79 @@ struct ToonShadingParams
     int RampTexIdx;
 };
 
+
+struct ToonSpecParams
+{
+    float3 SpecColor; // lerp(0.04, baseColor, metallic)
+    float Glossiness; // 1 - roughness
+    float Shininess; // glossiness에서 유도한 pow 지수
+    float Threshold; // glossiness 또는 LightMap.b에서 유도한 컷오프
+};
+
+ToonSpecParams CalcSpecParams(float3 baseColor, float metallic, float roughness, float lightMapB)
+{
+    ToonSpecParams p;
+    p.SpecColor = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
+    p.Glossiness = 1.0f - roughness;
+    p.Shininess = exp2(p.Glossiness * 10.0f + 1.0f); // 2 ~ 2048 범위
+    p.Threshold = 1.0f - saturate(lightMapB); // LightMap.b 기반 컷오프
+    return p;
+}
+
+float3 CalculateToonSpecular_GenshinStyle(
+    float NdotL,
+    float NdotH,
+    float3 viewNormal,
+    float3 baseColor,
+    float metallicMask,
+    float roughnessMask,
+    float responseMask,
+    float metalIntensity,
+    float specThreshold, 
+    float specSoftness)  
+{
+    
+    float metalMask    = smoothstep(0.70f, 0.95f, saturate(metallicMask));
+    float nonMetalMask = 1.0f - metalMask;
+
+
+    float lightMask = smoothstep(0.0f, 0.1f, saturate(NdotL)) * saturate(responseMask);
+
+    float glossiness  = 1.0f - saturate(roughnessMask);       
+    float specularPow = exp2(glossiness * 10.0f + 1.0f);      
+
+    float rawSpec  = pow(saturate(NdotH), specularPow);
+    float toonSpec = smoothstep(specThreshold - specSoftness,
+                                specThreshold + specSoftness,
+                                rawSpec);
+
+  
+    float  specIntensity = lerp(0.1f, 1.0f, glossiness);
+    float3 nonMetalSpec  = float3(specIntensity, specIntensity, specIntensity)
+                         * toonSpec * lightMask * nonMetalMask;
+
+   
+    float2 m = normalize(viewNormal.xy + 1e-5f);
+
+  
+    float2 metalRadius2 = saturate(1.0f - m) * saturate(1.0f + m);
+    float  metalRadius  = saturate(max(metalRadius2.x, metalRadius2.y));
+
+  
+    float bandWidth  = lerp(0.35f, 0.15f, glossiness); 
+    float bandCenter = 0.35f;
+    float bandInner  = smoothstep(bandCenter - bandWidth, bandCenter, metalRadius);
+    float bandOuter  = 1.0f - smoothstep(bandCenter, bandCenter + bandWidth, metalRadius);
+    float metalBand  = bandInner * bandOuter;
+
+  
+    float  metalLightFade = lerp(0.5f, 1.0f, lightMask);
+    float3 metalSpec      = baseColor * metalBand * metalIntensity * metalLightFade * metalMask;
+
+   
+    return nonMetalSpec + metalSpec;
+}
+
 float3 CalculateToonSpecular(
     float NdotL,
     float NdotH,

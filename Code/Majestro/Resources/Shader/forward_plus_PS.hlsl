@@ -262,7 +262,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     ////////////////////////////////////////////////////////////////////////
     // Metal
 
-    float3 nprMetalSpec = CalculateToonSpecular(
+    float3 nprMetalSpec = CalculateToonSpecular_GenshinStyle(
         nDotLMain,
         nDotHMain,
         N,
@@ -270,7 +270,8 @@ float4 PS_Main(VS_OUT input) : SV_Target
         metallic,
         roughness,
         responseMask,
-        1.0f);
+        1.0f, 1.0f,1.0f
+    );
 
 
     // 기존 spec 누적에 추가

@@ -311,6 +311,79 @@ float3 CalculateRimDepthLight(
     return rimColor * saturate(rim);
 }
 
+//float3 CalculateRimLightSS(
+//    float2 screenPos, // 수정: 반드시 픽셀 좌표 기준이어야 함
+//    float3 viewNormal,
+//    float3 viewDir,
+//    float3 mainLightDirVS,
+//    float viewDepth, // 수정: linear view depth라고 가정
+//    float3 rimColor,
+//    float rimWidth,
+//    float rimFeather,
+//    float rimIntensity,
+//    float rimMask,
+//    float shadowFactor)
+//{
+//    float3 N = normalize(viewNormal);
+//    float3 V = normalize(viewDir);
+
+//    // 수정: 2D 광원 방향이 너무 작을 때의 불안정한 normalize 방지
+//    float2 L_View = mainLightDirVS.xy;
+//    float lenL = length(L_View);
+//    L_View = (lenL > 1e-5f) ? (L_View / lenL) : float2(0.0f, 0.0f);
+
+//    // 수정: 화면 평면 노멀도 동일하게 안전 normalize
+//    float2 N_View = N.xy;
+//    float lenN = length(N_View);
+//    N_View = (lenN > 1e-5f) ? (N_View / lenN) : float2(0.0f, 0.0f);
+
+//    // 수정: 조명 방향 기반 보정
+//    float lDotN = saturate(dot(N_View, L_View));
+
+//    // 수정: int 캐스팅 대신 round 사용해서 계단 현상 완화
+//    int2 offset = int2(round(N_View * (rimWidth * lDotN)));
+
+//    int2 pixelPos = int2(screenPos);
+
+//    int2 maxPix = int2(PassParams.ScreenSize) - int2(1, 1);
+//    int2 curPix = clamp(pixelPos, int2(0, 0), maxPix);
+//    int2 offPix = clamp(pixelPos + offset, int2(0, 0), maxPix);
+
+//    int3 curCoord = int3(curPix, 0);
+//    int3 offCoord = int3(offPix, 0);
+
+//    // 중요:
+//    // 아래 depth는 반드시 linear depth 여야 함.
+//    // 만약 Gbuffer[0]이 device depth라면 linearize 후 비교해야 함.
+//    float curDepth = Gbuffer[0].Load(curCoord).r;
+//    float offDepth = Gbuffer[0].Load(offCoord).r;
+
+//    // 수정:
+//    // 엔진의 depth 정의에 따라 부호가 반대일 수 있음.
+//    // 일반적으로 "오프셋 쪽이 더 멀다"를 edge로 보려면 off - cur를 먼저 의심하는 것이 보통 더 자연스러움.
+//    float depthDiff = offDepth - curDepth;
+
+//    // 수정:
+//    // threshold와 feather를 분리해서 사용
+//    // viewDepth 기반 스케일을 주되, 최소값 보장
+//    float depthScale = max(viewDepth, 1e-3f);
+
+//    float threshold = rimWidth * 0.0025f * depthScale;
+//    float feather = max(rimFeather * 0.0025f * depthScale, 1e-5f);
+
+//    float edge = smoothstep(threshold - feather, threshold + feather, depthDiff);
+
+//    // Fresnel 보조
+//    float f = 1.0f - saturate(dot(V, N));
+//    float fresnelBoost = smoothstep(0.2f, 1.0f, f);
+
+//    // 이 부분은 아트 의도에 따라 유지 가능
+//    float shadowMul = lerp(1.2f, 0.6f, saturate(shadowFactor));
+
+//    float intensity = edge * fresnelBoost * shadowMul * rimIntensity * rimMask;
+//    return rimColor * saturate(intensity);
+//}
+
 float3 CalculateRimLightSS(
     float2 screenPos,
     float3 viewNormal,
@@ -670,7 +743,8 @@ LightColor CalculateLightColorToon(
 
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
-    //Schlick Fresnel
+    // Schlick 근사
+    // F : 절연체는 낮은 값 
     return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
 }
 
@@ -686,9 +760,9 @@ float DistributionGGX(float NdotH, float roughness)
 
 float GeometrySchlickGGX(float NdotX, float roughness)
 {
-    // Schlick-GGX geometry term (k formulation)
+
     float r = roughness + 1.0f;
-    float k = (r * r) / 8.0f; // UE4에서 흔히 쓰는 근사
+    float k = (r * r) / 8.0f;
 
     return NdotX / (NdotX * (1.0f - k) + k + 1e-6f);
 }
@@ -798,7 +872,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
 
-    float3 diffuse = kD;
+    float3 diffuse = kD ;
 
     // -----------------------------
     // 3) 라이트 색/세기 적용

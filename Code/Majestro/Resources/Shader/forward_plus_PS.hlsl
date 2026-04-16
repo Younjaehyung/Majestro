@@ -153,6 +153,8 @@ float4 PS_Main(VS_OUT input) : SV_Target
     {
         metallic = TextureMaps[mtl.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
 
+        
+        //  gradient tex가 메탈릭 하이트라이트로 사용될때 사용
 
         //if (mtl.NormalMapIndex >= 0)
         //{
@@ -166,13 +168,13 @@ float4 PS_Main(VS_OUT input) : SV_Target
         //    metalN = BlendNormalSimple(viewNormal, nMetalVS);
         //}
 
-        //// 메인 라이트 방향(첫 directional 기준)
+        // 메인 라이트 방향(첫 directional 기준)
        
 
-        //// 이미지 코드의 MetallicUV = dot(N, normalize(V + L))
-        //float metallicUV = saturate(dot(N, normalize(V + dirLightDIr)));
+        // 이미지 코드의 MetallicUV = dot(N, normalize(V + L))
+        // float metallicUV = saturate(dot(N, normalize(V + dirLightDIr)));
 
-        //// gradient tex 샘플 (ExtTex[2])
+        // gradient tex 샘플 (ExtTex[2])
         //if (mtl.ExtTex[0] >= 0)
         //{
         //    metallicGrad = TextureMaps[mtl.ExtTex[0]].Sample(g_sam_Terrain, float2(metallicUV, 0.5f)).rgb;
@@ -336,10 +338,12 @@ float4 PS_Main(VS_OUT input) : SV_Target
     ////////////////////////////////////////////////////////////////////////
     //   Toon 합성:
     //   result = diffuse + specular + rim
-    color.xyz = totalColor.diffuse.xyz
-          + totalColor.specular.xyz
-          + rim;
-
+    float3 specHighlight = totalColor.specular.xyz * toon.SpecMask;
+    color.xyz = totalColor.diffuse.xyz * (1.0f + specHighlight * 0.3f)
+            + specHighlight
+            + rim;
+    
+    //color.xyz = totalColor.diffuse.xyz + totalColor.specular.xyz + rim;
     
     return color;
 

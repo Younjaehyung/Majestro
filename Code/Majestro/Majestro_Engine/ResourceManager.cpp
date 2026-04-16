@@ -2016,7 +2016,7 @@ void ResourceManager::CreateDefaultMaterial()
 		
 		
 
-		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Normal1.png");
+		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Skin.png");
 	}
 
 	// GameObject
@@ -2128,6 +2128,10 @@ void ResourceManager::CreateDefaultMaterial()
 	Get<Material>(L"Anim_Ibanix_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
+
+	Get<Material>(L"Anim_Ibanix_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
+	Get<Material>(L"Anim_Fanthor_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
+	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 
 //	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
 //	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");

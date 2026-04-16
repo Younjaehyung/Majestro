@@ -368,6 +368,11 @@ float3 CalculateRimLightSS(
     return rimColor * saturate(intensity);
 }
 
+float3 NPR_Base_RimLight(float NdotV, float NdotL, float3 baseColor)
+{
+    return (1 - smoothstep(0.5f, 0.5f + 0.03, NdotV)) * 0.5f * (1 - (NdotL * 0.5 + 0.5)) * baseColor;
+}
+
 float3 CalculateFresnelRimLight(
     float3 viewPos, float3 viewNormal, float3 rimColor, float rimPower, float rimMask)
 {
@@ -434,61 +439,26 @@ ToonSpecParams CalcSpecParams(float3 baseColor, float metallic, float roughness,
     return p;
 }
 
-float3 CalculateToonSpecular_GenshinStyle(
-    float NdotL,
-    float NdotH,
-    float3 viewNormal,
-    float3 baseColor,
-    float metallicMask,
-    float roughnessMask,
-    float responseMask,
-    float metalIntensity,
-    float specThreshold, 
-    float specSoftness)  
+float3 CalculateToonSpecular1(float NdotL, float NdotH, float3 normalDir, float3 baseColor, float4 parameter)
 {
-    
-    float metalMask    = smoothstep(0.70f, 0.95f, saturate(metallicMask));
-    float nonMetalMask = 1.0f - metalMask;
+    float Ks = 0.04;
+    float SpecularPow = exp2(0.5 * parameter.r * 11.0 + 2.0);
+    float SpecularNorm = (SpecularPow + 8.0) / 8.0;
+    float3 SpecularColor = baseColor * parameter.g;
+    // [수정] baseColor(float3) 제거 — SpecularContrib은 스칼라여야 함
+    float SpecularContrib = SpecularNorm * pow(saturate(NdotH), SpecularPow);
 
+    // [수정] UNITY_MATRIX_V → PassParams.MatView, float3 변환 후 .x 추출
+    float3 viewNormal = normalize(mul(float4(normalDir, 0.f), PassParams.MatView).xyz);
+    float MetalDir = viewNormal.x;
+    float MetalRadius = saturate(1.0 - MetalDir) * saturate(1.0 + MetalDir);
+    float MetalFactor = saturate(step(0.5, MetalRadius) + 0.25) * 0.5 * saturate(step(0.15, MetalRadius) + 0.25) * lerp(0.1f * 5, 0.8f * 10, parameter.b);
 
-    float lightMask = smoothstep(0.0f, 0.1f, saturate(NdotL)) * saturate(responseMask);
-
-    float glossiness  = 1.0f - saturate(roughnessMask);       
-    float specularPow = exp2(glossiness * 10.0f + 1.0f);      
-
-    float rawSpec  = pow(saturate(NdotH), specularPow);
-    float toonSpec = smoothstep(specThreshold - specSoftness,
-                                specThreshold + specSoftness,
-                                rawSpec);
-
-  
-    float  specIntensity = lerp(0.1f, 1.0f, glossiness);
-    float3 nonMetalSpec  = float3(specIntensity, specIntensity, specIntensity)
-                         * toonSpec * lightMask * nonMetalMask;
-
-   
-    float2 m = normalize(viewNormal.xy + 1e-5f);
-
-  
-    float2 metalRadius2 = saturate(1.0f - m) * saturate(1.0f + m);
-    float  metalRadius  = saturate(max(metalRadius2.x, metalRadius2.y));
-
-  
-    float bandWidth  = lerp(0.35f, 0.15f, glossiness); 
-    float bandCenter = 0.35f;
-    float bandInner  = smoothstep(bandCenter - bandWidth, bandCenter, metalRadius);
-    float bandOuter  = 1.0f - smoothstep(bandCenter, bandCenter + bandWidth, metalRadius);
-    float metalBand  = bandInner * bandOuter;
-
-  
-    float  metalLightFade = lerp(0.5f, 1.0f, lightMask);
-    float3 metalSpec      = baseColor * metalBand * metalIntensity * metalLightFade * metalMask;
-
-   
-    return nonMetalSpec + metalSpec;
+    float3 MetalColor = MetalFactor * baseColor * step(0.95, parameter.r);
+    return SpecularColor * (SpecularContrib * NdotL * Ks * parameter.b + MetalColor);
 }
 
-float3 CalculateToonSpecular(
+float3 CalculateToonSpecular2(
     float NdotL,
     float NdotH,
     float3 viewNormal,
@@ -531,6 +501,63 @@ float3 CalculateToonSpecular(
     return specularColor * (specularContrib * lightMask * saturate(responseMask))
          + metalColor;
 }
+
+
+float3 CalculateToonSpecular3(
+    float NdotL,
+    float NdotH,
+    float3 viewNormal,
+    float3 baseColor,
+    float metallicMask,
+    float roughnessMask,
+    float responseMask,
+    float metalIntensity,
+    float specThreshold, // 비금속 spec의 임계값 (낮을수록 하이라이트 넓어짐)
+    float specSoftness)  // 비금속 spec의 경계 부드러움
+{
+
+    float metalMask    = smoothstep(0.45f, 0.75f, saturate(metallicMask));
+    float nonMetalMask = 1.0f - metalMask;
+
+    // 빛이 닿는 면에서만 spec 허용
+    float lightMask = smoothstep(0.0f, 0.1f, saturate(NdotL)) * saturate(responseMask);
+
+
+    // 비금속 Specular
+    //   glossiness가 없어서 roughness 기반으로 대체했음
+    float glossiness  = 1.0f - saturate(roughnessMask);       // 0(거칠)~1(매끈)
+    float specularPow = exp2(glossiness * 10.0f + 1.0f);      // ~2 ~ 2048
+
+    float rawSpec  = pow(saturate(NdotH), specularPow);
+    float toonSpec = smoothstep(specThreshold - specSoftness,
+                                specThreshold + specSoftness,
+                                rawSpec);
+
+    float  specIntensity = lerp(0.1f, 1.0f, glossiness);
+    float3 nonMetalSpec  = float3(specIntensity, specIntensity, specIntensity)
+                         * toonSpec * lightMask * nonMetalMask;
+
+
+    // 금속 Specular
+    // (MatCap 방식)
+    float metalRadius = viewNormal.z * viewNormal.z;
+    float bandWidth = lerp(0.30f, 0.12f, glossiness);
+    float bandCenter = 0.50f;
+    float bandInner = smoothstep(bandCenter - bandWidth, bandCenter, metalRadius);
+    float bandOuter = 1.0f - smoothstep(bandCenter, bandCenter + bandWidth, metalRadius);
+    float metalBand = bandInner * bandOuter;
+
+    // 금속 하이라이트 색상
+    float3 metalHighlight = lerp(baseColor, baseColor * 2.5f + 0.3f, glossiness * 0.4f);
+
+    // lightMask를 약하게 적용
+    float  metalLightFade = lerp(0.35f, 1.0f, lightMask);
+    float3 metalSpec      = metalHighlight * metalBand * metalIntensity * metalLightFade * metalMask;
+
+    // 비금속 하이라이트 + 금속 MatCap 띠
+    return nonMetalSpec + metalSpec;
+}
+
 
 // ============================================================
 //  CalculateLightColorToon
@@ -622,14 +649,15 @@ LightColor CalculateLightColorToon(
         ndotL01);
     }
 
-    float3 litColor = float3(1.f, 1.f, 1.f);
+   
     float3 shadColor = float3(224.f / 255.f, 187.f / 255.f, 178.f / 255.f);
+     float3 litColor = float3(1.f, 1.f, 1.f);
     float3 lerpColor = lerp(shadColor, litColor, shadowFactor);
     float4 colorLight = Lights[lightIndex].color.ambient * distanceRatio;
 
     color.diffuse = float4(baseColor * lerpColor, 1.0f);
     color.specular = float4(0, 0, 0, 1);
-    color.ambient = colorLight;
+
     
     return color;
 }

@@ -94,6 +94,15 @@ float4 PS_Main(VS_OUT input) : SV_Target
         viewNormal = normalize(mul(n, tbn));
     }
     
+    float3 emissive = mtl.Emission;
+    if(mtl.EmissiveMapIndex >= 0)
+    {
+        emissive = TextureMaps[mtl.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
+        color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
+        // 깜빡이는 효과
+        return color;
+    }
+    
     ////////////////////////////////////////////////////////////////////////
 
     // LightMap 샘플링
@@ -139,15 +148,10 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // Metallic / Roughness / AO
     float3 metallicGrad = float3(0, 0, 0);
     float metallic = mtl.Metallic;
+    float3 metalN = viewNormal;
     if (mtl.MetallicMapIndex >= 0)
     {
         metallic = TextureMaps[mtl.MetallicMapIndex].Sample(g_sam_0, input.uv).r;
-
-        
-        
-
-        // 기본 N
-        float3 metalN = viewNormal;
 
 
         //if (mtl.NormalMapIndex >= 0)
@@ -162,18 +166,17 @@ float4 PS_Main(VS_OUT input) : SV_Target
         //    metalN = BlendNormalSimple(viewNormal, nMetalVS);
         //}
 
-        // 메인 라이트 방향(첫 directional 기준)
+        //// 메인 라이트 방향(첫 directional 기준)
        
 
-        // 이미지 코드의 MetallicUV = dot(N, normalize(V + L))
-        float metallicUV = saturate(dot(metalN, normalize(V + dirLightDIr)));
+        //// 이미지 코드의 MetallicUV = dot(N, normalize(V + L))
+        //float metallicUV = saturate(dot(N, normalize(V + dirLightDIr)));
 
-        // gradient tex 샘플 (ExtTex[2])
-       
-        if (mtl.ExtTex[0] >= 0)
-        {
-            metallicGrad = TextureMaps[mtl.ExtTex[0]].Sample(g_sam_Terrain, float2(metallicUV, 0.5f)).rgb;
-        }
+        //// gradient tex 샘플 (ExtTex[2])
+        //if (mtl.ExtTex[0] >= 0)
+        //{
+        //    metallicGrad = TextureMaps[mtl.ExtTex[0]].Sample(g_sam_Terrain, float2(metallicUV, 0.5f)).rgb;
+        //}
     }
         
     metallic = saturate(metallic);
@@ -262,20 +265,37 @@ float4 PS_Main(VS_OUT input) : SV_Target
     ////////////////////////////////////////////////////////////////////////
     // Metal
 
-    float3 nprMetalSpec = CalculateToonSpecular_GenshinStyle(
-        nDotLMain,
-        nDotHMain,
-        N,
-        color.rgb,
-        metallic,
-        roughness,
-        responseMask,
-        1.0f, 1.0f,1.0f
-    );
+  //  float4 nprSpecParam = float4(
+  //    1.0f - roughness, // r: Glossiness (roughness가 낮을수록 날카로운 하이라이트)
+  //    saturate(metallic + 0.1f), // g: 스펙큘러 색상 강도 (LightMap 없으므로 metallic 기반)
+  //    metallic, // b: 금속광 강도
+  //    0.0f);
 
+  //  float3 worldNormal = normalize(mul(float4(N, 0.f), PassParams.MatViewInv).xyz);
+
+  //  float3 nprSpec = NPR_Base_Specular(
+  //    nDotLMain,
+  //    nDotHMain,
+  //    worldNormal,
+  //    color.rgb,
+  //    nprSpecParam
+  //);
+    
+    float3 nprSpec = CalculateToonSpecular3(
+      nDotLMain, // NdotL
+      nDotHMain, // NdotH
+      N, // viewNormal (뷰 공간, 이미 normalize된 것)
+      color.rgb, // baseColor
+      metallic, // metallicMask   
+      roughness, // roughnessMask 
+      metallic, // responseMask   (LightMap 없으므로 metallic으로 대체)
+      1.0f, // metalIntensity (금속광 전체 강도, 튜닝값)
+      0.7f, // specThreshold  (낮을수록 하이라이트 넓어짐, 0.4~0.7)
+      0.05f // specSoftness   (경계 부드러움, 0.02~0.1)
+  );
 
     // 기존 spec 누적에 추가
-    totalColor.specular.xyz += nprMetalSpec + (metallicGrad * metallic);
+    totalColor.specular.xyz += nprSpec; //+ (metallicGrad * metallic);
     ////////////////////////////////////////////////////////////////////////
       // Rim 파라미터
     const float3 rimColor = float3(1.0f, 1.0f, 1.0f); // rim 색상

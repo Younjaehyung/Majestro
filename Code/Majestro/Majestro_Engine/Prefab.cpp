@@ -127,7 +127,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0");
-
+		
 		material2s.push_back(material2);
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1");
 		material2s.push_back(material2);

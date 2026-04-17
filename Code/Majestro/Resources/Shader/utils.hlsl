@@ -731,7 +731,7 @@ LightColor CalculateLightColorToon(
     color.diffuse = float4(baseColor * lerpColor, 1.0f);
     color.specular = float4(0, 0, 0, 1);
 
-    
+
     return color;
 }
 
@@ -889,6 +889,162 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
 
     return color;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// PBR+NPR
+
+// halfLambert을 smoothstep (Sigmoid)
+float NPR_Sigmoid(float x, float offset, float smooth)
+{
+    return smoothstep(offset - smooth, offset + smooth, x);
+}
+
+// Ramp 텍스쳐
+
+float3 SampleShadowRamp(int texIdx, float ndotLRemap)
+{ // (V=0.25): 난반사 그림자 색상
+    return TextureMaps[texIdx].Sample(g_sam_Terrain, float2(ndotLRemap, 0.25f)).rgb;
+}
+
+float3 SampleSpecularRamp(int texIdx, float specRange)
+{ // (V=0.75): 정반사 스타일 색상
+    return TextureMaps[texIdx].Sample(g_sam_Terrain, float2(specRange, 0.75f)).rgb;
+}
+
+struct PBRNPRShadingParams
+{
+    float  ShadowOffset;    // Sigmoid 명암 경계 (0.5 기본, shadowBias 포함)
+    float  ShadowSmooth;    // Sigmoid 경계 폭   (0.08 기본)
+    float  ShadowStrength;  // 그림자 전체 강도  (1.0 기본)
+    float3 ShadowColor;     // 1차 그림자 틴트   (청회색 계열)
+    float3 SecShadowColor;  // 2차 그림자 틴트   (ILM AO 기반 섞음)
+    float  SpecMask;        // ILM Spec 마스크   (lightMap.r)
+    float  ilmAO;           // ILM AO            (lightMap.g, 0.5=중립)
+    float  IBLScale;        // 환경광 약화 스케일 (0.15 기본)
+    int    RampTexIdx;      // Shadow Ramp 텍스처
+};
+
+LightColor CalculateLightColorPBRNPR(
+    int                  lightIndex,
+    float3               viewNormal,
+    float3               viewPos,
+    float3               albedo,
+    float                metallic,
+    float                roughness,
+    PBRNPRShadingParams  npr)
+{
+    LightColor result = (LightColor) 0;
+
+    float3 viewLightDir  = 0.0f;
+    float  distanceRatio = 1.0f;
+    float  rawNdotL      = 0.0f;
+
+    if (Lights[lightIndex].lightType == 0)
+    {
+        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
+        rawNdotL = dot(-viewLightDir, viewNormal);
+    }
+    else if (Lights[lightIndex].lightType == 1)
+    {
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
+        viewLightDir = normalize(viewPos - viewLightPos);
+        rawNdotL = dot(-viewLightDir, viewNormal);
+        float dist = distance(viewPos, viewLightPos);
+        distanceRatio = (Lights[lightIndex].range == 0.f)
+            ? 0.f
+            : saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
+    }
+    else
+    {
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
+        viewLightDir = normalize(viewPos - viewLightPos);
+        rawNdotL = dot(-viewLightDir, viewNormal);
+        if (Lights[lightIndex].range == 0.f)
+        {
+            distanceRatio = 0.f;
+        }
+        else
+        {
+            float halfAngle = Lights[lightIndex].angle * 0.5f;
+            float3 viewLightVec  = viewPos - viewLightPos;
+            float3 viewCenterDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
+            float  centerDist    = dot(viewLightVec, viewCenterDir);
+            float  lightAngle    = acos(dot(normalize(viewLightVec), viewCenterDir));
+            if (centerDist < 0.f || centerDist > Lights[lightIndex].range || lightAngle > halfAngle)
+                distanceRatio = 0.f;
+            else
+                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
+        }
+    }
+
+    if (distanceRatio <= 0.f)
+        return result;
+
+    float3 N = normalize(viewNormal);
+    float3 V = normalize(-viewPos);
+    float3 L = normalize(-viewLightDir);
+    float3 H = normalize(V + L);
+
+    float NdotV = max(saturate(dot(N, V)), 0.001f);
+    float NdotH = saturate(dot(N, H));
+    float HdotV = saturate(dot(H, V));
+
+    // NPR 난반사: Sigmoid
+    float halfLambert = rawNdotL * 0.5f + 0.5f;
+    float shadowArea  = NPR_Sigmoid(1.0f - halfLambert, npr.ShadowOffset, npr.ShadowSmooth)
+                      * npr.ShadowStrength;
+    float NdotLRemap  = 1.0f - shadowArea; // 0=그림자
+
+    // Ramp 색상 샘플링
+    float3 shadowRamp;
+    if (npr.RampTexIdx >= 0)
+        shadowRamp = SampleShadowRamp(npr.RampTexIdx, NdotLRemap);
+    else
+        shadowRamp = lerp(npr.ShadowColor, float3(1.0f, 1.0f, 1.0f), NdotLRemap);
+
+    // AO 2차 그림자색
+    shadowRamp = lerp(npr.SecShadowColor, shadowRamp, saturate(npr.ilmAO + 0.5f));
+
+    // Fresnel
+    float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
+    float3 F  = FresnelSchlick(HdotV, F0);
+
+    // NPR용 kDiff: diffuse 밝기 상향 보정했음
+    float3 kDiff           = ((1.0f - F) * 0.5f + 0.5f) * (1.0f - metallic);
+    float3 directDiffColor = kDiff * albedo;
+
+    // GGX 정반사
+    roughness = max(roughness, 0.04f);
+    float NdotLClamped = max(NdotLRemap, 0.001f);
+    // ILM SpecMask을 NDF 마스킹으로 사용
+    float  NDF      = DistributionGGX(NdotH, roughness) * npr.SpecMask;
+    float  G        = GeometrySmith(NdotV, NdotLClamped, roughness);
+    float3 nom      = NDF * G * F;
+    float  denom    = 4.0f * NdotV * NdotLClamped + 0.0001f;
+    float3 BRDFSpec = nom / denom;
+
+    float3 directSpecColor;
+    if (npr.RampTexIdx >= 0)
+    {
+        // Ramp로 정반사 색상 샘플링
+        float  specRange   = saturate(NDF * G / max(denom, 0.0001f));
+        float3 specRampCol = SampleSpecularRamp(npr.RampTexIdx, specRange);
+        directSpecColor    = specRampCol * F;
+    }
+    else
+    {
+        directSpecColor = BRDFSpec * PI;
+    }
+
+    // final color
+    float3 lightColor  = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 directLight = (directDiffColor * shadowRamp + directSpecColor * NdotLRemap)
+                       * lightColor;
+
+    result.diffuse = float4(directLight, 1.0f);
+    return result;
 }
 
 

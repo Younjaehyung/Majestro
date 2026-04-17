@@ -2,14 +2,9 @@
 
 #define WIN32_LEAN_AND_MEAN // 거의 사용되지 않는 내용을 Windows 헤더에서 제외합니다.
 
-//#ifdef _DEBUG
-//#pragma comment(lib, "Debug\\ServerCore.lib")
-//#else
-//#pragma comment(lib, "Release\\ServerCore.lib")
-//#endif
-
-//#include "CorePch.h"
-
+// select()에서 다수의 소켓을 처리하기 위해 FD_SETSIZE 확장 (기본 64 → 1024)
+// 반드시 WinSock2.h include 전에 정의해야 함
+#define FD_SETSIZE 1024
 
 // Network
 #define _CRT_SECURE_NO_WARNINGS // 구형 C 함수 사용 시 경고 끄기
@@ -35,6 +30,9 @@
 #include <unordered_set>
 #include <string>
 #include <memory>
+#include <chrono>
+#include <random>
+#include <cstdio>
 
 #include "SimpleMath.h"
 #include <DirectXMath.h>
@@ -43,7 +41,6 @@
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;
-
 
 
 

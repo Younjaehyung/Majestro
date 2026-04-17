@@ -156,7 +156,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DummyClient.cpp" />
-    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="VirtualClient.cpp" />
+    <ClCompile Include="StressTest.cpp" />
     <ClCompile Include="PacketHelper.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="RecvBuffer.cpp" />
@@ -165,7 +166,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Protocol\Packet.h" />
-    <ClInclude Include="Network.h" />
+    <ClInclude Include="VirtualClient.h" />
+    <ClInclude Include="StressTest.h" />
     <ClInclude Include="PacketHelper.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="RecvBuffer.h" />

@@ -176,7 +176,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 {
     cout << "json input" << endl;
 
-    // 1) Æ÷ÀÎÅÍ¡æID º¯È¯±â ÁÖÀÔ (»óÅÂ ÀÌ¸§¡æStateId)
+    // 1) í¬ì¸í„°â†’ID ë³€í™˜ê¸° ì£¼ì… (ìƒíƒœ ì´ë¦„â†’StateId)
     mFsm.SetIdResolver([](State<MainPlayerComponent>* s)->StateId {
         if (s == IdleState::Instance()) return S_Idle;
         //if (s == WalkState::Instance()) return S_Walk;
@@ -194,7 +194,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         return 255;
         });
 
-    // 2) JSON ¿­±â
+    // 2) JSON ì—´ê¸°
     std::ifstream ifs(path);
     if (!ifs) {
         cout << "non json" << endl;
@@ -205,14 +205,14 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     json j;
     ifs >> j;
 
-    // 3) flags º´ÇÕ
+    // 3) flags ë³‘í•©
     if (j.contains("flags") && j["flags"].is_object()) {
         for (auto it = j["flags"].begin(); it != j["flags"].end(); ++it) {
             gFlagByName[it.key()] = static_cast<uint64_t>(it.value());
         }
     }
 
-    // 4) require/forbid ÆÄ¼­
+    // 4) require/forbid íŒŒì„œ
     auto toMask = [](const json& arr)->uint64_t {
         uint64_t m = 0;
         for (auto& v : arr) {
@@ -224,11 +224,11 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         return m;
         };
 
-    // 5) guards Àû¿ë (speed Á¦°Å ¹öÀü)
+    // 5) guards ì ìš© (speed ì œê±° ë²„ì „)
     if (j.contains("guards") && j["guards"].is_array()) {
         for (auto& g : j["guards"]) {
 
-            // »óÅÂ ÀÌ¸§ ¡æ ID
+            // ìƒíƒœ ì´ë¦„ â†’ ID
             const std::string fromName = g["from"].get<std::string>();
             const std::string toName = g["to"].get<std::string>();
 
@@ -238,19 +238,19 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
             if (fromId == 255 || toId == 255)
                 continue;
 
-            // speed Á¶°Ç Á¦°Å -> require / forbid¸¸ °¡Á®°£´Ù
+            // speed ì¡°ê±´ ì œê±° -> require / forbidë§Œ ê°€ì ¸ê°„ë‹¤
             uint64_t reqMask = g.contains("require") ? toMask(g["require"]) : 0ull;
             uint64_t forbidMask = g.contains("forbid") ? toMask(g["forbid"]) : 0ull;
 
-            // FSM¿¡ guard µî·Ï
+            // FSMì— guard ë“±ë¡
             mFsm.AddGuardById(fromId, toId,
                 [reqMask, forbidMask](MainPlayerComponent* o)
                 {
-                    // require ÇÃ·¡±× ÃæÁ·?
+                    // require í”Œë˜ê·¸ ì¶©ì¡±?
                     if ((o->mFlags & reqMask) != reqMask)
                         return false;
 
-                    // forbid ÇÃ·¡±× Á¸ÀçÇÏ¸é ½ÇÆĞ
+                    // forbid í”Œë˜ê·¸ ì¡´ì¬í•˜ë©´ ì‹¤íŒ¨
                     if ((o->mFlags & forbidMask) != 0)
                         return false;
 
@@ -260,7 +260,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
         }
     }
 
-    // 6) ÃÊ±â »óÅÂ ÁøÀÔ
+    // 6) ì´ˆê¸° ìƒíƒœ ì§„ì…
     mFsm.ChangeState(this, IdleState::Instance());
 }
 
@@ -274,7 +274,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
     json j;
     ifs >> j;
 
-    // 1) PLAYER ±âº» Á¤º¸ ·Îµù
+    // 1) PLAYER ê¸°ë³¸ ì •ë³´ ë¡œë”©
     if (j.contains("player"))
     {
         auto& p = j["player"];
@@ -296,7 +296,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         std::cout << "  RunSpeed  : " << mRunSpeed << "\n";
         std::cout << "  DashSpeed : " << mDashSpeed << "\n";
     }
-    // 2) STATE PROPERTY ·Îµù
+    // 2) STATE PROPERTY ë¡œë”©
     if (!j.contains("stateProps"))
         return;
 
@@ -376,7 +376,7 @@ void WalkState::Update(MainPlayerComponent* owner)
     StateUpdate(this, owner);
     if(owner->mSpeed <=0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
 
-    if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mWalkSpeed; } //´Ş¸®±â ºÒ°¡ ½Ã ¼Óµµ °­Á¦ ´Ù¿î
+    if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mWalkSpeed; } //ë‹¬ë¦¬ê¸° ë¶ˆê°€ ì‹œ ì†ë„ ê°•ì œ ë‹¤ìš´
     else if(owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
 }
 void WalkState::Exit(MainPlayerComponent* owner) 
@@ -384,8 +384,8 @@ void WalkState::Exit(MainPlayerComponent* owner)
     StateExit(this, owner);
 }
 
-RunState* RunState::Instance() {                      // [¼öÁ¤] Meyers' singleton (C++11+ ½º·¹µå ¾ÈÀü)
-    static RunState inst;                          // ÃÖÃÊ È£Ãâ ½Ã ÇÑ ¹ø¸¸ »ı¼º
+RunState* RunState::Instance() {                      // [ìˆ˜ì •] Meyers' singleton (C++11+ ìŠ¤ë ˆë“œ ì•ˆì „)
+    static RunState inst;                          // ìµœì´ˆ í˜¸ì¶œ ì‹œ í•œ ë²ˆë§Œ ìƒì„±
     return &inst;
 }
 void RunState::Enter(MainPlayerComponent* owner)

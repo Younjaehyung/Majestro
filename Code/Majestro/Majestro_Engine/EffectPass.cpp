@@ -112,7 +112,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		}
 
 		mManager->SetPaused(comp->efkHandle, comp->mIsPaused);
-		mManager->SetScale(comp->efkHandle, comp->mScale, comp->mScale, comp->mScale);
+		mManager->SetScale(comp->efkHandle, comp->mScale.x, comp->mScale.y, comp->mScale.z);
 		if (tr != nullptr)
 		{
 			mManager->SetLocation(comp->efkHandle, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);

@@ -23,7 +23,7 @@ public:
 	bool	mIsPlaying = false;
 	bool	mIsPaused  = false;
 	bool	mIsLoop    = false;
-	float	mScale     = 1.f;
+	Vec3	mScale     = Vec3(1.f, 1.f, 1.f);
 	::Effekseer::Vector3D mPosition = ::Effekseer::Vector3D(0.0f, 0.0f, 0.0f);
 
 };

@@ -18,7 +18,7 @@ public:
     void RebuildLocalOBB();
 
 public:
-    // [설명] 로컬 공간 기준 박스(OBB의 로컬 정의)
+    // 로컬 공간 기준 박스(OBB의 로컬 정의)
     // Center: 로컬 중심 오프셋
     // HalfExtents: 로컬 반길이 (x,y,z)
     Vec3 mCenter = Vec3(0, 0, 0);
@@ -30,6 +30,8 @@ public:
 
     bool bIsColliding = false;
 	bool bIsInitialized = false;
+
+    bool bIsTrigger = false; // 겹침 판정만 수행하고 물리 응답은 적용하지 않는다.(InteractionSystem용)
     BoundingOrientedBox mLocalOBB{};
     BoundingOrientedBox mWorldOBB{};
 };

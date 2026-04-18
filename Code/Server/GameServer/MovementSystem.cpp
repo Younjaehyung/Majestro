@@ -42,6 +42,34 @@ MovementSystem::MovementSystem(World* world) : System(world)
 
 void MovementSystem::Update(float dt) {
 
+	if (auto em = mWorld->GetEventManager())
+	{
+		em->Consume<EvImpulse>([&](const EvImpulse& e)
+		{
+			if (!e.target.IsValid()) return;
+
+			if (auto* tr = mWorld->GetComponent<TransformComponent>(e.target))
+			{
+				tr->mLocalPosition.x += e.x;
+				tr->mLocalPosition.z += e.z;
+				
+				tr->mMovingVector.x += e.x;
+				tr->mMovingVector.z += e.z;
+			}
+
+			if (e.y != 0.0f)
+			{
+				if (auto* gr = mWorld->GetComponent<GravityComponent>(e.target))
+				{
+					
+					gr->mGravity -= e.y; // gravity가 양수면 하강 속도. 위로 쏘려면 음수 방향
+					gr->mHight += 1.0f; // 지면에 붙어 있을 때 즉시 재착지로 상쇄되는 것을 막기 위해 살짝 띄움
+					gr->mFalling = true;
+				}
+			}
+		});
+	}
+
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;

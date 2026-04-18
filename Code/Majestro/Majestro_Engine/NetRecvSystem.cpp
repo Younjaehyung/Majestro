@@ -31,7 +31,7 @@ namespace
     struct BulletVfxSpec
     {
         const wchar_t* effectName;
-        float scale;
+        Vec3 scale;
     };
 
     BulletVfxSpec ResolveBulletVfxSpec(SkillType type)
@@ -42,15 +42,14 @@ namespace
         case SkillType::GuitarAttack_1:
         case SkillType::GuitarAttack_2:
         case SkillType::GuitarAttack_3:
-            return { L"VFX_Fanthor_Slash_01", 12.0f };
+            return { L"VFX_Fanthor_Slash_01", Vec3(12.0f, 12.0f, 12.0f) };
 
         case SkillType::BaseAttack:
         case SkillType::BaseSkill1:
-            return  { L"VFX_Ibanix_Bullet", 12.0f };
-
+            return  { L"VFX_Ibanix_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
         case SkillType::HornAttack:
         default:
-            return { L"VFX_Ibanix_Bullet", 2.0f };
+            return { L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };
         }
     }
 }
@@ -373,7 +372,7 @@ void NetRecvSystem::HandleBulletDeactivate(const InputCommand& msg)
     if (bulletVfx)
     {
         bulletVfx->mIsPaused = true;
-        bulletVfx->mScale = 0.0f;
+        bulletVfx->mScale = Vec3::Zero;
         bulletVfx->mIsPlaying = true;
     }
     bulletTransform->mMovingVector = Vec3::Zero;
@@ -399,7 +398,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         };
 
     const wchar_t* effectName = nullptr;
-    float effectScale = 1.0f;
+    Vec3 effectScale = Vec3(1.0f);
     bool effectLoop = false;
 
 
@@ -412,14 +411,14 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
             effectName = L"VFX_Fanthor_Slash_01";
             impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
             impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
-            effectScale = 30.0f;
+            effectScale = Vec3(30.0f);
         }
         else if (effectSkillType == SkillType::GuitarSkill1)
         {
             effectName = L"VFX_Fanthor_Skill_01";
             impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
             impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
-            effectScale = 30.0f;
+            effectScale = Vec3(30.0f);
         }
         break;
     case 1:
@@ -428,7 +427,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
             effectName = L"VFX_Ibanix_Attack_Hit_01";
             impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
             impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
-            effectScale = 30.0f;
+            effectScale = Vec3(30.f);
         }
         break;
     }

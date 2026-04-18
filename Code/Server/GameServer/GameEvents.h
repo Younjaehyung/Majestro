@@ -121,7 +121,30 @@ struct EvMeleeAttackRequest
     SkillType bulletType;
 };
 
+struct EvHeal
+{
+    Entity target;
+    int32 amount;
+    Entity instigator;
+};
+
+struct EvImpulse
+{
+    Entity target;
+    float x;
+    float y; // 위 방향이 +Y.
+    float z;
+};
+
+// Interactable 엔티티가 소비되었음을 알리는 이벤트.
+struct EvInteractableConsumed
+{
+    Entity trigger;
+    Entity user;
+};
+
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
-    EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest>;
+    EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
+    EvHeal, EvImpulse, EvInteractableConsumed>;
 

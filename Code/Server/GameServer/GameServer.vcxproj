@@ -199,6 +199,7 @@
     <ClCompile Include="HeightField.cpp" />
     <ClCompile Include="InputComponent.cpp" />
     <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="InteractionSystem.cpp" />
     <ClCompile Include="LevelImport.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="MeleeAttackSystem.cpp" />
@@ -266,6 +267,8 @@
     <ClInclude Include="HeightField.h" />
     <ClInclude Include="InputComponent.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="InteractableComponent.h" />
+    <ClInclude Include="InteractionSystem.h" />
     <ClInclude Include="LevelImport.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="MeleeAttackSystem.h" />

@@ -87,4 +87,32 @@ void DamageSystem::Update(float deltaTime)
 
             //mWorld->DestroyEntity(e.target);
         });
+
+    // 회복 이벤트 처리
+    eventManager->Consume<EvHeal>([&](const EvHeal& e)
+        {
+            if (!e.target.IsValid())
+                return;
+
+            HealthComponent* health = mWorld->GetComponent<HealthComponent>(e.target);
+            if (!health)
+                return;
+
+            const int32 appliedHeal = (std::max)(0, e.amount);
+            if (appliedHeal == 0)
+                return;
+
+            const int32 beforeHp = health->mCurrentHp;
+            health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + appliedHeal);
+            const int32 afterHp = health->mCurrentHp;
+
+            if (beforeHp != afterHp)
+            {
+                EvHealthChanged healthChanged{};
+                healthChanged.target = e.target;
+                healthChanged.currentHp = afterHp;
+                healthChanged.maxHp = health->mMaxHp;
+                eventManager->Enqueue<EvHealthChanged>(healthChanged);
+            }
+        });
 }

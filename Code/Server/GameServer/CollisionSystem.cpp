@@ -704,7 +704,7 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
     }
 }
 
-// [수정] 시간 기반 보정을 위해 dt를 인자로 받도록 시그니처 변경
+
 void CollisionSystem::AvoidCollisionByMovementState(
     World* world,
     Entity a,
@@ -714,6 +714,10 @@ void CollisionSystem::AvoidCollisionByMovementState(
     float deltaTime) // [수정]
 {
     if (!world || !colA || !colB)
+        return;
+
+
+    if (colA->bIsTrigger || colB->bIsTrigger)
         return;
 
     // dt 방어

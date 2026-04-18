@@ -909,10 +909,11 @@ void LobbyScene::Initialize()
 		Entity vfxEntity = mWorld->CreateEntity();
 		TransformComponent vfxTransform{};
 		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Jump");
 		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
 		vfxComp.mVfx = vfx;
+	
 	}
 	/////////////////////////////////////////////////////////////////////
 
@@ -1035,8 +1036,10 @@ void FirstScene::Initialize()
 		vfxComp.mVfx = vfx;
 	}
 	/////////////////////////////////////////////////////////////////////
+	// [ 샘플 ]
+
 	{
-		Entity enityt = mWorld->CreateEntity();
+		/*Entity enityt = mWorld->CreateEntity();
 		TransformComponent t{};
 		t.mLocalPosition = Vec3(1500.f, 720.f, 0.f);
 		mWorld->AddComponent<TransformComponent>(enityt, t);
@@ -1044,9 +1047,10 @@ void FirstScene::Initialize()
 		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 		std::vector<shared_ptr<Material>> materials;
 		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);
+		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);*/
 
 	}
+
 	{
 		/*Entity enityt = mWorld->CreateEntity();
 		TransformComponent t{};
@@ -1076,8 +1080,39 @@ void FirstScene::Initialize()
 	}
 
 	/////////////////////////////////////////////////////////////////////////
+#pragma region Game Objects
+	// 점프대
+	{
+		Entity jumpEntity = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(-2337.f, 142.f, -4987.f);
+
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Jump");
+		
+		mWorld->AddComponent<TransformComponent>(jumpEntity, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(jumpEntity);
+		vfxComp.mVfx = vfx;
+		vfxComp.mIsLoop = true;
+		vfxComp.mScale = Vec3(15.f, 10.f, 15.f);
+	}
+
+	// 힐팩
+	{
+		Entity healEntity = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(-5843.f, 278.f, -3523.f);
+
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Jump");
+
+		mWorld->AddComponent<TransformComponent>(healEntity, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(healEntity);
+		vfxComp.mVfx = vfx;
+		vfxComp.mIsLoop = true;
+		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
+	}
 
 
+#pragma endregion
 
 #pragma region UI
 
@@ -1185,7 +1220,7 @@ void FirstScene::Initialize()
 	/////////////////////////////////////////////////////////////////////////
 
 
-
+#pragma region Systems
 	mWorld->Initialize();
 
 	// INPUT
@@ -1211,6 +1246,7 @@ void FirstScene::Initialize()
 	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 
+#pragma endregion
 
 }
 

@@ -1112,6 +1112,45 @@ void FirstScene::Initialize()
 	}
 
 	// 몬스터 스포너
+	{
+		Entity spawnMonEntity1 = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(-4910.0f, 142.0f, -1623.0f);
+
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Spawn");
+
+		mWorld->AddComponent<TransformComponent>(spawnMonEntity1, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity1);
+		vfxComp.mVfx = vfx;
+		vfxComp.mIsLoop = true;
+		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
+	}
+	{
+		Entity spawnMonEntity2 = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(-2307.0f, 740.0f, -4097.0f);
+
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Spawn");
+
+		mWorld->AddComponent<TransformComponent>(spawnMonEntity2, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity2);
+		vfxComp.mVfx = vfx;
+		vfxComp.mIsLoop = true;
+		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
+	}
+	{
+		Entity spawnMonEntity3 = mWorld->CreateEntity();
+		TransformComponent vfxTransform{};
+		vfxTransform.mLocalPosition = Vec3(-5943.f, 142.0f, -5637.0f);
+
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Spawn");
+
+		mWorld->AddComponent<TransformComponent>(spawnMonEntity3, vfxTransform);
+		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity3);
+		vfxComp.mVfx = vfx;
+		vfxComp.mIsLoop = true;
+		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
+	}
 
 #pragma endregion
 

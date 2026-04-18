@@ -134,7 +134,7 @@ void PlayerInputSystem::Update(float dt)
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 		BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
 		
-		//楷加青悼
+		//鞐办啀頄夒彊
 		if (mainPlayerComponent->mPendingAction != PendingAction::None)
 		{
 			
@@ -161,7 +161,7 @@ void PlayerInputSystem::Update(float dt)
 				}
 			
 
-			mainPlayerComponent->mPendingAction = PendingAction::None; // 家厚 肯丰
+			mainPlayerComponent->mPendingAction = PendingAction::None; // 靻岆箘 鞕勲
 		}
 
 

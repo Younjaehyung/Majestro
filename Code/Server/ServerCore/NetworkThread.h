@@ -1,6 +1,4 @@
 #pragma once
-#include <thread>
-#include <atomic>
 #include "SessionManager.h"
 
 

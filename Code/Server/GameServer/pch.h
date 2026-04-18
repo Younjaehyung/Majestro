@@ -87,3 +87,22 @@ extern unique_ptr<class ServerCore> gServerCore;
 
 #define RESOURCEMANAGER	gGameCore->GetResourceManager()
 #define SCENEMANAGER	gGameCore->GetSceneManager()
+
+
+
+std::mt19937& RandomEngine()
+{
+	static thread_local std::mt19937 engine{ std::random_device{}() };
+	return engine;
+}
+
+Vec3 SampleDiskXZ(float radius)
+{
+	if (radius <= 0.0f) return Vec3(0.0f, 0.0f, 0.0f);
+
+	std::uniform_real_distribution<float> angleDist(0.0f, 6.28318530718f);
+	std::uniform_real_distribution<float> rDist(0.0f, 1.0f);
+	const float angle = angleDist(RandomEngine());
+	const float r = radius * std::sqrt(rDist(RandomEngine()));
+	return Vec3(std::cos(angle) * r, 0.0f, std::sin(angle) * r);
+}

@@ -6,8 +6,8 @@ class GravityComponent : public Component<GravityComponent>
 {
 public:
 	float mGravity = 0.0f;
-	float mGravityA = 9.8f * 100.0f; //Áß·Â°¡¼Óµµ
-	float mHight = 0.0f; //ÇÃ·¹ÀÌ¾î ³ôÀÌ
+	float mGravityA = 9.8f * 100.0f; //ì¤‘ë ¥ê°€ì†ë„
+	float mHight = 0.0f; //í”Œë ˆì´ì–´ ë†’ì´
 	float mGround = 0.0f;
 	bool mFalling;
 

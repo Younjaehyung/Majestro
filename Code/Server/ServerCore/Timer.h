@@ -1,6 +1,4 @@
-// Timer.h
 #pragma once
-#include <cstdint>  // [수정] int64_t 표준 타입 사용
 
 const ULONG MAX_SAMPLE_COUNT = 50;
 

@@ -20,6 +20,16 @@ public:
 		float cooldown,
 		bool  oneShot,
 		SkillType buffType = SkillType::Default);
+
+	Entity SpawnMonsterSpawner(World* world,
+		const Vec3& position,
+		float interval,
+		int32 maxAlive,
+		float spawnRadius,
+		uint8 triggerRaw = 0,        // SpawnerTrigger::Timed
+		uint8 prefabTypeRaw = 5,      // PrefabType::ENEMY
+		int32 maxTotal = -1,
+		bool  startActive = true);
 	virtual const shared_ptr<World>& GetWorld() { return mWorld; }
 
 	void SetGameMode(shared_ptr<GameMode>& gameMode) { mGameMode = gameMode; }

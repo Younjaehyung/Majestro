@@ -17,8 +17,8 @@ enum class DurationPolicy
 
 enum class BuffExecutionType
 {
-    Persistent, // Á¸ÀçÇÏ´Â µ¿¾È °è¼Ó Àû¿ë
-    Periodic    // Æ¯Á¤ °£°İ¸¶´Ù ÀÌº¥Æ® ¹ß»ı
+    Persistent, // ì¡´ì¬í•˜ëŠ” ë™ì•ˆ ê³„ì† ì ìš©
+    Periodic    // íŠ¹ì • ê°„ê²©ë§ˆë‹¤ ì´ë²¤íŠ¸ ë°œìƒ
 };
 
 
@@ -41,8 +41,8 @@ struct BuffData
 {
     EffectKind mKind = EffectKind::Buff;
     BuffType mType = BuffType::AttackUp;
-    DurationPolicy mDurationPolicy = DurationPolicy::Timed; //Á¾·á ½ÅÈ£±îÁö ¿µ±¸ Áö¼Ó, ½Ã°£Àû¿ë
-    BuffExecutionType mExecutionType = BuffExecutionType::Persistent; // ¼öÁ¤»çÇ×: Áö¼ÓÇü / Æ½Çü ±¸ºĞ
+    DurationPolicy mDurationPolicy = DurationPolicy::Timed; //ì¢…ë£Œ ì‹ í˜¸ê¹Œì§€ ì˜êµ¬ ì§€ì†, ì‹œê°„ì ìš©
+    BuffExecutionType mExecutionType = BuffExecutionType::Persistent; // ìˆ˜ì •ì‚¬í•­: ì§€ì†í˜• / í‹±í˜• êµ¬ë¶„
 
     float mEndTime = 0.0f;
 

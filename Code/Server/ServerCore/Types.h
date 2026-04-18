@@ -24,17 +24,17 @@ using LockGuard = std::lock_guard<std::mutex>;
 
 #define USING_SHARED_PTR(name)	using name##Ref = std::shared_ptr<class name>;
 
-USING_SHARED_PTR(IocpCore);
-USING_SHARED_PTR(IocpObject);
-USING_SHARED_PTR(Session);
-USING_SHARED_PTR(PacketSession);
-USING_SHARED_PTR(Listener);
-USING_SHARED_PTR(ServerService);
-USING_SHARED_PTR(ClientService);
-USING_SHARED_PTR(SendBuffer);
-USING_SHARED_PTR(SendBufferChunk);
-USING_SHARED_PTR(Job);
-USING_SHARED_PTR(JobQueue);
+//USING_SHARED_PTR(IocpCore);
+//USING_SHARED_PTR(IocpObject);
+//USING_SHARED_PTR(Session);
+//USING_SHARED_PTR(PacketSession);
+//USING_SHARED_PTR(Listener);
+//USING_SHARED_PTR(ServerService);
+//USING_SHARED_PTR(ClientService);
+//USING_SHARED_PTR(SendBuffer);
+//USING_SHARED_PTR(SendBufferChunk);
+//USING_SHARED_PTR(Job);
+//USING_SHARED_PTR(JobQueue);
 
 
 #define size16(val)		static_cast<int16>(sizeof(val))

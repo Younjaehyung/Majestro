@@ -37,6 +37,8 @@
 #include "BuffSystem.h"
 #include "InteractionSystem.h"
 #include "InteractableComponent.h"
+#include "SpawnerSystem.h"
+#include "SpawnerComponent.h"
 
 
 
@@ -184,6 +186,38 @@ Entity Scene::SpawnInteractable(World* world,
 	return e;
 }
 
+// 주기 스폰 포인트.
+// trigger가 Timed가 아니면 startActive를 false로 두고 외부(이벤트/게임모드)가 깨우도록 한다.
+Entity Scene::SpawnMonsterSpawner(World* world,
+	const Vec3& position,
+	float interval,
+	int32 maxAlive,
+	float spawnRadius,
+	uint8 triggerRaw,
+	uint8 prefabTypeRaw,
+	int32 maxTotal,
+	bool  startActive)
+{
+	Entity e = world->CreateEntity();
+
+	TransformComponent transform{};
+	transform.mLocalPosition = position;
+	transform.mWorldMatrix = Matrix::CreateTranslation(position);
+	transform.mIsStatic = true;
+	world->AddComponent<TransformComponent>(e, transform);
+
+	SpawnerComponent& sp = world->AddComponent<SpawnerComponent>(e);
+	sp.mTrigger = static_cast<SpawnerTrigger>(triggerRaw);
+	sp.mPrefabType = static_cast<PrefabType>(prefabTypeRaw);
+	sp.mInterval = interval;
+	sp.mMaxAlive = maxAlive;
+	sp.mSpawnRadius = spawnRadius;
+	sp.mMaxTotal = maxTotal;
+	sp.mActive = startActive;
+	sp.mNextSpawnTime = 0.0f; // 다음 Update에서 즉시 후보
+	return e;
+}
+
 void FirstScene::Initialize()
 {
 	//PlayerPrefab p{ mWorld.get()};
@@ -206,11 +240,12 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
 	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 최신 mWorldMatrix로 충돌 판정
 	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 힐팩/점프대 등 맵 상호작용 트리거 검사
+	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
-	
+
 	// 힐팩: 10초 쿨다운, 75 회복. 월드 원점 근처에 배치.
 	SpawnInteractable(mWorld.get(),
 		static_cast<uint8>(InteractableKind::HealPack),
@@ -230,6 +265,40 @@ void FirstScene::Initialize()
 		/*valueB(전방 임펄스)=*/10.0f,
 		/*cooldown=*/0.5f,
 		/*oneShot=*/false);
+
+	//// 몬스터 주기 스폰 포인트. 5초마다 스폰, 동시 최대 3마리, 반경 200 안에 랜덤 배치.
+	//SpawnMonsterSpawner(mWorld.get(),
+	//	Vec3(0.0f, 0.0f, 0.0f),
+	//	/*interval=*/5.0f,
+	//	/*maxAlive=*/3,
+	//	/*spawnRadius=*/200.0f,
+	//	/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
+	//	/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
+	//	/*maxTotal=*/-1,
+	//	/*startActive=*/true);
+
+	//// 하이브리드: 플레이어가 볼륨에 진입하면 그 자리부터 3마리가 1초 간격 웨이브로 튀어나옴.
+	//// 동일 Entity에 Interactable(OneShot) + Spawner(OnPlayerEnter)를 부착해 매핑 없이 깨운다.
+	//{
+	//	const Vec3 triggerPos(300.0f, 0.0f, 300.0f);
+	//	Entity e = SpawnInteractable(mWorld.get(),
+	//		static_cast<uint8>(InteractableKind::None), // 소비만 감지, 실제 효과는 kind에 의존하지 않음
+	//		triggerPos,
+	//		Vec3(100.0f, 50.0f, 100.0f),
+	//		0.0f, 0.0f,
+	//		/*cooldown=*/0.0f,
+	//		/*oneShot=*/true);
+
+	//	// 동일 엔티티에 스포너도 장착 — OnPlayerEnter로 켜질 때까지 대기
+	//	SpawnerComponent& sp = mWorld->AddComponent<SpawnerComponent>(e);
+	//	sp.mTrigger = SpawnerTrigger::OnPlayerEnter;
+	//	sp.mPrefabType = PrefabType::ENEMY;
+	//	sp.mInterval = 1.0f;
+	//	sp.mMaxAlive = 3;
+	//	sp.mMaxTotal = 3;
+	//	sp.mSpawnRadius = 150.0f;
+	//	sp.mActive = false; // EvInteractableConsumed로 true가 된다
+	//}
 
 	mSceneId = SceneId::FirstGame;
 }
@@ -255,6 +324,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
 	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 최신 mWorldMatrix로 충돌 판정
 	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 힐팩/점프대 등 맵 상호작용 트리거 검사
+	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)

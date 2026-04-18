@@ -125,4 +125,14 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 void ForwardPass::Compute()
 {
     DispatchForwardPlusCull();
+
+
+#if USE_CPU_ANIMATION
+	// 애니메이션이 CPU에서 처리되는 경우
+    const uint64 fenceValue = RENDERMANAGER.GetComputeCmdQueue()->ExecuteCommandList(
+        RENDERMANAGER.GetFrameResourceIndex());
+    RENDERMANAGER.SetAnimationComputeFenceValue(fenceValue);
+    RENDERMANAGER.GetGraphicsCmdQueue()->WaitForFence(
+        RENDERMANAGER.GetComputeCmdQueue()->GetFence().Get(), fenceValue);
+#endif
 }

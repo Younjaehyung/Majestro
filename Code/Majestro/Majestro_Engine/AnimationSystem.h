@@ -11,10 +11,10 @@ struct CSBatchCB {
 	uint32 InstanceCount;      // 이 배치에서 처리할 인스턴스 수
 };
 
-class AnimationSystem : public System
+class GpuAnimationSystem : public System
 {
 public:
-	AnimationSystem(World* world);
+	GpuAnimationSystem(World* world);
 	void Initialize();
 	void Update(float);
 

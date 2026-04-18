@@ -12,12 +12,12 @@
 
 #include "InputManager.h"
 
-AnimationSystem::AnimationSystem(World* world) : System::System(world)
+GpuAnimationSystem::GpuAnimationSystem(World* world) : System::System(world)
 {
 
 }
 
-void AnimationSystem::Initialize() 
+void GpuAnimationSystem::Initialize() 
 {
 	// 불변 데이터  update
 
@@ -67,7 +67,7 @@ void AnimationSystem::Initialize()
 }
 
 
-void AnimationSystem::Update(float deltaTime)
+void GpuAnimationSystem::Update(float deltaTime)
 {
 	if (false == mWorld->HasComponentPool<AnimationComponent>()) return;
 	RENDERMANAGER.SetComputTable();
@@ -78,7 +78,7 @@ void AnimationSystem::Update(float deltaTime)
 
 }
 
-void AnimationSystem::ClearVector()
+void GpuAnimationSystem::ClearVector()
 {
    //  mAniKeyFrame.clear();
    //  mAniClipMeta.clear();
@@ -88,7 +88,7 @@ void AnimationSystem::ClearVector()
 
 
 
-void AnimationSystem::AnimationPush(float deltaTime)
+void GpuAnimationSystem::AnimationPush(float deltaTime)
 {
     auto view = mWorld->View<AnimationComponent>();
     for (Entity entity : view) {
@@ -338,7 +338,7 @@ void AnimationSystem::AnimationPush(float deltaTime)
 
 }
 
-void AnimationSystem::AnimationCompute()
+void GpuAnimationSystem::AnimationCompute()
 {
 	COMPUTE_CMD_LIST->SetPipelineState(mAnimationShader->GetPipelineState().Get());
 
@@ -371,7 +371,7 @@ void AnimationSystem::AnimationCompute()
 }
 
 
-void AnimationSystem::AnimationDispatch()
+void GpuAnimationSystem::AnimationDispatch()
 {
 	for (Bucket& b : mAnimationBuckets)
 	{
@@ -385,7 +385,7 @@ void AnimationSystem::AnimationDispatch()
 	}
 }
 
-void AnimationSystem::AnimationBlend(const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio)
+void GpuAnimationSystem::AnimationBlend(const shared_ptr<Animator>& animClip, float updateTime, uint32& currentFrame, uint32& nextFrame, float& ratio)
 {
     const uint32 numFrame = max(animClip->mClipMeta.NumFrame, 1u);
     const float duration = max(static_cast<float>(animClip->mDuration), 0.0001f);

@@ -38,6 +38,7 @@
 #include "AudioSystem.h"
 #include "TransformSystem.h"
 #include "AnimationSystem.h"
+#include "CpuAnimationSystem.h"
 #include "PlayerSystem.h"
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
@@ -410,7 +411,11 @@ void LoadingScene::Initialize()
 
 	mWorld->Initialize();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	//mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
@@ -800,7 +805,11 @@ void MainMenuScene::Initialize()
 
 
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
@@ -937,7 +946,11 @@ void LobbyScene::Initialize()
 	// NETWORK
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
@@ -1269,9 +1282,13 @@ void FirstScene::Initialize()
 	// NETWORK
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
-	
+
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();

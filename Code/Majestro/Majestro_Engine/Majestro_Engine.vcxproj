@@ -182,7 +182,9 @@
     <ClInclude Include="..\..\Protocol\Packet.h" />
     <ClInclude Include="Animator.h" />
     <ClInclude Include="AnimationComponent.h" />
+    <ClInclude Include="AnimationEvaluator.h" />
     <ClInclude Include="AnimationSystem.h" />
+    <ClInclude Include="CpuAnimationSystem.h" />
     <ClInclude Include="ArmorComponent.h" />
     <ClInclude Include="AudioComponent.h" />
     <ClInclude Include="AudioManager.h" />
@@ -211,6 +213,7 @@
     <ClInclude Include="GameRenderPipeline.h" />
     <ClInclude Include="LobbyRenderPipeline.h" />
     <ClInclude Include="LuminancePass.h" />
+    <ClInclude Include="MathUtils.h" />
     <ClInclude Include="MotionVectorPass.h" />
     <ClInclude Include="MotionBlurPass.h" />
     <ClInclude Include="CollisionSystem.h" />
@@ -312,7 +315,9 @@
   <ItemGroup>
     <ClCompile Include="Animator.cpp" />
     <ClCompile Include="AnimationComponent.cpp" />
+    <ClCompile Include="AnimationEvaluator.cpp" />
     <ClCompile Include="AnimationSystem.cpp" />
+    <ClCompile Include="CpuAnimationSystem.cpp" />
     <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioManager.cpp" />
     <ClCompile Include="AudioSystem.cpp" />
@@ -336,6 +341,7 @@
     <ClCompile Include="GodRayPass.cpp" />
     <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
+    <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="MotionVectorPass.cpp" />
     <ClCompile Include="MotionBlurPass.cpp" />
     <ClCompile Include="CollisionSystem.cpp" />

@@ -47,6 +47,9 @@ public:
 	void PushComputeSRVData(void* buffer, uint32 size);	// 추후 수정
 	void PushComputeUAVData(void* buffer, uint32 size);
 
+	// CPU 애니메이션용: 더미 업로드 버퍼에 데이터 쓰고 그래픽스 cmd list로 default로 카피
+	void UpdateDefaultFromCpu(const void* data, uint32 size);
+
 public:
 
 	void SetResourceState(D3D12_RESOURCE_STATES state) { mResourceState = state; }
@@ -66,6 +69,7 @@ private:
 	ComPtr<ID3D12Resource>			mDummyBuffer;	// default to upload buffer (dummy);
 
 	BYTE*							mMappedBuffer	= nullptr;	//cpu쪽과 메모리 연결을 위한 포인터
+	BYTE*							mDummyMappedBuffer = nullptr;	// 더미 업로드 버퍼의 매핑 (지연 매핑)
 
 	uint32						mElementSize = 0;	// 원소 하나 크기
 	uint32						mElementCount = 0;	// 전체 원소 개수

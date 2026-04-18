@@ -331,6 +331,12 @@
     <ClInclude Include="AnimationSystem.h">
       <Filter>World\System\Client</Filter>
     </ClInclude>
+    <ClInclude Include="CpuAnimationSystem.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationEvaluator.h">
+      <Filter>World\System\Client</Filter>
+    </ClInclude>
     <ClInclude Include="BeatSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -581,6 +587,9 @@
     <ClInclude Include="FXAAPass.h">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
+    <ClInclude Include="MathUtils.h">
+      <Filter>Utils\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -707,6 +716,12 @@
       <Filter>World\System\Client</Filter>
     </ClCompile>
     <ClCompile Include="AnimationSystem.cpp">
+      <Filter>World\System\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="CpuAnimationSystem.cpp">
+      <Filter>World\System\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationEvaluator.cpp">
       <Filter>World\System\Client</Filter>
     </ClCompile>
     <ClCompile Include="BeatSystem.cpp">
@@ -931,6 +946,9 @@
     </ClCompile>
     <ClCompile Include="FXAAPass.cpp">
       <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtils.cpp">
+      <Filter>Utils\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

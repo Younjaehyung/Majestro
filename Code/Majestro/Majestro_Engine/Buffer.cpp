@@ -166,6 +166,40 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 	mResourceState = D3D12_RESOURCE_STATE_COMMON;
 }
 
+void StructuredBuffer::UpdateDefaultFromCpu(const void* data, uint32 size)
+{
+	// Default 버퍼 + Dummy 업로드 버퍼 조합 전용
+	assert(mDummyBuffer != nullptr);
+	if (size == 0)
+		return;
+
+	if (mDummyMappedBuffer == nullptr)
+	{
+		D3D12_RANGE readRange{ 0, 0 };
+		mDummyBuffer->Map(0, &readRange, reinterpret_cast<void**>(&mDummyMappedBuffer));
+	}
+
+	::memcpy(mDummyMappedBuffer, data, size);
+
+	auto cmdList = GRAPHICS_CMD_LIST;
+
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(mBuffer.Get(),
+			D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST);
+		cmdList->ResourceBarrier(1, &barrier);
+	}
+
+	cmdList->CopyBufferRegion(mBuffer.Get(), 0, mDummyBuffer.Get(), 0, size);
+
+	{
+		D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(mBuffer.Get(),
+			D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COMMON);
+		cmdList->ResourceBarrier(1, &barrier);
+	}
+
+	mResourceState = D3D12_RESOURCE_STATE_COMMON;
+}
+
 void StructuredBuffer::PushComputeSRVData(void* buffer, uint32 size)
 {
 	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))

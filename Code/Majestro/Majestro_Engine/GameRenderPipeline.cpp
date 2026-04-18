@@ -355,7 +355,7 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
     float dt = ctx.deltaTime;
     Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
     Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(ctx.camera->GetProjectionMatrix());
-    mEffectPass->Execute(dt, viewMat, projMat);
+    mEffectPass->Execute(dt, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
 
     // Effekseer가 RootSignature/DescriptorHeap을 변경하므로 엔진 상태 복원
     RENDERMANAGER.SetGraphicsTable();

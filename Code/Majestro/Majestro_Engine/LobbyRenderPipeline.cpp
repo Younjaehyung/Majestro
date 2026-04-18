@@ -122,7 +122,7 @@ void LobbyRenderPipeline::Execute(const RenderContext& ctx)
     {
         Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
         Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(ctx.camera->GetProjectionMatrix());
-        mEffectPass->Execute(ctx.deltaTime, viewMat, projMat);
+        mEffectPass->Execute(ctx.deltaTime, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
 
         // Effekseer가 변경한 RootSignature/DescriptorHeap 복원
         RENDERMANAGER.SetGraphicsTable();

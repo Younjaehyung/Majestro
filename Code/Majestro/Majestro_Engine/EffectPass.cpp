@@ -81,7 +81,7 @@ Effekseer::Handle EffectPass::Play(VfxComponent* comp, const Effekseer::Vector3D
 	return handle;
 }
 
-void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Effekseer::Matrix44& projMat)
+void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Effekseer::Matrix44& projMat, float zNear, float zFar)
 {
 	if (!mWorld->HasComponentPool<VfxComponent>()) return;
 
@@ -135,7 +135,8 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 	mManager->Update(dt * 60.f);
 
 	auto renderer = RENDERMANAGER.GetEfkRendererHDR();
-	renderer->SetTime(dt);
+	mTotalTime += dt;
+	renderer->SetTime(mTotalTime);
 
 	// --- HDR RT에 렌더링 (ForwardPass 이후 SRV 상태 → RT로 전환) ---
 	auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
@@ -148,8 +149,9 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 	if (renderer->BeginRendering())
 	{
 		Effekseer::Manager::DrawParameter drawParam;
-		drawParam.ZNear = 0.0f;
-		drawParam.ZFar  = 1.0f;
+		
+		drawParam.ZNear = max(0.0001f, zNear);
+		drawParam.ZFar = max(drawParam.ZNear + 0.0001f, zFar);
 		drawParam.ViewProjectionMatrix = renderer->GetCameraProjectionMatrix();
 		mManager->Draw(drawParam);
 		renderer->EndRendering();

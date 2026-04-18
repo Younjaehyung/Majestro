@@ -214,7 +214,7 @@ void FirstScene::Initialize()
 	// 힐팩: 10초 쿨다운, 75 회복. 월드 원점 근처에 배치.
 	SpawnInteractable(mWorld.get(),
 		static_cast<uint8>(InteractableKind::HealPack),
-		Vec3( 20.0f, 0.0f,  20.0f),
+		Vec3(-5843.0f, 278.0f, -3523.0f),
 		Vec3(  3.0f, 3.0f,   3.0f),
 		/*valueA(회복량)=*/75.0f,
 		/*valueB=*/0.0f,
@@ -225,9 +225,9 @@ void FirstScene::Initialize()
 	SpawnInteractable(mWorld.get(),
 		static_cast<uint8>(InteractableKind::JumpPad),
 		Vec3(-2337.0f, 142.0f, -4987.0f),
-		Vec3(  30.0f, 1.0f,   30.0f),
+		Vec3(  150.0f, 5.0f,   150.0f),
 		/*valueA(Y 임펄스)=*/1200.0f,
-		/*valueB(전방 임펄스)=*/400.0f,
+		/*valueB(전방 임펄스)=*/10.0f,
 		/*cooldown=*/0.5f,
 		/*oneShot=*/false);
 

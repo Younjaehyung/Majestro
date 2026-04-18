@@ -1102,7 +1102,7 @@ void FirstScene::Initialize()
 		TransformComponent vfxTransform{};
 		vfxTransform.mLocalPosition = Vec3(-5843.f, 278.f, -3523.f);
 
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Jump");
+		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Heal");
 
 		mWorld->AddComponent<TransformComponent>(healEntity, vfxTransform);
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(healEntity);
@@ -1111,6 +1111,7 @@ void FirstScene::Initialize()
 		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
 	}
 
+	// 몬스터 스포너
 
 #pragma endregion
 

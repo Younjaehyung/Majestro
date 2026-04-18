@@ -14,7 +14,7 @@ public:
 
 	// 시뮬레이션 + HDR RT에 렌더링
 	// viewMat, projMat: 카메라 행렬 (Effekseer 포맷)
-	void Execute(float dt, const Effekseer::Matrix44& viewMat, const Effekseer::Matrix44& projMat);
+	void Execute(float dt, const Effekseer::Matrix44& viewMat, const Effekseer::Matrix44& projMat, float zNear, float zFar);
 
 	Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f,
 	                                const std::string_view materialPath = {});
@@ -68,6 +68,7 @@ private:
 
 private:
 	World* mWorld = nullptr;
+	float mTotalTime = 0.0f;
 	Effekseer::RefPtr<Effekseer::Manager> mManager;
 	Effekseer::RefPtr<Effekseer::Setting> mSetting;
 };

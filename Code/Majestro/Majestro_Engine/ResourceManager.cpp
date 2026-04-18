@@ -2115,7 +2115,9 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"ForwardPlusCel");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\VFX_Sector_Jump.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk");
 	//LoadEffect(L"..\\Resources\\Effect\\Area\\VFX_Sector_Jump.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");

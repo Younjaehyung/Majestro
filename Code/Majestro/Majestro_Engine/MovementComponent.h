@@ -22,10 +22,19 @@ public:
 	float mCameraRotationX =0.f;
 	float mCameraRotationY =180.f;
 
-	float currentX = 0.0f;
-	float currentY = 0.0f;
-	float targetX = 0.0f;
-	float targetY = 0.0f;
+	Vec2 mCurrentRotation = Vec2(0.f,0.f);
+	Vec2 mTargetRotation = Vec2(0.f,0.f);
+
+
+
+	// Turn In Place
+	bool mIsTurnInPlace = false;
+	int mTurnInPlaceDir = 0; // -1: left, 1: right, 0: none
+	float mTurnStartYaw = 0.f;
+	float mTurnTargetYaw = 0.f;
+
+	float mTurnElapsed = 0.f;
+	float mTurnDuration = 0.25f;
 
 
 };

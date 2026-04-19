@@ -63,7 +63,11 @@ SystemManager::~SystemManager()
 {
 }
 
-void SystemManager::Update(float deltaTime) {
+void SystemManager::Update(float deltaTime) 
+{
+
+    RebuildScheduleIfDirty();
+
     mWorld->GetEventManager()->SwapBuffers();
 
     RunPhase(SysPhase::Pre, deltaTime);
@@ -164,14 +168,13 @@ std::vector<System*> SystemManager::TopoSortPhase(SysPhase phase, const std::vec
 
         // Kahn
         std::queue<System*> q;
-        for (auto& [node, d] : indeg)
-            if (d == 0) q.push(node);
+
+        for (System* s : input)
+            if (indeg[s] == 0) q.push(s);
 
         std::vector<System*> out;
         out.reserve(input.size());
 
-        // 결정성을 위해: 큐 대신 "indeg 0 집합"을 정렬하는 방식이 더 안정적이지만
-        // 여기서는 간단히, pop 전에 input Order 정렬을 기반으로 어느 정도 안정성 유지.
         while (!q.empty())
         {
             System* u = q.front();
@@ -185,38 +188,30 @@ std::vector<System*> SystemManager::TopoSortPhase(SysPhase phase, const std::vec
             }
         }
 
-        // 사이클 감지: out.size != input.size
         if (out.size() != input.size())
         {
-            // 의존성 사이클이 있으면 "Order 정렬"만 적용한 input을 반환하거나,
-            // 여기서 assert/예외로 터뜨려 조기 발견하는 걸 권장.
-            // 상용 엔진에서는 대개 개발 빌드에서 강하게 터뜨림.
             throw std::runtime_error("System dependency cycle detected in phase");
         }
 
-        // out을 Order 기준으로 한번 더 안정 정렬할 필요는 없음(그래프가 순서를 규정)
         return out;
     
 }
 
 void SystemManager::RebuildScheduleIfDirty()
 { 
-
-    if (mDirtySchedule) return;
+    if (!mDirtySchedule) return;
     mDirtySchedule = false;
 
     for (size_t i = 0; i < (size_t)SysPhase::Count; ++i)
     {
-        // 1) 기본 Order 정렬
+
         auto& vec = mPhaseSystems[i];
-        std::sort(vec.begin(), vec.end(), [](System* a, System* b) {
-            if (a->GetOrder() != b->GetOrder()) return a->GetOrder() < b->GetOrder();
-            // 동일 Order면 typeid name으로 안정 정렬 (결정성 확보)
-            return std::string(a->GetName()) < std::string(b->GetName());
+
+        std::stable_sort(vec.begin(), vec.end(), [](System* a, System* b) {
+            return a->GetOrder() < b->GetOrder();
             });
 
-        // 2) (옵션) 의존성 기반 토폴로지 정렬
-        //    - 의존성을 안 쓰면 아래 함수는 그냥 vec를 그대로 반환
+
         vec = TopoSortPhase(static_cast<SysPhase>(i), vec);
     }
 }

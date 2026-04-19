@@ -156,18 +156,18 @@ void PlayerInputSystem::Update(float dt)
 		float deltaX = (std::abs(mouseDelta.y) > deadzone) ? (float)mouseDelta.y : 0.0f;
 		float deltaY = (std::abs(mouseDelta.x) > deadzone) ? (float)mouseDelta.x : 0.0f;
 
-		movementComponent->targetX += deltaX * sensitivity * mDPI;
-		movementComponent->targetY += deltaY * sensitivity * mDPI;
+		movementComponent->mTargetRotation.x += deltaX * sensitivity * mDPI;
+		movementComponent->mTargetRotation.y += deltaY * sensitivity * mDPI;
 
 		float alpha = std::lerp(0.0f, 1.0f, dt * lerpFactor); // dt에 비례하도록 수정
 		
 
-		movementComponent->currentX = std::lerp(movementComponent->currentX, movementComponent->targetX, alpha);
-		movementComponent->currentY = std::lerp(movementComponent->currentY, movementComponent->targetY, alpha);
+		movementComponent->mCurrentRotation.x = std::lerp(movementComponent->mCurrentRotation.x, movementComponent->mTargetRotation.x, alpha);
+		movementComponent->mCurrentRotation.y = std::lerp(movementComponent->mCurrentRotation.y, movementComponent->mTargetRotation.y, alpha);
 
 
-		movementComponent->mCameraRotationX = movementComponent->currentX;
-		movementComponent->mCameraRotationY = movementComponent->currentY;
+		movementComponent->mCameraRotationX = movementComponent->mCurrentRotation.x;
+		movementComponent->mCameraRotationY = movementComponent->mCurrentRotation.y;
 
 		// 짐벌락 방지 클램핑 (Pitch)
 		movementComponent->mCameraRotationX = std::clamp(movementComponent->mCameraRotationX, -60.0f, 60.0f);

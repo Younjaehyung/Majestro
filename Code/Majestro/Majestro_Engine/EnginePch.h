@@ -63,6 +63,7 @@ using namespace Microsoft::WRL;
 #ifdef _DEBUG
 #pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 #else
+#pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
 #endif
 
 

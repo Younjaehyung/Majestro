@@ -12,8 +12,19 @@ void AnimationEvaluator::Evaluate(
 	uint32 metaCount,
 	const SkeletonBoneParams* boneBuffer,
 	Matrix* outModelBones,
-	Matrix* outFinalBones)
+	Matrix* outFinalBones,
+	const AimParams* aim)
 {
+	// spine 체인 가중치 분배 (합 = 1.0)
+	auto getAimWeight = [&](uint32 boneIdx) -> float
+	{
+		if (!aim) return 0.f;
+		if (boneIdx == aim->Spine1Idx) return aim->Spine1Weight;
+		if (boneIdx == aim->Spine2Idx) return aim->Spine2Weight;
+		if (boneIdx == aim->Spine3Idx) return aim->Spine3Weight;
+		if (boneIdx == aim->NeckIdx)   return aim->NeckWeight;
+		return 0.f;
+	};
 	const AnimationClipMeta& clipMeta = metaBuffer[inst.AnimClipID];
 	const uint32 boneIdxBase = clipMeta.BoneStart;
 	const uint32 boneCount = clipMeta.BoneCount;
@@ -158,6 +169,22 @@ void AnimationEvaluator::Evaluate(
 			}
 		}
 
+
+		const float aimW = getAimWeight(nowbone);
+		if (aimW > 0.f && aim)
+		{
+			const float pitch = aim->AimPitch * aimW;
+			const float yaw = aim->AimYaw * aimW;
+			if (fabsf(pitch) > 1e-5f || fabsf(yaw) > 1e-5f)
+			{
+				// 본 로컬 축: Y = pitch(앞뒤), Z = yaw(좌우).
+				const Vec4 pitchQ = QuatFromAxisAngle(Vec3::UnitY, -pitch);
+				const Vec4 yawQ = QuatFromAxisAngle(Vec3::UnitZ, yaw);
+				const Vec4 aimQ = HlslQuatMul(pitchQ, yawQ);
+				finalRotation = HlslQuatMul(finalRotation, aimQ);
+			}
+		}
+
 		// 정규화 / 클램프
 		{
 			const float n2 = finalRotation.x * finalRotation.x + finalRotation.y * finalRotation.y +
@@ -176,7 +203,7 @@ void AnimationEvaluator::Evaluate(
 		const Matrix sMat = Matrix::CreateScale(finalScale.x, finalScale.y, finalScale.z);
 		const Matrix rMat = Matrix::CreateFromQuaternion(Quaternion(finalRotation.x, finalRotation.y, finalRotation.z, finalRotation.w));
 		const Matrix tMat = Matrix::CreateTranslation(finalTranslation.x, finalTranslation.y, finalTranslation.z);
-		const Matrix localBone = sMat * rMat * tMat;
+		Matrix localBone = sMat * rMat * tMat;
 
 		const int32 parentIdx = boneBuffer[nowbone + boneIdxBase].parentIdx;
 		Matrix modelBone = localBone;

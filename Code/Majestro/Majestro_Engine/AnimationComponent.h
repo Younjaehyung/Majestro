@@ -52,6 +52,21 @@ enum class AnimBlendMode : uint32
 	Additive = 1,
 };
 
+// CPU 전용 AimOffset 파라미터
+struct AimParams
+{
+	float  AimPitch = 0.f;       // radians, 카메라 pitch
+	float  AimYaw   = 0.f;       // radians, cameraYaw - bodyYaw 를 -60~60도 범위로 제한한 상체 yaw 보정값
+	uint32 Spine1Idx = UINT32_MAX;
+	uint32 Spine2Idx = UINT32_MAX;
+	uint32 Spine3Idx = UINT32_MAX;
+	uint32 NeckIdx   = UINT32_MAX;
+	float  Spine1Weight = 0.f;
+	float  Spine2Weight = 0.f;
+	float  Spine3Weight = 0.f;
+	float  NeckWeight   = 0.f;
+};
+
 struct AnimatorParams
 {
 	uint32 skeletonID;   // 스켈레톤 핸들(Initialize에서 Skeleton::SetSkeletonHandle로 지정한 값)
@@ -64,7 +79,7 @@ struct AnimatorParams
 	float  weightB;      // 0~1
 	float  playbackRate; // 1.0 = normal
 
-	uint32 outBaseIndex; // ★ CS가 쓰고 VS가 읽는 팔레트 시작 오프셋
+	uint32 outBaseIndex; // CS가 쓰고 VS가 읽는 팔레트 시작 오프셋
 };
 
 class AnimationComponent : public Component<AnimationComponent>
@@ -106,5 +121,10 @@ public:
 
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;
+
+	// AimOffset / TurnInPlace 제어
+	bool							mEnableAimOffset = false;   // 상체 보정
+	float							mAimPitch = 0.f;            // radians
+	float							mAimYaw   = 0.f;            // radians
 };
 

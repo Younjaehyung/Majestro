@@ -4,19 +4,31 @@
 
 Vec4 HlslQuatMul(const Vec4& q1, const Vec4& q2)
 {
-	Vec4 r;
-	r.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-	r.y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
-	r.z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
-	r.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-	const float n2 = r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w;
+	XMVECTOR r = XMQuaternionMultiply(q2, q1);
+
+
+	const float n2 = XMVectorGetX(XMQuaternionLengthSq(r));
 	if (n2 > 1e-12f)
 	{
-		const float inv = 1.f / std::sqrt(n2);
-		r.x *= inv; r.y *= inv; r.z *= inv; r.w *= inv;
+		r = XMQuaternionNormalize(r);
 	}
-	return r;
+
+	return Vec4(r);
 }
+
+Vec4 QuatFromAxisAngle(const Vec3& axis, float rad)
+{
+	Vec3 n = axis;
+	if (n.LengthSquared() <= 0.0001f)
+		return Vec4(0.f, 0.f, 0.f, 1.f);
+
+	n.Normalize();
+
+	const float half = rad * 0.5f;
+	const float s = sinf(half);
+	return Vec4(n.x * s, n.y * s, n.z * s, cosf(half));
+}
+
 
 Vec4 HlslQuatConj(const Vec4& q)
 {
@@ -55,4 +67,24 @@ Vec4 MaxV4(const Vec4& a, const Vec4& b)
 float Saturate(float v)
 {
 	return std::clamp(v, 0.f, 1.f);
+}
+
+float Wrap180Degrees(float deg)
+{
+	deg = fmodf(deg + 180.f, 360.f);
+	if (deg < 0.f)
+		deg += 360.f;
+	return deg - 180.f;
+}
+
+float SmoothStep01(float t)
+{
+	t = std::clamp(t, 0.f, 1.f);
+	return t * t * (3.f - 2.f * t);
+}
+
+float LerpAngleDegrees(float startYaw, float targetYaw, float alpha)
+{
+	const float deltaYaw = Wrap180Degrees(targetYaw - startYaw);
+	return startYaw + deltaYaw * std::clamp(alpha, 0.f, 1.f);
 }

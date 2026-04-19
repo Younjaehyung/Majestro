@@ -11,6 +11,8 @@
 #include "PlayerComponent.h"
 #include "BulletComponent.h"
 
+#include "MathUtils.h"
+	
 MovementSystem::MovementSystem(World* world) : System(world)
 {
 
@@ -59,15 +61,21 @@ void MovementSystem::Update(float dt) {
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
-			//transformComponent->mLocalRotation.y = movementComponent->mCameraRotationY;
-			if (!isLobbyScene || hasMoveInput) {
-				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
+			if (cameraTypeComponent->mPlayMode == THREE_FPS && !isLobbyScene) {
+				// 정지 중에는 상체 AimYaw를 남기고, TIP 상태가 시작된 뒤에는 stopAngle까지 계속 회전.
+				UpdateBodyYawForAim(movementComponent, transformComponent, dt, hasMoveInput);
 			}
+			else {
+				// ONE_FPS + Lobby
+				if (!isLobbyScene || hasMoveInput) {
+					transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
+					ResetTurnInPlace(movementComponent);
+				}
+			}
+
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
 			netTransformComponent->mStartRotation.y = transformComponent->mLocalRotationE.y;
 			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotationE.x;
-			
-		
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 			Vec3 forward = transformComponent->GetLook();
@@ -84,9 +92,8 @@ void MovementSystem::Update(float dt) {
 			if (desired.LengthSquared() > 0.0001f)
 				desired.Normalize();
 
-			if (mainPlayerComponent->mSpeed > 0) {
-				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
-			}
+			UpdateBodyYawForAim(movementComponent, transformComponent, dt, hasMoveInput || mainPlayerComponent->mSpeed > 0.f);
+
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 
 			netTransformComponent->mStartPosition = transformComponent->mLocalPosition;
@@ -175,5 +182,71 @@ void MovementSystem::UnregisterActiveBullet(Entity bulletEntity)
 		mActiveBulletEntityIds[i] = mActiveBulletEntityIds.back();
 		mActiveBulletEntityIds.pop_back();
 		return;
+	}
+}
+
+void MovementSystem::ResetTurnInPlace(PlayerMovementComponent* movementComponent)
+{
+	if (!movementComponent)
+		return;
+
+	movementComponent->mIsTurnInPlace = false;
+	movementComponent->mTurnInPlaceDir = 0;
+	movementComponent->mTurnStartYaw = 0.f;
+	movementComponent->mTurnTargetYaw = 0.f;
+	movementComponent->mTurnElapsed = 0.f;
+}
+
+
+
+void MovementSystem::UpdateBodyYawForAim(PlayerMovementComponent* movementComponent, TransformComponent* transformComponent, float dt, bool followCameraImmediately)
+{
+	if (!movementComponent || !transformComponent)
+		return;
+
+	const float cameraYaw = movementComponent->mCameraRotationY;
+
+	if (followCameraImmediately)
+	{
+		// 이동 중에는 기존 조작감을 유지하기 위해 몸 방향을 카메라 yaw에 즉시 맞춘다.
+		transformComponent->mLocalRotationE.y = cameraYaw;
+		ResetTurnInPlace(movementComponent);
+		return;
+	}
+
+	constexpr float kTurnStartDeg = 75.f;
+
+	const float deltaYaw = Wrap180Degrees(cameraYaw - transformComponent->mLocalRotationE.y);
+	const float absDeltaYaw = fabsf(deltaYaw);
+
+	if (!movementComponent->mIsTurnInPlace && absDeltaYaw > kTurnStartDeg)
+	{
+		// IP 시작 순간의 현재 몸 yaw와 최종 하체 yaw를 고정.
+		// 이후에는 카메라를 계속 추적하지 않고 고정된 목표 yaw까지 블렌딩한다.
+		movementComponent->mIsTurnInPlace = true;
+		movementComponent->mTurnInPlaceDir = (deltaYaw >= 0.f) ? 1 : -1;
+		movementComponent->mTurnStartYaw = transformComponent->mLocalRotationE.y;
+		movementComponent->mTurnTargetYaw = cameraYaw;
+		movementComponent->mTurnElapsed = 0.f;
+	}
+
+	if (!movementComponent->mIsTurnInPlace)
+		return;
+
+	movementComponent->mTurnElapsed += dt;
+
+	const float duration = max(movementComponent->mTurnDuration, 0.0001f);
+	const float alpha = std::clamp(movementComponent->mTurnElapsed / duration, 0.f, 1.f);
+	const float blend = SmoothStep01(alpha);
+
+	transformComponent->mLocalRotationE.y =
+		LerpAngleDegrees(movementComponent->mTurnStartYaw, movementComponent->mTurnTargetYaw, blend);
+
+	if (alpha >= 1.f)
+	{
+		// 블렌딩이 끝나면 시작 시점에 확정한 하체 목표 yaw로 마무리한다.
+		// Turn 중 카메라가 더 움직였으면 다음 프레임의 yaw 차이 검사로 새 Turn이 다시 시작된다.
+		transformComponent->mLocalRotationE.y = movementComponent->mTurnTargetYaw;
+		ResetTurnInPlace(movementComponent);
 	}
 }

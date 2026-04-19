@@ -12,6 +12,7 @@ public:
 
 	void Initialize();
 	void Update(float dt);
+	std::vector<std::type_index> After() const override;
 
 private:
 	float speed = 30.0f;

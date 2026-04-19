@@ -10,9 +10,17 @@
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
 #include "TagComponent.h"
+#include "MovementComponent.h"
+#include "MovementSystem.h"
+#include "PlayerSystem.h"
 
 CpuAnimationSystem::CpuAnimationSystem(World* world) : System::System(world)
 {
+}
+
+std::vector<std::type_index> CpuAnimationSystem::After() const
+{
+	return { typeid(MovementSystem), typeid(PlayerSystem) };
 }
 
 void CpuAnimationSystem::Initialize()
@@ -32,6 +40,9 @@ void CpuAnimationSystem::Initialize()
 		}
 		skelOffset += static_cast<uint32>(skel->GetBones().size());
 		skel->SetSkeletonHandle(skelHandle++);
+
+		// AimOffset 용 spine/neck 본 인덱스 캐시
+		skel->BuildAimBoneIndices();
 	}
 
 	uint32 animClipHandle{};
@@ -76,6 +87,7 @@ void CpuAnimationSystem::Update(float deltaTime)
 void CpuAnimationSystem::ClearVector()
 {
 	mAnimationPass.clear();
+	mAimPass.clear();
 	mFinalBoneUpload.clear();
 }
 
@@ -253,13 +265,59 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			std::swap(instance.UpperMaskStart, instance.UpperMaskEnd);
 		instance.UpperBlendMode = static_cast<uint32>(animCom->mUpperBlendMode);
 
+		// AimOffset 파라미터 세팅
+		AimParams aim{};
+		if (animCom->mEnableAimOffset)
+		{
+			aim.AimPitch = animCom->mAimPitch;
+			aim.AimYaw   = animCom->mAimYaw;
+			if (const shared_ptr<Skeleton>& sk = animClip->GetSkeleton())
+			{
+				aim.Spine1Idx = sk->mSpine1Idx;
+				aim.Spine2Idx = sk->mSpine2Idx;
+				aim.Spine3Idx = sk->mSpine3Idx;
+				aim.NeckIdx   = sk->mNeckIdx;
+
+				aim.Spine1Weight = (aim.Spine1Idx != Skeleton::INVALID_BONE_INDEX) ? 0.30f : 0.f;
+				aim.Spine2Weight = (aim.Spine2Idx != Skeleton::INVALID_BONE_INDEX) ? 0.30f : 0.f;
+				aim.Spine3Weight = (aim.Spine3Idx != Skeleton::INVALID_BONE_INDEX) ? 0.25f : 0.f;
+				aim.NeckWeight   = (aim.NeckIdx   != Skeleton::INVALID_BONE_INDEX) ? 0.15f : 0.f;
+
+				const float weightSum = aim.Spine1Weight + aim.Spine2Weight + aim.Spine3Weight + aim.NeckWeight;
+				if (weightSum > 0.0001f)
+				{
+					aim.Spine1Weight /= weightSum;
+					aim.Spine2Weight /= weightSum;
+					aim.Spine3Weight /= weightSum;
+					aim.NeckWeight   /= weightSum;
+				}
+			}
+		}
+
 		mAnimationPass.emplace_back(instance);
+		mAimPass.emplace_back(aim);
 	}
 
-	std::sort(mAnimationPass.begin(), mAnimationPass.end(),
-		[](const AnimationInstance& a, const AnimationInstance& b) {
-			return a.SkeletonID < b.SkeletonID;
-		});
+	// mAnimationPass와 mAimPass를 동일 permutation으로 정렬
+	{
+		const size_t n = mAnimationPass.size();
+		vector<uint32> order(n);
+		for (uint32 i = 0; i < static_cast<uint32>(n); ++i) order[i] = i;
+		std::sort(order.begin(), order.end(),
+			[this](uint32 a, uint32 b) {
+				return mAnimationPass[a].SkeletonID < mAnimationPass[b].SkeletonID;
+			});
+
+		vector<AnimationInstance> sortedInst(n);
+		vector<AimParams>         sortedAim(n);
+		for (size_t i = 0; i < n; ++i)
+		{
+			sortedInst[i] = mAnimationPass[order[i]];
+			sortedAim[i]  = mAimPass[order[i]];
+		}
+		mAnimationPass.swap(sortedInst);
+		mAimPass.swap(sortedAim);
+	}
 
 	for (size_t i = 0; i < mAnimationPass.size(); ++i) {
 		const Entity& e = mAnimationPass[i].EntityID;
@@ -323,8 +381,9 @@ void CpuAnimationSystem::EvaluateAndUpload()
 	const SkeletonBoneParams* boneBuffer = mBoneData.data();
 
 	// 인스턴스별로 본을 연산 — 각자의 ReulstIndex 위치에 결과를 채움
-	for (const AnimationInstance& inst : mAnimationPass)
+	for (size_t idx = 0; idx < mAnimationPass.size(); ++idx)
 	{
+		const AnimationInstance& inst = mAnimationPass[idx];
 		if (inst.BoneCount == 0)
 			continue;
 
@@ -333,9 +392,10 @@ void CpuAnimationSystem::EvaluateAndUpload()
 		// 본 평가 결과 저장 후 곧바로 업로드 형식(Transpose)으로 변환
 		std::vector<Matrix> finalRowMajor(inst.BoneCount, Matrix::Identity);
 
+		const AimParams* aimPtr = (idx < mAimPass.size()) ? &mAimPass[idx] : nullptr;
 		AnimationEvaluator::Evaluate(
 			inst, clipBuffer, metaBuffer, metaCount, boneBuffer,
-			mScratchModelBones.data(), finalRowMajor.data());
+			mScratchModelBones.data(), finalRowMajor.data(), aimPtr);
 
 		Matrix* dst = &mFinalBoneUpload[inst.ReulstIndex];
 		for (uint32 i = 0; i < inst.BoneCount; ++i)

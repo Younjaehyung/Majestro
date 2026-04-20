@@ -707,17 +707,17 @@ void MainMenuScene::Initialize()
 		switch (i) {
 		case 0:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010")->Clone();
-			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_010S", material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_010S");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Base0S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0S");
 			material2->SetShader(L"Solid");
 			material2->GetParams().ExtValue[0] = Vec4(0.9f, 0.8f, 0.1f, 1.f); // RimPower
 			material2s.push_back(material2);
 
 
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011")->Clone();
-			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Attack_011S", material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Attack_011S");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Rudwig_Base1S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1S");
 			material2->SetShader(L"Solid");
 			material2->GetParams().ExtValue[0] = Vec4(0.8f, 0.7f, 0.0f, 1.f); // RimPower
 			material2s.push_back(material2);
@@ -729,9 +729,9 @@ void MainMenuScene::Initialize()
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010")->Clone();
-			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Attack_010S", material2);
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Attack_010S");
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base0")->Clone();
+			RESOURCEMANAGER.Add<Material>(L"Anim_Ibanix_Base0S", material2);
+			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base0S");
 			material2->SetShader(L"Solid");
 			material2->GetParams().ExtValue[0] = Vec4(0.2f, 0.6f, 0.2f, 1.f); // RimPower
 			material2s.push_back(material2);

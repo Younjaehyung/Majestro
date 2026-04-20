@@ -128,7 +128,7 @@ float3 Uncharted2Filmic(float3 color)
     float ExposureBias = 2.0f;
     float3 curr = Uncharted2Partial(color * ExposureBias);
     
-    float W =11.2f; // 화이트 포인트
+    float W = 11.2f; // 화이트 포인트
     float3 whiteScale = 1.0f / Uncharted2Partial(float3(W, W, W));
     return curr * whiteScale;
 }
@@ -278,34 +278,34 @@ float ToonSpecBand(float NdotH)
 //                  그림자 면에서 rim을 더 강조 (역광 연출)
 // ============================================================
 float3 CalculateRimDepthLight(
-    float2  screenPos,
-    float3  viewNormal,
-    float3  rimColor,
-    float   rimWidth,
-    float   rimDepthThres,
-    float   rimMask,
-    float   shadowFactor)
+    float2 screenPos,
+    float3 viewNormal,
+    float3 rimColor,
+    float rimWidth,
+    float rimDepthThres,
+    float rimMask,
+    float shadowFactor)
 {
     // View Normal XY를 스크린 공간 오프셋 방향으로 근사
     // View Space Normal.xy는 카메라 기준 좌우/상하 방향 -> 스크린 방향과 근사 일치
     float2 normalSS = normalize(viewNormal.xy + 1e-5f);
-    int2   offset   = int2(normalSS * rimWidth);
+    int2 offset = int2(normalSS * rimWidth);
 
-    int3   curCoord = int3((int2)screenPos,          0);
-    int3   offCoord = int3((int2)screenPos + offset, 0);
+    int3 curCoord = int3((int2) screenPos, 0);
+    int3 offCoord = int3((int2) screenPos + offset, 0);
 
     // Gbuffer[0] = PRE_DEPTH (R32_FLOAT SRV)
     // R32_FLOAT SRV를 float4로 읽으면 .r = depth, .gba = 0/1
-    float  curDepth = Gbuffer[0].Load(curCoord).r;
-    float  offDepth = Gbuffer[0].Load(offCoord).r;
+    float curDepth = Gbuffer[0].Load(curCoord).r;
+    float offDepth = Gbuffer[0].Load(offCoord).r;
 
     // 오프셋 위치가 현재보다 카메라에 가깝다 (더 작은 depth)
     // = 실루엣 엣지 (뒤에 다른 오브젝트/배경이 있음)
-    float  depthDiff = curDepth - offDepth;
-    float  rim       = step(rimDepthThres, depthDiff);
+    float depthDiff = curDepth - offDepth;
+    float rim = step(rimDepthThres, depthDiff);
 
     // 그림자 면(shadowFactor=0)에서 rim 더 강하게 (역광 연출)
-    float  rimBoost  = lerp(1.2f, 0.5f, shadowFactor);
+    float rimBoost = lerp(1.2f, 0.5f, shadowFactor);
     rim *= rimBoost * rimMask;
 
     return rimColor * saturate(rim);
@@ -589,7 +589,7 @@ float3 CalculateToonSpecular3(
     float specSoftness)  // 비금속 spec의 경계 부드러움
 {
 
-    float metalMask    = smoothstep(0.45f, 0.75f, saturate(metallicMask));
+    float metalMask = smoothstep(0.45f, 0.75f, saturate(metallicMask));
     float nonMetalMask = 1.0f - metalMask;
 
     // 빛이 닿는 면에서만 spec 허용
@@ -598,16 +598,16 @@ float3 CalculateToonSpecular3(
 
     // 비금속 Specular
     //   glossiness가 없어서 roughness 기반으로 대체했음
-    float glossiness  = 1.0f - saturate(roughnessMask);       // 0(거칠)~1(매끈)
-    float specularPow = exp2(glossiness * 10.0f + 1.0f);      // ~2 ~ 2048
+    float glossiness = 1.0f - saturate(roughnessMask); // 0(거칠)~1(매끈)
+    float specularPow = exp2(glossiness * 10.0f + 1.0f); // ~2 ~ 2048
 
-    float rawSpec  = pow(saturate(NdotH), specularPow);
+    float rawSpec = pow(saturate(NdotH), specularPow);
     float toonSpec = smoothstep(specThreshold - specSoftness,
                                 specThreshold + specSoftness,
                                 rawSpec);
 
-    float  specIntensity = lerp(0.1f, 1.0f, glossiness);
-    float3 nonMetalSpec  = float3(specIntensity, specIntensity, specIntensity)
+    float specIntensity = lerp(0.1f, 1.0f, glossiness);
+    float3 nonMetalSpec = float3(specIntensity, specIntensity, specIntensity)
                          * toonSpec * lightMask * nonMetalMask;
 
 
@@ -624,8 +624,8 @@ float3 CalculateToonSpecular3(
     float3 metalHighlight = lerp(baseColor, baseColor * 2.5f + 0.3f, glossiness * 0.4f);
 
     // lightMask를 약하게 적용
-    float  metalLightFade = lerp(0.35f, 1.0f, lightMask);
-    float3 metalSpec      = metalHighlight * metalBand * metalIntensity * metalLightFade * metalMask;
+    float metalLightFade = lerp(0.35f, 1.0f, lightMask);
+    float3 metalSpec = metalHighlight * metalBand * metalIntensity * metalLightFade * metalMask;
 
     // 비금속 하이라이트 + 금속 MatCap 띠
     return nonMetalSpec + metalSpec;
@@ -724,7 +724,7 @@ LightColor CalculateLightColorToon(
 
    
     float3 shadColor = float3(224.f / 255.f, 187.f / 255.f, 178.f / 255.f);
-     float3 litColor = float3(1.f, 1.f, 1.f);
+    float3 litColor = float3(1.f, 1.f, 1.f);
     float3 lerpColor = lerp(shadColor, litColor, shadowFactor);
     float4 colorLight = Lights[lightIndex].color.ambient * distanceRatio;
 
@@ -775,6 +775,21 @@ float GeometrySmith(float NdotV, float NdotL, float roughness)
     return ggxV * ggxL;
 }
 
+// Burley 이방성 GGX — 실크/스타킹 (tangent 축으로 스페큘러 늘임)
+float DistributionGGX_Anisotropic(float3 H, float3 T, float3 B, float3 N,
+                                  float roughX, float roughY)
+{
+    float ax = max(roughX * roughX, 1e-4f);
+    float ay = max(roughY * roughY, 1e-4f);
+    float TdotH = dot(T, H);
+    float BdotH = dot(B, H);
+    float NdotH = dot(N, H);
+    float denom = (TdotH * TdotH) / (ax * ax)
+                + (BdotH * BdotH) / (ay * ay)
+                + NdotH * NdotH;
+    return 1.0f / (PI * ax * ay * denom * denom + 1e-6f);
+}
+
 LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 viewPos,
                                   float3 baseColor, float metallic, float roughness)
 {
@@ -788,7 +803,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     {
         // Directional
         viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        NdotL = saturate(dot(-viewLightDir, viewNormal)); 
+        NdotL = saturate(dot(-viewLightDir, viewNormal));
     }
     else if (Lights[lightIndex].lightType == 1)
     {
@@ -872,14 +887,14 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
 
-    float3 diffuse = kD ;
+    float3 diffuse = kD;
 
     // -----------------------------
     // 3) 라이트 색/세기 적용
     // -----------------------------
     float3 radiance = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
 
-    float3 outDiffuse  = diffuse  * radiance * NdotL;
+    float3 outDiffuse = diffuse * radiance * NdotL;
     float3 outSpecular = specular * radiance * NdotL;
 
     color.diffuse = float4(outDiffuse, 1.0f);
@@ -891,6 +906,8 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     return color;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// PBR+NPR
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // PBR+NPR
@@ -915,31 +932,34 @@ float3 SampleSpecularRamp(int texIdx, float specRange)
 
 struct PBRNPRShadingParams
 {
-    float  ShadowOffset;    // Sigmoid 명암 경계 (0.5 기본, shadowBias 포함)
-    float  ShadowSmooth;    // Sigmoid 경계 폭   (0.08 기본)
-    float  ShadowStrength;  // 그림자 전체 강도  (1.0 기본)
-    float3 ShadowColor;     // 1차 그림자 틴트   (청회색 계열)
-    float3 SecShadowColor;  // 2차 그림자 틴트   (ILM AO 기반 섞음)
-    float  SpecMask;        // ILM Spec 마스크   (lightMap.r)
-    float  ilmAO;           // ILM AO            (lightMap.g, 0.5=중립)
-    float  IBLScale;        // 환경광 약화 스케일 (0.15 기본)
-    int    RampTexIdx;      // Shadow Ramp 텍스처
+    float ShadowOffset; // Sigmoid 명암 경계 (0.5 기본, shadowBias 포함)
+    float ShadowSmooth; // Sigmoid 경계 폭   (0.08 기본)
+    float ShadowStrength; // 그림자 전체 강도  (1.0 기본)
+    float3 ShadowColor; // 1차 그림자 틴트   (청회색 계열)
+    float3 SecShadowColor; // 2차 그림자 틴트   (ILM AO 기반 섞음)
+    float SpecMask; // ILM Spec 마스크   (lightMap.r)
+    float ilmAO; // ILM AO            (lightMap.g, 0.5=중립)
+    float IBLScale; // 환경광 약화 스케일 (0.15 기본)
+    int RampTexIdx; // Shadow Ramp 텍스처
+    uint MatClass; // 재질 분류 (ClassifyMaterial 결과)
+    float3 ViewTangent; // 이방성 GGX용 (MAT_SILK)
+    float3 ViewBinormal; // 이방성 GGX용 (MAT_SILK)
 };
 
-LightColor CalculateLightColorPBRNPR(
-    int                  lightIndex,
-    float3               viewNormal,
-    float3               viewPos,
-    float3               albedo,
-    float                metallic,
-    float                roughness,
-    PBRNPRShadingParams  npr)
+LightColor CalculateLightColorPBRNPR1(
+    int lightIndex,
+    float3 viewNormal,
+    float3 viewPos,
+    float3 albedo,
+    float metallic,
+    float roughness,
+    PBRNPRShadingParams npr)
 {
     LightColor result = (LightColor) 0;
 
-    float3 viewLightDir  = 0.0f;
-    float  distanceRatio = 1.0f;
-    float  rawNdotL      = 0.0f;
+    float3 viewLightDir = 0.0f;
+    float distanceRatio = 1.0f;
+    float rawNdotL = 0.0f;
 
     if (Lights[lightIndex].lightType == 0)
     {
@@ -968,10 +988,10 @@ LightColor CalculateLightColorPBRNPR(
         else
         {
             float halfAngle = Lights[lightIndex].angle * 0.5f;
-            float3 viewLightVec  = viewPos - viewLightPos;
+            float3 viewLightVec = viewPos - viewLightPos;
             float3 viewCenterDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-            float  centerDist    = dot(viewLightVec, viewCenterDir);
-            float  lightAngle    = acos(dot(normalize(viewLightVec), viewCenterDir));
+            float centerDist = dot(viewLightVec, viewCenterDir);
+            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterDir));
             if (centerDist < 0.f || centerDist > Lights[lightIndex].range || lightAngle > halfAngle)
                 distanceRatio = 0.f;
             else
@@ -993,9 +1013,9 @@ LightColor CalculateLightColorPBRNPR(
 
     // NPR 난반사: Sigmoid
     float halfLambert = rawNdotL * 0.5f + 0.5f;
-    float shadowArea  = NPR_Sigmoid(1.0f - halfLambert, npr.ShadowOffset, npr.ShadowSmooth)
+    float shadowArea = NPR_Sigmoid(1.0f - halfLambert, npr.ShadowOffset, npr.ShadowSmooth)
                       * npr.ShadowStrength;
-    float NdotLRemap  = 1.0f - shadowArea; // 0=그림자
+    float NdotLRemap = 1.0f - shadowArea; // 0=그림자
 
     // Ramp 색상 샘플링
     float3 shadowRamp;
@@ -1009,29 +1029,29 @@ LightColor CalculateLightColorPBRNPR(
 
     // Fresnel
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
-    float3 F  = FresnelSchlick(HdotV, F0);
+    float3 F = FresnelSchlick(HdotV, F0);
 
     // NPR용 kDiff: diffuse 밝기 상향 보정했음
-    float3 kDiff           = ((1.0f - F) * 0.5f + 0.5f) * (1.0f - metallic);
+    float3 kDiff = ((1.0f - F) * 0.5f + 0.5f) * (1.0f - metallic);
     float3 directDiffColor = kDiff * albedo;
 
     // GGX 정반사
     roughness = max(roughness, 0.04f);
     float NdotLClamped = max(NdotLRemap, 0.001f);
     // ILM SpecMask을 NDF 마스킹으로 사용
-    float  NDF      = DistributionGGX(NdotH, roughness) * npr.SpecMask;
-    float  G        = GeometrySmith(NdotV, NdotLClamped, roughness);
-    float3 nom      = NDF * G * F;
-    float  denom    = 4.0f * NdotV * NdotLClamped + 0.0001f;
+    float NDF = DistributionGGX(NdotH, roughness) * npr.SpecMask;
+    float G = GeometrySmith(NdotV, NdotLClamped, roughness);
+    float3 nom = NDF * G * F;
+    float denom = 4.0f * NdotV * NdotLClamped + 0.0001f;
     float3 BRDFSpec = nom / denom;
 
     float3 directSpecColor;
     if (npr.RampTexIdx >= 0)
     {
         // Ramp로 정반사 색상 샘플링
-        float  specRange   = saturate(NDF * G / max(denom, 0.0001f));
+        float specRange = saturate(NDF * G / max(denom, 0.0001f));
         float3 specRampCol = SampleSpecularRamp(npr.RampTexIdx, specRange);
-        directSpecColor    = specRampCol * F;
+        directSpecColor = specRampCol * F;
     }
     else
     {
@@ -1039,11 +1059,302 @@ LightColor CalculateLightColorPBRNPR(
     }
 
     // final color
-    float3 lightColor  = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 lightColor = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
     float3 directLight = (directDiffColor * shadowRamp + directSpecColor * NdotLRemap)
                        * lightColor;
 
     result.diffuse = float4(directLight, 1.0f);
+    return result;
+}
+
+
+// ============================================================
+// Material Class — ILM LightMap.b 5단계 흑백 마스크
+//   0.0 단단한 물체         Hard Default
+//   0.2 부드러운 물체       Soft Matte 
+//   0.4 메탈/메탈 프로젝션  Metal              (toon ramp 우회, PBR 통과)
+//   0.6 실크/스타킹         Silk / Stocking    (이방성 스페큘러)
+//   0.8 머리카락            Hair
+//   1.0 피부                Skin               (Wrap lighting + SSS 근사)
+// ============================================================
+#define MAT_HARD   0
+#define MAT_SOFT   1
+#define MAT_METAL  2
+#define MAT_SILK   3
+#define MAT_HAIR   4
+#define MAT_SKIN   5
+
+
+uint ClassifyMaterial(float b)
+{
+    float v = saturate(b) * 10.0f;
+    if (v < 1.0f)
+        return MAT_HARD;
+    if (v < 3.0f)
+        return MAT_SOFT;
+    if (v < 5.0f)
+        return MAT_METAL;
+    if (v < 7.0f)
+        return MAT_SILK;
+    if (v < 9.0f)
+        return MAT_HAIR;
+    return MAT_SKIN;
+}
+
+
+
+LightColor CalculateLightColorPBRNPR(
+    int lightIndex,
+    float3 viewNormal,
+    float3 viewPos,
+    float3 albedo,
+    float metallic,
+    float roughness,
+    PBRNPRShadingParams npr)
+{
+    LightColor result = (LightColor) 0;
+
+    float3 viewLightDir = 0.0f;
+    float distanceRatio = 1.0f;
+    float rawNdotL = 0.0f;
+
+    if (Lights[lightIndex].lightType == 0)
+    {
+        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
+        rawNdotL = dot(-viewLightDir, viewNormal);
+    }
+    else if (Lights[lightIndex].lightType == 1)
+    {
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
+        viewLightDir = normalize(viewPos - viewLightPos);
+        rawNdotL = dot(-viewLightDir, viewNormal);
+        float dist = distance(viewPos, viewLightPos);
+        distanceRatio = (Lights[lightIndex].range == 0.f)
+            ? 0.f
+            : saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
+    }
+    else
+    {
+        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
+        viewLightDir = normalize(viewPos - viewLightPos);
+        rawNdotL = dot(-viewLightDir, viewNormal);
+        if (Lights[lightIndex].range == 0.f)
+        {
+            distanceRatio = 0.f;
+        }
+        else
+        {
+            float halfAngle = Lights[lightIndex].angle * 0.5f;
+            float3 viewLightVec = viewPos - viewLightPos;
+            float3 viewCenterDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
+            float centerDist = dot(viewLightVec, viewCenterDir);
+            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterDir));
+            if (centerDist < 0.f || centerDist > Lights[lightIndex].range || lightAngle > halfAngle)
+                distanceRatio = 0.f;
+            else
+                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
+        }
+    }
+
+    if (distanceRatio <= 0.f)
+        return result;
+
+    float3 N = normalize(viewNormal);
+    float3 V = normalize(-viewPos);
+    float3 L = normalize(-viewLightDir);
+    float3 H = normalize(V + L);
+
+    float NdotV = max(saturate(dot(N, V)), 0.001f);
+    float NdotH = saturate(dot(N, H));
+    float HdotV = saturate(dot(H, V));
+
+    float halfLambert = rawNdotL * 0.5f + 0.5f;
+
+
+    // 재질별 Shadow 영역
+    float shadowArea;
+    [branch]
+    switch (npr.MatClass)
+    {
+        case MAT_SKIN:
+        {
+            // Skin: Wrap lighting — 경계 완만, 그늘까지 빛이 들어옴
+                const float wrap = 0.5f;
+                float wrapped = saturate((rawNdotL + wrap) / (1.0f + wrap));
+                shadowArea = 1.0f - wrapped;
+                break;
+        }
+        case MAT_HAIR:
+        {
+            // Hair: Wrap lighting — 경계 완만, 그늘까지 빛이 들어옴
+                const float wrap = 0.5f;
+                float wrapped = saturate((rawNdotL + wrap) / (1.0f + wrap));
+                shadowArea = 1.0f - wrapped;
+                break;
+        }
+        case MAT_SILK:
+        {
+            // Silk, Stocking : 기본 Sigmoid보다 1.5배 부드럽게
+                shadowArea = NPR_Sigmoid(1.0f - halfLambert,
+                                     npr.ShadowOffset,
+                                     npr.ShadowSmooth * 1.5f);
+                break;
+        }
+        case MAT_METAL:
+        {
+            // Metal: Sigmoid 경계를 기본보다 좁게 
+            
+            shadowArea = NPR_Sigmoid(1.0f - halfLambert,
+                                     npr.ShadowOffset,
+                                     npr.ShadowSmooth * 0.6f);
+            break;
+        }
+        case MAT_SOFT:
+        {
+            // Soft Matte : 넓은 반음영
+                shadowArea = NPR_Sigmoid(1.0f - halfLambert,
+                                     npr.ShadowOffset,
+                                     npr.ShadowSmooth * 2.0f);
+                break;
+        }
+        default: // Hard Default
+        {
+                shadowArea = NPR_Sigmoid(1.0f - halfLambert, npr.ShadowOffset, npr.ShadowSmooth);
+                break;
+        }
+    }
+    shadowArea *= npr.ShadowStrength;
+    float NdotLRemap = saturate(1.0f - shadowArea); // 0=그림자, 1=빛
+
+    // Shadow Ramp 샘플링
+    float3 shadowRamp;
+    if (npr.RampTexIdx >= 0)
+        shadowRamp = SampleShadowRamp(npr.RampTexIdx, NdotLRemap);
+    else
+        shadowRamp = lerp(npr.ShadowColor, float3(1.0f, 1.0f, 1.0f), NdotLRemap);
+
+    // 2차 그림자색 (피부/메탈은 덜 섞어 원색 유지)
+    float aoBlend = (npr.MatClass == MAT_METAL || npr.MatClass == MAT_SKIN)
+                  ? saturate(npr.ilmAO + 0.8f) : saturate(npr.ilmAO + 0.5f);
+    shadowRamp = lerp(npr.SecShadowColor, shadowRamp, aoBlend);
+
+    
+    
+    //  재질별 물성 보정
+    float  effectiveMetallic = metallic;
+    float3 F0;
+    switch (npr.MatClass)
+    {
+        case MAT_METAL:
+           // effectiveMetallic = 1.0f;              // 메탈은 항상 풀 메탈로 처리
+           //F0 = albedo;                           // 풀 색 반사
+            effectiveMetallic = max(metallic, 0.75f);
+            F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, effectiveMetallic);
+            break;
+        case MAT_SKIN:
+            F0 = float3(0.028f, 0.028f, 0.028f);   // 피부: 낮게
+            break;
+        case MAT_SILK:
+            F0 = lerp(float3(0.05f, 0.05f, 0.05f), albedo, metallic);
+            break;
+        default:
+            F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, metallic);
+            break;
+    }
+    float3 F = FresnelSchlick(HdotV, F0);
+    float oneMinusReflectivity = 1.0f - saturate(effectiveMetallic);
+
+
+    // Diffuse 색 — PBR 공식 기반 (kDiff = (1-F)*(1-metallic))
+  
+    float3 directDiffColor;
+    if (npr.MatClass == MAT_SKIN)
+    {
+        // 피부:PBR에서 벗어난 NPR 표현
+        float3 kDiff = (1.0f - F) * oneMinusReflectivity;
+        float  sssBand = saturate(1.0f - abs(rawNdotL * 2.0f - 0.5f));
+        float3 sssTint = float3(0.9f, 0.4f, 0.35f);
+        directDiffColor = kDiff * albedo + sssBand * sssTint * albedo * 0.12f;
+    }
+    //else if (npr.MatClass == MAT_METAL)
+    //{  // 메탈은 effectiveMetallic=1이므로 자연스럽게 0에 수렴
+    //    float metalFill = lerp(0.10f, 0.32f, NdotLRemap);
+    //    float metalReflectivityReduce = lerp(1.0f, 0.35f, saturate(effectiveMetallic));
+    //    directDiffColor = albedo * metalFill * metalReflectivityReduce;
+    //}
+    else
+    {
+        // 표준 NPR diffuse — (1-F) 보정 + metallic에 따라 감쇠
+        // 밝기 상향(0.5 오프셋)은 NPR 스타일
+        float3 kDiff = ((1.0f - F) * 0.5f + 0.5f) * oneMinusReflectivity;
+        directDiffColor = kDiff * albedo;
+    }
+
+
+    // 재질별 Specular NDF
+
+    roughness = max(roughness, 0.04f);
+    float NdotLClamped = max(NdotLRemap, 0.001f);
+
+    float NDF;
+    float G = GeometrySmith(NdotV, NdotLClamped, roughness);
+
+    if (npr.MatClass == MAT_SILK)
+    {
+        // 이방성 GGX — tangent 축은 날카롭게, binormal 축은 늘어짐
+        NDF = DistributionGGX_Anisotropic(H,
+                                          npr.ViewTangent,
+                                          npr.ViewBinormal,
+                                          N,
+                                          roughness * 0.3f,
+                                          roughness) * npr.SpecMask;
+    }
+    else if (npr.MatClass == MAT_SKIN)
+    {
+        // 피부는 specular 크게 억제
+        NDF = DistributionGGX(NdotH, roughness) * npr.SpecMask * 0.15f;
+    }
+    else
+    {
+        NDF = DistributionGGX(NdotH, roughness) * npr.SpecMask;
+    }
+
+    float denom = 4.0f * NdotV * NdotLClamped + 0.0001f;
+    float3 BRDFSpec = (NDF * G * F) / denom;
+
+
+    // Specular Ramp —  BRDF는 PBR로 계산되고, 그 결과만 Ramp로 계단화
+    float3 directSpecColor;
+    if (npr.RampTexIdx >= 0)
+    {
+        float  specRange   = saturate(NDF * G / max(denom, 0.0001f));
+        float3 specRampCol = SampleSpecularRamp(npr.RampTexIdx, specRange);
+
+        float specBoost = saturate(dot(BRDFSpec, float3(0.299f, 0.587f, 0.114f)));
+        float specBoostScale = (npr.MatClass == MAT_METAL) ? 0.65f : 0.35f;
+        directSpecColor = F * clamp(specRampCol + specBoost * specBoostScale, 0.0f, 10.0f);
+    }
+    else
+    {
+        directSpecColor = BRDFSpec * PI;
+    }
+
+    // Final Color 계산
+    float specFloor;
+    switch (npr.MatClass)
+    {
+        case MAT_METAL: specFloor = 0.25f; break;
+        case MAT_SILK:  specFloor = 0.08f; break;
+        case MAT_HAIR:  specFloor = 0.10f; break;
+        default:        specFloor = 0.0f;  break;
+    }
+    float specWeight = max(NdotLRemap, specFloor);
+
+    float3 lightColor  = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 directLight = (directDiffColor * shadowRamp + directSpecColor * specWeight) * lightColor;
+
+    result.diffuse = float4(directLight, 1.0f);
+    
     return result;
 }
 
@@ -1278,7 +1589,7 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float worldDepthBias = texelWorldSize * (0.5f + 1.5f * slopeFactor);
     
     
-    float bias = worldDepthBias * zScale; 
+    float bias = worldDepthBias * zScale;
 
     float2 texelSize = 1.0f / shadowMapSize;
     float shadow = 0.0f;
@@ -1332,7 +1643,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
 
 
     uint prevIndex = (cascadeIndex == 0u) ? 0u : (cascadeIndex - 1u);
-    float prevSplit = (cascadeIndex == 0u) ? 0.0f : splits[prevIndex]; 
+    float prevSplit = (cascadeIndex == 0u) ? 0.0f : splits[prevIndex];
 
     float cascadeRange = max(splitDist - prevSplit, 1.0f);
     float blendWidth = max(2.0f, cascadeRange * 0.15f);
@@ -1398,7 +1709,7 @@ IBLResult CalculateIBLAmbient(float3 N_view, float3 V_view,
     roughness = max(roughness, 0.04f);
 
     float3 F0 = lerp(float3(0.04f, 0.04f, 0.04f), baseColor, metallic);
-    float3 F  = FresnelSchlickRoughness(NdotV, F0, roughness);
+    float3 F = FresnelSchlickRoughness(NdotV, F0, roughness);
 
     float3 kS = F;
     float3 kD = (1.0f - kS) * (1.0f - metallic);
@@ -1412,14 +1723,14 @@ IBLResult CalculateIBLAmbient(float3 N_view, float3 V_view,
     // --- Specular IBL ---
     // Pre-filtered Map: roughness에 따른 mip 레벨로 샘플링 (split-sum 근사의 Li 항)
     // SpecularLightTarget에 들어가므로 albedo 곱 없이 반환 (final: + specularIBL)
-    float mipLevel          = roughness * (float) (PassParams.PreFilteredMipLevels - 1);
+    float mipLevel = roughness * (float) (PassParams.PreFilteredMipLevels - 1);
     float3 prefilteredColor = CubeBoxMaps[PassParams.PreFilteredEnvIndex].SampleLevel(g_sam_0, R, mipLevel).rgb;
 
     // BRDF LUT: (NdotV, roughness) → (scale, bias) — split-sum 근사의 BRDF 적분 항
     // g_sam_Terrain(s1)은 CLAMP 모드로 LUT 경계 오류를 방지
     float2 brdf = TextureMaps[PassParams.BrdfLutIndex].Sample(
         g_sam_Terrain, float2(NdotV, 1.0f - roughness)).rg; // [수정 2]
-    result.specular = prefilteredColor * (F * brdf.x + brdf.y) ; // [수정 1]
+    result.specular = prefilteredColor * (F * brdf.x + brdf.y); // [수정 1]
     return result;
 }
 

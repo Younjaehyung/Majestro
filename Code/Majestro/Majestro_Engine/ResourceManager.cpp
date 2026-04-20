@@ -2017,6 +2017,11 @@ void ResourceManager::CreateDefaultMaterial()
 		
 
 		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Skin.png");
+		auto T_Ibanix_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Body_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Body_SAMR.png");
+		auto T_Ibanix_Gun_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Gun_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Gun_SAMR.png");
+
+		auto T_Rudwig_Mace_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Body_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Body_SAMR.png");
+		auto T_Rudwig_Mace_SAMR_1 = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Mace_SAMR_1", L"..\\Resources\\Texture\\T_Rudwig_Mace_SAMR_1.png");
 	}
 
 	// GameObject
@@ -2133,10 +2138,18 @@ void ResourceManager::CreateDefaultMaterial()
 	Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 
+	Get<Material>(L"Anim_Ibanix_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"T_Ibanix_Body_SAMR")->GetImageIndex();
+	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Body_SAMR")->GetImageIndex();
+
+
+	//Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"Grayscale")->GetImageIndex();
+	//Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"Grayscale")->GetImageIndex();
+
 	Get<Material>(L"Anim_Ibanix_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
+	Get<Material>(L"Anim_Ibanix_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Ibanix_Gun_SAMR")->GetImageIndex();
 	Get<Material>(L"Anim_Fanthor_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
-
+	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Mace_SAMR_1")->GetImageIndex();
 //	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
 //	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
 }

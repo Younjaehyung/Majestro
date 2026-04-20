@@ -92,17 +92,23 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // ILM/LightMap 샘플링
     // R: Specular Mask
     // G: AO/ShadowBias  (0=어둡게, 0.5=중립, 1=밝게)
-    // B: Specular Type
+    // B: Material Class (0.0 Hard Default / 0.2 Soft Matte /  0.4 Metal / 0.6 Silk, Stocking / 0.8 Hair / 1.0 Skin)
     // A: Rim Mask
-    
-    float4 lightMap = float4(1.f, 0.5f, 0.9f, 0.3f);
+
+    float4 lightMap = float4(1.f, 0.5f, 0.0f, 0.3f); // 기본값: 단단한 물체
     if (mtl.ExtTex[1] >= 0)
         lightMap = TextureMaps[mtl.ExtTex[1]].Sample(g_sam_0, input.uv);
+    lightMap.r = 1.0f;
+    //lightMap.g = .5f;
 
-    float specMask = lightMap.r;
+    lightMap.a = .3f;
+    
+    float specMask   = lightMap.r;
+
+    uint  matClass   = ClassifyMaterial(lightMap.b);    // 재질 분류 (0~4)
     float ilmAO = lightMap.g;
     float shadowBias = (lightMap.g - 0.5f) * 0.15f; // G채널: shadow 경계 미세조정
-    float rimMask = lightMap.a;
+    float rimMask    = lightMap.a;
 
     ////////////////////////////////////////////////////////////////////////
     // PBR 파라미터
@@ -137,15 +143,18 @@ float4 PS_Main(VS_OUT input) : SV_Target
     float4 nprParam = mtl.ExtValue[0];
 
     PBRNPRShadingParams npr;
-    npr.ShadowOffset = (nprParam.x > 0.001f ? nprParam.x : 0.5f) + shadowBias;
-    npr.ShadowSmooth = nprParam.y > 0.001f ? nprParam.y : 0.08f;
+    npr.ShadowOffset   = (nprParam.x > 0.001f ? nprParam.x : 0.5f) + shadowBias;
+    npr.ShadowSmooth   = nprParam.y > 0.001f ? nprParam.y : 0.08f;
     npr.ShadowStrength = nprParam.z > 0.001f ? nprParam.z : 1.0f;
-    npr.IBLScale = nprParam.w > 0.001f ? nprParam.w : 0.15f;
-    npr.ShadowColor = lerp(float3(0.20f, 0.25f, 0.35f), albedo * 0.4f, metallic);
+    npr.IBLScale       = nprParam.w > 0.001f ? nprParam.w : 0.15f;
+    npr.ShadowColor    = lerp(float3(0.20f, 0.25f, 0.35f), albedo * 0.4f, metallic);
     npr.SecShadowColor = npr.ShadowColor * 0.7f;
-    npr.SpecMask = specMask;
-    npr.ilmAO = ilmAO;
-    npr.RampTexIdx = mtl.ExtTex[0];
+    npr.SpecMask       = specMask;
+    npr.ilmAO          = ilmAO;
+    npr.RampTexIdx     = mtl.ExtTex[0];
+    npr.MatClass       = matClass;
+    npr.ViewTangent    = normalize(input.viewTangent);
+    npr.ViewBinormal   = normalize(input.viewBinormal);
 
     ////////////////////////////////////////////////////////////////////////
     // 메인 방향광 방향 추출
@@ -172,9 +181,25 @@ float4 PS_Main(VS_OUT input) : SV_Target
     for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
     {
         const uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
+        //const LightColor lc = CalculateLightColorPBRNPR1(
+        //    lightIndex, N, input.viewPos, albedo, metallic, roughness, npr);
         const LightColor lc = CalculateLightColorPBRNPR(
             lightIndex, N, input.viewPos, albedo, metallic, roughness, npr);
-        totalColor.diffuse += lc.diffuse;
+
+        totalColor.diffuse += (lc.diffuse );
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // 재질별 Rim / IBL 스케일
+    float matRimScale;
+    float matIBLSpecScale;
+    [branch] switch (matClass)
+    {
+        case MAT_SKIN:  matRimScale = 1.8f; matIBLSpecScale = 0.3f; break;
+        case MAT_SILK:  matRimScale = 1.3f; matIBLSpecScale = 0.8f; break;
+        case MAT_METAL: matRimScale = 0.4f; matIBLSpecScale = 2.0f; break;
+        case MAT_SOFT:  matRimScale = 0.8f; matIBLSpecScale = 0.6f; break;
+        default:        matRimScale = 1.0f; matIBLSpecScale = 1.0f; break;
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -182,7 +207,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     const float3 rimColor = float3(1.0f, 1.0f, 1.0f);
     const float rimWidth = 4.0f;
     const float rimFeather = 1.0f;
-    const float rimIntensity = 1.5f;
+    const float rimIntensity = 1.5f * matRimScale;
     float viewDepth = max(-input.viewPos.z, 1e-3f);
 
     float3 rim = CalculateRimLightSS(
@@ -195,7 +220,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
     color.xyz = totalColor.diffuse.xyz
               + (ibl.diffuse * albedo * npr.IBLScale * ao)
-              + (ibl.specular * npr.IBLScale * ao)
+              + (ibl.specular * npr.IBLScale * /*matIBLSpecScale **/ ao)
               + rim;
 
     return color;

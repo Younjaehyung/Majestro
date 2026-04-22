@@ -42,9 +42,10 @@
 각 에이전트는 아래 역할 중 하나를 가집니다.
 
 - `0`: `front`
-- `1`: `flank_left`
-- `2`: `flank_right`
-- `3`: `cover`
+- `1`: `cover`
+- `2`: `base_move`
+- `3`: `surround`
+- `4`: `kiting`
 
 역할은:
 
@@ -172,14 +173,17 @@ desired_target = current_position + target_offset
 
 ## F=1 fallback
 
-현재는 `sensor_fail_code == 1.0`이면 단순 직선 추적이 아니라, geodesic map 기준 다음 waypoint를 따라갑니다.
+현재는 `sensor_fail_code == 1.0`이면 명시적인 `none` 상태로 처리합니다.
 
 즉:
 
-- 평소: 정책 action 기반 이동
-- `F=1`: goal 방향 직선 추적이 아니라, geodesic 하강 경로 기반 waypoint 이동
+- 평소: role actor의 정책 action 기반 이동
+- `F=1`: role actor를 선택하지 않고 action은 zero로 둠
+- 환경 이동은 goal 방향 Detour waypoint 또는 geodesic waypoint fallback을 사용
+- `info["role_ids"]`에는 해당 agent role이 `-1`, 즉 `none`으로 표시됨
+- 이 step은 role replay buffer와 success replay buffer에 저장되지 않음
 
-이 fallback은 정책이 주변 몹이 안 보이는 상황에서 장거리 추적을 직접 학습하지 않아도, 목표 쪽으로 우회 이동할 수 있게 하기 위한 장치입니다.
+이 fallback은 정책이 주변 몹이 안 보이는 상황에서 장거리 추적을 직접 학습하지 않아도 목표 쪽으로 우회 이동할 수 있게 하기 위한 장치이며, role 학습 샘플과는 분리됩니다.
 
 ## 보상 구조
 
@@ -199,24 +203,7 @@ desired_target = current_position + target_offset
 
 - `0.01`
 
-### 2. 목표 접근 보상
-
-가능하면 geodesic 거리 감소량, 아니면 유클리드 거리 감소량을 씁니다.
-
-```python
-progress_coef * (old_dist - new_dist)
-```
-
-기본값:
-
-- `progress_coef = 0.02`
-
-주의:
-
-- 이 값은 여전히 `goal_pos` 기준 거리 감소량입니다
-- 하지만 이것만으로 성공은 아닙니다
-
-### 3. 충돌 패널티
+### 2. 충돌 패널티
 
 ```python
 -collision_penalty
@@ -226,11 +213,7 @@ progress_coef * (old_dist - new_dist)
 
 - `0.35`
 
-### 4. Separation 패널티
-
-다른 에이전트와 너무 가까우면 감점합니다.
-
-### 5. Stall 패널티
+### 3. Stall 패널티
 
 진전이 없으면 감점합니다.
 
@@ -239,19 +222,17 @@ progress_coef * (old_dist - new_dist)
 - `stall_penalty = 0.05`
 - `stall_patience = 20`
 
-### 6. 역할 보상
+### 4. 역할 보상
 
 역할별 shaping reward를 추가합니다.
 
 - `front`: 정면 압박
-- `flank_left`: 왼쪽 측면 점유
-- `flank_right`: 오른쪽 측면 점유
 - `cover`: 다른 액터 뒤 엄폐, 단 goal이 `sense_radius` 밖이면 감점 및 성공 실패
 - `base_move`: 빠르게 접근
 - `surround`: 포위 반경과 각도 분산
 - `kiting`: goal과 `sense_radius - 100`에서 `sense_radius` 사이 거리를 유지하며 이탈 방향 움직임
 
-### 7. 성공 보상
+### 5. 성공 보상
 
 큰 성공 보상은 goal 도달이 아니라 역할별 전술 위치 형성 시 지급됩니다.
 
@@ -273,9 +254,9 @@ if success_mask[idx]:
 대략:
 
 - `front`: goal 근처에서 정면 압박 형성
-- `flank_left`: 왼쪽 측면 밴드 형성
-- `flank_right`: 오른쪽 측면 밴드 형성
 - `cover`: goal이 `sense_radius` 안에 있는 상태에서 다른 몹 뒤 엄폐 위치 형성
+- `base_move`: 충돌 없이 빠르게 접근하고 goal 근처까지 진입
+- `surround`: goal 주위 반경과 각도 분산 형성
 - `kiting`: goal과 `sense_radius - 100`에서 `sense_radius` 사이 거리 유지
 
 ## 종료 조건
@@ -338,8 +319,7 @@ steps >= max_steps
 ### 8. 기본 보상 계산
 
 - 시간 패널티
-- 목표 접근 보상
-- 충돌/분리/stall 패널티
+- 충돌/stall 패널티
 
 ### 9. 역할 보상 및 역할 성공 판정
 
@@ -367,7 +347,7 @@ obs, rewards, terminated, truncated, info
 - `agent_positions`
 - `tactical_target`
 - `role_targets`
-- `role_ids`
+- `role_ids`: `sensor_fail_code == 1.0`인 agent는 `-1`/`none`
 - `success_mask`
 - `sensor_fail_code`
 - `reward_terms`
@@ -379,8 +359,8 @@ obs, rewards, terminated, truncated, info
 예:
 
 ```text
-role_step=front:0.0/flank_left:0.0/flank_right:0.0/cover:12.5/base_move:30.0/surround:8.0/kiting:20.0
-role_step_n=front:0/0/flank_left:0/0/flank_right:0/0/cover:5/40/base_move:30/100/surround:4/50/kiting:10/50
+role_step=front:0.0/cover:12.5/base_move:30.0/surround:8.0/kiting:20.0
+role_step_n=front:0/0/cover:5/40/base_move:30/100/surround:4/50/kiting:10/50
 ```
 
 의미:
@@ -388,6 +368,7 @@ role_step_n=front:0/0/flank_left:0/0/flank_right:0/0/cover:5/40/base_move:30/100
 - `role_step`: 해당 role로 움직인 step 중 `success_mask=True`가 된 비율
 - `role_step_n`: 해당 role의 `성공 step 수 / 시도 step 수`
 - 시도 step이 없는 role은 분모가 0으로 표시될 수 있음
+- `none` fallback step은 어떤 role에도 집계되지 않음
 
 best 저장은 최근 `best_min_episodes` 범위에서 `succ_replay_buffer` 총량이 얼마나 증가했는지를 기준으로 합니다.
 

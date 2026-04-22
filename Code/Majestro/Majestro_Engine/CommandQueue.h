@@ -29,6 +29,8 @@ public:
 	ComPtr<ID3D12CommandQueue>		  GetCommandQueue() { return mCommandQueue; }
 	ComPtr<ID3D12GraphicsCommandList> GetGraphicsCmdList() { return mCommandList; }
 	ComPtr<ID3D12GraphicsCommandList> GetResourceCmdList() { return	mResourceCommandList; }
+	uint64 GetCompletedFenceValue() const { return mFence ? mFence->GetCompletedValue() : 0; }
+	uint64 GetLastSignaledFenceValue() const { return mFenceValue; }
 
 private:
 

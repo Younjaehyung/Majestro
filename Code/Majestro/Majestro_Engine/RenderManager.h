@@ -4,7 +4,9 @@
 #include "CommandQueue.h"
 #include "RootSignature.h"
 #include "DescriptorHeap.h"
+#include "DescriptorBlockAllocator.h"
 #include "Buffer.h"
+#include "ParticleResourceAllocator.h"
 #include "SwapChain.h"
 #include "RenderTarget.h"
 
@@ -91,6 +93,9 @@ public:
 	shared_ptr<ParticleBuffer>&			GetParticleBuffers(uint32 group)	{ return mParticleBuffer[group]; }
 	shared_ptr<AnimationBuffer>&		GetAnimationBuffers()				{ return mAnimationBuffer; }
 	shared_ptr<StructuredBuffer>&		GetMaterialBuffers()				{ return mMaterialBuffer; }
+	shared_ptr<StructuredBuffer>		GetParticleSpawnBuffer(uint32 frame) { return mParticleSpawnBuffer[frame]; }
+	DescriptorBlockAllocator&			GetParticleDescriptorAllocator() { return mParticleDescriptorAllocator; }
+	ParticleResourceAllocator&			GetParticleResourceAllocator() { return mParticleResourceAllocator; }
 
 	RenderTargetGroup&					GetRenderTargetGroup(uint8 type)	{ return mRenderTargetGroup[type]; }
 
@@ -98,6 +103,8 @@ public:
 	uint32 GetFrameResourceIndex() {return mFrameResourceIndex;}
 	uint32 GetFrameCurrIndex() {return mFrameCurrIndex;}
 	uint64 GetAnimationComputeFenceValue() const { return mAnimationComputeFenceValue; }
+	uint64 GetCompletedGraphicsFenceValue() const { return mGraphicsCommandQueue->GetCompletedFenceValue(); }
+	uint64 GetLastGraphicsFenceValue() const { return mGraphicsCommandQueue->GetLastSignaledFenceValue(); }
 	
 private:
 	void CreateRenderTargetGroups();
@@ -129,9 +136,12 @@ private:
 	
 private:
 	array <shared_ptr<GroupBuffer>, FRAMEGROUP_COUNT>				mGroupBuffer;
+	array <shared_ptr<StructuredBuffer>, FRAMEGROUP_COUNT>			mParticleSpawnBuffer;
 	array <shared_ptr<ParticleBuffer>, PARTICLE_GROUP_COUNT>		mParticleBuffer;
 	shared_ptr<AnimationBuffer>										mAnimationBuffer;
 	shared_ptr<StructuredBuffer>									mMaterialBuffer;
+	DescriptorBlockAllocator										mParticleDescriptorAllocator;
+	ParticleResourceAllocator										mParticleResourceAllocator;
 
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:

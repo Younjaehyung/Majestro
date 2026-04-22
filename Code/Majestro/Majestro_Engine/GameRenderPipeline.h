@@ -8,6 +8,7 @@ class LightsPass;
 class ForwardPass;
 class OutlinePass;
 class EffectPass;
+class ParticlePass;
 class PostProcessPass;
 class MotionVectorPass;
 class FogPass;
@@ -72,6 +73,7 @@ private:
     shared_ptr<ForwardPass>      mForwardPass;
     shared_ptr<OutlinePass>      mOutlinePass;
     shared_ptr<EffectPass>       mEffectPass;
+    shared_ptr<ParticlePass>     mParticlePass;
     shared_ptr<PostProcessPass>  mPostProcessPass;
     shared_ptr<MotionVectorPass> mMotionVectorPass;
     shared_ptr<FogPass>          mFogPass;

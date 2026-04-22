@@ -14,6 +14,7 @@
 #include "LightComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
+#include "ParticleComponent.h"
 #include "AnimationComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
@@ -40,6 +41,7 @@
 #include "AnimationSystem.h"
 #include "CpuAnimationSystem.h"
 #include "PlayerSystem.h"
+#include "ParticleSystem.h"
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
 #include "IMGUISystem.h"
@@ -816,6 +818,7 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
@@ -1047,6 +1050,16 @@ void FirstScene::Initialize()
 		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
 		vfxComp.mVfx = vfx;
+	}
+	{
+		
+		Entity particleEntity = mWorld->CreateEntity();
+		TransformComponent particleTransform{};
+		particleTransform.mLocalPosition = Vec3(0.f, 120.f, 0.f);
+		mWorld->AddComponent<TransformComponent>(particleEntity, particleTransform);
+
+		ParticleComponent& particle = mWorld->AddComponent<ParticleComponent>(particleEntity);
+		particle.mEffectName = L"Particle_DebugBurst";
 	}
 	/////////////////////////////////////////////////////////////////////
 	// [ 샘플 ]
@@ -1299,6 +1312,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemFS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
 	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();

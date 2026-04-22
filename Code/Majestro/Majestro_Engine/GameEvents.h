@@ -73,5 +73,13 @@ struct EvRhythmChanged {
 	uint8 musicNum; // 리듬변경이 발생한 박자 번호
 };
 
+struct EvSpawnParticleEffect
+{
+    wstring effectName;
+    Vec3 worldPosition{};
+    Entity followTarget;
+    Vec3 followOffset{};
+};
+
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
     EvRhythmChanged, EvHpArmorChanged>;

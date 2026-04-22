@@ -62,8 +62,10 @@ public:
 
 
 	void CreateSrvView(uint32 frameCount, uint32 startIndex ,uint32 type, uint32 groupCount=0);
+	void CreateSrvViewAtIndex(uint32 descriptorIndex);
 
 	void CreateUavView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
+	void CreateUavViewAtIndex(uint32 descriptorIndex);
 private:
 	ComPtr<ID3D12Resource>			mBuffer;		// upload / default buffer
 	ComPtr<ID3D12Resource>			mDummyBuffer;	// default to upload buffer (dummy);

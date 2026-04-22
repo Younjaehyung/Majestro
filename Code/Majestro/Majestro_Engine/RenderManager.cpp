@@ -45,6 +45,11 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mRenderTargetHeap->Initialize();
 
 	mGraphicsMemory = std::make_shared<DirectX::DX12::GraphicsMemory>(mDevice->GetDevice().Get());
+	mParticleDescriptorAllocator.Initialize(
+		PARTICLE_INDEX_START,
+		static_cast<uint32>(PARTICLE_INDEX::PARTICLE_INDEX_END),
+		PARTICLE_RUNTIME_POOL_COUNT);
+	mParticleResourceAllocator.Initialize();
 
 	CreateGroup();
 	CreateMaterial();
@@ -121,8 +126,18 @@ void RenderManager::CreateGroup()
 
 
 		group->ParticleInfo = make_shared<StructuredBuffer>();
-		group->ParticleInfo->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
+
+		group->ParticleInfo->CreateDefaultBuffer(sizeof(ParticleSharedParams), PARTICLE_EMITTER_COUNT);
 		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
+
+		mParticleSpawnBuffer[i] = make_shared<StructuredBuffer>();
+		mParticleSpawnBuffer[i]->CreateDefaultBuffer(sizeof(ParticleComputeSharedParams), PARTICLE_EMITTER_COUNT);
+		std::vector<ParticleComputeSharedParams> initialCounters(PARTICLE_EMITTER_COUNT);
+		mParticleSpawnBuffer[i]->PushDefaultToData(
+			initialCounters.data(),
+			static_cast<uint32>(initialCounters.size() * sizeof(ParticleComputeSharedParams)));
+
+		mParticleSpawnBuffer[i]->CreateUavViewAtIndex(PARTICLE_SPAWN_INDEX_START + i);
 
 		group->UIInfo = make_shared<StructuredBuffer>();
 		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), 2048);
@@ -177,7 +192,7 @@ void RenderManager::CreateParticle()
 		group = make_shared<ParticleBuffer>();
 
 		group->Particle = make_shared<StructuredBuffer>();
-		group->Particle->CreateDefaultBuffer(sizeof(PatricleParams), PARTICLE_COUNT);
+		group->Particle->CreateDefaultBuffer(sizeof(ParticleSharedParams), PARTICLE_COUNT);
 		group->Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX));
 		group->Particle->CreateUavView(i, PARTICLE_INDEX_START+1,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX));
 		
@@ -210,6 +225,8 @@ void RenderManager::CreateAnimation()
 
 void RenderManager::Update()
 {
+	mParticleDescriptorAllocator.GarbageCollect(GetCompletedGraphicsFenceValue());
+	mParticleResourceAllocator.GarbageCollect(GetCompletedGraphicsFenceValue());
 }
 
 void RenderManager::StartRender()
@@ -320,8 +337,9 @@ void RenderManager::SetComputTable()
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 1, GBUFFER_INDEX_START);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 3, PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 4, ANIMATION_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 4, PARTICLE_SPAWN_INDEX_START, 1);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 5, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 6, TEXTURE_MATERIALS_INDEX_START);
 }
 
 void RenderManager::SetGraphicsTable()
@@ -342,8 +360,9 @@ void RenderManager::SetGraphicsTable()
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 1, GBUFFER_INDEX_START);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 3, PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 4, ANIMATION_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 4, PARTICLE_SPAWN_INDEX_START, 1);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 5, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 6, TEXTURE_MATERIALS_INDEX_START);
 
 
 }
@@ -364,8 +383,9 @@ void RenderManager::SetTable()
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 1, GBUFFER_INDEX_START);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 2, GROUP_START, GROUP_COUNT);
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 3, PARTICLE_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 4, ANIMATION_INDEX_START);
-	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 5, TEXTURE_MATERIALS_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 4, PARTICLE_SPAWN_INDEX_START, 1);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 5, ANIMATION_INDEX_START);
+	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 6, TEXTURE_MATERIALS_INDEX_START);
 }
 
 void RenderManager::CreateRenderTargetGroups()

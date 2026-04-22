@@ -44,10 +44,10 @@ RECT UISpriteComponent::GetCurrentFrameRect() const
 	if (!mTexture)
 		return RECT{ 0, 0, 0, 0 };
 
-	const int frameWidth = static_cast<int>(max(mFrameSize.x, 1.f));
-	const int frameHeight = static_cast<int>(max(mFrameSize.y, 1.f));
-	const int texWidth = static_cast<int>(max(mTexture->GetWidth(), 1.f));
-	const int texHeight = static_cast<int>(max(mTexture->GetHeight(), 1.f));
+	int frameWidth = static_cast<int>(max(mFrameSize.x, 1.f));
+	int frameHeight = static_cast<int>(max(mFrameSize.y, 1.f));
+	int texWidth = static_cast<int>(max(mTexture->GetWidth(), 1.f));
+	int texHeight = static_cast<int>(max(mTexture->GetHeight(), 1.f));
 	const int columns = max(texWidth / frameWidth, 1);
 
 	const int frame = std::clamp(mCurrentFrame, 0, max(mFrameCount - 1, 0));
@@ -57,8 +57,8 @@ RECT UISpriteComponent::GetCurrentFrameRect() const
 	RECT result{};
 	result.left = col * frameWidth;
 	result.top = row * frameHeight;
-	result.right = min(result.left + frameWidth, texWidth);
-	result.bottom = min(result.top + frameHeight, texHeight);
+	result.right = std::min(int(result.left) + frameWidth, texWidth);
+	result.bottom = std::min(int(result.top) + frameHeight, texHeight);
 
 	return result;
 }

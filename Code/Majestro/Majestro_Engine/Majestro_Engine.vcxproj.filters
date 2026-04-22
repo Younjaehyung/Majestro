@@ -204,6 +204,9 @@
     <ClInclude Include="DescriptorHeap.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
+    <ClInclude Include="DescriptorBlockAllocator.h">
+      <Filter>Engine\DirectX</Filter>
+    </ClInclude>
     <ClInclude Include="Engine.h">
       <Filter>Engine</Filter>
     </ClInclude>
@@ -325,6 +328,9 @@
     <ClInclude Include="ParticleSystem.h">
       <Filter>World\System\Client</Filter>
     </ClInclude>
+    <ClInclude Include="ParticlePass.h">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClInclude>
     <ClInclude Include="AudioSystem.h">
       <Filter>World\System\Client</Filter>
     </ClInclude>
@@ -357,6 +363,12 @@
     </ClInclude>
     <ClInclude Include="ParticleComponent.h">
       <Filter>World\Component\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleEffect.h">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleResourceAllocator.h">
+      <Filter>Engine\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="CameraComponent.h">
       <Filter>World\Component\Logic</Filter>
@@ -598,6 +610,9 @@
     <ClCompile Include="DescriptorHeap.cpp">
       <Filter>Engine\DirectX</Filter>
     </ClCompile>
+    <ClCompile Include="DescriptorBlockAllocator.cpp">
+      <Filter>Engine\DirectX</Filter>
+    </ClCompile>
     <ClCompile Include="Engine.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
@@ -712,6 +727,9 @@
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>World\System\Client</Filter>
     </ClCompile>
+    <ClCompile Include="ParticlePass.cpp">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClCompile>
     <ClCompile Include="AudioSystem.cpp">
       <Filter>World\System\Client</Filter>
     </ClCompile>
@@ -747,6 +765,12 @@
     </ClCompile>
     <ClCompile Include="ParticleComponent.cpp">
       <Filter>World\Component\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleEffect.cpp">
+      <Filter>World\Resource\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleResourceAllocator.cpp">
+      <Filter>Engine\DirectX</Filter>
     </ClCompile>
     <ClCompile Include="CameraComponent.cpp">
       <Filter>World\Component\Logic</Filter>

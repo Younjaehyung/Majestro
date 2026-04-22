@@ -1,4 +1,3 @@
-
 #include "params.hlsl"
 #include "utils.hlsl"
 
@@ -16,29 +15,28 @@ struct GS_OUT
     uint id : SV_InstanceID;
 };
 
-[maxvertexcount(6)] //vertex Shdaer에서 점 하나만 옮겨 확인하기로 했기에 point임
+[maxvertexcount(6)]
 void GS_Main(point VS_OUT input[1], inout TriangleStream<GS_OUT> outputStream)
 {
     GS_OUT output[4] =
     {
-        (GS_OUT) 0.f, (GS_OUT) 0.f, (GS_OUT) 0.f, (GS_OUT) 0.f
+        (GS_OUT)0.f, (GS_OUT)0.f, (GS_OUT)0.f, (GS_OUT)0.f
     };
 
     VS_OUT vtx = input[0];
-    uint id = (uint) vtx.id;
-    if (0 == Particle[id].alive)
+    const uint id = (uint) vtx.id;
+    if (Particle[id].alive == 0)
         return;
 
-    float ratio = Particle[id].curTime / Particle[id].lifeTime;
-    float scale = ((Particle[id].EndScale - Particle[id].StartScale) * ratio + Particle[id].StartScale) / 2.f;
+    const uint emitterIndex = GlobalParams.etc;
+    const float ratio = saturate(Particle[id].curTime / max(Particle[id].lifeTime, 0.0001f));
+    const float scale = lerp(ParticleShared[emitterIndex].StartScale, ParticleShared[emitterIndex].EndScale, ratio) * 0.5f;
 
-    // View Space
     output[0].position = vtx.viewPos + float4(-scale, scale, 0.f, 0.f);
     output[1].position = vtx.viewPos + float4(scale, scale, 0.f, 0.f);
     output[2].position = vtx.viewPos + float4(scale, -scale, 0.f, 0.f);
     output[3].position = vtx.viewPos + float4(-scale, -scale, 0.f, 0.f);
 
-    // Projection Space
     output[0].position = mul(output[0].position, PassParams.MatProjection);
     output[1].position = mul(output[1].position, PassParams.MatProjection);
     output[2].position = mul(output[2].position, PassParams.MatProjection);
@@ -64,6 +62,3 @@ void GS_Main(point VS_OUT input[1], inout TriangleStream<GS_OUT> outputStream)
     outputStream.Append(output[3]);
     outputStream.RestartStrip();
 }
-
-
-

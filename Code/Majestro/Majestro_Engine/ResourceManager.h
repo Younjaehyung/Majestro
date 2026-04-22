@@ -12,6 +12,7 @@
 #include "LevelImport.h"
 #include "NavMeshLoader.h"
 #include "Vfx.h"
+#include "ParticleEffect.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
 
@@ -76,6 +77,7 @@ private:
 	void CreateDefaultRootSignature();
 	void CreateDefaultShader();	//기본적인 공통쉐이더를 공통적으로 적용하기 위한 코드
 	void CreateDefaultMaterial();
+	void CreateDefaultParticleEffect();
 
 private:
 	
@@ -155,6 +157,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::FBXDATA;
 	else if (std::is_same_v<T, Vfx>)
 		return OBJECT_TYPE::VFX;
+	else if (std::is_same_v<T, ParticleEffect>)
+		return OBJECT_TYPE::PARTICLE_EFFECT;
 	else if (std::is_same_v<T, Shader>)
 		return OBJECT_TYPE::SHADER;
 	else if (std::is_same_v<T, Texture>)

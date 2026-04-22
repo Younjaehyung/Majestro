@@ -9,6 +9,7 @@
 #include "ForwardPass.h"
 #include "OutlinePass.h"
 #include "EffectPass.h"
+#include "ParticlePass.h"
 #include "RenderPass.h"     
 #include "MotionVectorPass.h"
 #include "FogPass.h"
@@ -46,6 +47,7 @@ void GameRenderPipeline::Initialize(World* world)
     mForwardPass     = make_shared<ForwardPass>();
     mOutlinePass     = make_shared<OutlinePass>();
     mEffectPass      = make_shared<EffectPass>();
+    mParticlePass    = make_shared<ParticlePass>();
     mPostProcessPass = make_shared<PostProcessPass>();
 
 
@@ -67,6 +69,7 @@ void GameRenderPipeline::Initialize(World* world)
 	mForwardPass->Initialize();
 	mOutlinePass->Initialize();
     mEffectPass->Initialize(world);
+    mParticlePass->Initialize(world);
     mPostProcessPass->Initialize();
 
 
@@ -356,6 +359,7 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
     Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
     Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(ctx.camera->GetProjectionMatrix());
     mEffectPass->Execute(dt, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
+    mParticlePass->Execute(ctx);
 
     // Effekseer가 RootSignature/DescriptorHeap을 변경하므로 엔진 상태 복원
     RENDERMANAGER.SetGraphicsTable();

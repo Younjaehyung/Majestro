@@ -298,6 +298,26 @@ void StructuredBuffer::CreateSrvView(uint32 frameCount, uint32 startIndex, uint3
 	DEVICE->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSrvCpuHandleBegin);
 }
 
+void StructuredBuffer::CreateSrvViewAtIndex(uint32 descriptorIndex)
+{
+	assert(mElementSize != 0);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE heapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	const uint32 handleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mSrvCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(heapHandleBegin, descriptorIndex * handleIncrementSize);
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements = mElementCount;
+	srvDesc.Buffer.StructureByteStride = mElementSize;
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+	DEVICE->CreateShaderResourceView(mBuffer.Get(), &srvDesc, mSrvCpuHandleBegin);
+}
+
 void StructuredBuffer::CreateUavView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount)
 {
 	assert(mElementSize!=0);
@@ -328,6 +348,26 @@ void StructuredBuffer::CreateUavView(uint32 frameCount, uint32 startIndex, uint3
 	DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mUavCpuHandleBegin);
 
 
+}
+
+void StructuredBuffer::CreateUavViewAtIndex(uint32 descriptorIndex)
+{
+	assert(mElementSize != 0);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE heapHandleBegin = RENDERMANAGER.GetGraphicsDescHeap()->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+	const uint32 handleIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mUavCpuHandleBegin = CD3DX12_CPU_DESCRIPTOR_HANDLE(heapHandleBegin, descriptorIndex * handleIncrementSize);
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+	uavDesc.Buffer.FirstElement = 0;
+	uavDesc.Buffer.NumElements = mElementCount;
+	uavDesc.Buffer.StructureByteStride = mElementSize;
+	uavDesc.Buffer.CounterOffsetInBytes = 0;
+	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+	DEVICE->CreateUnorderedAccessView(mBuffer.Get(), nullptr, &uavDesc, mUavCpuHandleBegin);
 }
 //////////////////////////////////////////////////////////////////////////////////
 

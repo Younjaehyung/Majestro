@@ -11,7 +11,7 @@
 #include "NavMeshLoader.h"
 
 struct MaterialParams;
-struct PatricleParams;
+struct ParticleSharedParams;
 
 
 class Mesh;
@@ -211,7 +211,7 @@ private:
   std::vector<LightParams> mLightVector;
   std::vector<ObjectParams> mObjectVector;
   std::vector<MaterialParams> mMaterialVector;
-  std::vector<PatricleParams> mPatricleVector;
+  std::vector<ParticleSharedParams> mPatricleVector;
 
   array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };

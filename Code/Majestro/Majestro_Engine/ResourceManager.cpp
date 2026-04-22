@@ -12,7 +12,9 @@ void ResourceManager::Initialize()
 	CreateDefaultRootSignature();
 	CreateDefaultShader();
 	CreateDefaultMaterial();
+	CreateDefaultParticleEffect();
 
+	LoadPointMesh();
 	LoadRectangleMesh();
 	LoadSphereMesh();
 
@@ -695,15 +697,20 @@ void ResourceManager::CreateDefaultRootSignature()
 		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges2 =	// particle- buffer
 		{
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1,0 ,2),
-			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 2,0,2),
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,0,2),
 		};
 
-		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// animation- buffer
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges3 =	// particle spawn buffer
+		{
+			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1,1,2),
+		};
+
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges4 =	// animation- buffer
 		{
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, ANIMATION_INDEX_COUNT,0 ,3),
 		};
 
-		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges4 =	// texture- buffer
+		std::vector<CD3DX12_DESCRIPTOR_RANGE>  ranges5 =	// texture- buffer
 		{
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  1, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX),4), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
 			CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,  TEXTURE_CUBE_COUNT, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_CUBE_INDEX),4), // t0~t4 몇번부터 몇개까지 레지스터를 사용할건지 작성(리소스)
@@ -719,6 +726,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		rootSignature->AddTable(ranges2);
 		rootSignature->AddTable(ranges3);
 		rootSignature->AddTable(ranges4);
+		rootSignature->AddTable(ranges5);
 		//rootSignature->AddSampler(CD3DX12_STATIC_SAMPLER_DESC(0));
 
 		CD3DX12_STATIC_SAMPLER_DESC samplerDesc(0);
@@ -1023,6 +1031,7 @@ void ResourceManager::CreateDefaultShader()
 			.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main", "GS_Main");
 		Add<Shader>(L"Particle", shader);
 	}
@@ -1733,6 +1742,8 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Particle");
+
+		material->SetTexture(Load<Texture>(L"ParticleDebugTex", L"..\\Resources\\Image\\UI\\fire.png"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Particle", material);
 	}
 
@@ -2152,4 +2163,41 @@ void ResourceManager::CreateDefaultMaterial()
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Mace_SAMR")->GetImageIndex();
 //	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
 //	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
+}
+
+void ResourceManager::CreateDefaultParticleEffect()
+{
+	{
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"Particle";
+		effect->mDesc.computeMaterialName = L"ComputeParticle";
+		effect->mDesc.maxParticle = 256;
+		effect->mDesc.createInterval = 0.02f;
+		effect->mDesc.minLifeTime = 0.8f;
+		effect->mDesc.maxLifeTime = 1.6f;
+		effect->mDesc.minSpeed = 25.f;
+		effect->mDesc.maxSpeed = 55.f;
+		effect->mDesc.startScale = 18.f;
+		effect->mDesc.endScale = 6.f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_DebugBurst");
+		Add<ParticleEffect>(L"Particle_DebugBurst", effect);
+	}
+
+	{
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"Particle";
+		effect->mDesc.computeMaterialName = L"ComputeParticle";
+		effect->mDesc.maxParticle = 128;
+		effect->mDesc.createInterval = 0.03f;
+		effect->mDesc.minLifeTime = 0.6f;
+		effect->mDesc.maxLifeTime = 1.0f;
+		effect->mDesc.minSpeed = 20.f;
+		effect->mDesc.maxSpeed = 40.f;
+		effect->mDesc.startScale = 10.f;
+		effect->mDesc.endScale = 4.f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_DebugFollow");
+		Add<ParticleEffect>(L"Particle_DebugFollow", effect);
+	}
 }

@@ -20,7 +20,7 @@ struct LIGHTINFO
     int		    lightType;
     float	    range;
     float	    angle;
-    int         padding; //데이터 사이즈용 padding
+    int         padding; // 데이터 사이즈용 padding
     
     matrix MatWorld;
     matrix MatView;
@@ -53,8 +53,8 @@ struct RENDERPARAMS
     uint ObjectIndex;
     uint MaterialInfoIndex;
     
-    int LightIndex; //light가 아니면 쓰지 말것.
-    uint ParticleIndex; //Particle가 아니면 쓰지 말것.
+    int LightIndex; //light가 아니면 쓰지 말것
+    uint ParticleIndex; //Particle이 아니면 쓰지 말것
 };
 //////////////
 
@@ -136,36 +136,34 @@ struct SKELETONBONE
 struct ComputeShared
 {
     int addCount;
+    int3 padding;
 };
 
 struct PARTICLESHARED
 {
+    matrix MatWorld;
     int TextureIndex;
+    int maxCount;
+    int addCount;
+    float deltaTime;
+    float accTime;
+    float minLifeTime;
+    float maxLifeTime;
+    float minSpeed;
+    float maxSpeed;
+    float StartScale;
+    float EndScale;
 };
 
 
 struct PARTICLE
 {
-    int Index;
-    matrix MatWorld;
-    
-    int maxCount ;
-    int addCount ;
-    int frameNumber ;
-    float deltaTime;
-    float accTime ;
-    
-    float minLifeTime ;
-    float maxLifeTime ;
-    float minSpeed ;
-    float maxSpeed ;
     float3 worldPos;
-    float curTime; //경과시간
+    float curTime;
     float3 worldDir;
-    float lifeTime; //유지시간
-    int alive; //랜더링유무용
-    float EndScale;
-    float StartScale;
+    float lifeTime;
+    int alive;
+    float3 padding;
 };
 //////////////
 
@@ -196,7 +194,7 @@ struct MATERIALINFO
     
     int MaskMapIndex;
 
-    int  ExtTex[8];     // 머티리얼별 자유 텍스처 슬롯 8개 (-1 = 미사용)
+    int ExtTex[8]; // 머티리얼별 자유 텍스처 슬롯 8개 (-1 = 미사용)
     float4 ExtValue[4]; // 머티리얼별 자유 파라미터 슬롯 4개
 };
 //////////////
@@ -209,7 +207,7 @@ struct UIInstanceData
     
     float2 Pivot; // (0~1)
     uint   MaterialIndex;
-    float  ZOrder; // 정렬용
+    float ZOrder; // 정렬용
 };
 //////////////
 
@@ -221,12 +219,12 @@ struct PASSINFO
     matrix MatPrevView;
     matrix MatPrevProjection;
     Matrix MatPrevViewInv; // view의 역행렬
-    Matrix MatPrevProjectionInv; // Projection의 역행렬	(사용은 선택)
+    Matrix MatPrevProjectionInv; // Projection의 역행렬    (사용은 선택)
     
     matrix MatView;
     matrix MatProjection;
     Matrix MatViewInv; // view의 역행렬
-    Matrix MatProjectionInv; // Projection의 역행렬	(사용은 선택)
+    Matrix MatProjectionInv; // Projection의 역행렬    (사용은 선택)
     
     float2 ScreenSize;
     float2 MinMaxTessDistance;
@@ -247,15 +245,15 @@ struct PASSINFO
     
     int TerrainSlot5;
     int TerrainSlot6;
-    int IrradianceIndex;      // CubeBoxMaps 배열 인덱스 (IBL Diffuse)
-    int PreFilteredEnvIndex;  // CubeBoxMaps 배열 인덱스 (IBL Specular)
+    int IrradianceIndex; // CubeBoxMaps 배열 인덱스 (IBL Diffuse)
+    int PreFilteredEnvIndex; // CubeBoxMaps 배열 인덱스 (IBL Specular)
 
 	float4 CascadeSplitDistances;
 
     matrix CascadeShadowVP[RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT];
 
-    // IBL 추가 파라미터 (C++ PassParams 끝 필드와 동일)
-    int BrdfLutIndex;         // TextureMaps 배열 인덱스 (BRDF LUT 2D)
+    // IBL 추가 파라미터
+    int BrdfLutIndex; // TextureMaps 배열 인덱스 (BRDF LUT 2D)
     int PreFilteredMipLevels; // pre-filtered 큐브맵 mip 단계 수
     int IBLPadding0;
     int IBLPadding1;
@@ -301,7 +299,7 @@ struct GLOBAL_PARAMS
 //////////////PassCustom
 struct PASS_CUSTOM_DATA
 {
-    int  ExtTex[8];     // 자유 텍스처 슬롯 (TextureMaps 배열 인덱스, -1 = 미사용)
+    int ExtTex[8]; // 자유 텍스처 슬롯 (TextureMaps 배열 인덱스, -1 = 미사용)
     float4 ExtValue[4]; // 자유 파라미터 슬롯 (float4 × 4)
     
     int PreviousStep;
@@ -313,7 +311,7 @@ struct PASS_CUSTOM_DATA
 ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
 ///////////////////////////////////////////////////////////////////
 /*
-	SHADOW, // SHADOW [ 기존 0] 
+	    SHADOW, // SHADOW [ 기존 0] 
 	G_BUFFER, // POSITION, NORMAL, COLOR 
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////
@@ -347,7 +345,7 @@ RWStructuredBuffer<uint> RWForwardPlusLightIndices : register(u2, space1);
  ///////////////////////////PARTICLE///////////////////////////////////
 StructuredBuffer<PARTICLE> Particle : register(t0, space2);     //compute Shader 결과값 읽기
 RWStructuredBuffer<PARTICLE> RWParticle : register(u0,space2); //compute Shader 결과값 쓰기
-RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); //공유 전역변수
+RWStructuredBuffer<ComputeShared> RWParticleShared : register(u1,space2); // frame-shared spawn counters
  ///////////////////////////////////////////////////////////////////
 
  ///////////////////////////ANIMATION///////////////////////////////
@@ -369,4 +367,5 @@ SamplerState g_sam_0 : register(s0);
 SamplerState g_sam_Terrain : register(s1);
 SamplerComparisonState g_sam_shadow : register(s2); // 그림자 PCF 비교 샘플러
 
-#endif
+#endif 
+

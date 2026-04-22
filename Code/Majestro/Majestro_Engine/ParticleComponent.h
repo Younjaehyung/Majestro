@@ -1,57 +1,65 @@
 #pragma once
 #include "Component.h"
-
-class StructuredBuffer;
-class Material;
-class Mesh;
-
+#include "Entity.h"
 
 class ParticleComponent : public Component<ParticleComponent>
 {
 public:
+	wstring mEffectName = L"";
+	wstring mMaterialName = L"Particle";
+	wstring mComputeMaterialName = L"ComputeParticle";
+	bool mEffectDescApplied = false;
 
-	shared_ptr<StructuredBuffer>	_particleBuffer;
-	shared_ptr<StructuredBuffer>	_computeSharedBuffer;
-	uint32							_maxParticle = 1000;
+	uint32 mMaxParticle = 256;
+	float mCreateInterval = 0.02f;
+	float mAccTime = 0.f;
 
-	shared_ptr<Material>		_computeMaterial;
-	shared_ptr<Material>		_material;
-	shared_ptr<Mesh>			_mesh;
+	float mMinLifeTime = 0.8f;
+	float mMaxLifeTime = 1.6f;
+	float mMinSpeed = 25.f;
+	float mMaxSpeed = 55.f;
+	float mStartScale = 18.f;
+	float mEndScale = 6.f;
 
-	float				_createInterval = 0.005f;
-	float				_accTime = 0.f;
+	bool mLoop = true;
+	bool mAutoDestroy = false;
+	bool mIsPlaying = true;
+	bool mIsActive = true;
+	bool mBurstTriggered = false;
 
-	float				_minLifeTime = 0.5f;
-	float				_maxLifeTime = 1.f;
-	float				_minSpeed = 100;
-	float				_maxSpeed = 50;
-	float				_startScale = 10.f;
-	float				_endScale = 5.f;
+	Entity mFollowTarget;
+	Vec3 mFollowOffset = Vec3::Zero;
 };
 
-
-struct PatricleParams
+struct ParticleStateParams
 {
-    int Index;
-    Matrix MatWorld;
-
-    int maxCount;
-    int addCount;
-    int frameNumber;
-    float deltaTime;
-    float accTime;
-    float minLifeTime;
-    float maxLifeTime;
-    float minSpeed;
-    float maxSpeed;
-
-
-    Vec3 worldPos;
-    float curTime; //경과시간
-    Vec3 worldDir;
-    float lifeTime; //유지시간
-    int alive; //랜더링유무용
-
-    float EndScale;
-    float StartScale;
+	Vec3 worldPos{};
+	float curTime = 0.f;
+	Vec3 worldDir{};
+	float lifeTime = 0.f;
+	int alive = 0;
+	float padding[3]{};
 };
+
+struct ParticleSharedParams
+{
+	Matrix MatWorld = Matrix::Identity;
+	int TextureIndex = -1;
+	int maxCount = 0;
+	int addCount = 0;
+	float deltaTime = 0.f;
+	float accTime = 0.f;
+	float minLifeTime = 0.f;
+	float maxLifeTime = 0.f;
+	float minSpeed = 0.f;
+	float maxSpeed = 0.f;
+	float StartScale = 1.f;
+	float EndScale = 1.f;
+};
+
+struct ParticleComputeSharedParams
+{
+    int addCount = 0;
+    int padding[3]{};
+};
+

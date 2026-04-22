@@ -45,16 +45,19 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mRenderTargetHeap->Initialize();
 
 	mGraphicsMemory = std::make_shared<DirectX::DX12::GraphicsMemory>(mDevice->GetDevice().Get());
+
+
 	mParticleDescriptorAllocator.Initialize(
 		PARTICLE_INDEX_START,
 		static_cast<uint32>(PARTICLE_INDEX::PARTICLE_INDEX_END),
 		PARTICLE_RUNTIME_POOL_COUNT);
+
 	mParticleResourceAllocator.Initialize();
 
 	CreateGroup();
 	CreateMaterial();
 	CreateAnimation();
-	//CreateParticle();
+	CreateParticle();
 
 	CreateRenderTargetGroups();
 	InitEffekseer();
@@ -101,6 +104,13 @@ void RenderManager::CreateGroup()
 {
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 
+	constexpr uint32 forwardPlusTileSize = 16;
+	constexpr uint32 forwardPlusMaxWidth = 3840;
+	constexpr uint32 forwardPlusMaxHeight = 2160;
+	constexpr uint32 forwardPlusMaxLightsPerTile = 128;
+	const uint32 maxTileCountX = (forwardPlusMaxWidth + forwardPlusTileSize - 1) / forwardPlusTileSize;
+	const uint32 maxTileCountY = (forwardPlusMaxHeight + forwardPlusTileSize - 1) / forwardPlusTileSize;
+	const uint32 maxTileCount = maxTileCountX * maxTileCountY;
 
 	uint32 i = 0;
 	for (shared_ptr<GroupBuffer>& group : mGroupBuffer) {
@@ -130,14 +140,6 @@ void RenderManager::CreateGroup()
 		group->ParticleInfo->CreateDefaultBuffer(sizeof(ParticleSharedParams), PARTICLE_EMITTER_COUNT);
 		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
-		mParticleSpawnBuffer[i] = make_shared<StructuredBuffer>();
-		mParticleSpawnBuffer[i]->CreateDefaultBuffer(sizeof(ParticleComputeSharedParams), PARTICLE_EMITTER_COUNT);
-		std::vector<ParticleComputeSharedParams> initialCounters(PARTICLE_EMITTER_COUNT);
-		mParticleSpawnBuffer[i]->PushDefaultToData(
-			initialCounters.data(),
-			static_cast<uint32>(initialCounters.size() * sizeof(ParticleComputeSharedParams)));
-
-		mParticleSpawnBuffer[i]->CreateUavViewAtIndex(PARTICLE_SPAWN_INDEX_START + i);
 
 		group->UIInfo = make_shared<StructuredBuffer>();
 		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), 2048);
@@ -151,14 +153,6 @@ void RenderManager::CreateGroup()
 		group->AnimResultInfo->CreateDefaultBuffer(sizeof(Matrix), 1024*1000);
 		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
 		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
-
-		constexpr uint32 forwardPlusTileSize = 16;
-		constexpr uint32 forwardPlusMaxWidth = 3840;
-		constexpr uint32 forwardPlusMaxHeight = 2160;
-		constexpr uint32 forwardPlusMaxLightsPerTile = 128;
-		const uint32 maxTileCountX = (forwardPlusMaxWidth + forwardPlusTileSize - 1) / forwardPlusTileSize;
-		const uint32 maxTileCountY = (forwardPlusMaxHeight + forwardPlusTileSize - 1) / forwardPlusTileSize;
-		const uint32 maxTileCount = maxTileCountX * maxTileCountY;
 
 		group->ForwardPlusTileMetaInfo = make_shared<StructuredBuffer>();
 		group->ForwardPlusTileMetaInfo->CreateDefaultBuffer(sizeof(uint32) * 2, maxTileCount);
@@ -179,27 +173,26 @@ void RenderManager::CreateGroup()
 	}
 
 }
+
 void RenderManager::CreateMaterial()
 {
 	mMaterialBuffer = make_shared<StructuredBuffer>();
 	mMaterialBuffer->CreateDefaultBuffer(sizeof(MaterialParams), 2048);
 	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX));
 }
+
 void RenderManager::CreateParticle()
-{	// 추후 수정 바람
-	uint32 i = 0;
-	for (shared_ptr<ParticleBuffer>& group : mParticleBuffer) {
-		group = make_shared<ParticleBuffer>();
+{	
+	for (uint32 i = 0; i < FRAMEGROUP_COUNT; i++) {
+		mParticleSpawnBuffer[i] = make_shared<StructuredBuffer>();
+		mParticleSpawnBuffer[i]->CreateDefaultBuffer(sizeof(ParticleComputeSharedParams), PARTICLE_EMITTER_COUNT);
 
-		group->Particle = make_shared<StructuredBuffer>();
-		group->Particle->CreateDefaultBuffer(sizeof(ParticleSharedParams), PARTICLE_COUNT);
-		group->Particle->CreateSrvView(i, PARTICLE_INDEX_START,static_cast<uint32>(PARTICLE_INDEX::SRV_PARTICLE_INDEX));
-		group->Particle->CreateUavView(i, PARTICLE_INDEX_START+1,static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_INDEX));
-		
+		std::vector<ParticleComputeSharedParams> initialCounters(PARTICLE_EMITTER_COUNT);
+		mParticleSpawnBuffer[i]->PushDefaultToData(
+			initialCounters.data(),
+			static_cast<uint32>(initialCounters.size() * sizeof(ParticleComputeSharedParams)));
 
-		group->RWParticleShared = make_shared<StructuredBuffer>();
-		group->RWParticleShared->CreateDefaultBuffer(sizeof(uint32), PARTICLE_COUNT);
-		group->RWParticleShared->CreateUavView(i, PARTICLE_INDEX_START + 1, static_cast<uint32>(PARTICLE_INDEX::UAV_PARTICLE_SHARED_INDEX), 256);
+		mParticleSpawnBuffer[i]->CreateUavViewAtIndex(PARTICLE_SPAWN_INDEX_START + i);
 		
 	}
 

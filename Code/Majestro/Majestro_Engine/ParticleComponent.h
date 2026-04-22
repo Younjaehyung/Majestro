@@ -7,7 +7,7 @@ class ParticleComponent : public Component<ParticleComponent>
 public:
 	wstring mEffectName = L"";
 	wstring mMaterialName = L"Particle";
-	wstring mComputeMaterialName = L"ComputeParticle";
+	wstring mComputeShaderName = L"ComputeParticle";
 	bool mEffectDescApplied = false;
 
 	uint32 mMaxParticle = 256;

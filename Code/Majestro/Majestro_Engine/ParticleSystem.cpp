@@ -5,6 +5,7 @@
 #include "GameEvents.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "Shader.h"
 #include "ParticleEffect.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
@@ -24,9 +25,9 @@ void ParticleSystem::Initialize()
 
 void ParticleSystem::Update(float deltaTime)
 {
-	ConsumeSpawnEvents();
-	BuildActiveEmitters(deltaTime);
-	CollectDeadEmitters();
+	ConsumeSpawnEvents();					// 파티클 이벤트 소모
+	BuildActiveEmitters(deltaTime);			// 파티클 업데이트
+	CollectDeadEmitters();					// 파티클 수명 종료된 이펙터 정리
 }
 
 const ParticleEmitterRuntime* ParticleSystem::GetRuntime(Entity entity) const
@@ -207,8 +208,8 @@ ParticleEmitterRuntime& ParticleSystem::EnsureEmitterRuntime(Entity entity, Part
 	ParticleEmitterRuntime& runtime = mEmitterRuntime[entity.GetID()];
 	if (runtime.material == nullptr)
 		runtime.material = RESOURCEMANAGER.Get<Material>(component.mMaterialName);
-	if (runtime.computeMaterial == nullptr)
-		runtime.computeMaterial = RESOURCEMANAGER.Get<Material>(component.mComputeMaterialName);
+	if (runtime.computeShader == nullptr)
+		runtime.computeShader = RESOURCEMANAGER.Get<Shader>(component.mComputeShaderName);
 	if (runtime.mesh == nullptr)
 		runtime.mesh = RESOURCEMANAGER.Get<Mesh>(L"Point");
 
@@ -216,8 +217,7 @@ ParticleEmitterRuntime& ParticleSystem::EnsureEmitterRuntime(Entity entity, Part
 	{
 		if (runtime.gpu.IsValid())
 			RENDERMANAGER.GetParticleResourceAllocator().ReleaseDeferred(
-				std::move(runtime.gpu),
-				RENDERMANAGER.GetLastGraphicsFenceValue());
+				std::move(runtime.gpu), RENDERMANAGER.GetLastGraphicsFenceValue());
 
 		runtime.gpu = RENDERMANAGER.GetParticleResourceAllocator().Allocate(component.mMaxParticle);
 	}
@@ -253,7 +253,7 @@ void ParticleSystem::ReleaseEmitterRuntime(ParticleEmitterRuntime& runtime)
 void ParticleSystem::ApplyEffectDesc(ParticleComponent& component, const ParticleEffectDesc& desc)
 {
 	component.mMaterialName = desc.materialName;
-	component.mComputeMaterialName = desc.computeMaterialName;
+	component.mComputeShaderName = desc.computeMaterialName;
 	component.mMaxParticle = desc.maxParticle;
 	component.mCreateInterval = desc.createInterval;
 	component.mMinLifeTime = desc.minLifeTime;

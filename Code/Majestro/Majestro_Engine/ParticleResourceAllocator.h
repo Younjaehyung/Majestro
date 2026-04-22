@@ -1,5 +1,4 @@
 #pragma once
-#include <unordered_map>
 #include "ParticleComponent.h"
 
 class StructuredBuffer;
@@ -14,6 +13,7 @@ struct ParticleGpuAllocation
 		return particleBuffer != nullptr && capacity > 0;
 	}
 };
+
 
 class ParticleResourceAllocator
 {

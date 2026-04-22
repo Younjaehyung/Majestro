@@ -72,6 +72,5 @@ void ParticleResourceAllocator::ResetAllocation(ParticleGpuAllocation& allocatio
 {
 	std::vector<ParticleStateParams> zeroData(allocation.capacity);
 	allocation.particleBuffer->PushDefaultToData(
-		zeroData.data(),
-		static_cast<uint32>(zeroData.size() * sizeof(ParticleStateParams)));
+		zeroData.data(), static_cast<uint32>(zeroData.size() * sizeof(ParticleStateParams)));
 }

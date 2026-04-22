@@ -325,9 +325,6 @@
     <ClInclude Include="Network.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="ParticleSystem.h">
-      <Filter>World\System\Client</Filter>
-    </ClInclude>
     <ClInclude Include="ParticlePass.h">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
@@ -602,6 +599,9 @@
     <ClInclude Include="MathUtils.h">
       <Filter>Utils\Math</Filter>
     </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -723,9 +723,6 @@
     </ClCompile>
     <ClCompile Include="Network.cpp">
       <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="ParticleSystem.cpp">
-      <Filter>World\System\Client</Filter>
     </ClCompile>
     <ClCompile Include="ParticlePass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
@@ -973,6 +970,9 @@
     </ClCompile>
     <ClCompile Include="MathUtils.cpp">
       <Filter>Utils\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>World\System\Logic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

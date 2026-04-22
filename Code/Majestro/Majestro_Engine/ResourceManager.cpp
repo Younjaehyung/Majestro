@@ -1747,16 +1747,6 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Particle", material);
 	}
 
-	// ComputeParticle
-	{
-
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"ComputeParticle");
-
-		Add<Material>(L"ComputeParticle", material);
-	}
-
-
 	//HPBAR
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR", L"..\\Resources\\Image\\UI\\UI_Hpbar_01.dds");

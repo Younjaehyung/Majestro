@@ -29,11 +29,6 @@ struct GroupBuffer {
 
 };
 
-struct ParticleBuffer {
-	
-	shared_ptr<StructuredBuffer> Particle;
-	shared_ptr<StructuredBuffer> RWParticleShared;//공유 전역변수
-};
 
 struct AnimationBuffer {
 
@@ -90,7 +85,6 @@ public:
 public:
 
 	shared_ptr<GroupBuffer>	&			GetGroupBuffer(uint32 frame)		{ return mGroupBuffer[frame]; }
-	shared_ptr<ParticleBuffer>&			GetParticleBuffers(uint32 group)	{ return mParticleBuffer[group]; }
 	shared_ptr<AnimationBuffer>&		GetAnimationBuffers()				{ return mAnimationBuffer; }
 	shared_ptr<StructuredBuffer>&		GetMaterialBuffers()				{ return mMaterialBuffer; }
 	shared_ptr<StructuredBuffer>		GetParticleSpawnBuffer(uint32 frame) { return mParticleSpawnBuffer[frame]; }
@@ -137,11 +131,10 @@ private:
 private:
 	array <shared_ptr<GroupBuffer>, FRAMEGROUP_COUNT>				mGroupBuffer;
 	array <shared_ptr<StructuredBuffer>, FRAMEGROUP_COUNT>			mParticleSpawnBuffer;
-	array <shared_ptr<ParticleBuffer>, PARTICLE_GROUP_COUNT>		mParticleBuffer;
 	shared_ptr<AnimationBuffer>										mAnimationBuffer;
 	shared_ptr<StructuredBuffer>									mMaterialBuffer;
-	DescriptorBlockAllocator										mParticleDescriptorAllocator;
-	ParticleResourceAllocator										mParticleResourceAllocator;
+	DescriptorBlockAllocator										mParticleDescriptorAllocator;	// 에미터용 디스크립터 슬롯 관리
+	ParticleResourceAllocator										mParticleResourceAllocator;		// 에미터용 파티클 버퍼(GPU 메모리) 관리
 
 	array< RenderTargetGroup, RENDER_TARGET_GROUP_COUNT>			mRenderTargetGroup;
 private:

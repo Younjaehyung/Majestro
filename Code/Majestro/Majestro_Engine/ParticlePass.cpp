@@ -124,7 +124,7 @@ void ParticlePass::RunEmitterCompute(const ParticleEmitterRuntime& runtime, uint
 	GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(mParticleRootRuntime, GetGpuHandle(runtime.descriptorBlock.startIndex));
 	GRAPHICS_CMD_LIST->SetComputeRootDescriptorTable(mParticleRootSpawn, GetGpuHandle(PARTICLE_SPAWN_INDEX_START + frameIndex));
 
-	runtime.computeMaterial->GetShader()->Update();
+	runtime.computeShader->Update();
 
 	const uint32 dispatchCount = (runtime.gpu.capacity + 1023) / 1024;
 	GRAPHICS_CMD_LIST->Dispatch(dispatchCount, 1, 1);

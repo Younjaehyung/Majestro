@@ -1,6 +1,4 @@
 #pragma once
-#include <unordered_map>
-#include <unordered_set>
 #include "System.h"
 #include "ParticleComponent.h"
 #include "ParticleEffect.h"
@@ -9,18 +7,19 @@
 
 class Material;
 class Mesh;
+class Shader;
 
 struct ParticleEmitterRuntime
 {
 	DescriptorBlock descriptorBlock;
 	ParticleGpuAllocation gpu;
 	shared_ptr<Material> material;
-	shared_ptr<Material> computeMaterial;
+	shared_ptr<Shader> computeShader;
 	shared_ptr<Mesh> mesh;
 
 	bool IsValid() const
 	{
-		return descriptorBlock.IsValid() && gpu.IsValid() && material != nullptr && computeMaterial != nullptr && mesh != nullptr;
+		return descriptorBlock.IsValid() && gpu.IsValid() && material != nullptr && computeShader != nullptr && mesh != nullptr;
 	}
 };
 
@@ -54,6 +53,9 @@ private:
 	void CollectDeadEmitters();
 	ParticleEmitterRuntime& EnsureEmitterRuntime(Entity entity, ParticleComponent& component);
 	void ReleaseEmitterRuntime(ParticleEmitterRuntime& runtime);
+
+
+
 	void ApplyEffectDesc(ParticleComponent& component, const ParticleEffectDesc& desc);
 	void UpdateFollowTarget(ParticleComponent& component, class TransformComponent& transform);
 

@@ -23,6 +23,8 @@
 #include <array>
 #include <list>
 #include <map>
+#include <limits>
+#include <queue>
 #include <initializer_list>
 #include <filesystem>
 #include <fstream>
@@ -30,6 +32,7 @@
 #include <typeindex>
 #include <random>
 #include <algorithm>
+#include <unordered_map>
 #include <unordered_set>
 using namespace std;
 
@@ -369,7 +372,6 @@ enum class PARTICLE_INDEX : uint8		//
 	// t레지스터 space 2
 	SRV_PARTICLE_INDEX = 0,			// 파티클 읽기 view
 	UAV_PARTICLE_INDEX = 1,			// 파티클 쓰기 view
-	UAV_PARTICLE_SHARED_INDEX = 2,	// legacy slot, not used by the new runtime path
 	PARTICLE_INDEX_END = 2
 };
 

@@ -1677,8 +1677,8 @@ float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 }
 
 // IBL 계산 결과 — diffuse와 specular를 분리해서 반환
-// diffuse → DiffuseLightTarget (final pass에서 albedo와 곱해짐)
-// specular → SpecularLightTarget (final pass에서 albedo 없이 그대로 더해짐)
+// diffuse  DiffuseLightTarget (final pass에서 albedo와 곱해짐)
+// specular  SpecularLightTarget (final pass에서 albedo 없이 그대로 더해짐)
 struct IBLResult
 {
     float3 diffuse;

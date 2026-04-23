@@ -48,7 +48,8 @@ float4 PS_Main(VS_OUT input, bool isFrontFace : SV_IsFrontFace) : SV_Target
         clip(-1);
    
     
-    float3 viewNormal = normalize(input.viewNormal) * (isFrontFace ? 1.0f : -1.0f);
+    float3 viewNormal = normalize(mul(-Lights[0].direction, PassParams.MatView).xyz);
+
     if (mtl.NormalMapIndex >= 0)
     {
         float3 n = TextureMaps[mtl.NormalMapIndex].Sample(g_sam_0, input.uv).xyz;

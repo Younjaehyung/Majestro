@@ -1206,7 +1206,7 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"ForwardPlusCel", shader);
 	}
 
-	// Forward Alpha (식생 알파 컷아웃 전용)
+	// Forward Alpha
 	// CULL_NONE     : 풀잎 양면 렌더
 	// LESS_EQUAL    : DepthPrePass 없이 직접 깊이 기록
 	// ALPHA_TEST    : DepthPrePass에서 스킵됨
@@ -1225,6 +1225,27 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"ForwardAlpha", shader);
+	}
+
+	// Forward Alpha (식생 알파 컷아웃 전용)
+	// CULL_NONE     : 풀잎 양면 렌더
+	// LESS_EQUAL    : DepthPrePass 없이 직접 깊이 기록
+	// ALPHA_TEST    : DepthPrePass에서 스킵됨
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::LESS_EQUAL,
+			BLEND_TYPE::ALPHA_TEST,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\forward_alpha_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\forward_foliage_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"ForwardFoliage", shader);
 	}
 
 	// ForwardBillboard (로고·간판 등 월드 공간 쿼드 전용)                                                                                                                                                                                                                                  1209 +  // ForwardPass가 read-only DSV를 바인딩하므로 depth write 불가 → LESS_NO_WRITE 사용

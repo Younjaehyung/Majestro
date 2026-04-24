@@ -1,7 +1,5 @@
 #pragma once
 #include "Object.h"
-#include <array>
-#include <cstdint>
 #include "Entity.h"
 #include "PacketHelper.h"
 class World;
@@ -9,6 +7,9 @@ class PlayerPrefab;
 class TerrainPrefab;
 class EnemyPrefab;
 class BulletPrefab;
+class HealPackPrefab;
+class JumpPadPrefab;
+class MonsterSpawnerMarkerPrefab;
 
 class Prefab : public Object
 {
@@ -34,6 +35,9 @@ public:
 		Register<PrefabType::TERRAIN, TerrainPrefab>();
 		Register<PrefabType::ENEMY, EnemyPrefab>();
 		Register<PrefabType::BULLET, BulletPrefab>();
+		Register<PrefabType::HEAL_PACK, HealPackPrefab>();
+		Register<PrefabType::JUMP_PAD, JumpPadPrefab>();
+		Register<PrefabType::MONSTER_SPAWNER, MonsterSpawnerMarkerPrefab>();
 		// Register<PrefabType::ENEMY, EnemyPrefab>();
 		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
 		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();
@@ -56,6 +60,9 @@ public:
 
 		return sTable[idx](world, ctx);
 	}
+
+	static Entity BuildWorldMarkerPrefab(World* world, const InputCommand& ctx, const wchar_t* effectName, const Vec3& scale);
+	
 
 private:
 	template<typename PrefabT>
@@ -101,6 +108,30 @@ public:
 	BulletPrefab(World* world);
 	~BulletPrefab();
 public:
+	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class HealPackPrefab : public Prefab
+{
+public:
+	HealPackPrefab(World* world);
+	~HealPackPrefab();
+	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class JumpPadPrefab : public Prefab
+{
+public:
+	JumpPadPrefab(World* world);
+	~JumpPadPrefab();
+	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class MonsterSpawnerMarkerPrefab : public Prefab
+{
+public:
+	MonsterSpawnerMarkerPrefab(World* world);
+	~MonsterSpawnerMarkerPrefab();
 	static Entity Build(World* world, const InputCommand& ctx);
 };
 

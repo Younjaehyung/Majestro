@@ -37,6 +37,7 @@
 #include "BuffSystem.h"
 #include "InteractionSystem.h"
 #include "InteractableComponent.h"
+#include "NetEntityComponent.h"
 #include "SpawnerSystem.h"
 #include "SpawnerComponent.h"
 
@@ -182,6 +183,8 @@ Entity Scene::SpawnInteractable(World* world,
 	inter.mOneShot = oneShot;
 	inter.mBuffType = buffType;
 	inter.mTargetMask = InteractableTarget_Player;
+	
+	world->AddComponent<NetEntityComponent>(e, world, e);
 
 	return e;
 }
@@ -214,6 +217,8 @@ Entity Scene::SpawnMonsterSpawner(World* world,
 	sp.mSpawnRadius = spawnRadius;
 	sp.mMaxTotal = maxTotal;
 	sp.mActive = startActive;
+
+	world->AddComponent<NetEntityComponent>(e, world, e);
 	sp.mNextSpawnTime = 0.0f; // 다음 Update에서 즉시 후보
 	return e;
 }
@@ -262,7 +267,7 @@ void FirstScene::Initialize()
 		Vec3(-2337.0f, 142.0f, -4987.0f),
 		Vec3(  150.0f, 5.0f,   150.0f),
 		/*valueA(Y 임펄스)=*/1200.0f,
-		/*valueB(전방 임펄스)=*/10.0f,
+		/*valueB(전방 임펄스)=*/400.0f,
 		/*cooldown=*/0.5f,
 		/*oneShot=*/false);
 
@@ -299,6 +304,37 @@ void FirstScene::Initialize()
 	//	sp.mSpawnRadius = 150.0f;
 	//	sp.mActive = false; // EvInteractableConsumed로 true가 된다
 	//}
+
+
+	SpawnMonsterSpawner(mWorld.get(),
+		Vec3(-4910.0f, 142.0f, -1623.0f),
+		/*interval=*/8.0f,
+		/*maxAlive=*/2,
+		/*spawnRadius=*/150.0f,
+		/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
+		/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
+		/*maxTotal=*/6,
+		/*startActive=*/true);
+
+	SpawnMonsterSpawner(mWorld.get(),
+		Vec3(-2307.0f, 740.0f, -4097.0f),
+		/*interval=*/8.0f,
+		/*maxAlive=*/2,
+		/*spawnRadius=*/150.0f,
+		/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
+		/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
+		/*maxTotal=*/6,
+		/*startActive=*/true);
+
+	SpawnMonsterSpawner(mWorld.get(),
+		Vec3(-5943.0f, 142.0f, -5637.0f),
+		/*interval=*/8.0f,
+		/*maxAlive=*/2,
+		/*spawnRadius=*/150.0f,
+		/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
+		/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
+		/*maxTotal=*/6,
+		/*startActive=*/true);
 
 	mSceneId = SceneId::FirstGame;
 }

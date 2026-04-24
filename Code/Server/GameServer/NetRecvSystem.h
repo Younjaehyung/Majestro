@@ -18,6 +18,7 @@ private:
 	void SendSpawnToSelf(uint32 sessionId, Entity e, uint8 playerType);
 	void BroadcastSpawnToOthers(uint32 sessionId, Entity e, uint8 playerType);
 	void SendExistingPlayersToNewClient(uint32 newSessionId);
+	void SendWorldObjectsToNewClient(uint32 newSessionId);
 
 	void EnemySpawnProcess(InputCommand& inputCommand);
 	void BulletPoolSpawnProcess(InputCommand& inputCommand);

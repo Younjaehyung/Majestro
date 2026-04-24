@@ -90,6 +90,9 @@ enum class PrefabType : uint8 {
 	DIRLIGHT,
 	ENEMY,
 	BULLET,
+	HEAL_PACK,
+	JUMP_PAD,
+	MONSTER_SPAWNER,
 	COUNT
 };
 

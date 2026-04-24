@@ -37,6 +37,30 @@ Prefab::~Prefab()
 {
 }
 
+Entity PrefabFactory::BuildWorldMarkerPrefab(World* world, const InputCommand& ctx, const wchar_t* effectName, const Vec3& scale)
+{
+	Entity entity = world->CreateEntity();
+
+	TransformComponent transform{};
+	world->AddComponent<TransformComponent>(entity, transform);
+	world->AddComponent<NetTransformComponent>(entity);
+
+	auto& netComp = world->AddComponent<NetEntityComponent>(entity);
+	netComp.mOwnerEntity = entity;
+
+	if (const S2C_SpawnPacekt* spawnPacket = ctx.ViewAs<S2C_SpawnPacekt>())
+	{
+		netComp.mNetEntityId = spawnPacket->netEntityId;
+		world->NetIdBinding(netComp.mNetEntityId, entity);
+	}
+
+	VfxComponent& vfxComp = world->AddComponent<VfxComponent>(entity);
+	vfxComp.mVfx = RESOURCEMANAGER.Get<Vfx>(effectName);
+	vfxComp.mIsLoop = true;
+	vfxComp.mScale = scale;
+	return entity;
+}
+
 
 PlayerPrefab::PlayerPrefab(World* world)
 {
@@ -396,6 +420,49 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
 
 	return mEntityID;
+}
+
+HealPackPrefab::HealPackPrefab(World* world)
+{
+	(void)world;
+}
+
+HealPackPrefab::~HealPackPrefab()
+{
+}
+
+Entity HealPackPrefab::Build(World* world, const InputCommand& ctx)
+{
+
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Heal", Vec3(5.f, 5.f, 5.f));
+}
+
+JumpPadPrefab::JumpPadPrefab(World* world)
+{
+	(void)world;
+}
+
+JumpPadPrefab::~JumpPadPrefab()
+{
+}
+
+Entity JumpPadPrefab::Build(World* world, const InputCommand& ctx)
+{
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Jump", Vec3(15.f, 10.f, 15.f));
+}
+
+MonsterSpawnerMarkerPrefab::MonsterSpawnerMarkerPrefab(World* world)
+{
+	(void)world;
+}
+
+MonsterSpawnerMarkerPrefab::~MonsterSpawnerMarkerPrefab()
+{
+}
+
+Entity MonsterSpawnerMarkerPrefab::Build(World* world, const InputCommand& ctx)
+{
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Spawn", Vec3(5.f, 5.f, 5.f));
 }
 
 

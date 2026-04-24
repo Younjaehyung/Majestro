@@ -186,7 +186,7 @@ void NetSendSystem::SendCollision()
 			for (uint32 sessionId : recipients)
 			{
 				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_STATE;
+				mSendReq.Type = S2C_PKT_COLLISION;
 				mSendReq.Size = sizeof(S2C_CollisionPacket);
 				mSendReq.StoreAs<S2C_CollisionPacket>(collisionPkt);
 				//	netComp->mIsDirty = false;

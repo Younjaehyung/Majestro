@@ -1,0 +1,73 @@
+#include "pch.h"
+#include "UIActionUpdateFeature.h"
+
+#include "GameEvents.h"
+#include "UIComponent.h"
+#include "UITransformComponent.h"
+
+void UIActionUpdateFeature::Update(float dt)
+{
+    UpdateActiveUIEntities(dt);
+}
+
+void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
+{
+    if (mWorld->HasComponentPool<UIActionComponent>() == false)
+        return;
+
+    bool beatFired = false;
+    mWorld->GetEventManager()->Consume<EvBeat>([&](const EvBeat&) {
+        beatFired = true;
+    });
+
+    for (Entity e : mWorld->GetEntitiesWithComponent<UIActionComponent>())
+    {
+        UIActionComponent* uiAction = mWorld->GetComponent<UIActionComponent>(e);
+        UITransformComponent* uiTransform = mWorld->GetComponent<UITransformComponent>(e);
+        if (uiAction == nullptr || uiTransform == nullptr)
+            continue;
+
+        if (beatFired && uiAction->mState == UIActionState::Bounce)
+        {
+            uiAction->mElapsedTime = 0.f;
+            uiAction->mIsActive = true;
+        }
+
+        if (uiAction->mIsActive == false)
+            continue;
+
+        uiAction->mElapsedTime += dt;
+
+        if (uiAction->mOnCustomAction)
+        {
+            uiAction->mOnCustomAction();
+            continue;
+        }
+
+        if (uiAction->mState == UIActionState::Vibration)
+        {
+            uiTransform->mFinalPixelPos += Vec2(
+                std::sin(uiAction->mElapsedTime * uiAction->mVibrationFrequency * 2.f * 3.14159f) * uiAction->mVibrationAmplitude,
+                std::cos(uiAction->mElapsedTime * uiAction->mVibrationFrequency * 2.f * 3.14159f) * uiAction->mVibrationAmplitude);
+        }
+        else if (uiAction->mState == UIActionState::Hovered)
+        {
+            const float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
+            uiTransform->mFinalSize = uiTransform->mSize * (uiAction->mDefaultScale + (uiAction->mHoverScale - uiAction->mDefaultScale) * progress);
+        }
+        else if (uiAction->mState == UIActionState::Bounce)
+        {
+            const float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
+            const float bounce = std::sin(progress * 3.14159f) * uiAction->mBounceAmplitude;
+            uiTransform->mFinalSize = uiTransform->mSize * (1.f + bounce);
+        }
+
+        if (uiAction->mElapsedTime >= uiAction->mDuration)
+        {
+            if (uiAction->mIsLoop == false)
+                uiAction->mIsActive = false;
+
+            uiAction->mElapsedTime = 0.f;
+        }
+    }
+}

@@ -38,6 +38,12 @@ void LogDebugW(const std::wstring& msg) {
 	OutputDebugStringW(output.c_str());
 }
 
+float RandomRange(float minValue, float maxValue)
+{
+	static std::mt19937 rng{ std::random_device{}() };
+	std::uniform_real_distribution<float> dist(minValue, maxValue);
+	return dist(rng);
+}
 
 void err_quit(const char* msg)
 {

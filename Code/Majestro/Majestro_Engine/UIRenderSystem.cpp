@@ -13,7 +13,9 @@
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "UIEffectPass.h"
-#include "AudioVisualizerPass.h"
+#include "UIHpBarUpdateFeature.h"
+#include "UIFeature.h"
+#include "UIAudioVisualizerFeature.h"
 #include "Timer.h"
 
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
@@ -33,11 +35,10 @@ void UIRenderSystem::Initialize()
 	mQuadMesh = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
     InitializeFont();
 
+
     mUIEffectPass = make_shared<UIEffectPass>();
     mUIEffectPass->Initialize(mWorld);
 
-    mVisualizerPass = make_shared<AudioVisualizerPass>();
-    mVisualizerPass->Initialize(mWorld);
 }
 
 void UIRenderSystem::InitializeFont()
@@ -91,7 +92,7 @@ void UIRenderSystem::Update()
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
-    CustomSpriteUpdate();
+    CustomSpriteRender();
 
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
@@ -102,19 +103,68 @@ void UIRenderSystem::Update()
     TextUpdate();
 }
 
+// Update
+void UIRenderSystem::CustomSpriteRender()
+{
+    mInstances.clear();
+
+    if (false == mWorld->HasComponentPool<UICusSpriteComponent>()) return;
+
+    RenderCustomSprite();
+
+    UploadInstanceBuffer();
+
+    // 일반 UI 스프라이트 드로우 (startInstance = 0)
+    InstancingRender(static_cast<uint32>(mInstances.size()), 0);
+
+    // ── 비주얼라이저 바 데이터를 인스턴스 벡터 뒤에 추가 ──────────────
+    // UIInfo 버퍼 레이아웃: [일반 UI (0..N-1)] [바 데이터 (N..N+M-1)]
+    // DrawIndexedInstanced의 StartInstanceLocation으로 각 파트를 독립적으로 드로우
+
+
+    for (const auto& spritePass : *mFeatures)
+    {
+        if (spritePass != nullptr)
+            spritePass->CustomSpriteRender(mInstances);
+    }
+
+}
+
+void UIRenderSystem::SpriteUpdate()
+{
+    if (false == mWorld->HasComponentPool<UISpriteComponent>())
+        return;
+    
+    mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
+    mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
+    RenderSpirte();
+
+	
+
+    for (const auto& spritePass : *mFeatures)
+    {
+        if (spritePass != nullptr)
+            spritePass->SpriteRender(mSpriteBatch.get());
+    }
+
+    mSpriteBatch->End();
+}
+
 void UIRenderSystem::TextUpdate()
 {
-    if (mSpriteBatch == nullptr)
+    if (mSpriteBatch == nullptr || mDefaultFont == nullptr)
 		return;
-    if (mDefaultFont == nullptr)
-        return;
     
     if (false == mWorld->HasComponentPool<UITextComponent>())
         return;
-    std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITextComponent>() };
+
+   
 
     mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
     mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
+    std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITextComponent>() };
 
     for (Entity a : entitys) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
@@ -146,12 +196,12 @@ void UIRenderSystem::TextUpdate()
     mSpriteBatch->End();
 }
 
-void UIRenderSystem::CustomSpriteUpdate()
+
+// Render
+
+
+void UIRenderSystem::RenderCustomSprite()
 {
-    mInstances.clear();
-
-    if (false == mWorld->HasComponentPool<UICusSpriteComponent>()) return;
-
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<UITransformComponent, UICusSpriteComponent>() };
 
     for (auto& e : entitys)
@@ -171,46 +221,48 @@ void UIRenderSystem::CustomSpriteUpdate()
 
         mInstances.push_back(data);
     }
-
-    // ── 비주얼라이저 바 데이터를 인스턴스 벡터 뒤에 추가 ──────────────
-    // UIInfo 버퍼 레이아웃: [일반 UI (0..N-1)] [바 데이터 (N..N+M-1)]
-    // DrawIndexedInstanced의 StartInstanceLocation으로 각 파트를 독립적으로 드로우
-    uint32 regularCount = static_cast<uint32>(mInstances.size());
-    if (mVisualizerPass)
-        mVisualizerPass->AppendBarInstances(mInstances);
-    uint32 barCount = static_cast<uint32>(mInstances.size()) - regularCount;
-
-    UploadInstanceBuffer();
-
-    // 일반 UI 스프라이트 드로우 (startInstance = 0)
-    InstancingRender(regularCount, 0);
-
-    // 비주얼라이저 바 드로우 (startInstance = regularCount, 전용 셰이더)
-    if (mVisualizerPass && barCount > 0)
-        mVisualizerPass->Execute(regularCount, barCount);
 }
 
-void UIRenderSystem::SpriteUpdate()
+void UIRenderSystem::RenderSpirte()
 {
-    if (false == mWorld->HasComponentPool<UISpriteComponent>())
-        return;
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UISpriteComponent>() };
-    mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
-    mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
     for (Entity a : entitys) {
         auto spriteComp = mWorld->GetComponent<UISpriteComponent>(a);
         auto transComp = mWorld->GetComponent<UITransformComponent>(a);
-      
+
         if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
             continue;
+
         XMUINT2 textureSize;
+        RECT sourceRect{};
+        RECT* sourceRectPtr = nullptr;
+
         if (spriteComp->mIsAnimated && spriteComp->mTextures.empty() && spriteComp->mFrameCount > 1)
-        {
+        {   // 애니메이션 프레임이 텍스처 시트 방식
             textureSize = XMUINT2(
                 static_cast<uint32_t>(spriteComp->mTexture->GetWidth()),
                 static_cast<uint32_t>(spriteComp->mTexture->GetHeight())
             );
-           
+
+
+            sourceRect = spriteComp->GetCurrentFrameRect();
+            sourceRectPtr = &sourceRect;
+        }
+        else if (spriteComp->mUseVisibleRange)
+        {    // visible range를 사용
+            textureSize = XMUINT2(
+                static_cast<uint32_t>(spriteComp->mTexture->GetWidth()),
+                static_cast<uint32_t>(spriteComp->mTexture->GetHeight())
+            );
+
+            sourceRect = RECT{
+               0,
+               0,
+               static_cast<LONG>(textureSize.x),
+               static_cast<LONG>(textureSize.y)
+            };
+            sourceRectPtr = &sourceRect;
         }
         else
         {
@@ -218,34 +270,6 @@ void UIRenderSystem::SpriteUpdate()
                 static_cast<uint32_t>(transComp->mFinalSize.x),
                 static_cast<uint32_t>(transComp->mFinalSize.y)
             );
-		}
-
-        // visible range를 사용할 때는 UV 계산 기준이 실제 텍스처 크기여야 비율이 정확함
-        if (spriteComp->mUseVisibleRange)
-        {
-            textureSize = XMUINT2(
-                static_cast<uint32_t>(spriteComp->mTexture->GetWidth()),
-                static_cast<uint32_t>(spriteComp->mTexture->GetHeight())
-            );
-        }
-
-        RECT sourceRect{};
-        RECT* sourceRectPtr = nullptr;
-
-        if (spriteComp->mIsAnimated && spriteComp->mTextures.empty() && spriteComp->mFrameCount > 1)
-        {
-            sourceRect = spriteComp->GetCurrentFrameRect();
-            sourceRectPtr = &sourceRect;
-        }
-        else if (spriteComp->mUseVisibleRange)
-        {
-            sourceRect = RECT{
-                0,
-                0,
-                static_cast<LONG>(textureSize.x),
-                static_cast<LONG>(textureSize.y)
-            };
-            sourceRectPtr = &sourceRect;
         }
 
         // sourceRect가 이미 잡혀있다면(애니메이션/기본), 가시 구간 크롭을 추가 적용
@@ -272,34 +296,12 @@ void UIRenderSystem::SpriteUpdate()
             sourceRect.right = sourceRect.left + std::clamp(endOffset - startOffset, 0L, fullWidth);
         }
 
-        // sourceRect가 이미 잡혀있다면(애니메이션/기본), 가시 구간 크롭을 추가 적용
-        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
-        {
-            const LONG fullWidth = sourceRect.right - sourceRect.left;
-            LONG startOffset = 0;
-            LONG endOffset = fullWidth;
-
-            if (spriteComp->mVisibleRangeUsePixels)
-            {
-                startOffset = static_cast<LONG>(spriteComp->mVisibleStartX);
-                endOffset = static_cast<LONG>(spriteComp->mVisibleEndX);
-            }
-            else
-            {
-                startOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleStartX);
-                endOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleEndX);
-            }
-
-            sourceRect.left += std::clamp(startOffset, 0L, fullWidth);
-            sourceRect.right = sourceRect.left + std::clamp(endOffset - startOffset, 0L, fullWidth);
-        }
-
         // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록
         // sourceRect 있으면 프레임 크기 기준, 없으면 textureSize(=mSize) 기준
         XMFLOAT2 origin;
         if (sourceRectPtr != nullptr)
         {
-            origin = { transComp->mPivot.x * (float)(sourceRect.right  - sourceRect.left),
+            origin = { transComp->mPivot.x * (float)(sourceRect.right - sourceRect.left),
                        transComp->mPivot.y * (float)(sourceRect.bottom - sourceRect.top) };
         }
         else
@@ -316,8 +318,7 @@ void UIRenderSystem::SpriteUpdate()
                 visibleRatio = std::clamp(static_cast<float>(croppedWidth) / static_cast<float>(baseWidth), 0.f, 1.f);
 
             const float destWidth = spriteComp->mVisibleRangeKeepDestinationSize
-                ? transComp->mFinalSize.x
-                : transComp->mFinalSize.x * visibleRatio;
+                ? transComp->mFinalSize.x : transComp->mFinalSize.x * visibleRatio;
             const float destHeight = transComp->mFinalSize.y;
 
             const LONG left = static_cast<LONG>(transComp->mFinalPixelPos.x - (transComp->mPivot.x * destWidth));
@@ -347,8 +348,9 @@ void UIRenderSystem::SpriteUpdate()
             );
         }
     }
-    mSpriteBatch->End();
+
 }
+
 
 void UIRenderSystem::UploadInstanceBuffer()
 {
@@ -356,8 +358,7 @@ void UIRenderSystem::UploadInstanceBuffer()
         return;
     uint32 frameIdx = RENDERMANAGER.GetFrameResourceIndex();
     RENDERMANAGER.GetGroupBuffer(frameIdx)->UIInfo->PushGraphicsData(
-        mInstances.data(),
-        static_cast<uint32>(sizeof(UIInstanceData) * mInstances.size()));
+        mInstances.data(), static_cast<uint32>(sizeof(UIInstanceData) * mInstances.size()));
 }
 
 void UIRenderSystem::InstancingRender(uint32 count, uint32 startInstance)
@@ -368,4 +369,10 @@ void UIRenderSystem::InstancingRender(uint32 count, uint32 startInstance)
     // startInstance → DrawIndexedInstanced의 StartInstanceLocation
     // SV_InstanceID = startInstance + 0 ~ startInstance + count - 1
     mQuadMesh->Render(count, 0, 0, startInstance);
+}
+
+void UIRenderSystem::SetFeatures(std::vector<shared_ptr<UIFeature>>* features)
+{
+
+    mFeatures = features;
 }

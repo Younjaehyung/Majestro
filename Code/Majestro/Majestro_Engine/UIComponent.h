@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "Component.h"
 #include <string>
+#include <vector>
 
 class Mesh;
 class Material;
@@ -12,6 +13,20 @@ class UIScriptComponent : public Component<UIScriptComponent>
 public:
 	std::function<void(float dt)> mOnUpdate;  // 매 프레임 호출
 	std::function<void()>         mOnInit;    // 최초 1회
+};
+
+struct UIHpLossFragment
+{
+	// HP UI 전용 파편 데이터.
+	// 월드 메쉬를 만들지 않고 잘린 텍스처 조각만 잠깐 렌더한다.
+	Vec2 Center = Vec2::Zero;
+	Vec2 Velocity = Vec2::Zero;
+	Vec2 Size = Vec2::Zero;
+	float Rotation = 0.f;
+	float AngularVelocity = 0.f;
+	float Age = 0.f;
+	float LifeTime = 0.935f;
+	RECT SourceRect{ 0, 0, 0, 0 };
 };
 
 class UIHpBarComponent : public Component<UIHpBarComponent>
@@ -42,4 +57,9 @@ public:
 
 	Entity mBackgroundUIEntity = NULL_ENTITY;
 	Entity mFillUIEntity = NULL_ENTITY;
+	bool mHasPreviousHpRatio = false;
+	float mPreviousHpRatio = 1.f;
+	std::vector<UIHpLossFragment> mLossFragments;
+	float mFragmentLifeTime = 0.35f;
+	int mMaxFragmentCount = 24;
 };

@@ -219,3 +219,15 @@ std::pair<int, int> UIAudioVisualizerFeature::GetBinRange(
     binEnd = std::clamp(binEnd + 1, binStart + 1, spectrumSize);
     return { binStart, binEnd };
 }
+
+void UIAudioVisualizerFeature::CustomSpriteRender(std::vector<UIInstanceData>& instances)
+{
+    AppendBarInstances(instances);
+
+	uint32 regularCount = static_cast<uint32>(instances.size());
+
+    uint32 barCount = static_cast<uint32>(instances.size()) - regularCount;
+
+    if (barCount > 0)  Execute(regularCount, barCount);
+
+}

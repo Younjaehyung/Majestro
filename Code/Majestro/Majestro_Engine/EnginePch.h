@@ -221,6 +221,8 @@ string ws2s(const wstring& s);
 void LogDebug(const std::string& msg);
 void LogDebugW(const std::wstring& msg);
 
+float RandomRange(float minValue, float maxValue);
+
 // network
 void err_quit(const char* msg);
 void err_display(const char* msg);

@@ -2,6 +2,8 @@
 #include "World.h"
 class SystemManager;
 class GameMode;
+class UIFeature;
+
 class Scene : public std::enable_shared_from_this<Scene>
 {
 public:
@@ -32,8 +34,10 @@ public:
 	shared_ptr<GameMode>& GetGameMode() { return mGameMode; }
 	const shared_ptr<World>& GetWorld() { return mWorld; }
 	SceneId GetSceneId() const { return mSceneId; }
+
 public:
 	bool mIsStarted = false;
+	std::vector< shared_ptr<UIFeature>> mUIFeatures;
 protected:
 	wstring							mMapPath;			// 로딩할 맵 데이터 경로
 	shared_ptr<World>				mWorld = make_shared<World>();
@@ -66,7 +70,7 @@ public:
 	std::queue<std::function<void()>> mLoadTasks;
 	int32			mTotalTaskCount = 0;       // 등록 시점에 기록
 	SceneId			mTargetSceneId;
-	
+	std::vector< shared_ptr<UIFeature>> mUIFeatures;
 	bool mIsStarted = false;
 protected:
 	

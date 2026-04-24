@@ -14,22 +14,35 @@ struct UIInstanceData
     float   ZOrder;
 };
 
+class UIFeature;
+class UIEffectPass;
 
 class UIRenderSystem : public System
 {
 public:
 	UIRenderSystem(World* world);
 	virtual ~UIRenderSystem();
+	void SetFeatures(std::vector<shared_ptr<UIFeature>>* features);
+	
+	
 	void Initialize();
 	void InitializeFont();
 
 	void Update();
-	void CustomSpriteUpdate();
+	void CustomSpriteRender();
 	void SpriteUpdate();
 	void TextUpdate();
 
 private:
-    void UploadInstanceBuffer();
+    
+	void RenderCustomSprite();
+	void RenderSpirte();
+	void RenderText();
+	
+	
+	
+	
+	void UploadInstanceBuffer();
 	void InstancingRender(uint32 count, uint32 startInstance = 0);
 
 private:
@@ -38,7 +51,6 @@ private:
 	std::shared_ptr<DirectX::SpriteBatch> mSpriteBatch;
 	std::shared_ptr<DirectX::SpriteFont> mDefaultFont;
 	std::vector<UIInstanceData> mInstances;
-
-	std::shared_ptr<class UIEffectPass>            mUIEffectPass;
-	std::shared_ptr<class AudioVisualizerPass>     mVisualizerPass;
+	std::vector<std::shared_ptr<UIFeature>>* mFeatures;
+	std::shared_ptr<UIEffectPass> mUIEffectPass;
 };

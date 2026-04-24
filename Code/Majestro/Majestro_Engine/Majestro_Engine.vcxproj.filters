@@ -121,9 +121,6 @@
     <Filter Include="World\System\Logic\Move">
       <UniqueIdentifier>{738b7ce8-1ffc-4712-b713-1f0fdfec12e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\Cartoon">
-      <UniqueIdentifier>{8e4100cc-b05d-40de-aa01-bac40fd182ac}</UniqueIdentifier>
-    </Filter>
     <Filter Include="World\System\Render">
       <UniqueIdentifier>{5d8e6ec9-df86-4883-8999-f361e7f21cd8}</UniqueIdentifier>
     </Filter>
@@ -195,6 +192,24 @@
     </Filter>
     <Filter Include="World\Resource\Shader\80.Post\bloom">
       <UniqueIdentifier>{9ac568dc-5abb-48bd-a667-bb49df0a764f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\50.Forward\Foilage">
+      <UniqueIdentifier>{42fee3c2-4f5d-40ae-9e4a-53fca045e946}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\50.Forward\NewFilter1">
+      <UniqueIdentifier>{d888b5a5-9e32-48ab-ae4a-03b48d77e7d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\50.Forward\Cartoon">
+      <UniqueIdentifier>{8e4100cc-b05d-40de-aa01-bac40fd182ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\UI\Feature">
+      <UniqueIdentifier>{cca44f70-3a8b-455e-aac3-08c31ae5bdb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\UI\System">
+      <UniqueIdentifier>{1e634a2c-4ddb-478f-ac3f-494e61834294}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\UI\Common">
+      <UniqueIdentifier>{84e20beb-7094-48a0-a397-0b603f26e283}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -277,12 +292,6 @@
     <ClInclude Include="UIButtonComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
-    <ClInclude Include="UIButtonSystem.h">
-      <Filter>World\System\UI</Filter>
-    </ClInclude>
-    <ClInclude Include="UIUpdateSystem.h">
-      <Filter>World\System\UI</Filter>
-    </ClInclude>
     <ClInclude Include="UISpriteComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
@@ -326,6 +335,9 @@
       <Filter>Network</Filter>
     </ClInclude>
     <ClInclude Include="ParticlePass.h">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="TrailPass.h">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
     <ClInclude Include="AudioSystem.h">
@@ -520,9 +532,6 @@
     <ClInclude Include="DepthPrePass.h">
       <Filter>World\System\Render\03.Pre-pass</Filter>
     </ClInclude>
-    <ClInclude Include="UIRenderSystem.h">
-      <Filter>World\System\UI</Filter>
-    </ClInclude>
     <ClInclude Include="ArmorComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
@@ -602,6 +611,36 @@
     <ClInclude Include="ParticleSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="SocketTrailSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponTrailComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="UIRenderSystem.h">
+      <Filter>World\System\UI\System</Filter>
+    </ClInclude>
+    <ClInclude Include="UIButtonSystem.h">
+      <Filter>World\System\UI\System</Filter>
+    </ClInclude>
+    <ClInclude Include="UIUpdateSystem.h">
+      <Filter>World\System\UI\System</Filter>
+    </ClInclude>
+    <ClInclude Include="UIFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="UICommonUpdateFeature.h">
+      <Filter>World\System\UI\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="UIActionUpdateFeature.h">
+      <Filter>World\System\UI\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="UIHpBarUpdateFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="UIAudioVisualizerFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -679,12 +718,6 @@
     <ClCompile Include="UIComponent.cpp">
       <Filter>World\Component\UI</Filter>
     </ClCompile>
-    <ClCompile Include="UIButtonSystem.cpp">
-      <Filter>World\System\UI</Filter>
-    </ClCompile>
-    <ClCompile Include="UIUpdateSystem.cpp">
-      <Filter>World\System\UI</Filter>
-    </ClCompile>
     <ClCompile Include="UISpriteComponent.cpp">
       <Filter>World\Component\UI</Filter>
     </ClCompile>
@@ -725,6 +758,9 @@
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="ParticlePass.cpp">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="TrailPass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
     <ClCompile Include="AudioSystem.cpp">
@@ -904,9 +940,6 @@
     <ClCompile Include="DepthPrePass.cpp">
       <Filter>World\System\Render\03.Pre-pass</Filter>
     </ClCompile>
-    <ClCompile Include="UIRenderSystem.cpp">
-      <Filter>World\System\UI</Filter>
-    </ClCompile>
     <ClCompile Include="RenderPass.cpp">
       <Filter>World\System\Render</Filter>
     </ClCompile>
@@ -973,6 +1006,30 @@
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketTrailSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="UIRenderSystem.cpp">
+      <Filter>World\System\UI\System</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButtonSystem.cpp">
+      <Filter>World\System\UI\System</Filter>
+    </ClCompile>
+    <ClCompile Include="UIUpdateSystem.cpp">
+      <Filter>World\System\UI\System</Filter>
+    </ClCompile>
+    <ClCompile Include="UICommonUpdateFeature.cpp">
+      <Filter>World\System\UI\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="UIActionUpdateFeature.cpp">
+      <Filter>World\System\UI\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="UIHpBarUpdateFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UIAudioVisualizerFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1064,10 +1121,10 @@
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\cartoon_PS.hlsl">
-      <Filter>World\Resource\Shader\Cartoon</Filter>
+      <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\cartoon_VS.hlsl">
-      <Filter>World\Resource\Shader\Cartoon</Filter>
+      <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
@@ -1077,6 +1134,12 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\trail_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\trail_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
@@ -1109,10 +1172,10 @@
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_PS.hlsl">
-      <Filter>World\Resource\Shader\Cartoon</Filter>
+      <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_VS.hlsl">
-      <Filter>World\Resource\Shader\Cartoon</Filter>
+      <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Fog_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
@@ -1176,6 +1239,9 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\forward_foliage_PS.hlsl">
+      <Filter>World\Resource\Shader\50.Forward\Foilage</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

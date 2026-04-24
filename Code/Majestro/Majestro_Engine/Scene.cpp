@@ -42,6 +42,7 @@
 #include "CpuAnimationSystem.h"
 #include "PlayerSystem.h"
 #include "ParticleSystem.h"
+#include "SocketTrailSystem.h"
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
 #include "IMGUISystem.h"
@@ -59,6 +60,12 @@
 #include "GameMode.h"
 #include "UIButtonComponent.h"
 #include "UIButtonSystem.h"
+#include "UIFeature.h"
+#include "UIActionUpdateFeature.h"
+#include "UIAudioVisualizerFeature.h"
+#include "UICommonUpdateFeature.h"
+#include "UIHpBarUpdateFeature.h"
+
 
 
 Scene::Scene()
@@ -421,12 +428,14 @@ void LoadingScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	//mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<LobbyRenderPipeline>());
-	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	auto* uiRenderSystem =  mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
 }
 
 void LoadingScene::Shudown()
@@ -815,13 +824,18 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
-	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
 
 	mSceneId = SceneId::MainMenu;
 
@@ -960,13 +974,17 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	auto* renderSystemLB = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemLB->SetPipeline(make_shared<LobbyRenderPipeline>());
-	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
+
 
 
 	//{
@@ -1279,6 +1297,21 @@ void FirstScene::Initialize()
 
 
 
+	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
+	mUIFeatures.push_back(audioVisualizerModule);
+
+	auto actionModule = std::make_shared<UIActionUpdateFeature>();
+	mUIFeatures.push_back(actionModule);
+
+	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
+	mUIFeatures.push_back(hpBarModule);
+
+
+	for (const auto& feature : mUIFeatures)
+	{
+		if (feature != nullptr)
+			feature->Initialize(mWorld.get());
+	}
 
 
 #pragma endregion
@@ -1308,16 +1341,23 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemFS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
-	mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
 
 #pragma endregion
+
+
+
 
 }
 

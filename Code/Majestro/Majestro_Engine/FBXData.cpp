@@ -312,7 +312,8 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 			//	ExtValue[0]: (세기, 주파수, 방향X, 방향Z)
 			// - 세기 - 주파수  방향(1, 0.3) :  X축 방향 바람
 			mMaterials[s]->GetParams().ExtValue[0] = Vec4(0.15f, 1.2f, 1.0f, 0.3f);
-			mMaterials[s]->SetShader(L"ForwardAlpha");
+			mMaterials[s]->GetParams().ExtValue[1] = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
+			mMaterials[s]->SetShader(L"ForwardFoliage");
 		}
 		else {
 			mMaterials[s]->SetShader(shader);

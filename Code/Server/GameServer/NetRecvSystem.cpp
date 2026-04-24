@@ -8,9 +8,12 @@
 #include "PlayerComponent.h"
 #include "HealthComponent.h"
 #include "MovementComponent.h"
+#include "BulletComponent.h"
 #include "GameEvents.h"
 #include "EventManager.h"
-#include <unordered_set>
+#include "InteractableComponent.h"
+#include "SpawnerComponent.h"
+#include "EnemyComponent.h"
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
@@ -127,6 +130,7 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 	SpawnPlayer(inputCommand);
 	EnemySpawnProcess(inputCommand);
 	BulletPoolSpawnProcess(inputCommand);
+	SendWorldObjectsToNewClient(inputCommand.SessionId);
 }
 
 // ─── 플레이어 스폰 ───────────────────────────────────────────
@@ -210,6 +214,64 @@ void NetRecvSystem::SendExistingPlayersToNewClient(uint32 newSessionId)
 
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 		spawnPkt.Type = playerComp ? playerComp->mPlayerType : 1;
+
+		SendRequest request{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(request);
+	}
+}
+
+void NetRecvSystem::SendWorldObjectsToNewClient(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponent<NetEntityComponent>())
+	{
+		if (!entity.IsValid())
+			continue;
+		if (mWorld->HasComponent<MainPlayerComponent>(entity) ||
+			mWorld->HasComponent<EnemyComponent>(entity) ||
+			mWorld->HasComponent<BulletComponent>(entity))
+		{
+			continue;
+		}
+
+		PrefabType prefabType = PrefabType::NONE;
+		if (InteractableComponent* interactable = mWorld->GetComponent<InteractableComponent>(entity))
+		{
+			if (!interactable->mActive)
+				continue;
+
+			switch (interactable->mKind)
+			{
+			case InteractableKind::HealPack:
+				prefabType = PrefabType::HEAL_PACK;
+				break;
+			case InteractableKind::JumpPad:
+				prefabType = PrefabType::JUMP_PAD;
+				break;
+			default:
+				continue;
+			}
+		}
+		else if (SpawnerComponent* spawner = mWorld->GetComponent<SpawnerComponent>(entity))
+		{
+			if (!spawner->mActive)
+				continue;
+			prefabType = PrefabType::MONSTER_SPAWNER;
+		}
+		else
+		{
+			continue;
+		}
+
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (netComp == nullptr)
+			continue;
+
+		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(newSessionId, netComp->mNetEntityId, prefabType);
+		spawnPkt.isLocalPlayer = 0;
 
 		SendRequest request{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);

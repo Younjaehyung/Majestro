@@ -2116,9 +2116,19 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"ForwardPlusCel");
 	
+	//mop
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"ForwardPlusCel");
+
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"ForwardPlusCel");
+
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"ForwardPlusCel");
+
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");

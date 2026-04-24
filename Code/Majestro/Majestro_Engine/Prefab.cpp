@@ -326,20 +326,40 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
 
-	phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
-	material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
-	material2s.push_back(material2);
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
-	anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
-
 	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {
 	case 0:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<EnemyComponent>(mEntityID, 0);
+		break;
+	case 1:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<EnemyComponent>(mEntityID, 0);
+		break;
+	case 2:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, 0);
 		break;
 	}
 
+	material2s.push_back(material2);
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);

@@ -142,7 +142,7 @@ void RenderManager::CreateGroup()
 
 
 		group->UIInfo = make_shared<StructuredBuffer>();
-		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), 2048);
+		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), UI_SRV_COUNT);
 		group->UIInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_UI_INDEX), GROUP_COUNT);
 
 		group->AnimInstanceInfo = make_shared<StructuredBuffer>();

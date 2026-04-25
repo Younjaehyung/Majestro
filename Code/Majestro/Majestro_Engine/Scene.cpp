@@ -1306,6 +1306,8 @@ void FirstScene::Initialize()
 	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
 	mUIFeatures.push_back(hpBarModule);
 
+	
+
 
 	for (const auto& feature : mUIFeatures)
 	{
@@ -1348,8 +1350,13 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
+
+
 	auto* renderSystemFS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
+	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemFS->GetPipeline());
+	gp->SetWorldUIFeature(&mUIFeatures);
+
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);

@@ -97,6 +97,7 @@ void UIRenderSystem::Update()
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
     SpriteUpdate();
+    PostSpriteRender();
 
     mUIEffectPass->Execute(DELTA_TIME);
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
@@ -121,6 +122,8 @@ void UIRenderSystem::CustomSpriteRender()
     // UIInfo 버퍼 레이아웃: [일반 UI (0..N-1)] [바 데이터 (N..N+M-1)]
     // DrawIndexedInstanced의 StartInstanceLocation으로 각 파트를 독립적으로 드로우
 
+    if (mFeatures == nullptr)
+        return;
 
     for (const auto& spritePass : *mFeatures)
     {
@@ -140,15 +143,31 @@ void UIRenderSystem::SpriteUpdate()
 
     RenderSpirte();
 
-	
-
-    for (const auto& spritePass : *mFeatures)
-    {
-        if (spritePass != nullptr)
-            spritePass->SpriteRender(mSpriteBatch.get());
+    if (mFeatures != nullptr){
+        for (const auto& spritePass : *mFeatures)
+        {
+            if (spritePass != nullptr)
+                spritePass->SpriteRender(mSpriteBatch.get());
+        }
     }
 
     mSpriteBatch->End();
+}
+
+void UIRenderSystem::PostSpriteRender()
+{
+    if (mFeatures == nullptr)
+        return;
+
+    RENDERMANAGER.SetGraphicsTable();
+
+    if (mFeatures != nullptr) {
+        for (const auto& feature : *mFeatures)
+        {
+            if (feature != nullptr)
+                feature->PostSpriteRender(mInstances);
+        }
+    }
 }
 
 void UIRenderSystem::TextUpdate()
@@ -369,10 +388,4 @@ void UIRenderSystem::InstancingRender(uint32 count, uint32 startInstance)
     // startInstance → DrawIndexedInstanced의 StartInstanceLocation
     // SV_InstanceID = startInstance + 0 ~ startInstance + count - 1
     mQuadMesh->Render(count, 0, 0, startInstance);
-}
-
-void UIRenderSystem::SetFeatures(std::vector<shared_ptr<UIFeature>>* features)
-{
-
-    mFeatures = features;
 }

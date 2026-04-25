@@ -269,18 +269,28 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		HUDMusicPrefab::HUDMusicPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 	}
+	else 
+	{
+		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+		hp.mHitEffectTextureName = L"UI_Player_HP_3";
+		hp.mHitEffectCols = 4;
+		hp.mHitEffectRows = 1;
+		hp.mHitEffectFrameCount = 4;
+		hp.mHitEffectSizePx = Vec2(128.f, 128.f);
+		hp.mHitEffectOffsetPx = Vec2(28.f, 0.f);
+	}
 
 
-	Vec3 half{ 30,100,30 };	
+	Vec3 half{ 30,100,30 };
 	Vec3 center{ 0,50,0 };
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
-	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
+	
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
 	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
 	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
-	
+
 	std::cout << "Create Prefab" << std::endl;
 	return mEntityID;
 }
@@ -374,7 +384,15 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 50,100,50 };
 	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
-	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f, L"HPBAR_RUDWIG", L"HPBAR_IBANIX");
+	{
+		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 300.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+		hp.mHitEffectTextureName = L"UI_Player_HP_3";
+		hp.mHitEffectCols = 4;
+		hp.mHitEffectRows = 1;
+		hp.mHitEffectFrameCount = 4;
+		hp.mHitEffectSizePx = Vec2(64.f, 64.f);
+		hp.mHitEffectOffsetPx = Vec2(32.f, 0.f);
+	}
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;
@@ -382,7 +400,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
 
 
-	
+
 
 	return mEntityID;
 }
@@ -1151,22 +1169,38 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 
 			world->AddComponent<UISpriteComponent>(hp, scorem);
-			world->AddComponent<UIScriptComponent>(hp).mOnUpdate = (hp, [world, hp, ownerEntity](float dt) {
+			world->AddComponent<UIScriptComponent>(hp).mOnUpdate =
+				[world, hp, ownerEntity](float /*dt*/)
+			{
+				HealthComponent* health = world->GetComponent<HealthComponent>(ownerEntity);
+				if (health == nullptr || health->mMaxHp <= 0)
+					return;
+				UISpriteComponent* s = world->GetComponent<UISpriteComponent>(hp);
+				if (s == nullptr)
+					return;
 
+				const float ratio = std::clamp(
+					static_cast<float>(health->mCurrentHp) / static_cast<float>(health->mMaxHp),
+					0.0f, 1.0f);
+				s->SetVisibleRangeKeepDestinationSize(false);
+				s->SetVisibleRangeNormalized(0.f, ratio);
+			};
 
-				world->GetEventManager()->Consume<EvHealthChanged>([world, hp, ownerEntity](const EvHealthChanged& e) {
-					if (e.target != ownerEntity) return;
-					// 피 딱 잘리게 0~1 사이로 정규화해서 넣어주면 될듯
-					// 그러기 위해 pivot이 0,0이 되어야할듯
-					UISpriteComponent* s = world->GetComponent<UISpriteComponent>(hp);
-					s->SetVisibleRangeKeepDestinationSize(false);
-
-
-					s->SetVisibleRangeNormalized(0.f,( (float) e.hp / e.maxHp));
-					std::cout << "Health Changed: " << e.hp << "/" << e.maxHp << std::endl;
-
-					});
-			});
+			// HP 바 자체는 위 UISprite 가 그리고, 여기서 부착하는 UIHpBarComponent 는
+			// 파편 + hit effect 만 담당 (HUD 모드: 화면 픽셀 직접 좌표, depth 무시).
+			{
+				auto& bar = world->AddComponent<UIHpBarComponent>(
+					hp, t.mSize.x, ownerEntity, Vec3::Zero, t.mSize.y,
+					L"UI_Player_HP_1", L"UI_Player_HP_2");
+				bar.mIsScreenSpace = true;
+				bar.mRenderBgFill = false;            // 위 UISprite 가 이미 그림
+				bar.mHitEffectTextureName = L"UI_Player_HP_3";
+				bar.mHitEffectCols = 4;
+				bar.mHitEffectRows = 1;
+				bar.mHitEffectFrameCount = 4;
+				bar.mHitEffectSizePx = Vec2(128.f, 128.f);
+				bar.mHitEffectOffsetPx = Vec2(28.f, 0.f);
+			}
 #ifdef _IMGUI
 
 			props.push_back({ "Back Hp Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
@@ -1187,13 +1221,13 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 			auto& text = world->AddComponent<UITextComponent>(hp);
 			text.mText = L"HP";
-				text.mOnTextChanged = [world, hp, ownerEntity]() {
-					world->GetEventManager()->Consume<EvHealthChanged>([world, hp, ownerEntity](const EvHealthChanged& e) {
-						if (e.target != ownerEntity) return;
-						UITextComponent* t = world->GetComponent<UITextComponent>(hp);
-						if (t) t->mText = std::to_wstring(e.hp) + L"/" + std::to_wstring(e.maxHp);
-						});
-					};
+			text.mOnTextChanged = [world, hp, ownerEntity]() {
+				HealthComponent* health = world->GetComponent<HealthComponent>(ownerEntity);
+				if (health == nullptr) return;
+				UITextComponent* t = world->GetComponent<UITextComponent>(hp);
+				if (t)
+					t->mText = std::to_wstring(health->mCurrentHp) + L"/" + std::to_wstring(health->mMaxHp);
+			};
 
 			
 #ifdef _IMGUI

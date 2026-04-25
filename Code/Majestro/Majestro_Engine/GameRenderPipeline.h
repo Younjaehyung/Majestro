@@ -18,6 +18,8 @@ class GodRayPass;
 class DualKawaseBlurPass;
 class HBAOPass;
 class FXAAPass;
+class WorldUIPass;
+class UIFeature;
 
 
 // DepthPrePass / Shadow / GBuffer / Deferred Lighting /
@@ -52,6 +54,7 @@ public:
     void SetEmissiveBloomEnabled(bool on);
     void SetFXAAEnabled(bool on);
     void SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality);
+	void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
     DualKawaseBlurPass*  GetEmissiveBloom() const { return mEmissiveBloomPass.get(); }
@@ -83,6 +86,7 @@ private:
     shared_ptr<DualKawaseBlurPass>  mEmissiveBloomPass;
     shared_ptr<HBAOPass>            mHBAOPass;
     shared_ptr<FXAAPass>            mFXAAPass;
+    shared_ptr<WorldUIPass>         mWorldUIPass;
 
     World* mWorld    = nullptr;
     bool   mIsPaused = false;
@@ -96,4 +100,5 @@ private:
     void RenderOutline(const RenderContext& ctx);
     void RenderEffect(const RenderContext& ctx);
     void RenderPost(const RenderContext& ctx);
+    void RenderWorldUI(const RenderContext& ctx);
 };

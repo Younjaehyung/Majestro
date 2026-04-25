@@ -161,7 +161,25 @@ shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 		mesh->Init(vertices, indices);   // UI 전용 Init 오버로드 권장
 		Add(L"UIQuad", mesh);
 
-		
+
+	}
+
+	// UITriangle 
+	{
+		shared_ptr<Mesh> findTriMesh = Get<Mesh>(L"UITriangle");
+		if (findTriMesh == nullptr)
+		{
+			vector<Vertex> triVertices(3);
+			triVertices[0] = Vertex{ Vec3(0.0f, 0.0f, 0), Vec2(0.0f, 0.0f) }; // V0 (barycentric 1,0,0)
+			triVertices[1] = Vertex{ Vec3(1.0f, 0.0f, 0), Vec2(1.0f, 0.0f) }; // V1 (barycentric 0,1,0)
+			triVertices[2] = Vertex{ Vec3(1.0f, 1.0f, 0), Vec2(1.0f, 1.0f) }; // V2 (barycentric 0,0,1)
+
+			vector<uint32> triIndices{ 0, 1, 2 };
+
+			shared_ptr<Mesh> triMesh = make_shared<Mesh>();
+			triMesh->Init(triVertices, triIndices);
+			Add(L"UITriangle", triMesh);
+		}
 	}
 
 
@@ -720,7 +738,7 @@ void ResourceManager::CreateDefaultRootSignature()
 		shared_ptr<RootSignature> rootSignature = make_shared<RootSignature>();
 
 		Add<RootSignature>(L"MainRootSignature", rootSignature);
-		rootSignature->AddConstant(0, 4); // GLOBAL_PARAMS: BaseInstanceID, etc, casdcae, PassCustomIndex
+		rootSignature->AddConstant(0, 16);
 		rootSignature->AddTable(ranges0);
 		rootSignature->AddTable(ranges1);
 		rootSignature->AddTable(ranges2);
@@ -1117,6 +1135,79 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"AudioVisualizer", shader);
+	}
+
+	// UIHpFragment — HP 손실 파편(삼각형) 전용
+	// UIInstanceData를 삼각형 정점 컨테이너로 재해석, UITriangle 메시(3정점)를 인스턴싱
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\ui_hp_fragment_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\ui_hp_fragment_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"UIHpFragment", shader);
+	}
+
+	// WorldUIHpSprite — HP 바 배경/채움 (3D 빌보드 + depth occlusion)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\world_ui_hp_sprite_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\world_ui_hp_sprite_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"WorldUIHpSprite", shader);
+	}
+
+	// WorldUIHpFragment — HP 손실 파편 (3D 빌보드 + depth occlusion + sprite 알파 마스킹)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\world_ui_hp_fragment_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\world_ui_hp_fragment_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"WorldUIHpFragment", shader);
+	}
+
+	// WorldUIHpHit — 피격 순간 경계점에 덧그리는 스프라이트 시트 오버레이 (가산 블렌드)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ONE_TO_ONE_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\world_ui_hp_hit_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\world_ui_hp_hit_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"WorldUIHpHit", shader);
 	}
 
 	//// UI			현재 swapChain에 박고 있음
@@ -1609,10 +1700,10 @@ void ResourceManager::CreateDefaultMaterial()
 		// IBL 텍스처 로드
 		{
 			// Irradiance Map (Diffuse IBL용 큐브맵)                                                                                                                                                                                                                                                                         Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox_irradiance.dds");
-			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox2DiffuseHDR.dds");
+			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\output_iem.dds");
 			
 			// Pre-filtered Env Map (Specular IBL용 큐브맵, mip 포함)
-			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\skybox2SpecularHDR.dds");
+			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\output_pmrem.dds");
 
 			// BRDF LUT (2D 텍스처)
 			Load<Texture>(L"IBL_BrdfLut", L"..\\Resources\\Texture\\skybox2Brdf.dds");
@@ -2031,8 +2122,10 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_3.png");
 
 
+		Load<Texture>(L"UI_Player_HP_0", L"..\\Resources\\Image\\UI\\UI_Player_HP_0.png");
 		Load<Texture>(L"UI_Player_HP_1", L"..\\Resources\\Image\\UI\\UI_Player_HP_1.png");
 		Load<Texture>(L"UI_Player_HP_2", L"..\\Resources\\Image\\UI\\UI_Player_HP_2.png");
+		Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
 
 
 		

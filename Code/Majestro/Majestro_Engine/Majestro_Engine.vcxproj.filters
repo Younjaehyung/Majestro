@@ -211,6 +211,9 @@
     <Filter Include="World\System\UI\Common">
       <UniqueIdentifier>{84e20beb-7094-48a0-a397-0b603f26e283}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\90. UI">
+      <UniqueIdentifier>{9fc7c677-aa45-40be-8195-6e4c1c0ea9a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -641,6 +644,7 @@
     <ClInclude Include="UIAudioVisualizerFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
+    <ClInclude Include="WorldUIPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -1031,6 +1035,7 @@
     <ClCompile Include="UIAudioVisualizerFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
+    <ClCompile Include="WorldUIPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
@@ -1242,6 +1247,30 @@
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_foliage_PS.hlsl">
       <Filter>World\Resource\Shader\50.Forward\Foilage</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ui_hp_fragment_PS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ui_hp_fragment_VS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_hp_fragment_PS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_hp_fragment_VS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_hp_hit_PS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_hp_hit_VS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_hp_sprite_PS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_hp_sprite_VS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

@@ -20,6 +20,8 @@
 #include "DualKawaseBlurPass.h"
 #include "HBAOPass.h"
 #include "FXAAPass.h"
+#include "WorldUIPass.h"
+#include "UIFeature.h"
 #include "LightComponent.h"
 
 
@@ -49,7 +51,7 @@ void GameRenderPipeline::Initialize(World* world)
     mEffectPass      = make_shared<EffectPass>();
     mParticlePass    = make_shared<ParticlePass>();
     mPostProcessPass = make_shared<PostProcessPass>();
-
+    mWorldUIPass    = make_shared<WorldUIPass>();
 
     mHBAOPass = make_shared<HBAOPass>();
     mHBAOPass->Initialize();
@@ -57,8 +59,8 @@ void GameRenderPipeline::Initialize(World* world)
     mHBAOPass->SetBias(0.1f);       // 자기-차폐 방지 (값 높을수록 AO 줄어듦)
     mHBAOPass->SetIntensity(1.2f);  // 전반적 강도
     mHBAOPass->SetFalloff(2.0f);
-    mHBAOPass->SetNumDirections(4);
-    mHBAOPass->SetNumSteps(4);
+    mHBAOPass->SetNumDirections(2);
+    mHBAOPass->SetNumSteps(2);
     mHBAOPass->SetBlurRadius(3.0f);
 
     mDepthPrePass->Initialize();
@@ -71,7 +73,7 @@ void GameRenderPipeline::Initialize(World* world)
     mEffectPass->Initialize(world);
     mParticlePass->Initialize(world);
     mPostProcessPass->Initialize();
-
+    mWorldUIPass->Initialize(world);
 
     
    
@@ -86,7 +88,7 @@ void GameRenderPipeline::Initialize(World* world)
 
     mGodRayPass = make_shared<GodRayPass>();
     mGodRayPass->SetIntensity(1.75f);
-    mGodRayPass->SetNumSteps(32);
+    mGodRayPass->SetNumSteps(8);
     mGodRayPass->SetMaxRayLen(8000.0f);
     mGodRayPass->SetScatterCoeff(0.00008f);
     mGodRayPass->SetMieAsymmetry(0.76f);
@@ -95,7 +97,7 @@ void GameRenderPipeline::Initialize(World* world)
     mPostProcessPass->AddHDRPass(mGodRayPass);
 
     mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
-    mEmissiveBloomPass->Initialize(4);      // 4단계 (W/2 ->W/4 -> W/8 -> W/16)
+    mEmissiveBloomPass->Initialize(3);      // 4단계 (W/2 ->W/4 -> W/8 -> W/16)
     mEmissiveBloomPass->SetThreshold(1.0f); // LDR 범위 초과 밝기부터 추출
     mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
     mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
@@ -110,6 +112,8 @@ void GameRenderPipeline::Initialize(World* world)
     );
     mPostProcessPass->AddLDRPass(mFXAAPass);
 
+    
+    
 }
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)
@@ -190,7 +194,7 @@ void GameRenderPipeline::Execute(const RenderContext& ctx)
 
     if (!mIsPaused) // 인게임 풀 파이프라인
     {
-        
+
         RenderDepthPrePass(ctx);
         RenderShadow(ctx);
         RenderDeferred(ctx);
@@ -198,12 +202,14 @@ void GameRenderPipeline::Execute(const RenderContext& ctx)
         RenderOutline(ctx);
         RenderEffect(ctx);
         RenderPost(ctx);
+        RenderWorldUI(ctx);
     }
     else
     {
         // PauseMenu: 게임 월드는 마지막 프레임 HDR 유지, UI 오버레이만
         // ToneMap + FinalComposite만 실행해 기존 프레임버퍼 출력
         RenderPost(ctx);
+        RenderWorldUI(ctx);
     }
 }
 
@@ -238,6 +244,7 @@ void GameRenderPipeline::UpdatePassStates()
 void GameRenderPipeline::SetMotionBlurEnabled(bool on)
 {
     if (mMotionBlurPass) mMotionBlurPass->SetEnabled(on);
+    if (mMotionVectorPass) mMotionVectorPass->SetEnabled(on);
 }
 
 void GameRenderPipeline::SetFogEnabled(bool on)
@@ -273,6 +280,12 @@ void GameRenderPipeline::SetFXAAEnabled(bool on)
 void GameRenderPipeline::SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality)
 {
     if (mFXAAPass) mFXAAPass->SetParams(edgeThreshold, edgeThresholdMin, subpixQuality);
+}
+
+void GameRenderPipeline::SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features)
+{
+    if (mWorldUIPass)
+		mWorldUIPass->SetFeatures(features);
 }
 
 void GameRenderPipeline::AddHDREffect(shared_ptr<RenderPass> pass)
@@ -361,6 +374,7 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
     mEffectPass->Execute(dt, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
     mParticlePass->Execute(ctx);
 
+
     // Effekseer가 RootSignature/DescriptorHeap을 변경하므로 엔진 상태 복원
     RENDERMANAGER.SetGraphicsTable();
 }
@@ -368,6 +382,12 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
 void GameRenderPipeline::RenderPost(const RenderContext& ctx)
 {
     mPostProcessPass->Execute(*ctx.deferredBatchs);
+}
+
+void GameRenderPipeline::RenderWorldUI(const RenderContext& ctx)
+{
+    if (mWorldUIPass)
+        mWorldUIPass->Execute(ctx.camera);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

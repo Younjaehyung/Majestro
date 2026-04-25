@@ -73,6 +73,9 @@ void UIUpdateSystem::Update(float dt)
 {
 	mCommonModule->Update(dt);
 
+    if (mFeatures == nullptr)
+		return;
+
     for (const auto& feature : *mFeatures)
     {
         if (feature != nullptr)

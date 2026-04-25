@@ -283,16 +283,22 @@ struct PASSINFO
 //////////////BaseGLOBAL
 struct GLOBAL_PARAMS
 {
-
-    //uint Index0;
-    //uint Index1;
-    //uint Index2;
-    //float Index3;
-
     uint BaseInstanceID;
-    uint etc;
+    uint etc; // WorldUIPass 한정 플래그 — bit0: 1=HUD(screen-space, no depth occlusion), 0=World
     uint casdcae;
     uint PassCustomIndex; // PASS_CUSTOM_DATA 테이블 행 인덱스 (PASS_CUSTOM_INDEX 열거형)
+
+    //HP 바 (WorldUIPass) per-bar 데이터
+    float3 HpBarAnchorWorld;  // 월드 공간 앵커 위치
+    float  HpBarFollowRatio;  // 현재 HP 비율 (0~1) — fill 크롭용 (r1.w 빈 lane 활용)
+
+    float2 HpBarSizePx;       // 화면 픽셀 단위 바 크기
+    float2 HpBarPivotPx;      // 앵커 기준 바 좌상단 픽셀 오프셋 (보통 -size/2)
+
+    uint   HpBarBgTexIdx;     // TextureMaps 배열 인덱스 (배경)
+    uint   HpBarFillTexIdx;   // TextureMaps 배열 인덱스 (채움)
+    uint   HpBarHitTexIdx;    // TextureMaps 배열 인덱스 (hit effect 시트, 0이면 비활성)
+    uint   HpBarHitConfig;    // packed: cols (bits 0-7) | rows (bits 8-15) | frameCount (bits 16-31)
 };
 //////////////
 

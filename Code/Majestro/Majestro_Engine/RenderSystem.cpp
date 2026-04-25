@@ -104,6 +104,7 @@ void RenderSystem::SetPipeline(shared_ptr<IRenderPipeline> pipeline)
 {
     pipeline->Initialize(mWorld);
     mActivePipeline = pipeline;
+
 }
 
 void RenderSystem::ClearRTV() {

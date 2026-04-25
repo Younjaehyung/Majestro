@@ -22,7 +22,7 @@ class UIRenderSystem : public System
 public:
 	UIRenderSystem(World* world);
 	virtual ~UIRenderSystem();
-	void SetFeatures(std::vector<shared_ptr<UIFeature>>* features);
+	void SetFeatures(std::vector<shared_ptr<UIFeature>>* features) { mFeatures = features; }
 	
 	
 	void Initialize();
@@ -31,6 +31,7 @@ public:
 	void Update();
 	void CustomSpriteRender();
 	void SpriteUpdate();
+	void PostSpriteRender();
 	void TextUpdate();
 
 private:

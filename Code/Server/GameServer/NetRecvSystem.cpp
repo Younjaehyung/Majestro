@@ -131,6 +131,7 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 	EnemySpawnProcess(inputCommand);
 	BulletPoolSpawnProcess(inputCommand);
 	SendWorldObjectsToNewClient(inputCommand.SessionId);
+	SendHealthSnapshotToNewClient(inputCommand.SessionId);
 }
 
 // ─── 플레이어 스폰 ───────────────────────────────────────────
@@ -275,6 +276,31 @@ void NetRecvSystem::SendWorldObjectsToNewClient(uint32 newSessionId)
 
 		SendRequest request{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(request);
+	}
+}
+
+
+void NetRecvSystem::SendHealthSnapshotToNewClient(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<HealthComponent>() ||
+		!mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (Entity entity : mWorld->GetEntitiesWithComponents<HealthComponent, NetEntityComponent>())
+	{
+		HealthComponent* hp = mWorld->GetComponent<HealthComponent>(entity);
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (hp == nullptr || netComp == nullptr)
+			continue;
+
+		S2C_HealthPacket healthPkt;
+		healthPkt.netEntityId = netComp->mNetEntityId;
+		healthPkt.currentHp = hp->mCurrentHp;
+		healthPkt.maxHp = hp->mMaxHp;
+
+		SendRequest request{ newSessionId, PKT_Type::S2C_PKT_HEALTH, sizeof(S2C_HealthPacket) };
+		request.StoreAs<S2C_HealthPacket>(healthPkt);
 		gSendQueue.Push(request);
 	}
 }

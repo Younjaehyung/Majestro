@@ -311,20 +311,22 @@ void NetRecvSystem::EnemySpawnProcess(InputCommand& inputCommand)
 {
 	if (mEnemySpawnOnce)
 	{
-		mNetEntityIds.reserve(200);
+		mEnemySpawnInfos.reserve(200);
 		for (int i = 0; i < 10; ++i)
 		{
 			Entity e = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, inputCommand);
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
-			mNetEntityIds.push_back(netComp->mNetEntityId);
+			EnemyComponent* emyComp = mWorld->GetComponent<EnemyComponent>(e);
+			mEnemySpawnInfos.emplace_back(netComp->mNetEntityId, emyComp->mEnemyType);
 		}
 		mEnemySpawnOnce = false;
 	}
 
-	for (uint64 id : mNetEntityIds)
+	for (auto [id, enemyType] : mEnemySpawnInfos)
 	{
 		S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(inputCommand.SessionId, id, PrefabType::ENEMY);
 		spawnPkt.isLocalPlayer = 0;
+		spawnPkt.Type = enemyType;
 
 		for (uint32 sessionId : CollectPlayerSessions())
 		{

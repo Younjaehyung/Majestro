@@ -27,6 +27,8 @@ enum class SkillType : uint8
 
     //mop
     HornAttack,
+    PianoAttack,
+    BongoAttack,
 
     Max
 };

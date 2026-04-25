@@ -30,7 +30,7 @@ private:
 
 	bool IsNewerSeq(uint32 lhs, uint32 rhs){return static_cast<int32>(lhs - rhs) > 0;}
 private:
-	vector<uint64> mNetEntityIds{};
+	vector<std::pair<uint64, uint8>> mEnemySpawnInfos;
 	vector<uint64> mBulletNetEntityIds{};
 	bool mEnemySpawnOnce = true;
 	bool mBulletSpawnOnce = true;

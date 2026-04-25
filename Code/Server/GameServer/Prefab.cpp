@@ -228,16 +228,17 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 
 
-	world->AddComponent<EnemyComponent>(mEntityID,EnemyType::HornMan, 40);
-
-	switch (0) {
+	switch (mSpawnCount %3) {
 	case EnemyType::HornMan:
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::HornMan, 40);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
-	case 1:
+	case EnemyType::Pianoman:
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 40);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 10);
 		break;
-	case 2:
+	case EnemyType::Bongoman:
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman, 40);
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
 		break;
 	}

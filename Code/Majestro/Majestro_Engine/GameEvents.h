@@ -65,6 +65,13 @@ struct EvBulletCountChanged {
     int max{};
 };
 
+// 서버가 unicast로 보내는 hit confirm을 받았을 때 발행되는 클라이언트 이벤트.
+// HUD 크로스헤어(jAims2) 람다가 단독 소비.
+struct EvHitMarker {
+    int32 damage{};
+    bool  isKill{};
+};
+
 struct EvBeat {
     int beat; // 현재 박자 번호
 };
@@ -82,4 +89,4 @@ struct EvSpawnParticleEffect
 };
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
-    EvRhythmChanged, EvHpArmorChanged>;
+    EvRhythmChanged, EvHpArmorChanged, EvHitMarker>;

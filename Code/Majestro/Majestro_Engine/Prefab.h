@@ -185,8 +185,14 @@ public:
 
 class HUDMusicPrefab : public Prefab
 {
-	public:
+public:
 	HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntity);
 	~HUDMusicPrefab();
 };
 
+class HUDCrosshairPrefab : public Prefab
+{
+public:
+	HUDCrosshairPrefab(World* world);
+	~HUDCrosshairPrefab();
+};

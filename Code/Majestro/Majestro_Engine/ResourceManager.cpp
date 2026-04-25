@@ -1941,6 +1941,7 @@ void ResourceManager::CreateDefaultMaterial()
 	//Aim
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"jAims", L"..\\Resources\\Image\\UI\\UI_Aim_01.png");
+		shared_ptr<Texture> textures = Load<Texture>(L"jAims2", L"..\\Resources\\Image\\UI\\UI_Aim_02.png");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);

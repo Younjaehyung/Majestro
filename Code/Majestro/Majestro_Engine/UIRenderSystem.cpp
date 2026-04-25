@@ -351,7 +351,8 @@ void UIRenderSystem::RenderSpirte()
                 textureSize,
                 destRect,
                 sourceRectPtr,
-                Colors::White
+				spriteComp->mColorTint
+
             );
         }
         else
@@ -361,7 +362,7 @@ void UIRenderSystem::RenderSpirte()
                 textureSize,
                 transComp->mFinalPixelPos,
                 sourceRectPtr,
-                Colors::White,
+                spriteComp->mColorTint,
                 0.f,    // rotation
                 origin  // pivot 적용
             );

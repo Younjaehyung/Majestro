@@ -96,6 +96,7 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_BULLET_ACTIVATE,   [this](auto& m){ HandleBulletActivate(m); });
     reg(PKT_Type::S2C_PKT_BULLET_DEACTIVATE, [this](auto& m){ HandleBulletDeactivate(m); });
     reg(PKT_Type::S2C_PKT_EFFECT_SPAWN,      [this](auto& m){ HandleEffectSpawn(m); });
+    reg(PKT_Type::S2C_PKT_HIT_CONFIRM,       [this](auto& m){ HandleHitConfirm(m); });
     reg(PKT_Type::S2C_GAME_START,            [this](auto& m){ HandleGameStart(m); });
     reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
 }
@@ -448,6 +449,17 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     impactVfx.mVfx = selectedVfx;
     impactVfx.mScale = effectScale;
     impactVfx.mIsLoop = effectLoop;
+}
+
+void NetRecvSystem::HandleHitConfirm(const InputCommand& msg)
+{
+    const S2C_HitConfirmPacket* pkt = msg.ViewAs<S2C_HitConfirmPacket>();
+    if (!pkt) return;
+
+    EvHitMarker ev{};
+    ev.damage = pkt->damage;
+    ev.isKill = (pkt->isKill != 0);
+    mWorld->GetEventManager()->Enqueue(ev);
 }
 
 void NetRecvSystem::HandleGameStart(const InputCommand& msg)

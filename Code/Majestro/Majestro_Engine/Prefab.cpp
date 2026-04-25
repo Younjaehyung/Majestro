@@ -268,6 +268,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		HUDWeaponPrefab::HUDWeaponPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDMusicPrefab::HUDMusicPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
+		HUDCrosshairPrefab::HUDCrosshairPrefab(world);
 	}
 	else 
 	{
@@ -1580,4 +1581,88 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 HUDMusicPrefab::~HUDMusicPrefab()
 {
 
+}
+
+
+
+HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
+{
+	// 기본 크로스헤어 (항상 표시)
+	Entity crosshair = world->CreateEntity();
+	{
+		shared_ptr<Texture> scorem = RESOURCEMANAGER.Get<Texture>(L"jAims");
+		auto& t = world->AddComponent<UITransformComponent>(crosshair);
+		t.mAnchor = Anchor::Center;
+		t.mPosition = Vec2(-64.f, -64.f);
+		t.mSize = Vec2(128.f, 128.f);
+		t.mUILayerIndex = 5;
+		t.mPivot = Vec2(0.5f, 0.5f);
+		world->AddComponent<UISpriteComponent>(crosshair, scorem);
+	}
+
+	// Hit marker (jAims2): 평소 숨김, EvHitMarker 수신 시 잠깐 나타나면서 작아짐.
+	// EvHitMarker 는 NetRecvSystem::HandleHitConfirm 이 enqueue.
+	{
+		Entity hit = world->CreateEntity();
+		shared_ptr<Texture> hitTex = RESOURCEMANAGER.Get<Texture>(L"jAims2");
+
+		constexpr float kStartSize = 128.f;
+		constexpr float kEndSize   = 96.f;
+		constexpr float kDur = 0.55f;
+
+		auto& t = world->AddComponent<UITransformComponent>(hit);
+		t.mAnchor = Anchor::Center;
+		t.mPosition = Vec2(-64.f, -64.f);
+		t.mSize = Vec2(kStartSize, kStartSize);
+		t.mUILayerIndex = 6;
+		t.mPivot = Vec2(0.5f, 0.5f);
+
+		auto& spr = world->AddComponent<UISpriteComponent>(hit, hitTex);
+		spr.mVisible = false;
+
+		auto& script = world->AddComponent<UIScriptComponent>(hit);
+		script.mOnUpdate =
+			[world, hit, active = false, elapsed = 0.f](float dt) mutable
+			{
+				
+
+				EventManager* em = world->GetEventManager().get();
+				if (em)
+				{
+					em->Consume<EvHitMarker>([&](const EvHitMarker&)
+						{
+							active = true;
+							elapsed = 0.f;
+						});
+				}
+
+				UITransformComponent* ui  = world->GetComponent<UITransformComponent>(hit);
+				UISpriteComponent*    spr = world->GetComponent<UISpriteComponent>(hit);
+				if (!ui || !spr) return;
+
+				if (!active)
+				{
+					spr->mVisible = false;
+					return;
+				}
+
+				elapsed += dt;
+				const float t01 = std::min(elapsed / kDur, 1.f);
+				const float s = std::lerp(kStartSize, kEndSize, t01);
+
+				ui->mSize = Vec2(s, s);
+				spr->mVisible = true;
+				spr->mColorTint.w = 1.f - t01; // 시간이 지날수록 투명해짐
+
+				if (t01 >= 1.f)
+				{
+					active = false;
+					spr->mVisible = false;
+				}
+			};
+	}
+}
+
+HUDCrosshairPrefab::~HUDCrosshairPrefab()
+{
 }

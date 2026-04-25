@@ -40,6 +40,7 @@ private:
 	void SendAmmoEvents();
 	void SendBulletDeactivateEvents();
 	void SendEffectSpawnEvents();
+	void SendHitConfirmEvents();
 	std::vector<uint32> CollectPlayerSessions() const;
 private:
 	SendRequest mSendReq;

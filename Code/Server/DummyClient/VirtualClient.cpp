@@ -286,6 +286,7 @@ void VirtualClient::ProcessTcpPacket(BYTE* buffer, uint32 size)
 	case PKT_Type::S2C_PKT_HEALTH:
 	case PKT_Type::S2C_PKT_ARMOR:
 	case PKT_Type::S2C_PKT_AMMO:
+	case PKT_Type::S2C_PKT_HIT_CONFIRM:
 	case PKT_Type::S2C_PKT_COLLISION:
 	case PKT_Type::S2C_PKT_BULLET_ACTIVATE:
 	case PKT_Type::S2C_PKT_BULLET_DEACTIVATE:

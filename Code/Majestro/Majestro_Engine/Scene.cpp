@@ -1214,20 +1214,8 @@ void FirstScene::Initialize()
 	}
 
 
-	{
-		Entity Aim = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"jAims");
 
-		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
-		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-64.f, -64.f);
-		t.mSize = Vec2(128.f, 128.f);
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Aim, scorem);
-	}
-
-	{
+	/*{
 		Entity Ibanix_Ammo = mWorld->CreateEntity();
 		shared_ptr<Material> scorem;
 		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Ammo");
@@ -1238,7 +1226,7 @@ void FirstScene::Initialize()
 		t.mSize = Vec2(196.f, 128.f);
 
 		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
-	}
+	}*/
 
 //	{
 //		Entity Fanthor_Portrait = mWorld->CreateEntity();

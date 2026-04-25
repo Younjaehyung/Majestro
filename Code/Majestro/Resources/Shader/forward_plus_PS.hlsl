@@ -84,8 +84,14 @@ float4 PS_Main(VS_OUT input) : SV_Target
     if (mtl.EmissiveMapIndex >= 0)
     {
         emissive = TextureMaps[mtl.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
-        color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
-        return color;
+        if (any(emissive.rgb))
+        {
+            color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2) * 10.f;
+            // color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
+            return color;
+        }
+            
+
     }
 
     ////////////////////////////////////////////////////////////////////////

@@ -73,6 +73,7 @@ public :
 public:
 	bool mVisible{ true };
 	bool mUIVisibility = true;
+	Vec4 mColorTint = Colors::White.v;
 
 	std::vector<shared_ptr<Texture>> mTextures;
 	shared_ptr<Texture> mTexture;

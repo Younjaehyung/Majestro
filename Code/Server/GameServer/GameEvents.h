@@ -130,6 +130,14 @@ struct EvHeal
     Entity instigator;
 };
 
+struct EvHitConfirm
+{
+    Entity instigator;  // instigator의 sessionId 한 곳에만 unicast로 송신
+    Entity target;
+    int32 damage;
+    bool isKill;
+};
+
 struct EvImpulse
 {
     Entity target;
@@ -148,5 +156,5 @@ struct EvInteractableConsumed
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
     EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
-    EvHeal, EvImpulse, EvInteractableConsumed>;
+    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm>;
 

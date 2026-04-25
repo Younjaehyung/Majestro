@@ -65,6 +65,20 @@ void DamageSystem::Update(float deltaTime)
                 eventManager->Enqueue<EvHealthChanged>(healthChanged);
             }
 
+            // 공격자가 유효하고 실제 데미지가 들어간 경우에만 hit confirm 발행.
+            // (방어구로 모두 흡수되어 HP/Armor 모두 변동이 없는 경우에는 발행하지 않음)
+            const bool armorAbsorbed = (beforeArmor != afterArmor);
+            const bool hpDamaged = (beforeHp != afterHp);
+            if (e.instigator.IsValid() && appliedDamage > 0 && (armorAbsorbed || hpDamaged))
+            {
+                EvHitConfirm hit{};
+                hit.instigator = e.instigator;
+                hit.target = e.target;
+                hit.damage = appliedDamage;
+                hit.isKill = health->IsDead();
+                eventManager->Enqueue<EvHitConfirm>(hit);
+            }
+
             std::cout << "[DamageSystem] target=" << e.target.GetID()
                 << " instigator=" << e.instigator.GetID()
                 << " amount=" << e.amount

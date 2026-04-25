@@ -30,6 +30,7 @@ void NetSendSystem::Update(float dt)
 	SendAmmoEvents();
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
+	SendHitConfirmEvents();
 
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
 		ConvertMove(mNetComp, &mSendReq, dt);	//move
@@ -348,6 +349,36 @@ void NetSendSystem::SendBulletDeactivateEvents()
 				mSendReq.StoreAs<S2C_BulletDeactivatePacket>(deactivatePkt);
 				gSendQueue.Push(mSendReq);
 			}
+		});
+}
+
+void NetSendSystem::SendHitConfirmEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	eventManager->Consume<EvHitConfirm>([&](const EvHitConfirm& e)
+		{
+			if (!e.instigator.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.instigator);
+			if (netComp == nullptr || netComp->mSessionId == 0)
+				return;
+
+			NetEntityComponent* victimNet = mWorld->GetComponent<NetEntityComponent>(e.target);
+
+			S2C_HitConfirmPacket pkt;
+			pkt.victimNetEntityId = victimNet ? victimNet->mNetEntityId : 0;
+			pkt.damage = e.damage;
+			pkt.isKill = e.isKill ? 1 : 0;
+
+			mSendReq.SessionId = netComp->mSessionId;
+			mSendReq.Type = S2C_PKT_HIT_CONFIRM;
+			mSendReq.Size = sizeof(S2C_HitConfirmPacket);
+			mSendReq.StoreAs<S2C_HitConfirmPacket>(pkt);
+			gSendQueue.Push(mSendReq);
 		});
 }
 

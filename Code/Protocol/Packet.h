@@ -41,6 +41,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_HEALTH,
 	S2C_PKT_ARMOR,
 	S2C_PKT_AMMO,
+	S2C_PKT_HIT_CONFIRM,
 
 	KMSG,
 };
@@ -229,6 +230,19 @@ struct S2C_ArmorPacket : public PacketTcpHeader {
 		: PacketTcpHeader{ sizeof(S2C_ArmorPacket), PKT_Type::S2C_PKT_ARMOR, 0.0 },
 		netEntityId(entityId), currentArmor(armor), maxArmor(maxArmorValue) {
 	}
+};
+
+
+
+struct S2C_HitConfirmPacket : public PacketTcpHeader {
+	// 공격자(local player)에게만 unicast로 전송되는 히트 확인 패킷.
+	uint64_t victimNetEntityId{};
+	int32_t  damage{};
+	uint8_t  isKill{};
+	uint8_t  reserved0{};
+	uint16_t reserved1{};
+
+	S2C_HitConfirmPacket() : PacketTcpHeader{ sizeof(S2C_HitConfirmPacket), PKT_Type::S2C_PKT_HIT_CONFIRM, 0.0 } {}
 };
 
 struct S2C_AmmoPacket : public PacketTcpHeader {

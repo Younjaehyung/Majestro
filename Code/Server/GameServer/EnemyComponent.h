@@ -5,6 +5,8 @@
 
 enum EnemyType {
 	HornMan,
+	Pianoman,
+	Bongoman
 };
 
 enum class EnemyAnimState : uint8

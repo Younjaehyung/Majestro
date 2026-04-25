@@ -362,21 +362,26 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<EnemyComponent>(mEntityID, 0);
 		break;
 	case 1:
-		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Attack"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, 0);
 		break;
 	case 2:
-		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Attack"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));*/
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Bongoman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Bongoman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Attack"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, 0);

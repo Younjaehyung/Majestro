@@ -42,7 +42,7 @@
 #include "CpuAnimationSystem.h"
 #include "PlayerSystem.h"
 #include "ParticleSystem.h"
-#include "SocketTrailSystem.h"
+
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
 #include "IMGUISystem.h"
@@ -829,7 +829,7 @@ void MainMenuScene::Initialize()
 
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
@@ -1336,7 +1336,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
+	//mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 
 

@@ -265,12 +265,9 @@
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="ParticleEffect.h" />
     <ClInclude Include="ParticlePass.h" />
-    <ClInclude Include="TrailPass.h" />
     <ClInclude Include="ParticleResourceAllocator.h" />
     <ClInclude Include="ParticleSystem.h" />
-    <ClInclude Include="SocketTrailSystem.h" />
     <ClInclude Include="UIAudioVisualizerFeature.h" />
-    <ClInclude Include="WeaponTrailComponent.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhysicsWorld.h" />
     <ClInclude Include="PlayerComponent.h" />
@@ -405,10 +402,8 @@
     <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="ParticleEffect.cpp" />
     <ClCompile Include="ParticlePass.cpp" />
-    <ClCompile Include="TrailPass.cpp" />
     <ClCompile Include="ParticleResourceAllocator.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
-    <ClCompile Include="SocketTrailSystem.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

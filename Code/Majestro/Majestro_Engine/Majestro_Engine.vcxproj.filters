@@ -340,9 +340,6 @@
     <ClInclude Include="ParticlePass.h">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
-    <ClInclude Include="TrailPass.h">
-      <Filter>World\System\Render\07.Effect</Filter>
-    </ClInclude>
     <ClInclude Include="AudioSystem.h">
       <Filter>World\System\Client</Filter>
     </ClInclude>
@@ -614,12 +611,6 @@
     <ClInclude Include="ParticleSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="SocketTrailSystem.h">
-      <Filter>World\System\Logic</Filter>
-    </ClInclude>
-    <ClInclude Include="WeaponTrailComponent.h">
-      <Filter>World\Component\Logic</Filter>
-    </ClInclude>
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\UI\System</Filter>
     </ClInclude>
@@ -762,9 +753,6 @@
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="ParticlePass.cpp">
-      <Filter>World\System\Render\07.Effect</Filter>
-    </ClCompile>
-    <ClCompile Include="TrailPass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
     <ClCompile Include="AudioSystem.cpp">
@@ -1009,9 +997,6 @@
       <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
-      <Filter>World\System\Logic</Filter>
-    </ClCompile>
-    <ClCompile Include="SocketTrailSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="UIRenderSystem.cpp">

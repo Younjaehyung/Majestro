@@ -58,8 +58,9 @@ void Scene::Initialize()
 
 void Scene::Update(float deltaTime)
 {
+	mGameMode->PostUpdate(deltaTime);
 	mWorld->Update(deltaTime);
-	mGameMode->Update(deltaTime);
+	mGameMode->PostUpdate(deltaTime);
 }
 
 
@@ -223,6 +224,14 @@ Entity Scene::SpawnMonsterSpawner(World* world,
 	return e;
 }
 
+void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
+{
+
+	mGameMode->SetScene(shared_from_this()); // GameMode에 씬 참조 전달
+	mGameMode = gameMode;
+
+}
+
 void FirstScene::Initialize()
 {
 	//PlayerPrefab p{ mWorld.get()};
@@ -267,7 +276,7 @@ void FirstScene::Initialize()
 		Vec3(-2337.0f, 142.0f, -4987.0f),
 		Vec3(  150.0f, 5.0f,   150.0f),
 		/*valueA(Y 임펄스)=*/1200.0f,
-		/*valueB(전방 임펄스)=*/400.0f,
+		/*valueB(전방 임펄스)=*/5.0f,
 		/*cooldown=*/0.5f,
 		/*oneShot=*/false);
 

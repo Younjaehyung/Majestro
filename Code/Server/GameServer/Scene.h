@@ -3,7 +3,7 @@
 class SystemManager;
 class GameMode;
 
-class Scene
+class Scene : public std::enable_shared_from_this<Scene>
 {
 public:
 	virtual void Initialize();
@@ -32,7 +32,7 @@ public:
 		bool  startActive = true);
 	virtual const shared_ptr<World>& GetWorld() { return mWorld; }
 
-	void SetGameMode(shared_ptr<GameMode>& gameMode) { mGameMode = gameMode; }
+	void SetGameMode(shared_ptr<GameMode>& gameMode);
 	shared_ptr<GameMode>& GetGameMode() { return mGameMode; }
 	SceneId GetSceneId() const { return mSceneId; }
 public:

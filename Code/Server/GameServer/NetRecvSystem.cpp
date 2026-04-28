@@ -395,21 +395,21 @@ Entity NetRecvSystem::FindEntityBySession(uint32 sessionId) const
 	return Entity{};
 }
 
-std::vector<uint32> NetRecvSystem::CollectPlayerSessions() const
+std::vector<uint32> NetRecvSystem::CollectPlayerSessions()
 {
 	if (!mWorld->HasComponentPool<NetEntityComponent>())
 		return {};
 
-	std::unordered_set<uint32> sessionSet;
+	mSessionSet.clear();
 	auto entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
-	sessionSet.reserve(entities.size());
+	mSessionSet.reserve(entities.size());
 
 	for (auto entity : entities)
 	{
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (netComp && netComp->mSessionId != 0)
-			sessionSet.insert(netComp->mSessionId);
+			mSessionSet.insert(netComp->mSessionId);
 	}
 
-	return std::vector<uint32>(sessionSet.begin(), sessionSet.end());
+	return std::vector<uint32>(mSessionSet.begin(), mSessionSet.end());
 }

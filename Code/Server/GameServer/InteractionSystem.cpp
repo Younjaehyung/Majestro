@@ -25,15 +25,33 @@ InteractionSystem::InteractionSystem(World* world)
 
 bool InteractionSystem::MatchesTargetMask(World* world, Entity e, uint8 mask)
 {
+  
+    if (mask & InteractableTarget_All) {
+
+        if (world->HasComponent<MainPlayerComponent>(e))
+            mPlayerCount++;
+
+        if (world->HasComponent<EnemyComponent>(e))
+             mEnemyCount++;
+
+        return true;
+    }
+
     if (mask & InteractableTarget_Player)
     {
-        if (world->HasComponent<MainPlayerComponent>(e))
+        if (world->HasComponent<MainPlayerComponent>(e)) {
+            mPlayerCount++;
             return true;
+        }
+          
     }
     if (mask & InteractableTarget_Enemy)
     {
-        if (world->HasComponent<EnemyComponent>(e))
+        if (world->HasComponent<EnemyComponent>(e)) {
+            mEnemyCount++;
             return true;
+        }
+           
     }
     return false;
 }
@@ -52,16 +70,21 @@ void InteractionSystem::Update(float dt)
     const float now = GetServerTotalTimeSeconds();
 
     candidates.clear();
+	
 
     if (mWorld->HasComponentPool<MainPlayerComponent>())
     {
-        for (auto e : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent, BoxColliderComponent>())
+        for (auto e : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent, BoxColliderComponent>()) {
             candidates.push_back(e);
+           
+        }
     }
     if (mWorld->HasComponentPool<EnemyComponent>())
     {
-        for (auto e : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent, BoxColliderComponent>())
+        for (auto e : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent, BoxColliderComponent>()) {
             candidates.push_back(e);
+            
+        }
     }
     if (candidates.empty()) return;
 
@@ -70,6 +93,10 @@ void InteractionSystem::Update(float dt)
 
     for (Entity t : triggers)
     {
+        mPlayerCount = 0;
+        mEnemyCount = 0;
+
+
         auto* inter = mWorld->GetComponent<InteractableComponent>(t);
         auto* trTr = mWorld->GetComponent<TransformComponent>(t);
         auto* trCol = mWorld->GetComponent<BoxColliderComponent>(t);
@@ -97,7 +124,7 @@ void InteractionSystem::Update(float dt)
             auto* userCol = mWorld->GetComponent<BoxColliderComponent>(user);
             if (!userTr || !userCol) continue;
 
-            PhysicsWorld::UpdateWorldOBB(userTr, userCol);
+           // PhysicsWorld::UpdateWorldOBB(userTr, userCol);
 
             if (!trCol->mWorldOBB.Intersects(userCol->mWorldOBB))
                 continue;
@@ -110,6 +137,7 @@ void InteractionSystem::Update(float dt)
             case InteractableKind::JumpPad:     ApplyJumpPad(user, t, *inter);   break;
             case InteractableKind::SpeedPad:    ApplySpeedPad(user, t, *inter);  break;
             case InteractableKind::DamageZone:  ApplyDamageZone(user, t, *inter); break;
+			case InteractableKind::ConquestZone: ApplyConquestZone(user, t, *inter); break;
             case InteractableKind::Checkpoint:
             case InteractableKind::None:
             default: break;
@@ -199,4 +227,14 @@ void InteractionSystem::ApplyDamageZone(Entity user, Entity trigger, Interactabl
     dmg.amount     = static_cast<int32>(i.mValueA);
     dmg.instigator = trigger;
     mWorld->GetEventManager()->Enqueue<EvDamage>(dmg);
+}
+
+void InteractionSystem::ApplyConquestZone(Entity user, Entity trigger, InteractableComponent& i)
+{
+	EvConquestPointCaptured capture{};
+	capture.currentPointsNum = static_cast<int>(i.mValueA);
+    capture.playerNum = mPlayerCount;
+	capture.enemyNum = mEnemyCount;
+	mWorld->GetEventManager()->Enqueue<EvConquestPointCaptured>(capture);
+
 }

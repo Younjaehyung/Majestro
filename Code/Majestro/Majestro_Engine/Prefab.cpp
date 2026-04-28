@@ -81,9 +81,9 @@ PlayerPrefab::PlayerPrefab(World* world)
 	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
 	shared_ptr<Material> material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
 
-
+	
 	material2s.push_back(material2);
-	t.mLocalPosition = { 0.f, 0.f, 10.f };
+	t.mLocalPosition = { -8002.9f, 1027.2f, -12519.6f };
 	t.mLocalScale = { 10.f, 10.f, 10.f };
 
 	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
@@ -244,12 +244,13 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 
 	TransformComponent t{};
-	t.mLocalPosition = { 0.f, 0.f, 10.f };
+	t.mLocalPosition = { -8002.9f, 1027.2f, -12519.6f };
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
 	world->AddComponent<BeatComponent>(mEntityID);
-	world->AddComponent<GravityComponent>(mEntityID);
+	GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
+	grav.mHight = t.mLocalPosition.y + 13.f; // 임시 동기화
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	
@@ -269,6 +270,36 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		HUDMusicPrefab::HUDMusicPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDCrosshairPrefab::HUDCrosshairPrefab(world);
+
+
+		// ================ [디버깅] 플레이어 실시간 좌표 UI ================
+		Entity debugTextObj = world->CreateEntity();
+		auto& dbgTransform = world->AddComponent<UITransformComponent>(debugTextObj);
+		dbgTransform.mAnchor = Anchor::Center; // 화면 좌측 상단
+		dbgTransform.mPosition = Vec2(30.f, -30.f);
+		dbgTransform.mSize = Vec2(400.f, 50.f);
+		dbgTransform.mUILayerIndex = 15;
+
+		world->AddComponent<UITextComponent>(debugTextObj).mText = L"Pos: ";
+		world->AddComponent<UIScriptComponent>(debugTextObj).mOnUpdate =
+			[world, mEntityID, debugTextObj](float /*dt*/)
+			{
+				TransformComponent* playerTransform = world->GetComponent<TransformComponent>(mEntityID);
+				UITextComponent* textComp = world->GetComponent<UITextComponent>(debugTextObj);
+
+				if (playerTransform && textComp)
+				{
+					// x, y, z 좌표를 읽어와 텍스트 갱신
+					std::wstring posText = L"Player Pos: (" +
+						std::to_wstring((int)playerTransform->mLocalPosition.x) + L", " +
+						std::to_wstring((int)playerTransform->mLocalPosition.y) + L", " +
+						std::to_wstring((int)playerTransform->mLocalPosition.z) + L")";
+
+					textComp->mText = posText;
+				}
+			};
+
+
 	}
 	else 
 	{

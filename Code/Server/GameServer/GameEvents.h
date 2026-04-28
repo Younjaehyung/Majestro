@@ -93,6 +93,13 @@ struct EvBulletDeactivated
     Entity bullet;
 };
 
+struct EvConquestPointCaptured
+{
+	int currentPointsNum;
+    int playerNum;
+    int enemyNum;
+};
+
 struct EvEffectSpawn
 {
     uint8 effectType = 0;
@@ -156,5 +163,5 @@ struct EvInteractableConsumed
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
     EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
-    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm>;
+    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm, EvConquestPointCaptured>;
 

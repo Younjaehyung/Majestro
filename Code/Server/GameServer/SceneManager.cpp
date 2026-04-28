@@ -20,9 +20,9 @@ void SceneManager::FactoryScene()
 	{	// LOBBYSCENE
 		shared_ptr<Scene> lobbyScene = make_shared<LobbyScene>();
 		shared_ptr<GameMode> gameMode = make_shared<LobbyGameMode>();
-
-		lobbyScene->Initialize();
 		lobbyScene->SetGameMode(gameMode);
+		lobbyScene->Initialize();
+		
 		mGameScenes[(size_t)SceneId::Lobby]=lobbyScene;
 	}
 
@@ -30,8 +30,9 @@ void SceneManager::FactoryScene()
 	{	// GAMESCENE
 		shared_ptr<Scene> firstScene = make_shared<FirstScene>();
 		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
-		firstScene->Initialize();
 		firstScene->SetGameMode(gameMode);
+		firstScene->Initialize();
+		
 		mGameScenes[(size_t)SceneId::FirstGame] = firstScene;
 		mActiveScene = firstScene;
 	}
@@ -39,8 +40,9 @@ void SceneManager::FactoryScene()
 
 		shared_ptr<Scene> secondScene = make_shared<SecondScene>();
 		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
-		secondScene->Initialize();
 		secondScene->SetGameMode(gameMode);
+		secondScene->Initialize();
+		
 		mGameScenes[(size_t)SceneId::SecondGame] = secondScene;
 	}
 
@@ -49,15 +51,17 @@ void SceneManager::FactoryScene()
 	{	// RESULTSCENE
 		shared_ptr<Scene> victoryScene = make_shared<VictoryScene>();
 		shared_ptr<GameMode> gameMode = make_shared<ResultGameMode>();
-		victoryScene->Initialize();
 		victoryScene->SetGameMode(gameMode);
+		victoryScene->Initialize();
+		
 		mGameScenes[(size_t)SceneId::VGame] = victoryScene;
 	}
 	{
 		shared_ptr<Scene> loseScene = make_shared<LoseScene>();
 		shared_ptr<GameMode> gameMode = make_shared<ResultGameMode>();
-		loseScene->Initialize();
 		loseScene->SetGameMode(gameMode);
+		loseScene->Initialize();
+		
 		mGameScenes[(size_t)SceneId::LGame] = loseScene;
 	}
 

@@ -18,6 +18,7 @@ enum class InteractableKind : uint8
 	JumpPad,  
 	SpeedPad, 
 	DamageZone,
+	ConquestZone,
     Checkpoint
 };
 

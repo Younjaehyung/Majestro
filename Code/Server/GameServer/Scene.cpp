@@ -40,7 +40,7 @@
 #include "NetEntityComponent.h"
 #include "SpawnerSystem.h"
 #include "SpawnerComponent.h"
-
+#include "GameRuleSystem.h"
 
 
 
@@ -58,9 +58,9 @@ void Scene::Initialize()
 
 void Scene::Update(float deltaTime)
 {
-	mGameMode->PostUpdate(deltaTime);
+	//mGameMode->PreUpdate(deltaTime);
 	mWorld->Update(deltaTime);
-	mGameMode->PostUpdate(deltaTime);
+	//mGameMode->PostUpdate(deltaTime);
 }
 
 
@@ -161,6 +161,7 @@ Entity Scene::SpawnInteractable(World* world,
 	float valueB,
 	float cooldown,
 	bool  oneShot,
+	InteractableTarget targetMask,
 	SkillType buffType)
 {
 	Entity e = world->CreateEntity();
@@ -226,10 +227,12 @@ Entity Scene::SpawnMonsterSpawner(World* world,
 
 void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 {
+	if (gameMode) {
+		mGameMode = gameMode;
 
-	mGameMode->SetScene(shared_from_this()); // GameMode에 씬 참조 전달
-	mGameMode = gameMode;
-
+		mGameMode->SetScene(shared_from_this()); // GameMode에 씬 참조 전달
+		
+	}
 }
 
 void FirstScene::Initialize()
@@ -242,6 +245,7 @@ void FirstScene::Initialize()
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	mWorld->Initialize();
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 체크 (예: 승패 조건, 라운드 진행 등)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 5. 버프 틱/만료 처리// 2. 플레이어 입력 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
@@ -257,6 +261,8 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
+	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
+	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
 
@@ -279,6 +285,19 @@ void FirstScene::Initialize()
 		/*valueB(전방 임펄스)=*/5.0f,
 		/*cooldown=*/0.5f,
 		/*oneShot=*/false);
+
+
+	// 점령지 1
+	SpawnInteractable(mWorld.get(),
+		static_cast<uint8>(InteractableKind::ConquestZone),
+		Vec3(-500.0f, -127.0f, 1240.0f),
+		Vec3(  300.0f, 300.0f,   300.0f),
+		/*valueA(점령지 넘버)=*/1.0f,
+		/*valueB(미정)=*/0.0f,
+		/*cooldown=*/0.0f,
+		/*oneShot=*/false,
+		InteractableTarget_All
+	);
 
 	//// 몬스터 주기 스폰 포인트. 5초마다 스폰, 동시 최대 3마리, 반경 200 안에 랜덤 배치.
 	//SpawnMonsterSpawner(mWorld.get(),

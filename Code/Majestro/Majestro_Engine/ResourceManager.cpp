@@ -2129,6 +2129,13 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
 
 
+		Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
+	/*	Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort.png");
+		Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
+		Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss.png");
+		Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success.png");
+*/
+
 		
 		
 

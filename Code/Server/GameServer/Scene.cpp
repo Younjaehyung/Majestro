@@ -54,6 +54,8 @@ void Scene::Initialize()
 	
 	mGameMode = make_shared<WaveGameMode>();
 	mWorld->Initialize();
+
+
 }
 
 void Scene::Update(float deltaTime)
@@ -241,6 +243,10 @@ void FirstScene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 
 	TerrainPrefab terrain{ mWorld.get() };
+	 
+	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
+	SetGameMode(gameMode);
+	gameMode->Initialize();
 
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	mWorld->Initialize();
@@ -365,6 +371,10 @@ void FirstScene::Initialize()
 		/*startActive=*/true);
 
 	mSceneId = SceneId::FirstGame;
+
+
+
+	
 }
 
 void SecondScene::Initialize()
@@ -394,18 +404,26 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
 	mSceneId = SceneId::SecondGame;
+	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
+	SetGameMode(gameMode);
 }
 
 void LobbyScene::Initialize()
 {
 	mWorld->Initialize();
 	mSceneId = SceneId::Lobby;
+
+	shared_ptr<GameMode> gameMode = make_shared<LobbyGameMode>();
+	SetGameMode(gameMode);
 }
 
 void VictoryScene::Initialize()
 {
 	mWorld->Initialize();
 	mSceneId = SceneId::VGame;
+
+	shared_ptr<GameMode> gameMode = make_shared<ResultGameMode>();
+	SetGameMode(gameMode);
 }
 
 void LoseScene::Initialize()
@@ -415,4 +433,7 @@ void LoseScene::Initialize()
 
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 	mSceneId = SceneId::LGame;
+
+	shared_ptr<GameMode> gameMode = make_shared<ResultGameMode>();
+	SetGameMode(gameMode);
 }

@@ -229,6 +229,9 @@
     <ClCompile Include="GameRuleSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="GamePhase.cpp">
+      <Filter>Script</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -414,6 +417,12 @@
     <ClInclude Include="SpawnerSystem.h" />
     <ClInclude Include="GameRuleSystem.h">
       <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="GameRuleComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePhase.h">
+      <Filter>Script</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

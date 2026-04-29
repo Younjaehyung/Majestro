@@ -27,6 +27,8 @@ enum PKT_Type : uint32 {
 	S2C_PKT_LOGIN,
 	S2C_PKT_LOGOUT,			// 아직 안함
 	S2C_PKT_SCENE_STATE,
+	S2C_PKT_SCENE_CONQUEST,
+	S2C_PKT_SCENE_ESCORT,
 	S2C_PKT_POS,
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
@@ -128,6 +130,17 @@ enum class RepCompKind : uint8
 	NetHealth,
 };
 
+
+enum class WavePhaseType : uint8 
+{ 
+	None = 0,
+	Prepare , 
+	Conquest, 
+	Escort,
+	Boss, 
+	Clear 
+};
+
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -160,8 +173,19 @@ struct S2C_LoginPacket : public PacketTcpHeader {
 
 struct S2C_SceneStatePacket : public PacketTcpHeader {
 	uint32 clientId{};
-
 	float GameTime = 0.0f; // 게임 진행 시간
+	uint8 GamePhase = 0; // 현재 게임 phase (예: 준비, 점령, 호위 등)
+	int32 PlayerScore = 0; // 플레이어 점수 (예: 점령 시간, 처치 수 등)
+	S2C_SceneStatePacket() : PacketTcpHeader{ sizeof(S2C_SceneStatePacket), PKT_Type::S2C_PKT_SCENE_STATE, 0.0 } {}
+	S2C_SceneStatePacket(uint32 id, float gameTime, uint8 gamePhase, int32 score)
+		: PacketTcpHeader{ sizeof(S2C_SceneStatePacket), PKT_Type::S2C_PKT_SCENE_STATE, 0.0 },
+		clientId(id), GameTime(gameTime), GamePhase(gamePhase), PlayerScore(score) {
+	}
+};
+	
+
+struct S2C_ConquestPacket : public PacketTcpHeader {
+	uint32 clientId{};
 
 	int WaveCheckPoint = 0; // 현재 웨이브 체크포인트 번호 (0부터 시작)
 	int Wave = 1;          // 현재 웨이브 번호 (1부터 시작)
@@ -172,12 +196,13 @@ struct S2C_SceneStatePacket : public PacketTcpHeader {
 	int PlayerNum = 0; // 플레이어 수
 	int EnemyNum = 0; // 적 수
 
-	S2C_SceneStatePacket() : PacketTcpHeader{ sizeof(S2C_SceneStatePacket), PKT_Type::S2C_PKT_SCENE_STATE, 0.0 } {}
-	S2C_SceneStatePacket(uint32 id, float gameTime, int waveCheckpoint, int wave, float waveInterval, float waveTime, int playerNum, int enemyNum)
-		: PacketTcpHeader{ sizeof(S2C_SceneStatePacket), PKT_Type::S2C_PKT_SCENE_STATE, 0.0 },
-		clientId(id), GameTime(gameTime), WaveCheckPoint(waveCheckpoint), Wave(wave), WaveInterval(waveInterval), WaveTime(waveTime), PlayerNum(playerNum), EnemyNum(enemyNum) {
+	S2C_ConquestPacket() : PacketTcpHeader{ sizeof(S2C_ConquestPacket), PKT_Type::S2C_PKT_SCENE_CONQUEST, 0.0 } {}
+	S2C_ConquestPacket(uint32 id, int waveCheckpoint, int wave, float waveInterval, float waveTime, int playerNum, int enemyNum)
+		: PacketTcpHeader{ sizeof(S2C_ConquestPacket), PKT_Type::S2C_PKT_SCENE_CONQUEST, 0.0 },
+		clientId(id), WaveCheckPoint(waveCheckpoint), Wave(wave), WaveInterval(waveInterval), WaveTime(waveTime), PlayerNum(playerNum), EnemyNum(enemyNum) {
 	}
 };
+
 
 struct S2C_StartGamePacket : public PacketTcpHeader {
 	uint32 clientId{};

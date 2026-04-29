@@ -2,6 +2,7 @@
 #include "ServerCore.h"
 #include "World.h"
 #include "GameRuleSystem.h"
+#include "GameRuleComponent.h"
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
 
@@ -24,11 +25,16 @@ GamePostRuleSystem::GamePostRuleSystem(World* world, shared_ptr<GameMode> gameMo
 
 void GamePostRuleSystem::Update(float deltaTime)
 {
+	
+
 	if (mGameMode) {
+
+		GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(mGameMode->GetGameRuleEntity());
+		if (ruleComp) ruleComp->mGameTime += deltaTime;
+
+
 		mGameMode->PostUpdate(deltaTime);
 	}
-
-
 }
 
 GameNetRuleSystem::GameNetRuleSystem(World* world, shared_ptr<GameMode> gameMode) : System(world), mGameMode(gameMode)
@@ -43,18 +49,55 @@ void GameNetRuleSystem::Update(float deltaTime)
 	if (mGameMode) {
 
 		CollectPlayerSessions();
-		mGameMode->SendSceneState(deltaTime, std::vector<uint32>(mSessionSet.begin(), mSessionSet.end()));
+		
+        if (mSessionSet.empty()) return;
+
+        Entity rule = mGameMode->GetGameRuleEntity();
+
+        
+		// 글로벌 — 항상 존재
+		if (mSceneStateSendRate.Tick(deltaTime))
+			SendSceneState(rule);
+
+
+		// 활성 phase
+		if (mScenePhaseSendRate.Tick(deltaTime)) {
+			SendSceneConquest(rule);
+		}
+			
 	}
 	
 }
-void GameNetRuleSystem::SendSceneState(float deltaTime)
+
+void GameNetRuleSystem::SendSceneState(Entity rule)
 {
-
-	
-
-	
-
+	if (auto* s = mWorld->GetComponent<GameRuleComponent>(rule))
+	{
+		S2C_SceneStatePacket pkt{};
+		pkt.GameTime = s->mGameTime;
+		pkt.GamePhase = s->mGamePhase;
+		pkt.PlayerScore = s->mPlayerScore;
+		Broadcast(S2C_PKT_SCENE_STATE, pkt);
+	}
 }
+
+void GameNetRuleSystem::SendSceneConquest(Entity rule)
+{
+	
+	if (auto* g = mWorld->GetComponent<GameConquestComponent>(rule))
+	{
+		S2C_ConquestPacket pkt{};
+		pkt.WaveCheckPoint = g->mWaveCheckPoint;
+		pkt.Wave = g->mWave;
+		pkt.WaveInterval = g->mWaveInterval;
+		pkt.WaveTime = g->mWaveTime;
+		pkt.PlayerNum = g->mPlayerNum;
+		pkt.EnemyNum = g->mEnemyNum;
+
+		Broadcast(S2C_PKT_SCENE_CONQUEST, pkt);
+	}
+}
+
 
 void GameNetRuleSystem::CollectPlayerSessions()
 {

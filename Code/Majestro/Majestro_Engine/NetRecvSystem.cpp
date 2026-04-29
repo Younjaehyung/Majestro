@@ -25,6 +25,7 @@
 #include "ArmorComponent.h"
 #include "VfxComponent.h"
 #include "ResourceManager.h"
+#include "GameRuleComponent.h"
 
 namespace
 {
@@ -99,6 +100,9 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_HIT_CONFIRM,       [this](auto& m){ HandleHitConfirm(m); });
     reg(PKT_Type::S2C_GAME_START,            [this](auto& m){ HandleGameStart(m); });
     reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
+	reg(PKT_Type::S2C_PKT_SCENE_STATE,       [this](auto& m) { HandleSceneState(m); });
+	reg(PKT_Type::S2C_PKT_SCENE_CONQUEST, [this](auto& m) { HandleConquestSceneState(m); });
+	//reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -496,6 +500,44 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
         break;
     }
 }
+
+void NetRecvSystem::HandleSceneState(const InputCommand& msg)
+{
+    const S2C_SceneStatePacket* pkt = msg.ViewAs<S2C_SceneStatePacket>();
+     if (!pkt) return;
+	 // 씬 상태 정보 처리 (예: 라운드 시작, 종료, 점수 업데이트 등)
+
+	 Entity e = mWorld->GetGameRuleEntity();
+
+	 GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
+	 if (!gameRuleComp) return;
+
+	 gameRuleComp->mGameTime = pkt->GameTime;
+	 gameRuleComp->mPlayerScore = pkt->PlayerScore;
+	 gameRuleComp->mGamePhase = pkt->GamePhase;
+}
+
+void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
+{
+    const S2C_ConquestPacket* pkt = msg.ViewAs<S2C_ConquestPacket>();
+	if (!pkt) return;
+	// Conquest 씬 상태 정보 처리 (예: 점령 상태, 팀 점수 등)
+    
+    Entity e = mWorld->GetGameRuleEntity();
+
+	GameConquestComponent* conquestComp = mWorld->GetComponent<GameConquestComponent>(e);
+	if (!conquestComp) return;
+
+	conquestComp->mWaveCheckPoint = pkt->WaveCheckPoint;
+	conquestComp->mWave = pkt->Wave;
+	conquestComp->mWaveInterval = pkt->WaveInterval;
+	conquestComp->mWaveTime = pkt->WaveTime;
+	conquestComp->mPlayerNum = pkt->PlayerNum;
+	conquestComp->mEnemyNum = pkt->EnemyNum;
+
+
+}
+
 
 void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 {

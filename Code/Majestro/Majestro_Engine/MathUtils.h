@@ -16,3 +16,5 @@ float Saturate(float v);
 float Wrap180Degrees(float deg);
 float SmoothStep01(float t);
 float LerpAngleDegrees(float startYaw, float targetYaw, float alpha);
+
+float EaseOutCubic(float t);

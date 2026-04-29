@@ -10,6 +10,7 @@
 #include "BulletComponent.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "GameRuleComponent.h"
 #include "GameEvents.h"
 
 
@@ -31,6 +32,7 @@ void NetSendSystem::Update(float dt)
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
 	SendHitConfirmEvents();
+
 
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
 		SendMove(mNetComp, &mSendReq, dt);	//move
@@ -421,3 +423,4 @@ void NetSendSystem::SendEffectSpawnEvents()
 			}
 		});
 }
+

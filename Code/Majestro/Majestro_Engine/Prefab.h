@@ -196,3 +196,17 @@ public:
 	HUDCrosshairPrefab(World* world);
 	~HUDCrosshairPrefab();
 };
+
+class HUDScorePrefab : public Prefab
+{
+public:
+	HUDScorePrefab(World* world);
+	~HUDScorePrefab();
+};
+
+class HUDTimerPrefab : public Prefab
+{
+	public:
+	HUDTimerPrefab(World* world);
+	~HUDTimerPrefab();
+};

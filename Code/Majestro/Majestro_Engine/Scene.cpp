@@ -50,7 +50,7 @@
 #include "MovementSystem.h"
 
 #include "NetRecvSystem.h"
-#include "NetSendSystem.h"
+#include "GameRuleComponent.h"
 #include "PlayerInputSystem.h"
 #include "EnemySystem.h"
 #include "CollisionSystem.h"
@@ -65,6 +65,7 @@
 #include "UIAudioVisualizerFeature.h"
 #include "UICommonUpdateFeature.h"
 #include "UIHpBarUpdateFeature.h"
+#include "UIGameInfoUpdateFeature.h"
 
 
 
@@ -1051,6 +1052,7 @@ void FirstScene::Initialize()
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
 
+
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
 // 
@@ -1294,6 +1296,9 @@ void FirstScene::Initialize()
 	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
 	mUIFeatures.push_back(hpBarModule);
 
+	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
+	mUIFeatures.push_back(gameInfoModule);
+
 	
 
 
@@ -1352,6 +1357,9 @@ void FirstScene::Initialize()
 #pragma endregion
 
 
+
+	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
+	mWorld->AddComponent<GameConquestComponent>(mWorld->GetGameRuleEntity());
 
 
 }

@@ -80,11 +80,13 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_ARMOR:
 	case PKT_Type::S2C_PKT_AMMO:
 	case PKT_Type::S2C_PKT_HIT_CONFIRM:
+	case PKT_Type::S2C_PKT_SCENE_STATE:
+	case PKT_Type::S2C_PKT_SCENE_CONQUEST:
 	{
 		ProcessTcpPackets(inputCommand, buffer);
 		break;
 	}
-
+	
 	// UDP
 	case PKT_Type::PKT_UDP:
 	case PKT_Type::S2C_PKT_MOVE: {
@@ -92,7 +94,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 		break;
 	}
 	default:
-		//LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
+		// LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
 		return false;
 	}
 	return true;

@@ -636,6 +636,12 @@
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
     <ClInclude Include="WorldUIPass.h" />
+    <ClInclude Include="UIGameInfoUpdateFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="GameRuleComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -1021,6 +1027,9 @@
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="WorldUIPass.cpp" />
+    <ClCompile Include="UIGameInfoUpdateFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">

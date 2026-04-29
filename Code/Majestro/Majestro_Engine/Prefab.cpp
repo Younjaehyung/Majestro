@@ -27,6 +27,7 @@
 #include "BulletComponent.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "GameRuleComponent.h"
 
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
@@ -1695,5 +1696,47 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 }
 
 HUDCrosshairPrefab::~HUDCrosshairPrefab()
+{
+}
+
+HUDScorePrefab::HUDScorePrefab(World* world)
+{
+
+
+}
+
+HUDScorePrefab::~HUDScorePrefab()
+{
+}
+
+HUDTimerPrefab::HUDTimerPrefab(World* world)
+{
+	Entity timer = world->CreateEntity();
+	auto& dbgTransform = world->AddComponent<UITransformComponent>(timer);
+	dbgTransform.mAnchor = Anchor::Center; // 화면 좌측 상단
+	dbgTransform.mPosition = Vec2(30.f, -30.f);
+	dbgTransform.mSize = Vec2(400.f, 50.f);
+	dbgTransform.mUILayerIndex = 15;
+
+	Entity mEntityID = world->GetGameRuleEntity(); // 게임 규칙 컴포넌트를 붙일 엔티티
+
+
+	world->AddComponent<UIScriptComponent>(timer).mOnUpdate =
+		[world, mEntityID, timer](float /*dt*/)
+		{
+			GameRuleComponent* gameRuleComp = world->GetComponent<GameRuleComponent>(mEntityID);
+			UITextComponent* textComp = world->GetComponent<UITextComponent>(timer);
+
+			if (gameRuleComp && textComp)
+			{
+				// x, y, z 좌표를 읽어와 텍스트 갱신
+				std::wstring timeText = std::to_wstring(gameRuleComp->mGameTime);
+
+				textComp->mText = timeText;
+			}
+		};
+}
+
+HUDTimerPrefab::~HUDTimerPrefab()
 {
 }

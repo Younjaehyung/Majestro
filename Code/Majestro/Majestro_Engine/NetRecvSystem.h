@@ -37,6 +37,9 @@ private:
 	void HandleHitConfirm(const InputCommand& msg);
 	void HandleGameStart(const InputCommand& msg);
 	void HandleSceneChangeResult(const InputCommand& msg);
+	void HandleSceneState(const InputCommand& msg);
+	void HandleConquestSceneState(const InputCommand& msg);
+	void HandleEscortSceneState(const InputCommand& msg);
 	void HandleReplicationDelta(const InputCommand& msg);
 
 	Entity CreateEntityFromArchetype(uint32_t archetypeId);

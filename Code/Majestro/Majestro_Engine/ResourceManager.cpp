@@ -1700,10 +1700,10 @@ void ResourceManager::CreateDefaultMaterial()
 		// IBL 텍스처 로드
 		{
 			// Irradiance Map (Diffuse IBL용 큐브맵)                                                                                                                                                                                                                                                                         Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox_irradiance.dds");
-			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\output_iem.dds");
+			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox2DiffuseHDR.dds");
 			
 			// Pre-filtered Env Map (Specular IBL용 큐브맵, mip 포함)
-			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\output_pmrem.dds");
+			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\skybox2SpecularHDR.dds");
 
 			// BRDF LUT (2D 텍스처)
 			Load<Texture>(L"IBL_BrdfLut", L"..\\Resources\\Texture\\skybox2Brdf.dds");

@@ -30,7 +30,24 @@ public:
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			break;
+		case EnemyType::Pianoman:
+			mAttackCool = 16;
+			AttackRange = 1000.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
+			break;
+		case EnemyType::Bongoman:
+			mAttackCool = 16;
+			AttackRange = 1000.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
+			break;
+		default:
+			mAttackCool = 4;
+			mNextAttackTime = GetServerTotalTimeSeconds();
+			break;
 		}
+
 	}
 
 public:
@@ -43,6 +60,7 @@ public:
 
 	float mAttackCool;
 	float mNextAttackTime;
+	float mPendingAttackTime = -1.0f;
 
 	float mAttackAnimEndTime = 0.0f;
 	float mAttackAnimTime = 1.0f;

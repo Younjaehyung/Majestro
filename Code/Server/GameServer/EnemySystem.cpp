@@ -87,6 +87,8 @@ void EnemySystem::Update(float dt)
         EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
         HealthComponent* enemyHealthComp = mWorld->GetComponent<HealthComponent>(entity);
         if (enemyComp == nullptr) { ++entityIndex; continue; }
+        mc->mMovingSpeed = enemyComp->mSpeed;
+
 
         if (enemyHealthComp && enemyHealthComp->mCurrentHp <= 0)
         {
@@ -107,7 +109,7 @@ void EnemySystem::Update(float dt)
         }
 
         EnemyAnimState currentState = EnemyAnimState::Run;
-        if (enemyComp->mEnemyType == EnemyType::HornMan && nearestPlayerDistSq <= enemyComp->AttackRangeSq)
+        if (nearestPlayerDistSq <= enemyComp->AttackRangeSq)
             currentState = EnemyAnimState::Attack;
 
         if (currentState == EnemyAnimState::Attack && HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
@@ -142,32 +144,85 @@ bool EnemySystem::HandleAttackState(
     if (!enemyComp || !movementComp)
         return false;
 
-    if (enemyComp->mEnemyType != EnemyType::HornMan)
-        return false;
-
     if (nearestPlayerDistSq > enemyComp->AttackRangeSq)
-        return false;
-
-    //enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
-    movementComp->mMovingDirection = Vec3::Zero;
-    movementComp->mPathCount = 0;
-    movementComp->mPathIndex = 0;
-
-    if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
     {
-        eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
-        enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
-        enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+        enemyComp->mPendingAttackTime = -1.0f;
+        return false;
+    }
+
+    Vec3 myPos = Vec3::Zero;
+    Vec3 playerPos = Vec3::Zero;
+    if (TransformComponent* tf = mWorld->GetComponent<TransformComponent>(entity))
+    {
+        myPos = tf->mLocalPosition;
+        playerPos = PathFinder(myPos);
+    }
+
+    switch (enemyComp->mEnemyType)
+    {
+    case EnemyType::HornMan:
+        movementComp->mMovingDirection = Vec3::Zero;
+        movementComp->mPathCount = 0;
+        movementComp->mPathIndex = 0;
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+        {
+            eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+        }
+        break;
+    case EnemyType::Pianoman:
+    {
+        movementComp->mPathCount = 0;
+        movementComp->mPathIndex = 0;
+        movementComp->mMovingSpeed = enemyComp->mSpeed * 3.0f;
+
+        Vec3 rushDir = playerPos - myPos;
+        rushDir.y = 0.0f;
+        if (rushDir.LengthSquared() > 1e-8f)
+        {
+            rushDir.Normalize();
+            movementComp->mMovingDirection = rushDir;
+        }
+        else
+        {
+            movementComp->mMovingDirection = Vec3::Zero;
+        }
+
+        constexpr float kPianoMeleeRange = 160.0f;
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds && nearestPlayerDistSq <= kPianoMeleeRange * kPianoMeleeRange)
+        {
+            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::PianoAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+        }
+        break;
+    }
+    case EnemyType::Bongoman:
+        movementComp->mMovingDirection = Vec3::Zero;
+        movementComp->mPathCount = 0;
+        movementComp->mPathIndex = 0;
+
+        if (enemyComp->mPendingAttackTime < nowSeconds)
+            enemyComp->mPendingAttackTime = nowSeconds + beatSeconds * 4.0f;
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds && nowSeconds >= enemyComp->mPendingAttackTime)
+        {
+            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::BongoAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+            enemyComp->mPendingAttackTime = -1.0f;
+        }
+        break;
+    default:
+        return false;
     }
 
     if (nowSeconds <= enemyComp->mAttackAnimEndTime)
-    {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
-    }
     else
-    {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
-    }
 
     return true;
 }

@@ -355,7 +355,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 
 		// 패킷 조립 성공
 
-		ProcessPacket::ProcessPackets(mInputCommand, buffer);
+		bool result = ProcessPacket::ProcessPackets(mInputCommand, buffer);
 		if (mInputCommand.Type == S2C_PKT_LOGIN) {
 
 			const S2C_LoginPacket* loginResp =
@@ -372,7 +372,8 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 				(sockaddr*)&mServerUdpAddr, sizeof(sockaddr_in));
 		}
 
-		gRecvBuffer.Push(mInputCommand);
+		if(result == true)
+			gRecvBuffer.Push(mInputCommand);
 
 
 		processLen += header.Header.Size;

@@ -10,8 +10,9 @@
 #include "BulletComponent.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "GameRuleComponent.h"
 #include "GameEvents.h"
-#include <unordered_set>
+
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
 {
@@ -32,11 +33,14 @@ void NetSendSystem::Update(float dt)
 	SendEffectSpawnEvents();
 	SendHitConfirmEvents();
 
+
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
-		ConvertMove(mNetComp, &mSendReq, dt);	//move
+		SendMove(mNetComp, &mSendReq, dt);	//move
+
+	
 }
 
-void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
+void NetSendSystem::SendMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
 {
 	
 	auto recipients = CollectPlayerSessions();
@@ -100,6 +104,7 @@ void NetSendSystem::ConvertMove(NetEntityComponent* netComp, SendRequest* seq, f
 
 
 }
+
 
 void NetSendSystem::SendAction()
 {
@@ -198,24 +203,26 @@ void NetSendSystem::SendCollision()
 }
 
 
-std::vector<uint32> NetSendSystem::CollectPlayerSessions() const
+std::vector<uint32> NetSendSystem::CollectPlayerSessions()
 {
-	std::unordered_set<uint32> sessionSet;
+
+	mSessionSet.clear();
+
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())
 		return {};
 
 	auto entities = mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>();
-	sessionSet.reserve(entities.size());
+	mSessionSet.reserve(entities.size());
 	for (auto entity : entities)
 	{
 		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (!netComp || netComp->mSessionId == 0)
 			continue;
 
-		sessionSet.insert(netComp->mSessionId);
+		mSessionSet.insert(netComp->mSessionId);
 	}
 
-	return std::vector<uint32>(sessionSet.begin(), sessionSet.end());
+	return std::vector<uint32>(mSessionSet.begin(), mSessionSet.end());
 }
 
 
@@ -416,3 +423,4 @@ void NetSendSystem::SendEffectSpawnEvents()
 			}
 		});
 }
+

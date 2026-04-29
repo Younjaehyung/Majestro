@@ -1,0 +1,167 @@
+#include "pch.h"
+#include "GamePhase.h"
+#include "GameRuleComponent.h"
+#include "PlayerComponent.h"
+#include "ColliderComponent.h"
+#include "TransformComponent.h"
+#include "EnemyComponent.h"
+#include "ServerCore.h"
+
+
+
+
+void PreparePhase::Enter(WaveGameMode& mode)
+{
+	mWorld = mode.GetScene()->GetWorld();
+	mGameRuleEntity = mode.GetGameRuleEntity();
+	auto& state = mWorld->AddComponent<GameRuleComponent>(mGameRuleEntity);
+}
+
+void PreparePhase::Exit(WaveGameMode& mode)
+{
+	//mWorld->RemoveComponent<GameRuleComponent>(mGameRuleEntity);
+}
+
+void PreparePhase::PreUpdate(float dt, WaveGameMode& mode)
+{
+}
+
+void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
+{
+	// 준비 단계에서는 플레이어가 준비를 완료했는지 체크하는 로직
+	// 예: 모든 플레이어가 준비 상태가 되었는지 확인하고, 준비가 완료되면 mIsCompleted를 true로 설정하여 다음 단계로 전환
+}
+
+////--------------------------------------------------------------
+
+
+
+void ConquestPhase::Enter(WaveGameMode& mode)
+{
+	mWorld = mode.GetScene()->GetWorld();
+	mGameRuleEntity = mode.GetGameRuleEntity();
+	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(mGameRuleEntity);
+
+
+	mWorld->AddComponent<GameConquestComponent>(mGameRuleEntity);
+	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Conquest);
+}
+
+void ConquestPhase::Exit(WaveGameMode& mode)
+{
+
+	mWorld->RemoveComponent<GameConquestComponent>(mGameRuleEntity);
+
+}
+
+void ConquestPhase::PreUpdate(float dt, WaveGameMode& mode)
+{
+}
+
+void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
+{
+	int playerNum = 0;
+	int enemyNum = 0;
+
+	GameConquestComponent* ruleComp = mWorld->GetComponent<GameConquestComponent>(mGameRuleEntity);
+
+
+	mWorld->GetEventManager()->Consume<EvConquestPointCaptured>([&](const EvConquestPointCaptured& e) {
+
+		if (e.currentPointsNum != ruleComp->mWave) return;
+		playerNum = e.playerNum;
+		enemyNum = e.enemyNum;
+
+		});
+
+
+	if (playerNum >= enemyNum) {
+
+		if (playerNum > enemyNum) {
+			ruleComp->mWaveTime += dt;
+		}
+		ruleComp->mWaveInterval = 0.f;
+		std::cout << "[ConquestZone] :  PlayerNum: " << playerNum << ", EnemyNum: " << enemyNum << ", WaveTime: " << ruleComp->mWaveTime << std::endl;
+	}
+	else {
+		// 웨이브 점령 감소 간격이 최대 간격보다 작으면 간격 증가, 
+		// 그렇지 않으면 간격 초기화 및 웨이브 점령 시간 감소
+		if (ruleComp->mMaxWaveInterval > ruleComp->mWaveInterval) {
+			ruleComp->mWaveInterval += dt;
+		}
+		else {
+			ruleComp->mWaveInterval = 0.f;
+
+			if (ruleComp->mWaveTime > ruleComp->mWaveTime / float(ruleComp->mWaveCheckPoint))
+				ruleComp->mWaveTime -= dt;
+		}
+		ruleComp->mWaveTime = max(0.f, ruleComp->mWaveTime);
+	}
+
+	ruleComp->mPlayerNum = playerNum;
+	ruleComp->mEnemyNum = enemyNum;
+	
+
+
+	if (ruleComp->mWaveTime > ruleComp->mWaveCheckPointTime * float(ruleComp->mWaveCheckPoint) && ruleComp->mWaveCheckPoint < ruleComp->mMaxWaveCheckPoint) {
+		ruleComp->mWaveCheckPoint += 1;
+	}
+
+
+	// 웨이브 점령 시간이 최대 웨이브 시간보다 크면 웨이브 증가
+	if (ruleComp->mWaveTime > ruleComp->mMaxWaveTime) {
+		ruleComp->mWave += 1;
+		ruleComp->mWaveTime = 0.f;
+		ruleComp->mWaveCheckPoint = 0;
+		ruleComp->mWaveInterval = 0.f;
+	}
+
+}
+////--------------------------------------------------------------
+
+void EscortPhase::Enter(WaveGameMode& mode)
+{
+	World* world = mode.GetScene()->GetWorld().get();
+	Entity rule = mode.GetGameRuleEntity();
+	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(rule);
+
+
+	auto& state = world->AddComponent<GameEscortComponent>(rule);
+	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
+
+}
+
+void EscortPhase::Exit(WaveGameMode& mode)
+{
+	mWorld->RemoveComponent<GameEscortComponent>(mode.GetGameRuleEntity());
+}
+
+void EscortPhase::PreUpdate(float dt, WaveGameMode& mode)
+{
+}
+
+void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
+{
+	// GameEscortComponent의 상태를 업데이트하거나, 플레이어와 호위 대상의 위치를 체크하여 호위 성공/실패 여부를 판단하는 로직을 구현할 수 있습니다.
+}
+
+////--------------------------------------------------------------
+
+
+
+void BossPhase::Enter(WaveGameMode& mode)
+{
+}
+
+void BossPhase::Exit(WaveGameMode& mode)
+{
+}
+
+void BossPhase::PreUpdate(float dt, WaveGameMode& mode)
+{
+}
+
+void BossPhase::PostUpdate(float dt, WaveGameMode& mode)
+{
+	// 보스의 체력이나 행동 패턴을 체크하여 보스가 처치되었는지 판단하는 로직을 구현할 수 있습니다.
+}

@@ -204,6 +204,7 @@
     <ClInclude Include="ChromaticAberrationPass.h" />
     <ClInclude Include="DualKawaseBlurPass.h" />
     <ClInclude Include="FXAAPass.h" />
+    <ClInclude Include="GameRuleComponent.h" />
     <ClInclude Include="HBAOPass.h" />
     <ClInclude Include="EffectFlagComponent.h" />
     <ClInclude Include="EffectFlagSystem.h" />
@@ -307,6 +308,7 @@
     <ClInclude Include="UIActionUpdateFeature.h" />
     <ClInclude Include="UICommonUpdateFeature.h" />
     <ClInclude Include="UIEffectPass.h" />
+    <ClInclude Include="UIGameInfoUpdateFeature.h" />
     <ClInclude Include="UIHpBarUpdateFeature.h" />
     <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="UISpriteComponent.h" />
@@ -448,6 +450,7 @@
     <ClCompile Include="UIActionUpdateFeature.cpp" />
     <ClCompile Include="UICommonUpdateFeature.cpp" />
     <ClCompile Include="UIEffectPass.cpp" />
+    <ClCompile Include="UIGameInfoUpdateFeature.cpp" />
     <ClCompile Include="UIHpBarUpdateFeature.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />

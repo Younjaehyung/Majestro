@@ -25,12 +25,13 @@ private:
 	void BulletPoolSpawnProcess(InputCommand& inputCommand);
 
 	Entity FindEntityBySession(uint32 sessionId) const;
-	std::vector<uint32> CollectPlayerSessions() const;
+	std::vector<uint32> CollectPlayerSessions();
 
 
 	bool IsNewerSeq(uint32 lhs, uint32 rhs){return static_cast<int32>(lhs - rhs) > 0;}
 private:
 	vector<std::pair<uint64, uint8>> mEnemySpawnInfos;
+	std::unordered_set<uint32> mSessionSet;
 	vector<uint64> mBulletNetEntityIds{};
 	bool mEnemySpawnOnce = true;
 	bool mBulletSpawnOnce = true;

@@ -88,3 +88,9 @@ float LerpAngleDegrees(float startYaw, float targetYaw, float alpha)
 	const float deltaYaw = Wrap180Degrees(targetYaw - startYaw);
 	return startYaw + deltaYaw * std::clamp(alpha, 0.f, 1.f);
 }
+
+float EaseOutCubic(float t)
+{
+	float u = 1.f - t;
+	return 1.f - u * u * u;
+}

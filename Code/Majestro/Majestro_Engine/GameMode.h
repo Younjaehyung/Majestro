@@ -1,5 +1,13 @@
 #pragma once
 class Scene;
+
+enum class GameModeType : uint8
+{
+	Lobby = 0,
+	Wave,
+	Result,
+};
+
 class GameMode
 {
 public:
@@ -10,9 +18,12 @@ public:
 
 	virtual bool& IsSceneChanging() { return mIsSceneChanging; }
 	virtual SceneId GetTargetSceneId() const { return mTargetSceneId; }
-
+	//virtual GameModeType GetType() const = 0;
 
 	virtual void SetScene(shared_ptr<Scene> scene) { mScene = scene; }
+	virtual shared_ptr<Scene> GetScene() const { return mScene; }
+	//virtual Entity GetGameRuleEntity() const { return mGameRuleEntity; }
+
 public:
 
 	SceneId mTargetSceneId{}; // 전환할 씬의 ID (예: SceneId::Game, SceneId::Result 등)
@@ -24,7 +35,7 @@ protected:
 	bool mIsFailed = false;		// 게임 모드 실패 여부 (예: 플레이어 사망, 타임아웃 등)
 	bool mIsTransitioning = false; // 씬 전환 중 여부 (예: 로비에서 게임으로, 게임에서 결과 화면으로 등)
 
-	
+
 };
 
 class MenuGameMode : public GameMode
@@ -32,6 +43,8 @@ class MenuGameMode : public GameMode
 public:
 	virtual void Initialize() override;
 	virtual void PreUpdate(float deltaTime) override;
+
+
 private:
 };
 
@@ -47,7 +60,11 @@ class WaveGameMode : public GameMode
 {
 public:
 	virtual void Initialize() override;
-private:
+	virtual void PreUpdate(float deltaTime) override;
+	virtual void PostUpdate(float deltaTime) override;
+
+	//virtual GameModeType GetType() const override { return GameModeType::Wave; }
+
 
 };
 

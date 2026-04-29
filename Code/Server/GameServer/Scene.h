@@ -1,5 +1,6 @@
 #pragma once
 #include "World.h"
+#include "InteractableComponent.h"
 class SystemManager;
 class GameMode;
 
@@ -19,6 +20,7 @@ public:
 		float valueB,
 		float cooldown,
 		bool  oneShot,
+		InteractableTarget targetMask = InteractableTarget_Player,
 		SkillType buffType = SkillType::Default);
 
 	Entity SpawnMonsterSpawner(World* world,

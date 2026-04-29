@@ -25,8 +25,8 @@ void MovementSystem::Update(float dt) {
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 
 	//terrain
-	auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
-	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
+	//auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
+	//TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
 
 
 	//main player movement

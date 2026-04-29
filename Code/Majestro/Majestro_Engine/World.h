@@ -21,7 +21,7 @@ public:
     }
     void Initialize() {
         mSystemManager = std::make_shared<SystemManager>(this);
-		
+		mGameRuleEntity = CreateEntity(); // 게임 규칙 컴포넌트가 붙을 엔티티 생성
     }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
@@ -97,6 +97,8 @@ public:
     
 	// Event Manager
 	std::shared_ptr<EventManager>& GetEventManager() { return mEventManager; }
+
+	Entity GetGameRuleEntity() const { return mGameRuleEntity; }
 public:
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(mSceneId, netID, entity); }
     void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(mSceneId, netID); }
@@ -117,6 +119,9 @@ private:
     std::shared_ptr<SystemManager>		mSystemManager;
     std::shared_ptr<PhysicsWorld>       mPhysicsWorld;
     std::shared_ptr<EventManager>       mEventManager;
+
+	// GameMode에서 사용할 게임 규칙 컴포넌트가 붙은 엔티티 참조
+	Entity mGameRuleEntity; // 게임 규칙 컴포넌트가 붙은 엔티티
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };

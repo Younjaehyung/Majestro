@@ -64,6 +64,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   }
 
   TransformComponent t{};
+  t.mLocalPosition = { -8002.9f, 1027.2f, -12519.6f };
   Entity testCamera = world->CreateEntity();
   world->AddComponent<MainCameraComponent>(testCamera);
   world->AddComponent<CameraComponent>(testCamera);
@@ -71,8 +72,8 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(),
                                            THREE_FPS);
 
-  t.mLocalPosition = {0.f, 0.f, 10.f};
-  t.mLocalScale = {1.f, 1.f, 1.f};
+
+
 
   switch (playerType) {
   case 0:
@@ -96,7 +97,8 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   world->AddComponent<TransformComponent>(mEntityID, t);
 
   world->AddComponent<BeatComponent>(mEntityID);
-  world->AddComponent<GravityComponent>(mEntityID);
+  GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
+  grav.mHight = t.mLocalPosition.y + 30.f; // 임시 동기화
   world->AddComponent<PlayerMovementComponent>(mEntityID);
   world->AddComponent<InputComponent>(mEntityID);
   auto &w =

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -198,6 +198,8 @@
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GameMode.cpp" />
+    <ClCompile Include="GamePhase.cpp" />
+    <ClCompile Include="GameRuleSystem.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
     <ClCompile Include="HeightField.cpp" />
@@ -266,6 +268,9 @@
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GameMode.h" />
+    <ClInclude Include="GamePhase.h" />
+    <ClInclude Include="GameRuleSystem.h" />
+    <ClInclude Include="GameRuleComponent.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="HealthComponent.h" />

@@ -5,25 +5,96 @@
 
 class GameRuleComponent;
 
+// 진입(Intro) 연출 종류 — 등장 시점에서만 동작.
+enum class IntroAnim : uint8
+{
+	None,
+	FadeInCenter,    // 중앙 고정
+	PopScale,        // 스케일 0.5  오버슈트  1.0
+	ZoomBurst,       // 스케일 큰 값 -> 1.0 + 1프레임 플래시
+	SlideInLeft,     // 화면 밖 좌측에서 슬라이드인
+	SlideInRight,    // 화면 밖 우측에서 슬라이드인
+	DropFromTop,     // 위에서 떨어져 감쇠 바운스
+	Flash,           // 풀 알파 + 큰 스케일 짧게 -> 즉시 페이드 시작
+};
+
+// 정착(Settle/Hold) 연출 종류 — 등장 후 유지 단계에서 동작.
+// MoveToTop 은 Settle 단계에서 1회 트랜지션, 나머지는 Hold 단계 동안 지속.
+enum class SettledAnim : uint8
+{
+	Static,          // 그대로 유지
+	MoveToTop,       // 중앙에서 mTopAnchorPos 까지 1회 이동 (mSettleDuration)
+	BeatPulse,       // EvBeat 수신 시 스케일 펄스 (지속)
+	Shake,           // 위치 진동 (지속)
+};
+
+// 퇴장(Outro) 연출 종류. None 이면 다음 phase 변경 전까지 유지.
+enum class OutroAnim : uint8
+{
+	None,
+	FadeOut,
+	SlideOutLeft,
+	SlideOutRight,
+	ScaleOut,
+};
+
+// 연출별 파라미터 일괄.
+struct UiAnimParams
+{
+	float mIntroDuration  = 0.6f;
+	float mSettleDuration = 0.5f;   // MoveToTop 등 1회 정착 동작 길이
+	float mHoldDuration   = 1.0f;   // 정착 후 유지 시간 (Outro=None 이면 무시)
+	float mOutroDuration  = 0.4f;
+
+	Vec2  mTopAnchorPos    = { 0.f, -380.f };   // MoveToTop 도착 위치 (Anchor::Center 기준)
+	Vec2  mSlideOffset     = { 1200.f, 0.f };   // SlideIn/Out 시작/도착 오프셋
+	Vec2  mDropFromOffset  = { 0.f, -800.f };   // DropFromTop 시작 오프셋
+
+	float mPulseAmplitude  = 0.05f;             // BeatPulse: -1.0 ~ 1.0
+	float mPulseDecay      = 6.f;               // BeatPulse 감쇠 속도
+	float mShakeAmplitude  = 8.f;               // Shake 픽셀 진폭
+	float mShakeFrequency  = 25.f;
+	float mOvershootScale  = 1.1f;              // PopScale 오버슈트
+	float mZoomBurstStart  = 2.0f;              // ZoomBurst 시작 스케일
+	float mFlashScale      = 1.5f;              // Flash 1프레임 스케일
+	float mFlashDuration   = 0.08f;             // Flash 의 풀-알파 유지 시간
+	float mDropBounceFreq  = 6.f;
+	float mDropBounceDamp  = 4.f;
+};
+
 // Phase 전환 시 띄울 목표 배너 한 장에 대한 정적 사양.
 struct PhaseGoalSpec
 {
-	std::wstring mTextureName;                 // RESOURCEMANAGER.Get<Texture> 키
-	std::wstring mTitleText;                   // 배너 안에 그릴 텍스트(빈 문자열이면 스킵)
-	Vec2         mBannerSize     = { 640.f, 200.f };
-	Vec2         mTopAnchorPos   = { 0.f, -380.f }; // Anchor::Center 기준, 상단에 정착할 위치
-	float        mFadeInDuration = 0.6f;	   // 중앙에서 페이드인하는 시간
-	float        mHoldDuration   = 1.0f;       // 중앙에서 머무르는 시간
-	float        mMoveDuration   = 0.5f;       // 상단으로 이동하는 시간
+	std::wstring mTextureName;                  // RESOURCEMANAGER.Get<Texture> 키
+	std::wstring mTitleText;                    // 빈 문자열이면 텍스트 미표시
+	Vec2         mBannerSize = { 640.f, 200.f };
+
+	IntroAnim    mIntro   = IntroAnim::FadeInCenter;
+	SettledAnim  mSettled = SettledAnim::MoveToTop;
+	OutroAnim    mOutro   = OutroAnim::None;
+	UiAnimParams   mParams;
 };
 
-enum class GoalBannerState : uint8
+// 배너 상태머신 단계.
+// 진행 흐름: Idle -> Intro -> Settle(옵션) -> Hold -> Outro(옵션) -> Done
+//   - Settle 은 SettledAnim::MoveToTop 같은 1회 트랜지션이 있을 때만 사용.
+//   - Outro = None 이면 Hold 에서 정지 (다음 phase 변경까지 유지).
+enum class BannerStage : uint8
 {
-	Idle,        // 비활성 — 다음 phase 변경을 기다림
-	FadingIn,    // 중앙에서 알파 0 → 1
-	Holding,     // 중앙에서 mHoldDuration 만큼 머무름
-	MovingToTop, // 중앙에서 spec.mTopAnchorPos 까지 이동
-	Anchored,    // 상단에 정착, 다음 phase 변경 전까지 유지
+	Idle,
+	Intro,
+	Settle,
+	Hold,
+	Outro,
+	Done,
+};
+
+// Compute*Visual 들이 채워서 ApplyVisual 한 번에 적용.
+struct BannerVisual
+{
+	Vec2  mPosition = { 0.f, 0.f };
+	Vec2  mScale    = { 1.f, 1.f };
+	float mAlpha    = 1.f;
 };
 
 class UIGameInfoUpdateFeature : public UIFeature
@@ -46,37 +117,57 @@ private:
 	void RenderPlayerScore(CameraComponent* camera);
 	void RenderMainGoal(CameraComponent* camera);
 
-	// Phase 전환 시 1회 호출 — 테이블 lookup, 엔티티 준비
+	// Phase 전환 시 1회 호출 — 테이블 lookup, spec 적용, 상태머신 초기화.
 	void OnPhaseChanged(WavePhaseType newPhase);
 
-	// 매 프레임 호출 — phase 무관한 단일 상태머신
+	// 매 프레임 호출 — stage 진행/전이 + 시각 속성 계산/적용.
 	void TickGoalBanner(float dt);
 
-	// 배너 엔티티는 한 번만 만들어 재활용한다.
-	// EnsureBannerEntities: 최초 1회 엔티티 생성(이후 호출은 noop). visible=false 로 시작.
-	// ApplyBannerSpec    : 텍스처/텍스트/사이즈만 spec 으로 교체. 새로 만들지 않음.
-	// SetBannerVisible   : UISprite/UIText 의 mVisible 토글.
+	// 배너 엔티티 (재활용).
 	void EnsureBannerEntities();
 	void ApplyBannerSpec(const PhaseGoalSpec& spec);
 	void SetBannerVisible(bool visible);
 
-	// 배너 시각 속성 조작 (엔티티 안전성 체크 포함)
-	void SetBannerAlpha(float alpha);
-	void SetBannerPosition(const Vec2& pos);
+	// 시각 속성을 BannerVisual 한 번에 엔티티 컴포넌트로 적용.
+	void ApplyVisual(const BannerVisual& v);
 
-	std::unordered_map<WavePhaseType, PhaseGoalSpec>& GetPhaseTable() {return mTable;}
+	// 단계별 시각 계산. base 는 정착 위치/스케일/알파의 기준점.
+	// out 은 base 로 초기화된 상태로 들어와 각 함수가 변조하여 합성.
+	void ComputeIntroVisual(IntroAnim type, const UiAnimParams& p, float t,
+		const BannerVisual& base, BannerVisual& out) const;
+	void ComputeSettleVisual(SettledAnim type, const UiAnimParams& p, float t,
+		const BannerVisual& base, BannerVisual& out) const;
+	void ComputeHoldVisual(SettledAnim type, const UiAnimParams& p, float dt,
+		const BannerVisual& base, BannerVisual& out);
+	void ComputeOutroVisual(OutroAnim type, const UiAnimParams& p, float t,
+		const BannerVisual& base, BannerVisual& out) const;
+
+	// Settle 단계 종료 시 정착점 갱신용. (예: MoveToTop 후 base.mPosition = topAnchor)
+	void UpdateBaseAfterSettle();
+
+	// ImGui 디버그 패널 — phase 강제 전환 및 상태머신 상태 표시.
+	void DrawDebugPanel();
+
+	std::unordered_map<WavePhaseType, PhaseGoalSpec>& GetPhaseTable() { return mTable; }
 
 private:
 	WavePhaseType mCurrentPhase = WavePhaseType::None;
 	float mTotalGameTime = 0.f;
 
-	// Goal Banner 상태머신
-	GoalBannerState mBannerState   = GoalBannerState::Idle;
-	PhaseGoalSpec   mActiveSpec;
+	// 배너 상태머신.
+	BannerStage   mStage         = BannerStage::Idle;
+	PhaseGoalSpec mActiveSpec;
 	std::unordered_map<WavePhaseType, PhaseGoalSpec> mTable;
-	float           mStateElapsed  = 0.f;
-	Vec2            mCenterPos     = Vec2(0.f, 0.f); // Anchor::Center 기준 정중앙
-	Entity          mBannerEntity     = NULL_ENTITY;
-	Entity          mBannerTextEntity = NULL_ENTITY;
+	float         mStageElapsed  = 0.f;
+	Vec2          mCenterPos     = Vec2(0.f, 0.f); // Anchor::Center 기준 정중앙
+
+	// 정착 기준점 — Settle 종료 후 Hold/Outro 가 사용.
+	BannerVisual  mBaseVisual;
+
+	// BeatPulse 상태 (지속 동작).
+	float         mPulsePhase    = 0.f;            // EvBeat 수신 시 1.f 로 세팅, dt 에 따라 감쇠
+
+	Entity        mBannerEntity     = NULL_ENTITY;
+	Entity        mBannerTextEntity = NULL_ENTITY;
 };
 

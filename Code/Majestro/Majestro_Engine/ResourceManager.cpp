@@ -2130,11 +2130,11 @@ void ResourceManager::CreateDefaultMaterial()
 
 
 		Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
-	/*	Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort.png");
+		Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort_0.png");
 		Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
-		Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss.png");
-		Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success.png");
-*/
+		Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss_0.png");
+		Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success_0.png");
+
 
 		
 		
@@ -2145,6 +2145,9 @@ void ResourceManager::CreateDefaultMaterial()
 
 		auto T_Rudwig_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Body_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Body_SAMR.png");
 		auto T_Rudwig_Mace_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Mace_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Mace_SAMR.png");
+
+		auto T_Fanthor_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Body_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Body_SAMR.png");
+		auto T_Fanthor_Axe_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Axe_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Axe_SAMR.png");
 	}
 
 	// GameObject
@@ -2268,19 +2271,25 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadNavMesh(L"..\\Resources\\Map\\all_tiles_navmesh.bin");
 
 	Get<Material>(L"Anim_Ibanix_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
-	Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
-	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
-
 	Get<Material>(L"Anim_Ibanix_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"T_Ibanix_Body_SAMR")->GetImageIndex();
+
+	Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
+	Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"T_Fanthor_Body_SAMR")->GetImageIndex();
+
+	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Body_SAMR")->GetImageIndex();
 
+	
 
 	//Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"Grayscale")->GetImageIndex();
 	//Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"Grayscale")->GetImageIndex();
 
 	Get<Material>(L"Anim_Ibanix_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Ibanix_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Ibanix_Gun_SAMR")->GetImageIndex();
+
 	Get<Material>(L"Anim_Fanthor_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
+	Get<Material>(L"Anim_Fanthor_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Fanthor_Axe_SAMR")->GetImageIndex();
+
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Mace_SAMR")->GetImageIndex();
 //	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");

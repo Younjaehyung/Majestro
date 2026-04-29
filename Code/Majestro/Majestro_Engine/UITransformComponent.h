@@ -23,6 +23,7 @@ public: // 통일된 UI 위치
     Vec2 mPosition;     // anchor 기준 오프셋 (pixel)
     Vec2 mSize;         // pixel
     Vec2 mPivot;        // (0~1)
+    Vec2 mScale = { 1.f, 1.f }; // mFinalSize = mSize * mScale (연출용)
 
     Vec2 mFinalPixelPos;   // 최종 화면 픽셀 좌표
 	Vec2 mFinalSize;       // 최종 화면 픽셀 크기

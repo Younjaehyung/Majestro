@@ -89,8 +89,33 @@ float LerpAngleDegrees(float startYaw, float targetYaw, float alpha)
 	return startYaw + deltaYaw * std::clamp(alpha, 0.f, 1.f);
 }
 
+//처음엔 빠르게 움직이다가 목적지에 다가갈수록 천천히 감속
 float EaseOutCubic(float t)
 {
 	float u = 1.f - t;
 	return 1.f - u * u * u;
+}
+
+// 처음엔 빠르게 움직이다가 목적지에 다가갈수록 천천히 감속 + 약간의 오버슈트
+// 약간 지나쳤다가 다시 백
+float EaseOutBack(float t)
+{
+	// c1 = 1.70158 : 약 10% 오버슈트.
+	const float c1 = 1.70158f;
+	const float c3 = c1 + 1.f;
+	const float u = t - 1.f;
+	return 1.f + c3 * u * u * u + c1 * u * u;
+}
+
+// 처음엔 천천히 움직이다가 목적지에 다가갈수록 빠르게 가속
+float EaseInCubic(float t)
+{
+	return t * t * t;
+}
+
+float DampedSine(float t, float freq, float damp)
+{
+	// 바운스/Shake 의 진동
+	// 감쇠 사인 
+	return std::sin(t * freq) * std::exp(-damp * t);
 }

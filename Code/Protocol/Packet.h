@@ -138,6 +138,7 @@ enum class WavePhaseType : uint8
 	Conquest, 
 	Escort,
 	Boss, 
+	Fail,
 	Clear 
 };
 

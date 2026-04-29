@@ -34,7 +34,8 @@ void UITransformSystem::Update(float /*dt*/)
 
         const Vec2 anchorBase = CalculateAnchor(transform->mAnchor, screenSize);
         transform->mFinalPixelPos = anchorBase + transform->mPosition;
-        transform->mFinalSize = transform->mSize;
+        transform->mFinalSize = Vec2(transform->mSize.x * transform->mScale.x,
+                                     transform->mSize.y * transform->mScale.y);
     }
 }
 

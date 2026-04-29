@@ -18,3 +18,6 @@ float SmoothStep01(float t);
 float LerpAngleDegrees(float startYaw, float targetYaw, float alpha);
 
 float EaseOutCubic(float t);
+float EaseOutBack(float t);
+float EaseInCubic(float t);
+float DampedSine(float t, float freq, float damp);

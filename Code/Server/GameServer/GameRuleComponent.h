@@ -60,5 +60,21 @@ class GameEscortComponent : public Component<GameEscortComponent>
 {
 public:
     GameEscortComponent() = default;
-   
+
+	Entity mEscortTarget; // 호위 대상 엔티티 (예: 트럭)
+
+	static constexpr int mMaxWaves = 3; // 체크포인트 수
+
+	static constexpr float mMaxTruckHp = 3.f; // 트럭 체력
+	static constexpr float mMaxTruckSpeed = 30.f; // 최대 트럭 속도
+
+
+
+	uint8 mRouteId = 0;
+
+	float mEscortProgress = 0.f; // 호위 진행도 (0.0 ~ 1.0)
+	float mEscortTime = 0.f; // 호위 진행 시간
+
+	float mTruckHp = 100.f; // 호위 대상 체력
+	float mTruckSpeed = 10.f; // 호위 대상 이동 속도
 };

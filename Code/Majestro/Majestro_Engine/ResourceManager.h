@@ -11,6 +11,7 @@
 #include "FBXData.h"
 #include "LevelImport.h"
 #include "NavMeshLoader.h"
+#include "PayloadPathData.h"
 #include "Vfx.h"
 #include "ParticleEffect.h"
 
@@ -60,7 +61,8 @@ public:
 	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path);
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
-	LevelImportData  LoadResourceJson(const wstring& path);
+	LevelImportData  LoadMapResourceJson(const wstring& path);
+	shared_ptr<PayloadPathData>  LoadPayloadPathJson(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수
@@ -165,6 +167,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::TEXTURE;
 	else if (std::is_same_v<T, RootSignature>)
 		return OBJECT_TYPE::ROOTSIGNATURE;
+	else if (std::is_same_v<T, PayloadPathData>)
+		return OBJECT_TYPE::PAYLOADPATHDATA;
 	else
 		return OBJECT_TYPE::NONE;
 }

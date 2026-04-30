@@ -1,11 +1,14 @@
 #include "pch.h"
 #include "GamePhase.h"
+#include "GameCore.h"
+#include "ResourceManager.h"	
+
 #include "GameRuleComponent.h"
 #include "PlayerComponent.h"
 #include "ColliderComponent.h"
 #include "TransformComponent.h"
 #include "EnemyComponent.h"
-#include "ServerCore.h"
+#include "PayloadPathData.h"
 
 
 
@@ -119,15 +122,32 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 }
 ////--------------------------------------------------------------
 
+EscortPhase::EscortPhase(uint8 routeId) : mRouteId(routeId) 
+{
+	mEscortPath = RESOURCEMANAGER.Get<PayloadPathData>(L"BP_Payroad_path_C_2_PayloadPath.json");
+
+}
+
+
 void EscortPhase::Enter(WaveGameMode& mode)
 {
 	World* world = mode.GetScene()->GetWorld().get();
 	Entity rule = mode.GetGameRuleEntity();
 	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(rule);
-
+	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
 
 	auto& state = world->AddComponent<GameEscortComponent>(rule);
-	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
+	state.mRouteId = mRouteId;
+
+	Entity mEscortTarget = world->CreateEntity();
+	if(mEscortTarget.IsValid())
+	{
+		GameEscortComponent* escortComp = world->GetComponent<GameEscortComponent>(rule);
+		escortComp->mEscortTarget = mEscortTarget;
+		world->AddComponent<TransformComponent>(mEscortTarget);
+		world->AddComponent<BoxColliderComponent>(mEscortTarget);
+
+	}
 
 }
 
@@ -142,6 +162,12 @@ void EscortPhase::PreUpdate(float dt, WaveGameMode& mode)
 
 void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
+	Entity rule = mode.GetGameRuleEntity();
+	GameEscortComponent* ruleComp = mWorld->GetComponent<GameEscortComponent>(rule);
+	ruleComp->mEscortTime += dt;
+
+
+	
 	// GameEscortComponent의 상태를 업데이트하거나, 플레이어와 호위 대상의 위치를 체크하여 호위 성공/실패 여부를 판단하는 로직을 구현할 수 있습니다.
 }
 

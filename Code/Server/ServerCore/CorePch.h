@@ -33,15 +33,21 @@
 #include <functional>
 #include <typeindex>
 #include <random>
-#include <functional>
+#include <stdexcept>
 #include <cstdint> 
 
 using namespace std;
+
 #include "Types.h"
+
+#include "json.hpp"
+using json = nlohmann::json;
 
 #pragma comment(lib, "ws2_32.lib")
 #include "../../Protocol/Packet.h"
 #include "PacketHelper.h"
+
+
 
 
 

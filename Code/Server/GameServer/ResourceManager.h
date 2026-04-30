@@ -2,6 +2,7 @@
 #include <vector>
 #include "Object.h"
 #include "LevelImport.h"
+#include "PayloadPathData.h"
 class Texture;
 class RAW;
 class Prefab;
@@ -44,6 +45,7 @@ public:
 	
 	void LoadResources();
 	LevelImportData LoadResourceJson(const std::wstring& path);
+	shared_ptr<PayloadPathData> LoadPayloadPathJson(const std::wstring& path);
 	shared_ptr<FBX>& LoadFBXMeshes(const wstring& path);
 	shared_ptr<Mesh> LoadMCubeMesh();
 public:
@@ -120,6 +122,8 @@ OBJECT_TYPE ResourceManager::GetObjectType()
 		return OBJECT_TYPE::COLLIDER;
 	else if (std::is_same_v<T, FBX>)
 		return OBJECT_TYPE::FBX;
+	else if (std::is_same_v<T, PayloadPathData>)
+		return OBJECT_TYPE::PayloadPath;
 	else
 		return OBJECT_TYPE::NONE;
 }

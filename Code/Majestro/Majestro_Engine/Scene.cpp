@@ -66,6 +66,7 @@
 #include "UICommonUpdateFeature.h"
 #include "UIHpBarUpdateFeature.h"
 #include "UIGameInfoUpdateFeature.h"
+#include "UIPhaseProgressUpdateFeature.h"
 
 
 
@@ -104,7 +105,7 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 	int i = 0;
 	try
 	{
-		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 
 		for (const auto& inst : level.instances)
 		{
@@ -138,7 +139,7 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 	int i = 0;
 	try
 	{
-		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 
 		for (const auto& inst : level.instances)
 		{
@@ -203,7 +204,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 	int i = 0;
 	try
 	{
-		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 
 		for (const auto& inst : level.instances)
 		{
@@ -272,7 +273,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 	int i = 0;
 	try
 	{
-		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 
 		for (const auto& inst : level.instances)
 		{
@@ -469,7 +470,7 @@ bool LoadingScene::LoadScene(SceneId id)
 		break;
 	}
 
-	LevelImportData level = RESOURCEMANAGER.LoadResourceJson(mapPath);
+	LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(mapPath);
 	for (const auto& inst : level.instances)
 	{
 		mLoadTasks.push([this, inst]() {
@@ -1299,7 +1300,8 @@ void FirstScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
-	
+	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
+	mUIFeatures.push_back(gameProgressModule);
 
 
 	for (const auto& feature : mUIFeatures)

@@ -3,7 +3,7 @@
 #include "Scene.h"
 
 class World;
-
+class PayloadPathData;
 
 class GamePhase
 {
@@ -56,7 +56,7 @@ private:
 class EscortPhase : public GamePhase
 {
  public:
-	 EscortPhase(uint8 routeId) : mRouteId(routeId) {}
+     EscortPhase(uint8 routeId);
     virtual void Enter(WaveGameMode& mode) override;
     virtual void Exit(WaveGameMode& mode) override;
     virtual void PreUpdate(float dt, WaveGameMode& mode) override;
@@ -64,9 +64,12 @@ class EscortPhase : public GamePhase
     virtual bool IsCompleted() const override { return mIsCompleted; }
     virtual uint8 GetType() const override { return static_cast<uint8>(WavePhaseType::Escort); }
 
+private:
 
+    shared_ptr<PayloadPathData> mEscortPath;
 private:
     uint8 mRouteId = 0;
+	// RailPathComponent* mRailPath = nullptr; // 호위 경로 정보 (예: 웨이브 점령과 달리, 호위는 특정 경로를 따라 이동해야 할 수 있음)
 };
 
 class BossPhase : public GamePhase

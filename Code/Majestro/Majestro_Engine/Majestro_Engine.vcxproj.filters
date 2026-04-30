@@ -214,6 +214,9 @@
     <Filter Include="World\Resource\Shader\90. UI">
       <UniqueIdentifier>{9fc7c677-aa45-40be-8195-6e4c1c0ea9a0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\Json">
+      <UniqueIdentifier>{77ec12ba-afbe-4ce8-9178-971daee9ec3b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -502,6 +505,9 @@
     <ClInclude Include="LevelImport.h">
       <Filter>World\Resource\Map</Filter>
     </ClInclude>
+    <ClInclude Include="PayloadPathData.h">
+      <Filter>World\Resource\Map</Filter>
+    </ClInclude>
     <ClInclude Include="NavMeshLoader.h">
       <Filter>World\Resource\Map\NavMesh</Filter>
     </ClInclude>
@@ -641,6 +647,10 @@
     </ClInclude>
     <ClInclude Include="GameRuleComponent.h">
       <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="UIPhaseProgressUpdateFeature.h" />
+    <ClInclude Include="JsonUtils.h">
+      <Filter>Utils\Json</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -911,6 +921,9 @@
     <ClCompile Include="LevelImport.cpp">
       <Filter>World\Resource\Map</Filter>
     </ClCompile>
+    <ClCompile Include="PayloadPathData.cpp">
+      <Filter>World\Resource\Map</Filter>
+    </ClCompile>
     <ClCompile Include="NavMeshLoader.cpp">
       <Filter>World\Resource\Map\NavMesh</Filter>
     </ClCompile>
@@ -1029,6 +1042,10 @@
     <ClCompile Include="WorldUIPass.cpp" />
     <ClCompile Include="UIGameInfoUpdateFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
+    <ClCompile Include="JsonUtils.cpp">
+      <Filter>Utils\Json</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1264,6 +1281,12 @@
       <Filter>World\Resource\Shader\90. UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_sprite_VS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_PS.hlsl">
+      <Filter>World\Resource\Shader\90. UI</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_VS.hlsl">
       <Filter>World\Resource\Shader\90. UI</Filter>
     </FxCompile>
   </ItemGroup>

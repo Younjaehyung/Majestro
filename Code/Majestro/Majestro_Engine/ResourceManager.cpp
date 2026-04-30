@@ -3,7 +3,7 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "RootSignature.h"
-#include "FBXData.h"
+#include "PayloadPathData.h"
 
 
 
@@ -556,7 +556,7 @@ void ResourceManager::LoadAllTexture(const wstring& path)
 
 }
 
-LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
+LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 {
 	std::string jsonPath = ws2s(path);
 	std::ifstream ifs(jsonPath);
@@ -667,6 +667,18 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 	}
 
 	return out;
+}
+
+shared_ptr<PayloadPathData> ResourceManager::LoadPayloadPathJson(const std::wstring& path)
+{
+	shared_ptr<PayloadPathData> loadData = Get<PayloadPathData>(s2ws(filesystem::path(path).filename().stem().string()));
+	if (loadData)
+		return loadData;
+	loadData = make_shared<PayloadPathData>();
+	loadData->LoadFromJsonFile(path);
+	loadData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(loadData->GetName(), loadData);
+	return loadData;
 }
 
 
@@ -1208,6 +1220,24 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"WorldUIHpHit", shader);
+	}
+
+	// WorldUIConquestRing — 점령 진행률 원형 게이지 (라디얼 필 + 도넛 마스크)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\world_ui_conquest_ring_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\world_ui_conquest_ring_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"WorldUIConquestRing", shader);
 	}
 
 	//// UI			현재 swapChain에 박고 있음
@@ -2135,6 +2165,10 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss_0.png");
 		Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success_0.png");
 
+		Load<Texture>(L"UI_Ingame_Conquest_Info_0", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_0.png");
+		Load<Texture>(L"UI_Ingame_Conquest_Info_1", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_1.png");
+		Load<Texture>(L"UI_Ingame_Conquest_Info_2", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_2.png");
+
 
 		
 		
@@ -2149,6 +2183,9 @@ void ResourceManager::CreateDefaultMaterial()
 		auto T_Fanthor_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Body_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Body_SAMR.png");
 		auto T_Fanthor_Axe_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Axe_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Axe_SAMR.png");
 	}
+
+	LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");
+
 
 	// GameObject
 	//{

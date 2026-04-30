@@ -24,7 +24,7 @@
 #include <list>
 #include <map>
 #include <limits>
-#include <limits>
+#include <stdexcept>
 #include <queue>
 #include <initializer_list>
 #include <filesystem>
@@ -55,6 +55,9 @@ using namespace DirectX;
 using namespace DirectX::PackedVector;
 using namespace DirectX::SimpleMath;
 using namespace Microsoft::WRL;
+
+#include "json.hpp"
+using json = nlohmann::json;
 
 
 // ���� lib

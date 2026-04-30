@@ -212,6 +212,7 @@
     <ClInclude Include="GodRayPass.h" />
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GameRenderPipeline.h" />
+    <ClInclude Include="JsonUtils.h" />
     <ClInclude Include="LobbyRenderPipeline.h" />
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MathUtils.h" />
@@ -263,6 +264,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="OutlinePass.h" />
     <ClInclude Include="PacketHelper.h" />
+    <ClInclude Include="PayloadPathData.h" />
     <ClInclude Include="ParticleComponent.h" />
     <ClInclude Include="ParticleEffect.h" />
     <ClInclude Include="ParticlePass.h" />
@@ -310,6 +312,7 @@
     <ClInclude Include="UIEffectPass.h" />
     <ClInclude Include="UIGameInfoUpdateFeature.h" />
     <ClInclude Include="UIHpBarUpdateFeature.h" />
+    <ClInclude Include="UIPhaseProgressUpdateFeature.h" />
     <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="UISpriteComponent.h" />
     <ClInclude Include="UITextComponent.h" />
@@ -352,6 +355,7 @@
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="GodRayPass.cpp" />
     <ClCompile Include="GameMode.cpp" />
+    <ClCompile Include="JsonUtils.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MathUtils.cpp" />
     <ClCompile Include="MotionVectorPass.cpp" />
@@ -401,6 +405,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="OutlinePass.cpp" />
     <ClCompile Include="PacketHelper.cpp" />
+    <ClCompile Include="PayloadPathData.cpp" />
     <ClCompile Include="ParticleComponent.cpp" />
     <ClCompile Include="ParticleEffect.cpp" />
     <ClCompile Include="ParticlePass.cpp" />
@@ -452,6 +457,7 @@
     <ClCompile Include="UIEffectPass.cpp" />
     <ClCompile Include="UIGameInfoUpdateFeature.cpp" />
     <ClCompile Include="UIHpBarUpdateFeature.cpp" />
+    <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UIButtonSystem.cpp" />
@@ -722,6 +728,26 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_sprite_VS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">VS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">VS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_VS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">VS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">VS_Main</EntryPointName>

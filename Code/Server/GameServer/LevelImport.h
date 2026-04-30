@@ -2,8 +2,9 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include "json.hpp"
-using json = nlohmann::json;
+
+#include "JsonUtils.h"
+
 
 
 struct Basis
@@ -48,68 +49,50 @@ struct LevelImportData
 };
 
 
-static const json& Require(const json& j, const char* key)
-{
-    auto it = j.find(key);
-    if (it == j.end())
-        throw std::runtime_error(std::string("JSON missing key: ") + key);
-    return *it;
-}
-
-static float GetFloat(const json& j, const char* key)
-{
-    return Require(j, key).get<float>();
-}
-
-static std::string GetString(const json& j, const char* key)
-{
-    return Require(j, key).get<std::string>();
-}
-
 static Vec3 ParseVec3(const json& j)
 {
     Vec3 v;
-    v.x = GetFloat(j, "x");
-    v.y = GetFloat(j, "y");
-    v.z = GetFloat(j, "z");
+    v.x = GetOptionalFloat(j, "x");
+    v.y = GetOptionalFloat(j, "y");
+    v.z = GetOptionalFloat(j, "z");
     return v;
 }
 
 static Vec3 ParseRot3(const json& j)
 {
     Vec3 v;
-    v.x = GetFloat(j, "pitch");
-    v.y = GetFloat(j, "yaw");
-    v.z = GetFloat(j, "roll");
+    v.x = GetOptionalFloat(j, "pitch");
+    v.y = GetOptionalFloat(j, "yaw");
+    v.z = GetOptionalFloat(j, "roll");
     return v;
 }
 
 static Basis ParseBasis(const json& jBasis)
 {
     Basis b{};
-    b.forward = ParseVec3(Require(jBasis, "forward"));
-    b.right = ParseVec3(Require(jBasis, "right"));
-    b.up = ParseVec3(Require(jBasis, "up"));
+    b.forward = ParseVec3(RequireJson(jBasis, "forward"));
+    b.right = ParseVec3(RequireJson(jBasis, "right"));
+    b.up = ParseVec3(RequireJson(jBasis, "up"));
     return b;
 }
 
 static TransformData ParseDxTransform(const json& jDx)
 {
     TransformData t{};
-    t.position = ParseVec3(Require(jDx, "location"));
-    t.scale = ParseVec3(Require(jDx, "scale"));
-    t.basis = ParseBasis(Require(jDx, "basis"));
+    t.position = ParseVec3(RequireJson(jDx, "location"));
+    t.scale = ParseVec3(RequireJson(jDx, "scale"));
+    t.basis = ParseBasis(RequireJson(jDx, "basis"));
     return t;
 }
 
 static TransformData ParseUETransform(const json& jUe, float positionUnitScale)
 {
     TransformData t{};
-    t.position = ParseVec3(Require(jUe, "location_cm"));
+    t.position = ParseVec3(RequireJson(jUe, "location_cm"));
 
-    t.scale = ParseVec3(Require(jUe, "scale"));
-    t.rotation = ParseRot3(Require(jUe, "rotation_deg"));
-    t.basis = ParseBasis(Require(jUe, "basis"));
+    t.scale = ParseVec3(RequireJson(jUe, "scale"));
+    t.rotation = ParseRot3(RequireJson(jUe, "rotation_deg"));
+    t.basis = ParseBasis(RequireJson(jUe, "basis"));
     return t;
 }
 

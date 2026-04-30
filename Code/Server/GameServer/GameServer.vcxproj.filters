@@ -195,6 +195,9 @@
     <ClCompile Include="LevelImport.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
+    <ClCompile Include="PayloadPathData.cpp">
+      <Filter>Resource</Filter>
+    </ClCompile>
     <ClCompile Include="FBX.cpp">
       <Filter>Resource</Filter>
     </ClCompile>
@@ -231,6 +234,9 @@
     </ClCompile>
     <ClCompile Include="GamePhase.cpp">
       <Filter>Script</Filter>
+    </ClCompile>
+    <ClCompile Include="JsonUtils.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -375,6 +381,9 @@
     <ClInclude Include="LevelImport.h">
       <Filter>Resource</Filter>
     </ClInclude>
+    <ClInclude Include="PayloadPathData.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
     <ClInclude Include="FBX.h">
       <Filter>Resource</Filter>
     </ClInclude>
@@ -423,6 +432,9 @@
     </ClInclude>
     <ClInclude Include="GamePhase.h">
       <Filter>Script</Filter>
+    </ClInclude>
+    <ClInclude Include="JsonUtils.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

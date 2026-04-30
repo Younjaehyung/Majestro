@@ -32,7 +32,7 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 	ifs >> root;
 
 	LevelImportData out{};
-	out.levelName = GetString(root, "level_name");
+	out.levelName = GetOptionalString(root, "level_name");
 
 	if (root.contains("actual_export_root"))
 		out.actualExportRoot = root["actual_export_root"].get<std::string>();
@@ -53,23 +53,23 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 		}
 	}
 
-	const auto& actors = Require(root, "actors");
+	const auto& actors = RequireJson(root, "actors");
 	if (!actors.is_array())
 		throw std::runtime_error("JSON 'actors' is not an array");
 
 	for (const auto& a : actors)
 	{
-		const std::string actorName = GetString(a, "name");
-		const std::string actorPath = GetString(a, "path");
+		const std::string actorName = GetOptionalString(a, "name");
+		const std::string actorPath = GetOptionalString(a, "path");
 
-		const auto& comps = Require(a, "static_mesh_components");
+		const auto& comps = RequireJson(a, "static_mesh_components");
 		if (!comps.is_array())
 			throw std::runtime_error("JSON components is not an array");
 
 		for (const auto& c : comps)
 		{
-			const std::string compName = GetString(c, "component_name");
-			const std::string meshAsset = GetString(c, "static_mesh_asset");
+			const std::string compName = GetOptionalString(c, "component_name");
+			const std::string meshAsset = GetOptionalString(c, "static_mesh_asset");
 			const std::string fbxPath = (c.contains("fbx") && !c["fbx"].is_null()) ? c["fbx"].get<std::string>() : "";
 
 			if (c.contains("instances") && c["instances"].is_array())
@@ -86,7 +86,7 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 					insts.staticMeshAsset = meshAsset;
 					insts.fbx = fbxPath;
 
-					const auto& dx = Require(inst_j, "dx");
+					const auto& dx = RequireJson(inst_j, "dx");
 
 					insts.world = ParseDxTransform(dx);
 					//const auto& ue = Require(inst_j, "ue");
@@ -111,8 +111,8 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 				inst.staticMeshAsset = meshAsset;
 				inst.fbx = fbxPath;
 
-				const auto& cwt = Require(c, "component_world_transform");
-				const auto& dx = Require(cwt, "dx");
+				const auto& cwt = RequireJson(c, "component_world_transform");
+				const auto& dx = RequireJson(cwt, "dx");
 				inst.world = ParseDxTransform(dx);
 				//const auto& ue = Require(cwt, "ue");
 				//inst.ue = ParseUETransform(ue, positionUnitScale);
@@ -133,6 +133,18 @@ LevelImportData ResourceManager::LoadResourceJson(const std::wstring& path)
 	return out;
 }
 
+shared_ptr<PayloadPathData> ResourceManager::LoadPayloadPathJson(const std::wstring& path)
+{
+	shared_ptr<PayloadPathData> loadData = Get<PayloadPathData>(s2ws(filesystem::path(path).filename().stem().string()));
+	if (loadData)
+		return loadData;
+	loadData = make_shared<PayloadPathData>();
+	loadData->LoadFromJsonFile(path);
+	loadData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	Add(loadData->GetName(), loadData);
+	return loadData;
+}
+
 void ResourceManager::LoadResources()
 {
 	{  
@@ -149,6 +161,9 @@ void ResourceManager::LoadResources()
 		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
 		navMesh->Load("../Resources/NavMesh/all_tiles_navmesh.bin");
 		Add<NavMesh>(L"NavMesh", navMesh);
+	}
+	{
+		LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");
 	}
 }
 

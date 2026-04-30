@@ -243,7 +243,10 @@ void FirstScene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 
 	TerrainPrefab terrain{ mWorld.get() };
-	 
+	
+
+	shared_ptr<PayloadPathData> payLoad = RESOURCEMANAGER.LoadPayloadPathJson(L"BP_Payroad_path_C_2_PayloadPath.json");
+
 	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
 	SetGameMode(gameMode);
 	gameMode->Initialize();

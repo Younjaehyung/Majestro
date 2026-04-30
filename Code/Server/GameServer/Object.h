@@ -11,6 +11,7 @@ enum class OBJECT_TYPE : uint8
 	COLLIDER,
 	FBX,
 	HEIGHTFIELD,
+	PayloadPath, // 화물 경로 데이터
 
 	END
 };

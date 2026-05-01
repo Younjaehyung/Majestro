@@ -68,6 +68,7 @@ public:
 	bool DidPassDistance(float previousDistance, float currentDistance, float targetDistance) const;
 	void CollectPassedEvents(float previousDistance, float currentDistance, std::vector<const PayloadEventPoint*>& outEvents) const;
 
+	float GetLength() const { return length; }
 private:
 	std::string name;
 	int version = 1;

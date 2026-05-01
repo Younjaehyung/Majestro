@@ -1740,3 +1740,83 @@ HUDTimerPrefab::HUDTimerPrefab(World* world)
 HUDTimerPrefab::~HUDTimerPrefab()
 {
 }
+
+AreaConquestPrefab::AreaConquestPrefab(World* world)
+{
+	InputCommand ctx; // 기본값으로 빈 InputCommand 생성
+	PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Conquer", Vec3(50.f, 50.f, 50.f));
+}
+
+AreaConquestPrefab::~AreaConquestPrefab()
+{
+}
+
+Entity AreaConquestPrefab::Build(World* world, const InputCommand& ctx)
+{
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Conquer", Vec3(50.f, 50.f, 50.f));
+}
+
+AreaEscortPrefab::AreaEscortPrefab(World* world)
+{
+	InputCommand ctx; // 기본값으로 빈 InputCommand 생성
+	PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Escort", Vec3(50.f, 50.f, 50.f));
+
+}
+
+AreaEscortPrefab::~AreaEscortPrefab()
+{
+}
+
+
+Entity AreaEscortPrefab::Build(World* world, const InputCommand& ctx)
+{
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Escort", Vec3(50.f, 50.f, 50.f));
+}
+
+
+TruckEscortPrefab::TruckEscortPrefab(World* world)
+{
+	Entity truck = world->CreateEntity();
+	world->AddComponent<TransformComponent>(truck);
+
+	shared_ptr<Mesh> phereMesh;
+	std::vector<shared_ptr<Material>> material2s;
+	shared_ptr<Material> material2;
+
+
+	phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Escort");
+	material2 = RESOURCEMANAGER.Get<Material>(L"SM_Escort0");
+
+
+	material2s.push_back(material2);
+	world->AddComponent<NetEntityComponent>(truck);
+	world->AddComponent<NetTransformComponent>(truck);
+	world->AddComponent<RenderComponent>(truck, phereMesh, material2s);
+
+}
+
+TruckEscortPrefab::~TruckEscortPrefab()
+{
+}
+
+Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
+{
+	Entity truck = world->CreateEntity();
+	world->AddComponent<TransformComponent>(truck);
+
+	shared_ptr<Mesh> phereMesh;
+	std::vector<shared_ptr<Material>> material2s;
+	shared_ptr<Material> material2;
+
+	
+	phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Escort");
+	material2 = RESOURCEMANAGER.Get<Material>(L"SM_Escort0");
+
+
+	material2s.push_back(material2);
+	world->AddComponent<NetEntityComponent>(truck);
+	world->AddComponent<NetTransformComponent>(truck);
+	world->AddComponent<RenderComponent>(truck, phereMesh, material2s);
+
+	return truck;
+}

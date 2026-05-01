@@ -74,14 +74,14 @@ void InteractionSystem::Update(float dt)
 
     if (mWorld->HasComponentPool<MainPlayerComponent>())
     {
-        for (auto e : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent, BoxColliderComponent>()) {
+        for (auto e : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>()) {
             candidates.push_back(e);
            
         }
     }
     if (mWorld->HasComponentPool<EnemyComponent>())
     {
-        for (auto e : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent, BoxColliderComponent>()) {
+        for (auto e : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent>()) {
             candidates.push_back(e);
             
         }
@@ -89,7 +89,7 @@ void InteractionSystem::Update(float dt)
     if (candidates.empty()) return;
 
 
-    auto triggers = mWorld->GetEntitiesWithComponents<InteractableComponent, TransformComponent, BoxColliderComponent>();
+    auto triggers = mWorld->GetEntitiesWithComponents<InteractableComponent, TransformComponent>();
 
     for (Entity t : triggers)
     {
@@ -99,15 +99,12 @@ void InteractionSystem::Update(float dt)
 
         auto* inter = mWorld->GetComponent<InteractableComponent>(t);
         auto* trTr = mWorld->GetComponent<TransformComponent>(t);
-        auto* trCol = mWorld->GetComponent<BoxColliderComponent>(t);
-
-        if (!inter || !trTr || !trCol) continue;
+  
+        if (!inter || !trTr ) continue;
         if (!inter->mActive) continue;
         if (now < inter->mNextAvailableTime) continue;
 
-        trCol->bIsTrigger = true;
 
-        PhysicsWorld::UpdateWorldOBB(trTr, trCol);
 
         for (Entity user : candidates)
         {
@@ -120,14 +117,24 @@ void InteractionSystem::Update(float dt)
                 if (hp->IsDead()) continue;
             }
 
-            auto* userTr = mWorld->GetComponent<TransformComponent>(user);
-            auto* userCol = mWorld->GetComponent<BoxColliderComponent>(user);
-            if (!userTr || !userCol) continue;
+            const Vec3 triggerPos = trTr->mLocalPosition;
 
-           // PhysicsWorld::UpdateWorldOBB(userTr, userCol);
+            bool hit = false;
+            if (inter->mShape == InteractableShape::Box) {
+                auto* trCol = mWorld->GetComponent<BoxColliderComponent>(t);
+                if (!trCol) continue;
+                PhysicsWorld::UpdateWorldOBB(trTr, trCol);
+                auto* userCol = mWorld->GetComponent<BoxColliderComponent>(t);
+                if (!userCol) continue;
+                hit = trCol->mWorldOBB.Intersects(userCol->mWorldOBB);
+            }
+            else { // Sphere
+                Vec3 d = trTr->mLocalPosition - triggerPos;
+                if (inter->mIgnoreY) d.y = 0.f;
+                hit = (d.LengthSquared() <= inter->mRadius * inter->mRadius);
+            }
+            if (!hit) continue;
 
-            if (!trCol->mWorldOBB.Intersects(userCol->mWorldOBB))
-                continue;
 
 
             switch (inter->mKind)
@@ -138,6 +145,7 @@ void InteractionSystem::Update(float dt)
             case InteractableKind::SpeedPad:    ApplySpeedPad(user, t, *inter);  break;
             case InteractableKind::DamageZone:  ApplyDamageZone(user, t, *inter); break;
 			case InteractableKind::ConquestZone: ApplyConquestZone(user, t, *inter); break;
+			case InteractableKind::EscortZone: ApplyEscortZone(user, t, *inter); break;
             case InteractableKind::Checkpoint:
             case InteractableKind::None:
             default: break;
@@ -237,4 +245,13 @@ void InteractionSystem::ApplyConquestZone(Entity user, Entity trigger, Interacta
 	capture.enemyNum = mEnemyCount;
 	mWorld->GetEventManager()->Enqueue<EvConquestPointCaptured>(capture);
 
+}
+
+void InteractionSystem::ApplyEscortZone(Entity user, Entity trigger, InteractableComponent& i)
+{
+    // 호위 지점 진입: GameRuleComponent의 호위 상태 업데이트
+    EvEscortPointCaptured entered{};
+    entered.playerNum = mPlayerCount;
+    entered.enemyNum = mEnemyCount;
+	mWorld->GetEventManager()->Enqueue<EvEscortPointCaptured>(entered);
 }

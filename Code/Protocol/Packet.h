@@ -98,6 +98,7 @@ enum class PrefabType : uint8 {
 	HEAL_PACK,
 	JUMP_PAD,
 	MONSTER_SPAWNER,
+	TRUCK,
 	COUNT
 };
 
@@ -204,6 +205,17 @@ struct S2C_ConquestPacket : public PacketTcpHeader {
 	}
 };
 
+struct S2C_EscortPacket : public PacketTcpHeader {
+	uint32 clientId{};
+	uint8 RouteId = 0; // 호위 경로 ID
+	float EscortProgress = 0.0f; // 호위 진행도 (0.0 ~ 1.0)
+	float EscortTime = 0.0f; // 게임 진행 시간
+	S2C_EscortPacket() : PacketTcpHeader{ sizeof(S2C_EscortPacket), PKT_Type::S2C_PKT_SCENE_ESCORT, 0.0 } {}
+	S2C_EscortPacket(uint32 id, uint8 routeId, float progress, float escortTime)
+		: PacketTcpHeader{ sizeof(S2C_EscortPacket), PKT_Type::S2C_PKT_SCENE_ESCORT, 0.0 },
+		clientId(id), RouteId(routeId), EscortProgress(progress), EscortTime(escortTime) {
+	}
+};
 
 struct S2C_StartGamePacket : public PacketTcpHeader {
 	uint32 clientId{};

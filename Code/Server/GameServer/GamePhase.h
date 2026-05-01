@@ -65,7 +65,7 @@ class EscortPhase : public GamePhase
     virtual uint8 GetType() const override { return static_cast<uint8>(WavePhaseType::Escort); }
 
 private:
-
+	Entity mTruckEntity;
     shared_ptr<PayloadPathData> mEscortPath;
 private:
     uint8 mRouteId = 0;

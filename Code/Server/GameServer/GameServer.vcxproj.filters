@@ -238,6 +238,12 @@
     <ClCompile Include="JsonUtils.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="PathLoadComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="PathFollowSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -435,6 +441,12 @@
     </ClInclude>
     <ClInclude Include="JsonUtils.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="PathLoadComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PathFollowSystem.h">
+      <Filter>System\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

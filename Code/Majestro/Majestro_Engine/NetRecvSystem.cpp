@@ -535,7 +535,6 @@ void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
 	conquestComp->mPlayerNum = pkt->PlayerNum;
 	conquestComp->mEnemyNum = pkt->EnemyNum;
 
-
 }
 
 

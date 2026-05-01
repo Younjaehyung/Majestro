@@ -48,6 +48,7 @@
 #include "IMGUISystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
+#include "GamePhaseSystem.h"
 
 #include "NetRecvSystem.h"
 #include "GameRuleComponent.h"
@@ -1052,7 +1053,7 @@ void FirstScene::Initialize()
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
-
+	AreaConquestPrefab areaConquest{ mWorld.get() };
 
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
@@ -1082,6 +1083,7 @@ void FirstScene::Initialize()
 		ParticleComponent& particle = mWorld->AddComponent<ParticleComponent>(particleEntity);
 		particle.mEffectName = L"Particle_DebugBurst";
 	}
+	
 	/////////////////////////////////////////////////////////////////////
 	// [ 샘플 ]
 
@@ -1325,6 +1327,7 @@ void FirstScene::Initialize()
 	// NETWORK
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<GamePhaseSystem>();
 #if USE_CPU_ANIMATION
 	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
 #else

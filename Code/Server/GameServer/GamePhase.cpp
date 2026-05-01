@@ -9,6 +9,10 @@
 #include "TransformComponent.h"
 #include "EnemyComponent.h"
 #include "PayloadPathData.h"
+#include "PathLoadComponent.h"
+#include "NetEntityComponent.h"
+
+#include "Prefab.h"
 
 
 
@@ -124,7 +128,12 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 EscortPhase::EscortPhase(uint8 routeId) : mRouteId(routeId) 
 {
-	mEscortPath = RESOURCEMANAGER.Get<PayloadPathData>(L"BP_Payroad_path_C_2_PayloadPath.json");
+	switch (routeId)
+	{
+	case 1:
+		mEscortPath = RESOURCEMANAGER.Get<PayloadPathData>(L"BP_Payroad_path_C_1_PayloadPath.json");
+		break;
+	}
 
 }
 
@@ -136,6 +145,10 @@ void EscortPhase::Enter(WaveGameMode& mode)
 	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(rule);
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
 
+
+
+
+
 	auto& state = world->AddComponent<GameEscortComponent>(rule);
 	state.mRouteId = mRouteId;
 
@@ -145,8 +158,24 @@ void EscortPhase::Enter(WaveGameMode& mode)
 		GameEscortComponent* escortComp = world->GetComponent<GameEscortComponent>(rule);
 		escortComp->mEscortTarget = mEscortTarget;
 		world->AddComponent<TransformComponent>(mEscortTarget);
-		world->AddComponent<BoxColliderComponent>(mEscortTarget);
+		world->AddComponent<NetEntityComponent>(mEscortTarget, world, mEscortTarget);
 
+		// 호위 대상에 경로 추종 컴포넌트 부착 — PathFollowSystem 이 매 프레임 위치/회전 갱신
+		PathLoadComponent& pathComp = world->AddComponent<PathLoadComponent>(mEscortTarget);
+		pathComp.mPathData         = mEscortPath;
+		pathComp.mBaseSpeed        = 200.f; 
+		pathComp.mCurrentDistance  = 0.f;
+		pathComp.mPreviousDistance = 0.f;
+		pathComp.mActive           = true;
+
+		auto& inter = world->AddComponent<InteractableComponent>(mEscortTarget);
+		inter.mKind = InteractableKind::EscortZone;
+		inter.mShape = InteractableShape::Sphere;
+		inter.mRadius = state.mEscortRange;       // 500cm
+		inter.mIgnoreY = true;
+		inter.mTargetMask = InteractableTarget_All;
+		inter.mCooldown = 0.f; 
+		inter.mActive = true;
 	}
 
 }
@@ -164,9 +193,29 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
 	Entity rule = mode.GetGameRuleEntity();
 	GameEscortComponent* ruleComp = mWorld->GetComponent<GameEscortComponent>(rule);
+	if (!ruleComp)
+		return;
+
 	ruleComp->mEscortTime += dt;
 
+	Entity escortTarget = ruleComp->mEscortTarget;
+	TransformComponent* targetTr = mWorld->GetComponent<TransformComponent>(escortTarget);
 
+	mWorld->GetEventManager()->Consume<EvEscortPointCaptured>([&](const EvEscortPointCaptured& e) {
+
+		ruleComp->mPlayerNum = e.playerNum;
+		ruleComp->mEnemyNum = e.enemyNum;
+
+	});
+
+	PathLoadComponent* pathComp = mWorld->GetComponent<PathLoadComponent>(escortTarget);
+	pathComp->mPaused = (ruleComp->mEnemyNum == 0 && ruleComp->mPlayerNum > 0) ? false : true;
+
+
+	ruleComp->mEscortProgress = pathComp->mCurrentDistance / pathComp->mTotalDistance;
+
+	if (ruleComp->mEscortProgress >= 1.f)
+		mIsCompleted = true;
 	
 	// GameEscortComponent의 상태를 업데이트하거나, 플레이어와 호위 대상의 위치를 체크하여 호위 성공/실패 여부를 판단하는 로직을 구현할 수 있습니다.
 }

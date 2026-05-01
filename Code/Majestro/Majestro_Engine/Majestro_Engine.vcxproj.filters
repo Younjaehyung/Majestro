@@ -652,6 +652,9 @@
     <ClInclude Include="JsonUtils.h">
       <Filter>Utils\Json</Filter>
     </ClInclude>
+    <ClInclude Include="GamePhaseSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -1046,6 +1049,9 @@
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
     <ClCompile Include="JsonUtils.cpp">
       <Filter>Utils\Json</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePhaseSystem.cpp">
+      <Filter>World\System\Logic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

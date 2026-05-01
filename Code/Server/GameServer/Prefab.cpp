@@ -1,8 +1,11 @@
 #include "pch.h"
 #include "Prefab.h"
+#include "GameCore.h"	
+#include "ResourceManager.h"
+#include "Component.h"
+
 #include "BeatComponent.h"
 #include "CameraComponent.h"
-#include "Component.h"
 #include "GravityComponent.h"
 #include "HeightField.h"
 #include "InputComponent.h"
@@ -21,6 +24,7 @@
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
 #include "BuffComponent.h"
+#include "PathLoadComponent.h"
 #include "World.h"
 
 
@@ -287,3 +291,50 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 	return entity;
 }
+
+
+TruckEscortPrefab::TruckEscortPrefab(World* world)
+{
+	Entity truck = world->CreateEntity();
+	world->AddComponent<TransformComponent>(truck);
+
+	world->AddComponent<PathLoadComponent>(truck);
+	world->AddComponent<NetEntityComponent>(truck);
+
+
+}
+
+TruckEscortPrefab::TruckEscortPrefab(World* world, std::wstring path)
+{
+	Entity truck = world->CreateEntity();
+	world->AddComponent<TransformComponent>(truck);
+	PathLoadComponent& pathLoad = world->AddComponent<PathLoadComponent>(truck);
+	pathLoad.mPath = path;
+	pathLoad.mPathData = RESOURCEMANAGER.Get<PayloadPathData>(path);
+	world->AddComponent<NetEntityComponent>(truck);
+}
+
+TruckEscortPrefab::TruckEscortPrefab(World* world, std::shared_ptr<PayloadPathData> path)
+{
+	Entity truck = world->CreateEntity();
+	world->AddComponent<TransformComponent>(truck);
+	PathLoadComponent& pathLoad = world->AddComponent<PathLoadComponent>(truck);
+	pathLoad.mPathData = path;
+	world->AddComponent<NetEntityComponent>(truck);
+}
+
+TruckEscortPrefab::~TruckEscortPrefab()
+{
+}
+
+Entity TruckEscortPrefab::Build(World* world, std::shared_ptr<PayloadPathData> path)
+{
+	Entity truck = world->CreateEntity();
+	world->AddComponent<TransformComponent>(truck);
+	PathLoadComponent& pathLoad = world->AddComponent<PathLoadComponent>(truck);
+	pathLoad.mPathData = path;
+	world->AddComponent<NetEntityComponent>(truck);
+
+	return truck;
+}
+

@@ -9,7 +9,7 @@ class PlayerPrefab;
 class TerrainPrefab;
 class EnemyPrefab;
 class BulletPrefab;
-
+class PayloadPathData;
 
 class Prefab : public Object
 {
@@ -121,4 +121,15 @@ public:
 	~BulletPrefab();
 public:
 	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class TruckEscortPrefab : public Prefab
+{
+public:
+	TruckEscortPrefab(World* world);
+	TruckEscortPrefab(World* world, std::wstring path);
+	TruckEscortPrefab(World* world, std::shared_ptr<PayloadPathData> path);
+	~TruckEscortPrefab();
+
+	static Entity Build(World* world, std::shared_ptr<PayloadPathData> path);
 };

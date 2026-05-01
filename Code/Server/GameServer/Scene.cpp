@@ -41,6 +41,7 @@
 #include "SpawnerSystem.h"
 #include "SpawnerComponent.h"
 #include "GameRuleSystem.h"
+#include "PathFollowSystem.h"
 
 
 
@@ -245,8 +246,6 @@ void FirstScene::Initialize()
 	TerrainPrefab terrain{ mWorld.get() };
 	
 
-	shared_ptr<PayloadPathData> payLoad = RESOURCEMANAGER.LoadPayloadPathJson(L"BP_Payroad_path_C_2_PayloadPath.json");
-
 	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
 	SetGameMode(gameMode);
 	gameMode->Initialize();
@@ -261,6 +260,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종 (화물·시네마틱 카메라)
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition)  이동 후 재계산
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();        // 8. 카메라 업데이트
 	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
@@ -395,6 +395,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();        // 8. 카메라 업데이트
 	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격

@@ -210,3 +210,27 @@ class HUDTimerPrefab : public Prefab
 	HUDTimerPrefab(World* world);
 	~HUDTimerPrefab();
 };
+
+class AreaConquestPrefab : public Prefab
+{
+	public:
+	AreaConquestPrefab(World* world);
+	~AreaConquestPrefab();
+	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class AreaEscortPrefab : public Prefab
+{
+	public:
+	AreaEscortPrefab(World* world);
+	~AreaEscortPrefab();
+	static Entity Build(World* world, const InputCommand& ctx);
+};
+
+class TruckEscortPrefab : public Prefab
+{
+public:
+	TruckEscortPrefab(World* world);
+	~TruckEscortPrefab();
+	static Entity Build(World* world, const InputCommand& ctx);
+};

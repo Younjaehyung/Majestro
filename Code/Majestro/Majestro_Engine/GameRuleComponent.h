@@ -46,4 +46,8 @@ class GameEscortComponent : public Component<GameEscortComponent>
 public:
     GameEscortComponent() = default;
    
+	Entity mEscortTarget; // 호위 대상 엔티티 (예: 트럭)
+
+	float mEscortProgress = 0.f; // 호위 진행도 (0.0 ~ 1.0)
+	float mEscortTime = 0.f; // 호위 진행 시간
 };

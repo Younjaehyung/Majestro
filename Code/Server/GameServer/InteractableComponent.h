@@ -19,8 +19,11 @@ enum class InteractableKind : uint8
 	SpeedPad, 
 	DamageZone,
 	ConquestZone,
+	EscortZone,
     Checkpoint
 };
+
+enum class InteractableShape : uint8 { Box = 0, Sphere = 1 };
 
 // 누구에게 적용되는지 필터
 enum InteractableTarget : uint8
@@ -52,4 +55,10 @@ public:
 
     EntityID mLastUserId = 0;
     float    mLastTriggerTime = 0.0f;
+
+
+
+    InteractableShape mShape = InteractableShape::Box; //기본 Box(기존 ConquestZone / HealPack 등 호환)
+    float             mRadius = 0.f;                    //Sphere 일 때(cm)
+    bool              mIgnoreY = true;                   // XZ 평면 거리만 비교
 };

@@ -2291,11 +2291,13 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"ForwardPlusCel");
 
+	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"ForwardPlusCel");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk");
 	//LoadEffect(L"..\\Resources\\Effect\\Area\\VFX_Sector_Jump.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
@@ -2304,6 +2306,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_Select\\VFX_UI_Select.efk");
+
 
 	LoadNavMesh(L"..\\Resources\\Map\\all_tiles_navmesh.bin");
 

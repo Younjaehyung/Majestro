@@ -20,6 +20,7 @@ private:
     void ApplySpeedPad(Entity user, Entity trigger, const class InteractableComponent& i);
     void ApplyDamageZone(Entity user, Entity trigger, class InteractableComponent& i);
 	void ApplyConquestZone(Entity user, Entity trigger, class InteractableComponent& i);
+	void ApplyEscortZone(Entity user, Entity trigger, class InteractableComponent& i);
 
     bool MatchesTargetMask(World* world, Entity e, uint8 mask);
 

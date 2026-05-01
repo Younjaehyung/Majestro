@@ -218,6 +218,8 @@
     <ClCompile Include="NetRecvSystem.cpp" />
     <ClCompile Include="NetSendSystem.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PathFollowSystem.cpp" />
+    <ClCompile Include="PathLoadComponent.cpp" />
     <ClCompile Include="PayloadPathData.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -294,6 +296,8 @@
     <ClInclude Include="NetRecvSystem.h" />
     <ClInclude Include="NetSendSystem.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="PathFollowSystem.h" />
+    <ClInclude Include="PathLoadComponent.h" />
     <ClInclude Include="PayloadPathData.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhysicsWorld.h" />

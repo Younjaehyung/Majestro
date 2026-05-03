@@ -11,6 +11,7 @@
 #include "PayloadPathData.h"
 #include "PathLoadComponent.h"
 #include "NetEntityComponent.h"
+#include "TruckComponent.h"
 
 #include "Prefab.h"
 
@@ -21,7 +22,6 @@ void PreparePhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
 	mGameRuleEntity = mode.GetGameRuleEntity();
-	auto& state = mWorld->AddComponent<GameRuleComponent>(mGameRuleEntity);
 }
 
 void PreparePhase::Exit(WaveGameMode& mode)
@@ -130,8 +130,12 @@ EscortPhase::EscortPhase(uint8 routeId) : mRouteId(routeId)
 {
 	switch (routeId)
 	{
+	case 0:
 	case 1:
-		mEscortPath = RESOURCEMANAGER.Get<PayloadPathData>(L"BP_Payroad_path_C_1_PayloadPath.json");
+		mEscortPath = RESOURCEMANAGER.Get<PayloadPathData>(L"BP_Payroad_path_C_2_PayloadPath");
+		break;
+	default:
+		// 로그/assert
 		break;
 	}
 
@@ -140,45 +144,51 @@ EscortPhase::EscortPhase(uint8 routeId) : mRouteId(routeId)
 
 void EscortPhase::Enter(WaveGameMode& mode)
 {
-	World* world = mode.GetScene()->GetWorld().get();
+	mWorld = mode.GetScene()->GetWorld();
 	Entity rule = mode.GetGameRuleEntity();
 	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(rule);
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
 
 
-
-
-
-	auto& state = world->AddComponent<GameEscortComponent>(rule);
+	auto& state = mWorld->AddComponent<GameEscortComponent>(rule);
 	state.mRouteId = mRouteId;
 
-	Entity mEscortTarget = world->CreateEntity();
-	if(mEscortTarget.IsValid())
-	{
-		GameEscortComponent* escortComp = world->GetComponent<GameEscortComponent>(rule);
-		escortComp->mEscortTarget = mEscortTarget;
-		world->AddComponent<TransformComponent>(mEscortTarget);
-		world->AddComponent<NetEntityComponent>(mEscortTarget, world, mEscortTarget);
 
-		// 호위 대상에 경로 추종 컴포넌트 부착 — PathFollowSystem 이 매 프레임 위치/회전 갱신
-		PathLoadComponent& pathComp = world->AddComponent<PathLoadComponent>(mEscortTarget);
-		pathComp.mPathData         = mEscortPath;
-		pathComp.mBaseSpeed        = 200.f; 
-		pathComp.mCurrentDistance  = 0.f;
-		pathComp.mPreviousDistance = 0.f;
-		pathComp.mActive           = true;
+	GameEscortComponent* escortComp = mWorld->GetComponent<GameEscortComponent>(rule);
+	EntityView pathEntity = mWorld->View<PathLoadComponent, TruckComponent>();
 
-		auto& inter = world->AddComponent<InteractableComponent>(mEscortTarget);
-		inter.mKind = InteractableKind::EscortZone;
-		inter.mShape = InteractableShape::Sphere;
-		inter.mRadius = state.mEscortRange;       // 500cm
-		inter.mIgnoreY = true;
-		inter.mTargetMask = InteractableTarget_All;
-		inter.mCooldown = 0.f; 
-		inter.mActive = true;
+	for( Entity e : pathEntity) {
+		TruckComponent* truck = mWorld->GetComponent<TruckComponent>(e);
+		if (truck) {
+			escortComp->mEscortTarget = e;
+
+			break;
+		}
 	}
 
+	if (!escortComp->mEscortTarget.IsValid())
+		return;
+
+	PathLoadComponent* pathComp = mWorld->GetComponent<PathLoadComponent>(escortComp->mEscortTarget);
+	pathComp->mPathData         = mEscortPath;
+	pathComp->mBaseSpeed        = escortComp->mTruckSpeed;
+	pathComp->mCurrentDistance  = 0.f;
+	pathComp->mPreviousDistance = 0.f;
+	pathComp->mActive           = true;
+
+	InteractableComponent* interComp = mWorld->GetComponent<InteractableComponent>(escortComp->mEscortTarget);
+	interComp->mKind = InteractableKind::EscortZone;
+	interComp->mShape = InteractableShape::Sphere;
+	interComp->mRadius = state.mEscortRange;       // 500cm
+	interComp->mIgnoreY = true;
+	interComp->mTargetMask = InteractableTarget_All;
+	interComp->mCooldown = 0.f;
+	interComp->mActive = true;
 }
+
+
+
+
 
 void EscortPhase::Exit(WaveGameMode& mode)
 {

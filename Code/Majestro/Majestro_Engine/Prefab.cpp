@@ -1802,21 +1802,27 @@ TruckEscortPrefab::~TruckEscortPrefab()
 Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity truck = world->CreateEntity();
-	world->AddComponent<TransformComponent>(truck);
+	TransformComponent& trans = world->AddComponent<TransformComponent>(truck);
+	trans.mLocalScale = Vec3(100.f, 100.f, 100.f);
 
 	shared_ptr<Mesh> phereMesh;
 	std::vector<shared_ptr<Material>> material2s;
 	shared_ptr<Material> material2;
 
 	
-	phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Escort");
+	phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Escort_Body");
 	material2 = RESOURCEMANAGER.Get<Material>(L"SM_Escort0");
 
 
 	material2s.push_back(material2);
-	world->AddComponent<NetEntityComponent>(truck);
+	auto& netComp = world->AddComponent<NetEntityComponent>(truck);
+	netComp.mOwnerEntity = truck;
+	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
+	world->NetIdBinding(netComp.mNetEntityId, truck);
 	world->AddComponent<NetTransformComponent>(truck);
 	world->AddComponent<RenderComponent>(truck, phereMesh, material2s);
+
+
 
 	return truck;
 }

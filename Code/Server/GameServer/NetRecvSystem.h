@@ -14,25 +14,15 @@ private:
 
 	void HandleGameStart(InputCommand& inputCommand);
 
-	void SpawnPlayer(InputCommand& inputCommand);
-	void SendSpawnToSelf(uint32 sessionId, Entity e, uint8 playerType);
-	void BroadcastSpawnToOthers(uint32 sessionId, Entity e, uint8 playerType);
-	void SendExistingPlayersToNewClient(uint32 newSessionId);
-	void SendWorldObjectsToNewClient(uint32 newSessionId);
-	void SendHealthSnapshotToNewClient(uint32 newSessionId);
-
-	void EnemySpawnProcess(InputCommand& inputCommand);
-	void BulletPoolSpawnProcess(InputCommand& inputCommand);
+	Entity SpawnPlayer(InputCommand& inputCommand);
+	void EnsureEnemyPool(InputCommand& inputCommand);
+	void EnsureBulletPool(InputCommand& inputCommand);
 
 	Entity FindEntityBySession(uint32 sessionId) const;
-	std::vector<uint32> CollectPlayerSessions();
 
 
 	bool IsNewerSeq(uint32 lhs, uint32 rhs){return static_cast<int32>(lhs - rhs) > 0;}
 private:
-	vector<std::pair<uint64, uint8>> mEnemySpawnInfos;
-	std::unordered_set<uint32> mSessionSet;
-	vector<uint64> mBulletNetEntityIds{};
 	bool mEnemySpawnOnce = true;
 	bool mBulletSpawnOnce = true;
 

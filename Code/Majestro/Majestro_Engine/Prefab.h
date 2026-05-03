@@ -10,6 +10,7 @@ class BulletPrefab;
 class HealPackPrefab;
 class JumpPadPrefab;
 class MonsterSpawnerMarkerPrefab;
+class TruckEscortPrefab;
 
 class Prefab : public Object
 {
@@ -38,6 +39,7 @@ public:
 		Register<PrefabType::HEAL_PACK, HealPackPrefab>();
 		Register<PrefabType::JUMP_PAD, JumpPadPrefab>();
 		Register<PrefabType::MONSTER_SPAWNER, MonsterSpawnerMarkerPrefab>();
+		Register<PrefabType::TRUCK, TruckEscortPrefab>();
 		// Register<PrefabType::ENEMY, EnemyPrefab>();
 		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
 		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();

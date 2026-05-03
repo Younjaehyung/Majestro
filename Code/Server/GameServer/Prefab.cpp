@@ -25,6 +25,8 @@
 #include "ArmorComponent.h"
 #include "BuffComponent.h"
 #include "PathLoadComponent.h"
+#include "TruckComponent.h"
+#include "InteractableComponent.h"
 #include "World.h"
 
 
@@ -295,45 +297,36 @@ Entity BulletPrefab::Build(World* world, const InputCommand& ctx)
 
 TruckEscortPrefab::TruckEscortPrefab(World* world)
 {
-	Entity truck = world->CreateEntity();
-	world->AddComponent<TransformComponent>(truck);
-
-	world->AddComponent<PathLoadComponent>(truck);
-	world->AddComponent<NetEntityComponent>(truck);
-
-
-}
-
-TruckEscortPrefab::TruckEscortPrefab(World* world, std::wstring path)
-{
-	Entity truck = world->CreateEntity();
-	world->AddComponent<TransformComponent>(truck);
-	PathLoadComponent& pathLoad = world->AddComponent<PathLoadComponent>(truck);
-	pathLoad.mPath = path;
-	pathLoad.mPathData = RESOURCEMANAGER.Get<PayloadPathData>(path);
-	world->AddComponent<NetEntityComponent>(truck);
-}
-
-TruckEscortPrefab::TruckEscortPrefab(World* world, std::shared_ptr<PayloadPathData> path)
-{
-	Entity truck = world->CreateEntity();
-	world->AddComponent<TransformComponent>(truck);
-	PathLoadComponent& pathLoad = world->AddComponent<PathLoadComponent>(truck);
-	pathLoad.mPathData = path;
-	world->AddComponent<NetEntityComponent>(truck);
+	InputCommand dummy{};
+	mEntityID = TruckEscortPrefab::Build(world, dummy);
 }
 
 TruckEscortPrefab::~TruckEscortPrefab()
 {
 }
 
-Entity TruckEscortPrefab::Build(World* world, std::shared_ptr<PayloadPathData> path)
+Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity truck = world->CreateEntity();
+
 	world->AddComponent<TransformComponent>(truck);
+	world->AddComponent<TruckComponent>(truck);
+
+	// EscortPhase 진입 시 세팅
 	PathLoadComponent& pathLoad = world->AddComponent<PathLoadComponent>(truck);
-	pathLoad.mPathData = path;
-	world->AddComponent<NetEntityComponent>(truck);
+	pathLoad.mActive = false;
+
+	auto& netComp = world->AddComponent<NetEntityComponent>(truck, world, truck);
+	world->NetIdBinding(netComp.mNetEntityId, truck);
+
+	// EscortZone 트리거. 활성화 / 반경 등은 EscortPhase::Enter 에서 세팅
+	auto& inter = world->AddComponent<InteractableComponent>(truck);
+	inter.mKind = InteractableKind::EscortZone;
+	inter.mShape = InteractableShape::Sphere;
+	inter.mIgnoreY = true;
+	inter.mTargetMask = InteractableTarget_All;
+	inter.mCooldown = 0.f;
+	inter.mActive = false;
 
 	return truck;
 }

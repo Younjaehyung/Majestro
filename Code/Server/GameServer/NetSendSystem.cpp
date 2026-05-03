@@ -12,6 +12,10 @@
 #include "ArmorComponent.h"
 #include "GameRuleComponent.h"
 #include "GameEvents.h"
+#include "EventManager.h"
+#include "InteractableComponent.h"
+#include "SpawnerComponent.h"
+#include "TruckComponent.h"
 
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
@@ -23,7 +27,8 @@ void NetSendSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
-	
+
+	HandleSessionJoinedEvents();   // 신규 세션 초기 상태 송신
 	SendAction();
 	SendCollision();
 	SendHealthEvents();
@@ -37,7 +42,7 @@ void NetSendSystem::Update(float dt)
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
 		SendMove(mNetComp, &mSendReq, dt);	//move
 
-	
+
 }
 
 void NetSendSystem::SendMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
@@ -424,3 +429,202 @@ void NetSendSystem::SendEffectSpawnEvents()
 		});
 }
 
+
+// ─── 신규 세션 입장 처리 ─────────────────────────────────────
+
+void NetSendSystem::HandleSessionJoinedEvents()
+{
+	std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager();
+	if (eventManager == nullptr)
+		return;
+
+	eventManager->Consume<EvSessionJoined>([&](const EvSessionJoined& e)
+	{
+		SendPlayerSelfSpawn(e.sessionId, e.playerEntity, e.playerType);
+		BroadcastPlayerToOthers(e.sessionId, e.playerEntity, e.playerType);
+		SendExistingPlayersToNewSession(e.sessionId);
+		SendWorldObjectsToNewSession(e.sessionId);
+		SendEnemyPoolToNewSession(e.sessionId);
+		SendBulletPoolToNewSession(e.sessionId);
+		SendHealthSnapshotToNewSession(e.sessionId);
+	});
+}
+
+void NetSendSystem::SendPlayerSelfSpawn(uint32 sessionId, Entity playerEntity, uint8 playerType)
+{
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	if (netComp == nullptr) return;
+
+	S2C_SpawnPacekt spawnPkt(sessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+	spawnPkt.Type = playerType;
+	spawnPkt.isLocalPlayer = 1;
+
+	SendRequest req{ sessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+	req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+	gSendQueue.Push(req);
+}
+
+void NetSendSystem::BroadcastPlayerToOthers(uint32 sessionId, Entity playerEntity, uint8 playerType)
+{
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	if (netComp == nullptr) return;
+
+	S2C_SpawnPacekt spawnPkt(sessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+	spawnPkt.Type = playerType;
+	spawnPkt.isLocalPlayer = 0;
+
+	for (uint32 otherSessionId : CollectPlayerSessions())
+	{
+		if (otherSessionId == sessionId) continue;
+
+		SendRequest req{ otherSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(req);
+	}
+}
+
+void NetSendSystem::SendExistingPlayersToNewSession(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<NetEntityComponent>() || !mWorld->HasComponentPool<MainPlayerComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+	{
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(entity);
+		if (netComp == nullptr) continue;
+		if (netComp->mSessionId == newSessionId || netComp->mSessionId == 0) continue;
+
+		S2C_SpawnPacekt spawnPkt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
+		spawnPkt.Type = playerComp ? playerComp->mPlayerType : 1;
+
+		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(req);
+	}
+}
+
+void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponent<NetEntityComponent>())
+	{
+		if (!entity.IsValid())
+			continue;
+		if (mWorld->HasComponent<MainPlayerComponent>(entity) ||
+			mWorld->HasComponent<EnemyComponent>(entity) ||
+			mWorld->HasComponent<BulletComponent>(entity))
+		{
+			continue;
+		}
+
+		PrefabType prefabType = PrefabType::NONE;
+		// 트럭은 InteractableComponent(EscortZone) 도 가지지만 mActive 가 phase 따라 토글되므로 먼저 체크.
+		if (mWorld->HasComponent<TruckComponent>(entity))
+		{
+			prefabType = PrefabType::TRUCK;
+		}
+		else if (InteractableComponent* interactable = mWorld->GetComponent<InteractableComponent>(entity))
+		{
+			if (!interactable->mActive)
+				continue;
+
+			switch (interactable->mKind)
+			{
+			case InteractableKind::HealPack:
+				prefabType = PrefabType::HEAL_PACK;
+				break;
+			case InteractableKind::JumpPad:
+				prefabType = PrefabType::JUMP_PAD;
+				break;
+			default:
+				continue;
+			}
+		}
+		else if (SpawnerComponent* spawner = mWorld->GetComponent<SpawnerComponent>(entity))
+		{
+			if (!spawner->mActive)
+				continue;
+			prefabType = PrefabType::MONSTER_SPAWNER;
+		}
+		else
+		{
+			continue;
+		}
+
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (netComp == nullptr)
+			continue;
+
+		S2C_SpawnPacekt spawnPkt(newSessionId, netComp->mNetEntityId, prefabType);
+		spawnPkt.isLocalPlayer = 0;
+
+		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(req);
+	}
+}
+
+void NetSendSystem::SendEnemyPoolToNewSession(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<EnemyComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, EnemyComponent>())
+	{
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
+		if (netComp == nullptr || enemyComp == nullptr) continue;
+
+		S2C_SpawnPacekt spawnPkt(newSessionId, netComp->mNetEntityId, PrefabType::ENEMY);
+		spawnPkt.isLocalPlayer = 0;
+		spawnPkt.Type = enemyComp->mEnemyType;
+
+		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(req);
+	}
+}
+
+void NetSendSystem::SendBulletPoolToNewSession(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<BulletComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, BulletComponent>())
+	{
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (netComp == nullptr) continue;
+
+		S2C_SpawnPacekt spawnPkt(newSessionId, netComp->mNetEntityId, PrefabType::BULLET);
+		spawnPkt.isLocalPlayer = 0;
+
+		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+		gSendQueue.Push(req);
+	}
+}
+
+void NetSendSystem::SendHealthSnapshotToNewSession(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<HealthComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponents<HealthComponent, NetEntityComponent>())
+	{
+		HealthComponent* hp = mWorld->GetComponent<HealthComponent>(entity);
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (hp == nullptr || netComp == nullptr) continue;
+
+		S2C_HealthPacket healthPkt;
+		healthPkt.netEntityId = netComp->mNetEntityId;
+		healthPkt.currentHp = hp->mCurrentHp;
+		healthPkt.maxHp = hp->mMaxHp;
+
+		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_HEALTH, sizeof(S2C_HealthPacket) };
+		req.StoreAs<S2C_HealthPacket>(healthPkt);
+		gSendQueue.Push(req);
+	}
+}

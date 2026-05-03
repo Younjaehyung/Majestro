@@ -26,10 +26,10 @@ void LobbyGameMode::PostUpdate(float deltaTime)
 void WaveGameMode::Initialize()
 {
 	mGameRuleEntity = mScene->GetWorld()->CreateEntity();
-	mScene->GetWorld()->AddComponent<GameRuleComponent>(mGameRuleEntity);
+	GameRuleComponent& rule = mScene->GetWorld()->AddComponent<GameRuleComponent>(mGameRuleEntity);
 
-	mPhaseQueue.push([] { return new ConquestPhase(/*routeId=*/0); });
-	mPhaseQueue.push([] { return new EscortPhase(/*zoneId=*/0); });
+	mPhaseQueue.push([] { return new EscortPhase(/*routeId=*/0); });
+	mPhaseQueue.push([] { return new ConquestPhase(/*zoneId=*/0); });
 	mPhaseQueue.push([] { return new EscortPhase(/*routeId=*/1); });
 	mPhaseQueue.push([] { return new BossPhase();                });
 	

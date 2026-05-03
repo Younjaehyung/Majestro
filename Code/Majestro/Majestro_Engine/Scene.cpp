@@ -1084,6 +1084,8 @@ void FirstScene::Initialize()
 		particle.mEffectName = L"Particle_DebugBurst";
 	}
 	
+	
+
 	/////////////////////////////////////////////////////////////////////
 	// [ 샘플 ]
 

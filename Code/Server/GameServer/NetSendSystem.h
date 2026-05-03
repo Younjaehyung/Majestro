@@ -25,6 +25,16 @@ private:
 	void SendEffectSpawnEvents();
 	void SendHitConfirmEvents();
 
+	// 신규 세션 입장 시 EvSessionJoined 를 소비해서 초기 World 상태를 송신.
+	void HandleSessionJoinedEvents();
+	void SendPlayerSelfSpawn(uint32 sessionId, Entity playerEntity, uint8 playerType);
+	void BroadcastPlayerToOthers(uint32 sessionId, Entity playerEntity, uint8 playerType);
+	void SendExistingPlayersToNewSession(uint32 newSessionId);
+	void SendWorldObjectsToNewSession(uint32 newSessionId);
+	void SendEnemyPoolToNewSession(uint32 newSessionId);
+	void SendBulletPoolToNewSession(uint32 newSessionId);
+	void SendHealthSnapshotToNewSession(uint32 newSessionId);
+
 	std::vector<uint32> CollectPlayerSessions();
 private:
 	SendRequest mSendReq;

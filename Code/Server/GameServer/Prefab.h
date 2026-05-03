@@ -9,6 +9,7 @@ class PlayerPrefab;
 class TerrainPrefab;
 class EnemyPrefab;
 class BulletPrefab;
+class TruckEscortPrefab;
 class PayloadPathData;
 
 class Prefab : public Object
@@ -35,6 +36,7 @@ public:
 		Register<PrefabType::TERRAIN, TerrainPrefab>();
 		Register<PrefabType::ENEMY, EnemyPrefab>();
 		Register<PrefabType::BULLET, BulletPrefab>();
+		Register<PrefabType::TRUCK, TruckEscortPrefab>();
 		// PrefabFactory::Register<PrefabType::SKY_BOX, SkyBoxPrefab>();
 		// PrefabFactory::Register<PrefabType::DIR_LIGHT, DirLightPrefab>();
 	}
@@ -127,9 +129,7 @@ class TruckEscortPrefab : public Prefab
 {
 public:
 	TruckEscortPrefab(World* world);
-	TruckEscortPrefab(World* world, std::wstring path);
-	TruckEscortPrefab(World* world, std::shared_ptr<PayloadPathData> path);
 	~TruckEscortPrefab();
 
-	static Entity Build(World* world, std::shared_ptr<PayloadPathData> path);
+	static Entity Build(World* world, const InputCommand& ctx);
 };

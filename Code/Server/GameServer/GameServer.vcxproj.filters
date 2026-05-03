@@ -244,6 +244,7 @@
     <ClCompile Include="PathFollowSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="TruckComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -448,6 +449,7 @@
     <ClInclude Include="PathFollowSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="TruckComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

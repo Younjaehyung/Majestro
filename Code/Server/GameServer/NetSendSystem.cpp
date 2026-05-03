@@ -521,7 +521,7 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 		}
 
 		PrefabType prefabType = PrefabType::NONE;
-		// 트럭은 InteractableComponent(EscortZone) 도 가지지만 mActive 가 phase 따라 토글되므로 먼저 체크.
+		// 트럭은 InteractableComponent 를 가지지 않으므로 TruckComponent 로 직접 분기.
 		if (mWorld->HasComponent<TruckComponent>(entity))
 		{
 			prefabType = PrefabType::TRUCK;

@@ -70,7 +70,7 @@ public:
 
 
 private:
-	std::string name;
+	std::string mName;
 	int version = 1;
 	std::string unit = "cm";
 	std::string coordinateSpace = "local";

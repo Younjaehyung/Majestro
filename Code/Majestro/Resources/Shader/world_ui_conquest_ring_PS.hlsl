@@ -3,11 +3,11 @@
 
 // 점령 진행률 원형 게이지 전용 PS.
 // 슬롯 재사용 매핑 (GLOBAL_PARAMS 와 일대일):
-//   HpBarFollowRatio  → progress (0~1)
-//   HpBarBgTexIdx     → 링 배경 텍스처 인덱스 (안 채워진 부분)
-//   HpBarFillTexIdx   → 링 채움 텍스처 인덱스 (채워진 부분)
-//   casdcae           → 도넛 내부 반지름 ([0..1000] 정수로 인코딩, /1000.0 = innerRadius)
-//   etc bit0          → HUD 모드 (1) / World 모드 (0)
+//   HpBarFollowRatio  -> progress (0~1)
+//   HpBarBgTexIdx     -> 링 배경 텍스처 인덱스 (안 채워진 부분)
+//   HpBarFillTexIdx   -> 링 채움 텍스처 인덱스 (채워진 부분)
+//   casdcae           -> 도넛 내부 반지름 ([0..1000] 정수로 인코딩, /1000.0 = innerRadius)
+//   etc bit0          -> HUD 모드 (1) / World 모드 (0)
 
 struct VS_OUT
 {

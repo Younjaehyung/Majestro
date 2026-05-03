@@ -9,7 +9,7 @@ class PathLoadComponent : public Component<PathLoadComponent>
 	PathLoadComponent() = default;
 	PathLoadComponent(const std::wstring& path);
 
-
+	Vec3 mBaseOffset = Vec3::Zero;
 
 	std::wstring mPath;
 	shared_ptr<PayloadPathData> mPathData;
@@ -20,8 +20,7 @@ class PathLoadComponent : public Component<PathLoadComponent>
 	float mBaseSpeed        = 0.f; // 기본 이동 속도 (cm/s)
 
 	bool  mActive    = true;       // false 면 PathFollowSystem 이 무시
-	bool  mPaused    = false;      // StopPoint 대기 중인지
-	float mWaitTimer = 0.f;        // 남은 대기 시간 (초)
+	bool  mPaused    = true;      // StopPoint 대기 중인지
 
 	std::unordered_set<std::string> mFiredEvents; // fireOnce 이벤트 중복 방지
 };

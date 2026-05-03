@@ -164,6 +164,7 @@ void ResourceManager::LoadResources()
 	}
 	{
 		LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");
+	
 	}
 }
 

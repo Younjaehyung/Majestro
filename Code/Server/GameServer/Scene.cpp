@@ -249,7 +249,11 @@ void FirstScene::Initialize()
 	
 	// 트럭 스폰
 	InputCommand dummy{};
-	PrefabFactory::Spawn(mWorld.get(), PrefabType::TRUCK, dummy);
+	Entity truck = PrefabFactory::Spawn(mWorld.get(), PrefabType::TRUCK, dummy);
+	PathLoadComponent* plc = mWorld->GetComponent<PathLoadComponent>(truck);
+	TransformComponent* trans = mWorld->GetComponent< TransformComponent>(truck);
+	plc->mBaseOffset = Vec3(-4902.f, 135.f, -9240.f);
+	trans -> mLocalPosition = Vec3(-4902.f, 135.f, -9240.f);
 
 	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
 	SetGameMode(gameMode);

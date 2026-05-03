@@ -21,7 +21,10 @@ void TransformComponent::LookAt(const Vec3 dir)
 	matrix.Up(up);
 	matrix.Backward(front);
 
-	mLocalRotationE = DecomposeRotationMatrix(matrix);
+	Vec3 euler = DecomposeRotationMatrix(matrix);
+	mLocalRotationE.x = DirectX::XMConvertToDegrees(euler.x);
+	mLocalRotationE.y = DirectX::XMConvertToDegrees(euler.y);
+	mLocalRotationE.z = DirectX::XMConvertToDegrees(euler.z);
 }
 
 bool TransformComponent::CloseEnough(const float& a, const float& b, const float& epsilon)

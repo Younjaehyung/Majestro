@@ -25,34 +25,14 @@ InteractionSystem::InteractionSystem(World* world)
 
 bool InteractionSystem::MatchesTargetMask(World* world, Entity e, uint8 mask)
 {
-  
-    if (mask & InteractableTarget_All) {
+    if (mask & InteractableTarget_All) return true;
 
-        if (world->HasComponent<MainPlayerComponent>(e))
-            mPlayerCount++;
-
-        if (world->HasComponent<EnemyComponent>(e))
-             mEnemyCount++;
-
+    if ((mask & InteractableTarget_Player) && world->HasComponent<MainPlayerComponent>(e))
         return true;
-    }
 
-    if (mask & InteractableTarget_Player)
-    {
-        if (world->HasComponent<MainPlayerComponent>(e)) {
-            mPlayerCount++;
-            return true;
-        }
-          
-    }
-    if (mask & InteractableTarget_Enemy)
-    {
-        if (world->HasComponent<EnemyComponent>(e)) {
-            mEnemyCount++;
-            return true;
-        }
-           
-    }
+    if ((mask & InteractableTarget_Enemy) && world->HasComponent<EnemyComponent>(e))
+        return true;
+
     return false;
 }
 
@@ -93,10 +73,6 @@ void InteractionSystem::Update(float dt)
 
     for (Entity t : triggers)
     {
-        mPlayerCount = 0;
-        mEnemyCount = 0;
-
-
         auto* inter = mWorld->GetComponent<InteractableComponent>(t);
         auto* trTr = mWorld->GetComponent<TransformComponent>(t);
   
@@ -117,14 +93,15 @@ void InteractionSystem::Update(float dt)
                 if (hp->IsDead()) continue;
             }
 
-            const Vec3 triggerPos = trTr->mLocalPosition;
+            TransformComponent* userts = mWorld->GetComponent<TransformComponent>(user);
+            const Vec3 triggerPos = userts->mLocalPosition;
 
             bool hit = false;
             if (inter->mShape == InteractableShape::Box) {
                 auto* trCol = mWorld->GetComponent<BoxColliderComponent>(t);
                 if (!trCol) continue;
                 PhysicsWorld::UpdateWorldOBB(trTr, trCol);
-                auto* userCol = mWorld->GetComponent<BoxColliderComponent>(t);
+                auto* userCol = mWorld->GetComponent<BoxColliderComponent>(user);
                 if (!userCol) continue;
                 hit = trCol->mWorldOBB.Intersects(userCol->mWorldOBB);
             }
@@ -144,8 +121,6 @@ void InteractionSystem::Update(float dt)
             case InteractableKind::JumpPad:     ApplyJumpPad(user, t, *inter);   break;
             case InteractableKind::SpeedPad:    ApplySpeedPad(user, t, *inter);  break;
             case InteractableKind::DamageZone:  ApplyDamageZone(user, t, *inter); break;
-			case InteractableKind::ConquestZone: ApplyConquestZone(user, t, *inter); break;
-			case InteractableKind::EscortZone: ApplyEscortZone(user, t, *inter); break;
             case InteractableKind::Checkpoint:
             case InteractableKind::None:
             default: break;
@@ -237,21 +212,3 @@ void InteractionSystem::ApplyDamageZone(Entity user, Entity trigger, Interactabl
     mWorld->GetEventManager()->Enqueue<EvDamage>(dmg);
 }
 
-void InteractionSystem::ApplyConquestZone(Entity user, Entity trigger, InteractableComponent& i)
-{
-	EvConquestPointCaptured capture{};
-	capture.currentPointsNum = static_cast<int>(i.mValueA);
-    capture.playerNum = mPlayerCount;
-	capture.enemyNum = mEnemyCount;
-	mWorld->GetEventManager()->Enqueue<EvConquestPointCaptured>(capture);
-
-}
-
-void InteractionSystem::ApplyEscortZone(Entity user, Entity trigger, InteractableComponent& i)
-{
-    // 호위 지점 진입: GameRuleComponent의 호위 상태 업데이트
-    EvEscortPointCaptured entered{};
-    entered.playerNum = mPlayerCount;
-    entered.enemyNum = mEnemyCount;
-	mWorld->GetEventManager()->Enqueue<EvEscortPointCaptured>(entered);
-}

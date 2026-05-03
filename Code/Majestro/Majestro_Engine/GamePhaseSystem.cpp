@@ -17,6 +17,8 @@ void GamePhaseSystem::Update(float deltaTime)
 	if (!gameRuleComp) return;
 	WavePhaseType currentPhase = static_cast<WavePhaseType>(gameRuleComp->mGamePhase);
 	
+	ConsumePreparePhase(deltaTime, e);
+
 	switch (currentPhase)
 	{
 	case WavePhaseType::Prepare:
@@ -24,7 +26,7 @@ void GamePhaseSystem::Update(float deltaTime)
 		break;
 	case WavePhaseType::Conquest:
 		// 점령 단계 로직 (예: 점령 시간 감소, 점령 상태 체크 등)
-	
+		
 		break;
 	case WavePhaseType::Escort:
 		// 호위 단계 로직 (예: 호위 대상 이동, 적 스폰 등)
@@ -42,4 +44,63 @@ void GamePhaseSystem::Update(float deltaTime)
 		break;
 	}
 
+}
+
+void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
+{
+	mWorld->GetEventManager()->Consume<EvGamePhaseChanged>([this, e](const EvGamePhaseChanged& ev) {
+		
+		switch (static_cast<WavePhaseType>(ev.prevPhase))
+		{
+		case WavePhaseType::Prepare:
+			// 준비 단계 로직 (예: 웨이브 시작 대기, UI 업데이트 등)
+			break;
+		case WavePhaseType::Conquest:
+			// 점령 단계 로직 (예: 점령 시간 감소, 점령 상태 체크 등)
+			mWorld->RemoveComponent<GameConquestComponent>(e);
+			break;
+		case WavePhaseType::Escort:
+			// 호위 단계 로직 (예: 호위 대상 이동, 적 스폰 등)
+			mWorld->RemoveComponent<GameEscortComponent>(e);
+			break;
+		case WavePhaseType::Boss:
+			// 보스 단계 로직 (예: 보스 행동 패턴, 체력 관리 등)
+			break;
+		case WavePhaseType::Fail:
+			// 실패 단계 로직 (예: 게임 오버 처리, 리스타트 대기 등)
+			break;
+		case WavePhaseType::Clear:
+			// 클리어 단계 로직 (예: 승리 처리, 다음 스테이지 준비 등)
+			break;
+		default:
+			break;
+		}
+
+		switch (static_cast<WavePhaseType>(ev.newPhase))
+		{
+		case WavePhaseType::Prepare:
+			// 준비 단계 로직 (예: 웨이브 시작 대기, UI 업데이트 등)
+			break;
+		case WavePhaseType::Conquest:
+			// 점령 단계 로직 (예: 점령 시간 감소, 점령 상태 체크 등)
+			mWorld->AddComponent<GameConquestComponent>(e);
+			break;
+		case WavePhaseType::Escort:
+			// 호위 단계 로직 (예: 호위 대상 이동, 적 스폰 등)
+			mWorld->AddComponent<GameEscortComponent>(e);
+			break;
+		case WavePhaseType::Boss:
+			// 보스 단계 로직 (예: 보스 행동 패턴, 체력 관리 등)
+			break;
+		case WavePhaseType::Fail:
+			// 실패 단계 로직 (예: 게임 오버 처리, 리스타트 대기 등)
+			break;
+		case WavePhaseType::Clear:
+			// 클리어 단계 로직 (예: 승리 처리, 다음 스테이지 준비 등)
+			break;
+		default:
+			break;
+		}
+
+		});
 }

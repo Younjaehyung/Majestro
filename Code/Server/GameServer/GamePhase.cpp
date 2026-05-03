@@ -8,6 +8,9 @@
 #include "ColliderComponent.h"
 #include "TransformComponent.h"
 #include "EnemyComponent.h"
+#include "HealthComponent.h"
+#include "InteractableComponent.h"
+#include "PhysicsWorld.h"
 #include "PayloadPathData.h"
 #include "PathLoadComponent.h"
 #include "NetEntityComponent.h"
@@ -50,8 +53,23 @@ void ConquestPhase::Enter(WaveGameMode& mode)
 	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(mGameRuleEntity);
 
 
-	mWorld->AddComponent<GameConquestComponent>(mGameRuleEntity);
+	GameConquestComponent& conquestComp = mWorld->AddComponent<GameConquestComponent>(mGameRuleEntity);
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Conquest);
+
+	// 씬에 배치된 ConquestZone 트리거를 mValueA(점령지 번호) 기준으로 wave 슬롯에 매핑
+	if (mWorld->HasComponentPool<InteractableComponent>())
+	{
+		for (Entity e : mWorld->GetEntitiesWithComponents<InteractableComponent, TransformComponent, BoxColliderComponent>())
+		{
+			auto* inter = mWorld->GetComponent<InteractableComponent>(e);
+			if (!inter || inter->mKind != InteractableKind::ConquestZone) continue;
+
+			const int32 idx = static_cast<int32>(inter->mValueA) - 1;
+			if (idx < 0 || idx >= GameConquestComponent::mMaxWaves) continue;
+
+			conquestComp.mConquestPointRect[idx] = e;
+		}
+	}
 }
 
 void ConquestPhase::Exit(WaveGameMode& mode)
@@ -71,16 +89,46 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 	int enemyNum = 0;
 
 	GameConquestComponent* ruleComp = mWorld->GetComponent<GameConquestComponent>(mGameRuleEntity);
+	if (!ruleComp) return;
 
+	// 현재 wave 의 점령지 영역 안에 있는 살아있는 player / enemy 직접 카운트 (OBB Intersects)
+	const int32 idx = ruleComp->mWave - 1;
+	if (idx >= 0 && idx < GameConquestComponent::mMaxWaves)
+	{
+		Entity zone = ruleComp->mConquestPointRect[idx];
+		if (zone.IsValid())
+		{
+			TransformComponent*  zoneTr  = mWorld->GetComponent<TransformComponent>(zone);
+			BoxColliderComponent* zoneCol = mWorld->GetComponent<BoxColliderComponent>(zone);
+			if (zoneTr && zoneCol)
+			{
+				PhysicsWorld::UpdateWorldOBB(zoneTr, zoneCol);
+				const auto& zoneOBB = zoneCol->mWorldOBB;
 
-	mWorld->GetEventManager()->Consume<EvConquestPointCaptured>([&](const EvConquestPointCaptured& e) {
+				auto countInZone = [&](Entity e, int& counter)
+				{
+					if (auto* hp = mWorld->GetComponent<HealthComponent>(e))
+					{
+						if (hp->IsDead()) return;
+					}
+					auto* userCol = mWorld->GetComponent<BoxColliderComponent>(e);
+					if (!userCol) return;
+					if (zoneOBB.Intersects(userCol->mWorldOBB)) counter++;
+				};
 
-		if (e.currentPointsNum != ruleComp->mWave) return;
-		playerNum = e.playerNum;
-		enemyNum = e.enemyNum;
-
-		});
-
+				if (mWorld->HasComponentPool<MainPlayerComponent>())
+				{
+					for (Entity e : mWorld->GetEntitiesWithComponents<MainPlayerComponent, BoxColliderComponent>())
+						countInZone(e, playerNum);
+				}
+				if (mWorld->HasComponentPool<EnemyComponent>())
+				{
+					for (Entity e : mWorld->GetEntitiesWithComponents<EnemyComponent, BoxColliderComponent>())
+						countInZone(e, enemyNum);
+				}
+			}
+		}
+	}
 
 	if (playerNum >= enemyNum) {
 
@@ -173,17 +221,10 @@ void EscortPhase::Enter(WaveGameMode& mode)
 	pathComp->mPathData         = mEscortPath;
 	pathComp->mBaseSpeed        = escortComp->mTruckSpeed;
 	pathComp->mCurrentDistance  = 0.f;
+	pathComp->mTotalDistance = mEscortPath ? mEscortPath->GetLength() : 0.f;
 	pathComp->mPreviousDistance = 0.f;
 	pathComp->mActive           = true;
-
-	InteractableComponent* interComp = mWorld->GetComponent<InteractableComponent>(escortComp->mEscortTarget);
-	interComp->mKind = InteractableKind::EscortZone;
-	interComp->mShape = InteractableShape::Sphere;
-	interComp->mRadius = state.mEscortRange;       // 500cm
-	interComp->mIgnoreY = true;
-	interComp->mTargetMask = InteractableTarget_All;
-	interComp->mCooldown = 0.f;
-	interComp->mActive = true;
+	pathComp->mPaused           = true; // 첫 프레임 PostUpdate 가 반경 검사 후 풀어줌
 }
 
 
@@ -209,25 +250,56 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 	ruleComp->mEscortTime += dt;
 
 	Entity escortTarget = ruleComp->mEscortTarget;
+	if (!escortTarget.IsValid()) return;
+
 	TransformComponent* targetTr = mWorld->GetComponent<TransformComponent>(escortTarget);
+	PathLoadComponent*  pathComp = mWorld->GetComponent<PathLoadComponent>(escortTarget);
+	if (!targetTr || !pathComp) return;
 
-	mWorld->GetEventManager()->Consume<EvEscortPointCaptured>([&](const EvEscortPointCaptured& e) {
+	// 트럭 반경 내 살아있는 플레이어 / 적 직접 카운트 (XZ 평면, mEscortRange 기준)
+	const Vec3  truckPos = targetTr->mLocalPosition;
+	const float r2       = ruleComp->mEscortRange * ruleComp->mEscortRange;
 
-		ruleComp->mPlayerNum = e.playerNum;
-		ruleComp->mEnemyNum = e.enemyNum;
+	int32 playerNum = 0;
+	int32 enemyNum  = 0;
 
-	});
+	auto countInRange = [&](Entity e, int32& counter)
+	{
+		if (auto* hp = mWorld->GetComponent<HealthComponent>(e))
+		{
+			if (hp->IsDead()) return;
+		}
+		auto* tr = mWorld->GetComponent<TransformComponent>(e);
+		if (!tr) return;
 
-	PathLoadComponent* pathComp = mWorld->GetComponent<PathLoadComponent>(escortTarget);
-	pathComp->mPaused = (ruleComp->mEnemyNum == 0 && ruleComp->mPlayerNum > 0) ? false : true;
+		Vec3 d = tr->mLocalPosition - truckPos;
+		d.y = 0.f; // XZ 거리만 비교
+		if (d.LengthSquared() <= r2) counter++;
+	};
 
+	if (mWorld->HasComponentPool<MainPlayerComponent>())
+	{
+		for (Entity e : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+			countInRange(e, playerNum);
+	}
+	if (mWorld->HasComponentPool<EnemyComponent>())
+	{
+		for (Entity e : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent>())
+			countInRange(e, enemyNum);
+	}
 
-	ruleComp->mEscortProgress = pathComp->mCurrentDistance / pathComp->mTotalDistance;
+	ruleComp->mPlayerNum = playerNum;
+	ruleComp->mEnemyNum  = enemyNum;
+
+	// 반경 내 플레이어가 있고 적이 없을 때만 진행
+	pathComp->mPaused = !(enemyNum == 0 && playerNum > 0);
+
+	ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
+		? pathComp->mCurrentDistance / pathComp->mTotalDistance
+		: 0.f;
 
 	if (ruleComp->mEscortProgress >= 1.f)
 		mIsCompleted = true;
-	
-	// GameEscortComponent의 상태를 업데이트하거나, 플레이어와 호위 대상의 위치를 체크하여 호위 성공/실패 여부를 판단하는 로직을 구현할 수 있습니다.
 }
 
 ////--------------------------------------------------------------

@@ -88,6 +88,12 @@ struct EvSpawnParticleEffect
     Vec3 followOffset{};
 };
 
+struct EvGamePhaseChanged
+{
+	uint8 prevPhase;
+    uint8 newPhase;
+};
+
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
-    EvRhythmChanged, EvHpArmorChanged, EvHitMarker>;
+    EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvGamePhaseChanged>;

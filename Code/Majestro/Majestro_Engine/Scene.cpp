@@ -1366,7 +1366,7 @@ void FirstScene::Initialize()
 
 
 	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
-	mWorld->AddComponent<GameConquestComponent>(mWorld->GetGameRuleEntity());
+	
 
 
 }

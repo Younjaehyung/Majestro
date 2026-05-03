@@ -12,7 +12,7 @@ bool PayloadPathData::LoadFromJsonFile(const std::wstring& path)
 	ifs >> root;
 
 	
-	name = GetOptionalString(root, "name");
+	mName = GetOptionalString(root, "name");
 	version = root.contains("version") ? root["version"].get<int>() : 1;
 	unit = GetOptionalString(root, "unit", "cm");
 	coordinateSpace = GetOptionalString(root, "coordinateSpace", "local");

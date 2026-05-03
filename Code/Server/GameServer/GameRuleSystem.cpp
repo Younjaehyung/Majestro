@@ -87,6 +87,7 @@ void GameNetRuleSystem::SendSceneState(Entity rule)
 		pkt.GameTime = s->mGameTime;
 		pkt.GamePhase = s->mGamePhase;
 		pkt.PlayerScore = s->mPlayerScore;
+		std::cout << pkt.GamePhase << std::endl;
 		Broadcast(S2C_PKT_SCENE_STATE, pkt);
 	}
 }
@@ -114,6 +115,7 @@ void GameNetRuleSystem::SendSceneEscort(Entity rule)
 	{
 		S2C_EscortPacket pkt{};
 		pkt.RouteId = e->mRouteId;
+		pkt.EscortStage = e->mEscortStage;
 		pkt.EscortProgress = e->mEscortProgress;
 		pkt.EscortTime = e->mEscortTime;
 		Broadcast(S2C_PKT_SCENE_ESCORT, pkt);

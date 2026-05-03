@@ -319,15 +319,6 @@ Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 	auto& netComp = world->AddComponent<NetEntityComponent>(truck, world, truck);
 	world->NetIdBinding(netComp.mNetEntityId, truck);
 
-	// EscortZone 트리거. 활성화 / 반경 등은 EscortPhase::Enter 에서 세팅
-	auto& inter = world->AddComponent<InteractableComponent>(truck);
-	inter.mKind = InteractableKind::EscortZone;
-	inter.mShape = InteractableShape::Sphere;
-	inter.mIgnoreY = true;
-	inter.mTargetMask = InteractableTarget_All;
-	inter.mCooldown = 0.f;
-	inter.mActive = false;
-
 	return truck;
 }
 

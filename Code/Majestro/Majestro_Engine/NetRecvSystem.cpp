@@ -514,6 +514,10 @@ void NetRecvSystem::HandleSceneState(const InputCommand& msg)
 
 	 gameRuleComp->mGameTime = pkt->GameTime;
 	 gameRuleComp->mPlayerScore = pkt->PlayerScore;
+
+	 if (gameRuleComp->mGamePhase != pkt->GamePhase)
+		 mWorld->GetEventManager()->Enqueue(EvGamePhaseChanged{ gameRuleComp->mGamePhase, pkt->GamePhase });
+
 	 gameRuleComp->mGamePhase = pkt->GamePhase;
 }
 
@@ -547,7 +551,11 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
     if (!escortComp) return;
     //escortComp->mRouteId = pkt->RouteId;
     escortComp->mEscortProgress = pkt->EscortProgress;
+	escortComp->mEscortStage = pkt->EscortStage;
 	escortComp->mEscortTime = pkt->EscortTime;
+    std::cout << "EscortSceneState updated: Progress=" << escortComp->mEscortProgress
+              << " Stage=" << static_cast<int>(escortComp->mEscortStage)
+		<< " Time=" << escortComp->mEscortTime << std::endl;
 }
 
 

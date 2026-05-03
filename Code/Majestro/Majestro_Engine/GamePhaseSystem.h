@@ -9,7 +9,7 @@ public:
 	void Initialize();
 	void Update(float deltaTime);
 private:
-
+	void ConsumePreparePhase(float deltaTime, Entity e);
 
 };
 

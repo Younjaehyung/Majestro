@@ -33,10 +33,11 @@ public:
 	GameNetRuleSystem(World* world, shared_ptr<GameMode> gameMode);
 	void Update(float deltaTime) override;
 
-private: 
+private:
 
 	void SendSceneState(Entity rule);
 	void SendSceneConquest(Entity rule);
+	void SendSceneEscort(Entity rule);
 
 private:
 	template<typename PktT>

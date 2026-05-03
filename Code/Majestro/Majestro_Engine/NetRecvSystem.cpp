@@ -102,7 +102,7 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_STATE,       [this](auto& m) { HandleSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_CONQUEST, [this](auto& m) { HandleConquestSceneState(m); });
-	//reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
+	reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -535,6 +535,19 @@ void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
 	conquestComp->mPlayerNum = pkt->PlayerNum;
 	conquestComp->mEnemyNum = pkt->EnemyNum;
 
+}
+
+void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
+{
+    const S2C_EscortPacket* pkt = msg.ViewAs<S2C_EscortPacket>();
+    if (!pkt) return;
+    // Escort 씬 상태 정보 처리 (예: 호위 대상 HP, 남은 시간 등)
+    Entity e = mWorld->GetGameRuleEntity();
+    GameEscortComponent* escortComp = mWorld->GetComponent<GameEscortComponent>(e);
+    if (!escortComp) return;
+    //escortComp->mRouteId = pkt->RouteId;
+    escortComp->mEscortProgress = pkt->EscortProgress;
+	escortComp->mEscortTime = pkt->EscortTime;
 }
 
 

@@ -2291,7 +2291,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"ForwardPlusCel");
 
-	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");

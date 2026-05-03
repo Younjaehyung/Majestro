@@ -246,6 +246,7 @@
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TransformComponent.cpp" />
     <ClCompile Include="TransformSystem.cpp" />
+    <ClCompile Include="TruckComponent.cpp" />
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -320,6 +321,7 @@
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TransformComponent.h" />
     <ClInclude Include="TransformSystem.h" />
+    <ClInclude Include="TruckComponent.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>

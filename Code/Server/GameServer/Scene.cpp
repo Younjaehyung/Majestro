@@ -14,6 +14,8 @@
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
+#include "GameRuleComponent.h"
+#include "PathLoadComponent.h"
 #include "LevelImport.h"
 #include "Mesh.h"
 #include "Prefab.h"
@@ -245,6 +247,9 @@ void FirstScene::Initialize()
 
 	TerrainPrefab terrain{ mWorld.get() };
 	
+	// 트럭 스폰
+	InputCommand dummy{};
+	PrefabFactory::Spawn(mWorld.get(), PrefabType::TRUCK, dummy);
 
 	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
 	SetGameMode(gameMode);
@@ -273,6 +278,8 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+
+	
 
 
 	// 힐팩: 10초 쿨다운, 75 회복. 월드 원점 근처에 배치.
@@ -307,6 +314,7 @@ void FirstScene::Initialize()
 		/*oneShot=*/false,
 		InteractableTarget_All
 	);
+
 
 	//// 몬스터 주기 스폰 포인트. 5초마다 스폰, 동시 최대 3마리, 반경 200 안에 랜덤 배치.
 	//SpawnMonsterSpawner(mWorld.get(),

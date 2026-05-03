@@ -41,6 +41,15 @@ enum class EffectSpawnReason : uint8
     LifetimeExpired = 3,
 };
 
+// 신규 클라이언트가 GAME_START 를 보내 World 에 합류한 직후 발행.
+// NetSendSystem 이 소비해서 본인/다른 세션에 spawn 패킷 + 기존 World 스냅샷을 송신한다.
+struct EvSessionJoined
+{
+    uint32 sessionId;
+    Entity playerEntity;
+    uint8 playerType;
+};
+
 struct EvDamage
 {
     Entity target;

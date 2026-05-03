@@ -5,6 +5,8 @@
 #include "GameRuleComponent.h"
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
+#include "TruckComponent.h"
+#include "Prefab.h"
 
 
 GamePreRuleSystem::GamePreRuleSystem(World* world, shared_ptr<GameMode> gameMode) : System(world), mGameMode(gameMode)
@@ -41,6 +43,7 @@ GameNetRuleSystem::GameNetRuleSystem(World* world, shared_ptr<GameMode> gameMode
 {
 	mPhase = SysPhase::Post;
 	mOrder = 100;
+
 }
 
 void GameNetRuleSystem::Update(float deltaTime)
@@ -49,12 +52,12 @@ void GameNetRuleSystem::Update(float deltaTime)
 	if (mGameMode) {
 
 		CollectPlayerSessions();
-		
+
         if (mSessionSet.empty()) return;
 
         Entity rule = mGameMode->GetGameRuleEntity();
 
-        
+
 		// 글로벌 — 항상 존재
 		if (mSceneStateSendRate.Tick(deltaTime))
 			SendSceneState(rule);
@@ -63,10 +66,17 @@ void GameNetRuleSystem::Update(float deltaTime)
 		// 활성 phase
 		if (mScenePhaseSendRate.Tick(deltaTime)) {
 			SendSceneConquest(rule);
+			SendSceneEscort(rule);
 		}
-			
+
+		EntityView escortEntity = mWorld->View<TruckComponent>();\
+			Entity escort = *escortEntity.begin();
+		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(escort);
+		std::cout << "화물 위치" << tr->mLocalPosition.x << ", " << tr->mLocalPosition.y << ", " << tr->mLocalPosition.z << std::endl;
+		
+
 	}
-	
+
 }
 
 void GameNetRuleSystem::SendSceneState(Entity rule)
@@ -95,6 +105,18 @@ void GameNetRuleSystem::SendSceneConquest(Entity rule)
 		pkt.EnemyNum = g->mEnemyNum;
 
 		Broadcast(S2C_PKT_SCENE_CONQUEST, pkt);
+	}
+}
+
+void GameNetRuleSystem::SendSceneEscort(Entity rule)
+{
+	if (auto* e = mWorld->GetComponent<GameEscortComponent>(rule))
+	{
+		S2C_EscortPacket pkt{};
+		pkt.RouteId = e->mRouteId;
+		pkt.EscortProgress = e->mEscortProgress;
+		pkt.EscortTime = e->mEscortTime;
+		Broadcast(S2C_PKT_SCENE_ESCORT, pkt);
 	}
 }
 

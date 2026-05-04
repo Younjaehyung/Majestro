@@ -156,7 +156,24 @@ using json = nlohmann::json;
 #pragma comment(lib, "Effekseer/EffekseerRendererDX12.lib")
 #pragma comment(lib, "Effekseer/LLGI.lib")
 #endif
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Jolt
+#include <Jolt/Jolt.h>
+#include <Jolt/RegisterTypes.h>
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Core/JobSystemThreadPool.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+
+#ifdef _DEBUG
+#pragma comment(lib, "Jolt/Jolt_D.lib")
+#else
+#pragma comment(lib, "Jolt/Jolt.lib")
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

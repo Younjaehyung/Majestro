@@ -235,6 +235,9 @@
     <ClCompile Include="BuffSystem.cpp" />
     <ClCompile Include="InteractionSystem.cpp" />
     <ClCompile Include="SpawnerSystem.cpp" />
+    <ClCompile Include="SpatialGrid2D.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
     <ClCompile Include="GameRuleSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
@@ -443,6 +446,9 @@
     <ClInclude Include="InteractionSystem.h" />
     <ClInclude Include="SpawnerComponent.h" />
     <ClInclude Include="SpawnerSystem.h" />
+    <ClInclude Include="SpatialGrid2D.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
     <ClInclude Include="GameRuleSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>

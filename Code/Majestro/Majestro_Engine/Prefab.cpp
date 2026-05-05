@@ -393,7 +393,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {
+	switch (0/*ctx.ViewAs<S2C_SpawnPacekt>()->Type*/) {
 	case 0:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");

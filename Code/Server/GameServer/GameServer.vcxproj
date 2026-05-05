@@ -259,6 +259,7 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SpawnerSystem.cpp" />
+    <ClCompile Include="SpatialGrid2D.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
     <ClCompile Include="StateMachine.cpp" />
     <ClCompile Include="System.cpp" />
@@ -336,6 +337,7 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SpawnerComponent.h" />
     <ClInclude Include="SpawnerSystem.h" />
+    <ClInclude Include="SpatialGrid2D.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="StateMachine.h" />
     <ClInclude Include="System.h" />

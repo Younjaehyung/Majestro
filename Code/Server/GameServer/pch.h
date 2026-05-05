@@ -105,6 +105,7 @@ extern unique_ptr<class ServerCore> gServerCore;
 
 #define RESOURCEMANAGER	gGameCore->GetResourceManager()
 #define SCENEMANAGER	gGameCore->GetSceneManager()
+#define AIMANAGER		gGameCore->GetAIManager()
 
 
 

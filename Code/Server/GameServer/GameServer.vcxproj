@@ -103,15 +103,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -124,7 +129,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -132,8 +137,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -144,15 +154,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -165,7 +180,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -173,10 +188,16 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AIManager.cpp" />
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BuffComponent.cpp" />
@@ -218,6 +239,7 @@
     <ClCompile Include="NetRecvSystem.cpp" />
     <ClCompile Include="NetSendSystem.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="OnnxModelRunner.cpp" />
     <ClCompile Include="PathFollowSystem.cpp" />
     <ClCompile Include="PathLoadComponent.cpp" />
     <ClCompile Include="PayloadPathData.cpp" />
@@ -250,6 +272,7 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AIManager.h" />
     <ClInclude Include="..\ServerCore\json.hpp" />
     <ClInclude Include="ArmorComponent.h" />
     <ClInclude Include="BeatComponent.h" />
@@ -297,6 +320,7 @@
     <ClInclude Include="NetRecvSystem.h" />
     <ClInclude Include="NetSendSystem.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="OnnxModelRunner.h" />
     <ClInclude Include="PathFollowSystem.h" />
     <ClInclude Include="PathLoadComponent.h" />
     <ClInclude Include="PayloadPathData.h" />

@@ -38,6 +38,9 @@ public:
 	void SetPath(const std::string& path) { mPath = path; }
 
 	BoundingOrientedBox GetOBB() const { return mOBB; }
+	// Jolt terrain raycast: expose CPU mesh data so PhysicsWorld can build a static triangle mesh.
+	const vector<Vertex>& GetVertexBuffer() const { return mVertexBuffer; }
+	const vector<uint32>& GetIndexBuffer() const { return mIndexBuffer; }
 private:
 	BoundingOrientedBox mOBB;
 

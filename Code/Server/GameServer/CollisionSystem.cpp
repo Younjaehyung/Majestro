@@ -16,8 +16,38 @@
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
 
+#include <cmath>
+
 namespace
 {
+    bool NormalizeOBBOrientation(BoundingOrientedBox& obb)
+    {
+        const XMVECTOR orientation = XMLoadFloat4(&obb.Orientation);
+        const float length = XMVectorGetX(XMQuaternionLength(orientation));
+        if (!std::isfinite(length) || length <= 1e-6f)
+        {
+            // 수정 내용
+            // DirectXCollision Intersects 는 OBB Orientation 이 단위 쿼터니언이어야 한다.
+            // 로딩 데이터나 이전 변환 경로에서 깨진 값이 들어오면 충돌 검사 직전에 identity 로 보정한다.
+            obb.Orientation = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+            return false;
+        }
+
+        XMFLOAT4 normalized{};
+        XMStoreFloat4(&normalized, XMQuaternionNormalize(orientation));
+        obb.Orientation = normalized;
+        return std::abs(length - 1.0f) <= 1e-4f;
+    }
+
+    void NormalizeCollisionOBB(BoxColliderComponent* collider)
+    {
+        if (!collider)
+            return;
+
+        NormalizeOBBOrientation(collider->mLocalOBB);
+        NormalizeOBBOrientation(collider->mWorldOBB);
+    }
+
     bool IsDeadEnemy(World* world, Entity entity)
     {
         if (!world || !entity.IsValid())
@@ -39,7 +69,9 @@ namespace
 
  void CollisionSystem::Initialize()
  {
-
+     // Fix: CollisionSystem is registered after scene setup, so refresh static BVH here once.
+     if (mPhysicsWorld)
+         mPhysicsWorld->SyncStaticBVHIfNeeded();
      
  }
 
@@ -319,6 +351,25 @@ void CollisionSystem::Movable2Static(float deltaTime)
 {
     if (false == mWorld->HasComponentPool<MovableComponent>())return;
     if (false == mWorld->HasComponentPool<StaticComponent>())return;
+    if (!mPhysicsWorld)return;
+
+    // Fix: StaticComponent data may be attached after World::Initialize, so keep the BVH in sync before querying.
+    mPhysicsWorld->SyncStaticBVHIfNeeded();
+    auto& staticProxies = mPhysicsWorld->GetStaticProxies();
+    if (staticProxies.empty())
+        return;
+
+    // Fix: static collision flags must be reset per frame before Movable2Static marks current hits.
+    for (auto& st : staticProxies)
+    {
+        // 수정 내용
+        // StaticProxy 의 ColliderBox 포인터는 ComponentPool vector 재할당 후 무효화될 수 있다.
+        // Entity 로 현재 컴포넌트 주소를 다시 얻어서 힙 손상과 랜덤 assertion 을 방지한다.
+        BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(st.ColliderEntity);
+        st.ColliderBox = staticCollider;
+        if (staticCollider)
+            staticCollider->bIsColliding = false;
+    }
 
     auto dynamicEntities = mWorld->GetEntitiesWithComponents<MovableComponent, TransformComponent, BoxColliderComponent>();
     
@@ -340,6 +391,9 @@ void CollisionSystem::Movable2Static(float deltaTime)
             continue;
 
         PhysicsWorld::UpdateWorldOBB(tr, col);
+        // 수정 내용
+        // 정적 충돌 검사에서 DirectXCollision assertion 이 나지 않도록 동적 OBB 도 검사 전 단위 쿼터니언으로 맞춘다.
+        NormalizeCollisionOBB(col);
         const AABB2D bounds = PhysicsWorld::BuildAABBFromOBB(col->mWorldOBB);
 
         mDynamicObjects.push_back(DynamicProxy{ e, col, bounds });
@@ -358,20 +412,36 @@ void CollisionSystem::Movable2Static(float deltaTime)
 
         for (int candidateIndex : candidates)
         {
-            auto& st = mPhysicsWorld->GetStaticProxy(candidateIndex);
+            if (candidateIndex < 0 || candidateIndex >= static_cast<int>(staticProxies.size()))
+                continue;
 
-            if (!dyn.collider->mWorldOBB.Intersects(st.ColliderBox->mWorldOBB))
+            auto& st = mPhysicsWorld->GetStaticProxy(candidateIndex);
+            // 수정 내용
+            // ComponentPool 이 재할당되면 캐시된 정적 콜라이더 포인터가 댕글링될 수 있으므로
+            // 충돌 검사 직전에 Entity 로 최신 포인터를 다시 조회한다.
+            BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(st.ColliderEntity);
+            st.ColliderBox = staticCollider;
+            if (!staticCollider)
+                continue;
+
+            // 수정 내용
+            // LoadCollisionJson 로 들어온 정적 OBB 는 JSON basis 와 월드 행렬 변환 영향을 받는다.
+            // Intersects 직전에 한번 더 단위 쿼터니언으로 보정해서 B_quat assertion 을 방지한다.
+            NormalizeCollisionOBB(dyn.collider);
+            NormalizeCollisionOBB(staticCollider);
+
+            if (!dyn.collider->mWorldOBB.Intersects(staticCollider->mWorldOBB))
                 continue;
 
             dyn.collider->bIsColliding = true;
-            st.ColliderBox->bIsColliding = true;
+            staticCollider->bIsColliding = true;
 
             AvoidCollisionByMovementState(
                 mWorld,
                 dyn.entity,
                 st.ColliderEntity,
                 dyn.collider,
-                st.ColliderBox, 
+                staticCollider,
                 deltaTime);
         }
     }

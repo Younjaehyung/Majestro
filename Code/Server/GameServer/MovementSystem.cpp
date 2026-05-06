@@ -90,11 +90,16 @@ void MovementSystem::Update(float dt) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
 		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
-		float objectGround = mWorld->GetPhysicsWorld()->QueryHeightAtPosition(transformComponent->mLocalPosition);
 		float baseGround = terrainGround;
 		if (mWorld->HasComponent<PlayerMovementComponent>(entity))
 			baseGround = gravityComponent->mGround; // NavMesh 높이(PlayerNav/Movement에서 기록)를 terrainGround 대신 사용
-		//gravityComponent->mGround = max(baseGround, objectGround);
+
+		float meshGround = 0.0f;
+		if (mWorld->GetPhysicsWorld()->TryQueryTerrainHeight(transformComponent->mLocalPosition, meshGround))
+		{
+			// Jolt terrain raycast: when a render mesh hit exists, use it as the authoritative ground candidate.
+			gravityComponent->mGround = (std::max)(baseGround, meshGround);
+		}
 
 		if (gravityComponent->mHight <= gravityComponent->mGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= gravityComponent->mGround) {
 			gravityComponent->mHight = gravityComponent->mGround;
@@ -211,7 +216,7 @@ void MovementSystem::Update(float dt) {
 			prevPos.x -= tf->mMovingVector.x;
 			prevPos.z -= tf->mMovingVector.z;
 			// Y: 이동 전후 동일 (Y 검증은 중력 시스템에 위임)
-			prevPos.y -= tf->mLocalPosition.y;
+			prevPos.y = tf->mLocalPosition.y;
 
 			// NavMesh 표면을 따라 이동 — 벽이 있으면 자동으로 막히는 위치로 클램프
 			Vec3 resultPos;

@@ -4,6 +4,8 @@
 class World;
 class BoxColliderComponent;
 class TransformComponent;
+class CollisionMesh;
+struct JoltTerrainState;
 
 enum StaticColliderType
 {
@@ -61,13 +63,20 @@ struct BVHNode
 class PhysicsWorld
 {
 public:
-	PhysicsWorld() = default;
-    PhysicsWorld(World* world) : mWorld(world) { Initialize(); }
+	PhysicsWorld();
+    PhysicsWorld(World* world);
+    ~PhysicsWorld();
+
+    PhysicsWorld(const PhysicsWorld&) = delete;
+    PhysicsWorld& operator=(const PhysicsWorld&) = delete;
 
     void Initialize();
+    void RebuildStaticBVH();
+    bool SyncStaticBVHIfNeeded();
+    size_t CountStaticCollisionEntities() const;
 
-    void ClearStatic() { staticObjects.clear(); }
-    void ClearNode() { nodes.clear(); }
+    void ClearStatic();
+    void ClearNode() { nodes.clear(); root = -1; }
 
     //void AddStaticOBB(Entity id, DirectX::BoundingOrientedBox obb, uint32 layerMask)
     //{
@@ -91,6 +100,9 @@ public: //Query
         int count);
     
 	float QueryHeightAtPosition(const Vector3& position);
+    bool TryQueryTerrainHeight(const Vector3& position, float& outHeight) const;
+    bool AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix& worldMatrix);
+    bool HasJoltTerrain() const;
 public: // utils
     static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
     static void SetWorldOBB(BoundingOrientedBox obb,const TransformComponent* tr, BoxColliderComponent* col);
@@ -110,6 +122,9 @@ private:
     //  정적 월드 충돌 대상
     std::vector<StaticProxy> staticObjects;
     std::vector<BVHNode> nodes;
-    int32                root{};
+    int32                root = -1;
+
+    // Jolt terrain raycast: owns static mesh bodies used for ground height ray queries.
+    std::unique_ptr<JoltTerrainState> mJoltTerrain;
 };
 

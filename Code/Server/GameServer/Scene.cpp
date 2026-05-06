@@ -103,6 +103,10 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, 
 				data->GetColliders().at(0)->GetOBB());
+			// Jolt terrain raycast: keep the source render mesh so PhysicsWorld can build triangle terrain queries.
+			boxCollider.mRayCastMesh = data->GetColliders().at(0);
+			// Jolt terrain raycast: loaded level meshes must be static for PhysicsWorld rebuild and query registration.
+			mWorld->AddComponent<StaticComponent>(entity);
 		}
 	}
 	catch (const std::exception& e)
@@ -137,15 +141,17 @@ void Scene::LoadCollisionJson(const wstring& path)
 
 			Entity entity = mWorld->CreateEntity();
 
-			// mLocalOBB = localObb (단위 박스)
-			// PhysicsWorld::Initialize에서 mLocalOBB.Transform(worldMatrix) → mWorldOBB 올바르게 계산됨
-			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, localObb, inst.worldMtx);
-
 			// worldMatrix를 반드시 설정해야 PhysicsWorld::Initialize가 올바른 위치로 변환함
 			TransformComponent transform{};
 			transform.mWorldMatrix = inst.worldMtx;
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
+
+			// mLocalOBB = localObb (단위 박스)
+			// PhysicsWorld::Initialize에서 mLocalOBB.Transform(worldMatrix) → mWorldOBB 올바르게 계산됨
+			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, localObb, transform.mWorldMatrix);
+
+
 			mWorld->AddComponent<StaticComponent>(entity);
 			++i;
 			std::cout << i << std::endl;
@@ -259,7 +265,7 @@ void FirstScene::Initialize()
 	SetGameMode(gameMode);
 	gameMode->Initialize();
 
-	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	mWorld->Initialize();
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
 	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 체크 (예: 승패 조건, 라운드 진행 등)

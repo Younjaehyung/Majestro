@@ -187,9 +187,12 @@ shared_ptr<Mesh> ResourceManager::LoadMCubeMesh()
 	if (findMesh)
 		return findMesh;
 
-	float w2 = 50.f;
-	float h2 = 50.f;
-	float d2 = 50.f;
+	// 수정 내용
+	// Collision JSON 은 1x1x1 큐브를 배치한다는 전제로 export 된다.
+	// 로컬 큐브 반지름을 0.5 로 둬야 JSON scale 이 곧 월드 충돌체 크기가 된다.
+	float w2 = 0.5f;
+	float h2 = 0.5f;
+	float d2 = 0.5f;
 
 	vector<Vertex> vec(24);
 

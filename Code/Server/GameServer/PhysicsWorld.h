@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.h"
+#include "SpatialGrid2D.h"
 
 class World;
 class BoxColliderComponent;
@@ -8,16 +9,15 @@ class TransformComponent;
 enum StaticColliderType
 {
     OBB,
-	AABB,
-	CONVEX_HULL,
-
+    AABB,
+    CONVEX_HULL,
 };
 
 struct SweepHit
 {
     bool hit = false;
-    float distance = 0.0f;     // start로부터 거리
-    Entity colliderId = 0;   // 어떤 정적 콜라이더에 맞았는지
+    float distance = 0.0f;
+    Entity colliderId = 0;
     Vector3 point{};
 };
 
@@ -34,7 +34,7 @@ struct StaticProxy
     Entity ColliderEntity;
     BoxColliderComponent* ColliderBox;
     AABB2D bounds;
-	uint32 layerMask = 0;
+    uint32 layerMask = 0;
 };
 
 struct DynamicProxy
@@ -61,7 +61,7 @@ struct BVHNode
 class PhysicsWorld
 {
 public:
-	PhysicsWorld() = default;
+    PhysicsWorld() = default;
     PhysicsWorld(World* world) : mWorld(world) { Initialize(); }
 
     void Initialize();
@@ -69,47 +69,44 @@ public:
     void ClearStatic() { staticObjects.clear(); }
     void ClearNode() { nodes.clear(); }
 
-    //void AddStaticOBB(Entity id, DirectX::BoundingOrientedBox obb, uint32 layerMask)
-    //{
-    //    StaticCollider c;
-    //    c.id = id;
-    //    c.layerMask = layerMask;
-    //    c.type = StaticColliderType::OBB;
-    //    c.obb = obb;
-    //    mStatics.push_back(c);
-    //}
-
-
-public: //Query
-
+public: // Query
     SweepHit SphereSweepVsOBB(const Vector3& start, const Vector3& end, float radius);
     void QueryStaticBVH(const AABB2D& query, std::vector<int>& outIndices);
+    void UpdateDynamicSpatialIndex();
+    std::vector<Entity> FindNearbyEnemies(const Entity& entity, float radius, size_t maxCount);
+    void GetMovableCollisionPairs(std::vector<std::pair<Entity, Entity>>& outPairs);
     int BuildStaticBVHRecursive(
         std::vector<StaticProxy>& proxies,
         std::vector<BVHNode>& nodes,
         int start,
         int count);
-    
-	float QueryHeightAtPosition(const Vector3& position);
-public: // utils
+
+    float QueryHeightAtPosition(const Vector3& position);
+
+public: // Utils
     static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
-    static void SetWorldOBB(BoundingOrientedBox obb,const TransformComponent* tr, BoxColliderComponent* col);
-    
-    
+    static void SetWorldOBB(BoundingOrientedBox obb, const TransformComponent* tr, BoxColliderComponent* col);
     static AABB2D BuildAABBFromOBB(const BoundingOrientedBox& obb);
     static AABB2D MergeAABB(const AABB2D& a, const AABB2D& b);
     static bool OverlapAABB(const AABB2D& a, const AABB2D& b);
 
 public:
-	int32 GetRootNodeIndex() const { return root; }
-	std::vector<BVHNode>& GetBVHNodes() { return nodes; }
-	std::vector<StaticProxy>& GetStaticProxies() { return staticObjects; }
-	StaticProxy& GetStaticProxy(int index) { return staticObjects[index]; }
+    int32 GetRootNodeIndex() const { return root; }
+    std::vector<BVHNode>& GetBVHNodes() { return nodes; }
+    std::vector<StaticProxy>& GetStaticProxies() { return staticObjects; }
+    StaticProxy& GetStaticProxy(int index) { return staticObjects[index]; }
+
 private:
-	World* mWorld = nullptr;
-    //  정적 월드 충돌 대상
+    void RebuildEnemyGrid();
+    void RebuildMovableGrid();
+    bool IsDeadEnemy(Entity entity) const;
+
+private:
+    World* mWorld = nullptr;
     std::vector<StaticProxy> staticObjects;
     std::vector<BVHNode> nodes;
-    int32                root{};
-};
+    int32 root{};
 
+    SpatialGrid2D mEnemyGrid;
+    SpatialGrid2D mMovableGrid;
+};

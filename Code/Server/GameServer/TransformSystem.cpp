@@ -3,6 +3,7 @@
 #include "TransformComponent.h"
 #include "TerrainComponent.h"
 #include "GravityComponent.h"
+#include "PhysicsWorld.h"
 
 TransformSystem::TransformSystem(World* world) : System(world)
 {
@@ -32,5 +33,8 @@ void TransformSystem::Update(float dt) {
 		}
 
 	}
+
+    if (auto physicsWorld = mWorld->GetPhysicsWorld())
+        physicsWorld->UpdateDynamicSpatialIndex();
 
 }

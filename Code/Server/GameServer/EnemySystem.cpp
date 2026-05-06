@@ -35,10 +35,6 @@ void EnemySystem::Initialize()
     }
     if (mNavMesh && mNavMesh->mDtNavMesh)
         mWorld->GetNavSystem()->Initialize(mNavMesh);
-
-	
-
-
 }
 
 
@@ -71,6 +67,7 @@ void EnemySystem::Update(float dt)
     std::shared_ptr<EventManager> eventManager = mWorld->GetEventManager();
     shared_ptr<Navigation> navSystem = mWorld->GetNavSystem();
     const float now = GetServerTotalTimeSeconds();
+    bool loggedNearbyThisFrame = false;
 
     int entityIndex = 0;
     for (auto& entity : mWorld->GetEntitiesWithComponent<EnemyMovementComponent>())
@@ -83,6 +80,9 @@ void EnemySystem::Update(float dt)
 
         const Vec3 myPos      = tf->mLocalPosition;
         const Vec3 playerPos  = PathFinder(myPos);
+        const std::vector<Entity> nearbyEnemies = mWorld->GetPhysicsWorld()
+            ? mWorld->GetPhysicsWorld()->FindNearbyEnemies(entity, NEARBY_ENEMY_RADIUS, MAX_NEARBY_ENEMIES)
+            : std::vector<Entity>{};
 
         EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
         HealthComponent* enemyHealthComp = mWorld->GetComponent<HealthComponent>(entity);
@@ -95,6 +95,29 @@ void EnemySystem::Update(float dt)
             HaltByState(enemyComp, mc, EnemyAnimState::Dead);
             ++entityIndex;
             continue;
+        }
+
+        if (!loggedNearbyThisFrame)
+        {
+            std::cout << "[SpatialDebug] enemy=" << entity.GetID()
+                << " nearby_count=" << nearbyEnemies.size();
+
+            for (const Entity& nearbyEntity : nearbyEnemies)
+            {
+                const TransformComponent* nearbyTf = mWorld->GetComponent<TransformComponent>(nearbyEntity);
+                if (!nearbyTf)
+                    continue;
+
+                Vec3 delta = nearbyTf->mLocalPosition - myPos;
+                delta.y = 0.0f;
+                const float distance = std::sqrt(delta.LengthSquared());
+
+                std::cout << " | id=" << nearbyEntity.GetID()
+                    << " dist=" << distance;
+            }
+
+            std::cout << std::endl;
+            loggedNearbyThisFrame = true;
         }
        
         float nearestPlayerDistSq = (std::numeric_limits<float>::max)();
@@ -284,14 +307,6 @@ void EnemySystem::HandleRunState(
         }
 
         Vec3 dir = movementComp->mPath[movementComp->mPathIndex] - myPos;
-        GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
-        if (gravityComp)
-        {
-            if (navSystem && navSystem->IsInitialized())
-                gravityComp->mGround = navSystem->GetHeightAtPosition(myPos);
-            else
-                gravityComp->mGround = myPos.y;
-        }
         dir.y = 0.f;
         if (dir.LengthSquared() > 1e-8f)
         {

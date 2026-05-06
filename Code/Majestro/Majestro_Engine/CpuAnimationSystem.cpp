@@ -100,6 +100,10 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
 		MannequinComponent* mannequinComponent = mWorld->GetComponent<MannequinComponent>(entity);
 
+		// 수정: 이번 프레임에 평가가 끝난 엔티티만 trail socket 샘플링에 쓰도록
+		// 애니메이션 push 시작 시점에 이전 프레임 캐시를 무효화한다.
+		animCom->mModelBonePaletteValid = false;
+
 		const uint32 previousClip = animCom->mAnimClipIdx;
 		const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
 
@@ -396,6 +400,14 @@ void CpuAnimationSystem::EvaluateAndUpload()
 		AnimationEvaluator::Evaluate(
 			inst, clipBuffer, metaBuffer, metaCount, boneBuffer,
 			mScratchModelBones.data(), finalRowMajor.data(), aimPtr);
+
+		if (AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(inst.EntityID))
+		{
+			// 수정: WeaponTrail은 offset이 곱해진 스키닝 행렬이 아니라 부모 누적만 된 모델 공간 본 행렬을 사용한다.
+			// 이 캐시는 SocketTrailSystem이 같은 프레임의 공격 trail 샘플을 만들 때 읽는다.
+			animCom->mModelBonePalette = mScratchModelBones;
+			animCom->mModelBonePaletteValid = true;
+		}
 
 		Matrix* dst = &mFinalBoneUpload[inst.ReulstIndex];
 		for (uint32 i = 0; i < inst.BoneCount; ++i)

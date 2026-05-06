@@ -42,6 +42,7 @@
 #include "CpuAnimationSystem.h"
 #include "PlayerSystem.h"
 #include "ParticleSystem.h"
+#include "SocketTrailSystem.h"
 
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
@@ -832,7 +833,8 @@ void MainMenuScene::Initialize()
 
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
+	// 수정: 무기 trail은 애니메이션/트랜스폼 갱신 이후, 파티클 렌더 데이터 갱신 전에 소켓 위치를 샘플링한다.
+	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
@@ -1348,7 +1350,8 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
+	// 수정: 무기 trail은 애니메이션/트랜스폼 갱신 이후, 파티클 렌더 데이터 갱신 전에 소켓 위치를 샘플링한다.
+	mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 
 

@@ -19,6 +19,35 @@ void Skeleton::CreateBones(ifstream& file)
 
 }
 
+uint32 Skeleton::FindBoneIndexByName(const string& boneName) const
+{
+	if (boneName.empty())
+		return INVALID_BONE_INDEX;
+
+	for (uint32 i = 0; i < static_cast<uint32>(mBones.size()); ++i)
+	{
+		if (mBones[i].boneName == boneName)
+			return i;
+	}
+
+	// 수정: FBX export 과정에서 대소문자만 달라지는 경우가 있어 trail socket 탐색은
+	// 정확히 일치하지 않으면 한 번 더 대소문자를 무시하고 찾는다.
+	string lowerTarget = boneName;
+	std::transform(lowerTarget.begin(), lowerTarget.end(), lowerTarget.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	for (uint32 i = 0; i < static_cast<uint32>(mBones.size()); ++i)
+	{
+		string lowerBone = mBones[i].boneName;
+		std::transform(lowerBone.begin(), lowerBone.end(), lowerBone.begin(),
+			[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+		if (lowerBone == lowerTarget)
+			return i;
+	}
+
+	return INVALID_BONE_INDEX;
+}
+
 void Skeleton::BuildAimBoneIndices()
 {
 	mSpine1Idx = INVALID_BONE_INDEX;

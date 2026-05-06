@@ -27,6 +27,8 @@ public:
 	void CreateBones(ifstream& file);
 
 	std::vector<BoneInfo>& GetBones() { return mBones; }
+	const std::vector<BoneInfo>& GetBones() const { return mBones; }
+	uint32 FindBoneIndexByName(const string& boneName) const;
 
 	uint32 GetSkeletonHandle() { return mSkeletonHandle; }
 	void SetSkeletonHandle(uint32 handle) { mSkeletonHandle = handle; }

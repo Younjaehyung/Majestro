@@ -122,6 +122,12 @@ public:
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;
 
+	// 수정: 무기 trail은 스키닝용 offset 행렬이 아니라 현재 포즈의 모델 공간 본 행렬이 필요하다.
+	// CpuAnimationSystem에서 AnimationEvaluator가 계산한 outModelBones를 프레임마다 캐시하고,
+	// SocketTrailSystem은 이 값을 이용해 무기 본의 월드 위치를 샘플링한다.
+	vector<Matrix>					mModelBonePalette;
+	bool							mModelBonePaletteValid = false;
+
 	// AimOffset / TurnInPlace 제어
 	bool							mEnableAimOffset = false;   // 상체 보정
 	float							mAimPitch = 0.f;            // radians

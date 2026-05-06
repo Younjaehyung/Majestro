@@ -28,6 +28,8 @@
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
 #include "GameRuleComponent.h"
+#include "Material.h"
+#include "WeaponTrailComponent.h"
 
 
 Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
@@ -36,6 +38,66 @@ Prefab::Prefab() : Object(OBJECT_TYPE::PREFAB)
 
 Prefab::~Prefab()
 {
+}
+
+namespace
+{
+	Vec4 ResolveWeaponTrailColor(const shared_ptr<Material>& weaponMaterial, const Vec4& fallback)
+	{
+		if (weaponMaterial == nullptr)
+			return fallback;
+
+		const Vec4& diffuse = weaponMaterial->GetParams().Diffuse;
+		// 수정: trail은 별도 ribbon으로 렌더링하되, 무기 머테리얼의 diffuse를 색상 틴트로만 반영한다.
+		return Vec4(
+			fallback.x * max(diffuse.x, 0.35f),
+			fallback.y * max(diffuse.y, 0.35f),
+			fallback.z * max(diffuse.z, 0.35f),
+			fallback.w);
+	}
+
+	void ConfigureWeaponTrail(World* world, Entity owner, uint8 playerType, const shared_ptr<Material>& weaponMaterial)
+	{
+		if (world == nullptr)
+			return;
+
+		// 수정: Ibanix는 총기형 캐릭터라 무기 trail보다 muzzle/bullet VFX가 맞으므로 제외한다.
+		if (playerType == 1)
+			return;
+
+		auto& trail = world->AddComponent<WeaponTrailComponent>(owner);
+		trail.mAutoActivateFromPlayerState = true;
+		trail.mUseAttackWindow = true;
+		trail.mAttackWindowStart = 0.14f;
+		trail.mAttackWindowEnd = 0.68f;
+		trail.mLifeTime = 0.14f;
+		trail.mMinSampleDistance = 2.5f;
+		trail.mInterpolationStep = 4.0f;
+		trail.mMaxSamples = 36;
+		// 수정: trail 전용 텍스처 리소스 키를 지정해 텍스처 파일만 교체해도 무기 잔상 모양을 바꿀 수 있게 했다.
+		trail.mTextureName = L"Shock_wave01";
+		trail.mTextureAlphaWeight = 1.f;
+		trail.mUseTextureColor = false;
+
+		if (playerType == 0)
+		{
+			trail.mColor = ResolveWeaponTrailColor(weaponMaterial, Vec4(0.45f, 0.85f, 1.0f, 0.78f));
+			// 수정: 현재 Ludwig skel에서 확인되는 손 본 이름을 명시해 자동 탐색 실패로 trail이 꺼지는 문제를 줄인다.
+			trail.mBaseSocket.boneName = "Bip001 Prop";
+			trail.mTipSocket.boneName = "Bip001 Prop";
+			trail.mBaseSocket.localOffset = Matrix::CreateTranslation(0.f, 0.f, 0.f);
+			trail.mTipSocket.localOffset = Matrix::CreateTranslation(0.f, 500.f, 120.f);
+		}
+		else
+		{
+			trail.mColor = ResolveWeaponTrailColor(weaponMaterial, Vec4(0.95f, 0.45f, 1.0f, 0.72f));
+			// 수정: 현재 Fanthor skel도 "Bip001 L Hand" 계열 손 본이 확인되어 여기를 trail 기준 본으로 사용한다.
+			trail.mBaseSocket.boneName = "Bip001 L Hand";
+			trail.mTipSocket.boneName = "Bip001 L Hand";
+			trail.mBaseSocket.localOffset = Matrix::CreateTranslation(0.f, 0.f, 0.f);
+			trail.mTipSocket.localOffset = Matrix::CreateTranslation(0.f, 120.f, 0.f);
+		}
+	}
 }
 
 Entity PrefabFactory::BuildWorldMarkerPrefab(World* world, const InputCommand& ctx, const wchar_t* effectName, const Vec3& scale)
@@ -104,6 +166,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	ConfigureWeaponTrail(world, mEntityID, 0, nullptr);
 	world->AddComponent<BeatComponent>(mEntityID);
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
@@ -249,6 +312,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+	ConfigureWeaponTrail(world, mEntityID, ctx.ViewAs<S2C_SpawnPacekt>()->Type,
+		material2s.size() > 1 ? material2s[1] : nullptr);
 	world->AddComponent<BeatComponent>(mEntityID);
 	GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
 	grav.mHight = t.mLocalPosition.y + 13.f; // 임시 동기화

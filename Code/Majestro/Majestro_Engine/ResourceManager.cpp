@@ -288,9 +288,12 @@ shared_ptr<Mesh> ResourceManager::LoadMCubeMesh()
 	if (findMesh)
 		return findMesh;
 
-	float w2 = 50.f;
-	float h2 = 50.f;
-	float d2 = 50.f;
+	// 수정 내용
+	// Collision JSON 은 1x1x1 큐브를 배치한다는 전제로 export 된다.
+	// 로컬 큐브 반지름을 0.5 로 둬야 JSON scale 이 곧 월드 충돌체 크기가 된다.
+	float w2 = 0.5f;
+	float h2 = 0.5f;
+	float d2 = 0.5f;
 
 	vector<Vertex> vec(24);
 
@@ -1714,6 +1717,26 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, fxaaInfo, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"FXAA", shader);
 	}
+
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+			D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+		};
+
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\trail_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\trail_PS.hlsl"
+		};
+
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"Trail", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()
@@ -2175,10 +2198,18 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Escort_Info_Cursor", L"..\\Resources\\Image\\UI\\UI_Escort_Info_Cursor.png");
 
 
+
+		Load<Texture>(L"Shock_wave01", L"..\\Resources\\Texture\\Shock_wave01.png");
+
 		
 		
 
 		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Skin.png");
+		// 수정: 무기 trail이 코드 색상만 쓰지 않고 VFX 텍스처 리소스를 참조할 수 있도록 기본 trail 리소스를 등록한다.
+		RESOURCEMANAGER.Load<Texture>(L"trail_sword_line", L"..\\Resources\\Effect\\Area\\SwordLine01.png");
+		RESOURCEMANAGER.Load<Texture>(L"trail_alpha_ramp", L"..\\Resources\\Texture\\RampAlpha1.png");
+		RESOURCEMANAGER.Load<Texture>(L"trail_color_blue", L"..\\Resources\\Texture\\RampColor_Blue.png");
+		RESOURCEMANAGER.Load<Texture>(L"trail_color_purple", L"..\\Resources\\Texture\\RampColor_Purple.png");
 		auto T_Ibanix_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Body_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Body_SAMR.png");
 		auto T_Ibanix_Gun_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Gun_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Gun_SAMR.png");
 

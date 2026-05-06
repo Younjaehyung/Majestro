@@ -79,13 +79,14 @@ public:
 	uint8 mPlayerType;
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
-	int mNextState;
+	// 수정: 네트워크 상태 패킷을 받기 전에는 Idle로 간주해야 trail/animation 보조 시스템이 미초기화 값을 읽지 않는다.
+	int mNextState = S_Idle;
 
-	int mPrevStatePacket;
-	int mPrevLowerStatePacket;
+	int mPrevStatePacket = S_Idle;
+	int mPrevLowerStatePacket = S_Idle;
 
-	int mStatePacket;
-	int mLowerStatePacket;
+	int mStatePacket = S_Idle;
+	int mLowerStatePacket = S_Idle;
 
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;

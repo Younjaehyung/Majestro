@@ -10,6 +10,7 @@
 #include "OutlinePass.h"
 #include "EffectPass.h"
 #include "ParticlePass.h"
+#include "TrailPass.h"
 #include "RenderPass.h"     
 #include "MotionVectorPass.h"
 #include "FogPass.h"
@@ -50,6 +51,7 @@ void GameRenderPipeline::Initialize(World* world)
     mOutlinePass     = make_shared<OutlinePass>();
     mEffectPass      = make_shared<EffectPass>();
     mParticlePass    = make_shared<ParticlePass>();
+    mTrailPass       = make_shared<TrailPass>();
     mPostProcessPass = make_shared<PostProcessPass>();
     mWorldUIPass    = make_shared<WorldUIPass>();
 
@@ -69,9 +71,10 @@ void GameRenderPipeline::Initialize(World* world)
 	mLightPass->Initialize();
     mMotionVectorPass->Initialize();
 	mForwardPass->Initialize();
-	mOutlinePass->Initialize();
+    mOutlinePass->Initialize();
     mEffectPass->Initialize(world);
     mParticlePass->Initialize(world);
+    mTrailPass->Initialize(world);
     mPostProcessPass->Initialize();
     mWorldUIPass->Initialize(world);
 
@@ -371,6 +374,9 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
     float dt = ctx.deltaTime;
     Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
     Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(ctx.camera->GetProjectionMatrix());
+    // 수정: weapon trail은 HDR에 반투명 ribbon으로 먼저 그려 postprocess/bloom 흐름에 포함시킨다.
+    if (mTrailPass)
+        mTrailPass->Execute();
     mEffectPass->Execute(dt, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
     mParticlePass->Execute(ctx);
 

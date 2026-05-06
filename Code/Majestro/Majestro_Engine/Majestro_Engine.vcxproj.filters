@@ -343,6 +343,9 @@
     <ClInclude Include="ParticlePass.h">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
+    <ClInclude Include="TrailPass.h">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClInclude>
     <ClInclude Include="AudioSystem.h">
       <Filter>World\System\Client</Filter>
     </ClInclude>
@@ -364,6 +367,9 @@
     <ClInclude Include="TransformSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="SocketTrailSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="AnimationComponent.h">
       <Filter>World\Component\Client</Filter>
     </ClInclude>
@@ -374,6 +380,9 @@
       <Filter>World\Component\Client</Filter>
     </ClInclude>
     <ClInclude Include="ParticleComponent.h">
+      <Filter>World\Component\Client</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponTrailComponent.h">
       <Filter>World\Component\Client</Filter>
     </ClInclude>
     <ClInclude Include="ParticleEffect.h">
@@ -641,19 +650,21 @@
     <ClInclude Include="UIAudioVisualizerFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
-    <ClInclude Include="WorldUIPass.h" />
     <ClInclude Include="UIGameInfoUpdateFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
     <ClInclude Include="GameRuleComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="UIPhaseProgressUpdateFeature.h" />
     <ClInclude Include="JsonUtils.h">
       <Filter>Utils\Json</Filter>
     </ClInclude>
     <ClInclude Include="GamePhaseSystem.h">
       <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldUIPass.h" />
+    <ClInclude Include="UIPhaseProgressUpdateFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -774,6 +785,9 @@
     <ClCompile Include="ParticlePass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
+    <ClCompile Include="TrailPass.cpp">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClCompile>
     <ClCompile Include="AudioSystem.cpp">
       <Filter>World\System\Client</Filter>
     </ClCompile>
@@ -796,6 +810,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="TransformSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketTrailSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp">
@@ -1042,16 +1059,20 @@
     <ClCompile Include="UIAudioVisualizerFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
-    <ClCompile Include="WorldUIPass.cpp" />
     <ClCompile Include="UIGameInfoUpdateFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
-    <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
     <ClCompile Include="JsonUtils.cpp">
       <Filter>Utils\Json</Filter>
     </ClCompile>
     <ClCompile Include="GamePhaseSystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldUIPass.cpp">
+      <Filter>World\System\Render\08.Post\LDR</Filter>
+    </ClCompile>
+    <ClCompile Include="UIPhaseProgressUpdateFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

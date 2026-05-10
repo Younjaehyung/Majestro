@@ -384,6 +384,7 @@ struct S2C_CollisionPacket : public PacketTcpHeader {	// 임시
 struct S2C_BulletActivatePacket : public PacketTcpHeader {
 	uint64_t ownerNetEntityId{};
 	uint64_t bulletNetEntityId{};
+	uint16_t bulletGeneration{};
 	uint8 bulletType{};
 	float x{}, y{}, z{};
 	float dirX{}, dirY{}, dirZ{};
@@ -396,6 +397,7 @@ struct S2C_BulletActivatePacket : public PacketTcpHeader {
 
 struct S2C_BulletDeactivatePacket : public PacketTcpHeader {
 	uint64_t bulletNetEntityId{};
+	uint16_t bulletGeneration{};
 
 	S2C_BulletDeactivatePacket()
 		: PacketTcpHeader{ sizeof(S2C_BulletDeactivatePacket), PKT_Type::S2C_PKT_BULLET_DEACTIVATE, 0.0 } {

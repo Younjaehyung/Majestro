@@ -21,6 +21,7 @@ public:
 
 	Effekseer::Handle Play(VfxComponent* comp, float x, float y, float z);
 	Effekseer::Handle Play(VfxComponent* comp, const Effekseer::Vector3D& position);
+	void Stop(VfxComponent* comp);
 
 	void LoadResources();
 

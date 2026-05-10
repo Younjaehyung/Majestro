@@ -158,6 +158,7 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			std::chrono::system_clock::now().time_since_epoch()).count();
 		bulletPacket.ownerNetEntityId = shooterNetComp->mNetEntityId;
 		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
+		bulletPacket.bulletGeneration = bulletComp->mGeneration;
 		bulletPacket.bulletType = static_cast<uint8>(bulletType);
 		bulletPacket.x = bulletTransform->mWorldPosition.x;
 		bulletPacket.y = bulletTransform->mWorldPosition.y;

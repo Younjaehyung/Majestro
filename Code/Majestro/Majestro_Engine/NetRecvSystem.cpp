@@ -331,7 +331,7 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
         bulletType,
         pkt->ownerNetEntityId,
         static_cast<uint32>(pkt->bulletNetEntityId),
-        static_cast<uint16>(bulletComp->mGeneration + 1),
+        pkt->bulletGeneration,
         spawnPosition,
         direction,
         pkt->speed,
@@ -347,13 +347,15 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
 
     if (bulletVfx)
     {
-        if (shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(vfxSpec.effectName))
-            bulletVfx->mVfx = vfx;
+        bulletVfx->mVfx = RESOURCEMANAGER.Get<Vfx>(vfxSpec.effectName);
 
+       
         bulletVfx->mScale = vfxSpec.scale;
         bulletVfx->mIsLoop = true;
         bulletVfx->mIsPaused = false;
         bulletVfx->mIsPlaying = false;
+        bulletVfx->mShouldPlay = (bulletVfx->mVfx != nullptr);
+        bulletVfx->mTotalTime = 0.f;
     }
 
     if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
@@ -373,12 +375,18 @@ void NetRecvSystem::HandleBulletDeactivate(const InputCommand& msg)
     VfxComponent* bulletVfx = mWorld->GetComponent<VfxComponent>(bulletEntity);
     if (!bulletComp || !bulletTransform) return;
 
+    if (pkt->bulletGeneration != bulletComp->mGeneration)
+        return;
+
     bulletComp->Deactivate();
     if (bulletVfx)
     {
-        bulletVfx->mIsPaused = true;
+      
+        bulletVfx->mShouldPlay = false;
+        bulletVfx->mIsPaused = false;
         bulletVfx->mScale = Vec3::Zero;
-        bulletVfx->mIsPlaying = true;
+        bulletVfx->mIsPlaying = false;
+        bulletVfx->mTotalTime = 0.f;
     }
     bulletTransform->mMovingVector = Vec3::Zero;
 

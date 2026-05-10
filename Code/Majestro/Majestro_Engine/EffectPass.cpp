@@ -81,6 +81,20 @@ Effekseer::Handle EffectPass::Play(VfxComponent* comp, const Effekseer::Vector3D
 	return handle;
 }
 
+void EffectPass::Stop(VfxComponent* comp)
+{
+	if (comp == nullptr)
+		return;
+
+	if (comp->efkHandle != -1)
+		mManager->StopEffect(comp->efkHandle);
+
+
+	comp->efkHandle = -1;
+	comp->mIsPlaying = false;
+	comp->mTotalTime = 0.f;
+}
+
 void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Effekseer::Matrix44& projMat, float zNear, float zFar)
 {
 	if (!mWorld->HasComponentPool<VfxComponent>()) return;
@@ -93,8 +107,18 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
 
+		if (!comp->mShouldPlay || comp->mVfx == nullptr || comp->mVfx->mEffect == nullptr)
+		{
+			
+			Stop(comp);
+			continue;
+		}
+
 		if (!comp->mIsPlaying)
 		{
+			if (comp->efkHandle != -1)
+				Stop(comp);
+
 			if (tr != nullptr)
 				Play(comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
 			else

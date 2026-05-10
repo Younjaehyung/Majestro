@@ -350,8 +350,13 @@ void NetSendSystem::SendBulletDeactivateEvents()
 			if (netComp == nullptr)
 				return;
 
+			BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(e.bullet);
+			if (bulletComp == nullptr)
+				return;
+
 			S2C_BulletDeactivatePacket deactivatePkt;
 			deactivatePkt.bulletNetEntityId = netComp->mNetEntityId;
+			deactivatePkt.bulletGeneration = bulletComp->mGeneration;
 			
 			for (uint32 sessionId : recipients)
 			{

@@ -24,6 +24,16 @@ struct SweepHit
     Vector3 point{};
 };
 
+struct JoltStaticHit
+{
+    bool hit = false;
+    Entity colliderId = 0;
+    float distance = 0.0f;
+    float fraction = 0.0f;
+    Vector3 point{};
+    Vector3 normal{};
+};
+
 struct AABB2D
 {
     float minX;
@@ -108,6 +118,9 @@ public: // Query
     float QueryHeightAtPosition(const Vector3& position);
     bool TryQueryTerrainHeight(const Vector3& position, float& outHeight) const;
     bool AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix& worldMatrix);
+    bool AddStaticCollisionMesh(Entity owner, const CollisionMesh& mesh, const Matrix& worldMatrix);
+    bool CastMovingSphereAgainstStatic(const Vector3& start, const Vector3& end, float radius, JoltStaticHit& outHit) const;
+    void OptimizeJoltStaticCollision();
     bool HasJoltTerrain() const;
 public: // utils
     static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);

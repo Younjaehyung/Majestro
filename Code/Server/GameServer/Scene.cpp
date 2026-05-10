@@ -45,6 +45,43 @@
 #include "GameRuleSystem.h"
 #include "PathFollowSystem.h"
 
+namespace
+{
+	bool HasMeshSidecar(const std::filesystem::path& assetPath)
+	{
+		std::filesystem::path meshPath = assetPath.parent_path() / assetPath.stem();
+		meshPath.replace_extension(".mesh");
+		return std::filesystem::exists(meshPath);
+	}
+
+	std::wstring ResolveCollisionFbxPath(const std::string& jsonFbxPath)
+	{
+		if (jsonFbxPath.empty())
+			return L"";
+
+		const std::filesystem::path rawPath = std::filesystem::path(jsonFbxPath);
+		std::vector<std::filesystem::path> candidates;
+
+		if (rawPath.is_absolute())
+			candidates.push_back(rawPath);
+
+		candidates.push_back(std::filesystem::path("..") / "Resources" / rawPath);
+		candidates.push_back(std::filesystem::path("..") / "Resources" / "FBX" / rawPath.filename());
+
+		std::filesystem::path upperExt = rawPath.filename();
+		upperExt.replace_extension(".FBX");
+		candidates.push_back(std::filesystem::path("..") / "Resources" / "FBX" / upperExt);
+
+		for (const std::filesystem::path& candidate : candidates)
+		{
+			if (std::filesystem::exists(candidate) || HasMeshSidecar(candidate))
+				return candidate.wstring();
+		}
+
+		return candidates.empty() ? L"" : candidates.back().wstring();
+	}
+}
+
 
 
 void Scene::Initialize()
@@ -117,6 +154,94 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 void Scene::LoadCollisionJson(const wstring& path)
 {
+	{
+		int loadedInstanceCount = 0;
+		int loadedMeshCount = 0;
+		int skippedCount = 0;
+		try
+		{
+			LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+			auto physicsWorld = mWorld->GetPhysicsWorld();
+			if (!physicsWorld)
+				throw std::runtime_error("LoadCollisionJson requires World::Initialize before loading Jolt collision meshes");
+
+			for (const auto& inst : level.instances)
+			{
+				if (inst.fbx.empty())
+				{
+					++skippedCount;
+					continue;
+				}
+
+				const std::wstring fbxPath = ResolveCollisionFbxPath(inst.fbx);
+				if (fbxPath.empty())
+				{
+					++skippedCount;
+					continue;
+				}
+
+				shared_ptr<FBX> collisionFbx = RESOURCEMANAGER.LoadFBXMeshes(fbxPath);
+				if (!collisionFbx)
+				{
+					++skippedCount;
+					continue;
+				}
+
+				const vector<shared_ptr<CollisionMesh>> colliders = collisionFbx->GetColliders();
+				if (colliders.empty())
+				{
+					++skippedCount;
+					std::cerr << "LoadCollisionJson skipped collision mesh without converted .mesh data: " << ws2s(fbxPath) << "\n";
+					continue;
+				}
+
+				Entity entity = mWorld->CreateEntity();
+
+				// Modified: Store the JSON TRS on the server entity and register collision FBX triangles in Jolt.
+				// The Jolt body bakes this matrix into MeshShape vertices so server collision matches client debug placement.
+				TransformComponent transform{};
+				transform.mWorldMatrix = inst.worldMtx;
+				TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+				trans.mIsStatic = true;
+				mWorld->AddComponent<StaticComponent>(entity);
+
+				bool registeredAnyMesh = false;
+				for (const shared_ptr<CollisionMesh>& colliderMesh : colliders)
+				{
+					if (!colliderMesh)
+						continue;
+
+					if (physicsWorld->AddStaticCollisionMesh(entity, *colliderMesh, inst.worldMtx))
+					{
+						registeredAnyMesh = true;
+						++loadedMeshCount;
+					}
+				}
+
+				if (registeredAnyMesh)
+					++loadedInstanceCount;
+				else
+					++skippedCount;
+			}
+
+			if (loadedMeshCount > 0)
+				physicsWorld->OptimizeJoltStaticCollision();
+
+			std::cout << "Loaded Jolt collision instances: " << loadedInstanceCount
+				<< ", meshes: " << loadedMeshCount
+				<< ", skipped: " << skippedCount << std::endl;
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "Load failed: " << e.what() << "\n";
+		}
+	}
+	return;
+}
+
+#if 0
+// Legacy primitive collision loader disabled after switching static map collision to Jolt MeshShape.
+
 	int loadedCount = 0;
 	int loadedSphereCount = 0;
 	try
@@ -205,6 +330,8 @@ void Scene::LoadCollisionJson(const wstring& path)
 }
 
 // halfExtents = 트리거 영역 반경 / valueA,valueB = kind별 파라미터 / cooldown = 0이면 지속형.
+#endif
+
 Entity Scene::SpawnInteractable(World* world,
 	uint8 kind,
 	const Vec3& position,
@@ -306,8 +433,8 @@ void FirstScene::Initialize()
 	SetGameMode(gameMode);
 	gameMode->Initialize();
 
-	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	mWorld->Initialize();
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
 	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 체크 (예: 승패 조건, 라운드 진행 등)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();

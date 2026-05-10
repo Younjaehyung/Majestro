@@ -9,7 +9,35 @@
 #include "TagComponent.h"
 #include "Mesh.h"
 
-#include "Jolt/Physics/Collision/CastResult.h"
+#include <Jolt/Core/Factory.h>
+#include <Jolt/Core/Memory.h>
+#include <Jolt/Geometry/IndexedTriangle.h>
+#include <Jolt/Math/DMat44.h>
+#include <Jolt/Math/Mat44.h>
+#include <Jolt/Math/Quat.h>
+#include <Jolt/Math/Vec3.h>
+#include <Jolt/Physics/EActivation.h>
+#include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Body/Body.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyFilter.h>
+#include <Jolt/Physics/Body/BodyID.h>
+#include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Body/BodyLock.h>
+#include <Jolt/Physics/Collision/BackFaceMode.h>
+#include <Jolt/Physics/Collision/CastResult.h>
+#include <Jolt/Physics/Collision/CollisionCollector.h>
+#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
+#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
+#include <Jolt/Physics/Collision/ObjectLayer.h>
+#include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/ShapeCast.h>
+#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+#include <Jolt/Physics/Collision/Shape/Shape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/RegisterTypes.h>
+
 
 
 namespace
@@ -17,6 +45,7 @@ namespace
 	namespace JoltLayers
 	{
 		static constexpr JPH::ObjectLayer Terrain = 0;
+		static constexpr JPH::ObjectLayer StaticCollision = 1;
 		static constexpr JPH::BroadPhaseLayer TerrainBroadPhase(0);
 	}
 
@@ -71,13 +100,37 @@ namespace
 	public:
 		virtual bool ShouldCollide(JPH::ObjectLayer inLayer1, JPH::ObjectLayer inLayer2) const override
 		{
-			return inLayer1 == JoltLayers::Terrain && inLayer2 == JoltLayers::Terrain;
+			const bool validLayer1 = inLayer1 == JoltLayers::Terrain || inLayer1 == JoltLayers::StaticCollision;
+			const bool validLayer2 = inLayer2 == JoltLayers::Terrain || inLayer2 == JoltLayers::StaticCollision;
+			return validLayer1 && validLayer2;
 		}
 	};
 
 	JPH::Float3 ToJoltFloat3(const Vec3& v)
 	{
 		return JPH::Float3(v.x, v.y, v.z);
+	}
+
+	JPH::Vec3 ToJoltVec3(const Vec3& v)
+	{
+		return JPH::Vec3(v.x, v.y, v.z);
+	}
+
+	JPH::RVec3 ToJoltRVec3(const Vec3& v)
+	{
+		return JPH::RVec3(v.x, v.y, v.z);
+	}
+
+	Vec3 FromJoltVec3(const JPH::Vec3& v)
+	{
+		return Vec3(v.GetX(), v.GetY(), v.GetZ());
+	}
+
+	Entity EntityFromJoltUserData(JPH::uint64 userData)
+	{
+		if (userData == 0)
+			return Entity{};
+		return Entity(static_cast<EntityID>(userData));
 	}
 
 	float GetVector3Length(DirectX::FXMVECTOR v)
@@ -207,7 +260,7 @@ struct JoltTerrainState
 		BodyIDs.clear();
 	}
 
-	bool AddMesh(const CollisionMesh& mesh, const Matrix& worldMatrix)
+	bool AddMeshBody(Entity owner, const CollisionMesh& mesh, const Matrix& worldMatrix, JPH::ObjectLayer objectLayer)
 	{
 		const vector<Vertex>& sourceVertices = mesh.GetVertexBuffer();
 		const vector<uint32>& sourceIndices = mesh.GetIndexBuffer();
@@ -237,7 +290,8 @@ struct JoltTerrainState
 		if (triangles.empty())
 			return false;
 
-		// Jolt terrain raycast: bake the world transform into vertices so the body can stay at identity.
+		// Modified: Bake JSON TRS into MeshShape vertices so Jolt static collision uses the same placement as debug rendering.
+		// This keeps non-uniform scale stable without relying on Jolt body scale in the first implementation.
 		JPH::MeshShapeSettings shapeSettings(std::move(vertices), std::move(triangles));
 		JPH::Shape::ShapeResult shapeResult = shapeSettings.Create();
 		if (!shapeResult.IsValid())
@@ -248,7 +302,8 @@ struct JoltTerrainState
 			JPH::RVec3::sZero(),
 			JPH::Quat::sIdentity(),
 			JPH::EMotionType::Static,
-			JoltLayers::Terrain);
+			objectLayer);
+		bodySettings.mUserData = owner.IsValid() ? static_cast<JPH::uint64>(owner.GetID()) : 0;
 
 		JPH::BodyID bodyID = PhysicsSystem.GetBodyInterface().CreateAndAddBody(bodySettings, JPH::EActivation::DontActivate);
 		if (bodyID.IsInvalid())
@@ -256,6 +311,16 @@ struct JoltTerrainState
 
 		BodyIDs.push_back(bodyID);
 		return true;
+	}
+
+	bool AddMesh(const CollisionMesh& mesh, const Matrix& worldMatrix)
+	{
+		return AddMeshBody(Entity{}, mesh, worldMatrix, JoltLayers::Terrain);
+	}
+
+	bool AddStaticCollisionMesh(Entity owner, const CollisionMesh& mesh, const Matrix& worldMatrix)
+	{
+		return AddMeshBody(owner, mesh, worldMatrix, JoltLayers::StaticCollision);
 	}
 
 	bool RayCastHeight(const Vec3& position, float& outHeight) const
@@ -271,11 +336,70 @@ struct JoltTerrainState
 		const JPH::RRayCast ray(origin, direction);
 
 		JPH::RayCastResult hit;
-		if (!PhysicsSystem.GetNarrowPhaseQuery().CastRay(ray, hit))
+		JPH::SpecifiedObjectLayerFilter terrainOnly(JoltLayers::Terrain);
+		if (!PhysicsSystem.GetNarrowPhaseQuery().CastRay(ray, hit, {}, terrainOnly))
 			return false;
 
 		const JPH::RVec3 hitPos = ray.GetPointOnRay(hit.mFraction);
 		outHeight = static_cast<float>(hitPos.GetY());
+		return true;
+	}
+
+	bool CastMovingSphere(const Vec3& start, const Vec3& end, float radius, JoltStaticHit& outHit) const
+	{
+		outHit = JoltStaticHit{};
+		if (BodyIDs.empty() || radius <= 0.0f)
+			return false;
+
+		const Vec3 delta = end - start;
+		const float length = delta.Length();
+		if (length <= 1e-6f)
+			return false;
+
+		JPH::SphereShape sphere(radius);
+		const JPH::RMat44 startTransform = JPH::RMat44::sTranslation(ToJoltRVec3(start));
+		const JPH::RShapeCast shapeCast(&sphere, JPH::Vec3::sReplicate(1.0f), startTransform, ToJoltVec3(delta));
+
+		JPH::ShapeCastSettings settings;
+		settings.SetBackFaceMode(JPH::EBackFaceMode::CollideWithBackFaces);
+		settings.mReturnDeepestPoint = true;
+
+		JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector> collector;
+		JPH::SpecifiedObjectLayerFilter staticOnly(JoltLayers::StaticCollision);
+		PhysicsSystem.GetNarrowPhaseQuery().CastShape(
+			shapeCast,
+			settings,
+			JPH::RVec3::sZero(),
+			collector,
+			{},
+			staticOnly);
+
+		if (!collector.HadHit())
+			return false;
+
+		const JPH::ShapeCastResult& result = collector.mHit;
+		const float fraction = (std::max)(0.0f, (std::min)(1.0f, result.mFraction));
+		outHit.hit = true;
+		outHit.fraction = fraction;
+		outHit.distance = length * fraction;
+		outHit.point = FromJoltVec3(result.mContactPointOn2);
+
+		JPH::BodyLockRead bodyLock(PhysicsSystem.GetBodyLockInterface(), result.mBodyID2);
+		if (bodyLock.Succeeded())
+		{
+			const JPH::Body& body = bodyLock.GetBody();
+			outHit.colliderId = EntityFromJoltUserData(body.GetUserData());
+			const JPH::Vec3 normal = body.GetWorldSpaceSurfaceNormal(
+				result.mSubShapeID2,
+				JPH::RVec3(
+					result.mContactPointOn2.GetX(),
+					result.mContactPointOn2.GetY(),
+					result.mContactPointOn2.GetZ()));
+			outHit.normal = FromJoltVec3(normal);
+		}
+
+		if (outHit.point.LengthSquared() <= 1e-8f)
+			outHit.point = start + delta * fraction;
 		return true;
 	}
 
@@ -827,6 +951,26 @@ bool PhysicsWorld::AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix
 	if (!mJoltTerrain)
 		mJoltTerrain = std::make_unique<JoltTerrainState>();
 	return mJoltTerrain->AddMesh(mesh, worldMatrix);
+}
+
+bool PhysicsWorld::AddStaticCollisionMesh(Entity owner, const CollisionMesh& mesh, const Matrix& worldMatrix)
+{
+	if (!mJoltTerrain)
+		mJoltTerrain = std::make_unique<JoltTerrainState>();
+	return mJoltTerrain->AddStaticCollisionMesh(owner, mesh, worldMatrix);
+}
+
+bool PhysicsWorld::CastMovingSphereAgainstStatic(const Vector3& start, const Vector3& end, float radius, JoltStaticHit& outHit) const
+{
+	if (!mJoltTerrain)
+		return false;
+	return mJoltTerrain->CastMovingSphere(start, end, radius, outHit);
+}
+
+void PhysicsWorld::OptimizeJoltStaticCollision()
+{
+	if (mJoltTerrain)
+		mJoltTerrain->Optimize();
 }
 
 bool PhysicsWorld::HasJoltTerrain() const

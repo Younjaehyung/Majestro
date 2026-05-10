@@ -168,7 +168,7 @@ void ResourceManager::LoadResources()
 	}
 }
 
-shared_ptr<FBX>& ResourceManager::LoadFBXMeshes(const wstring& path)
+shared_ptr<FBX> ResourceManager::LoadFBXMeshes(const wstring& path)
 {
 	shared_ptr<FBX> meshData = Get<FBX>(s2ws(filesystem::path(path).filename().stem().string()));
 	if (meshData)

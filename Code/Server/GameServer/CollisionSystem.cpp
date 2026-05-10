@@ -668,25 +668,47 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
             bulletRadius = (std::max)(bulletRadius, scaleRadius);
         }
 
-        const SweepHit hit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);
-        if (!hit.hit)
+
+        JoltStaticHit joltHit{};
+        const bool hitJoltStatic = mPhysicsWorld->CastMovingSphereAgainstStatic(
+            startPosition,
+            endPosition,
+            bulletRadius,
+            joltHit);
+
+        SweepHit legacyHit{};
+        if (!hitJoltStatic)
+            legacyHit = mPhysicsWorld->SphereSweepVsOBB(startPosition, endPosition, bulletRadius);
+
+        if (!hitJoltStatic && !legacyHit.hit)
         {
             ++i;
             continue;
         }
 
-        tr->mLocalPosition = startPosition + direction * hit.distance;
+        const Vec3 impactPosition = hitJoltStatic
+            ? joltHit.point
+            : startPosition + direction * legacyHit.distance;
+
+        tr->mLocalPosition = impactPosition;
         tr->mMovingVector = Vec3::Zero;
         bullet->Deactivate();
 
         if (bulletCollider)
             bulletCollider->bIsColliding = true;
 
-        if (hit.colliderId.IsValid())
+        const Entity staticColliderEntity = hitJoltStatic ? joltHit.colliderId : legacyHit.colliderId;
+        if (staticColliderEntity.IsValid())
         {
-            BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(hit.colliderId);
+            BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(staticColliderEntity);
             if (staticCollider)
                 staticCollider->bIsColliding = true;
+
+            SphereColliderComponent* staticSphere = mWorld->HasComponentPool<SphereColliderComponent>()
+                ? mWorld->GetComponent<SphereColliderComponent>(staticColliderEntity)
+                : nullptr;
+            if (staticSphere)
+                staticSphere->bIsColliding = true;
         }
 
         mWorld->UnregisterActiveBullet(bulletEntity);

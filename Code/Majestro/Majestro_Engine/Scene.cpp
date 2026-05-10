@@ -472,15 +472,29 @@ bool LoadingScene::LoadScene(SceneId id)
 	}
 
 	LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(mapPath);
+
+	std::unordered_set<std::string> uniqueFbxNames;
+
 	for (const auto& inst : level.instances)
 	{
-		mLoadTasks.push([this, inst]() {
-			// FBX 1개 로딩
-			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\Map\\" + name + ".fbx";
+		if (inst.fbx.empty())
+			continue;
+
+		std::string name = filesystem::path(inst.fbx).filename().stem().string();
+		if (name.empty())
+			continue;
+
+		uniqueFbxNames.insert(name);
+	}
+
+	for (const auto& fbxName : uniqueFbxNames)
+	{
+		mLoadTasks.push([fbxName]() {
+			std::string name = "..\\Resources\\Map\\" + fbxName + ".fbx";
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
 			});
 	}
+
 	mTotalTaskCount = (int32)mLoadTasks.size();
 
 	return true;

@@ -42,3 +42,18 @@ public:
     // Jolt terrain raycast: optional source mesh used only for ray based ground height queries.
     shared_ptr<CollisionMesh> mRayCastMesh = nullptr;
 };
+
+class SphereColliderComponent : public Component<SphereColliderComponent>
+{
+public:
+    SphereColliderComponent() = default;
+    SphereColliderComponent(float radius) : mLocalRadius(radius) {}
+
+public:
+    // 수정 내용
+    float mLocalRadius = 50.0f;
+    BoundingSphere mWorldSphere{};
+    BoundingOrientedBox mWorldBounds{};
+    Vec3 mWorldRadii = Vec3(50.0f, 50.0f, 50.0f);
+    bool bIsColliding = false;
+};

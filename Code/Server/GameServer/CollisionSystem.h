@@ -4,6 +4,7 @@
 
 class TransformComponent;
 class BoxColliderComponent;
+class SphereColliderComponent;
 
 class CollisionSystem :public System
 {
@@ -30,6 +31,12 @@ private:
 		Entity b,
 		BoxColliderComponent* colA,
 		BoxColliderComponent* colB,
+		float deltaTime);
+	void AvoidCollisionWithStaticSphere(
+		World* world,
+		Entity dynamicEntity,
+		BoxColliderComponent* dynamicCollider,
+		const BoundingOrientedBox& staticSphereBounds,
 		float deltaTime);
 private:
 	std::unordered_set<uint64_t> checkedPairs;

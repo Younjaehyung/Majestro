@@ -6,20 +6,6 @@
 #include "TagComponent.h"
 #include "Mesh.h"
 
-#include <Jolt/Jolt.h>
-#include <Jolt/RegisterTypes.h>
-#include <Jolt/Core/Factory.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyInterface.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
-#include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/Collision/Shape/MeshShape.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-
-#include <cmath>
-
 namespace
 {
 	namespace JoltLayers
@@ -329,9 +315,14 @@ size_t PhysicsWorld::CountStaticCollisionEntities() const
 		return 0;
 	if (false == mWorld->HasComponentPool<StaticComponent>()) return 0;
 	if (false == mWorld->HasComponentPool<TransformComponent>()) return 0;
-	if (false == mWorld->HasComponentPool<BoxColliderComponent>()) return 0;
 
-	return mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, BoxColliderComponent>().size();
+	size_t count = 0;
+	if (mWorld->HasComponentPool<BoxColliderComponent>())
+		count += mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, BoxColliderComponent>().size();
+	if (mWorld->HasComponentPool<SphereColliderComponent>())
+		count += mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, SphereColliderComponent>().size();
+
+	return count;
 }
 
 bool PhysicsWorld::SyncStaticBVHIfNeeded()
@@ -362,24 +353,58 @@ void PhysicsWorld::RebuildStaticBVH()
 	if (!mWorld)
 		return;
 	if (false == mWorld->HasComponentPool<StaticComponent>())return;
-	auto staticEntities = mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, BoxColliderComponent>();
-	staticObjects.reserve(staticEntities.size());
+	if (false == mWorld->HasComponentPool<TransformComponent>())return;
+	staticObjects.reserve(CountStaticCollisionEntities());
 
-	for (auto e : staticEntities)
+	if (mWorld->HasComponentPool<BoxColliderComponent>())
 	{
-		auto* tr = mWorld->GetComponent<TransformComponent>(e);
-		auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
-		if (!tr || !col)
-			continue;
-		UpdateWorldOBB(tr, col);
-		const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
-
-		staticObjects.push_back(StaticProxy{ e, col, bounds });
-
-		if (col->mRayCastMesh)
+		auto staticEntities = mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, BoxColliderComponent>();
+		for (auto e : staticEntities)
 		{
-			// Jolt terrain raycast: register render mesh triangles alongside the existing OBB proxy.
-			AddTerrainRayCastMesh(*col->mRayCastMesh, tr->mWorldMatrix);
+			auto* tr = mWorld->GetComponent<TransformComponent>(e);
+			auto* col = mWorld->GetComponent<BoxColliderComponent>(e);
+			if (!tr || !col)
+				continue;
+			UpdateWorldOBB(tr, col);
+			const AABB2D bounds = BuildAABBFromOBB(col->mWorldOBB);
+
+			StaticProxy proxy{};
+			proxy.ColliderEntity = e;
+			proxy.ColliderBox = col;
+			proxy.bounds = bounds;
+			proxy.shape = StaticProxyShape::Box;
+			staticObjects.push_back(proxy);
+
+			if (col->mRayCastMesh)
+			{
+				
+				AddTerrainRayCastMesh(*col->mRayCastMesh, tr->mWorldMatrix);
+			}
+		}
+	}
+
+	if (mWorld->HasComponentPool<SphereColliderComponent>())
+	{
+		auto staticSpheres = mWorld->GetEntitiesWithComponents<StaticComponent, TransformComponent, SphereColliderComponent>();
+		for (auto e : staticSpheres)
+		{
+			auto* tr = mWorld->GetComponent<TransformComponent>(e);
+			auto* col = mWorld->GetComponent<SphereColliderComponent>(e);
+			if (!tr || !col)
+				continue;
+
+			
+			UpdateWorldSphere(tr, col);
+			const AABB2D bounds = BuildAABBFromOBB(col->mWorldBounds);
+
+			StaticProxy proxy{};
+			proxy.ColliderEntity = e;
+			proxy.ColliderBox = nullptr;
+			proxy.bounds = bounds;
+			proxy.shape = StaticProxyShape::Sphere;
+			proxy.sphere = col->mWorldSphere;
+			proxy.sphereBounds = col->mWorldBounds;
+			staticObjects.push_back(proxy);
 		}
 	}
 	
@@ -424,9 +449,59 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 
 		SweepHit out{};
 
-		// 수정 내용
-		// StaticProxy 에 저장된 ColliderBox 포인터는 ComponentPool vector 재할당 후 무효화될 수 있다.
-		// 스윕 쿼리 시 Entity 로 현재 컴포넌트를 다시 찾아서 댕글링 포인터 접근을 막는다.
+		if (collider.shape == StaticProxyShape::Sphere)
+		{
+			SphereColliderComponent* sphereCollider = mWorld ? mWorld->GetComponent<SphereColliderComponent>(collider.ColliderEntity) : nullptr;
+			if (sphereCollider)
+			{
+				collider.sphere = sphereCollider->mWorldSphere;
+				collider.sphereBounds = sphereCollider->mWorldBounds;
+			}
+
+			BoundingOrientedBox expanded = collider.sphereBounds;
+			expanded.Extents.x += radius;
+			expanded.Extents.y += radius;
+			expanded.Extents.z += radius;
+
+			Vec3 s = start;
+			Vec3 e = end;
+			Vec3 dir = e - s;
+
+			float segLen = XMVectorGetX(XMVector3Length(dir));
+			if (segLen <= 1e-6f)
+				continue;
+
+			dir.Normalize();
+
+
+			if (expanded.Contains(s) != ContainmentType::DISJOINT)
+			{
+				out.hit = true;
+				out.distance = 0.0f;
+				out.colliderId = collider.ColliderEntity;
+				out.point = s;
+			}
+			else
+			{
+				float dist = 0.0f;
+				if (expanded.Intersects(s, dir, dist))
+				{
+					if (dist >= 0.0f && dist <= segLen)
+					{
+						out.hit = true;
+						out.distance = dist;
+						out.colliderId = collider.ColliderEntity;
+						out.point = s + dir * dist;
+					}
+				}
+			}
+
+			if (out.hit && (!best.hit || out.distance < best.distance))
+				best = out;
+			continue;
+		}
+
+
 		BoxColliderComponent* colliderBox = mWorld ? mWorld->GetComponent<BoxColliderComponent>(collider.ColliderEntity) : collider.ColliderBox;
 		collider.ColliderBox = colliderBox;
 		if (!colliderBox)
@@ -452,6 +527,7 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 		{
 			out.hit = true;
 			out.distance = 0.0f;
+			out.colliderId = collider.ColliderEntity;
 			return out;
 		}
 
@@ -466,7 +542,8 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 			}
 		}
 
-		if (best.hit || out.distance < best.distance) {
+		
+		if (out.hit && (!best.hit || out.distance < best.distance)) {
 			out.colliderId = collider.ColliderEntity;
 			best = out;
 		}
@@ -478,7 +555,7 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 
 void PhysicsWorld::QueryStaticBVH(const AABB2D& query, std::vector<int>& outIndices)
 {
-	// Fix: an empty static BVH must be a valid no-hit state, not an index into nodes.
+	
 	if (root < 0 || nodes.empty()) return;
 
 	std::vector<int> stack;                 // [수정] 동적 스택으로 안전하게
@@ -515,7 +592,7 @@ int PhysicsWorld::BuildStaticBVHRecursive(
 	int start,
 	int count)
 {
-	// Fix: callers can rebuild with zero static colliders, so do not read proxies[0].
+	
 	if (count <= 0)
 		return -1;
 
@@ -572,8 +649,10 @@ float PhysicsWorld::QueryHeightAtPosition(const Vector3& position)	// To - Do : 
 	
 	for (const auto& collider : staticObjects)
 	{
-		// 수정 내용
-		// StaticProxy 의 ColliderBox 캐시는 컴포넌트 추가로 무효화될 수 있으므로 높이 조회도 Entity 기반으로 접근한다.
+		if (collider.shape != StaticProxyShape::Box)
+			continue;
+
+		
 		const BoxColliderComponent* colliderBox = mWorld ? mWorld->GetComponent<BoxColliderComponent>(collider.ColliderEntity) : collider.ColliderBox;
 		if (!colliderBox)
 			continue;
@@ -596,7 +675,7 @@ float PhysicsWorld::QueryHeightAtPosition(const Vector3& position)	// To - Do : 
 
 bool PhysicsWorld::TryQueryTerrainHeight(const Vector3& position, float& outHeight) const
 {
-	// Jolt terrain raycast: returns false when no mesh terrain has been registered, preserving old fallback behavior.
+	
 	if (!mJoltTerrain)
 		return false;
 	return mJoltTerrain->RayCastHeight(position, outHeight);
@@ -618,10 +697,6 @@ bool PhysicsWorld::HasJoltTerrain() const
 void PhysicsWorld::UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col)
 {
 
-	// 수정 내용
-	// DirectX BoundingOrientedBox::Transform 은 반사 행렬이나 음수 스케일이 섞이면
-	// Intersects 에서 요구하는 단위 쿼터니언 Orientation 을 보장하지 못할 수 있다.
-	// 서버 충돌 판정은 항상 단위 쿼터니언을 저장하도록 안전 변환 경로를 사용한다.
 	TransformOBBSafely(col->mLocalOBB, col->mWorldOBB, tr->mWorldMatrix);
 
 
@@ -681,6 +756,37 @@ void PhysicsWorld::SetWorldOBB(BoundingOrientedBox obb, const TransformComponent
 	TransformOBBSafely(obb, col->mWorldOBB, tr->mWorldMatrix);
 }
 
+void PhysicsWorld::UpdateWorldSphere(const TransformComponent* tr, SphereColliderComponent* col)
+{
+	if (!tr || !col)
+		return;
+
+	const DirectX::XMMATRIX matrix = tr->mWorldMatrix;
+	float scaleX = GetVector3Length(matrix.r[0]);
+	float scaleY = GetVector3Length(matrix.r[1]);
+	float scaleZ = GetVector3Length(matrix.r[2]);
+	if (!IsValidFloat(scaleX)) scaleX = 0.0f;
+	if (!IsValidFloat(scaleY)) scaleY = 0.0f;
+	if (!IsValidFloat(scaleZ)) scaleZ = 0.0f;
+
+	const float maxScale = (std::max)(scaleX, (std::max)(scaleY, scaleZ));
+	const Vec3 center = tr->mWorldMatrix.Translation();
+
+	
+	col->mWorldSphere.Center = XMFLOAT3(center.x, center.y, center.z);
+	col->mWorldSphere.Radius = col->mLocalRadius * maxScale;
+	col->mWorldRadii = Vec3(
+		col->mLocalRadius * scaleX,
+		col->mLocalRadius * scaleY,
+		col->mLocalRadius * scaleZ);
+
+	BoundingOrientedBox localBounds;
+	localBounds.Center = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	localBounds.Extents = XMFLOAT3(col->mLocalRadius, col->mLocalRadius, col->mLocalRadius);
+	localBounds.Orientation = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+	TransformOBBSafely(localBounds, col->mWorldBounds, tr->mWorldMatrix);
+}
+
 
 AABB2D PhysicsWorld::BuildAABBFromOBB(const BoundingOrientedBox& obb)
 {
@@ -698,4 +804,15 @@ AABB2D PhysicsWorld::BuildAABBFromOBB(const BoundingOrientedBox& obb)
     }
 
     return bounds;
+}
+
+AABB2D PhysicsWorld::BuildAABBFromSphere(const BoundingSphere& sphere)
+{
+	
+	return AABB2D{
+		sphere.Center.x - sphere.Radius,
+		sphere.Center.x + sphere.Radius,
+		sphere.Center.z - sphere.Radius,
+		sphere.Center.z + sphere.Radius
+	};
 }

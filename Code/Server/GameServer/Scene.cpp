@@ -117,45 +117,86 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 void Scene::LoadCollisionJson(const wstring& path)
 {
-	int i = 0;
+	int loadedCount = 0;
+	int loadedSphereCount = 0;
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
 
+		shared_ptr<Mesh> cubeMesh = RESOURCEMANAGER.LoadMCubeMesh();
+		if (!cubeMesh)
+			throw std::runtime_error("LoadCollisionJson failed to load MCube mesh");
+
+		std::vector<Vec3> localVertices;
+		for (const Vertex& vertex : cubeMesh->GetVertexBuffer())
+			localVertices.push_back(vertex.pos);
+
+		if (localVertices.empty())
+			throw std::runtime_error("LoadCollisionJson MCube mesh has no vertices");
+
+		BoundingOrientedBox localObb;
+		BoundingOrientedBox::CreateFromPoints(localObb, localVertices.size(), localVertices.data(), sizeof(Vec3));
+		// 수정 내용
+		// Map001_CRX.json 의 CRX_Cube 는 원본 메시 크기가 100 x 100 x 100 이다.
+		// LoadMCubeMesh 는 1 x 1 x 1 디버그 큐브라서 OBB 반경을 100 배 보정해 실제 반경 50 을 맞춘다.
+		constexpr float kCrxCubeSourceSize = 100.0f;
+		localObb.Extents.x *= kCrxCubeSourceSize;
+		localObb.Extents.y *= kCrxCubeSourceSize;
+		localObb.Extents.z *= kCrxCubeSourceSize;
+
 		for (const auto& inst : level.instances)
 		{
-			if (std::string::npos != inst.fbx.find("CRX_Sphere")) {
-				std::cout << "A" << std::endl;
-			}
-
-			if (std::string::npos == inst.fbx.find("CRX_Cube"))
+			const bool isCollisionCube =
+				inst.fbx.find("CRX_Cube") != std::string::npos ||
+				inst.staticMeshAsset.find("CRX_Cube") != std::string::npos ||
+				inst.componentName.find("CRX_Cube") != std::string::npos;
+			const bool isCollisionSphere =
+				inst.fbx.find("CRX_Sphere") != std::string::npos ||
+				inst.staticMeshAsset.find("CRX_Sphere") != std::string::npos ||
+				inst.componentName.find("CRX_Sphere") != std::string::npos;
+			if (!isCollisionCube && !isCollisionSphere)
 				continue;
-			shared_ptr<Mesh> data = RESOURCEMANAGER.LoadMCubeMesh();
-
-			std::vector<Vec3> localVertices;
-			for (const Vertex& v : data->GetVertexBuffer())
-				localVertices.push_back(v.pos);
-
-			BoundingOrientedBox localObb;
-			BoundingOrientedBox::CreateFromPoints(localObb, localVertices.size(), localVertices.data(), sizeof(Vec3));
 
 			Entity entity = mWorld->CreateEntity();
 
-			// worldMatrix를 반드시 설정해야 PhysicsWorld::Initialize가 올바른 위치로 변환함
+			// 수정 내용
+			// Map001_CRX.json 의 dx transform 을 서버 정적 충돌체 transform 으로 저장한다.
+			// TransformSystem 은 static transform 을 갱신하지 않으므로 PhysicsWorld 가 이 worldMatrix 로 OBB 를 만든다.
 			TransformComponent transform{};
 			transform.mWorldMatrix = inst.worldMtx;
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
 
-			// mLocalOBB = localObb (단위 박스)
-			// PhysicsWorld::Initialize에서 mLocalOBB.Transform(worldMatrix) → mWorldOBB 올바르게 계산됨
-			BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, localObb, transform.mWorldMatrix);
-
+			if (isCollisionCube)
+			{
+				// 수정 내용
+				// CRX_Cube 는 원본 100 단위 박스이고 JSON scale basis location 이 배치 크기와 방향을 가진다.
+				// 따라서 보정된 localObb 를 보관하고 PhysicsWorld::UpdateWorldOBB 에서 worldMatrix 로 변환한다.
+				BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity, localObb, transform.mWorldMatrix);
+				(void)boxCollider;
+				++loadedCount;
+			}
+			else
+			{
+				// 수정 내용
+				// CRX_Sphere 는 지름 100 인 원본 구이므로 로컬 반지름 50 을 가진 SphereColliderComponent 로 등록한다.
+				// PhysicsWorld::UpdateWorldSphere 에서 JSON worldMatrix scale 을 반지름에 적용한다.
+				SphereColliderComponent& sphereCollider = mWorld->AddComponent<SphereColliderComponent>(entity, 50.0f);
+				(void)sphereCollider;
+				++loadedSphereCount;
+			}
 
 			mWorld->AddComponent<StaticComponent>(entity);
-			++i;
-			std::cout << i << std::endl;
 		}
+
+		if ((loadedCount + loadedSphereCount) > 0 && mWorld->GetPhysicsWorld())
+		{
+			// 수정 내용
+			// 충돌 JSON 을 World::Initialize 이후에 다시 로드해도 정적 BVH 가 새 충돌체를 즉시 포함하도록 갱신한다.
+			mWorld->GetPhysicsWorld()->SyncStaticBVHIfNeeded();
+		}
+
+		std::cout << "Loaded collision boxes: " << loadedCount << ", spheres: " << loadedSphereCount << std::endl;
 	}
 	catch (const std::exception& e)
 	{

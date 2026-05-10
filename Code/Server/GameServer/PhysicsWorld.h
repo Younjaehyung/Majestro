@@ -3,6 +3,7 @@
 
 class World;
 class BoxColliderComponent;
+class SphereColliderComponent;
 class TransformComponent;
 class CollisionMesh;
 struct JoltTerrainState;
@@ -31,12 +32,21 @@ struct AABB2D
     float maxZ;
 };
 
+enum class StaticProxyShape
+{
+    Box,
+    Sphere
+};
+
 struct StaticProxy
 {
     Entity ColliderEntity;
     BoxColliderComponent* ColliderBox;
     AABB2D bounds;
 	uint32 layerMask = 0;
+    StaticProxyShape shape = StaticProxyShape::Box;
+    BoundingSphere sphere{};
+    BoundingOrientedBox sphereBounds{};
 };
 
 struct DynamicProxy
@@ -105,10 +115,12 @@ public: //Query
     bool HasJoltTerrain() const;
 public: // utils
     static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
+    static void UpdateWorldSphere(const TransformComponent* tr, SphereColliderComponent* col);
     static void SetWorldOBB(BoundingOrientedBox obb,const TransformComponent* tr, BoxColliderComponent* col);
     
     
     static AABB2D BuildAABBFromOBB(const BoundingOrientedBox& obb);
+    static AABB2D BuildAABBFromSphere(const BoundingSphere& sphere);
     static AABB2D MergeAABB(const AABB2D& a, const AABB2D& b);
     static bool OverlapAABB(const AABB2D& a, const AABB2D& b);
 

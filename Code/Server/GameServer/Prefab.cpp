@@ -227,7 +227,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
-	world->AddComponent<GravityComponent>(mEntityID);
+	GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
+	grav.mGround = t.mLocalPosition.y;
+	grav.mHight = t.mLocalPosition.y + 30.f;
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
 	Vec3 center{ 0,50,0 };
 	Vec3 half{ 50,100,50 };

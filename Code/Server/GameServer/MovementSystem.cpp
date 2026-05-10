@@ -283,6 +283,8 @@ void MovementSystem::Update(float dt) {
 	//enemy movement
 
 	constexpr float kTurnSpeedDegPerSec = 360.0f;
+    static constexpr float MIN_MOVE_SQ = 0.01f * 0.01f;
+    shared_ptr<Navigation>& nav = mWorld->GetNavSystem();
 	std::vector<Entity> enemyEntitys{ mWorld->GetEntitiesWithComponent<EnemyMovementComponent>() };
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
@@ -292,6 +294,34 @@ void MovementSystem::Update(float dt) {
 
 		transformComponent->mMovingVector = enemyMovementComponent->mMovingDirection * dt * enemyMovementComponent->mMovingSpeed;
 		transformComponent->mLocalPosition += transformComponent->mMovingVector;
+
+        if (nav && nav->IsInitialized())
+        {
+            const float moveXSq = transformComponent->mMovingVector.x * transformComponent->mMovingVector.x
+                + transformComponent->mMovingVector.z * transformComponent->mMovingVector.z;
+
+            if (moveXSq >= MIN_MOVE_SQ)
+            {
+                Vec3 prevPos = transformComponent->mLocalPosition;
+                prevPos.x -= transformComponent->mMovingVector.x;
+                prevPos.z -= transformComponent->mMovingVector.z;
+                prevPos.y = transformComponent->mLocalPosition.y;
+
+                Vec3 resultPos;
+                if (nav->MoveAlongSurface(prevPos, transformComponent->mLocalPosition, resultPos))
+                {
+                    transformComponent->mLocalPosition.x = resultPos.x;
+                    transformComponent->mLocalPosition.z = resultPos.z;
+                    transformComponent->mMovingVector.x = resultPos.x - prevPos.x;
+                    transformComponent->mMovingVector.y = 0.0f;
+                    transformComponent->mMovingVector.z = resultPos.z - prevPos.z;
+
+                    GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
+                    if (gravityComp)
+                        gravityComp->mGround = resultPos.y;
+                }
+            }
+        }
 
 		Vec3 dir = enemyMovementComponent->mMovingDirection;
 
@@ -347,6 +377,8 @@ void MovementSystem::Update(float dt) {
 		// transformComponent->mLocalRotation.x = 0.0f;
 		// transformComponent->mLocalRotation.z = 0.0f;
 	}
+
+
 
 	//bullet move
 	auto& activeBulletEntityIds = mWorld->GetActiveBulletEntityIds();

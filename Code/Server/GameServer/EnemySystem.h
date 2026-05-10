@@ -48,4 +48,6 @@ private:
 	// 임계값 상수
 	static constexpr float ARRIVE_THRESHOLD_SQ = 4.0f * 100.f;    // 웨이포인트 도달 반경 (2m)
 	static constexpr float RETARGET_THRESHOLD_SQ = 100.0f * 100.f; // 목적지 변경 감지 거리 (10m)
+	static constexpr float NEARBY_ENEMY_RADIUS = 600.0f;
+	static constexpr size_t MAX_NEARBY_ENEMIES = 3;
 };

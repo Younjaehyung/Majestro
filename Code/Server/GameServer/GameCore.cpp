@@ -4,6 +4,7 @@
 
 void GameCore::Initialize()
 {
+	mAIManager = std::make_unique<AIManager>();
 	mResourceManager = std::make_unique<ResourceManager>();
 	mSceneManager = std::make_unique<SceneManager>();
 	
@@ -30,6 +31,7 @@ void GameCore::Update(float deltaTime)
 
 void GameCore::LoadGameData()
 {
+	mAIManager->Initialize();
 	mResourceManager->Initialize();
 	mSceneManager->Initialize();
 }

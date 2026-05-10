@@ -57,6 +57,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AIManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
     <ClCompile Include="GameServer.cpp">
       <Filter>Main</Filter>
     </ClCompile>
@@ -226,9 +229,15 @@
     <ClCompile Include="GameMode.cpp">
       <Filter>Script</Filter>
     </ClCompile>
+    <ClCompile Include="OnnxModelRunner.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
     <ClCompile Include="BuffSystem.cpp" />
     <ClCompile Include="InteractionSystem.cpp" />
     <ClCompile Include="SpawnerSystem.cpp" />
+    <ClCompile Include="SpatialGrid2D.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
     <ClCompile Include="GameRuleSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
@@ -247,6 +256,9 @@
     <ClCompile Include="TruckComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AIManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -426,11 +438,17 @@
     <ClInclude Include="GameMode.h">
       <Filter>Script</Filter>
     </ClInclude>
+    <ClInclude Include="OnnxModelRunner.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
     <ClInclude Include="BuffSystem.h" />
     <ClInclude Include="InteractableComponent.h" />
     <ClInclude Include="InteractionSystem.h" />
     <ClInclude Include="SpawnerComponent.h" />
     <ClInclude Include="SpawnerSystem.h" />
+    <ClInclude Include="SpatialGrid2D.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
     <ClInclude Include="GameRuleSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>

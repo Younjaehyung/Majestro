@@ -55,7 +55,15 @@ using namespace DirectX::SimpleMath;
 #pragma comment(lib, "Jolt/Jolt.lib")
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+// onnxruntime
+//$(SolutionDir)Resources\onnxruntime\include\
 
+
+#pragma comment(lib, "onnxruntime/onnxruntime.lib")
+#pragma comment(lib, "onnxruntime/onnxruntime_providers_shared.lib")
+
+///////////////////////////////////////////////////////////////////////////////
 //
 //#include <DirectXTex/DirectXTex.h>
 //#include <DirectXTex/DirectXTex.inl>
@@ -105,6 +113,7 @@ extern unique_ptr<class ServerCore> gServerCore;
 
 #define RESOURCEMANAGER	gGameCore->GetResourceManager()
 #define SCENEMANAGER	gGameCore->GetSceneManager()
+#define AIMANAGER		gGameCore->GetAIManager()
 
 
 

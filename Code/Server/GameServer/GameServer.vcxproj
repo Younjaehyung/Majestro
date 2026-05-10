@@ -103,19 +103,19 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Libraries\Lib\Jolt\;$(SolutionDir)Libraries\Lib\onnxruntime\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Jolt_D.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
-copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,7 +129,7 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -137,12 +137,12 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Libraries\Lib\Jolt\;$(SolutionDir)Libraries\Lib\onnxruntime\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Jolt.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
-copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -154,19 +154,19 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Libraries\Lib\Jolt\;$(SolutionDir)Libraries\Lib\onnxruntime\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Jolt_D.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
-copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -180,7 +180,7 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\;$(SolutionDir)Resources\onnxruntime\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Resources\Texture;$(SolutionDir)Libraries\Include\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -188,12 +188,12 @@ copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dl
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Resources\onnxruntime\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\Lib\;$(SolutionDir)Libraries\Lib\Jolt\;$(SolutionDir)Libraries\Lib\onnxruntime\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Jolt.lib;onnxruntime.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime.dll" "$(OutDir)"
-copy /Y "$(SolutionDir)Resources\onnxruntime\lib\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
+      <Command>copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime.dll" "$(OutDir)"
+copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -24,9 +24,9 @@ public:
 	Vec3 GetUp() { return mWorldMatrix.Up(); }
 	Vec3 GetLook() { return mWorldMatrix.Backward(); }
 
-	void SetLocalPosition(const Vec3& position) { mLocalPosition = position; }
-	void SetLocalRotationE(const Vec3& rotation) { mLocalRotationE = rotation; }
-	void SetLocalScale(const Vec3& scale) { mLocalScale = scale; }
+	void SetLocalPosition(const Vec3& position) { mIsDirty = true; mLocalPosition = position; }
+	void SetLocalRotationE(const Vec3& rotation) { mIsDirty = true; mLocalRotationE = rotation; }
+	void SetLocalScale(const Vec3& scale) { mIsDirty = true; mLocalScale = scale; }
 public:
 	// Position
 

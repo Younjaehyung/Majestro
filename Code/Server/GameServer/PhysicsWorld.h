@@ -4,7 +4,10 @@
 
 class World;
 class BoxColliderComponent;
+class SphereColliderComponent;
 class TransformComponent;
+class CollisionMesh;
+struct JoltTerrainState;
 
 enum StaticColliderType
 {
@@ -29,12 +32,23 @@ struct AABB2D
     float maxZ;
 };
 
+enum class StaticProxyShape
+{
+    Box,
+    Sphere
+};
+
 struct StaticProxy
 {
     Entity ColliderEntity;
     BoxColliderComponent* ColliderBox;
     AABB2D bounds;
-    uint32 layerMask = 0;
+
+	uint32 layerMask = 0;
+    StaticProxyShape shape = StaticProxyShape::Box;
+    BoundingSphere sphere{};
+    BoundingOrientedBox sphereBounds{};
+
 };
 
 struct DynamicProxy
@@ -61,13 +75,22 @@ struct BVHNode
 class PhysicsWorld
 {
 public:
-    PhysicsWorld() = default;
-    PhysicsWorld(World* world) : mWorld(world) { Initialize(); }
+
+	PhysicsWorld();
+    PhysicsWorld(World* world);
+    ~PhysicsWorld();
+
+    PhysicsWorld(const PhysicsWorld&) = delete;
+    PhysicsWorld& operator=(const PhysicsWorld&) = delete;
+
 
     void Initialize();
+    void RebuildStaticBVH();
+    bool SyncStaticBVHIfNeeded();
+    size_t CountStaticCollisionEntities() const;
 
-    void ClearStatic() { staticObjects.clear(); }
-    void ClearNode() { nodes.clear(); }
+    void ClearStatic();
+    void ClearNode() { nodes.clear(); root = -1; }
 
 public: // Query
     SweepHit SphereSweepVsOBB(const Vector3& start, const Vector3& end, float radius);
@@ -81,12 +104,20 @@ public: // Query
         int start,
         int count);
 
+    
     float QueryHeightAtPosition(const Vector3& position);
-
-public: // Utils
+    bool TryQueryTerrainHeight(const Vector3& position, float& outHeight) const;
+    bool AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix& worldMatrix);
+    bool HasJoltTerrain() const;
+public: // utils
     static void UpdateWorldOBB(const TransformComponent* tr, BoxColliderComponent* col);
-    static void SetWorldOBB(BoundingOrientedBox obb, const TransformComponent* tr, BoxColliderComponent* col);
+    static void UpdateWorldSphere(const TransformComponent* tr, SphereColliderComponent* col);
+    static void SetWorldOBB(BoundingOrientedBox obb,const TransformComponent* tr, BoxColliderComponent* col);
+    
+    
+
     static AABB2D BuildAABBFromOBB(const BoundingOrientedBox& obb);
+    static AABB2D BuildAABBFromSphere(const BoundingSphere& sphere);
     static AABB2D MergeAABB(const AABB2D& a, const AABB2D& b);
     static bool OverlapAABB(const AABB2D& a, const AABB2D& b);
 
@@ -105,7 +136,12 @@ private:
     World* mWorld = nullptr;
     std::vector<StaticProxy> staticObjects;
     std::vector<BVHNode> nodes;
-    int32 root{};
+
+    int32                root = -1;
+
+    // Jolt terrain raycast: owns static mesh bodies used for ground height ray queries.
+    std::unique_ptr<JoltTerrainState> mJoltTerrain;
+
 
     SpatialGrid2D mEnemyGrid;
     SpatialGrid2D mMovableGrid;

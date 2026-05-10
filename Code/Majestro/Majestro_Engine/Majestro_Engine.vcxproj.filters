@@ -584,9 +584,6 @@
     <ClInclude Include="AudioVisualizerSystem.h">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
-    <ClInclude Include="AudioVisualizerPass.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
-    </ClInclude>
     <ClInclude Include="AudioVisualizerComponent.h">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
@@ -986,9 +983,6 @@
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
     <ClCompile Include="AudioVisualizerSystem.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
-    </ClCompile>
-    <ClCompile Include="AudioVisualizerPass.cpp">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
     <ClCompile Include="AudioVisualizerComponent.cpp">

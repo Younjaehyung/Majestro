@@ -16,8 +16,38 @@
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
 
+#include <cmath>
+
 namespace
 {
+    bool NormalizeOBBOrientation(BoundingOrientedBox& obb)
+    {
+        const XMVECTOR orientation = XMLoadFloat4(&obb.Orientation);
+        const float length = XMVectorGetX(XMQuaternionLength(orientation));
+        if (!std::isfinite(length) || length <= 1e-6f)
+        {
+            // 수정 내용
+            // DirectXCollision Intersects 는 OBB Orientation 이 단위 쿼터니언이어야 한다.
+            // 로딩 데이터나 이전 변환 경로에서 깨진 값이 들어오면 충돌 검사 직전에 identity 로 보정한다.
+            obb.Orientation = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+            return false;
+        }
+
+        XMFLOAT4 normalized{};
+        XMStoreFloat4(&normalized, XMQuaternionNormalize(orientation));
+        obb.Orientation = normalized;
+        return std::abs(length - 1.0f) <= 1e-4f;
+    }
+
+    void NormalizeCollisionOBB(BoxColliderComponent* collider)
+    {
+        if (!collider)
+            return;
+
+        NormalizeOBBOrientation(collider->mLocalOBB);
+        NormalizeOBBOrientation(collider->mWorldOBB);
+    }
+
     bool IsDeadEnemy(World* world, Entity entity)
     {
         if (!world || !entity.IsValid())
@@ -39,6 +69,10 @@ namespace
 
  void CollisionSystem::Initialize()
  {
+
+     if (mPhysicsWorld)
+         mPhysicsWorld->SyncStaticBVHIfNeeded();
+     
  }
 
 void CollisionSystem::Update(float dt)
@@ -219,6 +253,29 @@ void CollisionSystem::Movable2Static(float deltaTime)
 {
     if (false == mWorld->HasComponentPool<MovableComponent>())return;
     if (false == mWorld->HasComponentPool<StaticComponent>())return;
+    if (!mPhysicsWorld)return;
+
+    // Fix: StaticComponent data may be attached after World::Initialize, so keep the BVH in sync before querying.
+    mPhysicsWorld->SyncStaticBVHIfNeeded();
+    auto& staticProxies = mPhysicsWorld->GetStaticProxies();
+    if (staticProxies.empty())
+        return;
+
+    // Fix: static collision flags must be reset per frame before Movable2Static marks current hits.
+    for (auto& st : staticProxies)
+    {
+        
+        BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(st.ColliderEntity);
+        st.ColliderBox = staticCollider;
+        if (staticCollider)
+            staticCollider->bIsColliding = false;
+
+        SphereColliderComponent* staticSphere = mWorld->HasComponentPool<SphereColliderComponent>()
+            ? mWorld->GetComponent<SphereColliderComponent>(st.ColliderEntity)
+            : nullptr;
+        if (staticSphere)
+            staticSphere->bIsColliding = false;
+    }
 
     auto dynamicEntities = mWorld->GetEntitiesWithComponents<MovableComponent, TransformComponent, BoxColliderComponent>();
     
@@ -240,6 +297,9 @@ void CollisionSystem::Movable2Static(float deltaTime)
             continue;
 
         PhysicsWorld::UpdateWorldOBB(tr, col);
+        // 수정 내용
+        // 정적 충돌 검사에서 DirectXCollision assertion 이 나지 않도록 동적 OBB 도 검사 전 단위 쿼터니언으로 맞춘다.
+        NormalizeCollisionOBB(col);
         const AABB2D bounds = PhysicsWorld::BuildAABBFromOBB(col->mWorldOBB);
 
         mDynamicObjects.push_back(DynamicProxy{ e, col, bounds });
@@ -258,20 +318,65 @@ void CollisionSystem::Movable2Static(float deltaTime)
 
         for (int candidateIndex : candidates)
         {
-            auto& st = mPhysicsWorld->GetStaticProxy(candidateIndex);
+            if (candidateIndex < 0 || candidateIndex >= static_cast<int>(staticProxies.size()))
+                continue;
 
-            if (!dyn.collider->mWorldOBB.Intersects(st.ColliderBox->mWorldOBB))
+            auto& st = mPhysicsWorld->GetStaticProxy(candidateIndex);
+            if (st.shape == StaticProxyShape::Sphere)
+            {
+                SphereColliderComponent* staticSphere = mWorld->GetComponent<SphereColliderComponent>(st.ColliderEntity);
+                TransformComponent* staticTransform = mWorld->GetComponent<TransformComponent>(st.ColliderEntity);
+                if (!staticSphere || !staticTransform)
+                    continue;
+
+                // 수정 내용
+                // CRX_Sphere 는 JSON 에서 비균일 scale 을 가질 수 있으므로 클라이언트 렌더링과 같은 TRS 의 bounds 로 검사한다.
+                // broad phase 후보는 BVH 에서 받은 뒤 narrow phase 에서 동적 OBB 와 CRX_Sphere bounds 를 검사한다.
+                PhysicsWorld::UpdateWorldSphere(staticTransform, staticSphere);
+                st.sphere = staticSphere->mWorldSphere;
+                st.sphereBounds = staticSphere->mWorldBounds;
+                NormalizeCollisionOBB(dyn.collider);
+
+                if (!dyn.collider->mWorldOBB.Intersects(staticSphere->mWorldBounds))
+                    continue;
+
+                dyn.collider->bIsColliding = true;
+                staticSphere->bIsColliding = true;
+
+                AvoidCollisionWithStaticSphere(
+                    mWorld,
+                    dyn.entity,
+                    dyn.collider,
+                    staticSphere->mWorldBounds,
+                    deltaTime);
+                continue;
+            }
+            // 수정 내용
+            // ComponentPool 이 재할당되면 캐시된 정적 콜라이더 포인터가 댕글링될 수 있으므로
+            // 충돌 검사 직전에 Entity 로 최신 포인터를 다시 조회한다.
+            BoxColliderComponent* staticCollider = mWorld->GetComponent<BoxColliderComponent>(st.ColliderEntity);
+            st.ColliderBox = staticCollider;
+            if (!staticCollider)
+                continue;
+
+            // 수정 내용
+            // LoadCollisionJson 로 들어온 정적 OBB 는 JSON basis 와 월드 행렬 변환 영향을 받는다.
+            // Intersects 직전에 한번 더 단위 쿼터니언으로 보정해서 B_quat assertion 을 방지한다.
+            NormalizeCollisionOBB(dyn.collider);
+            NormalizeCollisionOBB(staticCollider);
+
+            if (!dyn.collider->mWorldOBB.Intersects(staticCollider->mWorldOBB))
                 continue;
 
             dyn.collider->bIsColliding = true;
-            st.ColliderBox->bIsColliding = true;
+            staticCollider->bIsColliding = true;
 
             AvoidCollisionByMovementState(
                 mWorld,
                 dyn.entity,
                 st.ColliderEntity,
                 dyn.collider,
-                st.ColliderBox, 
+                staticCollider,
                 deltaTime);
         }
     }
@@ -766,5 +871,91 @@ void CollisionSystem::AvoidCollisionByMovementState(
 
     stopIfMoving(a);
     stopIfMoving(b);
+}
+
+void CollisionSystem::AvoidCollisionWithStaticSphere(
+    World* world,
+    Entity dynamicEntity,
+    BoxColliderComponent* dynamicCollider,
+    const BoundingOrientedBox& staticSphereBounds,
+    float deltaTime)
+{
+    if (!world || !dynamicCollider)
+        return;
+
+    if (deltaTime <= 0.0f)
+        deltaTime = 1.0f / 60.0f;
+
+    TransformComponent* dynamicTransform = world->GetComponent<TransformComponent>(dynamicEntity);
+    if (!dynamicTransform || !world->HasComponent<MovableComponent>(dynamicEntity))
+        return;
+
+    const Vec3 dynamicCenter = dynamicCollider->mWorldOBB.Center;
+    const Vec3 sphereCenter = staticSphereBounds.Center;
+    Vec3 delta(
+        dynamicCenter.x - sphereCenter.x,
+        0.0f,
+        dynamicCenter.z - sphereCenter.z);
+
+    float lenSq = delta.x * delta.x + delta.z * delta.z;
+    if (lenSq < 1e-6f)
+    {
+        delta = dynamicTransform->mMovingVector;
+        delta.y = 0.0f;
+        lenSq = delta.x * delta.x + delta.z * delta.z;
+        if (lenSq < 1e-6f)
+        {
+            delta = Vec3(1.0f, 0.0f, 0.0f);
+            lenSq = 1.0f;
+        }
+    }
+
+    const float centerDistance = std::sqrt(lenSq);
+    const float invLen = 1.0f / centerDistance;
+    const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen);
+
+    const float ex = dynamicCollider->mWorldOBB.Extents.x;
+    const float ez = dynamicCollider->mWorldOBB.Extents.z;
+    const float dynamicRadius = std::sqrt(ex * ex + ez * ez);
+    const float sx = staticSphereBounds.Extents.x;
+    const float sz = staticSphereBounds.Extents.z;
+    const float staticRadius = std::sqrt(sx * sx + sz * sz);
+    const float penetration = (dynamicRadius + staticRadius) - centerDistance;
+
+    constexpr float kPenetrationSlop = 0.01f;
+    constexpr float kBeta = 0.20f;
+    constexpr float kMaxPushPerPair = 2.0f;
+
+    const float effectivePenetration = (std::max)(0.0f, penetration - kPenetrationSlop);
+    float pushMagnitude = effectivePenetration * (kBeta / deltaTime);
+    pushMagnitude = (std::min)(pushMagnitude, kMaxPushPerPair);
+
+    const float v2 =
+        dynamicTransform->mMovingVector.x * dynamicTransform->mMovingVector.x +
+        dynamicTransform->mMovingVector.z * dynamicTransform->mMovingVector.z;
+
+   
+    if (pushMagnitude > 0.0f && v2 > 1e-6f)
+    {
+        const Vec3 correction(normal.x * pushMagnitude, 0.0f, normal.z * pushMagnitude);
+        dynamicTransform->mLocalPosition += correction;
+        dynamicCollider->mWorldOBB.Center.x += correction.x;
+        dynamicCollider->mWorldOBB.Center.z += correction.z;
+    }
+
+    dynamicTransform->mMovingVector.x = 0.0f;
+    dynamicTransform->mMovingVector.z = 0.0f;
+
+    if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(dynamicEntity))
+        enemyMove->mMovingDirection = Vec3::Zero;
+
+    if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(dynamicEntity))
+        playerMove->mMovingDirection = Vec3::Zero;
+
+    if (auto* inputComp = world->GetComponent<InputComponent>(dynamicEntity))
+    {
+        inputComp->MoveX = 0.0f;
+        inputComp->MoveZ = 0.0f;
+    }
 }
 

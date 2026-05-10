@@ -402,6 +402,16 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
                 type == SkillType::BaseSkill2;
         };
 
+    auto isStaticImpactSkill = [&](SkillType type)
+        {
+           
+            return isBaseSkill(type) ||
+                type == SkillType::GuitarAttack_1 ||
+                type == SkillType::GuitarAttack_2 ||
+                type == SkillType::GuitarAttack_3 ||
+                type == SkillType::HornAttack;
+        };
+
     const wchar_t* effectName = nullptr;
     Vec3 effectScale = Vec3(1.0f);
     bool effectLoop = false;
@@ -429,6 +439,16 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     case 1:
         if (isBaseSkill(effectSkillType))
         {
+            effectName = L"VFX_Ibanix_Attack_Hit_01";
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
+            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
+            effectScale = Vec3(30.f);
+        }
+        break;
+    case 2:
+        if (isStaticImpactSkill(effectSkillType))
+        {
+  
             effectName = L"VFX_Ibanix_Attack_Hit_01";
             impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
             impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);

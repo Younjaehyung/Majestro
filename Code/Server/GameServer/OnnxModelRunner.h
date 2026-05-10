@@ -1,10 +1,7 @@
 #pragma once
-
 #include "pch.h"
+#include "onnxruntime/onnxruntime_cxx_api.h"
 
-#include <array>
-
-#include "../Resources/onnxruntime/include/onnxruntime_cxx_api.h"
 
 class OnnxModelRunner
 {

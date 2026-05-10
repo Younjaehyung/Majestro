@@ -271,53 +271,57 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 void Scene::LoadCollisionJson(const wstring& path)
 {
-	int i = 0;
+	int loadedCount = 0;
+	int loadedSphereCount = 0;
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+		shared_ptr<Mesh> collisionCubeMesh = RESOURCEMANAGER.LoadMCubeMesh();
+		if (!collisionCubeMesh)
+			throw std::runtime_error("LoadCollisionJson failed to load MCube mesh");
+		shared_ptr<Mesh> collisionSphereMesh = RESOURCEMANAGER.LoadSphereMesh();
+		if (!collisionSphereMesh)
+			throw std::runtime_error("LoadCollisionJson failed to load Sphere mesh");
+
+		std::vector<std::shared_ptr<Material>> materials;
+		materials.push_back(RESOURCEMANAGER.Get<Material>(L"Skybox"));
 
 		for (const auto& inst : level.instances)
 		{
-			if (std::string::npos != inst.fbx.find("CRX_Sphere")) {
-				std::cout << "A" << std::endl;
-			}
-
-			if (std::string::npos == inst.fbx.find("CRX_Cube"))
+			const bool isCollisionCube =
+				inst.fbx.find("CRX_Cube") != std::string::npos ||
+				inst.staticMeshAsset.find("CRX_Cube") != std::string::npos ||
+				inst.componentName.find("CRX_Cube") != std::string::npos;
+			const bool isCollisionSphere =
+				inst.fbx.find("CRX_Sphere") != std::string::npos ||
+				inst.staticMeshAsset.find("CRX_Sphere") != std::string::npos ||
+				inst.componentName.find("CRX_Sphere") != std::string::npos;
+			if (!isCollisionCube && !isCollisionSphere)
 				continue;
-
-
-			// 파일명만 추출
-			shared_ptr<Mesh> data = RESOURCEMANAGER.LoadMCubeMesh();
-			//BoundingOrientedBox obb = BoundingOrientedBox(Vec3(0.f, 0.f, 0.f), Vec3(50.f, 50.f, 50.f), Quaternion::Identity);
-
 
 			Entity entity = mWorld->CreateEntity();
 			TransformComponent transform{};
 			transform.mWorldMatrix = inst.worldMtx;
+			if (isCollisionSphere)
+			{
+				transform.mWorldMatrix = Matrix::CreateScale(100.0f, 100.0f, 100.0f) * inst.worldMtx;
+			}
 
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
 
-
-#ifdef _DEBUG
 			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
-			std::vector<std::shared_ptr<Material>> materials;
-			materials.push_back(RESOURCEMANAGER.Get<Material>(L"Skybox"));
+
 			render.mMaterials = materials;
 			render.mCheckFrustum = false;
-			render.mMesh = data;
-#endif
-
-
-			/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-				obb, transform.mWorldMatrix);*/
-
-
-				//mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-			++i;
-			std::cout << i << std::endl;
+			render.mMesh = isCollisionSphere ? collisionSphereMesh : collisionCubeMesh;
+			if (isCollisionSphere)
+				++loadedSphereCount;
+			else
+				++loadedCount;
 
 		}
+		std::cout << "Loaded collision debug boxes: " << loadedCount << ", spheres: " << loadedSphereCount << std::endl;
 	}
 	catch (const std::exception& e)
 	{
@@ -472,15 +476,29 @@ bool LoadingScene::LoadScene(SceneId id)
 	}
 
 	LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(mapPath);
+
+	std::unordered_set<std::string> uniqueFbxNames;
+
 	for (const auto& inst : level.instances)
 	{
-		mLoadTasks.push([this, inst]() {
-			// FBX 1개 로딩
-			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\Map\\" + name + ".fbx";
+		if (inst.fbx.empty())
+			continue;
+
+		std::string name = filesystem::path(inst.fbx).filename().stem().string();
+		if (name.empty())
+			continue;
+
+		uniqueFbxNames.insert(name);
+	}
+
+	for (const auto& fbxName : uniqueFbxNames)
+	{
+		mLoadTasks.push([fbxName]() {
+			std::string name = "..\\Resources\\Map\\" + fbxName + ".fbx";
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
 			});
 	}
+
 	mTotalTaskCount = (int32)mLoadTasks.size();
 
 	return true;
@@ -1061,7 +1079,9 @@ void FirstScene::Initialize()
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
-	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	// 수정 내용
+	// Server FirstScene 에 설치되는 Map001_CRX 충돌체를 같은 JSON transform 으로 클라이언트에 렌더링한다.
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{

@@ -78,6 +78,12 @@ void CollisionMesh::CreateIndexBuffer(const vector<uint32>& buffer)
 void CollisionMesh::CreateCollisionMesh(FBXBMeshInfo& f)
 {
 	CreateVertexBuffer(f.Vertices);
+	mIndexBuffer.clear();
+	for (const vector<uint32>& indices : f.Indices)
+	{
+		// Jolt terrain raycast: keep every material index range so the render mesh can be reused as a triangle mesh.
+		mIndexBuffer.insert(mIndexBuffer.end(), indices.begin(), indices.end());
+	}
 
 	if (mVertexBuffer.empty())
 		return;
@@ -101,6 +107,8 @@ void CollisionMesh::CreateCollisionMesh(FBXBMeshInfo& f)
 void CollisionMesh::CreateCollisionMesh(vector<Vertex>& f)
 {
 	CreateVertexBuffer(f);
+	// Jolt terrain raycast: this overload has no index source, so clear stale index data.
+	mIndexBuffer.clear();
 
 	if (mVertexBuffer.empty())
 		return;

@@ -99,8 +99,7 @@ void EnemySystem::Update(float dt)
 
         if (!loggedNearbyThisFrame)
         {
-            std::cout << "[SpatialDebug] enemy=" << entity.GetID()
-                << " nearby_count=" << nearbyEnemies.size();
+          //  std::cout << "[SpatialDebug] enemy=" << entity.GetID() << " nearby_count=" << nearbyEnemies.size();
 
             for (const Entity& nearbyEntity : nearbyEnemies)
             {
@@ -112,11 +111,10 @@ void EnemySystem::Update(float dt)
                 delta.y = 0.0f;
                 const float distance = std::sqrt(delta.LengthSquared());
 
-                std::cout << " | id=" << nearbyEntity.GetID()
-                    << " dist=" << distance;
+               // std::cout << " | id=" << nearbyEntity.GetID()<< " dist=" << distance;
             }
 
-            std::cout << std::endl;
+           // std::cout << std::endl;
             loggedNearbyThisFrame = true;
         }
        

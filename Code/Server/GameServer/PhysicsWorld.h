@@ -117,6 +117,7 @@ public: // Query
     
     float QueryHeightAtPosition(const Vector3& position);
     bool TryQueryTerrainHeight(const Vector3& position, float& outHeight) const;
+    bool TryQueryTerrainHeightNear(const Vector3& position, float expectedHeight, float maxStepUp, float maxDropDown, float& outHeight) const;
     bool AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix& worldMatrix);
     bool AddStaticCollisionMesh(Entity owner, const CollisionMesh& mesh, const Matrix& worldMatrix);
     bool CastMovingSphereAgainstStatic(const Vector3& start, const Vector3& end, float radius, JoltStaticHit& outHit) const;

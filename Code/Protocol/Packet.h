@@ -50,6 +50,36 @@ enum PKT_Type : uint32 {
 	KMSG,
 };
 
+// Fix: SkillType is shared by server and client so network enum values stay identical.
+enum class SkillType : uint8
+{
+	Default = 0,
+	BaseAttack,
+	BaseSkill1,
+	BaseSkill2,
+	BaseSkill3,
+
+	GuitarAttack,
+	GuitarSkill1,
+	GuitarSkill2,
+	GuitarSkill3,
+
+	DrumAttack,
+	DrumSkill1,
+	DrumSkill2,
+	DrumSkill3,
+
+	GuitarAttack_1,
+	GuitarAttack_2,
+	GuitarAttack_3,
+
+	HornAttack,
+	PianoAttack,
+	BongoAttack,
+
+	Max
+};
+
 struct PacketHeader {
 	uint32 Size;
 	PKT_Type PacketType;
@@ -388,7 +418,10 @@ struct S2C_BulletActivatePacket : public PacketTcpHeader {
 	uint8 bulletType{};
 	float x{}, y{}, z{};
 	float dirX{}, dirY{}, dirZ{};
+	float rotX{}, rotY{}, rotZ{};
 	float speed{};
+	float lifeTime{};
+	float size{};
 
 	S2C_BulletActivatePacket()
 		: PacketTcpHeader{ sizeof(S2C_BulletActivatePacket), PKT_Type::S2C_PKT_BULLET_ACTIVATE, 0.0 } {

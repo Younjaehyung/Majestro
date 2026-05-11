@@ -88,7 +88,7 @@ void Scene::Initialize()
 {
 	PrefabFactory::RegisterAllPrefabs();
 
-	TerrainPrefab terrain{ mWorld.get()};
+	// Modified: Server terrain height now comes from NavMesh fallback and Jolt MeshShape raycast, so TerrainComponent is not spawned.
 
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	
@@ -197,8 +197,6 @@ void Scene::LoadCollisionJson(const wstring& path)
 
 				Entity entity = mWorld->CreateEntity();
 
-				// Modified: Store the JSON TRS on the server entity and register collision FBX triangles in Jolt.
-				// The Jolt body bakes this matrix into MeshShape vertices so server collision matches client debug placement.
 				TransformComponent transform{};
 				transform.mWorldMatrix = inst.worldMtx;
 				TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
@@ -419,7 +417,7 @@ void FirstScene::Initialize()
 	//PlayerPrefab p{ mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 
-	TerrainPrefab terrain{ mWorld.get() };
+	// Modified: Server terrain height now comes from NavMesh fallback and Jolt MeshShape raycast, so TerrainComponent is not spawned.
 	
 	// 트럭 스폰
 	InputCommand dummy{};
@@ -571,7 +569,7 @@ void SecondScene::Initialize()
 	//PlayerPrefab p{ mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 
-	TerrainPrefab terrain{ mWorld.get() };
+	// Modified: Server terrain height now comes from NavMesh fallback and Jolt MeshShape raycast, so TerrainComponent is not spawned.
 
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	mWorld->Initialize();

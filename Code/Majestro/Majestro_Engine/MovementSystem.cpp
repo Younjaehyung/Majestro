@@ -10,6 +10,7 @@
 #include "TagComponent.h"
 #include "PlayerComponent.h"
 #include "BulletComponent.h"
+#include "VfxComponent.h"
 
 #include "MathUtils.h"
 	
@@ -143,6 +144,15 @@ void MovementSystem::Update(float dt) {
 		{
 			bulletComp->Deactivate();
 			bulletTransform->mMovingVector = Vec3::Zero;
+			if (VfxComponent* bulletVfx = mWorld->GetComponent<VfxComponent>(bulletEntity))
+			{
+				// Fix: stop client-side bullet VFX when local lifetime prediction expires before the server deactivate packet arrives.
+				bulletVfx->mShouldPlay = false;
+				bulletVfx->mIsPaused = false;
+				bulletVfx->mIsPlaying = false;
+				bulletVfx->mScale = Vec3::Zero;
+				bulletVfx->mTotalTime = 0.f;
+			}
 			UnregisterActiveBullet(bulletEntity);
 			continue;
 		}

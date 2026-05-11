@@ -72,7 +72,7 @@ void GameNetRuleSystem::Update(float deltaTime)
 		EntityView escortEntity = mWorld->View<TruckComponent>();\
 			Entity escort = *escortEntity.begin();
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(escort);
-		std::cout << "화물 위치" << tr->mLocalPosition.x << ", " << tr->mLocalPosition.y << ", " << tr->mLocalPosition.z << std::endl;
+		// std::cout << "화물 위치" << tr->mLocalPosition.x << ", " << tr->mLocalPosition.y << ", " << tr->mLocalPosition.z << std::endl;
 		
 
 	}
@@ -87,7 +87,7 @@ void GameNetRuleSystem::SendSceneState(Entity rule)
 		pkt.GameTime = s->mGameTime;
 		pkt.GamePhase = s->mGamePhase;
 		pkt.PlayerScore = s->mPlayerScore;
-		std::cout << pkt.GamePhase << std::endl;
+		
 		Broadcast(S2C_PKT_SCENE_STATE, pkt);
 	}
 }

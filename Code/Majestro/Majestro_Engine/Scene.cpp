@@ -103,39 +103,29 @@ void Scene::Shudown()
 
 
 void Scene::LoadJsonLevelFBX(const wstring& path) {
-	int i = 0;
-	try
+	LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+
+	std::unordered_set<std::string> uniqueFbxNames;
+
+	for (const auto& inst : level.instances)
 	{
-		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+		if (inst.fbx.empty())
+			continue;
 
-		for (const auto& inst : level.instances)
-		{
-			// 파일명만 추출
-			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\Map\\" + name + ".fbx";
-			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
+		std::string name = filesystem::path(inst.fbx).filename().stem().string();
+		if (name.empty())
+			continue;
 
-			if (!data)
-			{
-				std::cerr << "FBX load failed (null data): " << name << "\n";
-				break;
-			}
-			else if (data->GetMaterials().empty()) {
-				std::cerr << "FBX load failed Material (null data): " << name << "\n";
-				continue;
-			}
-			else if (data->GetMeshs().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
-				continue;
-			}
-
-		}
+		uniqueFbxNames.insert(name);
 	}
-	catch (const std::exception& e)
+
+	for (const auto& fbxName : uniqueFbxNames)
 	{
-		std::cerr << "Load failed: " << e.what() << "\n";
+		RESOURCEMANAGER.LoadFBXMesh(s2ws("..\\Resources\\Map\\" + fbxName + ".fbx"));
 	}
+
 }
+
 void Scene::LoadJsonLevelData(const wstring& path) {
 	int i = 0;
 	try
@@ -213,13 +203,6 @@ void Scene::LoadJsonLevel(const wstring& path)
 			std::string name = filesystem::path(inst.fbx).filename().stem().string();
 			name = "..\\Resources\\Map\\" + name + ".fbx";
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
-
-			if (name.find("SM_Keyboard") != string::npos)
-			{
-
-				std::cout << "A" << std::endl;
-				
-			}
 
 			if (!data)
 			{
@@ -556,7 +539,8 @@ void MainMenuScene::Initialize()
 // 
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
-	LoadJsonLevel(L"..\\Resources\\Json\\Map_Title_Export.json");
+	LoadJsonLevelFBX(L"..\\Resources\\Json\\Map_Title_Export.json");
+	LoadJsonLevelData(L"..\\Resources\\Json\\Map_Title_Export.json");
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	{ // Title LOGO

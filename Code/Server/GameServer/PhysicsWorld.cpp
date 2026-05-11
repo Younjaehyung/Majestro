@@ -336,8 +336,36 @@ struct JoltTerrainState
 		const JPH::RRayCast ray(origin, direction);
 
 		JPH::RayCastResult hit;
-		JPH::SpecifiedObjectLayerFilter terrainOnly(JoltLayers::Terrain);
-		if (!PhysicsSystem.GetNarrowPhaseQuery().CastRay(ray, hit, {}, terrainOnly))
+		// Modified: Ground height is queried from every Jolt static mesh layer.
+		// Terrain meshes and collision FBX MeshShape bodies can both define the authoritative character floor.
+		if (!PhysicsSystem.GetNarrowPhaseQuery().CastRay(ray, hit))
+			return false;
+
+		const JPH::RVec3 hitPos = ray.GetPointOnRay(hit.mFraction);
+		outHeight = static_cast<float>(hitPos.GetY());
+		return true;
+	}
+
+	bool RayCastHeightNear(const Vec3& position, float expectedHeight, float maxStepUp, float maxDropDown, float& outHeight) const
+	{
+		if (BodyIDs.empty())
+			return false;
+
+		const float safeStepUp = (std::max)(0.0f, maxStepUp);
+		const float safeDropDown = (std::max)(0.0f, maxDropDown);
+		const float rayStartY = expectedHeight + safeStepUp;
+		const float rayLength = safeStepUp + safeDropDown;
+		if (rayLength <= 1e-3f)
+			return false;
+
+		const JPH::RVec3 origin(position.x, rayStartY, position.z);
+		const JPH::Vec3 direction(0.0f, -rayLength, 0.0f);
+		const JPH::RRayCast ray(origin, direction);
+
+		JPH::RayCastResult hit;
+		// Modified: Use a short ray around the NavMesh/current ground estimate so roofs above interiors are ignored.
+		// Full top-down height queries pick the highest surface, which incorrectly snaps indoor characters to rooftops.
+		if (!PhysicsSystem.GetNarrowPhaseQuery().CastRay(ray, hit))
 			return false;
 
 		const JPH::RVec3 hitPos = ray.GetPointOnRay(hit.mFraction);
@@ -944,6 +972,13 @@ bool PhysicsWorld::TryQueryTerrainHeight(const Vector3& position, float& outHeig
 	if (!mJoltTerrain)
 		return false;
 	return mJoltTerrain->RayCastHeight(position, outHeight);
+}
+
+bool PhysicsWorld::TryQueryTerrainHeightNear(const Vector3& position, float expectedHeight, float maxStepUp, float maxDropDown, float& outHeight) const
+{
+	if (!mJoltTerrain)
+		return false;
+	return mJoltTerrain->RayCastHeightNear(position, expectedHeight, maxStepUp, maxDropDown, outHeight);
 }
 
 bool PhysicsWorld::AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix& worldMatrix)

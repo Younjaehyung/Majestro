@@ -322,6 +322,10 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
 
     bulletTransform->mLocalPosition = spawnPosition;
     bulletTransform->mWorldPosition = spawnPosition;
+    // Fix: use server bullet size for client visual state instead of prefab defaults.
+    bulletTransform->mLocalScale = Vec3(pkt->size, pkt->size, pkt->size);
+    // Fix: use the server-computed bullet rotation so impact VFX receives a direction-correct rot value.
+    bulletTransform->mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
 
     SkillType bulletType = static_cast<SkillType>(pkt->bulletType);
     if (bulletType >= SkillType::Max)
@@ -335,7 +339,7 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
         spawnPosition,
         direction,
         pkt->speed,
-        bulletComp->mLifeTime,
+        pkt->lifeTime,
         bulletComp->mDamage);
 
     bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);

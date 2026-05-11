@@ -126,6 +126,8 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
 		bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
 		bulletTransform->mMovingVector = direction * bulletStat.Speed;
+		// Fix: update bullet rotation from fire direction so hit VFX packets receive a valid rot value.
+		bulletTransform->LookAt(direction);
 
 		if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
 		{
@@ -166,7 +168,14 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		bulletPacket.dirX = direction.x;
 		bulletPacket.dirY = direction.y;
 		bulletPacket.dirZ = direction.z;
+		// Fix: send the server-computed bullet rotation to the client instead of making the client infer it.
+		bulletPacket.rotX = bulletTransform->mLocalRotationE.x;
+		bulletPacket.rotY = bulletTransform->mLocalRotationE.y;
+		bulletPacket.rotZ = bulletTransform->mLocalRotationE.z;
 		bulletPacket.speed = bulletComp->mSpeed;
+		// Fix: send visual movement stats so clients do not rely on different local defaults.
+		bulletPacket.lifeTime = bulletComp->mLifeTime;
+		bulletPacket.size = bulletStat.Size;
 
 		auto recipients = CollectPlayerSessions();
 		for (uint32 sessionId : recipients)

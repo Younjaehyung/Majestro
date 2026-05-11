@@ -40,17 +40,20 @@ using namespace DirectX::SimpleMath;
 ///////////////////////////////////////////////////////////////////////////////
 // Jolt
 
+#ifndef JPH_OBJECT_STREAM
+#define JPH_OBJECT_STREAM
+#endif
+
+#ifdef _DEBUG
+#ifndef JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
+#define JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
+#endif
 #ifndef JPH_DEBUG_RENDERER
 #define JPH_DEBUG_RENDERER
 #endif
 #ifndef JPH_PROFILE_ENABLED
 #define JPH_PROFILE_ENABLED
 #endif
-#ifndef JPH_OBJECT_STREAM
-#define JPH_OBJECT_STREAM
-#endif
-#ifndef JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
-#define JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
 #endif
 
 #include <Jolt/Jolt.h>

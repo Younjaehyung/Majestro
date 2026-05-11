@@ -5,7 +5,6 @@
 #include "PhysicsWorld.h"
 
 #include "TransformComponent.h"
-#include "TerrainComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "CameraComponent.h"
@@ -74,31 +73,34 @@ void MovementSystem::Update(float dt) {
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
 
-	//terrain
-	//auto terrainEntities = mWorld->GetEntitiesWithComponent<TerrainComponent>();
-	//TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(terrainEntities[0]);
-	//
-
-
-	auto terrainView = mWorld->View<TerrainComponent>();
-	auto terrainIt = terrainView.begin();
-	if (terrainIt == terrainView.end()) return;
-	TerrainComponent* terrainComponent = mWorld->GetComponent<TerrainComponent>(*terrainIt);
-
 	std::vector<Entity> gravityEntitys{ mWorld->GetEntitiesWithComponent<GravityComponent>() };
 	for (auto& entity : gravityEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		GravityComponent* gravityComponent = mWorld->GetComponent<GravityComponent>(entity);
-		float terrainGround = terrainComponent->GetHeightAtWorldPosition(transformComponent->mLocalPosition);
-		float baseGround = terrainGround;
-		if (mWorld->HasComponent<PlayerMovementComponent>(entity))
-			baseGround = gravityComponent->mGround; // NavMesh 높이(PlayerNav/Movement에서 기록)를 terrainGround 대신 사용
+		if (!transformComponent || !gravityComponent)
+			continue;
 
+		// Modified: TerrainComponent height is no longer used on the server.
+		// NavMesh movement keeps writing mGround as the fallback, and Jolt MeshShape raycast overrides Y when it hits.
+		float baseGround = gravityComponent->mGround;
 		float meshGround = 0.0f;
-		if (mWorld->GetPhysicsWorld()->TryQueryTerrainHeight(transformComponent->mLocalPosition, meshGround))
+		auto physicsWorld = mWorld->GetPhysicsWorld();
+		static constexpr float kGroundProbeStepUp = 120.0f;
+		static constexpr float kGroundProbeDropDown = 500.0f;
+		if (physicsWorld && physicsWorld->TryQueryTerrainHeightNear(
+			transformComponent->mLocalPosition,
+			baseGround,
+			kGroundProbeStepUp,
+			kGroundProbeDropDown,
+			meshGround))
 		{
-			// Jolt terrain raycast: when a render mesh hit exists, use it as the authoritative ground candidate.
-			gravityComponent->mGround = (std::max)(baseGround, meshGround);
+			// Modified: Probe only near the NavMesh/current ground estimate so indoor characters do not snap to rooftops.
+			// XZ movement restriction still uses NavMesh below; only the vertical ground value is overridden here.
+			gravityComponent->mGround = meshGround;
+		}
+		else
+		{
+			gravityComponent->mGround = baseGround;
 		}
 
 		if (gravityComponent->mHight <= gravityComponent->mGround || gravityComponent->mHight - gravityComponent->mHeightInterpolation <= gravityComponent->mGround) {
@@ -114,7 +116,7 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mHight -= gravityComponent->mGravity * dt;
 		}
 
-		transformComponent->mLocalPosition.y = gravityComponent->mHight-13.f;
+		transformComponent->mLocalPosition.y = gravityComponent->mHight +3.f;
 
 	}
 

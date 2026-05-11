@@ -3,35 +3,7 @@
 #include <cstdint>
 #include "Entity.h"
 
-enum class SkillType : uint8
-{
-    Default = 0,
-    BaseAttack,
-    BaseSkill1,
-    BaseSkill2,
-    BaseSkill3,
-
-    GuitarAttack,
-    GuitarSkill1,
-    GuitarSkill2,
-    GuitarSkill3,
-
-    DrumAttack,
-    DrumSkill1,
-    DrumSkill2,
-    DrumSkill3,
-
-    GuitarAttack_1,
-    GuitarAttack_2,
-    GuitarAttack_3,
-
-    //mop
-    HornAttack,
-    PianoAttack,
-    BongoAttack,
-
-    Max
-};
+// Fix: SkillType is defined in Protocol/Packet.h and included by pch so packet values cannot drift.
 
 enum class EffectSpawnReason : uint8
 {

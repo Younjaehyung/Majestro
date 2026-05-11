@@ -7,33 +7,7 @@
 
 // 단일 Bullet 엔티티에서 다양한 탄종을 표현하기 위한 타입.
 // 네트워크 전송 시 enum 값을 uint8로 직렬화해서 사용.
-enum class SkillType : uint8
-{
-	Default = 0,
-	BaseAttack,
-	BaseSkill1,
-	BaseSkill2,
-	BaseSkill3,
-
-	GuitarAttack,
-	GuitarSkill1,
-	GuitarSkill2,
-	GuitarSkill3,
-
-	DrumAttack,
-	DrumSkill1,
-	DrumSkill2,
-	DrumSkill3,
-
-	GuitarAttack_1,
-	GuitarAttack_2,
-	GuitarAttack_3,
-
-	//mop
-	HornAttack,
-
-	Max
-};
+// Fix: SkillType now comes from Protocol/Packet.h through EnginePch so client and server use the same enum values.
 
 
 // 서버/로직 권한용 불릿 컴포넌트.

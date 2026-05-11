@@ -453,16 +453,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 # my
-Majestro/Resources/FBX
-Majestro/Resources/Sound
-Majestro/Resources/Texture
-Majestro/Resources/Effect
-Majestro/Resources/Map
-Majestro/Resources/Terrain
-Majestro/Resources/Font
-Majestro/Resources/Image
-Server/Resources/FBX
-*.cso
+
 
 
 ### VisualStudio Patch ###

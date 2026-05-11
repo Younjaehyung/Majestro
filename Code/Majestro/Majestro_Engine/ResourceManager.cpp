@@ -930,7 +930,7 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::DEFERRED,
-			RASTERIZER_TYPE::CULL_NONE,
+			RASTERIZER_TYPE::CULL_BACK,
 			DEPTH_STENCIL_TYPE::EQUAL_NO_WRITE
 		};
 

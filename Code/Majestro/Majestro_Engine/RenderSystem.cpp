@@ -450,11 +450,11 @@ void RenderSystem::PushObjectData() {
         if (!bulletComponent->mIsActive)
             continue;
     }
-    if (false == IsFrustumCulled(transformComponent, renderComponent)) {
+    if (false == IsVisibleInFrustum(transformComponent, renderComponent)) {
       // 카메라 프러스텀 밖에서 라이트 프러스텀(구체) 테스트
       if (false == renderComponent->mVisibility) continue;
 
-      const auto& obb = renderComponent->mWorldOBB; // IsFrustumCulled에서 이미 갱신됨
+      const auto& obb = renderComponent->mWorldOBB; 
       const Vec3 objCenter(obb.Center.x, obb.Center.y, obb.Center.z);
       const float objRadius = sqrtf(obb.Extents.x * obb.Extents.x +
                                     obb.Extents.y * obb.Extents.y +
@@ -902,11 +902,12 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 
 
-bool RenderSystem::IsFrustumCulled(TransformComponent *trans, RenderComponent *renderComponent) 
+bool RenderSystem::IsVisibleInFrustum(TransformComponent *trans, RenderComponent *renderComponent)
 {
   if (renderComponent->mCheckFrustum && mCamera) {
     // if (trans->mIsDirty)
     renderComponent->UpdateWorldOBB(trans);
+
     if (!mCamera->IntersectsOBB(renderComponent->mWorldOBB)) {
       return false;
     }

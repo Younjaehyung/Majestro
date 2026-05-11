@@ -52,16 +52,16 @@ Entity LightFactory::CreateLight(World* world, LIGHT_TYPE type , LightComponent&
 	switch (type)
 	{
 	case LIGHT_TYPE::DIRECTIONAL_LIGHT:
-		r.mMesh		= RESOURCEMANAGER.Get<Mesh>(L"Rectangle");
+		r.SetMesh(RESOURCEMANAGER.Get<Mesh>(L"Rectangle"));
 		r.mMaterials.emplace_back(RESOURCEMANAGER.Get<Material>(L"DirLight"));
 
 		break;
 	case LIGHT_TYPE::POINT_LIGHT:
-		r.mMesh		= RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+		r.SetMesh(RESOURCEMANAGER.Get<Mesh>(L"Sphere"));
 		r.mMaterials.emplace_back(RESOURCEMANAGER.Get<Material>(L"PointLight"));
 		break;
 	case LIGHT_TYPE::SPOT_LIGHT:
-		r.mMesh		= RESOURCEMANAGER.Get<Mesh>(L"Sphere");
+		r.SetMesh(RESOURCEMANAGER.Get<Mesh>(L"Sphere"));
 		r.mMaterials.emplace_back(RESOURCEMANAGER.Get<Material>(L"PointLight"));
 		break;
 	}

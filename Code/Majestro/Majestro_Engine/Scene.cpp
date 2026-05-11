@@ -166,8 +166,8 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
 			//}
 			render.mMaterials = data->GetMaterials();
-			render.mCheckFrustum = false;
-			render.mMesh = data->GetMeshs().at(0);
+			//render.mCheckFrustum = false;
+			render.SetMesh(data->GetMeshs().at(0));
 			i++;
 			/*		if (i == 550)
 						break;*/
@@ -232,7 +232,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 			//}
 			render.mMaterials = data->GetMaterials();
 			render.mCheckFrustum = false;
-			render.mMesh = data->GetMeshs().at(0);
+			render.SetMesh(data->GetMeshs().at(0));
 			i++;
 			/*		if (i == 550)
 						break;*/
@@ -297,7 +297,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 
 			render.mMaterials = materials;
 			render.mCheckFrustum = false;
-			render.mMesh = isCollisionSphere ? collisionSphereMesh : collisionCubeMesh;
+			render.SetMesh(isCollisionSphere ? collisionSphereMesh : collisionCubeMesh);
 			if (isCollisionSphere)
 				++loadedSphereCount;
 			else
@@ -551,7 +551,7 @@ void MainMenuScene::Initialize()
 		RenderComponent& render = mWorld->AddComponent<RenderComponent>(logo);
 		render.mMaterials = materials;
 		render.mCheckFrustum = false;
-		render.mMesh = data;
+		render.SetMesh(data);
 
 		TransformComponent& transform = mWorld->AddComponent<TransformComponent>(logo);
 		transform.mLocalPosition = { 274.f, 648.f, -4270.f };
@@ -1065,7 +1065,7 @@ void FirstScene::Initialize()
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
 	// 수정 내용
 	// Server FirstScene 에 설치되는 Map001_CRX 충돌체를 같은 JSON transform 으로 클라이언트에 렌더링한다.
-	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{

@@ -151,8 +151,8 @@ private: // Culling
   bool IsCustomCulled(uint8 layer) {
     return (mCullingMask & (1 << layer)) != 0;
   }
-  bool IsFrustumCulled(TransformComponent *trans,
-                       RenderComponent *renderComponent);
+  bool IsVisibleInFrustum(TransformComponent *trans,
+                          RenderComponent *renderComponent);
 
 private: // Push&Clear Data
   void PushMaterialData();

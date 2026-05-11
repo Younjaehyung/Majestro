@@ -29,12 +29,14 @@ public:
 	void CreateMesh(struct FBXBMeshInfo& f);
 	void CreateVertexBuffer(const vector<Vertex>& buffer);
 	void CreateIndexBuffer(const vector<uint32>& buffer);
+	const BoundingOrientedBox& GetLocalOBB() const { return mLocalOBB; }
 private:
 	ComPtr<ID3D12Resource>		mVertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW	mVertexBufferView = {};
 	uint32 mVertexCount = 0;
 
 	vector<IndexBufferInfo>		mVecIndexInfo;
+	BoundingOrientedBox mLocalOBB{};
 
 	//bufferView : buffer의 주소값과 정보들이 담겨있음
 	

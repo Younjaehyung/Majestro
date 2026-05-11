@@ -25,6 +25,7 @@ public:
 	uint8 GetLayerIndex() { return mLayerIndex; }
 	bool IsVisibility() { return mVisibility; }
 	uint64 GetInstanceID();
+	void SetMesh(shared_ptr<Mesh> mesh);
 	void SetLocalOBB(const Vec3& center, const Vec3& halfExtents);
 	void UpdateWorldOBB(TransformComponent* transformComponent);
 public:

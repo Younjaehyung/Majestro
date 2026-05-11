@@ -5,6 +5,8 @@
 #include "Material.h"
 #include "FBXData.h"
 
+
+
 Mesh::Mesh() : Object(OBJECT_TYPE::MESH)
 {
 }
@@ -15,6 +17,7 @@ Mesh::~Mesh()
 
 void Mesh::Init(const vector<Vertex>& vec, const vector<uint32>& indexbuffer)
 {
+	BuildLocalOBBFromVertices(vec, mLocalOBB);
 	CreateVertexBuffer(vec);
 	CreateIndexBuffer(indexbuffer);
 }
@@ -91,6 +94,29 @@ void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 	mVecIndexInfo.push_back(info);
 }
 
+void Mesh::BuildLocalOBBFromVertices(const vector<Vertex>& vertices, BoundingOrientedBox& outOBB)
+{
+	if (vertices.empty())
+	{
+		outOBB.Center = XMFLOAT3(0.f, 0.f, 0.f);
+		outOBB.Extents = XMFLOAT3(0.5f, 0.5f, 0.5f);
+		outOBB.Orientation = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
+		return;
+	}
+
+	vector<Vec3> positions(vertices.size());
+	for (size_t i = 0; i < vertices.size(); ++i)
+	{
+		positions[i] = vertices[i].pos;
+	}
+
+	BoundingOrientedBox::CreateFromPoints(
+		outOBB,
+		positions.size(),
+		positions.data(),
+		sizeof(Vec3));
+}
+
 void Mesh::Render(uint32 instanceCount, uint32 idx, uint32 baseInstance, uint32 instancingID )
 {
 	//Input Assembler (IA)
@@ -127,6 +153,7 @@ void Mesh::Load(const wstring& path) {
 void Mesh::CreateMesh(FBXBMeshInfo& f)
 {
 
+	BuildLocalOBBFromVertices(f.Vertices, mLocalOBB);
 	CreateVertexBuffer(f.Vertices);
 	for (const vector<uint32>& buffer : f.Indices)
 	{

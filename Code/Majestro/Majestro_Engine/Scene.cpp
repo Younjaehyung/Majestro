@@ -329,8 +329,7 @@ void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 void LoadingScene::Initialize()
 {
 	PrefabFactory::RegisterAllPrefabs();
-	TerrainPrefab terrain{ mWorld.get() };
-	SkyBoxPrefab skybox{ mWorld.get() };
+	// SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 
 	{
@@ -531,7 +530,7 @@ void MainMenuScene::Initialize()
 	mWorld->SetSceneId(mSceneId);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
-	TerrainPrefab terrain{ mWorld.get() };
+	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 
@@ -856,7 +855,7 @@ void LobbyScene::Initialize()
 	//PlayerPrefab player{mWorld.get()};
 	mWorld->SetSceneId(mSceneId);
 	PrefabFactory::RegisterAllPrefabs();
-	TerrainPrefab terrain{ mWorld.get() };
+	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
@@ -1051,7 +1050,7 @@ void FirstScene::Initialize()
 	mWorld->SetSceneId(mSceneId);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
-	TerrainPrefab terrain{ mWorld.get() };
+	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };

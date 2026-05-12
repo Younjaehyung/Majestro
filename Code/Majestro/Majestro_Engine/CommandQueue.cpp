@@ -252,8 +252,7 @@ void ComputeCommandQueue::Initialize(ComPtr<ID3D12Device> device)
 		device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS(&commandAllocator));
 	}
 	device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, mCommandAllocators[0].Get(), nullptr, IID_PPV_ARGS(&mCommandList));
-
-	device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence));
+	mCommandList->Close();
 
 	// CreateFence
 	// - CPU와 GPU의 동기화 수단으로 쓰인다
@@ -294,6 +293,7 @@ void ComputeCommandQueue::FlushComputeCommandQueue()
 
 	//mCommandAllocator->Reset();
 	//mCommandList->Reset(mCommandAllocator.Get(), nullptr);
+
 	const uint32 frameIndex = gEngine->GetRenderManager().GetFrameResourceIndex();
 	ExecuteCommandList(frameIndex);
 	WaitForGpuComplete();
@@ -302,12 +302,6 @@ void ComputeCommandQueue::FlushComputeCommandQueue()
 
 uint64 ComputeCommandQueue::ExecuteCommandList(uint32 frameIndex)
 {
-	const uint64 fenceValue = mFrameFenceValues[frameIndex];
-	if (fenceValue != 0 && mFence->GetCompletedValue() < fenceValue)
-	{
-		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
-		::WaitForSingleObject(mFenceEvent, INFINITE);
-	}
 	mCommandList->Close();
 
 	ID3D12CommandList* cmdListArr[] = { mCommandList.Get() };
@@ -316,7 +310,6 @@ uint64 ComputeCommandQueue::ExecuteCommandList(uint32 frameIndex)
 	mFenceValue++;
 	mCommandQueue->Signal(mFence.Get(), mFenceValue);
 	mFrameFenceValues[frameIndex] = mFenceValue;
-	ResetCommandList(frameIndex);
 
 	return mFenceValue;
 }
@@ -324,6 +317,13 @@ uint64 ComputeCommandQueue::ExecuteCommandList(uint32 frameIndex)
 
 void ComputeCommandQueue::ResetCommandList(uint32 frameIndex)
 {
+	const uint64 fenceValue = mFrameFenceValues[frameIndex];
+	if (fenceValue != 0 && mFence->GetCompletedValue() < fenceValue)
+	{
+		mFence->SetEventOnCompletion(fenceValue, mFenceEvent);
+		::WaitForSingleObject(mFenceEvent, INFINITE);
+	}
+
 	mCommandAllocators[frameIndex]->Reset();
 	mCommandList->Reset(mCommandAllocators[frameIndex].Get(), nullptr);
 }

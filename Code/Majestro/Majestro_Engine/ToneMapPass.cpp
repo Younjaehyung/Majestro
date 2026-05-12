@@ -7,7 +7,8 @@
 
 #include "RenderSystem.h"
 
-void ToneMapPass::Initialize() {
+void ToneMapPass::Initialize()
+{
 }
 
 void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
@@ -20,8 +21,9 @@ void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 	entry.PreviousStep = static_cast<int32>(ToGBufferIndex(before));
 
 	// 컬러 그레이딩 파라미터 업로드
-	// ExtValue[0] = (Saturation, Contrast, Brightness, Exposure)
+	//   ExtValue[0] = (Saturation, Contrast, Brightness, Exposure)
 	//   Exposure: 톤매핑 전 HDR 배율. 1.0 = 기본, >1 = 밝게, <1 = 어둡게
+
 	entry.ExtValue[0] = Vec4(
 		mColorGrading.Saturation,
 		mColorGrading.Contrast,
@@ -52,29 +54,14 @@ void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 
 void ToneMapPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
-	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+	auto& outputGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter));
 
-	if (RENDERMANAGER.IsMsaaEnabled())
-	{
-		auto& finalGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN));
-		finalGroup.WaitResourceToTarget();
-		finalGroup.OMSetRenderTargets(1, backIndex);
-	}
-	else
-	{
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitResourceToTarget();
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).OMSetRenderTargets();
-		
-	}
+	
+	outputGroup.WaitResourceToTarget();
+	outputGroup.OMSetRenderTargets();
 
-	// HDR RT는 EffectPass에서 WaitTargetToResource()로 SRV 상태
 	RESOURCEMANAGER.Get<Shader>(L"ToneMap")->Update();
 	RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
 
-	if (RENDERMANAGER.IsMsaaEnabled())
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN)).WaitTargetToResource();
-	else
-		// MSAA 모드에서는 mAfter(POST_LDR_A)를 RT로 전환한 적 없으므로 WaitTargetToResource 호출 금지
-		RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mAfter)).WaitTargetToResource();
-
+	outputGroup.WaitTargetToResource();
 }

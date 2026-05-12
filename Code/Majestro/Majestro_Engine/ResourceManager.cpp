@@ -1611,6 +1611,8 @@ void ResourceManager::CreateDefaultShader()
 				.PS = L"..\\Resources\\Shader\\hbao_PS.hlsl"
 			};
 			shared_ptr<Shader> shader = make_shared<Shader>();
+			
+			shader->SetTargetFormat(DXGI_FORMAT_R8_UNORM);
 			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 			Add<Shader>(L"HBAO", shader);
 		}
@@ -1622,6 +1624,8 @@ void ResourceManager::CreateDefaultShader()
 				.PS = L"..\\Resources\\Shader\\hbao_blur_PS.hlsl"
 			};
 			shared_ptr<Shader> shader = make_shared<Shader>();
+		
+			shader->SetTargetFormat(DXGI_FORMAT_R8_UNORM);
 			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 			Add<Shader>(L"HBAOBlur", shader);
 		}
@@ -1702,7 +1706,7 @@ void ResourceManager::CreateDefaultShader()
 	{
 		ShaderInfo fxaaInfo =
 		{
-			SHADER_TYPE::FORWARD,
+			SHADER_TYPE::LDRPOST,
 			RASTERIZER_TYPE::CULL_BACK,
 			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
 		};

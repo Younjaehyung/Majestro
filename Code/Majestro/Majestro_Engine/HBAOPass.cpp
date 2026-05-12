@@ -167,7 +167,10 @@ HbaoRT HBAOPass::CreateHbaoRT(const wstring& name, uint32 w, uint32 h, DXGI_FORM
         CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
         D3D12_HEAP_FLAG_NONE,
         D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,
-        true);
+        true,
+        1,
+        0,
+        Vec4(1.f, 1.f, 1.f, 1.f));
 
     // RTV 수동 할당
     uint32 rtvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);

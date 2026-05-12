@@ -84,7 +84,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		break;
 	case SHADER_TYPE::PARTICLE:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		break;
 	case SHADER_TYPE::COMPUTE:
 		mGraphicsPipelineDesc.NumRenderTargets = 0;
@@ -122,6 +122,11 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		break;
 	
+	}
+
+	if (mShaderTargetFormat != DXGI_FORMAT_UNKNOWN && mGraphicsPipelineDesc.NumRenderTargets == 1)
+	{
+		mGraphicsPipelineDesc.RTVFormats[0] = mShaderTargetFormat;
 	}
 
 
@@ -292,7 +297,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		break;
 	case SHADER_TYPE::PARTICLE:
 		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		break;
 	case SHADER_TYPE::COMPUTE:
 		mGraphicsPipelineDesc.NumRenderTargets = 0;
@@ -333,6 +338,11 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		break;
 
+	}
+
+	if (mShaderTargetFormat != DXGI_FORMAT_UNKNOWN && mGraphicsPipelineDesc.NumRenderTargets == 1)
+	{
+		mGraphicsPipelineDesc.RTVFormats[0] = mShaderTargetFormat;
 	}
 
 

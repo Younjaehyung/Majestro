@@ -30,7 +30,6 @@ void LuminancePass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 {
 	if (!mEnabled) return;
 
-	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(mAfter)).WaitResourceToTarget();
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(mAfter)).ClearRenderTargetView();
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint8>(mAfter)).OMSetRenderTargets();
 

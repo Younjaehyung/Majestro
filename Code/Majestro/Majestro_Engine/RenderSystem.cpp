@@ -122,6 +122,7 @@ void RenderSystem::ClearRTV() {
     auto &finalGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN));
     finalGroup.WaitResourceToTarget();
     finalGroup.ClearRenderTargetView(backIndex);
+    finalGroup.WaitTargetToResource();
   }else {
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).ClearRenderTargetView(backIndex);
   }
@@ -135,9 +136,7 @@ void RenderSystem::ClearRTV() {
   // Lighting Group 초기화
   RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::LIGHTING)).ClearRenderTargetView();
 
-  // Motion Vector Group 초기화
-  RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR)).ClearRenderTargetView();
-
+ 
   //// POST_HDR Group 초기화
   //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_HDR_A)).ClearRenderTargetView();
   //RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::POST_HDR_B)).ClearRenderTargetView();
@@ -418,29 +417,29 @@ void RenderSystem::PushObjectData() {
     renderComponent->mIsNotObject) { continue;
     }*/
 
-    if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
-        continue;
-      renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
-      transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
-      TerrainComponent *terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);
+    //if (mWorld->GetComponent<TerrainComponent>(gameObject)) {
+    //    continue;
+    //  renderComponent = mWorld->GetComponent<RenderComponent>(gameObject);
+    //  transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
+    //  TerrainComponent *terrainComponent = mWorld->GetComponent<TerrainComponent>(gameObject);
 
-      objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
-      mObjectVector.push_back(objectParams); // 트랜스폼 갱신
+    //  objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
+    //  mObjectVector.push_back(objectParams); // 트랜스폼 갱신
 
-      renderComponent->mObjectIndex = index++; // objectParams의 index 지정
-      index2 = -1;
+    //  renderComponent->mObjectIndex = index++; // objectParams의 index 지정
+    //  index2 = -1;
 
-      uint32 subMaterialIdx{};
-      renderParams = {renderComponent->mObjectIndex,terrainComponent->mHeightmap->GetIndex(), index2, 0};
-      mDeferredDrawItems.emplace_back(
-          terrainComponent->mHeightmap->GetShader(), renderComponent->mMesh,
-          terrainComponent->mHeightmap->GetShaderID(),
-          renderComponent->mMesh->GetID(),
-          terrainComponent->mHeightmap->GetID(), subMaterialIdx++,
-          renderParams);
+    //  uint32 subMaterialIdx{};
+    //  renderParams = {renderComponent->mObjectIndex,terrainComponent->mHeightmap->GetIndex(), index2, 0};
+    //  mDeferredDrawItems.emplace_back(
+    //      terrainComponent->mHeightmap->GetShader(), renderComponent->mMesh,
+    //      terrainComponent->mHeightmap->GetShaderID(),
+    //      renderComponent->mMesh->GetID(),
+    //      terrainComponent->mHeightmap->GetID(), subMaterialIdx++,
+    //      renderParams);
 
-      continue;
-    }
+    //  continue;
+    //}
 
     renderComponent = mRenderComponentPool->GetComponent(gameObject.GetID());
     transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);

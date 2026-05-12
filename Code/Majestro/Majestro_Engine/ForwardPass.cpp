@@ -124,6 +124,7 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 
 void ForwardPass::Compute()
 {
+    RENDERMANAGER.GetComputeCmdQueue()->ResetCommandList(RENDERMANAGER.GetFrameResourceIndex());
     DispatchForwardPlusCull();
 
 

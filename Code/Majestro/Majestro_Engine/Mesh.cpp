@@ -110,11 +110,17 @@ void Mesh::BuildLocalOBBFromVertices(const vector<Vertex>& vertices, BoundingOri
 		positions[i] = vertices[i].pos;
 	}
 
-	BoundingOrientedBox::CreateFromPoints(
-		outOBB,
+	BoundingBox aabb;
+	BoundingBox::CreateFromPoints(
+		aabb,
 		positions.size(),
 		positions.data(),
 		sizeof(Vec3));
+
+	outOBB.Center = aabb.Center;
+	outOBB.Extents = aabb.Extents;
+	outOBB.Orientation = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
+
 }
 
 void Mesh::Render(uint32 instanceCount, uint32 idx, uint32 baseInstance, uint32 instancingID )

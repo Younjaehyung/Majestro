@@ -12,7 +12,7 @@ struct IndexBufferInfo
 	uint32						Count;
 };
 
-// [유니티짱]과 같이 정점으로 이루어진 물체
+
 class Mesh : public Object
 {
 public:
@@ -29,6 +29,8 @@ public:
 	void CreateMesh(struct FBXBMeshInfo& f);
 	void CreateVertexBuffer(const vector<Vertex>& buffer);
 	void CreateIndexBuffer(const vector<uint32>& buffer);
+	void BuildLocalOBBFromVertices(const vector<Vertex>& vertices, BoundingOrientedBox& outOBB);
+
 	const BoundingOrientedBox& GetLocalOBB() const { return mLocalOBB; }
 private:
 	ComPtr<ID3D12Resource>		mVertexBuffer;

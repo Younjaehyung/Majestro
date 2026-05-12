@@ -118,7 +118,7 @@ private:
 private:
 
 	ShaderInfo		mInfo;
-	DXGI_FORMAT		mShaderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;// DXGI_FORMAT_R16G16B16A16_FLOAT
+	DXGI_FORMAT		mShaderTargetFormat = DXGI_FORMAT_UNKNOWN;
 
 	ComPtr<ID3D12PipelineState>			mPipelineState;	
 

@@ -92,14 +92,25 @@ void UIRenderSystem::Update()
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
 
+   
+    RENDERMANAGER.SetGraphicsTable();
+
     CustomSpriteRender();
 
+    
+    RENDERMANAGER.SetGraphicsTable();
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
+
+   
+    RENDERMANAGER.SetGraphicsTable();
     SpriteUpdate();
     PostSpriteRender();
 
     mUIEffectPass->Execute(DELTA_TIME);
+
+   
+    RENDERMANAGER.SetGraphicsTable();
     RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
 }

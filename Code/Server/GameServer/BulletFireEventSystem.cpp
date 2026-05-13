@@ -12,7 +12,6 @@
 #include "PhysicsWorld.h"
 #include "ServerCore.h"
 #include "GameEvents.h"
-#include "MathUtils.h"
 
 
 	
@@ -69,7 +68,7 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			if (inputComp == nullptr)
 				return;
 
-			constexpr float kMaxAimDistance = 5000.0f;
+			
 			Vec3 cameraForward = GetCameraForwardFromInput(*inputComp);
 			Vec3 cameraPosition = CalculateServerTpsCameraPosition(*shooterTransform, cameraForward);
 			if (inputComp->HasAimCameraRay)
@@ -279,6 +278,6 @@ Vec3 BulletFireEventSystem::CalculateServerMuzzlePosition(const TransformCompone
 	const Vec3 yawRight = SafeRightFromForward(cameraForward);
 
 	
-	return shooterTransform.mWorldPosition yawRight * kMuzzleRightOffset
+	return shooterTransform.mWorldPosition + yawRight * kMuzzleRightOffset
 		+ Vec3::Up * kMuzzleUpOffset+ yawForward * kMuzzleForwardOffset;
 }

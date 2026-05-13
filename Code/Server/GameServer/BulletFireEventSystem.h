@@ -2,6 +2,9 @@
 #include "System.h"
 #include "BulletComponent.h"
 
+class InputComponent;
+class TransformComponent;
+
 class BulletFireEventSystem : public System
 {
 public:

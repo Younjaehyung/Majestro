@@ -159,3 +159,6 @@ extern unique_ptr<class ServerCore> gServerCore;
 std::mt19937& RandomEngine();
 
 Vec3 SampleDiskXZ(float radius);
+
+static constexpr float kPI = 3.1415926535f;
+static constexpr float kDegToRad = 0.01745329251994329577f;

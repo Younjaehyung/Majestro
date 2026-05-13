@@ -528,6 +528,13 @@ struct C2S_MovePacket : public PacketUdpHeader {
 	float    Yaw = 0.0f;
 	float    Pitch = 0.0f;
 
+	float    CameraX = 0.0f;
+	float    CameraY = 0.0f;
+	float    CameraZ = 0.0f;
+	float    CameraDirX = 0.0f;
+	float    CameraDirY = 0.0f;
+	float    CameraDirZ = 0.0f;
+
 	C2S_MovePacket() : PacketUdpHeader{ sizeof(C2S_MovePacket), PKT_Type::C2S_PKT_MOVE, 0, 0 } {}
 };
 

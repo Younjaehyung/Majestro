@@ -115,29 +115,37 @@ void NetSendSystem::TrySendActionEvents()
 	pkt.netEntityId = netEnt->mNetEntityId;
 	pkt.Yaw         = comp->mCameraRotationY;
 	pkt.Pitch       = comp->mCameraRotationX;
-	if (mWorld->HasComponentPool<MainCameraComponent>() && mWorld->HasComponentPool<TransformComponent>())
-	{
-		auto cameraEntities = mWorld->GetEntitiesWithComponents<MainCameraComponent, TransformComponent>();
-		if (!cameraEntities.empty())
-		{
-			TransformComponent* cameraTransform = mWorld->GetComponent<TransformComponent>(cameraEntities[0]);
-			if (cameraTransform)
-			{
-				Vec3 cameraDirection = cameraTransform->GetLook();
-				if (cameraDirection.LengthSquared() > 0.0001f)
-					cameraDirection.Normalize();
-
-				pkt.CameraX = cameraTransform->mWorldPosition.x;
-				pkt.CameraY = cameraTransform->mWorldPosition.y;
-				pkt.CameraZ = cameraTransform->mWorldPosition.z;
-				pkt.CameraDirX = cameraDirection.x;
-				pkt.CameraDirY = cameraDirection.y;
-				pkt.CameraDirZ = cameraDirection.z;
-			}
-		}
-	}
+	FillCameraFields(pkt.CameraX, pkt.CameraY, pkt.CameraZ,
+	                 pkt.CameraDirX, pkt.CameraDirY, pkt.CameraDirZ);
 
 	SendPacket(pkt);
+}
+
+void NetSendSystem::FillCameraFields(float& outPosX, float& outPosY, float& outPosZ,
+                                     float& outDirX, float& outDirY, float& outDirZ)
+{
+	outPosX = outPosY = outPosZ = 0.0f;
+	outDirX = outDirY = outDirZ = 0.0f;
+
+	if (!mWorld->HasComponentPool<MainCameraComponent>()) return;
+	if (!mWorld->HasComponentPool<TransformComponent>()) return;
+
+	auto cameraEntities = mWorld->GetEntitiesWithComponents<MainCameraComponent, TransformComponent>();
+	if (cameraEntities.empty()) return;
+
+	TransformComponent* cameraTransform = mWorld->GetComponent<TransformComponent>(cameraEntities[0]);
+	if (!cameraTransform) return;
+
+	Vec3 cameraDirection = cameraTransform->GetLook();
+	if (cameraDirection.LengthSquared() > 0.0001f)
+		cameraDirection.Normalize();
+
+	outPosX = cameraTransform->mWorldPosition.x;
+	outPosY = cameraTransform->mWorldPosition.y;
+	outPosZ = cameraTransform->mWorldPosition.z;
+	outDirX = cameraDirection.x;
+	outDirY = cameraDirection.y;
+	outDirZ = cameraDirection.z;
 }
 
 void NetSendSystem::TrySendMovement()
@@ -161,6 +169,8 @@ void NetSendSystem::TrySendMovement()
 	pkt.MoveZ       = comp->mMovingDirection.z;
 	pkt.Yaw         = comp->mCameraRotationY;
 	pkt.Pitch       = comp->mCameraRotationX;
+	FillCameraFields(pkt.CameraX, pkt.CameraY, pkt.CameraZ,
+	                 pkt.CameraDirX, pkt.CameraDirY, pkt.CameraDirZ);
 
 	SendPacket(pkt);
 }

@@ -65,6 +65,9 @@ private:
     void TrySendActionEvents();   // 이벤트성 입력(점프/공격 등) 즉시 전송 (TCP)
     void UpdateCachedPlayerType();
 
+
+    void FillCameraFields(float& outPosX, float& outPosY, float& outPosZ, float& outDirX, float& outDirY, float& outDirZ);
+
     // 패킷 헤더에서 타입을 읽어 SendBuffer에 Push
     template<typename T>
     void SendPacket(const T& pkt)

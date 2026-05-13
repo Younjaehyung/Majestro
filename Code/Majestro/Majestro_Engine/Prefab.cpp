@@ -1625,7 +1625,7 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 		shared_ptr<Texture> scorem = RESOURCEMANAGER.Get<Texture>(L"jAims");
 		auto& t = world->AddComponent<UITransformComponent>(crosshair);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-64.f, -64.f);
+		t.mPosition = Vec2(0.f, 0.f);
 		t.mSize = Vec2(128.f, 128.f);
 		t.mUILayerIndex = 5;
 		t.mPivot = Vec2(0.5f, 0.5f);

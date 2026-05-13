@@ -367,7 +367,7 @@ void CollisionSystem::Movable2Static(float deltaTime)
 
             if (!dyn.collider->mWorldOBB.Intersects(staticCollider->mWorldOBB))
                 continue;
-
+            
             dyn.collider->bIsColliding = true;
             staticCollider->bIsColliding = true;
 

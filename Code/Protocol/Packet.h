@@ -496,6 +496,13 @@ struct C2S_ActionPacket : public PacketTcpHeader {
 	uint32 Buttons{};   // 새로 눌린 버튼 비트마스크
 	float  Yaw{};
 	float  Pitch{};
+
+	float  CameraX{};
+	float  CameraY{};
+	float  CameraZ{};
+	float  CameraDirX{};
+	float  CameraDirY{};
+	float  CameraDirZ{};
 	C2S_ActionPacket() : PacketTcpHeader{ sizeof(C2S_ActionPacket), PKT_Type::C2S_PKT_ACTION, 0.0 } {}
 };
 

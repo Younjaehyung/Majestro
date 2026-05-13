@@ -9,6 +9,7 @@
 #include "InputManager.h"
 #include "MovementComponent.h"
 #include "TagComponent.h"
+#include "TransformComponent.h"
 
 #include "TagComponent.h"
 #include "SceneManager.h"
@@ -114,6 +115,27 @@ void NetSendSystem::TrySendActionEvents()
 	pkt.netEntityId = netEnt->mNetEntityId;
 	pkt.Yaw         = comp->mCameraRotationY;
 	pkt.Pitch       = comp->mCameraRotationX;
+	if (mWorld->HasComponentPool<MainCameraComponent>() && mWorld->HasComponentPool<TransformComponent>())
+	{
+		auto cameraEntities = mWorld->GetEntitiesWithComponents<MainCameraComponent, TransformComponent>();
+		if (!cameraEntities.empty())
+		{
+			TransformComponent* cameraTransform = mWorld->GetComponent<TransformComponent>(cameraEntities[0]);
+			if (cameraTransform)
+			{
+				Vec3 cameraDirection = cameraTransform->GetLook();
+				if (cameraDirection.LengthSquared() > 0.0001f)
+					cameraDirection.Normalize();
+
+				pkt.CameraX = cameraTransform->mWorldPosition.x;
+				pkt.CameraY = cameraTransform->mWorldPosition.y;
+				pkt.CameraZ = cameraTransform->mWorldPosition.z;
+				pkt.CameraDirX = cameraDirection.x;
+				pkt.CameraDirY = cameraDirection.y;
+				pkt.CameraDirZ = cameraDirection.z;
+			}
+		}
+	}
 
 	SendPacket(pkt);
 }

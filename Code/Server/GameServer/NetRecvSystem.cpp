@@ -86,6 +86,14 @@ void NetRecvSystem::RecvAction(uint32 sessionId, const C2S_ActionPacket& pkt)
 	if (inputComp == nullptr) return;
 
 	inputComp->Buttons = pkt.Buttons;
+	
+	inputComp->Yaw = pkt.Yaw;
+	inputComp->Pitch = pkt.Pitch;
+	inputComp->AimCameraPosition = Vec3(pkt.CameraX, pkt.CameraY, pkt.CameraZ);
+	inputComp->AimCameraDirection = Vec3(pkt.CameraDirX, pkt.CameraDirY, pkt.CameraDirZ);
+	inputComp->HasAimCameraRay = inputComp->AimCameraDirection.LengthSquared() > 0.0001f;
+	if (inputComp->HasAimCameraRay)
+		inputComp->AimCameraDirection.Normalize();
 }
 
 void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedPacket& pkt)

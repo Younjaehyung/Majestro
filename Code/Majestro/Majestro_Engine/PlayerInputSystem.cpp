@@ -140,7 +140,7 @@ void PlayerInputSystem::Update(float dt)
 	}
 
 
-	// ` 키로 인게임 카메라 조작 ↔ ImGui 디버그 조작 토글
+	// ` 키로 인게임 카메라 조작 | ImGui 디버그 조작 토글
 	if (INPUT.GetKeyDown(eKeyCode::GRAVE))
 	{
 		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());

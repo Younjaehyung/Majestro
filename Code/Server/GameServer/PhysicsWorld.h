@@ -104,6 +104,10 @@ public:
 
 public: // Query
     SweepHit SphereSweepVsOBB(const Vector3& start, const Vector3& end, float radius);
+
+    bool RayCastStatic(const Vector3& start, const Vector3& end, JoltStaticHit& outHit);
+
+    bool QueryAimPoint(Entity shooter, const Vector3& cameraPos, const Vector3& cameraForward, float maxDistance, Vector3& outAimPoint);
     void QueryStaticBVH(const AABB2D& query, std::vector<int>& outIndices);
     void UpdateDynamicSpatialIndex();
     std::vector<Entity> FindNearbyEnemies(const Entity& entity, float radius, size_t maxCount);

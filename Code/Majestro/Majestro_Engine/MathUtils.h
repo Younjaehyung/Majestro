@@ -1,5 +1,8 @@
 #pragma once
 
+constexpr float kPI = 3.1415926535f;
+constexpr float kDegToRad = 0.01745329251994329577f;
+
 Vec4 HlslQuatMul(const Vec4& q1, const Vec4& q2);
 Vec4 HlslQuatConj(const Vec4& q);
 Vec4 QuatFromAxisAngle(const Vec3& axis, float rad);

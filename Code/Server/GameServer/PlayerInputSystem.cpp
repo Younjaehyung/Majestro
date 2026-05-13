@@ -208,8 +208,13 @@ void PlayerInputSystem::Update(float dt)
 		const float now = GetServerTotalTimeSeconds();
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			//std::cout << "attack!!!" << std::endl;
+			
 			if (mainPlayerComponent->mNextAttackTime <= now ) {
+
+				std::cout << "[Attack] requested. nextAttack=" << mainPlayerComponent->mNextAttackTime
+					<< " now=" << now
+					<< " ammo=" << mainPlayerComponent->mNowBullet << "\n";
+
 				if (mainPlayerComponent->mPlayerType == 1 && mainPlayerComponent->mNowBullet > 0) {
 					const int prevAmmo = mainPlayerComponent->mNowBullet;
 					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);

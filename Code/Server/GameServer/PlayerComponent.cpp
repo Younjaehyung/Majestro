@@ -404,7 +404,6 @@ void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
     if (s->mAnimOnce && owner->mStateEnd <= GetServerTotalTimeSeconds()) {
-        cout << "end anim!!!!!!!!!!!!!!!!!!!!!" << endl;
         if (s->mAnimOnce) ClearFlag(owner->mFlags, FLAG_ANIM);
         owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }

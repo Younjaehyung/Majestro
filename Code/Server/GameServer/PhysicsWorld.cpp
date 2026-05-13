@@ -6,37 +6,11 @@
 #include "MovementComponent.h"
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
+#include "PlayerComponent.h"
 #include "TagComponent.h"
 #include "Mesh.h"
 
-#include <Jolt/Core/Factory.h>
-#include <Jolt/Core/Memory.h>
-#include <Jolt/Geometry/IndexedTriangle.h>
-#include <Jolt/Math/DMat44.h>
-#include <Jolt/Math/Mat44.h>
-#include <Jolt/Math/Quat.h>
-#include <Jolt/Math/Vec3.h>
-#include <Jolt/Physics/EActivation.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-#include <Jolt/Physics/Body/Body.h>
-#include <Jolt/Physics/Body/BodyCreationSettings.h>
-#include <Jolt/Physics/Body/BodyFilter.h>
-#include <Jolt/Physics/Body/BodyID.h>
-#include <Jolt/Physics/Body/BodyInterface.h>
-#include <Jolt/Physics/Body/BodyLock.h>
-#include <Jolt/Physics/Collision/BackFaceMode.h>
-#include <Jolt/Physics/Collision/CastResult.h>
-#include <Jolt/Physics/Collision/CollisionCollector.h>
-#include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
-#include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
-#include <Jolt/Physics/Collision/ObjectLayer.h>
-#include <Jolt/Physics/Collision/RayCast.h>
-#include <Jolt/Physics/Collision/ShapeCast.h>
-#include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
-#include <Jolt/Physics/Collision/Shape/MeshShape.h>
-#include <Jolt/Physics/Collision/Shape/Shape.h>
-#include <Jolt/Physics/Collision/Shape/SphereShape.h>
-#include <Jolt/RegisterTypes.h>
+
 
 
 
@@ -131,6 +105,15 @@ namespace
 		if (userData == 0)
 			return Entity{};
 		return Entity(static_cast<EntityID>(userData));
+	}
+
+	void KeepNearestJoltHit(JoltStaticHit& best, const JoltStaticHit& candidate)
+	{
+		if (!candidate.hit)
+			return;
+
+		if (!best.hit || candidate.distance < best.distance)
+			best = candidate;
 	}
 
 	float GetVector3Length(DirectX::FXMVECTOR v)
@@ -431,6 +414,60 @@ struct JoltTerrainState
 		return true;
 	}
 
+	bool RayCastOnLayer(const Vec3& start, const Vec3& end, JPH::ObjectLayer layer, JoltStaticHit& outHit) const
+	{
+		outHit = JoltStaticHit{};
+		if (BodyIDs.empty())
+			return false;
+
+		const Vec3 delta = end - start;
+		const float length = delta.Length();
+		if (length <= 1e-6f)
+			return false;
+
+		const JPH::RRayCast ray(ToJoltRVec3(start), ToJoltVec3(delta));
+		JPH::RayCastResult hit;
+		JPH::SpecifiedObjectLayerFilter layerOnly(layer);
+		if (!PhysicsSystem.GetNarrowPhaseQuery().CastRay(ray, hit, {}, layerOnly))
+			return false;
+
+		const float fraction = (std::max)(0.0f, (std::min)(1.0f, hit.mFraction));
+		outHit.hit = true;
+		outHit.fraction = fraction;
+		outHit.distance = length * fraction;
+
+		const JPH::RVec3 hitPos = ray.GetPointOnRay(fraction);
+		outHit.point = Vec3(
+			static_cast<float>(hitPos.GetX()),
+			static_cast<float>(hitPos.GetY()),
+			static_cast<float>(hitPos.GetZ()));
+
+		JPH::BodyLockRead bodyLock(PhysicsSystem.GetBodyLockInterface(), hit.mBodyID);
+		if (bodyLock.Succeeded())
+		{
+			const JPH::Body& body = bodyLock.GetBody();
+			outHit.colliderId = EntityFromJoltUserData(body.GetUserData());
+			const JPH::Vec3 normal = body.GetWorldSpaceSurfaceNormal(hit.mSubShapeID2, hitPos);
+			outHit.normal = FromJoltVec3(normal);
+		}
+
+		return true;
+	}
+
+	bool RayCastStatic(const Vec3& start, const Vec3& end, JoltStaticHit& outHit) const
+	{
+		outHit = JoltStaticHit{};
+
+		JoltStaticHit terrainHit{};
+		JoltStaticHit staticHit{};
+		// Fix: aim raycasts check both terrain meshes and imported static collision meshes.
+		if (RayCastOnLayer(start, end, JoltLayers::Terrain, terrainHit))
+			KeepNearestJoltHit(outHit, terrainHit);
+		if (RayCastOnLayer(start, end, JoltLayers::StaticCollision, staticHit))
+			KeepNearestJoltHit(outHit, staticHit);
+		return outHit.hit;
+	}
+
 	void Optimize()
 	{
 		if (!BodyIDs.empty())
@@ -690,6 +727,109 @@ SweepHit PhysicsWorld::SphereSweepVsOBB(const Vector3& start, const Vector3& end
 			best = out;
 	}
 	return best;
+}
+
+bool PhysicsWorld::RayCastStatic(const Vector3& start, const Vector3& end, JoltStaticHit& outHit)
+{
+	outHit = JoltStaticHit{};
+
+	JoltStaticHit joltHit{};
+	if (mJoltTerrain)
+		mJoltTerrain->RayCastStatic(start, end, joltHit);
+
+	SweepHit legacyHit = SphereSweepVsOBB(start, end, 0.0f);
+	if (joltHit.hit)
+		outHit = joltHit;
+
+	if (legacyHit.hit && (!outHit.hit || legacyHit.distance < outHit.distance))
+	{
+		outHit.hit = true;
+		outHit.colliderId = legacyHit.colliderId;
+		outHit.distance = legacyHit.distance;
+		const Vec3 delta = end - start;
+		const float length = delta.Length();
+		outHit.fraction = length > 1e-6f ? legacyHit.distance / length : 0.0f;
+		outHit.point = legacyHit.point;
+		outHit.normal = Vec3::Zero;
+	}
+
+	return outHit.hit;
+}
+
+bool PhysicsWorld::QueryAimPoint(Entity shooter, const Vector3& cameraPos, const Vector3& cameraForward, float maxDistance, Vector3& outAimPoint)
+{
+	Vec3 forward = cameraForward;
+	if (forward.LengthSquared() <= 0.0001f)
+	{
+		outAimPoint = cameraPos + Vec3::Forward * maxDistance;
+		return false;
+	}
+
+	forward.Normalize();
+	if (maxDistance <= 0.0f)
+		maxDistance = 5000.0f;
+
+	const Vec3 rayEnd = cameraPos + forward * maxDistance;
+	outAimPoint = rayEnd;
+
+	float nearestDistance = maxDistance;
+	bool hasHit = false;
+
+	JoltStaticHit staticHit{};
+	if (RayCastStatic(cameraPos, rayEnd, staticHit) && staticHit.distance <= nearestDistance)
+	{
+		nearestDistance = staticHit.distance;
+		outAimPoint = staticHit.point;
+		hasHit = true;
+	}
+
+	if (!mWorld)
+		return hasHit;
+
+	const bool shooterIsPlayer = mWorld->HasComponent<MainPlayerComponent>(shooter);
+	const bool shooterIsEnemy = mWorld->HasComponent<EnemyComponent>(shooter);
+	if (!shooterIsPlayer && !shooterIsEnemy)
+		return hasHit;
+
+	auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, BoxColliderComponent>();
+	for (Entity target : entities)
+	{
+		if (target == shooter)
+			continue;
+
+		const bool targetIsPlayer = mWorld->HasComponent<MainPlayerComponent>(target);
+		const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
+		if (shooterIsPlayer && !targetIsEnemy)
+			continue;
+		if (shooterIsEnemy && !targetIsPlayer)
+			continue;
+
+		if (HealthComponent* health = mWorld->GetComponent<HealthComponent>(target))
+		{
+			if (health->IsDead())
+				continue;
+		}
+
+		TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
+		BoxColliderComponent* targetCollider = mWorld->GetComponent<BoxColliderComponent>(target);
+		if (!targetTransform || !targetCollider)
+			continue;
+
+		
+		UpdateWorldOBB(targetTransform, targetCollider);
+
+		float hitDistance = 0.0f;
+		if (!targetCollider->mWorldOBB.Intersects(cameraPos, forward, hitDistance))
+			continue;
+		if (hitDistance < 0.0f || hitDistance > nearestDistance || hitDistance > maxDistance)
+			continue;
+
+		nearestDistance = hitDistance;
+		outAimPoint = cameraPos + forward * hitDistance;
+		hasHit = true;
+	}
+
+	return hasHit;
 }
 
 std::vector<Entity> PhysicsWorld::FindNearbyEnemies(const Entity& entity, float radius, size_t maxCount)

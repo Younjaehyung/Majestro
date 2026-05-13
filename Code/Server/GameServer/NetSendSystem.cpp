@@ -312,7 +312,7 @@ void NetSendSystem::SendAmmoEvents()
 		{
 			if (!e.target.IsValid())
 				return;
-			cout << "send ammo" << endl;
+			
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
 			if (netComp == nullptr || netComp->mSessionId == 0)
 				return;
@@ -321,7 +321,7 @@ void NetSendSystem::SendAmmoEvents()
 			ammoPkt.netEntityId = netComp->mNetEntityId;
 			ammoPkt.currentAmmo = e.currentAmmo;
 			ammoPkt.maxAmmo = e.maxAmmo;
-
+			cout << "send ammo : " << "ammoPkt.currentAmmo" << endl;
 			mSendReq.SessionId = netComp->mSessionId;
 			mSendReq.Type = S2C_PKT_AMMO;
 			mSendReq.Size = sizeof(S2C_AmmoPacket);

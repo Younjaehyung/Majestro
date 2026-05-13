@@ -585,9 +585,6 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
     escortComp->mEscortProgress = pkt->EscortProgress;
 	escortComp->mEscortStage = pkt->EscortStage;
 	escortComp->mEscortTime = pkt->EscortTime;
-    std::cout << "EscortSceneState updated: Progress=" << escortComp->mEscortProgress
-              << " Stage=" << static_cast<int>(escortComp->mEscortStage)
-		<< " Time=" << escortComp->mEscortTime << std::endl;
 }
 
 

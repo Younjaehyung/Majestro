@@ -40,6 +40,10 @@ public:
     float Yaw = 0.0f;
     float Pitch = 0.0f;
 
+    Vec3 AimCameraPosition = Vec3::Zero;
+    Vec3 AimCameraDirection = Vec3::Forward;
+    bool HasAimCameraRay = false;
+
     uint32 lastSeq = 0;
 
 public:

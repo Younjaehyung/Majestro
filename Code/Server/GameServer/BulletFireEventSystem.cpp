@@ -1,9 +1,5 @@
 #include "pch.h"
 #include "BulletFireEventSystem.h"
-
-#include <chrono>
-#include <unordered_set>
-
 #include "World.h"
 #include "TransformComponent.h"
 #include "NetEntityComponent.h"
@@ -13,32 +9,13 @@
 #include "EnemyComponent.h"
 #include "MovementComponent.h"
 #include "BuffComponent.h"
+#include "PhysicsWorld.h"
 #include "ServerCore.h"
 #include "GameEvents.h"
+#include "MathUtils.h"
 
-namespace
-{
-	constexpr float kDegToRad = 0.01745329251994329577f;
 
-	Vec3 GetCameraForwardFromInput(const InputComponent& input)
-	{
-		const float yawRad = input.Yaw * kDegToRad;
-		const float pitchRad = -input.Pitch * kDegToRad;
-
-		const float cosPitch = std::cos(pitchRad);
-		Vec3 forward;
-		forward.x = std::sin(yawRad) * cosPitch;
-		forward.y = std::sin(pitchRad);
-		forward.z = std::cos(yawRad) * cosPitch;
-
-		if (forward.LengthSquared() <= 0.0001f)
-			return Vec3::Forward;
-
-		forward.Normalize();
-		return forward;
-	}
-}
-
+	
 BulletFireEventSystem::BulletFireEventSystem(World* world)
 	: System(world)
 {
@@ -86,12 +63,45 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			continue;
 
 		Vec3 direction = Vec3::Forward;
+		Vec3 spawnPosition = shooterTransform->mWorldPosition + Vec3::Up * 90.0f;
 		if (shooterIsPlayer)
 		{
 			if (inputComp == nullptr)
 				return;
 
-			direction = GetCameraForwardFromInput(*inputComp);
+			constexpr float kMaxAimDistance = 5000.0f;
+			Vec3 cameraForward = GetCameraForwardFromInput(*inputComp);
+			Vec3 cameraPosition = CalculateServerTpsCameraPosition(*shooterTransform, cameraForward);
+			if (inputComp->HasAimCameraRay)
+			{
+				cameraPosition = inputComp->AimCameraPosition;
+				cameraForward = inputComp->AimCameraDirection;
+				if (cameraForward.LengthSquared() <= 0.0001f)
+					cameraForward = GetCameraForwardFromInput(*inputComp);
+				else
+					cameraForward.Normalize();
+			}
+			Vec3 aimPoint = cameraPosition + cameraForward * kMaxAimDistance;
+			spawnPosition = CalculateServerMuzzlePosition(*shooterTransform, cameraForward);
+
+			if (auto physicsWorld = mWorld->GetPhysicsWorld())
+			{
+				
+				physicsWorld->QueryAimPoint(playerEntity, cameraPosition, cameraForward, kMaxAimDistance, aimPoint);
+
+				JoltStaticHit muzzleBlock{};
+				const Vec3 muzzleToAim = aimPoint - spawnPosition;
+				if (muzzleToAim.LengthSquared() > 0.0001f && physicsWorld->RayCastStatic(spawnPosition, aimPoint, muzzleBlock))
+				{
+					aimPoint = muzzleBlock.point;
+				}
+			}
+
+			direction = aimPoint - spawnPosition;
+			if (direction.LengthSquared() <= 0.0001f)
+				direction = cameraForward;
+			else
+				direction.Normalize();
 		}
 		else
 		{
@@ -117,16 +127,17 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			if (direction.LengthSquared() <= 0.0001f)
 				direction = Vec3::Forward;
 			direction.Normalize();
+			spawnPosition = shooterTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		}
 		BulletStat bulletStat = GetBulletStat(bulletType);
 		const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
 		bulletStat.Damage *= attackMultiplier;
 
-		bulletTransform->mWorldPosition = shooterTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
+		bulletTransform->mWorldPosition = spawnPosition;
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
 		bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
-		bulletTransform->mMovingVector = direction * bulletStat.Speed;
-		// Fix: update bullet rotation from fire direction so hit VFX packets receive a valid rot value.
+		bulletTransform->mMovingVector = Vec3::Zero;
+		
 		bulletTransform->LookAt(direction);
 
 		if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
@@ -168,12 +179,12 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		bulletPacket.dirX = direction.x;
 		bulletPacket.dirY = direction.y;
 		bulletPacket.dirZ = direction.z;
-		// Fix: send the server-computed bullet rotation to the client instead of making the client infer it.
+		
 		bulletPacket.rotX = bulletTransform->mLocalRotationE.x;
 		bulletPacket.rotY = bulletTransform->mLocalRotationE.y;
 		bulletPacket.rotZ = bulletTransform->mLocalRotationE.z;
 		bulletPacket.speed = bulletComp->mSpeed;
-		// Fix: send visual movement stats so clients do not rely on different local defaults.
+		
 		bulletPacket.lifeTime = bulletComp->mLifeTime;
 		bulletPacket.size = bulletStat.Size;
 
@@ -208,4 +219,66 @@ std::vector<uint32> BulletFireEventSystem::CollectPlayerSessions() const
 	}
 
 	return std::vector<uint32>(sessionSet.begin(), sessionSet.end());
+}
+
+
+Vec3 BulletFireEventSystem::GetCameraForwardFromInput(const InputComponent& input)
+{
+	const float yawRad = input.Yaw * kDegToRad;
+	const float pitchRad = -input.Pitch * kDegToRad;
+
+	const float cosPitch = std::cos(pitchRad);
+	Vec3 forward;
+	forward.x = std::sin(yawRad) * cosPitch;
+	forward.y = std::sin(pitchRad);
+	forward.z = std::cos(yawRad) * cosPitch;
+
+	if (forward.LengthSquared() <= 0.0001f)
+		return Vec3::Forward;
+
+	forward.Normalize();
+	return forward;
+}
+
+Vec3 BulletFireEventSystem::SafeHorizontalForward(Vec3 forward)
+{
+	forward.y = 0.0f;
+	if (forward.LengthSquared() <= 0.0001f)
+		return Vec3::Forward;
+
+	forward.Normalize();
+	return forward;
+}
+
+Vec3 BulletFireEventSystem::SafeRightFromForward(const Vec3& forward)
+{
+	Vec3 right = Vec3::Up.Cross(SafeHorizontalForward(forward));
+	if (right.LengthSquared() <= 0.0001f)
+		return Vec3::Right;
+
+	right.Normalize();
+	return right;
+}
+
+Vec3 BulletFireEventSystem::CalculateServerTpsCameraPosition(const TransformComponent& shooterTransform, const Vec3& cameraForward)
+{
+
+	const Vec3 yawRight = SafeRightFromForward(cameraForward);
+	const Vec3 pivot = shooterTransform.mWorldPosition
+		+ yawRight * kCameraRightOffset
+		+ Vec3::Up * kCameraUpOffset;
+
+
+	return pivot - cameraForward * kCameraBackDistance;
+}
+
+Vec3 BulletFireEventSystem::CalculateServerMuzzlePosition(const TransformComponent& shooterTransform, const Vec3& cameraForward)
+{
+
+	const Vec3 yawForward = SafeHorizontalForward(cameraForward);
+	const Vec3 yawRight = SafeRightFromForward(cameraForward);
+
+	
+	return shooterTransform.mWorldPosition yawRight * kMuzzleRightOffset
+		+ Vec3::Up * kMuzzleUpOffset+ yawForward * kMuzzleForwardOffset;
 }

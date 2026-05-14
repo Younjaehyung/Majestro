@@ -10,3 +10,6 @@ Code/Majestro/Resources/Json/Map002_Export.json
 Code/Majestro/Resources/Json/새 폴더/Map001_Export.json
 Code/Server/Resources/onnxruntime/
 *tlog
+Code/Server/Libraries/Include/onnxruntime/
+Code/Server/Libraries/Lib/onnxruntime/
+Code/Server/Resources/Map/

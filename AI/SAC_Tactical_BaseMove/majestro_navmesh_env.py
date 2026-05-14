@@ -329,7 +329,7 @@ class MajestroNavMeshEnv(gym.Env):
         self.stall_patience = int(stall_patience)
         self.time_penalty = float(time_penalty)
         self._R_SUCCESS = float(success_reward)
-        self._R_SUCCESS_ENTRY = 20.0
+        self._R_SUCCESS_ENTRY = 8.0
         self._R_SUCCESS_SUSTAIN = 2.0
         self._R_SUCCESS_DROP = 3.0
         self._R_EXIT_PENALTY = 12.0
@@ -778,20 +778,22 @@ class MajestroNavMeshEnv(gym.Env):
 
     def _compute_dynamic_horizon(self) -> int:
         d_world = None
-        if self.dynamic_horizon_use_geodesic:
-            geo_dists = []
-            for pos in np.asarray(self.agent_positions, dtype=np.float32):
-                gd = self._geo_distance(pos)
-                if gd is not None:
-                    geo_dists.append(float(gd))
-            if geo_dists:
-                d_world = max(geo_dists)
+        positions = np.asarray(self.agent_positions, dtype=np.float32)
+        if positions.ndim == 2 and positions.shape[0] > 0:
+            effective_dists = []
+            for pos in positions:
+                if self.dynamic_horizon_use_geodesic:
+                    gd = self._geo_distance(pos)
+                else:
+                    gd = None
+                if gd is None:
+                    effective_dists.append(float(np.linalg.norm(self.goal_pos - pos)))
+                else:
+                    effective_dists.append(float(gd))
+            if effective_dists:
+                d_world = max(effective_dists)
         if d_world is None:
-            positions = np.asarray(self.agent_positions, dtype=np.float32)
-            if positions.ndim == 2 and positions.shape[0] > 0:
-                d_world = float(np.max(np.linalg.norm(self.goal_pos[None, :] - positions, axis=1)))
-            else:
-                d_world = float(np.linalg.norm(self.goal_pos - self.agent_pos))
+            d_world = float(np.linalg.norm(self.goal_pos - self.agent_pos))
         t_min = int(math.ceil(d_world / max(self.step_size, 1e-6)))
         return int(np.clip(math.ceil(self.dynamic_horizon_kappa * t_min), self.dynamic_horizon_Tmin, self.dynamic_horizon_Tmax))
 
@@ -1156,8 +1158,6 @@ class MajestroNavMeshEnv(gym.Env):
         if rewarded_entry:
             base_bonus += 0.12
             terms["role_base_enter_radius"] = 0.12
-        if detour_used:
-            base_bonus += 0.02
         if collided:
             base_bonus -= 0.03
         speed = float(np.linalg.norm(self.agent_velocities[agent_index]))

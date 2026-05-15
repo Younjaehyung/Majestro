@@ -99,7 +99,7 @@ public:
 public:
 	PROJECTION_TYPE mCameraType = PROJECTION_TYPE::PERSPECTIVE;
 
-	float mNear = 1.f * 100.f;
+	float mNear = 1.f * 1.f;
 	float mFar = 200.f * 100.f;
 
 	float mShadowNear = 1.f;
@@ -141,7 +141,7 @@ public:
 	SweepHit mCameraSweep{};
 
 	float mCameraMaxLenth = 250;
-	float mCameraMinLenth = 6;
+	float mCameraMinLenth = 100;
 
 	BoundingOrientedBox mCameraBox;
 	float mCameraSphereRadius = 25.f;

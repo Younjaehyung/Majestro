@@ -254,61 +254,73 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 void Scene::LoadCollisionJson(const wstring& path)
 {
-	int loadedCount = 0;
-	int loadedSphereCount = 0;
+	int loadedInstanceCount = 0;
+	int loadedMeshCount = 0;
+	int skippedCount = 0;
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
-		shared_ptr<Mesh> collisionCubeMesh = RESOURCEMANAGER.LoadMCubeMesh();
-		if (!collisionCubeMesh)
-			throw std::runtime_error("LoadCollisionJson failed to load MCube mesh");
-		shared_ptr<Mesh> collisionSphereMesh = RESOURCEMANAGER.LoadSphereMesh();
-		if (!collisionSphereMesh)
-			throw std::runtime_error("LoadCollisionJson failed to load Sphere mesh");
-
-		std::vector<std::shared_ptr<Material>> materials;
-		materials.push_back(RESOURCEMANAGER.Get<Material>(L"Skybox"));
+		auto physicsWorld = mWorld->GetPhysicsWorld();
+		if (!physicsWorld)
+			throw std::runtime_error("LoadCollisionJson requires PhysicsWorld");
 
 		for (const auto& inst : level.instances)
 		{
-			const bool isCollisionCube =
-				inst.fbx.find("CRX_Cube") != std::string::npos ||
-				inst.staticMeshAsset.find("CRX_Cube") != std::string::npos ||
-				inst.componentName.find("CRX_Cube") != std::string::npos;
-			const bool isCollisionSphere =
-				inst.fbx.find("CRX_Sphere") != std::string::npos ||
-				inst.staticMeshAsset.find("CRX_Sphere") != std::string::npos ||
-				inst.componentName.find("CRX_Sphere") != std::string::npos;
-			if (!isCollisionCube && !isCollisionSphere)
+			if (inst.fbx.empty())
+			{
+				++skippedCount;
 				continue;
+			}
+
+			std::string stem = filesystem::path(inst.fbx).filename().stem().string();
+			if (stem.empty())
+			{
+				++skippedCount;
+				continue;
+			}
+
+			std::wstring fbxPath = L"..\\Resources\\Map\\" + s2ws(stem) + L".fbx";
+			shared_ptr<FBXData> collisionFbx = RESOURCEMANAGER.LoadFBXMesh(fbxPath);
+			if (!collisionFbx || collisionFbx->GetColliders().empty())
+			{
+				++skippedCount;
+				continue;
+			}
 
 			Entity entity = mWorld->CreateEntity();
 			TransformComponent transform{};
 			transform.mWorldMatrix = inst.worldMtx;
-			if (isCollisionSphere)
-			{
-				transform.mWorldMatrix = Matrix::CreateScale(100.0f, 100.0f, 100.0f) * inst.worldMtx;
-			}
-
 			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
 			trans.mIsStatic = true;
 
-			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+			bool registeredAnyMesh = false;
+			for (const shared_ptr<CollisionMesh>& colliderMesh : collisionFbx->GetColliders())
+			{
+				if (!colliderMesh)
+					continue;
+				if (physicsWorld->AddStaticCollisionMesh(entity, *colliderMesh, inst.worldMtx))
+				{
+					registeredAnyMesh = true;
+					++loadedMeshCount;
+				}
+			}
 
-			render.mMaterials = materials;
-			render.mCheckFrustum = false;
-			render.SetMesh(isCollisionSphere ? collisionSphereMesh : collisionCubeMesh);
-			if (isCollisionSphere)
-				++loadedSphereCount;
+			if (registeredAnyMesh)
+				++loadedInstanceCount;
 			else
-				++loadedCount;
-
+				++skippedCount;
 		}
-		std::cout << "Loaded collision debug boxes: " << loadedCount << ", spheres: " << loadedSphereCount << std::endl;
+
+		if (loadedMeshCount > 0)
+			physicsWorld->OptimizeJoltStaticCollision();
+
+		std::cout << "[Jolt] collision instances=" << loadedInstanceCount
+			<< " meshes=" << loadedMeshCount
+			<< " skipped=" << skippedCount << std::endl;
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Load failed: " << e.what() << "\n";
+		std::cerr << "LoadCollisionJson failed: " << e.what() << "\n";
 	}
 }
 
@@ -1062,9 +1074,7 @@ void FirstScene::Initialize()
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
-	// 수정 내용
-	// Server FirstScene 에 설치되는 Map001_CRX 충돌체를 같은 JSON transform 으로 클라이언트에 렌더링한다.
-	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{
@@ -1392,7 +1402,7 @@ void SecondScene::Initialize()
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevel(L"..\\Resources\\Json\\Map001_Export.json");
-	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	/////////////////////////////////////////////////////////////////////
 	{

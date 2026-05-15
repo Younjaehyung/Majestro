@@ -212,6 +212,7 @@
     <ClInclude Include="GodRayPass.h" />
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GameRenderPipeline.h" />
+    <ClInclude Include="JoltUtils.h" />
     <ClInclude Include="JsonUtils.h" />
     <ClInclude Include="LobbyRenderPipeline.h" />
     <ClInclude Include="LuminancePass.h" />

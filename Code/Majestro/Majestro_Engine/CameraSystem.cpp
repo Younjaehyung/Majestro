@@ -76,13 +76,30 @@ void CameraSystem::Update(float dt)
 				Vec3 pivot = pos + worldOffset;
 				Vec3 DestPos = pivot - cameraTypeComponent->mCameraMaxLenth * look;
 
-				SweepHit best = mWorld->GetPhysicsWorld()->SphereSweepVsOBB(pivot, DestPos,
-					cameraTypeComponent->mCameraSphereRadius);
+				auto physicsWorld = mWorld->GetPhysicsWorld();
+				JoltStaticHit joltHit{};
+				bool hasJoltHit = false;
+				if (physicsWorld->HasJoltStaticCollision())
+				{
+					hasJoltHit = physicsWorld->CastMovingSphereAgainstStatic(
+						pivot, DestPos,
+						cameraTypeComponent->mCameraSphereRadius, joltHit);
+				}
+
+				SweepHit obbHit{};
+				if (!hasJoltHit)
+				{
+					obbHit = physicsWorld->SphereSweepVsOBB(pivot, DestPos,
+						cameraTypeComponent->mCameraSphereRadius);
+				}
+
+				const bool  hit     = hasJoltHit || obbHit.hit;
+				const float hitDist = hasJoltHit ? joltHit.distance : obbHit.distance;
 
 				float cameraDistance = cameraTypeComponent->mCameraMaxLenth;
-				if (best.hit)
+				if (hit)
 				{
-					cameraDistance = best.distance - cameraTypeComponent->mCameraMargin;
+					cameraDistance = hitDist - cameraTypeComponent->mCameraMargin;
 					if (cameraDistance < cameraTypeComponent->mCameraMinLenth)
 						cameraDistance = cameraTypeComponent->mCameraMinLenth;
 					if (cameraDistance > cameraTypeComponent->mCameraMaxLenth)

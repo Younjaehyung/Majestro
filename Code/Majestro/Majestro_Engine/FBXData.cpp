@@ -269,11 +269,9 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring s
 		mMeshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
 
-		
-		/*collisionMesh->SetName(s2ws(meshName));
+		collisionMesh->SetName(s2ws(meshName));
 		collisionMesh->CreateMesh(meshInfo);
 		mColliders.push_back(collisionMesh);
-		RESOURCEMANAGER.Add<CollisionMesh>(collisionMesh->GetName(), collisionMesh);*/
 
 		
 

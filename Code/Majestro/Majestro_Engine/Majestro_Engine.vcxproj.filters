@@ -217,6 +217,9 @@
     <Filter Include="Utils\Json">
       <UniqueIdentifier>{77ec12ba-afbe-4ce8-9178-971daee9ec3b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\Jolt">
+      <UniqueIdentifier>{91b1f2ea-39ff-4830-8781-b8d3da97c80d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -651,6 +654,9 @@
     </ClInclude>
     <ClInclude Include="GamePhaseSystem.h">
       <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="JoltUtils.h">
+      <Filter>Utils\Jolt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

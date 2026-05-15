@@ -658,6 +658,9 @@
     <ClInclude Include="JoltUtils.h">
       <Filter>Utils\Jolt</Filter>
     </ClInclude>
+    <ClInclude Include="PlayerAnimationResolver.h">
+      <Filter>World\Script</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">

@@ -230,7 +230,7 @@ void GameRenderPipeline::UpdatePassStates()
         auto* player = mWorld->GetComponent<MainPlayerComponent>(e);
         if (player)
         {
-            enableBlur = (player->mStatePacket == S_Dash);
+            enableBlur = (player->mLowerState == static_cast<int>(ReplicatedMovementMode::Dashing));
         }
         break;
     }

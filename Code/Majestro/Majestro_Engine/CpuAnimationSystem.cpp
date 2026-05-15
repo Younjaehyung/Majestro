@@ -8,6 +8,7 @@
 #include "AnimationComponent.h"
 #include "AnimationEvaluator.h"
 #include "PlayerComponent.h"
+#include "PlayerAnimationResolver.h"
 #include "EnemyComponent.h"
 #include "TagComponent.h"
 #include "MovementComponent.h"
@@ -96,18 +97,24 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 	auto view = mWorld->View<AnimationComponent>();
 	for (Entity entity : view) {
 		AnimationComponent* animCom = mWorld->GetComponent<AnimationComponent>(entity);
-		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
-		EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
-		MannequinComponent* mannequinComponent = mWorld->GetComponent<MannequinComponent>(entity);
+		MainPlayerComponent* mainPlayerCom = mWorld->GetComponent<MainPlayerComponent>(entity);
+		EnemyComponent* enemyCom = mWorld->GetComponent<EnemyComponent>(entity);
+		MannequinComponent* mannequinCom = mWorld->GetComponent<MannequinComponent>(entity);
+		TransformComponent* transformCom = mWorld->GetComponent<TransformComponent>(entity);
+		PlayerMovementComponent* movementCom = mWorld->GetComponent<PlayerMovementComponent>(entity);
+		NetTransformComponent* netTransformCom = mWorld->GetComponent<NetTransformComponent>(entity);
 
-		const uint32 previousClip = animCom->mAnimClipIdx;
+		const uint32 previousClip = animCom->mLowerAnimClipIdx;
 		const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
 
-		if (mainPlayerComponent) {
-			animCom->mAnimClipIdx = mainPlayerComponent->mLowerStatePacket;
-			animCom->mUpperAnimClipIdx = mainPlayerComponent->mStatePacket;
+		if (mainPlayerCom) {
+			const PlayerAnimationResolveResult resolvedAnim = ResolvePlayerAnimationState(
+				*mainPlayerCom, *animCom, transformCom, movementCom, netTransformCom);
+		
+			animCom->mLowerAnimClipIdx = resolvedAnim.LowerClipIndex;
+			animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
 
-			if (animCom->mAnimClipIdx != animCom->mUpperAnimClipIdx) {
+			if (resolvedAnim.EnableUpperLayer) {
 				animCom->mEnableUpperBodyLayer = true;
 				animCom->mUpperLayerWeight = 1.0f;
 			}
@@ -117,25 +124,35 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			}
 		}
 
-		if (enemyComponent) {
-			animCom->mAnimClipIdx = enemyComponent->mAnimStatePacket;
+		if (enemyCom) {
+			animCom->mLowerAnimClipIdx = enemyCom->mAnimStatePacket;
 		}
 
-		if (mannequinComponent) {
+		if (mannequinCom) {
 			std::vector<Entity> choicdPlayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
 			ChoicePlayerComponent* choicdPlayerComponent = mWorld->GetComponent<ChoicePlayerComponent>(choicdPlayerEntities[0]);
-			if (mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType)
-				animCom->mAnimClipIdx = 1;
+			if (mannequinCom->mPlayerType == choicdPlayerComponent->mPlayerType)
+				animCom->mLowerAnimClipIdx = 1;
 			else
-				animCom->mAnimClipIdx = 0;
+				animCom->mLowerAnimClipIdx = 0;
 		}
 
 		if (animCom->mEnableUpperBodyLayer == false) {
-			animCom->mUpperAnimClipIdx = animCom->mAnimClipIdx;
+			animCom->mUpperAnimClipIdx = animCom->mLowerAnimClipIdx;
 			animCom->mUpperLayerWeight = 0.0f;
 		}
 
-		if (animCom->mAnimClipIdx != previousClip) {
+		const bool forceLowerRestart = mainPlayerCom &&
+			mainPlayerCom->mStateSequence != animCom->mConsumedPlayerStateSequence &&
+			animCom->mLowerAnimClipIdx == previousClip &&
+			(mainPlayerCom->mLowerState != mainPlayerCom->mPrevLowerStatePacket ||
+				animCom->mEnableUpperBodyLayer == false);
+		const bool forceUpperRestart = mainPlayerCom &&
+			mainPlayerCom->mStateSequence != animCom->mConsumedPlayerStateSequence &&
+			animCom->mEnableUpperBodyLayer &&
+			animCom->mUpperAnimClipIdx == previousUpperClip;
+
+		if (animCom->mLowerAnimClipIdx != previousClip || forceLowerRestart) {
 			animCom->mBlendClipIdx = previousClip;
 			animCom->mBlendUpdateTime = animCom->mUpdateTime;
 			animCom->mBlendTimer = 0.f;
@@ -143,7 +160,7 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			animCom->mUpdateTime = 0.f;
 		}
 
-		if (animCom->mEnableUpperBodyLayer && animCom->mUpperAnimClipIdx != previousUpperClip) {
+		if (animCom->mEnableUpperBodyLayer && (animCom->mUpperAnimClipIdx != previousUpperClip || forceUpperRestart)) {
 			animCom->mUpperBlendClipIdx = previousUpperClip;
 			animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
 			animCom->mUpperBlendTimer = 0.f;
@@ -151,10 +168,13 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			animCom->mUpperUpdateTime = 0.f;
 		}
 
+		if (mainPlayerCom)
+			animCom->mConsumedPlayerStateSequence = mainPlayerCom->mStateSequence;
+
 		animCom->mUpdateTime += deltaTime;
 		animCom->mUpperUpdateTime += deltaTime;
 
-		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimClipIdx);
+		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mLowerAnimClipIdx);
 		shared_ptr<Animator>& upperAnimClip = animCom->mAnimClips.at(animCom->mUpperAnimClipIdx);
 
 		if (animCom->mUpdateTime >= animClip->mDuration)

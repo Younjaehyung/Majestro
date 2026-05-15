@@ -7,8 +7,12 @@
 #include "Animator.h"
 #include "AnimationComponent.h"
 #include "PlayerComponent.h"
+#include "PlayerAnimationResolver.h"
 #include "EnemyComponent.h"
 #include "TagComponent.h"
+#include "MovementComponent.h"
+#include "NetTransformComponent.h"
+#include "TransformComponent.h"
 
 #include "InputManager.h"
 
@@ -96,17 +100,23 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity);
         EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
         MannequinComponent* mannequinComponent = mWorld->GetComponent<MannequinComponent>(entity);
+        TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+        PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entity);
+        NetTransformComponent* netTransformComponent = mWorld->GetComponent<NetTransformComponent>(entity);
 
 
-        const uint32 previousClip = animCom->mAnimClipIdx;
+        const uint32 previousClip = animCom->mLowerAnimClipIdx;
         const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
 
         if (mainPlayerComponent) {
-            animCom->mAnimClipIdx = mainPlayerComponent->mLowerStatePacket;
-            animCom->mUpperAnimClipIdx = mainPlayerComponent->mStatePacket;
+            const PlayerAnimationResolveResult resolvedAnim = ResolvePlayerAnimationState(
+                *mainPlayerComponent, *animCom, transformComponent, movementComponent, netTransformComponent);
+ 
+            animCom->mLowerAnimClipIdx = resolvedAnim.LowerClipIndex;
+            animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
 
             // 수정: 참고 코드처럼 상하체가 다를 때만 Upper 레이어 활성화
-            if (animCom->mAnimClipIdx != animCom->mUpperAnimClipIdx) {
+            if (resolvedAnim.EnableUpperLayer) {
                 animCom->mEnableUpperBodyLayer = true;
                 animCom->mUpperLayerWeight = 1.0f; // 수정: 명시적으로 1.0 설정
             }
@@ -117,26 +127,37 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         }
 
         if (enemyComponent) {
-            animCom->mAnimClipIdx = enemyComponent->mAnimStatePacket;
+            animCom->mLowerAnimClipIdx = enemyComponent->mAnimStatePacket;
         }
 
         if (mannequinComponent) {
             std::vector<Entity> choicdPlayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
             ChoicePlayerComponent* choicdPlayerComponent = mWorld->GetComponent<ChoicePlayerComponent>(choicdPlayerEntities[0]);
             if (mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType)
-                animCom->mAnimClipIdx = 1;
+                animCom->mLowerAnimClipIdx = 1;
             else
-                animCom->mAnimClipIdx = 0;
+                animCom->mLowerAnimClipIdx = 0;
         }
 
         // 수정: 참고 코드처럼 Upper가 비활성화면 Lower와 동일하게 설정
         if (animCom->mEnableUpperBodyLayer == false) {
-            animCom->mUpperAnimClipIdx = animCom->mAnimClipIdx;
+            animCom->mUpperAnimClipIdx = animCom->mLowerAnimClipIdx;
             animCom->mUpperLayerWeight = 0.0f;
         }
 
         // 애니메이션 전환 감지 (Lower)
-        if (animCom->mAnimClipIdx != previousClip) {
+        const bool forceLowerRestart = mainPlayerComponent &&
+            mainPlayerComponent->mStateSequence != animCom->mConsumedPlayerStateSequence &&
+            animCom->mLowerAnimClipIdx == previousClip &&
+            (mainPlayerComponent->mLowerState != mainPlayerComponent->mPrevLowerStatePacket ||
+                animCom->mEnableUpperBodyLayer == false);
+        const bool forceUpperRestart = mainPlayerComponent &&
+            mainPlayerComponent->mStateSequence != animCom->mConsumedPlayerStateSequence &&
+            animCom->mEnableUpperBodyLayer &&
+            animCom->mUpperAnimClipIdx == previousUpperClip;
+
+      
+        if (animCom->mLowerAnimClipIdx != previousClip || forceLowerRestart) {
             animCom->mBlendClipIdx = previousClip;
             animCom->mBlendUpdateTime = animCom->mUpdateTime;
             animCom->mBlendTimer = 0.f;
@@ -145,7 +166,7 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         }
 
         // 애니메이션 전환 감지 (Upper)
-        if (animCom->mEnableUpperBodyLayer && animCom->mUpperAnimClipIdx != previousUpperClip) {
+        if (animCom->mEnableUpperBodyLayer && (animCom->mUpperAnimClipIdx != previousUpperClip || forceUpperRestart)) {
             animCom->mUpperBlendClipIdx = previousUpperClip;
             animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
             animCom->mUpperBlendTimer = 0.f;
@@ -154,10 +175,13 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         }
 
         // 타이머 업데이트
+        if (mainPlayerComponent)
+            animCom->mConsumedPlayerStateSequence = mainPlayerComponent->mStateSequence;
+
         animCom->mUpdateTime += deltaTime;
         animCom->mUpperUpdateTime += deltaTime;
 
-        shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mAnimClipIdx);
+        shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mLowerAnimClipIdx);
         shared_ptr<Animator>& upperAnimClip = animCom->mAnimClips.at(animCom->mUpperAnimClipIdx);
 
         // 루핑 처리

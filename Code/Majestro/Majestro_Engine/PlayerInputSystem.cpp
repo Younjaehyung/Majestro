@@ -64,8 +64,15 @@ void PlayerInputSystem::Update(float dt)
 
 	//player move
 
-	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
-	//std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
+	auto entitys = mWorld->GetEntitiesWithComponents<
+		PlayerMovementComponent,
+		MainPlayerComponent,
+		BeatComponent,
+		LocalPlayerComponent>();
+
+	if (entitys.empty())
+		return;
+
 
 	PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
 	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);

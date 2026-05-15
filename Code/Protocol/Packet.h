@@ -173,6 +173,35 @@ enum class WavePhaseType : uint8
 	Clear 
 };
 
+
+enum class ReplicatedActionState : uint8
+{
+	None = 0,
+	Attack1,
+	Attack2,
+	Skill1,
+	Skill2,
+	Special,
+	Reload,
+	RhythmChange,
+	Aim,
+	Hit,
+	Stun,
+	Dead
+};
+
+enum class ReplicatedMovementMode : uint8
+{
+	Idle = 0,
+	Grounded,
+	Airborne,
+	Falling,
+	Landing,
+	Dashing,
+	Disabled,
+	Dead
+};
+
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -293,7 +322,8 @@ struct S2C_RespawnPacket : public PacketTcpHeader {
 struct S2C_StatePacket : public PacketTcpHeader {
 	uint64_t netEntityId{};
 	uint8_t stateId{};
-	uint8_t lowerStateId{};
+	uint8_t lowerStateId{}; 
+	uint32_t stateSequence{};
 	S2C_StatePacket() : PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 } {}
 	S2C_StatePacket(uint64_t entityId, uint8_t sId)
 		: PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 },

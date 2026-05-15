@@ -63,7 +63,7 @@ void PlayerSystem::Update(float dt)
 
 
 
-		if(mainPlayerComponent->mStatePacket == S_Dash)
+		if(mainPlayerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Dashing))
 		{
 			mainPlayerComponent->mDashTime += dt;
 			cameraComponent->mFov = lerp(cameraComponent->mFov, (103.f / 2.0f) + 0.2f, mainPlayerComponent->mDashTime);
@@ -82,12 +82,12 @@ void PlayerSystem::Update(float dt)
 		if (animCom && moveCom && tfCom)
 		{
 			const bool battleAimState =
-				mainPlayerComponent->mStatePacket == S_Aim ||
-				mainPlayerComponent->mStatePacket == S_Attack1 ||
-				mainPlayerComponent->mStatePacket == S_Attack2 ||
-				mainPlayerComponent->mStatePacket == S_Skill1 ||
-				mainPlayerComponent->mStatePacket == S_Skill2 ||
-				mainPlayerComponent->mStatePacket == S_Special;
+				mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Aim) ||
+				mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Attack1) ||
+				mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Attack2) ||
+				mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Skill1) ||
+				mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Skill2) ||
+				mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Special);
 
 			const bool aimActive = INPUT.IsMouseLookActive() || battleAimState || moveCom->mAttack || moveCom->mSpecial;
 
@@ -107,10 +107,11 @@ void PlayerSystem::Update(float dt)
 
 		
 		// 공격 상태 진입 시 카메라 쉐이크 트리거
-		if (mainPlayerComponent->mStatePacket != mainPlayerComponent->mPrevStatePacket)
+		if (mainPlayerComponent->mUpperState != mainPlayerComponent->mPrevStatePacket ||
+			mainPlayerComponent->mStateSequence != mainPlayerComponent->mPrevStateSequence)
 		{
 			uint32 entityID = entity.GetID();
-			int32  currState = mainPlayerComponent->mStatePacket;
+			int32  currState = mainPlayerComponent->mUpperState;
 
 			//mainPlayerComponent->mPlayerType = 0 1 2
 
@@ -121,9 +122,9 @@ void PlayerSystem::Update(float dt)
 			case 0:
 				if (currState)
 				{
-					bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
-						|| currState == S_Skill1 || currState == S_Skill2
-						|| currState == S_Special);
+					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
+						|| currState == static_cast<int>(ReplicatedActionState::Skill1) || currState == static_cast<int>(ReplicatedActionState::Skill2)
+						|| currState == static_cast<int>(ReplicatedActionState::Special));
 					if (bAttackState)
 						mainPlayer->TriggerShake(1.5f, 0.05f, 20.f);
 					std::cout << "ATTACK!@" << std::endl;
@@ -132,9 +133,9 @@ void PlayerSystem::Update(float dt)
 			case 1:
 				if (currState)
 				{
-					bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
-						|| currState == S_Skill1 || currState == S_Skill2
-						|| currState == S_Special);
+					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
+						|| currState == static_cast<int>(ReplicatedActionState::Skill1) || currState == static_cast<int>(ReplicatedActionState::Skill2)
+						|| currState == static_cast<int>(ReplicatedActionState::Special));
 					if (bAttackState)
 						mainPlayer->TriggerShake(0.5f, 0.05f, 20.f);
 
@@ -143,9 +144,9 @@ void PlayerSystem::Update(float dt)
 			case 2: 
 				if (currState)
 				{
-					bool bAttackState = (currState == S_Attack1 || currState == S_Attack2
-						|| currState == S_Skill1 || currState == S_Skill2
-						|| currState == S_Special);
+					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
+						|| currState == static_cast<int>(ReplicatedActionState::Skill1) || currState == static_cast<int>(ReplicatedActionState::Skill2)
+						|| currState == static_cast<int>(ReplicatedActionState::Special));
 					if (bAttackState)
 						mainPlayer->TriggerShake(0.5f, 0.05f, 20.f);
 

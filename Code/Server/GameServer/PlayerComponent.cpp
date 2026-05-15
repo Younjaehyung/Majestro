@@ -195,6 +195,49 @@ void MainPlayerComponent::Update(float dt)
     mFsm.Update(this);
 }
 
+uint8 MainPlayerComponent::GetReplicatedActionState()
+{
+	// FSM split: replicate only gameplay action state, not animation clip state.
+	const StateId state = mFsm.GetState();
+	switch (state)
+	{
+	case S_Attack1: return static_cast<uint8>(ReplicatedActionState::Attack1);
+	case S_Attack2: return static_cast<uint8>(ReplicatedActionState::Attack2);
+	case S_Skill1: return static_cast<uint8>(ReplicatedActionState::Skill1);
+	case S_Skill2: return static_cast<uint8>(ReplicatedActionState::Skill2);
+	case S_Special: return static_cast<uint8>(ReplicatedActionState::Special);
+	case S_Reload: return static_cast<uint8>(ReplicatedActionState::Reload);
+	case S_RhythmChange: return static_cast<uint8>(ReplicatedActionState::RhythmChange);
+	case S_Aim: return static_cast<uint8>(ReplicatedActionState::Aim);
+	case S_Hit: return static_cast<uint8>(ReplicatedActionState::Hit);
+	case S_Stun: return static_cast<uint8>(ReplicatedActionState::Stun);
+	case S_Dead: return static_cast<uint8>(ReplicatedActionState::Dead);
+	default: return static_cast<uint8>(ReplicatedActionState::None);
+	}
+}
+
+uint8 MainPlayerComponent::GetReplicatedMovementMode()
+{
+	
+	const StateId state = mFsm.GetState();
+	if (state == S_Dead)
+		return static_cast<uint8>(ReplicatedMovementMode::Dead);
+	if (state == S_Stun || state == S_Hit)
+		return static_cast<uint8>(ReplicatedMovementMode::Disabled);
+	if (mDash || state == S_Dash)
+		return static_cast<uint8>(ReplicatedMovementMode::Dashing);
+	if (mFalling || state == S_Fall)
+		return static_cast<uint8>(ReplicatedMovementMode::Falling);
+	if (state == S_Land)
+		return static_cast<uint8>(ReplicatedMovementMode::Landing);
+	if (state == S_Jump)
+		return static_cast<uint8>(ReplicatedMovementMode::Airborne);
+	if (mFlags & FLAG_MOVE)
+		return static_cast<uint8>(ReplicatedMovementMode::Grounded);
+
+	return static_cast<uint8>(ReplicatedMovementMode::Idle);
+}
+
 void MainPlayerComponent::InitFSMOnce()
 {
 }
@@ -396,6 +439,9 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 //-------------------------------------------------------------------------------------------------
 void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 {
+	
+	if (owner->GetReplicatedActionState() != static_cast<uint8>(ReplicatedActionState::None))
+		++(owner->mStateSequence);
     owner->mStateEnd = GetServerTotalTimeSeconds()  + s->mAnimEndTime;
     owner->mNextState = S_Idle;
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }

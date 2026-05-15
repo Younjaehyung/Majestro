@@ -84,8 +84,10 @@ public:
 	int mPrevStatePacket;
 	int mPrevLowerStatePacket;
 
-	int mStatePacket;
-	int mLowerStatePacket;
+	int mUpperState; 
+	int mLowerState;
+	uint32 mPrevStateSequence = 0;
+	uint32 mStateSequence = 0;
 
 	float mSpeed = 0.0f;
 	float mWalkSpeed = 0.0f;

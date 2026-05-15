@@ -78,19 +78,8 @@ public:
 	void StateCheck();
 	void Update(float dt);
 	uint32 GetState() { return (uint32)mFsm.GetState(); };
-	uint32 GetLowerState() { 
-		if (mFalling)return (uint32)S_Fall;
-		if (mDash)return (uint32)S_Dash;
-		if (mFlags & FLAG_MOVE) {
-			if(mPlayerMovingDir.x == 1)return (uint32)S_RunForward;
-			if(mPlayerMovingDir.x == -1)return (uint32)S_RunBackward;
-
-			if(mPlayerMovingDir.y == 1)return (uint32)S_RunRight;
-			if(mPlayerMovingDir.y == -1)return (uint32)S_RunLeft;
-		}
-
-		return (uint32)mFsm.GetState(); 
-	};
+	uint8 GetReplicatedActionState();
+	uint8 GetReplicatedMovementMode();
 
 	void InitFSMOnce();
 	void InitFSMFromJson(const std::string& path);
@@ -139,6 +128,7 @@ public:
 	float mStateEnd = 0.0f;
 	float mDashEnd = 0.0f;
 	float mDt = 0.0f;
+	uint32 mStateSequence = 0;
 
 	int mMaxBullet;
 	int mNowBullet;

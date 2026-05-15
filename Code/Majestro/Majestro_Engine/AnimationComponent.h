@@ -93,7 +93,7 @@ public:
 
 	vector<shared_ptr<Animator>>	mAnimClips;
 	AnimationInstance				mAnimInstance{};
-	uint32							mAnimClipIdx{};		// 현재 재생중인 애니메이션 클립 인덱스
+	uint32							mLowerAnimClipIdx{};		// 현재 재생중인 애니메이션 클립 인덱스
 	uint32							mBlendClipIdx{};	// 보간 대상 클립 인덱스
 
 	float							mBlendUpdateTime = 0.f;
@@ -107,6 +107,7 @@ public:
 	bool							mEnableUpperBodyLayer = false;
 	uint32							mUpperAnimClipIdx{};
 	uint32							mUpperBlendClipIdx{};
+	uint32							mConsumedPlayerStateSequence = 0; 
 
 	float							mUpperUpdateTime = 0.f;
 	float							mUpperBlendUpdateTime = 0.f;

@@ -13,5 +13,5 @@ public:
 
 	float mHeightInterpolation = 3.0f;
 
-	float mStepDownDistance = 50.0f;
+	float mStepDownDistance = 60.0f;
 };

@@ -155,6 +155,7 @@ void NetRecvSystem::HandleMove(const InputCommand& msg)
 
     netTransform->mLastSequence   = pkt->Sequence;
     netTransform->mLastUpdateTime = TIMER.GetTotalTime();
+    netTransform->mVelocity = Vec3(pkt->vx, pkt->vy, pkt->vz);
 
     if (mWorld->GetComponent<LocalPlayerComponent>(e))
     {
@@ -201,11 +202,13 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
 
     if (playerComp)
     {
-        playerComp->mPrevStatePacket = playerComp->mStatePacket;
-        playerComp->mPrevLowerStatePacket = playerComp->mLowerStatePacket;
+        playerComp->mPrevStatePacket = playerComp->mUpperState;
+        playerComp->mPrevLowerStatePacket = playerComp->mLowerState;
+        playerComp->mPrevStateSequence = playerComp->mStateSequence;
 
-        playerComp->mStatePacket = pkt->stateId;
-        playerComp->mLowerStatePacket = pkt->lowerStateId;
+        playerComp->mUpperState = pkt->stateId;
+        playerComp->mLowerState = pkt->lowerStateId;
+        playerComp->mStateSequence = pkt->stateSequence;
 
        
     }

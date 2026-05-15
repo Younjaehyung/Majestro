@@ -127,8 +127,9 @@ void NetSendSystem::SendAction()
 			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(netComp->mOwnerEntity);
 			S2C_StatePacket statePkt;
 			statePkt.netEntityId = netComp->mNetEntityId;
-			statePkt.stateId = playerComp->GetState();
-			statePkt.lowerStateId = playerComp->GetLowerState();
+			statePkt.stateId = playerComp->GetReplicatedActionState();
+			statePkt.lowerStateId = playerComp->GetReplicatedMovementMode();
+			statePkt.stateSequence = playerComp->mStateSequence;
 
 			for (uint32 sessionId : recipients)
 			{
@@ -156,6 +157,7 @@ void NetSendSystem::SendAction()
 			statePkt.netEntityId = netComp->mNetEntityId;
 			statePkt.stateId = enemyComp->mAnimState;
 			statePkt.lowerStateId = enemyComp->mAnimState;
+			statePkt.stateSequence = 0;
 
 			for (uint32 sessionId : recipients)
 			{

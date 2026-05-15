@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -38,12 +39,14 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -51,6 +54,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableUnitySupport>true</EnableUnitySupport>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -93,6 +97,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -116,6 +121,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -141,6 +147,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -165,6 +172,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
     </ClCompile>
     <Link>
       <SubSystem>

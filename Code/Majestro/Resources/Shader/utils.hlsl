@@ -24,6 +24,19 @@ float BayerDither(float2 screenPos)
     return bayer[idx];
 }
 
+// IGN (Interleaved Gradient Noise) 노이즈
+float InterleavedGradientNoise(float2 svPosition)
+{
+    float3 magic = float3(0.06711056f, 0.00583715f, 52.9829189f);
+    return frac(magic.z * frac(dot(svPosition, magic.xy)));
+}
+
+void ApplyIGNDitherFade(float2 svPosition, float alpha)
+{
+    float noise = InterleavedGradientNoise(svPosition);
+    clip(alpha - noise);
+}
+
 float3 CalcWindOffset(float3 worldPos, float localY, float4 windParam)
 {
     // worldPos : 월드 공간 좌표 (위상 계산에 사용)

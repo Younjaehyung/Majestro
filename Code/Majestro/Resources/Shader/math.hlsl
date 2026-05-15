@@ -18,6 +18,12 @@ float Hash(float n)
     return frac(sin(n) * 43758.5453f);
 }
 
+float3 BlendNormalSimple(float3 nA, float3 nB)
+{
+
+    return normalize(float3(nA.rg + nB.rg, nA.b * nB.b));
+}
+
 // Y축 회전 행렬(간단 버전)
 float3 RotateY(float3 v, float angle)
 {

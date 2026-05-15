@@ -6,12 +6,6 @@
 #define FORWARD_PLUS_MAX_LIGHTS_PER_TILE 128
 
 
-float3 BlendNormalSimple(float3 nA, float3 nB)
-{
-
-    return normalize(float3(nA.rg + nB.rg, nA.b * nB.b));
-}
-
 // ============================================================
 //  VS_OUT
 // ============================================================
@@ -44,19 +38,13 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
     ////////////////////////////////////////////////////////////////////////
    
-    // 카메라 디더 페이드: Object.Extra.x = ObjectAlpha 기반 Bayer 4x4 디더 clip
-    {
-        float objectAlpha = Objects[instance.ObjectIndex].Extra.x;
-          //  - 알파 1: 모든 픽셀 통과 (불투명)
-          //  - 알파 0.5: 체크보드
-          //  - 알파 0: 전 픽셀 폐기
-        if (objectAlpha < 0.999f)
-        {
-            uint2 pix = (uint2) input.pos.xy;
-            float threshold = bayer[(pix.y & 3) * 4 + (pix.x & 3)];
-            clip(objectAlpha - threshold);
-        }
-    }
+    
+    
+    float objectAlpha = Objects[instance.ObjectIndex].Extra.x;
+
+    
+    ApplyIGNDitherFade(input.pos.xy, objectAlpha);
+    
 
     ////////////////////////////////////////////////////////////////////////
     // Diffuse 텍스처

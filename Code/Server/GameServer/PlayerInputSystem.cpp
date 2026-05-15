@@ -178,19 +178,24 @@ void PlayerInputSystem::Update(float dt)
 		//movementComponent->mMovingDirection = { 0,0,0 };
 		mainPlayerComponent->mPlayerMovingDir.x = inputComp->MoveZ;
 		mainPlayerComponent->mPlayerMovingDir.y = inputComp->MoveX;
-		if (inputComp->MoveX == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunRightState::Instance());
+		if (mainPlayerComponent->mDash) {
+			inputComp->MoveZ = 1;
+			inputComp->MoveX = 0;
 		}
-		if (inputComp->MoveX == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunLeftState::Instance());
+		else {
+			if (inputComp->MoveX == 1) {
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunRightState::Instance());
+			}
+			if (inputComp->MoveX == -1) {
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunLeftState::Instance());
+			}
+			if (inputComp->MoveZ == 1) {
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunForwardState::Instance());
+			}
+			if (inputComp->MoveZ == -1) {
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunBackwardState::Instance());
+			}
 		}
-		if (inputComp->MoveZ == 1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunForwardState::Instance());
-		}
-		if (inputComp->MoveZ == -1) {
-			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunBackwardState::Instance());
-		}
-
 
 
 		if (inputComp->IsButtonPressed(InputButtons::SPACE)) {

@@ -12,4 +12,6 @@ public:
 	bool mFalling;
 
 	float mHeightInterpolation = 3.0f;
+
+	float mStepDownDistance = 50.0f;
 };

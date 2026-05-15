@@ -110,10 +110,27 @@ void MovementSystem::Update(float dt) {
 			gravityComponent->mFalling = false;
 		}
 		else {
-			gravityComponent->mFalling = true;
+			// Step-down : 계단을 내려가는 케이스 ( falling 막기 )
+			const float horizontalMoveSq =
+				transformComponent->mMovingVector.x * transformComponent->mMovingVector.x
+				+ transformComponent->mMovingVector.z * transformComponent->mMovingVector.z;
+			const bool hasHorizontalMove = horizontalMoveSq > 0.0001f;
+			const float distToGround = gravityComponent->mHight - gravityComponent->mGround;
 
-			gravityComponent->mGravity += gravityComponent->mGravityA * dt;
-			gravityComponent->mHight -= gravityComponent->mGravity * dt;
+			if (gravityComponent->mGravity >= 0.0f
+				&& hasHorizontalMove
+				&& distToGround <= gravityComponent->mStepDownDistance)
+			{
+				gravityComponent->mHight = gravityComponent->mGround;
+				gravityComponent->mGravity = 0.0f;
+				gravityComponent->mFalling = false;
+			}
+			else {
+				gravityComponent->mFalling = true;
+
+				gravityComponent->mGravity += gravityComponent->mGravityA * dt;
+				gravityComponent->mHight -= gravityComponent->mGravity * dt;
+			}
 		}
 
 		transformComponent->mLocalPosition.y = gravityComponent->mHight +3.f;

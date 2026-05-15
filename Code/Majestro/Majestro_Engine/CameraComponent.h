@@ -143,6 +143,12 @@ public:
 	float mCameraMaxLenth = 250;
 	float mCameraMinLenth = 100;
 
+	// cameraDistance에 따른 디더로 페이드 아웃
+	float mCameraFadeStart = 150.f; // 알파 1 (불투명)
+	float mCameraFadeEnd   = 70.f;	// 알파 0 (완전 컬링)
+	float mCurrentFadeAlpha = 1.f;   // 프레임간 lerp 저장 (튐 방지)
+	float mFadeLerpSpeed = 12.f;     // 페이드 보간 속도 (1/s)
+
 	BoundingOrientedBox mCameraBox;
 	float mCameraSphereRadius = 25.f;
 	float mCameraMargin = 5.f;

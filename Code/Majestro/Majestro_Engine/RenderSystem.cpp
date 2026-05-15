@@ -474,6 +474,7 @@ void RenderSystem::PushObjectData() {
 
       // shadow-only 오브젝트: 트랜스폼 및 드로우 아이템 등록
       objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
+      objectParams.Extra = Vec4(renderComponent->mOpacity, 0.f, 0.f, 0.f);
       mObjectVector.push_back(objectParams);
       renderComponent->mObjectIndex = index++;
       const int32 animIdx = animationComponent ? animationComponent->mAnimInstanceID : -1;
@@ -497,6 +498,7 @@ void RenderSystem::PushObjectData() {
       continue;
 
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
+    objectParams.Extra = Vec4(renderComponent->mOpacity, 0.f, 0.f, 0.f);
     mObjectVector.push_back(objectParams); // 트랜스폼 갱신
 
     renderComponent->mObjectIndex = index++; // objectParams의 index 지정
@@ -561,6 +563,7 @@ void RenderSystem::PushObjectData() {
       Matrix boxWorld = colliderLocal * tr->mWorldMatrix;
 
       objectParams.MatWorld = boxWorld.Transpose();
+      objectParams.Extra = Vec4(1.f, 0.f, 0.f, 0.f);
       mObjectVector.push_back(objectParams);
 
       const uint32 objIndex = index++;
@@ -598,6 +601,7 @@ void RenderSystem::PushObjectData() {
       );
 
       objectParams.MatWorld = world.Transpose();
+      objectParams.Extra = Vec4(1.f, 0.f, 0.f, 0.f);
       mObjectVector.push_back(objectParams);
       const uint32 objIdx = index++;
 

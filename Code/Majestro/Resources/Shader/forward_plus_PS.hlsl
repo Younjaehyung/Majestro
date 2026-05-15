@@ -1,5 +1,6 @@
 #include "params.hlsl"
 #include "utils.hlsl"
+#include "math.hlsl"
 
 #define FORWARD_PLUS_TILE_SIZE          16
 #define FORWARD_PLUS_MAX_LIGHTS_PER_TILE 128
@@ -40,6 +41,22 @@ float4 PS_Main(VS_OUT input) : SV_Target
     const uint idx = GlobalParams.BaseInstanceID + input.instanceID;
     const RENDERPARAMS instance = InstanceParams[idx];
     const MATERIALINFO mtl = Materials[instance.MaterialInfoIndex];
+
+    ////////////////////////////////////////////////////////////////////////
+   
+    // 카메라 디더 페이드: Object.Extra.x = ObjectAlpha 기반 Bayer 4x4 디더 clip
+    {
+        float objectAlpha = Objects[instance.ObjectIndex].Extra.x;
+          //  - 알파 1: 모든 픽셀 통과 (불투명)
+          //  - 알파 0.5: 체크보드
+          //  - 알파 0: 전 픽셀 폐기
+        if (objectAlpha < 0.999f)
+        {
+            uint2 pix = (uint2) input.pos.xy;
+            float threshold = bayer[(pix.y & 3) * 4 + (pix.x & 3)];
+            clip(objectAlpha - threshold);
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////
     // Diffuse 텍스처

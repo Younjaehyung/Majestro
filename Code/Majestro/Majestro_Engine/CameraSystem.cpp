@@ -8,6 +8,7 @@
 #include "TransformSystem.h"
 #include "TagComponent.h"
 #include "MovementComponent.h"
+#include "RenderComponent.h"
 
 
 CameraSystem::CameraSystem(World* world) : System(world)
@@ -53,7 +54,7 @@ void CameraSystem::Update(float dt)
 				transformComponent->FinalUpdate();
 
 
-
+				// Camera Spring Arm
 				Vec3 look = transformComponent->GetLook();
 				Vec3 yawForward = look;
 				yawForward.y = 0.0f;
@@ -112,6 +113,30 @@ void CameraSystem::Update(float dt)
 					transformComponent->mLocalPosition.y = pos.y;
 				}
 
+				// Camera Dithered Fade
+				{
+					float fadeStart = cameraTypeComponent->mCameraFadeStart;
+					float fadeEnd   = cameraTypeComponent->mCameraFadeEnd;
+					float targetAlpha = 1.f;
+					if (fadeStart > fadeEnd + 0.001f)
+					{
+						float t = (cameraDistance - fadeEnd) / (fadeStart - fadeEnd);
+						if (t < 0.f) t = 0.f;
+						else if (t > 1.f) t = 1.f;
+						targetAlpha = t;
+					}
+
+					float lerpFactor = cameraTypeComponent->mFadeLerpSpeed * dt;
+					if (lerpFactor > 1.f) lerpFactor = 1.f;
+					cameraTypeComponent->mCurrentFadeAlpha +=
+						(targetAlpha - cameraTypeComponent->mCurrentFadeAlpha) * lerpFactor;
+
+					auto& renderPool = mWorld->GetComponentPool<RenderComponent>();
+					if (RenderComponent* targetRender = renderPool.GetComponent(cameraTypeComponent->mTargetID))
+					{
+						targetRender->mOpacity = cameraTypeComponent->mCurrentFadeAlpha;
+					}
+				}
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
 

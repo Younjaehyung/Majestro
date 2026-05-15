@@ -42,6 +42,8 @@ public:
 	uint32	mObjectIndex{};
 	bool mVisibility{true};
 
+	float mOpacity{ 1.f };
+
 	Vec3 mObbCenter = Vec3(0.f, 0.f, 0.f);
 	Vec3 mObbHalfExtents = Vec3(0.5f, 0.5f, 0.5f);
 

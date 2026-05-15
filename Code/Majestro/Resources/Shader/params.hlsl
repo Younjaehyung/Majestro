@@ -36,7 +36,9 @@ struct LIGHTINFO
 struct OBJECTINFO
 {
     matrix MatWorld;
-
+    // x = ObjectAlpha
+    // y/z/w = 예비
+    float4 Extra;
 };
 //////////////
 

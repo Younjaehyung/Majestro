@@ -56,6 +56,7 @@ public:
 	float mHeight = 80.0f;
 	Entity mTargetEntity = NULL_ENTITY;
 	Vec3 mWorldOffset = Vec3(0.f, 120.f, 0.f);
+	Vec2 mScreenOffsetPx = Vec2(0.f, 0.f);
 	std::wstring mBackgroundMaterialName = L"UI_Player_HP_1";
 	std::wstring mFillMaterialName = L"UI_Player_HP_2";
 

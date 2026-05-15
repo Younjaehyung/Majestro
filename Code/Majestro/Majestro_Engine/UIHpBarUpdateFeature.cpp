@@ -132,8 +132,9 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     gp.HpBarSizePxY = hpBar->mHeight;
 
     // 바 좌상단을 앵커 기준 (-w/2, 0) 위치에 두는 피벗 (수평 중앙, 수직 위 정렬)
-    gp.HpBarPivotPxX = -hpBar->mMaxWidth * 0.5f;
-    gp.HpBarPivotPxY = 0.f;
+    // 월드 좌표 투영 뒤 화면 픽셀 오프셋을 더해 거리와 무관한 HP바 위치를 유지
+    gp.HpBarPivotPxX = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x;
+    gp.HpBarPivotPxY = hpBar->mScreenOffsetPx.y;
 
     gp.HpBarFollowRatio = std::clamp(hpBar->mPreviousHpRatio, 0.f, 1.f);
     gp.HpBarBgTexIdx = (bgTex != nullptr) ? bgTex->GetImageIndex() : 0u;
@@ -282,10 +283,10 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
         return;
 
     // 앵커 기준 오프셋 (바 좌상단 = (-mMaxWidth/2, 0))
-    const float x0 = -hpBar->mMaxWidth * 0.5f + lostLocalStart;
-    const float x1 = -hpBar->mMaxWidth * 0.5f + lostLocalEnd;
-    const float y0 = 0.f;
-    const float y1 = hpBar->mHeight;
+    const float x0 = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x + lostLocalStart;
+    const float x1 = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x + lostLocalEnd;
+    const float y0 = hpBar->mScreenOffsetPx.y;
+    const float y1 = hpBar->mScreenOffsetPx.y + hpBar->mHeight;
 
     // 파편 이벤트 용량 관리
     if (static_cast<int>(hpBar->mLossFragments.size()) + 1 > hpBar->mMaxFragmentCount)
@@ -328,7 +329,7 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
     mFragment.Triangles.reserve(static_cast<size_t>(cols) * rows * 2);
     mFragment.LifeTime = hpBar->mFragmentLifeTime;
     mFragment.Age = 0.f;
-    mFragment.HitAnchorPx = Vec2(x0, hpBar->mHeight * 0.5f);
+    mFragment.HitAnchorPx = Vec2(x0, y0 + hpBar->mHeight * 0.5f);
    
 
     for (int j = 0; j < rows; ++j)

@@ -1077,26 +1077,26 @@ void FirstScene::Initialize()
 	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
 
 	/////////////////////////////////////////////////////////////////////
-	{
-		Entity vfxEntity = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
-		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
-		vfxComp.mVfx = vfx;
-	}
-	{
-		
-		Entity particleEntity = mWorld->CreateEntity();
-		TransformComponent particleTransform{};
-		particleTransform.mLocalPosition = Vec3(0.f, 120.f, 0.f);
-		mWorld->AddComponent<TransformComponent>(particleEntity, particleTransform);
+	//{
+	//	Entity vfxEntity = mWorld->CreateEntity();
+	//	TransformComponent vfxTransform{};
+	//	vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
+	//	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
+	//	mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
+	//	VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
+	//	vfxComp.mVfx = vfx;
+	//}
+	//{
+	//	
+	//	Entity particleEntity = mWorld->CreateEntity();
+	//	TransformComponent particleTransform{};
+	//	particleTransform.mLocalPosition = Vec3(0.f, 120.f, 0.f);
+	//	mWorld->AddComponent<TransformComponent>(particleEntity, particleTransform);
 
-		ParticleComponent& particle = mWorld->AddComponent<ParticleComponent>(particleEntity);
-		particle.mEffectName = L"Particle_DebugBurst";
-	}
-	
+	//	ParticleComponent& particle = mWorld->AddComponent<ParticleComponent>(particleEntity);
+	//	particle.mEffectName = L"Particle_DebugBurst";
+	//}
+	//
 	
 
 	/////////////////////////////////////////////////////////////////////
@@ -1220,18 +1220,18 @@ void FirstScene::Initialize()
 
 #pragma region UI
 
-	{
+	//{
 
-		shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"fire");
-		Entity fire = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UISpriteComponent>(fire, texture,
-			Vec2(64.f, 64.f), 4, 1.f);
-		auto& u = mWorld->AddComponent<UITransformComponent>(fire);
-		u.mAnchor = Anchor::Center;
-		u.mPosition = Vec2(0.f, 0.f);
-		u.mSize = Vec2(64, 64);
+	//	shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"fire");
+	//	Entity fire = mWorld->CreateEntity();
+	//	auto& t = mWorld->AddComponent<UISpriteComponent>(fire, texture,
+	//		Vec2(64.f, 64.f), 4, 1.f);
+	//	auto& u = mWorld->AddComponent<UITransformComponent>(fire);
+	//	u.mAnchor = Anchor::Center;
+	//	u.mPosition = Vec2(0.f, 0.f);
+	//	u.mSize = Vec2(64, 64);
 
-	}
+	//}
 
 
 

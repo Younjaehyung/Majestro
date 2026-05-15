@@ -109,7 +109,9 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-	world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f);
+	auto& hpBar = world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f);
+	// 머리 기준점에서 HP바 높이와 여백만큼 화면 픽셀로 올려 거리 변화에도 위치가 고정되게 하는 값.
+	hpBar.mScreenOffsetPx = Vec2(0.f, -(hpBar.mHeight + 8.f));
 
 	Vec3 half{ 10,10,10 };
 	Vec3 center{ 0,10,0 };
@@ -272,39 +274,41 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDCrosshairPrefab::HUDCrosshairPrefab(world);
 
+		//{
+		//	// ================ [디버깅] 플레이어 실시간 좌표 UI ================
+		//	Entity debugTextObj = world->CreateEntity();
+		//	auto& dbgTransform = world->AddComponent<UITransformComponent>(debugTextObj);
+		//	dbgTransform.mAnchor = Anchor::Center; // 화면 좌측 상단
+		//	dbgTransform.mPosition = Vec2(30.f, -30.f);
+		//	dbgTransform.mSize = Vec2(400.f, 50.f);
+		//	dbgTransform.mUILayerIndex = 15;
 
-		// ================ [디버깅] 플레이어 실시간 좌표 UI ================
-		Entity debugTextObj = world->CreateEntity();
-		auto& dbgTransform = world->AddComponent<UITransformComponent>(debugTextObj);
-		dbgTransform.mAnchor = Anchor::Center; // 화면 좌측 상단
-		dbgTransform.mPosition = Vec2(30.f, -30.f);
-		dbgTransform.mSize = Vec2(400.f, 50.f);
-		dbgTransform.mUILayerIndex = 15;
+		//	world->AddComponent<UITextComponent>(debugTextObj).mText = L"Pos: ";
+		//	world->AddComponent<UIScriptComponent>(debugTextObj).mOnUpdate =
+		//		[world, mEntityID, debugTextObj](float /*dt*/)
+		//		{
+		//			TransformComponent* playerTransform = world->GetComponent<TransformComponent>(mEntityID);
+		//			UITextComponent* textComp = world->GetComponent<UITextComponent>(debugTextObj);
 
-		world->AddComponent<UITextComponent>(debugTextObj).mText = L"Pos: ";
-		world->AddComponent<UIScriptComponent>(debugTextObj).mOnUpdate =
-			[world, mEntityID, debugTextObj](float /*dt*/)
-			{
-				TransformComponent* playerTransform = world->GetComponent<TransformComponent>(mEntityID);
-				UITextComponent* textComp = world->GetComponent<UITextComponent>(debugTextObj);
+		//			if (playerTransform && textComp)
+		//			{
+		//				// x, y, z 좌표를 읽어와 텍스트 갱신
+		//				std::wstring posText = L"Player Pos: (" +
+		//					std::to_wstring((int)playerTransform->mLocalPosition.x) + L", " +
+		//					std::to_wstring((int)playerTransform->mLocalPosition.y) + L", " +
+		//					std::to_wstring((int)playerTransform->mLocalPosition.z) + L")";
 
-				if (playerTransform && textComp)
-				{
-					// x, y, z 좌표를 읽어와 텍스트 갱신
-					std::wstring posText = L"Player Pos: (" +
-						std::to_wstring((int)playerTransform->mLocalPosition.x) + L", " +
-						std::to_wstring((int)playerTransform->mLocalPosition.y) + L", " +
-						std::to_wstring((int)playerTransform->mLocalPosition.z) + L")";
+		//				textComp->mText = posText;
+		//			}
+		//		};
 
-					textComp->mText = posText;
-				}
-			};
-
-
+		//}
 	}
 	else 
 	{
 		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+
+		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;
 		hp.mHitEffectRows = 1;
@@ -444,6 +448,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 	{
 		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 300.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;
 		hp.mHitEffectRows = 1;
@@ -1644,7 +1649,7 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 
 		auto& t = world->AddComponent<UITransformComponent>(hit);
 		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-64.f, -64.f);
+		t.mPosition = Vec2(0.f, 0.f);
 		t.mSize = Vec2(kStartSize, kStartSize);
 		t.mUILayerIndex = 6;
 		t.mPivot = Vec2(0.5f, 0.5f);

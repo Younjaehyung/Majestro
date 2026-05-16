@@ -2,6 +2,12 @@
 #include "Component.h"
 #include "Entity.h"
 
+enum EnemyType {
+	HornMan,
+	Pianoman,
+	Bongoman
+};
+
 enum class EnemyAnimState : uint8
 {
 	Idle = 0,

@@ -394,8 +394,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {
-	case 0:
+	switch (static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {
+	case EnemyType::HornMan:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
@@ -403,9 +403,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-		world->AddComponent<EnemyComponent>(mEntityID, 0);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::HornMan);
 		break;
-	case 1:
+	case EnemyType::Pianoman:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Run0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Run"));
@@ -413,9 +413,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-		world->AddComponent<EnemyComponent>(mEntityID, 1);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman);
 		break;
-	case 2:
+	case EnemyType::Bongoman:
 		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Run0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Run"));
@@ -428,7 +428,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-		world->AddComponent<EnemyComponent>(mEntityID, 2);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman);
 		break;
 	}
 

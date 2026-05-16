@@ -161,8 +161,6 @@ inline bool IsUpperBodyAction(ClientAnimState state)
 	case ClientAnimState::Aim:
 	case ClientAnimState::Attack1:
 	case ClientAnimState::Attack2:
-	case ClientAnimState::Skill1:
-	case ClientAnimState::Skill2:
 	case ClientAnimState::Special:
 	case ClientAnimState::Reload:
 	case ClientAnimState::RhythmChange:
@@ -183,6 +181,8 @@ inline bool IsFullBodyState(ClientAnimState state)
 	case ClientAnimState::Hit:
 	case ClientAnimState::Stun:
 	case ClientAnimState::Dead:
+	case ClientAnimState::Skill1:
+	case ClientAnimState::Skill2:
 		return true;
 	default:
 		return false;

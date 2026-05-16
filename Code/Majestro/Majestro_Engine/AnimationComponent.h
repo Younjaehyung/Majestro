@@ -112,12 +112,12 @@ public:
 	float							mUpperUpdateTime = 0.f;
 	float							mUpperBlendUpdateTime = 0.f;
 	float							mUpperBlendTimer = 0.f;
-	float							mUpperBlendDuration = 0.5f;
+	float							mUpperBlendDuration = 0.1f;
 	float							mUpperBlendWeight = 0.f;
 	float							mUpperLayerWeight = 1.f;
 	uint32							mUpperBlendMaskStart = 2;
 	uint32							mUpperBlendMaskEnd = 66;
-	AnimBlendMode				mUpperBlendMode = AnimBlendMode::Override;
+	AnimBlendMode					mUpperBlendMode = AnimBlendMode::Override;
 
 
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간

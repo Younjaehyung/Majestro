@@ -6,6 +6,7 @@
 #include "UITextComponent.h"
 #include "Engine.h"
 #include "InputManager.h"
+#include "RenderManager.h"
 #include "UIUpdateSystem.h"
 #include "UIVfxComponent.h"
 
@@ -45,6 +46,8 @@ void UIButtonSystem::Update(float dt)
     Vec2 mousePos = { static_cast<float>(mouse.Position.x),
                       static_cast<float>(mouse.Position.y) };
     bool leftDown = mouse.LeftDown;
+    const WindowInfo& window = RENDERMANAGER.GetWindow();
+    const Vec2 screenSize = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
 
     std::vector<Entity> entities =
         mWorld->GetEntitiesWithComponents<UITransformComponent, UIButtonComponent>();
@@ -55,7 +58,8 @@ void UIButtonSystem::Update(float dt)
         UIButtonComponent*    btn = mWorld->GetComponent<UIButtonComponent>(e);
         if (!tr || !btn) continue;
 
-        bool inside = HitTest(tr->mFinalPixelPos, tr->mPivot, tr->mSize, mousePos);
+       
+        bool inside = HitTest(tr->mFinalPixelPos, tr->mPivot, tr->mFinalSize, mousePos);
 
         // ── 호버 상태 전환 ──────────────────────────────────────
         if (inside && !btn->mHovered)
@@ -115,7 +119,26 @@ void UIButtonSystem::Update(float dt)
 
         // ── 크기 스케일 갱신 (BaseSize 기준) ─────────────────
         if (btn->mBaseSize.x > 0.f)
-            tr->mFinalSize = btn->mBaseSize * targetScale;
+        {
+            // 버튼 피드백 크기도 UITransformComponent의 레이아웃 모드와 같은 기준으로 계산한다.
+            Vec2 buttonBaseSize = btn->mBaseSize;
+            if (tr->mLayoutMode == UILayoutMode::ScreenRatio)
+            {
+                buttonBaseSize = Vec2(tr->mSizeRatio.x * screenSize.x,
+                                      tr->mSizeRatio.y * screenSize.y);
+            }
+            else if (tr->mLayoutMode == UILayoutMode::ReferenceResolution)
+            {
+                const Vec2 reference = tr->mReferenceResolution;
+                if (reference.x > 0.f && reference.y > 0.f)
+                {
+                    buttonBaseSize = Vec2(btn->mBaseSize.x * (screenSize.x / reference.x),
+                                          btn->mBaseSize.y * (screenSize.y / reference.y));
+                }
+            }
+
+            tr->mFinalSize = buttonBaseSize * targetScale;
+        }
 
         // ── VFX 스케일 갱신 ───────────────────────────────────
         // UICusSpriteComponent 없이 VFX만 사용하는 버튼도 시각 피드백 지원

@@ -89,6 +89,9 @@ void UIPhaseProgressUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>&
 		break;
 	}
 
+#ifdef _IMGUI
+	DrawDebugPanel();
+#endif
 
 }
 
@@ -112,6 +115,24 @@ void UIPhaseProgressUpdateFeature::UpdateEscortProgress(float dt, GameEscortComp
 }
 
 // Draw
+
+Vec2 UIPhaseProgressUpdateFeature::GetProgressAnchorPx() const
+{
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+
+	return Vec2(
+		static_cast<float>(window.Width) * std::clamp(mProgressAnchorRatio.x, 0.f, 1.f),
+		static_cast<float>(window.Height) * std::clamp(mProgressAnchorRatio.y, 0.f, 1.f));
+}
+
+Vec2 UIPhaseProgressUpdateFeature::GetProgressSizePx(const Vec2& sizeRatio) const
+{
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+
+	return Vec2(
+		static_cast<float>(window.Width) * std::clamp(sizeRatio.x, 0.f, 1.f),
+		static_cast<float>(window.Height) * std::clamp(sizeRatio.y, 0.f, 1.f));
+}
 
 void UIPhaseProgressUpdateFeature::DrawConquestRing()
 {
@@ -143,15 +164,18 @@ void UIPhaseProgressUpdateFeature::DrawConquestRing()
 	gp.PassCustomIndex = 0;
 
 	// 앵커 = 화면 픽셀, 피벗으로 좌상단을 (-w/2, -h/2) 만큼 옮겨 앵커가 정사각형 중심
-	gp.HpBarAnchorWorldX = mConquestScreenAnchorPx.x;
-	gp.HpBarAnchorWorldY = mConquestScreenAnchorPx.y;
+	const Vec2 anchorPx = GetProgressAnchorPx();
+	const Vec2 conquestSizePx = GetProgressSizePx(mConquestSizeRatio);
+	// 창 너비가 바뀌어도 중앙 정렬이 유지되도록 계산된 앵커 사용
+	gp.HpBarAnchorWorldX = anchorPx.x;
+	gp.HpBarAnchorWorldY = anchorPx.y;
 	gp.HpBarAnchorWorldZ = 0.f;
 	gp.HpBarFollowRatio  = std::clamp(mConquestProgress, 0.f, 1.f);
 
-	gp.HpBarSizePxX = mConquestSizePx.x;
-	gp.HpBarSizePxY = mConquestSizePx.y;
-	gp.HpBarPivotPxX = -mConquestSizePx.x * 0.5f;
-	gp.HpBarPivotPxY = -mConquestSizePx.y * 0.5f;
+	gp.HpBarSizePxX = conquestSizePx.x;
+	gp.HpBarSizePxY = conquestSizePx.y;
+	gp.HpBarPivotPxX = -conquestSizePx.x * 0.5f;
+	gp.HpBarPivotPxY = -conquestSizePx.y * 0.5f;
 
 	gp.HpBarBgTexIdx   = bgTex->GetImageIndex();
 	gp.HpBarFillTexIdx = fillTex->GetImageIndex();
@@ -166,6 +190,68 @@ void UIPhaseProgressUpdateFeature::DrawConquestRing()
 	const uint32 zero = 0;
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);
+}
+
+void UIPhaseProgressUpdateFeature::DrawDebugPanel()
+{
+#ifdef _IMGUI
+	if (!ImGui::Begin("Phase Progress Debug"))
+	{
+		ImGui::End();
+		return;
+	}
+
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+	const Vec2 anchorPx = GetProgressAnchorPx();
+	const Vec2 conquestSizePx = GetProgressSizePx(mConquestSizeRatio);
+	const Vec2 escortSizePx = GetProgressSizePx(mEscortSizeRatio);
+	const Vec2 escortCursorSizePx = GetProgressSizePx(mEscortCursorSizeRatio);
+
+	ImGui::Text("Window : %d x %d", window.Width, window.Height);
+	ImGui::Text("Anchor : %.1f, %.1f", anchorPx.x, anchorPx.y);
+	ImGui::Separator();
+
+	// X와 Y는 각각 화면 너비와 높이 기준 비율
+	ImGui::DragFloat2("AnchorRatio", &mProgressAnchorRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+	mProgressAnchorRatio.x = std::clamp(mProgressAnchorRatio.x, 0.f, 1.f);
+	mProgressAnchorRatio.y = std::clamp(mProgressAnchorRatio.y, 0.f, 1.f);
+
+	if (ImGui::Button("Reset Anchor Ratio"))
+	{
+		mProgressAnchorRatio = Vec2(0.5f, 0.1019f);
+	}
+
+	ImGui::Separator();
+
+	// ImGui에서 수정한 값이 셰이더에 들어가기 전에 유효 범위로 보정
+	if (ImGui::CollapsingHeader("Conquest", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::DragFloat2("ConquestSizeRatio", &mConquestSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+		ImGui::Text("ConquestSizePx : %.1f, %.1f", conquestSizePx.x, conquestSizePx.y);
+		ImGui::SliderFloat("ConquestInnerRadius", &mConquestInnerRadius, 0.f, 1.f);
+
+		
+		mConquestSizeRatio.x = std::clamp(mConquestSizeRatio.x, 0.f, 1.f);
+		mConquestSizeRatio.y = std::clamp(mConquestSizeRatio.y, 0.f, 1.f);
+		mConquestInnerRadius = std::clamp(mConquestInnerRadius, 0.f, 1.f);
+	}
+
+	if (ImGui::CollapsingHeader("Escort", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::DragFloat2("EscortSizeRatio", &mEscortSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+		ImGui::Text("EscortSizePx : %.1f, %.1f", escortSizePx.x, escortSizePx.y);
+		ImGui::DragFloat2("EscortCursorSizeRatio", &mEscortCursorSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+		ImGui::Text("EscortCursorSizePx : %.1f, %.1f", escortCursorSizePx.x, escortCursorSizePx.y);
+
+
+		mEscortSizeRatio.x = std::clamp(mEscortSizeRatio.x, 0.f, 1.f);
+		mEscortSizeRatio.y = std::clamp(mEscortSizeRatio.y, 0.f, 1.f);
+		mEscortCursorSizeRatio.x = std::clamp(mEscortCursorSizeRatio.x, 0.f, 1.f);
+		mEscortCursorSizeRatio.y = std::clamp(mEscortCursorSizeRatio.y, 0.f, 1.f);
+	}
+
+	ImGui::End();
+#endif
 }
 
 void UIPhaseProgressUpdateFeature::DrawEscortBar()
@@ -194,19 +280,23 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 
 	// mEscortProgress = stage + 0~1 → 현재 스테이지의 채움 비율만 추출
 	const float fillRatio = std::clamp(mEscortProgress - std::floor(mEscortProgress), 0.f, 1.f);
+	const Vec2 escortSizePx = GetProgressSizePx(mEscortSizeRatio);
+	const Vec2 escortCursorSizePx = GetProgressSizePx(mEscortCursorSizeRatio);
 
 	// 공통 GlobalParams (HUD 모드, 앵커는 바 정중앙)
 	GlobalParamsLayout gp{};
 	gp.BaseInstanceID    = 0;
 	gp.etc               = 1; // HUD 모드 (스크린 스페이스, depth occlusion 스킵)
 	gp.PassCustomIndex   = 0;
-	gp.HpBarAnchorWorldX = mEscortAnchorPx.x;
-	gp.HpBarAnchorWorldY = mEscortAnchorPx.y;
+	const Vec2 anchorPx = GetProgressAnchorPx();
+	
+	gp.HpBarAnchorWorldX = anchorPx.x;
+	gp.HpBarAnchorWorldY = anchorPx.y;
 	gp.HpBarAnchorWorldZ = 0.f;
-	gp.HpBarSizePxX      = mEscortSizePx.x;
-	gp.HpBarSizePxY      = mEscortSizePx.y;
-	gp.HpBarPivotPxX     = -mEscortSizePx.x * 0.5f;
-	gp.HpBarPivotPxY     = -mEscortSizePx.y * 0.5f;
+	gp.HpBarSizePxX      = escortSizePx.x;
+	gp.HpBarSizePxY      = escortSizePx.y;
+	gp.HpBarPivotPxX     = -escortSizePx.x * 0.5f;
+	gp.HpBarPivotPxY     = -escortSizePx.y * 0.5f;
 	gp.HpBarFollowRatio  = fillRatio;
 	gp.HpBarHitTexIdx    = 0;
 	gp.HpBarHitConfig    = 0;
@@ -238,14 +328,14 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	if (cursorTex != nullptr)
 	{
 		gp.casdcae         = 0;
-		gp.HpBarSizePxX    = mEscortCursorSizePx.x;
-		gp.HpBarSizePxY    = mEscortCursorSizePx.y;
+		gp.HpBarSizePxX    = escortCursorSizePx.x;
+		gp.HpBarSizePxY    = escortCursorSizePx.y;
 		// 가로: 바 좌끝(-w/2) + fillRatio * w 위치에 커서 가운데 정렬
-		gp.HpBarPivotPxX   = -mEscortSizePx.x * 0.5f
-		                   + fillRatio * mEscortSizePx.x
-		                   - mEscortCursorSizePx.x * 0.5f;
+		gp.HpBarPivotPxX   = -escortSizePx.x * 0.5f
+		                   + fillRatio * escortSizePx.x
+		                   - escortCursorSizePx.x * 0.5f;
 		// 세로: 바와 같은 중앙선 정렬
-		gp.HpBarPivotPxY   = -mEscortCursorSizePx.y * 0.5f;
+		gp.HpBarPivotPxY   = -escortCursorSizePx.y * 0.5f;
 		gp.HpBarBgTexIdx   = cursorTex->GetImageIndex();
 		gp.HpBarFillTexIdx = cursorTex->GetImageIndex();
 		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);

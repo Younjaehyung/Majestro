@@ -21,29 +21,31 @@ private:
 
 	void DrawConquestRing();
 	void DrawEscortBar();
-private:
-	// Conquest UI
-	// 1920x1080 기준 화면 상단 중앙
-	Vec2  mConquestScreenAnchorPx = Vec2(960.f, 110.f);
-	Vec2  mConquestSizePx         = Vec2(180.f, 180.f);
-	float mConquestInnerRadius    = 0.78f;            // 도넛 두께 (0=원판, 1=링 없음)
-	std::wstring mConquestBgTextureName   = L"UI_Ingame_Conquest_Info_0";
-	std::wstring mConquestFillTextureName = L"UI_Ingame_Conquest_Info_1";
+	Vec2 GetProgressAnchorPx() const;
+	Vec2 GetProgressSizePx(const Vec2& sizeRatio) const;
+	void DrawDebugPanel();
 
+private:
+	// 페이즈 진행 UI 앵커.
+	// 위치와 크기는 비율값만 저장하고, 실제 픽셀값은 RENDERMANAGER.GetWindow()의 현재 해상도로 계산
+	Vec2  mProgressAnchorRatio = Vec2(0.5f, 0.1019f);
+
+	// Conquest UI.
+	Vec2  mConquestSizeRatio = Vec2(0.2667f, 0.4741f);
+	float mConquestInnerRadius = 0.78f;            // 도넛 두께 (0=원판, 1=링 없음)
+	std::wstring mConquestBgTextureName = L"UI_Ingame_Conquest_Info_0";
+	std::wstring mConquestFillTextureName = L"UI_Ingame_Conquest_Info_1";
 
 	float mConquestProgress = 0.f;
 	int32 mCachedConquestWaveCheckPoint = 0;
 
-	// Escort UI
-	// 1920x1080 기준 화면 상단 중앙 — bar 의 정중앙이 앵커 위치에 오도록 그려짐
-	Vec2  mEscortAnchorPx     = Vec2(960.f, 110.f);
-	Vec2  mEscortSizePx       = Vec2(600.f,  40.f); // BG / Line / Check 공통 크기
-	Vec2  mEscortCursorSizePx = Vec2( 48.f,  64.f); // 화물(커서) 스프라이트 크기
+	// Escort UI.
+	Vec2  mEscortSizeRatio = Vec2(0.4f, 0.1185f);
+	Vec2  mEscortCursorSizeRatio = Vec2(0.0167f, 0.0296f);
 
 	float mEscortProgress = 0.f;
 	std::wstring mEscortBgTextureName = L"UI_Escort_Info_0";
 	std::wstring mEscortLineTextureName = L"UI_Escort_Info_1";
 	std::wstring mEscortCheckTextureName = L"UI_Escort_Info_2";
 	std::wstring mEscortCursorTextureName = L"UI_Escort_Info_Cursor";
-
 };

@@ -197,7 +197,7 @@ bool EnemySystem::HandleAttackState(
     {
         movementComp->mPathCount = 0;
         movementComp->mPathIndex = 0;
-        movementComp->mMovingSpeed = enemyComp->mSpeed * 3.0f;
+        movementComp->mMovingSpeed = enemyComp->mSpeed * 1.5f;
 
         Vec3 rushDir = playerPos - myPos;
         rushDir.y = 0.0f;
@@ -225,7 +225,7 @@ bool EnemySystem::HandleAttackState(
         movementComp->mPathCount = 0;
         movementComp->mPathIndex = 0;
 
-        if (enemyComp->mPendingAttackTime < nowSeconds)
+        if (enemyComp->mPendingAttackTime < 0.0f)
             enemyComp->mPendingAttackTime = nowSeconds + beatSeconds * 4.0f;
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds && nowSeconds >= enemyComp->mPendingAttackTime)
@@ -234,16 +234,29 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
             enemyComp->mPendingAttackTime = -1.0f;
+            std::cout << "[Bongo] attack queued enemy=" << entity.GetID()
+                << " now=" << nowSeconds
+                << " next=" << enemyComp->mNextAttackTime
+                << " pending=" << enemyComp->mPendingAttackTime
+                << std::endl;
         }
         break;
     default:
         return false;
     }
 
-    if (nowSeconds <= enemyComp->mAttackAnimEndTime)
+    if (enemyComp->mEnemyType == EnemyType::Pianoman)
+    {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    }
+    else if (nowSeconds <= enemyComp->mAttackAnimEndTime)
+    {
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    }
     else
+    {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+    }
 
     return true;
 }

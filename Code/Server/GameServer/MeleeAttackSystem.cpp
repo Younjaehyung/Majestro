@@ -10,6 +10,7 @@
 #include "BuffComponent.h"
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
+#include "MovementComponent.h"
 
 namespace
 {
@@ -31,6 +32,57 @@ namespace
 
 		forward.Normalize();
 		return forward;
+	}
+
+	Vec3 GetEnemyAttackForward(World* world, Entity attacker, TransformComponent& attackerTransform)
+	{
+		if (!world || !world->HasComponentPool<PlayerMovementComponent>())
+		{
+			Vec3 fallback = attackerTransform.GetLook();
+			fallback.y = 0.0f;
+			if (fallback.LengthSquared() <= 0.0001f)
+				return Vec3::Forward;
+
+			fallback.Normalize();
+			return fallback;
+		}
+
+		Vec3 nearestDirection = Vec3::Zero;
+		float nearestDistanceSq = (std::numeric_limits<float>::max)();
+
+		for (const Entity& playerEntity : world->GetEntitiesWithComponent<PlayerMovementComponent>())
+		{
+			if (!playerEntity.IsValid() || playerEntity == attacker)
+				continue;
+
+			TransformComponent* playerTransform = world->GetComponent<TransformComponent>(playerEntity);
+			if (!playerTransform)
+				continue;
+
+			Vec3 direction = playerTransform->mWorldPosition - attackerTransform.mWorldPosition;
+			direction.y = 0.0f;
+
+			const float distanceSq = direction.LengthSquared();
+			if (distanceSq <= 0.0001f || distanceSq >= nearestDistanceSq)
+				continue;
+
+			nearestDistanceSq = distanceSq;
+			nearestDirection = direction;
+		}
+
+		if (nearestDirection.LengthSquared() <= 0.0001f)
+		{
+			Vec3 fallback = attackerTransform.GetLook();
+			fallback.y = 0.0f;
+			if (fallback.LengthSquared() <= 0.0001f)
+				return Vec3::Forward;
+
+			fallback.Normalize();
+			return fallback;
+		}
+
+		nearestDirection.Normalize();
+		return nearestDirection;
 	}
 
 	struct MeleeAttackStat
@@ -93,8 +145,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		return;
 
 	TransformComponent* attackerTransform = mWorld->GetComponent<TransformComponent>(request.shooter);
-	InputComponent* attackerInput = mWorld->GetComponent<InputComponent>(request.shooter);
-	if (!attackerTransform || !attackerInput)
+	if (!attackerTransform)
 		return;
 
 	auto eventManager = mWorld->GetEventManager();
@@ -102,7 +153,21 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		return;
 
 	const MeleeAttackStat stat = GetMeleeAttackStat(request.bulletType);
-	const Vec3 forward = GetCameraForwardFromInput(*attackerInput);
+	Vec3 forward = Vec3::Forward;
+
+	if (attackerIsPlayer)
+	{
+		InputComponent* attackerInput = mWorld->GetComponent<InputComponent>(request.shooter);
+		if (!attackerInput)
+			return;
+
+		forward = GetCameraForwardFromInput(*attackerInput);
+	}
+	else
+	{
+		forward = GetEnemyAttackForward(mWorld, request.shooter, *attackerTransform);
+	}
+
 	const Vec3 attackCenter = attackerTransform->mWorldPosition + forward * stat.forwardDistance;
 	const float radiusSq = stat.radius * stat.radius;
 	const Vec3 attackerRotation = attackerTransform->mLocalRotationE;

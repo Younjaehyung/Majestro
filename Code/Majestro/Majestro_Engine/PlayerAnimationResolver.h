@@ -150,6 +150,7 @@ inline bool IsUpperBodyAction(ClientAnimState state)
 {
 	switch (state)
 	{
+	case ClientAnimState::Aim:
 	case ClientAnimState::Attack1:
 	case ClientAnimState::Attack2:
 	case ClientAnimState::Skill1:

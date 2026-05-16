@@ -75,7 +75,7 @@ void EnemySystem::Update(float dt) {
 		if (enemyComponent == nullptr || renderComponent == nullptr || animationComponent == nullptr)
 			continue;
 
-		const bool isDead = (enemyComponent->mAnimStatePacket == static_cast<int>(EnemyAnimState::Dead));
+		const bool isDead = (enemyComponent->mAnimState == static_cast<int>(EnemyAnimState::Dead));
 		if (isDead) {
 			enemyComponent->mDeadElapsedTime += dt;
 

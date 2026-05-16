@@ -31,6 +31,10 @@ void GpuAnimationSystem::Initialize()
 	for (auto& skels : RESOURCEMANAGER.GetAllResources<Skeleton>()) {
 		shared_ptr<Skeleton> skel = dynamic_pointer_cast<Skeleton>(skels.second);
 
+		
+		skel->BuildAimBoneIndices();
+		skel->BuildUpperBodyMaskRange();
+
 		skel->mStartOffset = skelOffset;
 		for (auto& bone : skel->GetBones()) {
 			SkeletonBoneParams boneParam{};
@@ -127,7 +131,7 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         }
 
         if (enemyComponent) {
-            animCom->mLowerAnimClipIdx = enemyComponent->mAnimStatePacket;
+            animCom->mLowerAnimClipIdx = enemyComponent->mAnimState;
         }
 
         if (mannequinComponent) {

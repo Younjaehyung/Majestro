@@ -33,6 +33,10 @@ public:
 
 	// AimOffset 용 spine 체인 본 인덱스 캐시(보유하지 않으면 UINT32_MAX)
 	void BuildAimBoneIndices();
+	void BuildUpperBodyMaskRange();
+private:
+	string ToLowerBoneName(const string& boneName);
+	bool   ContainsAnyBoneToken(const string& lower, const std::initializer_list<const char*> tokens);
 
 public:
 	uint32 mStartOffset{};

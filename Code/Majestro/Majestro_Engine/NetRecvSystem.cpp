@@ -214,7 +214,7 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
     }
     else if (enemyComp)
     {
-        enemyComp->mAnimStatePacket = pkt->stateId;
+        enemyComp->mAnimState = pkt->stateId;
     }
 
     if (netTransform)

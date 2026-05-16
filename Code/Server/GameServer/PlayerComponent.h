@@ -83,13 +83,20 @@ public:
 
 	void StateCheck();
 	void Update(float dt);
-	uint32 GetState() { return (uint32)mFsm.GetState(); };
-	uint8 GetReplicatedActionState();
-	uint8 GetReplicatedMovementMode();
+
 
 	void InitFSMOnce();
 	void InitFSMFromJson(const std::string& path);
 	void LoadStateSettingFromJson(const std::string& path);
+public:
+	uint32 GetState() { return (uint32)mFsm.GetState(); };
+	uint8 GetReplicatedActionState();
+	uint8 GetReplicatedMovementMode();
+	uint8 GetReplicatedControlFlags();
+	uint8 GetReplicatedExternalMoveMode();
+	bool CanUseHorizontalInput();
+	bool CanUseVerticalInput();
+
 
 public:
 	PlayerType mPlayerType = PlayerType::Fanthor;
@@ -128,6 +135,12 @@ public:
 	float mJumpPower = 360.f;
 	bool mFalling = false;
 	bool mDash = false;
+	bool mHasMoveInput = false;					// 플레이어가 현재 이동 입력을 넣고 있는지
+	bool mCanControlHorizontal = true;			// 플레이어가 XZ 평면 이동을 조작할 수 있는지
+	bool mCanControlVertical = true;			// 플레이어가 수직 조작을 할 수 있는지
+	uint8 mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::None);	// 플레이어 이동에 외부 힘이 개입하고 있는지
+	Vec3 mExternalVelocity = Vec3::Zero;		// 외부 힘으로 발생한 이동 속도
+	float mExternalMoveEndTime = 0.0f;			// 외부 이동 상태가 언제 끝나는지
 
 	uint64_t mFlags = 0ull;
 	bool mAnimEnd = false;

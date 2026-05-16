@@ -169,24 +169,12 @@ void InteractionSystem::ApplyJumpPad(Entity user, Entity trigger, const Interact
 {
     (void)trigger;
 
-   
-    // 전방 임펄스는 대상의 forward 벡터를 사용
-    Vec3 forward = Vec3::Forward;
-    if (auto* tr = mWorld->GetComponent<TransformComponent>(user))
-    {
-        forward = tr->GetLook();
-        forward.y = 0.0f;
-        if (forward.LengthSquared() > 1e-6f)
-            forward.Normalize();
-        else
-            forward = Vec3(0.0f, 0.0f, 1.0f);
-    }
-
     EvImpulse impulse{};
     impulse.target = user;
-    impulse.x = forward.x * i.mValueB;
+    impulse.x = 0.0f;
     impulse.y = i.mValueA;
-    impulse.z = forward.z * i.mValueB;
+    impulse.z = 0.0f;
+    impulse.source = ImpulseSource::JumpPad;
     mWorld->GetEventManager()->Enqueue<EvImpulse>(impulse);
 }
 
@@ -211,4 +199,3 @@ void InteractionSystem::ApplyDamageZone(Entity user, Entity trigger, Interactabl
     dmg.instigator = trigger;
     mWorld->GetEventManager()->Enqueue<EvDamage>(dmg);
 }
-

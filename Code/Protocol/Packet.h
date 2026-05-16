@@ -202,6 +202,23 @@ enum class ReplicatedMovementMode : uint8
 	Dead
 };
 
+enum ReplicatedControlFlags : uint8
+{
+	Control_None = 0,
+	Control_CanControlHorizontal = 1 << 0,
+	Control_CanControlVertical = 1 << 1
+	// 여러 상태가 동시에 true 가능
+};
+
+enum class ReplicatedExternalMoveMode : uint8
+{
+	None = 0,			// 외부 이동 없음
+	Additive,			// 플레이어 이동에 외부 속도를 더함
+	OverrideXZ,			// XZ 이동을 서버/기믹이 강제로 정함
+	OverrideY,			// Y축 이동을 서버/기믹이 강제로 정함
+	OverrideAll			// 모든 축 이동을 서버/기믹이 강제로 정함
+};
+
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -323,6 +340,8 @@ struct S2C_StatePacket : public PacketTcpHeader {
 	uint64_t netEntityId{};
 	uint8_t stateId{};
 	uint8_t lowerStateId{}; 
+	uint8_t controlFlags{};
+	uint8_t externalMoveMode{};
 	uint32_t stateSequence{};
 	S2C_StatePacket() : PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 } {}
 	S2C_StatePacket(uint64_t entityId, uint8_t sId)

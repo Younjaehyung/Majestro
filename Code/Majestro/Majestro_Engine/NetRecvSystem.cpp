@@ -208,6 +208,8 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
 
         playerComp->mUpperState = pkt->stateId;
         playerComp->mLowerState = pkt->lowerStateId;
+        playerComp->mControlFlags = pkt->controlFlags;
+        playerComp->mExternalMoveMode = pkt->externalMoveMode;
         playerComp->mStateSequence = pkt->stateSequence;
 
        

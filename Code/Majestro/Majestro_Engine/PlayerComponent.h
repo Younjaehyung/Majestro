@@ -94,6 +94,8 @@ public:
 
 	int mUpperState; 
 	int mLowerState;
+	int mControlFlags = Control_None;
+	int mExternalMoveMode = static_cast<int>(ReplicatedExternalMoveMode::None);
 	uint32 mPrevStateSequence = 0;
 	uint32 mStateSequence = 0;
 

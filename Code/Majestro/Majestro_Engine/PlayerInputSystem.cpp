@@ -24,6 +24,11 @@ void PlayerInputSystem::Initialize()
 
 void PlayerInputSystem::Update(float dt)
 {
+	// ` 키로 인게임 카메라 조작 | ImGui 디버그 조작 토글
+	if (INPUT.GetKeyDown(eKeyCode::GRAVE))
+	{
+		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());
+	}
 
 	//camera setting
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
@@ -147,11 +152,7 @@ void PlayerInputSystem::Update(float dt)
 	}
 
 
-	// ` 키로 인게임 카메라 조작 | ImGui 디버그 조작 토글
-	if (INPUT.GetKeyDown(eKeyCode::GRAVE))
-	{
-		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());
-	}
+
 
 	if (INPUT.IsMouseLookActive()) {
 		//attack
@@ -165,8 +166,9 @@ void PlayerInputSystem::Update(float dt)
 
 		movementComponent->mTargetRotation.x += deltaX * sensitivity * mDPI;
 		movementComponent->mTargetRotation.y += deltaY * sensitivity * mDPI;
+		movementComponent->mTargetRotation.x = std::clamp(movementComponent->mTargetRotation.x, -60.0f, 60.0f);
 
-		float alpha = std::lerp(0.0f, 1.0f, dt * lerpFactor); // dt에 비례하도록 수정
+		float alpha = std::clamp(dt * lerpFactor, 0.0f, 1.0f);
 		
 
 		movementComponent->mCurrentRotation.x = std::lerp(movementComponent->mCurrentRotation.x, movementComponent->mTargetRotation.x, alpha);

@@ -36,6 +36,9 @@ void InputManager::Update() {
 	if (!mHasFocus)
 		return;
 
+	
+	RefreshCursorLock();
+
 	for (size_t i = 0; i < mKeys.size(); i++) {
 		//눌렀는지
 		if (GetAsyncKeyState(ASCII[i]) & 0x8000) {
@@ -91,21 +94,109 @@ void InputManager::ShowCursorRestore()
 	}
 }
 
+bool InputManager::GetClientClipRect(RECT& outRect) const
+{
+	if (mHwnd == nullptr || !::IsWindow(mHwnd))
+		return false;
+
+	RECT clientRect{};
+	if (!::GetClientRect(mHwnd, &clientRect))
+		return false;
+
+	if (clientRect.right <= clientRect.left || clientRect.bottom <= clientRect.top)
+		return false;
+
+	POINT leftTop{ clientRect.left, clientRect.top };
+	POINT rightBottom{ clientRect.right, clientRect.bottom };
+	if (!::ClientToScreen(mHwnd, &leftTop) || !::ClientToScreen(mHwnd, &rightBottom))
+		return false;
+
+	outRect.left = leftTop.x;
+	outRect.top = leftTop.y;
+	outRect.right = rightBottom.x;
+	outRect.bottom = rightBottom.y;
+	return true;
+}
+
+void InputManager::LockCursorToClient()
+{
+	RECT clipRect{};
+	if (!GetClientClipRect(clipRect))
+	{
+		
+		UnlockCursor();
+		return;
+	}
+
+
+	if (::ClipCursor(&clipRect))
+	{
+		mCursorLocked = true;
+		return;
+	}
+
+	
+	::ClipCursor(nullptr);
+	mCursorLocked = false;
+}
+
+void InputManager::UnlockCursor()
+{
+	if (!mCursorLocked)
+		return;
+
+	
+	::ClipCursor(nullptr);
+	mCursorLocked = false;
+}
+
+void InputManager::CenterCursorInClient()
+{
+	RECT clipRect{};
+	if (!GetClientClipRect(clipRect))
+		return;
+
+	POINT center{
+		(clipRect.left + clipRect.right) / 2,
+		(clipRect.top + clipRect.bottom) / 2
+	};
+
+	
+	::SetCursorPos(center.x, center.y);
+	mMouseState.ClickPosition = center;
+	mMouseState.Position = center;
+	mMouseState.OldPosition = center;
+}
+
+void InputManager::RefreshCursorLock()
+{
+	if (mHasFocus && mMouseLookControl)
+	{
+		LockCursorToClient();
+		return;
+	}
+
+	UnlockCursor();
+}
+
 void InputManager::SetForceMouseLook(bool enable)
 {
 	mForceMouseLookRequested = enable;
 	if (mMouseLookControl == enable)
+	{
+		RefreshCursorLock();
 		return;
+	}
 
 	mMouseLookControl = enable;
 	mMouseState.Delta = { 0, 0 };
 
 	if (mMouseLookControl)
 	{
-		// 현재 커서 위치를 고정점으로 저장
-		::GetCursorPos(&mMouseState.Position);
-		//::GetCursorPos(&mMouseState.OldPosition);
-		::GetCursorPos(&mMouseState.ClickPosition);
+		LockCursorToClient();
+		CenterCursorInClient();
+		if (mHwnd != nullptr)
+			::SetCapture(mHwnd);
 
 		if (mMouseInputMode == eMouseInputMode::LegacyRelative)
 		{
@@ -123,6 +214,9 @@ void InputManager::SetForceMouseLook(bool enable)
 	}
 	else
 	{
+		UnlockCursor();
+		if (::GetCapture() == mHwnd)
+			::ReleaseCapture();
 		ShowCursorRestore();
 	}
 }
@@ -134,6 +228,9 @@ void InputManager::OnActivateApp(bool active)
 	if (!mHasFocus)
 	{
 		// 포커스 잃을 때: 커서 복원 (Alt+Tab 등으로 Up 메시지가 안 올 수 있음)
+		UnlockCursor();
+		if (::GetCapture() == mHwnd)
+			::ReleaseCapture();
 		ShowCursorRestore();
 		mMouseLookControl = false;
 
@@ -175,6 +272,7 @@ void InputManager::SetMouseInputMode(eMouseInputMode mode)
 	if (!mMouseLookControl)
 		return;
 
+	LockCursorToClient();
 	::GetCursorPos(&mMouseState.Position);
 	::GetCursorPos(&mMouseState.ClickPosition);
 
@@ -187,6 +285,7 @@ void InputManager::SetMouseInputMode(eMouseInputMode mode)
 	}
 	else
 	{
+		CenterCursorInClient();
 		mMouseState.OldPosition = mMouseState.Position;
 	}
 }

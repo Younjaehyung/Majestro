@@ -10,7 +10,6 @@ enum EnemyType {
 
 enum class EnemyAnimState : uint8
 {
-	Idle = 0,
 	Run,
 	Attack,
 	Dead,
@@ -23,6 +22,6 @@ public:
 	explicit EnemyComponent(uint8 enemyType) : mEnemyType(enemyType) {}
 	uint8 mEnemyType = 0;
 
-	int mAnimState = static_cast<int>(EnemyAnimState::Idle);
+	int mAnimState = static_cast<int>(EnemyAnimState::Run);
 	float mDeadElapsedTime = 0.f;
 };

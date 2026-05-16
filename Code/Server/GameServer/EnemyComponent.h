@@ -11,7 +11,6 @@ enum EnemyType {
 
 enum class EnemyAnimState : uint8
 {
-	Idle = 0,
 	Run,
 	Attack,
 	Dead,
@@ -53,7 +52,7 @@ public:
 
 public:
 	uint8 mEnemyType = 0;
-	uint8 mAnimState = static_cast<int>(EnemyAnimState::Idle);
+	uint8 mAnimState = static_cast<int>(EnemyAnimState::Run);
 	float mSpeed = 10.f;
 
 	float AttackRange = 100.f;

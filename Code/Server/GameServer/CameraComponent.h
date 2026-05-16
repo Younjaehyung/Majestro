@@ -1,6 +1,6 @@
 #pragma once
-
 #include "Component.h"
+#include "Entity.h"
 
 enum class PROJECTION_TYPE
 {
@@ -124,9 +124,9 @@ class CameraTypeComponent : public Component<CameraTypeComponent>
 {
 public:
 	CameraTypeComponent(PlayMode mode): mPlayMode(mode) {}
-	CameraTypeComponent(ComponentTypeID targetID, PlayMode mode ): mPlayMode(mode), mTargetID(targetID) {}
+	CameraTypeComponent(Entity targetID, PlayMode mode ): mPlayMode(mode), mTargetID(targetID) {}
 public:
-	ComponentTypeID mTargetID;
+	Entity mTargetID = 0;
 	PlayMode mPlayMode = PlayMode::MAIN_CAMERA;
 	float mCameraMoveSpeed = 100;
 	float mCameraHight = 20;

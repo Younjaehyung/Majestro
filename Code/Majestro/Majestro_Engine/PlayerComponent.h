@@ -6,6 +6,14 @@
 #include "IMGUIComponent.h"
 #include "Animator.h"
 
+enum PlayerType : uint8
+{
+	Rudwig,
+	Ibanix,
+	Fanthor,
+};
+
+
 class ControllerComponent : public Component<ControllerComponent>
 {
 public:
@@ -65,7 +73,7 @@ public:
 	MainPlayerComponent();
 	MainPlayerComponent(const std::string& path);
 	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim);
-	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, uint8 playerType);
+	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, PlayerType playerType);
 
 	void StateCheck();
 	void Update(float dt);
@@ -76,7 +84,7 @@ public:
 	void LoadStateSettingFromJson(const std::string& path);
 
 public:
-	uint8 mPlayerType;
+	PlayerType mPlayerType;
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState;
@@ -86,6 +94,8 @@ public:
 
 	int mUpperState; 
 	int mLowerState;
+	int mControlFlags = Control_None;
+	int mExternalMoveMode = static_cast<int>(ReplicatedExternalMoveMode::None);
 	uint32 mPrevStateSequence = 0;
 	uint32 mStateSequence = 0;
 

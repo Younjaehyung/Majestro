@@ -31,6 +31,10 @@ void CpuAnimationSystem::Initialize()
 	for (auto& skels : RESOURCEMANAGER.GetAllResources<Skeleton>()) {
 		shared_ptr<Skeleton> skel = dynamic_pointer_cast<Skeleton>(skels.second);
 
+		
+		skel->BuildAimBoneIndices();
+		skel->BuildUpperBodyMaskRange();
+
 		skel->mStartOffset = skelOffset;
 		for (auto& bone : skel->GetBones()) {
 			SkeletonBoneParams boneParam{};
@@ -42,8 +46,6 @@ void CpuAnimationSystem::Initialize()
 		skelOffset += static_cast<uint32>(skel->GetBones().size());
 		skel->SetSkeletonHandle(skelHandle++);
 
-		// AimOffset 용 spine/neck 본 인덱스 캐시
-		skel->BuildAimBoneIndices();
 	}
 
 	uint32 animClipHandle{};
@@ -125,7 +127,9 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		}
 
 		if (enemyCom) {
-			animCom->mLowerAnimClipIdx = enemyCom->mAnimStatePacket;
+			const int idx = enemyCom->mAnimState;
+			if (idx >= 0 && idx < static_cast<int>(animCom->mAnimClips.size()))
+				animCom->mLowerAnimClipIdx = idx;
 		}
 
 		if (mannequinCom) {

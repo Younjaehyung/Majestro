@@ -3,8 +3,6 @@
 #include <cstdint>
 #include "Entity.h"
 
-// Fix: SkillType is defined in Protocol/Packet.h and included by pch so packet values cannot drift.
-
 enum class EffectSpawnReason : uint8
 {
     Fire = 0,
@@ -12,6 +10,16 @@ enum class EffectSpawnReason : uint8
     CollisionStatic = 2,
     LifetimeExpired = 3,
 };
+
+enum class ImpulseSource : uint8
+{
+    JumpPad,
+    Knockback,
+    Wind,
+    Conveyor,
+    Script
+};
+
 
 // 신규 클라이언트가 GAME_START 를 보내 World 에 합류한 직후 발행.
 // NetSendSystem 이 소비해서 본인/다른 세션에 spawn 패킷 + 기존 World 스냅샷을 송신한다.
@@ -135,9 +143,8 @@ struct EvHitConfirm
 struct EvImpulse
 {
     Entity target;
-    float x;
-    float y; // 위 방향이 +Y.
-    float z;
+    float x, y, z;
+    ImpulseSource source;
 };
 
 // Interactable 엔티티가 소비되었음을 알리는 이벤트.

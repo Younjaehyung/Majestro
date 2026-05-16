@@ -202,6 +202,23 @@ enum class ReplicatedMovementMode : uint8
 	Dead
 };
 
+enum ReplicatedControlFlags : uint8
+{
+	Control_None = 0,
+	Control_CanControlHorizontal = 1 << 0,
+	Control_CanControlVertical = 1 << 1
+	// 여러 상태가 동시에 true 가능
+};
+
+enum class ReplicatedExternalMoveMode : uint8
+{
+	None = 0,			// 외부 이동 없음
+	Additive,			// 플레이어 이동에 외부 속도를 더함
+	OverrideXZ,			// XZ 이동을 서버/기믹이 강제로 정함
+	OverrideY,			// Y축 이동을 서버/기믹이 강제로 정함
+	OverrideAll			// 모든 축 이동을 서버/기믹이 강제로 정함
+};
+
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -323,6 +340,8 @@ struct S2C_StatePacket : public PacketTcpHeader {
 	uint64_t netEntityId{};
 	uint8_t stateId{};
 	uint8_t lowerStateId{}; 
+	uint8_t controlFlags{};
+	uint8_t externalMoveMode{};
 	uint32_t stateSequence{};
 	S2C_StatePacket() : PacketTcpHeader{ sizeof(S2C_StatePacket), PKT_Type::S2C_PKT_STATE, 0.0 } {}
 	S2C_StatePacket(uint64_t entityId, uint8_t sId)
@@ -369,32 +388,32 @@ struct S2C_HitConfirmPacket : public PacketTcpHeader {
 };
 
 struct S2C_AmmoPacket : public PacketTcpHeader {
-	uint64_t netEntityId{};
+	uint64  netEntityId{};
 	int32_t currentAmmo{};
 	int32_t maxAmmo{};
 
 	S2C_AmmoPacket() : PacketTcpHeader{ sizeof(S2C_AmmoPacket), PKT_Type::S2C_PKT_AMMO, 0.0 } {}
-	S2C_AmmoPacket(uint64_t entityId, int32_t ammo, int32_t maxAmmoValue)
+	S2C_AmmoPacket(uint64 entityId, int32_t ammo, int32_t maxAmmoValue)
 		: PacketTcpHeader{ sizeof(S2C_AmmoPacket), PKT_Type::S2C_PKT_AMMO, 0.0 },
 		netEntityId(entityId), currentAmmo(ammo), maxAmmo(maxAmmoValue) {
 	}
 };
 struct S2C_MovePacket : public PacketUdpHeader {
-	uint32_t netEntityId{};
+	uint64 netEntityId{};
 	float    x{}, y{}, z{};
 	float   yaw{}, pitch{};
 	float	rx{}, ry{}, rz{}, rw{}; // rotation quaternion
 	float    vx{}, vy{}, vz{};
 	S2C_MovePacket() : PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 } {}
-	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle)
+	S2C_MovePacket(uint64 entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
 		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), rx(0), ry(0), rz(0), rw(1) {
 	}
-	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float velX, float velY, float velZ)
+	S2C_MovePacket(uint64 entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float velX, float velY, float velZ)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
 		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), vx(velX), vy(velY), vz(velZ), rx(0), ry(0), rz(0), rw(1) {
 	}
-	S2C_MovePacket(uint32_t entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float rotX, float rotY, float rotZ, float rotW)
+	S2C_MovePacket(uint64 entityId, float posX, float posY, float posZ, float yawAngle, float pitchAngle, float rotX, float rotY, float rotZ, float rotW)
 		: PacketUdpHeader{ sizeof(S2C_MovePacket), PKT_Type::S2C_PKT_MOVE, 0,0 },
 		netEntityId(entityId), x(posX), y(posY), z(posZ), yaw(yawAngle), pitch(pitchAngle), rx(rotX), ry(rotY), rz(rotZ), rw(rotW) {
 	}

@@ -124,13 +124,13 @@ float ComputeBodyBlendWeight(const string& boneName)
 	std::transform(lower.begin(), lower.end(), lower.begin(),
 		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
-	if (lower.find("thigh") != string::npos || lower.find("calf") != string::npos ||
+	// 상체 레이어가 pelvis와 다리 본에 영향을 주면 하체 이동 애니메이션이 공격 자세에 끌려간다.
+	// 방향성 하체 이동을 유지하기 위해 하체 본의 상체 영향도를 0으로 둔다.
+	if (lower.find("pelvis") != string::npos || lower.find("hip") != string::npos ||
+		lower.find("thigh") != string::npos || lower.find("calf") != string::npos ||
 		lower.find("foot") != string::npos || lower.find("toe") != string::npos ||
 		lower.find("leg") != string::npos || lower.find("ik_foot") != string::npos)
 		return 0.f;
-
-
-
 
 	if (lower.find("spine1") != string::npos)
 		return 1.0f;
@@ -140,7 +140,7 @@ float ComputeBodyBlendWeight(const string& boneName)
 	if (lower.find("spine3") != string::npos)
 		return 0.9f;
 
-	if (lower.find("pelvis") != string::npos || lower.find("spine") != string::npos)
+	if (lower.find("spine") != string::npos)
 		return .5f;
 
 	if (lower.find("chest") != string::npos)
@@ -153,7 +153,7 @@ float ComputeBodyBlendWeight(const string& boneName)
 		lower.find("arm") != string::npos || lower.find("hand") != string::npos)
 		return 1.0f;
 
-	return 1.0f;
+	return 0.f;
 }
 
 FBXMaterialInfo FBXData::ReadMaterialData(std::ifstream& file)
@@ -345,6 +345,9 @@ shared_ptr<Skeleton> FBXData::CreateSkeletonFromFBX(ifstream& loader)
 		fbxBondInfo.blendWeight = ComputeBodyBlendWeight(fbxBondInfo.boneName);
 		mSkeleton->mBones.emplace_back(fbxBondInfo);
 	}
+	// 스켈레톤 로드 직후 캐시를 만들어 AnimationComponent가 고정 본 인덱스 없이 마스크 범위를 사용하게 한다.
+	mSkeleton->BuildAimBoneIndices();
+	mSkeleton->BuildUpperBodyMaskRange();
 	loader.close();
 	RESOURCEMANAGER.Add(s2ws(fileName),mSkeleton);
 

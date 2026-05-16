@@ -1,6 +1,4 @@
 #include "pch.h"
-
-
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 #include "GameTimer.h"
@@ -127,7 +125,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
 
 }
 
-MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
+MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
 {
     mStateList = {
     IdleState::Instance(),
@@ -218,7 +216,13 @@ uint8 MainPlayerComponent::GetReplicatedActionState()
 
 uint8 MainPlayerComponent::GetReplicatedMovementMode()
 {
-	
+	if (mExternalMoveEndTime > 0.0f && mExternalMoveEndTime <= GetServerTotalTimeSeconds())
+	{
+		mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::None);
+		mExternalVelocity = Vec3::Zero;
+		mExternalMoveEndTime = 0.0f;
+	}
+
 	const StateId state = mFsm.GetState();
 	if (state == S_Dead)
 		return static_cast<uint8>(ReplicatedMovementMode::Dead);
@@ -226,16 +230,67 @@ uint8 MainPlayerComponent::GetReplicatedMovementMode()
 		return static_cast<uint8>(ReplicatedMovementMode::Disabled);
 	if (mDash || state == S_Dash)
 		return static_cast<uint8>(ReplicatedMovementMode::Dashing);
+	if (mExternalMoveMode == static_cast<uint8>(ReplicatedExternalMoveMode::OverrideY))
+		return static_cast<uint8>(ReplicatedMovementMode::Airborne);
 	if (mFalling || state == S_Fall)
 		return static_cast<uint8>(ReplicatedMovementMode::Falling);
 	if (state == S_Land)
 		return static_cast<uint8>(ReplicatedMovementMode::Landing);
 	if (state == S_Jump)
 		return static_cast<uint8>(ReplicatedMovementMode::Airborne);
-	if (mFlags & FLAG_MOVE)
+	if (CanUseHorizontalInput() && mHasMoveInput)
+		return static_cast<uint8>(ReplicatedMovementMode::Grounded);
+	if (mExternalMoveMode == static_cast<uint8>(ReplicatedExternalMoveMode::Additive))
 		return static_cast<uint8>(ReplicatedMovementMode::Grounded);
 
 	return static_cast<uint8>(ReplicatedMovementMode::Idle);
+}
+
+uint8 MainPlayerComponent::GetReplicatedControlFlags()
+{
+	uint8 flags = Control_None;
+	if (CanUseHorizontalInput())
+		flags |= Control_CanControlHorizontal;
+	if (CanUseVerticalInput())
+		flags |= Control_CanControlVertical;
+
+	return flags;
+}
+
+uint8 MainPlayerComponent::GetReplicatedExternalMoveMode()
+{
+	if (mExternalMoveEndTime > 0.0f && mExternalMoveEndTime <= GetServerTotalTimeSeconds())
+	{
+		mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::None);
+		mExternalVelocity = Vec3::Zero;
+		mExternalMoveEndTime = 0.0f;
+	}
+
+	return mExternalMoveMode;
+}
+
+bool MainPlayerComponent::CanUseHorizontalInput()
+{
+	const StateId state = mFsm.GetState();
+	if (state == S_Dead || state == S_Stun || state == S_Hit)
+		return false;
+	if (mExternalMoveMode == static_cast<uint8>(ReplicatedExternalMoveMode::OverrideXZ) ||
+		mExternalMoveMode == static_cast<uint8>(ReplicatedExternalMoveMode::OverrideAll))
+		return false;
+
+	return mCanControlHorizontal;
+}
+
+bool MainPlayerComponent::CanUseVerticalInput()
+{
+	const StateId state = mFsm.GetState();
+	if (state == S_Dead || state == S_Stun || state == S_Hit)
+		return false;
+	if (mExternalMoveMode == static_cast<uint8>(ReplicatedExternalMoveMode::OverrideY) ||
+		mExternalMoveMode == static_cast<uint8>(ReplicatedExternalMoveMode::OverrideAll))
+		return false;
+
+	return mCanControlVertical;
 }
 
 void MainPlayerComponent::InitFSMOnce()
@@ -387,7 +442,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
             mReloadCool = p["reloadCool"].get<float>();
 
         if (p.contains("maxBullet"))
-            mMaxBullet = p["maxBullet"].get<float>();
+            mMaxBullet = p["maxBullet"].get<int>();
 
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();

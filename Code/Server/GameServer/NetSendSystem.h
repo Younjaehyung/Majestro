@@ -3,7 +3,7 @@
 #include "ServerCore.h"
 
 class NetEntityComponent;
-class SendRequest;
+struct SendRequest;
 
 
 

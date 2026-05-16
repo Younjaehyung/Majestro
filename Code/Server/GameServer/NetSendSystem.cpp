@@ -129,6 +129,8 @@ void NetSendSystem::SendAction()
 			statePkt.netEntityId = netComp->mNetEntityId;
 			statePkt.stateId = playerComp->GetReplicatedActionState();
 			statePkt.lowerStateId = playerComp->GetReplicatedMovementMode();
+			statePkt.controlFlags = playerComp->GetReplicatedControlFlags();
+			statePkt.externalMoveMode = playerComp->GetReplicatedExternalMoveMode();
 			statePkt.stateSequence = playerComp->mStateSequence;
 
 			for (uint32 sessionId : recipients)

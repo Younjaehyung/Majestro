@@ -67,11 +67,15 @@ inline ClientAnimState SelectDirectionalMoveState(float localX, float localZ)
 
 inline ClientAnimState ResolveLowerByMovement(
 	int movementModeValue,
+	int controlFlags,
+	int externalMoveModeValue,
 	TransformComponent* transform,
 	PlayerMovementComponent* movement,
 	NetTransformComponent* netTransform)
 {
 	const ReplicatedMovementMode movementMode = static_cast<ReplicatedMovementMode>(movementModeValue);
+	const ReplicatedExternalMoveMode externalMoveMode = static_cast<ReplicatedExternalMoveMode>(externalMoveModeValue);
+	const bool canControlHorizontal = (controlFlags & Control_CanControlHorizontal) != 0;
 	switch (movementMode)
 	{
 	case ReplicatedMovementMode::Dead:
@@ -88,6 +92,8 @@ inline ClientAnimState ResolveLowerByMovement(
 		return ClientAnimState::Idle;
 	case ReplicatedMovementMode::Idle:
 		return ClientAnimState::Idle;
+	case ReplicatedMovementMode::Grounded:
+		break;
 	default:
 		break;
 	}
@@ -95,13 +101,15 @@ inline ClientAnimState ResolveLowerByMovement(
 	constexpr float kInputThresholdSq = 0.0001f;
 	constexpr float kVelocityThresholdSq = 1.0f;
 
-	if (movement && movement->mMovingDirection.LengthSquared() > kInputThresholdSq)
+	if (canControlHorizontal && movement && movement->mMovingDirection.LengthSquared() > kInputThresholdSq)
 	{
-		// FSM split: local player locomotion direction is presentation data and uses client input.
 		return SelectDirectionalMoveState(movement->mMovingDirection.x, movement->mMovingDirection.z);
 	}
 
-	if (netTransform && netTransform->mVelocity.LengthSquared() > kVelocityThresholdSq && transform)
+	const bool canUseServerVelocity =
+		externalMoveMode != ReplicatedExternalMoveMode::OverrideXZ &&
+		externalMoveMode != ReplicatedExternalMoveMode::OverrideAll;
+	if (canUseServerVelocity && netTransform && netTransform->mVelocity.LengthSquared() > kVelocityThresholdSq && transform)
 	{
 		Vec3 velocity = netTransform->mVelocity;
 		velocity.y = 0.f;
@@ -150,6 +158,7 @@ inline bool IsUpperBodyAction(ClientAnimState state)
 {
 	switch (state)
 	{
+	case ClientAnimState::Aim:
 	case ClientAnimState::Attack1:
 	case ClientAnimState::Attack2:
 	case ClientAnimState::Skill1:
@@ -202,7 +211,13 @@ inline PlayerAnimationResolveResult ResolvePlayerAnimationState(
 	PlayerAnimationResolveResult result{};
 
 	// FSM split: server packets carry action/movement meaning, not directional animation clips.
-	const ClientAnimState lowerState = ResolveLowerByMovement(player.mLowerState, transform, movement, netTransform);
+	const ClientAnimState lowerState = ResolveLowerByMovement(
+		player.mLowerState,
+		player.mControlFlags,
+		player.mExternalMoveMode,
+		transform,
+		movement,
+		netTransform);
 	const ClientAnimState actionState = ToClientActionState(player.mUpperState);
 	const bool fullBodyAction = IsFullBodyState(actionState);
 	const ClientAnimState upperState = fullBodyAction ? actionState : actionState;

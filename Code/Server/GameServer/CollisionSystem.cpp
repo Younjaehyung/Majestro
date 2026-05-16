@@ -528,7 +528,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             bulletTransform->mMovingVector = Vec3::Zero;
         }
 
-        auto applyKnockback = [&](Entity target)
+        auto applyKnockback = [&](Entity target)    // Knockback
         {
             if (bullet->mKnockbackDistance <= 0.0f)
                 return;
@@ -549,6 +549,13 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 {
                     knockbackDirection.Normalize();
                     const Vec3 knockbackVector = knockbackDirection * bullet->mKnockbackDistance;
+                    if (auto* player = mWorld->GetComponent<MainPlayerComponent>(target))
+                    {
+                       
+                        player->mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::OverrideXZ);
+                        player->mExternalVelocity = knockbackVector;
+                        player->mExternalMoveEndTime = GetServerTotalTimeSeconds() + 0.25f;
+                    }
                     hitTransform->mLocalPosition += knockbackVector;
                     hitTransform->mMovingVector += knockbackVector;
                 }

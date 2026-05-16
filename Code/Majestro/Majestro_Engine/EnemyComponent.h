@@ -2,11 +2,18 @@
 #include "Component.h"
 #include "Entity.h"
 
+enum EnemyType {
+	HornMan,
+	Pianoman,
+	Bongoman
+};
+
 enum class EnemyAnimState : uint8
 {
-	Run = 0,
-	Attack = 1,
-	Dead = 2,
+	Idle = 0,
+	Run,
+	Attack,
+	Dead,
 };
 
 class EnemyComponent : public Component<EnemyComponent>
@@ -16,6 +23,6 @@ public:
 	explicit EnemyComponent(uint8 enemyType) : mEnemyType(enemyType) {}
 	uint8 mEnemyType = 0;
 
-	int mAnimStatePacket;
+	int mAnimState = static_cast<int>(EnemyAnimState::Idle);
 	float mDeadElapsedTime = 0.f;
 };

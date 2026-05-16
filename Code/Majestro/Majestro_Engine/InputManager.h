@@ -108,15 +108,25 @@ public:
 
 
 private:
+	bool GetClientClipRect(RECT& outRect) const;
+
 	void HideCursor();
 	void ShowCursorRestore();
 
-	HWND mHwnd;
+	void LockCursorToClient();
+	void UnlockCursor();
+
+	void CenterCursorInClient();
+	void RefreshCursorLock();
+
+	HWND mHwnd = nullptr;
 	bool mHasFocus = true;                         // 창이 활성화 상태인지
 	bool mMouseLookControl = false;
 	bool mForceMouseLookRequested = false;
 	bool mCursorHidden = false;                    // ShowCursor 상태 추적
-	eMouseInputMode mMouseInputMode = eMouseInputMode::LegacyRelative;
+	bool mCursorLocked = false;                    // Cursor Lock 상태
+
+	eMouseInputMode mMouseInputMode = eMouseInputMode::RecenterRelative;
 	MouseState mMouseState;
 
 	bool mPrevMousePressed[static_cast<size_t>(eMouseButton::End)] = { false, false, false };

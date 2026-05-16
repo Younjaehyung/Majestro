@@ -397,7 +397,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
 
-	switch (0/*ctx.ViewAs<S2C_SpawnPacekt>()->Type*/) {
+	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {
 	case 0:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
@@ -416,7 +416,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-		world->AddComponent<EnemyComponent>(mEntityID, 0);
+		world->AddComponent<EnemyComponent>(mEntityID, 1);
 		break;
 	case 2:
 		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
@@ -431,7 +431,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
-		world->AddComponent<EnemyComponent>(mEntityID, 0);
+		world->AddComponent<EnemyComponent>(mEntityID, 2);
 		break;
 	}
 

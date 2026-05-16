@@ -6,6 +6,57 @@
 #include "RenderComponent.h"
 #include"MovementComponent.h"
 #include"SimpleMath.h"
+#include "RenderSystem.h"
+
+namespace
+{
+	constexpr uint8 kPianomanType = 1;
+
+	constexpr float kEnemyAggroRange = 1000.0f;
+	constexpr float kPianomanMeleeRange = 160.0f;
+	constexpr float kCircleHeightOffset = 5.0f;
+	constexpr int kCircleSegments = 40;
+
+	void SubmitDebugCircle(const Vec3& center, float radius, const Vec4& color, int segments = kCircleSegments)
+	{
+		if (radius <= 0.0f || segments < 3)
+			return;
+
+		const float step = DirectX::XM_2PI / static_cast<float>(segments);
+		for (int i = 0; i < segments; ++i)
+		{
+			const float a0 = step * static_cast<float>(i);
+			const float a1 = step * static_cast<float>(i + 1);
+
+			const Vec3 p0{
+				center.x + std::cos(a0) * radius,
+				center.y,
+				center.z + std::sin(a0) * radius
+			};
+			const Vec3 p1{
+				center.x + std::cos(a1) * radius,
+				center.y,
+				center.z + std::sin(a1) * radius
+			};
+
+			RenderSystem::SubmitDebugLine(p0, p1, color);
+		}
+	}
+
+	void SubmitEnemyRangeCircles(const TransformComponent* transformComponent, const EnemyComponent* enemyComponent)
+	{
+		if (transformComponent == nullptr || enemyComponent == nullptr)
+			return;
+
+		Vec3 center = transformComponent->mLocalPosition;
+		center.y += kCircleHeightOffset;
+
+		SubmitDebugCircle(center, kEnemyAggroRange, Vec4(0.f, 1.f, 0.f, 1.f));
+
+		if (enemyComponent->mEnemyType == kPianomanType)
+			SubmitDebugCircle(center, kPianomanMeleeRange, Vec4(1.f, 0.f, 0.f, 1.f), 24);
+	}
+}
 
 
 EnemySystem::EnemySystem(World* world) : System(world)
@@ -20,12 +71,11 @@ void EnemySystem::Update(float dt) {
 		EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
 		RenderComponent* renderComponent = mWorld->GetComponent<RenderComponent>(entity);
 		AnimationComponent* animationComponent = mWorld->GetComponent<AnimationComponent>(entity);
+		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		if (enemyComponent == nullptr || renderComponent == nullptr || animationComponent == nullptr)
 			continue;
 
 		const bool isDead = (enemyComponent->mAnimStatePacket == static_cast<int>(EnemyAnimState::Dead));
-		const uint32 entityId = entity.GetID();
-
 		if (isDead) {
 			enemyComponent->mDeadElapsedTime += dt;
 
@@ -43,6 +93,9 @@ void EnemySystem::Update(float dt) {
 			renderComponent->mVisibility = true;
 			enemyComponent->mDeadElapsedTime = 0.f;
 		}
+
+		if (!isDead && RenderSystem::GetDrawEnemyRanges())
+			SubmitEnemyRangeCircles(transformComponent, enemyComponent);
 	}
 
 

@@ -33,6 +33,7 @@
 #include "World.h"
 #include "CameraComponent.h"
 #include "PlayerComponent.h" 
+#include "RenderSystem.h"
 #include "TagComponent.h"
 
 
@@ -423,6 +424,14 @@ void GameRenderPipeline::DrawImGui()
 
         bool fxaaOn = mFXAAPass ? mFXAAPass->IsEnabled() : false;
         if (ImGui::Checkbox("FXAA",             &fxaaOn))         SetFXAAEnabled(fxaaOn);
+
+        bool collidersOn = RenderSystem::GetDrawColliders();
+        if (ImGui::Checkbox("Collision Boxes", &collidersOn))
+            RenderSystem::SetDrawColliders(collidersOn);
+
+        bool enemyRangesOn = RenderSystem::GetDrawEnemyRanges();
+        if (ImGui::Checkbox("Enemy Range Circles", &enemyRangesOn))
+            RenderSystem::SetDrawEnemyRanges(enemyRangesOn);
 
         // MotionBlur는 대시 중 자동 활성화 — 수동 오버라이드만 허용
         ImGui::BeginDisabled(true);

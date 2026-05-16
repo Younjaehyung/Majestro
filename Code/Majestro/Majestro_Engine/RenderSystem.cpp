@@ -22,10 +22,32 @@
 #include "GameRenderPipeline.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
+bool RenderSystem::sDrawColliders = true;
+bool RenderSystem::sDrawEnemyRanges = true;
 
 void RenderSystem::SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color)
 {
   sDebugLineQueue.push_back({ start, end, color });
+}
+
+void RenderSystem::SetDrawColliders(bool enabled)
+{
+  sDrawColliders = enabled;
+}
+
+bool RenderSystem::GetDrawColliders()
+{
+  return sDrawColliders;
+}
+
+void RenderSystem::SetDrawEnemyRanges(bool enabled)
+{
+  sDrawEnemyRanges = enabled;
+}
+
+bool RenderSystem::GetDrawEnemyRanges()
+{
+  return sDrawEnemyRanges;
 }
 
 RenderSystem::RenderSystem(World *world) : System::System(world) {
@@ -545,7 +567,7 @@ void RenderSystem::PushObjectData() {
   }
 
   // collison box
-  if (mDrawColliders && mWireCube) {
+  if (sDrawColliders && mWireCube) {
     auto colliderEntities =
         mWorld->GetEntitiesWithComponents<TransformComponent,
                                           BoxColliderComponent>();

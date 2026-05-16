@@ -119,7 +119,7 @@ void PlayerSystem::Update(float dt)
 			// TriggerShake(float magnitude, float duration, float frequency)
 			switch (mainPlayerComponent->mPlayerType) 
 			{
-			case 0:
+			case Rudwig:
 				if (currState)
 				{
 					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
@@ -130,7 +130,7 @@ void PlayerSystem::Update(float dt)
 					std::cout << "ATTACK!@" << std::endl;
 				}
 				break;
-			case 1:
+			case Ibanix:
 				if (currState)
 				{
 					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
@@ -141,7 +141,7 @@ void PlayerSystem::Update(float dt)
 
 				}
 				break;
-			case 2: 
+			case Fanthor: 
 				if (currState)
 				{
 					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)

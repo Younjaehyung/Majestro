@@ -16,7 +16,7 @@ struct SendBuffer;
 
 struct InputCommand // Packet received (network thread -> logic thread)
 {
-    uint32 SessionId{};
+    uint64 SessionId{};
     PKT_Type Type = PKT_Type::KNONE;
     MsgKind Kind = MsgKind::KNONE;
     uint32  SIze{};

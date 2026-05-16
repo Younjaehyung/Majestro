@@ -25,10 +25,10 @@ public:
 	float mBpmSeconds = 60.f / mBpm;
 
 private:
-	int mBpm = 168.0f;
+	int mBpm = 168;
 	int mBeat =0;
 
 	float mSeconds = 0.0f;
-	float mBonusTime = 0.2;
+	float mBonusTime = 0.2f;
 	std::vector<EvBuffRequest> mPendingBuffRequests;
 };

@@ -112,7 +112,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 
 }
 
-MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, uint8 playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
+MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, PlayerType playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
 {
     mStateList = {
     IdleState::Instance(),

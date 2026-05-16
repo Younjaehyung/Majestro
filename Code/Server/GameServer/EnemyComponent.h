@@ -54,13 +54,13 @@ public:
 public:
 	uint8 mEnemyType = 0;
 	uint8 mAnimState = static_cast<int>(EnemyAnimState::Idle);
-	float mSpeed;
+	float mSpeed = 10.f;
 
-	float AttackRange = 100;
-	float AttackRangeSq = 100;
+	float AttackRange = 100.f;
+	float AttackRangeSq = 100.f;
 
-	float mAttackCool;
-	float mNextAttackTime;
+	float mAttackCool = 10.f;
+	float mNextAttackTime = 5.f;
 	float mPendingAttackTime = -1.0f;
 
 	float mAttackAnimEndTime = 0.0f;

@@ -134,7 +134,6 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
 	shared_ptr<Material> material2;
-
 	std::vector<shared_ptr<Material>> material2s;
 	
 	
@@ -143,11 +142,9 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	vector<shared_ptr<Animator>> anmators0;
 
 
-	//world->AddComponent<ControllerComponent>(mEntityID, t);
+	switch (static_cast<PlayerType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
-	switch (ctx.ViewAs<S2C_SpawnPacekt>()->Type) {// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
-
-	case 0:
+	case PlayerType::Rudwig:
 	{
 		world->AddComponent<HealthComponent>(mEntityID, 150, 150);
 		world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
@@ -176,10 +173,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Reload"));//special
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Rhythm"));
 
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Rudwig);
 	}
 		break;
-	case 1:
+	case PlayerType::Ibanix:
 	{
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
@@ -206,10 +203,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//special
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Reload"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Rhythm"));
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Ibanix);
 	}
 		break;
-	case 2:
+	case PlayerType::Fanthor:
 	{
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
@@ -239,7 +236,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Attack_01"));//special
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Reload"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Rhythm"));
-		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Fanthor);
 	}
 		break;
 	}

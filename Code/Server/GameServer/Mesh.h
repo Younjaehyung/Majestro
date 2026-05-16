@@ -1,7 +1,7 @@
 #pragma once
 #include "Object.h"
 
-class FBXBMeshInfo;
+struct FBXBMeshInfo;
 
 class Mesh : public Object
 {

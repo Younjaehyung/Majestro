@@ -1,6 +1,4 @@
 #include "pch.h"
-
-
 #include "PlayerComponent.h"
 #include "StateMachine.h"
 #include "GameTimer.h"
@@ -127,7 +125,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
 
 }
 
-MainPlayerComponent::MainPlayerComponent(const std::string& path, uint8 playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
+MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
 {
     mStateList = {
     IdleState::Instance(),
@@ -387,7 +385,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
             mReloadCool = p["reloadCool"].get<float>();
 
         if (p.contains("maxBullet"))
-            mMaxBullet = p["maxBullet"].get<float>();
+            mMaxBullet = p["maxBullet"].get<int>();
 
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();

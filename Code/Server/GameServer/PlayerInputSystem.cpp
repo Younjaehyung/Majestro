@@ -220,7 +220,7 @@ void PlayerInputSystem::Update(float dt)
 					<< " now=" << now
 					<< " ammo=" << mainPlayerComponent->mNowBullet << "\n";
 
-				if (mainPlayerComponent->mPlayerType == 1 && mainPlayerComponent->mNowBullet > 0) {
+				if (mainPlayerComponent->mPlayerType == Ibanix && mainPlayerComponent->mNowBullet > 0) {
 					const int prevAmmo = mainPlayerComponent->mNowBullet;
 					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
 					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
@@ -229,7 +229,7 @@ void PlayerInputSystem::Update(float dt)
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 					EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
 				}
-				else if(mainPlayerComponent->mPlayerType == 2) {
+				else if(mainPlayerComponent->mPlayerType == Fanthor) {
 					const int prevAmmo = mainPlayerComponent->mNowBullet;
 					SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, 0);
 					if (mainPlayerComponent->mNowBullet > 0) {
@@ -242,7 +242,7 @@ void PlayerInputSystem::Update(float dt)
 					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
 					EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
 				}
-				else if (mainPlayerComponent->mPlayerType == 0) {
+				else if (mainPlayerComponent->mPlayerType == Rudwig) {
 					
 						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
 						EnqueueAttackEventByCategory(*eventManager, e, bulletType);

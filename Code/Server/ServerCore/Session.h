@@ -43,8 +43,8 @@ public:
 	NetAddress			GetTcpAddress() { return mTcpAddr; }
 	NetAddress			GetUdpAddress() { return mUdpAddr; }
 
-	void				SetPlayerId(int id) { mPlayerId = id; }
-	int					GetPlayerId() { return mPlayerId; }
+	void				SetPlayerId(uint64 id) { mPlayerId = id; }
+	uint64				GetPlayerId() { return mPlayerId; }
 
 	void				SetTSocket(SOCKET socket) { mTcpSocket = socket; }
 	SOCKET&				GetTSocket() { return mTcpSocket; }
@@ -78,8 +78,8 @@ private:
 	RecvBuffer		mRecvBuffer;			// 수신 버퍼 (Ring) 전체 버퍼
 	BYTE			mURecvBuffer[4096];	// UDP 수신 버퍼
 
-	uint32_t		mLastRecvServerTick;
-	int				mPlayerId;
+	uint32			mLastRecvServerTick;
+	uint64			mPlayerId;
 
 	InputCommand	mTempInputCommand;
 	SendRequest		mTempSendRequest;

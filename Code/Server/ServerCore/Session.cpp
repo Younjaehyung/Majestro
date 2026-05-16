@@ -102,7 +102,7 @@ int32 Session::OnTcpRecv(BYTE* buffer, int32 len)
 
 	while (true)
 	{
-		int32 dataSize = len - processLen;
+		uint32 dataSize = len - processLen;
 		// 최소한 헤더는 파싱할 수 있어야 한다
 		if (dataSize < sizeof(PacketTcpHeader))
 			break;

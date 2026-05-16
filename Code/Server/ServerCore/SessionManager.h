@@ -21,8 +21,8 @@ struct sockaddr_compare {
 class SessionManager
 {
 public:
-	std::map<uint32, std::shared_ptr<Session>>		mSessions;
-	std::map<sockaddr_in, uint64_t, sockaddr_compare> mUdpMapper;
+	std::map<uint64, std::shared_ptr<Session>>		mSessions;
+	std::map<sockaddr_in, uint64, sockaddr_compare> mUdpMapper;
 public:
 	SessionManager();
 	~SessionManager();
@@ -36,13 +36,13 @@ public:
 	shared_ptr<Session> FindSessionByAddr(sockaddr_in addr);
 	void RegisterUdpAddress(sockaddr_in addr, uint64 sessionId);
 public:
-	std::map<uint32, std::shared_ptr<Session>>&		GetAllSessions() { return mSessions; }
+	std::map<uint64, std::shared_ptr<Session>>&		GetAllSessions() { return mSessions; }
 
 	size_t									GetMaxSessionCount() { return mSessions.size(); }
 	void 									Update() {};
 private:
 	uint8										mCoreState = 0; // 0: Init, 1: Running, 2: Stop		
-	uint32										mPlayerLastIndex = 0;
+	uint64										mPlayerLastIndex = 0;
 
 
 };

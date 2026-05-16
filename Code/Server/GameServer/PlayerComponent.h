@@ -3,7 +3,13 @@
 #include "TransformComponent.h"
 #include "StateMachine.h"
 #include "System.h"
-//#include "Animator.h"
+
+enum PlayerType : uint8
+{
+	Rudwig,
+	Ibanix ,
+	Fanthor,
+};
 
 class ControllerComponent : public Component<ControllerComponent>
 {
@@ -20,9 +26,9 @@ public:
 
 public:
 	TransformComponent mTransformComponent;
-	int mPlayMode;
-	float mCameraHight = 1; 
-	float mCameraLenth = 5; 
+	int mPlayMode = 0;
+	float mCameraHight = 1.f; 
+	float mCameraLenth = 5.f; 
 };
 
 //------------------------------------------------------------------------------------------------
@@ -73,7 +79,7 @@ public:
 	MainPlayerComponent();
 	// MainPlayerComponent(const std::string& path);
 	MainPlayerComponent(const std::string& path/*, vector<shared_ptr<Animator>> anim*/);
-	MainPlayerComponent(const std::string& path, uint8 playerType);
+	MainPlayerComponent(const std::string& path, PlayerType playerType);
 
 	void StateCheck();
 	void Update(float dt);
@@ -86,14 +92,14 @@ public:
 	void LoadStateSettingFromJson(const std::string& path);
 
 public:
-	uint8 mPlayerType;
+	PlayerType mPlayerType = PlayerType::Fanthor;
 public:
 	PendingAction mPendingAction = PendingAction::None;
 	bool mStateThrew = true;
 	StateMachine<MainPlayerComponent> mFsm{this};
-	int mNextState;
+	int mNextState = 0;
 
-	Vec2 mPlayerMovingDir;
+	Vec2 mPlayerMovingDir = Vec2::Zero;
 
 public:
 	//float mWalkSpeed = 0.0f;
@@ -101,19 +107,19 @@ public:
 	float mDashSpeed = 0.0f;
 	float mDashTime = 3.0f;
 
-	float mAttackCool;
-	float mSkill1Cool;
-	float mSkill2Cool;
-	float mReloadCool;
+	float mAttackCool= 2.f;
+	float mSkill1Cool= 2.f;
+	float mSkill2Cool= 2.f;
+	float mReloadCool= 2.f;
 
 public:
-	float mNextAttackTime;
-	float mNextSkill1Time;
-	float mNextSkill2Time;
-	float mNextReloadTime;
-	float mNextRythmChangeTime;
-	uint8 mRhythm =0;
-	uint8 mNextRhythm =0;
+	float mNextAttackTime = 1.f;
+	float mNextSkill1Time = 1.f;
+	float mNextSkill2Time = 1.f;
+	float mNextReloadTime = 1.f;
+	float mNextRythmChangeTime = 1.f;
+	uint8 mRhythm = 0;
+	uint8 mNextRhythm = 0;
 	bool mHasQueuedRhythmChange = false;
 
 

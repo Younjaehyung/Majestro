@@ -4,6 +4,6 @@
 class BeatComponent : public Component<BeatComponent>
 {
 public:
-	int mBeat;
-	bool mBouns;
+	int	 mBeat  = 168;
+	bool mBouns = false;
 };

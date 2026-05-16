@@ -49,8 +49,7 @@ PlayerPrefab::PlayerPrefab(World *world) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<InputComponent>(mEntityID);
-  world->AddComponent<MainPlayerComponent>(mEntityID,
-                                           "../Resources/Json/TestJson.json");
+  world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json");
   world->AddComponent<TransformComponent>(mEntityID, t);
   world->AddComponent<BeatComponent>(mEntityID);
   world->AddComponent<GravityComponent>(mEntityID);
@@ -82,15 +81,15 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
 
   switch (playerType) {
-  case 0:
+  case PlayerType::Rudwig:
 	  world->AddComponent<HealthComponent>(mEntityID, 150, 150);
 	  world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 	  break;
-  case 1:
+  case PlayerType::Ibanix:
 	  world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
-  case 2:
+  case PlayerType::Fanthor:
 	  world->AddComponent<HealthComponent>(mEntityID, 125, 125);
 	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
@@ -98,8 +97,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<BuffComponent>(mEntityID);
-  world->AddComponent<MainPlayerComponent>(mEntityID,
-                                           "../Resources/Json/TestJson.json", playerType);
+  world->AddComponent<MainPlayerComponent>(mEntityID,"../Resources/Json/TestJson.json", static_cast<PlayerType>(playerType));
   world->AddComponent<TransformComponent>(mEntityID, t);
 
   world->AddComponent<BeatComponent>(mEntityID);
@@ -138,15 +136,14 @@ TerrainPrefab::TerrainPrefab(World *world) {
   bt.mLocalPosition = Vec3(-0.5f * 378.f * 100.f, -27.6f, -0.5f * 378.f * 100.f);
   world->AddComponent<TransformComponent>(mEntityID, bt);
 
-  auto heightField = std::make_shared<HeightField>();
+  shared_ptr<HeightField> heightField = std::make_shared<HeightField>();
   heightField->LoadHeightFieldFromPng16("../Resources/Texture/T_Height.png");
 	
   
   // Add<HeightField>(L"TerrainHeightField", heightField);
   // Add<HeightField>(L"TerrainHeightField", heightField);
 
-  TerrainComponent &terrainc =
-      world->AddComponent<TerrainComponent>(mEntityID, 378, 378, heightField);
+  TerrainComponent &terrainc = world->AddComponent<TerrainComponent>(mEntityID, 378.f, 378.f, heightField);
   terrainc.mTerrainWorldPosition = bt.mLocalPosition;
   terrainc.mTerrainWorldScale = bt.mLocalScale;
 }
@@ -166,8 +163,7 @@ Entity TerrainPrefab::Build(World *world, const InputCommand &ctx) {
   heightField->LoadHeightFieldFromPng16("height.raw");
   // Add<HeightField>(L"TerrainHeightField", heightField);
 
-  TerrainComponent &terrainc =
-      world->AddComponent<TerrainComponent>(mEntityID, 64, 64, heightField);
+  TerrainComponent &terrainc = world->AddComponent<TerrainComponent>(mEntityID, 64.f, 64.f, heightField);
   terrainc.mTerrainWorldPosition = bt.mLocalPosition;
   terrainc.mTerrainWorldScale = bt.mLocalScale;
 
@@ -182,31 +178,6 @@ EnemyPrefab::EnemyPrefab(World* world)
 	t.mLocalPosition = { 0.f, 0.f, 0.f };
 	t.mLocalScale = { 0.5f, 0.5f, 0.5f };
 
-	
-	//mWorld->AddComponent<AnimationComponent>(osw, anmators);
-	float i, j, k;
-	float n = 10;
-	for (i = -50; i < 50; i += 10.0f) {
-		for (j = -50; j < 50; j += 10.0f) {
-			//for (k = -50; k < 50; k += 10.0f) {
-			Entity mEntityID = world->CreateEntity();
-			t.mLocalPosition = { i * n, 0, j * n };
-
-
-			world->AddComponent<TransformComponent>(mEntityID, t);
-
-			world->AddComponent<GravityComponent>(mEntityID);
-
-
-			world->AddComponent<EnemyMovementComponent>(mEntityID);
-			world->AddComponent<BoxColliderComponent>(mEntityID);
-
-
-			//}
-		}
-
-	}
-
 }
 
 EnemyPrefab::~EnemyPrefab()
@@ -218,12 +189,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	Entity mEntityID = world->CreateEntity();
 
 	TransformComponent t{};
-
-	float n = 10;
-	float i = (float)(mSpawnCount/10)*n , j = (float)(mSpawnCount % 10) * n, k;
-	
-	
-	t.mLocalPosition = { i * n, 0, j * n };
 	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
@@ -240,23 +205,22 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 	switch (mSpawnCount %3) {
 	case EnemyType::HornMan:
-		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::HornMan, 40);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::HornMan, 40.f);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
 	case EnemyType::Pianoman:
-		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 40);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 40.f);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 10);
 		break;
 	case EnemyType::Bongoman:
-		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman, 40);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman, 40.f);
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
 		break;
 	}
 
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 
-	auto& w =
-		world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
+	auto& w = world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
 	w.mSessionId = ctx.SessionId;
 
 

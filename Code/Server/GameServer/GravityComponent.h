@@ -9,7 +9,7 @@ public:
 	float mGravityA = 9.8f * 100.0f; //중력가속도
 	float mHight = 0.0f; //플레이어 높이
 	float mGround = 0.0f;
-	bool mFalling;
+	bool mFalling = false;
 
 	float mHeightInterpolation = 3.0f;
 

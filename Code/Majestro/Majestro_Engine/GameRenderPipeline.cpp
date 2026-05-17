@@ -35,7 +35,7 @@
 #include "PlayerComponent.h" 
 #include "RenderSystem.h"
 #include "TagComponent.h"
-
+#include "InputManager.h"
 
 void GameRenderPipeline::Initialize(World* world)
 {
@@ -432,6 +432,16 @@ void GameRenderPipeline::DrawImGui()
         bool enemyRangesOn = RenderSystem::GetDrawEnemyRanges();
         if (ImGui::Checkbox("Enemy Range Circles", &enemyRangesOn))
             RenderSystem::SetDrawEnemyRanges(enemyRangesOn);
+
+        bool remoteDesktopMouseMode =
+            (INPUT.GetMouseInputMode() == eMouseInputMode::LegacyRelative);
+        if (ImGui::Checkbox("Remote Desktop Mouse Mode", &remoteDesktopMouseMode))
+        {
+            INPUT.SetMouseInputMode(
+                remoteDesktopMouseMode
+                ? eMouseInputMode::LegacyRelative
+                : eMouseInputMode::RecenterRelative);
+        }
 
         // MotionBlur는 대시 중 자동 활성화 — 수동 오버라이드만 허용
         ImGui::BeginDisabled(true);

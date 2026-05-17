@@ -14,6 +14,7 @@ enum class EnemyAnimState : uint8
 	Run,
 	Attack,
 	Dead,
+	Shield
 };
 
 class EnemyComponent : public Component<EnemyComponent>
@@ -41,6 +42,7 @@ public:
 			AttackRange = 1000.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
+			mNextShildTime = GetServerTotalTimeSeconds();
 			break;
 		default:
 			mAttackCool = 4;
@@ -60,8 +62,11 @@ public:
 
 	float mAttackCool = 10.f;
 	float mNextAttackTime = 5.f;
+	float mNextShildTime = 0.0f;
 	float mPendingAttackTime = -1.0f;
 
 	float mAttackAnimEndTime = 0.0f;
 	float mAttackAnimTime = 1.0f;
+	float mShieldAnimEndTime = 0.0f;
+	float mShieldAnimTime = 1.0f;
 };

@@ -426,7 +426,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Shield"));
 
+		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman);
 		break;

@@ -10,6 +10,7 @@
 
 #include "BeatSystem.h"
 #include "EnemyComponent.h"
+#include "ArmorComponent.h"
 #include "HealthComponent.h"
 #include "GravityComponent.h"
 #include "EventManager.h"
@@ -132,6 +133,28 @@ void EnemySystem::Update(float dt)
         EnemyAnimState currentState = EnemyAnimState::Run;
         if (nearestPlayerDistSq <= enemyComp->AttackRangeSq)
             currentState = EnemyAnimState::Attack;
+
+        ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(entity);
+        if (currentState == EnemyAnimState::Run &&
+            enemyComp->mEnemyType == EnemyType::Bongoman &&
+            armorComp != nullptr &&
+            armorComp->mCurrentArmor <= 0 &&
+            now >= enemyComp->mNextShildTime)
+        {
+            armorComp->mCurrentArmor = (std::min)(armorComp->mMaxArmor, 50);
+            enemyComp->mShieldAnimEndTime = now + enemyComp->mShieldAnimTime;
+            enemyComp->mNextShildTime = now + Beat * 4.0f;
+            if (eventManager)
+                eventManager->Enqueue<EvArmorChanged>({ entity, armorComp->mCurrentArmor, armorComp->mMaxArmor });
+
+            currentState = EnemyAnimState::Shield;
+        }
+        else if (currentState == EnemyAnimState::Run &&
+            enemyComp->mEnemyType == EnemyType::Bongoman &&
+            enemyComp->mShieldAnimEndTime > now)
+        {
+            currentState = EnemyAnimState::Shield;
+        }
 
         if (currentState == EnemyAnimState::Attack && HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
         {

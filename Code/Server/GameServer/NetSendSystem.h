@@ -34,6 +34,7 @@ private:
 	void SendEnemyPoolToNewSession(uint32 newSessionId);
 	void SendBulletPoolToNewSession(uint32 newSessionId);
 	void SendHealthSnapshotToNewSession(uint32 newSessionId);
+	void SendArmorSnapshotToNewSession(uint32 newSessionId);
 
 	std::vector<uint32> CollectPlayerSessions();
 private:

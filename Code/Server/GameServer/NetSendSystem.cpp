@@ -456,6 +456,7 @@ void NetSendSystem::HandleSessionJoinedEvents()
 		SendEnemyPoolToNewSession(e.sessionId);
 		SendBulletPoolToNewSession(e.sessionId);
 		SendHealthSnapshotToNewSession(e.sessionId);
+		SendArmorSnapshotToNewSession(e.sessionId);
 	});
 }
 
@@ -634,6 +635,28 @@ void NetSendSystem::SendHealthSnapshotToNewSession(uint32 newSessionId)
 
 		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_HEALTH, sizeof(S2C_HealthPacket) };
 		req.StoreAs<S2C_HealthPacket>(healthPkt);
+		gSendQueue.Push(req);
+	}
+}
+
+void NetSendSystem::SendArmorSnapshotToNewSession(uint32 newSessionId)
+{
+	if (!mWorld->HasComponentPool<ArmorComponent>() || !mWorld->HasComponentPool<NetEntityComponent>())
+		return;
+
+	for (auto entity : mWorld->GetEntitiesWithComponents<ArmorComponent, NetEntityComponent>())
+	{
+		ArmorComponent* armor = mWorld->GetComponent<ArmorComponent>(entity);
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (armor == nullptr || netComp == nullptr) continue;
+
+		S2C_ArmorPacket armorPkt;
+		armorPkt.netEntityId = netComp->mNetEntityId;
+		armorPkt.currentArmor = armor->mCurrentArmor;
+		armorPkt.maxArmor = armor->mMaxArmor;
+
+		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_ARMOR, sizeof(S2C_ArmorPacket) };
+		req.StoreAs<S2C_ArmorPacket>(armorPkt);
 		gSendQueue.Push(req);
 	}
 }

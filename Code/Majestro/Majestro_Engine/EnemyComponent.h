@@ -13,6 +13,7 @@ enum class EnemyAnimState : uint8
 	Run,
 	Attack,
 	Dead,
+	Shield,
 };
 
 class EnemyComponent : public Component<EnemyComponent>

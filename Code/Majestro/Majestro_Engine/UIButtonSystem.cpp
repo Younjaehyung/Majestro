@@ -118,27 +118,26 @@ void UIButtonSystem::Update(float dt)
             sprite->mMaterial->GetParams().Diffuse = targetColor;
 
         //// ── 크기 스케일 갱신 (BaseSize 기준) ─────────────────
-        //if (btn->mBaseSize.x > 0.f)
-        //{
-        //    // 버튼 피드백 크기도 UITransformComponent의 레이아웃 모드와 같은 기준으로 계산한다.
-        //    Vec2 buttonBaseSize = btn->mBaseSize;
-        //    if (tr->mLayoutMode == UILayoutMode::ScreenRatio)
-        //    {
-        //        buttonBaseSize = Vec2(tr->mSizeRatio.x * screenSize.x,
-        //                              tr->mSizeRatio.y * screenSize.y);
-        //    }
-        //    else if (tr->mLayoutMode == UILayoutMode::ReferenceResolution)
-        //    {
-        //        const Vec2 reference = tr->mReferenceResolution;
-        //        if (reference.x > 0.f && reference.y > 0.f)
-        //        {
-        //            buttonBaseSize = Vec2(btn->mBaseSize.x * (screenSize.x / reference.x),
-        //                                  btn->mBaseSize.y * (screenSize.y / reference.y));
-        //        }
-        //    }
+        if (btn->mBaseSize.x > 0.f)
+        {
+            Vec2 buttonBaseSize = btn->mBaseSize;
+            if (tr->mLayoutMode == UILayoutMode::ScreenRatio)
+            {
+                buttonBaseSize = Vec2(tr->mSizeRatio.x * screenSize.x,
+                                      tr->mSizeRatio.y * screenSize.y);
+            }
+            else if (tr->mLayoutMode == UILayoutMode::ReferenceResolution)
+            {
+                const Vec2 reference = tr->mReferenceResolution;
+                if (reference.x > 0.f && reference.y > 0.f)
+                {
+                    buttonBaseSize = Vec2(btn->mBaseSize.x * (screenSize.x / reference.x),
+                                          btn->mBaseSize.y * (screenSize.y / reference.y));
+                }
+            }
 
-        //    tr->mFinalSize = buttonBaseSize * targetScale;
-        //}
+            tr->mFinalSize = buttonBaseSize * targetScale;
+        }
 
         // ── VFX 스케일 갱신 ───────────────────────────────────
         // UICusSpriteComponent 없이 VFX만 사용하는 버튼도 시각 피드백 지원

@@ -76,6 +76,7 @@ enum class SkillType : uint8
 	HornAttack,
 	PianoAttack,
 	BongoAttack,
+	BongoShild,
 
 	Max
 };

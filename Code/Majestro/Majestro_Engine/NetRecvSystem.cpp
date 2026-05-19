@@ -450,6 +450,20 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
             impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
             effectScale = Vec3(30.0f);
         }
+        else if (effectSkillType == SkillType::BongoAttack)
+        {
+            effectName = L"VFX_Bongoman_Attack_01";
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
+            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y + 50.0f, pkt->z);
+            effectScale = Vec3(100.0f);
+        }
+        else if (effectSkillType == SkillType::BongoShild)
+        {
+            effectName = L"VFX_Bongoman_Shield";
+            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
+            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y + 80.0f, pkt->z);
+            effectScale = Vec3(100.0f);
+        }
         break;
     case 1:
         if (isBaseSkill(effectSkillType))

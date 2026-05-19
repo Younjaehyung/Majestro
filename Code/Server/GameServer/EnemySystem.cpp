@@ -145,7 +145,19 @@ void EnemySystem::Update(float dt)
             enemyComp->mShieldAnimEndTime = now + enemyComp->mShieldAnimTime;
             enemyComp->mNextShildTime = now + Beat * 4.0f;
             if (eventManager)
+            {
                 eventManager->Enqueue<EvArmorChanged>({ entity, armorComp->mCurrentArmor, armorComp->mMaxArmor });
+                eventManager->Enqueue<EvEffectSpawn>({
+                    static_cast<uint8>(SkillType::BongoShild),
+                    myPos.x,
+                    myPos.y,
+                    myPos.z,
+                    EffectSpawnReason::Fire,
+                    0.0f,
+                    0.0f,
+                    0.0f
+                });
+            }
 
             currentState = EnemyAnimState::Shield;
         }

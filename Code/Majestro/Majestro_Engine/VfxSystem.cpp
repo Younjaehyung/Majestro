@@ -1,14 +1,16 @@
 #include "pch.h"
 #include "VfxSystem.h"
 
-#include "BulletComponent.h"
-#include "GameEvents.h"
+
+#include "Engine.h"
 #include "ResourceManager.h"
+
 #include "TransformComponent.h"
-#include "Vfx.h"
+#include "BulletComponent.h"
 #include "VfxComponent.h"
 #include "World.h"
-
+#include "Vfx.h"
+#include "GameEvents.h"
 
 VfxSystem::VfxSystem(World* world)
 	: System(world)

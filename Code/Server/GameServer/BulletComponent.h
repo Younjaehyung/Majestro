@@ -21,7 +21,7 @@ inline BulletStat GetBulletStat(SkillType type)
 	//case SkillType::DrumSkill1: return BulletStat{ 75.0f, 90.0f, 0.42f, 2.7f, 36.0f, 2 };
 	//case SkillType::DrumSkill2: return BulletStat{ 0.0f, 70.0f, 0.60f, 3.2f, 55.0f, 1 };
 
-	case SkillType::BaseAttack: return BulletStat{ 15.0f, 1300.0f, 0.22f, 6.0f, 0.0f, false };
+	case SkillType::BaseAttack: return BulletStat{ 15.0f, 5300.0f, 0.22f, 6.0f, 0.0f, false };
 	case SkillType::BaseSkill1: return BulletStat{ 75.0f, 1000.0f, 0.35f, 6.6f, 50.0f, true };
 	//case SkillType::BaseSkill2: return BulletStat{ 0.0f, 80.0f, 0.50f, 3.0f, 40.0f, 1 };
 

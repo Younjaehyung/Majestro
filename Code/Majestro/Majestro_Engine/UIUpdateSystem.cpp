@@ -50,9 +50,10 @@ void UITransformSystem::Update(float /*dt*/)
             const Vec2 reference = transform->mReferenceResolution;
             if (reference.x > 0.f && reference.y > 0.f)
             {
-                const Vec2 scale = Vec2(screenSize.x / reference.x, screenSize.y / reference.y);
-                positionOffset = Vec2(transform->mPosition.x * scale.x, transform->mPosition.y * scale.y);
-                baseSize = Vec2(transform->mSize.x * scale.x, transform->mSize.y * scale.y);
+                // 가로/세로 중 작은 비율로 균등 스케일 — 원/정사각 비율 유지 (다른 종횡비 모니터 대응)
+                const float uniformScale = std::min(screenSize.x / reference.x, screenSize.y / reference.y);
+                positionOffset = Vec2(transform->mPosition.x * uniformScale, transform->mPosition.y * uniformScale);
+                baseSize = Vec2(transform->mSize.x * uniformScale, transform->mSize.y * uniformScale);
             }
             break;
         }

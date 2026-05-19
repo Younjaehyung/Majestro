@@ -140,7 +140,7 @@ public:
 
 	SweepHit mCameraSweep{};
 
-	float mCameraMaxLenth = 250;
+	float mCameraMaxLenth = 170;
 	float mCameraMinLenth = 100;
 
 	// cameraDistance에 따른 디더로 페이드 아웃

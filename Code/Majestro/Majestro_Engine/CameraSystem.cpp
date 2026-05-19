@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CameraSystem.h"
 #include "Engine.h"
+#include "RenderManager.h"
 #include "CameraComponent.h"
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
@@ -181,8 +182,16 @@ void CameraSystem::Update(float dt)
 			transformComponent->FinalUpdate();
 		}
 
+		// 메인 카메라만 화면 종횡비 동기화 (그림자 카메라는 4096×4096 유지)
+		if (mWorld->GetComponent<MainCameraComponent>(entity) != nullptr)
+		{
+			const WindowInfo& wnd = RENDERMANAGER.GetWindow();
+			cameraComponent->SetWidth(static_cast<float>(wnd.Width));
+			cameraComponent->SetHeight(static_cast<float>(wnd.Height));
+		}
+
 		cameraComponent->FinalUpdate(transformComponent->GetWorldMatrix().Invert());
-		
+
 	}
 
 }

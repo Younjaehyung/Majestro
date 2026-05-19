@@ -39,6 +39,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
+    // borderless 풀스크린에서 실픽셀 = 모니터 픽셀이 되도록 DPI awareness 활성화
+    ::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
     InitializeGdiPlus();
 
     // TODO: 여기에 코드를 입력합니다.
@@ -156,10 +159,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 2560, 1440, nullptr, nullptr, hInstance, nullptr);
-   //mWindow.Width = 2560;
-   //mWindow.Height = 1440;
+   // Primary 모니터의 실제 픽셀 영역을 가져와 borderless 풀스크린 창 생성
+   HMONITOR hMon = ::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+   MONITORINFO mi{ sizeof(mi) };
+   ::GetMonitorInfoW(hMon, &mi);
+   const int monX = mi.rcMonitor.left;
+   const int monY = mi.rcMonitor.top;
+   const int monW = mi.rcMonitor.right  - mi.rcMonitor.left;
+   const int monH = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP,
+      monX, monY, monW, monH, nullptr, nullptr, hInstance, nullptr);
    gWindowInfo.Hwnd = hWnd;
 
 

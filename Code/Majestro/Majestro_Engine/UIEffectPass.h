@@ -2,6 +2,7 @@
 #include "World.h"
 
 using EfkString = std::basic_string<EFK_CHAR>;
+class Vfx;
 class UIVfxComponent;
 
 class UIEffectPass
@@ -16,6 +17,7 @@ public:
 	void Execute(float dt);
 
 	Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f);
+	Effekseer::EffectRef GetOrLoadEffect(const shared_ptr<Vfx>& vfx);
 	Effekseer::Handle    Play(UIVfxComponent* comp, float screenX, float screenY);
 
 	void LoadResources();
@@ -57,6 +59,7 @@ private:
 
 private:
 	World* mWorld = nullptr;
+	std::unordered_map<std::wstring, Effekseer::EffectRef> mEffectCache;
 	Effekseer::RefPtr<Effekseer::Manager> mManager;
 	Effekseer::RefPtr<Effekseer::Setting> mSetting;
 	float mTotalTime = 0.f;

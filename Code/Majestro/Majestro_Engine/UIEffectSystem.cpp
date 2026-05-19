@@ -28,6 +28,8 @@ UIEffectSystem::~UIEffectSystem()
 				uiManager_->StopEffect(comp->efkHandle);
 		}
 	}
+
+	mEffectCache.clear();
 	uiManager_.Reset();
 	setting_.Reset();
 }
@@ -61,10 +63,31 @@ Effekseer::EffectRef UIEffectSystem::LoadEffect(const std::string_view path, flo
 	return Effekseer::Effect::Create(uiManager_, efkPath.c_str(), magnification);
 }
 
+Effekseer::EffectRef UIEffectSystem::LoadEffect(const shared_ptr<Vfx>& vfx)
+{
+	if (vfx == nullptr || vfx->mEffectPath.empty())
+		return nullptr;
+
+	auto it = mEffectCache.find(vfx->mEffectPath);
+	if (it != mEffectCache.end())
+		return it->second;
+
+	Effekseer::EffectRef effect = LoadEffect(ws2s(vfx->mEffectPath));
+	if (effect == nullptr)
+		return nullptr;
+
+	mEffectCache.emplace(vfx->mEffectPath, effect);
+	return effect;
+}
+
 Effekseer::Handle UIEffectSystem::Play(UIVfxComponent* comp, float screenX, float screenY)
 {
+	Effekseer::EffectRef effect = GetOrLoadEffect(comp ? comp->mVfx : nullptr);
+	if (effect == nullptr)
+		return -1;
+
 	Effekseer::Handle handle = uiManager_->Play(
-		comp->mVfx->mEffect,
+		effect,
 		screenX, screenY, comp->mScreenZ);
 	comp->mIsPlaying = true;
 	comp->efkHandle  = handle;
@@ -84,7 +107,7 @@ void UIEffectSystem::Update()
 	for (auto& e : mWorld->GetEntitiesWithComponent<UIVfxComponent>())
 	{
 		UIVfxComponent* comp = mWorld->GetComponent<UIVfxComponent>(e);
-		if (comp == nullptr || comp->mVfx == nullptr) continue;
+		if (comp == nullptr || comp->mVfx == nullptr || comp->mVfx->mEffectPath.empty()) continue;
 
 		// 위치는 UITransformComponent에서만 읽음 — 없으면 렌더 스킵
 		UITransformComponent* tr = mWorld->GetComponent<UITransformComponent>(e);
@@ -98,7 +121,10 @@ void UIEffectSystem::Update()
 			uiManager_->SetLocation(comp->efkHandle, { screenX, screenY, comp->mScreenZ });
 
 		if (comp->efkHandle == -1)
-			Play(comp, screenX, screenY);
+		{
+			if (Play(comp, screenX, screenY) == -1)
+				continue;
+		}
 	}
 
 	// Manager Update와 SetTime은 프레임당 1회
@@ -152,5 +178,15 @@ Effekseer::Matrix44 UIEffectSystem::BuildOrthoProjection()
 
 void UIEffectSystem::LoadResources()
 {
-	// UIVfx 전용 리소스가 별도로 있다면 여기서 로드
+	mEffectCache.clear();
+
+	auto& resources = RESOURCEMANAGER.GetAllResources<Vfx>();
+	for (auto& res : resources)
+	{
+		shared_ptr<Vfx> effect = static_pointer_cast<Vfx>(res.second);
+		if (effect && !effect->mEffectPath.empty())
+		{
+			LoadEffect(effect);
+		}
+	}
 }

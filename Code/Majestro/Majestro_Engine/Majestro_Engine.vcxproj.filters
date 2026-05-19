@@ -617,6 +617,9 @@
     <ClInclude Include="ParticleSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="VfxSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\UI\System</Filter>
     </ClInclude>
@@ -1026,6 +1029,9 @@
       <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="VfxSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="UIRenderSystem.cpp">

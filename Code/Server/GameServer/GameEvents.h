@@ -1,15 +1,6 @@
 #pragma once
-#include <variant>
-#include <cstdint>
 #include "Entity.h"
 
-enum class EffectSpawnReason : uint8
-{
-    Fire = 0,
-    CollisionEntity = 1,
-    CollisionStatic = 2,
-    LifetimeExpired = 3,
-};
 
 enum class ImpulseSource : uint8
 {

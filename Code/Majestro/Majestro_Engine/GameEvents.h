@@ -88,6 +88,21 @@ struct EvSpawnParticleEffect
     Vec3 followOffset{};
 };
 
+struct EvVfxSpawnRequest
+{
+    SkillType skillType = SkillType::Default;
+    uint8 reason = 0;
+    Vec3 position{};
+    Vec3 rotation{};
+};
+
+struct EvAttachBulletVfx
+{
+    Entity bullet;
+    SkillType skillType = SkillType::Default;
+    uint16 generation = 0;
+};
+
 struct EvGamePhaseChanged
 {
 	uint8 prevPhase;
@@ -96,4 +111,4 @@ struct EvGamePhaseChanged
 
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
-    EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvGamePhaseChanged>;
+    EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged>;

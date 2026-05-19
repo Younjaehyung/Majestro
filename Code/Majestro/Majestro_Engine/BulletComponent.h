@@ -61,13 +61,12 @@ public:
 		mIsActive = false;
 	}
 
-	bool UpdateLifeTime(float deltaTime)
+	void UpdateLifeTime(float deltaTime)
 	{
 		mElapsedTime += deltaTime;
-		return IsExpired();
 	}
 
-	bool IsExpired() const { return mElapsedTime >= mLifeTime; }
+	bool IsExpired() const { return (mElapsedTime >= mLifeTime && mLifeTime >=0); }
 	bool CanHitMore() const { return mHitCount < mPenetrationCount; }
 	void RegisterHit() { ++mHitCount; }
 
@@ -91,7 +90,7 @@ public:
 	// Combat
 	float mDamage = 10.0f;
 	float mSpeed = 60.0f;
-	float mLifeTime = 1.5f;
+	float mLifeTime = -1.0f;
 	float mElapsedTime = 0.0f;
 	int mPenetrationCount = 1;
 	int mHitCount = 0;

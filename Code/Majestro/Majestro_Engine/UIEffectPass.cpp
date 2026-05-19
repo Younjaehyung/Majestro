@@ -21,6 +21,7 @@ UIEffectPass::~UIEffectPass()
 				mManager->StopEffect(comp->efkHandle);
 		}
 	}
+	mEffectCache.clear();
 	mManager.Reset();
 	mSetting.Reset();
 }
@@ -56,10 +57,31 @@ Effekseer::EffectRef UIEffectPass::LoadEffect(const std::string_view path, float
 	return Effekseer::Effect::Create(mManager, efkPath.c_str(), magnification);
 }
 
+Effekseer::EffectRef UIEffectPass::GetOrLoadEffect(const shared_ptr<Vfx>& vfx)
+{
+	if (vfx == nullptr || vfx->mEffectPath.empty())
+		return nullptr;
+
+	auto it = mEffectCache.find(vfx->mEffectPath);
+	if (it != mEffectCache.end())
+		return it->second;
+
+	Effekseer::EffectRef effect = LoadEffect(ws2s(vfx->mEffectPath));
+	if (effect == nullptr)
+		return nullptr;
+
+	mEffectCache.emplace(vfx->mEffectPath, effect);
+	return effect;
+}
+
 Effekseer::Handle UIEffectPass::Play(UIVfxComponent* comp, float screenX, float screenY)
 {
+	Effekseer::EffectRef effect = GetOrLoadEffect(comp ? comp->mVfx : nullptr);
+	if (effect == nullptr)
+		return -1;
+
 	Effekseer::Handle handle = mManager->Play(
-		comp->mVfx->mEffect,
+		effect,
 		screenX, screenY, comp->mScreenZ);
 	comp->mIsPlaying = true;
 	comp->efkHandle  = handle;
@@ -74,7 +96,7 @@ void UIEffectPass::Execute(float dt)
 	for (auto& e : mWorld->GetEntitiesWithComponent<UIVfxComponent>())
 	{
 		UIVfxComponent* comp = mWorld->GetComponent<UIVfxComponent>(e);
-		if (comp == nullptr || comp->mVfx == nullptr || comp->mVfx->mEffect == nullptr) continue;
+		if (comp == nullptr || comp->mVfx == nullptr || comp->mVfx->mEffectPath.empty()) continue;
 
 		// 위치는 UITransformComponent에서만 읽음 — 없으면 렌더 스킵
 		UITransformComponent* tr = mWorld->GetComponent<UITransformComponent>(e);
@@ -87,12 +109,16 @@ void UIEffectPass::Execute(float dt)
 			mManager->SetLocation(comp->efkHandle, { screenX, screenY, comp->mScreenZ });
 
 		if (!comp->mIsPlaying)
-			Play(comp, screenX, screenY);
+		{
+			if (Play(comp, screenX, screenY) == -1)
+				continue;
+		}
 		else if (comp->mIsLoop && !comp->mIsPaused && !mManager->Exists(comp->efkHandle))
 		{
 			comp->mIsPlaying = false;
 			comp->mTotalTime = 0.f;
-			Play(comp, screenX, screenY);
+			if (Play(comp, screenX, screenY) == -1)
+				continue;
 		}
 
 		mManager->SetPaused(comp->efkHandle, comp->mIsPaused);
@@ -152,6 +178,8 @@ Effekseer::Matrix44 UIEffectPass::BuildOrthoProjection()
 
 void UIEffectPass::LoadResources()
 {
+	mEffectCache.clear();
+
 	// UI 렌더러 Manager로 모든 Vfx 이펙트를 로드
 	// (EffectPass가 3D 렌더러로 로드한 mEffect를 UI 렌더러 버전으로 덮어씀)
 	auto& resources = RESOURCEMANAGER.GetAllResources<Vfx>();
@@ -159,6 +187,8 @@ void UIEffectPass::LoadResources()
 	{
 		shared_ptr<Vfx> effect = static_pointer_cast<Vfx>(res.second);
 		if (effect && !effect->mEffectPath.empty())
-			effect->mEffect = LoadEffect(ws2s(effect->mEffectPath));
+		{
+			GetOrLoadEffect(effect);
+		}
 	}
 }

@@ -220,6 +220,14 @@ enum class ReplicatedExternalMoveMode : uint8
 	OverrideAll			// 모든 축 이동을 서버/기믹이 강제로 정함
 };
 
+enum class EffectSpawnReason : uint8
+{
+	Fire = 0,
+	CollisionEntity = 1,
+	CollisionStatic = 2,
+	LifetimeExpired = 3,
+};
+
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -425,6 +433,10 @@ struct S2C_SpawnPacekt : public PacketTcpHeader {
 	uint64 netEntityId{};
 	uint8  isLocalPlayer{};
 	uint8  Type{};
+	uint8  hasInitialTransform{};
+	float x{};
+	float y{};
+	float z{};
 	MsgKind kind = MsgKind::Spawn;
 	PrefabType prefabType{ PrefabType::NONE };
 
@@ -439,6 +451,10 @@ struct S2C_SpawnsPacekt : public PacketTcpHeader {
 	uint32 SessionId{};
 	uint64 netEntityId{};
 	uint8  isLocalPlayer{};
+	uint8  hasInitialTransform{};
+	float x{};
+	float y{};
+	float z{};
 	MsgKind kind = MsgKind::Spawns;
 	PrefabType prefabType{ PrefabType::NONE };
 

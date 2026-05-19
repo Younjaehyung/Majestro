@@ -425,8 +425,9 @@ void MovementSystem::UpdateBullet(float dt)
 
 		transformComponent->mMovingVector = direction * bulletComponent->mSpeed * dt;
 		transformComponent->mLocalPosition += transformComponent->mMovingVector;
+		bulletComponent->UpdateLifeTime(dt);
 
-		/*if (bulletComponent->UpdateLifeTime(dt))
+		if (bulletComponent->IsExpired())
 		{
 			bulletComponent->Deactivate();
 			transformComponent->mMovingVector = Vec3::Zero;
@@ -438,7 +439,7 @@ void MovementSystem::UpdateBullet(float dt)
 				eventManager->Enqueue<EvBulletDeactivated>(EvBulletDeactivated{ entity });
 			}
 			continue;
-		}*/
+		}
 
 		++i;
 	}

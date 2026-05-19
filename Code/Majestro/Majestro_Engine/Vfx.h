@@ -10,8 +10,7 @@ public:
 	void Load(const std::wstring& path);
 
 public:
-	Effekseer::EffectRef mEffect = nullptr;
+
 	std::wstring mEffectPath;
-	
 };
 

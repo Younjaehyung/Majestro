@@ -531,7 +531,7 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 		}
 
 		PrefabType prefabType = PrefabType::NONE;
-		// 트럭은 InteractableComponent 를 가지지 않으므로 TruckComponent 로 직접 분기.
+
 		if (mWorld->HasComponent<TruckComponent>(entity))
 		{
 			prefabType = PrefabType::TRUCK;
@@ -570,6 +570,13 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 
 		S2C_SpawnPacekt spawnPkt(newSessionId, netComp->mNetEntityId, prefabType);
 		spawnPkt.isLocalPlayer = 0;
+		if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity))
+		{
+			spawnPkt.hasInitialTransform = 1;
+			spawnPkt.x = transform->mLocalPosition.x;
+			spawnPkt.y = transform->mLocalPosition.y;
+			spawnPkt.z = transform->mLocalPosition.z;
+		}
 
 		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);

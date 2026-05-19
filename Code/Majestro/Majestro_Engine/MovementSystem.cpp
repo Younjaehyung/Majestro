@@ -140,7 +140,9 @@ void MovementSystem::Update(float dt) {
 		bulletTransform->mLocalPosition += bulletTransform->mMovingVector;
 		bulletTransform->mWorldPosition = bulletTransform->mLocalPosition;
 
-		if (bulletComp->UpdateLifeTime(dt))
+		bulletComp->UpdateLifeTime(dt);
+
+		if (bulletComp->IsExpired())
 		{
 			bulletComp->Deactivate();
 			bulletTransform->mMovingVector = Vec3::Zero;

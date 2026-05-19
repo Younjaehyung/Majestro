@@ -42,6 +42,7 @@
 #include "CpuAnimationSystem.h"
 #include "PlayerSystem.h"
 #include "ParticleSystem.h"
+#include "VfxSystem.h"
 
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
@@ -996,6 +997,7 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
 	auto* renderSystemLB = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemLB->SetPipeline(make_shared<LobbyRenderPipeline>());
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
@@ -1157,6 +1159,7 @@ void FirstScene::Initialize()
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(jumpEntity);
 		vfxComp.mVfx = vfx;
 		vfxComp.mIsLoop = true;
+		vfxComp.mRestartWhenFinished = true;
 		vfxComp.mScale = Vec3(15.f, 10.f, 15.f);
 	}
 
@@ -1172,6 +1175,7 @@ void FirstScene::Initialize()
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(healEntity);
 		vfxComp.mVfx = vfx;
 		vfxComp.mIsLoop = true;
+		vfxComp.mRestartWhenFinished = true;
 		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
 	}
 
@@ -1187,6 +1191,7 @@ void FirstScene::Initialize()
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity1);
 		vfxComp.mVfx = vfx;
 		vfxComp.mIsLoop = true;
+		vfxComp.mRestartWhenFinished = true;
 		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
 	}
 	{
@@ -1200,6 +1205,7 @@ void FirstScene::Initialize()
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity2);
 		vfxComp.mVfx = vfx;
 		vfxComp.mIsLoop = true;
+		vfxComp.mRestartWhenFinished = true;
 		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
 	}
 	{
@@ -1213,6 +1219,7 @@ void FirstScene::Initialize()
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity3);
 		vfxComp.mVfx = vfx;
 		vfxComp.mIsLoop = true;
+		vfxComp.mRestartWhenFinished = true;
 		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
 	}
 
@@ -1362,6 +1369,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	//mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 
 

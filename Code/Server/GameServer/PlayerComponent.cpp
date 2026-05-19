@@ -499,6 +499,13 @@ void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 		++(owner->mStateSequence);
     owner->mStateEnd = GetServerTotalTimeSeconds()  + s->mAnimEndTime;
     owner->mNextState = S_Idle;
+    if (owner->mHasMoveInput)
+        {
+        if (owner->mPlayerMovingDir.y > 0.0f) owner->mNextState = S_RunRight;
+        else if (owner->mPlayerMovingDir.y < 0.0f) owner->mNextState = S_RunLeft;
+        else if (owner->mPlayerMovingDir.x > 0.0f) owner->mNextState = S_RunForward;
+        else if (owner->mPlayerMovingDir.x < 0.0f) owner->mNextState = S_RunBackward;
+        }
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }
     if (s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }

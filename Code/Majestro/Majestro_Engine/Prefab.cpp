@@ -1373,36 +1373,34 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 			UITextComponent& text = world->AddComponent<UITextComponent>(bullet);
 			text.mText = L"EMPTY";
 			switch (playerType) {
-			case 0:
+			case Rudwig:
 			{
 				text.mText = L"OO";
 				
 			}
 				break;
-			case 1:
+			case Ibanix:
 			{
 
 
 				text.mText = L"10/10";
-				text.mOnTextChanged = [world, bullet]() {
-					world->GetEventManager()->Consume<EvBulletCountChanged>([world, bullet](const EvBulletCountChanged& e) {
-						if (e.target != bullet) return;
-						UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
-						if (t) t->mText = std::to_wstring(e.current) + L"/" + std::to_wstring(e.max);
-						});
-					};
+				text.mOnTextChanged = [world, bullet, ownerEntity]() {
+					MainPlayerComponent* p = world->GetComponent<MainPlayerComponent>(ownerEntity);
+					if (p == nullptr) return;
+					UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
+					if (t) t->mText = std::to_wstring(p->mNowBullet) + L"/" + std::to_wstring(p->mMaxBullet);
+				};
 			}
 				break;
-			case 2:
+			case Fanthor:
 			{
 				text.mText = L"5/5";
-				text.mOnTextChanged = [world, bullet]() {
-					world->GetEventManager()->Consume<EvBulletCountChanged>([world, bullet](const EvBulletCountChanged& e) {
-						if (e.target != bullet) return;
-						UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
-						if (t) t->mText = std::to_wstring(e.current) + L"/" + std::to_wstring(e.max);
-						});
-					};
+				text.mOnTextChanged = [world, bullet, ownerEntity]() {
+					MainPlayerComponent* p = world->GetComponent<MainPlayerComponent>(ownerEntity);
+					if (p == nullptr) return;
+					UITextComponent* t = world->GetComponent<UITextComponent>(bullet);
+					if (t) t->mText = std::to_wstring(p->mNowBullet) + L"/" + std::to_wstring(p->mMaxBullet);
+				};
 			}
 				break;
 			}

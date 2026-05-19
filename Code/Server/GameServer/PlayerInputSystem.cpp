@@ -42,34 +42,25 @@ void PlayerInputSystem::Update(float dt)
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(e);
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 		BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
-		
+
+		auto systemManager = mWorld->GetSystemManager();
+		auto* beatSystem = systemManager->GetSystem<BeatSystem>();
+		const float Beat = beatSystem->mBpmSeconds;
+		const float now  = GetServerTotalTimeSeconds();
+
 		//연속행동
 		if (mainPlayerComponent->mPendingAction != PendingAction::None)
 		{
-			
-				InputButtons button = InputButtons::ATTACK;
-				State<MainPlayerComponent>* pendingState = nullptr;
-
-				switch (mainPlayerComponent->mPendingAction)
-				{
-				case PendingAction::Attack: button = InputButtons::ATTACK; pendingState = Attack1State::Instance(); break;
-				case PendingAction::Skill1: button = InputButtons::SKILL1; pendingState = Skill1State::Instance(); break;
-				case PendingAction::Skill2: button = InputButtons::SKILL2; pendingState = Skill2State::Instance(); break;
-				case PendingAction::Reload: button = InputButtons::RELOAD; pendingState = ReloadState::Instance(); break;
-				default: break;
-				}
-
-				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, button);
-				const int prevAmmo = mainPlayerComponent->mNowBullet;
-
-				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				if (pendingState)
-				{
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, pendingState);
-					EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
-				}
-			
-
+			InputButtons btn = InputButtons::ATTACK;
+			switch (mainPlayerComponent->mPendingAction)
+			{
+			case PendingAction::Attack: btn = InputButtons::ATTACK; break;
+			case PendingAction::Skill1: btn = InputButtons::SKILL1; break;
+			case PendingAction::Skill2: btn = InputButtons::SKILL2; break;
+			case PendingAction::Reload: btn = InputButtons::RELOAD; break;
+			default: break;
+			}
+			TryFireAction(e, mainPlayerComponent, *eventManager, btn, now, Beat);
 			mainPlayerComponent->mPendingAction = PendingAction::None; // 소비 완료
 		}
 
@@ -125,96 +116,18 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
 		}
 
-		auto systemManager = mWorld->GetSystemManager();
-		auto* beatSystem = systemManager->GetSystem<BeatSystem>();
-		
-		const float Beat = beatSystem->mBpmSeconds;
-		const float now = GetServerTotalTimeSeconds();
-
-		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {//attack 
-			
-			if (mainPlayerComponent->mNextAttackTime <= now ) {
-
-				std::cout << "[Attack] requested. nextAttack=" << mainPlayerComponent->mNextAttackTime
-					<< " now=" << now
-					<< " ammo=" << mainPlayerComponent->mNowBullet << "\n";
-
-				if (mainPlayerComponent->mPlayerType == Ibanix && mainPlayerComponent->mNowBullet > 0) {
-					const int prevAmmo = mainPlayerComponent->mNowBullet;
-					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					
-					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
-					EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
-				}
-				else if(mainPlayerComponent->mPlayerType == Fanthor) {
-					const int prevAmmo = mainPlayerComponent->mNowBullet;
-					SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, 0);
-					if (mainPlayerComponent->mNowBullet > 0) {
-						bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK, mainPlayerComponent->mRhythm);
-						cout << "change :" << (int)bulletType << endl;
-					}
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				
-					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
-					EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
-				}
-				else if (mainPlayerComponent->mPlayerType == Rudwig) {
-					
-						const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::ATTACK);
-						EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					
-					mainPlayerComponent->mNextAttackTime = now + Beat * mainPlayerComponent->mAttackCool;
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Attack1State::Instance());
-				}
-			}
+		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {
+			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::ATTACK, now, Beat);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
-			//std::cout << "skill1" << std::endl;
-			if (mainPlayerComponent->mPlayerType != 1) {
-				if (mainPlayerComponent->mNextSkill1Time <= now) {
-					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					
-					mainPlayerComponent->mNextSkill1Time = now + Beat * mainPlayerComponent->mSkill1Cool;
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
-				}
-			}
-			else if (mainPlayerComponent->mNowBullet > 0) {
-				if (mainPlayerComponent->mNextSkill1Time <= now) {
-					const int prevAmmo = mainPlayerComponent->mNowBullet;
-					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL1);
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-					
-					mainPlayerComponent->mNextSkill1Time = now + Beat * mainPlayerComponent->mSkill1Cool;
-					mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill1State::Instance());
-					EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
-				}
-			}
+			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL1, now, Beat);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			if (mainPlayerComponent->mNextSkill2Time <= now) {
-				
-					const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::SKILL2);
-					EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				
-				mainPlayerComponent->mNextSkill2Time = now + Beat * mainPlayerComponent->mSkill2Cool;
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Skill2State::Instance());
-			}
+			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL2, now, Beat);
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
-			//std::cout << "reroad" << std::endl;
-			if (mainPlayerComponent->mNextReloadTime <= now) {
-				const int prevAmmo = mainPlayerComponent->mNowBullet;
-				const SkillType bulletType = ResolveSkillType(mainPlayerComponent->mPlayerType, InputButtons::RELOAD);
-				EnqueueAttackEventByCategory(*eventManager, e, bulletType);
-				mainPlayerComponent->mNextReloadTime = now + Beat * mainPlayerComponent->mReloadCool;
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, ReloadState::Instance());
-				EnqueueAmmoChangedIfNeeded(mWorld, *eventManager, e, prevAmmo);
-			}
+			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::RELOAD, now, Beat);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RhythmChangeState::Instance());
@@ -337,4 +250,67 @@ void PlayerInputSystem::EnqueueAmmoChangedIfNeeded(World* world, EventManager& e
 		static_cast<int32>(playerComp->mNowBullet),
 		static_cast<int32>(playerComp->mMaxBullet)
 		});
+}
+
+bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
+                                      InputButtons button, float now, float Beat)
+{
+	if (mp == nullptr) return false;
+
+	float* nextTimePtr = nullptr;
+	float  cool = 0.f;
+	State<MainPlayerComponent>* nextState = nullptr;
+	bool   needsAmmo = false;
+
+	switch (button)
+	{
+	case InputButtons::ATTACK:
+		nextTimePtr = &mp->mNextAttackTime;
+		cool        = mp->mAttackCool;
+		nextState   = Attack1State::Instance();
+		needsAmmo   = (mp->mPlayerType == Ibanix); // Fanthor 탄0 기본공격 유지
+		break;
+	case InputButtons::SKILL1:
+		nextTimePtr = &mp->mNextSkill1Time;
+		cool        = mp->mSkill1Cool;
+		nextState   = Skill1State::Instance();
+		needsAmmo   = (mp->mPlayerType == Ibanix); // 기존 룰
+		break;
+	case InputButtons::SKILL2:
+		nextTimePtr = &mp->mNextSkill2Time;
+		cool        = mp->mSkill2Cool;
+		nextState   = Skill2State::Instance();
+		needsAmmo   = false;
+		break;
+	case InputButtons::RELOAD:
+		nextTimePtr = &mp->mNextReloadTime;
+		cool        = mp->mReloadCool;
+		nextState   = ReloadState::Instance();
+		needsAmmo   = false;
+		break;
+	default:
+		return false;
+	}
+
+	if (nextTimePtr == nullptr || nextState == nullptr) return false;
+	if (*nextTimePtr > now) return false;
+	if (needsAmmo && mp->mNowBullet <= 0) return false;
+
+	// 박자 약화: Fanthor ATTACK만 rhythm 사용. 박자 빗나가면 rhythm=0 폴백.
+	uint8 rhythm = 0;
+	if (button == InputButtons::ATTACK
+		&& mp->mPlayerType == Fanthor
+		&& mp->mNowBullet > 0)
+	{
+		BeatComponent* bc = mWorld->GetComponent<BeatComponent>(e);
+		rhythm = (bc != nullptr && bc->mBouns) ? mp->mRhythm : 0;
+	}
+
+	const int prevAmmo = mp->mNowBullet;
+	const SkillType bulletType = ResolveSkillType(mp->mPlayerType, button, rhythm);
+	EnqueueAttackEventByCategory(em, e, bulletType);
+	mp->mFsm.ChangeState(mp, nextState);
+	*nextTimePtr = now + Beat * cool;
+	EnqueueAmmoChangedIfNeeded(mWorld, em, e, prevAmmo);
+	return true;
 }

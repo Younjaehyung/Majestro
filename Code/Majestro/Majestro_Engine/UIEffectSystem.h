@@ -3,6 +3,7 @@
 #include "World.h"
 
 using EfkString = std::basic_string<EFK_CHAR>;
+class Vfx;
 class UIVfxComponent;
 
 // UI 레이어 전용 Effekseer 시스템
@@ -19,6 +20,7 @@ public:
 
 	// 이펙트 로드 (EffectSystem과 독립적으로 로드)
 	Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f);
+	Effekseer::EffectRef LoadEffect(const shared_ptr<Vfx>& vfx);
 
 	// UITransformComponent.mFinalPixelPos 기준으로 재생
 	Effekseer::Handle Play(UIVfxComponent* comp, float screenX, float screenY);
@@ -72,6 +74,7 @@ private:
 	}
 
 private:
+	std::unordered_map<std::wstring, Effekseer::EffectRef> mEffectCache;
 	Effekseer::RefPtr<Effekseer::Manager> uiManager_;
 	Effekseer::RefPtr<Effekseer::Setting> setting_;
 	float mTotalTime = 0.f;

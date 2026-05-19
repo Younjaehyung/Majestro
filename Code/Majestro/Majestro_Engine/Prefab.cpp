@@ -43,6 +43,15 @@ Entity PrefabFactory::BuildWorldMarkerPrefab(World* world, const InputCommand& c
 	Entity entity = world->CreateEntity();
 
 	TransformComponent transform{};
+	if (const S2C_SpawnPacekt* spawnPacket = ctx.ViewAs<S2C_SpawnPacekt>())
+	{
+		if (spawnPacket->hasInitialTransform != 0)
+		{
+			transform.mLocalPosition = Vec3(spawnPacket->x, spawnPacket->y, spawnPacket->z);
+			transform.mWorldPosition = transform.mLocalPosition;
+			transform.mWorldMatrix = Matrix::CreateTranslation(transform.mLocalPosition);
+		}
+	}
 	world->AddComponent<TransformComponent>(entity, transform);
 	world->AddComponent<NetTransformComponent>(entity);
 
@@ -58,6 +67,7 @@ Entity PrefabFactory::BuildWorldMarkerPrefab(World* world, const InputCommand& c
 	VfxComponent& vfxComp = world->AddComponent<VfxComponent>(entity);
 	vfxComp.mVfx = RESOURCEMANAGER.Get<Vfx>(effectName);
 	vfxComp.mIsLoop = true;
+	vfxComp.mRestartWhenFinished = true;
 	vfxComp.mScale = scale;
 	return entity;
 }
@@ -446,7 +456,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
 	{
-		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 300.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;

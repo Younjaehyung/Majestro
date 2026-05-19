@@ -334,6 +334,7 @@
     <ClInclude Include="UIVfxComponent.h" />
     <ClInclude Include="Vfx.h" />
     <ClInclude Include="VfxComponent.h" />
+    <ClInclude Include="VfxSystem.h" />
     <ClInclude Include="World.h" />
     <ClInclude Include="WorldUIPass.h" />
   </ItemGroup>
@@ -474,6 +475,7 @@
     <ClCompile Include="UIUpdateSystem.cpp" />
     <ClCompile Include="Vfx.cpp" />
     <ClCompile Include="VfxComponent.cpp" />
+    <ClCompile Include="VfxSystem.cpp" />
     <ClCompile Include="World.cpp" />
     <ClCompile Include="WorldUIPass.cpp" />
   </ItemGroup>

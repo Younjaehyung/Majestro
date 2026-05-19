@@ -2,6 +2,7 @@
 #include "World.h"
 #include "RenderPass.h"
 using EfkString = std::basic_string<EFK_CHAR>;
+class Vfx;
 class VfxComponent;
 
 class EffectPass : public RenderPass
@@ -18,10 +19,11 @@ public:
 
 	Effekseer::EffectRef LoadEffect(const std::string_view path, float magnification = 1.0f,
 	                                const std::string_view materialPath = {});
+	Effekseer::EffectRef LoadEffect(const shared_ptr<Vfx>& vfx);
 
-	Effekseer::Handle Play(VfxComponent* comp, float x, float y, float z);
-	Effekseer::Handle Play(VfxComponent* comp, const Effekseer::Vector3D& position);
-	void Stop(VfxComponent* comp);
+	Effekseer::Handle Play(Entity owner, VfxComponent* comp, float x, float y, float z);
+	Effekseer::Handle Play(Entity owner, VfxComponent* comp, const Effekseer::Vector3D& position);
+	void Stop(Entity owner, VfxComponent* comp);
 
 	void LoadResources();
 
@@ -67,9 +69,20 @@ private:
 		return {};
 	}
 
+	void* MakeOwnerToken(Entity owner)
+	{
+		return reinterpret_cast<void*>(static_cast<uintptr_t>(owner.GetID()));
+	}
+
+	bool IsInvalidHandle(Effekseer::Handle handle)
+	{
+		return handle == -1;
+	}
+
 private:
 	World* mWorld = nullptr;
 	float mTotalTime = 0.0f;
+	std::unordered_map<std::wstring, Effekseer::EffectRef> mEffectCache;
 	Effekseer::RefPtr<Effekseer::Manager> mManager;
 	Effekseer::RefPtr<Effekseer::Setting> mSetting;
 };

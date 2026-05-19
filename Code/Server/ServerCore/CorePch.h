@@ -35,7 +35,7 @@
 #include <random>
 #include <stdexcept>
 #include <cstdint> 
-
+#include <variant>
 using namespace std;
 
 #include "Types.h"

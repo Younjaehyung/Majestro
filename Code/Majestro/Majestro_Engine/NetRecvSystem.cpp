@@ -22,36 +22,7 @@
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
 #include "VfxComponent.h"
-#include "ResourceManager.h"
 #include "GameRuleComponent.h"
-
-namespace
-{
-    struct BulletVfxSpec
-    {
-        const wchar_t* effectName;
-        Vec3 scale;
-    };
-
-    BulletVfxSpec ResolveBulletVfxSpec(SkillType type)
-    {
-        switch (type)
-        {
-        case SkillType::GuitarAttack:
-        case SkillType::GuitarAttack_1:
-        case SkillType::GuitarAttack_2:
-        case SkillType::GuitarAttack_3:
-            return { L"VFX_Fanthor_Slash_01", Vec3(12.0f, 12.0f, 12.0f) };
-
-        case SkillType::BaseAttack:
-        case SkillType::BaseSkill1:
-            return  { L"VFX_Ibanix_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
-        case SkillType::HornAttack:
-        default:
-            return { L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };
-        }
-    }
-}
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -347,23 +318,7 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
 
     bulletComp->mElapsedTime = (std::min)(compensationSec, bulletComp->mLifeTime);
 
-    const BulletVfxSpec vfxSpec = ResolveBulletVfxSpec(bulletType);
-    VfxComponent* bulletVfx = mWorld->GetComponent<VfxComponent>(bulletEntity);
-    if (bulletVfx == nullptr)
-        bulletVfx = &mWorld->AddComponent<VfxComponent>(bulletEntity);
-
-    if (bulletVfx)
-    {
-        bulletVfx->mVfx = RESOURCEMANAGER.Get<Vfx>(vfxSpec.effectName);
-
-       
-        bulletVfx->mScale = vfxSpec.scale;
-        bulletVfx->mIsLoop = true;
-        bulletVfx->mIsPaused = false;
-        bulletVfx->mIsPlaying = false;
-        bulletVfx->mShouldPlay = (bulletVfx->mVfx != nullptr);
-        bulletVfx->mTotalTime = 0.f;
-    }
+    mWorld->GetEventManager()->Enqueue(EvAttachBulletVfx{ bulletEntity, bulletType, pkt->bulletGeneration });
 
     if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
         movementSystem->RegisterActiveBullet(bulletEntity);
@@ -405,89 +360,16 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 {
     const S2C_EffectSpawnPacket* pkt = msg.ViewAs<S2C_EffectSpawnPacket>();
     if (!pkt) return;
-    /*constexpr uint8 kEffectSpawnReasonFire = 0;
-    if (pkt->reason == kEffectSpawnReasonFire) return;*/
 
-    const SkillType effectSkillType = static_cast<SkillType>(pkt->effectType);
+    SkillType skillType = static_cast<SkillType>(pkt->effectType);
+    if (skillType >= SkillType::Max)
+        skillType = SkillType::Default;
 
-    auto isBaseSkill = [](SkillType type)
-        {
-            return type == SkillType::BaseAttack ||
-                type == SkillType::BaseSkill1 ||
-                type == SkillType::BaseSkill2;
-        };
-
-    auto isStaticImpactSkill = [&](SkillType type)
-        {
-           
-            return isBaseSkill(type) ||
-                type == SkillType::GuitarAttack_1 ||
-                type == SkillType::GuitarAttack_2 ||
-                type == SkillType::GuitarAttack_3 ||
-                type == SkillType::HornAttack;
-        };
-
-    const wchar_t* effectName = nullptr;
-    Vec3 effectScale = Vec3(1.0f);
-    bool effectLoop = false;
-
-
-    TransformComponent impactTransform{};
-    switch (pkt->reason)
-    {
-    case 0:
-        if (effectSkillType == SkillType::GuitarAttack)
-        {
-            effectName = L"VFX_Fanthor_Slash_01";
-            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
-            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
-            effectScale = Vec3(30.0f);
-        }
-        else if (effectSkillType == SkillType::GuitarSkill1)
-        {
-            effectName = L"VFX_Fanthor_Skill_01";
-            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
-            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y+100, pkt->z);
-            effectScale = Vec3(30.0f);
-        }
-        break;
-    case 1:
-        if (isBaseSkill(effectSkillType))
-        {
-            effectName = L"VFX_Ibanix_Attack_Hit_01";
-            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
-            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
-            effectScale = Vec3(30.f);
-        }
-        break;
-    case 2:
-        if (isStaticImpactSkill(effectSkillType))
-        {
-  
-            effectName = L"VFX_Ibanix_Attack_Hit_01";
-            impactTransform.mLocalRotationE = Vec3(pkt->rotX, pkt->rotY, pkt->rotZ);
-            impactTransform.mLocalPosition = Vec3(pkt->x, pkt->y, pkt->z);
-            effectScale = Vec3(30.f);
-        }
-        break;
-    }
-
-
-    if (!effectName) return;
-    shared_ptr<Vfx> selectedVfx = RESOURCEMANAGER.Get<Vfx>(effectName);
-    if (!selectedVfx) return;
-
-    Entity impactVfxEntity = mWorld->CreateEntity();
-   
-    
-    mWorld->AddComponent<TransformComponent>(impactVfxEntity, impactTransform);
-
-
-    cout << "rot:" << pkt->rotY << endl;
-    VfxComponent& impactVfx = mWorld->AddComponent<VfxComponent>(impactVfxEntity);
-    impactVfx.mVfx = selectedVfx;
-    impactVfx.mScale = effectScale;
-    impactVfx.mIsLoop = effectLoop;
+    mWorld->GetEventManager()->Enqueue(EvVfxSpawnRequest{
+        skillType,
+        pkt->reason,
+        Vec3(pkt->x, pkt->y, pkt->z),
+        Vec3(pkt->rotX, pkt->rotY, pkt->rotZ) });
 }
 
 void NetRecvSystem::HandleHitConfirm(const InputCommand& msg)
@@ -594,9 +476,10 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
 void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 {
 
-    uint32_t netId = 0;
-    uint32_t archetypeId = 0;
+	uint32 netId = 0;
+	uint32 archetypeId = 0;
 	const S2C_SpawnPacekt* spawnPacket = msg.ViewAs<S2C_SpawnPacekt>();
+    if (spawnPacket == nullptr) return;
 	archetypeId = static_cast<uint32_t>(spawnPacket->prefabType);
 	netId = static_cast<uint32_t>(spawnPacket->netEntityId);
 	std::cout << "HandleSpawn called with netId: " << netId << " archetypeId: " << archetypeId << std::endl;

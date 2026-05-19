@@ -521,7 +521,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             continue;
         }
 
-        const bool shouldPenetrate = bullet->mbPenetrates;
+        const bool shouldPenetrate = bullet->mPenetrates;
         if (!shouldPenetrate)
         {
             bulletTransform->mLocalPosition = startPosition + direction * nearestHitDistance;
@@ -585,6 +585,11 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             if (!shouldPenetrate && hitCandidate.Distance > nearestHitDistance)
                 continue;
 
+            if (shouldPenetrate && !bullet->TryRegisterHitTarget(hitCandidate.Target))
+                continue;
+
+            const Vec3 impactPosition = startPosition + direction * hitCandidate.Distance;
+
             if (hitCandidate.Collider)
                 hitCandidate.Collider->bIsColliding = true;
 
@@ -595,9 +600,10 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
             {
                 eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
                     static_cast<uint8>(bullet->mType),
-                    bulletTransform->mLocalPosition.x,
-                    bulletTransform->mLocalPosition.y,
-                    bulletTransform->mLocalPosition.z,
+                   
+                    impactPosition.x,
+                    impactPosition.y,
+                    impactPosition.z,
                     EffectSpawnReason::CollisionEntity,
                     bulletTransform->mLocalRotationE.x,
                     bulletTransform->mLocalRotationE.y,

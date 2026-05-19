@@ -5,15 +5,11 @@
 #include "Engine.h"
 #include "ResourceManager.h"
 #include "RenderManager.h"
+#include "MathUtils.h"
 
 #include "TransformComponent.h"
 #include "VfxComponent.h"
 #include "Vfx.h"
-
-namespace
-{
-	constexpr float kDegToRad = 0.01745329251994329577f;
-}
 
 
 EffectPass::~EffectPass()
@@ -27,6 +23,7 @@ EffectPass::~EffectPass()
 				mManager->StopEffect(comp->efkHandle);
 		}
 	}
+	mEffectCache.clear();
 	mManager.Reset();
 	mSetting.Reset();
 }
@@ -65,29 +62,61 @@ Effekseer::EffectRef EffectPass::LoadEffect(const std::string_view path, float m
 	return Effekseer::Effect::Create(mManager, efkPath.c_str(), magnification, matPtr);
 }
 
-Effekseer::Handle EffectPass::Play(VfxComponent* comp, float x, float y, float z)
+Effekseer::EffectRef EffectPass::LoadEffect(const shared_ptr<Vfx>& vfx)
 {
-	Effekseer::Handle handle = mManager->Play(comp->mVfx->mEffect, x, y, z);
+	if (vfx == nullptr || vfx->mEffectPath.empty())
+		return nullptr;
+
+	auto it = mEffectCache.find(vfx->mEffectPath);
+	if (it != mEffectCache.end())
+		return it->second;
+
+	Effekseer::EffectRef effect = LoadEffect(ws2s(vfx->mEffectPath));
+	if (effect == nullptr)
+		return nullptr;
+
+	mEffectCache.emplace(vfx->mEffectPath, effect);
+	return effect;
+}
+
+Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, float x, float y, float z)
+{
+	Effekseer::EffectRef effect = LoadEffect(comp ? comp->mVfx : nullptr);
+	if (effect == nullptr)
+		return -1;
+
+	Effekseer::Handle handle = mManager->Play(effect, x, y, z);
+
+	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
 	comp->efkHandle = handle;
 	return handle;
 }
 
-Effekseer::Handle EffectPass::Play(VfxComponent* comp, const Effekseer::Vector3D& position)
+Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, const Effekseer::Vector3D& position)
 {
-	Effekseer::Handle handle = mManager->Play(comp->mVfx->mEffect, position);
+	Effekseer::EffectRef effect = LoadEffect(comp ? comp->mVfx : nullptr);
+	if (effect == nullptr)
+		return -1;
+
+	Effekseer::Handle handle = mManager->Play(effect, position);
+	
+	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
 	comp->efkHandle = handle;
 	return handle;
 }
 
-void EffectPass::Stop(VfxComponent* comp)
+void EffectPass::Stop(Entity owner, VfxComponent* comp)
 {
 	if (comp == nullptr)
 		return;
 
-	if (comp->efkHandle != -1)
+	if (!IsInvalidHandle(comp->efkHandle) && mManager->Exists(comp->efkHandle) &&
+		mManager->GetUserData(comp->efkHandle) == MakeOwnerToken(owner))
+	{
 		mManager->StopEffect(comp->efkHandle);
+	}
 
 
 	comp->efkHandle = -1;
@@ -107,32 +136,72 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
 
-		if (!comp->mShouldPlay || comp->mVfx == nullptr || comp->mVfx->mEffect == nullptr)
+		if (!IsInvalidHandle(comp->efkHandle) && mManager->Exists(comp->efkHandle) &&
+			mManager->GetUserData(comp->efkHandle) != MakeOwnerToken(e))
+		{
+			comp->efkHandle = -1;
+			comp->mIsPlaying = false;
+			comp->mTotalTime = 0.f;
+			if (!comp->mRestartWhenFinished)
+			{
+				comp->mShouldPlay = false;
+				if (comp->mAutoReturn)
+					comp->mFinished = true;
+				continue;
+			}
+		}
+
+		if (!comp->mShouldPlay || comp->mVfx == nullptr || comp->mVfx->mEffectPath.empty())
 		{
 			
-			Stop(comp);
+			Stop(e, comp);
 			continue;
 		}
 
 		if (!comp->mIsPlaying)
 		{
 			if (comp->efkHandle != -1)
-				Stop(comp);
+				Stop(e, comp);
 
+			Effekseer::Handle handle = -1;
 			if (tr != nullptr)
-				Play(comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+				handle = Play(e, comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
 			else
-				Play(comp, 0.f, 0.f, 0.f);
+				handle = Play(e, comp, 0.f, 0.f, 0.f);
+			if (handle == -1)
+				continue;
 		}
-		else if (comp->mIsLoop && !comp->mIsPaused && !mManager->Exists(comp->efkHandle))
+		else if (!comp->mIsPaused && comp->efkHandle != -1 && !mManager->Exists(comp->efkHandle))
 		{
-			// 재생이 끝났으면 처음부터 다시 재생
+			comp->efkHandle = -1;
 			comp->mIsPlaying = false;
 			comp->mTotalTime = 0.f;
-			if (tr != nullptr)
-				Play(comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+
+			if (comp->mRestartWhenFinished)
+			{
+				// 반복 재생이 필요한 고정 월드 VFX만 새 handle로 다시 시작
+				Effekseer::Handle handle = -1;
+				if (tr != nullptr)
+					handle = Play(e, comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+				else
+					handle = Play(e, comp, 0.f, 0.f, 0.f);
+				if (handle == -1)
+					continue;
+			}
 			else
-				Play(comp, 0.f, 0.f, 0.f);
+			{
+				// 자동 재시작하지 않는 VFX는 종료된 handle을 더 이상 갱신 X
+				comp->mShouldPlay = false;
+				if (comp->mAutoReturn)
+					comp->mFinished = true;
+				continue;
+			}
+		}
+
+		if (IsInvalidHandle(comp->efkHandle) || !mManager->Exists(comp->efkHandle) ||
+			mManager->GetUserData(comp->efkHandle) != MakeOwnerToken(e))
+		{
+			continue;
 		}
 
 		mManager->SetPaused(comp->efkHandle, comp->mIsPaused);
@@ -187,11 +256,13 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 void EffectPass::LoadResources()
 {
+	mEffectCache.clear();
+
 	auto& resources = RESOURCEMANAGER.GetAllResources<Vfx>();
 	for (auto& res : resources)
 	{
 		shared_ptr<Vfx> effect = static_pointer_cast<Vfx>(res.second);
 		if (effect)
-			effect->mEffect = LoadEffect(ws2s(effect->mEffectPath));
+			LoadEffect(effect);
 	}
 }

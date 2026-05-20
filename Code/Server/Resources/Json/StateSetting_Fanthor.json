@@ -71,7 +71,7 @@
             "animOnce": true,
             "animEndTime": 1.0
         },
-        "RhythmChange": {
+        "RhythmChangeState": {
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 1.0

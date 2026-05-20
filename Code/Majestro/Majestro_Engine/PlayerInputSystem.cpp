@@ -102,7 +102,7 @@ void PlayerInputSystem::Update(float dt)
 	movementComponent->mSkill1 = INPUT.GetKey(eKeyCode::Q);
 	movementComponent->mSkill2 = INPUT.GetKey(eKeyCode::E);
 	movementComponent->mReload = INPUT.GetKey(eKeyCode::R);
-	movementComponent->mSpecial = mouseLook && INPUT.GetMouseState().RightDown;
+	movementComponent->mSpecial = mouseLook && INPUT.GetMouseRightDown();
 
 
 	if (INPUT.GetMouseRightDown())

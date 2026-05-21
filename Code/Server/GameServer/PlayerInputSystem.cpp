@@ -309,6 +309,21 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	const int prevAmmo = mp->mNowBullet;
 	const SkillType bulletType = ResolveSkillType(mp->mPlayerType, button, rhythm);
 	EnqueueAttackEventByCategory(em, e, bulletType);
+
+	switch (button)
+	{
+	case InputButtons::ATTACK:
+		if (mp->mPlayerType == Ibanix || mp->mPlayerType == Fanthor)
+			mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
+		break;
+	case InputButtons::SKILL1:
+		if (mp->mPlayerType == Ibanix)
+			mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
+		break;
+	default:
+		break;
+	}
+
 	mp->mFsm.ChangeState(mp, nextState);
 	*nextTimePtr = now + Beat * cool;
 	EnqueueAmmoChangedIfNeeded(mWorld, em, e, prevAmmo);

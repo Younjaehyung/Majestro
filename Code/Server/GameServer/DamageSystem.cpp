@@ -5,6 +5,8 @@
 #include "GameEvents.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "EnemyComponent.h"
+#include "BeatSystem.h"
 
 DamageSystem::DamageSystem(World* world)
     : System(world)
@@ -69,6 +71,28 @@ void DamageSystem::Update(float deltaTime)
             // (방어구로 모두 흡수되어 HP/Armor 모두 변동이 없는 경우에는 발행하지 않음)
             const bool armorAbsorbed = (beforeArmor != afterArmor);
             const bool hpDamaged = (beforeHp != afterHp);
+
+            if ((armorAbsorbed || hpDamaged))
+            {
+                if (EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(e.target))
+                {
+                    if (enemy->mEnemyType == EnemyType::Pianoman)
+                    {
+                        float beatSeconds = 0.0f;
+                        if (auto systemManager = mWorld->GetSystemManager())
+                        {
+                            if (auto* beatSystem = systemManager->GetSystem<BeatSystem>())
+                                beatSeconds = beatSystem->mBpmSeconds;
+                        }
+
+                        const float nowSeconds = GetServerTotalTimeSeconds();
+                        enemy->mNextAttackTime = nowSeconds + beatSeconds * enemy->mAttackCool;
+                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+                        enemy->mPianoRushVfxPlayed = false;
+                    }
+                }
+            }
+
             if (e.instigator.IsValid() && appliedDamage > 0 && (armorAbsorbed || hpDamaged))
             {
                 EvHitConfirm hit{};

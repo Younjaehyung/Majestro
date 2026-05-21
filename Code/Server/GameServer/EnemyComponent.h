@@ -39,7 +39,7 @@ public:
 			break;
 		case EnemyType::Bongoman:
 			mAttackCool = 16;
-			AttackRange = 1000.f;
+			AttackRange = 300.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			mNextShildTime = GetServerTotalTimeSeconds();
@@ -64,6 +64,7 @@ public:
 	float mNextAttackTime = 5.f;
 	float mNextShildTime = 0.0f;
 	float mPendingAttackTime = -1.0f;
+	bool mPianoRushVfxPlayed = false;
 
 	float mAttackAnimEndTime = 0.0f;
 	float mAttackAnimTime = 1.0f;

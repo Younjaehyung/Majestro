@@ -172,16 +172,19 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	const float radiusSq = stat.radius * stat.radius;
 	const Vec3 attackerRotation = attackerTransform->mLocalRotationE;
 
-	eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
-		static_cast<uint8>(request.bulletType),
-		attackCenter.x,
-		attackCenter.y,
-		attackCenter.z,
-		EffectSpawnReason::Fire,
-		attackerRotation.x,
-		attackerRotation.y,
-		attackerRotation.z
-		});
+		if (request.bulletType != SkillType::PianoAttack)
+		{
+			eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+				static_cast<uint8>(request.bulletType),
+				attackCenter.x,
+				attackCenter.y,
+				attackCenter.z,
+				EffectSpawnReason::Fire,
+				attackerRotation.x,
+				attackerRotation.y,
+				attackerRotation.z
+				});
+		}
 
 	auto candidates = mWorld->GetEntitiesWithComponents<TransformComponent, HealthComponent>();
 	for (Entity target : candidates)

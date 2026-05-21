@@ -249,6 +249,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::GuitarSkill1)
 			return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
 
+		if (skillType == SkillType::PianoAttack)
+			return VfxSpawnDesc{ L"VFX_Pianoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(50.0f) };
+
 		if (skillType == SkillType::BongoAttack)
 			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
 
@@ -289,6 +292,8 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 		return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
 
 	case SkillType::HornAttack:
+		return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
+
 	default:
 		return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };
 	}

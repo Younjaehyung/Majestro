@@ -131,7 +131,10 @@ void EnemySystem::Update(float dt)
         }
 
         EnemyAnimState currentState = EnemyAnimState::Run;
-        if (nearestPlayerDistSq <= enemyComp->AttackRangeSq)
+        const bool bongomanCommittedAttack =
+            enemyComp->mEnemyType == EnemyType::Bongoman &&
+            enemyComp->mPendingAttackTime >= 0.0f;
+        if (nearestPlayerDistSq <= enemyComp->AttackRangeSq || bongomanCommittedAttack)
             currentState = EnemyAnimState::Attack;
 
         ArmorComponent* armorComp = mWorld->GetComponent<ArmorComponent>(entity);
@@ -168,6 +171,10 @@ void EnemySystem::Update(float dt)
             currentState = EnemyAnimState::Shield;
         }
 
+        if (enemyComp->mEnemyType == EnemyType::Pianoman &&
+            (currentState != EnemyAnimState::Attack || enemyComp->mNextAttackTime > now))
+            enemyComp->mPianoRushVfxPlayed = false;
+
         if (currentState == EnemyAnimState::Attack && HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
         {
             ++entityIndex;
@@ -200,7 +207,10 @@ bool EnemySystem::HandleAttackState(
     if (!enemyComp || !movementComp)
         return false;
 
-    if (nearestPlayerDistSq > enemyComp->AttackRangeSq)
+    const bool bongomanCommittedAttack =
+        enemyComp->mEnemyType == EnemyType::Bongoman &&
+        enemyComp->mPendingAttackTime >= 0.0f;
+    if (nearestPlayerDistSq > enemyComp->AttackRangeSq && !bongomanCommittedAttack)
     {
         enemyComp->mPendingAttackTime = -1.0f;
         return false;
@@ -230,23 +240,51 @@ bool EnemySystem::HandleAttackState(
         break;
     case EnemyType::Pianoman:
     {
+        constexpr float kPianoMeleeRange = 160.0f;
+
         movementComp->mPathCount = 0;
         movementComp->mPathIndex = 0;
         movementComp->mMovingSpeed = enemyComp->mSpeed * 1.5f;
 
-        Vec3 rushDir = playerPos - myPos;
-        rushDir.y = 0.0f;
-        if (rushDir.LengthSquared() > 1e-8f)
-        {
-            rushDir.Normalize();
-            movementComp->mMovingDirection = rushDir;
-        }
-        else
+        const bool pianoAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
+        if (pianoAttackOnCooldown)
         {
             movementComp->mMovingDirection = Vec3::Zero;
         }
+        else
+        {
+            Vec3 rushDir = playerPos - myPos;
+            rushDir.y = 0.0f;
 
-        constexpr float kPianoMeleeRange = 160.0f;
+            const bool canTriggerRushVfx = nearestPlayerDistSq > kPianoMeleeRange * kPianoMeleeRange;
+            if (rushDir.LengthSquared() > 1e-8f)
+            {
+                rushDir.Normalize();
+
+                if (eventManager && !enemyComp->mPianoRushVfxPlayed && canTriggerRushVfx)
+                {
+                    const float rushYawDeg = DirectX::XMConvertToDegrees(std::atan2(rushDir.x, rushDir.z));
+                    eventManager->Enqueue<EvEffectSpawn>({
+                        static_cast<uint8>(SkillType::PianoAttack),
+                        myPos.x,
+                        myPos.y,
+                        myPos.z,
+                        EffectSpawnReason::Fire,
+                        0.0f,
+                        rushYawDeg,
+                        0.0f
+                    });
+                    enemyComp->mPianoRushVfxPlayed = true;
+                }
+
+                movementComp->mMovingDirection = rushDir;
+            }
+            else
+            {
+                movementComp->mMovingDirection = Vec3::Zero;
+            }
+        }
+
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds && nearestPlayerDistSq <= kPianoMeleeRange * kPianoMeleeRange)
         {
             eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::PianoAttack });
@@ -282,7 +320,8 @@ bool EnemySystem::HandleAttackState(
 
     if (enemyComp->mEnemyType == EnemyType::Pianoman)
     {
-        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+        const bool pianoAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
+        enemyComp->mAnimState = static_cast<uint8>(pianoAttackOnCooldown ? EnemyAnimState::Run : EnemyAnimState::Attack);
     }
     else if (nowSeconds <= enemyComp->mAttackAnimEndTime)
     {

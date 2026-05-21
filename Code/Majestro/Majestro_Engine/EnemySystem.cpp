@@ -11,8 +11,10 @@
 namespace
 {
 	constexpr uint8 kPianomanType = 1;
+	constexpr uint8 kBongomanType = 2;
 
 	constexpr float kEnemyAggroRange = 1000.0f;
+	constexpr float kBongomanAggroRange = 300.0f;
 	constexpr float kPianomanMeleeRange = 160.0f;
 	constexpr float kCircleHeightOffset = 5.0f;
 	constexpr int kCircleSegments = 40;
@@ -51,7 +53,9 @@ namespace
 		Vec3 center = transformComponent->mLocalPosition;
 		center.y += kCircleHeightOffset;
 
-		SubmitDebugCircle(center, kEnemyAggroRange, Vec4(0.f, 1.f, 0.f, 1.f));
+		const float aggroRange =
+			enemyComponent->mEnemyType == kBongomanType ? kBongomanAggroRange : kEnemyAggroRange;
+		SubmitDebugCircle(center, aggroRange, Vec4(0.f, 1.f, 0.f, 1.f));
 
 		if (enemyComponent->mEnemyType == kPianomanType)
 			SubmitDebugCircle(center, kPianomanMeleeRange, Vec4(1.f, 0.f, 0.f, 1.f), 24);

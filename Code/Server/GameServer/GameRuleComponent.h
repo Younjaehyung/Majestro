@@ -41,9 +41,11 @@ public:
 	std::array<Entity, mMaxWaves> mPlayerSpawners;				// 웨이브별 플레이어 스포너 엔티티 리스트
 	std::array<Entity, mMaxWaves> mConquestPointRect;				// 플레이어가 들어가야 하는 체크포인트 영역
 
+
 	// 런타임
 
-
+	int32 mActiveZoneIndex = 0; // resumeEvent로 해석한 이번 ConquestPhase의 점령 구역 index.
+	float mRequiredConquestTime = mMaxWaveTime; // StopPoint waitSeconds로 이번 점령에 필요한 시간을 덮어쓴다.
 
 	int32 mWaveCheckPoint = 0; // 현재 웨이브 체크포인트 번호 (0부터 시작)
 	int32 mWave = 1;          // 현재 웨이브 번호 (1부터 시작)

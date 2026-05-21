@@ -102,6 +102,7 @@ void GameNetRuleSystem::SendSceneConquest(Entity rule)
 		pkt.Wave = g->mWave;
 		pkt.WaveInterval = g->mWaveInterval;
 		pkt.WaveTime = g->mWaveTime;
+		pkt.RequiredConquestTime = g->mRequiredConquestTime;
 		pkt.PlayerNum = g->mPlayerNum;
 		pkt.EnemyNum = g->mEnemyNum;
 

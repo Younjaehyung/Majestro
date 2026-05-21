@@ -35,6 +35,7 @@ public:
 
 	float mWaveInterval = 0.0f; // 웨이브 점령 감소 간격 (초)
 	float mWaveTime = 0.0f; // 웨이브 점령 시간
+	float mRequiredConquestTime = mMaxConquestTime; // 서버에서 받은 stopPoint별 점령 목표 시간
 
 	int32 mPlayerNum = 0; // 플레이어 수
 	int32 mEnemyNum = 0; // 적 수

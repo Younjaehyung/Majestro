@@ -28,13 +28,12 @@ void WaveGameMode::Initialize()
 	mGameRuleEntity = mScene->GetWorld()->CreateEntity();
 	GameRuleComponent& rule = mScene->GetWorld()->AddComponent<GameRuleComponent>(mGameRuleEntity);
 
-	mPhaseQueue.push([] { return new EscortPhase(/*routeId=*/0); });
-	mPhaseQueue.push([] { return new ConquestPhase(/*zoneId=*/0); });
-	mPhaseQueue.push([] { return new EscortPhase(/*routeId=*/1); });
-	mPhaseQueue.push([] { return new BossPhase();                });
+
+	mPhaseQueue.push_back([] { return new EscortPhase(/*routeId=*/0); });
+	mPhaseQueue.push_back([] { return new BossPhase();                });
 	
 	auto factory = std::move(mPhaseQueue.front());
-	mPhaseQueue.pop();
+	mPhaseQueue.pop_front();
 	TransitionTo(factory());
 }
 
@@ -77,10 +76,15 @@ void WaveGameMode::AdvancePhase()
 	if (false == mCurrentPhase->IsCompleted()) return;
 
 	auto factory = std::move(mPhaseQueue.front());
-	mPhaseQueue.pop();
+	mPhaseQueue.pop_front();
 	TransitionTo(factory());
 
 
+}
+
+void WaveGameMode::InsertNextPhase(PhaseFactory factory)
+{
+	mPhaseQueue.push_front(std::move(factory));
 }
 
 //--------------------------------------------------------------

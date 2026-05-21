@@ -453,6 +453,7 @@ void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
 	conquestComp->mWave = pkt->Wave;
 	conquestComp->mWaveInterval = pkt->WaveInterval;
 	conquestComp->mWaveTime = pkt->WaveTime;
+	conquestComp->mRequiredConquestTime = pkt->RequiredConquestTime;
 	conquestComp->mPlayerNum = pkt->PlayerNum;
 	conquestComp->mEnemyNum = pkt->EnemyNum;
 

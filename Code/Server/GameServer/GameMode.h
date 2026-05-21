@@ -1,6 +1,7 @@
 #pragma once
 #include "Entity.h"
 
+
 class Scene;
 class GamePhase;
 
@@ -59,6 +60,8 @@ private:
 class WaveGameMode : public GameMode
 {
 public:
+	using PhaseFactory = std::function<GamePhase*()>;
+
 	virtual void Initialize() override;
 	virtual void PreUpdate(float deltaTime) override;
 	virtual void PostUpdate(float deltaTime) override;
@@ -67,14 +70,14 @@ public:
 
 	void TransitionTo(GamePhase* next);
 	void AdvancePhase();
+	void InsertNextPhase(PhaseFactory factory);
 
 	virtual float GetGameTime() const { return mGameTime; }
 
 private:
 // 런타임
-	using PhaseFactory = std::function<GamePhase*()>;
-	std::queue<PhaseFactory> mPhaseQueue;
-	GamePhase* mCurrentPhase;
+	std::deque<PhaseFactory> mPhaseQueue;
+	GamePhase* mCurrentPhase = nullptr;
 	uint8 mCurrentPhaseIndex = 0;
 	float mGameTime = 0.0f; // 게임 진행 시간
 	

@@ -18,9 +18,6 @@
 
 #include "Prefab.h"
 
-
-
-
 void PreparePhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
@@ -55,6 +52,8 @@ void ConquestPhase::Enter(WaveGameMode& mode)
 
 	GameConquestComponent& conquestComp = mWorld->AddComponent<GameConquestComponent>(mGameRuleEntity);
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Conquest);
+	conquestComp.mActiveZoneIndex = min(GameConquestComponent::mMaxWaves - 1, max(0, static_cast<int32>(mZoneId) - 1));
+	conquestComp.mRequiredConquestTime = max(0.1f, mRequiredSeconds);
 
 	// 씬에 배치된 ConquestZone 트리거를 mValueA(점령지 번호) 기준으로 wave 슬롯에 매핑
 	if (mWorld->HasComponentPool<InteractableComponent>())
@@ -91,8 +90,7 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 	GameConquestComponent* ruleComp = mWorld->GetComponent<GameConquestComponent>(mGameRuleEntity);
 	if (!ruleComp) return;
 
-	// 현재 wave 의 점령지 영역 안에 있는 살아있는 player / enemy 직접 카운트 (OBB Intersects)
-	const int32 idx = ruleComp->mWave - 1;
+	const int32 idx = ruleComp->mActiveZoneIndex;
 	if (idx >= 0 && idx < GameConquestComponent::mMaxWaves)
 	{
 		Entity zone = ruleComp->mConquestPointRect[idx];
@@ -164,6 +162,11 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 
 	// 웨이브 점령 시간이 최대 웨이브 시간보다 크면 웨이브 증가
+	if (ruleComp->mWaveTime >= ruleComp->mRequiredConquestTime) {
+		mIsCompleted = true;
+		return;
+	}
+
 	if (ruleComp->mWaveTime > ruleComp->mMaxWaveTime) {
 		ruleComp->mWave += 1;
 		ruleComp->mWaveTime = 0.f;
@@ -189,6 +192,15 @@ EscortPhase::EscortPhase(uint8 routeId) : mRouteId(routeId)
 
 }
 
+EscortPhase::EscortPhase(uint8 routeId, float startDistance, int32 nextStopIndex)
+	: EscortPhase(routeId)
+{
+	// 이전 ConquestPhase가 끝난 stopPoint 거리부터 EscortPhase를 재개
+	mStartDistance = startDistance;
+	mNextStopIndex = nextStopIndex;
+	mUseResumeDistance = true;
+}
+
 
 void EscortPhase::Enter(WaveGameMode& mode)
 {
@@ -203,6 +215,7 @@ void EscortPhase::Enter(WaveGameMode& mode)
 
 
 	GameEscortComponent* escortComp = mWorld->GetComponent<GameEscortComponent>(rule);
+	escortComp->mEscortStage = static_cast<uint8>(mNextStopIndex);
 	EntityView pathEntity = mWorld->View<PathLoadComponent, TruckComponent>();
 
 	for( Entity e : pathEntity) {
@@ -220,11 +233,26 @@ void EscortPhase::Enter(WaveGameMode& mode)
 	PathLoadComponent* pathComp = mWorld->GetComponent<PathLoadComponent>(escortComp->mEscortTarget);
 	pathComp->mPathData         = mEscortPath;
 	pathComp->mBaseSpeed        = escortComp->mTruckSpeed;
-	pathComp->mCurrentDistance  = 0.f;
+	const float startDistance = mUseResumeDistance ? mStartDistance : 0.f;
+	pathComp->mCurrentDistance  = startDistance;
 	pathComp->mTotalDistance = mEscortPath ? mEscortPath->GetLength() : 0.f;
-	pathComp->mPreviousDistance = 0.f;
+	pathComp->mPreviousDistance = startDistance;
 	pathComp->mActive           = true;
 	pathComp->mPaused           = true; // 첫 프레임 PostUpdate 가 반경 검사 후 풀어줌
+	if (!mUseResumeDistance)
+		pathComp->mFiredEvents.clear();
+
+	// 재개 Phase 진입 순간 트럭 위치를 복구해서 경로 시작점으로 되돌아가지 않게 한다.
+	TransformComponent* targetTr = mWorld->GetComponent<TransformComponent>(escortComp->mEscortTarget);
+	if (targetTr && mEscortPath)
+	{
+		PayloadPathSample sample{};
+		if (mEscortPath->Evaluate(startDistance, sample))
+		{
+			targetTr->mLocalPosition = sample.position + pathComp->mBaseOffset;
+			targetTr->LookAt(sample.forward);
+		}
+	}
 }
 
 
@@ -298,8 +326,77 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 		? pathComp->mCurrentDistance / pathComp->mTotalDistance
 		: 0.f;
 
+	if (mEscortPath && mNextStopIndex >= 0)
+	{
+		const auto& stopPoints = mEscortPath->GetStopPoints();
+		if (static_cast<size_t>(mNextStopIndex) < stopPoints.size())
+		{
+			const PayloadStopPoint& stop = stopPoints[mNextStopIndex];
+			if (mEscortPath->DidPassDistance(pathComp->mPreviousDistance, pathComp->mCurrentDistance, stop.distance))
+			{
+				// stopPoint에 도달했으므로 ConquestPhase와 같은 거리에서 재개할 EscortPhase를 바로 다음 순서에 삽입
+				pathComp->mCurrentDistance = stop.distance;
+				pathComp->mPreviousDistance = stop.distance;
+				pathComp->mPaused = true;
+
+				PayloadPathSample sample{};
+				if (mEscortPath->Evaluate(stop.distance, sample))
+				{
+					targetTr->mLocalPosition = sample.position + pathComp->mBaseOffset;
+					targetTr->LookAt(sample.forward);
+				}
+
+				const uint8 routeId = mRouteId;
+				const float resumeDistance = stop.distance;
+				const int32 nextStopIndex = mNextStopIndex + 1;
+				const uint8 zoneId = ResolveConquestZoneIdFromResumeEvent(stop.resumeEvent, nextStopIndex);
+				const float requiredSeconds = (stop.waitSeconds > 0.f) ? stop.waitSeconds : GameConquestComponent::mMaxWaveTime;
+
+				mode.InsertNextPhase([routeId, resumeDistance, nextStopIndex] {
+					return new EscortPhase(routeId, resumeDistance, nextStopIndex);
+				});
+				mode.InsertNextPhase([zoneId, requiredSeconds] {
+					return new ConquestPhase(zoneId, requiredSeconds);
+				});
+
+				ruleComp->mEscortStage = static_cast<uint8>(nextStopIndex);
+				ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
+					? pathComp->mCurrentDistance / pathComp->mTotalDistance
+					: 0.f;
+				mIsCompleted = true;
+				return;
+			}
+		}
+	}
+
 	if (ruleComp->mEscortProgress >= 1.f)
 		mIsCompleted = true;
+}
+
+uint8 EscortPhase::ResolveConquestZoneIdFromResumeEvent(const std::string& resumeEvent, int32 fallbackZoneId)
+{
+	int32 value = 0;
+	int32 multiplier = 1;
+	bool foundDigit = false;
+
+	for (auto it = resumeEvent.rbegin(); it != resumeEvent.rend(); ++it)
+	{
+		const char ch = *it;
+		if (ch >= '0' && ch <= '9')
+		{
+			value += (ch - '0') * multiplier;
+			multiplier *= 10;
+			foundDigit = true;
+			continue;
+		}
+
+		if (foundDigit)
+			break;
+	}
+
+	// resumeEvent가 CheckPoint1 형식이면 숫자로 점령 구역을 고르고, 숫자가 없으면 stopPoint 순서를 사용
+	const int32 zoneId = foundDigit ? value : fallbackZoneId;
+	return static_cast<uint8>(min(255, max(1, zoneId)));
 }
 
 ////--------------------------------------------------------------

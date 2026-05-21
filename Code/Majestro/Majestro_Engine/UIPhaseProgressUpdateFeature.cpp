@@ -99,7 +99,7 @@ void UIPhaseProgressUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>&
 
 void UIPhaseProgressUpdateFeature::UpdateConquestProgress(float dt, GameConquestComponent* conquestComp)
 {
-	const float total = GameConquestComponent::mMaxConquestTime;
+	const float total = conquestComp->mRequiredConquestTime;
 	const float ratio = (total > 0.f) ? (conquestComp->mWaveTime / total) : 0.f;
 	mConquestProgress       = std::clamp(ratio, 0.f, 1.f);
 	mCachedConquestWaveCheckPoint = conquestComp->mWaveCheckPoint;

@@ -279,14 +279,15 @@ struct S2C_ConquestPacket : public PacketTcpHeader {
 
 	float WaveInterval = 0.0f; // 웨이브 점령 감소 간격 (초)
 	float WaveTime = 0.0f; // 웨이브 점령 시간
+	float RequiredConquestTime = 30.0f; // 서버의 stopPoint waitSeconds 기준 점령 목표 시간
 
 	int PlayerNum = 0; // 플레이어 수
 	int EnemyNum = 0; // 적 수
 
 	S2C_ConquestPacket() : PacketTcpHeader{ sizeof(S2C_ConquestPacket), PKT_Type::S2C_PKT_SCENE_CONQUEST, 0.0 } {}
-	S2C_ConquestPacket(uint32 id, int waveCheckpoint, int wave, float waveInterval, float waveTime, int playerNum, int enemyNum)
+	S2C_ConquestPacket(uint32 id, int waveCheckpoint, int wave, float waveInterval, float waveTime, float requiredConquestTime, int playerNum, int enemyNum)
 		: PacketTcpHeader{ sizeof(S2C_ConquestPacket), PKT_Type::S2C_PKT_SCENE_CONQUEST, 0.0 },
-		clientId(id), WaveCheckPoint(waveCheckpoint), Wave(wave), WaveInterval(waveInterval), WaveTime(waveTime), PlayerNum(playerNum), EnemyNum(enemyNum) {
+		clientId(id), WaveCheckPoint(waveCheckpoint), Wave(wave), WaveInterval(waveInterval), WaveTime(waveTime), RequiredConquestTime(requiredConquestTime), PlayerNum(playerNum), EnemyNum(enemyNum) {
 	}
 };
 

@@ -36,6 +36,7 @@
 #include <stdexcept>
 #include <cstdint> 
 #include <variant>
+#include <deque>
 using namespace std;
 
 #include "Types.h"

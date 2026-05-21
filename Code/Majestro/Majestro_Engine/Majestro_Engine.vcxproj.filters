@@ -466,6 +466,9 @@
     <ClInclude Include="TagComponent.h">
       <Filter>World\Component\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="LobbyRoomStateComponent.h">
+      <Filter>World\Component\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="EnemySystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -1068,6 +1071,9 @@
       <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClCompile>
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp">
+      <Filter>World\System\UI\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyRoomUIFeature.cpp">
       <Filter>World\System\UI\Common</Filter>
     </ClCompile>
   </ItemGroup>

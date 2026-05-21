@@ -30,6 +30,8 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::S2C_PKT_SCENE_STATE:
 	case PKT_Type::S2C_PKT_SCENE_CONQUEST:
 	case PKT_Type::S2C_PKT_SCENE_ESCORT:
+	case PKT_Type::S2C_ROOM_STATE:
+	case PKT_Type::S2C_ROOM_ERROR:
 	{
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
@@ -81,7 +83,9 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::PKT_LOGIN:
 	case PKT_Type::C2S_SCENE_CHANGE:
 	case PKT_Type::C2S_PKT_ACTION:
-	case PKT_Type::C2S_PKT_RHYTHM_CHANGED: {
+	case PKT_Type::C2S_PKT_RHYTHM_CHANGED:
+	case PKT_Type::C2S_ROOM_READY:
+	case PKT_Type::C2S_ROOM_CHARACTER_SELECT: {
 		ProcessTcpPackets(inputCommand, buffer , header.Size);
 		break;
 	}

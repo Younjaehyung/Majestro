@@ -1,6 +1,7 @@
 #pragma once
 #include "PacketHelper.h"
 class Scene;
+class RoomManager;
 
 enum {
 	MAX_LAYER = 32
@@ -16,6 +17,7 @@ public:
 	void LoadScene(uint64 sessionId, wstring sceneName);
 	shared_ptr<Scene> GetScene(uint64 sessionId) const;
 
+	void SetRoomManager(RoomManager* roomManager) { mRoomManager = roomManager; }
 
 	bool EnqueueCommand(const InputCommand& command);
 private:
@@ -46,10 +48,11 @@ private:
 
 	std::array<shared_ptr<Scene>, (size_t)SceneId::End> mGameScenes; // 모든 씬을 저장하는 배열
 	shared_ptr<Scene> mActiveScene;
-
+	RoomManager* mRoomManager = nullptr;
 
 	//layer를 양쪽에서 찾을 수 있게 매핑
 	array<wstring, MAX_LAYER> _layerNames;
 	map<wstring, uint8> _layerIndex;
 
+	
 };

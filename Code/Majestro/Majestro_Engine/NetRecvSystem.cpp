@@ -23,6 +23,9 @@
 #include "ArmorComponent.h"
 #include "VfxComponent.h"
 #include "GameRuleComponent.h"
+#include "LobbyRoomStateComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -72,6 +75,8 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_SCENE_STATE,       [this](auto& m) { HandleSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_CONQUEST, [this](auto& m) { HandleConquestSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
+	reg(PKT_Type::S2C_ROOM_STATE, [this](auto& m) { HandleRoomState(m); });
+	reg(PKT_Type::S2C_ROOM_ERROR, [this](auto& m) { HandleRoomError(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -411,6 +416,8 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
 		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Lobby, L"로비 씬 로딩 중...");
         break;
     case SceneId::FirstGame:
+        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
+            sendSystem->RequestPendingGameStart();
 		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
         break;
     default:
@@ -471,6 +478,50 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
     escortComp->mEscortProgress = pkt->EscortProgress;
 	escortComp->mEscortStage = pkt->EscortStage;
 	escortComp->mEscortTime = pkt->EscortTime;
+}
+
+// 서버 RoomState 스냅샷을 LobbyRoomStateComponent 에 복사.
+void NetRecvSystem::HandleRoomState(const InputCommand& msg)
+{
+    const S2C_RoomStatePacket* pkt = msg.ViewAs<S2C_RoomStatePacket>();
+    if (!pkt) return;
+
+    if (!mWorld->HasComponentPool<LobbyRoomStateComponent>())
+        return;
+
+    auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
+    if (entities.empty()) return;
+
+    LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(entities[0]);
+    if (!state) return;
+
+    state->mRoomId = pkt->roomId;
+    state->mPlayerCount = pkt->playerCount;
+    state->mMaxPlayers = pkt->maxPlayers;
+    state->mHostSlotIndex = pkt->hostSlotIndex;
+
+    const uint8 copyCount = (pkt->maxPlayers < 8) ? pkt->maxPlayers : 8;
+    for (uint8 i = 0; i < copyCount; ++i)
+    {
+        state->mSlots[i].sessionId = pkt->slots[i].sessionId;
+        state->mSlots[i].playerType = pkt->slots[i].playerType;
+        state->mSlots[i].ready = (pkt->slots[i].ready != 0);
+        state->mSlots[i].isHost = (pkt->slots[i].isHost != 0);
+    }
+    state->mHasSnapshot = true;
+}
+
+// 서버 거부 사유 수신
+void NetRecvSystem::HandleRoomError(const InputCommand& msg)
+{
+    const S2C_RoomErrorPacket* pkt = msg.ViewAs<S2C_RoomErrorPacket>();
+    if (!pkt) return;
+
+    std::cout << "[RoomError] roomId=" << pkt->roomId
+              << " code=" << static_cast<int>(pkt->errorCode) << std::endl;
+
+    if (auto eventMgr = mWorld->GetEventManager())
+        eventMgr->Enqueue(EvRoomError{ pkt->errorCode });
 }
 
 

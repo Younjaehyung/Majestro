@@ -12,6 +12,10 @@
 #include "TerrainComponent.h"
 #include "BeatComponent.h"
 #include "MovementComponent.h"
+#include "LobbyRoomStateComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
+#include "Network.h"
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
 {
@@ -40,13 +44,49 @@ void PlayerInputSystem::Update(float dt)
 	if (mWorld->HasComponentPool<ChoicePlayerComponent>()) {
 		std::vector<Entity> choiceEntitys{ mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>() };
 		ChoicePlayerComponent* choicecomponent = mWorld->GetComponent<ChoicePlayerComponent>(choiceEntitys[0]);
+		bool characterChanged = false;
 		if (INPUT.GetKeyDown(eKeyCode::LEFT))
 		{
 			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 2) % 3;
+			characterChanged = true;
 		}
 		else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
 		{
 			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 1) % 3;
+			characterChanged = true;
+		}
+
+		// 캐릭터 변경을 서버에 알린다 (서버에서 ready 자동 해제)
+		if (characterChanged)
+		{
+			if (auto eventMgr = mWorld->GetEventManager())
+				eventMgr->Enqueue(EvRoomCharacterChanged{ choicecomponent->mPlayerType });
+		}
+
+		// R 키 Ready 토글. 본인 슬롯 ready 값을 읽어서 반전 후 enqueue.
+		// LobbyRoomStateComponent 가 아직 스냅샷을 못 받았으면 true 로 시작.
+		if (INPUT.GetKeyDown(eKeyCode::R) && mWorld->HasComponentPool<LobbyRoomStateComponent>())
+		{
+			std::vector<Entity> roomStateEntities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
+			if (!roomStateEntities.empty())
+			{
+				LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(roomStateEntities[0]);
+				const uint32 myClientId = Network::GetInstance().mClientId;
+				bool currentReady = false;
+				if (state)
+				{
+					for (const auto& slot : state->mSlots)
+					{
+						if (slot.sessionId != 0 && slot.sessionId == myClientId)
+						{
+							currentReady = slot.ready;
+							break;
+						}
+					}
+				}
+				if (auto eventMgr = mWorld->GetEventManager())
+					eventMgr->Enqueue(EvRoomReadyChanged{ !currentReady });
+			}
 		}
 	}
 

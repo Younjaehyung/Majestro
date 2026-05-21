@@ -36,6 +36,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
+#include <variant>
+#include <cstdint>
 using namespace std;
 
 

@@ -22,6 +22,10 @@ enum PKT_Type : uint32 {
 	C2S_PKT_ACTION,
 	C2S_PKT_RHYTHM_CHANGED,
 
+	// 로비 Room : roomId 는 1 고정이지만 다방 확장 대비 필드는 미리 박아둠
+	C2S_ROOM_READY,
+	C2S_ROOM_CHARACTER_SELECT,
+
 
 	// Server -> Client
 	S2C_PKT_LOGIN,
@@ -46,6 +50,10 @@ enum PKT_Type : uint32 {
 	S2C_PKT_ARMOR,
 	S2C_PKT_AMMO,
 	S2C_PKT_HIT_CONFIRM,
+
+	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
+	S2C_ROOM_STATE,
+	S2C_ROOM_ERROR,
 
 	KMSG,
 };
@@ -226,6 +234,28 @@ enum class EffectSpawnReason : uint8
 	CollisionEntity = 1,
 	CollisionStatic = 2,
 	LifetimeExpired = 3,
+};
+
+// 로비 Room 시스템: 한 방의 최대 인원
+static constexpr uint8 ROOM_MAX_PLAYERS = 8;
+
+// 로비 Room 시스템: 게임 시작 거부 사유 / 잘못된 패킷 등 자격 오류 코드
+enum class RoomErrorCode : uint8
+{
+	None = 0,
+	NotHost,             // Host 가 아닌 세션이 게임 시작 요청
+	NotAllReady,         // 모든 플레이어가 Ready 가 아님
+	NotEnoughPlayers,    // 최소 시작 인원 미만 (1명)
+	InvalidRoom,         // 존재하지 않는 roomId 또는 본인 방과 다른 roomId
+};
+
+// 한 플레이어 슬롯. sessionId == 0 은 비어 있는 슬롯
+struct RoomPlayerSlot {
+	uint32 sessionId{};
+	uint8  playerType{};
+	uint8  ready{};     // 0/1
+	uint8  isHost{};    // 0/1
+	uint8  reserved{};
 };
 
 ///////////////////////////////////////////
@@ -519,6 +549,21 @@ struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 	}
 };
 
+
+struct S2C_SceneChangeResultPacket : public PacketTcpHeader {
+	SceneId currentScene{ SceneId::Lobby };
+	uint8 approved{};
+	uint16 reserved{};
+
+	S2C_SceneChangeResultPacket()
+		: PacketTcpHeader{ sizeof(S2C_SceneChangeResultPacket), PKT_Type::S2C_SCENE_CHANGE_RESULT, 0.0 } {
+	}
+	S2C_SceneChangeResultPacket(SceneId current, bool isApproved)
+		: PacketTcpHeader{ sizeof(S2C_SceneChangeResultPacket), PKT_Type::S2C_SCENE_CHANGE_RESULT, 0.0 },
+		currentScene(current), approved(isApproved ? 1 : 0) {
+	}
+};
+
 ///////////////Client To Server///////////////
 
 struct C2S_LoginPacket : public PacketUdpHeader {
@@ -605,20 +650,55 @@ struct C2S_MovePacket : public PacketUdpHeader {
 	C2S_MovePacket() : PacketUdpHeader{ sizeof(C2S_MovePacket), PKT_Type::C2S_PKT_MOVE, 0, 0 } {}
 };
 
-struct S2C_SceneChangeResultPacket : public PacketTcpHeader {
-	SceneId currentScene{ SceneId::Lobby };
-	uint8 approved{};
-	uint16 reserved{};
+// Ready 토글값 (서버는 그대로 적용 후 브로드캐스트)
+struct C2S_RoomReadyPacket : public PacketTcpHeader {
+	uint32 roomId{};
+	uint8  ready{};       // 0/1
+	uint8  reserved0{};
+	uint16 reserved1{};
 
-	S2C_SceneChangeResultPacket()
-		: PacketTcpHeader{ sizeof(S2C_SceneChangeResultPacket), PKT_Type::S2C_SCENE_CHANGE_RESULT, 0.0 } {
+	C2S_RoomReadyPacket()
+		: PacketTcpHeader{ sizeof(C2S_RoomReadyPacket), PKT_Type::C2S_ROOM_READY, 0.0 } {
 	}
-	S2C_SceneChangeResultPacket(SceneId current, bool isApproved)
-		: PacketTcpHeader{ sizeof(S2C_SceneChangeResultPacket), PKT_Type::S2C_SCENE_CHANGE_RESULT, 0.0 },
-		currentScene(current), approved(isApproved ? 1 : 0) {
+};
+
+// 캐릭터 변경 (서버에서 Ready 자동 해제 후 브로드캐스트)
+struct C2S_RoomCharacterSelectPacket : public PacketTcpHeader {
+	uint32 roomId{};
+	uint8  playerType{};
+	uint8  reserved0{};
+	uint16 reserved1{};
+
+	C2S_RoomCharacterSelectPacket()
+		: PacketTcpHeader{ sizeof(C2S_RoomCharacterSelectPacket), PKT_Type::C2S_ROOM_CHARACTER_SELECT, 0.0 } {
 	}
 };
 
 
+///////////////Lobby Room ////////////////
+
+// 방 전체 상태 스냅샷. 변경 시점마다 방의 모든 세션에 브로드캐스트
+struct S2C_RoomStatePacket : public PacketTcpHeader {
+	uint32 roomId{};
+	uint8  playerCount{};
+	uint8  maxPlayers{};       // = ROOM_MAX_PLAYERS
+	uint8  hostSlotIndex{};    // 0xFF = Host 없음
+	uint8  reserved{};
+	RoomPlayerSlot slots[ROOM_MAX_PLAYERS]{};
+
+	S2C_RoomStatePacket()
+		: PacketTcpHeader{ sizeof(S2C_RoomStatePacket), PKT_Type::S2C_ROOM_STATE, 0.0 } {}
+};
+
+// Room 자격 오류 (요청자에게만 unicast)
+struct S2C_RoomErrorPacket : public PacketTcpHeader {
+	uint32 roomId{};
+	uint8  errorCode{};   // RoomErrorCode
+	uint8  reserved0{};
+	uint16 reserved1{};
+
+	S2C_RoomErrorPacket()
+		: PacketTcpHeader{ sizeof(S2C_RoomErrorPacket), PKT_Type::S2C_ROOM_ERROR, 0.0 } {}
+};
 
 #pragma pack(pop)

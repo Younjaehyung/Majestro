@@ -220,6 +220,9 @@
     <Filter Include="Utils\Jolt">
       <UniqueIdentifier>{91b1f2ea-39ff-4830-8781-b8d3da97c80d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\System\UI\Menu">
+      <UniqueIdentifier>{b04d8e3a-386e-4ead-b017-0c4d02c0452f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h">
@@ -671,6 +674,22 @@
     <ClInclude Include="UIPhaseProgressUpdateFeature.h">
       <Filter>World\System\UI\Common</Filter>
     </ClInclude>
+    <ClInclude Include="LobbyRoomUIFeature.h" />
+    <ClInclude Include="MainMenuSystem.h">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuCameraSystem.h">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuCameraComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuController.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraView.h">
+      <Filter>World\Resource\Map</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -1075,6 +1094,15 @@
     </ClCompile>
     <ClCompile Include="LobbyRoomUIFeature.cpp">
       <Filter>World\System\UI\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuCameraSystem.cpp">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MainMenuSystem.cpp">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraView.cpp">
+      <Filter>World\Resource\Map</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

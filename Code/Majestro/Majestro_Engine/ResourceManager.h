@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Prefab.h"
 #include "Material.h"
 #include "Mesh.h"
@@ -14,6 +13,7 @@
 #include "PayloadPathData.h"
 #include "Vfx.h"
 #include "ParticleEffect.h"
+#include "CameraView.h"
 
 using KeyObjMap = std::map<wstring/*key*/, shared_ptr<Object>>;
 
@@ -63,6 +63,7 @@ public:
 	void LoadAllTexture(const wstring& path);
 	LevelImportData  LoadMapResourceJson(const wstring& path);
 	shared_ptr<PayloadPathData>  LoadPayloadPathJson(const wstring& path);
+	std::vector<CameraView> LoadCameraViews(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수

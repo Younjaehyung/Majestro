@@ -72,6 +72,11 @@
 #include "UIGameInfoUpdateFeature.h"
 #include "UIPhaseProgressUpdateFeature.h"
 
+#include "MainMenuController.h"
+#include "MainMenuCameraComponent.h"
+#include "MainMenuSystem.h"
+#include "MainMenuCameraSystem.h"
+
 
 
 Scene::Scene()
@@ -585,15 +590,42 @@ void MainMenuScene::Initialize()
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	{
-		Entity testCamera = mWorld->CreateEntity();
-		TransformComponent t{}; // (X=-4067.259336,Y=370.260839,Z=468.280987)
+	Entity mainMenuCamera = mWorld->CreateEntity();
 
-		t.mLocalPosition = { 370.f,  490.f, -4058.f };
+	// 메인 메뉴 카메라
+	{
+		TransformComponent t{};
+		t.mLocalPosition  = { 370.f,  490.f, -4058.f };	// 기본 값
 		t.mLocalRotationE = { -18.f, -142.0f, 0.f };
-		mWorld->AddComponent<MainCameraComponent>(testCamera);
-		mWorld->AddComponent<CameraComponent>(testCamera);
-		mWorld->AddComponent<TransformComponent>(testCamera, t);
+		mWorld->AddComponent<MainCameraComponent>(mainMenuCamera);
+		mWorld->AddComponent<CameraComponent>(mainMenuCamera);
+		mWorld->AddComponent<TransformComponent>(mainMenuCamera, t);
+
+		// 메인메뉴 카메라 6 view 로드
+		auto& mm = mWorld->AddComponent<MainMenuCameraComponent>(mainMenuCamera);
+		std::vector<CameraView> views = RESOURCEMANAGER.LoadCameraViews(
+			L"..\\Resources\\Json\\MainMenuCameraViews.json");
+
+		mm.mLoaded = (views.size() == (size_t)MainMenuView::Count);
+		if (mm.mLoaded)
+		{
+			std::copy_n(views.begin(), (size_t)MainMenuView::Count, mm.mViews.begin());
+
+			const auto& v0 = mm.View(MainMenuView::Title);
+			TransformComponent* trC = mWorld->GetComponent<TransformComponent>(mainMenuCamera);
+			trC->mLocalPosition = v0.position;
+			Vec3 eR = v0.rotation.ToEuler();
+			trC->mLocalRotationE = Vec3(
+				XMConvertToDegrees(eR.x),
+				XMConvertToDegrees(eR.y),
+				XMConvertToDegrees(eR.z));
+			mm.mCurrent = MainMenuView::Title;
+			mm.mTarget  = MainMenuView::Title;
+			mm.mBlendT  = 1.f;
+		}
+
+		// 메인메뉴 상태 머신 컨트롤러
+		mWorld->AddComponent<MainMenuController>(mainMenuCamera);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -676,49 +708,159 @@ void MainMenuScene::Initialize()
 				return e;
 			};
 
-		// ── 게임 시작 ──
-		Entity e1 = MakeVFXButton(L"VFX_UI_Select", L"GAMESTART", Vec2(startX,startY), [&]()
-		{
-				if (Network::GetInstance().Awake()) {
-					mGameMode->mTargetSceneId = SceneId::Lobby;
-					mGameMode->IsSceneChanging() = true;
+		// 스프라이트시트 애니메이션 버튼 (label==nullptr 이면 텍스트 생략 (순수 이미지 버튼))
+		auto MakeSpriteButton = [&](const wchar_t* texKey, const wchar_t* label,
+			Vec2 offset, Vec2 frameSize, int frameCount, float animTime,
+			std::function<void()> onClick)
+			{
+				auto tex = RESOURCEMANAGER.Get<Texture>(texKey);
+
+				Entity e = mWorld->CreateEntity();
+
+				// 위치·크기
+				auto& tr         = mWorld->AddComponent<UITransformComponent>(e);
+				tr.mAnchor       = Anchor::Center;
+				tr.mPosition     = offset;
+				tr.mSize         = btnSize;
+				tr.mPivot        = Vec2(0.5f, 0.5f);
+				tr.mUILayerIndex = 5;
+
+				mWorld->AddComponent<UISpriteComponent>(e, tex, frameSize, frameCount, animTime);
+
+				// 텍스트 레이블 (선택)
+				if (label)
+				{
+					auto& txt = mWorld->AddComponent<UITextComponent>(e);
+					txt.mText = label;
 				}
-				
-		});
 
 
+				auto& btn     = mWorld->AddComponent<UIButtonComponent>(e);
+				btn.mBaseSize = btnSize;
+				btn.mOnClick  = std::move(onClick);
 
-#ifdef _IMGUI
+				return e;
+			};
 
-		
-		UITransformComponent* vis = mWorld->GetComponent<UITransformComponent>(e1);
-		std::vector<EditorProperty> props;
-		props.push_back({ "Base Position1",  PropertyType::Vec2,  &(vis->mPosition),  0.f,    0.f });
-		
-#endif
+		// [호출 예시] 가로 6칸 256x64 시트, 0.6초에 한 바퀴, GAMESTART 위치
+		// Entity bSprite = MakeSpriteButton(
+		//     L"UI_StartButtonSheet", L"GAMESTART",
+		//     Vec2(startX, startY + gap * 0),
+		//     Vec2(256.f, 64.f), /*frameCount*/6, /*animTime*/0.6f,
+		//     [this, requestState]() { requestState(MainMenuState::RoomList); });
+		//
+		// [호출 예시] 텍스트 없는 순수 이미지 버튼 (label = nullptr)
+		// Entity bImg = MakeSpriteButton(
+		//     L"UI_IconSheet", nullptr,
+		//     Vec2(0.f, 0.f),
+		//     Vec2(128.f, 128.f), /*frameCount*/8, /*animTime*/1.0f,
+		//     []() { /* onClick */ });
 
-		// ── 설정 (미구현 플레이스홀더) ──
-		Entity e2 = MakeVFXButton(L"VFX_UI_Select", L"SETTING", Vec2(startX, startY + gap), []()
+		// 상태 전환 헬퍼
+		Entity ctrlEnt = mainMenuCamera;
+		auto requestState = [this, ctrlEnt](MainMenuState s)
 		{
-			// TODO: 설정 씬 또는 팝업 구현 후 연결
+			if (auto* c = mWorld->GetComponent<MainMenuController>(ctrlEnt))
+				c->Request(s);
+		};
+
+		// 메인 메뉴 버튼
+		Entity bGameStart = MakeVFXButton(L"VFX_UI_Select", L"GAMESTART",
+			Vec2(startX, startY + gap*0), [this, requestState]()
+		{
+			requestState(MainMenuState::RoomList);
+			if (Network::GetInstance().Awake()) {
+				mGameMode->mTargetSceneId = SceneId::Lobby;
+				mGameMode->IsSceneChanging() = true;
+			}
+		});
+		Entity bManual = MakeVFXButton(L"VFX_UI_Select", L"MANUAL",
+			Vec2(startX, startY + gap*1), [requestState]()
+		{
+			requestState(MainMenuState::Manual);
+		});
+		Entity bSetting = MakeVFXButton(L"VFX_UI_Select", L"SETTING",
+			Vec2(startX, startY + gap*2), [requestState]()
+		{
+			requestState(MainMenuState::Setting);
+		});
+		Entity bMainExit = MakeVFXButton(L"VFX_UI_Select", L"EXIT",
+			Vec2(startX, startY + gap*3), [requestState]()
+		{
+			requestState(MainMenuState::Exit);
 		});
 
-#ifdef _IMGUI
+		// 서브 화면(Setting/Manual/RoomList) 공유 Back/Exit
+		Entity bBack = MakeVFXButton(L"VFX_UI_Select", L"BACK",
+			Vec2(startX, startY + gap*4), [requestState]()
+		{
+			requestState(MainMenuState::MainMenu);
+		});
+		Entity bSubExit = MakeVFXButton(L"VFX_UI_Select", L"EXIT",
+			Vec2(startX, startY + gap*5), [requestState]()
+		{
+			requestState(MainMenuState::Exit);
+		});
 
-		vis = mWorld->GetComponent<UITransformComponent>(e2);
-		props.push_back({ "Base Position2",  PropertyType::Vec2,  &(vis->mPosition),  0.f,    0.f });
-#endif
-
-		// ── 나가기 ──
-		Entity e3 = MakeVFXButton(L"VFX_UI_Select", L"EXIT", Vec2(startX, startY +gap * 2.f), []()
+		// Exit 확인 Yes/No
+		Entity bYes = MakeVFXButton(L"VFX_UI_Select", L"YES",
+			Vec2(-200.f, 0.f), []()
 		{
 			PostQuitMessage(0);
 		});
+		Entity bNo = MakeVFXButton(L"VFX_UI_Select", L"NO",
+			Vec2( 200.f, 0.f), [requestState]()
+		{
+			requestState(MainMenuState::MainMenu);
+		});
+
+		// Title 텍스트 (PRESS ANY KEY)
+		Entity titleHint = mWorld->CreateEntity();
+		{
+			auto& tr = mWorld->AddComponent<UITransformComponent>(titleHint);
+			tr.mAnchor       = Anchor::Center;
+			tr.mPosition     = Vec2(0.f, 200.f);
+			tr.mSize         = Vec2(400.f, 80.f);
+			tr.mPivot        = Vec2(0.5f, 0.5f);
+			tr.mUILayerIndex = 5;
+			auto& txt = mWorld->AddComponent<UITextComponent>(titleHint);
+			txt.mText = L"PRESS ANY KEY";
+		}
+
+		// 상태별 entity 등록, Title 만 visible
+		auto* ctrl = mWorld->GetComponent<MainMenuController>(mainMenuCamera);
+		ctrl->mStateEntities[(size_t)MainMenuState::Title]    = { titleHint };
+		ctrl->mStateEntities[(size_t)MainMenuState::MainMenu] = { bGameStart, bManual, bSetting, bMainExit };
+		ctrl->mStateEntities[(size_t)MainMenuState::Setting]  = { bBack, bSubExit };
+		ctrl->mStateEntities[(size_t)MainMenuState::Manual]   = { bBack, bSubExit };
+		ctrl->mStateEntities[(size_t)MainMenuState::RoomList] = { bBack, bSubExit };
+		ctrl->mStateEntities[(size_t)MainMenuState::Exit]     = { bYes, bNo };
+
+		auto applyVisible = [this](Entity e, bool v)
+		{
+			if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = v;
+			if (auto* vf = mWorld->GetComponent<UIVfxComponent>(e))    vf->mVisible = v;
+			if (auto* tx = mWorld->GetComponent<UITextComponent>(e))   tx->mVisible = v;
+			if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e)) bt->mEnabled = v;
+		};
+		for (int s = 0; s < (int)MainMenuState::Count; ++s)
+		{
+			const bool show = (s == (int)MainMenuState::Title);
+			for (Entity e : ctrl->mStateEntities[s])
+				applyVisible(e, show);
+		}
 
 #ifdef _IMGUI
-		vis = mWorld->GetComponent<UITransformComponent>(e3);
-		props.push_back({ "Base Position3",  PropertyType::Vec2,  &(vis->mPosition),  0.f,    0.f });
-		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(e1);
+		UITransformComponent* vis = mWorld->GetComponent<UITransformComponent>(bGameStart);
+		std::vector<EditorProperty> props;
+		props.push_back({ "GameStart Pos", PropertyType::Vec2, &(vis->mPosition), 0.f, 0.f });
+		vis = mWorld->GetComponent<UITransformComponent>(bManual);
+		props.push_back({ "Manual Pos",    PropertyType::Vec2, &(vis->mPosition), 0.f, 0.f });
+		vis = mWorld->GetComponent<UITransformComponent>(bSetting);
+		props.push_back({ "Setting Pos",   PropertyType::Vec2, &(vis->mPosition), 0.f, 0.f });
+		vis = mWorld->GetComponent<UITransformComponent>(bMainExit);
+		props.push_back({ "Exit Pos",      PropertyType::Vec2, &(vis->mPosition), 0.f, 0.f });
+		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(bGameStart);
 		visImgui.RegisterEditorProperties(props);
 		visImgui.SetName("Menu");
 #endif
@@ -840,6 +982,8 @@ void MainMenuScene::Initialize()
 #else
 	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
 #endif
+	mWorld->GetSystemManager()->RegisterSystem<UIMainMenuSystem>();        // Post, After(UIButtonSystem), Before(MainMenuCameraSystem)
+	mWorld->GetSystemManager()->RegisterSystem<MainMenuCameraSystem>();  // Post, Before(CameraSystem)
 	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();

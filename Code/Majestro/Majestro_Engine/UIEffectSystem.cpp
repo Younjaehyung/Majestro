@@ -109,6 +109,17 @@ void UIEffectSystem::Update()
 		UIVfxComponent* comp = mWorld->GetComponent<UIVfxComponent>(e);
 		if (comp == nullptr || comp->mVfx == nullptr || comp->mVfx->mEffectPath.empty()) continue;
 
+		// 숨김 처리: 재생 중이면 stop 하고 handle 해제
+		if (!comp->mVisible)
+		{
+			if (comp->efkHandle != -1)
+			{
+				uiManager_->StopEffect(comp->efkHandle);
+				comp->efkHandle = -1;
+			}
+			continue;
+		}
+
 		// 위치는 UITransformComponent에서만 읽음 — 없으면 렌더 스킵
 		UITransformComponent* tr = mWorld->GetComponent<UITransformComponent>(e);
 		if (!tr) continue;

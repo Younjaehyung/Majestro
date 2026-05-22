@@ -23,4 +23,6 @@ public:
 	float mScale     = 1.f;
 
 	float mScreenZ = 0.0f;  // near plane(0) 클리핑 방지
+
+	bool  mVisible   = true; // false 이면 UIEffectSystem 이 stop/스킵
 };

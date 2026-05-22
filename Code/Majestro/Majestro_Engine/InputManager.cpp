@@ -76,6 +76,16 @@ void InputManager::Update() {
 	}
 }
 
+bool InputManager::GetAnyKeyDown()
+{
+	for (int i = 0; i < (int)eKeyCode::End; ++i)
+	{
+		if (GetKeyDown((eKeyCode)i))
+			return true;
+	}
+	return false;
+}
+
 void InputManager::HideCursor()
 {
 	if (!mCursorHidden)

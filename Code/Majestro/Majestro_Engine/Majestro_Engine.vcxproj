@@ -192,6 +192,7 @@
     <ClInclude Include="AnimationComponent.h" />
     <ClInclude Include="AnimationEvaluator.h" />
     <ClInclude Include="AnimationSystem.h" />
+    <ClInclude Include="CameraView.h" />
     <ClInclude Include="CpuAnimationSystem.h" />
     <ClInclude Include="ArmorComponent.h" />
     <ClInclude Include="AudioComponent.h" />
@@ -259,6 +260,10 @@
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="LightsPass.h" />
     <ClInclude Include="Material.h" />
+    <ClInclude Include="MainMenuCameraComponent.h" />
+    <ClInclude Include="MainMenuCameraSystem.h" />
+    <ClInclude Include="MainMenuController.h" />
+    <ClInclude Include="MainMenuSystem.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MovementComponent.h" />
     <ClInclude Include="MovementSystem.h" />
@@ -345,6 +350,7 @@
     <ClCompile Include="AnimationComponent.cpp" />
     <ClCompile Include="AnimationEvaluator.cpp" />
     <ClCompile Include="AnimationSystem.cpp" />
+    <ClCompile Include="CameraView.cpp" />
     <ClCompile Include="CpuAnimationSystem.cpp" />
     <ClCompile Include="AudioComponent.cpp" />
     <ClCompile Include="AudioManager.cpp" />
@@ -405,6 +411,8 @@
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="LightsPass.cpp" />
     <ClCompile Include="Material.cpp" />
+    <ClCompile Include="MainMenuCameraSystem.cpp" />
+    <ClCompile Include="MainMenuSystem.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NavMeshLoader.cpp" />

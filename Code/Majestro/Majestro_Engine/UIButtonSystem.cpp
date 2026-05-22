@@ -58,7 +58,14 @@ void UIButtonSystem::Update(float dt)
         UIButtonComponent*    btn = mWorld->GetComponent<UIButtonComponent>(e);
         if (!tr || !btn) continue;
 
-       
+        // 비활성화된 버튼은 hover/click 처리 스킵
+        if (!btn->mEnabled)
+        {
+            btn->mHovered = false;
+            btn->mPressed = false;
+            continue;
+        }
+
         bool inside = HitTest(tr->mFinalPixelPos, tr->mPivot, tr->mFinalSize, mousePos);
 
         // ── 호버 상태 전환 ──────────────────────────────────────

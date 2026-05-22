@@ -44,4 +44,7 @@ public:
 
     // ── 내부 상태 (변경 시만 머티리얼/크기 갱신) ───────────────
     ButtonVisualState mPrevState = ButtonVisualState::Normal;
+
+    // false 이면 UIButtonSystem 이 hit test/onClick 스킵
+    bool mEnabled = true;
 };

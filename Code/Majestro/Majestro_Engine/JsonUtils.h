@@ -1,6 +1,8 @@
 #pragma once
 
 const json& RequireJson(const json& value, const char* key);
+float GetFloat(const json& value, const char* key);
+std::string GetString(const json& value, const char* key);
 float GetOptionalFloat(const json& value, const char* key, float defaultValue = 0.f);
 bool GetOptionalBool(const json& value, const char* key, bool defaultValue = 0.f);
 std::string GetOptionalString(const json& value, const char* key, const std::string& defaultValue = "");

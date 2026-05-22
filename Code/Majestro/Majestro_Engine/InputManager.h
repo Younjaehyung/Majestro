@@ -65,6 +65,7 @@ public:
 	bool GetKeyUp(eKeyCode code) {
 		return mKeys[(UINT)code].state == eKeyState::Up;
 	}
+	bool GetAnyKeyDown();
 
 
 	bool GetMouseDown(eMouseButton button) const {

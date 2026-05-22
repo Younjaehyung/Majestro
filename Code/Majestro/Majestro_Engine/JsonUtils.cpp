@@ -5,8 +5,18 @@ const json& RequireJson(const json& value, const char* key)
 {
 	auto it = value.find(key);
 	if (it == value.end())
-		throw std::runtime_error(std::string("Payload path JSON missing key: ") + key);
+		throw std::runtime_error(std::string("JSON missing key: ") + key);
 	return *it;
+}
+
+float GetFloat(const json& value, const char* key)
+{
+	return RequireJson(value, key).get<float>();
+}
+
+std::string GetString(const json& value, const char* key)
+{
+	return RequireJson(value, key).get<std::string>();
 }
 
 float GetOptionalFloat(const json& value, const char* key, float defaultValue)

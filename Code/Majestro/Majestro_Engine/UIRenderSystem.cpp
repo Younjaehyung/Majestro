@@ -201,6 +201,9 @@ void UIRenderSystem::TextUpdate()
         if (textComp == nullptr)
             continue;
 
+        if (!textComp->mVisible)
+            continue;
+
         // InitializeFont() 이후에 생성된 엔티티(런타임 스폰)도 폰트를 할당
         if (textComp->mFont == nullptr)
             textComp->mFont = mDefaultFont;

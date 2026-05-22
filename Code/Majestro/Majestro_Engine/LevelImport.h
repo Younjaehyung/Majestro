@@ -1,9 +1,7 @@
 #pragma once
-#include <string>
-#include <vector>
-#include <cstdint>
 #include "json.hpp"
 using json = nlohmann::json;
+#include "JsonUtils.h"   // RequireJson / GetFloat / GetString / ParseVec3ArrayOrObject / ConvertUeVectorToDx
 
 
 struct Basis
@@ -43,32 +41,9 @@ struct LevelImportData
 };
 
 
-static const json& Require(const json& j, const char* key)
-{
-    auto it = j.find(key);
-    if (it == j.end())
-        throw std::runtime_error(std::string("JSON missing key: ") + key);
-    return *it;
-}
-
-static float GetFloat(const json& j, const char* key)
-{
-    return Require(j, key).get<float>();
-}
-
-static std::string GetString(const json& j, const char* key)
-{
-    return Require(j, key).get<std::string>();
-}
-
-static Vec3 ParseVec3(const json& j)
-{
-    Vec3 v;
-    v.x = GetFloat(j, "x");
-    v.y = GetFloat(j, "y");
-    v.z = GetFloat(j, "z");
-    return v;
-}
+// JSON 파싱 공통 헬퍼는 JsonUtils.h 로 통합됨
+// (RequireJson / GetFloat / GetString / ParseVec3ArrayOrObject / ConvertUeVectorToDx).
+// 아래는 LevelImport 도메인(Basis/TransformData) 전용 파서다.
 
 static Vec3 ParseRot3(const json& j)
 {
@@ -82,46 +57,37 @@ static Vec3 ParseRot3(const json& j)
 static Basis ParseBasis(const json& jBasis)
 {
     Basis b{};
-    b.forward = ParseVec3(Require(jBasis, "forward"));
-    b.right = ParseVec3(Require(jBasis, "right"));
-    b.up = ParseVec3(Require(jBasis, "up"));
+    b.forward = ParseVec3ArrayOrObject(RequireJson(jBasis, "forward"), 1.f);
+    b.right   = ParseVec3ArrayOrObject(RequireJson(jBasis, "right"), 1.f);
+    b.up      = ParseVec3ArrayOrObject(RequireJson(jBasis, "up"), 1.f);
     return b;
 }
 
 static TransformData ParseDxTransform(const json& jDx)
 {
     TransformData t{};
-    t.position = ParseVec3(Require(jDx, "location"));
-    t.scale = ParseVec3(Require(jDx, "scale"));
-    t.basis = ParseBasis(Require(jDx, "basis"));
+    t.position = ParseVec3ArrayOrObject(RequireJson(jDx, "location"), 1.f);
+    t.scale    = ParseVec3ArrayOrObject(RequireJson(jDx, "scale"), 1.f);
+    t.basis    = ParseBasis(RequireJson(jDx, "basis"));
     return t;
 }
 
 static TransformData ParseUETransform(const json& jUe, float positionUnitScale)
 {
     TransformData t{};
-    t.position = ParseVec3(Require(jUe, "location_cm"));
-
-    t.scale = ParseVec3(Require(jUe, "scale"));
-	t.rotation = ParseRot3(Require(jUe, "rotation_deg")); 
-    t.basis = ParseBasis(Require(jUe, "basis"));
+    t.position = ParseVec3ArrayOrObject(RequireJson(jUe, "location_cm"), 1.f);
+    t.scale    = ParseVec3ArrayOrObject(RequireJson(jUe, "scale"), 1.f);
+    t.rotation = ParseRot3(RequireJson(jUe, "rotation_deg"));
+    t.basis    = ParseBasis(RequireJson(jUe, "basis"));
     return t;
-}
-
-static inline Vec3 ConvertUeToDx(const Vec3& v)
-{
-    // UE: X forward, Y right, Z up
-    // DX: X right, Y up, Z forward
-    // => (x, y, z) -> (y, z, x)
-    return Vec3{ v.y, v.z, v.x };
 }
 
 static inline Basis ConvertUeToDx(const Basis& b)
 {
     Basis out{};
-    out.right = ConvertUeToDx(b.right);
-    out.up = ConvertUeToDx(b.up);
-    out.forward = ConvertUeToDx(b.forward);
+    out.right   = ConvertUeVectorToDx(b.right);
+    out.up      = ConvertUeVectorToDx(b.up);
+    out.forward = ConvertUeVectorToDx(b.forward);
     return out;
 }
 

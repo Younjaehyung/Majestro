@@ -20,5 +20,6 @@ public:
 	std::wstring mText;
 	DirectX::SimpleMath::Vector2 mFontPos;
 	UIFontType mFontType{ UIFontType::Arial };
+	bool mVisible = true; // false 이면 UIRenderSystem 텍스트 렌더 스킵
 };
 

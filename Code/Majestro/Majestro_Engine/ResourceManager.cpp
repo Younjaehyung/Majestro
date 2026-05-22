@@ -4,6 +4,7 @@
 #include "RenderManager.h"
 #include "RootSignature.h"
 #include "PayloadPathData.h"
+#include "JsonUtils.h"
 
 
 
@@ -588,7 +589,7 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 		}
 	}
 
-	const auto& actors = Require(root, "actors");
+	const auto& actors = RequireJson(root, "actors");
 	if (!actors.is_array())
 		throw std::runtime_error("JSON 'actors' is not an array");
 
@@ -597,7 +598,7 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 		const std::string actorName = GetString(a, "name");
 		const std::string actorPath = GetString(a, "path");
 
-		const auto& comps = Require(a, "static_mesh_components");
+		const auto& comps = RequireJson(a, "static_mesh_components");
 		if (!comps.is_array())
 			throw std::runtime_error("JSON components is not an array");
 
@@ -621,11 +622,11 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 					insts.staticMeshAsset = meshAsset;
 					insts.fbx = fbxPath;
 
-					const auto& dx = Require(inst_j, "dx");
+					const auto& dx = RequireJson(inst_j, "dx");
 					
 					insts.world = ParseDxTransform(dx);
 					// insts.world.scale = insts.world.scale * positionUnitScale; // UE에서 cm 단위로 export 했을 때, DX에서 m 단위로 사용하려면 100배 해줘야 함
-					//const auto& ue = Require(inst_j, "ue");
+					//const auto& ue = RequireJson(inst_j, "ue");
 					//insts.ue = ParseUETransform(inst_j, positionUnitScale);
 
 					{
@@ -647,10 +648,10 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 				inst.staticMeshAsset = meshAsset;
 				inst.fbx = fbxPath;
 
-				const auto& cwt = Require(c, "component_world_transform");
-				const auto& dx = Require(cwt, "dx");
+				const auto& cwt = RequireJson(c, "component_world_transform");
+				const auto& dx = RequireJson(cwt, "dx");
 				inst.world = ParseDxTransform(dx);
-				//const auto& ue = Require(cwt, "ue");
+				//const auto& ue = RequireJson(cwt, "ue");
 				//inst.ue = ParseUETransform(ue, positionUnitScale);
 
 				{
@@ -679,6 +680,57 @@ shared_ptr<PayloadPathData> ResourceManager::LoadPayloadPathJson(const std::wstr
 	loadData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
 	Add(loadData->GetName(), loadData);
 	return loadData;
+}
+
+
+std::vector<CameraView> ResourceManager::LoadCameraViews(const std::wstring& path)
+{
+	std::vector<CameraView> views;
+
+	std::ifstream ifs(ws2s(path));
+	if (!ifs.is_open())
+	{
+		std::cout << "[LoadCameraViews] open failed: " << ws2s(path) << std::endl;
+		return views;
+	}
+
+	json root;
+	try { ifs >> root; }
+	catch (const std::exception& e)
+	{
+		std::cout << "[LoadCameraViews] parse error: " << e.what() << std::endl;
+		return views;
+	}
+
+	if (!root.contains("cameras") || !root["cameras"].is_array() || root["cameras"].empty())
+		return views;
+
+	const auto& cam0 = root["cameras"][0];
+	if (!cam0.contains("path") || !cam0["path"].contains("samples"))
+		return views;
+
+	const auto& samples = cam0["path"]["samples"];
+	if (!samples.is_array())
+		return views;
+
+	// 변환, 중복 판정은 압축
+	CameraView staging{};
+	for (const auto& s : samples)
+	{
+		ConvertMainMenuSample(s, staging);
+		if (!views.empty() && IsSameMainMenuStop(views.back(), staging))
+			continue;
+		views.push_back(staging);
+	}
+
+	std::cout << "[LoadCameraViews] loaded " << views.size() << " views" << std::endl;
+	for (size_t i = 0; i < views.size(); ++i)
+	{
+		const auto& v = views[i];
+		std::cout << "  view[" << i << "] pos=(" << v.position.x << ", "
+			<< v.position.y << ", " << v.position.z << ") fov=" << v.fovDeg << std::endl;
+	}
+	return views;
 }
 
 

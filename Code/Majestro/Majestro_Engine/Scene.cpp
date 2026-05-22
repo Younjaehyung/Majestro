@@ -941,7 +941,7 @@ void MainMenuScene::Initialize()
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
 			//mWorld->AddComponent<MannequinComponent>(mEntityID, i);
-			t.mLocalPosition = { 66.0f, 454.0,-4270.0f };
+			t.mLocalPosition = { 18.0f, 454.0,-4270.0f };
 			t.mLocalRotationE = { 0.f, 90.f, 0.f };
 			break;
 		}

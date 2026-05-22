@@ -124,6 +124,11 @@ void UIButtonSystem::Update(float dt)
         if (sprite && sprite->mMaterial)
             sprite->mMaterial->GetParams().Diffuse = targetColor;
 
+        // UISpriteComponent.mColorTint 로 색상
+        UISpriteComponent* uiSprite = mWorld->GetComponent<UISpriteComponent>(e);
+        if (uiSprite)
+            uiSprite->mColorTint = targetColor;
+
         //// ── 크기 스케일 갱신 (BaseSize 기준) ─────────────────
         if (btn->mBaseSize.x > 0.f)
         {

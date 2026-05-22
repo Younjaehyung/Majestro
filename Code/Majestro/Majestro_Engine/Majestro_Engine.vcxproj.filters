@@ -690,6 +690,9 @@
     <ClInclude Include="CameraView.h">
       <Filter>World\Resource\Map</Filter>
     </ClInclude>
+    <ClInclude Include="UIButtonFactory.h">
+      <Filter>World\Script\Prefab</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -1103,6 +1106,9 @@
     </ClCompile>
     <ClCompile Include="CameraView.cpp">
       <Filter>World\Resource\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="UIButtonFactory.cpp">
+      <Filter>World\Script\Prefab</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

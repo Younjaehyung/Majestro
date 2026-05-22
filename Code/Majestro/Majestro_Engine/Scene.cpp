@@ -76,6 +76,7 @@
 #include "MainMenuCameraComponent.h"
 #include "MainMenuSystem.h"
 #include "MainMenuCameraSystem.h"
+#include "UIButtonFactory.h"
 
 
 
@@ -86,7 +87,7 @@ Scene::Scene()
 
 void Scene::Initialize()
 {
-	
+
 }
 
 void Scene::Update(float deltaTime)
@@ -339,7 +340,7 @@ void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 
 		mGameMode->SetScene(shared_from_this()); // GameMode에 씬 참조 전달
 	}
-	
+
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -382,7 +383,7 @@ void LoadingScene::Initialize()
 		//	break;
 		//}
 		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01");
-		
+
 
 		mWorld->AddComponent<UISpriteComponent>(mLoadingImage, loadingMaterial);
 	}
@@ -443,7 +444,7 @@ void LoadingScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<LobbyRenderPipeline>());
-	auto* uiRenderSystem =  mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 }
 
@@ -465,13 +466,13 @@ bool LoadingScene::LoadScene(SceneId id)
 	std::wstring mapPath;
 	switch ((uint8)id) {
 	case (uint8)SceneId::FirstGame: {
-		mapPath= L"..\\Resources\\Json\\Map001_Export.json";
-		}
-			break;
+		mapPath = L"..\\Resources\\Json\\Map001_Export.json";
+	}
+								  break;
 	case (uint8)SceneId::SecondGame: {
 		mapPath = L"..\\Resources\\Json\\Map001_Export.json";
-		}
-			break;
+	}
+								   break;
 	default:
 		return false;
 		break;
@@ -519,11 +520,11 @@ void LoadingScene::ProcessTask()
 
 void LoadingScene::Update(float deltaTime)
 {
-	 // 진행률로 프로그레스바 UI 크기 갱신
-      float progress = GetProgress();
-      UITransformComponent* bar = mWorld->GetComponent<UITransformComponent>(mProgressBar);
-      if (bar)
-          bar->mSize.x = mProgressBarMaxWidth * progress;
+	// 진행률로 프로그레스바 UI 크기 갱신
+	float progress = GetProgress();
+	UITransformComponent* bar = mWorld->GetComponent<UITransformComponent>(mProgressBar);
+	if (bar)
+		bar->mSize.x = mProgressBarMaxWidth * progress;
 
 
 
@@ -554,10 +555,10 @@ void MainMenuScene::Initialize()
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 
-// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
-// 
-	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
-	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
+	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
+	// 
+		//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+		// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelFBX(L"..\\Resources\\Json\\Map_Title_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map_Title_Export.json");
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
@@ -575,7 +576,7 @@ void MainMenuScene::Initialize()
 		TransformComponent& transform = mWorld->AddComponent<TransformComponent>(logo);
 		transform.mLocalPosition = { 274.f, 648.f, -4270.f };
 		transform.mLocalRotationE = { 0.f, 180.0f, 0.0f };
-		transform.mLocalScale = { 300.f, 300.f, 1.f};
+		transform.mLocalScale = { 300.f, 300.f, 1.f };
 
 		IMGUIComponent& imgui = mWorld->AddComponent<IMGUIComponent>(logo);
 		std::vector< EditorProperty> props;
@@ -595,7 +596,7 @@ void MainMenuScene::Initialize()
 	// 메인 메뉴 카메라
 	{
 		TransformComponent t{};
-		t.mLocalPosition  = { 370.f,  490.f, -4058.f };	// 기본 값
+		t.mLocalPosition = { 370.f,  490.f, -4058.f };	// 기본 값
 		t.mLocalRotationE = { -18.f, -142.0f, 0.f };
 		mWorld->AddComponent<MainCameraComponent>(mainMenuCamera);
 		mWorld->AddComponent<CameraComponent>(mainMenuCamera);
@@ -620,8 +621,8 @@ void MainMenuScene::Initialize()
 				XMConvertToDegrees(eR.y),
 				XMConvertToDegrees(eR.z));
 			mm.mCurrent = MainMenuView::Title;
-			mm.mTarget  = MainMenuView::Title;
-			mm.mBlendT  = 1.f;
+			mm.mTarget = MainMenuView::Title;
+			mm.mBlendT = 1.f;
 		}
 
 		// 메인메뉴 상태 머신 컨트롤러
@@ -632,196 +633,107 @@ void MainMenuScene::Initialize()
 	// 메인메뉴 버튼 UI
 	/////////////////////////////////////////////////////////////////////////
 	{
-		const Vec2  btnSize  = { 320.f, 72.f };
-		const float startX	 =  850.f;   // 화면 중앙 기준 X 오프셋 (위쪽 버튼)
-		const float startY   =  270.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
-		const float gap      = 100.f;
+		const Vec2  btnSize = { 320.f, 72.f };
+		const float startX = 850.f;   // 화면 중앙 기준 X 오프셋 (위쪽 버튼)
+		const float startY = 270.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
+		const float gap = 100.f;
 
-		// 버튼 생성 헬퍼 람다
-		auto MakeButton = [&](const wchar_t* name, const wchar_t* label,
-		                      float offsetY, std::function<void()> onClick)
-		{
-			// 버튼별 머티리얼 생성 후 ResourceManager에 등록 (GPU 인덱스 필수)
-			auto mat = RESOURCEMANAGER.Get<Texture>(name);
-
-			Entity e = mWorld->CreateEntity();
-
-			// 위치·크기
-			auto& tr     = mWorld->AddComponent<UITransformComponent>(e);
-			tr.mAnchor   = Anchor::Center;
-			tr.mPosition = Vec2(0.f, offsetY);
-			tr.mSize     = btnSize;
-			tr.mPivot    = Vec2(0.5f, 0.5f);
-			tr.mUILayerIndex = 5;
-
-			// 스프라이트 (색상 박스)
-			mWorld->AddComponent<UISpriteComponent>(e, mat);
-
-			// 텍스트 레이블 (UIButtonSystem이 매 프레임 mFontPos 갱신)
-			auto& txt  = mWorld->AddComponent<UITextComponent>(e);
-			txt.mText  = label;
-
-			// 버튼 컴포넌트
-			auto& btn      = mWorld->AddComponent<UIButtonComponent>(e);
-			btn.mBaseSize  = btnSize;
-			btn.mOnClick   = std::move(onClick);
-
-			// 초기 색상 설정
-			//mat->GetParams().Diffuse = btn.mNormalColor;
-		};
-
-
-		auto MakeVFXButton = [&](const wchar_t* name, const wchar_t* label,
-			Vec2 offset, std::function<void()> onClick)
-			{
-				// 버튼별 머티리얼 생성 후 ResourceManager에 등록 (GPU 인덱스 필수)
-				auto mat = RESOURCEMANAGER.Get<Vfx>(name);
-
-				Entity e = mWorld->CreateEntity();
-
-				// 위치·크기
-				auto& tr = mWorld->AddComponent<UITransformComponent>(e);
-				tr.mAnchor = Anchor::Center;
-				tr.mPosition = offset;
-				tr.mSize = btnSize;
-				tr.mPivot = Vec2(0.5f, 0.5f);
-				tr.mUILayerIndex = 5;
-
-				// 스프라이트 (색상 박스)
-				mWorld->AddComponent<UIVfxComponent>(e, mat, true, 100.f);
-
-				// 텍스트 레이블 (UIButtonSystem이 매 프레임 mFontPos 갱신)
-				auto& txt = mWorld->AddComponent<UITextComponent>(e);
-				txt.mText = label;
-
-				// 버튼 컴포넌트
-				auto& btn = mWorld->AddComponent<UIButtonComponent>(e);
-				btn.mBaseSize = btnSize;
-				btn.mOnClick = std::move(onClick);
-				btn.mVfxNormalScale = 100.f;
-				btn.mVfxHoveredScale = 150.f;
-				btn.mVfxPressedScale = 130.f;
-
-				// 초기 색상 설정
-				//mat->GetParams().Diffuse = btn.mNormalColor;
-
-				return e;
-			};
-
-		// 스프라이트시트 애니메이션 버튼 (label==nullptr 이면 텍스트 생략 (순수 이미지 버튼))
-		auto MakeSpriteButton = [&](const wchar_t* texKey, const wchar_t* label,
-			Vec2 offset, Vec2 frameSize, int frameCount, float animTime,
-			std::function<void()> onClick)
-			{
-				auto tex = RESOURCEMANAGER.Get<Texture>(texKey);
-
-				Entity e = mWorld->CreateEntity();
-
-				// 위치·크기
-				auto& tr         = mWorld->AddComponent<UITransformComponent>(e);
-				tr.mAnchor       = Anchor::Center;
-				tr.mPosition     = offset;
-				tr.mSize         = btnSize;
-				tr.mPivot        = Vec2(0.5f, 0.5f);
-				tr.mUILayerIndex = 5;
-
-				mWorld->AddComponent<UISpriteComponent>(e, tex, frameSize, frameCount, animTime);
-
-				// 텍스트 레이블 (선택)
-				if (label)
-				{
-					auto& txt = mWorld->AddComponent<UITextComponent>(e);
-					txt.mText = label;
-				}
-
-
-				auto& btn     = mWorld->AddComponent<UIButtonComponent>(e);
-				btn.mBaseSize = btnSize;
-				btn.mOnClick  = std::move(onClick);
-
-				return e;
-			};
-
-		// [호출 예시] 가로 6칸 256x64 시트, 0.6초에 한 바퀴, GAMESTART 위치
-		// Entity bSprite = MakeSpriteButton(
-		//     L"UI_StartButtonSheet", L"GAMESTART",
-		//     Vec2(startX, startY + gap * 0),
-		//     Vec2(256.f, 64.f), /*frameCount*/6, /*animTime*/0.6f,
-		//     [this, requestState]() { requestState(MainMenuState::RoomList); });
-		//
-		// [호출 예시] 텍스트 없는 순수 이미지 버튼 (label = nullptr)
-		// Entity bImg = MakeSpriteButton(
-		//     L"UI_IconSheet", nullptr,
-		//     Vec2(0.f, 0.f),
-		//     Vec2(128.f, 128.f), /*frameCount*/8, /*animTime*/1.0f,
-		//     []() { /* onClick */ });
+		// 버튼 생성은 UIButtonFactory.h 의 CreateUIButton(World*, UIButtonDesc) 사용.
+		// (비주얼 종류: UIButtonVisual::Texture / Vfx / SpriteSheet)
 
 		// 상태 전환 헬퍼
 		Entity ctrlEnt = mainMenuCamera;
 		auto requestState = [this, ctrlEnt](MainMenuState s)
-		{
-			if (auto* c = mWorld->GetComponent<MainMenuController>(ctrlEnt))
-				c->Request(s);
-		};
+			{
+				if (auto* c = mWorld->GetComponent<MainMenuController>(ctrlEnt))
+					c->Request(s);
+			};
 
 		// 메인 메뉴 버튼
-		Entity bGameStart = MakeVFXButton(L"VFX_UI_Select", L"GAMESTART",
-			Vec2(startX, startY + gap*0), [this, requestState]()
-		{
-			requestState(MainMenuState::RoomList);
-			if (Network::GetInstance().Awake()) {
-				mGameMode->mTargetSceneId = SceneId::Lobby;
-				mGameMode->IsSceneChanging() = true;
-			}
-		});
-		Entity bManual = MakeVFXButton(L"VFX_UI_Select", L"MANUAL",
-			Vec2(startX, startY + gap*1), [requestState]()
-		{
-			requestState(MainMenuState::Manual);
-		});
-		Entity bSetting = MakeVFXButton(L"VFX_UI_Select", L"SETTING",
-			Vec2(startX, startY + gap*2), [requestState]()
-		{
-			requestState(MainMenuState::Setting);
-		});
-		Entity bMainExit = MakeVFXButton(L"VFX_UI_Select", L"EXIT",
-			Vec2(startX, startY + gap*3), [requestState]()
-		{
-			requestState(MainMenuState::Exit);
-		});
+		Entity bGameStart = CreateUIButton(mWorld.get(), {
+			.position = Vec2(startX, startY + gap * 0),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"GAMESTART",
+			.onClick = [this, requestState]()
+			{
+				requestState(MainMenuState::RoomList);
+				if (Network::GetInstance().Awake()) {
+					mGameMode->mTargetSceneId = SceneId::Lobby;
+					mGameMode->IsSceneChanging() = true;
+				}
+			},
+			});
+		Entity bManual = CreateUIButton(mWorld.get(), {
+			.position = Vec2(startX, startY + gap * 1),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"MANUAL",
+			.onClick = [requestState]() { requestState(MainMenuState::Manual); },
+			});
+		Entity bSetting = CreateUIButton(mWorld.get(), {
+			.position = Vec2(startX, startY + gap * 2),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"SETTING",
+			.onClick = [requestState]() { requestState(MainMenuState::Setting); },
+			});
+		Entity bMainExit = CreateUIButton(mWorld.get(), {
+			.position = Vec2(startX, startY + gap * 3),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"EXIT",
+			.onClick = [requestState]() { requestState(MainMenuState::Exit); },
+			});
 
 		// 서브 화면(Setting/Manual/RoomList) 공유 Back/Exit
-		Entity bBack = MakeVFXButton(L"VFX_UI_Select", L"BACK",
-			Vec2(startX, startY + gap*4), [requestState]()
-		{
-			requestState(MainMenuState::MainMenu);
-		});
-		Entity bSubExit = MakeVFXButton(L"VFX_UI_Select", L"EXIT",
-			Vec2(startX, startY + gap*5), [requestState]()
-		{
-			requestState(MainMenuState::Exit);
-		});
+		Entity bBack = CreateUIButton(mWorld.get(), {
+			.position = Vec2(startX, startY + gap * 4),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"BACK",
+			.onClick = [requestState]() { requestState(MainMenuState::MainMenu); },
+			});
+		Entity bSubExit = CreateUIButton(mWorld.get(), {
+			.position = Vec2(startX, startY + gap * 5),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"EXIT",
+			.onClick = [requestState]() { requestState(MainMenuState::Exit); },
+			});
 
 		// Exit 확인 Yes/No
-		Entity bYes = MakeVFXButton(L"VFX_UI_Select", L"YES",
-			Vec2(-200.f, 0.f), []()
-		{
-			PostQuitMessage(0);
-		});
-		Entity bNo = MakeVFXButton(L"VFX_UI_Select", L"NO",
-			Vec2( 200.f, 0.f), [requestState]()
-		{
-			requestState(MainMenuState::MainMenu);
-		});
+		Entity bYes = CreateUIButton(mWorld.get(), {
+			.position = Vec2(-200.f, 0.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"YES",
+			.onClick = []() { PostQuitMessage(0); },
+			});
+		Entity bNo = CreateUIButton(mWorld.get(), {
+			.position = Vec2(200.f, 0.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"NO",
+			.onClick = [requestState]() { requestState(MainMenuState::MainMenu); },
+			});
 
 		// Title 텍스트 (PRESS ANY KEY)
 		Entity titleHint = mWorld->CreateEntity();
 		{
 			auto& tr = mWorld->AddComponent<UITransformComponent>(titleHint);
-			tr.mAnchor       = Anchor::Center;
-			tr.mPosition     = Vec2(0.f, 200.f);
-			tr.mSize         = Vec2(400.f, 80.f);
-			tr.mPivot        = Vec2(0.5f, 0.5f);
+			tr.mAnchor = Anchor::Center;
+			tr.mPosition = Vec2(0.f, 200.f);
+			tr.mSize = Vec2(400.f, 80.f);
+			tr.mPivot = Vec2(0.5f, 0.5f);
 			tr.mUILayerIndex = 5;
 			auto& txt = mWorld->AddComponent<UITextComponent>(titleHint);
 			txt.mText = L"PRESS ANY KEY";
@@ -829,20 +741,20 @@ void MainMenuScene::Initialize()
 
 		// 상태별 entity 등록, Title 만 visible
 		auto* ctrl = mWorld->GetComponent<MainMenuController>(mainMenuCamera);
-		ctrl->mStateEntities[(size_t)MainMenuState::Title]    = { titleHint };
+		ctrl->mStateEntities[(size_t)MainMenuState::Title] = { titleHint };
 		ctrl->mStateEntities[(size_t)MainMenuState::MainMenu] = { bGameStart, bManual, bSetting, bMainExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::Setting]  = { bBack, bSubExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::Manual]   = { bBack, bSubExit };
+		ctrl->mStateEntities[(size_t)MainMenuState::Setting] = { bBack, bSubExit };
+		ctrl->mStateEntities[(size_t)MainMenuState::Manual] = { bBack, bSubExit };
 		ctrl->mStateEntities[(size_t)MainMenuState::RoomList] = { bBack, bSubExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::Exit]     = { bYes, bNo };
+		ctrl->mStateEntities[(size_t)MainMenuState::Exit] = { bYes, bNo };
 
 		auto applyVisible = [this](Entity e, bool v)
-		{
-			if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = v;
-			if (auto* vf = mWorld->GetComponent<UIVfxComponent>(e))    vf->mVisible = v;
-			if (auto* tx = mWorld->GetComponent<UITextComponent>(e))   tx->mVisible = v;
-			if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e)) bt->mEnabled = v;
-		};
+			{
+				if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = v;
+				if (auto* vf = mWorld->GetComponent<UIVfxComponent>(e))    vf->mVisible = v;
+				if (auto* tx = mWorld->GetComponent<UITextComponent>(e))   tx->mVisible = v;
+				if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e)) bt->mEnabled = v;
+			};
 		for (int s = 0; s < (int)MainMenuState::Count; ++s)
 		{
 			const bool show = (s == (int)MainMenuState::Title);
@@ -946,7 +858,7 @@ void MainMenuScene::Initialize()
 			break;
 		}
 
-		
+
 		mWorld->AddComponent<TransformComponent>(mEntityID, t);
 		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
@@ -1102,7 +1014,7 @@ void LobbyScene::Initialize()
 		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
 		vfxComp.mVfx = vfx;
-	
+
 	}
 	/////////////////////////////////////////////////////////////////////
 
@@ -1172,7 +1084,7 @@ void LobbyScene::Initialize()
 		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
 
 		// 선택: 위치/크기 커스터마이징
-		vis.basePosition = Vec2(2560.f/2, 700.f);  // 화면 하단 중앙
+		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
 		vis.barWidth = 6.f;
 		vis.barSpacing = 0.5f;
 		vis.maxBarHeight = 25.f;
@@ -1201,7 +1113,7 @@ void LobbyScene::Initialize()
 		mWorld->AddComponent<LobbyRoomStateComponent>(roomStateEntity);
 	}
 
-	
+
 	mUIFeatures.push_back(std::make_shared<LobbyRoomUIFeature>());
 
 	for (const auto& feature : mUIFeatures)
@@ -1231,11 +1143,11 @@ void FirstScene::Initialize()
 	//EnemyPrefab	enemys {mWorld.get() };
 	AreaConquestPrefab areaConquest{ mWorld.get() };
 
-// MAP export json load
-// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
-// 
-	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
-	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
+	// MAP export json load
+	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
+	// 
+		//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
+		// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
 	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
 
@@ -1260,7 +1172,7 @@ void FirstScene::Initialize()
 	//	particle.mEffectName = L"Particle_DebugBurst";
 	//}
 	//
-	
+
 
 	/////////////////////////////////////////////////////////////////////
 	// [ 샘플 ]
@@ -1315,7 +1227,7 @@ void FirstScene::Initialize()
 		vfxTransform.mLocalPosition = Vec3(-2337.f, 142.f, -4987.f);
 
 		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Jump");
-		
+
 		mWorld->AddComponent<TransformComponent>(jumpEntity, vfxTransform);
 		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(jumpEntity);
 		vfxComp.mVfx = vfx;
@@ -1416,60 +1328,60 @@ void FirstScene::Initialize()
 		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
 	}*/
 
-//	{
-//		Entity Fanthor_Portrait = mWorld->CreateEntity();
-//
-//		shared_ptr<Material> scorem;
-//		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
-//
-//		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
-//		t.mAnchor = Anchor::BottomLeft;
-//		t.mPosition = Vec2(32.f, -636.f);
-//		t.mSize = Vec2(196.f, 196.f);
-//		t.mPivot = Vec2(0.5f, 0.5f);
-//
-//		auto& m = mWorld->AddComponent<UIActionComponent>(Fanthor_Portrait);
-//		m.mDuration = 0.5f;
-//		m.mActor = UIActor::Player;
-//		m.mState = UIActionState::Bounce;
-//		m.mIsLoop = true;
-//		m.mBounceAmplitude =20.f;
-//		m.mBounceFrequency = 2.f;
-//		m.mBounceDamping = 10.f;
-//		mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
-//
-//#ifdef _IMGUI
-//
-//		std::vector<EditorProperty> props;
-//		props.push_back({ "Fanthor_Portrait Position1",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-//		props.push_back({ "Fanthor_Portrait Bounce",  PropertyType::Float,  &(m.mBounceDamping),  -10.f, 10.f});
-//		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(Fanthor_Portrait);
-//		visImgui.RegisterEditorProperties(props);
-//		visImgui.SetName("Menu");
-//#endif
-//
-//	}
+	//	{
+	//		Entity Fanthor_Portrait = mWorld->CreateEntity();
+	//
+	//		shared_ptr<Material> scorem;
+	//		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
+	//
+	//		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
+	//		t.mAnchor = Anchor::BottomLeft;
+	//		t.mPosition = Vec2(32.f, -636.f);
+	//		t.mSize = Vec2(196.f, 196.f);
+	//		t.mPivot = Vec2(0.5f, 0.5f);
+	//
+	//		auto& m = mWorld->AddComponent<UIActionComponent>(Fanthor_Portrait);
+	//		m.mDuration = 0.5f;
+	//		m.mActor = UIActor::Player;
+	//		m.mState = UIActionState::Bounce;
+	//		m.mIsLoop = true;
+	//		m.mBounceAmplitude =20.f;
+	//		m.mBounceFrequency = 2.f;
+	//		m.mBounceDamping = 10.f;
+	//		mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
+	//
+	//#ifdef _IMGUI
+	//
+	//		std::vector<EditorProperty> props;
+	//		props.push_back({ "Fanthor_Portrait Position1",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
+	//		props.push_back({ "Fanthor_Portrait Bounce",  PropertyType::Float,  &(m.mBounceDamping),  -10.f, 10.f});
+	//		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(Fanthor_Portrait);
+	//		visImgui.RegisterEditorProperties(props);
+	//		visImgui.SetName("Menu");
+	//#endif
+	//
+	//	}
 
-	/*{
-		Entity Ibanix_Portrait = mWorld->CreateEntity();
+		/*{
+			Entity Ibanix_Portrait = mWorld->CreateEntity();
 
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Portrait");
+			shared_ptr<Material> scorem;
+			scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Portrait");
 
-		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(32.f, -424.f);
-		t.mSize = Vec2(196.f, 196.f);
+			auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Portrait);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = Vec2(32.f, -424.f);
+			t.mSize = Vec2(196.f, 196.f);
 
-		auto& m = mWorld->AddComponent<UIActionComponent>(Ibanix_Portrait);
-		m.mDuration = 30.f;
-		m.mActor = UIActor::Player;
-		m.mState = UIActionState::Vibration;
-		mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
-	}
-*/
+			auto& m = mWorld->AddComponent<UIActionComponent>(Ibanix_Portrait);
+			m.mDuration = 30.f;
+			m.mActor = UIActor::Player;
+			m.mState = UIActionState::Vibration;
+			mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
+		}
+	*/
 
-	
+
 
 
 
@@ -1548,7 +1460,7 @@ void FirstScene::Initialize()
 
 
 	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
-	
+
 
 
 }

@@ -198,7 +198,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<EnemyMovementComponent>(mEntityID);
 	Vec3 center{ 0,50,0 };
 	Vec3 half{ 50,100,50 };
-	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
 	world->AddComponent<MovableComponent>(mEntityID);
 
 
@@ -217,9 +216,13 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman, 300);
 		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+		center = Vec3(0,50,0);
+		half = Vec3(100,200,100);
 		break;
 	}
 
+
+	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 
 	auto& w = world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);

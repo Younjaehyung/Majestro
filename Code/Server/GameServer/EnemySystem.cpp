@@ -42,6 +42,8 @@ void EnemySystem::Initialize()
 void EnemySystem::Update(float dt)
 {
 
+    UpdateOnnxToggle();
+
     if (!mWorld->HasComponentPool<EnemyMovementComponent>()) return;
     if (!mWorld->HasComponentPool<TransformComponent>())     return;
 
@@ -348,27 +350,35 @@ void EnemySystem::HandleRunState(
     if (!enemyComp || !movementComp)
         return;
 
+    Vec3 desiredTarget = playerPos;
+    if (mUseOnnxBaseMove)
+    {
+        Vec3 onnxTarget = playerPos;
+        if (TryComputeOnnxBaseMoveTarget(entity, myPos, playerPos, onnxTarget))
+            desiredTarget = onnxTarget;
+    }
+
     // ---- 재탐색 판단 ----
     movementComp->mPathTimer -= dt;
 
-    const bool targetMoved = Vec3::DistanceSquared(playerPos, movementComp->mTarget) > RETARGET_THRESHOLD_SQ;
+    const bool targetMoved = Vec3::DistanceSquared(desiredTarget, movementComp->mTarget) > RETARGET_THRESHOLD_SQ;
     const bool needRepath = (movementComp->mPathTimer <= 0.f) || targetMoved || (movementComp->mPathCount == 0);
 
     if (needRepath)
     {
-        movementComp->mTarget = playerPos;
+        movementComp->mTarget = desiredTarget;
 
         bool ok = false;
         if (navSystem && navSystem->IsInitialized())
         {
-            ok = navSystem->FindPath(myPos, playerPos, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
+            ok = navSystem->FindPath(myPos, desiredTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
         }
 
         if (!ok)
         {
             // NavMesh 탐색 실패 시 직선 방향 (직진)
             movementComp->mPathCount = 1;
-            movementComp->mPath[0] = playerPos;
+            movementComp->mPath[0] = desiredTarget;
         }
 
         movementComp->mPathIndex = 0;
@@ -405,6 +415,144 @@ void EnemySystem::HandleRunState(
             enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
         }
     }
+}
+
+void EnemySystem::UpdateOnnxToggle()
+{
+    const bool pressed = (GetAsyncKeyState(VK_F6) & 0x8000) != 0;
+    if (pressed && !mOnnxToggleKeyHeld)
+    {
+        mUseOnnxBaseMove = !mUseOnnxBaseMove;
+        std::cout << "[EnemySystem] ONNX base_move " << (mUseOnnxBaseMove ? "enabled" : "disabled") << std::endl;
+    }
+
+    mOnnxToggleKeyHeld = pressed;
+}
+
+bool EnemySystem::TryComputeOnnxBaseMoveTarget(
+    const Entity& entity,
+    const Vec3& myPos,
+    const Vec3& playerPos,
+    Vec3& outTarget) const
+{
+    if (!AIMANAGER.HasModel(L"base_move"))
+        return false;
+
+    TransformComponent* myTransform = mWorld->GetComponent<TransformComponent>(entity);
+    EnemyMovementComponent* myMovement = mWorld->GetComponent<EnemyMovementComponent>(entity);
+    if (!myTransform || !myMovement)
+        return false;
+
+    AIManager::InputArray input{};
+    const Vec3 center3(0.0f, 0.0f, 0.0f);
+    const float scale = (std::max)(ONNX_MAP_RANGE, 1.0f);
+
+    const Vec3 goalPos3(playerPos.x, playerPos.y, playerPos.z);
+    const Vec3 delta3 = goalPos3 - myPos;
+
+    const Vec3 agentNorm = (myPos - center3) / scale;
+    const Vec3 goalNorm = (goalPos3 - center3) / scale;
+    const Vec3 deltaNorm = delta3 / scale;
+    const Vec2 velNorm(
+        myMovement->mMovingDirection.x * (myMovement->mMovingSpeed / 120.0f),
+        myMovement->mMovingDirection.z * (myMovement->mMovingSpeed / 120.0f));
+
+    input[0] = agentNorm.x;
+    input[1] = agentNorm.y;
+    input[2] = agentNorm.z;
+    input[3] = goalNorm.x;
+    input[4] = goalNorm.y;
+    input[5] = goalNorm.z;
+    input[6] = deltaNorm.x;
+    input[7] = deltaNorm.y;
+    input[8] = deltaNorm.z;
+    input[9] = velNorm.x;
+    input[10] = velNorm.y;
+
+    struct NearbyEnemyObs
+    {
+        float relX = 0.0f;
+        float relZ = 0.0f;
+        float dist = 0.0f;
+    };
+
+    std::vector<NearbyEnemyObs> nearby;
+    nearby.reserve(MAX_NEARBY_ENEMIES);
+
+    if (mWorld->HasComponentPool<EnemyMovementComponent>() && mWorld->HasComponentPool<TransformComponent>())
+    {
+        for (const Entity& other : mWorld->GetEntitiesWithComponents<EnemyMovementComponent, TransformComponent>())
+        {
+            if (!other.IsValid() || other == entity)
+                continue;
+
+            const TransformComponent* otherTransform = mWorld->GetComponent<TransformComponent>(other);
+            if (!otherTransform)
+                continue;
+
+            Vec3 rel = otherTransform->mLocalPosition - myPos;
+            rel.y = 0.0f;
+            const float dist = std::sqrt(rel.LengthSquared());
+            if (dist > ONNX_SENSE_RADIUS)
+                continue;
+
+            nearby.push_back({ rel.x / scale, rel.z / scale, dist / scale });
+        }
+    }
+
+    std::sort(nearby.begin(), nearby.end(), [](const NearbyEnemyObs& lhs, const NearbyEnemyObs& rhs)
+        {
+            return lhs.dist < rhs.dist;
+        });
+
+    for (size_t idx = 0; idx < MAX_NEARBY_ENEMIES; ++idx)
+    {
+        const size_t base = 11 + idx * 4;
+        if (idx < nearby.size())
+        {
+            input[base + 0] = nearby[idx].relX;
+            input[base + 1] = nearby[idx].relZ;
+            input[base + 2] = nearby[idx].dist;
+            input[base + 3] = 0.0f;
+        }
+        else
+        {
+            input[base + 0] = 0.0f;
+            input[base + 1] = 0.0f;
+            input[base + 2] = 0.0f;
+            input[base + 3] = 0.0f;
+        }
+    }
+
+    Vec3 flatDelta = playerPos - myPos;
+    flatDelta.y = 0.0f;
+    const bool goalInSense = flatDelta.LengthSquared() <= ONNX_SENSE_RADIUS * ONNX_SENSE_RADIUS;
+    const bool sensorEmpty = nearby.empty() && !goalInSense;
+    input[23] = sensorEmpty ? 1.0f : 0.0f;
+    if (sensorEmpty)
+        return false;
+
+    AIManager::OutputArray output{};
+    std::wstring errorMessage;
+    if (!AIMANAGER.RunModel(L"base_move", input, output, &errorMessage))
+    {
+        static bool loggedFailure = false;
+        if (!loggedFailure)
+        {
+            std::wcerr << L"[EnemySystem] ONNX base_move inference failed: " << errorMessage << std::endl;
+            loggedFailure = true;
+        }
+        return false;
+    }
+
+    const Vec2 action(
+        (std::clamp)(output[0], -1.0f, 1.0f),
+        (std::clamp)(output[1], -1.0f, 1.0f));
+
+    Vec3 targetOffset(action.x * ONNX_TACTICAL_TARGET_RADIUS, 0.0f, action.y * ONNX_TACTICAL_TARGET_RADIUS);
+    outTarget = myPos + targetOffset;
+    outTarget.y = playerPos.y;
+    return true;
 }
 
 void EnemySystem::HaltByState(EnemyComponent* enemyComp, EnemyMovementComponent* movementComp, EnemyAnimState state)

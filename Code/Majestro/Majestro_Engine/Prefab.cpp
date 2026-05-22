@@ -399,6 +399,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	t.mLocalPosition = { 0.f, 0.f, 0.f };
 	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
 
+	Vec3 center{ 0,50,0 };
+	Vec3 half{ 50,100,50 };
+
 	shared_ptr<Mesh> phereMesh;
 	std::vector<shared_ptr<Material>> material2s;
 	shared_ptr<Material> material2;
@@ -441,6 +444,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman);
+
+		center = Vec3(0, 50, 0);
+		half = Vec3(100, 200, 100);
 		break;
 	}
 
@@ -449,11 +455,11 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	
-	world->AddComponent<AnimationComponent>(mEntityID, anmators);
-	
-	Vec3 center{ 0,50,0 };
-	Vec3 half{ 50,100,50 };
-	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
+		world->AddComponent<AnimationComponent>(mEntityID, anmators);
+		
+		
+		
+		world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
 	{
 		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");

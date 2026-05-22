@@ -15,7 +15,7 @@ public:
 	void Update(float dt) override;
 
 private:
-	void SendMove(NetEntityComponent*, SendRequest* , float);
+	void SendMove(float dt);
 	void SendAction();
 	void SendCollision();
 	void SendHealthEvents();
@@ -37,9 +37,27 @@ private:
 	void SendArmorSnapshotToNewSession(uint32 newSessionId);
 
 	std::vector<uint32> CollectPlayerSessions();
+
+	template<typename T>
+	void Broadcast(const std::vector<uint32>& recipients, PKT_Type type, const T& payload)
+	{
+		for (uint32 sessionId : recipients)
+		{
+			mSendReq.SessionId = sessionId;
+			mSendReq.Type = type;
+			mSendReq.StoreAs<T>(payload);   // StoreAs 내부에서 Size 도 sizeof(T) 로 설정됨
+			gSendQueue.Push(mSendReq);
+		}
+	}
+
+
+	template<typename T>
+	void Broadcast(PKT_Type type, const T& payload)
+	{
+		Broadcast(CollectPlayerSessions(), type, payload);
+	}
 private:
 	SendRequest mSendReq;
-	NetEntityComponent* mNetComp = nullptr;
 	std::unordered_set<uint32> mSessionSet;
 
 private:

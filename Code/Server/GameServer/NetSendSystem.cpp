@@ -40,14 +40,14 @@ void NetSendSystem::Update(float dt)
 
 
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
-		SendMove(mNetComp, &mSendReq, dt);	//move
+		SendMove(dt);	//move
 
 
 }
 
-void NetSendSystem::SendMove(NetEntityComponent* netComp, SendRequest* seq, float dt)
+void NetSendSystem::SendMove(float dt)
 {
-	
+
 	auto recipients = CollectPlayerSessions();
 	if (recipients.empty())
 		return;
@@ -55,18 +55,13 @@ void NetSendSystem::SendMove(NetEntityComponent* netComp, SendRequest* seq, floa
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
 	for (auto& entity : entities)
 	{
-		netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 		if (netComp == nullptr) continue;
 		if (mWorld->HasComponent<BulletComponent>(entity))
 			continue;
 		{
 
 			TransformComponent* transComp = mWorld->GetComponent<TransformComponent>(netComp->mOwnerEntity);
-
-			EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(netComp->mOwnerEntity);
-			/*seq->SessionId = 0;
-			seq->Type = S2C_PKT_MOVE;
-			seq->Size = sizeof(S2C_MovePacket);*/
 
 			S2C_MovePacket movePkt;
 
@@ -87,23 +82,8 @@ void NetSendSystem::SendMove(NetEntityComponent* netComp, SendRequest* seq, floa
 
 			movePkt.yaw = transComp->mLocalRotationE.y;
 			movePkt.pitch = transComp->mLocalRotationE.x;
-			seq->StoreAs<S2C_MovePacket>(movePkt);
 
-			
-			
-			
-			//	netComp->mIsDirty = false;
-			//gSendQueue.Push(mSendReq);
-
-			for (uint32 sessionId : recipients)
-			{
-				seq->SessionId = sessionId;
-				seq->Type = S2C_PKT_MOVE;
-				seq->Size = sizeof(S2C_MovePacket);
-				seq->StoreAs<S2C_MovePacket>(movePkt);
-				//	netComp->mIsDirty = false;
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_MOVE, movePkt);
 		}
 	}
 
@@ -133,15 +113,7 @@ void NetSendSystem::SendAction()
 			statePkt.externalMoveMode = playerComp->GetReplicatedExternalMoveMode();
 			statePkt.stateSequence = playerComp->mStateSequence;
 
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_STATE;
-				mSendReq.Size = sizeof(S2C_StatePacket);
-				mSendReq.StoreAs<S2C_StatePacket>(statePkt);
-				//	netComp->mIsDirty = false;
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_STATE, statePkt);
 		}
 	}
 
@@ -161,14 +133,7 @@ void NetSendSystem::SendAction()
 			statePkt.lowerStateId = enemyComp->mAnimState;
 			statePkt.stateSequence = 0;
 
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_STATE;
-				mSendReq.Size = sizeof(S2C_StatePacket);
-				mSendReq.StoreAs<S2C_StatePacket>(statePkt);
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_STATE, statePkt);
 		}
 	}
 }
@@ -194,19 +159,8 @@ void NetSendSystem::SendCollision()
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
 			collisionPkt.netEntityId = netComp->mNetEntityId;
 			collisionPkt.bIsColliding = mWorld->GetComponent<BoxColliderComponent>(entity)->bIsColliding;
-			//mSendReq.StoreAs<S2C_CollisionPacket>(collisionPkt);
-			////	netComp->mIsDirty = false;
-			//gSendQueue.Push(mSendReq);
 
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_COLLISION;
-				mSendReq.Size = sizeof(S2C_CollisionPacket);
-				mSendReq.StoreAs<S2C_CollisionPacket>(collisionPkt);
-				//	netComp->mIsDirty = false;
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_COLLISION, collisionPkt);
 		}
 	}
 }
@@ -260,14 +214,7 @@ void NetSendSystem::SendHealthEvents()
 			healthPkt.currentHp = e.currentHp;
 			healthPkt.maxHp = e.maxHp;
 
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_HEALTH;
-				mSendReq.Size = sizeof(S2C_HealthPacket);
-				mSendReq.StoreAs<S2C_HealthPacket>(healthPkt);
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_HEALTH, healthPkt);
 		});
 }
 
@@ -295,14 +242,7 @@ void NetSendSystem::SendArmorEvents()
 			armorPkt.currentArmor = e.currentArmor;
 			armorPkt.maxArmor = e.maxArmor;
 
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_ARMOR;
-				mSendReq.Size = sizeof(S2C_ArmorPacket);
-				mSendReq.StoreAs<S2C_ArmorPacket>(armorPkt);
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_ARMOR, armorPkt);
 		});
 }
 
@@ -361,15 +301,8 @@ void NetSendSystem::SendBulletDeactivateEvents()
 			S2C_BulletDeactivatePacket deactivatePkt;
 			deactivatePkt.bulletNetEntityId = netComp->mNetEntityId;
 			deactivatePkt.bulletGeneration = bulletComp->mGeneration;
-			
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_BULLET_DEACTIVATE;
-				mSendReq.Size = sizeof(S2C_BulletDeactivatePacket);
-				mSendReq.StoreAs<S2C_BulletDeactivatePacket>(deactivatePkt);
-				gSendQueue.Push(mSendReq);
-			}
+
+			Broadcast(recipients, S2C_PKT_BULLET_DEACTIVATE, deactivatePkt);
 		});
 }
 
@@ -427,14 +360,7 @@ void NetSendSystem::SendEffectSpawnEvents()
 
 			//cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
 
-			for (uint32 sessionId : recipients)
-			{
-				mSendReq.SessionId = sessionId;
-				mSendReq.Type = S2C_PKT_EFFECT_SPAWN;
-				mSendReq.Size = sizeof(S2C_EffectSpawnPacket);
-				mSendReq.StoreAs<S2C_EffectSpawnPacket>(effectPkt);
-				gSendQueue.Push(mSendReq);
-			}
+			Broadcast(recipients, S2C_PKT_EFFECT_SPAWN, effectPkt);
 		});
 }
 

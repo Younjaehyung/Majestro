@@ -46,7 +46,11 @@ void MainMenuCameraSystem::Update(float dt)
                                    XMConvertToDegrees(eR.y),
                                    XMConvertToDegrees(eR.z));
 
-        cam->SetFOV(XMConvertToRadians(fov * 0.5f));
+        // JSON fov 는 UE 가로 화각(도)에서 종횡비 기반 세로 화각(라디안)으로 변환
+        const float aspect  = cam->mWidth / cam->mHeight;            // 16:9
+        const float hFovRad = XMConvertToRadians(fov);
+        const float vFovRad = 2.f * atanf(tanf(hFovRad * 0.5f) / aspect);
+        cam->SetFOV(vFovRad);
 
         if (mm->mBlendT >= 1.f)
             mm->mCurrent = mm->mTarget;

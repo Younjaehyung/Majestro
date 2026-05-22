@@ -620,6 +620,16 @@ void MainMenuScene::Initialize()
 				XMConvertToDegrees(eR.x),
 				XMConvertToDegrees(eR.y),
 				XMConvertToDegrees(eR.z));
+
+
+			// JSON fov 는 UE 가로 화각(도)에서 종횡비 기반 세로 화각(라디안)으로 변환
+			if (CameraComponent* ccC = mWorld->GetComponent<CameraComponent>(mainMenuCamera))
+			{
+				const float aspect  = ccC->mWidth / ccC->mHeight;
+				const float hFovRad = XMConvertToRadians(v0.fovDeg);
+				ccC->SetFOV(2.f * atanf(tanf(hFovRad * 0.5f) / aspect));
+			}
+
 			mm.mCurrent = MainMenuView::Title;
 			mm.mTarget = MainMenuView::Title;
 			mm.mBlendT = 1.f;
@@ -638,7 +648,6 @@ void MainMenuScene::Initialize()
 		const float startY = 270.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
 		const float gap = 100.f;
 
-		// 버튼 생성은 UIButtonFactory.h 의 CreateUIButton(World*, UIButtonDesc) 사용.
 		// (비주얼 종류: UIButtonVisual::Texture / Vfx / SpriteSheet)
 
 		// 상태 전환 헬퍼

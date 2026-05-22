@@ -31,6 +31,8 @@
 #include "AudioVisualizerComponent.h"
 #include "EffectFlagComponent.h"
 #include "Prefab.h"
+#include "LobbyRoomStateComponent.h"
+#include "LobbyRoomUIFeature.h"
 
 #include "RenderSystem.h"
 #include "GameRenderPipeline.h"
@@ -1047,6 +1049,21 @@ void LobbyScene::Initialize()
 		visImgui.RegisterEditorProperties(props);
 		visImgui.SetName("Audio Visualizer");
 #endif
+	}
+
+	// 로비 Room 시스템
+	{
+		Entity roomStateEntity = mWorld->CreateEntity();
+		mWorld->AddComponent<LobbyRoomStateComponent>(roomStateEntity);
+	}
+
+	
+	mUIFeatures.push_back(std::make_shared<LobbyRoomUIFeature>());
+
+	for (const auto& feature : mUIFeatures)
+	{
+		if (feature != nullptr)
+			feature->Initialize(mWorld.get());
 	}
 }
 

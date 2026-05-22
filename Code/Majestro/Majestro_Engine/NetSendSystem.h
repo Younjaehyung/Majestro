@@ -56,6 +56,12 @@ public:
 
     void SetCachedPlayerType(uint8 playerType){mCachedPlayerType = playerType;}
 
+    void RequestPendingGameStart()
+    {
+        mPendingGameStart = true;
+        mHasSentGameStart = false;
+    }
+
 public:
 
 private:
@@ -63,6 +69,7 @@ private:
     void TrySendMovement();       // 이동 입력 주기 전송 (UDP, 30Hz)
     void TrySendScene();          // 씬 전환 요청 (TCP)
     void TrySendActionEvents();   // 이벤트성 입력(점프/공격 등) 즉시 전송 (TCP)
+    void TrySendRoomEvents();     // 로비 Room v1: Ready/Character 변경 이벤트를 서버 패킷으로
     void UpdateCachedPlayerType();
 
 

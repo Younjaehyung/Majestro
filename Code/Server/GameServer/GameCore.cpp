@@ -7,7 +7,9 @@ void GameCore::Initialize()
 	mAIManager = std::make_unique<AIManager>();
 	mResourceManager = std::make_unique<ResourceManager>();
 	mSceneManager = std::make_unique<SceneManager>();
-	
+
+	mRoomManager = std::make_unique<RoomManager>();
+	mSceneManager->SetRoomManager(mRoomManager.get());
 }
 
 void GameCore::Start()
@@ -33,6 +35,7 @@ void GameCore::LoadGameData()
 {
 	mAIManager->Initialize();
 	mResourceManager->Initialize();
+	mRoomManager->Initialize();
 	mSceneManager->Initialize();
 }
 

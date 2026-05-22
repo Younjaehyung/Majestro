@@ -310,6 +310,8 @@
     <ClInclude Include="System.h" />
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="TagComponent.h" />
+    <ClInclude Include="LobbyRoomStateComponent.h" />
+    <ClInclude Include="LobbyRoomUIFeature.h" />
     <ClInclude Include="TerrainComponent.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
@@ -469,6 +471,7 @@
     <ClCompile Include="UIGameInfoUpdateFeature.cpp" />
     <ClCompile Include="UIHpBarUpdateFeature.cpp" />
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
+    <ClCompile Include="LobbyRoomUIFeature.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UIButtonSystem.cpp" />

@@ -264,6 +264,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClCompile Include="PlayerSystem.cpp" />
     <ClCompile Include="Prefab.cpp" />
     <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="RoomManager.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="SpawnerSystem.cpp" />
@@ -341,6 +342,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClInclude Include="PlayerSystem.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="RoomManager.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SpawnerComponent.h" />

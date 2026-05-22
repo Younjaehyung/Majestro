@@ -49,6 +49,7 @@ void NetSendSystem::Update(float deltaTime)
 	TrySendGameStart();
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
+	TrySendRoomEvents();                         // Ready/Character 변경 (TCP)
 
 	if (mMovementRate.Tick(deltaTime))           // 30Hz 주기 전송 (UDP)
 		TrySendMovement();
@@ -85,8 +86,9 @@ void NetSendSystem::TrySendGameStart()
 void NetSendSystem::TrySendActionEvents()
 {
 	if (!mWorld->HasComponentPool<NetEntityComponent>()) return;
+	if (!mWorld->HasComponentPool<LocalPlayerComponent>()) return;
 
-	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
+	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponents<PlayerMovementComponent, LocalPlayerComponent>();
 	if (playerEntities.empty()) return;
 
 	Entity playerEntity = playerEntities[0];
@@ -151,8 +153,9 @@ void NetSendSystem::FillCameraFields(float& outPosX, float& outPosY, float& outP
 void NetSendSystem::TrySendMovement()
 {
 	if (!mWorld->HasComponentPool<NetEntityComponent>()) return;
+	if (!mWorld->HasComponentPool<LocalPlayerComponent>()) return;
 
-	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponent<PlayerMovementComponent>();
+	std::vector<Entity> playerEntities = mWorld->GetEntitiesWithComponents<PlayerMovementComponent, LocalPlayerComponent>();
 	if (playerEntities.empty()) return;
 
 	Entity playerEntity = playerEntities[0];
@@ -182,6 +185,26 @@ void NetSendSystem::TrySendScene()
 		mHasSentGameStart = false;
 		mPendingGameStart = (e.targetScene == SceneId::FirstGame);
 		SendPacket(C2S_SceneChangePacket(e.targetScene));
+	});
+}
+
+void NetSendSystem::TrySendRoomEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager) return;
+
+	eventManager->Consume<EvRoomReadyChanged>([this](const EvRoomReadyChanged& e) {
+		C2S_RoomReadyPacket pkt;
+		pkt.roomId = 1;		// 임시 서버 roomID
+		pkt.ready = e.ready ? 1 : 0;
+		SendPacket(pkt);
+	});
+
+	eventManager->Consume<EvRoomCharacterChanged>([this](const EvRoomCharacterChanged& e) {
+		C2S_RoomCharacterSelectPacket pkt;
+		pkt.roomId = 1;		// 임시 서버 roomID
+		pkt.playerType = e.playerType;
+		SendPacket(pkt);
 	});
 }
 

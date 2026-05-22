@@ -102,6 +102,9 @@
     <ClCompile Include="SceneManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
+    <ClCompile Include="RoomManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
     <ClCompile Include="InputManager.cpp">
       <Filter>Manager</Filter>
     </ClCompile>
@@ -296,6 +299,9 @@
       <Filter>Base\World</Filter>
     </ClInclude>
     <ClInclude Include="SceneManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="RoomManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">

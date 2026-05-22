@@ -1,6 +1,4 @@
 #pragma once
-#include <variant>
-#include <cstdint>
 #include "Entity.h"
 
 struct EvDamage
@@ -109,6 +107,23 @@ struct EvGamePhaseChanged
     uint8 newPhase;
 };
 
+struct EvRoomReadyChanged
+{
+    bool ready;                 // 토글한 결과값을 서버로 그대로 전달
+};
 
-using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged, 
-    EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged>;
+struct EvRoomCharacterChanged
+{
+    uint8 playerType;           // ChoicePlayerComponent::mPlayerType 의 신규 값
+};
+
+
+struct EvRoomError
+{
+    uint8 errorCode;            // RoomErrorCode (Protocol/Packet.h)
+};
+
+
+using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged,
+    EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged,
+    EvRoomReadyChanged, EvRoomCharacterChanged, EvRoomError>;

@@ -511,6 +511,18 @@
     <ClInclude Include="HealthComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="DamageFeedbackComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="DamageFeedbackSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="DamagePopupComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="DamagePopupUpdateFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="LevelImport.h">
       <Filter>World\Resource\Map</Filter>
     </ClInclude>
@@ -928,6 +940,12 @@
     </ClCompile>
     <ClCompile Include="EnemySystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="DamageFeedbackSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="DamagePopupUpdateFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="BoxColliderComponent.cpp">
       <Filter>World\Component\Logic</Filter>

@@ -37,7 +37,8 @@ struct OBJECTINFO
 {
     matrix MatWorld;
     // x = ObjectAlpha
-    // y/z/w = 예비
+    // y = HitFlashStrength (0~1, forward_plus_PS에서 red lerp 가중치)
+    // z/w = 예비
     float4 Extra;
 };
 //////////////

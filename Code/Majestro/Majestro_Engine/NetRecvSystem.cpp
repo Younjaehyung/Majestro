@@ -212,11 +212,31 @@ void NetRecvSystem::HandleHealth(const InputCommand& msg)
     //    << " hp=" << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
     //    << " -> " << pkt->currentHp << "/" << pkt->maxHp << std::endl;
 
+
+    const int32 previousHp = healthComp->mCurrentHp;
     healthComp->mCurrentHp = pkt->currentHp;
     healthComp->mMaxHp     = pkt->maxHp;
 
+    // hit direction 계산.
+
+    Vec3 hitDir = Vec3::Zero;
+    if (pkt->attackerNetId != 0)
+    {
+        Entity attacker = mWorld->GetEntityByNetId(pkt->attackerNetId);
+        TransformComponent* atkTr = mWorld->GetComponent<TransformComponent>(attacker);
+        TransformComponent* tgtTr = mWorld->GetComponent<TransformComponent>(e);
+        if (atkTr && tgtTr)
+        {
+            hitDir = tgtTr->mLocalPosition - atkTr->mLocalPosition;
+            if (hitDir.LengthSquared() > 1e-6f)
+                hitDir.Normalize();
+            else
+                hitDir = Vec3::Zero;
+        }
+    }
+
     mWorld->GetEventManager()->Enqueue(EvHealthChanged{
-       e, pkt->currentHp, pkt->maxHp
+       e, pkt->currentHp, pkt->maxHp, previousHp, hitDir
 		});
 }
 

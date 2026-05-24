@@ -55,8 +55,12 @@ enum class AnimBlendMode : uint32
 // CPU 전용 AimOffset 파라미터
 struct AimParams
 {
+	// 조준 회전
 	float  AimPitch = 0.f;       // radians, 카메라 pitch
-	float  AimYaw   = 0.f;       // radians, cameraYaw - bodyYaw 를 -60~60도 범위로 제한한 상체 yaw 보정값
+	float  AimYaw   = 0.f;       // radians, cameraYaw - bodyYaw 를 -60~60도 범위로 제한한 상체 yaw
+	// 피격 움찔
+	float  HitPitch = 0.f;       // radians
+	float  HitYaw   = 0.f;       // radians
 	uint32 Spine1Idx = UINT32_MAX;
 	uint32 Spine2Idx = UINT32_MAX;
 	uint32 Spine3Idx = UINT32_MAX;
@@ -123,7 +127,7 @@ public:
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
 	bool							mBoneFinalUpdated = false;
 
-	// AimOffset / TurnInPlace 제어
+	// AimOffset / TurnInPlace / HitReaction 제어
 	bool							mEnableAimOffset = false;   // 상체 보정
 	float							mAimPitch = 0.f;            // radians
 	float							mAimYaw   = 0.f;            // radians

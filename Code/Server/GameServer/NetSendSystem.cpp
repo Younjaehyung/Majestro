@@ -214,6 +214,13 @@ void NetSendSystem::SendHealthEvents()
 			healthPkt.currentHp = e.currentHp;
 			healthPkt.maxHp = e.maxHp;
 
+			// 어택커 NetEntityId (없으면 0) — 클라이언트가 hit direction 계산에 사용.
+			if (e.instigator.IsValid())
+			{
+				if (NetEntityComponent* atkNet = mWorld->GetComponent<NetEntityComponent>(e.instigator))
+					healthPkt.attackerNetId = atkNet->mNetEntityId;
+			}
+
 			Broadcast(recipients, S2C_PKT_HEALTH, healthPkt);
 		});
 }

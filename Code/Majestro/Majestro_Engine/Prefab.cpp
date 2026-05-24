@@ -368,7 +368,8 @@ EnemyPrefab::EnemyPrefab(World* world)
 			world->AddComponent<TransformComponent>(mEntityID, t);
 			world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 			world->AddComponent<GravityComponent>(mEntityID);
-			world->AddComponent<AnimationComponent>(mEntityID, anmators);
+			auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
+			enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
 			world->AddComponent<EnemyComponent>(mEntityID);
 			world->AddComponent<EnemyMovementComponent>(mEntityID);
 			world->AddComponent<BoxColliderComponent>(mEntityID);
@@ -454,11 +455,10 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
-	
-		world->AddComponent<AnimationComponent>(mEntityID, anmators);
-		
-		
-		
+
+		auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
+		enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
+
 		world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
 	{

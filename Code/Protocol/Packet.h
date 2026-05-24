@@ -392,13 +392,14 @@ struct S2C_StatePacket : public PacketTcpHeader {
 
 struct S2C_HealthPacket : public PacketTcpHeader {
 	uint64_t netEntityId{};
+	uint64_t attackerNetId{}; // 0 = 환경/힐/DOT 등 어택커 없음. 클라이언트가 이걸로 hit direction 계산.
 	int32_t currentHp{};
 	int32_t maxHp{};
 
 	S2C_HealthPacket() : PacketTcpHeader{ sizeof(S2C_HealthPacket), PKT_Type::S2C_PKT_HEALTH, 0.0 } {}
-	S2C_HealthPacket(uint64_t entityId, int32_t hp, int32_t maxHpValue)
+	S2C_HealthPacket(uint64_t entityId, int32_t hp, int32_t maxHpValue, uint64_t attacker = 0)
 		: PacketTcpHeader{ sizeof(S2C_HealthPacket), PKT_Type::S2C_PKT_HEALTH, 0.0 },
-		netEntityId(entityId), currentHp(hp), maxHp(maxHpValue) {
+		netEntityId(entityId), attackerNetId(attacker), currentHp(hp), maxHp(maxHpValue) {
 	}
 };
 

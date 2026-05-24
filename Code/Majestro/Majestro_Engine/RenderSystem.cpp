@@ -20,6 +20,7 @@
 #include "PlayerComponent.h"
 #include "EffectFlagComponent.h"
 #include "GameRenderPipeline.h"
+#include "DamageFeedbackComponent.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 bool RenderSystem::sDrawColliders = true;
@@ -519,8 +520,14 @@ void RenderSystem::PushObjectData() {
     if (false == renderComponent->mVisibility)
       continue;
 
+    // Hit Flash: 피격 시 forward_plus_PS에서 빨강으로 lerp되는 강도(0~1)
+    // Extra.x = ObjectAlpha, Extra.y = HitFlashStrength
+    float hitFlash = 0.f;
+    if (auto* f = mWorld->GetComponent<HitFlashComponent>(gameObject))
+      hitFlash = f->mCurrentStrength;
+
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
-    objectParams.Extra = Vec4(renderComponent->mOpacity, 0.f, 0.f, 0.f);
+    objectParams.Extra = Vec4(renderComponent->mOpacity, hitFlash, 0.f, 0.f);
     mObjectVector.push_back(objectParams); // 트랜스폼 갱신
 
     renderComponent->mObjectIndex = index++; // objectParams의 index 지정

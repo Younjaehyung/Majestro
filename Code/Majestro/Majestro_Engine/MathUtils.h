@@ -18,6 +18,7 @@ Vec4 MaxV4(const Vec4& a, const Vec4& b);
 float Saturate(float v);
 float Wrap180Degrees(float deg);
 float SmoothStep01(float t);
+float SmoothStep(float lo, float hi, float x);
 float LerpAngleDegrees(float startYaw, float targetYaw, float alpha);
 
 float EaseOutCubic(float t);

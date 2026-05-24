@@ -14,6 +14,7 @@
 #include "MovementComponent.h"
 #include "MovementSystem.h"
 #include "PlayerSystem.h"
+#include "DamageFeedbackComponent.h"
 
 CpuAnimationSystem::CpuAnimationSystem(World* world) : System::System(world)
 {
@@ -289,12 +290,22 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			std::swap(instance.UpperMaskStart, instance.UpperMaskEnd);
 		instance.UpperBlendMode = static_cast<uint32>(animCom->mUpperBlendMode);
 
-		// AimOffset 파라미터 세팅
+		// AimOffset / Hit reaction 파라미터 세팅.
 		AimParams aim{};
-		if (animCom->mEnableAimOffset)
+		auto* hitReaction = mWorld->GetComponent<HitReactionComponent>(entity);
+		if (animCom->mEnableAimOffset || hitReaction)
 		{
-			aim.AimPitch = animCom->mAimPitch;
-			aim.AimYaw   = animCom->mAimYaw;
+			if (animCom->mEnableAimOffset)
+			{
+				aim.AimPitch = animCom->mAimPitch;
+				aim.AimYaw   = animCom->mAimYaw;
+			}
+			if (hitReaction)
+			{
+				aim.HitPitch = hitReaction->mCurrentPitch;
+				aim.HitYaw   = hitReaction->mCurrentYaw;
+			}
+
 			if (const shared_ptr<Skeleton>& sk = animClip->GetSkeleton())
 			{
 				aim.Spine1Idx = sk->mSpine1Idx;

@@ -251,7 +251,11 @@
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GBufferPass.h" />
     <ClInclude Include="GravityComponent.h" />
+    <ClInclude Include="DamagePopupComponent.h" />
+    <ClInclude Include="DamagePopupUpdateFeature.h" />
     <ClInclude Include="HealthComponent.h" />
+    <ClInclude Include="DamageFeedbackComponent.h" />
+    <ClInclude Include="DamageFeedbackSystem.h" />
     <ClInclude Include="Imgui.h" />
     <ClInclude Include="IMGUIComponent.h" />
     <ClInclude Include="IMGUISystem.h" />
@@ -415,6 +419,8 @@
     <ClCompile Include="MainMenuCameraSystem.cpp" />
     <ClCompile Include="MainMenuSystem.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="DamagePopupUpdateFeature.cpp" />
+    <ClCompile Include="DamageFeedbackSystem.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NavMeshLoader.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />

@@ -41,8 +41,10 @@ float4 PS_Main(VS_OUT input) : SV_Target
     
     
     float objectAlpha = Objects[instance.ObjectIndex].Extra.x;
+    // Hit Flash: 0~1, 최종 컬러를 빨강으로 lerp하는 가중치
+    float hitFlash    = saturate(Objects[instance.ObjectIndex].Extra.y);
 
-    
+
     ApplyIGNDitherFade(input.pos.xy, objectAlpha);
     
 
@@ -93,6 +95,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         {
             color.rgb *= emissive * max(1.0f, abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2) * 10.f);
             // color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
+            color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
             return color;
         }
             
@@ -233,6 +236,9 @@ float4 PS_Main(VS_OUT input) : SV_Target
               + (ibl.diffuse * albedo * npr.IBLScale * ao)
               + (ibl.specular * npr.IBLScale * /*matIBLSpecScale **/ ao)
               + rim;
+
+    // Hit Flash: 피격 시 그림자 속에서도 보이도록 라이팅 결과 위에 빨강으로 lerp
+    color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
 
     return color;
 }

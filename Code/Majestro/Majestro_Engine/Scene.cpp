@@ -52,6 +52,8 @@
 #include "BeatSystem.h"
 #include "MovementSystem.h"
 #include "GamePhaseSystem.h"
+#include "DamageFeedbackSystem.h"
+#include "DamagePopupUpdateFeature.h"
 
 #include "NetRecvSystem.h"
 #include "GameRuleComponent.h"
@@ -1056,6 +1058,7 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -1124,6 +1127,7 @@ void LobbyScene::Initialize()
 
 
 	mUIFeatures.push_back(std::make_shared<LobbyRoomUIFeature>());
+	mUIFeatures.push_back(std::make_shared<DamagePopupUpdateFeature>());
 
 	for (const auto& feature : mUIFeatures)
 	{
@@ -1403,6 +1407,9 @@ void FirstScene::Initialize()
 	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
 	mUIFeatures.push_back(hpBarModule);
 
+	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
+	mUIFeatures.push_back(damagePopupModule);
+
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
@@ -1443,6 +1450,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();

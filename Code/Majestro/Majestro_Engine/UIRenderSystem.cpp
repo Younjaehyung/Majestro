@@ -215,15 +215,18 @@ void UIRenderSystem::TextUpdate()
 
         std::wstring& output = textComp->mText;
 
-        // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록
+        // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록.
+        // posComp가 없으면 좌상단(원점) 기준으로 그린다.
+        const DirectX::SimpleMath::Vector2 pivot = posComp ? posComp->mPivot : Vec2(0.f, 0.f);
+        const float scale = posComp ? posComp->mScale.x : 1.f;
         XMVECTOR textSizeVec = mDefaultFont->MeasureString(output.c_str());
         XMFLOAT2 textSize;
         XMStoreFloat2(&textSize, textSizeVec);
-        XMFLOAT2 origin = { textSize.x * posComp->mPivot.x,
-                             textSize.y * posComp->mPivot.y };
+        XMFLOAT2 origin = { textSize.x * pivot.x,
+                             textSize.y * pivot.y };
 
         mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
-            textComp->mFontPos, Colors::White, 0.f, origin);
+            textComp->mFontPos, textComp->mColor, 0.f, origin, scale);
     }
 
     mSpriteBatch->End();

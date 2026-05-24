@@ -173,8 +173,9 @@ void AnimationEvaluator::Evaluate(
 		const float aimW = getAimWeight(nowbone);
 		if (aimW > 0.f && aim)
 		{
-			const float pitch = aim->AimPitch * aimW;
-			const float yaw = aim->AimYaw * aimW;
+			// AimPitch/AimYaw(조준 입력) + HitPitch/HitYaw(피격 움찔) 합산.
+			const float pitch = (aim->AimPitch + aim->HitPitch) * aimW;
+			const float yaw = (aim->AimYaw + aim->HitYaw) * aimW;
 			if (fabsf(pitch) > 1e-5f || fabsf(yaw) > 1e-5f)
 			{
 				// 본 로컬 축: Y = pitch(앞뒤), Z = yaw(좌우).

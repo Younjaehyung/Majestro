@@ -64,6 +64,7 @@ void DamageSystem::Update(float deltaTime)
                 healthChanged.target = e.target;
                 healthChanged.currentHp = afterHp;
                 healthChanged.maxHp = health->mMaxHp;
+                healthChanged.instigator = e.instigator; // 클라이언트 hit reaction 방향 계산용
                 eventManager->Enqueue<EvHealthChanged>(healthChanged);
             }
 

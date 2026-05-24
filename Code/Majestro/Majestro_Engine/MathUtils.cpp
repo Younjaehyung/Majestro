@@ -83,6 +83,12 @@ float SmoothStep01(float t)
 	return t * t * (3.f - 2.f * t);
 }
 
+float SmoothStep(float lo, float hi, float x)
+{
+	if (hi <= lo) return x >= hi ? 1.f : 0.f;
+	return SmoothStep01((x - lo) / (hi - lo));
+}
+
 float LerpAngleDegrees(float startYaw, float targetYaw, float alpha)
 {
 	const float deltaYaw = Wrap180Degrees(targetYaw - startYaw);

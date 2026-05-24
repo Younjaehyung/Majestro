@@ -52,6 +52,7 @@ struct EvHealthChanged
     Entity target;
     int32 currentHp;
     int32 maxHp;
+    Entity instigator{}; // 어택커 엔티티. 무효 엔티티면 hit이 아닌 변동(힐, DOT, 환경)
 };
 
 struct EvArmorChanged

@@ -699,6 +699,12 @@
     <ClInclude Include="MainMenuController.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="PauseMenuController.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PauseSystem.h">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClInclude>
     <ClInclude Include="CameraView.h">
       <Filter>World\Resource\Map</Filter>
     </ClInclude>
@@ -1120,6 +1126,9 @@
       <Filter>World\System\UI\Menu</Filter>
     </ClCompile>
     <ClCompile Include="MainMenuSystem.cpp">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="PauseSystem.cpp">
       <Filter>World\System\UI\Menu</Filter>
     </ClCompile>
     <ClCompile Include="CameraView.cpp">

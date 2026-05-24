@@ -16,6 +16,7 @@
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "Network.h"
+#include "PauseMenuController.h"
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
 {
@@ -28,8 +29,18 @@ void PlayerInputSystem::Initialize()
 
 void PlayerInputSystem::Update(float dt)
 {
+	// 로컬 일시정지 여부
+	bool paused = false;
+	if (mWorld->HasComponentPool<PauseMenuController>())
+	{
+		auto pauseEntities = mWorld->GetEntitiesWithComponent<PauseMenuController>();
+		if (!pauseEntities.empty())
+			if (auto* pc = mWorld->GetComponent<PauseMenuController>(pauseEntities[0]))
+				paused = pc->mPaused;
+	}
+
 	// ` 키로 인게임 카메라 조작 | ImGui 디버그 조작 토글
-	if (INPUT.GetKeyDown(eKeyCode::GRAVE))
+	if (!paused && INPUT.GetKeyDown(eKeyCode::GRAVE))
 	{
 		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());
 	}
@@ -122,6 +133,22 @@ void PlayerInputSystem::Update(float dt)
 	PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
 	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
 	BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
+
+	// 일시정지 중에는 로컬 플레이어 입력을 모두 무력화하고 종료.
+	if (paused)
+	{
+		movementComponent->mMovingDirection = { 0, 0, 0 };
+		movementComponent->mJump    = false;
+		movementComponent->mDash    = false;
+		movementComponent->mAttack  = false;
+		movementComponent->mSkill1  = false;
+		movementComponent->mSkill2  = false;
+		movementComponent->mReload  = false;
+		movementComponent->mSpecial = false;
+		mainPlayerComponent->mSpeed = 0.f;
+		INPUT.MouseStateClear();
+		return;
+	}
 
 
 	if (!INPUT.GetKey(eKeyCode::W) && !INPUT.GetKey(eKeyCode::A) && !INPUT.GetKey(eKeyCode::S) && !INPUT.GetKey(eKeyCode::D)) {

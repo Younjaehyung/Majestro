@@ -80,6 +80,9 @@
 #include "MainMenuCameraSystem.h"
 #include "UIButtonFactory.h"
 
+#include "PauseMenuController.h"
+#include "PauseSystem.h"
+
 
 
 Scene::Scene()
@@ -370,9 +373,8 @@ void LoadingScene::Initialize()
 		WindowInfo windowInfo = RENDERMANAGER.GetWindow();
 		tr.mAnchor = Anchor::TopLeft;
 		tr.mPosition = Vec2(0.f, 0.f);
-		tr.mSize = Vec2(static_cast<float>(windowInfo.Width), static_cast<float>(windowInfo.Height));
+		tr.mSize = Vec2(2560.f, 1440.f);
 		tr.mPivot = Vec2(0.f, 0.f);
-
 
 		//switch (gEngine->GetSceneManager().Get)
 		//{
@@ -1395,9 +1397,6 @@ void FirstScene::Initialize()
 	*/
 
 
-
-
-
 	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
 	mUIFeatures.push_back(audioVisualizerModule);
 
@@ -1426,6 +1425,159 @@ void FirstScene::Initialize()
 
 #pragma endregion
 
+
+
+	/////////////////////////////////////////////////////////////////////////
+	// 일시정지(Pause) 메뉴 — ESC 키로 토글.
+
+#pragma region Pause Menu
+	{
+		const Vec2 btnSize = { 320.f, 72.f };
+
+		// FSM 컨트롤러
+		Entity pauseCtrlEnt = mWorld->CreateEntity();
+		mWorld->AddComponent<PauseMenuController>(pauseCtrlEnt);
+
+		auto requestPause = [this, pauseCtrlEnt](PauseMenuState s)
+		{
+			if (auto* c = mWorld->GetComponent<PauseMenuController>(pauseCtrlEnt))
+				c->Request(s);
+		};
+
+		// 풀스크린 배경
+		Entity pauseDim = mWorld->CreateEntity();
+		{
+			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseDim);
+			tr.mAnchor = Anchor::TopLeft;
+			tr.mPosition = Vec2(0.f, 0.f);
+			tr.mSize = Vec2(2560.f, 1440.f);
+			tr.mPivot = Vec2(0.f, 0.f);
+			tr.mUILayerIndex = 1;            // 버튼(5)보다 뒤
+			auto& sp = mWorld->AddComponent<UISpriteComponent>(pauseDim,
+				RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01"));
+			sp.mColorTint = Vec4(0.f, 0.f, 0.f, 0.6f);
+		}
+
+		// Pause: 타이틀 + Resume / Setting / Disconnect
+		Entity pauseTitle = mWorld->CreateEntity();
+		{
+			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseTitle);
+			tr.mAnchor = Anchor::Center;
+			tr.mPosition = Vec2(0.f, -260.f);
+			tr.mSize = Vec2(400.f, 80.f);
+			tr.mPivot = Vec2(0.5f, 0.5f);
+			tr.mUILayerIndex = 5;
+			auto& txt = mWorld->AddComponent<UITextComponent>(pauseTitle);
+			txt.mText = L"PAUSED";
+		}
+		Entity bResume = CreateUIButton(mWorld.get(), {
+			.position = Vec2(0.f, -100.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"RESUME",
+			.onClick = [this, pauseCtrlEnt]()
+			{
+				if (auto* c = mWorld->GetComponent<PauseMenuController>(pauseCtrlEnt))
+				{
+					c->mPaused = false;
+					c->Request(PauseMenuState::Hidden);
+				}
+			},
+			});
+		Entity bSetting = CreateUIButton(mWorld.get(), {
+			.position = Vec2(0.f, 0.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"SETTING",
+			.onClick = [requestPause]() { requestPause(PauseMenuState::Setting); },
+			});
+		Entity bDisconnect = CreateUIButton(mWorld.get(), {
+			.position = Vec2(0.f, 100.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"DISCONNECT",
+			.onClick = [requestPause]() { requestPause(PauseMenuState::ConfirmDisconnect); },
+			});
+
+		// Setting: Back (실제 옵션 UI 는 추후)
+		Entity settingText = mWorld->CreateEntity();
+		{
+			auto& tr = mWorld->AddComponent<UITransformComponent>(settingText);
+			tr.mAnchor = Anchor::Center;
+			tr.mPosition = Vec2(0.f, -100.f);
+			tr.mSize = Vec2(600.f, 80.f);
+			tr.mPivot = Vec2(0.5f, 0.5f);
+			tr.mUILayerIndex = 5;
+			auto& txt = mWorld->AddComponent<UITextComponent>(settingText);
+			txt.mText = L"SETTING (준비 중)";
+		}
+		Entity bSettingBack = CreateUIButton(mWorld.get(), {
+			.position = Vec2(0.f, 80.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"BACK",
+			.onClick = [requestPause]() { requestPause(PauseMenuState::Root); },
+			});
+
+		// ConfirmDisconnect: Yes / No
+		Entity confirmText = mWorld->CreateEntity();
+		{
+			auto& tr = mWorld->AddComponent<UITransformComponent>(confirmText);
+			tr.mAnchor = Anchor::Center;
+			tr.mPosition = Vec2(0.f, -100.f);
+			tr.mSize = Vec2(800.f, 80.f);
+			tr.mPivot = Vec2(0.5f, 0.5f);
+			tr.mUILayerIndex = 5;
+			auto& txt = mWorld->AddComponent<UITextComponent>(confirmText);
+			txt.mText = L"게임에서 나가시겠습니까?";
+		}
+		Entity bYes = CreateUIButton(mWorld.get(), {
+			.position = Vec2(-180.f, 80.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"YES",
+			.onClick = [this]()
+			{
+				Network::GetInstance().Shutdown();
+				mGameMode->mTargetSceneId = SceneId::MainMenu;
+				mGameMode->IsSceneChanging() = true;
+			},
+			});
+		Entity bNo = CreateUIButton(mWorld.get(), {
+			.position = Vec2(180.f, 80.f),
+			.size = btnSize,
+			.visual = UIButtonVisual::Vfx,
+			.resKey = L"VFX_UI_Select",
+			.label = L"NO",
+			.onClick = [requestPause]() { requestPause(PauseMenuState::Root); },
+			});
+
+		// 상태별 entity 등록 (Hidden 은 비움). 배경은 세 상태 공유.
+		auto* pctrl = mWorld->GetComponent<PauseMenuController>(pauseCtrlEnt);
+		pctrl->mStateEntities[(size_t)PauseMenuState::Root] = { pauseDim, pauseTitle, bResume, bSetting, bDisconnect };
+		pctrl->mStateEntities[(size_t)PauseMenuState::Setting] = { pauseDim, settingText, bSettingBack };
+		pctrl->mStateEntities[(size_t)PauseMenuState::ConfirmDisconnect] = { pauseDim, confirmText, bYes, bNo };
+
+		// 시작 시 모든 일시정지 UI 숨김
+		auto hidePause = [this](Entity e)
+			{
+				if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = false;
+				if (auto* vf = mWorld->GetComponent<UIVfxComponent>(e))    vf->mVisible = false;
+				if (auto* tx = mWorld->GetComponent<UITextComponent>(e))   tx->mVisible = false;
+				if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e)) bt->mEnabled = false;
+			};
+		for (int s = 0; s < (int)PauseMenuState::Count; ++s)
+			for (Entity e : pctrl->mStateEntities[s])
+				hidePause(e);
+	}
+#pragma endregion
+
+
 	/////////////////////////////////////////////////////////////////////////
 
 
@@ -1439,6 +1591,8 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<GamePhaseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PauseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 #if USE_CPU_ANIMATION
 	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
 #else

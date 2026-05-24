@@ -293,7 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, message, wParam, lParam);
 
     case WM_KEYDOWN:
-        if (wParam == VK_ESCAPE)
+        if (wParam == VK_F12)
         {
             DestroyWindow(hWnd);
             return 0;

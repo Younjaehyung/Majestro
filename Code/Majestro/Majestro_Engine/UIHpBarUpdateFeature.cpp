@@ -3,6 +3,7 @@
 
 #include "Engine.h"
 #include "HealthComponent.h"
+#include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
@@ -96,6 +97,9 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     {
         TransformComponent* targetTr = mWorld->GetComponent<TransformComponent>(hpBar->mTargetEntity);
         if (targetTr == nullptr)
+            return;
+        RenderComponent* targetRender = mWorld->GetComponent<RenderComponent>(hpBar->mTargetEntity);
+        if (targetRender != nullptr && targetRender->mVisibility == false)
             return;
         const Vec3 worldAnchor = targetTr->mLocalPosition + hpBar->mWorldOffset;
         anchorXYZ = worldAnchor;

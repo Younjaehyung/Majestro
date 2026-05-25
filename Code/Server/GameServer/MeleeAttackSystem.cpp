@@ -105,10 +105,10 @@ namespace
 			return { 25.0f, 3.0f, 100.2f, 0.0f };
 		case SkillType::GuitarSkill1:
 			return { 30.0f, 3.0f, 100.2f, 0.0f };
-		case SkillType::PianoAttack:
-			return { 20.0f, 3.0f, 100.2f, 0.0f };
-		case SkillType::BongoAttack:
-			return { 40.0f, 3.0f, 100.2f, 0.0f };
+			case SkillType::PianoAttack:
+				return { 20.0f, 3.0f, 200.0f, 0.0f };
+			case SkillType::BongoAttack:
+				return { 40.0f, 3.0f, 500.0f, 0.0f };
 		default:
 			return {};
 		}

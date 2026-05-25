@@ -581,7 +581,10 @@ void RenderSystem::PushObjectData() {
     for (auto e : colliderEntities) {
       auto *tr = mWorld->GetComponent<TransformComponent>(e);
       auto *col = mWorld->GetComponent<BoxColliderComponent>(e);
+      auto *render = mWorld->GetComponent<RenderComponent>(e);
       if (!col || !col->bDebugDraw)
+        continue;
+      if (render && !render->mVisibility)
         continue;
 
       

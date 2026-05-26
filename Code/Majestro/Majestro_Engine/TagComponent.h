@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "Entity.h"
 
+class Material;
 
 class TagComponent : public Component<TagComponent>
 {
@@ -34,6 +35,10 @@ public:
 
 	uint8 mPlayerType;
 	bool choice;
+
+	// 로비 캐릭터 머티리얼
+	std::vector<std::shared_ptr<Material>> mNormalMaterials; // 선택된 캐릭터 
+	std::vector<std::shared_ptr<Material>> mSolidMaterials;		/// mSolidMaterials(타이틀 맵의 Solid 셰이더)
 };
 
 enum class UITag : uint8

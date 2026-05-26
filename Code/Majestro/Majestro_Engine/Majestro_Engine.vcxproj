@@ -256,6 +256,7 @@
     <ClInclude Include="HealthComponent.h" />
     <ClInclude Include="DamageFeedbackComponent.h" />
     <ClInclude Include="DamageFeedbackSystem.h" />
+    <ClInclude Include="DashTrailComponent.h" />
     <ClInclude Include="Imgui.h" />
     <ClInclude Include="IMGUIComponent.h" />
     <ClInclude Include="IMGUISystem.h" />
@@ -322,7 +323,7 @@
     <ClInclude Include="SystemManager.h" />
     <ClInclude Include="TagComponent.h" />
     <ClInclude Include="LobbyRoomStateComponent.h" />
-    <ClInclude Include="LobbyRoomUIFeature.h" />
+    <ClInclude Include="LobbyRoomSystem.h" />
     <ClInclude Include="TerrainComponent.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="Timer.h" />
@@ -489,7 +490,7 @@
     <ClCompile Include="UIGameInfoUpdateFeature.cpp" />
     <ClCompile Include="UIHpBarUpdateFeature.cpp" />
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
-    <ClCompile Include="LobbyRoomUIFeature.cpp" />
+    <ClCompile Include="LobbyRoomSystem.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UIButtonSystem.cpp" />

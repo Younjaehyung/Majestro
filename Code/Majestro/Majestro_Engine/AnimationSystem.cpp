@@ -10,6 +10,7 @@
 #include "PlayerAnimationResolver.h"
 #include "EnemyComponent.h"
 #include "TagComponent.h"
+#include "RenderComponent.h"
 #include "MovementComponent.h"
 #include "NetTransformComponent.h"
 #include "TransformComponent.h"
@@ -137,10 +138,16 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         if (mannequinComponent) {
             std::vector<Entity> choicdPlayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
             ChoicePlayerComponent* choicdPlayerComponent = mWorld->GetComponent<ChoicePlayerComponent>(choicdPlayerEntities[0]);
-            if (mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType)
-                animCom->mLowerAnimClipIdx = 1;
-            else
-                animCom->mLowerAnimClipIdx = 0;
+            const bool selected = (mannequinComponent->mPlayerType == choicdPlayerComponent->mPlayerType);
+            animCom->mLowerAnimClipIdx = selected ? 1 : 0;
+
+            // 선택된 캐릭터는 원래 머티리얼, 나머지는 타이틀 맵의 Solid 셰이더로 표시
+            if (RenderComponent* renderCom = mWorld->GetComponent<RenderComponent>(entity)) {
+                std::vector<shared_ptr<Material>>& target =
+                    selected ? mannequinComponent->mNormalMaterials : mannequinComponent->mSolidMaterials;
+                if (!target.empty())
+                    renderCom->mMaterials = target;
+            }
         }
 
         // 수정: 참고 코드처럼 Upper가 비활성화면 Lower와 동일하게 설정

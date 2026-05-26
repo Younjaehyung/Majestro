@@ -514,6 +514,9 @@
     <ClInclude Include="DamageFeedbackComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="DashTrailComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="DamageFeedbackSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -686,7 +689,6 @@
     <ClInclude Include="UIPhaseProgressUpdateFeature.h">
       <Filter>World\System\UI\Common</Filter>
     </ClInclude>
-    <ClInclude Include="LobbyRoomUIFeature.h" />
     <ClInclude Include="MainMenuSystem.h">
       <Filter>World\System\UI\Menu</Filter>
     </ClInclude>
@@ -710,6 +712,9 @@
     </ClInclude>
     <ClInclude Include="UIButtonFactory.h">
       <Filter>World\Script\Prefab</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyRoomSystem.h">
+      <Filter>World\System\UI\Menu</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1119,9 +1124,6 @@
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp">
       <Filter>World\System\UI\Common</Filter>
     </ClCompile>
-    <ClCompile Include="LobbyRoomUIFeature.cpp">
-      <Filter>World\System\UI\Common</Filter>
-    </ClCompile>
     <ClCompile Include="MainMenuCameraSystem.cpp">
       <Filter>World\System\UI\Menu</Filter>
     </ClCompile>
@@ -1136,6 +1138,9 @@
     </ClCompile>
     <ClCompile Include="UIButtonFactory.cpp">
       <Filter>World\Script\Prefab</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyRoomSystem.cpp">
+      <Filter>World\System\UI\Menu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

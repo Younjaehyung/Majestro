@@ -11,7 +11,6 @@
 #include "TagComponent.h"
 #include "TransformComponent.h"
 
-#include "TagComponent.h"
 #include "SceneManager.h"
 
 #include <bitset>

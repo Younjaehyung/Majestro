@@ -520,7 +520,7 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
     state->mMaxPlayers = pkt->maxPlayers;
     state->mHostSlotIndex = pkt->hostSlotIndex;
 
-    const uint8 copyCount = (pkt->maxPlayers < 8) ? pkt->maxPlayers : 8;
+    const uint8 copyCount = (pkt->maxPlayers < ROOM_MAX_PLAYERS) ? pkt->maxPlayers : ROOM_MAX_PLAYERS;
     for (uint8 i = 0; i < copyCount; ++i)
     {
         state->mSlots[i].sessionId = pkt->slots[i].sessionId;

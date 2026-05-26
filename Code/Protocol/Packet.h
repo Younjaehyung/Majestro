@@ -237,7 +237,7 @@ enum class EffectSpawnReason : uint8
 };
 
 // 로비 Room 시스템: 한 방의 최대 인원
-static constexpr uint8 ROOM_MAX_PLAYERS = 8;
+static constexpr uint8 ROOM_MAX_PLAYERS = 3;
 
 // 로비 Room 시스템: 게임 시작 거부 사유 / 잘못된 패킷 등 자격 오류 코드
 enum class RoomErrorCode : uint8

@@ -32,7 +32,7 @@
 #include "EffectFlagComponent.h"
 #include "Prefab.h"
 #include "LobbyRoomStateComponent.h"
-#include "LobbyRoomUIFeature.h"
+#include "LobbyRoomSystem.h"
 
 #include "RenderSystem.h"
 #include "GameRenderPipeline.h"
@@ -180,7 +180,7 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
 			//}
 			render.mMaterials = data->GetMaterials();
-			//render.mCheckFrustum = false;
+
 			render.SetMesh(data->GetMeshs().at(0));
 			i++;
 			/*		if (i == 550)
@@ -245,7 +245,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
 			//}
 			render.mMaterials = data->GetMaterials();
-			render.mCheckFrustum = false;
+
 			render.SetMesh(data->GetMeshs().at(0));
 			i++;
 			/*		if (i == 550)
@@ -968,47 +968,66 @@ void LobbyScene::Initialize()
 		TransformComponent t{};
 		shared_ptr<Mesh> phereMesh;
 		shared_ptr<Material> material2;
-		std::vector<shared_ptr<Material>> material2s;
+		std::vector<shared_ptr<Material>> material2s;   // 일반 머티리얼(선택된 캐릭터)
+		std::vector<Vec4> rimPowers;                     // Solid 셰이더용 RimPower (머티리얼별)
 		vector<shared_ptr<Animator>> anmators0;
 
 		switch (i) {
 		case 0:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0");
-			material2s.push_back(material2);
+			material2s.push_back(material2); rimPowers.push_back(Vec4(0.9f, 0.8f, 0.1f, 1.f));
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1");
-			material2s.push_back(material2);
-			/*material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
-			material2s.push_back(material2);*/
+			material2s.push_back(material2); rimPowers.push_back(Vec4(0.8f, 0.7f, 0.0f, 1.f));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
-			mWorld->AddComponent<MannequinComponent>(mEntityID, i);
 			break;
 		case 1:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base0");
-			material2s.push_back(material2);
+			material2s.push_back(material2); rimPowers.push_back(Vec4(0.2f, 0.6f, 0.2f, 1.f));
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base1");
-			material2s.push_back(material2);
+			material2s.push_back(material2); rimPowers.push_back(Vec4(0.1f, 0.5f, 0.1f, 1.f));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
-			mWorld->AddComponent<MannequinComponent>(mEntityID, i);
 			break;
 		case 2:
 			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base0");
-			material2s.push_back(material2);
+			material2s.push_back(material2); rimPowers.push_back(Vec4(0.7f, 0.3f, 0.6f, 1.f));
 			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base1");
-			material2s.push_back(material2);
+			material2s.push_back(material2); rimPowers.push_back(Vec4(0.6f, 0.2f, 0.5f, 1.f));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
 			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
-			mWorld->AddComponent<MannequinComponent>(mEntityID, i);
 			break;
 		}
 
+		// 타이틀 맵과 동일한 룩: 일반 머티리얼을 복제 후 Solid 셰이더 + RimPower 적용
+		// (ResourceManager 에 키 등록하지 않아 타이틀 씬의 *S 키와 충돌하지 않음)
+		std::vector<shared_ptr<Material>> solidMats;
+		for (size_t m = 0; m < material2s.size(); ++m) {
+			shared_ptr<Material> solid = material2s[m]->Clone();
+			solid->SetShader(L"Solid");
+			solid->GetParams().ExtValue[0] = rimPowers[m];
+			solidMats.push_back(solid);
+		}
+
+		// 마네킹에 두 머티리얼 세트 보관 (선택 여부에 따라 CpuAnimationSystem 이 매 프레임 교체)
+		auto& mann = mWorld->AddComponent<MannequinComponent>(mEntityID, i);
+		mann.mNormalMaterials = material2s;
+		mann.mSolidMaterials  = solidMats;
+
+		// 초기 선택 캐릭터만 일반 머티리얼, 나머지는 Solid 로 시작
+		uint8 choiceType = 1;
+		if (auto cpEnts = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>(); !cpEnts.empty())
+			if (auto* cp = mWorld->GetComponent<ChoicePlayerComponent>(cpEnts[0]))
+				choiceType = cp->mPlayerType;
+		std::vector<shared_ptr<Material>>& initMats =
+			(static_cast<uint8>(i) == choiceType) ? material2s : solidMats;
+
 		t.mLocalPosition = { i * 100.f, 0.f, 0.f };
 		mWorld->AddComponent<TransformComponent>(mEntityID, t);
-		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
+		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, initMats);
 		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
 	}
 
@@ -1060,7 +1079,7 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<LobbyRoomSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -1128,8 +1147,6 @@ void LobbyScene::Initialize()
 	}
 
 
-	mUIFeatures.push_back(std::make_shared<LobbyRoomUIFeature>());
-	mUIFeatures.push_back(std::make_shared<DamagePopupUpdateFeature>());
 
 	for (const auto& feature : mUIFeatures)
 	{

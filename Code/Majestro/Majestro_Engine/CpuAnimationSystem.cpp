@@ -11,6 +11,7 @@
 #include "PlayerAnimationResolver.h"
 #include "EnemyComponent.h"
 #include "TagComponent.h"
+#include "RenderComponent.h"
 #include "MovementComponent.h"
 #include "MovementSystem.h"
 #include "PlayerSystem.h"
@@ -136,10 +137,16 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		if (mannequinCom) {
 			std::vector<Entity> choicdPlayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
 			ChoicePlayerComponent* choicdPlayerComponent = mWorld->GetComponent<ChoicePlayerComponent>(choicdPlayerEntities[0]);
-			if (mannequinCom->mPlayerType == choicdPlayerComponent->mPlayerType)
-				animCom->mLowerAnimClipIdx = 1;
-			else
-				animCom->mLowerAnimClipIdx = 0;
+			const bool selected = (mannequinCom->mPlayerType == choicdPlayerComponent->mPlayerType);
+			animCom->mLowerAnimClipIdx = selected ? 1 : 0;
+
+			// 선택된 캐릭터는 원래 머티리얼, 나머지는 타이틀 맵의 Solid 셰이더로 표시
+			if (RenderComponent* renderCom = mWorld->GetComponent<RenderComponent>(entity)) {
+				std::vector<shared_ptr<Material>>& target =
+					selected ? mannequinCom->mNormalMaterials : mannequinCom->mSolidMaterials;
+				if (!target.empty())
+					renderCom->mMaterials = target;
+			}
 		}
 
 		if (animCom->mEnableUpperBodyLayer == false) {

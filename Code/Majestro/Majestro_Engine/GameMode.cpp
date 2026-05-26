@@ -31,7 +31,7 @@ void LobbyGameMode::PreUpdate(float deltaTime)
 				const uint32 myClientId = Network::GetInstance().mClientId;
 				bool isMeHost = false;
 				bool allReady = (state->mPlayerCount > 0);
-				for (uint8 i = 0; i < state->mPlayerCount && i < 8; ++i)
+				for (uint8 i = 0; i < state->mPlayerCount && i < ROOM_MAX_PLAYERS; ++i)
 				{
 					if (state->mSlots[i].sessionId == myClientId && state->mSlots[i].isHost)
 						isMeHost = true;

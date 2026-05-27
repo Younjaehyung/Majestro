@@ -289,6 +289,25 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds && nearestPlayerDistSq <= kPianoMeleeRange * kPianoMeleeRange)
         {
+            Vec3 attackDir = playerPos - myPos;
+            attackDir.y = 0.0f;
+            float attackYawDeg = 0.0f;
+            if (attackDir.LengthSquared() > 1e-8f)
+            {
+                attackDir.Normalize();
+                attackYawDeg = DirectX::XMConvertToDegrees(std::atan2(attackDir.x, attackDir.z));
+            }
+
+            eventManager->Enqueue<EvEffectSpawn>({
+                static_cast<uint8>(SkillType::PianoAttack),
+                myPos.x,
+                myPos.y,
+                myPos.z,
+                EffectSpawnReason::LifetimeExpired,
+                0.0f,
+                attackYawDeg,
+                0.0f
+            });
             eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::PianoAttack });
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;

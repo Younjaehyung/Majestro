@@ -16,6 +16,12 @@ namespace
 	constexpr float kEnemyAggroRange = 1000.0f;
 	constexpr float kBongomanAggroRange = 300.0f;
 	constexpr float kPianomanMeleeRange = 160.0f;
+	constexpr float kPianomanAttackRadius = 200.0f;
+	constexpr float kBongomanAttackRadius = 500.0f;
+	constexpr float kMeleeAttackForwardDistance = 3.0f;
+	constexpr float kAttackDebugDuration = 1.0f;
+	constexpr float kAttackDebugHeight = 220.0f;
+	constexpr int kAttackDebugCylinderRings = 5;
 	constexpr float kCircleHeightOffset = 5.0f;
 	constexpr int kCircleSegments = 40;
 
@@ -45,9 +51,9 @@ namespace
 		}
 	}
 
-	void SubmitEnemyRangeCircles(const TransformComponent* transformComponent, const EnemyComponent* enemyComponent)
+	void SubmitEnemyRangeCircles(World* world, const TransformComponent* transformComponent, const EnemyComponent* enemyComponent)
 	{
-		if (transformComponent == nullptr || enemyComponent == nullptr)
+		if (world == nullptr || transformComponent == nullptr || enemyComponent == nullptr)
 			return;
 
 		Vec3 center = transformComponent->mLocalPosition;
@@ -59,6 +65,34 @@ namespace
 
 		if (enemyComponent->mEnemyType == kPianomanType)
 			SubmitDebugCircle(center, kPianomanMeleeRange, Vec4(1.f, 0.f, 0.f, 1.f), 24);
+	}
+
+	void SubmitDebugCylinder(const Vec3& center, float radius, float height, const Vec4& color, int ringCount = kAttackDebugCylinderRings)
+	{
+		if (ringCount < 2 || radius <= 0.0f || height <= 0.0f)
+			return;
+
+		const float minY = center.y;
+		const float stepY = height / static_cast<float>(ringCount - 1);
+		for (int i = 0; i < ringCount; ++i)
+		{
+			Vec3 ringCenter = center;
+			ringCenter.y = minY + stepY * static_cast<float>(i);
+			SubmitDebugCircle(ringCenter, radius, color, 28);
+		}
+
+		constexpr int kVerticalSegments = 8;
+		for (int i = 0; i < kVerticalSegments; ++i)
+		{
+			const float angle = DirectX::XM_2PI * (static_cast<float>(i) / static_cast<float>(kVerticalSegments));
+			Vec3 bottom(
+				center.x + std::cos(angle) * radius,
+				minY,
+				center.z + std::sin(angle) * radius);
+			Vec3 top = bottom;
+			top.y += height;
+			RenderSystem::SubmitDebugLine(bottom, top, color);
+		}
 	}
 }
 
@@ -98,8 +132,52 @@ void EnemySystem::Update(float dt) {
 			enemyComponent->mDeadElapsedTime = 0.f;
 		}
 
-		if (!isDead && RenderSystem::GetDrawEnemyRanges())
-			SubmitEnemyRangeCircles(transformComponent, enemyComponent);
+			if (!isDead && RenderSystem::GetDrawEnemyRanges())
+				SubmitEnemyRangeCircles(mWorld, transformComponent, enemyComponent);
+		}
+
+	if (RenderSystem::GetDrawEnemyRanges())
+		UpdateAttackDebugIndicators(dt);
+
+	if (mWorld->GetEventManager())
+	{
+		mWorld->GetEventManager()->Consume<EvEnemyAttackDebug>([&](const EvEnemyAttackDebug& e)
+		{
+			if (!RenderSystem::GetDrawEnemyRanges())
+				return;
+
+			Vec3 forward = Vec3::Forward;
+			const float yawRad = DirectX::XMConvertToRadians(e.rotation.y);
+			forward.x = std::sin(yawRad);
+			forward.z = std::cos(yawRad);
+			forward.y = 0.0f;
+			if (forward.LengthSquared() > 1e-8f)
+				forward.Normalize();
+			else
+				forward = Vec3::Forward;
+
+			float radius = 0.0f;
+			const Vec4 color = Vec4(1.0f, 1.0f, 0.f, 1.0f);
+			if (e.skillType == SkillType::PianoAttack)
+			{
+				radius = kPianomanAttackRadius;
+			}
+			else if (e.skillType == SkillType::BongoAttack)
+			{
+				radius = kBongomanAttackRadius;
+			}
+
+			if (radius <= 0.0f)
+				return;
+
+			AttackDebugIndicator indicator;
+			indicator.center = e.position + forward * kMeleeAttackForwardDistance;
+			indicator.center.y += kCircleHeightOffset;
+			indicator.radius = radius;
+			indicator.remainingTime = kAttackDebugDuration;
+			indicator.color = color;
+			mAttackDebugIndicators.push_back(indicator);
+		});
 	}
 
 
@@ -132,4 +210,29 @@ void EnemySystem::Update(float dt) {
 		enemyMovementComponent->mMovingDirection = dir;
 	}*/
 
+}
+
+void EnemySystem::UpdateAttackDebugIndicators(float dt)
+{
+	for (AttackDebugIndicator& indicator : mAttackDebugIndicators)
+	{
+		if (indicator.remainingTime <= 0.0f)
+			continue;
+
+		indicator.remainingTime -= dt;
+		if (indicator.remainingTime <= 0.0f)
+			continue;
+
+		SubmitDebugCylinder(indicator.center, indicator.radius, kAttackDebugHeight, indicator.color);
+	}
+
+	mAttackDebugIndicators.erase(
+		std::remove_if(
+			mAttackDebugIndicators.begin(),
+			mAttackDebugIndicators.end(),
+			[](const AttackDebugIndicator& indicator)
+			{
+				return indicator.remainingTime <= 0.0f;
+			}),
+		mAttackDebugIndicators.end());
 }

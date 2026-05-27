@@ -71,6 +71,7 @@ void RenderSystem::Initialize() {
 
   mDebugLineGreenMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_Green");
   mDebugLineRedMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_Red");
+  mDebugLineYellowMat = RESOURCEMANAGER.Get<Material>(L"DebugLine_Yellow");
 
   mDeferredDrawItems.reserve(1000);
   mDeferredDrawBatchs.reserve(1000);
@@ -639,7 +640,9 @@ void RenderSystem::PushObjectData() {
 
       // 색상에 따라 머티리얼 선택
       shared_ptr<Material> mat;
-      if (req.color.x > 0.5f && req.color.y < 0.5f)
+      if (req.color.x > 0.5f && req.color.y > 0.5f && req.color.z < 0.5f)
+        mat = mDebugLineYellowMat;
+      else if (req.color.x > 0.5f && req.color.y < 0.5f)
         mat = mDebugLineRedMat;
       else if (req.color.y > 0.5f && req.color.x < 0.5f)
         mat = mDebugLineGreenMat;

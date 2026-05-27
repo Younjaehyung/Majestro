@@ -399,6 +399,19 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         pkt->reason,
         Vec3(pkt->x, pkt->y, pkt->z),
         Vec3(pkt->rotX, pkt->rotY, pkt->rotZ) });
+
+    const bool pianoAttackDebug = skillType == SkillType::PianoAttack &&
+        pkt->reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired);
+    const bool bongoAttackDebug = skillType == SkillType::BongoAttack &&
+        pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+    if (pianoAttackDebug || bongoAttackDebug)
+    {
+        mWorld->GetEventManager()->Enqueue(EvEnemyAttackDebug{
+            skillType,
+            pkt->reason,
+            Vec3(pkt->x, pkt->y, pkt->z),
+            Vec3(pkt->rotX, pkt->rotY, pkt->rotZ) });
+    }
 }
 
 void NetRecvSystem::HandleHitConfirm(const InputCommand& msg)

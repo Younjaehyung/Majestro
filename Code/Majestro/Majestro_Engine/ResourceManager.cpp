@@ -2139,6 +2139,14 @@ void ResourceManager::CreateDefaultMaterial()
 	}
 
 	{
+		// DebugLine_Yellow
+		auto mat = make_shared<Material>();
+		mat->SetShader(L"DebugLine");
+		mat->GetParams().Diffuse = Vec4(1.f, 1.f, 0.f, 1.f);
+		Add<Material>(L"DebugLine_Yellow", mat);
+	}
+
+	{
 		shared_ptr<Texture> texture = Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"ForwardAlpha");

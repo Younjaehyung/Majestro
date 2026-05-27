@@ -97,6 +97,14 @@ struct EvVfxSpawnRequest
     Vec3 rotation{};
 };
 
+struct EvEnemyAttackDebug
+{
+    SkillType skillType = SkillType::Default;
+    uint8 reason = 0;
+    Vec3 position{};
+    Vec3 rotation{};
+};
+
 struct EvAttachBulletVfx
 {
     Entity bullet;

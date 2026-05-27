@@ -77,7 +77,7 @@ struct PassParams {
 struct DebugLineRequest {
   Vec3 start;
   Vec3 end;
-  Vec4 color; // (1,0,0,1)=빨강, (0,1,0,1)=초록, 그 외=흰색
+  Vec4 color; // (1,0,0,1)=빨강, (0,1,0,1)=초록, (1,1,0,1)=노랑, 그 외=흰색
 };
 
 struct DrawItem {
@@ -249,6 +249,7 @@ private: // 디버그용 충돌박스 / 라인
   shared_ptr<Material> mDebugLineNoDepthMat; // 항상 보임 (Depth Test X)
   shared_ptr<Material> mDebugLineGreenMat;   // 초록
   shared_ptr<Material> mDebugLineRedMat;     // 빨강
+  shared_ptr<Material> mDebugLineYellowMat;  // 노랑
   static bool sDrawColliders;
   static bool sDrawEnemyRanges;
 

@@ -7,6 +7,7 @@
 #include "GameEvents.h"
 #include "Network.h"
 #include "LobbyRoomStateComponent.h"
+#include "LobbyRoomListComponent.h"
 #include "PlayerComponent.h"
 #include "Texture.h"
 #include "UITransformComponent.h"
@@ -154,11 +155,33 @@ void LobbyRoomSystem::Update(float dt)
 
     if (!mUiBuilt) return;
 
+    // 로비 (재)진입 시  방 목록 요청.  
+    if (!mRequestedInitialList && GetListState() != nullptr)
+    {
+        if (auto em = mWorld->GetEventManager())
+            em->Enqueue(EvRoomListRequest{});
+        mRequestedInitialList = true;
+    }
+
     RefreshUI(GetState());
 }
 
 void LobbyRoomSystem::RefreshUI(LobbyRoomStateComponent* state)
 {
+    // 에러
+    {
+        const bool showToast = (mLastErrorCode != 0) && (mErrorRemain > 0.f);
+        SetVisible(mErrorToastText, showToast);
+        if (showToast) SetText(mErrorToastText, GetRoomErrorNameW(mLastErrorCode));
+    }
+
+    // 방 목록창 이면 대기실 스프라이트 UI 를 끄기
+    LobbyRoomListComponent* listState = GetListState();
+    const bool inRoom = (listState != nullptr) && (listState->mCurrentRoomId != 0);
+    SetWaitingRoomVisible(inRoom);
+    if (!inRoom)
+        return;
+
     const uint32 myClientId = Network::GetInstance().mClientId;
     const bool hasSnap = (state != nullptr) && state->mHasSnapshot;
     const uint8 count  = state ? ((state->mPlayerCount < kLobbyUiSlotCount) ? state->mPlayerCount : kLobbyUiSlotCount) : 0;
@@ -253,11 +276,6 @@ void LobbyRoomSystem::RefreshUI(LobbyRoomStateComponent* state)
     else if (!allReady)  reason = L"WAITING FOR READY";
     SetVisible(mStartReasonText, reason != nullptr);
     if (reason) SetText(mStartReasonText, reason);
-
-    // 에러
-    const bool showToast = (mLastErrorCode != 0) && (mErrorRemain > 0.f);
-    SetVisible(mErrorToastText, showToast);
-    if (showToast) SetText(mErrorToastText, GetRoomErrorNameW(mLastErrorCode));
 }
 
 LobbyRoomStateComponent* LobbyRoomSystem::GetState()
@@ -267,6 +285,40 @@ LobbyRoomStateComponent* LobbyRoomSystem::GetState()
     auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
     if (entities.empty()) return nullptr;
     return mWorld->GetComponent<LobbyRoomStateComponent>(entities[0]);
+}
+
+LobbyRoomListComponent* LobbyRoomSystem::GetListState()
+{
+    if (!mWorld || !mWorld->HasComponentPool<LobbyRoomListComponent>())
+        return nullptr;
+    auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
+    if (entities.empty()) return nullptr;
+    return mWorld->GetComponent<LobbyRoomListComponent>(entities[0]);
+}
+
+void LobbyRoomSystem::SetWaitingRoomVisible(bool visible)
+{
+    SetVisible(mHeaderText, visible);
+    SetVisible(mStatusText, visible);
+
+    for (uint8 i = 0; i < kLobbyUiSlotCount; ++i)
+    {
+        SlotCardUI& c = mSlotCards[i];
+        SetVisible(c.bg, visible);
+        SetVisible(c.nameText, visible);
+        SetVisible(c.charText, visible);
+        SetVisible(c.readyText, visible);
+        SetVisible(c.hostText, visible);
+        SetVisible(c.youText, visible);
+    }
+
+    SetVisible(mReadyButton, visible);
+    SetVisible(mStartButton, visible);
+    SetVisible(mStartReasonText, visible);
+
+    // 버튼 입력 활성/비활성 (숨김 시 클릭 차단됨).
+    if (auto* b = mWorld->GetComponent<UIButtonComponent>(mReadyButton)) b->mEnabled = visible;
+    if (auto* b = mWorld->GetComponent<UIButtonComponent>(mStartButton)) b->mEnabled = visible;
 }
 
 Entity LobbyRoomSystem::CreateText(const Vec2& pos, const Vec2& size, Anchor anchor,
@@ -323,87 +375,6 @@ void LobbyRoomSystem::SetVisible(Entity e, bool visible)
     if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = visible;
 }
 
-void LobbyRoomSystem::PostSpriteRender(std::vector<UIInstanceData>& /*instances*/)
-{
-#ifdef _IMGUI
-    if (!mWorld->HasComponentPool<LobbyRoomStateComponent>())
-        return;
-
-    auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
-    if (entities.empty()) return;
-
-    LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(entities[0]);
-    if (!state) return;
-
-    const uint32 myClientId = Network::GetInstance().mClientId;
-
-    if (!ImGui::Begin("Lobby Room"))
-    {
-        ImGui::End();
-        return;
-    }
-
-    if (!state->mHasSnapshot)
-    {
-        ImGui::Text("Waiting for room state...");
-        ImGui::End();
-        return;
-    }
-
-    ImGui::Text("Room %u   %u / %u",
-        state->mRoomId,
-        static_cast<unsigned>(state->mPlayerCount),
-        static_cast<unsigned>(state->mMaxPlayers));
-    ImGui::Separator();
-
-    bool isMeHost = false;
-    bool allReady = (state->mPlayerCount > 0);
-
-    for (uint8 i = 0; i < state->mPlayerCount && i < ROOM_MAX_PLAYERS; ++i)
-    {
-        const auto& slot = state->mSlots[i];
-        const bool isMe = (slot.sessionId == myClientId);
-        if (isMe && slot.isHost) isMeHost = true;
-        if (!slot.ready) allReady = false;
-
-        // 본인 슬롯은 색상 강조
-        if (isMe)
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.9f, 0.4f, 1.0f));
-
-        ImGui::Text("%s Player %u   %-8s   Ready: %s%s",
-            slot.isHost ? "[Host]" : "      ",
-            slot.sessionId,
-            GetPlayerTypeName(slot.playerType),
-            slot.ready ? "O" : "X",
-            isMe ? "  <- You" : "");
-
-        if (isMe)
-            ImGui::PopStyleColor();
-    }
-
-    ImGui::Separator();
-    ImGui::Text("R : Ready 토글");
-    if (isMeHost)
-    {
-        if (allReady) ImGui::Text("G : Start Game");
-        else ImGui::TextDisabled("G : Start Game (모든 플레이어 Ready 필요)");
-    }
-    else
-    {
-        ImGui::TextDisabled("G : Host 전용");
-    }
-
-    if (mLastErrorCode != 0)
-    {
-        ImGui::Separator();
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
-        ImGui::Text("거부: %s", GetRoomErrorName(mLastErrorCode));
-        ImGui::PopStyleColor();
-    }
-
-    ImGui::End();
-#endif
-}
 
 const char* LobbyRoomSystem::GetPlayerTypeName(uint8 playerType) const
 {
@@ -424,6 +395,9 @@ const char* LobbyRoomSystem::GetRoomErrorName(uint8 code) const
     case RoomErrorCode::NotAllReady:       return "전원 Ready 가 아닙니다";
     case RoomErrorCode::NotEnoughPlayers:  return "최소 인원 부족";
     case RoomErrorCode::InvalidRoom:       return "잘못된 방";
+    case RoomErrorCode::RoomFull:          return "방이 가득 찼습니다";
+    case RoomErrorCode::AlreadyInRoom:     return "이미 다른 방에 있습니다";
+    case RoomErrorCode::RoomInGame:        return "게임 중인 방입니다";
     default:                               return "알 수 없음";
     }
 }
@@ -447,6 +421,9 @@ const wchar_t* LobbyRoomSystem::GetRoomErrorNameW(uint8 code) const
     case RoomErrorCode::NotAllReady:       return L"전원 READY 가 아닙니다";
     case RoomErrorCode::NotEnoughPlayers:  return L"최소 인원 부족";
     case RoomErrorCode::InvalidRoom:       return L"잘못된 방";
+    case RoomErrorCode::RoomFull:          return L"방이 가득 찼습니다";
+    case RoomErrorCode::AlreadyInRoom:     return L"이미 다른 방에 있습니다";
+    case RoomErrorCode::RoomInGame:        return L"게임 중인 방입니다";
     default:                               return L"알 수 없음";
     }
 }

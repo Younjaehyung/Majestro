@@ -127,6 +127,22 @@ struct EvRoomError
 };
 
 
+struct EvRoomCreate {};                         // 새 방 생성 요청
+
+struct EvRoomJoin
+{
+    uint32 roomId;              // 입장할 방
+};
+
+struct EvRoomListRequest {};                    // 방 목록 새로고침 요청
+
+struct EvRoomLeave
+{
+    uint32 roomId;              // 나갈 방 (현재 방)
+};
+
+
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged,
     EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged,
-    EvRoomReadyChanged, EvRoomCharacterChanged, EvRoomError>;
+    EvRoomReadyChanged, EvRoomCharacterChanged, EvRoomError,
+    EvRoomCreate, EvRoomJoin, EvRoomListRequest, EvRoomLeave>;

@@ -24,6 +24,7 @@
 #include "VfxComponent.h"
 #include "GameRuleComponent.h"
 #include "LobbyRoomStateComponent.h"
+#include "LobbyRoomListComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 
@@ -77,6 +78,9 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
 	reg(PKT_Type::S2C_ROOM_STATE, [this](auto& m) { HandleRoomState(m); });
 	reg(PKT_Type::S2C_ROOM_ERROR, [this](auto& m) { HandleRoomError(m); });
+	reg(PKT_Type::S2C_ROOM_LIST, [this](auto& m) { HandleRoomList(m); });
+	reg(PKT_Type::S2C_ROOM_JOIN_RESULT, [this](auto& m) { HandleRoomJoinResult(m); });
+	reg(PKT_Type::S2C_PKT_DESPAWN, [this](auto& m) { HandleDespawn(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -433,12 +437,18 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
     switch (mCurrentScene)
     {
     case SceneId::Lobby:
-		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Lobby, L"로비 씬 로딩 중...");
+		// 로비는 즉시 로드(RequestScene)로 전환
+		gEngine->GetSceneManager().RequestScene(SceneId::Lobby);
         break;
     case SceneId::FirstGame:
         if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
             sendSystem->RequestPendingGameStart();
 		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
+        break;
+    case SceneId::MainMenu: // 게임 종료 신호
+        // 스스로 접속을 끊고 메인 메뉴로 복귀
+        Network::GetInstance().Shutdown();
+        gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
         break;
     default:
         break;
@@ -515,6 +525,27 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
     LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(entities[0]);
     if (!state) return;
 
+    // 내가 속한 방의 상태만 반영.
+    if (auto* listComp = mWorld->GetComponent<LobbyRoomListComponent>(entities[0]))
+    {
+        if (listComp->mCurrentRoomId != 0 && pkt->roomId != listComp->mCurrentRoomId)
+            return;
+
+        // 재접속시 방 다시 접속
+        if (listComp->mCurrentRoomId == 0)
+        {
+            const uint32 me = Network::GetInstance().mClientId;
+            for (uint8 i = 0; i < pkt->maxPlayers && i < ROOM_MAX_PLAYERS; ++i)
+            {
+                if (pkt->slots[i].sessionId == me)
+                {
+                    listComp->mCurrentRoomId = pkt->roomId;
+                    break;
+                }
+            }
+        }
+    }
+
     state->mRoomId = pkt->roomId;
     state->mPlayerCount = pkt->playerCount;
     state->mMaxPlayers = pkt->maxPlayers;
@@ -542,6 +573,64 @@ void NetRecvSystem::HandleRoomError(const InputCommand& msg)
 
     if (auto eventMgr = mWorld->GetEventManager())
         eventMgr->Enqueue(EvRoomError{ pkt->errorCode });
+}
+
+//  방 목록 수신
+void NetRecvSystem::HandleRoomList(const InputCommand& msg)
+{
+    const S2C_RoomListPacket* pkt = msg.ViewAs<S2C_RoomListPacket>();
+    if (!pkt) return;
+
+    if (!mWorld->HasComponentPool<LobbyRoomListComponent>())
+        return;
+
+    auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
+    if (entities.empty()) return;
+
+    LobbyRoomListComponent* listComp = mWorld->GetComponent<LobbyRoomListComponent>(entities[0]);
+    if (!listComp) return;
+
+    const uint8 count = (pkt->count < ROOM_LIST_MAX_ENTRIES) ? pkt->count : ROOM_LIST_MAX_ENTRIES;
+    for (uint8 i = 0; i < count; ++i)
+    {
+        listComp->mEntries[i].roomId      = pkt->entries[i].roomId;
+        listComp->mEntries[i].playerCount = pkt->entries[i].playerCount;
+        listComp->mEntries[i].maxPlayers  = pkt->entries[i].maxPlayers;
+        listComp->mEntries[i].phase       = pkt->entries[i].phase;
+    }
+    listComp->mCount = count;
+    listComp->mHasList = true;
+}
+
+// 방 생성/입장 결과 수신
+void NetRecvSystem::HandleRoomJoinResult(const InputCommand& msg)
+{
+    const S2C_RoomJoinResultPacket* pkt = msg.ViewAs<S2C_RoomJoinResultPacket>();
+    if (!pkt) return;
+
+    if (!mWorld->HasComponentPool<LobbyRoomListComponent>())
+        return;
+
+    auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
+    if (entities.empty()) return;
+
+    LobbyRoomListComponent* listComp = mWorld->GetComponent<LobbyRoomListComponent>(entities[0]);
+    if (!listComp) return;
+
+    if (pkt->success != 0)
+    {
+        listComp->mCurrentRoomId = pkt->roomId;   // 대기실 진입
+
+        // 새 방의 상태 스냅샷이 곧 도착하므로, 이전 방 스냅샷을 무효화
+        if (auto* state = mWorld->GetComponent<LobbyRoomStateComponent>(entities[0]))
+            state->mHasSnapshot = false;
+    }
+    else
+    {
+        // 실패: 오류값 반환
+        if (auto eventMgr = mWorld->GetEventManager())
+            eventMgr->Enqueue(EvRoomError{ pkt->errorCode });
+    }
 }
 
 
@@ -576,16 +665,15 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
 
 void NetRecvSystem::HandleDespawn(const InputCommand& msg)
 {
-    const S2C_SpawnPacekt* pkt = msg.ViewAs<S2C_SpawnPacekt>();
+    const S2C_DespawnPacket* pkt = msg.ViewAs<S2C_DespawnPacket>();
     if (!pkt) return;
 
-    const uint32_t netId = static_cast<uint32_t>(pkt->netEntityId);
+    const uint64 netId = pkt->netEntityId;
     Entity e = mWorld->GetEntityByNetId(netId);
     if (e == NULL_ENTITY) return;
 
-    // TODO: ECS 엔티티 삭제는 별도 명령으로 처리 권장
-    // mCmd->DestroyEntity(e);
-
+    // 이탈/접속 종료한 캐릭터 제거
+    mWorld->DestroyEntity(e);
     mWorld->NetIdUnbinding(netId);
 }
 

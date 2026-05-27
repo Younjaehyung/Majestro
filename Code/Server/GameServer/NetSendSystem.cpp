@@ -426,6 +426,44 @@ void NetSendSystem::BroadcastPlayerToOthers(uint32 sessionId, Entity playerEntit
 	}
 }
 
+void NetSendSystem::DespawnPlayerBySession(uint32 sessionId)
+{
+	if (!mWorld->HasComponentPool<NetEntityComponent>() || !mWorld->HasComponentPool<MainPlayerComponent>())
+		return;
+
+	// 세션에 플레이어 엔티티 탐색
+	bool found = false;
+	Entity target;
+	uint64 netId = 0;
+	for (auto entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+	{
+		NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (netComp && netComp->mSessionId == sessionId)
+		{
+			target = entity;
+			netId = netComp->mNetEntityId;
+			found = true;
+			break;
+		}
+	}
+	if (!found)
+		return;
+
+	// 본인을 제외한 같은 World 의 다른 플레이어들에게 despawn 통지
+	S2C_DespawnPacket despawnPkt(netId);
+	for (uint32 otherSessionId : CollectPlayerSessions())
+	{
+		if (otherSessionId == sessionId) continue;
+
+		SendRequest req{ otherSessionId, PKT_Type::S2C_PKT_DESPAWN, sizeof(S2C_DespawnPacket) };
+		req.StoreAs<S2C_DespawnPacket>(despawnPkt);
+		gSendQueue.Push(req);
+	}
+
+	// 서버 World 에서 엔티티 파괴
+	mWorld->DestroyEntity(target);
+}
+
 void NetSendSystem::SendExistingPlayersToNewSession(uint32 newSessionId)
 {
 	if (!mWorld->HasComponentPool<NetEntityComponent>() || !mWorld->HasComponentPool<MainPlayerComponent>())

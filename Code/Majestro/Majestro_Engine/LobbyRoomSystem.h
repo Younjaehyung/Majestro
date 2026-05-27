@@ -3,6 +3,7 @@
 #include "UITransformComponent.h"   // Anchor
 
 class LobbyRoomStateComponent;
+class LobbyRoomListComponent;
 class UIInstanceData;
 
 class LobbyRoomSystem : public System
@@ -12,13 +13,16 @@ public:
 
     void Initialize();
     void Update(float dt);
-    void PostSpriteRender(std::vector<UIInstanceData>& instances);
 
 private:
     // UI 1회 생성 / 매 프레임 갱신
     void BuildUI();
     void RefreshUI(LobbyRoomStateComponent* state);
     LobbyRoomStateComponent* GetState();
+    LobbyRoomListComponent*  GetListState();
+
+    // 대기실(스프라이트) UI 일괄 표시/숨김.
+    void SetWaitingRoomVisible(bool visible);
 
     // 엔티티 생성 헬퍼
     Entity CreateText(const Vec2& pos, const Vec2& size, Anchor anchor,
@@ -60,6 +64,7 @@ private:
 
     bool mUiBuilt = false;
     bool mStarting = false;       // Start 요청을 보낸 뒤 STARTING 표시용
+    bool mRequestedInitialList = false;  // 로비 (재)진입 시 방 목록 1회 요청 여부
 
     uint8 mLastErrorCode = 0;     // 0 = 없음
     float mErrorRemain = 0.f;

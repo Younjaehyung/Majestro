@@ -32,7 +32,10 @@
 #include "EffectFlagComponent.h"
 #include "Prefab.h"
 #include "LobbyRoomStateComponent.h"
+#include "LobbyRoomListComponent.h"
 #include "LobbyRoomSystem.h"
+#include "LobbyRoomBrowserFeature.h"
+#include "MenuRoomBrowserSystem.h"
 
 #include "RenderSystem.h"
 #include "GameRenderPipeline.h"
@@ -671,11 +674,8 @@ void MainMenuScene::Initialize()
 			.label = L"GAMESTART",
 			.onClick = [this, requestState]()
 			{
-				requestState(MainMenuState::RoomList);
-				if (Network::GetInstance().Awake()) {
-					mGameMode->mTargetSceneId = SceneId::Lobby;
-					mGameMode->IsSceneChanging() = true;
-				}
+				requestState(MainMenuState::RoomList);	// RoomList 상태로 전환
+				Network::GetInstance().Awake();			// 서버 접속
 			},
 			});
 		Entity bManual = CreateUIButton(mWorld.get(), {
@@ -900,6 +900,10 @@ void MainMenuScene::Initialize()
 
 	mWorld->Initialize();
 
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MenuRoomBrowserSystem>();
+
 
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 #if USE_CPU_ANIMATION
@@ -924,6 +928,12 @@ void MainMenuScene::Initialize()
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
+
+
+	{
+		Entity roomListEntity = mWorld->CreateEntity();
+		mWorld->AddComponent<LobbyRoomListComponent>(roomListEntity);
+	}
 
 	mSceneId = SceneId::MainMenu;
 
@@ -1140,11 +1150,15 @@ void LobbyScene::Initialize()
 #endif
 	}
 
-	// 로비 Room 시스템
+	// 로비 Room 엔티티
 	{
 		Entity roomStateEntity = mWorld->CreateEntity();
 		mWorld->AddComponent<LobbyRoomStateComponent>(roomStateEntity);
+		mWorld->AddComponent<LobbyRoomListComponent>(roomStateEntity);
 	}
+
+	// 방 목록 ImGui 버전
+	mUIFeatures.push_back(std::make_shared<LobbyRoomBrowserFeature>());
 
 
 

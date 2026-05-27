@@ -6,6 +6,7 @@
 #include "InputManager.h"
 #include "GameRuleComponent.h"
 #include "LobbyRoomStateComponent.h"
+#include "LobbyRoomListComponent.h"
 
 void LobbyGameMode::Initialize()
 {
@@ -17,6 +18,18 @@ void LobbyGameMode::PreUpdate(float deltaTime)
 	if (!INPUT.GetKeyDown(eKeyCode::G)) return;
 
 	auto world = mScene->GetWorld();
+
+	// 방 미입장 상태에서는 게임 시작 불가
+	if (world->HasComponentPool<LobbyRoomListComponent>())
+	{
+		auto listEntities = world->GetEntitiesWithComponent<LobbyRoomListComponent>();
+		if (!listEntities.empty())
+		{
+			auto* listComp = world->GetComponent<LobbyRoomListComponent>(listEntities[0]);
+			if (listComp && listComp->mCurrentRoomId == 0)
+				return;
+		}
+	}
 
 	// 본인이 Host 가 아니거나 전원 Ready 가 아니면 enqueue 중단
 	// 서버에서도 동일 검사를 수행하긴 함

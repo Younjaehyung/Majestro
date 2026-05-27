@@ -43,6 +43,8 @@ private:
 	void HandleReplicationDelta(const InputCommand& msg);
 	void HandleRoomState(const InputCommand& msg);
 	void HandleRoomError(const InputCommand& msg);
+	void HandleRoomList(const InputCommand& msg);      
+	void HandleRoomJoinResult(const InputCommand& msg);
 
 	Entity CreateEntityFromArchetype(uint32_t archetypeId);
 

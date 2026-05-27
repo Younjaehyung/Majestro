@@ -14,6 +14,10 @@ public:
 	NetSendSystem(World* world);
 	void Update(float dt) override;
 
+	// 세션 이탈/접속 종료 시 호출
+	// 해당 세션의 플레이어 엔티티를 같은 World 의 다른 플레이어들에게 despawn 통지 후 파괴.
+	void DespawnPlayerBySession(uint32 sessionId);
+
 private:
 	void SendMove(float dt);
 	void SendAction();

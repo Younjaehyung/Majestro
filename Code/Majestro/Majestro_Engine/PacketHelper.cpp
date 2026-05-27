@@ -21,6 +21,10 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::C2S_SCENE_CHANGE:
 	case PKT_Type::C2S_ROOM_READY:
 	case PKT_Type::C2S_ROOM_CHARACTER_SELECT:
+	case PKT_Type::C2S_ROOM_CREATE:
+	case PKT_Type::C2S_ROOM_JOIN:
+	case PKT_Type::C2S_ROOM_LIST:
+	case PKT_Type::C2S_ROOM_LEAVE:
 		SerializeTcpPacket(pkt, sendBuffer);
 		break;
 	
@@ -73,6 +77,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_GAME_START:
 	case PKT_Type::S2C_SCENE_CHANGE_RESULT:
 	case PKT_Type::S2C_PKT_SPAWN:
+	case PKT_Type::S2C_PKT_DESPAWN:
 	case PKT_Type::S2C_PKT_STATE:
 	case PKT_Type::S2C_PKT_COLLISION:
 	case PKT_Type::S2C_PKT_BULLET_ACTIVATE:
@@ -87,6 +92,8 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type:: S2C_PKT_SCENE_ESCORT:
 	case PKT_Type::S2C_ROOM_STATE:
 	case PKT_Type::S2C_ROOM_ERROR:
+	case PKT_Type::S2C_ROOM_LIST:
+	case PKT_Type::S2C_ROOM_JOIN_RESULT:
 	{
 		ProcessTcpPackets(inputCommand, buffer);
 		break;

@@ -448,8 +448,13 @@ void NetworkThread::CleanupDisconnected()
         }
 
         session->Close();
-        // SessionManager가 내부적으로 map을 지우는 경우 이터레이터가 더 위험해질 수 있으므로,
-        // 여기서는 직접 지우는 편이 안전합니다.
+
+        // 로직 스레드에 세션 종료를 통지(내부 신호)
+        InputCommand leave{};
+        leave.SessionId = session->GetPlayerId();
+        leave.Type = PKT_Type::INTERNAL_SESSION_LEAVE;
+        gRecvQueue.Push(leave);
+
         it = mSessionMgr.mSessions.erase(it);
     }
 }

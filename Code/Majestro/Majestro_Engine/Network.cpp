@@ -115,6 +115,9 @@ bool Network::ConnectToServer(const char* ipAddress, int port)
 setsockopt(mSock, SOL_SOCKET, TCP_NODELAY, (char*)&flag, sizeof(flag));*/
 
 
+	if (mNetworkThread.joinable())
+		mNetworkThread.join();
+
 	mIsRunning = true;
 	mNetworkThread = std::thread(&Network::NetworkUpdate, this);
 

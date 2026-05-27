@@ -193,6 +193,7 @@ void SceneManager::Render()
 void SceneManager::LoadScene(SceneId id)
 {
 	mActiveScene = mGameScenes[(size_t)id];
+	mActiveScene->ClearWorld();
 	mActiveScene->Initialize();
 	mActiveScene->Enter();
 }

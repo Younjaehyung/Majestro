@@ -28,7 +28,7 @@ public:
 	void LoadJsonLevel(const wstring& path);
 	void LoadCollisionJson(const wstring& path);
 	
-
+	void ClearWorld() { mWorld->Clear(); }
 
 	void SetGameMode(shared_ptr<GameMode>& gameMode);
 	shared_ptr<GameMode>& GetGameMode() { return mGameMode; }

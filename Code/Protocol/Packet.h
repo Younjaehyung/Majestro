@@ -22,9 +22,13 @@ enum PKT_Type : uint32 {
 	C2S_PKT_ACTION,
 	C2S_PKT_RHYTHM_CHANGED,
 
-	// 로비 Room : roomId 는 1 고정이지만 다방 확장 대비 필드는 미리 박아둠
+	// 로비 Room
 	C2S_ROOM_READY,
 	C2S_ROOM_CHARACTER_SELECT,
+	C2S_ROOM_CREATE,
+	C2S_ROOM_JOIN,
+	C2S_ROOM_LIST,
+	C2S_ROOM_LEAVE,
 
 
 	// Server -> Client
@@ -37,6 +41,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
 	S2C_PKT_SPAWNS,
+	S2C_PKT_DESPAWN,
 	S2C_GAME_START,
 	S2C_SCENE_CHANGE_RESULT,
 	S2C_PKT_RESPAWN,
@@ -54,6 +59,11 @@ enum PKT_Type : uint32 {
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
 	S2C_ROOM_ERROR,
+	S2C_ROOM_LIST,
+	S2C_ROOM_JOIN_RESULT,   // 생성/입장 공통 결과
+
+	// 서버 내부 신호. 네트워크 스레드에서 로직 스레드 세션에 종료 통지.
+	INTERNAL_SESSION_LEAVE,
 
 	KMSG,
 };
@@ -239,6 +249,10 @@ enum class EffectSpawnReason : uint8
 // 로비 Room 시스템: 한 방의 최대 인원
 static constexpr uint8 ROOM_MAX_PLAYERS = 3;
 
+
+// 한 S2C_ROOM_LIST 패킷에 담을 최대 방 수
+static constexpr uint8 ROOM_LIST_MAX_ENTRIES = 12;
+
 // 로비 Room 시스템: 게임 시작 거부 사유 / 잘못된 패킷 등 자격 오류 코드
 enum class RoomErrorCode : uint8
 {
@@ -247,6 +261,9 @@ enum class RoomErrorCode : uint8
 	NotAllReady,         // 모든 플레이어가 Ready 가 아님
 	NotEnoughPlayers,    // 최소 시작 인원 미만 (1명)
 	InvalidRoom,         // 존재하지 않는 roomId 또는 본인 방과 다른 roomId
+	RoomFull,            // 정원 초과
+	AlreadyInRoom,       // 이미 다른 방에 속함
+	RoomInGame,          // 게임 중이라 입장 불가
 };
 
 // 한 플레이어 슬롯. sessionId == 0 은 비어 있는 슬롯
@@ -257,6 +274,16 @@ struct RoomPlayerSlot {
 	uint8  isHost{};    // 0/1
 	uint8  reserved{};
 };
+
+// 방 목록
+struct RoomListEntry {
+	uint32 roomId{};
+	uint8  playerCount{};
+	uint8  maxPlayers{};
+	uint8  phase{};      // 0=Waiting, 1=InGame
+	uint8  reserved{};
+};
+
 
 ///////////////////////////////////////////
 
@@ -497,6 +524,16 @@ struct S2C_SpawnsPacekt : public PacketTcpHeader {
 	}
 };
 
+// 엔티티 제거 통지 (해당 캐릭터를 다른 클라에서 제거)
+struct S2C_DespawnPacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+
+	S2C_DespawnPacket() : PacketTcpHeader{ sizeof(S2C_DespawnPacket), PKT_Type::S2C_PKT_DESPAWN, 0.0 } {}
+	S2C_DespawnPacket(uint64 entityId)
+		: PacketTcpHeader{ sizeof(S2C_DespawnPacket), PKT_Type::S2C_PKT_DESPAWN, 0.0 }, netEntityId(entityId) {
+	}
+};
+
 struct S2C_CollisionPacket : public PacketTcpHeader {	// 임시
 
 	uint64 netEntityId{};
@@ -564,6 +601,58 @@ struct S2C_SceneChangeResultPacket : public PacketTcpHeader {
 		currentScene(current), approved(isApproved ? 1 : 0) {
 	}
 };
+
+// Lobby Room
+
+// 방 전체 상태 스냅샷. 변경 시점마다 방의 모든 세션에 브로드캐스트
+struct S2C_RoomStatePacket : public PacketTcpHeader {
+	uint32 roomId{};
+	uint8  playerCount{};
+	uint8  maxPlayers{};       // = ROOM_MAX_PLAYERS
+	uint8  hostSlotIndex{};    // 0xFF = Host 없음
+	uint8  reserved{};
+	RoomPlayerSlot slots[ROOM_MAX_PLAYERS]{};
+
+	S2C_RoomStatePacket()
+		: PacketTcpHeader{ sizeof(S2C_RoomStatePacket), PKT_Type::S2C_ROOM_STATE, 0.0 } {
+	}
+};
+
+// Room 자격 오류 (요청자에게만 unicast)
+struct S2C_RoomErrorPacket : public PacketTcpHeader {
+	uint32 roomId{};
+	uint8  errorCode{};   // RoomErrorCode
+	uint8  reserved0{};
+	uint16 reserved1{};
+
+	S2C_RoomErrorPacket()
+		: PacketTcpHeader{ sizeof(S2C_RoomErrorPacket), PKT_Type::S2C_ROOM_ERROR, 0.0 } {
+	}
+};
+
+
+// 방 목록 (홀 세션에 unicast/브로드캐스트).
+struct S2C_RoomListPacket : public PacketTcpHeader {
+	uint8  count{};
+	uint8  reserved0{};
+	uint16 reserved1{};
+	RoomListEntry entries[ROOM_LIST_MAX_ENTRIES]{};
+	S2C_RoomListPacket()
+		: PacketTcpHeader{ sizeof(S2C_RoomListPacket), PKT_Type::S2C_ROOM_LIST, 0.0 } {
+	}
+};
+
+// 생성/입장 결과 (요청자에게만 unicast)
+struct S2C_RoomJoinResultPacket : public PacketTcpHeader {
+	uint32 roomId{};     // 성공 시 배정/입장한 roomId, 실패 시 0
+	uint8  success{};    // 0/1
+	uint8  errorCode{};  // RoomErrorCode
+	uint16 reserved{};
+	S2C_RoomJoinResultPacket()
+		: PacketTcpHeader{ sizeof(S2C_RoomJoinResultPacket), PKT_Type::S2C_ROOM_JOIN_RESULT, 0.0 } {
+	}
+};
+
 
 ///////////////Client To Server///////////////
 
@@ -676,30 +765,33 @@ struct C2S_RoomCharacterSelectPacket : public PacketTcpHeader {
 };
 
 
-///////////////Lobby Room ////////////////
 
-// 방 전체 상태 스냅샷. 변경 시점마다 방의 모든 세션에 브로드캐스트
-struct S2C_RoomStatePacket : public PacketTcpHeader {
-	uint32 roomId{};
-	uint8  playerCount{};
-	uint8  maxPlayers{};       // = ROOM_MAX_PLAYERS
-	uint8  hostSlotIndex{};    // 0xFF = Host 없음
-	uint8  reserved{};
-	RoomPlayerSlot slots[ROOM_MAX_PLAYERS]{};
+// Lobby Room
 
-	S2C_RoomStatePacket()
-		: PacketTcpHeader{ sizeof(S2C_RoomStatePacket), PKT_Type::S2C_ROOM_STATE, 0.0 } {}
+struct C2S_RoomCreatePacket : public PacketTcpHeader {
+	uint32 reserved{};   // 옵션 없음 (추후 방 이름)
+	C2S_RoomCreatePacket()
+		: PacketTcpHeader{ sizeof(C2S_RoomCreatePacket), PKT_Type::C2S_ROOM_CREATE, 0.0 } {}
 };
 
-// Room 자격 오류 (요청자에게만 unicast)
-struct S2C_RoomErrorPacket : public PacketTcpHeader {
-	uint32 roomId{};
-	uint8  errorCode{};   // RoomErrorCode
-	uint8  reserved0{};
-	uint16 reserved1{};
-
-	S2C_RoomErrorPacket()
-		: PacketTcpHeader{ sizeof(S2C_RoomErrorPacket), PKT_Type::S2C_ROOM_ERROR, 0.0 } {}
+struct C2S_RoomJoinPacket : public PacketTcpHeader {
+	uint32 roomId{};     // 입장할 방
+	C2S_RoomJoinPacket()
+		: PacketTcpHeader{ sizeof(C2S_RoomJoinPacket), PKT_Type::C2S_ROOM_JOIN, 0.0 } {}
 };
+
+struct C2S_RoomListPacket : public PacketTcpHeader {
+	uint32 reserved{};	// 갱신해달라 패킷
+	C2S_RoomListPacket()
+		: PacketTcpHeader{ sizeof(C2S_RoomListPacket), PKT_Type::C2S_ROOM_LIST, 0.0 } {}
+};
+
+struct C2S_RoomLeavePacket : public PacketTcpHeader {
+	uint32 roomId{};	// 나갈래 패킷
+	C2S_RoomLeavePacket()
+		: PacketTcpHeader{ sizeof(C2S_RoomLeavePacket), PKT_Type::C2S_ROOM_LEAVE, 0.0 } {}
+};
+
+
 
 #pragma pack(pop)

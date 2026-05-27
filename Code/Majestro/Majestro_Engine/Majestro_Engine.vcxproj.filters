@@ -472,6 +472,9 @@
     <ClInclude Include="LobbyRoomStateComponent.h">
       <Filter>World\Component\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="LobbyRoomListComponent.h">
+      <Filter>World\Component\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="EnemySystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -714,6 +717,12 @@
       <Filter>World\Script\Prefab</Filter>
     </ClInclude>
     <ClInclude Include="LobbyRoomSystem.h">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyRoomBrowserFeature.h">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuRoomBrowserSystem.h">
       <Filter>World\System\UI\Menu</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1140,6 +1149,12 @@
       <Filter>World\Script\Prefab</Filter>
     </ClCompile>
     <ClCompile Include="LobbyRoomSystem.cpp">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyRoomBrowserFeature.cpp">
+      <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuRoomBrowserSystem.cpp">
       <Filter>World\System\UI\Menu</Filter>
     </ClCompile>
   </ItemGroup>

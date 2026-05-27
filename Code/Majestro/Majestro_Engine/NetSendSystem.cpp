@@ -10,6 +10,9 @@
 #include "MovementComponent.h"
 #include "TagComponent.h"
 #include "TransformComponent.h"
+#include "LobbyRoomListComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
 
 #include "SceneManager.h"
 
@@ -49,9 +52,20 @@ void NetSendSystem::Update(float deltaTime)
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
 	TrySendRoomEvents();                         // Ready/Character 변경 (TCP)
+	TrySendRoomBrowserEvents();                  // 방 생성/입장/목록/나가기 (TCP)
 
 	if (mMovementRate.Tick(deltaTime))           // 30Hz 주기 전송 (UDP)
 		TrySendMovement();
+}
+
+uint32 NetSendSystem::GetCurrentRoomId() const
+{
+	if (!mWorld->HasComponentPool<LobbyRoomListComponent>())
+		return 0;
+	auto entities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
+	if (entities.empty()) return 0;
+	auto* listComp = mWorld->GetComponent<LobbyRoomListComponent>(entities[0]);
+	return listComp ? listComp->mCurrentRoomId : 0;
 }
 
 
@@ -192,17 +206,47 @@ void NetSendSystem::TrySendRoomEvents()
 	auto eventManager = mWorld->GetEventManager();
 	if (!eventManager) return;
 
-	eventManager->Consume<EvRoomReadyChanged>([this](const EvRoomReadyChanged& e) {
+	const uint32 roomId = GetCurrentRoomId();   // 현재 방 ID
+
+	eventManager->Consume<EvRoomReadyChanged>([this, roomId](const EvRoomReadyChanged& e) {
 		C2S_RoomReadyPacket pkt;
-		pkt.roomId = 1;		// 임시 서버 roomID
+		pkt.roomId = roomId;
 		pkt.ready = e.ready ? 1 : 0;
 		SendPacket(pkt);
 	});
 
-	eventManager->Consume<EvRoomCharacterChanged>([this](const EvRoomCharacterChanged& e) {
+	eventManager->Consume<EvRoomCharacterChanged>([this, roomId](const EvRoomCharacterChanged& e) {
 		C2S_RoomCharacterSelectPacket pkt;
-		pkt.roomId = 1;		// 임시 서버 roomID
+		pkt.roomId = roomId;
 		pkt.playerType = e.playerType;
+		SendPacket(pkt);
+	});
+}
+
+void NetSendSystem::TrySendRoomBrowserEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager) return;
+
+	eventManager->Consume<EvRoomCreate>([this](const EvRoomCreate&) {
+		C2S_RoomCreatePacket pkt;
+		SendPacket(pkt);
+	});
+
+	eventManager->Consume<EvRoomJoin>([this](const EvRoomJoin& e) {
+		C2S_RoomJoinPacket pkt;
+		pkt.roomId = e.roomId;
+		SendPacket(pkt);
+	});
+
+	eventManager->Consume<EvRoomListRequest>([this](const EvRoomListRequest&) {
+		C2S_RoomListPacket pkt;
+		SendPacket(pkt);
+	});
+
+	eventManager->Consume<EvRoomLeave>([this](const EvRoomLeave& e) {
+		C2S_RoomLeavePacket pkt;
+		pkt.roomId = e.roomId;
 		SendPacket(pkt);
 	});
 }

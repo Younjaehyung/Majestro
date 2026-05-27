@@ -15,39 +15,47 @@ public:
 	void InitializeSession(uint64 sessionId);
 	void RemoveSession(uint64 sessionId);
 	void LoadScene(uint64 sessionId, wstring sceneName);
+	bool EnqueueCommand(const InputCommand& command);
+
+
 	shared_ptr<Scene> GetScene(uint64 sessionId) const;
+	shared_ptr<Scene> GetGameWorld(uint32 roomId) const;	// 룸별 게임 World 조회
+
 
 	void SetRoomManager(RoomManager* roomManager) { mRoomManager = roomManager; }
 
-	bool EnqueueCommand(const InputCommand& command);
 private:
-	//std::vector<Scene*> mScene;
 
-	void LoadScene(SceneId id);
 	bool HandleSceneChange(const InputCommand& command);
 	bool IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const;
+	
+
+	// 방의 게임 World 가 더 이상 InGame 세션을 갖지 않으면 Release
+	void CleanupRoomWorldIfEmpty(uint32 roomId);
+
 	SceneId GetOrCreateSceneState(uint64 sessionId);
 
-
 	void SetLayerName(uint8 index, const wstring& name);
+
+
+
 	const wstring& IndexToLayerName(uint8 index) { return _layerNames[index]; }
 	uint8 LayerNameToIndex(const wstring& name);
-public:
-	shared_ptr<Scene> GetActiveScene() { return mActiveScene; }
 
 private:
-	void FactoryScene();	// 전체 씬을 생성하는 함수 (예: 로비 씬, 게임 씬 등)
+	void FactoryScene();	// 전체 씬을 생성하는 함수
 	
-	// Scene 전환
-	void TransitionToScene();	// 씬 전환을 처리하는 함수 (예: 로비에서 게임으로, 게임에서 로비로 등)
-private:
+	
+	void TransitionToScene();	// Scene 전환
 
-	//std::unordered_map<uint64, shared_ptr<Scene>> mScenesBySession;
+private:
 	std::unordered_map<uint64, shared_ptr<Scene>> mLobbyScenesBySession;
 	std::unordered_map<uint64, SceneId> mSceneBySession;
 
-	std::array<shared_ptr<Scene>, (size_t)SceneId::End> mGameScenes; // 모든 씬을 저장하는 배열
-	shared_ptr<Scene> mActiveScene;
+	std::array<shared_ptr<Scene>, (size_t)SceneId::End> mGameScenes; // 결과 씬 등 사전 생성 씬 보관 배열
+
+	// roomId 별 게임 World 인스턴스.
+	std::unordered_map<uint32 /*roomId*/, shared_ptr<Scene>> mGameWorldsByRoom;
 	RoomManager* mRoomManager = nullptr;
 
 	//layer를 양쪽에서 찾을 수 있게 매핑

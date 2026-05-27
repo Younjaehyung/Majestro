@@ -13,6 +13,7 @@
 #include "BeatComponent.h"
 #include "MovementComponent.h"
 #include "LobbyRoomStateComponent.h"
+#include "LobbyRoomListComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "Network.h"
@@ -51,7 +52,7 @@ void PlayerInputSystem::Update(float dt)
 	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
 	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
 
-
+	// 로비
 	if (mWorld->HasComponentPool<ChoicePlayerComponent>()) {
 		std::vector<Entity> choiceEntitys{ mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>() };
 		ChoicePlayerComponent* choicecomponent = mWorld->GetComponent<ChoicePlayerComponent>(choiceEntitys[0]);
@@ -74,9 +75,19 @@ void PlayerInputSystem::Update(float dt)
 				eventMgr->Enqueue(EvRoomCharacterChanged{ choicecomponent->mPlayerType });
 		}
 
-		// R 키 Ready 토글. 본인 슬롯 ready 값을 읽어서 반전 후 enqueue.
-		// LobbyRoomStateComponent 가 아직 스냅샷을 못 받았으면 true 로 시작.
-		if (INPUT.GetKeyDown(eKeyCode::R) && mWorld->HasComponentPool<LobbyRoomStateComponent>())
+		// R 키 Ready 토글. (단축키라서 지워도 될듯)
+		bool inRoom = false;
+		if (mWorld->HasComponentPool<LobbyRoomListComponent>())
+		{
+			auto listEntities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
+			if (!listEntities.empty())
+			{
+				auto* listComp = mWorld->GetComponent<LobbyRoomListComponent>(listEntities[0]);
+				inRoom = (listComp != nullptr) && (listComp->mCurrentRoomId != 0);
+			}
+		}
+
+		if (inRoom && INPUT.GetKeyDown(eKeyCode::R) && mWorld->HasComponentPool<LobbyRoomStateComponent>())
 		{
 			std::vector<Entity> roomStateEntities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
 			if (!roomStateEntities.empty())
@@ -99,6 +110,7 @@ void PlayerInputSystem::Update(float dt)
 					eventMgr->Enqueue(EvRoomReadyChanged{ !currentReady });
 			}
 		}
+		// R 키 Ready 토글. 
 	}
 
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;

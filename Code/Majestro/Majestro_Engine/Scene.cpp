@@ -647,9 +647,13 @@ void MainMenuScene::Initialize()
 	}
 
 	/////////////////////////////////////////////////////////////////////////
-	// 메인메뉴 버튼 UI
+	// 메인메뉴 
+	// 아래 배경(1) 애니메이션 배경(2) 버튼(5) 위
 	/////////////////////////////////////////////////////////////////////////
+
+		
 	{
+
 		const Vec2  btnSize = { 320.f, 72.f };
 		const float startX = 850.f;   // 화면 중앙 기준 X 오프셋 (위쪽 버튼)
 		const float startY = 270.f;   // 화면 중앙 기준 Y 오프셋 (위쪽 버튼)
@@ -754,12 +758,12 @@ void MainMenuScene::Initialize()
 
 		// 상태별 entity 등록, Title 만 visible
 		auto* ctrl = mWorld->GetComponent<MainMenuController>(mainMenuCamera);
-		ctrl->mStateEntities[(size_t)MainMenuState::Title] = { titleHint };
-		ctrl->mStateEntities[(size_t)MainMenuState::MainMenu] = { bGameStart, bManual, bSetting, bMainExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::Setting] = { bBack, bSubExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::Manual] = { bBack, bSubExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::RoomList] = { bBack, bSubExit };
-		ctrl->mStateEntities[(size_t)MainMenuState::Exit] = { bYes, bNo };
+		ctrl->mStates[(size_t)MainMenuState::Title].entities = { titleHint };
+		ctrl->mStates[(size_t)MainMenuState::MainMenu].entities = { bGameStart, bManual, bSetting, bMainExit };
+		ctrl->mStates[(size_t)MainMenuState::Setting].entities = { bBack, bSubExit };
+		ctrl->mStates[(size_t)MainMenuState::Manual].entities = { bBack, bSubExit };
+		ctrl->mStates[(size_t)MainMenuState::RoomList].entities = { bBack, bSubExit };
+		ctrl->mStates[(size_t)MainMenuState::Exit].entities = { bYes, bNo };
 
 		// 상태별 풀스크린 배경
 		auto makeBg = [this](const std::wstring& texKey) -> Entity
@@ -777,11 +781,39 @@ void MainMenuScene::Initialize()
 				sp.mColorTint = Vec4(1.f, 1.f, 1.f, 0.f);       // 알파 0 시작
 				return e;
 			};
-		ctrl->mStateBackground[(size_t)MainMenuState::MainMenu] = makeBg(L"UI_Title_SelectFrame");
-		ctrl->mStateBackground[(size_t)MainMenuState::Setting]  = makeBg(L"UI_Title_Setting");
-		ctrl->mStateBackground[(size_t)MainMenuState::Manual]   = makeBg(L"UI_Title_Control");
-		ctrl->mStateBackground[(size_t)MainMenuState::RoomList] = makeBg(L"UI_Title_Search");
-		ctrl->mStateBackground[(size_t)MainMenuState::Exit]     = makeBg(L"UI_Title_QuitGame");
+		ctrl->mStates[(size_t)MainMenuState::MainMenu].background = makeBg(L"UI_Title_SelectFrame");
+		ctrl->mStates[(size_t)MainMenuState::Setting].background  = makeBg(L"UI_Title_Setting");
+		ctrl->mStates[(size_t)MainMenuState::Manual].background   = makeBg(L"UI_Title_Control");
+		ctrl->mStates[(size_t)MainMenuState::RoomList].background = makeBg(L"UI_Title_Search");
+		ctrl->mStates[(size_t)MainMenuState::Exit].background     = makeBg(L"UI_Title_QuitGame");
+
+		// 배경 장식 애니메이션
+		auto makeAnim = [this](const std::wstring& texKey, const Vec2& pos, const Vec2& size,
+		                       const Vec2& frameSize, int frameCount, float animTime) -> Entity
+			{
+				Entity e = mWorld->CreateEntity();
+				auto& tr = mWorld->AddComponent<UITransformComponent>(e);
+				tr.mAnchor       = Anchor::Center;
+				tr.mPosition     = pos;
+				tr.mSize         = size;
+				tr.mPivot        = Vec2(0.5f, 0.5f);
+				tr.mUILayerIndex = 2;                   
+				auto& sp = mWorld->AddComponent<UISpriteComponent>(
+					e, RESOURCEMANAGER.Get<Texture>(texKey), frameSize, frameCount, animTime);
+				sp.mVisible = false;
+				return e;
+			};
+	
+
+
+
+		ctrl->mStates[(size_t)MainMenuState::MainMenu].animations = {
+			makeAnim(L"UI_Title_PaintSplash_0", Vec2(0.f, 0.f), Vec2(2320.f, 464.f), Vec2(464.f, 464.f), 5, 2.0f),
+		};
+		/*ctrl->mStates[(size_t)MainMenuState::Setting].animations  = { makeAnim(L"UI_Title_PaintSplash_0", ...) };
+		ctrl->mStates[(size_t)MainMenuState::Manual].animations   = { makeAnim(L"UI_Title_PaintSplash_0", ...) };
+		ctrl->mStates[(size_t)MainMenuState::RoomList].animations = { makeAnim(L"UI_Title_PaintSplash_0", ...) };
+		ctrl->mStates[(size_t)MainMenuState::Exit].animations     = { makeAnim(L"UI_Title_PaintSplash_0", ...) };*/
 
 		auto applyVisible = [this](Entity e, bool v)
 			{
@@ -793,7 +825,7 @@ void MainMenuScene::Initialize()
 		for (int s = 0; s < (int)MainMenuState::Count; ++s)
 		{
 			const bool show = (s == (int)MainMenuState::Title);
-			for (Entity e : ctrl->mStateEntities[s])
+			for (Entity e : ctrl->mStates[s].entities)
 				applyVisible(e, show);
 		}
 

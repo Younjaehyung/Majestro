@@ -68,20 +68,43 @@ void UIMainMenuSystem::Update(float dt)
                 ctrl->Request(MainMenuState::MainMenu);
         }
 
-        // 배경 페이드+줌
-        if (ctrl->mActiveBg.IsValid() && cam->mBlendT >= 1.f)
+        // 카메라 전환 완료 후 처리
+        if (cam->mBlendT >= 1.f)
         {
-            auto* bgSp = mWorld->GetComponent<UISpriteComponent>(ctrl->mActiveBg);
-            auto* bgTr = mWorld->GetComponent<UITransformComponent>(ctrl->mActiveBg);
-            if (bgSp && bgTr)
+            // 버튼/텍스트 : 즉시 등장 (1회)
+            if (ctrl->mEntitiesPendingReveal)
             {
-                bgSp->mVisible = true;
-                ctrl->mBgFadeT = (std::min)(1.f, ctrl->mBgFadeT + dt / ctrl->mBgFadeDuration);
-                const float t = ctrl->mBgFadeT;
-                const float s = SmoothStep01(t);
-                bgSp->mColorTint.w = ctrl->mBgTargetAlpha * s;    // 알파 0 -> 목표 알파값
-                const float scale = 1.05f + (1.0f - 1.05f) * s;   // 1.05 -> 1.0 줌인
-                bgTr->mScale = Vec2(scale, scale);
+                SetEntitiesVisible(ctrl->mStates[(size_t)ctrl->mState].entities, true);
+
+                // 장식 애니메이션
+                for (Entity a : ctrl->mStates[(size_t)ctrl->mState].animations)
+                {
+                    if (auto* sp = mWorld->GetComponent<UISpriteComponent>(a))
+                    {
+                        sp->mVisible             = true;    // 보이기
+                        sp->mAnimationUpdateTime = 0.f;     // 0프레임부터 재생
+                        sp->SetCurrentFrame(0);
+                    }
+                }
+
+                ctrl->mEntitiesPendingReveal = false;
+            }
+
+            // 배경
+            if (ctrl->mActiveBg.IsValid())
+            {
+                auto* bgSp = mWorld->GetComponent<UISpriteComponent>(ctrl->mActiveBg);
+                auto* bgTr = mWorld->GetComponent<UITransformComponent>(ctrl->mActiveBg);
+                if (bgSp && bgTr)
+                {
+                    bgSp->mVisible = true;
+                    ctrl->mBgFadeT = (std::min)(1.f, ctrl->mBgFadeT + dt / ctrl->mBgFadeDuration);
+                    const float t = ctrl->mBgFadeT;
+                    const float s = SmoothStep01(t);
+                    bgSp->mColorTint.w = ctrl->mBgTargetAlpha * s;    // 알파 0 -> 목표 알파값
+                    const float scale = 2.05f + (1.0f - 2.05f) * s;   // 1.05 -> 1.0 줌인
+                    bgTr->mScale = Vec2(scale, scale);
+                }
             }
         }
 
@@ -94,11 +117,16 @@ void UIMainMenuSystem::Update(float dt)
 
         if (prev != ctrl->mState)
         {
-            SetEntitiesVisible(ctrl->mStateEntities[(size_t)prev], false);
-            SetEntitiesVisible(ctrl->mStateEntities[(size_t)ctrl->mState], true);
+            // 이전 상태 UI : 즉시 숨김
+            SetEntitiesVisible(ctrl->mStates[(size_t)prev].entities, false);           
+            SetEntitiesVisible(ctrl->mStates[(size_t)prev].animations, false);
+            // 새 상태 UI : 카메라 전환 완료 후 등장
+            SetEntitiesVisible(ctrl->mStates[(size_t)ctrl->mState].entities, false);
+            SetEntitiesVisible(ctrl->mStates[(size_t)ctrl->mState].animations, false);
+            ctrl->mEntitiesPendingReveal = true;
 
             // 이전 배경 : 즉시 숨김
-            if (Entity pb = ctrl->mStateBackground[(size_t)prev]; pb.IsValid())
+            if (Entity pb = ctrl->mStates[(size_t)prev].background; pb.IsValid())
             {
                 if (auto* sp = mWorld->GetComponent<UISpriteComponent>(pb))
                 {
@@ -106,9 +134,9 @@ void UIMainMenuSystem::Update(float dt)
                     sp->mColorTint.w = 0.f;
                 }
             }
-
+            
             // 새 배경: 전환 완료 후 페이드인
-            ctrl->mActiveBg = ctrl->mStateBackground[(size_t)ctrl->mState];
+            ctrl->mActiveBg = ctrl->mStates[(size_t)ctrl->mState].background;
             ctrl->mBgFadeT  = 0.f;
             if (ctrl->mActiveBg.IsValid())
             {

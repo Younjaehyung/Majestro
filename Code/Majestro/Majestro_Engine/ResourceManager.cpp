@@ -2167,6 +2167,8 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Title_SelectFrame", L"..\\Resources\\Image\\UI\\UI_Title_SelectFrame.png");
 		Load<Texture>(L"UI_Title_Setting", L"..\\Resources\\Image\\UI\\UI_Title_Setting.png");
 
+		Load<Texture>(L"UI_Title_PaintSplash_0", L"..\\Resources\\Image\\UI\\UI_Title_PaintSplash_0.png");
+	
 	
 		
 		

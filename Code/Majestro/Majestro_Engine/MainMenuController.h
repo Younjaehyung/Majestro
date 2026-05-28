@@ -23,17 +23,23 @@ public:
     MainMenuState mPendingState = MainMenuState::Title;
     bool          mHasPending   = false;
 
-    // 상태별 가시화할 UI entity 목록 (MainMenuSystem 이 visible/enabled 토글)
-    std::array<std::vector<Entity>, (size_t)MainMenuState::Count> mStateEntities;
-
-    // 상태별 배경 스프라이트
-    std::array<Entity, (size_t)MainMenuState::Count> mStateBackground;
+    // 시점별 상태
+    struct StateVisuals
+    {
+        std::vector<Entity> entities;     // 버튼/텍스트
+        Entity              background{};  // 배경 스프라이트 1개
+        std::vector<Entity> animations;   // 장식 애니메이션
+    };
+    std::array<StateVisuals, (size_t)MainMenuState::Count> mStates;
 
     // 배경 페이드+줌 진행 상태
     Entity mActiveBg{};            // 현재 페이드 대상 (무효 = 없음)
     float  mBgFadeT        = 0.f;
-    float  mBgFadeDuration = 0.05f;
+    float  mBgFadeDuration = 0.15f;
     float  mBgTargetAlpha  = 1.0f; // 텍스처 자체 알파에 곱할 최대치
+
+    // true 면 카메라 전환 완료 후 현재 상태 UI 를 한 번 노출
+    bool   mEntitiesPendingReveal = false;
 
     void Request(MainMenuState next)
     {

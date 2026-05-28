@@ -23,7 +23,7 @@ public:
     MainMenuView mCurrent       = MainMenuView::Title;
     MainMenuView mTarget        = MainMenuView::Title;
     float        mBlendT        = 1.0f;   // 1=완료
-    float        mBlendDuration = 0.8f;   // 초
+    float        mBlendDuration = 0.65f;   // 초
 
     
     Vec3       mFromPos{};

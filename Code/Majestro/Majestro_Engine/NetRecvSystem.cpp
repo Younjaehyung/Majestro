@@ -404,13 +404,20 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         pkt->reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired);
     const bool bongoAttackDebug = skillType == SkillType::BongoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
-    if (pianoAttackDebug || bongoAttackDebug)
+    const bool playerMeleeDebug =
+        (skillType == SkillType::DrumAttack ||
+         skillType == SkillType::DrumSkill1 ||
+         skillType == SkillType::GuitarAttack ||
+         skillType == SkillType::GuitarSkill1) &&
+        pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+    if (pianoAttackDebug || bongoAttackDebug || playerMeleeDebug)
     {
         mWorld->GetEventManager()->Enqueue(EvEnemyAttackDebug{
             skillType,
             pkt->reason,
             Vec3(pkt->x, pkt->y, pkt->z),
-            Vec3(pkt->rotX, pkt->rotY, pkt->rotZ) });
+            Vec3(pkt->rotX, pkt->rotY, pkt->rotZ),
+            !pianoAttackDebug });
     }
 }
 

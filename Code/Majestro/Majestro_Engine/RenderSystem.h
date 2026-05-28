@@ -140,6 +140,10 @@ public:
   static bool GetDrawColliders();
   static void SetDrawEnemyRanges(bool enabled);
   static bool GetDrawEnemyRanges();
+  static void SetDrawEnemyAttackRanges(bool enabled);
+  static bool GetDrawEnemyAttackRanges();
+  static void SetDrawPlayerAttackRanges(bool enabled);
+  static bool GetDrawPlayerAttackRanges();
 
   // 파이프라인 교체
   // 씬 Initialize()에서 호출 — pipeline->Initialize(mWorld)
@@ -252,6 +256,8 @@ private: // 디버그용 충돌박스 / 라인
   shared_ptr<Material> mDebugLineYellowMat;  // 노랑
   static bool sDrawColliders;
   static bool sDrawEnemyRanges;
+  static bool sDrawEnemyAttackRanges;
+  static bool sDrawPlayerAttackRanges;
 
   static std::vector<DebugLineRequest> sDebugLineQueue; // 프레임당 디버그 라인 큐
 

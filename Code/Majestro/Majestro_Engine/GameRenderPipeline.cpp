@@ -433,6 +433,14 @@ void GameRenderPipeline::DrawImGui()
         if (ImGui::Checkbox("Enemy Range Circles", &enemyRangesOn))
             RenderSystem::SetDrawEnemyRanges(enemyRangesOn);
 
+        bool enemyAttackRangesOn = RenderSystem::GetDrawEnemyAttackRanges();
+        if (ImGui::Checkbox("Enemy Attack Ranges", &enemyAttackRangesOn))
+            RenderSystem::SetDrawEnemyAttackRanges(enemyAttackRangesOn);
+
+        bool playerAttackRangesOn = RenderSystem::GetDrawPlayerAttackRanges();
+        if (ImGui::Checkbox("Player Attack Ranges", &playerAttackRangesOn))
+            RenderSystem::SetDrawPlayerAttackRanges(playerAttackRangesOn);
+
         bool remoteDesktopMouseMode =
             (INPUT.GetMouseInputMode() == eMouseInputMode::LegacyRelative);
         if (ImGui::Checkbox("Remote Desktop Mouse Mode", &remoteDesktopMouseMode))

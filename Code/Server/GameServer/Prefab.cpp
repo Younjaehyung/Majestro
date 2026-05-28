@@ -209,7 +209,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
 	case EnemyType::Pianoman:
-		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 200);
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 300);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 10);
 		break;
 	case EnemyType::Bongoman:

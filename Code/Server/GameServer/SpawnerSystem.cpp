@@ -126,6 +126,8 @@ void SpawnerSystem::BroadcastSpawnPacket(Entity spawnedEntity, uint8 prefabTypeR
 
     S2C_SpawnPacekt spawnPkt = S2C_SpawnPacekt(0, netComp->mNetEntityId, prefabType);
     spawnPkt.isLocalPlayer = 0;
+    if (EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(spawnedEntity))
+        spawnPkt.Type = enemyComp->mEnemyType;
 
     for (uint32 sessionId : CollectPlayerSessions())
     {

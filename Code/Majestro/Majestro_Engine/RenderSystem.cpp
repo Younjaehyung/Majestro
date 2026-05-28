@@ -25,6 +25,8 @@
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 bool RenderSystem::sDrawColliders = true;
 bool RenderSystem::sDrawEnemyRanges = true;
+bool RenderSystem::sDrawEnemyAttackRanges = true;
+bool RenderSystem::sDrawPlayerAttackRanges = true;
 
 void RenderSystem::SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color)
 {
@@ -49,6 +51,26 @@ void RenderSystem::SetDrawEnemyRanges(bool enabled)
 bool RenderSystem::GetDrawEnemyRanges()
 {
   return sDrawEnemyRanges;
+}
+
+void RenderSystem::SetDrawEnemyAttackRanges(bool enabled)
+{
+  sDrawEnemyAttackRanges = enabled;
+}
+
+bool RenderSystem::GetDrawEnemyAttackRanges()
+{
+  return sDrawEnemyAttackRanges;
+}
+
+void RenderSystem::SetDrawPlayerAttackRanges(bool enabled)
+{
+  sDrawPlayerAttackRanges = enabled;
+}
+
+bool RenderSystem::GetDrawPlayerAttackRanges()
+{
+  return sDrawPlayerAttackRanges;
 }
 
 RenderSystem::RenderSystem(World *world) : System::System(world) {

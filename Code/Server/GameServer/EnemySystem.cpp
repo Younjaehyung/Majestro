@@ -246,7 +246,7 @@ bool EnemySystem::HandleAttackState(
 
         movementComp->mPathCount = 0;
         movementComp->mPathIndex = 0;
-        movementComp->mMovingSpeed = enemyComp->mSpeed * 1.5f;
+        movementComp->mMovingSpeed = enemyComp->mSpeed * 1.2f;
 
         const bool pianoAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
         if (pianoAttackOnCooldown)

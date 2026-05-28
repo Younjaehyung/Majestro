@@ -18,6 +18,7 @@ namespace
 	constexpr float kPianomanMeleeRange = 160.0f;
 	constexpr float kPianomanAttackRadius = 200.0f;
 	constexpr float kBongomanAttackRadius = 500.0f;
+	constexpr float kPlayerMeleeAttackRadius = 200.0f;
 	constexpr float kMeleeAttackForwardDistance = 3.0f;
 	constexpr float kAttackDebugDuration = 1.0f;
 	constexpr float kAttackDebugHeight = 220.0f;
@@ -136,16 +137,13 @@ void EnemySystem::Update(float dt) {
 				SubmitEnemyRangeCircles(mWorld, transformComponent, enemyComponent);
 		}
 
-	if (RenderSystem::GetDrawEnemyRanges())
+	if (RenderSystem::GetDrawEnemyAttackRanges() || RenderSystem::GetDrawPlayerAttackRanges())
 		UpdateAttackDebugIndicators(dt);
 
 	if (mWorld->GetEventManager())
 	{
 		mWorld->GetEventManager()->Consume<EvEnemyAttackDebug>([&](const EvEnemyAttackDebug& e)
 		{
-			if (!RenderSystem::GetDrawEnemyRanges())
-				return;
-
 			Vec3 forward = Vec3::Forward;
 			const float yawRad = DirectX::XMConvertToRadians(e.rotation.y);
 			forward.x = std::sin(yawRad);
@@ -158,24 +156,40 @@ void EnemySystem::Update(float dt) {
 
 			float radius = 0.0f;
 			const Vec4 color = Vec4(1.0f, 1.0f, 0.f, 1.0f);
+			bool isPlayerAttack = false;
 			if (e.skillType == SkillType::PianoAttack)
 			{
+				if (!RenderSystem::GetDrawEnemyAttackRanges())
+					return;
 				radius = kPianomanAttackRadius;
 			}
 			else if (e.skillType == SkillType::BongoAttack)
 			{
+				if (!RenderSystem::GetDrawEnemyAttackRanges())
+					return;
 				radius = kBongomanAttackRadius;
+			}
+			else if (e.skillType == SkillType::DrumAttack ||
+				e.skillType == SkillType::DrumSkill1 ||
+				e.skillType == SkillType::GuitarAttack ||
+				e.skillType == SkillType::GuitarSkill1)
+			{
+				if (!RenderSystem::GetDrawPlayerAttackRanges())
+					return;
+				isPlayerAttack = true;
+				radius = kPlayerMeleeAttackRadius;
 			}
 
 			if (radius <= 0.0f)
 				return;
 
 			AttackDebugIndicator indicator;
-			indicator.center = e.position + forward * kMeleeAttackForwardDistance;
+			indicator.center = e.positionIsCenter ? e.position : (e.position + forward * kMeleeAttackForwardDistance);
 			indicator.center.y += kCircleHeightOffset;
 			indicator.radius = radius;
 			indicator.remainingTime = kAttackDebugDuration;
 			indicator.color = color;
+			indicator.isPlayerAttack = isPlayerAttack;
 			mAttackDebugIndicators.push_back(indicator);
 		});
 	}
@@ -222,6 +236,17 @@ void EnemySystem::UpdateAttackDebugIndicators(float dt)
 		indicator.remainingTime -= dt;
 		if (indicator.remainingTime <= 0.0f)
 			continue;
+
+		if (indicator.isPlayerAttack)
+		{
+			if (!RenderSystem::GetDrawPlayerAttackRanges())
+				continue;
+		}
+		else
+		{
+			if (!RenderSystem::GetDrawEnemyAttackRanges())
+				continue;
+		}
 
 		SubmitDebugCylinder(indicator.center, indicator.radius, kAttackDebugHeight, indicator.color);
 	}

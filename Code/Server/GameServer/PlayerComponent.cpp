@@ -876,7 +876,7 @@ Skill2State* Skill2State::Instance() {
 }
 void Skill2State::Enter(MainPlayerComponent* owner)
 {
-    if (not owner->mDash) {
+    if (owner->mPlayerType != 0 && not owner->mDash) {
         owner->mDash = true;
         owner->mDashEnd = GetServerTotalTimeSeconds() + owner->mDashTime;
     }

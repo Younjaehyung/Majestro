@@ -17,6 +17,7 @@ private:
 		float radius = 0.0f;
 		float remainingTime = 0.0f;
 		Vec4 color = Vec4::One;
+		bool isPlayerAttack = false;
 	};
 
 	void UpdateAttackDebugIndicators(float dt);

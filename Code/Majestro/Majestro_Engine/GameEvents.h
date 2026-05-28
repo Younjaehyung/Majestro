@@ -103,6 +103,7 @@ struct EvEnemyAttackDebug
     uint8 reason = 0;
     Vec3 position{};
     Vec3 rotation{};
+    bool positionIsCenter = false;
 };
 
 struct EvAttachBulletVfx

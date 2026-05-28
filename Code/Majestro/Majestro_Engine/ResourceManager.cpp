@@ -2160,6 +2160,13 @@ void ResourceManager::CreateDefaultMaterial()
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Image\\Noise\\T_TilingNoise02_M.png");
 
+
+		Load<Texture>(L"UI_Title_Control", L"..\\Resources\\Image\\UI\\UI_Title_Control.png");
+		Load<Texture>(L"UI_Title_QuitGame", L"..\\Resources\\Image\\UI\\UI_Title_QuitGame.png");
+		Load<Texture>(L"UI_Title_Search", L"..\\Resources\\Image\\UI\\UI_Title_Search.png");
+		Load<Texture>(L"UI_Title_SelectFrame", L"..\\Resources\\Image\\UI\\UI_Title_SelectFrame.png");
+		Load<Texture>(L"UI_Title_Setting", L"..\\Resources\\Image\\UI\\UI_Title_Setting.png");
+
 	
 		
 		

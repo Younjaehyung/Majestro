@@ -761,6 +761,28 @@ void MainMenuScene::Initialize()
 		ctrl->mStateEntities[(size_t)MainMenuState::RoomList] = { bBack, bSubExit };
 		ctrl->mStateEntities[(size_t)MainMenuState::Exit] = { bYes, bNo };
 
+		// 상태별 풀스크린 배경
+		auto makeBg = [this](const std::wstring& texKey) -> Entity
+			{
+				Entity e = mWorld->CreateEntity();
+				auto& tr = mWorld->AddComponent<UITransformComponent>(e);
+				tr.mLayoutMode = UILayoutMode::ScreenRatio;     // 어떤 종횡비든 화면 꽉 채움
+				tr.mAnchor = Anchor::Center;
+				tr.mPositionRatio = Vec2(0.f, 0.f);
+				tr.mSizeRatio = Vec2(1.f, 1.f);
+				tr.mPivot = Vec2(0.5f, 0.5f);                   // 중앙 기준 줌
+				tr.mUILayerIndex = 1;                           // 버튼/텍스트보다 뒤
+				auto& sp = mWorld->AddComponent<UISpriteComponent>(e, RESOURCEMANAGER.Get<Texture>(texKey));
+				sp.mVisible = false;                            // 페이드 시작 전 숨김
+				sp.mColorTint = Vec4(1.f, 1.f, 1.f, 0.f);       // 알파 0 시작
+				return e;
+			};
+		ctrl->mStateBackground[(size_t)MainMenuState::MainMenu] = makeBg(L"UI_Title_SelectFrame");
+		ctrl->mStateBackground[(size_t)MainMenuState::Setting]  = makeBg(L"UI_Title_Setting");
+		ctrl->mStateBackground[(size_t)MainMenuState::Manual]   = makeBg(L"UI_Title_Control");
+		ctrl->mStateBackground[(size_t)MainMenuState::RoomList] = makeBg(L"UI_Title_Search");
+		ctrl->mStateBackground[(size_t)MainMenuState::Exit]     = makeBg(L"UI_Title_QuitGame");
+
 		auto applyVisible = [this](Entity e, bool v)
 			{
 				if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = v;

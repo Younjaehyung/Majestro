@@ -216,7 +216,6 @@
     <ClCompile Include="DamageSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
-    <ClCompile Include="PlayerNavValidationSystem.cpp" />
     <ClCompile Include="BulletFireEventSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
@@ -235,9 +234,6 @@
     <ClCompile Include="OnnxModelRunner.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="BuffSystem.cpp" />
-    <ClCompile Include="InteractionSystem.cpp" />
-    <ClCompile Include="SpawnerSystem.cpp" />
     <ClCompile Include="SpatialGrid2D.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -256,7 +252,21 @@
     <ClCompile Include="PathFollowSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
-    <ClCompile Include="TruckComponent.cpp" />
+    <ClCompile Include="InteractionSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TruckComponent.cpp">
+      <Filter>Component\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerNavValidationSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnerSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BuffSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AIManager.h">
@@ -424,7 +434,6 @@
     <ClInclude Include="HealthComponent.h">
       <Filter>Component\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerNavValidationSystem.h" />
     <ClInclude Include="ArmorComponent.h">
       <Filter>Component\Logic</Filter>
     </ClInclude>
@@ -434,7 +443,6 @@
     <ClInclude Include="MeleeAttackSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="BuffComponent.h" />
     <ClInclude Include="NavMeshLoader.h">
       <Filter>Resource</Filter>
     </ClInclude>
@@ -447,11 +455,6 @@
     <ClInclude Include="OnnxModelRunner.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="BuffSystem.h" />
-    <ClInclude Include="InteractableComponent.h" />
-    <ClInclude Include="InteractionSystem.h" />
-    <ClInclude Include="SpawnerComponent.h" />
-    <ClInclude Include="SpawnerSystem.h" />
     <ClInclude Include="SpatialGrid2D.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -473,7 +476,30 @@
     <ClInclude Include="PathFollowSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="TruckComponent.h" />
+    <ClInclude Include="BuffComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="InteractionSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TruckComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="InteractableComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnerComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnerSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerNavValidationSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BuffSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">

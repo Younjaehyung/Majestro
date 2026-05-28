@@ -26,6 +26,15 @@ public:
     // 상태별 가시화할 UI entity 목록 (MainMenuSystem 이 visible/enabled 토글)
     std::array<std::vector<Entity>, (size_t)MainMenuState::Count> mStateEntities;
 
+    // 상태별 배경 스프라이트
+    std::array<Entity, (size_t)MainMenuState::Count> mStateBackground;
+
+    // 배경 페이드+줌 진행 상태
+    Entity mActiveBg{};            // 현재 페이드 대상 (무효 = 없음)
+    float  mBgFadeT        = 0.f;
+    float  mBgFadeDuration = 0.05f;
+    float  mBgTargetAlpha  = 1.0f; // 텍스처 자체 알파에 곱할 최대치
+
     void Request(MainMenuState next)
     {
         if (next == mState && !mHasPending) return;

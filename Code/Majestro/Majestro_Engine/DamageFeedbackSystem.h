@@ -23,7 +23,7 @@ private:
 
 private:
 
-    // 피격 펄스 피크 각도(라디안). 약 8~12도.
-    constexpr static float mHitReactionPeakPitch = 0.18f; // 약 10도, 뒤로 젖힘 강도 기준
-    constexpr static float mHitReactionPeakYaw = 0.14f; // 약 8도, 측면 비틂 강도 기준
+    // 피격 펄스 피크 각도(라디안). 약 16~20도.
+    constexpr static float mHitReactionPeakPitch = 0.35f; // 약 20도, 뒤로 젖힘 강도 기준
+    constexpr static float mHitReactionPeakYaw = 0.28f; // 약 16도, 측면 비틂 강도 기준
 };

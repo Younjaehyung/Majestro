@@ -3,6 +3,7 @@
 #include"TransformComponent.h"
 #include "EnemyComponent.h"
 #include "AnimationComponent.h"
+#include "BulletComponent.h"
 #include "RenderComponent.h"
 #include"MovementComponent.h"
 #include"SimpleMath.h"
@@ -18,7 +19,7 @@ namespace
 	constexpr float kPianomanMeleeRange = 160.0f;
 	constexpr float kPianomanAttackRadius = 200.0f;
 	constexpr float kBongomanAttackRadius = 500.0f;
-	constexpr float kPlayerMeleeAttackRadius = 200.0f;
+	constexpr float kPlayerMeleeAttackRadius = 300.0f;
 	constexpr float kMeleeAttackForwardDistance = 3.0f;
 	constexpr float kAttackDebugDuration = 1.0f;
 	constexpr float kAttackDebugHeight = 220.0f;
@@ -50,6 +51,84 @@ namespace
 
 			RenderSystem::SubmitDebugLine(p0, p1, color);
 		}
+	}
+
+	void SubmitDebugCircleXZ(const Vec3& center, float radius, const Vec4& color, int segments = kCircleSegments)
+	{
+		SubmitDebugCircle(center, radius, color, segments);
+	}
+
+	void SubmitDebugCircleXY(const Vec3& center, float radius, const Vec4& color, int segments = kCircleSegments)
+	{
+		if (radius <= 0.0f || segments < 3)
+			return;
+
+		const float step = DirectX::XM_2PI / static_cast<float>(segments);
+		for (int i = 0; i < segments; ++i)
+		{
+			const float a0 = step * static_cast<float>(i);
+			const float a1 = step * static_cast<float>(i + 1);
+
+			const Vec3 p0{
+				center.x + std::cos(a0) * radius,
+				center.y + std::sin(a0) * radius,
+				center.z
+			};
+			const Vec3 p1{
+				center.x + std::cos(a1) * radius,
+				center.y + std::sin(a1) * radius,
+				center.z
+			};
+
+			RenderSystem::SubmitDebugLine(p0, p1, color);
+		}
+	}
+
+	void SubmitDebugCircleYZ(const Vec3& center, float radius, const Vec4& color, int segments = kCircleSegments)
+	{
+		if (radius <= 0.0f || segments < 3)
+			return;
+
+		const float step = DirectX::XM_2PI / static_cast<float>(segments);
+		for (int i = 0; i < segments; ++i)
+		{
+			const float a0 = step * static_cast<float>(i);
+			const float a1 = step * static_cast<float>(i + 1);
+
+			const Vec3 p0{
+				center.x,
+				center.y + std::cos(a0) * radius,
+				center.z + std::sin(a0) * radius
+			};
+			const Vec3 p1{
+				center.x,
+				center.y + std::cos(a1) * radius,
+				center.z + std::sin(a1) * radius
+			};
+
+			RenderSystem::SubmitDebugLine(p0, p1, color);
+		}
+	}
+
+	void SubmitDebugSphere(const Vec3& center, float radius, const Vec4& color)
+	{
+		SubmitDebugCircleXZ(center, radius, color, 28);
+		SubmitDebugCircleXY(center, radius, color, 28);
+		SubmitDebugCircleYZ(center, radius, color, 28);
+	}
+
+	bool IsEnemyRangedSkill(SkillType skillType)
+	{
+		return skillType == SkillType::HornAttack;
+	}
+
+	bool IsPlayerRangedSkill(SkillType skillType)
+	{
+		return skillType == SkillType::BaseAttack ||
+			skillType == SkillType::BaseSkill1 ||
+			skillType == SkillType::GuitarAttack_1 ||
+			skillType == SkillType::GuitarAttack_2 ||
+			skillType == SkillType::GuitarAttack_3;
 	}
 
 	void SubmitEnemyRangeCircles(World* world, const TransformComponent* transformComponent, const EnemyComponent* enemyComponent)
@@ -138,7 +217,30 @@ void EnemySystem::Update(float dt) {
 		}
 
 	if (RenderSystem::GetDrawEnemyAttackRanges() || RenderSystem::GetDrawPlayerAttackRanges())
+	{
+		const Vec4 color = Vec4(1.0f, 1.0f, 0.f, 1.0f);
+		for (Entity bulletEntity : mWorld->View<BulletComponent>())
+		{
+			BulletComponent* bulletComponent = mWorld->GetComponent<BulletComponent>(bulletEntity);
+			TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+			if (!bulletComponent || !bulletTransform || !bulletComponent->mIsActive)
+				continue;
+
+			const SkillType skillType = bulletComponent->mType;
+			const bool drawEnemyRanged = RenderSystem::GetDrawEnemyAttackRanges() && IsEnemyRangedSkill(skillType);
+			const bool drawPlayerRanged = RenderSystem::GetDrawPlayerAttackRanges() && IsPlayerRangedSkill(skillType);
+			if (!drawEnemyRanged && !drawPlayerRanged)
+				continue;
+
+			const float radius = (std::max)(0.0f, bulletTransform->mLocalScale.x * 0.5f);
+			if (radius <= 0.0f)
+				continue;
+
+			SubmitDebugSphere(bulletTransform->mLocalPosition, radius, color);
+		}
+
 		UpdateAttackDebugIndicators(dt);
+	}
 
 	if (mWorld->GetEventManager())
 	{

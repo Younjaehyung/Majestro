@@ -151,15 +151,24 @@ void EnemySystem::Update(float dt)
             enemyComp->mNextShildTime = now + Beat * 4.0f;
             if (eventManager)
             {
+                Vec3 shieldForward = tf->GetLook();
+                shieldForward.y = 0.0f;
+                if (shieldForward.LengthSquared() > 1e-6f)
+                    shieldForward.Normalize();
+                else
+                    shieldForward = Vec3::Forward;
+
+                const Vec3 shieldEffectPos = myPos + shieldForward * 300.0f;
+                const float shieldYawDeg = DirectX::XMConvertToDegrees(std::atan2(shieldForward.x, shieldForward.z));
                 eventManager->Enqueue<EvArmorChanged>({ entity, armorComp->mCurrentArmor, armorComp->mMaxArmor });
                 eventManager->Enqueue<EvEffectSpawn>({
                     static_cast<uint8>(SkillType::BongoShild),
-                    myPos.x,
-                    myPos.y,
-                    myPos.z,
+                    shieldEffectPos.x,
+                    shieldEffectPos.y,
+                    shieldEffectPos.z,
                     EffectSpawnReason::Fire,
                     0.0f,
-                    0.0f,
+                    shieldYawDeg,
                     0.0f
                 });
             }

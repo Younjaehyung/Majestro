@@ -296,6 +296,14 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	if (*nextTimePtr > now) return false;
 	if (needsAmmo && mp->mNowBullet <= 0) return false;
 
+	if (button == InputButtons::SKILL1 &&
+		mp->mPlayerType == Rudwig &&
+		mp->mStateThrew)
+	{
+		mp->mFsm.ChangeState(mp, nextState);
+		return true;
+	}
+
 	// 박자 약화: Fanthor ATTACK만 rhythm 사용. 박자 빗나가면 rhythm=0 폴백.
 	uint8 rhythm = 0;
 	if (button == InputButtons::ATTACK

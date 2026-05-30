@@ -51,11 +51,16 @@ float4 QuaternionConjugate(float4 q)
 }
 
 
-float Rand(float2 co)
+float Rand(float2 seed)
 {
-    return 0.5 + (frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453)) * 0.5;
+    return 0.5 + (frac(sin(dot(seed.xy, float2(12.9898, 78.233))) * 43758.5453)) * 0.5;
     
     //frac : 소수점 추출
+}
+
+float Rand01(float2 seed)
+{
+    return frac(sin(dot(seed, float2(12.9898f, 78.233f))) * 43758.5453f);
 }
 
 float4 FixQuatSign(float4 q, float4 refq)

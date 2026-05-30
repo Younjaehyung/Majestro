@@ -120,6 +120,202 @@ def soft_update_(src: nn.Module, dst: nn.Module, tau: float):
             tp.data.mul_(1.0 - tau).add_(p.data, alpha=tau)
 
 
+def _relative_rate_vs_detour(actor_count: int, detour_count: int) -> float:
+    if int(detour_count) > 0:
+        return 100.0 * float(actor_count) / float(detour_count)
+    return 100.0 if int(actor_count) == 0 else 0.0
+
+
+def _snapshot_env_runtime_state(env) -> Dict[str, Any]:
+    state: Dict[str, Any] = {}
+    attrs = [
+        "agent_positions",
+        "agent_heights",
+        "agent_velocities",
+        "current_detour_waypoints",
+        "current_detour_waypoint_heights",
+        "_arrived_agents",
+        "agent_pos",
+        "agent_height",
+        "goal_pos",
+        "goal_height",
+        "steps",
+        "max_steps",
+        "agent_role_ids",
+        "role_targets",
+        "last_target_offsets",
+        "_prev_geo",
+        "_prev_success_mask",
+        "_prev_in_sense_mask",
+        "_stall_best",
+        "_stall_wait",
+        "_episode_success_rewarded",
+    ]
+    for name in attrs:
+        if hasattr(env, name):
+            value = getattr(env, name)
+            if isinstance(value, np.ndarray):
+                value = value.copy()
+            elif isinstance(value, list):
+                value = list(value)
+            state[name] = value
+    return state
+
+
+def _apply_env_runtime_state(env, state: Dict[str, Any]) -> None:
+    for name, value in state.items():
+        if isinstance(value, np.ndarray):
+            value = value.copy()
+        elif isinstance(value, list):
+            value = list(value)
+        setattr(env, name, value)
+
+
+def _init_detour_reference_state(env) -> Dict[str, Any]:
+    return {
+        "agent_positions": np.asarray(env.agent_positions, dtype=np.float32).copy(),
+        "agent_heights": np.asarray(env.agent_heights, dtype=np.float32).copy(),
+        "agent_velocities": np.zeros_like(np.asarray(env.agent_velocities, dtype=np.float32)),
+        "current_detour_waypoints": np.full_like(np.asarray(env.current_detour_waypoints, dtype=np.float32), np.nan),
+        "current_detour_waypoint_heights": np.full_like(np.asarray(env.current_detour_waypoint_heights, dtype=np.float32), np.nan),
+        "arrived_agents": np.asarray(getattr(env, "_arrived_agents", np.zeros((len(env.agent_positions),), dtype=bool)), dtype=bool).copy(),
+        "agent_pos": np.asarray(env.agent_pos, dtype=np.float32).copy(),
+        "agent_height": float(env.agent_height),
+    }
+
+
+def _step_detour_reference(env, ref_state: Dict[str, Any]) -> Dict[str, Any]:
+    working = {
+        "agent_positions": np.asarray(ref_state["agent_positions"], dtype=np.float32).copy(),
+        "agent_heights": np.asarray(ref_state["agent_heights"], dtype=np.float32).copy(),
+        "agent_velocities": np.asarray(ref_state["agent_velocities"], dtype=np.float32).copy(),
+        "current_detour_waypoints": np.asarray(ref_state["current_detour_waypoints"], dtype=np.float32).copy(),
+        "current_detour_waypoint_heights": np.asarray(ref_state["current_detour_waypoint_heights"], dtype=np.float32).copy(),
+        "arrived_agents": np.asarray(ref_state["arrived_agents"], dtype=bool).copy(),
+        "agent_pos": np.asarray(ref_state["agent_pos"], dtype=np.float32).copy(),
+        "agent_height": float(ref_state["agent_height"]),
+    }
+    env.agent_positions = working["agent_positions"]
+    env.agent_heights = working["agent_heights"]
+    env.agent_velocities = working["agent_velocities"]
+    env.current_detour_waypoints = working["current_detour_waypoints"]
+    env.current_detour_waypoint_heights = working["current_detour_waypoint_heights"]
+    env._arrived_agents = working["arrived_agents"]
+    env.agent_pos = working["agent_pos"]
+    env.agent_height = working["agent_height"]
+
+    old_positions = env.agent_positions.copy()
+    collisions = np.zeros((env.num_agents,), dtype=bool)
+
+    for idx in range(env.num_agents):
+        old_pos = old_positions[idx]
+        if bool(env._arrived_agents[idx]):
+            env.agent_positions[idx] = old_pos
+            env.agent_velocities[idx] = np.zeros((2,), dtype=np.float32)
+            continue
+
+        waypoint = None
+        waypoint_height = float("nan")
+        if getattr(env, "_detour_enabled", False):
+            reach_tol = max(env._grid_cell_size * 0.50, env.step_size * 0.35)
+            cached_waypoint = env.current_detour_waypoints[idx]
+            cached_waypoint_height = float(env.current_detour_waypoint_heights[idx])
+            if np.all(np.isfinite(cached_waypoint)):
+                cached_dist = float(np.linalg.norm(cached_waypoint - old_pos))
+                if cached_dist > reach_tol and np.isfinite(cached_waypoint_height):
+                    waypoint = cached_waypoint.astype(np.float32)
+                    waypoint_height = cached_waypoint_height
+            if waypoint is None:
+                detour_result = env._detour_next_waypoint_with_min_progress(
+                    old_pos,
+                    np.asarray(env.goal_pos, dtype=np.float32),
+                    min_progress=max(env._grid_cell_size * 0.50, env.step_size * 0.25),
+                    height=float(env.agent_heights[idx]),
+                    target_height=float(env.goal_height),
+                )
+                if detour_result is not None:
+                    waypoint, waypoint_height = detour_result
+                    env.current_detour_waypoints[idx] = waypoint.astype(np.float32)
+                    env.current_detour_waypoint_heights[idx] = float(waypoint_height)
+                else:
+                    env.current_detour_waypoints[idx] = np.array([np.nan, np.nan], dtype=np.float32)
+                    env.current_detour_waypoint_heights[idx] = np.float32(np.nan)
+        else:
+            waypoint = env._geo_next_waypoint(old_pos, max_search=3)
+
+        tactical_target = np.asarray(env.goal_pos, dtype=np.float32) if waypoint is None else np.asarray(waypoint, dtype=np.float32)
+        to_target = tactical_target - old_pos
+        target_dist = float(np.linalg.norm(to_target))
+        if target_dist > env.step_size and target_dist > 1e-6:
+            movement_target = old_pos + (to_target / target_dist) * env.step_size
+        else:
+            movement_target = tactical_target
+
+        detour_priority_allowed = waypoint is not None and np.isfinite(waypoint_height)
+        if detour_priority_allowed:
+            move_ratio = 1.0 if target_dist <= 1e-6 else min(1.0, env.step_size / max(target_dist, 1e-6))
+            detour_height = float(env.agent_heights[idx]) + (float(waypoint_height) - float(env.agent_heights[idx])) * move_ratio
+            if np.isfinite(detour_height) and not env._collides_with_other_agents(movement_target, ignore_index=idx):
+                new_pos = movement_target.astype(np.float32)
+                new_height = float(detour_height)
+                collided = False
+            else:
+                new_pos, new_height, collided = env._move_with_agent_avoidance(
+                    old_pos,
+                    movement_target,
+                    ignore_index=idx,
+                    start_height=float(env.agent_heights[idx]),
+                )
+        else:
+            new_pos, new_height, collided = env._move_with_agent_avoidance(
+                old_pos,
+                movement_target,
+                ignore_index=idx,
+                start_height=float(env.agent_heights[idx]),
+            )
+
+        env.agent_positions[idx] = new_pos
+        env.agent_heights[idx] = new_height
+        env.agent_velocities[idx] = new_pos - old_pos
+        collisions[idx] = collided
+
+        if float(np.linalg.norm(np.asarray(env.goal_pos, dtype=np.float32) - new_pos)) <= float(getattr(env, "success_radius", 0.0)):
+            env._arrived_agents[idx] = True
+            collisions[idx] = False
+
+        current_wp = env.current_detour_waypoints[idx]
+        if np.all(np.isfinite(current_wp)):
+            if float(np.linalg.norm(current_wp - new_pos)) <= max(env._grid_cell_size * 0.50, env.step_size * 0.20):
+                env.current_detour_waypoints[idx] = np.array([np.nan, np.nan], dtype=np.float32)
+                env.current_detour_waypoint_heights[idx] = np.float32(np.nan)
+
+    env.agent_pos = env.agent_positions[0].copy()
+    env.agent_height = float(env.agent_heights[0])
+    ref_state["agent_positions"] = env.agent_positions.copy()
+    ref_state["agent_heights"] = env.agent_heights.copy()
+    ref_state["agent_velocities"] = env.agent_velocities.copy()
+    ref_state["current_detour_waypoints"] = env.current_detour_waypoints.copy()
+    ref_state["current_detour_waypoint_heights"] = env.current_detour_waypoint_heights.copy()
+    ref_state["arrived_agents"] = np.asarray(env._arrived_agents, dtype=bool).copy()
+    ref_state["agent_pos"] = env.agent_pos.copy()
+    ref_state["agent_height"] = float(env.agent_height)
+    dists = np.linalg.norm(np.asarray(env.goal_pos, dtype=np.float32)[None, :] - env.agent_positions, axis=1).astype(np.float32)
+    return {
+        "in_sense_mask": dists <= float(env.sense_radius),
+        "collision_handled": collisions.copy(),
+    }
+
+
+def _run_detour_baseline_terminal_count(env, initial_state: Dict[str, Any], horizon: int) -> int:
+    _apply_env_runtime_state(env, initial_state)
+    ref_state = _init_detour_reference_state(env)
+    info: Dict[str, Any] = {"in_sense_mask": np.zeros((env.num_agents,), dtype=bool)}
+    for _ in range(max(0, int(horizon))):
+        info = _step_detour_reference(env, ref_state)
+    terminal_mask = np.asarray(info.get("in_sense_mask", np.zeros((0,), dtype=bool)), dtype=bool).reshape(-1)
+    return int(np.count_nonzero(terminal_mask))
+
+
 class ReplayBuffer:
     def __init__(self, capacity: int = 1_000_000, obs_dtype=np.float32, act_dtype=np.float32):
         self.capacity = int(capacity)
@@ -195,7 +391,7 @@ def mlp(in_dim: int, hidden: Tuple[int, ...], out_dim: int, act=nn.ReLU) -> nn.S
 
 
 class GaussianPolicy(nn.Module):
-    def __init__(self, obs_dim: int, act_dim: int, hidden: Tuple[int, ...] = (512, 512, 512), log_std_bounds=(-5.0, 2.0)):
+    def __init__(self, obs_dim: int, act_dim: int, hidden: Tuple[int, ...] = (768, 768, 768), log_std_bounds=(-5.0, 2.0)):
         super().__init__()
         self.net = mlp(obs_dim, hidden, 2 * act_dim)
         self.act_dim = act_dim
@@ -225,7 +421,7 @@ class GaussianPolicy(nn.Module):
 
 
 class QNetwork(nn.Module):
-    def __init__(self, obs_dim: int, act_dim: int, hidden: Tuple[int, ...] = (512, 512, 512)):
+    def __init__(self, obs_dim: int, act_dim: int, hidden: Tuple[int, ...] = (768, 768, 768)):
         super().__init__()
         self.net = mlp(obs_dim + act_dim, hidden, 1)
 
@@ -378,6 +574,9 @@ def sac_train(
     best_min_episodes: int = 30,
     best_ckpt_path: str = "sac_best.pth",
     best_actor_path: str = "sac_actor_best.pth",
+    last_ckpt_path: str = "sac_last.pth",
+    last_actor_path: str = "sac_actor_last.pth",
+    save_last_every_episodes: int = 10,
     succ_min_dist: float = 0.20,
     **kwargs,
 ):
@@ -393,20 +592,36 @@ def sac_train(
         base_bundle = _finalize_bundle(init_bundle(obs_dim, act_dim, device, actor_lr, critic_lr, succ_buffer_capacity))
 
     recent_terminal_counts: deque[Tuple[int, int]] = deque(maxlen=100)
+    recent_detour_terminal_counts: deque[Tuple[int, int]] = deque(maxlen=100)
+    recent_collision_counts: deque[int] = deque(maxlen=100)
+    recent_detour_collision_counts: deque[int] = deque(maxlen=100)
     succ_buf_total_history: deque[int] = deque(maxlen=max(2, int(best_min_episodes)))
     best_score = -1.0
+    best_collision_score = math.inf
     alpha_frozen = False
     best_snapshot = None
     base_move_success_horizon = max(1, int(kwargs.get("base_move_success_horizon", 8)))
+    detour_reward_shaping = bool(kwargs.get("detour_reward_shaping", True))
+    detour_lead_bonus = float(kwargs.get("detour_lead_bonus", 0.02))
+    detour_collision_base_bonus = float(kwargs.get("detour_collision_base_bonus", 0.10))
+    detour_collision_bonus_100 = float(kwargs.get("detour_collision_bonus_100", 0.10))
+    detour_collision_bonus_50 = float(kwargs.get("detour_collision_bonus_50", 0.20))
+    detour_collision_bonus_10 = float(kwargs.get("detour_collision_bonus_10", 0.50))
+    detour_collision_bonus_0 = float(kwargs.get("detour_collision_bonus_0", 1.00))
 
     for ep in range(episodes):
         sampled_rules = maybe_sample_agent_role_rules(env)
         obs = reset_env(env)
+        detour_ref_state = _init_detour_reference_state(env)
+        detour_final_info: Dict[str, Any] = {"in_sense_mask": np.zeros((getattr(env, "num_agents", 0),), dtype=bool)}
         done = False
         ep_steps = 0
         ep_reward = 0.0
+        ep_collision_total = 0
+        ep_detour_collision_total = 0
         ep_initial_in_sense = 0
         ep_terminal_in_sense = 0
+        ep_detour_terminal_in_sense = 0
         ep_total_agents = 0
         recent_success_traces: Dict[int, deque] = {}
         final_info: Dict[str, object] = {}
@@ -433,10 +648,24 @@ def sac_train(
                 next_obs_arr = next_obs_arr.reshape(1, -1)
                 act = np.asarray(act, dtype=np.float32).reshape(1, -1)
 
-            ep_reward += float(np.mean(reward_arr))
+            actor_state_after_step = _snapshot_env_runtime_state(env)
+            detour_final_info = {"in_sense_mask": np.zeros((obs_arr.shape[0],), dtype=bool)}
+            if detour_reward_shaping:
+                detour_final_info = _step_detour_reference(env, detour_ref_state)
+                _apply_env_runtime_state(env, actor_state_after_step)
+                actor_arrived = int(np.count_nonzero(np.asarray(getattr(env, "_arrived_agents", np.zeros((obs_arr.shape[0],), dtype=bool)), dtype=bool)))
+                detour_arrived = int(np.count_nonzero(np.asarray(detour_ref_state.get("arrived_agents", np.zeros((obs_arr.shape[0],), dtype=bool)), dtype=bool)))
+                if actor_arrived > detour_arrived and detour_lead_bonus > 0.0:
+                    reward_arr = reward_arr + np.float32(detour_lead_bonus * float(actor_arrived - detour_arrived))
+                detour_collided_arr = np.asarray(detour_final_info.get("collision_handled", np.zeros((obs_arr.shape[0],), dtype=bool)), dtype=bool).reshape(-1)
+                ep_detour_collision_total += int(np.count_nonzero(detour_collided_arr))
+
             final_info = info if isinstance(info, dict) else {}
             success_mask_arr = np.asarray(info.get("success_mask", np.zeros((obs_arr.shape[0],), dtype=bool)), dtype=bool).reshape(-1)
             dist_values = np.asarray(info.get("dist_to_goal", np.full((obs_arr.shape[0],), -1.0, dtype=np.float32)), dtype=np.float32).reshape(-1)
+            collided_arr = np.asarray(info.get("collided", np.zeros((obs_arr.shape[0],), dtype=bool)), dtype=bool).reshape(-1)
+            ep_collision_total += int(np.count_nonzero(collided_arr))
+            ep_reward += float(np.mean(reward_arr))
 
             for agent_idx in range(obs_arr.shape[0]):
                 dist = None if agent_idx >= len(dist_values) else float(dist_values[agent_idx])
@@ -540,11 +769,42 @@ def sac_train(
         terminal_mask = np.asarray(final_info.get("in_sense_mask", np.zeros((0,), dtype=bool)), dtype=bool).reshape(-1)
         ep_total_agents = int(len(terminal_mask))
         ep_terminal_in_sense = int(np.count_nonzero(terminal_mask))
-        ep_terminal_rate = 100.0 * ep_terminal_in_sense / max(1, ep_total_agents)
+        detour_terminal_mask = np.asarray(detour_final_info.get("in_sense_mask", np.zeros((0,), dtype=bool)), dtype=bool).reshape(-1)
+        ep_detour_terminal_in_sense = int(np.count_nonzero(detour_terminal_mask))
+        episode_collision_bonus = 0.0
+        if detour_reward_shaping and ep_collision_total < ep_detour_collision_total:
+            episode_collision_bonus = detour_collision_base_bonus
+            if ep_collision_total == 0:
+                episode_collision_bonus += detour_collision_bonus_0
+            elif ep_collision_total <= 10:
+                episode_collision_bonus += detour_collision_bonus_10
+            elif ep_collision_total <= 50:
+                episode_collision_bonus += detour_collision_bonus_50
+            elif ep_collision_total <= 100:
+                episode_collision_bonus += detour_collision_bonus_100
+        if episode_collision_bonus > 0.0:
+            last_agent_count = int(getattr(obs_arr, "shape", [0])[0]) if 'obs_arr' in locals() else 0
+            for back_idx in range(1, last_agent_count + 1):
+                try:
+                    base_bundle["replay_buffer"].rew[-back_idx] = np.asarray(
+                        np.asarray(base_bundle["replay_buffer"].rew[-back_idx], dtype=np.float32) + np.float32(episode_collision_bonus),
+                        dtype=np.float32,
+                    )
+                except Exception:
+                    break
+            ep_reward += float(episode_collision_bonus)
+        ep_terminal_rate = _relative_rate_vs_detour(ep_terminal_in_sense, ep_detour_terminal_in_sense)
         recent_terminal_counts.append((ep_terminal_in_sense, ep_total_agents))
+        recent_detour_terminal_counts.append((ep_detour_terminal_in_sense, ep_total_agents))
+        recent_collision_counts.append(int(ep_collision_total))
+        recent_detour_collision_counts.append(int(ep_detour_collision_total))
         recent_terminal_in_sense = sum(s for s, _ in recent_terminal_counts)
         recent_terminal_agents = sum(a for _, a in recent_terminal_counts)
-        recent_terminal_rate = 100.0 * recent_terminal_in_sense / max(1, recent_terminal_agents)
+        recent_detour_terminal_in_sense = sum(s for s, _ in recent_detour_terminal_counts)
+        recent_collision_total = sum(recent_collision_counts)
+        recent_detour_collision_total = sum(recent_detour_collision_counts)
+        recent_absolute_terminal_rate = 100.0 * recent_terminal_in_sense / max(1, recent_terminal_agents)
+        recent_terminal_rate = _relative_rate_vs_detour(recent_terminal_in_sense, recent_detour_terminal_in_sense)
         succ_buf_total = len(base_bundle["succ_replay_buffer"])
         succ_buf_total_history.append(succ_buf_total)
         succ_buf_growth = succ_buf_total - succ_buf_total_history[0] if len(succ_buf_total_history) >= 2 else 0
@@ -560,28 +820,62 @@ def sac_train(
             print(
                 f"[EP {ep + 1:5d}] steps={ep_steps:3d} R={ep_reward:8.2f} "
                 f"| start_in_sense={ep_initial_in_sense:3d}/{ep_total_agents:3d} "
-                f"| in_sense_end={ep_terminal_in_sense:3d}/{ep_total_agents:3d} ({ep_terminal_rate:5.1f}%) "
-                f"| recent100={recent_terminal_in_sense:4d}/{recent_terminal_agents:4d} ({recent_terminal_rate:5.1f}%) "
-                f"| succ_buf={succ_buf_total} growth@{len(succ_buf_total_history)}={succ_buf_growth} "
+                f"| in_sense_end={ep_terminal_in_sense:3d}/{ep_total_agents:3d} "
+                f"| detour_end={ep_detour_terminal_in_sense:3d}/{ep_total_agents:3d} ({ep_terminal_rate:5.1f}%) "
+                f"| collisions={ep_collision_total:4d} detour_col={ep_detour_collision_total:4d} "
+                f"| recent100={recent_terminal_in_sense:4d}/{recent_terminal_agents:4d} ({recent_absolute_terminal_rate:5.1f}%) "
+                f"| detour100={recent_detour_terminal_in_sense:4d}/{recent_terminal_agents:4d} ({recent_terminal_rate:5.1f}%) "
+                f"| recent100_col={recent_collision_total:4d} detour100_col={recent_detour_collision_total:4d} "
+                f"| succ_buf={succ_buf_total} "
                 f"| alpha={base_bundle['alpha']:.3f}"
                 + (f" | agents={len(sampled_rules)}" if sampled_rules is not None else "")
             )
 
         if save_best_online and len(recent_terminal_counts) >= max(2, int(best_min_episodes)):
             min_rate_delta = float(best_delta)
-            if float(recent_terminal_rate) >= best_score + min_rate_delta:
-                best_score = float(recent_terminal_rate)
+            should_save_best = False
+            if float(recent_absolute_terminal_rate) >= best_score + min_rate_delta:
+                should_save_best = True
+            elif abs(float(recent_absolute_terminal_rate) - best_score) <= min_rate_delta and int(recent_collision_total) < int(best_collision_score):
+                should_save_best = True
+            if should_save_best:
+                best_score = float(recent_absolute_terminal_rate)
+                best_collision_score = int(recent_collision_total)
                 best_snapshot = {
                     "episodes": ep + 1,
                     "best_in_sense_end_rate": best_score,
-                    "recent_in_sense_end_rate": recent_terminal_rate,
+                    "recent_in_sense_end_rate": recent_absolute_terminal_rate,
                     "recent_in_sense_end": recent_terminal_in_sense,
+                    "recent_detour_in_sense_end": recent_detour_terminal_in_sense,
                     "recent_total_agents": recent_terminal_agents,
+                    "recent_collision_total": int(recent_collision_total),
                     "succ_buf_total": succ_buf_total,
                 }
                 save_sac_checkpoint(best_ckpt_path, base_bundle, extra=best_snapshot)
                 save_actor_checkpoint(best_actor_path, base_bundle)
-                print(f"[BEST] ep={ep + 1} in_sense_end={recent_terminal_rate:.1f}% -> saved {best_actor_path}")
+                print(f"[BEST] ep={ep + 1} in_sense_end={recent_absolute_terminal_rate:.1f}% recent100_col={recent_collision_total} -> saved {best_actor_path}")
 
-    save_actor_checkpoint("sac_actor_last.pth", base_bundle)
+        if int(save_last_every_episodes) > 0 and ((ep + 1) % int(save_last_every_episodes) == 0):
+            last_snapshot = {
+                "episodes": ep + 1,
+                "recent_in_sense_end_rate": recent_terminal_rate,
+                "recent_in_sense_end": recent_terminal_in_sense,
+                "recent_detour_in_sense_end": recent_detour_terminal_in_sense,
+                "recent_total_agents": recent_terminal_agents,
+                "succ_buf_total": succ_buf_total,
+            }
+            save_sac_checkpoint(last_ckpt_path, base_bundle, extra=last_snapshot)
+            save_actor_checkpoint(last_actor_path, base_bundle)
+            print(f"[LAST] ep={ep + 1} -> saved {last_actor_path}")
+
+    last_snapshot = {
+        "episodes": episodes,
+        "recent_in_sense_end_rate": recent_terminal_rate if recent_terminal_counts else 0.0,
+        "recent_in_sense_end": recent_terminal_in_sense if recent_terminal_counts else 0,
+        "recent_detour_in_sense_end": recent_detour_terminal_in_sense if recent_detour_terminal_counts else 0,
+        "recent_total_agents": recent_terminal_agents if recent_terminal_counts else 0,
+        "succ_buf_total": len(base_bundle["succ_replay_buffer"]),
+    }
+    save_sac_checkpoint(last_ckpt_path, base_bundle, extra=last_snapshot)
+    save_actor_checkpoint(last_actor_path, base_bundle)
     return {"bundle": base_bundle}

@@ -33,9 +33,9 @@ def set_global_seed(seed: int):
 def main():
     ap = argparse.ArgumentParser(description="PyCharm-friendly training runner (no CMD args needed).")
     # Core
-    ap.add_argument("--episodes", type=int, default=10000)
+    ap.add_argument("--episodes", type=int, default=1000)
     ap.add_argument("--max-steps", type=int, default=None)
-    ap.add_argument("--batch-size", type=int, default=1024)
+    ap.add_argument("--batch-size", type=int, default=512)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--resume", action="store_true", default=False)     # may be auto-enabled
     ap.add_argument("--strict-resume", action="store_true", default=False)
@@ -61,10 +61,13 @@ def main():
     ap.add_argument("--best-min-episodes", type=int, default=50)
     ap.add_argument("--best-ckpt-path", type=str, default="sac_best.pth")
     ap.add_argument("--best-actor-path", type=str, default="sac_actor_best.pth")
+    ap.add_argument("--last-ckpt-path", type=str, default="sac_last.pth")
+    ap.add_argument("--last-actor-path", type=str, default="sac_actor_last.pth")
+    ap.add_argument("--save-last-every-episodes", type=int, default=10)
 
     # Dynamic horizon (ENV-side) — default ON for PyCharm convenience
     ap.add_argument("--dyn-horizon", action="store_true", default=True)
-    ap.add_argument("--dyn-kappa", type=float, default=2.5)
+    ap.add_argument("--dyn-kappa", type=float, default=1.3)
     ap.add_argument("--dyn-tmin", type=int, default=128)
     ap.add_argument("--dyn-tmax", type=int, default=2048)
     ap.add_argument("--dyn-geo", action="store_true", default=True)
@@ -83,6 +86,7 @@ def main():
     ap.add_argument("--observed-other-agents", type=int, default=3)
     ap.add_argument("--agent-radius", type=float, default=90.0)
     ap.add_argument("--sense-radius", type=float, default=1000.0)
+    ap.add_argument("--resolve-agent-collisions", action="store_true", default=False)
     ap.add_argument("--goal-spawn-min-scale", type=float, default=4.0)
     ap.add_argument("--agent-spawn-min-scale", type=float, default=2.0)
     ap.add_argument("--agent-spawn-max-scale", type=float, default=3.0)
@@ -106,6 +110,7 @@ def main():
         observed_other_agents=args.observed_other_agents,
         agent_radius=args.agent_radius,
         sense_radius=args.sense_radius,
+        resolve_agent_collisions=args.resolve_agent_collisions,
         goal_spawn_min_scale=args.goal_spawn_min_scale,
         agent_spawn_min_scale=args.agent_spawn_min_scale,
         agent_spawn_max_scale=args.agent_spawn_max_scale,
@@ -153,9 +158,17 @@ def main():
     mode = "RESUME" if bundle else "FRESH"
     auto = " (auto)" if auto_resume else ""
     print(f"[MODE] {mode}{auto} | episodes={args.episodes} | batch={args.batch_size} | max_steps={args.max_steps} | dyn_horizon={getattr(env, 'dynamic_horizon', 'N/A')}")
-    print(f"[ENV] agents={getattr(env, 'num_agents', 'N/A')} move_step={args.move_step_size} target_radius={args.tactical_target_radius} observed_others={args.observed_other_agents}")
+    print(
+        f"[ENV] agents={getattr(env, 'num_agents', 'N/A')} move_step={args.move_step_size} "
+        f"target_radius={args.tactical_target_radius} observed_others={args.observed_other_agents} "
+        f"resolve_agent_collisions={bool(args.resolve_agent_collisions)}"
+    )
     print(f"[AGENT-COUNT] random total agents per episode: {env.random_agent_count_min}..{env.random_agent_count_max}")
-    print(f"[CKPT] in/out: {args.ckpt} | best_ckpt={args.best_ckpt_path} | best_actor={args.best_actor_path}")
+    print(
+        f"[CKPT] in/out: {args.ckpt} | best_ckpt={args.best_ckpt_path} | best_actor={args.best_actor_path} "
+        f"| last_ckpt={args.last_ckpt_path} | last_actor={args.last_actor_path} "
+        f"| save_last_every={args.save_last_every_episodes}"
+    )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -183,6 +196,9 @@ def main():
         best_min_episodes=args.best_min_episodes,
         best_ckpt_path=args.best_ckpt_path,
         best_actor_path=args.best_actor_path,
+        last_ckpt_path=args.last_ckpt_path,
+        last_actor_path=args.last_actor_path,
+        save_last_every_episodes=args.save_last_every_episodes,
         device=device,
     )
 

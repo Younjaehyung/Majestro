@@ -4,6 +4,7 @@
 #include "ComponentPool.h"
 #include "Mesh.h"
 
+class UISpriteComponent;
 
 struct UIInstanceData
 {
@@ -38,10 +39,10 @@ private:
     
 	void RenderCustomSprite();
 	void RenderSpirte();
-	void RenderText();
+	// void RenderText();
 	
 	
-	
+	void SortSpriteLayer(std::vector<Entity>& entitys);
 	
 	void UploadInstanceBuffer();
 	void InstancingRender(uint32 count, uint32 startInstance = 0);

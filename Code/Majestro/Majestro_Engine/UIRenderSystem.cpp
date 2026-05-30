@@ -261,11 +261,17 @@ void UIRenderSystem::RenderCustomSprite()
 
 void UIRenderSystem::RenderSpirte()
 {
+   
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UISpriteComponent>() };
+
+    SortSpriteLayer(entitys);
 
     for (Entity a : entitys) {
         auto spriteComp = mWorld->GetComponent<UISpriteComponent>(a);
         auto transComp = mWorld->GetComponent<UITransformComponent>(a);
+
+        if (spriteComp == nullptr || transComp == nullptr)
+            continue;
 
         if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
             continue;
@@ -388,6 +394,22 @@ void UIRenderSystem::RenderSpirte()
 
 }
 
+
+void UIRenderSystem::SortSpriteLayer(std::vector<Entity>& entitys)
+{
+    // 같은 레이어 안에서는 기존 생성 순서를 유지
+    std::stable_sort(entitys.begin(), entitys.end(),
+        [this](Entity lhs, Entity rhs)
+        {
+            const UITransformComponent* ltr = mWorld->GetComponent<UITransformComponent>(lhs);
+            const UITransformComponent* rtr = mWorld->GetComponent<UITransformComponent>(rhs);
+
+            const uint8 lhsLayer = ltr ? ltr->mUILayerIndex : 0;
+            const uint8 rhsLayer = rtr ? rtr->mUILayerIndex : 0;
+
+            return lhsLayer < rhsLayer;
+        });
+}
 
 void UIRenderSystem::UploadInstanceBuffer()
 {

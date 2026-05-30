@@ -2168,27 +2168,27 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Title_Setting", L"..\\Resources\\Image\\UI\\UI_Title_Setting.png");
 
 		Load<Texture>(L"UI_Title_PaintSplash_0", L"..\\Resources\\Image\\UI\\UI_Title_PaintSplash_0.png");
-	
-	
-		
-		
+
+
+
+
 		Load<Texture>(L"UI_Rudwig_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_0.png");
 		Load<Texture>(L"UI_Rudwig_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_1.png");
 		Load<Texture>(L"UI_Rudwig_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_Head_0.png");
 		Load<Texture>(L"UI_Rudwig_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_Head_1.png");
-		
-		
+
+
 
 		Load<Texture>(L"UI_Ibanix_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_0.png");
 		Load<Texture>(L"UI_Ibanix_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_1.png");
 		Load<Texture>(L"UI_Ibanix_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_Head_0.png");
 		Load<Texture>(L"UI_Ibanix_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_Head_1.png");
-	
+
 		Load<Texture>(L"UI_Fanthor_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_0.png");
 		Load<Texture>(L"UI_Fanthor_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_1.png");
 		Load<Texture>(L"UI_Fanthor_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_0.png");
 		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_1.png");
-		
+
 		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
 		Load<Texture>(L"UI_Loading_Circle", L"..\\Resources\\Image\\UI\\UI_Loading_Circle.png");
 		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
@@ -2199,17 +2199,22 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Weapon_0.png");
 		Load<Texture>(L"UI_Rudwig_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Weapon_0.png");
 
-		Load<Texture>(L"UI_Fanthor_Display_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Display_0.png");
-		Load<Texture>(L"UI_Ibanix_Display_01", L"..\\Resources\\Image\\UI\\UI_Ibanix_Display_01.png");
-		Load<Texture>(L"UI_Rudwig_Display_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Display_0.png");
+
+#pragma region Display&HPBG
+		{
+			Load<Texture>(L"UI_Fanthor_Display_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Display_0.png");
+			Load<Texture>(L"UI_Ibanix_Display_01", L"..\\Resources\\Image\\UI\\UI_Ibanix_Display_01.png");
+			Load<Texture>(L"UI_Rudwig_Display_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Display_0.png");
 
 
-		Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
-		Load<Texture>(L"UI_Rudwig_HP_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_0.png");
-		Load<Texture>(L"UI_Ibanix_HP_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_0.png");
-		
+			Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
+			Load<Texture>(L"UI_Rudwig_HP_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_0.png");
+			Load<Texture>(L"UI_Ibanix_HP_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_0.png");
+		}
+#pragma endregion
 
-
+#pragma region Text
+	{
 		Load<Texture>(L"UI_Rudwig_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_0.png");
 		Load<Texture>(L"UI_Rudwig_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_1.png");
 		Load<Texture>(L"UI_Rudwig_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_2.png");
@@ -2225,13 +2230,21 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Fanthor_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_2.png");
 		Load<Texture>(L"UI_Fanthor_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_3.png");
 
+	}
+#pragma endregion
 
+#pragma region HPBar
+	{
 		Load<Texture>(L"UI_Player_HP_0", L"..\\Resources\\Image\\UI\\UI_Player_HP_0.png");
 		Load<Texture>(L"UI_Player_HP_1", L"..\\Resources\\Image\\UI\\UI_Player_HP_1.png");
 		Load<Texture>(L"UI_Player_HP_2", L"..\\Resources\\Image\\UI\\UI_Player_HP_2.png");
 		Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
+	}
+#pragma endregion
 
 
+#pragma region InGame
+	{
 		Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
 		Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort_0.png");
 		Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
@@ -2246,10 +2259,12 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Escort_Info_1", L"..\\Resources\\Image\\UI\\UI_Escort_Info_1.png");
 		Load<Texture>(L"UI_Escort_Info_2", L"..\\Resources\\Image\\UI\\UI_Escort_Info_2.png");
 		Load<Texture>(L"UI_Escort_Info_Cursor", L"..\\Resources\\Image\\UI\\UI_Escort_Info_Cursor.png");
-
+			}
+#pragma endregion
 
 		
-		
+#pragma region SAMR
+	{
 
 		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Skin.png");
 		auto T_Ibanix_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Body_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Body_SAMR.png");
@@ -2260,6 +2275,10 @@ void ResourceManager::CreateDefaultMaterial()
 
 		auto T_Fanthor_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Body_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Body_SAMR.png");
 		auto T_Fanthor_Axe_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Axe_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Axe_SAMR.png");
+	}
+#pragma endregion
+
+
 	}
 
 	LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");
@@ -2322,22 +2341,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Rhythm.fbx", L"ForwardPlusCel");
 
 
-//<<<<<<< HEAD
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack01.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_BackRun.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_RightRun.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_LeftRun.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Reload.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_01.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_02.fbx", L"ForwardPlusCel");
-//	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Rhythm.fbx", L"ForwardPlusCel");
-//=======
+
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Base.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_01.fbx", L"ForwardPlusCel");

@@ -288,6 +288,7 @@ class MajestroNavMeshEnv(gym.Env):
         ray_count: int = 8,
         ray_length: float = 600.0,
         sense_radius: float | None = None,
+        resolve_agent_collisions: bool = False,
         collision_penalty: float = 0.35,
         stall_penalty: float = 0.05,
         stall_patience: int = 20,
@@ -324,6 +325,7 @@ class MajestroNavMeshEnv(gym.Env):
         self.ray_count = int(ray_count)
         self.ray_length = float(ray_length)
         self.sense_radius = float(ray_length if sense_radius is None else sense_radius)
+        self.resolve_agent_collisions = bool(resolve_agent_collisions)
         self.collision_penalty = float(collision_penalty)
         self.stall_penalty = float(stall_penalty)
         self.stall_patience = int(stall_patience)
@@ -656,6 +658,22 @@ class MajestroNavMeshEnv(gym.Env):
         for idx, other in enumerate(self.agent_positions):
             if ignore_index is not None and idx == ignore_index:
                 continue
+            if hasattr(self, "_arrived_agents") and idx < len(self._arrived_agents) and bool(self._arrived_agents[idx]):
+                continue
+            dx = float(pos[0] - other[0])
+            dz = float(pos[1] - other[1])
+            if dx * dx + dz * dz < min_dist_sq:
+                return True
+        return False
+
+    def _detect_collision_with_any_agent(self, pos: np.ndarray, ignore_index: Optional[int] = None) -> bool:
+        if self.agent_positions.size == 0:
+            return False
+        min_dist = self.agent_radius * 2.0
+        min_dist_sq = min_dist * min_dist
+        for idx, other in enumerate(self.agent_positions):
+            if ignore_index is not None and idx == ignore_index:
+                continue
             dx = float(pos[0] - other[0])
             dz = float(pos[1] - other[1])
             if dx * dx + dz * dz < min_dist_sq:
@@ -688,27 +706,28 @@ class MajestroNavMeshEnv(gym.Env):
         agent_blocked = False
         if self._collides_with_other_agents(moved, ignore_index=ignore_index):
             agent_blocked = True
-            direction = moved - start
-            dist = float(np.linalg.norm(direction))
-            if dist > 1e-6:
-                lo = start.copy()
-                hi = moved.copy()
-                best = start.copy()
-                best_height = float(start_height if start_height is not None else moved_height)
-                for _ in range(7):
-                    mid = (lo + hi) * 0.5
-                    mid_h = self._sample_height(mid)
-                    if mid_h is None or self._collides_with_other_agents(mid, ignore_index=ignore_index):
-                        hi = mid
-                    else:
-                        best = mid
-                        best_height = float(mid_h)
-                        lo = mid
-                moved = best.astype(np.float32)
-                moved_height = best_height
-            else:
-                moved = start.copy()
-                moved_height = float(start_height if start_height is not None else saved_height)
+            if self.resolve_agent_collisions:
+                direction = moved - start
+                dist = float(np.linalg.norm(direction))
+                if dist > 1e-6:
+                    lo = start.copy()
+                    hi = moved.copy()
+                    best = start.copy()
+                    best_height = float(start_height if start_height is not None else moved_height)
+                    for _ in range(7):
+                        mid = (lo + hi) * 0.5
+                        mid_h = self._sample_height(mid)
+                        if mid_h is None or self._collides_with_other_agents(mid, ignore_index=ignore_index):
+                            hi = mid
+                        else:
+                            best = mid
+                            best_height = float(mid_h)
+                            lo = mid
+                    moved = best.astype(np.float32)
+                    moved_height = best_height
+                else:
+                    moved = start.copy()
+                    moved_height = float(start_height if start_height is not None else saved_height)
 
         self.agent_height = saved_height
         return moved, float(moved_height), bool(nav_collided or agent_blocked)
@@ -1357,12 +1376,14 @@ class MajestroNavMeshEnv(gym.Env):
         self._prev_success_mask = np.zeros((self.num_agents,), dtype=bool)
         self._prev_in_sense_mask = np.zeros((self.num_agents,), dtype=bool)
         self._episode_success_rewarded = np.zeros((self.num_agents,), dtype=bool)
+        self._arrived_agents = np.zeros((self.num_agents,), dtype=bool)
         for idx in range(self.num_agents):
             geo = self._geo_distance(self.agent_positions[idx])
             self._prev_geo[idx] = np.nan if geo is None else geo
             self._stall_best[idx] = geo if geo is not None else float(np.linalg.norm(self.goal_pos - self.agent_positions[idx]))
             self._prev_in_sense_mask[idx] = bool(np.linalg.norm(self.goal_pos - self.agent_positions[idx]) <= float(self.sense_radius))
             self._episode_success_rewarded[idx] = self._prev_in_sense_mask[idx]
+            self._arrived_agents[idx] = bool(np.linalg.norm(self.goal_pos - self.agent_positions[idx]) <= float(self.success_radius))
 
         if self.dynamic_horizon:
             self.max_steps = self._compute_dynamic_horizon()
@@ -1392,11 +1413,22 @@ class MajestroNavMeshEnv(gym.Env):
         tactical_targets = np.zeros_like(self.agent_positions)
         requested_targets = np.zeros_like(self.agent_positions)
         collisions = np.zeros((self.num_agents,), dtype=bool)
+        collision_detected = np.zeros((self.num_agents,), dtype=bool)
         rewards = np.full((self.num_agents,), -self.time_penalty, dtype=np.float32)
         terms_list = [{"time_penalty": -self.time_penalty} for _ in range(self.num_agents)]
 
         for idx in range(self.num_agents):
             old_pos = old_positions[idx]
+            if bool(self._arrived_agents[idx]):
+                self.agent_positions[idx] = old_pos
+                self.agent_heights[idx] = float(self.agent_heights[idx])
+                self.agent_velocities[idx] = np.zeros((2,), dtype=np.float32)
+                self.last_target_offsets[idx] = np.zeros((2,), dtype=np.float32)
+                tactical_targets[idx] = self.goal_pos.copy()
+                requested_targets[idx] = self.goal_pos.copy()
+                detour_targets[idx] = self.goal_pos.copy()
+                collision_detected[idx] = False
+                continue
             _, fail_code = self._sense_local_space(idx, max(self.map_range, 1.0))
             sensor_fail_codes[idx] = fail_code
             target_offset = np.clip(acts[idx], -1.0, 1.0) * self.tactical_target_radius
@@ -1506,6 +1538,7 @@ class MajestroNavMeshEnv(gym.Env):
             tactical_targets[idx] = tactical_target
             requested_targets[idx] = desired_target
             collisions[idx] = collided
+            collision_detected[idx] = self._collides_with_other_agents(new_pos, ignore_index=idx)
 
         self.agent_pos = self.agent_positions[0].copy()
         self.agent_height = float(self.agent_heights[0])
@@ -1532,6 +1565,15 @@ class MajestroNavMeshEnv(gym.Env):
 
             self.agent_role_ids[idx] = step_role_ids[idx]
             self.role_targets[idx] = old_role_targets[idx]
+            if bool(self._arrived_agents[idx]):
+                rewards[idx] += self._R_SUCCESS_SUSTAIN
+                terms_list[idx]["success_sustain"] = self._R_SUCCESS_SUSTAIN
+                terms_list[idx]["arrived"] = 1.0
+                success_mask[idx] = False
+                self._prev_geo[idx] = np.nan if new_geo is None else float(new_geo)
+                self._prev_success_mask[idx] = True
+                self._prev_in_sense_mask[idx] = True
+                continue
             if sensor_fail_codes[idx] > 0.5:
                 terms_list[idx]["role_none"] = 1.0
                 terms_list[idx]["tactical_success"] = 0.0
@@ -1568,10 +1610,16 @@ class MajestroNavMeshEnv(gym.Env):
             is_success = bool(success_mask[idx])
             was_in_sense = bool(self._prev_in_sense_mask[idx])
             is_in_sense = bool(dists[idx] <= float(self.sense_radius))
+            reached_goal = bool(dists[idx] <= float(self.success_radius))
             if is_success and not was_success:
                 rewards[idx] += self._R_SUCCESS_ENTRY
                 terms_list[idx]["success_entry"] = self._R_SUCCESS_ENTRY
                 self._episode_success_rewarded[idx] = True
+                self.agent_velocities[idx] = np.zeros((2,), dtype=np.float32)
+            if reached_goal:
+                self._arrived_agents[idx] = True
+                collisions[idx] = False
+                collision_detected[idx] = False
             elif was_in_sense and is_in_sense:
                 rewards[idx] += self._R_SUCCESS_SUSTAIN
                 terms_list[idx]["success_sustain"] = self._R_SUCCESS_SUSTAIN
@@ -1590,7 +1638,8 @@ class MajestroNavMeshEnv(gym.Env):
 
         info = {
             "dist_to_goal": dists.copy(),
-            "collided": collisions.copy(),
+            "collided": collision_detected.copy(),
+            "collision_handled": collisions.copy(),
             "geo_dist": np.array([np.nan if g is None else float(g) for g in geo_dists], dtype=np.float32),
             "reward_terms": terms_list,
             "agent_heights": self.agent_heights.copy(),
@@ -1612,6 +1661,7 @@ class MajestroNavMeshEnv(gym.Env):
             "detour_forced_step": detour_forced_step_codes.copy(),
             "detour_priority_step": detour_priority_step_codes.copy(),
             "detour_enabled": bool(self._detour_enabled),
+            "resolve_agent_collisions": bool(self.resolve_agent_collisions),
             "detour_error": self._detour_last_error,
         }
         self._prev_success_mask = success_mask.copy()

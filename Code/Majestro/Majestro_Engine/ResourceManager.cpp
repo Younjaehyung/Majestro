@@ -1259,6 +1259,94 @@ void ResourceManager::CreateDefaultShader()
 		}
 	}
 
+
+	// OrbitParticle
+	{
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ONE_TO_ONE_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_POINTLIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_orbit_PS.hlsl",
+				.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main", "GS_Main");
+			Add<Shader>(L"OrbitParticle", shader);
+		}
+
+		{
+			ShaderPath shaderPath{
+			.CS = L"..\\Resources\\Shader\\particle_orbit_CS.hlsl",
+			};
+
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateComputeShader(shaderPath, "CS_Main");
+			Add<Shader>(L"ComputeOrbitParticle", shader);
+		}
+
+
+		// OrbitPsInstancing
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ONE_TO_ONE_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_instanced_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_orbit_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"OrbitParticleInstanced", shader);
+		}
+	}
+
+
+	// BulletTrail
+	{
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ONE_TO_ONE_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_POINTLIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_bullet_trail_PS.hlsl",
+				.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main", "GS_Main");
+			Add<Shader>(L"BulletTrailParticle", shader);
+		}
+
+		{
+			ShaderPath shaderPath{
+				.CS = L"..\\Resources\\Shader\\particle_bullet_trail_CS.hlsl",
+			};
+
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateComputeShader(shaderPath, "CS_Main");
+			Add<Shader>(L"ComputeBulletTrailParticle", shader);
+		}
+
 	// Shadow
 	{
 		ShaderInfo info =
@@ -2097,18 +2185,32 @@ void ResourceManager::CreateDefaultMaterial()
 		{
 			shared_ptr<Material> material = make_shared<Material>();
 			material->SetShader(L"AuraParticle");
-			material->SetTexture(Load<Texture>(L"AuraParticleNoiseTex", L"..\\Resources\\Effect\\noteMusic.png"), DIFFUSEMAP0INDEX);
+			material->SetTexture(Load<Texture>(L"AuraParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_FirefliesNoise.PNG"), DIFFUSEMAP0INDEX);
 			Add<Material>(L"AuraParticle", material);
 		}
 		{
 			shared_ptr<Material> material = make_shared<Material>();
 			material->SetShader(L"AuraParticleInstanced");
-			material->SetTexture(Load<Texture>(L"AuraParticleNoiseTex", L"..\\Resources\\Effect\\noteMusic.png"), DIFFUSEMAP0INDEX);
+			material->SetTexture(Load<Texture>(L"AuraParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_FirefliesNoise.PNG"), DIFFUSEMAP0INDEX);
 			Add<Material>(L"AuraParticleInstanced", material);
 		}
 	}
 
-
+	// OrbitParticle
+	{
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"OrbitParticle");
+			material->SetTexture(Load<Texture>(L"OrbitParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_FirefliesNoise.PNG"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"OrbitParticle", material);
+		}
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"OrbitParticleInstanced");
+			material->SetTexture(Load<Texture>(L"OrbitParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_FirefliesNoise.PNG"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"OrbitParticleInstanced", material);
+		}
+	}
 	// ParticleInstancing (Fire)
 	{
 		shared_ptr<Material> material = make_shared<Material>();
@@ -2550,14 +2652,18 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 
+
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk");
 	//LoadEffect(L"..\\Resources\\Effect\\Area\\VFX_Sector_Jump.efk");
+
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Escort_Shockwave\\VFX_Escort_Shockwave.efk");
+
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Bullet\\VFX_Ibanix_Bullet.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
@@ -2565,6 +2671,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Shield\\VFX_Bongoman_Shield.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Pianoman_Attack_01\\VFX_Pianoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Hornman_Bullet\\VFX_Hornman_Bullet.efk");
+	
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_Select\\VFX_UI_Select.efk");
 
@@ -2661,17 +2768,36 @@ void ResourceManager::CreateDefaultParticleEffect()
 		effect->mDesc.materialName = L"AuraParticleInstanced";
 		effect->mDesc.computeMaterialName = L"ComputeAuraParticle";
 		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
-		effect->mDesc.maxParticle = 28;
-		effect->mDesc.createInterval = 0.43f;
-		effect->mDesc.minLifeTime = 3.0f;
-		effect->mDesc.maxLifeTime = 8.0f;
-		effect->mDesc.minSpeed = 24.f;
-		effect->mDesc.maxSpeed = 102.f;
-		effect->mDesc.startScale = 55.f;
-		effect->mDesc.endScale = 0.2f;
+		effect->mDesc.maxParticle = 256;
+		effect->mDesc.createInterval = 0.018f;
+		effect->mDesc.minLifeTime = 1.1f;
+		effect->mDesc.maxLifeTime = 2.0f;
+		effect->mDesc.minSpeed = 10.f;
+		effect->mDesc.maxSpeed = 42.f;
+		effect->mDesc.startScale = 7.f;
+		effect->mDesc.endScale = 20.f;
 		effect->mDesc.loop = true;
 		effect->SetName(L"Particle_AuraRise");
 		Add<ParticleEffect>(L"Particle_AuraRise", effect);
+	}
+
+	{
+		// OrbitParticle 
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"OrbitParticleInstanced";
+		effect->mDesc.computeMaterialName = L"ComputeOrbitParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
+		effect->mDesc.maxParticle = 128;
+		effect->mDesc.createInterval = 0.03f;
+		effect->mDesc.minLifeTime = 3.0f;
+		effect->mDesc.maxLifeTime = 5.0f;
+		effect->mDesc.minSpeed = 24.f;
+		effect->mDesc.maxSpeed = 52.f;
+		effect->mDesc.startScale = 5.f;
+		effect->mDesc.endScale = 9.f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_OrbitAround");
+		Add<ParticleEffect>(L"Particle_OrbitAround", effect);
 	}
 
 	

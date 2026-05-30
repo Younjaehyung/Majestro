@@ -322,9 +322,11 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 	// 반경 내 플레이어가 있고 적이 없을 때만 진행
 	pathComp->mPaused = !(enemyNum == 0 && playerNum > 0);
 
+
+	ruleComp->mMoveState = pathComp->mPaused ? 0 : 1;
+
 	ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
-		? pathComp->mCurrentDistance / pathComp->mTotalDistance
-		: 0.f;
+		? pathComp->mCurrentDistance / pathComp->mTotalDistance : 0.f;
 
 	if (mEscortPath && mNextStopIndex >= 0)
 	{

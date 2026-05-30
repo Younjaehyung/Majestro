@@ -128,13 +128,29 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 {
 	if (!mWorld->HasComponentPool<VfxComponent>()) return;
 
-	// --- 시뮬레이션 ---
+	// 시뮬레이션 
 	for (Entity& e : mWorld->GetEntitiesWithComponent<VfxComponent>())
 	{
 		VfxComponent* comp = mWorld->GetComponent<VfxComponent>(e);
 		if (comp == nullptr) continue;
 
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
+
+		
+		Vec3 vfxWorldPos = Vec3::Zero;
+		if (tr != nullptr)
+		{
+			vfxWorldPos = tr->mWorldPosition;
+
+			// 부착 오프셋
+			if (comp->mAttachOffset != Vec3::Zero)
+			{
+				// 대상 회전에 맞춰 월드 위치로 변환
+				Vec3 scale; Quaternion rotQ; Vec3 trans;
+				tr->mWorldMatrix.Decompose(scale, rotQ, trans); // 스케일 분리, 회전만 사용
+				vfxWorldPos = tr->mWorldPosition + Vec3::Transform(comp->mAttachOffset, rotQ);
+			}
+		}
 
 		if (!IsInvalidHandle(comp->efkHandle) && mManager->Exists(comp->efkHandle) &&
 			mManager->GetUserData(comp->efkHandle) != MakeOwnerToken(e))
@@ -165,7 +181,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 			Effekseer::Handle handle = -1;
 			if (tr != nullptr)
-				handle = Play(e, comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+				handle = Play(e, comp, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
 			else
 				handle = Play(e, comp, 0.f, 0.f, 0.f);
 			if (handle == -1)
@@ -182,7 +198,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 				// 반복 재생이 필요한 고정 월드 VFX만 새 handle로 다시 시작
 				Effekseer::Handle handle = -1;
 				if (tr != nullptr)
-					handle = Play(e, comp, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+					handle = Play(e, comp, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
 				else
 					handle = Play(e, comp, 0.f, 0.f, 0.f);
 				if (handle == -1)
@@ -208,7 +224,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		mManager->SetScale(comp->efkHandle, comp->mScale.x, comp->mScale.y, comp->mScale.z);
 		if (tr != nullptr)
 		{
-			mManager->SetLocation(comp->efkHandle, tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+			mManager->SetLocation(comp->efkHandle, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
 			mManager->SetRotation(
 				comp->efkHandle,
 				tr->mLocalRotationE.x * kDegToRad,
@@ -220,7 +236,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		if (!comp->mIsPaused)
 		{
 			if (tr != nullptr)
-				comp->SetPosition(tr->mWorldPosition.x, tr->mWorldPosition.y, tr->mWorldPosition.z);
+				comp->SetPosition(vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
 			comp->mTotalTime += dt;
 		}
 	}

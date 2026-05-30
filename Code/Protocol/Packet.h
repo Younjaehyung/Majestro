@@ -352,9 +352,11 @@ struct S2C_EscortPacket : public PacketTcpHeader {
 	uint32 clientId{};
 	uint8 RouteId = 0; // 호위 경로 ID
 	uint8 EscortStage = 0; // 현재 호위 stage (예: 1, 2, 3 등)
-	
+	uint8 MoveState = 0; // 호위 대상 이동 상태 (0 = 정지, 1 = 이동 중)
+
 	float EscortProgress = 0.0f; // 호위 진행도 (0.0 ~ 1.0)
 	float EscortTime = 0.0f; // 게임 진행 시간
+	uint64 TruckNetId = 0; // 호위 대상 네트워크 ID
 	S2C_EscortPacket() : PacketTcpHeader{ sizeof(S2C_EscortPacket), PKT_Type::S2C_PKT_SCENE_ESCORT, 0.0 } {}
 	S2C_EscortPacket(uint32 id, uint8 routeId, float progress, float escortTime)
 		: PacketTcpHeader{ sizeof(S2C_EscortPacket), PKT_Type::S2C_PKT_SCENE_ESCORT, 0.0 },

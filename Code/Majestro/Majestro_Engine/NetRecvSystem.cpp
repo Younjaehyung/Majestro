@@ -528,6 +528,14 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
     escortComp->mEscortProgress = pkt->EscortProgress;
 	escortComp->mEscortStage = pkt->EscortStage;
 	escortComp->mEscortTime = pkt->EscortTime;
+	escortComp->mMoveState = pkt->MoveState;
+	
+	if (pkt->TruckNetId != 0)
+	{
+		Entity truck = mWorld->GetEntityByNetId(pkt->TruckNetId);
+		if (truck != NULL_ENTITY)
+			escortComp->mEscortTarget = truck;
+	}
 }
 
 // 서버 RoomState 스냅샷을 LobbyRoomStateComponent 에 복사.

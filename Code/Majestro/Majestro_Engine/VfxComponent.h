@@ -64,6 +64,7 @@ public:
 	bool	mAutoReturn = false;			// 재생이 끝났을 때 자동으로 풀에 반환할지 여부
 	bool	mFinished = false;				// 원샷 VFX가 끝 flag
 	Vec3	mScale     = Vec3(1.f, 1.f, 1.f);
+	Vec3	mAttachOffset = Vec3::Zero;		// 부착 대상 로컬 오프셋. (0 : 미적용)
 	::Effekseer::Vector3D mPosition = ::Effekseer::Vector3D(0.0f, 0.0f, 0.0f);
 
 };

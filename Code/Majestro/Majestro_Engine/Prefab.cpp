@@ -258,6 +258,9 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+
+
+
 	world->AddComponent<BeatComponent>(mEntityID);
 	GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
 	grav.mHight = t.mLocalPosition.y + 13.f; // 임시 동기화
@@ -544,7 +547,7 @@ JumpPadPrefab::~JumpPadPrefab()
 
 Entity JumpPadPrefab::Build(World* world, const InputCommand& ctx)
 {
-	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Jump", Vec3(15.f, 10.f, 15.f));
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Escort_Shockwave", Vec3(15.f, 10.f, 15.f));
 }
 
 MonsterSpawnerMarkerPrefab::MonsterSpawnerMarkerPrefab(World* world)
@@ -1840,7 +1843,17 @@ Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<NetTransformComponent>(truck);
 	world->AddComponent<RenderComponent>(truck, phereMesh, material2s);
 
-
+	
+	VfxComponent& vfx = world->AddComponent<VfxComponent>(truck);
+	vfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Escort_Shockwave");
+	vfx.mScale = Vec3(15.f, 15.f, 15.f);
+	vfx.mAttachOffset = Vec3(0.f, 230.f, 175.f);
+	vfx.mIsLoop = true;
+	vfx.mRestartWhenFinished = false;
+	vfx.mShouldPlay = false;         
+	vfx.mIsPooled = false;           
+	vfx.mInUse = false;
+	vfx.mAutoReturn = false;
 
 	return truck;
 }

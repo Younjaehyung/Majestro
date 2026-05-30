@@ -2,6 +2,7 @@
 #include "GamePhaseSystem.h"
 
 #include "GameRuleComponent.h"
+#include "VfxComponent.h"
 
 
 void GamePhaseSystem::Initialize()
@@ -29,8 +30,28 @@ void GamePhaseSystem::Update(float deltaTime)
 		
 		break;
 	case WavePhaseType::Escort:
-		// 호위 단계 로직 (예: 호위 대상 이동, 적 스폰 등)
+	{
+		// 호위 단계 로직: 트럭 이동 상태(mMoveState)에 따라 VFX_Escort_Shockwave loop 토글
+		GameEscortComponent* escort = mWorld->GetComponent<GameEscortComponent>(e);
+		if (escort && escort->mEscortTarget.IsValid())
+		{
+			if (VfxComponent* vfx = mWorld->GetComponent<VfxComponent>(escort->mEscortTarget))
+			{
+				if (escort->mMoveState == 1) // 이동 중
+				{
+					// 무한 loop 재생(끝나면 자동 재시작)
+					vfx->mShouldPlay = true;
+					vfx->mRestartWhenFinished = true;
+				}
+				else // 정지
+				{
+					// 현재 사이클만 끝까지 재생 후 자연 종료
+					vfx->mRestartWhenFinished = false;
+				}
+			}
+		}
 		break;
+	}
 	case WavePhaseType::Boss:
 		// 보스 단계 로직 (예: 보스 행동 패턴, 체력 관리 등)
 		break;

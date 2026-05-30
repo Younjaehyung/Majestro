@@ -117,8 +117,15 @@ void GameNetRuleSystem::SendSceneEscort(Entity rule)
 		S2C_EscortPacket pkt{};
 		pkt.RouteId = e->mRouteId;
 		pkt.EscortStage = e->mEscortStage;
+		pkt.MoveState = e->mMoveState;
 		pkt.EscortProgress = e->mEscortProgress;
 		pkt.EscortTime = e->mEscortTime;
+		
+		if (e->mEscortTarget.IsValid())
+		{
+			if (auto* net = mWorld->GetComponent<NetEntityComponent>(e->mEscortTarget))
+				pkt.TruckNetId = net->mNetEntityId;
+		}
 		Broadcast(S2C_PKT_SCENE_ESCORT, pkt);
 	}
 }

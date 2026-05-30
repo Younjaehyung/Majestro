@@ -520,6 +520,21 @@
     <ClInclude Include="DashTrailComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="WeaponTrailComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponTrailPass.h">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponTrailSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="DamageFeedbackSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -843,6 +858,15 @@
     </ClCompile>
     <ClCompile Include="ParticlePass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="WeaponTrailPass.cpp">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="WeaponTrailSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketSystem.cpp">
+      <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="AudioSystem.cpp">
       <Filter>World\System\Client</Filter>
@@ -1255,10 +1279,25 @@
     <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_instanced_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_smoke_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_aura_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_orbit_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_bullet_trail_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\trail_VS.hlsl">
@@ -1268,6 +1307,18 @@
       <Filter>World\Resource\Shader\80.Post\Style</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_smoke_CS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_aura_CS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_orbit_CS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_bullet_trail_CS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">

@@ -28,6 +28,8 @@ public:
 	void LoadJsonLevel(const wstring& path);
 	void LoadCollisionJson(const wstring& path);
 	
+	void CreatePauseMenu();
+
 	void ClearWorld() { mWorld->Clear(); }
 
 	void SetGameMode(shared_ptr<GameMode>& gameMode);

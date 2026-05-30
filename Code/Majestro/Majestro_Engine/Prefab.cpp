@@ -12,6 +12,8 @@
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
 #include "AnimationComponent.h"
+#include "SocketComponent.h"
+#include "WeaponTrailComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
@@ -259,7 +261,20 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
 
+	{
+		auto& socket = world->AddComponent<SocketComponent>(mEntityID);
+		socket.mSockets.push_back(SocketDef{ "weapon_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 0.f, 120.f)) });
+		socket.mSockets.push_back(SocketDef{ "weapon_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 0.f, 70.f)) });
 
+		auto& trail = world->AddComponent<WeaponTrailComponent>(mEntityID);
+		trail.mSourceEntity = mEntityID;
+		trail.mSourceType = WeaponTrailSource::Socket;
+		trail.mTipSocketName = "weapon_tip";
+		trail.mBaseSocketName = "weapon_base";
+		trail.mAutoActivateOnAttack = true; // 공격 상체 상태에 따라 자동 활성화
+		trail.mResetOnActivate = true;      // 새 스윙마다 리본 리셋할지
+		trail.mTextureName = L"GradientTex";
+	}
 
 	world->AddComponent<BeatComponent>(mEntityID);
 	GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);

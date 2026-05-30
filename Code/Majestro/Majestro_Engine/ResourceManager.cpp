@@ -1347,6 +1347,48 @@ void ResourceManager::CreateDefaultShader()
 			Add<Shader>(L"ComputeBulletTrailParticle", shader);
 		}
 
+		// BulletTrailPsInstancing
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ONE_TO_ONE_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_instanced_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_bullet_trail_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"BulletTrailParticleInstanced", shader);
+		}
+	}
+
+
+	// WeaponTrail
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::PARTICLE,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+			BLEND_TYPE::ONE_TO_ONE_BLEND,
+			D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\trail_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\trail_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"WeaponTrail", shader);
+	}
+
 	// Shadow
 	{
 		ShaderInfo info =
@@ -2211,6 +2253,23 @@ void ResourceManager::CreateDefaultMaterial()
 			Add<Material>(L"OrbitParticleInstanced", material);
 		}
 	}
+
+	// BulletTrail
+	{
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"BulletTrailParticle");
+			material->SetTexture(Load<Texture>(L"BulletTrailNoiseTex", L"..\\Resources\\Image\\Noise\\T_FirefliesNoise.PNG"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"BulletTrailParticle", material);
+		}
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"BulletTrailParticleInstanced");
+			material->SetTexture(Load<Texture>(L"BulletTrailNoiseTex", L"..\\Resources\\Image\\Noise\\T_FirefliesNoise.PNG"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"BulletTrailParticleInstanced", material);
+		}
+	}
+
 	// ParticleInstancing (Fire)
 	{
 		shared_ptr<Material> material = make_shared<Material>();
@@ -2800,5 +2859,22 @@ void ResourceManager::CreateDefaultParticleEffect()
 		Add<ParticleEffect>(L"Particle_OrbitAround", effect);
 	}
 
-	
+	{
+		// BulletTrail
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"BulletTrailParticleInstanced";
+		effect->mDesc.computeMaterialName = L"ComputeBulletTrailParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
+		effect->mDesc.maxParticle = 96;
+		effect->mDesc.createInterval = 0.006f;
+		effect->mDesc.minLifeTime = 0.12f;
+		effect->mDesc.maxLifeTime = 0.28f;
+		effect->mDesc.minSpeed = 32.f;
+		effect->mDesc.maxSpeed = 95.f;
+		effect->mDesc.startScale = 5.f;
+		effect->mDesc.endScale = 2.f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_BulletTrail");
+		Add<ParticleEffect>(L"Particle_BulletTrail", effect);
+	}
 }

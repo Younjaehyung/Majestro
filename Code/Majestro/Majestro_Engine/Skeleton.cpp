@@ -147,6 +147,45 @@ void Skeleton::BuildUpperBodyMaskRange()
 	mSpineBoneCount = mSpineBoneEndOffset - mSpineBoneStartOffset + 1;
 }
 
+void Skeleton::BuildBoneNameIndex()
+{
+	mBoneNameToIndex.clear();
+	mBoneNameToIndexLower.clear();
+	mBoneNameToIndex.reserve(mBones.size());
+	mBoneNameToIndexLower.reserve(mBones.size());
+
+	for (uint32 i = 0; i < static_cast<uint32>(mBones.size()); ++i)
+	{
+		const string& name = mBones[i].boneName;
+		mBoneNameToIndex.emplace(name, i);
+		mBoneNameToIndexLower.emplace(ToLowerBoneName(name), i);
+	}
+}
+
+bool Skeleton::TryFindBoneIndex(const string& boneName, uint32& outIndex) const
+{
+	// 정확 일치 우선 검색
+	if (auto it = mBoneNameToIndex.find(boneName); it != mBoneNameToIndex.end())
+	{
+		outIndex = it->second;
+		return true;
+	}
+
+	
+	string lower = boneName;
+	std::transform(lower.begin(), lower.end(), lower.begin(),
+		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+	// 대소문자 무시 검색
+	if (auto it = mBoneNameToIndexLower.find(lower); it != mBoneNameToIndexLower.end())
+	{
+		outIndex = it->second;
+		return true;
+	}
+
+	return false;
+}
+
 string Skeleton::ToLowerBoneName(const string& boneName)
 {
 	string lower = boneName;

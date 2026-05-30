@@ -36,6 +36,7 @@ void CpuAnimationSystem::Initialize()
 		
 		skel->BuildAimBoneIndices();
 		skel->BuildUpperBodyMaskRange();
+		skel->BuildBoneNameIndex();
 
 		skel->mStartOffset = skelOffset;
 		for (auto& bone : skel->GetBones()) {
@@ -94,6 +95,7 @@ void CpuAnimationSystem::ClearVector()
 	mAnimationPass.clear();
 	mAimPass.clear();
 	mFinalBoneUpload.clear();
+	mEntityModelBones.clear();
 }
 
 void CpuAnimationSystem::AnimationPush(float deltaTime)
@@ -444,11 +446,28 @@ void CpuAnimationSystem::EvaluateAndUpload()
 		{
 			dst[i] = finalRowMajor[i].Transpose();
 		}
+
+		std::vector<Matrix>& modelCache = mEntityModelBones[inst.EntityID];
+		modelCache.assign(mScratchModelBones.begin(), mScratchModelBones.begin() + inst.BoneCount);
 	}
 
 	const uint32 uploadBytes = static_cast<uint32>(sizeof(Matrix) * mFinalBoneUpload.size());
 	RENDERMANAGER.GetGroupBuffer(RENDERMANAGER.GetFrameResourceIndex())->AnimResultInfo
 		->UpdateDefaultFromCpu(mFinalBoneUpload.data(), uploadBytes);
+}
+
+bool CpuAnimationSystem::GetModelBoneMatrix(Entity entity, uint32 boneIndex, Matrix& outMatrix) const
+{
+	// 엔티티별 모델 본 캐시에서 조회.
+	auto it = mEntityModelBones.find(entity.GetID());
+	if (it == mEntityModelBones.end())
+		return false;
+	if (boneIndex >= it->second.size())
+		return false;
+	// 캐시 없음/인덱스 범위 밖이면 false.
+
+	outMatrix = it->second[boneIndex];
+	return true;
 }
 
 void CpuAnimationSystem::AnimationBlend(const shared_ptr<Animator>& animClip, float updateTime,

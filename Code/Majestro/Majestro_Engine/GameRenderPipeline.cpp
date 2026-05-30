@@ -9,6 +9,7 @@
 #include "ForwardPass.h"
 #include "OutlinePass.h"
 #include "EffectPass.h"
+#include "WeaponTrailPass.h"
 #include "ParticlePass.h"
 #include "RenderPass.h"     
 #include "MotionVectorPass.h"
@@ -50,6 +51,7 @@ void GameRenderPipeline::Initialize(World* world)
     mForwardPass     = make_shared<ForwardPass>();
     mOutlinePass     = make_shared<OutlinePass>();
     mEffectPass      = make_shared<EffectPass>();
+    mWeaponTrailPass = make_shared<WeaponTrailPass>();
     mParticlePass    = make_shared<ParticlePass>();
     mPostProcessPass = make_shared<PostProcessPass>();
     mWorldUIPass    = make_shared<WorldUIPass>();
@@ -70,8 +72,9 @@ void GameRenderPipeline::Initialize(World* world)
 	mLightPass->Initialize();
     mMotionVectorPass->Initialize();
 	mForwardPass->Initialize();
-	mOutlinePass->Initialize();
+    mOutlinePass->Initialize();
     mEffectPass->Initialize(world);
+    mWeaponTrailPass->Initialize(world);
     mParticlePass->Initialize(world);
     mPostProcessPass->Initialize();
     mWorldUIPass->Initialize(world);
@@ -373,6 +376,7 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
     Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
     Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(ctx.camera->GetProjectionMatrix());
     mEffectPass->Execute(dt, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
+    mWeaponTrailPass->Execute(ctx);
     mParticlePass->Execute(ctx);
 
 

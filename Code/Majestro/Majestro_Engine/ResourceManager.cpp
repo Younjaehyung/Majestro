@@ -21,7 +21,7 @@ void ResourceManager::Initialize()
 
 	LoadWireCubeMesh();
 	LoadLineMesh();
-	
+
 }
 
 
@@ -194,7 +194,7 @@ shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 
 	vector<Vertex> vec(4);
 
-	// �ո�
+	//  ո 
 	vec[0] = Vertex(Vec3(-w2, -h2, 0), Vec2(0.0f, 1.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[1] = Vertex(Vec3(-w2, +h2, 0), Vec2(0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[2] = Vertex(Vec3(+w2, +h2, 0), Vec2(1.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
@@ -202,7 +202,7 @@ shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 
 	vector<uint32> idx(6);
 
-	// �ո�
+	//  ո 
 	idx[0] = 0; idx[1] = 1; idx[2] = 2;
 	idx[3] = 0; idx[4] = 2; idx[5] = 3;
 
@@ -225,32 +225,32 @@ shared_ptr<Mesh> ResourceManager::LoadCubeMesh()
 
 	vector<Vertex> vec(24);
 
-	// �ո�
+	//  ո 
 	vec[0] = Vertex(Vec3(-w2, -h2, -d2), Vec2(0.0f, 1.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[1] = Vertex(Vec3(-w2, +h2, -d2), Vec2(0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[2] = Vertex(Vec3(+w2, +h2, -d2), Vec2(1.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[3] = Vertex(Vec3(+w2, -h2, -d2), Vec2(1.0f, 1.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
-	// �޸�
+	//  ޸ 
 	vec[4] = Vertex(Vec3(-w2, -h2, +d2), Vec2(1.0f, 1.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[5] = Vertex(Vec3(+w2, -h2, +d2), Vec2(0.0f, 1.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[6] = Vertex(Vec3(+w2, +h2, +d2), Vec2(0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[7] = Vertex(Vec3(-w2, +h2, +d2), Vec2(1.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
-	// ����
+	//     
 	vec[8] = Vertex(Vec3(-w2, +h2, -d2), Vec2(0.0f, 1.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[9] = Vertex(Vec3(-w2, +h2, +d2), Vec2(0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[10] = Vertex(Vec3(+w2, +h2, +d2), Vec2(1.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[11] = Vertex(Vec3(+w2, +h2, -d2), Vec2(1.0f, 1.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
-	// �Ʒ���
+	//  Ʒ   
 	vec[12] = Vertex(Vec3(-w2, -h2, -d2), Vec2(1.0f, 1.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[13] = Vertex(Vec3(+w2, -h2, -d2), Vec2(0.0f, 1.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[14] = Vertex(Vec3(+w2, -h2, +d2), Vec2(0.0f, 0.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[15] = Vertex(Vec3(-w2, -h2, +d2), Vec2(1.0f, 0.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
-	// ���ʸ�
+	//    ʸ 
 	vec[16] = Vertex(Vec3(-w2, -h2, +d2), Vec2(0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
 	vec[17] = Vertex(Vec3(-w2, +h2, +d2), Vec2(0.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
 	vec[18] = Vertex(Vec3(-w2, +h2, -d2), Vec2(1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
 	vec[19] = Vertex(Vec3(-w2, -h2, -d2), Vec2(1.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
-	// �����ʸ�
+	//      ʸ 
 	vec[20] = Vertex(Vec3(+w2, -h2, -d2), Vec2(0.0f, 1.0f), Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
 	vec[21] = Vertex(Vec3(+w2, +h2, -d2), Vec2(0.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
 	vec[22] = Vertex(Vec3(+w2, +h2, +d2), Vec2(1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
@@ -258,22 +258,22 @@ shared_ptr<Mesh> ResourceManager::LoadCubeMesh()
 
 	vector<uint32> idx(36);
 
-	// �ո�
+	//  ո 
 	idx[0] = 0; idx[1] = 1; idx[2] = 2;
 	idx[3] = 0; idx[4] = 2; idx[5] = 3;
-	// �޸�
+	//  ޸ 
 	idx[6] = 4; idx[7] = 5; idx[8] = 6;
 	idx[9] = 4; idx[10] = 6; idx[11] = 7;
-	// ����
+	//     
 	idx[12] = 8; idx[13] = 9; idx[14] = 10;
 	idx[15] = 8; idx[16] = 10; idx[17] = 11;
-	// �Ʒ���
+	//  Ʒ   
 	idx[18] = 12; idx[19] = 13; idx[20] = 14;
 	idx[21] = 12; idx[22] = 14; idx[23] = 15;
-	// ���ʸ�
+	//    ʸ 
 	idx[24] = 16; idx[25] = 17; idx[26] = 18;
 	idx[27] = 16; idx[28] = 18; idx[29] = 19;
-	// �����ʸ�
+	//      ʸ 
 	idx[30] = 20; idx[31] = 21; idx[32] = 22;
 	idx[33] = 20; idx[34] = 22; idx[35] = 23;
 
@@ -295,32 +295,32 @@ shared_ptr<Mesh> ResourceManager::LoadMCubeMesh()
 
 	vector<Vertex> vec(24);
 
-	// �ո�
+	//  ո 
 	vec[0] = Vertex(Vec3(-w2, -h2, -d2), Vec2(0.0f, 1.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[1] = Vertex(Vec3(-w2, +h2, -d2), Vec2(0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[2] = Vertex(Vec3(+w2, +h2, -d2), Vec2(1.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[3] = Vertex(Vec3(+w2, -h2, -d2), Vec2(1.0f, 1.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(1.0f, 0.0f, 0.0f));
-	// �޸�
+	//  ޸ 
 	vec[4] = Vertex(Vec3(-w2, -h2, +d2), Vec2(1.0f, 1.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[5] = Vertex(Vec3(+w2, -h2, +d2), Vec2(0.0f, 1.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[6] = Vertex(Vec3(+w2, +h2, +d2), Vec2(0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[7] = Vertex(Vec3(-w2, +h2, +d2), Vec2(1.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f));
-	// ����
+	//     
 	vec[8] = Vertex(Vec3(-w2, +h2, -d2), Vec2(0.0f, 1.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[9] = Vertex(Vec3(-w2, +h2, +d2), Vec2(0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[10] = Vertex(Vec3(+w2, +h2, +d2), Vec2(1.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
 	vec[11] = Vertex(Vec3(+w2, +h2, -d2), Vec2(1.0f, 1.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
-	// �Ʒ���
+	//  Ʒ   
 	vec[12] = Vertex(Vec3(-w2, -h2, -d2), Vec2(1.0f, 1.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[13] = Vertex(Vec3(+w2, -h2, -d2), Vec2(0.0f, 1.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[14] = Vertex(Vec3(+w2, -h2, +d2), Vec2(0.0f, 0.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
 	vec[15] = Vertex(Vec3(-w2, -h2, +d2), Vec2(1.0f, 0.0f), Vec3(0.0f, -1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f));
-	// ���ʸ�
+	//    ʸ 
 	vec[16] = Vertex(Vec3(-w2, -h2, +d2), Vec2(0.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
 	vec[17] = Vertex(Vec3(-w2, +h2, +d2), Vec2(0.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
 	vec[18] = Vertex(Vec3(-w2, +h2, -d2), Vec2(1.0f, 0.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
 	vec[19] = Vertex(Vec3(-w2, -h2, -d2), Vec2(1.0f, 1.0f), Vec3(-1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f));
-	// �����ʸ�
+	//      ʸ 
 	vec[20] = Vertex(Vec3(+w2, -h2, -d2), Vec2(0.0f, 1.0f), Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
 	vec[21] = Vertex(Vec3(+w2, +h2, -d2), Vec2(0.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
 	vec[22] = Vertex(Vec3(+w2, +h2, +d2), Vec2(1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, 1.0f));
@@ -328,22 +328,22 @@ shared_ptr<Mesh> ResourceManager::LoadMCubeMesh()
 
 	vector<uint32> idx(36);
 
-	// �ո�
+	//  ո 
 	idx[0] = 0; idx[1] = 1; idx[2] = 2;
 	idx[3] = 0; idx[4] = 2; idx[5] = 3;
-	// �޸�
+	//  ޸ 
 	idx[6] = 4; idx[7] = 5; idx[8] = 6;
 	idx[9] = 4; idx[10] = 6; idx[11] = 7;
-	// ����
+	//     
 	idx[12] = 8; idx[13] = 9; idx[14] = 10;
 	idx[15] = 8; idx[16] = 10; idx[17] = 11;
-	// �Ʒ���
+	//  Ʒ   
 	idx[18] = 12; idx[19] = 13; idx[20] = 14;
 	idx[21] = 12; idx[22] = 14; idx[23] = 15;
-	// ���ʸ�
+	//    ʸ 
 	idx[24] = 16; idx[25] = 17; idx[26] = 18;
 	idx[27] = 16; idx[28] = 18; idx[29] = 19;
-	// �����ʸ�
+	//      ʸ 
 	idx[30] = 20; idx[31] = 21; idx[32] = 22;
 	idx[33] = 20; idx[34] = 22; idx[35] = 23;
 
@@ -400,15 +400,15 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 	if (findMesh)
 		return findMesh;
 
-	float radius = 0.5f; // ���� ������
-	uint32 stackCount = 20; // ���� ����
-	uint32 sliceCount = 20; // ���� ����
+	float radius = 0.5f; //            
+	uint32 stackCount = 20; //          
+	uint32 sliceCount = 20; //          
 
 	vector<Vertex> vec;
 
 	Vertex v;
 
-	// �ϱ�
+	//  ϱ 
 	v.pos = Vec3(0.0f, radius, 0.0f);
 	v.uv = Vec2(0.5f, 0.0f);
 	v.normal = v.pos;
@@ -422,12 +422,12 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 	float deltaU = 1.f / static_cast<float>(sliceCount);
 	float deltaV = 1.f / static_cast<float>(stackCount);
 
-	// ������� ���鼭 ������ ����Ѵ� (�ϱ�/���� �������� ����� X)
+	//            鼭            Ѵ  ( ϱ /                    X)
 	for (uint32 y = 1; y <= stackCount - 1; ++y)
 	{
 		float phi = y * stackAngle;
 
-		// ����� ��ġ�� ����
+		//         ġ       
 		for (uint32 x = 0; x <= sliceCount; ++x)
 		{
 			float theta = x * sliceAngle;
@@ -450,7 +450,7 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 		}
 	}
 
-	// ����
+	//     
 	v.pos = Vec3(0.0f, -radius, 0.0f);
 	v.uv = Vec2(0.5f, 1.0f);
 	v.normal = v.pos;
@@ -460,7 +460,7 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 
 	vector<uint32> idx(36);
 
-	// �ϱ� �ε���
+	//  ϱ   ε   
 	for (uint32 i = 0; i <= sliceCount; ++i)
 	{
 		//  [0]
@@ -471,7 +471,7 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 		idx.push_back(i + 1);
 	}
 
-	// ���� �ε���
+	//       ε   
 	uint32 ringVertexCount = sliceCount + 1;
 	for (uint32 y = 0; y < stackCount - 2; ++y)
 	{
@@ -492,7 +492,7 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 		}
 	}
 
-	// ���� �ε���
+	//       ε   
 	uint32 bottomIndex = static_cast<uint32>(vec.size()) - 1;
 	uint32 lastRingStartIndex = bottomIndex - ringVertexCount;
 	for (uint32 i = 0; i < sliceCount; ++i)
@@ -541,11 +541,11 @@ shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path)
 shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
 {
 	shared_ptr<Vfx> effect = Get<Vfx>(s2ws(filesystem::path(path).filename().stem().string()));
-	if(effect)
+	if (effect)
 		return effect;
 	effect = make_shared<Vfx>();
-	effect ->Load(path);
-	effect ->SetName(s2ws(filesystem::path(path).filename().stem().string()));
+	effect->Load(path);
+	effect->SetName(s2ws(filesystem::path(path).filename().stem().string()));
 	Add(effect->GetName(), effect);
 
 	return effect;
@@ -579,12 +579,12 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 		const std::string units = root["units"].get<std::string>();
 		if (units == "cm")
 		{
-	
+
 			positionUnitScale = 1.0f;
 		}
 		else if (units == "m")
 		{
-			
+
 			positionUnitScale = 100.0f;
 		}
 	}
@@ -623,7 +623,7 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 					insts.fbx = fbxPath;
 
 					const auto& dx = RequireJson(inst_j, "dx");
-					
+
 					insts.world = ParseDxTransform(dx);
 					// insts.world.scale = insts.world.scale * positionUnitScale; // UE에서 cm 단위로 export 했을 때, DX에서 m 단위로 사용하려면 100배 해줘야 함
 					//const auto& ue = RequireJson(inst_j, "ue");
@@ -656,7 +656,7 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 
 				{
 					inst.worldMtx = BuildWorldMatrix_RowMajor(inst.world, false);// *Matrix::CreateTranslation(Vec3(-9493.f, -620.f, 15647.0f));
-		
+
 
 
 				}
@@ -748,7 +748,7 @@ shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FOR
 shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& name, ComPtr<ID3D12Resource> tex2D, bool createSRVUAV)
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
-	texture->CreateFromResource(tex2D , createSRVUAV);
+	texture->CreateFromResource(tex2D, createSRVUAV);
 	Add(name, texture);
 
 	return texture;
@@ -875,7 +875,7 @@ void ResourceManager::CreateDefaultRootSignature()
 
 void ResourceManager::CreateDefaultShader()
 {
-	
+
 
 	// Skybox					현재 swapChain에 박고 있음
 	{
@@ -960,7 +960,7 @@ void ResourceManager::CreateDefaultShader()
 
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 1 ,arg);
+		shader->CreateGraphicsShader(shaderPath, info, 1, arg);
 		Add<Shader>(L"Terrain", shader);
 	}
 
@@ -992,8 +992,8 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		
-		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main");
+
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Deferred", shader);
 	}
 
@@ -1014,7 +1014,7 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Forward", shader);
 	}
 
-	
+
 	// Texture (Forward)
 	{
 		ShaderInfo info =
@@ -1047,7 +1047,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		//shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
-		shader->CreateGraphicsShader(shaderPath, info,1, "VS_DirLight", "PS_DirLight");
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_DirLight", "PS_DirLight");
 		Add<Shader>(L"DirLight", shader);
 	}
 
@@ -1065,7 +1065,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\lighting_point_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info,1, "VS_PointLight", "PS_PointLight");
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_PointLight", "PS_PointLight");
 		Add<Shader>(L"PointLight", shader);
 	}
 
@@ -1114,19 +1114,149 @@ void ResourceManager::CreateDefaultShader()
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
-		shader->CreateGraphicsShader(shaderPath, info,1, "VS_Main", "PS_Main", "GS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main", "GS_Main");
 		Add<Shader>(L"Particle", shader);
+	}
+
+	// ParticlePSInstancing
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::PARTICLE,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+			D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\particle_instanced_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\particle_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"ParticleInstanced", shader);
 	}
 
 	// ComputeParticle
 	{
-	 	ShaderPath shaderPath{
+		ShaderPath shaderPath{
 			.CS = L"..\\Resources\\Shader\\particle_CS.hlsl",
 		};
-	 
+
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateComputeShader(shaderPath, "CS_Main");
 		Add<Shader>(L"ComputeParticle", shader);
+	}
+
+	// SmokeRise 
+	{
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ALPHA_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_POINTLIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_smoke_PS.hlsl",
+				.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main", "GS_Main");
+			Add<Shader>(L"SmokeParticle", shader);
+		}
+
+		{
+			ShaderPath shaderPath{
+			.CS = L"..\\Resources\\Shader\\particle_smoke_CS.hlsl",
+			};
+
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateComputeShader(shaderPath, "CS_Main");
+			Add<Shader>(L"ComputeSmokeParticle", shader);
+		}
+
+
+
+		// SmokePsInstancing
+		{
+			{
+				ShaderInfo info =
+				{
+					SHADER_TYPE::PARTICLE,
+					RASTERIZER_TYPE::CULL_BACK,
+					DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+					BLEND_TYPE::ALPHA_BLEND,
+					D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+				};
+				ShaderPath shaderPath{
+					.VS = L"..\\Resources\\Shader\\particle_instanced_VS.hlsl",
+					.PS = L"..\\Resources\\Shader\\particle_smoke_PS.hlsl"
+				};
+				shared_ptr<Shader> shader = make_shared<Shader>();
+				shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+				shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+				Add<Shader>(L"SmokeParticleInstanced", shader);
+			}
+		}
+	}
+
+	// AuraRise
+	{
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ONE_TO_ONE_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_POINTLIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_aura_PS.hlsl",
+				.GS = L"..\\Resources\\Shader\\particle_GS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main", "GS_Main");
+			Add<Shader>(L"AuraParticle", shader);
+		}
+
+		{
+			ShaderPath shaderPath{
+				.CS = L"..\\Resources\\Shader\\particle_aura_CS.hlsl",
+			};
+
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateComputeShader(shaderPath, "CS_Main");
+			Add<Shader>(L"ComputeAuraParticle", shader);
+		}
+
+		// AuraPsInstancing
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ONE_TO_ONE_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_instanced_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_aura_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"AuraParticleInstanced", shader);
+		}
 	}
 
 	// Shadow
@@ -1178,7 +1308,7 @@ void ResourceManager::CreateDefaultShader()
 			.PS = L"..\\Resources\\Shader\\UI_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info,1, ShaderArg());
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"UI", shader);
 	}
 
@@ -1316,7 +1446,7 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateComputeShader(shaderPath);
 		Add<Shader>(L"AnimationComputeShader", shader);
-	
+
 	}
 
 	// DebugLine (Depth Test O, Depth Write X)
@@ -1357,7 +1487,7 @@ void ResourceManager::CreateDefaultShader()
 		};
 
 		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info,4, "VS_Main", "PS_Main");
+		shader->CreateGraphicsShader(shaderPath, info, 4, "VS_Main", "PS_Main");
 		Add<Shader>(L"DebugLine_NoDepth", shader);
 	}
 
@@ -1422,23 +1552,23 @@ void ResourceManager::CreateDefaultShader()
 	}
 
 	// ForwardBillboard (로고·간판 등 월드 공간 쿼드 전용)                                                                                                                                                                                                                                  1209 +  // ForwardPass가 read-only DSV를 바인딩하므로 depth write 불가 → LESS_NO_WRITE 사용
-    // ALPHA_BLEND : 알파 반투명 지원
-    {
-      ShaderInfo info =
-      {
-        SHADER_TYPE::FORWARD,
-        RASTERIZER_TYPE::CULL_NONE,
-        DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
-        BLEND_TYPE::ALPHA_BLEND,
-      };
-      ShaderPath shaderPath{
-        .VS = L"..\\Resources\\Shader\\forward_alpha_VS.hlsl",
-        .PS = L"..\\Resources\\Shader\\forward_alpha_PS.hlsl"
-      };
-      shared_ptr<Shader> shader = make_shared<Shader>();
-      shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
-      Add<Shader>(L"ForwardBillboard", shader);
-    }
+	// ALPHA_BLEND : 알파 반투명 지원
+	{
+		ShaderInfo info =
+		{
+		  SHADER_TYPE::FORWARD,
+		  RASTERIZER_TYPE::CULL_NONE,
+		  DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+		  BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+		  .VS = L"..\\Resources\\Shader\\forward_alpha_VS.hlsl",
+		  .PS = L"..\\Resources\\Shader\\forward_alpha_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"ForwardBillboard", shader);
+	}
 
 	// solid_PS (Forward)
 	{
@@ -1485,7 +1615,7 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Final", "PS_Main");
 		Add<Shader>(L"ToneMap", shader);
 	}
-	
+
 	// ChromaticAberration
 	{
 		ShaderInfo info =
@@ -1536,7 +1666,7 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, RENDERMANAGER.GetMsaaSampleCount(), "VS_Main", "PS_Main");
 		Add<Shader>(L"MotionBlur", shader);
 	}
-	
+
 	// COMPOSITE
 	{
 		ShaderInfo info =
@@ -1663,7 +1793,7 @@ void ResourceManager::CreateDefaultShader()
 				.PS = L"..\\Resources\\Shader\\hbao_PS.hlsl"
 			};
 			shared_ptr<Shader> shader = make_shared<Shader>();
-			
+
 			shader->SetTargetFormat(DXGI_FORMAT_R8_UNORM);
 			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 			Add<Shader>(L"HBAO", shader);
@@ -1676,7 +1806,7 @@ void ResourceManager::CreateDefaultShader()
 				.PS = L"..\\Resources\\Shader\\hbao_blur_PS.hlsl"
 			};
 			shared_ptr<Shader> shader = make_shared<Shader>();
-		
+
 			shader->SetTargetFormat(DXGI_FORMAT_R8_UNORM);
 			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 			Add<Shader>(L"HBAOBlur", shader);
@@ -1699,7 +1829,7 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"GodRay", shader);
 	}
-	
+
 	// Emissive
 	{
 		ShaderInfo info =
@@ -1787,7 +1917,7 @@ void ResourceManager::CreateDefaultMaterial()
 		{
 			// Irradiance Map (Diffuse IBL용 큐브맵)                                                                                                                                                                                                                                                                         Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox_irradiance.dds");
 			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox2DiffuseHDR.dds");
-			
+
 			// Pre-filtered Env Map (Specular IBL용 큐브맵, mip 포함)
 			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\skybox2SpecularHDR.dds");
 
@@ -1834,7 +1964,7 @@ void ResourceManager::CreateDefaultMaterial()
 		//material->SetTexture(2, Get<Texture>(L"SpecularLightTarget"));
 		Add<Material>(L"Final", material);
 	}
-	  
+
 	// Terrain
 	{
 
@@ -1921,7 +2051,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 
 	}	// Terrain
-	
+
 	//////
 	//// Compute Shader (프로젝트 제외함)
 	//{
@@ -1944,6 +2074,49 @@ void ResourceManager::CreateDefaultMaterial()
 		material->SetTexture(Load<Texture>(L"ParticleDebugTex", L"..\\Resources\\Image\\UI\\fire.png"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Particle", material);
 	}
+
+	// SmokeRise
+	{
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"SmokeParticle");
+			material->SetTexture(Load<Texture>(L"SmokeParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"SmokeParticle", material);
+		}
+
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"SmokeParticleInstanced");
+			material->SetTexture(Load<Texture>(L"SmokeParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"SmokeParticleInstanced", material);
+		}
+	}
+
+	// AuraRise
+	{
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"AuraParticle");
+			material->SetTexture(Load<Texture>(L"AuraParticleNoiseTex", L"..\\Resources\\Effect\\noteMusic.png"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"AuraParticle", material);
+		}
+		{
+			shared_ptr<Material> material = make_shared<Material>();
+			material->SetShader(L"AuraParticleInstanced");
+			material->SetTexture(Load<Texture>(L"AuraParticleNoiseTex", L"..\\Resources\\Effect\\noteMusic.png"), DIFFUSEMAP0INDEX);
+			Add<Material>(L"AuraParticleInstanced", material);
+		}
+	}
+
+
+	// ParticleInstancing (Fire)
+	{
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"ParticleInstanced");
+		material->SetTexture(Load<Texture>(L"ParticleDebugTex", L"..\\Resources\\Image\\UI\\fire.png"), DIFFUSEMAP0INDEX);
+		Add<Material>(L"ParticleInstanced", material);
+	}
+
 
 	//HPBAR
 	{
@@ -2126,7 +2299,7 @@ void ResourceManager::CreateDefaultMaterial()
 		// DebugLine_Green
 		auto mat = make_shared<Material>();
 		mat->SetShader(L"DebugLine");                 // 동일 셰이더
-		mat->GetParams().Diffuse = Vec4(0.f, 1.f, 0.f, 1.f);                           
+		mat->GetParams().Diffuse = Vec4(0.f, 1.f, 0.f, 1.f);
 		Add<Material>(L"DebugLine_Green", mat);
 	}
 
@@ -2154,7 +2327,7 @@ void ResourceManager::CreateDefaultMaterial()
 		material->GetParams().Diffuse = Vec4(1.f, 1.f, 1.f, 1.f);  // ← 이 줄 추가
 		Add<Material>(L"UI_Logo", material);
 	}
-	
+
 
 	{
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
@@ -2168,6 +2341,7 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Title_Setting", L"..\\Resources\\Image\\UI\\UI_Title_Setting.png");
 
 		Load<Texture>(L"UI_Title_PaintSplash_0", L"..\\Resources\\Image\\UI\\UI_Title_PaintSplash_0.png");
+		// Load<Texture>(L"UI_Title_Button_Back", L"..\\Resources\\Image\\UI\\UI_Title_Button_Back.png");
 
 
 
@@ -2214,68 +2388,68 @@ void ResourceManager::CreateDefaultMaterial()
 #pragma endregion
 
 #pragma region Text
-	{
-		Load<Texture>(L"UI_Rudwig_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_0.png");
-		Load<Texture>(L"UI_Rudwig_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_1.png");
-		Load<Texture>(L"UI_Rudwig_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_2.png");
-		Load<Texture>(L"UI_Rudwig_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_3.png");
+		{
+			Load<Texture>(L"UI_Rudwig_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_0.png");
+			Load<Texture>(L"UI_Rudwig_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_1.png");
+			Load<Texture>(L"UI_Rudwig_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_2.png");
+			Load<Texture>(L"UI_Rudwig_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_3.png");
 
-		Load<Texture>(L"UI_Ibanix_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_0.png");
-		Load<Texture>(L"UI_Ibanix_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_1.png");
-		Load<Texture>(L"UI_Ibanix_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_2.png");
-		Load<Texture>(L"UI_Ibanix_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_3.png");
+			Load<Texture>(L"UI_Ibanix_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_0.png");
+			Load<Texture>(L"UI_Ibanix_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_1.png");
+			Load<Texture>(L"UI_Ibanix_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_2.png");
+			Load<Texture>(L"UI_Ibanix_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_3.png");
 
-		Load<Texture>(L"UI_Fanthor_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_0.png");
-		Load<Texture>(L"UI_Fanthor_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_1.png");
-		Load<Texture>(L"UI_Fanthor_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_2.png");
-		Load<Texture>(L"UI_Fanthor_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_3.png");
+			Load<Texture>(L"UI_Fanthor_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_0.png");
+			Load<Texture>(L"UI_Fanthor_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_1.png");
+			Load<Texture>(L"UI_Fanthor_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_2.png");
+			Load<Texture>(L"UI_Fanthor_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_3.png");
 
-	}
+		}
 #pragma endregion
 
 #pragma region HPBar
-	{
-		Load<Texture>(L"UI_Player_HP_0", L"..\\Resources\\Image\\UI\\UI_Player_HP_0.png");
-		Load<Texture>(L"UI_Player_HP_1", L"..\\Resources\\Image\\UI\\UI_Player_HP_1.png");
-		Load<Texture>(L"UI_Player_HP_2", L"..\\Resources\\Image\\UI\\UI_Player_HP_2.png");
-		Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
-	}
+		{
+			Load<Texture>(L"UI_Player_HP_0", L"..\\Resources\\Image\\UI\\UI_Player_HP_0.png");
+			Load<Texture>(L"UI_Player_HP_1", L"..\\Resources\\Image\\UI\\UI_Player_HP_1.png");
+			Load<Texture>(L"UI_Player_HP_2", L"..\\Resources\\Image\\UI\\UI_Player_HP_2.png");
+			Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
+		}
 #pragma endregion
 
 
 #pragma region InGame
-	{
-		Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
-		Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort_0.png");
-		Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
-		Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss_0.png");
-		Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success_0.png");
+		{
+			Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
+			Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort_0.png");
+			Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
+			Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss_0.png");
+			Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success_0.png");
 
-		Load<Texture>(L"UI_Ingame_Conquest_Info_0", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_0.png");
-		Load<Texture>(L"UI_Ingame_Conquest_Info_1", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_1.png");
-		Load<Texture>(L"UI_Ingame_Conquest_Info_2", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_2.png");
-		
-		Load<Texture>(L"UI_Escort_Info_0", L"..\\Resources\\Image\\UI\\UI_Escort_Info_0.png");
-		Load<Texture>(L"UI_Escort_Info_1", L"..\\Resources\\Image\\UI\\UI_Escort_Info_1.png");
-		Load<Texture>(L"UI_Escort_Info_2", L"..\\Resources\\Image\\UI\\UI_Escort_Info_2.png");
-		Load<Texture>(L"UI_Escort_Info_Cursor", L"..\\Resources\\Image\\UI\\UI_Escort_Info_Cursor.png");
-			}
+			Load<Texture>(L"UI_Ingame_Conquest_Info_0", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_0.png");
+			Load<Texture>(L"UI_Ingame_Conquest_Info_1", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_1.png");
+			Load<Texture>(L"UI_Ingame_Conquest_Info_2", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_2.png");
+
+			Load<Texture>(L"UI_Escort_Info_0", L"..\\Resources\\Image\\UI\\UI_Escort_Info_0.png");
+			Load<Texture>(L"UI_Escort_Info_1", L"..\\Resources\\Image\\UI\\UI_Escort_Info_1.png");
+			Load<Texture>(L"UI_Escort_Info_2", L"..\\Resources\\Image\\UI\\UI_Escort_Info_2.png");
+			Load<Texture>(L"UI_Escort_Info_Cursor", L"..\\Resources\\Image\\UI\\UI_Escort_Info_Cursor.png");
+		}
 #pragma endregion
 
-		
+
 #pragma region SAMR
-	{
+		{
 
-		auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Skin.png");
-		auto T_Ibanix_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Body_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Body_SAMR.png");
-		auto T_Ibanix_Gun_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Gun_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Gun_SAMR.png");
+			auto rampTex = RESOURCEMANAGER.Load<Texture>(L"ramp_default", L"..\\Resources\\Texture\\Ramp_Skin.png");
+			auto T_Ibanix_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Body_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Body_SAMR.png");
+			auto T_Ibanix_Gun_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Ibanix_Gun_SAMR", L"..\\Resources\\Texture\\T_Ibanix_Gun_SAMR.png");
 
-		auto T_Rudwig_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Body_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Body_SAMR.png");
-		auto T_Rudwig_Mace_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Mace_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Mace_SAMR.png");
+			auto T_Rudwig_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Body_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Body_SAMR.png");
+			auto T_Rudwig_Mace_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Rudwig_Mace_SAMR", L"..\\Resources\\Texture\\T_Rudwig_Mace_SAMR.png");
 
-		auto T_Fanthor_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Body_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Body_SAMR.png");
-		auto T_Fanthor_Axe_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Axe_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Axe_SAMR.png");
-	}
+			auto T_Fanthor_Body_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Body_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Body_SAMR.png");
+			auto T_Fanthor_Axe_SAMR = RESOURCEMANAGER.Load<Texture>(L"T_Fanthor_Axe_SAMR", L"..\\Resources\\Texture\\T_Fanthor_Axe_SAMR.png");
+		}
 #pragma endregion
 
 
@@ -2305,7 +2479,7 @@ void ResourceManager::CreateDefaultMaterial()
 	//LoadFBX(L"..\\Resources\\FBX\\XYZ.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\ZUP_Ascii_3dmax_Pivot.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\YUP_Ascii_3dmax_Pivot.fbx");
-	
+
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Base.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx", L"ForwardPlusCel");
@@ -2323,8 +2497,8 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Rhythm.fbx", L"ForwardPlusCel");
 
 
-	
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Base.fbx", L"ForwardPlusCel"); 
+
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Base.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Attack_01.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Jump.fbx", L"ForwardPlusCel");
@@ -2359,7 +2533,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Rhythm.fbx", L"ForwardPlusCel");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"ForwardPlusCel");
-	
+
 	//mop
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"ForwardPlusCel");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"ForwardPlusCel");
@@ -2406,7 +2580,7 @@ void ResourceManager::CreateDefaultMaterial()
 	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Body_SAMR")->GetImageIndex();
 
-	
+
 
 	//Get<Material>(L"Anim_Fanthor_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"Grayscale")->GetImageIndex();
 	//Get<Material>(L"Anim_Rudwig_Base0")->GetParams().ExtTex[1] = Get<Texture>(L"Grayscale")->GetImageIndex();
@@ -2419,16 +2593,18 @@ void ResourceManager::CreateDefaultMaterial()
 
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Mace_SAMR")->GetImageIndex();
-//	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
-//	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
+	//	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
+	//	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
 }
 
 void ResourceManager::CreateDefaultParticleEffect()
 {
 	{
 		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
-		effect->mDesc.materialName = L"Particle";
+		// ParticleInstancing
+		effect->mDesc.materialName = L"ParticleInstanced";
 		effect->mDesc.computeMaterialName = L"ComputeParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
 		effect->mDesc.maxParticle = 256;
 		effect->mDesc.createInterval = 0.02f;
 		effect->mDesc.minLifeTime = 0.8f;
@@ -2444,8 +2620,9 @@ void ResourceManager::CreateDefaultParticleEffect()
 
 	{
 		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
-		effect->mDesc.materialName = L"Particle";
+		effect->mDesc.materialName = L"ParticleInstanced";
 		effect->mDesc.computeMaterialName = L"ComputeParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
 		effect->mDesc.maxParticle = 128;
 		effect->mDesc.createInterval = 0.03f;
 		effect->mDesc.minLifeTime = 0.6f;
@@ -2458,4 +2635,44 @@ void ResourceManager::CreateDefaultParticleEffect()
 		effect->SetName(L"Particle_DebugFollow");
 		Add<ParticleEffect>(L"Particle_DebugFollow", effect);
 	}
+
+	{
+		// SmokeRise
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"SmokeParticleInstanced";
+		effect->mDesc.computeMaterialName = L"ComputeSmokeParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
+		effect->mDesc.maxParticle = 192;
+		effect->mDesc.createInterval = 0.035f;
+		effect->mDesc.minLifeTime = 1.8f;
+		effect->mDesc.maxLifeTime = 3.2f;
+		effect->mDesc.minSpeed = 6.f;
+		effect->mDesc.maxSpeed = 24.f;
+		effect->mDesc.startScale = 10.f;
+		effect->mDesc.endScale = 36.f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_SmokeRise");
+		Add<ParticleEffect>(L"Particle_SmokeRise", effect);
+	}
+
+	{
+		// AuraRise
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"AuraParticleInstanced";
+		effect->mDesc.computeMaterialName = L"ComputeAuraParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
+		effect->mDesc.maxParticle = 28;
+		effect->mDesc.createInterval = 0.43f;
+		effect->mDesc.minLifeTime = 3.0f;
+		effect->mDesc.maxLifeTime = 8.0f;
+		effect->mDesc.minSpeed = 24.f;
+		effect->mDesc.maxSpeed = 102.f;
+		effect->mDesc.startScale = 55.f;
+		effect->mDesc.endScale = 0.2f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_AuraRise");
+		Add<ParticleEffect>(L"Particle_AuraRise", effect);
+	}
+
+	
 }

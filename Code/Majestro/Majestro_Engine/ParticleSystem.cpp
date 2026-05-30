@@ -210,8 +210,12 @@ ParticleEmitterRuntime& ParticleSystem::EnsureEmitterRuntime(Entity entity, Part
 		runtime.material = RESOURCEMANAGER.Get<Material>(component.mMaterialName);
 	if (runtime.computeShader == nullptr)
 		runtime.computeShader = RESOURCEMANAGER.Get<Shader>(component.mComputeShaderName);
-	if (runtime.mesh == nullptr)
-		runtime.mesh = RESOURCEMANAGER.Get<Mesh>(L"Point");
+	if (runtime.mesh == nullptr || runtime.renderMode != component.mRenderMode)
+	{
+		runtime.renderMode = component.mRenderMode;
+		runtime.mesh = RESOURCEMANAGER.Get<Mesh>(
+			component.mRenderMode == ParticleComponent::RenderMode::InstancedQuadBillboard ? L"Rectangle" : L"Point");
+	}
 
 	if (!runtime.gpu.IsValid() || runtime.gpu.capacity < component.mMaxParticle)
 	{
@@ -264,6 +268,7 @@ void ParticleSystem::ApplyEffectDesc(ParticleComponent& component, const Particl
 	component.mEndScale = desc.endScale;
 	component.mLoop = desc.loop;
 	component.mAutoDestroy = desc.autoDestroy;
+	component.mRenderMode = desc.renderMode;
 }
 
 void ParticleSystem::UpdateFollowTarget(ParticleComponent& component, TransformComponent& transform)

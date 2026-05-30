@@ -5,7 +5,7 @@ struct GS_OUT
 {
     float4 position : SV_Position;
     float2 uv : TEXCOORD;
-    uint id : SV_InstanceID;
+    uint id : ID;
 };
 
 float4 PS_Main(GS_OUT input) : SV_Target

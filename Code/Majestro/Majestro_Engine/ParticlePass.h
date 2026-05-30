@@ -33,7 +33,6 @@ private:
 
 	World* mWorld = nullptr;
 	ParticleSystem* mParticleSystem = nullptr;
-	shared_ptr<Mesh> mPointMesh;
 	std::vector<ParticleSharedParams> mSharedParams;
 	std::vector<ParticleComputeSharedParams> mSpawnParams;
 };

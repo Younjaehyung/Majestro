@@ -16,6 +16,7 @@ struct ParticleEmitterRuntime
 	shared_ptr<Material> material;
 	shared_ptr<Shader> computeShader;
 	shared_ptr<Mesh> mesh;
+	ParticleComponent::RenderMode renderMode = ParticleComponent::RenderMode::GeometryShaderBillboard;
 
 	bool IsValid() const
 	{

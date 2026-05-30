@@ -5,10 +5,18 @@
 class ParticleComponent : public Component<ParticleComponent>
 {
 public:
+	enum class RenderMode : uint8
+	{
+		GeometryShaderBillboard,
+		InstancedQuadBillboard
+	};
+
+public:
 	wstring mEffectName = L"";
 	wstring mMaterialName = L"Particle";
 	wstring mComputeShaderName = L"ComputeParticle";
 	bool mEffectDescApplied = false;
+	RenderMode mRenderMode = RenderMode::GeometryShaderBillboard;
 
 	uint32 mMaxParticle = 256;
 	float mCreateInterval = 0.02f;

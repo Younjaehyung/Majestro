@@ -17,12 +17,11 @@ void ParticlePass::Initialize(World* world)
 {
 	mWorld = world;
 	mParticleSystem = world ? world->GetSystemManager()->GetSystem<ParticleSystem>() : nullptr;
-	mPointMesh = RESOURCEMANAGER.Get<Mesh>(L"Point");
 }
 
 void ParticlePass::Execute(const RenderContext& ctx)
 {
-	if (mParticleSystem == nullptr || mPointMesh == nullptr)
+	if (mParticleSystem == nullptr)
 		return;
 
 	if (!mParticleSystem->HasActiveEmitters())
@@ -153,7 +152,7 @@ void ParticlePass::DrawEmitter(const ParticleEmitterRuntime& runtime, uint32 emi
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 4, &constants, 0);
 
 	runtime.material->GetShader()->Update();
-	mPointMesh->Render(runtime.gpu.capacity);
+	runtime.mesh->Render(runtime.gpu.capacity);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE ParticlePass::GetGpuHandle(uint32 descriptorIndex) const

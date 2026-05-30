@@ -1,5 +1,6 @@
 #pragma once
 #include "Object.h"
+#include "ParticleComponent.h"
 
 struct ParticleEffectDesc
 {
@@ -15,6 +16,8 @@ struct ParticleEffectDesc
 	float endScale = 6.f;
 	bool loop = true;
 	bool autoDestroy = false;
+	
+	ParticleComponent::RenderMode renderMode = ParticleComponent::RenderMode::GeometryShaderBillboard;
 };
 
 class ParticleEffect : public Object

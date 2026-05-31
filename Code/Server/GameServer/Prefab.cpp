@@ -103,6 +103,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   world->AddComponent<BeatComponent>(mEntityID);
   GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
   grav.mHight = t.mLocalPosition.y + 30.f; // 임시 동기화
+  grav.mGround = t.mLocalPosition.y; // 스폰 직후 낙하 방지
   world->AddComponent<PlayerMovementComponent>(mEntityID);
   world->AddComponent<InputComponent>(mEntityID);
   auto &w =

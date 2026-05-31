@@ -105,7 +105,7 @@ void MovementSystem::UpdateEvent(float dt)
 					{
 
 						gr->mGravity -= e.y; // gravity가 양수면 하강 속도. 위로 쏘려면 음수 방향
-						gr->mHight += 1.0f; // 지면에 붙어 있을 때 즉시 재착지로 상쇄되는 것을 막기 위해 살짝 띄움
+						gr->mHight += 20.0f; // 지면에 붙어 있을 때 즉시 재착지로 상쇄되는 것을 막기 위해 띄움 
 						gr->mFalling = true;
 					}
 				}
@@ -198,6 +198,10 @@ void MovementSystem::UpdatePlayer(float dt)
 			static constexpr float MIN_MOVE_SQ = 0.01f * 0.01f; // cm 단위
 			shared_ptr<Navigation>& nav = mWorld->GetNavSystem();
 			if (!nav || !nav->IsInitialized()) return;
+
+			if (gravityComponent && gravityComponent->mDropping)
+				continue;
+
 			// XZ 이동량이 거의 없으면 검증 불필요
 			const float moveXSq = tf->mMovingVector.x * tf->mMovingVector.x
 				+ tf->mMovingVector.z * tf->mMovingVector.z;
@@ -210,22 +214,40 @@ void MovementSystem::UpdatePlayer(float dt)
 			// Y: 이동 전후 동일 (Y 검증은 중력 시스템에 위임)
 			prevPos.y = tf->mLocalPosition.y;
 
-			// NavMesh 표면을 따라 이동 — 벽이 있으면 자동으로 막히는 위치로 클램프
-			Vec3 resultPos;
-			if (nav->MoveAlongSurface(prevPos, tf->mLocalPosition, resultPos))
-			{
-				tf->mLocalPosition.x = resultPos.x;
-				//tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
-				tf->mLocalPosition.z = resultPos.z;
-				tf->mMovingVector.x = resultPos.x - prevPos.x;
-				tf->mMovingVector.y = 0;
-				tf->mMovingVector.z = resultPos.z - prevPos.z;
+			// 입력으로 이미 옮겨진 목표 XZ 
+			const Vec3 desiredEnd = tf->mLocalPosition;
 
-				GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(entity);
-				if (gravityComp) {
-					gravityComp->mGround = resultPos.y;
-					//gravityComp->mHight = resultPos.y; // NavMesh 높이는 중력 단계에서 적용되도록 저장만 수행
+			// NavMesh 표면을 따라 이동 — 벽/경계가 있으면 자동으로 막히는 위치로 클램프
+			Vec3 resultPos;
+			if (nav->MoveAlongSurface(prevPos, desiredEnd, resultPos))
+			{
+				// 경계에 막혀 클램프됐는지 판정 
+				static constexpr float kEdgeBlockEpsSq = 2.0f * 2.0f; // (2cm)^2
+				const float clampDx = desiredEnd.x - resultPos.x;
+				const float clampDz = desiredEnd.z - resultPos.z;
+				const bool blocked = (clampDx * clampDx + clampDz * clampDz) > kEdgeBlockEpsSq;
+
+				bool dropped = false;
+				if (blocked && gravityComponent)
+				{
+					// 막힌 경계가 떨어질 수 있는 단차인지 Jolt로 판별 후 가능하면 낙하 시작
+					dropped = TryStartEdgeDrop(entity, tf, gravityComponent, prevPos, desiredEnd);
 				}
+
+				if (!dropped && gravityComponent)
+				{
+					// 일반 클램프: 벽 또는 드롭 불가 경계
+					tf->mLocalPosition.x = resultPos.x;
+					//tf->mLocalPosition.y = resultPos.y; // Y는 NavMesh 높이로 보정 (낙하/점프는 중력 시스템에 위임)
+					tf->mLocalPosition.z = resultPos.z;
+					tf->mMovingVector.x = resultPos.x - prevPos.x;
+					tf->mMovingVector.y = 0;
+					tf->mMovingVector.z = resultPos.z - prevPos.z;
+
+					gravityComponent->mGround = resultPos.y;
+					//gravityComponent->mHight = resultPos.y; // NavMesh 높이는 중력 단계에서 적용되도록 저장만 수행
+				}
+				// dropped == true: XZ는 desiredEnd 유지, 낙하는 TryStartEdgeDrop에서 시작됨
 			}
 			// MoveAlongSurface가 false(NavMesh 밖)이면 검증 스킵  이동 그대로
 
@@ -234,6 +256,48 @@ void MovementSystem::UpdatePlayer(float dt)
 	}
 
 
+}
+
+bool MovementSystem::TryStartEdgeDrop(Entity entity, TransformComponent* tf, GravityComponent* grav,
+	const Vec3& prevPos, const Vec3& desiredEnd)
+{
+	static constexpr float kMaxDropHeight   = 800.0f; // 허용 최대 낙차
+	static constexpr float kDropProbeStepUp = 10.0f;  // 발 높이 위쪽은 거의 안 봄
+	static constexpr float kWallProbeUp     = 60.0f;  // 벽 검사 캐스트 높이(가슴)
+	static constexpr float kWallProbeRadius = 20.0f;  // 벽 검사 구 반경
+
+	auto physics = mWorld->GetPhysicsWorld();
+	if (!physics)
+		return false;
+
+	// 발 밑에 XZ 아래에 착지 가능한 바닥이 있는지
+	float landY = 0.0f;
+	if (!physics->TryQueryTerrainHeightNear(desiredEnd, tf->mLocalPosition.y,
+		kDropProbeStepUp, kMaxDropHeight, landY))
+		return false; // 아래에 바닥 없음(허공)
+
+	const float drop = tf->mLocalPosition.y - landY;
+	if (drop <= grav->mStepDownDistance) // 계단 수준 단차는 기존 step-down 로직으로
+		return false;
+	if (drop > kMaxDropHeight)            // 너무 높음
+		return false;
+
+	//  벽 관통 방지: 가슴 높이에서 엣지 너머로 물리 벽이 막는지 검사
+	Vec3 wallStart = prevPos;    
+	wallStart.y += kWallProbeUp;
+	Vec3 wallEnd   = desiredEnd; 
+	wallEnd.y   += kWallProbeUp;
+	//    (발 높이 캐스트는 서 있는 바닥에 오탐하므로 반드시 올려서 캐스트)
+
+	JoltStaticHit hit;
+	if (physics->CastMovingSphereAgainstStatic(wallStart, wallEnd, kWallProbeRadius, hit) && hit.hit)	// 벽이 막고 있음 
+		return false; // 드롭 불가
+
+	// 드롭 허용 (낙하 시작)
+	grav->mGround   = landY;
+	grav->mDropping = true;
+	grav->mFalling  = true;
+	return true;
 }
 
 void MovementSystem::UpdateEnemy(float dt)
@@ -353,14 +417,28 @@ void MovementSystem::UpdateGravity(float dt)
 		auto physicsWorld = mWorld->GetPhysicsWorld();
 		static constexpr float kGroundProbeStepUp = 120.0f;
 		static constexpr float kGroundProbeDropDown = 500.0f;
-		if (physicsWorld && physicsWorld->TryQueryTerrainHeightNear(
-			transformComponent->mLocalPosition,
-			baseGround,
-			kGroundProbeStepUp,
-			kGroundProbeDropDown,
-			meshGround))
+
+
+		// 낙하 중이면 발 밑 탐색
+		const bool airborne = gravityComponent->mFalling || gravityComponent->mDropping;
+		const float probeAnchor   = airborne ? gravityComponent->mHight : baseGround;
+		const float probeStepUp   = airborne ? 10.0f   : kGroundProbeStepUp;
+		const float probeDropDown = airborne ? 5000.0f : kGroundProbeDropDown;
+
+		if (physicsWorld)
 		{
-			gravityComponent->mGround = meshGround;
+			if (physicsWorld->TryQueryTerrainHeightNear(
+				transformComponent->mLocalPosition,
+				probeAnchor, probeStepUp, probeDropDown, meshGround))
+			{
+				gravityComponent->mGround = meshGround;
+			}
+			else
+			{	// 발밑에 물리 바닥이 전혀 없음
+				// 낙하 시작/유지
+				gravityComponent->mGround = -100000.0f;		// 착지 지점 X
+				gravityComponent->mFalling = true;
+			}
 		}
 		else
 		{
@@ -372,6 +450,7 @@ void MovementSystem::UpdateGravity(float dt)
 			gravityComponent->mGravity = 0.0f;
 
 			gravityComponent->mFalling = false;
+			gravityComponent->mDropping = false; // NavMesh 클램프 재개
 		}
 		else {
 			// Step-down : 계단을 내려가는 케이스 ( falling 막기 )
@@ -388,6 +467,7 @@ void MovementSystem::UpdateGravity(float dt)
 				gravityComponent->mHight = gravityComponent->mGround;
 				gravityComponent->mGravity = 0.0f;
 				gravityComponent->mFalling = false;
+				gravityComponent->mDropping = false;
 			}
 			else {
 				gravityComponent->mFalling = true;

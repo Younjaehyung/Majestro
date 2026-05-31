@@ -256,6 +256,8 @@ void RenderManager::EndRender()
 	// 커맨드 리스트를 먼저 제출 (ExecuteCommandLists + Present)
 	mGraphicsCommandQueue->RenderEnd();
 
+	mGraphicsMemory->Commit(mGraphicsCommandQueue->GetCommandQueue().Get());
+
 	// Effekseer 내부 fence 신호: ExecuteCommandLists 이후에 호출해야
 	// GPU에 커맨드가 제출된 뒤 fence가 발동되어 다음 프레임 NewFrame()이 안전하게 대기함
 	if (mEfkCmdListHDR != nullptr)

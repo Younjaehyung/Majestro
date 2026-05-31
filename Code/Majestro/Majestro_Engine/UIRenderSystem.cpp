@@ -96,23 +96,16 @@ void UIRenderSystem::Update()
     RENDERMANAGER.SetGraphicsTable();
 
     CustomSpriteRender();
-
-    
-    RENDERMANAGER.SetGraphicsTable();
-    RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
-
-   
-    RENDERMANAGER.SetGraphicsTable();
     SpriteUpdate();
     PostSpriteRender();
 
     mUIEffectPass->Execute(DELTA_TIME);
 
-   
+
     RENDERMANAGER.SetGraphicsTable();
-    RENDERMANAGER.GetGraphicsMemory()->Commit(GRAPHICS_CMD_QUEUE->GetCommandQueue().Get());
     TextUpdate();
+
 }
 
 // Update

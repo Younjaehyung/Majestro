@@ -10,6 +10,7 @@
 #include "SpawnerComponent.h"
 #include "TransformComponent.h"
 #include "GravityComponent.h"
+#include "PhysicsWorld.h"
 #include "HealthComponent.h"
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
@@ -107,18 +108,28 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
     if (!spawned.IsValid()) return Entity{};
 
     const Vec3 offset = SampleDiskXZ(sp->mSpawnRadius);
-    const Vec3 finalPos = base + offset;
-    if (auto* tr = mWorld->GetComponent<TransformComponent>(spawned))
+    Vec3 placePos = base + offset;
+
+    // 스폰 XZ 지점의 실제 지형 높이를 질의해 Y를 보정
+    if (auto& pw = mWorld->GetPhysicsWorld())
     {
-        tr->mLocalPosition = finalPos;
-        tr->mWorldMatrix = Matrix::CreateTranslation(finalPos);
+        float ground = 0.0f;
+        if (pw->TryQueryTerrainHeightNear(placePos, placePos.y,
+                /*maxStepUp=*/2000.0f, /*maxDropDown=*/5000.0f, ground))
+            placePos.y = ground;
     }
 
-    // 스폰 높이 동기화.
+    if (auto* tr = mWorld->GetComponent<TransformComponent>(spawned))
+    {
+        tr->mLocalPosition = placePos;
+        tr->mWorldMatrix = Matrix::CreateTranslation(placePos);
+    }
+
+    // 중력 컴포넌트를 보정된 지면 높이에 동기화
     if (auto* grav = mWorld->GetComponent<GravityComponent>(spawned))
     {
-        grav->mHight = finalPos.y;
-        grav->mGround = finalPos.y;
+        grav->mHight = placePos.y;
+        grav->mGround = placePos.y;
         grav->mGravity = 0.0f;
         grav->mFalling = false;
         grav->mDropping = false;

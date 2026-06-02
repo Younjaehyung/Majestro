@@ -79,21 +79,31 @@ void MovementSystem::Update(float dt) {
 			netTransformComponent->mStartRotation.x = transformComponent->mLocalRotationE.x;
 		}
 		else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
-			Vec3 forward = transformComponent->GetLook();
-			Vec3 right = transformComponent->GetRight();
+			// F3 RPG: 카메라 yaw 기준으로 이동, 캐릭터는 진행 방향으로 회전 (카메라/조작 분리)
+			const float camYaw = DirectX::XMConvertToRadians(movementComponent->mCameraRotationY);
+			Matrix yawMat = Matrix::CreateFromQuaternion(
+				Quaternion::CreateFromYawPitchRoll(camYaw, 0.f, 0.f));
+			Vec3 camForward = yawMat.Backward();
+			Vec3 camRight   = yawMat.Right();
 
 			// WASD 입력
 			float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
 			float iy = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
 
-			// 로컬 입력 방향을 월드 방향으로 변환
-			Vec3 desired = forward * iy + right * ix;
-
-			// 정규화
-			if (desired.LengthSquared() > 0.0001f)
+			// 카메라 상대 방향 -> 월드 이동 방향
+			Vec3 desired = camForward * iy + camRight * ix;
+			const bool moving = desired.LengthSquared() > 0.0001f;
+			if (moving)
 				desired.Normalize();
 
-			UpdateBodyYawForAim(movementComponent, transformComponent, dt, hasMoveInput || mainPlayerComponent->mSpeed > 0.f);
+			if (moving)
+			{
+				constexpr float kTurnSpeed = 12.f;
+				const float targetYaw = DirectX::XMConvertToDegrees(atan2f(desired.x, desired.z));
+				const float alpha = std::clamp(dt * kTurnSpeed, 0.f, 1.f);
+				transformComponent->mLocalRotationE.y =
+					LerpAngleDegrees(transformComponent->mLocalRotationE.y, targetYaw, alpha);
+			}
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
 

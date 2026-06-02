@@ -128,6 +128,7 @@ void PlayerInputSystem::Update(float dt)
 	}
 	else if (INPUT.GetKeyDown(eKeyCode::F4)) {
 		cameraTypeComponent->mPlayMode = MAIN_CAMERA;
+		cameraTypeComponent->mFreeCamInit = false; // 진입 시 현재 카메라 위치에서 재초기화
 	}
 
 	//player move
@@ -145,6 +146,45 @@ void PlayerInputSystem::Update(float dt)
 	PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
 	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
 	BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
+
+	// F4 자유 카메라
+	if (cameraTypeComponent->mPlayMode == MAIN_CAMERA)
+	{
+		TransformComponent* camTransform = mWorld->GetComponent<TransformComponent>(mainCameraEntitys[0]);
+
+		// 진입 순간 현재 카메라 위치/회전에서 시작
+		if (!cameraTypeComponent->mFreeCamInit && camTransform)
+		{
+			cameraTypeComponent->mFreeCamPos = camTransform->mLocalPosition;
+			cameraTypeComponent->mFreeYaw    = camTransform->mLocalRotationE.y;
+			cameraTypeComponent->mFreePitch  = camTransform->mLocalRotationE.x;
+			cameraTypeComponent->mFreeCamInit = true;
+		}
+
+		// 마우스 룩으로 자유 시점 회전
+		if (INPUT.IsMouseLookActive())
+		{
+			auto mouseDelta = INPUT.GetMouseState().Delta;
+			float dPitch = (std::abs(mouseDelta.y) > deadzone) ? (float)mouseDelta.y : 0.0f;
+			float dYaw   = (std::abs(mouseDelta.x) > deadzone) ? (float)mouseDelta.x : 0.0f;
+			cameraTypeComponent->mFreePitch += dPitch * sensitivity * mDPI;
+			cameraTypeComponent->mFreeYaw   += dYaw   * sensitivity * mDPI;
+			cameraTypeComponent->mFreePitch = std::clamp(cameraTypeComponent->mFreePitch, -85.0f, 85.0f);
+		}
+		INPUT.MouseStateClear();
+
+		// 플레이어 멈춤
+		movementComponent->mMovingDirection = { 0, 0, 0 };
+		movementComponent->mJump    = false;
+		movementComponent->mDash    = false;
+		movementComponent->mAttack  = false;
+		movementComponent->mSkill1  = false;
+		movementComponent->mSkill2  = false;
+		movementComponent->mReload  = false;
+		movementComponent->mSpecial = false;
+		mainPlayerComponent->mSpeed = 0.f;
+		return;
+	}
 
 	// 일시정지 중에는 로컬 플레이어 입력을 모두 무력화하고 종료.
 	if (paused)

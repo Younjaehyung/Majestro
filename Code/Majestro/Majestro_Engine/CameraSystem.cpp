@@ -43,128 +43,52 @@ void CameraSystem::Update(float dt)
 
 			Vec3 pos = playerPos->mLocalPosition;
 
-			if (cameraTypeComponent->mPlayMode == ONE_FPS) { //플레이어 시아로 변경 필요
+			auto& renderPool = mWorld->GetComponentPool<RenderComponent>();
+			RenderComponent* targetRender = renderPool.GetComponent(cameraTypeComponent->mTargetID);
 
-				transformComponent->mLocalPosition = pos;
-				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
-				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
-			}
-			else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
+			if (cameraTypeComponent->mPlayMode == ONE_FPS) {
+				// F1 1인칭: 카메라를 머리 위치(yaw 공간 고정 오프셋)에 배치
 				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
 				transformComponent->FinalUpdate();
 
-
-				// Camera Spring Arm
 				Vec3 look = transformComponent->GetLook();
-				Vec3 yawForward = look;
-				yawForward.y = 0.0f;
-
-				if (yawForward.LengthSquared() <= 0.0001f)
-					yawForward = Vec3::Forward;
+				Vec3 yawFwd = look;
+				yawFwd.y = 0.f;
+				if (yawFwd.LengthSquared() <= 0.0001f)
+					yawFwd = Vec3::Forward;
 				else
-					yawForward.Normalize();
+					yawFwd.Normalize();
 
-				Vec3 yawRight = Vec3::Up.Cross(yawForward);
+				Vec3 yawRight = Vec3::Up.Cross(yawFwd);
 				if (yawRight.LengthSquared() <= 0.0001f)
 					yawRight = transformComponent->GetRight();
 				else
 					yawRight.Normalize();
 
-				Vec3 worldOffset = yawRight * cameraTypeComponent->mOffset.x
-					+ Vec3::Up * cameraTypeComponent->mOffset.y
-					+ yawForward * cameraTypeComponent->mOffset.z;
+				transformComponent->mLocalPosition = pos
+					+ yawRight * cameraTypeComponent->mFpsHeadOffset.x
+					+ Vec3::Up * cameraTypeComponent->mFpsHeadOffset.y
+					+ yawFwd  * cameraTypeComponent->mFpsHeadOffset.z;
 
-				Vec3 pivot = pos + worldOffset;
-				Vec3 DestPos = pivot - cameraTypeComponent->mCameraMaxLenth * look;
-
-				auto physicsWorld = mWorld->GetPhysicsWorld();
-				JoltStaticHit joltHit{};
-				bool hasJoltHit = false;
-				if (physicsWorld->HasJoltStaticCollision())
-				{
-					hasJoltHit = physicsWorld->CastMovingSphereAgainstStatic(
-						pivot, DestPos,
-						cameraTypeComponent->mCameraSphereRadius, joltHit);
-				}
-
-				SweepHit obbHit{};
-				if (!hasJoltHit)
-				{
-					obbHit = physicsWorld->SphereSweepVsOBB(pivot, DestPos,
-						cameraTypeComponent->mCameraSphereRadius);
-				}
-
-				const bool  hit     = hasJoltHit || obbHit.hit;
-				const float hitDist = hasJoltHit ? joltHit.distance : obbHit.distance;
-
-				float cameraDistance = cameraTypeComponent->mCameraMaxLenth;
-				if (hit)
-				{
-					cameraDistance = hitDist - cameraTypeComponent->mCameraMargin;
-					if (cameraDistance < cameraTypeComponent->mCameraMinLenth)
-						cameraDistance = cameraTypeComponent->mCameraMinLenth;
-					if (cameraDistance > cameraTypeComponent->mCameraMaxLenth)
-						cameraDistance = cameraTypeComponent->mCameraMaxLenth;
-				}
-
-				transformComponent->mLocalPosition = pivot - cameraDistance * look;
-
-				if (transformComponent->mLocalPosition.y < pos.y) {
-					transformComponent->mLocalPosition.y = pos.y;
-				}
-
-				// Camera Dithered Fade
-				{
-					float fadeStart = cameraTypeComponent->mCameraFadeStart;
-					float fadeEnd   = cameraTypeComponent->mCameraFadeEnd;
-					float targetAlpha = 1.f;
-					if (fadeStart > fadeEnd + 0.001f)
-					{
-						float t = (cameraDistance - fadeEnd) / (fadeStart - fadeEnd);
-						if (t < 0.f) t = 0.f;
-						else if (t > 1.f) t = 1.f;
-						targetAlpha = t;
-					}
-
-					float lerpFactor = cameraTypeComponent->mFadeLerpSpeed * dt;
-					if (lerpFactor > 1.f) lerpFactor = 1.f;
-					cameraTypeComponent->mCurrentFadeAlpha +=
-						(targetAlpha - cameraTypeComponent->mCurrentFadeAlpha) * lerpFactor;
-
-					auto& renderPool = mWorld->GetComponentPool<RenderComponent>();
-					if (RenderComponent* targetRender = renderPool.GetComponent(cameraTypeComponent->mTargetID))
-					{
-						targetRender->mOpacity = cameraTypeComponent->mCurrentFadeAlpha;
-					}
-				}
+				// 1인칭에서는 자기 모델을 완전히 숨겨 화면을 가리지 않게 한다.
+				if (targetRender)
+					targetRender->mOpacity = 0.f;
+				cameraTypeComponent->mCurrentFadeAlpha = 0.f;
+			}
+			else if (cameraTypeComponent->mPlayMode == THREE_FPS) {
+				UpdateOrbitCamera(cameraTypeComponent, transformComponent, pos, movementComponent, dt);
 			}
 			else if (cameraTypeComponent->mPlayMode == THREE_RPG) {
-
-				transformComponent->mLocalPosition = pos - cameraTypeComponent->mCameraMaxLenth * transformComponent->GetLook();
-				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
-				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
+				// F3 RPG: 카메라 궤도는 3인칭과 동일(몸 회전은 MovementSystem에서 진행방향으로 처리)
+				UpdateOrbitCamera(cameraTypeComponent, transformComponent, pos, movementComponent, dt);
 			}
-			else {
-				Vec3 forward = transformComponent->GetLook();
-				Vec3 right = transformComponent->GetRight();
-				Vec3 up = { 0,1,0 };
-
-				float ix = movementComponent->mMovingDirection.x;  // A/D  (-1 ~ 1)
-				float iz = movementComponent->mMovingDirection.z;  // W/S   (-1 ~ 1)
-				float iy = movementComponent->mMovingDirection.y;  // W/S   (-1 ~ 1)
-
-				Vec3 desired = forward * iz + right * ix + up * iy;
-
-				// 정규화
-				if (desired.LengthSquared() > 0.0001f)
-					desired.Normalize();
-
-				transformComponent->mLocalPosition += desired * dt * cameraTypeComponent->mCameraMoveSpeed;
-
-				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
-				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
-
+			else { // MAIN_CAMERA: 자유 비행 카메라
+				UpdateFreeCamera(cameraTypeComponent, transformComponent, dt);
+				// 자유 카메라에서는 플레이어 모델을 정상 표시
+				if (targetRender)
+					targetRender->mOpacity = 1.f;
+				cameraTypeComponent->mCurrentFadeAlpha = 1.f;
 			}
 			// 카메라 쉐이크: 공격 등의 임팩트 시 pitch를 sin 파형으로 진동
 			if (cameraTypeComponent && cameraTypeComponent->mShakeRemaining > 0.f)
@@ -197,6 +121,125 @@ void CameraSystem::Update(float dt)
 }
 
 
+
+
+void CameraSystem::UpdateOrbitCamera(CameraTypeComponent* camType, TransformComponent* transform,
+	const Vec3& playerPos, PlayerMovementComponent* movement, float dt)
+{
+	// 카메라 회전은 마우스 룩(카메라 yaw/pitch)을 따른다 — 몸 방향과 무관.
+	transform->mLocalRotationE.x = movement->mCameraRotationX;
+	transform->mLocalRotationE.y = movement->mCameraRotationY;
+	transform->FinalUpdate();
+
+	// Camera Spring Arm
+	Vec3 look = transform->GetLook();
+	Vec3 yawForward = look;
+	yawForward.y = 0.0f;
+
+	if (yawForward.LengthSquared() <= 0.0001f)
+		yawForward = Vec3::Forward;
+	else
+		yawForward.Normalize();
+
+	Vec3 yawRight = Vec3::Up.Cross(yawForward);
+	if (yawRight.LengthSquared() <= 0.0001f)
+		yawRight = transform->GetRight();
+	else
+		yawRight.Normalize();
+
+	Vec3 worldOffset = yawRight * camType->mOffset.x
+		+ Vec3::Up * camType->mOffset.y
+		+ yawForward * camType->mOffset.z;
+
+	Vec3 pivot = playerPos + worldOffset;
+	Vec3 DestPos = pivot - camType->mCameraMaxLenth * look;
+
+	auto physicsWorld = mWorld->GetPhysicsWorld();
+	JoltStaticHit joltHit{};
+	bool hasJoltHit = false;
+	if (physicsWorld->HasJoltStaticCollision())
+	{
+		hasJoltHit = physicsWorld->CastMovingSphereAgainstStatic(
+			pivot, DestPos,
+			camType->mCameraSphereRadius, joltHit);
+	}
+
+	SweepHit obbHit{};
+	if (!hasJoltHit)
+	{
+		obbHit = physicsWorld->SphereSweepVsOBB(pivot, DestPos,
+			camType->mCameraSphereRadius);
+	}
+
+	const bool  hit     = hasJoltHit || obbHit.hit;
+	const float hitDist = hasJoltHit ? joltHit.distance : obbHit.distance;
+
+	float cameraDistance = camType->mCameraMaxLenth;
+	if (hit)
+	{
+		cameraDistance = hitDist - camType->mCameraMargin;
+		if (cameraDistance < camType->mCameraMinLenth)
+			cameraDistance = camType->mCameraMinLenth;
+		if (cameraDistance > camType->mCameraMaxLenth)
+			cameraDistance = camType->mCameraMaxLenth;
+	}
+
+	transform->mLocalPosition = pivot - cameraDistance * look;
+
+	if (transform->mLocalPosition.y < playerPos.y) {
+		transform->mLocalPosition.y = playerPos.y;
+	}
+
+	// Camera Dithered Fade
+	{
+		float fadeStart = camType->mCameraFadeStart;
+		float fadeEnd   = camType->mCameraFadeEnd;
+		float targetAlpha = 1.f;
+		if (fadeStart > fadeEnd + 0.001f)
+		{
+			float t = (cameraDistance - fadeEnd) / (fadeStart - fadeEnd);
+			if (t < 0.f) t = 0.f;
+			else if (t > 1.f) t = 1.f;
+			targetAlpha = t;
+		}
+
+		float lerpFactor = camType->mFadeLerpSpeed * dt;
+		if (lerpFactor > 1.f) lerpFactor = 1.f;
+		camType->mCurrentFadeAlpha +=
+			(targetAlpha - camType->mCurrentFadeAlpha) * lerpFactor;
+
+		auto& renderPool = mWorld->GetComponentPool<RenderComponent>();
+		if (RenderComponent* targetRender = renderPool.GetComponent(camType->mTargetID))
+		{
+			targetRender->mOpacity = camType->mCurrentFadeAlpha;
+		}
+	}
+}
+
+
+void CameraSystem::UpdateFreeCamera(CameraTypeComponent* camType, TransformComponent* transform, float dt)
+{
+	// 회전(mFreeYaw/mFreePitch)은 PlayerInputSystem에서 마우스로 누적. 여기서는 위치만 적분.
+	transform->mLocalRotationE.x = camType->mFreePitch;
+	transform->mLocalRotationE.y = camType->mFreeYaw;
+	transform->mLocalRotationE.z = 0.f;
+	transform->FinalUpdate();
+
+	Vec3 forward = transform->GetLook();
+	Vec3 right = transform->GetRight();
+
+	float iz = (INPUT.GetKey(eKeyCode::W) ? 1.f : 0.f) - (INPUT.GetKey(eKeyCode::S) ? 1.f : 0.f);
+	float ix = (INPUT.GetKey(eKeyCode::D) ? 1.f : 0.f) - (INPUT.GetKey(eKeyCode::A) ? 1.f : 0.f);
+	float iy = (INPUT.GetKey(eKeyCode::E) || INPUT.GetKey(eKeyCode::SPACE) ? 1.f : 0.f)
+			 - (INPUT.GetKey(eKeyCode::Q) || INPUT.GetKey(eKeyCode::SHIFT) ? 1.f : 0.f);
+
+	Vec3 dir = forward * iz + right * ix + Vec3::Up * iy;
+	if (dir.LengthSquared() > 0.0001f)
+		dir.Normalize();
+
+	camType->mFreeCamPos += dir * dt * camType->mFreeCamSpeed;
+	transform->mLocalPosition = camType->mFreeCamPos;
+}
 
 
 void CameraSystem::TestUpdate(float dt)

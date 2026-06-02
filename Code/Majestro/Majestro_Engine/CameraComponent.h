@@ -156,6 +156,16 @@ public:
 	Vec3 mOffset = Vec3(80, 160, 0);
 	Vec3 mLookAtOffset = Vec3(0, 0, -5);
 
+	// F1 ONE_FPS: 머리 고정 오프셋(플레이어 yaw 공간). y=머리 높이, z=약간 앞.
+	Vec3 mFpsHeadOffset = Vec3(0.f, 150.f, 15.f);
+
+	// F4 MAIN_CAMERA(자유 카메라) 상태
+	bool  mFreeCamInit  = false;
+	Vec3  mFreeCamPos   = Vec3::Zero;
+	float mFreeYaw      = 0.f;    // deg
+	float mFreePitch    = 0.f;    // deg (+=85 클램프)
+	float mFreeCamSpeed = 1300.f;  // 자유 비행 속도
+
 	// 카메라 쉐이크
 	float mShakeRemaining = 0.f;   // 남은 진동 시간
 	float mShakeDuration  = 0.f;   // 초기 지속 시간 (decay 계산용)

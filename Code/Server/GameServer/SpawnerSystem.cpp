@@ -9,6 +9,7 @@
 
 #include "SpawnerComponent.h"
 #include "TransformComponent.h"
+#include "GravityComponent.h"
 #include "HealthComponent.h"
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
@@ -111,6 +112,17 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
     {
         tr->mLocalPosition = finalPos;
         tr->mWorldMatrix = Matrix::CreateTranslation(finalPos);
+    }
+
+    // 스폰 높이 동기화.
+    if (auto* grav = mWorld->GetComponent<GravityComponent>(spawned))
+    {
+        grav->mHight = finalPos.y;
+        grav->mGround = finalPos.y;
+        grav->mGravity = 0.0f;
+        grav->mFalling = false;
+        grav->mDropping = false;
+        grav->mGroundGraceLeft = 0.0f;
     }
 
     BroadcastSpawnPacket(spawned, static_cast<uint8>(sp->mPrefabType));

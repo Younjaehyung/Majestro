@@ -90,6 +90,7 @@ namespace
 		float damage = 10.0f;
 		float forwardDistance = 3.0f;
 		float radius = 2.0f;
+		float angleDegrees = 360.0f;
 		float knockbackDistance = 0.0f;
 	};
 
@@ -98,17 +99,17 @@ namespace
 		switch (type)
 		{
 		case SkillType::DrumAttack:
-			return { 25.0f, 3.0f, 300.0f , 0.0f};
+			return { 25.0f, 3.0f, 500.0f, 150.0f, 0.0f };
 		case SkillType::DrumSkill1:
-			return { 75.0f, 3.0f, 300.0f , 0.0f };
+			return { 75.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::GuitarAttack:
-			return { 25.0f, 3.0f, 300.0f, 0.0f };
+			return { 25.0f, 3.0f, 500.0f, 150.0f, 0.0f };
 		case SkillType::GuitarSkill1:
-			return { 30.0f, 3.0f, 300.0f, 0.0f };
+			return { 30.0f, 3.0f, 500.0f, 150.0f, 0.0f };
 		case SkillType::PianoAttack:
-			return { 20.0f, 3.0f, 200.0f, 0.0f };
+			return { 20.0f, 3.0f, 200.0f, 360.0f, 0.0f };
 		case SkillType::BongoAttack:
-			return { 40.0f, 3.0f, 500.0f, 0.0f };
+			return { 40.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		default:
 			return {};
 		}
@@ -208,6 +209,26 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		delta.y = 0.0f;
 		if (delta.LengthSquared() > radiusSq)
 			continue;
+
+		if (attackerIsPlayer && stat.angleDegrees < 359.9f)
+		{
+			Vec3 flatForward = forward;
+			flatForward.y = 0.0f;
+			if (flatForward.LengthSquared() <= 1e-6f)
+				flatForward = Vec3::Forward;
+			else
+				flatForward.Normalize();
+
+			Vec3 toTarget = delta;
+			if (toTarget.LengthSquared() <= 1e-6f)
+				continue;
+
+			toTarget.Normalize();
+			const float halfAngleDegrees = stat.angleDegrees * 0.5f;
+			const float minDot = std::cos(DirectX::XMConvertToRadians(halfAngleDegrees));
+			if (flatForward.Dot(toTarget) < minDot)
+				continue;
+		}
 
 		if (stat.knockbackDistance > 0.0f)
 		{

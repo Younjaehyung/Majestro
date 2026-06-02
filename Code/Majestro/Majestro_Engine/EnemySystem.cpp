@@ -19,7 +19,8 @@ namespace
 	constexpr float kPianomanMeleeRange = 160.0f;
 	constexpr float kPianomanAttackRadius = 200.0f;
 	constexpr float kBongomanAttackRadius = 500.0f;
-	constexpr float kPlayerMeleeAttackRadius = 300.0f;
+	constexpr float kPlayerMeleeAttackRadius = 500.0f;
+	constexpr float kPlayerMeleeAttackAngleDegrees = 150.0f;
 	constexpr float kMeleeAttackForwardDistance = 3.0f;
 	constexpr float kAttackDebugDuration = 1.0f;
 	constexpr float kAttackDebugHeight = 220.0f;
@@ -174,6 +175,72 @@ namespace
 			RenderSystem::SubmitDebugLine(bottom, top, color);
 		}
 	}
+
+	void SubmitDebugSectorCylinder(
+		const Vec3& center,
+		const Vec3& forward,
+		float radius,
+		float angleDegrees,
+		float height,
+		const Vec4& color,
+		int ringCount = kAttackDebugCylinderRings)
+	{
+		if (ringCount < 2 || radius <= 0.0f || height <= 0.0f || angleDegrees <= 0.0f)
+			return;
+
+		Vec3 flatForward = forward;
+		flatForward.y = 0.0f;
+		if (flatForward.LengthSquared() <= 1e-6f)
+			flatForward = Vec3::Forward;
+		else
+			flatForward.Normalize();
+
+		const float baseYaw = std::atan2(flatForward.z, flatForward.x);
+		const float halfAngleRad = DirectX::XMConvertToRadians(angleDegrees * 0.5f);
+		const int arcSegments = 20;
+		const float minY = center.y;
+		const float stepY = height / static_cast<float>(ringCount - 1);
+
+		for (int ring = 0; ring < ringCount; ++ring)
+		{
+			const float y = minY + stepY * static_cast<float>(ring);
+			Vec3 ringCenter = center;
+			ringCenter.y = y;
+
+			Vec3 prevPoint = ringCenter;
+			bool hasPrevPoint = false;
+			for (int i = 0; i <= arcSegments; ++i)
+			{
+				const float t = static_cast<float>(i) / static_cast<float>(arcSegments);
+				const float yaw = baseYaw - halfAngleRad + (halfAngleRad * 2.0f) * t;
+				const Vec3 point(
+					ringCenter.x + std::cos(yaw) * radius,
+					y,
+					ringCenter.z + std::sin(yaw) * radius);
+
+				RenderSystem::SubmitDebugLine(ringCenter, point, color);
+				if (hasPrevPoint)
+					RenderSystem::SubmitDebugLine(prevPoint, point, color);
+
+				prevPoint = point;
+				hasPrevPoint = true;
+			}
+		}
+
+		const int verticalSegments = 6;
+		for (int i = 0; i <= verticalSegments; ++i)
+		{
+			const float t = static_cast<float>(i) / static_cast<float>(verticalSegments);
+			const float yaw = baseYaw - halfAngleRad + (halfAngleRad * 2.0f) * t;
+			Vec3 bottom(
+				center.x + std::cos(yaw) * radius,
+				minY,
+				center.z + std::sin(yaw) * radius);
+			Vec3 top = bottom;
+			top.y += height;
+			RenderSystem::SubmitDebugLine(bottom, top, color);
+		}
+	}
 }
 
 
@@ -288,10 +355,15 @@ void EnemySystem::Update(float dt) {
 			AttackDebugIndicator indicator;
 			indicator.center = e.positionIsCenter ? e.position : (e.position + forward * kMeleeAttackForwardDistance);
 			indicator.center.y += kCircleHeightOffset;
+			indicator.forward = forward;
 			indicator.radius = radius;
+			indicator.angleDegrees =
+				(e.skillType == SkillType::DrumSkill1) ? 360.0f :
+				(isPlayerAttack ? kPlayerMeleeAttackAngleDegrees : 360.0f);
 			indicator.remainingTime = kAttackDebugDuration;
 			indicator.color = color;
 			indicator.isPlayerAttack = isPlayerAttack;
+			indicator.isSector = isPlayerAttack && e.skillType != SkillType::DrumSkill1;
 			mAttackDebugIndicators.push_back(indicator);
 		});
 	}
@@ -350,7 +422,16 @@ void EnemySystem::UpdateAttackDebugIndicators(float dt)
 				continue;
 		}
 
-		SubmitDebugCylinder(indicator.center, indicator.radius, kAttackDebugHeight, indicator.color);
+		if (indicator.isSector)
+			SubmitDebugSectorCylinder(
+				indicator.center,
+				indicator.forward,
+				indicator.radius,
+				indicator.angleDegrees,
+				kAttackDebugHeight,
+				indicator.color);
+		else
+			SubmitDebugCylinder(indicator.center, indicator.radius, kAttackDebugHeight, indicator.color);
 	}
 
 	mAttackDebugIndicators.erase(

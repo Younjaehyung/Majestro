@@ -9,7 +9,7 @@
 #include "ForwardPass.h"
 #include "OutlinePass.h"
 #include "EffectPass.h"
-#include "WeaponTrailPass.h"
+//#include "TrailRenderPass.h"
 #include "ParticlePass.h"
 #include "RenderPass.h"     
 #include "MotionVectorPass.h"
@@ -20,10 +20,12 @@
 #include "GodRayPass.h"
 #include "DualKawaseBlurPass.h"
 #include "HBAOPass.h"
+#include "HealthVignettePass.h"
 #include "FXAAPass.h"
 #include "WorldUIPass.h"
 #include "UIFeature.h"
 #include "LightComponent.h"
+#include "HealthComponent.h"
 
 
 #include "Engine.h"
@@ -51,7 +53,7 @@ void GameRenderPipeline::Initialize(World* world)
     mForwardPass     = make_shared<ForwardPass>();
     mOutlinePass     = make_shared<OutlinePass>();
     mEffectPass      = make_shared<EffectPass>();
-    mWeaponTrailPass = make_shared<WeaponTrailPass>();
+    //mTrailRenderPass = make_shared<TrailRenderPass>();
     mParticlePass    = make_shared<ParticlePass>();
     mPostProcessPass = make_shared<PostProcessPass>();
     mWorldUIPass    = make_shared<WorldUIPass>();
@@ -71,10 +73,10 @@ void GameRenderPipeline::Initialize(World* world)
 	mGBufferPass->Initialize();
 	mLightPass->Initialize();
     mMotionVectorPass->Initialize();
-	mForwardPass->Initialize();
+    mForwardPass->Initialize();
     mOutlinePass->Initialize();
     mEffectPass->Initialize(world);
-    mWeaponTrailPass->Initialize(world);
+    //mTrailRenderPass->Initialize(world);
     mParticlePass->Initialize(world);
     mPostProcessPass->Initialize();
     mWorldUIPass->Initialize(world);
@@ -105,6 +107,11 @@ void GameRenderPipeline::Initialize(World* world)
     mEmissiveBloomPass->SetThreshold(1.0f); // LDR 범위 초과 밝기부터 추출
     mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
     mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
+
+    // 체력 회복과 빈사 상태
+    mHealthVignettePass = make_shared<HealthVignettePass>();
+    mHealthVignettePass->Initialize();
+    mPostProcessPass->AddLDRPass(mHealthVignettePass);
 
     // FXAA:
     mFXAAPass = make_shared<FXAAPass>();
@@ -183,6 +190,7 @@ void GameRenderPipeline::SetupPassTable(
         }
     }
 
+    UpdateHealthVignetteState();
     mPostProcessPass->SetData(table);
 }
 
@@ -241,6 +249,87 @@ void GameRenderPipeline::UpdatePassStates()
     mMotionBlurPass->SetEnabled(enableBlur);
 }
 
+void GameRenderPipeline::UpdateHealthVignetteState()
+{
+    if (!mHealthVignettePass)
+        return;
+
+    const float dt = TIMER.GetTimeElapsed();
+
+    const auto applyFadeOut = [&]()
+    {
+        
+        mHasPreviousHealthRatio = false;
+        const float alpha = std::clamp(dt * 8.0f, 0.0f, 1.0f);
+        mHealthVignetteLowStrength += (0.0f - mHealthVignetteLowStrength) * alpha;
+        mHealthVignetteHealTimer = (std::max)(0.0f, mHealthVignetteHealTimer - dt);
+
+        const float healStrength = (mHealthVignetteHealDuration > 0.0f)
+            ? std::clamp(mHealthVignetteHealTimer / mHealthVignetteHealDuration, 0.0f, 1.0f)
+            : 0.0f;
+        mHealthVignettePass->SetFeedbackState(mHealthVignetteLowStrength, healStrength);
+    };
+
+    if (mWorld == nullptr || mWorld->HasComponentPool<LocalPlayerComponent>() == false)
+    {
+        applyFadeOut();
+        return;
+    }
+
+    float hpRatio = 1.0f;
+    bool hasHealth = false;
+
+    auto players = mWorld->GetEntitiesWithComponent<LocalPlayerComponent>();
+    for (auto e : players)
+    {
+        HealthComponent* health = mWorld->GetComponent<HealthComponent>(e);
+        if (health == nullptr || health->mMaxHp <= 0)
+            continue;
+
+        hpRatio = std::clamp(
+            static_cast<float>(health->mCurrentHp) / static_cast<float>((std::max)(1, health->mMaxHp)),
+            0.0f,
+            1.0f);
+        hasHealth = true;
+        break;
+    }
+
+    if (hasHealth == false)
+    {
+        applyFadeOut();
+        return;
+    }
+
+    if (mHasPreviousHealthRatio == false)
+    {
+        mHasPreviousHealthRatio = true;
+        mPreviousHealthRatio = hpRatio;
+    }
+    else if (hpRatio > mPreviousHealthRatio + 0.001f)
+    {
+        mHealthVignetteHealTimer = mHealthVignetteHealDuration;
+        mPreviousHealthRatio = hpRatio;
+    }
+    else if (hpRatio < mPreviousHealthRatio - 0.001f)
+    {
+        mPreviousHealthRatio = hpRatio;
+    }
+
+    const float rawLowTarget = (hpRatio < mHealthVignetteLowThreshold)
+        ? 1.0f - (hpRatio / mHealthVignetteLowThreshold)
+        : 0.0f;
+    const float lowTarget = std::clamp(rawLowTarget * 1.35f, 0.0f, 1.0f);
+
+    const float lowAlpha = std::clamp(dt * 7.0f, 0.0f, 1.0f);
+    mHealthVignetteLowStrength += (lowTarget - mHealthVignetteLowStrength) * lowAlpha;
+    mHealthVignetteHealTimer = (std::max)(0.0f, mHealthVignetteHealTimer - dt);
+
+    const float healStrength = (mHealthVignetteHealDuration > 0.0f)
+        ? std::clamp(mHealthVignetteHealTimer / mHealthVignetteHealDuration, 0.0f, 1.0f)
+        : 0.0f;
+    mHealthVignettePass->SetFeedbackState(mHealthVignetteLowStrength, healStrength);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 제어 API
 // ─────────────────────────────────────────────────────────────────────────────
@@ -284,6 +373,12 @@ void GameRenderPipeline::SetFXAAEnabled(bool on)
 void GameRenderPipeline::SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality)
 {
     if (mFXAAPass) mFXAAPass->SetParams(edgeThreshold, edgeThresholdMin, subpixQuality);
+}
+
+void GameRenderPipeline::SetHealthVignetteNoiseTexture(const std::wstring& textureName)
+{
+    if (mHealthVignettePass)
+        mHealthVignettePass->SetNoiseTextureName(textureName);
 }
 
 void GameRenderPipeline::SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features)
@@ -376,7 +471,8 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
     Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
     Effekseer::Matrix44 projMat = mEffectPass->ToEfkMatrix(ctx.camera->GetProjectionMatrix());
     mEffectPass->Execute(dt, viewMat, projMat, ctx.camera->mNear, ctx.camera->mFar);
-    mWeaponTrailPass->Execute(ctx);
+    // TrailRender change: weapon and dash ribbon VFX are batched through one HDR trail pass.
+    //mTrailRenderPass->Execute(ctx);
     mParticlePass->Execute(ctx);
 
 

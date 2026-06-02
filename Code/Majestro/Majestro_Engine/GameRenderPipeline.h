@@ -9,7 +9,7 @@ class ForwardPass;
 class OutlinePass;
 class EffectPass;
 class ParticlePass;
-class WeaponTrailPass;
+//class TrailRenderPass;
 class PostProcessPass;
 class MotionVectorPass;
 class FogPass;
@@ -19,6 +19,7 @@ class GodRayPass;
 class DualKawaseBlurPass;
 class HBAOPass;
 class FXAAPass;
+class HealthVignettePass;
 class WorldUIPass;
 class UIFeature;
 
@@ -55,6 +56,7 @@ public:
     void SetEmissiveBloomEnabled(bool on);
     void SetFXAAEnabled(bool on);
     void SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality);
+    void SetHealthVignetteNoiseTexture(const std::wstring& textureName);
 	void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
@@ -77,7 +79,7 @@ private:
     shared_ptr<ForwardPass>      mForwardPass;
     shared_ptr<OutlinePass>      mOutlinePass;
     shared_ptr<EffectPass>       mEffectPass;
-    shared_ptr<WeaponTrailPass>  mWeaponTrailPass;
+   // shared_ptr<TrailRenderPass>  mTrailRenderPass;
     shared_ptr<ParticlePass>     mParticlePass;
     shared_ptr<PostProcessPass>  mPostProcessPass;
     shared_ptr<MotionVectorPass> mMotionVectorPass;
@@ -87,14 +89,23 @@ private:
     shared_ptr<GodRayPass>          mGodRayPass;
     shared_ptr<DualKawaseBlurPass>  mEmissiveBloomPass;
     shared_ptr<HBAOPass>            mHBAOPass;
+    shared_ptr<HealthVignettePass>  mHealthVignettePass;
     shared_ptr<FXAAPass>            mFXAAPass;
     shared_ptr<WorldUIPass>         mWorldUIPass;
 
     World* mWorld    = nullptr;
     bool   mIsPaused = false;
+
+    bool mHasPreviousHealthRatio = false;
+    float mPreviousHealthRatio = 1.0f;
+    float mHealthVignetteLowStrength = 0.0f;
+    float mHealthVignetteHealTimer = 0.0f;
+    float mHealthVignetteLowThreshold = 0.55f;
+    float mHealthVignetteHealDuration = 0.75f;
 private:
 
     void UpdatePassStates();
+    void UpdateHealthVignetteState();
     void RenderDepthPrePass(const RenderContext& ctx);
     void RenderShadow(const RenderContext& ctx);
     void RenderDeferred(const RenderContext& ctx);

@@ -2030,6 +2030,23 @@ void ResourceManager::CreateDefaultShader()
 		shader->CreateGraphicsShader(shaderPath, fxaaInfo, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"FXAA", shader);
 	}
+
+	// HealthVignette
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::LDRPOST,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\HealthVignette_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"HealthVignette", shader);
+	}
 }
 
 void ResourceManager::CreateDefaultMaterial()
@@ -2725,6 +2742,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Bullet\\VFX_Ibanix_Bullet.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
+//	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_02.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Attack\\VFX_Bongoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Shield\\VFX_Bongoman_Shield.efk");

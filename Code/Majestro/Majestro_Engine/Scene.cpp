@@ -46,7 +46,9 @@
 #include "AnimationSystem.h"
 #include "CpuAnimationSystem.h"
 #include "SocketSystem.h"
+#include "SocketFollowSystem.h"
 #include "WeaponTrailSystem.h"
+#include "DashSpeedLineSystem.h"
 #include "PlayerSystem.h"
 #include "ParticleSystem.h"
 #include "VfxSystem.h"
@@ -1608,7 +1610,9 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
 	ParticleSystem* particleSystem = mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 

@@ -520,17 +520,32 @@
     <ClInclude Include="DashTrailComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="WeaponTrailComponent.h">
+    <ClInclude Include="DashSpeedLineComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="WeaponTrailPass.h">
+    <ClInclude Include="DashSpeedLineSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="TrailRenderPass.h">
       <Filter>World\System\Render\07.Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="TrailRenderTypes.h">
+      <Filter>World\System\Render\07.Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="WeaponTrailComponent.h">
+      <Filter>World\Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="WeaponTrailSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="SocketComponent.h">
       <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketFollowComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketFollowSystem.h">
+      <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="SocketSystem.h">
       <Filter>World\System\Logic</Filter>
@@ -648,6 +663,9 @@
       <Filter>World\System\Render\08.Post</Filter>
     </ClInclude>
     <ClInclude Include="FXAAPass.h">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClInclude>
+    <ClInclude Include="HealthVignettePass.h">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClInclude>
     <ClInclude Include="MathUtils.h">
@@ -859,10 +877,16 @@
     <ClCompile Include="ParticlePass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
-    <ClCompile Include="WeaponTrailPass.cpp">
+    <ClCompile Include="DashSpeedLineSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="TrailRenderPass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
     <ClCompile Include="WeaponTrailSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketFollowSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="SocketSystem.cpp">
@@ -1110,6 +1134,9 @@
       <Filter>World\System\Render\08.Post</Filter>
     </ClCompile>
     <ClCompile Include="FXAAPass.cpp">
+      <Filter>World\System\Render\08.Post\ETC</Filter>
+    </ClCompile>
+    <ClCompile Include="HealthVignettePass.cpp">
       <Filter>World\System\Render\08.Post\ETC</Filter>
     </ClCompile>
     <ClCompile Include="MathUtils.cpp">
@@ -1412,6 +1439,9 @@
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\fxaa_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\HealthVignette_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">

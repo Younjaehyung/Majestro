@@ -4,7 +4,7 @@
 
 class VfxComponent : public Component<VfxComponent>
 {
-
+	// Effekseer 이펙트 한 개의 재생 상태를 담는 컴포넌트 (사실상 root)
 public:
 	VfxComponent() = default;
 
@@ -25,10 +25,14 @@ public:
 		mIsPaused = false;
 		mIsLoop = false;
 		mRestartWhenFinished = false;
+		mStopRootWhenDisabled = false;
 		mShouldPlay = false;
 		mInUse = false;
 		mFinished = false;
 		mScale = Vec3::Zero;
+		mUseWorldMatrix = false;
+		mWorldMatrix = Matrix::Identity;
+		mRootStopped = false;
 		SetPosition(0.f, 0.f, 0.f);
 	}
 
@@ -42,30 +46,46 @@ public:
 		mIsPaused = false;
 		mIsLoop = loop;
 		mRestartWhenFinished = loop;
+		mStopRootWhenDisabled = false;
 		mShouldPlay = (mVfx != nullptr);
 		mInUse = true;
 		mFinished = false;
 		mScale = scale;
+		mUseWorldMatrix = false;
+		mWorldMatrix = Matrix::Identity;
+		mRootStopped = false;
 	}
 
-	shared_ptr<Vfx> mVfx = nullptr;
-	Effekseer::Handle efkHandle = -1;
+	shared_ptr<Vfx> mVfx = nullptr;				// 재생할 이펙트 리소스(.efk 래퍼)
+	Effekseer::Handle efkHandle = -1;			// Effekseer 런타임이 발급한 인스턴스 핸들
 
-
-	float	mTotalTime = 0.f;
+	// 재생 상태
+	float	mTotalTime = 0.f;				// 현재 재생이 시작된 뒤 누적 경과 시간
 	bool	mIsPlaying = false;
 	bool	mIsPaused  = false;
-	bool	mIsLoop    = false;
-	bool	mRestartWhenFinished = false;	// 월드 마커 VFX는 true, 원샷 VFX는 false
-	// 재사용되는 총알 엔티티가 비활성 상태일 때 VFX가 다시 자동 재생되지 않도록 재생 허용 여부
-	bool	mShouldPlay = true;				// Entity는 살아 있지만 VFX만 꺼야 하는 경우
+	bool	mIsLoop    = false;				// 반복 재생 이펙트인지
+
+	bool	mRestartWhenFinished = false;	// 끝나면 자동으로 다시 시작할지
+	bool	mShouldPlay = true;				// 재생 허용 여부 (Entity는 살아 있지만 VFX만 꺼야 하는 경우)
+	bool	mFinished = false;				// 원샷 VFX가 종료되었음을 표시하는 flag
+
+
+	// Socket VFX (소켓 추적용)
+	bool	mStopRootWhenDisabled = false;		// emission을 끈 뒤에도 기존 트레일 파티클이 자연스럽게 사라지도록 StopRoot를 호출할지
+	bool	mRootStopped = false;				// StopRoot 호출 후 true. 살아 있는 핸들이 소켓을 계속 따라가면서 옛 파티클은 페이드되게 함 
+	bool	mUseWorldMatrix = false;			// true면 Euler 각도로 회전을 재구성하지 않고, 최종 소켓 행렬을 그대로 Effekseer에 전달 
+	Matrix	mWorldMatrix = Matrix::Identity;	// EffectPass::SetMatrix가 사용하는 최종 변환 행렬
+	
+
+	// 오브젝트 풀 관리
 	bool	mIsPooled = false;				// VFX 풀에서 관리되는 컴포넌트인지 표시
 	bool	mInUse = false;					// 풀 Entity가 현재 사용 중인지 표시
 	bool	mAutoReturn = false;			// 재생이 끝났을 때 자동으로 풀에 반환할지 여부
-	bool	mFinished = false;				// 원샷 VFX가 끝 flag
+	
+	// 트랜스폼
 	Vec3	mScale     = Vec3(1.f, 1.f, 1.f);
 	Vec3	mAttachOffset = Vec3::Zero;		// 부착 대상 로컬 오프셋. (0 : 미적용)
 	::Effekseer::Vector3D mPosition = ::Effekseer::Vector3D(0.0f, 0.0f, 0.0f);
+	
 
 };
-

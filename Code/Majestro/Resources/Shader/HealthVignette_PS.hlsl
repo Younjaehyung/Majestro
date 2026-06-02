@@ -72,7 +72,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         textureDirty = proceduralDirty;
     }
 
-    float dirtyNoise = textureDirty
+    float dirtyNoise = textureDirty;
     float dirtyPatch = lerp(0.72f, 1.34f, dirtyNoise);
     float dirtyCut = smoothstep(0.22f, 0.88f, dirtyNoise);
 

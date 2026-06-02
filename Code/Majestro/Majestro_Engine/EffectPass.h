@@ -4,6 +4,8 @@
 using EfkString = std::basic_string<EFK_CHAR>;
 class Vfx;
 class VfxComponent;
+class Texture;
+struct ID3D12Resource;
 
 class EffectPass : public RenderPass
 {
@@ -23,7 +25,7 @@ public:
 
 	Effekseer::Handle Play(Entity owner, VfxComponent* comp, float x, float y, float z);
 	Effekseer::Handle Play(Entity owner, VfxComponent* comp, const Effekseer::Vector3D& position);
-	void Stop(Entity owner, VfxComponent* comp);
+	void Stop(Entity owner, VfxComponent* comp, bool allowRootStop = true);
 
 	void LoadResources();
 
@@ -36,6 +38,16 @@ public:
 		out.Values[1][0] = f._21; out.Values[1][1] = f._22; out.Values[1][2] = f._23; out.Values[1][3] = f._24;
 		out.Values[2][0] = f._31; out.Values[2][1] = f._32; out.Values[2][2] = f._33; out.Values[2][3] = f._34;
 		out.Values[3][0] = f._41; out.Values[3][1] = f._42; out.Values[3][2] = f._43; out.Values[3][3] = f._44;
+		return out;
+	}
+
+	inline Effekseer::Matrix43 ToEfkMatrix43(const Matrix& m)
+	{
+		Effekseer::Matrix43 out{};
+		out.Value[0][0] = m._11; out.Value[0][1] = m._12; out.Value[0][2] = m._13;
+		out.Value[1][0] = m._21; out.Value[1][1] = m._22; out.Value[1][2] = m._23;
+		out.Value[2][0] = m._31; out.Value[2][1] = m._32; out.Value[2][2] = m._33;
+		out.Value[3][0] = m._41; out.Value[3][1] = m._42; out.Value[3][2] = m._43;
 		return out;
 	}
 
@@ -79,10 +91,18 @@ private:
 		return handle == -1;
 	}
 
+	void UpdateSceneTextures(EffekseerRenderer::RendererRef renderer, const Effekseer::Matrix44& projMat);
+	Effekseer::Backend::TextureRef GetOrCreateEfkTexture(shared_ptr<Texture> texture,
+		ID3D12Resource*& cachedResource, Effekseer::Backend::TextureRef& cachedTexture);
+
 private:
 	World* mWorld = nullptr;
 	float mTotalTime = 0.0f;
 	std::unordered_map<std::wstring, Effekseer::EffectRef> mEffectCache;
 	Effekseer::RefPtr<Effekseer::Manager> mManager;
 	Effekseer::RefPtr<Effekseer::Setting> mSetting;
+	ID3D12Resource* mCachedDepthResource = nullptr;
+	Effekseer::Backend::TextureRef mCachedDepthTexture;
+	ID3D12Resource* mCachedBackgroundResource = nullptr;
+	Effekseer::Backend::TextureRef mCachedBackgroundTexture;
 };

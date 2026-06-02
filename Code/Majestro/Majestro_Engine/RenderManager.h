@@ -77,6 +77,7 @@ public:
 
 	EffekseerRenderer::RendererRef            GetEfkRendererHDR() { return mEfkRendererHDR; }
 	EffekseerRenderer::RendererRef            GetEfkRendererUI()  { return mEfkRendererUI;  }
+	Effekseer::Backend::GraphicsDeviceRef     GetEfkGraphicsDevice() { return mEfkGraphicsDevice; }
 
 	D3D12_VIEWPORT&						GetViewPort() { return mViewport; }
 	D3D12_RECT&							GetScissorRect() { return mScissorRect; }

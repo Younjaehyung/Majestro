@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 #include "RenderManager.h"
 #include "MathUtils.h"
+#include "Texture.h"
 
 #include "TransformComponent.h"
 #include "VfxComponent.h"
@@ -38,6 +39,7 @@ void EffectPass::Initialize(World* world)
 	mSetting->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager = Effekseer::Manager::Create(8000);
+	mManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager->SetSpriteRenderer(renderer->CreateSpriteRenderer());
 	mManager->SetRibbonRenderer(renderer->CreateRibbonRenderer());
@@ -73,7 +75,12 @@ Effekseer::EffectRef EffectPass::LoadEffect(const shared_ptr<Vfx>& vfx)
 
 	Effekseer::EffectRef effect = LoadEffect(ws2s(vfx->mEffectPath));
 	if (effect == nullptr)
+	{
+#ifdef _DEBUG
+		OutputDebugStringW((L"EffectPass: failed to load Effekseer effect: " + vfx->mEffectPath + L"\n").c_str());
+#endif
 		return nullptr;
+	}
 
 	mEffectCache.emplace(vfx->mEffectPath, effect);
 	return effect;
@@ -90,6 +97,7 @@ Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, float x, fl
 	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
 	comp->efkHandle = handle;
+	comp->mRootStopped = false;
 	return handle;
 }
 
@@ -104,10 +112,11 @@ Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, const Effek
 	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
 	comp->efkHandle = handle;
+	comp->mRootStopped = false;
 	return handle;
 }
 
-void EffectPass::Stop(Entity owner, VfxComponent* comp)
+void EffectPass::Stop(Entity owner, VfxComponent* comp, bool allowRootStop)
 {
 	if (comp == nullptr)
 		return;
@@ -115,13 +124,35 @@ void EffectPass::Stop(Entity owner, VfxComponent* comp)
 	if (!IsInvalidHandle(comp->efkHandle) && mManager->Exists(comp->efkHandle) &&
 		mManager->GetUserData(comp->efkHandle) == MakeOwnerToken(owner))
 	{
-		mManager->StopEffect(comp->efkHandle);
+		if (allowRootStop && comp->mStopRootWhenDisabled)
+		{
+			if (comp->mRootStopped == false)
+			{
+				mManager->StopRoot(comp->efkHandle);
+				comp->mRootStopped = true;
+			}
+			return;
+		}
+		else
+		{
+		
+			mManager->StopEffect(comp->efkHandle);
+		}
 	}
+	else if (allowRootStop && comp->mStopRootWhenDisabled && comp->mRootStopped)
+	{
 
+		comp->efkHandle = -1;
+		comp->mIsPlaying = false;
+		comp->mTotalTime = 0.f;
+		comp->mRootStopped = false;
+		return;
+	}
 
 	comp->efkHandle = -1;
 	comp->mIsPlaying = false;
 	comp->mTotalTime = 0.f;
+	comp->mRootStopped = false;
 }
 
 void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Effekseer::Matrix44& projMat, float zNear, float zFar)
@@ -167,17 +198,27 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			}
 		}
 
-		if (!comp->mShouldPlay || comp->mVfx == nullptr || comp->mVfx->mEffectPath.empty())
+		if (comp->mVfx == nullptr || comp->mVfx->mEffectPath.empty())
 		{
-			
-			Stop(e, comp);
+			Stop(e, comp, false);
 			continue;
 		}
 
-		if (!comp->mIsPlaying)
+		if (!comp->mShouldPlay)
+		{
+			Stop(e, comp);
+
+			
+			if (IsInvalidHandle(comp->efkHandle) || !mManager->Exists(comp->efkHandle) ||
+				mManager->GetUserData(comp->efkHandle) != MakeOwnerToken(e))
+			{
+				continue;
+			}
+		}
+		else if (!comp->mIsPlaying)
 		{
 			if (comp->efkHandle != -1)
-				Stop(e, comp);
+				Stop(e, comp, false);
 
 			Effekseer::Handle handle = -1;
 			if (tr != nullptr)
@@ -192,6 +233,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			comp->efkHandle = -1;
 			comp->mIsPlaying = false;
 			comp->mTotalTime = 0.f;
+			comp->mRootStopped = false;
 
 			if (comp->mRestartWhenFinished)
 			{
@@ -221,15 +263,23 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		}
 
 		mManager->SetPaused(comp->efkHandle, comp->mIsPaused);
-		mManager->SetScale(comp->efkHandle, comp->mScale.x, comp->mScale.y, comp->mScale.z);
-		if (tr != nullptr)
+		if (comp->mUseWorldMatrix)
 		{
-			mManager->SetLocation(comp->efkHandle, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
-			mManager->SetRotation(
-				comp->efkHandle,
-				tr->mLocalRotationE.x * kDegToRad,
-				tr->mLocalRotationE.y * kDegToRad,
-				tr->mLocalRotationE.z * kDegToRad);
+			const Matrix effectMatrix = Matrix::CreateScale(comp->mScale) * comp->mWorldMatrix;
+			mManager->SetMatrix(comp->efkHandle, ToEfkMatrix43(effectMatrix));
+		}
+		else
+		{
+			mManager->SetScale(comp->efkHandle, comp->mScale.x, comp->mScale.y, comp->mScale.z);
+			if (tr != nullptr)
+			{
+				mManager->SetLocation(comp->efkHandle, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
+				mManager->SetRotation(
+					comp->efkHandle,
+					tr->mLocalRotationE.x * kDegToRad,
+					tr->mLocalRotationE.y * kDegToRad,
+					tr->mLocalRotationE.z * kDegToRad);
+			}
 		}
 
 
@@ -246,6 +296,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 	auto renderer = RENDERMANAGER.GetEfkRendererHDR();
 	mTotalTime += dt;
 	renderer->SetTime(mTotalTime);
+	UpdateSceneTextures(renderer, projMat);
 
 	// --- HDR RT에 렌더링 (ForwardPass 이후 SRV 상태 → RT로 전환) ---
 	auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
@@ -268,6 +319,51 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 	// ToneMapPass가 HDR을 SRV로 읽으므로 RT→SRV 전환
 	hdrGroup.WaitTargetToResource();
+}
+
+void EffectPass::UpdateSceneTextures(EffekseerRenderer::RendererRef renderer, const Effekseer::Matrix44& projMat)
+{
+	if (renderer == nullptr)
+		return;
+
+	auto& depthGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::PRE_DEPTH));
+	Effekseer::Backend::TextureRef depthTexture = GetOrCreateEfkTexture(
+		depthGroup.GetDSTexture(),
+		mCachedDepthResource,
+		mCachedDepthTexture);
+
+	EffekseerRenderer::DepthReconstructionParameter depthParam{};
+	depthParam.ProjectionMatrix33 = projMat.Values[2][2];
+	depthParam.ProjectionMatrix34 = projMat.Values[2][3];
+	depthParam.ProjectionMatrix43 = projMat.Values[3][2];
+	depthParam.ProjectionMatrix44 = projMat.Values[3][3];
+	renderer->SetDepth(depthTexture, depthParam);
+	renderer->SetBackground(Effekseer::Backend::TextureRef{});
+}
+
+Effekseer::Backend::TextureRef EffectPass::GetOrCreateEfkTexture(shared_ptr<Texture> texture,
+	ID3D12Resource*& cachedResource,
+	Effekseer::Backend::TextureRef& cachedTexture)
+{
+	if (texture == nullptr || texture->GetTex2D() == nullptr)
+	{
+		cachedResource = nullptr;
+		cachedTexture.Reset();
+		return Effekseer::Backend::TextureRef{};
+	}
+
+	ID3D12Resource* resource = texture->GetTex2D().Get();
+	if (resource != cachedResource || cachedTexture == nullptr)
+	{
+		cachedResource = resource;
+#if defined(MAJESTRO_EFFEKSEER_EXTERNAL_TEXTURE)
+		cachedTexture = EffekseerRendererDX12::CreateTexture(RENDERMANAGER.GetEfkGraphicsDevice(), resource);
+#else
+		cachedTexture.Reset();
+#endif
+	}
+
+	return cachedTexture;
 }
 
 void EffectPass::LoadResources()

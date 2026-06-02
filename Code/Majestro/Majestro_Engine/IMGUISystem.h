@@ -17,6 +17,8 @@ private:
     void UploadInstanceBuffer();
 	void DrawProperty(EditorProperty& prop);
     void DrawCameraInspector();
+    
+    void DrawWeaponTrailInspector();	//검기/트레일 VFX 파라미터
 
 private:
 

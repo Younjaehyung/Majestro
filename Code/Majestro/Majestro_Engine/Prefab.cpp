@@ -13,7 +13,9 @@
 #include "EnemyComponent.h"
 #include "AnimationComponent.h"
 #include "SocketComponent.h"
+#include "SocketFollowComponent.h"
 #include "WeaponTrailComponent.h"
+#include "DashSpeedLineComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
@@ -120,6 +122,11 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<GravityComponent>(mEntityID);
 	world->AddComponent<PlayerMovementComponent>(mEntityID);
 	world->AddComponent<NetEntityComponent>(mEntityID);
+	{
+		auto& dashLine = world->AddComponent<DashSpeedLineComponent>(mEntityID);
+		dashLine.mSourceEntity = mEntityID;
+		dashLine.mAutoActivateOnDash = true;
+	}
 	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 	auto& hpBar = world->AddComponent<UIHpBarComponent>(mEntityID, 180.f, mEntityID, Vec3(0.f, 200.f, 0.f), 20.f);
 	// 머리 기준점에서 HP바 높이와 여백만큼 화면 픽셀로 올려 거리 변화에도 위치가 고정되게 하는 값.
@@ -263,17 +270,100 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	{
 		auto& socket = world->AddComponent<SocketComponent>(mEntityID);
-		socket.mSockets.push_back(SocketDef{ "weapon_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 0.f, 120.f)) });
-		socket.mSockets.push_back(SocketDef{ "weapon_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 0.f, 70.f)) });
+		socket.mSockets.push_back(SocketDef{ "weapon_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 50.f, 120.f)) });		// 칼 끝
+		socket.mSockets.push_back(SocketDef{ "weapon_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 50.f, 70.f)) });		// 칼 손잡이 쪽
 
 		auto& trail = world->AddComponent<WeaponTrailComponent>(mEntityID);
 		trail.mSourceEntity = mEntityID;
 		trail.mSourceType = WeaponTrailSource::Socket;
 		trail.mTipSocketName = "weapon_tip";
 		trail.mBaseSocketName = "weapon_base";
-		trail.mAutoActivateOnAttack = true; // 공격 상체 상태에 따라 자동 활성화
-		trail.mResetOnActivate = true;      // 새 스윙마다 리본 리셋할지
-		trail.mTextureName = L"GradientTex";
+		
+		// WeaponTrail 이동추적 전환
+		trail.mAutoActivateOnAttack = true;	// 공격 상태가 되면 자동으로 트레일 샘플링 시작
+		trail.mResetOnActivate = true;      // 매 휘두름마다 이전 샘플 초기화
+
+		//trail.mFollowOwnerMovement = true;
+		//trail.mFollowReferenceRotation = true;
+		//trail.mTextureName = L"Shock_wave01";
+
+		trail.mUseAnimationWindow = true;
+		trail.mUseUpperAnimationWindow = true;
+		trail.mUseAnimationFrameWindow = true;
+		trail.mTrailStartFrame = 10;
+		trail.mTrailEndFrame = 13;
+		trail.mVisualStyle = WeaponTrailVisualStyle::SwordSlash;
+		trail.mLayerCount = 4;
+
+		trail.mSmoothingSubdivisions = 4;			// 스무딩 4단계 지정.
+		trail.mLifetime = 0.14f;
+		trail.mSampleInterval = 0.004f;
+		trail.mMinSegmentDistance = 1.0f;
+		trail.mBaseAlpha = 0.9f;
+		trail.mWidthMultiplier = 1.45f;
+		// 초승달 폭: 꼬리/머리 양끝을 뾰족하게(작게), 중앙(Mid)을 가장 두껍게.
+		trail.mTailWidthScale = 0.10f;
+		trail.mMidWidthScale = 1.20f;
+		trail.mHeadWidthScale = 0.08f;
+		trail.mLayerSpread = 0.22f;
+		trail.mSlashCutStrength = 0.55f;
+		trail.mSlashLineStrength = 0.7f;
+		// 외곽 EdgeColor 발광 / 중심 코어 틴트 강도.
+		trail.mSlashEdgeBoost = 1.7f;
+		trail.mSlashCoreBoost = 1.0f;
+		// 텍스처/결을 길이 방향으로 흘려 에너지가 흐르는 베기 궤적 연출.
+		trail.mSlashTexScrollSpeed = 0.9f;
+
+		trail.mCoreColor = Vec3(1.0f, 0.85f, 0.55f);
+		trail.mEdgeColor = Vec3(1.0f, 0.42f, 0.08f);
+		trail.mSubColor = Vec3(0.48f, 0.08f, 0.02f);
+		trail.mIntensity = 4.2f;
+	}
+
+	//{
+	//	Entity socketVfxEntity = world->CreateEntity();
+
+	//	TransformComponent socketVfxTransform{};
+	//	socketVfxTransform.mLocalPosition = Vec3(0.0f, -100000.0f, 0.0f);
+	//	socketVfxTransform.mWorldPosition = socketVfxTransform.mLocalPosition;
+	//	socketVfxTransform.mWorldMatrix = Matrix::CreateTranslation(socketVfxTransform.mLocalPosition);
+	//	world->AddComponent<TransformComponent>(socketVfxEntity, socketVfxTransform);
+
+	//	//auto& follow = world->AddComponent<SocketFollowComponent>(socketVfxEntity);
+	//	//follow.mIsActive = false;
+	//	//follow.mSourceEntity = mEntityID;
+	//	//follow.mSocketName = "weapon_tip";
+	//	//follow.mFollowRotation = true;
+	//	//follow.mUseAttackState = true;
+	//	//follow.mUseAnimationWindow = true;
+	//	//follow.mUseUpperAnimationWindow = true;
+	//	//follow.mUseAnimationFrameWindow = true;
+	//	//follow.mTrailStartFrame = 9;
+	//	//follow.mTrailEndFrame = 13;
+
+
+	//	VfxComponent& slashVfx = world->AddComponent<VfxComponent>(socketVfxEntity);
+	//	slashVfx.mIsLoop = true;
+	//	slashVfx.mRestartWhenFinished = true;
+	//	slashVfx.mStopRootWhenDisabled = true;
+	//	slashVfx.mUseWorldMatrix = true;
+	//	slashVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Fanthor_Slash_02");
+	//	slashVfx.mScale = Vec3(1.0f, 1.0f, 1.0f);
+	//	slashVfx.mWorldMatrix = socketVfxTransform.mWorldMatrix;
+	//	slashVfx.mShouldPlay = false;
+	//}
+
+	{
+		auto& dashLine = world->AddComponent<DashSpeedLineComponent>(mEntityID);
+		dashLine.mSourceEntity = mEntityID;
+		dashLine.mAutoActivateOnDash = true;
+		dashLine.mLifetime = 0.18f;
+		dashLine.mSampleInterval = 0.01f;
+		dashLine.mLineCount = 5;
+		dashLine.mLineWidth = 8.0f;
+		dashLine.mLineSpread = 50.0f;
+		dashLine.mBaseAlpha = 0.6f;
+		dashLine.mIntensity = 2.0f;
 	}
 
 	world->AddComponent<BeatComponent>(mEntityID);

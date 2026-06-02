@@ -7,6 +7,7 @@
 #include "AudioVisualizerComponent.h"
 #include "CameraComponent.h"
 #include "SystemManager.h"
+#include "WeaponTrailComponent.h"
 
 IMGUIRenderSystem::IMGUIRenderSystem(World* world) : System::System(world)
 {
@@ -54,6 +55,9 @@ void IMGUIRenderSystem::Update()
 
     // ── Camera Inspector ──────────────────────────────────────────────────────
     DrawCameraInspector();
+
+    // ── Weapon Trail Inspector ─────────────────────────────────────────────────
+    DrawWeaponTrailInspector();
 #endif
 }
 
@@ -130,6 +134,94 @@ void IMGUIRenderSystem::DrawCameraInspector()
                 ImGui::DragFloat3("Offset##CamType",      &camType->mOffset.x,           1.0f);
                 ImGui::DragFloat3("LookAtOffset##CamType",&camType->mLookAtOffset.x,     0.1f);
             }
+        }
+    }
+
+    ImGui::End();
+#endif
+}
+
+void IMGUIRenderSystem::DrawWeaponTrailInspector()
+{
+#ifdef _IMGUI
+    if (!ImGui::Begin("Weapon Trail Inspector"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (!mWorld->HasComponentPool<WeaponTrailComponent>())
+    {
+        ImGui::Text("WeaponTrailComponent 없음");
+        ImGui::End();
+        return;
+    }
+
+    
+    static const char* styleNames[] = { "FlameRibbon", "SwordSlash", "HammerFlame" };
+    static const WeaponTrailVisualStyle styleValues[] = {
+        WeaponTrailVisualStyle::FlameRibbon,
+        WeaponTrailVisualStyle::SwordSlash,
+        WeaponTrailVisualStyle::HammerFlame,
+    };
+
+    auto entities = mWorld->GetEntitiesWithComponent<WeaponTrailComponent>();
+    int trailIdx = 0;
+
+    for (auto e : entities)
+    {
+        WeaponTrailComponent* trail = mWorld->GetComponent<WeaponTrailComponent>(e);
+        if (!trail) continue;
+
+        char header[64];
+        snprintf(header, sizeof(header), "Trail [%d] (Entity %u)", trailIdx++, e);
+
+        if (ImGui::CollapsingHeader(header, ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::PushID(static_cast<int>(e.GetID()));
+
+            ImGui::Checkbox("Active", &trail->mIsActive);
+
+            // 스타일 선택
+            int styleSel = 0;
+            for (int i = 0; i < IM_ARRAYSIZE(styleValues); ++i)
+                if (styleValues[i] == trail->mVisualStyle) styleSel = i;
+            if (ImGui::Combo("Style", &styleSel, styleNames, IM_ARRAYSIZE(styleNames)))
+                trail->mVisualStyle = styleValues[styleSel];
+
+            ImGui::Separator();
+            ImGui::Text("Shape");
+            int layerCount = static_cast<int>(trail->mLayerCount);
+            if (ImGui::SliderInt("LayerCount", &layerCount, 1, 6))
+                trail->mLayerCount = static_cast<uint32>(layerCount);
+            int subdiv = static_cast<int>(trail->mSmoothingSubdivisions);
+            if (ImGui::SliderInt("Smoothing", &subdiv, 0, 4))
+                trail->mSmoothingSubdivisions = static_cast<uint32>(subdiv);
+            ImGui::SliderFloat("WidthMultiplier", &trail->mWidthMultiplier, 0.0f, 4.0f);
+            ImGui::SliderFloat("TailWidth", &trail->mTailWidthScale, 0.0f, 2.0f);
+            ImGui::SliderFloat("MidWidth", &trail->mMidWidthScale, 0.0f, 2.0f);
+            ImGui::SliderFloat("HeadWidth", &trail->mHeadWidthScale, 0.0f, 2.0f);
+            ImGui::SliderFloat("LayerSpread", &trail->mLayerSpread, 0.0f, 1.0f);
+            ImGui::SliderFloat("Lifetime", &trail->mLifetime, 0.02f, 0.6f);
+            ImGui::SliderFloat("UvTiling", &trail->mUvTiling, 0.1f, 8.0f);
+
+            ImGui::Separator();
+            ImGui::Text("Slash Shading");
+            ImGui::SliderFloat("BaseAlpha", &trail->mBaseAlpha, 0.0f, 1.0f);
+            ImGui::SliderFloat("Intensity", &trail->mIntensity, 0.0f, 12.0f);
+            ImGui::SliderFloat("CutStrength", &trail->mSlashCutStrength, 0.0f, 1.0f);
+            ImGui::SliderFloat("LineStrength", &trail->mSlashLineStrength, 0.0f, 1.0f);
+            ImGui::SliderFloat("EdgeBoost", &trail->mSlashEdgeBoost, 0.0f, 4.0f);
+            ImGui::SliderFloat("CoreBoost", &trail->mSlashCoreBoost, 0.0f, 4.0f);
+            ImGui::SliderFloat("TexScrollSpeed", &trail->mSlashTexScrollSpeed, 0.0f, 4.0f);
+
+            ImGui::Separator();
+            ImGui::Text("Colors");
+            ImGui::ColorEdit3("CoreColor", &trail->mCoreColor.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            ImGui::ColorEdit3("EdgeColor", &trail->mEdgeColor.x, ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+            ImGui::ColorEdit3("SubColor",  &trail->mSubColor.x,  ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+
+            ImGui::PopID();
         }
     }
 

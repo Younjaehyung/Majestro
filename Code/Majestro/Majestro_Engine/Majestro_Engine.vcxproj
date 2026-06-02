@@ -215,6 +215,7 @@
     <ClInclude Include="GamePhaseSystem.h" />
     <ClInclude Include="GameRuleComponent.h" />
     <ClInclude Include="HBAOPass.h" />
+    <ClInclude Include="HealthVignettePass.h" />
     <ClInclude Include="EffectFlagComponent.h" />
     <ClInclude Include="EffectFlagSystem.h" />
     <ClInclude Include="FogPass.h" />
@@ -257,10 +258,15 @@
     <ClInclude Include="DamageFeedbackComponent.h" />
     <ClInclude Include="DamageFeedbackSystem.h" />
     <ClInclude Include="DashTrailComponent.h" />
+    <ClInclude Include="DashSpeedLineComponent.h" />
+    <ClInclude Include="DashSpeedLineSystem.h" />
+    <ClInclude Include="TrailRenderPass.h" />
+    <ClInclude Include="TrailRenderTypes.h" />
     <ClInclude Include="WeaponTrailComponent.h" />
-    <ClInclude Include="WeaponTrailPass.h" />
     <ClInclude Include="WeaponTrailSystem.h" />
     <ClInclude Include="SocketComponent.h" />
+    <ClInclude Include="SocketFollowComponent.h" />
+    <ClInclude Include="SocketFollowSystem.h" />
     <ClInclude Include="SocketSystem.h" />
     <ClInclude Include="Imgui.h" />
     <ClInclude Include="IMGUIComponent.h" />
@@ -387,6 +393,7 @@
     <ClCompile Include="FXAAPass.cpp" />
     <ClCompile Include="GamePhaseSystem.cpp" />
     <ClCompile Include="HBAOPass.cpp" />
+    <ClCompile Include="HealthVignettePass.cpp" />
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="GodRayPass.cpp" />
     <ClCompile Include="GameMode.cpp" />
@@ -451,8 +458,10 @@
     <ClCompile Include="ParticlePass.cpp" />
     <ClCompile Include="ParticleResourceAllocator.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
-    <ClCompile Include="WeaponTrailPass.cpp" />
+    <ClCompile Include="DashSpeedLineSystem.cpp" />
+    <ClCompile Include="TrailRenderPass.cpp" />
     <ClCompile Include="WeaponTrailSystem.cpp" />
+    <ClCompile Include="SocketFollowSystem.cpp" />
     <ClCompile Include="SocketSystem.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -616,6 +625,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\fxaa_PS.hlsl">
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PS_Main</EntryPointName>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\HealthVignette_PS.hlsl">
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PS_Main</EntryPointName>

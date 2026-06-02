@@ -12,7 +12,7 @@
 // PostProcessPass의 LDR 패스 체인에 등록:
 //   mPostProcessPass->AddLDRPass(mFXAAPass);
 //
-// PASS_CUSTOM_DATA 레이아웃 (POST_FXAA_PASS = 19):
+// PASS_CUSTOM_DATA 레이아웃 (POST_FXAA_PASS = 20):
 //   PreviousStep  : 입력 LDR RT의 Gbuffer[] 인덱스
 //                   (PostProcessPass ping-pong이 자동 설정)
 //   ExtValue[0].x : edgeThreshold    — 엣지 감지 최소 루마 대비

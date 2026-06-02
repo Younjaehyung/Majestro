@@ -36,6 +36,7 @@ void UIEffectPass::Initialize(World* world)
 	mSetting->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager = Effekseer::Manager::Create(2000);
+	mManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager->SetSpriteRenderer(renderer->CreateSpriteRenderer());
 	mManager->SetRibbonRenderer(renderer->CreateRibbonRenderer());

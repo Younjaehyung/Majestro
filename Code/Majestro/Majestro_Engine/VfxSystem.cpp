@@ -243,8 +243,8 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (IsRangedBulletSkill(skillType))
 			return std::nullopt;
 
-		if (skillType == SkillType::GuitarAttack)
-			return VfxSpawnDesc{ L"VFX_Fanthor_Slash_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
+		/*if (skillType == SkillType::GuitarAttack)
+			return VfxSpawnDesc{ L"VFX_Fanthor_Slash_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };*/
 
 		if (skillType == SkillType::GuitarSkill1)
 			return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };

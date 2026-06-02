@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────────────────────
 // FXAA 3.11 (단순화) — LDR 포스트프로세스 앤티얼라이싱
 //
-// PassCustomTable[POST_FXAA_PASS = 19]:
+// PassCustomTable[POST_FXAA_PASS = 20]:
 //   PreviousStep  : 입력 LDR RT의 Gbuffer[] 인덱스
 //                   (POST_LDR_A = GBUFFER_POSTC_INDEX = 10,
 //                    POST_LDR_B = GBUFFER_POSTD_INDEX = 11)

@@ -26,9 +26,8 @@ private:
 	void UpdateGravity(float deltaTime);
 	void UpdateBullet(float deltaTime);
 
-	// 떨어질 수 있는지 Jolt로 판별후, 가능하면 낙하
-	bool TryStartEdgeDrop(Entity entity, TransformComponent* tf, GravityComponent* grav,
-		const Vec3& prevPos, const Vec3& desiredEnd);
+	// 수평 이동을 Jolt StaticCollision(벽+바닥) 구 sweep 으로 해석하고 벽을 따라 슬라이드
+	Vec3 SweepSlideHorizontal(GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd);
 
 private:
 	float WrapAngleDeg(float angleDeg);

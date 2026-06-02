@@ -15,6 +15,9 @@ public:
 
 	float mCameraRotationX = 0.f;
 	float mCameraRotationY = 180.f;
+
+	Vec3 mNavPosition;
+	bool mNavPositionValid = false;
 };
 
 class EnemyMovementComponent : public Component<EnemyMovementComponent>

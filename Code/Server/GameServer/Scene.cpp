@@ -450,7 +450,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 힐팩/점프대 등 맵 상호작용 트리거 검사
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
-	//mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Jolt 위치를 NavMesh 표면에 투영(적 AI 길찾기 목표용), Transform 비파괴
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
@@ -588,7 +588,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 힐팩/점프대 등 맵 상호작용 트리거 검사
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
-	//mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Nav 검증
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Jolt 위치를 NavMesh 표면에 투영(적 AI 길찾기 목표용), Transform 비파괴
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
 	mSceneId = SceneId::SecondGame;

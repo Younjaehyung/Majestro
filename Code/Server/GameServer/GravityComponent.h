@@ -10,9 +10,12 @@ public:
 	float mHight = 0.0f; //플레이어 높이
 	float mGround = 0.0f;
 	bool mFalling = false;		// 지금 공중에 있나
-	bool mDropping = false;		// 단차에서 떨어지기로 판정한 낙하
+	bool mDropping = false;		// 단차에서 떨어지기로 판정한 낙하(정보용)
 
 	float mHeightInterpolation = 3.0f;
 
-	float mStepDownDistance = 60.0f;
+	float mStepDownDistance = 60.0f;	// 이 이하 단차는 스냅(계단), 초과는 낙하(단차)
+
+	// 발밑 레이가 일시적으로 빗나가도 직전 바닥을 유지하는 유예 시간.
+	float mGroundGraceLeft = 0.0f;
 };

@@ -53,14 +53,20 @@ void EnemySystem::Update(float dt)
 
     auto& transformPool = mWorld->GetComponentPool<TransformComponent>();
 
-    // 프레임 별 플레이어 위치 목록을 미리 수집
+    // 프레임 별 플레이어 위치 목록을 미리 수집 (길찾기 목표용).
     mPlayerPositions.clear();
     if (mWorld->HasComponentPool<PlayerMovementComponent>())
     {
         for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
         {
             TransformComponent* tf = transformPool.GetComponent(playerEntity.GetID());
-            if (tf) mPlayerPositions.push_back(tf->mLocalPosition);
+            if (!tf) continue;
+
+            PlayerMovementComponent* pmc = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
+            if (pmc && pmc->mNavPositionValid)
+                mPlayerPositions.push_back(pmc->mNavPosition);
+            else
+                mPlayerPositions.push_back(tf->mLocalPosition);
         }
     }
 

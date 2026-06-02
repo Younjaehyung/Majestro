@@ -26,6 +26,7 @@ public:
 			const Entity& entity,
 			const Vec3& myPos,
 			const Vec3& playerPos,
+			const std::shared_ptr<Navigation>& navSystem,
 			Vec3& outTarget) const;
 
 		bool HandleAttackState(

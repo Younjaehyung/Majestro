@@ -388,7 +388,7 @@ void EnemySystem::HandleRunState(
     if (mUseOnnxBaseMove)
     {
         Vec3 onnxTarget = playerPos;
-        if (TryComputeOnnxBaseMoveTarget(entity, myPos, playerPos, onnxTarget))
+        if (TryComputeOnnxBaseMoveTarget(entity, myPos, playerPos, navSystem, onnxTarget))
             desiredTarget = onnxTarget;
     }
 
@@ -429,6 +429,7 @@ void EnemySystem::HandleRunState(
         while (movementComp->mPathIndex < movementComp->mPathCount - 1)
         {
             Vec3 toWp = movementComp->mPath[movementComp->mPathIndex] - myPos;
+            toWp.y = 0.0f;
             if (toWp.LengthSquared() < ARRIVE_THRESHOLD_SQ)
                 ++movementComp->mPathIndex;
             else
@@ -467,6 +468,7 @@ bool EnemySystem::TryComputeOnnxBaseMoveTarget(
     const Entity& entity,
     const Vec3& myPos,
     const Vec3& playerPos,
+    const std::shared_ptr<Navigation>& navSystem,
     Vec3& outTarget) const
 {
     if (!AIMANAGER.HasModel(L"base_move"))
@@ -585,7 +587,10 @@ bool EnemySystem::TryComputeOnnxBaseMoveTarget(
 
     Vec3 targetOffset(action.x * ONNX_TACTICAL_TARGET_RADIUS, 0.0f, action.y * ONNX_TACTICAL_TARGET_RADIUS);
     outTarget = myPos + targetOffset;
-    outTarget.y = playerPos.y;
+    if (navSystem && navSystem->IsInitialized())
+        outTarget.y = navSystem->GetHeightAtPosition(outTarget);
+    else
+        outTarget.y = myPos.y;
     return true;
 }
 

@@ -28,6 +28,7 @@
 #include "EnemySystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
+#include "FallDeathSystem.h"
 #include "NetRecvSystem.h"
 #include "NetSendSystem.h"
 #include "PlayerInputSystem.h"
@@ -441,6 +442,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<FallDeathSystem>();     // 6-0. 낙사(y<-800) 사망/리스폰 처리
 	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종 (화물·시네마틱 카메라)
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition)  이동 후 재계산
 	//mWorld->GetSystemManager()->RegisterSystem<CameraSystem>(); //  8. 카메라 업데이트
@@ -579,6 +581,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<FallDeathSystem>();     // 6-0. 낙사(y<-800) 사망/리스폰 처리
 	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
 	//mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();	// 8. 카메라 업데이트

@@ -183,10 +183,12 @@ void MainPlayerComponent::StateCheck()
     }
 }
 
-void MainPlayerComponent::Update(float dt) 
+void MainPlayerComponent::Update(float dt)
 {
    // mStateTimer += dt;
     //mDt = dt;
+
+    if (mIsDead) return; // 사망 연출 중 FSM 동결
 
     //if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
     StateCheck();
@@ -195,6 +197,9 @@ void MainPlayerComponent::Update(float dt)
 
 uint8 MainPlayerComponent::GetReplicatedActionState()
 {
+	if (mIsDead)
+		return static_cast<uint8>(ReplicatedActionState::Dead);
+
 	// FSM split: replicate only gameplay action state, not animation clip state.
 	const StateId state = mFsm.GetState();
 	switch (state)
@@ -222,6 +227,9 @@ uint8 MainPlayerComponent::GetReplicatedMovementMode()
 		mExternalVelocity = Vec3::Zero;
 		mExternalMoveEndTime = 0.0f;
 	}
+
+	if (mIsDead)
+		return static_cast<uint8>(ReplicatedMovementMode::Dead);
 
 	const StateId state = mFsm.GetState();
 	if (state == S_Dead)
@@ -271,6 +279,9 @@ uint8 MainPlayerComponent::GetReplicatedExternalMoveMode()
 
 bool MainPlayerComponent::CanUseHorizontalInput()
 {
+	if (mIsDead)
+		return false;
+
 	const StateId state = mFsm.GetState();
 	if (state == S_Dead || state == S_Stun || state == S_Hit)
 		return false;
@@ -283,6 +294,9 @@ bool MainPlayerComponent::CanUseHorizontalInput()
 
 bool MainPlayerComponent::CanUseVerticalInput()
 {
+	if (mIsDead)
+		return false;
+
 	const StateId state = mFsm.GetState();
 	if (state == S_Dead || state == S_Stun || state == S_Hit)
 		return false;

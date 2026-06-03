@@ -97,7 +97,8 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<BuffComponent>(mEntityID);
-  world->AddComponent<MainPlayerComponent>(mEntityID,"../Resources/Json/TestJson.json", static_cast<PlayerType>(playerType));
+  MainPlayerComponent& mainPlayer = world->AddComponent<MainPlayerComponent>(mEntityID,"../Resources/Json/TestJson.json", static_cast<PlayerType>(playerType));
+  mainPlayer.mSpawnPosition = t.mLocalPosition;
   world->AddComponent<TransformComponent>(mEntityID, t);
 
   world->AddComponent<BeatComponent>(mEntityID);

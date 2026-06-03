@@ -43,6 +43,14 @@ void PlayerInputSystem::Update(float dt)
 		InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 		BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
 
+		// 사망
+		if (mainPlayerComponent && mainPlayerComponent->mIsDead)
+		{
+			mainPlayerComponent->mSpeed = 0.f;
+			mainPlayerComponent->mHasMoveInput = false;
+			continue;
+		}
+
 		auto systemManager = mWorld->GetSystemManager();
 		auto* beatSystem = systemManager->GetSystem<BeatSystem>();
 		const float Beat = beatSystem->mBpmSeconds;

@@ -108,6 +108,10 @@ public:
 
 	Vec2 mPlayerMovingDir = Vec2::Zero;
 
+	Vec3 mSpawnPosition = Vec3::Zero;	// 낙사 시 복귀할 스폰 지점
+	bool mIsDead = false;				// 낙사 사망 연출 중
+	float mRespawnTime = 0.0f;			// 이 시각 이후 리스폰
+
 public:
 	//float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;

@@ -219,6 +219,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentPool.cpp" />
     <ClCompile Include="DamageSystem.cpp" />
+    <ClCompile Include="FallDeathSystem.cpp" />
     <ClCompile Include="EnemyComponent.cpp" />
     <ClCompile Include="EnemySystem.cpp" />
     <ClCompile Include="Entity.cpp" />
@@ -298,6 +299,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentPool.h" />
     <ClInclude Include="DamageSystem.h" />
+    <ClInclude Include="FallDeathSystem.h" />
     <ClInclude Include="EnemyComponent.h" />
     <ClInclude Include="EnemySystem.h" />
     <ClInclude Include="Entity.h" />

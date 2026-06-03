@@ -188,19 +188,19 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     LandState::Instance(),
     DashState::Instance(),
 
+    ReloadState::Instance(),
+    RhythmChangeState::Instance(),
+    AimState::Instance(),
+
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance(),
+
     Attack1State::Instance(),
     Attack2State::Instance(),
     Skill1State::Instance(),
     Skill2State::Instance(),
-    SpecialState::Instance(),
-
-    AimState::Instance(),
-    ReloadState::Instance(),
-    RhythmChangeState::Instance(),
-
-    HitState::Instance(),
-    StunState::Instance(),
-    DeadState::Instance()
+    SpecialState::Instance()
     };
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");

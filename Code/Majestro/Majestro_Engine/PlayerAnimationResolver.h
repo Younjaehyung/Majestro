@@ -5,7 +5,7 @@
 #include "NetTransformComponent.h"
 #include "TransformComponent.h"
 
-enum class ClientAnimState : uint8
+enum class ClientAnimState : uint16
 {
 	Idle = 0,
 	RunForward,
@@ -24,9 +24,9 @@ enum class ClientAnimState : uint8
 	Reload,
 	RhythmChange,
 	Aim,
+	Dead,
 	Hit,
 	Stun,
-	Dead,
 };
 
 struct PlayerAnimationResolveResult
@@ -144,11 +144,11 @@ inline uint32 GetDefaultClipIndex(ClientAnimState state)
 	case ClientAnimState::Special: return 13;
 	case ClientAnimState::Reload: return 14;
 	case ClientAnimState::RhythmChange: return 15;
+	case ClientAnimState::Aim: return 16;
+	case ClientAnimState::Dead: return 17;
 	case ClientAnimState::Idle:
-	case ClientAnimState::Aim:
 	case ClientAnimState::Hit:
 	case ClientAnimState::Stun:
-	case ClientAnimState::Dead:
 	default:
 		return 0;
 	}

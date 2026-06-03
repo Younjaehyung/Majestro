@@ -75,6 +75,11 @@
             "time": 0.35,
             "animOnce": true,
             "animEndTime": 0.833333
+        },
+        "DeadState": {
+            "time": 0.35,
+            "animOnce": true,
+            "animEndTime": 1.0
         }
     }
 }

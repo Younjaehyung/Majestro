@@ -108,19 +108,19 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType pla
     LandState::Instance(),
     DashState::Instance(),
 
-    ReloadState::Instance(),
-    RhythmChangeState::Instance(),
-    AimState::Instance(),
-
-    HitState::Instance(),
-    StunState::Instance(),
-    DeadState::Instance(),
-
     Attack1State::Instance(),
     Attack2State::Instance(),
     Skill1State::Instance(),
     Skill2State::Instance(),
-    SpecialState::Instance()
+    SpecialState::Instance(),
+
+    ReloadState::Instance(),
+    RhythmChangeState::Instance(),
+    AimState::Instance(),
+
+    DeadState::Instance(),
+    HitState::Instance(),
+    StunState::Instance()
     };
     InitFSMFromJson(path);
 
@@ -150,6 +150,14 @@ void MainPlayerComponent::StateCheck()
     if (mFalling) {
         mFsm.ChangeState(this, FallState::Instance());
     }
+
+    if (mIsDead) {
+        SetFlag(mFlags, FLAG_DEAD);
+        mFsm.ChangeState(this, DeadState::Instance());
+    }
+    else {
+        ClearFlag(mFlags, FLAG_DEAD);
+    }
 }
 
 void MainPlayerComponent::Update(float dt)
@@ -157,7 +165,7 @@ void MainPlayerComponent::Update(float dt)
    // mStateTimer += dt;
     //mDt = dt;
 
-    if (mIsDead) return; // 사망 연출 중 FSM 동결
+    //if (mIsDead) return; // 사망 연출 중 FSM 동결
 
     //if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
     StateCheck();
@@ -305,6 +313,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 
         if (s == ReloadState::Instance()) return S_Reload;
         if (s == RhythmChangeState::Instance()) return S_RhythmChange;
+        if (s == DeadState::Instance()) return S_Dead;
         return 255;
         };
     mFsm.SetIdResolver(stateResolver);

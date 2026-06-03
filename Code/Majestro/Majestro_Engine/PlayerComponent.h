@@ -47,7 +47,7 @@ enum : StateId {
 	S_Jump, S_Fall, S_Land, S_Dash,
 	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special,
 	S_Reload, S_RhythmChange, S_Aim,
-	S_Hit, S_Stun, S_Dead,
+	S_Dead, S_Hit, S_Stun,
 
 };
 

@@ -14,3 +14,5 @@ Code/Server/Libraries/Include/onnxruntime/
 Code/Server/Libraries/Lib/onnxruntime/
 Code/Server/Resources/Map/
 Code/Majestro/Resources/Sample/TouhouStrategy/Texture/splash01.png
+Code/Server/Resources/Json/Map001_CRX.json
+Code/Server/Resources/Json/MapDesert_Export.json

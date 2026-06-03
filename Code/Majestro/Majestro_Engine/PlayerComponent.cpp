@@ -100,107 +100,33 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 {
 }
 
-MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
-{
-    mStateList = {
-   IdleState::Instance(),
-   RunForwardState::Instance(),
-   RunBackwardState::Instance(),
-   RunRightState::Instance(),
-   RunLeftState::Instance(),
-   //RunState::Instance(),
-   JumpState::Instance(),
-   FallState::Instance(),
-   LandState::Instance(),
-   DashState::Instance(),
-
-   ReloadState::Instance(),
-   RhythmChangeState::Instance(),
-   AimState::Instance(),
-
-   HitState::Instance(),
-   StunState::Instance(),
-   DeadState::Instance(),
-
-   Attack1State::Instance(),
-   Attack2State::Instance(),
-   Skill1State::Instance(),
-   Skill2State::Instance(),
-   SpecialState::Instance()
-    };
-
-    //InitFSMFromJson(path);
-    //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
-};
-
-MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
-    mStateList = {
-   IdleState::Instance(),
-   RunForwardState::Instance(),
-   RunBackwardState::Instance(),
-   RunRightState::Instance(),
-   RunLeftState::Instance(),
-   //RunState::Instance(),
-   JumpState::Instance(),
-   FallState::Instance(),
-   LandState::Instance(),
-   DashState::Instance(),
-
-   ReloadState::Instance(),
-   RhythmChangeState::Instance(),
-   AimState::Instance(),
-
-   HitState::Instance(),
-   StunState::Instance(),
-   DeadState::Instance(),
-
-   Attack1State::Instance(),
-   Attack2State::Instance(),
-   Skill1State::Instance(),
-   Skill2State::Instance(),
-   SpecialState::Instance()
-    };
-    //InitFSMFromJson(path);
-    //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
-
-    for (int i = 0; i < (int)anim.size(); i++)
-    {
-        mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
-        cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime)  << " : " << mStateList[i]->mAnimEndTime << endl;
-    }
-
-    AppendPlayerAnimationDurations(InferPlayerTypeName(anim), mStateList, anim);
-
-
-}
-
 MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, PlayerType playerType) : mFsm(this), mSpeed(0.0f), mFlags(0ull), mPlayerType(playerType)
 {
     mStateList = {
     IdleState::Instance(),
-   RunForwardState::Instance(),
-   RunBackwardState::Instance(),
-   RunRightState::Instance(),
-   RunLeftState::Instance(),
-   //RunState::Instance(),
-   JumpState::Instance(),
-   FallState::Instance(),
-   LandState::Instance(),
-   DashState::Instance(),
+    RunForwardState::Instance(),
+    RunBackwardState::Instance(),
+    RunRightState::Instance(),
+    RunLeftState::Instance(),
+    //RunState::Instance(),
+    JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
+    DashState::Instance(),
 
-   ReloadState::Instance(),
-   RhythmChangeState::Instance(),
-   AimState::Instance(),
+    ReloadState::Instance(),
+    RhythmChangeState::Instance(),
+    AimState::Instance(),
 
-   HitState::Instance(),
-   StunState::Instance(),
-   DeadState::Instance(),
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance(),
 
-   Attack1State::Instance(),
-   Attack2State::Instance(),
-   Skill1State::Instance(),
-   Skill2State::Instance(),
-   SpecialState::Instance()
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance()
     };
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");

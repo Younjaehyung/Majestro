@@ -49,7 +49,7 @@ PlayerPrefab::PlayerPrefab(World *world) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<InputComponent>(mEntityID);
-  world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json");
+  world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", PlayerType::Ibanix);
   world->AddComponent<TransformComponent>(mEntityID, t);
   world->AddComponent<BeatComponent>(mEntityID);
   world->AddComponent<GravityComponent>(mEntityID);

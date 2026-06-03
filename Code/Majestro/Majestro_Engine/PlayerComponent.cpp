@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "json.hpp"
+#include <fstream>
 
 using json = nlohmann::json;
 #include "PlayerComponent.h"
@@ -7,6 +8,64 @@ using json = nlohmann::json;
 
 BOOL STATE_DEBUG = TRUE;
 std::vector<State<MainPlayerComponent>*> mStateList;
+
+namespace
+{
+    const char* PlayerTypeToString(PlayerType playerType)
+    {
+        switch (playerType)
+        {
+        case PlayerType::Rudwig:
+            return "Rudwig";
+        case PlayerType::Ibanix:
+            return "Ibanix";
+        case PlayerType::Fanthor:
+            return "Fanthor";
+        default:
+            return "Unknown";
+        }
+    }
+
+    std::string InferPlayerTypeName(const vector<shared_ptr<Animator>>& anim)
+    {
+        if (anim.empty() || anim[0] == nullptr)
+            return "Unknown";
+
+        const std::string clipName = ws2s(anim[0]->GetName());
+        if (clipName.find("Rudwig") != std::string::npos)
+            return "Rudwig";
+        if (clipName.find("Ibanix") != std::string::npos)
+            return "Ibanix";
+        if (clipName.find("Fanthor") != std::string::npos)
+            return "Fanthor";
+
+        return "Unknown";
+    }
+
+    void AppendPlayerAnimationDurations(
+        const std::string& playerTypeName,
+        const vector<State<MainPlayerComponent>*>& states,
+        const vector<shared_ptr<Animator>>& anim)
+    {
+        std::ofstream ofs("PlayerAnimationDurations.txt", std::ios::app);
+        if (!ofs.is_open())
+            return;
+
+        ofs << "[Player] " << playerTypeName << '\n';
+        for (size_t i = 0; i < anim.size() && i < states.size(); ++i)
+        {
+            if (anim[i] == nullptr || states[i] == nullptr)
+                continue;
+
+            ofs << "state=" << states[i]->GetName()
+                << ", clip=" << ws2s(anim[i]->GetName())
+                << ", end_time=" << static_cast<float>(anim[i]->mEndTime)
+                << ", duration=" << static_cast<float>(anim[i]->mDuration)
+                << '\n';
+        }
+        ofs << '\n';
+    }
+}
 
 static StateId NameToId(const std::string& n) {
     if (n == "Idle") return S_Idle;
@@ -104,10 +163,11 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 
     for (int i = 0; i < (int)anim.size(); i++)
     {
-        cout << "?" << endl;
         mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
         cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime)  << " : " << mStateList[i]->mAnimEndTime << endl;
     }
+
+    AppendPlayerAnimationDurations(InferPlayerTypeName(anim), mStateList, anim);
 
 
 }
@@ -146,6 +206,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
         mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
         cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime) << " : " << mStateList[i]->mAnimEndTime << endl;
     }
+
+    AppendPlayerAnimationDurations(PlayerTypeToString(playerType), mStateList, anim);
 }
 
 void MainPlayerComponent::StateCheck()

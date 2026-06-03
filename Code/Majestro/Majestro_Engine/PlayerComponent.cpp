@@ -136,29 +136,29 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
 MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
     mStateList = {
    IdleState::Instance(),
-   RunForwardState::Instance(),
-   RunBackwardState::Instance(),
-   RunRightState::Instance(),
-   RunLeftState::Instance(),
-   //RunState::Instance(),
-   JumpState::Instance(),
-   FallState::Instance(),
-   LandState::Instance(),
-   DashState::Instance(),
+    RunForwardState::Instance(),
+    RunBackwardState::Instance(),
+    RunRightState::Instance(),
+    RunLeftState::Instance(),
+    //RunState::Instance(),
+    JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
+    DashState::Instance(),
 
-   ReloadState::Instance(),
-   RhythmChangeState::Instance(),
-   AimState::Instance(),
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance(),
 
-   HitState::Instance(),
-   StunState::Instance(),
-   DeadState::Instance(),
+    AimState::Instance(),
+    ReloadState::Instance(),
+    RhythmChangeState::Instance(),
 
-   Attack1State::Instance(),
-   Attack2State::Instance(),
-   Skill1State::Instance(),
-   Skill2State::Instance(),
-   SpecialState::Instance()
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance()
     };
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
@@ -178,29 +178,29 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 {
     mStateList = {
     IdleState::Instance(),
-   RunForwardState::Instance(),
-   RunBackwardState::Instance(),
-   RunRightState::Instance(),
-   RunLeftState::Instance(),
-   //RunState::Instance(),
-   JumpState::Instance(),
-   FallState::Instance(),
-   LandState::Instance(),
-   DashState::Instance(),
+    RunForwardState::Instance(),
+    RunBackwardState::Instance(),
+    RunRightState::Instance(),
+    RunLeftState::Instance(),
+    //RunState::Instance(),
+    JumpState::Instance(),
+    FallState::Instance(),
+    LandState::Instance(),
+    DashState::Instance(),
 
-   ReloadState::Instance(),
-   RhythmChangeState::Instance(),
-   AimState::Instance(),
+    Attack1State::Instance(),
+    Attack2State::Instance(),
+    Skill1State::Instance(),
+    Skill2State::Instance(),
+    SpecialState::Instance(),
 
-   HitState::Instance(),
-   StunState::Instance(),
-   DeadState::Instance(),
+    AimState::Instance(),
+    ReloadState::Instance(),
+    RhythmChangeState::Instance(),
 
-   Attack1State::Instance(),
-   Attack2State::Instance(),
-   Skill1State::Instance(),
-   Skill2State::Instance(),
-   SpecialState::Instance()
+    HitState::Instance(),
+    StunState::Instance(),
+    DeadState::Instance()
     };
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");

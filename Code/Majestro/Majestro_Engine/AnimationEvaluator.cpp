@@ -31,6 +31,20 @@ void AnimationEvaluator::Evaluate(
 
 	const float featherRange = 4.0f;
 
+	
+
+	constexpr bool kUseMeshSpaceUpperRotation = true;	// 상체 레이어 회전을 모델(메쉬)공간에서 블렌드할지 여부.
+	//  true  : 하체(골반) 회전이 상체로 전파되지 않음 
+	//  false : 기존 로컬공간 회전 블렌드(하체 뒤틀림이 상체로 상속됨)
+
+	if (kUseMeshSpaceUpperRotation)
+	{
+		baseMeshRot.resize(boneCount);
+		upperMeshRot.resize(boneCount);
+		blendMeshRot.resize(boneCount);
+		effUpperW.resize(boneCount);
+	}
+
 	// 로컬 본 포즈 + 부모 누적(model space) 계산
 	for (uint32 nowbone = 0; nowbone < boneCount; ++nowbone)
 	{
@@ -83,11 +97,16 @@ void AnimationEvaluator::Evaluate(
 			}
 		}
 
-		Vec4 finalScale = lowerScale;
-		Vec4 finalRotation = lowerRotation;
-		Vec4 finalTranslation = lowerTranslation;
+		// 하체 레이어 로컬 회전(이후 메쉬 누적의 기준)
+		const Vec4 baseLocalQ = lowerRotation;
 
-		// 상체 Upper 레이어
+		// 상체 Upper 레이어 샘플 + 가중치
+		Vec4 us = lowerScale;
+		Vec4 ur = lowerRotation;
+		Vec4 ut = lowerTranslation;
+		float finalUpperW = 0.0f;
+		bool  hasUpper = false;
+
 		if (inst.UpperLayerWeight > 0.0001f && inst.UpperAnimClipIdx != inst.AnimClipID)
 		{
 			if (inst.UpperAnimClipIdx < metaCount)
@@ -95,13 +114,14 @@ void AnimationEvaluator::Evaluate(
 				const AnimationClipMeta& upperMeta = metaBuffer[inst.UpperAnimClipIdx];
 				if (nowbone < upperMeta.BoneCount)
 				{
-					Vec4 us, ur, ut;
+					hasUpper = true;
 					SampleAnimation(
 						nowbone, upperMeta.NumFrame,
 						inst.UpperCurrentFrame, inst.UpperNextFrame, inst.UpperRatio,
 						upperMeta.AnimOffset, clipBuffer,
 						us, ur, ut);
 
+					// 상체 클립 크로스페이드
 					if (inst.UpperBlendWeight > 0.0001f &&
 						inst.UpperBlendClipIdx != inst.UpperAnimClipIdx &&
 						inst.UpperBlendClipIdx < metaCount)
@@ -131,45 +151,107 @@ void AnimationEvaluator::Evaluate(
 					}
 
 					const float boneW = boneBuffer[nowbone + boneIdxBase].blendWeight;
-					const float finalUpperW = Saturate(inst.UpperLayerWeight) * Saturate(boneW) * upperBlendW;
-
-					if (finalUpperW > 0.999f)
-					{
-						finalScale = us;
-						finalRotation = ur;
-						finalTranslation = ut;
-					}
-					else if (finalUpperW > 0.0001f)
-					{
-						if (inst.UpperBlendMode == 1)
-						{
-							const Vec4 idQ(0, 0, 0, 1);
-							const Vec4 idS(1, 1, 1, 1);
-							const Vec4 eps(0.0001f, 0.0001f, 0.0001f, 0.0001f);
-
-							Vec4 deltaR = HlslQuatMul(ur, HlslQuatConj(lowerRotation));
-							Vec4 addR = HlslQuatSlerp(idQ, deltaR, finalUpperW);
-							finalRotation = HlslQuatMul(lowerRotation, addR);
-
-							Vec4 deltaS = DivCompV4(us, MaxV4(lowerScale, eps));
-							Vec4 addS = LerpV4(idS, deltaS, finalUpperW);
-							finalScale = MulCompV4(lowerScale, addS);
-
-							Vec4 deltaT = ut - lowerTranslation;
-							finalTranslation = lowerTranslation + deltaT * finalUpperW;
-						}
-						else
-						{
-							finalScale = LerpV4(lowerScale, us, finalUpperW);
-							finalRotation = HlslQuatSlerp(lowerRotation, ur, finalUpperW);
-							finalTranslation = LerpV4(lowerTranslation, ut, finalUpperW);
-						}
-					}
+					finalUpperW = Saturate(inst.UpperLayerWeight) * Saturate(boneW) * upperBlendW;
 				}
 			}
 		}
 
+		const Vec4 upperLocalQ = hasUpper ? ur : baseLocalQ;
 
+		// 메쉬공간 모드: 상체 가중치를 계층으로 전파
+		if (kUseMeshSpaceUpperRotation)
+		{
+			const int32 wpIdx = boneBuffer[nowbone + boneIdxBase].parentIdx;
+			float eff = finalUpperW;
+			if (wpIdx >= 0 && static_cast<uint32>(wpIdx) < boneCount)
+				eff = max(eff, effUpperW[wpIdx]);
+			effUpperW[nowbone] = eff;
+			finalUpperW = eff;
+		}
+
+		Vec4 finalScale = lowerScale;
+		Vec4 finalRotation = lowerRotation;
+		Vec4 finalTranslation = lowerTranslation;
+
+		const bool additive = (inst.UpperBlendMode == 1);
+
+		// Scale / Translation 블렌드
+		if (additive && finalUpperW > 0.0001f)
+		{
+			const Vec4 idS(1, 1, 1, 1);
+			const Vec4 eps(0.0001f, 0.0001f, 0.0001f, 0.0001f);
+
+			Vec4 deltaS = DivCompV4(us, MaxV4(lowerScale, eps));
+			Vec4 addS = LerpV4(idS, deltaS, finalUpperW);
+			finalScale = MulCompV4(lowerScale, addS);
+
+			Vec4 deltaT = ut - lowerTranslation;
+			finalTranslation = lowerTranslation + deltaT * finalUpperW;
+		}
+		else
+		{
+			finalScale = LerpV4(lowerScale, us, finalUpperW);
+			finalTranslation = LerpV4(lowerTranslation, ut, finalUpperW);
+		}
+
+		// 회전 블렌드
+		if (kUseMeshSpaceUpperRotation)
+		{
+			const int32 pIdx = boneBuffer[nowbone + boneIdxBase].parentIdx;
+			const bool hasParent = (pIdx >= 0 && static_cast<uint32>(pIdx) < boneCount);
+
+			// 두 레이어의 모델공간 회전 누적 (parent < nowbone 보장)
+			const Vec4 baseMesh = hasParent ? HlslQuatMul(baseMeshRot[pIdx], baseLocalQ) : baseLocalQ;
+			Vec4 upperMesh = hasParent ? HlslQuatMul(upperMeshRot[pIdx], upperLocalQ) : upperLocalQ;
+			baseMeshRot[nowbone] = baseMesh;
+			upperMeshRot[nowbone] = upperMesh;
+
+			if (additive && finalUpperW > 0.0001f)
+			{
+				// Additive
+				const Vec4 idQ(0, 0, 0, 1);
+				Vec4 deltaR = HlslQuatMul(ur, HlslQuatConj(lowerRotation));
+				Vec4 addR = HlslQuatSlerp(idQ, deltaR, finalUpperW);
+				finalRotation = HlslQuatMul(lowerRotation, addR);
+
+				// 자식 체인 일관성: 최종 로컬 회전(aim 적용 전)을 누적
+				blendMeshRot[nowbone] = hasParent
+					? HlslQuatMul(blendMeshRot[pIdx], finalRotation)
+					: finalRotation;
+			}
+			else
+			{
+				// Override
+				float dot = baseMesh.x * upperMesh.x + baseMesh.y * upperMesh.y +
+					baseMesh.z * upperMesh.z + baseMesh.w * upperMesh.w;
+				if (dot < 0.f)
+					upperMesh = Vec4(-upperMesh.x, -upperMesh.y, -upperMesh.z, -upperMesh.w);
+
+				const Vec4 Rm = HlslQuatSlerp(baseMesh, upperMesh, Saturate(finalUpperW));
+				blendMeshRot[nowbone] = Rm; // aim 적용 전 모델공간 회전(자식 변환 기준)
+
+				// 모델공간 회전을 (블렌드된)부모 기준 로컬 회전으로 환산.
+				finalRotation = hasParent
+					? HlslQuatMul(HlslQuatConj(blendMeshRot[pIdx]), Rm)
+					: Rm;
+			}
+		}
+		else
+		{	// 상체 전파
+			if (additive && finalUpperW > 0.0001f)
+			{
+				const Vec4 idQ(0, 0, 0, 1);
+				Vec4 deltaR = HlslQuatMul(ur, HlslQuatConj(lowerRotation));
+				Vec4 addR = HlslQuatSlerp(idQ, deltaR, finalUpperW);
+				finalRotation = HlslQuatMul(lowerRotation, addR);
+			}
+			else
+			{
+				finalRotation = HlslQuatSlerp(lowerRotation, ur, finalUpperW);
+			}
+		}
+
+		// ---- Aim / Hit 오프셋 (기존과 동일, 로컬 후처리) ----
 		const float aimW = getAimWeight(nowbone);
 		if (aimW > 0.f && aim)
 		{

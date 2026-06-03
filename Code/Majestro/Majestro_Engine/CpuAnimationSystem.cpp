@@ -113,21 +113,19 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		const uint32 previousClip = animCom->mLowerAnimClipIdx;
 		const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
 
+		// 이번 프레임 resolver가 원하는 상체 레이어 활성 목표.
+		bool desiredUpperLayer = false;
+
 		if (mainPlayerCom) {
 			const PlayerAnimationResolveResult resolvedAnim = ResolvePlayerAnimationState(
 				*mainPlayerCom, *animCom, transformCom, movementCom, netTransformCom);
-		
-			animCom->mLowerAnimClipIdx = resolvedAnim.LowerClipIndex;
-			animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
 
-			if (resolvedAnim.EnableUpperLayer) {
-				animCom->mEnableUpperBodyLayer = true;
-				animCom->mUpperLayerWeight = 1.0f;
-			}
-			else {
-				animCom->mEnableUpperBodyLayer = false;
-				animCom->mUpperLayerWeight = 0.0f;
-			}
+			animCom->mLowerAnimClipIdx = resolvedAnim.LowerClipIndex;
+			desiredUpperLayer = resolvedAnim.EnableUpperLayer;
+
+			// 레이어를 켜는 동안에만 상체 클립 갱신
+			if (desiredUpperLayer)
+				animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
 		}
 
 		if (enemyCom) {
@@ -151,9 +149,24 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			}
 		}
 
-		if (animCom->mEnableUpperBodyLayer == false) {
-			animCom->mUpperAnimClipIdx = animCom->mLowerAnimClipIdx;
-			animCom->mUpperLayerWeight = 0.0f;
+		// 상체 레이어 가중치
+		if (mainPlayerCom) {
+			if (desiredUpperLayer) {	// 진입 : 반응성 위해 즉시 1.0 (상체 클립 크로스페이드가 진입 부드러움 담당)
+				animCom->mUpperLayerWeight = 1.0f;
+			}
+			else {	// 종료 : mUpperLayerFadeOutDuration 동안 1->0 페이드아웃
+				const float fadeDuration = max(animCom->mUpperLayerFadeOutDuration, 0.0001f);
+				animCom->mUpperLayerWeight = max(0.f, animCom->mUpperLayerWeight - deltaTime / fadeDuration);
+			}
+
+			// 가중치가 남아있는 동안에는 레이어를 살려둬 상체 클립을 계속 샘플링
+			animCom->mEnableUpperBodyLayer = (animCom->mUpperLayerWeight > 0.0001f);
+
+			// 완전히 꺼졌을 때만 상체 클립을 하체와 동기화
+			if (animCom->mEnableUpperBodyLayer == false) {
+				animCom->mUpperAnimClipIdx = animCom->mLowerAnimClipIdx;
+				animCom->mUpperLayerWeight = 0.0f;
+			}
 		}
 
 		const bool forceLowerRestart = mainPlayerCom &&
@@ -174,7 +187,8 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			animCom->mUpdateTime = 0.f;
 		}
 
-		if (animCom->mEnableUpperBodyLayer && (animCom->mUpperAnimClipIdx != previousUpperClip || forceUpperRestart)) {
+		// 페이드아웃 중(desiredUpperLayer==false)에는 상체 클립을 유지해야 하므로 재시작/전환 막음
+		if (desiredUpperLayer && animCom->mEnableUpperBodyLayer && (animCom->mUpperAnimClipIdx != previousUpperClip || forceUpperRestart)) {
 			animCom->mUpperBlendClipIdx = previousUpperClip;
 			animCom->mUpperBlendUpdateTime = animCom->mUpperUpdateTime;
 			animCom->mUpperBlendTimer = 0.f;

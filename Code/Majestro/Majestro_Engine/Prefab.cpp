@@ -299,6 +299,49 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Reload"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Rhythm"));
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Ibanix);
+
+		//// 총구 화염 소켓 + VFX\
+		//// (1) 총구 소켓 정의: 본 미부착(이름 빈 문자열) → 애니 본이 아니라 플레이어 월드행렬에
+		////     오프셋만 적용해 부착(SocketSystem). 오프셋은 플레이어 로컬 기준(+Z 전방, +Y 위).
+		//socket.mSockets.push_back(SocketDef{
+		//	"muzzle", "",
+		//	Matrix::CreateTranslation(Vec3(0.f, 110.f, 90.f)) });	// TODO: 총구 위치 튜닝(전방/높이/좌우)
+		//
+		//// (2) 총구를 따라다니는 화염 VFX 엔티티
+		//Entity muzzleVfxEntity = world->CreateEntity();
+
+		//TransformComponent muzzleVfxTransform{};
+		//muzzleVfxTransform.mLocalPosition = Vec3(0.f, -100000.f, 0.f);	// 첫 프레임 숨김 위치
+		//muzzleVfxTransform.mWorldPosition = muzzleVfxTransform.mLocalPosition;
+		//muzzleVfxTransform.mWorldMatrix   = Matrix::CreateTranslation(muzzleVfxTransform.mLocalPosition);
+		//world->AddComponent<TransformComponent>(muzzleVfxEntity, muzzleVfxTransform);
+
+		//auto& muzzleFollow = world->AddComponent<SocketFollowComponent>(muzzleVfxEntity);
+		//muzzleFollow.mSourceEntity            = mEntityID;
+		//muzzleFollow.mSocketName              = "muzzle";
+		//muzzleFollow.mFollowRotation          = true;	// 총구 방향(이미터 회전) 적용. 스프라이트 빌보드는 .efk 노드 설정이 담당
+		//muzzleFollow.mHideWhenInvalid         = true;
+		//muzzleFollow.mUseAttackState          = true;	// 공격 상태에서만
+		//muzzleFollow.mUseAnimationWindow      = true;
+		//muzzleFollow.mUseUpperAnimationWindow = false;
+		//muzzleFollow.mRestartVfxOnActivate    = true;	// 매 발사마다 처음부터 재생
+		//muzzleFollow.mPlayOnce                = true;	// 공격 진입 시 1회만 재생(애니 내내 반복 X)
+
+
+		//auto& muzzleVfx = world->AddComponent<VfxComponent>(muzzleVfxEntity);
+		//muzzleVfx.mVfx                  = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_FireSmoke");
+		//muzzleVfx.mIsLoop               = false;	// 한 번만 재생(루프 X)
+		//muzzleVfx.mRestartWhenFinished  = false;	// 끝나면 자동 재시작 안 함 → 앞부분 반복 방지
+		//muzzleVfx.mStopRootWhenDisabled = false;	// 윈도우가 일찍 닫혀도 잔여 파티클 자연 소멸
+		//muzzleVfx.mUseWorldMatrix       = true;	// 소켓 위치+회전을 이미터에 적용(SetMatrix). 빌보드는 .efk 노드 설정이 담당
+		//muzzleVfx.mScale                = Vec3(15.f, 15.f, 15.f);	// TODO: 스케일 튜닝
+		//muzzleVfx.mWorldMatrix          = muzzleVfxTransform.mWorldMatrix;
+		//muzzleVfx.mShouldPlay           = false;	// SocketFollowSystem이 윈도우에서 켬
+		//// 풀 비대상(지속 엔티티)
+		//muzzleVfx.mIsPooled   = false;
+		//muzzleVfx.mInUse      = false;
+		//muzzleVfx.mAutoReturn = false;
+		//// ====================================================================
 	}
 		break;
 	case PlayerType::Fanthor:

@@ -148,20 +148,80 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	
 	
-	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
+
 	shared_ptr<Mesh> phereMesh;
 
-	//FBX File's Material [Nameing Convention : (filename)_(0~3)]
 	shared_ptr<Material> material2;
 	std::vector<shared_ptr<Material>> material2s;
 	
-	
-
-	//FBX File's Animation [Naming Convention : Anim_(Name)_(Animationtype)]
 	vector<shared_ptr<Animator>> anmators0;
 
 
-	switch (static_cast<PlayerType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
+	auto& socket = world->AddComponent<SocketComponent>(mEntityID);
+
+	// 캐릭터별 트레일 룩(검기 모양 + 색)
+	struct TrailLook
+	{
+		WeaponTrailVisualStyle style;
+		Vec3   coreColor;
+		Vec3   edgeColor;
+		Vec3   subColor;
+		float  intensity;
+		uint32 layerCount;
+	};
+
+	// 트레일 공통 지오메트리/타이밍
+	auto applySlashTrailStyle = [](WeaponTrailComponent& trail, Entity owner,
+		const char* tipSocket, const char* baseSocket, uint32 startFrame, uint32 endFrame,
+		const TrailLook& look)
+		{
+			trail.mSourceEntity = owner;
+			trail.mSourceType = WeaponTrailSource::Socket;
+			trail.mTipSocketName = tipSocket;
+			trail.mBaseSocketName = baseSocket;
+
+			// WeaponTrail 이동추적 전환
+			trail.mAutoActivateOnAttack = true;	// 공격 상태가 되면 자동으로 트레일 샘플링 시작
+			trail.mResetOnActivate = true;      // 매 휘두름마다 이전 샘플 초기화
+
+			trail.mUseAnimationWindow = true;
+			trail.mUseUpperAnimationWindow = true;
+			trail.mUseAnimationFrameWindow = true;
+			trail.mTrailStartFrame = startFrame;
+			trail.mTrailEndFrame = endFrame;
+
+			// 공통 지오메트리/타이밍
+			trail.mSmoothingSubdivisions = 4;			// 스무딩 4단계 지정.
+			trail.mLifetime = 0.14f;
+			trail.mSampleInterval = 0.004f;
+			trail.mMinSegmentDistance = 1.0f;
+			trail.mBaseAlpha = 0.9f;
+			trail.mWidthMultiplier = 1.45f;
+			// 초승달 폭: 꼬리/머리 양끝을 뾰족하게(작게), 중앙(Mid)을 가장 두껍게.
+			trail.mTailWidthScale = 0.10f;
+			trail.mMidWidthScale = 1.20f;
+			trail.mHeadWidthScale = 2.4f;/*0.08f;*/
+			trail.mLayerSpread = 0.22f;
+			trail.mSlashCutStrength = 0.55f;
+			trail.mSlashLineStrength = 0.7f;
+			// 외곽 EdgeColor 발광 / 중심 코어 틴트 강도.
+			trail.mSlashEdgeBoost = 1.7f;
+			trail.mSlashCoreBoost = 1.0f;
+			// 텍스처/결을 길이 방향으로 흘려 에너지가 흐르는 베기 궤적 연출.
+			trail.mSlashTexScrollSpeed = 0.9f;
+
+			//캐릭터별 룩(검기 모양/색)
+			trail.mVisualStyle = look.style;
+			trail.mLayerCount = look.layerCount;
+			trail.mCoreColor = look.coreColor;
+			trail.mEdgeColor = look.edgeColor;
+			trail.mSubColor = look.subColor;
+			trail.mIntensity = look.intensity;
+		};
+
+
+	const PlayerType playerType = static_cast<PlayerType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+	switch (playerType) {// ctx.ViewAs<S2C_SpawnPacekt>()->isPlayerType) {
 
 	case PlayerType::Rudwig:
 	{
@@ -193,6 +253,22 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Rhythm"));
 
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Rudwig);
+
+
+		socket.mSockets.push_back(SocketDef{ "rhand_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 50.f, 120.f)) });	// 오른손 무기 끝
+		socket.mSockets.push_back(SocketDef{ "rhand_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 50.f, 70.f)) });	// 오른손 무기 손잡이
+		socket.mSockets.push_back(SocketDef{ "lhand_tip",  "Bip001 Prop2", Matrix::CreateTranslation(Vec3(0.f, 50.f, 120.f)) });	// 왼손 무기 끝
+		socket.mSockets.push_back(SocketDef{ "lhand_base", "Bip001 Prop2", Matrix::CreateTranslation(Vec3(0.f, 50.f, 70.f)) });	// 왼손 무기 손잡이
+
+		// Rudwig 검기 (주황)
+		const TrailLook rudwigLook = { WeaponTrailVisualStyle::SwordSlash,
+			Vec3(1.0f, 0.85f, 0.55f), Vec3(1.0f, 0.42f, 0.08f), Vec3(0.48f, 0.08f, 0.02f), 4.2f, 4 };
+
+		Entity rightHandTrail = world->CreateEntity();	// 왼손 트레일
+		applySlashTrailStyle(world->AddComponent<WeaponTrailComponent>(rightHandTrail), mEntityID, "rhand_tip", "rhand_base", 7, 12, rudwigLook);
+
+		Entity leftHandTrail = world->CreateEntity();	// 오른손 트레일
+		applySlashTrailStyle(world->AddComponent<WeaponTrailComponent>(leftHandTrail), mEntityID, "lhand_tip", "lhand_base", 18, 22, rudwigLook);
 	}
 		break;
 	case PlayerType::Ibanix:
@@ -256,6 +332,17 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Reload"));
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Rhythm"));
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Fanthor);
+
+
+
+		// Fanthor 검기 (보라)
+		const TrailLook fanthorLook = { WeaponTrailVisualStyle::SwordSlash,
+			Vec3(0.95f, 0.80f, 1.0f), Vec3(0.60f, 0.15f, 1.0f), Vec3(0.20f, 0.02f, 0.40f), 3.8f, 4 };
+
+		socket.mSockets.push_back(SocketDef{ "weapon_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(6.f, 159.f, 13.25f)) });		// 칼 끝
+		socket.mSockets.push_back(SocketDef{ "weapon_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 0.f, 0.f)) });		// 칼 손잡이 쪽
+
+		applySlashTrailStyle(world->AddComponent<WeaponTrailComponent>(mEntityID), mEntityID, "weapon_tip", "weapon_base", 11, 15, fanthorLook);
 	}
 		break;
 	}
@@ -268,57 +355,6 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
 
-	{
-		auto& socket = world->AddComponent<SocketComponent>(mEntityID);
-		socket.mSockets.push_back(SocketDef{ "weapon_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 50.f, 120.f)) });		// 칼 끝
-		socket.mSockets.push_back(SocketDef{ "weapon_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 50.f, 70.f)) });		// 칼 손잡이 쪽
-
-		auto& trail = world->AddComponent<WeaponTrailComponent>(mEntityID);
-		trail.mSourceEntity = mEntityID;
-		trail.mSourceType = WeaponTrailSource::Socket;
-		trail.mTipSocketName = "weapon_tip";
-		trail.mBaseSocketName = "weapon_base";
-		
-		// WeaponTrail 이동추적 전환
-		trail.mAutoActivateOnAttack = true;	// 공격 상태가 되면 자동으로 트레일 샘플링 시작
-		trail.mResetOnActivate = true;      // 매 휘두름마다 이전 샘플 초기화
-
-		//trail.mFollowOwnerMovement = true;
-		//trail.mFollowReferenceRotation = true;
-		//trail.mTextureName = L"Shock_wave01";
-
-		trail.mUseAnimationWindow = true;
-		trail.mUseUpperAnimationWindow = true;
-		trail.mUseAnimationFrameWindow = true;
-		trail.mTrailStartFrame = 10;
-		trail.mTrailEndFrame = 13;
-		trail.mVisualStyle = WeaponTrailVisualStyle::SwordSlash;
-		trail.mLayerCount = 4;
-
-		trail.mSmoothingSubdivisions = 4;			// 스무딩 4단계 지정.
-		trail.mLifetime = 0.14f;
-		trail.mSampleInterval = 0.004f;
-		trail.mMinSegmentDistance = 1.0f;
-		trail.mBaseAlpha = 0.9f;
-		trail.mWidthMultiplier = 1.45f;
-		// 초승달 폭: 꼬리/머리 양끝을 뾰족하게(작게), 중앙(Mid)을 가장 두껍게.
-		trail.mTailWidthScale = 0.10f;
-		trail.mMidWidthScale = 1.20f;
-		trail.mHeadWidthScale = 0.08f;
-		trail.mLayerSpread = 0.22f;
-		trail.mSlashCutStrength = 0.55f;
-		trail.mSlashLineStrength = 0.7f;
-		// 외곽 EdgeColor 발광 / 중심 코어 틴트 강도.
-		trail.mSlashEdgeBoost = 1.7f;
-		trail.mSlashCoreBoost = 1.0f;
-		// 텍스처/결을 길이 방향으로 흘려 에너지가 흐르는 베기 궤적 연출.
-		trail.mSlashTexScrollSpeed = 0.9f;
-
-		trail.mCoreColor = Vec3(1.0f, 0.85f, 0.55f);
-		trail.mEdgeColor = Vec3(1.0f, 0.42f, 0.08f);
-		trail.mSubColor = Vec3(0.48f, 0.08f, 0.02f);
-		trail.mIntensity = 4.2f;
-	}
 
 	//{
 	//	Entity socketVfxEntity = world->CreateEntity();
@@ -516,6 +552,18 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
 
+	auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+
+	{
+		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
+		hp.mHitEffectTextureName = L"UI_Player_HP_3";
+		hp.mHitEffectCols = 4;
+		hp.mHitEffectRows = 1;
+		hp.mHitEffectFrameCount = 4;
+		hp.mHitEffectSizePx = Vec2(64.f, 64.f);
+		hp.mHitEffectOffsetPx = Vec2(32.f, 0.f);
+	}
+
 	switch (static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {
 	case EnemyType::HornMan:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
@@ -549,7 +597,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Die"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Shield"));
-
+		hp.mWorldOffset = Vec3(0.f, 400.f, 0.f);
 		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman);
@@ -559,26 +607,19 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	}
 
+	
+
 	material2s.push_back(material2);
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 
-		auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
-		enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
+	auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
+	enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
 
-		world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
+	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
-	{
-		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
-		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
-		hp.mHitEffectTextureName = L"UI_Player_HP_3";
-		hp.mHitEffectCols = 4;
-		hp.mHitEffectRows = 1;
-		hp.mHitEffectFrameCount = 4;
-		hp.mHitEffectSizePx = Vec2(64.f, 64.f);
-		hp.mHitEffectOffsetPx = Vec2(32.f, 0.f);
-	}
+
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(mEntityID);
 	netComp.mOwnerEntity = mEntityID;

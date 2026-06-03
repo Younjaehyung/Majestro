@@ -23,7 +23,7 @@ void UIPhaseProgressUpdateFeature::Update(float dt)
 
 	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
 
-	std::cout << "UIPhaseProgressUpdateFeature::Update - Game Phase: " << static_cast<int>(gameRuleComp->mGamePhase) << std::endl;
+	// std::cout << "UIPhaseProgressUpdateFeature::Update - Game Phase: " << static_cast<int>(gameRuleComp->mGamePhase) << std::endl;
 	switch (gameRuleComp->mGamePhase)
 	{
 		case uint8(WavePhaseType::Prepare): // Prepare

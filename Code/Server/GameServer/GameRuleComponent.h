@@ -70,7 +70,7 @@ public:
 
 
 	Entity mEscortTarget; // 호위 대상 엔티티 (예: 트럭)
-	float mEscortRange = 500.f; // 호위 범위 (트럭과 플레이어 간 최대 허용 거리)
+	float mEscortRange = 1000.f; // 호위 범위 (트럭과 플레이어 간 최대 허용 거리)
 	
 	uint8 mEscortStage = 0; // 현재 호위 stage (예: 1, 2, 3 등)
 	uint8 mMoveState = 0;

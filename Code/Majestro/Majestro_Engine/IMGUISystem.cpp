@@ -8,6 +8,7 @@
 #include "CameraComponent.h"
 #include "SystemManager.h"
 #include "WeaponTrailComponent.h"
+#include "SocketComponent.h"
 
 IMGUIRenderSystem::IMGUIRenderSystem(World* world) : System::System(world)
 {
@@ -188,6 +189,45 @@ void IMGUIRenderSystem::DrawWeaponTrailInspector()
                 if (styleValues[i] == trail->mVisualStyle) styleSel = i;
             if (ImGui::Combo("Style", &styleSel, styleNames, IM_ARRAYSIZE(styleNames)))
                 trail->mVisualStyle = styleValues[styleSel];
+
+            // Tip / Base 오프셋
+            // tip/base = 트레일 리본의 폭 방향 양 끝. 칼날을 따라 눕도록.
+            ImGui::Separator();
+            ImGui::Text("Tip / Base Offset");
+            if (trail->mSourceType == WeaponTrailSource::Socket)
+            {
+                // Socket 모드
+                const Entity src = trail->mSourceEntity.IsValid() ? trail->mSourceEntity : e;
+                SocketComponent* socketCom = mWorld->GetComponent<SocketComponent>(src);
+                if (socketCom != nullptr)
+                {
+                    if (SocketDef* tipSocket = socketCom->FindSocket(trail->mTipSocketName))
+                    {
+                        Vec3 tipPos = tipSocket->mLocalOffset.Translation();
+                        if (ImGui::DragFloat3("TipOffset", &tipPos.x, 0.5f))
+                            tipSocket->mLocalOffset.Translation(tipPos);
+                    }
+                    else
+                        ImGui::TextDisabled("Tip 소켓 '%s' 없음", trail->mTipSocketName.c_str());
+
+                    if (SocketDef* baseSocket = socketCom->FindSocket(trail->mBaseSocketName))
+                    {
+                        Vec3 basePos = baseSocket->mLocalOffset.Translation();
+                        if (ImGui::DragFloat3("BaseOffset", &basePos.x, 0.5f))
+                            baseSocket->mLocalOffset.Translation(basePos);
+                    }
+                    else
+                        ImGui::TextDisabled("Base 소켓 '%s' 없음", trail->mBaseSocketName.c_str());
+                }
+                else
+                    ImGui::TextDisabled("SourceEntity에 SocketComponent 없음");
+            }
+            else
+            {
+                // Transform 모드
+                ImGui::DragFloat3("TipOffset", &trail->mTipLocalOffset.x, 0.5f);
+                ImGui::DragFloat3("BaseOffset", &trail->mBaseLocalOffset.x, 0.5f);
+            }
 
             ImGui::Separator();
             ImGui::Text("Shape");

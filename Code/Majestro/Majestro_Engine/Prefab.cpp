@@ -114,7 +114,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 
 
 	world->AddComponent<ControllerComponent>(mEntityID, t);
-	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0);
+	world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Ibanix);
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);

@@ -72,8 +72,6 @@ class MainPlayerComponent : public Component<MainPlayerComponent>
 {
 public:
 	MainPlayerComponent();
-	MainPlayerComponent(const std::string& path);
-	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim);
 	MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim, PlayerType playerType);
 
 	void StateCheck();

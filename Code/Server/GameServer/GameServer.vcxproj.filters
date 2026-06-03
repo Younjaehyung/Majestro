@@ -216,7 +216,7 @@
     <ClCompile Include="DamageSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
-    <ClCompile Include="FallDeathSystem.cpp">
+    <ClCompile Include="DeathSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="BulletFireEventSystem.cpp">
@@ -434,7 +434,7 @@
     <ClInclude Include="DamageSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
-    <ClInclude Include="FallDeathSystem.h">
+    <ClInclude Include="DeathSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="HealthComponent.h">

@@ -438,7 +438,7 @@ void MovementSystem::UpdateGravity(float dt)
 
 		// 낙사 사망 연출 중인 플레이어는 떨어진 자리에 고정
 		if (auto* deadPlayer = mWorld->GetComponent<MainPlayerComponent>(entity);
-			deadPlayer && deadPlayer->mIsDead)
+			deadPlayer && deadPlayer->IsDeathActive())
 			continue;
 
 		const float feetY      = gravityComponent->mHight;

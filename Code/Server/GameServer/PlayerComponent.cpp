@@ -151,7 +151,7 @@ void MainPlayerComponent::StateCheck()
         mFsm.ChangeState(this, FallState::Instance());
     }
 
-    if (mIsDead) {
+    if (IsDeathActive()) {
         SetFlag(mFlags, FLAG_DEAD);
         mFsm.ChangeState(this, DeadState::Instance());
     }
@@ -165,7 +165,6 @@ void MainPlayerComponent::Update(float dt)
    // mStateTimer += dt;
     //mDt = dt;
 
-    //if (mIsDead) return; // 사망 연출 중 FSM 동결
 
     //if (mDash && mDashTime > mDashTimer) mDashTimer += dt;
     StateCheck();
@@ -174,7 +173,7 @@ void MainPlayerComponent::Update(float dt)
 
 uint8 MainPlayerComponent::GetReplicatedActionState()
 {
-	if (mIsDead)
+	if (IsDeathActive())
 		return static_cast<uint8>(ReplicatedActionState::Dead);
 
 	// FSM split: replicate only gameplay action state, not animation clip state.
@@ -205,7 +204,7 @@ uint8 MainPlayerComponent::GetReplicatedMovementMode()
 		mExternalMoveEndTime = 0.0f;
 	}
 
-	if (mIsDead)
+	if (IsDeathActive())
 		return static_cast<uint8>(ReplicatedMovementMode::Dead);
 
 	const StateId state = mFsm.GetState();
@@ -256,7 +255,7 @@ uint8 MainPlayerComponent::GetReplicatedExternalMoveMode()
 
 bool MainPlayerComponent::CanUseHorizontalInput()
 {
-	if (mIsDead)
+	if (IsDeathActive())
 		return false;
 
 	const StateId state = mFsm.GetState();
@@ -271,7 +270,7 @@ bool MainPlayerComponent::CanUseHorizontalInput()
 
 bool MainPlayerComponent::CanUseVerticalInput()
 {
-	if (mIsDead)
+	if (IsDeathActive())
 		return false;
 
 	const StateId state = mFsm.GetState();
@@ -800,7 +799,10 @@ void DeadState::Enter(MainPlayerComponent* owner)
 }
 void DeadState::Update(MainPlayerComponent* owner)
 {
-    StateUpdate(this, owner);
+    // StateUpdate(this, owner);
+
+    // 사망 상태는 외부 사망 타이머가 끝낼 때까지 Dead FSM을 유지한다.
+    // 기존 StateUpdate를 호출하면 Dead 애니메이션 시간이 지난 뒤 Idle로 빠질 수 있다.
 }
 void DeadState::Exit(MainPlayerComponent* owner)
 {

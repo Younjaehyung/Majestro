@@ -44,7 +44,7 @@ void PlayerInputSystem::Update(float dt)
 		BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
 
 		// 사망
-		if (mainPlayerComponent && mainPlayerComponent->mIsDead)
+		if (mainPlayerComponent && mainPlayerComponent->IsDeathActive())
 		{
 			mainPlayerComponent->mSpeed = 0.f;
 			mainPlayerComponent->mHasMoveInput = false;

@@ -61,6 +61,13 @@ enum PlayerFlags : uint64_t
 	FLAG_NO_RUN=1ull << 8,
 };
 
+enum class PlayerDeathCause : uint8
+{
+	None = 0,
+	Fall,
+	Health
+};
+
 inline void SetFlag(uint64_t& f, uint64_t m) { f |= m; }   // 켜기
 inline void ClearFlag(uint64_t& f, uint64_t m) { f &= ~m; }   // 끄기
 
@@ -94,6 +101,7 @@ public:
 	uint8 GetReplicatedExternalMoveMode();
 	bool CanUseHorizontalInput();
 	bool CanUseVerticalInput();
+	bool IsDeathActive() const { return mDeathCause != PlayerDeathCause::None; }
 
 
 public:
@@ -106,9 +114,10 @@ public:
 
 	Vec2 mPlayerMovingDir = Vec2::Zero;
 
-	Vec3 mSpawnPosition = Vec3::Zero;	// 낙사 시 복귀할 스폰 지점
-	bool mIsDead = false;				// 낙사 사망 연출 중
-	float mRespawnTime = 0.0f;			// 이 시각 이후 리스폰
+	Vec3 mSpawnPosition = Vec3::Zero;	// 낙사 후 되돌릴 스폰 위치이다.
+	PlayerDeathCause mDeathCause = PlayerDeathCause::None; // 사망 원인
+	float mDeathStartTime = 0.0f;
+	float mDeathEndTime = 0.0f;			// 리스폰 쿨타임
 
 public:
 	//float mWalkSpeed = 0.0f;

@@ -47,6 +47,14 @@ struct EvNetRPC // 예: 대시 시작 같은 즉시성 이벤트
     uint32 payload; // 필요하면 바이트로 확장
 };
 
+struct EvPlayerDeathRequest
+{
+    Entity target;
+    int8 cause;
+    float holdSeconds;
+    bool  healthZeroEvent;
+};
+
 struct EvHealthChanged
 {
     Entity target;
@@ -147,7 +155,9 @@ struct EvInteractableConsumed
 };
 
 
+
+
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
     EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
-    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured>;
+    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured, EvPlayerDeathRequest>;
 

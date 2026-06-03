@@ -51,6 +51,7 @@ enum : StateId {
 
 };
 
+
 enum PlayerFlags : uint64_t
 {
 	FLAG_NONE = 1ull << 0, //상시 꺼짐 전이 불가 조건
@@ -147,6 +148,38 @@ public:
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
+class RunForwardState : public State<MainPlayerComponent> {
+public:
+	static RunForwardState* Instance();
+	virtual const char* GetName() const override { return "RunForwardState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class RunBackwardState : public State<MainPlayerComponent> {
+public:
+	static RunBackwardState* Instance();
+	virtual const char* GetName() const override { return "RunBackwardState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class RunRightState : public State<MainPlayerComponent> {
+public:
+	static RunRightState* Instance();
+	virtual const char* GetName() const override { return "RunRightState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class RunLeftState : public State<MainPlayerComponent> {
+public:
+	static RunLeftState* Instance();
+	virtual const char* GetName() const override { return "RunLeftState"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
 class JumpState : public State<MainPlayerComponent> {
 public:
 	static JumpState* Instance();
@@ -191,11 +224,11 @@ public:
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;
 };
-class ReRoadState : public State<MainPlayerComponent> {
+class ReloadState : public State<MainPlayerComponent> {
 public:
-	static ReRoadState* Instance();
+	static ReloadState* Instance();
 
-	virtual const char* GetName() const override { return "ReRoadState"; }
+	virtual const char* GetName() const override { return "ReloadState"; }
 
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;

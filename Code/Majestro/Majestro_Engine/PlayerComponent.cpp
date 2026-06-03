@@ -103,29 +103,30 @@ MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0u
 MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
 {
     mStateList = {
-    IdleState::Instance(),
-    WalkState::Instance(),
-    RunState::Instance(),
-    JumpState::Instance(),
-    FallState::Instance(),
-    LandState::Instance(),
-    DashState::Instance(),
+   IdleState::Instance(),
+   RunForwardState::Instance(),
+   RunBackwardState::Instance(),
+   RunRightState::Instance(),
+   RunLeftState::Instance(),
+   //RunState::Instance(),
+   JumpState::Instance(),
+   FallState::Instance(),
+   LandState::Instance(),
+   DashState::Instance(),
 
-    Attack1State::Instance(),
+   ReloadState::Instance(),
+   RhythmChangeState::Instance(),
+   AimState::Instance(),
 
-    AimState::Instance(),
-    ReRoadState::Instance(),
-    RhythmChangeState::Instance(),
+   HitState::Instance(),
+   StunState::Instance(),
+   DeadState::Instance(),
 
-    HitState::Instance(),
-    StunState::Instance(),
-    DeadState::Instance(),
-
-    /*Attack1State::Instance(),*/
-    Attack2State::Instance(),
-    Skill1State::Instance(),
-    Skill2State::Instance(),
-    SpecialState::Instance()
+   Attack1State::Instance(),
+   Attack2State::Instance(),
+   Skill1State::Instance(),
+   Skill2State::Instance(),
+   SpecialState::Instance()
     };
 
     //InitFSMFromJson(path);
@@ -134,29 +135,30 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path) : mFsm(this), 
 
 MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_ptr<Animator>> anim) : mFsm(this), mSpeed(0.0f), mFlags(0ull) {
     mStateList = {
-    IdleState::Instance(),
-    WalkState::Instance(),
-    RunState::Instance(),
-    JumpState::Instance(),
-    FallState::Instance(),
-    LandState::Instance(),
-    DashState::Instance(),
+   IdleState::Instance(),
+   RunForwardState::Instance(),
+   RunBackwardState::Instance(),
+   RunRightState::Instance(),
+   RunLeftState::Instance(),
+   //RunState::Instance(),
+   JumpState::Instance(),
+   FallState::Instance(),
+   LandState::Instance(),
+   DashState::Instance(),
 
-    Attack1State::Instance(),
+   ReloadState::Instance(),
+   RhythmChangeState::Instance(),
+   AimState::Instance(),
 
-    AimState::Instance(),
-    ReRoadState::Instance(),
-    RhythmChangeState::Instance(),
+   HitState::Instance(),
+   StunState::Instance(),
+   DeadState::Instance(),
 
-    HitState::Instance(),
-    StunState::Instance(),
-    DeadState::Instance(),
-
-    /*Attack1State::Instance(),*/
-    Attack2State::Instance(),
-    Skill1State::Instance(),
-    Skill2State::Instance(),
-    SpecialState::Instance()
+   Attack1State::Instance(),
+   Attack2State::Instance(),
+   Skill1State::Instance(),
+   Skill2State::Instance(),
+   SpecialState::Instance()
     };
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
@@ -176,27 +178,29 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 {
     mStateList = {
     IdleState::Instance(),
-    WalkState::Instance(),
-    RunState::Instance(),
-    JumpState::Instance(),
-    FallState::Instance(),
-    LandState::Instance(),
-    DashState::Instance(),
+   RunForwardState::Instance(),
+   RunBackwardState::Instance(),
+   RunRightState::Instance(),
+   RunLeftState::Instance(),
+   //RunState::Instance(),
+   JumpState::Instance(),
+   FallState::Instance(),
+   LandState::Instance(),
+   DashState::Instance(),
 
-    Attack1State::Instance(),
-    Attack2State::Instance(),
-    Skill1State::Instance(),
-    Skill2State::Instance(),
-    SpecialState::Instance(),
+   ReloadState::Instance(),
+   RhythmChangeState::Instance(),
+   AimState::Instance(),
 
-    AimState::Instance(),
-    ReRoadState::Instance(),
-    RhythmChangeState::Instance(),
+   HitState::Instance(),
+   StunState::Instance(),
+   DeadState::Instance(),
 
-    HitState::Instance(),
-    StunState::Instance(),
-    DeadState::Instance()
-
+   Attack1State::Instance(),
+   Attack2State::Instance(),
+   Skill1State::Instance(),
+   Skill2State::Instance(),
+   SpecialState::Instance()
     };
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
@@ -445,6 +449,85 @@ void WalkState::Exit(MainPlayerComponent* owner)
     StateExit(this, owner);
 }
 
+RunForwardState* RunForwardState::Instance() {
+    static RunForwardState inst;
+    return &inst;
+}
+void RunForwardState::Enter(MainPlayerComponent* owner)
+{
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    StateEnter(this, owner);
+}
+void RunForwardState::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+
+    //if (owner->mFlags & FLAG_NO_RUN) { if (owner->mSpeed > owner->mRunSpeed) owner->mSpeed = owner->mRunSpeed; } //달리기 불가 시 속도 강제 다운
+    //else if (owner->mSpeed >= owner->mRunSpeed) owner->mFsm.ChangeState(owner, RunState::Instance());
+}
+void RunForwardState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+RunBackwardState* RunBackwardState::Instance() {
+    static RunBackwardState inst;
+    return &inst;
+}
+void RunBackwardState::Enter(MainPlayerComponent* owner)
+{
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    StateEnter(this, owner);
+}
+void RunBackwardState::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+}
+void RunBackwardState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+RunRightState* RunRightState::Instance() {
+    static RunRightState inst;
+    return &inst;
+}
+void RunRightState::Enter(MainPlayerComponent* owner)
+{
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    StateEnter(this, owner);
+}
+void RunRightState::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+}
+void RunRightState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+RunLeftState* RunLeftState::Instance() {
+    static RunLeftState inst;
+    return &inst;
+}
+void RunLeftState::Enter(MainPlayerComponent* owner)
+{
+    SetFlag(owner->mFlags, FLAG_MOVE);
+    StateEnter(this, owner);
+}
+void RunLeftState::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+    if (owner->mSpeed <= 0.f) owner->mFsm.ChangeState(owner, IdleState::Instance());
+}
+void RunLeftState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
 RunState* RunState::Instance() {                      // [수정] Meyers' singleton (C++11+ 스레드 안전)
     static RunState inst;                          // 최초 호출 시 한 번만 생성
     return &inst;
@@ -551,19 +634,19 @@ void AimState::Exit(MainPlayerComponent* owner)
     StateExit(this, owner);
 }
 
-ReRoadState* ReRoadState::Instance() {
-    static ReRoadState inst;
+ReloadState* ReloadState::Instance() {
+    static ReloadState inst;
     return &inst;
 }
-void ReRoadState::Enter(MainPlayerComponent* owner) 
+void ReloadState::Enter(MainPlayerComponent* owner) 
 {
     StateEnter(this, owner);
 }
-void ReRoadState::Update(MainPlayerComponent* owner) 
+void ReloadState::Update(MainPlayerComponent* owner) 
 {
     StateUpdate(this, owner);
 }
-void ReRoadState::Exit(MainPlayerComponent* owner)
+void ReloadState::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

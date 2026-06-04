@@ -284,6 +284,16 @@ void UIRenderSystem::RenderSpirte()
             sourceRect = spriteComp->GetCurrentFrameRect();
             sourceRectPtr = &sourceRect;
         }
+        else if (spriteComp->mUseSourceRect)
+        {    // 아틀라스
+            textureSize = XMUINT2(
+                static_cast<uint32_t>(spriteComp->mTexture->GetWidth()),
+                static_cast<uint32_t>(spriteComp->mTexture->GetHeight())
+            );
+
+            sourceRect = spriteComp->mSourceRect;
+            sourceRectPtr = &sourceRect;
+        }
         else if (spriteComp->mUseVisibleRange)
         {    // visible range를 사용
             textureSize = XMUINT2(
@@ -309,7 +319,7 @@ void UIRenderSystem::RenderSpirte()
 
         // sourceRect가 이미 잡혀있다면(애니메이션/기본), 가시 구간 크롭을 추가 적용
         LONG baseWidth = 0;
-        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
+        if (spriteComp->mUseVisibleRange && !spriteComp->mUseSourceRect && sourceRectPtr != nullptr)
         {
             const LONG fullWidth = sourceRect.right - sourceRect.left;
             baseWidth = fullWidth;
@@ -345,14 +355,16 @@ void UIRenderSystem::RenderSpirte()
                        transComp->mPivot.y * (float)textureSize.y };
         }
 
-        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
+        if ((spriteComp->mUseVisibleRange || spriteComp->mUseSourceRect) && sourceRectPtr != nullptr)
         {
             const LONG croppedWidth = sourceRect.right - sourceRect.left;
             float visibleRatio = 1.f;
-            if (baseWidth > 0)
+            if (spriteComp->mUseVisibleRange && baseWidth > 0)
                 visibleRatio = std::clamp(static_cast<float>(croppedWidth) / static_cast<float>(baseWidth), 0.f, 1.f);
 
-            const float destWidth = spriteComp->mVisibleRangeKeepDestinationSize
+
+            const bool keepWidth = spriteComp->mUseSourceRect || spriteComp->mVisibleRangeKeepDestinationSize;
+            const float destWidth = keepWidth
                 ? transComp->mFinalSize.x : transComp->mFinalSize.x * visibleRatio;
             const float destHeight = transComp->mFinalSize.y;
 

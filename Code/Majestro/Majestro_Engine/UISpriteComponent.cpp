@@ -19,6 +19,21 @@ UISpriteComponent::UISpriteComponent(shared_ptr<Texture> texture, const Vec2& fr
 	EnableSpriteSheetAnimation(frameSize, frameCount, animationTime);
 }
 
+UISpriteComponent::UISpriteComponent(std::vector<shared_ptr<Texture>>& textures, float animationTime)
+{
+	mIsAnimated = true;
+	mAnimationLoopTime = animationTime;
+	mTexture = textures[0];
+	mTextures = textures;
+}
+
+UISpriteComponent::UISpriteComponent(std::vector<shared_ptr<Texture>>& textures)
+{
+	mTexture = textures[0];
+	mTextures = textures;
+}
+
+
 void UISpriteComponent::EnableSpriteSheetAnimation(const Vec2& frameSize, int frameCount, float animationTime, int startFrame)
 {
 	mIsAnimated = true;
@@ -63,6 +78,23 @@ RECT UISpriteComponent::GetCurrentFrameRect() const
 	return result;
 }
 
+
+void UISpriteComponent::SetSourceRect(float x, float y, float width, float height)
+{
+	mUseSourceRect = true;
+	mSourceRect = RECT{
+		static_cast<LONG>(x),
+		static_cast<LONG>(y),
+		static_cast<LONG>(x + width),
+		static_cast<LONG>(y + height)
+	};
+}
+
+void UISpriteComponent::ClearSourceRect()
+{
+	mUseSourceRect = false;
+	mSourceRect = RECT{ 0, 0, 0, 0 };
+}
 
 void UISpriteComponent::SetVisibleRangeNormalized(float startX, float endX)
 {

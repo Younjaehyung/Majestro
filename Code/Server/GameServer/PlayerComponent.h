@@ -119,6 +119,9 @@ public:
 	float mDeathStartTime = 0.0f;
 	float mDeathEndTime = 0.0f;			// 리스폰 쿨타임
 
+	bool  mRespawnVfxPending = false;	// 스폰 VFX 방송 후 실제 부활을 대기 중인지
+	float mRespawnReviveTime = 0.0f;	// 실제 부활을 수행할 서버 시각
+
 public:
 	//float mWalkSpeed = 0.0f;
 	float mRunSpeed = 0.0f;

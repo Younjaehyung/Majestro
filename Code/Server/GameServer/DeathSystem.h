@@ -21,7 +21,10 @@ private:
     void CompletePlayerDeath(Entity entity);
     void RespawnPlayer(Entity entity);
     void RevivePlayerAtCurrentPosition(Entity entity);
-    
+
+    // 리스폰 위치에 스폰 VFX(EvEffectSpawn)를 방송한다. 실제 부활은 RESPAWN_VFX_LEAD초 뒤에 수행한다.
+    void BeginRespawnVfx(Entity entity);
+
     bool BeginPlayerDeath(World* world, Entity entity, PlayerDeathCause cause, float holdSeconds, bool sendHealthZeroEvent);
 
 private:
@@ -30,6 +33,9 @@ private:
 
     // 낙사시 스폰까지 시간
     static constexpr float RESPAWN_DELAY = 2.0f;
+
+    // 리스폰 쿨타임이 끝난 뒤, 스폰 위치 VFX를 먼저 재생하고 실제 부활까지 기다리는 시간
+    static constexpr float RESPAWN_VFX_LEAD = 1.0f;
 
     shared_ptr<EventManager> mEventManager;
 };

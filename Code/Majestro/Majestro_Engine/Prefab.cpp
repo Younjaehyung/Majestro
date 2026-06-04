@@ -886,11 +886,11 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 /*playerType*/)
 {
 	// 슬롯별 위치/크기 (slot0 = 메인 player, slot1/2 =  나머지 player)
 	struct SlotLayout { Vec2 pos; Vec2 size; };
-	const std::array<SlotLayout,3> kLayout = {
-		( Vec2(64.f, -300.f), Vec2(256.f, 256.f) ),  // slot0 메인(로컬)
-		( Vec2(64.f, -464.f), Vec2(160.f, 160.f) ),  // slot1  나머지 player
-		( Vec2(64.f, -640.f), Vec2(160.f, 160.f) ),  // slot2  나머지 player
-	};
+	const std::array<SlotLayout, 3> kLayout = { {
+		{ Vec2(64.f, -300.f), Vec2(256.f, 256.f) },  // slot0 메인(로컬)
+		{ Vec2(64.f, -464.f), Vec2(160.f, 160.f) },  // slot1  나머지 player
+		{ Vec2(64.f, -640.f), Vec2(160.f, 160.f) }   // slot2  나머지 player
+	} };
 
 	const float BounceAmplitude = 0.05f;
 	const float BounceFrequency = 2.f;

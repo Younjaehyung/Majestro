@@ -530,6 +530,10 @@ void GameRenderPipeline::DrawImGui()
         if (ImGui::Checkbox("Collision Boxes", &collidersOn))
             RenderSystem::SetDrawColliders(collidersOn);
 
+        bool cullingObbOn = RenderSystem::GetDrawCullingOBB();
+        if (ImGui::Checkbox("Culling OBB (mWorldOBB)", &cullingObbOn))
+            RenderSystem::SetDrawCullingOBB(cullingObbOn);
+
         bool enemyRangesOn = RenderSystem::GetDrawEnemyRanges();
         if (ImGui::Checkbox("Enemy Range Circles", &enemyRangesOn))
             RenderSystem::SetDrawEnemyRanges(enemyRangesOn);

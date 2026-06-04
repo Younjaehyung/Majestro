@@ -55,5 +55,23 @@ void RenderComponent::SetLocalOBB(const Vec3& center, const Vec3& halfExtents)
 
 void RenderComponent::UpdateWorldOBB(TransformComponent* transComp)
 {
-	mLocalOBB.Transform(mWorldOBB, transComp->GetWorldMatrix());
+	const Matrix& world = transComp->GetWorldMatrix();
+
+	XMFLOAT3 corners[BoundingOrientedBox::CORNER_COUNT];
+	mLocalOBB.GetCorners(corners);
+
+	XMVECTOR vMin = XMVectorReplicate(FLT_MAX);
+	XMVECTOR vMax = XMVectorReplicate(-FLT_MAX);
+	for (XMFLOAT3& c : corners)
+	{
+		XMVECTOR p = XMVector3Transform(XMLoadFloat3(&c), world);
+		vMin = XMVectorMin(vMin, p);
+		vMax = XMVectorMax(vMax, p);
+	}
+
+	XMVECTOR center  = (vMin + vMax) * 0.5f;
+	XMVECTOR extents = (vMax - vMin) * 0.5f;
+	XMStoreFloat3(&mWorldOBB.Center, center);
+	XMStoreFloat3(&mWorldOBB.Extents, extents);
+	mWorldOBB.Orientation = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
 }

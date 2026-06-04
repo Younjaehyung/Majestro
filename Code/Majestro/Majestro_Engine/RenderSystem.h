@@ -138,6 +138,8 @@ public:
   static void SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color);
   static void SetDrawColliders(bool enabled);
   static bool GetDrawColliders();
+  static void SetDrawCullingOBB(bool enabled);
+  static bool GetDrawCullingOBB();
   static void SetDrawEnemyRanges(bool enabled);
   static bool GetDrawEnemyRanges();
   static void SetDrawEnemyAttackRanges(bool enabled);
@@ -255,6 +257,7 @@ private: // 디버그용 충돌박스 / 라인
   shared_ptr<Material> mDebugLineRedMat;     // 빨강
   shared_ptr<Material> mDebugLineYellowMat;  // 노랑
   static bool sDrawColliders;
+  static bool sDrawCullingOBB;   // 프러스텀 컬링에 쓰이는 mWorldOBB 시각화
   static bool sDrawEnemyRanges;
   static bool sDrawEnemyAttackRanges;
   static bool sDrawPlayerAttackRanges;

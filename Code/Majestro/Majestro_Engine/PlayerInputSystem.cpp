@@ -147,25 +147,6 @@ void PlayerInputSystem::Update(float dt)
 	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
 	BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
 
-	const bool playerDead =
-		mainPlayerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Dead) ||
-		mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Dead);
-	
-	if (playerDead)	// 사망 상태 
-	{
-		movementComponent->mMovingDirection = { 0, 0, 0 };
-		movementComponent->mJump = false;
-		movementComponent->mDash = false;
-		movementComponent->mAttack = false;
-		movementComponent->mSkill1 = false;
-		movementComponent->mSkill2 = false;
-		movementComponent->mReload = false;
-		movementComponent->mSpecial = false;
-		mainPlayerComponent->mSpeed = 0.0f;
-		INPUT.MouseStateClear();
-		return;
-	}
-
 	// F4 자유 카메라
 	if (cameraTypeComponent->mPlayMode == MAIN_CAMERA)
 	{
@@ -217,6 +198,25 @@ void PlayerInputSystem::Update(float dt)
 		movementComponent->mReload  = false;
 		movementComponent->mSpecial = false;
 		mainPlayerComponent->mSpeed = 0.f;
+		INPUT.MouseStateClear();
+		return;
+	}
+
+	const bool playerDead =
+		mainPlayerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Dead) ||
+		mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Dead);
+
+	if (playerDead)	// 사망 상태 
+	{
+		movementComponent->mMovingDirection = { 0, 0, 0 };
+		movementComponent->mJump = false;
+		movementComponent->mDash = false;
+		movementComponent->mAttack = false;
+		movementComponent->mSkill1 = false;
+		movementComponent->mSkill2 = false;
+		movementComponent->mReload = false;
+		movementComponent->mSpecial = false;
+		mainPlayerComponent->mSpeed = 0.0f;
 		INPUT.MouseStateClear();
 		return;
 	}

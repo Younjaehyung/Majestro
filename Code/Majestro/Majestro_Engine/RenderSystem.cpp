@@ -24,6 +24,7 @@
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 bool RenderSystem::sDrawColliders = true;
+bool RenderSystem::sDrawCullingOBB = false;
 bool RenderSystem::sDrawEnemyRanges = true;
 bool RenderSystem::sDrawEnemyAttackRanges = true;
 bool RenderSystem::sDrawPlayerAttackRanges = true;
@@ -41,6 +42,16 @@ void RenderSystem::SetDrawColliders(bool enabled)
 bool RenderSystem::GetDrawColliders()
 {
   return sDrawColliders;
+}
+
+void RenderSystem::SetDrawCullingOBB(bool enabled)
+{
+  sDrawCullingOBB = enabled;
+}
+
+bool RenderSystem::GetDrawCullingOBB()
+{
+  return sDrawCullingOBB;
 }
 
 void RenderSystem::SetDrawEnemyRanges(bool enabled)
@@ -636,6 +647,46 @@ void RenderSystem::PushObjectData() {
       mDeferredDrawItems.emplace_back(
           mat->GetShader(), mWireCube, mat->GetShaderID(), mWireCube->GetID(),
           mat->GetID(), 0, RenderParams{objIndex, mat->GetIndex(), animId, 0});
+    }
+  }
+
+  // 프러스텀 컬링 OBB 시각화
+  if (sDrawCullingOBB && mWireCube) {
+    auto obbEntities =
+        mWorld->GetEntitiesWithComponents<TransformComponent, RenderComponent>();
+    for (auto e : obbEntities) {
+      auto *render = mWorld->GetComponent<RenderComponent>(e);
+      if (!render || !render->mCheckFrustum)
+        continue;  // 컬링 대상 엔티티만
+      if (!render->mVisibility)
+        continue;
+
+      auto *tr = mWorld->GetComponent<TransformComponent>(e);
+      if (!tr)
+        continue;
+
+      // 메인 루프 호출 순서에 의존하지 않도록 직접 갱신하게 했음
+      render->UpdateWorldOBB(tr);
+
+      const BoundingOrientedBox &obb = render->mWorldOBB;
+      Matrix boxWorld =
+          Matrix::CreateScale(Vec3(obb.Extents.x, obb.Extents.y, obb.Extents.z) * 2.0f) *
+          Matrix::CreateFromQuaternion(Quaternion(obb.Orientation.x, obb.Orientation.y,
+                                                  obb.Orientation.z, obb.Orientation.w)) *
+          Matrix::CreateTranslation(Vec3(obb.Center.x, obb.Center.y, obb.Center.z));
+
+      objectParams.MatWorld = boxWorld.Transpose();
+      objectParams.Extra = Vec4(1.f, 0.f, 0.f, 0.f);
+      mObjectVector.push_back(objectParams);
+      const uint32 objIndex = index++;
+
+      shared_ptr<Material> mat = mDebugLineGreenMat;
+      if (!mat)
+        continue;
+
+      mDeferredDrawItems.emplace_back(
+          mat->GetShader(), mWireCube, mat->GetShaderID(), mWireCube->GetID(),
+          mat->GetID(), 0, RenderParams{objIndex, mat->GetIndex(), -1, 0});
     }
   }
 

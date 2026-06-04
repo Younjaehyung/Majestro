@@ -472,6 +472,9 @@
     <ClInclude Include="LobbyRoomStateComponent.h">
       <Filter>World\Component\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="HUDPortraitSlotComponent.h">
+      <Filter>World\Component\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="LobbyRoomListComponent.h">
       <Filter>World\Component\Utils</Filter>
     </ClInclude>
@@ -751,6 +754,9 @@
     </ClInclude>
     <ClInclude Include="LobbyRoomSystem.h">
       <Filter>World\System\UI\Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="HUDPortraitUpdateFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
     <ClInclude Include="LobbyRoomBrowserFeature.h">
       <Filter>World\System\UI\Menu</Filter>
@@ -1201,6 +1207,9 @@
     </ClCompile>
     <ClCompile Include="LobbyRoomSystem.cpp">
       <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="HUDPortraitUpdateFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="LobbyRoomBrowserFeature.cpp">
       <Filter>World\System\UI\Menu</Filter>

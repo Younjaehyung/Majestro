@@ -336,6 +336,8 @@
     <ClInclude Include="LobbyRoomStateComponent.h" />
     <ClInclude Include="LobbyRoomListComponent.h" />
     <ClInclude Include="LobbyRoomSystem.h" />
+    <ClInclude Include="HUDPortraitSlotComponent.h" />
+    <ClInclude Include="HUDPortraitUpdateFeature.h" />
     <ClInclude Include="LobbyRoomBrowserFeature.h" />
     <ClInclude Include="MenuRoomBrowserSystem.h" />
     <ClInclude Include="TerrainComponent.h" />
@@ -511,6 +513,7 @@
     <ClCompile Include="UIHpBarUpdateFeature.cpp" />
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
     <ClCompile Include="LobbyRoomSystem.cpp" />
+    <ClCompile Include="HUDPortraitUpdateFeature.cpp" />
     <ClCompile Include="LobbyRoomBrowserFeature.cpp" />
     <ClCompile Include="MenuRoomBrowserSystem.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />

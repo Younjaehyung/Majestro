@@ -55,6 +55,7 @@
 
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
+#include "HUDPortraitUpdateFeature.h"
 #include "IMGUISystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
@@ -1566,6 +1567,10 @@ void FirstScene::Initialize()
 
 	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
 	mUIFeatures.push_back(gameProgressModule);
+
+
+	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
+	mUIFeatures.push_back(portraitModule);
 
 
 	for (const auto& feature : mUIFeatures)

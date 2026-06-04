@@ -20,6 +20,7 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "UIComponent.h"
+#include "HUDPortraitSlotComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
@@ -881,468 +882,119 @@ BillboardPrefab::~BillboardPrefab()
 }
 
 
-HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
+HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 /*playerType*/)
 {
-	const float  BounceAmplitude = 0.05f;
-	const float  mBounceFrequency = 2.f;
-	const float  mBounceDamping = 10.0f;
+	// 슬롯별 위치/크기 (slot0 = 메인 player, slot1/2 =  나머지 player)
+	struct SlotLayout { Vec2 pos; Vec2 size; };
+	const std::array<SlotLayout,3> kLayout = {
+		{ Vec2(64.f, -300.f), Vec2(256.f, 256.f) },  // slot0 메인(로컬)
+		{ Vec2(64.f, -464.f), Vec2(160.f, 160.f) },  // slot1  나머지 player
+		{ Vec2(64.f, -640.f), Vec2(160.f, 160.f) },  // slot2  나머지 player
+	};
+
+	const float BounceAmplitude = 0.05f;
+	const float BounceFrequency = 2.f;
+	const float BounceDamping   = 10.0f;
+
+	for (uint8 i = 0; i < kLayout.size(); ++i)
+	{
+		const SlotLayout& L = kLayout[i];
 
 
-#ifdef _IMGUI
+		auto makeSprite = [&](int layer, bool bounce) -> Entity
+		{
+			Entity e = world->CreateEntity();
+			auto& t = world->AddComponent<UITransformComponent>(e);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = L.pos;
+			t.mSize = L.size;
+			t.mUILayerIndex = layer;
 
-	std::vector<EditorProperty> props;
-#endif
-	{	// BACK 0
-		Entity Portrait = world->CreateEntity();
+			auto& sp = world->AddComponent<UISpriteComponent>(e);
+			sp.mVisible = false;
 
-		shared_ptr<Texture> scorem;
-		switch (playerType) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_0");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_0");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_0");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -300.f);
-		t.mSize = Vec2(256.f, 256.f);
-		t.mUILayerIndex = 1;
+			if (bounce)
+			{
+				auto& m = world->AddComponent<UIActionComponent>(e);
+				m.mDuration = 0.5f;
+				m.mActor = UIActor::Player;
+				m.mState = UIActionState::Bounce;
+				m.mIsLoop = true;
+				m.mBounceAmplitude = BounceAmplitude;
+				m.mBounceFrequency = BounceFrequency;
+				m.mBounceDamping = BounceDamping;
+			}
+			return e;
+		};
 
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-#ifdef _IMGUI
-
-
-
-		props.push_back({ "Back Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-		props.push_back({ "Back Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-#endif
-	}
-	{	// BACK 1
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (playerType) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_1");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_1");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_1");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -300.f);
-		t.mSize = Vec2(256.f, 256.f);
-		t.mUILayerIndex = 2;
-
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-#ifdef _IMGUI
-
-
+		Entity back0 = makeSprite(1, false);
+		Entity back1 = makeSprite(2, false);
+		Entity head0 = makeSprite(3, false);
+		Entity head1 = makeSprite(4, true);
 
 		
+		auto& slot = world->AddComponent<HUDPortraitSlotComponent>(back0);
+		slot.mSlotIndex = i;
+		slot.mBack0 = back0;
+		slot.mBack1 = back1;
+		slot.mHead0 = head0;
+		slot.mHead1 = head1;
 
-		props.push_back({ "Back Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-		props.push_back({ "Back Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-		
-		
-#endif
-	}
-	{	// Portrait 0
-		Entity Portrait = world->CreateEntity();
+		// 나머지 플레이어
+		if (i >= 1)
+		{
+			const float  hpScale = 1.f / 3.f;
+			const Vec2   hpSize  = Vec2(512.f, 96.f) * hpScale;             // ≈ (170, 32)
+			const float  gap     = 12.f;
+			const Vec2   hpPos   = Vec2(L.pos.x + L.size.x + gap,           // 초상화 오른쪽
+				L.pos.y + L.size.y * 0.5f - hpSize.y * 0.5f);              // 초상화 세로 중앙
 
-		shared_ptr<Texture> scorem;
-		switch (playerType) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_Head_0");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_Head_0");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_Head_0");
-			break;
+			// HP 빈 바 배경
+			Entity hpBack = world->CreateEntity();
+			{
+				auto& t = world->AddComponent<UITransformComponent>(hpBack);
+				t.mAnchor = Anchor::BottomLeft;
+				t.mPosition = hpPos;
+				t.mSize = hpSize;
+				t.mPivot = Vec2(0.f, 0.f);
+				t.mUILayerIndex = 5;
+				auto& sp = world->AddComponent<UISpriteComponent>(hpBack, RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1"));
+				sp.mVisible = false;
+			}
+
+			// HP 채움 바
+			Entity hpFill = world->CreateEntity();
+			{
+				auto& t = world->AddComponent<UITransformComponent>(hpFill);
+				t.mAnchor = Anchor::BottomLeft;
+				t.mPosition = hpPos;
+				t.mSize = hpSize;
+				t.mPivot = Vec2(0.f, 0.f);
+				t.mUILayerIndex = 6;
+				auto& sp = world->AddComponent<UISpriteComponent>(hpFill, RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2"));
+				sp.mVisible = false;
+			}
+
+			// HP 텍스트
+			Entity hpText = world->CreateEntity();
+			{
+				auto& t = world->AddComponent<UITransformComponent>(hpText);
+				t.mAnchor = Anchor::BottomLeft;
+				t.mPosition = Vec2(hpPos.x + hpSize.x * 0.5f, hpPos.y + hpSize.y * 0.5f);
+				t.mSize = hpSize;
+				t.mPivot = Vec2(0.5f, 0.5f);
+				t.mScale = Vec2(hpScale, hpScale);
+				t.mUILayerIndex = 7;
+				auto& text = world->AddComponent<UITextComponent>(hpText);
+				text.mText = L"";
+				text.mVisible = false;
+			}
+
+			slot.mHpBack = hpBack;
+			slot.mHpFill = hpFill;
+			slot.mHpText = hpText;
 		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -300.f);
-		t.mSize = Vec2(256.f, 256.f);
-		t.mUILayerIndex = 3;
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-
-
-#ifdef _IMGUI
-
-
-
-		
-		props.push_back({ "Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props.push_back({ "Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-		
-	
-#endif
-
 	}
-	{	// Portrait 1
-		Entity Portrait1 = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (playerType) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_Head_1");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_Head_1");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_Head_1");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait1);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -300.f);
-		t.mSize = Vec2(256.f, 256.f);
-		t.mUILayerIndex = 4;
-
-		auto& m = world->AddComponent<UIActionComponent>(Portrait1);
-		m.mDuration = 0.5f;
-		m.mActor = UIActor::Player;
-		m.mState = UIActionState::Bounce;
-		m.mIsLoop = true;
-		m.mBounceAmplitude = BounceAmplitude;
-		m.mBounceFrequency = mBounceFrequency;
-		m.mBounceDamping = mBounceDamping;
-		world->AddComponent<UISpriteComponent>(Portrait1, scorem);
-#ifdef _IMGUI
-
-
-
-		IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(Portrait1);
-		props.push_back({ "Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props.push_back({ "Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),  0.f,    0.f });
-		visImgui.RegisterEditorProperties(props);
-		visImgui.SetName("Menu4");
-#endif
-	}
-
-
-
-
-
-#ifdef _IMGUI
-
-	std::vector<EditorProperty> props2;
-#endif
-	{	// BACK 0
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (0) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_0");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_0");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_0");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 1;
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-#ifdef _IMGUI
-
-
-
-		props2.push_back({ "Back Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-		props2.push_back({ "Back Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-#endif
-	}
-	{	// BACK 1
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (0) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_1");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_1");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_1");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 2;
-
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-#ifdef _IMGUI
-
-
-
-
-
-		props2.push_back({ "Back Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-		props2.push_back({ "Back Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-
-#endif
-	}
-	{	// Portrait 0
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (0) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_Head_0");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_Head_0");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_Head_0");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 3;
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-
-
-#ifdef _IMGUI
-
-
-
-
-		props2.push_back({ "Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props2.push_back({ "Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-
-#endif
-
-	}
-	{	// Portrait 1
-		Entity Portrait1 = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (0) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_Head_1");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_Head_1");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_Head_1");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait1);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -464.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 4;
-
-		auto& m = world->AddComponent<UIActionComponent>(Portrait1);
-		m.mDuration = 0.5f;
-		m.mActor = UIActor::Player;
-		m.mState = UIActionState::Bounce;
-		m.mIsLoop = true;
-		m.mBounceAmplitude = BounceAmplitude;
-		m.mBounceFrequency = mBounceFrequency;
-		m.mBounceDamping = mBounceDamping;
-		world->AddComponent<UISpriteComponent>(Portrait1, scorem);
-#ifdef _IMGUI
-
-
-
-		IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(Portrait1);
-		props2.push_back({ "Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props2.push_back({ "Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),  0.f,    0.f });
-		visImgui.RegisterEditorProperties(props2);
-		visImgui.SetName("Menu5");
-#endif
-	}
-
-
-#ifdef _IMGUI
-
-	std::vector<EditorProperty> props3;
-#endif
-	{	// BACK 0
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (1) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_0");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_0");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_0");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -640.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 1;
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-#ifdef _IMGUI
-
-
-
-		props3.push_back({ "Back Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-		props3.push_back({ "Back Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-#endif
-	}
-	{	// BACK 1
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (1) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_1");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_1");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_1");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -640.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 2;
-
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-#ifdef _IMGUI
-
-
-
-
-
-		props3.push_back({ "Back Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-		props3.push_back({ "Back Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-
-#endif
-	}
-	{	// Portrait 0
-		Entity Portrait = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (1) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_Head_0");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_Head_0");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_Head_0");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -640.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 3;
-
-		world->AddComponent<UISpriteComponent>(Portrait, scorem);
-
-
-#ifdef _IMGUI
-
-
-
-
-		props3.push_back({ "Portrait0 Position",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props3.push_back({ "Portrait0 Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-
-#endif
-
-	}
-	{	// Portrait 1
-		Entity Portrait1 = world->CreateEntity();
-
-		shared_ptr<Texture> scorem;
-		switch (1) {
-		case 0:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Portrait_Head_1");
-			break;
-		case 1:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Portrait_Head_1");
-			break;
-		case 2:
-			scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Portrait_Head_1");
-			break;
-		}
-		auto& t = world->AddComponent<UITransformComponent>(Portrait1);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(64.f, -640.f);
-		t.mSize = Vec2(160, 160);
-		t.mUILayerIndex = 4;
-
-		auto& m = world->AddComponent<UIActionComponent>(Portrait1);
-		m.mDuration = 0.5f;
-		m.mActor = UIActor::Player;
-		m.mState = UIActionState::Bounce;
-		m.mIsLoop = true;
-		m.mBounceAmplitude = BounceAmplitude;
-		m.mBounceFrequency = mBounceFrequency;
-		m.mBounceDamping = mBounceDamping;
-		world->AddComponent<UISpriteComponent>(Portrait1, scorem);
-#ifdef _IMGUI
-
-
-
-		IMGUIComponent& visImgui = world->AddComponent<IMGUIComponent>(Portrait1);
-		props3.push_back({ "Portrait1 Position",  PropertyType::Vec2,  &(t.mPosition),  0.f,    0.f });
-		props3.push_back({ "Portrait1 Size",  PropertyType::Vec2,  &(t.mSize),  0.f,    0.f });
-		visImgui.RegisterEditorProperties(props2);
-		visImgui.SetName("Menu6");
-#endif
-	}
-
-
-
-
-
-
-
 }
 
 HUDPortraitPrefab::~HUDPortraitPrefab()

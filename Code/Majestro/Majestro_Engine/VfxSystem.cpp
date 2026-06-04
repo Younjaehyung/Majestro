@@ -250,7 +250,7 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 			return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
 
 		if (skillType == SkillType::PianoAttack)
-			return VfxSpawnDesc{ L"VFX_Pianoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(50.0f) };
+			return VfxSpawnDesc{ L"VFX_Pianoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(15.0f) };
 
 		if (skillType == SkillType::BongoAttack)
 			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };

@@ -28,18 +28,8 @@ public:
 	UISpriteComponent() = default;
 	UISpriteComponent(shared_ptr<Texture> texture);
 	UISpriteComponent(shared_ptr<Texture> texture, const Vec2& frameSize, int frameCount, float animationTime);
-	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures, float animationTime)
-	{
-		mIsAnimated = true;
-		mAnimationLoopTime = animationTime;
-		mTexture = textures[0];
-		mTextures = textures;
-	}
-	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures)
-	{
-		mTexture = textures[0];
-		mTextures = textures;
-	}
+	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures, float animationTime);
+	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures);
 
 
 	~UISpriteComponent() = default;
@@ -47,6 +37,11 @@ public:
 	void EnableSpriteSheetAnimation(const Vec2& frameSize, int frameCount, float animationTime, int startFrame = 0);
 	void SetCurrentFrame(int frameIndex);
 	RECT GetCurrentFrameRect() const;
+
+	// 아틀라스 텍스처용
+	void SetSourceRect(float x, float y, float width, float height);
+	void ClearSourceRect();
+
 	void SetVisibleRangeNormalized(float startX, float endX);
 	void SetVisibleRangePixels(float startPx, float endPx);
 	void SetVisibleRangeKeepDestinationSize(bool keepSize);
@@ -64,7 +59,11 @@ public :
 	Vec2 mAnimSize{ 0.f, 0.f };
 
 
-	// sourceRect 크롭(0~1)
+	
+	bool mUseSourceRect = false;	// true시 mSourceRect 영역만 그리기
+	RECT mSourceRect{ 0, 0, 0, 0 };	// 아틀라스 소스 렉트 크롭 (픽셀 단위)
+
+	// range 크롭(0~1)
 	bool mUseVisibleRange = false;
 	bool mVisibleRangeUsePixels = false;
 	bool mVisibleRangeKeepDestinationSize = false;

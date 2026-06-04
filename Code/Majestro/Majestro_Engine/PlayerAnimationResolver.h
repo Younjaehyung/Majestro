@@ -18,6 +18,8 @@ enum class ClientAnimState : uint16
 	Dash,
 	Attack1,
 	Attack2,
+	ComboAttack1,
+	ComboAttack2,
 	Skill1,
 	Skill2,
 	Special,
@@ -42,6 +44,8 @@ inline ClientAnimState ToClientActionState(int actionState)
 	{
 	case ReplicatedActionState::Attack1: return ClientAnimState::Attack1;
 	case ReplicatedActionState::Attack2: return ClientAnimState::Attack2;
+	case ReplicatedActionState::ComboAttack1: return ClientAnimState::ComboAttack1;
+	case ReplicatedActionState::ComboAttack2: return ClientAnimState::ComboAttack2;
 	case ReplicatedActionState::Skill1: return ClientAnimState::Skill1;
 	case ReplicatedActionState::Skill2: return ClientAnimState::Skill2;
 	case ReplicatedActionState::Special: return ClientAnimState::Special;
@@ -139,13 +143,15 @@ inline uint32 GetDefaultClipIndex(ClientAnimState state)
 	case ClientAnimState::Dash: return 8;
 	case ClientAnimState::Attack1: return 9;
 	case ClientAnimState::Attack2: return 10;
-	case ClientAnimState::Skill1: return 11;
-	case ClientAnimState::Skill2: return 12;
-	case ClientAnimState::Special: return 13;
-	case ClientAnimState::Reload: return 14;
-	case ClientAnimState::RhythmChange: return 15;
-	case ClientAnimState::Aim: return 16;
-	case ClientAnimState::Dead: return 17;
+	case ClientAnimState::ComboAttack1: return 11;
+	case ClientAnimState::ComboAttack2: return 12;
+	case ClientAnimState::Skill1: return 13;
+	case ClientAnimState::Skill2: return 14;
+	case ClientAnimState::Special: return 15;
+	case ClientAnimState::Reload: return 16;
+	case ClientAnimState::RhythmChange: return 17;
+	case ClientAnimState::Aim: return 18;
+	case ClientAnimState::Dead: return 19;
 	case ClientAnimState::Idle:
 	case ClientAnimState::Hit:
 	case ClientAnimState::Stun:
@@ -161,6 +167,8 @@ inline bool IsUpperBodyAction(ClientAnimState state)
 	case ClientAnimState::Aim:
 	case ClientAnimState::Attack1:
 	case ClientAnimState::Attack2:
+	case ClientAnimState::ComboAttack1:
+	case ClientAnimState::ComboAttack2:
 	case ClientAnimState::Special:
 	case ClientAnimState::Reload:
 	case ClientAnimState::RhythmChange:

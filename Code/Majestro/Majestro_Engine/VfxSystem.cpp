@@ -272,6 +272,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 
 		return std::nullopt;
 
+	case EffectSpawnReason::Respawn:
+		return VfxSpawnDesc{ L"VFX_Wind_Energy_Field", Vec3::Zero, Vec3(1.0f) };
+
 	default:
 		return std::nullopt;
 	}

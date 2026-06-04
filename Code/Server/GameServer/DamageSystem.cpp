@@ -122,7 +122,7 @@ void DamageSystem::Update(float deltaTime)
         if (player)
         {
             // 사망
-            EvPlayerDeathRequest deathEvent{ e.target, static_cast<int8>(PlayerDeathCause::Health), 40.0f ,false};
+            EvPlayerDeathRequest deathEvent{ e.target, static_cast<int8>(PlayerDeathCause::Health), 10.0f ,false};
             eventManager->Enqueue<EvPlayerDeathRequest>(deathEvent);
 
             return;

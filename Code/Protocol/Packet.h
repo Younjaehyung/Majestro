@@ -244,6 +244,7 @@ enum class EffectSpawnReason : uint8
 	CollisionEntity = 1,
 	CollisionStatic = 2,
 	LifetimeExpired = 3,
+	Respawn = 4,
 };
 
 // 로비 Room 시스템: 한 방의 최대 인원

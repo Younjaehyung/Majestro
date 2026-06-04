@@ -38,18 +38,18 @@ void DeathSystem::Update(float deltaTime)
 
             if (player->mDeathEndTime > 0.0f && now >= player->mDeathEndTime)   // 리스폰
             {
-                //if (!player->mRespawnVfxPending)
-                //{
-                //    // 리스폰 위치에 스폰 VFX를 랜더링
-                //    BeginRespawnVfx(entity);
-                //    player->mRespawnVfxPending = true;                      // 실제 부활을 RESPAWN_VFX_LEAD초 뒤로 예약
-                //    player->mRespawnReviveTime = now + RESPAWN_VFX_LEAD;
-                //}
-                //else if (now >= player->mRespawnReviveTime)
-                //{
+                if (!player->mRespawnVfxPending)
+                {
+                    // 리스폰 위치에 스폰 VFX를 랜더링
+                    BeginRespawnVfx(entity);
+                    player->mRespawnVfxPending = true;                      // 실제 부활을 RESPAWN_VFX_LEAD초 뒤로 예약
+                    player->mRespawnReviveTime = now + RESPAWN_VFX_LEAD;
+                }
+                else if (now >= player->mRespawnReviveTime)
+                {
                     // VFX가 자리잡은 뒤 실제 부활.
                     CompletePlayerDeath(entity);
-              //  }
+                }
             }
         }
     }

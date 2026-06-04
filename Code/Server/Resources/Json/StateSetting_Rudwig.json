@@ -2,7 +2,7 @@
     "player": {
         "runSpeed": 500.0,
         "dashSpeed": 1000.0,
-        "dashTime": 1.0,
+        "dashTime": 0.3,
         "attackCool": 1,
         "skill1Cool": 8,
         "skill2Cool": 16,
@@ -54,7 +54,7 @@
         "Skill1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.26667
+            "animEndTime": 0.7
         },
         "Skill2State": {
             "time": 0.35,

@@ -305,11 +305,17 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	if (needsAmmo && mp->mNowBullet <= 0) return false;
 
 	if (button == InputButtons::SKILL1 &&
-		mp->mPlayerType == Rudwig &&
-		mp->mStateThrew)
+		mp->mPlayerType == Rudwig)
 	{
-		mp->mFsm.ChangeState(mp, nextState);
-		return true;
+		if (mp->mStateThrew)
+		{
+			mp->mStateThrew = false;
+			mp->mFsm.ChangeState(mp, nextState);
+			return true;
+		}
+
+		if (mp->GetState() == S_Skill1)
+			return false;
 	}
 
 	// 박자 약화: Fanthor ATTACK만 rhythm 사용. 박자 빗나가면 rhythm=0 폴백.
@@ -340,7 +346,11 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		break;
 	}
 
-	mp->mFsm.ChangeState(mp, nextState);
+	if (!(button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig && !mp->mStateThrew))
+		mp->mFsm.ChangeState(mp, nextState);
+
+	if (button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig)
+		mp->mStateThrew = true;
 	*nextTimePtr = now + Beat * cool;
 	EnqueueAmmoChangedIfNeeded(mWorld, em, e, prevAmmo);
 	return true;

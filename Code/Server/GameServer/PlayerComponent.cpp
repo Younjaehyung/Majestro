@@ -134,15 +134,10 @@ void MainPlayerComponent::StateCheck()
     if (mDash) {
         if (mDashEnd <= GetServerTotalTimeSeconds()) {
             mDash = false;
-            //dash end
-            if (mPlayerType == 0) {
-                mStateThrew = false;
-                mPendingAction = PendingAction::Skill1;
-            }
             mFsm.ChangeState(this, IdleState::Instance());
         }
         else {
-            if(mPlayerType != 2)
+            if(mPlayerType == 1)
                 mFsm.ChangeState(this, DashState::Instance());
         }
     }
@@ -851,16 +846,21 @@ Skill1State* Skill1State::Instance() {
 }
 void Skill1State::Enter(MainPlayerComponent* owner)
 {
+    if (owner->mPlayerType == Rudwig && not owner->mDash) {
+        owner->mDash = true;
+        owner->mDashEnd = GetServerTotalTimeSeconds() + owner->mDashTime;
+    }
     StateEnter(this, owner);
 }
 void Skill1State::Update(MainPlayerComponent* owner)
 {
-    if (owner->mPlayerType == 0 && owner->mStateThrew) owner->mFsm.ChangeState(owner, DashState::Instance());
+    //if (owner->mPlayerType == 0 && owner->mStateThrew) owner->mFsm.ChangeState(owner, DashState::Instance());
     StateUpdate(this, owner);
 }
 void Skill1State::Exit(MainPlayerComponent* owner)
 {
-    if (owner->mPlayerType == 0)owner->mStateThrew = true;
+    if (owner->mPlayerType == Rudwig)
+        owner->mPendingAction = PendingAction::Skill1;
     StateExit(this, owner);
 }
 

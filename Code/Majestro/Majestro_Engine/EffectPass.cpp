@@ -39,7 +39,7 @@ void EffectPass::Initialize(World* world)
 	mSetting->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager = Effekseer::Manager::Create(8000);
-	mManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
+	// mManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager->SetSpriteRenderer(renderer->CreateSpriteRenderer());
 	mManager->SetRibbonRenderer(renderer->CreateRibbonRenderer());

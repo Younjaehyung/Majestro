@@ -31,4 +31,5 @@ public:
 
 	bool mRestartVfxOnActivate = true;
 	bool mWasActive = false;
+	bool mPlayOnce = false;
 };

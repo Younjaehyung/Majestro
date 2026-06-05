@@ -6,6 +6,7 @@ enum class TrailRenderStyle : uint8
 	SwordSlash = 1,
 	SpeedLine = 2,
 	HammerFlame = 3,
+	Smoke = 4,
 };
 
 struct TrailRenderSample

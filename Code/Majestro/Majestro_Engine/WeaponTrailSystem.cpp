@@ -42,6 +42,8 @@ void WeaponTrailSystem::Update(float deltaTime)
 					state == static_cast<int>(ReplicatedActionState::Attack2) ||
 					state == static_cast<int>(ReplicatedActionState::Skill1) ||
 					state == static_cast<int>(ReplicatedActionState::Skill2) ||
+					state == static_cast<int>(ReplicatedActionState::ComboAttack1) ||
+					state == static_cast<int>(ReplicatedActionState::ComboAttack2) ||
 					state == static_cast<int>(ReplicatedActionState::Special);
 
 				trail->mActive = attacking && IsAnimationWindowActive(src, *trail);

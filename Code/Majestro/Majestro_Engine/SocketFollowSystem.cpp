@@ -190,20 +190,26 @@ void SocketFollowSystem::UpdateVfxPlayback(VfxComponent* vfx, bool active, Socke
 		return;
 	}
 
+	const bool rising = active && (follow.mWasActive == false);
+
 	if (active)
 	{
-		if (follow.mRestartVfxOnActivate && follow.mWasActive == false)
+		if (follow.mRestartVfxOnActivate && rising)
 		{
-			
+
 			vfx->efkHandle = -1;
 			vfx->mIsPlaying = false;
 			vfx->mTotalTime = 0.0f;
 			vfx->mRootStopped = false;
 		}
 
-		vfx->mShouldPlay = true;
-		vfx->mIsPaused = false;
-		vfx->mFinished = false;
+		// 원샷 모드
+		if (follow.mPlayOnce == false || rising)
+		{
+			vfx->mShouldPlay = true;
+			vfx->mIsPaused = false;
+			vfx->mFinished = false;
+		}
 	}
 	else
 	{

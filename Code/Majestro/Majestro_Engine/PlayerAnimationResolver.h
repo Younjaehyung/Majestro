@@ -243,7 +243,7 @@ inline PlayerAnimationResolveResult ResolvePlayerAnimationState(
 	const bool hasUpperAction = IsUpperBodyAction(upperState) && !IsFullBodyState(lowerState) && !fullBodyAction;
 	result.EnableUpperLayer = hasUpperAction && result.UpperClipIndex != result.LowerClipIndex;
 
-	result.HoldLastFrame = IsHoldLastFrameState(finalLowerState);
+	result.HoldLastFrame = IsHoldLastFrameState(lowerState);
 
 	return result;
 }

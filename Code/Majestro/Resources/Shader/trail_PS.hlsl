@@ -249,6 +249,57 @@ float4 RenderSpeedLine(VS_OUT input, float side, float ageFade)
 }
 
 
+// 연기
+float4 RenderSmoke(VS_OUT input, float side, float ageFade)
+{
+    float time = PassParams.TotalTime;
+    float layer = input.layerIndex;
+    float2 uv = input.uv;
+
+    // 머리/꼬리  (머리=최신≈1, 꼬리=소멸≈0)
+    float head = saturate(1.0f - input.ageRate);
+
+    // 폭 방향
+    float body = pow(side, 0.7f);
+
+    // 길이 방향
+    float tailFade = smoothstep(0.0f, 0.55f, head);
+    float headFade = 1.0f - smoothstep(0.88f, 1.0f, head);
+    float lengthMask = tailFade * headFade;
+
+    float n1 = WeaponTrailNoise(float2(uv.x * 3.2f + layer * 2.7f, uv.y * 4.5f - time * 1.1f));
+    float n2 = WeaponTrailNoise(float2(uv.x * 6.8f - layer * 1.9f, uv.y * 9.5f - time * 1.9f));
+    float billow = saturate(n1 * 0.62f + n2 * 0.46f);
+
+    // 노이즈 텍스처
+    float texMask = 1.0f;
+    if (input.texIndex >= 0.0f)
+    {
+        float2 tuv = float2(uv.x * 0.85f + billow * 0.12f,
+                            uv.y * 1.4f - time * 0.5f + layer * 0.21f);
+        texMask = TextureMaps[(uint)input.texIndex].Sample(g_sam_0, frac(tuv)).r;
+    }
+
+    // 침식(dissolve)
+    float density = billow * lerp(0.6f, 1.0f, texMask);
+    float dissolve = lerp(1.0f, smoothstep(0.2f, 0.65f, density), input.cutStrength);
+
+    float alpha = input.alpha * ageFade * body * lengthMask * texMask * dissolve;
+    alpha *= lerp(0.55f, 1.0f, head); // 머리쪽을 약간 짙게
+    alpha = saturate(alpha);
+
+    // 색
+    float3 darkSmoke = input.subColorAndLine.rgb;
+    float3 bodySmoke = input.color;
+    float3 color = lerp(darkSmoke, bodySmoke, saturate(body * 0.6f + density * 0.5f));
+    float lit = saturate(input.subColorAndLine.w);
+    color += bodySmoke * pow(density, 2.0f) * lit * 0.5f; // 밀도 코어 림라이트
+    color *= input.intensity;
+
+    return float4(color * alpha, alpha);
+}
+
+
 float4 PS_Main(VS_OUT input) : SV_Target
 {
     // 폭 방향 마스크: uv.x 0~1 을 중심 1, 양 끝 0 인 삼각 모양으로 변환
@@ -258,6 +309,11 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // 수명 페이드: ageRate 0(최신)=1, 1(소멸)=0
     float ageFade = saturate(1.0f - input.ageRate);
 
+
+    if (input.style >= 3.5f)
+    {
+        return RenderSmoke(input, side, ageFade);       // 연기
+    }
 
     if (input.style >= 2.5f)
     {

@@ -201,7 +201,7 @@ void TrailRenderPass::AppendDescsFromDashSpeedLine(const DashSpeedLineComponent&
 		}
 
 		desc.TextureName = trail.mTextureName;
-		desc.Style = TrailRenderStyle::SpeedLine;
+		desc.Style = TrailRenderStyle::Smoke;
 		desc.LayerCount = 1;
 		desc.SmoothingSubdivisions = 0;
 		desc.Lifetime = trail.mLifetime;

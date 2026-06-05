@@ -2510,6 +2510,8 @@ void ResourceManager::CreateDefaultMaterial()
 	{
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Image\\Noise\\T_TilingNoise02_M.png");
+		// DashSmoke (대쉬 스피드라인 연기/베이퍼 텍스처 — 트레일 셰이더가 bindless 인덱스로 샘플)
+		Load<Texture>(L"DashSmoke", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG");
 
 
 		Load<Texture>(L"UI_Title_Control", L"..\\Resources\\Image\\UI\\UI_Title_Control.png");
@@ -2747,7 +2749,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Bullet\\VFX_Ibanix_Bullet.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
-//	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_02.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Attack\\VFX_Bongoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Shield\\VFX_Bongoman_Shield.efk");

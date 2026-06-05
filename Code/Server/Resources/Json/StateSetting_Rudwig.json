@@ -54,7 +54,7 @@
         "Skill1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 0.7
+            "animEndTime": 1.26667
         },
         "Skill2State": {
             "time": 0.35,

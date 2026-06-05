@@ -1,0 +1,58 @@
+{
+    "spawnTables": {
+        "table1": {
+            "entries": [
+                { "type": "Bongoman", "count": 2 },
+                { "type": "Pianoman", "count": 1 },
+                { "type": "HornMan", "count": 3 }
+            ]
+        },
+        "table2": {
+            "entries": [
+                { "type": "Pianoman", "count": 2 },
+                { "type": "HornMan", "count": 2 }
+            ]
+        },
+        "table3": {
+            "entries": [
+                { "type": "Bongoman", "count": 1 },
+                { "type": "HornMan", "count": 4 }
+            ]
+        }
+    },
+    "spawners": [
+        {
+            "id": "first_scene_spawner_a",
+            "position": [ -4910.0, 142.0, -1623.0 ],
+            "trigger": "Timed",
+            "interval": 8.0,
+            "maxAlive": 2,
+            "maxTotal": 6,
+            "spawnRadius": 150.0,
+            "startActive": true,
+            "tablePool": [ "table1", "table3" ]
+        },
+        {
+            "id": "first_scene_spawner_b",
+            "position": [ -2307.0, 740.0, -4097.0 ],
+            "trigger": "Timed",
+            "interval": 8.0,
+            "maxAlive": 2,
+            "maxTotal": 6,
+            "spawnRadius": 150.0,
+            "startActive": true,
+            "tablePool": [ "table2" ]
+        },
+        {
+            "id": "first_scene_spawner_c",
+            "position": [ -5943.0, 142.0, -5637.0 ],
+            "trigger": "Timed",
+            "interval": 8.0,
+            "maxAlive": 2,
+            "maxTotal": 6,
+            "spawnRadius": 150.0,
+            "startActive": true,
+            "tablePool": [ "table1", "table2", "table3" ]
+        }
+    ]
+}

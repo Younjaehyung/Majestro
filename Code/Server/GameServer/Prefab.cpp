@@ -202,9 +202,11 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 50,100,50 };
 	world->AddComponent<MovableComponent>(mEntityID);
 
+	uint8 enemyType = static_cast<uint8>(mSpawnCount % 3);
+	if (const EnemySpawnContext* spawnContext = ctx.ViewAs<EnemySpawnContext>())
+		enemyType = spawnContext->enemyType;
 
-
-	switch (mSpawnCount %3) {
+	switch (enemyType) {
 	case EnemyType::HornMan:
 
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::HornMan, 300);
@@ -212,7 +214,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Pianoman:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 300);
-		world->AddComponent<HealthComponent>(mEntityID, 100, 10);
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
 	case EnemyType::Bongoman:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman, 300);
@@ -225,7 +227,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 
 	world->AddComponent<BoxColliderComponent>(mEntityID, half, center);
-	world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 
 	auto& w = world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
 	w.mSessionId = ctx.SessionId;

@@ -14,6 +14,8 @@ public:
 
 private:
     void PruneDead(class SpawnerComponent* sp);
+    void ResetSpawnPlan(class SpawnerComponent* sp);
+    bool PrepareNextSpawnEntry(class SpawnerComponent* sp);
 
     class Entity SpawnOne(class Entity spawnerEntity, class SpawnerComponent* sp);
 

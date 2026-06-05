@@ -90,9 +90,58 @@ void SpawnerSystem::PruneDead(SpawnerComponent* sp)
         alive.end());
 }
 
+void SpawnerSystem::ResetSpawnPlan(SpawnerComponent* sp)
+{
+    if (!sp)
+        return;
+
+    sp->mSelectedTableIndex = -1;
+    sp->mCurrentSpawnPlan.clear();
+    sp->mCurrentSpawnPlanIndex = 0;
+    sp->mCurrentEntryRemaining = 0;
+}
+
+bool SpawnerSystem::PrepareNextSpawnEntry(SpawnerComponent* sp)
+{
+    if (!sp)
+        return false;
+
+    while (true)
+    {
+        if (sp->mCurrentEntryRemaining > 0 &&
+            sp->mCurrentSpawnPlanIndex < sp->mCurrentSpawnPlan.size())
+        {
+            return true;
+        }
+
+        if (sp->mCurrentSpawnPlanIndex < sp->mCurrentSpawnPlan.size())
+        {
+            const SpawnTableEntry& nextEntry = sp->mCurrentSpawnPlan[sp->mCurrentSpawnPlanIndex];
+            sp->mCurrentEntryRemaining = nextEntry.count;
+            if (sp->mCurrentEntryRemaining > 0)
+                return true;
+
+            ++sp->mCurrentSpawnPlanIndex;
+            continue;
+        }
+
+        if (sp->mSpawnTablePool.empty())
+            return false;
+
+        static std::mt19937 rng{ std::random_device{}() };
+        std::uniform_int_distribution<int32> pick(0, static_cast<int32>(sp->mSpawnTablePool.size()) - 1);
+        sp->mSelectedTableIndex = pick(rng);
+        sp->mCurrentSpawnPlan = sp->mSpawnTablePool[sp->mSelectedTableIndex];
+        sp->mCurrentSpawnPlanIndex = 0;
+        sp->mCurrentEntryRemaining = 0;
+    }
+}
+
 Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
 {
     if (!sp) return Entity{};
+    if (!PrepareNextSpawnEntry(sp))
+        return Entity{};
 
 
     Vec3 base(0.0f, 0.0f, 0.0f);
@@ -103,6 +152,8 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
     InputCommand dummy{};
     dummy.SessionId = 0;
     dummy.Type = PKT_Type::S2C_PKT_SPAWN;
+    const SpawnTableEntry& spawnEntry = sp->mCurrentSpawnPlan[sp->mCurrentSpawnPlanIndex];
+    dummy.StoreAs(EnemySpawnContext{ spawnEntry.enemyType });
 
     Entity spawned = PrefabFactory::Spawn(mWorld, sp->mPrefabType, dummy);
     if (!spawned.IsValid()) return Entity{};
@@ -134,6 +185,12 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
         grav->mFalling = false;
         grav->mDropping = false;
         grav->mGroundGraceLeft = 0.0f;
+    }
+
+    if (--sp->mCurrentEntryRemaining <= 0)
+    {
+        ++sp->mCurrentSpawnPlanIndex;
+        sp->mCurrentEntryRemaining = 0;
     }
 
     BroadcastSpawnPacket(spawned, static_cast<uint8>(sp->mPrefabType));

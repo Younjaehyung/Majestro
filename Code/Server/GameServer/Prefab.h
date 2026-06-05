@@ -24,6 +24,11 @@ protected:
 	Entity mEntityID;
 };
 
+struct EnemySpawnContext
+{
+	uint8 enemyType = 0;
+};
+
 
 class PrefabFactory
 {

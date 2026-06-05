@@ -2,6 +2,13 @@
 #include "Component.h"
 #include "Entity.h"
 #include "PacketHelper.h"
+#include <string>
+
+struct SpawnTableEntry
+{
+    uint8 enemyType = 0;
+    int32 count = 0;
+};
 
 enum class SpawnerTrigger : uint8
 {
@@ -21,6 +28,13 @@ public:
     // 스포너 목적
     PrefabType mPrefabType = PrefabType::ENEMY;
     uint8      mEnemyVariant = 0;   // enemy Type
+
+    std::string mSpawnerId;
+    std::vector<std::vector<SpawnTableEntry>> mSpawnTablePool;
+    int32 mSelectedTableIndex = -1;
+    std::vector<SpawnTableEntry> mCurrentSpawnPlan;
+    size_t mCurrentSpawnPlanIndex = 0;
+    int32 mCurrentEntryRemaining = 0;
 
     // 랜덤 스폰 반경
     float mSpawnRadius = 0.0f;

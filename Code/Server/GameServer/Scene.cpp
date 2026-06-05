@@ -41,8 +41,10 @@
 #include "InteractionSystem.h"
 #include "InteractableComponent.h"
 #include "NetEntityComponent.h"
+#include "EnemyComponent.h"
 #include "SpawnerSystem.h"
 #include "SpawnerComponent.h"
+#include "JsonUtils.h"
 #include "GameRuleSystem.h"
 #include "PathFollowSystem.h"
 
@@ -80,6 +82,95 @@ namespace
 		}
 
 		return candidates.empty() ? L"" : candidates.back().wstring();
+	}
+
+	uint8 ParseSpawnerTrigger(const std::string& triggerName)
+	{
+		if (triggerName == "Wave")
+			return static_cast<uint8>(SpawnerTrigger::Wave);
+		if (triggerName == "OnPlayerEnter")
+			return static_cast<uint8>(SpawnerTrigger::OnPlayerEnter);
+		return static_cast<uint8>(SpawnerTrigger::Timed);
+	}
+
+	uint8 ParseEnemyTypeName(const std::string& typeName)
+	{
+		if (typeName == "Pianoman")
+			return static_cast<uint8>(EnemyType::Pianoman);
+		if (typeName == "Bongoman")
+			return static_cast<uint8>(EnemyType::Bongoman);
+		return static_cast<uint8>(EnemyType::HornMan);
+	}
+
+	std::vector<SpawnTableEntry> ParseSpawnTableEntries(const json& tableJson)
+	{
+		std::vector<SpawnTableEntry> entries;
+		const auto& jsonEntries = RequireJson(tableJson, "entries");
+		for (const auto& entryJson : jsonEntries)
+		{
+			SpawnTableEntry entry{};
+			entry.enemyType = ParseEnemyTypeName(GetOptionalString(entryJson, "type", "HornMan"));
+			entry.count = static_cast<int32>(GetOptionalFloat(entryJson, "count", 0.f));
+			if (entry.count > 0)
+				entries.push_back(entry);
+		}
+		return entries;
+	}
+
+	void LoadSpawnerTablesForScene(Scene* scene, World* world, const std::wstring& path)
+	{
+		if (!scene || !world)
+			return;
+
+		std::ifstream ifs(path);
+		if (!ifs.is_open())
+			throw std::runtime_error("Failed to open spawn table json");
+
+		json root;
+		ifs >> root;
+
+		std::unordered_map<std::string, std::vector<SpawnTableEntry>> tableMap;
+		const auto& jsonTables = RequireJson(root, "spawnTables");
+		for (auto it = jsonTables.begin(); it != jsonTables.end(); ++it)
+		{
+			tableMap.emplace(it.key(), ParseSpawnTableEntries(it.value()));
+		}
+
+		const auto& jsonSpawners = RequireJson(root, "spawners");
+		for (const auto& spawnerJson : jsonSpawners)
+		{
+			const Vec3 position = ParseVec3ArrayOrObject(RequireJson(spawnerJson, "position"), 1.0f);
+			Entity spawner = scene->SpawnMonsterSpawner(
+				world,
+				position,
+				GetOptionalFloat(spawnerJson, "interval", 5.0f),
+				static_cast<int32>(GetOptionalFloat(spawnerJson, "maxAlive", 5.0f)),
+				GetOptionalFloat(spawnerJson, "spawnRadius", 0.0f),
+				ParseSpawnerTrigger(GetOptionalString(spawnerJson, "trigger", "Timed")),
+				static_cast<uint8>(PrefabType::ENEMY),
+				static_cast<int32>(GetOptionalFloat(spawnerJson, "maxTotal", -1.0f)),
+				GetOptionalBool(spawnerJson, "startActive", true));
+
+			SpawnerComponent* sp = world->GetComponent<SpawnerComponent>(spawner);
+			if (!sp)
+				continue;
+
+			sp->mSpawnerId = GetOptionalString(spawnerJson, "id", "");
+			sp->mSpawnTablePool.clear();
+			sp->mCurrentSpawnPlan.clear();
+			sp->mCurrentSpawnPlanIndex = 0;
+			sp->mCurrentEntryRemaining = 0;
+			sp->mSelectedTableIndex = -1;
+
+			const auto& tablePoolJson = RequireJson(spawnerJson, "tablePool");
+			for (const auto& tableNameJson : tablePoolJson)
+			{
+				const std::string tableName = tableNameJson.get<std::string>();
+				auto found = tableMap.find(tableName);
+				if (found != tableMap.end() && !found->second.empty())
+					sp->mSpawnTablePool.push_back(found->second);
+			}
+		}
 	}
 }
 
@@ -529,36 +620,7 @@ void FirstScene::Initialize()
 	//	sp.mActive = false; // EvInteractableConsumed로 true가 된다
 	//}
 
-
-	SpawnMonsterSpawner(mWorld.get(),
-		Vec3(-4910.0f, 142.0f, -1623.0f),
-		/*interval=*/8.0f,
-		/*maxAlive=*/2,
-		/*spawnRadius=*/150.0f,
-		/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
-		/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
-		/*maxTotal=*/6,
-		/*startActive=*/true);
-
-	SpawnMonsterSpawner(mWorld.get(),
-		Vec3(-2307.0f, 740.0f, -4097.0f),
-		/*interval=*/8.0f,
-		/*maxAlive=*/2,
-		/*spawnRadius=*/150.0f,
-		/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
-		/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
-		/*maxTotal=*/6,
-		/*startActive=*/true);
-
-	SpawnMonsterSpawner(mWorld.get(),
-		Vec3(-5943.0f, 142.0f, -5637.0f),
-		/*interval=*/8.0f,
-		/*maxAlive=*/2,
-		/*spawnRadius=*/150.0f,
-		/*triggerRaw=*/static_cast<uint8>(SpawnerTrigger::Timed),
-		/*prefabTypeRaw=*/static_cast<uint8>(PrefabType::ENEMY),
-		/*maxTotal=*/6,
-		/*startActive=*/true);
+	LoadSpawnerTablesForScene(this, mWorld.get(), L"../Resources/Json/SpawnTables.json");
 
 	mSceneId = SceneId::FirstGame;
 

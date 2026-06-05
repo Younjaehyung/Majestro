@@ -30,6 +30,7 @@
             "maxTotal": 6,
             "spawnRadius": 150.0,
             "startActive": true,
+            "randomSpawnFromTable": false,
             "tablePool": [ "table1", "table3" ]
         },
         {
@@ -41,6 +42,7 @@
             "maxTotal": 6,
             "spawnRadius": 150.0,
             "startActive": true,
+            "randomSpawnFromTable": false,
             "tablePool": [ "table2" ]
         },
         {
@@ -52,6 +54,7 @@
             "maxTotal": 6,
             "spawnRadius": 150.0,
             "startActive": true,
+            "randomSpawnFromTable": false,
             "tablePool": [ "table1", "table2", "table3" ]
         }
     ]

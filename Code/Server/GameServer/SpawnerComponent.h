@@ -35,6 +35,7 @@ public:
     std::vector<SpawnTableEntry> mCurrentSpawnPlan;
     size_t mCurrentSpawnPlanIndex = 0;
     int32 mCurrentEntryRemaining = 0;
+    bool mRandomSpawnFromTable = false;
 
     // 랜덤 스폰 반경
     float mSpawnRadius = 0.0f;

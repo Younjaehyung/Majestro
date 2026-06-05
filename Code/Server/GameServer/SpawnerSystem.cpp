@@ -106,8 +106,59 @@ bool SpawnerSystem::PrepareNextSpawnEntry(SpawnerComponent* sp)
     if (!sp)
         return false;
 
+    static std::mt19937 rng{ std::random_device{}() };
+
     while (true)
     {
+        if (sp->mRandomSpawnFromTable)
+        {
+            auto hasRemainingEntries = [&]() -> bool
+            {
+                for (const SpawnTableEntry& entry : sp->mCurrentSpawnPlan)
+                {
+                    if (entry.count > 0)
+                        return true;
+                }
+                return false;
+            };
+
+            if (!hasRemainingEntries())
+            {
+                if (sp->mSpawnTablePool.empty())
+                    return false;
+
+                std::uniform_int_distribution<int32> pickTable(0, static_cast<int32>(sp->mSpawnTablePool.size()) - 1);
+                sp->mSelectedTableIndex = pickTable(rng);
+                sp->mCurrentSpawnPlan = sp->mSpawnTablePool[sp->mSelectedTableIndex];
+            }
+
+            int32 totalRemaining = 0;
+            for (const SpawnTableEntry& entry : sp->mCurrentSpawnPlan)
+                totalRemaining += (std::max)(0, entry.count);
+
+            if (totalRemaining <= 0)
+            {
+                sp->mCurrentSpawnPlan.clear();
+                continue;
+            }
+
+            std::uniform_int_distribution<int32> pickEntry(0, totalRemaining - 1);
+            int32 choice = pickEntry(rng);
+            for (size_t i = 0; i < sp->mCurrentSpawnPlan.size(); ++i)
+            {
+                const int32 remaining = (std::max)(0, sp->mCurrentSpawnPlan[i].count);
+                if (choice < remaining)
+                {
+                    sp->mCurrentSpawnPlanIndex = i;
+                    sp->mCurrentEntryRemaining = 1;
+                    return true;
+                }
+                choice -= remaining;
+            }
+
+            return false;
+        }
+
         if (sp->mCurrentEntryRemaining > 0 &&
             sp->mCurrentSpawnPlanIndex < sp->mCurrentSpawnPlan.size())
         {
@@ -128,7 +179,6 @@ bool SpawnerSystem::PrepareNextSpawnEntry(SpawnerComponent* sp)
         if (sp->mSpawnTablePool.empty())
             return false;
 
-        static std::mt19937 rng{ std::random_device{}() };
         std::uniform_int_distribution<int32> pick(0, static_cast<int32>(sp->mSpawnTablePool.size()) - 1);
         sp->mSelectedTableIndex = pick(rng);
         sp->mCurrentSpawnPlan = sp->mSpawnTablePool[sp->mSelectedTableIndex];
@@ -187,7 +237,13 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
         grav->mGroundGraceLeft = 0.0f;
     }
 
-    if (--sp->mCurrentEntryRemaining <= 0)
+    if (sp->mRandomSpawnFromTable)
+    {
+        SpawnTableEntry& currentEntry = sp->mCurrentSpawnPlan[sp->mCurrentSpawnPlanIndex];
+        currentEntry.count = (std::max)(0, currentEntry.count - 1);
+        sp->mCurrentEntryRemaining = 0;
+    }
+    else if (--sp->mCurrentEntryRemaining <= 0)
     {
         ++sp->mCurrentSpawnPlanIndex;
         sp->mCurrentEntryRemaining = 0;

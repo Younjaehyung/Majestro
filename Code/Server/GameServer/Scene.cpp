@@ -161,6 +161,7 @@ namespace
 			sp->mCurrentSpawnPlanIndex = 0;
 			sp->mCurrentEntryRemaining = 0;
 			sp->mSelectedTableIndex = -1;
+			sp->mRandomSpawnFromTable = GetOptionalBool(spawnerJson, "randomSpawnFromTable", false);
 
 			const auto& tablePoolJson = RequireJson(spawnerJson, "tablePool");
 			for (const auto& tableNameJson : tablePoolJson)

@@ -42,6 +42,8 @@ static StateId NameToId(const std::string& n) {
 
     if (n == "Attack1")  return S_Attack1;
     if (n == "Attack2")  return S_Attack2;
+    if (n == "ComboAttack1") return S_ComboAttack1;
+    if (n == "ComboAttack2") return S_ComboAttack2;
     if (n == "Skill1")  return S_Skill1;
     if (n == "Skill2")  return S_Skill2;
     if (n == "Special")  return S_Special;
@@ -119,6 +121,8 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType pla
     AimState::Instance(),
 
     DeadState::Instance(),
+    ComboAttack1State::Instance(),
+    ComboAttack2State::Instance(),
     HitState::Instance(),
     StunState::Instance()
     };
@@ -177,6 +181,8 @@ uint8 MainPlayerComponent::GetReplicatedActionState()
 	{
 	case S_Attack1: return static_cast<uint8>(ReplicatedActionState::Attack1);
 	case S_Attack2: return static_cast<uint8>(ReplicatedActionState::Attack2);
+	case S_ComboAttack1: return static_cast<uint8>(ReplicatedActionState::ComboAttack1);
+	case S_ComboAttack2: return static_cast<uint8>(ReplicatedActionState::ComboAttack2);
 	case S_Skill1: return static_cast<uint8>(ReplicatedActionState::Skill1);
 	case S_Skill2: return static_cast<uint8>(ReplicatedActionState::Skill2);
 	case S_Special: return static_cast<uint8>(ReplicatedActionState::Special);
@@ -301,6 +307,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 
         if (s == Attack1State::Instance()) return S_Attack1;
         if (s == Attack2State::Instance()) return S_Attack2;
+        if (s == ComboAttack1State::Instance()) return S_ComboAttack1;
+        if (s == ComboAttack2State::Instance()) return S_ComboAttack2;
         if (s == Skill1State::Instance()) return S_Skill1;
         if (s == Skill2State::Instance()) return S_Skill2;
         if (s == SpecialState::Instance()) return S_Special;
@@ -812,6 +820,7 @@ Attack1State* Attack1State::Instance() {
 }
 void Attack1State::Enter(MainPlayerComponent* owner)
 {
+    owner->mComboExpireTime = 0.0f;
     StateEnter(this, owner);
 }
 void Attack1State::Update(MainPlayerComponent* owner)
@@ -821,6 +830,7 @@ void Attack1State::Update(MainPlayerComponent* owner)
 void Attack1State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
+    owner->mComboExpireTime = GetServerTotalTimeSeconds() + owner->mComboInputWindow;
 }
 
 Attack2State* Attack2State::Instance() {
@@ -838,6 +848,45 @@ void Attack2State::Update(MainPlayerComponent* owner)
 void Attack2State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
+}
+
+ComboAttack1State* ComboAttack1State::Instance() {
+    static ComboAttack1State inst;
+    return &inst;
+}
+void ComboAttack1State::Enter(MainPlayerComponent* owner)
+{
+    owner->mComboExpireTime = 0.0f;
+    StateEnter(this, owner);
+}
+void ComboAttack1State::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+}
+void ComboAttack1State::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+    owner->mComboExpireTime = GetServerTotalTimeSeconds() + owner->mComboInputWindow;
+}
+
+ComboAttack2State* ComboAttack2State::Instance() {
+    static ComboAttack2State inst;
+    return &inst;
+}
+void ComboAttack2State::Enter(MainPlayerComponent* owner)
+{
+    owner->mComboExpireTime = 0.0f;
+    StateEnter(this, owner);
+}
+void ComboAttack2State::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+}
+void ComboAttack2State::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+    owner->mComboStep = 0;
+    owner->mComboExpireTime = 0.0f;
 }
 
 Skill1State* Skill1State::Instance() {

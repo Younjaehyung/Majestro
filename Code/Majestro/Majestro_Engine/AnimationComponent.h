@@ -126,6 +126,7 @@ public:
 
 
 	float							mUpdateTime = 0.f;	// 애니메이션 재생 시간
+	bool							mPaused = false;	// 정지
 	bool							mBoneFinalUpdated = false;
 
 	// AimOffset / TurnInPlace / HitReaction 제어

@@ -198,6 +198,8 @@ enum class ReplicatedActionState : uint8
 	None = 0,
 	Attack1,
 	Attack2,
+	ComboAttack1,
+	ComboAttack2,
 	Skill1,
 	Skill2,
 	Special,

@@ -304,6 +304,25 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	if (*nextTimePtr > now) return false;
 	if (needsAmmo && mp->mNowBullet <= 0) return false;
 
+	if (button == InputButtons::ATTACK)
+	{
+		if (now > mp->mComboExpireTime)
+			mp->mComboStep = 0;
+
+		switch (mp->mComboStep)
+		{
+		case 1:
+			nextState = ComboAttack1State::Instance();
+			break;
+		case 2:
+			nextState = ComboAttack2State::Instance();
+			break;
+		default:
+			nextState = Attack1State::Instance();
+			break;
+		}
+	}
+
 	if (button == InputButtons::SKILL1 &&
 		mp->mPlayerType == Rudwig)
 	{
@@ -352,6 +371,16 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	if (button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig)
 		mp->mStateThrew = true;
 	*nextTimePtr = now + Beat * cool;
+
+	if (button == InputButtons::ATTACK)
+	{
+		if (nextState == Attack1State::Instance())
+			mp->mComboStep = 1;
+		else if (nextState == ComboAttack1State::Instance())
+			mp->mComboStep = 2;
+		else
+			mp->mComboStep = 0;
+	}
 	EnqueueAmmoChangedIfNeeded(mWorld, em, e, prevAmmo);
 	return true;
 }

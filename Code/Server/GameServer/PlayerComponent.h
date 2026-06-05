@@ -44,7 +44,7 @@ enum : StateId {
 	S_Jump, S_Fall, S_Land, S_Dash,
 	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special,
 	S_Reload, S_RhythmChange, S_Aim,
-	S_Dead, S_Hit, S_Stun,
+	S_Dead, S_ComboAttack1, S_ComboAttack2, S_Hit, S_Stun,
 
 };
 
@@ -142,6 +142,9 @@ public:
 	uint8 mRhythm = 0;
 	uint8 mNextRhythm = 0;
 	bool mHasQueuedRhythmChange = false;
+	float mComboExpireTime = 0.0f;
+	float mComboInputWindow = 0.75f;
+	uint8 mComboStep = 0;
 
 
 	float mSpeed = 0.0f;
@@ -321,6 +324,22 @@ class Attack2State : public State<MainPlayerComponent> {
 public:
 	static Attack2State* Instance();
 	virtual const char* GetName() const override { return "Attack2State"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class ComboAttack1State : public State<MainPlayerComponent> {
+public:
+	static ComboAttack1State* Instance();
+	virtual const char* GetName() const override { return "ComboAttack1State"; }
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+class ComboAttack2State : public State<MainPlayerComponent> {
+public:
+	static ComboAttack2State* Instance();
+	virtual const char* GetName() const override { return "ComboAttack2State"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;

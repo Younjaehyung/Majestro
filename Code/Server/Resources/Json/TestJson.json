@@ -103,6 +103,34 @@
         },
 
         {
+            "from": "ComboAttack1",
+            "to": "Run",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
+        },
+
+        {
+            "from": "ComboAttack1",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
+            "from": "ComboAttack2",
+            "to": "Run",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM" ]
+        },
+
+        {
+            "from": "ComboAttack2",
+            "to": "Idle",
+            "require": [],
+            "forbid": [ "F_STUN", "F_DEAD", "F_ANIM", "F_MOVE" ]
+        },
+
+        {
             "from": "Skill1",
             "to": "Run",
             "require": [],

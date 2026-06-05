@@ -124,29 +124,25 @@ float ComputeBodyBlendWeight(const string& boneName)
 	std::transform(lower.begin(), lower.end(), lower.begin(),
 		[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
-	// 상체 레이어가 pelvis와 다리 본에 영향을 주면 하체 이동 애니메이션이 공격 자세에 끌려간다.
-	// 방향성 하체 이동을 유지하기 위해 하체 본의 상체 영향도를 0으로 둔다.
 	if (lower.find("pelvis") != string::npos || lower.find("hip") != string::npos ||
 		lower.find("thigh") != string::npos || lower.find("calf") != string::npos ||
 		lower.find("foot") != string::npos || lower.find("toe") != string::npos ||
 		lower.find("leg") != string::npos || lower.find("ik_foot") != string::npos)
 		return 0.f;
 
-	if (lower.find("spine1") != string::npos)
-		return 1.0f;
-	if (lower.find("spine2") != string::npos)
-		return 1.f;
-
 	if (lower.find("spine3") != string::npos)
 		return 0.9f;
-
+	if (lower.find("spine2") != string::npos)
+		return 0.7f;
+	if (lower.find("spine1") != string::npos)
+		return 0.45f;
 	if (lower.find("spine") != string::npos)
-		return .5f;
+		return 0.2f;
 
 	if (lower.find("chest") != string::npos)
-		return .9f;
+		return 1.0f;
 	if (lower.find("clavicle") != string::npos || lower.find("shoulder") != string::npos)
-		return .9f;
+		return 1.0f;
 
 	if (lower.find("finger") != string::npos ||
 		lower.find("neck") != string::npos || lower.find("head") != string::npos ||

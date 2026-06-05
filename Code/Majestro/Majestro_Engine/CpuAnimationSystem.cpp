@@ -115,6 +115,8 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 
 		// 이번 프레임 resolver가 원하는 상체 레이어 활성 목표.
 		bool desiredUpperLayer = false;
+		// 사망 등 종착 상태: 클립 끝에서 루프하지 않고 마지막 프레임에 고정.
+		bool holdLastFrame = false;
 
 		if (mainPlayerCom) {
 			const PlayerAnimationResolveResult resolvedAnim = ResolvePlayerAnimationState(
@@ -126,6 +128,8 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			// 레이어를 켜는 동안에만 상체 클립 갱신
 			if (desiredUpperLayer)
 				animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
+
+			holdLastFrame = resolvedAnim.HoldLastFrame;
 		}
 
 		if (enemyCom) {
@@ -199,16 +203,32 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		if (mainPlayerCom)
 			animCom->mConsumedPlayerStateSequence = mainPlayerCom->mStateSequence;
 
-		animCom->mUpdateTime += deltaTime;
-		animCom->mUpperUpdateTime += deltaTime;
-
 		shared_ptr<Animator>& animClip = animCom->mAnimClips.at(animCom->mLowerAnimClipIdx);
 		shared_ptr<Animator>& upperAnimClip = animCom->mAnimClips.at(animCom->mUpperAnimClipIdx);
 
-		if (animCom->mUpdateTime >= animClip->mDuration)
-			animCom->mUpdateTime = 0.f;
-		if (animCom->mUpperUpdateTime >= upperAnimClip->mDuration)
-			animCom->mUpperUpdateTime = 0.f;
+		// 종착 상태가 아니면 정지 해제
+		if (!holdLastFrame)
+			animCom->mPaused = false;
+
+		if (!animCom->mPaused) {
+			animCom->mUpdateTime += deltaTime;
+			animCom->mUpperUpdateTime += deltaTime;
+
+			if (animCom->mUpdateTime >= animClip->mDuration) {
+				if (holdLastFrame) {
+					// 마지막 프레임 시작 시각에 고정
+					const uint32 numFrame = max(animClip->mClipMeta.NumFrame, 1u);
+					const float frameDuration = animClip->mDuration / static_cast<float>(numFrame);
+					animCom->mUpdateTime = static_cast<float>(numFrame - 1) * frameDuration;
+					animCom->mPaused = true;
+				}
+				else {
+					animCom->mUpdateTime = 0.f;
+				}
+			}
+			if (animCom->mUpperUpdateTime >= upperAnimClip->mDuration)
+				animCom->mUpperUpdateTime = 0.f;
+		}
 
 		uint32 currentFrame = 0;
 		uint32 nextFrame = 0;

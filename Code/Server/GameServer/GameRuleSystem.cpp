@@ -118,7 +118,9 @@ void GameNetRuleSystem::SendSceneEscort(Entity rule)
 		pkt.RouteId = e->mRouteId;
 		pkt.EscortStage = e->mEscortStage;
 		pkt.MoveState = e->mMoveState;
+		pkt.StageCount = e->mStageCount;
 		pkt.EscortProgress = e->mEscortProgress;
+		pkt.StageProgress = e->mStageProgress;
 		pkt.EscortTime = e->mEscortTime;
 		
 		if (e->mEscortTarget.IsValid())

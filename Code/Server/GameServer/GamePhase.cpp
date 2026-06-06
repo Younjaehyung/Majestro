@@ -328,6 +328,34 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 	ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
 		? pathComp->mCurrentDistance / pathComp->mTotalDistance : 0.f;
 
+	// 현재 구간 내 진행도(0~1)와 전체 구간 수를 계산해 UI 등분 리맵
+	auto computeStageProgress = [&](int32 stageIdx)
+	{
+		if (!mEscortPath)	// 경로 없음
+		{
+			ruleComp->mStageCount = 0;
+			ruleComp->mStageProgress = ruleComp->mEscortProgress;
+			return;
+		}
+		const auto& stops = mEscortPath->GetStopPoints();
+		ruleComp->mStageCount = static_cast<uint8>(stops.size());
+
+
+		if (stops.empty())	// 중간 포인트 없음
+		{
+			ruleComp->mStageProgress = ruleComp->mEscortProgress;
+			return;
+		}
+		stageIdx = std::clamp(stageIdx, 0, static_cast<int32>(stops.size()) - 1);
+		const float segStart = (stageIdx == 0) ? 0.f : stops[stageIdx - 1].distance;
+		const float segEnd   = stops[stageIdx].distance;
+		const float segLen   = segEnd - segStart;
+		ruleComp->mStageProgress = (segLen > 0.f)
+			? std::clamp((pathComp->mCurrentDistance - segStart) / segLen, 0.f, 1.f) : 1.f;
+	};
+
+	computeStageProgress(mNextStopIndex);
+
 	if (mEscortPath && mNextStopIndex >= 0)
 	{
 		const auto& stopPoints = mEscortPath->GetStopPoints();
@@ -363,8 +391,10 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 				ruleComp->mEscortStage = static_cast<uint8>(nextStopIndex);
 				ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
-					? pathComp->mCurrentDistance / pathComp->mTotalDistance
-					: 0.f;
+					? pathComp->mCurrentDistance / pathComp->mTotalDistance : 0.f;
+
+				// 거점 통과 순간
+				computeStageProgress(nextStopIndex);
 				mIsCompleted = true;
 				return;
 			}

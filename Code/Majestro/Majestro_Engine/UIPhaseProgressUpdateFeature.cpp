@@ -107,11 +107,18 @@ void UIPhaseProgressUpdateFeature::UpdateConquestProgress(float dt, GameConquest
 
 void UIPhaseProgressUpdateFeature::UpdateEscortProgress(float dt, GameEscortComponent* escortComp)
 {
+	if (escortComp->mStageCount == 0)	// 서버가 구간 정보를 아직 안 보냄
+	{
+		mEscortProgress = std::clamp(escortComp->mEscortProgress, 0.f, 1.f);
+		return;
+	}
 
-	float progress = std::clamp(escortComp->mEscortProgress, 0.f, 1.f);
+	const int32 stageCount = static_cast<int32>(escortComp->mStageCount);
+	const int32 stage      = std::clamp<int32>(escortComp->mEscortStage, 0, stageCount - 1);
+	const float stageLocal = std::clamp(escortComp->mStageProgress, 0.f, 1.f);
 
-	mEscortProgress = progress;// static_cast<float>(escortComp->mEscortStage) + (progress);
-
+	// displayedFill = (현재 stage + 구간 내 진행도) / 전체 구간 수
+	mEscortProgress = std::clamp((stage + stageLocal) / static_cast<float>(stageCount), 0.f, 1.f);
 }
 
 // Draw
@@ -278,8 +285,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 
 	RENDERMANAGER.SetGraphicsTable();
 
-	// mEscortProgress = stage + 0~1 → 현재 스테이지의 채움 비율만 추출
-	const float fillRatio = std::clamp(mEscortProgress - std::floor(mEscortProgress), 0.f, 1.f);
+	const float fillRatio = std::clamp(mEscortProgress, 0.f, 1.f);
 	const Vec2 escortSizePx = GetProgressSizePx(mEscortSizeRatio);
 	const Vec2 escortCursorSizePx = GetProgressSizePx(mEscortCursorSizeRatio);
 

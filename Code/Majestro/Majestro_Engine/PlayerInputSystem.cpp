@@ -12,6 +12,7 @@
 #include "TerrainComponent.h"
 #include "BeatComponent.h"
 #include "MovementComponent.h"
+#include "DeathCamComponent.h"
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
@@ -30,303 +31,347 @@ void PlayerInputSystem::Initialize()
 
 void PlayerInputSystem::Update(float dt)
 {
-	// 로컬 일시정지 여부
-	bool paused = false;
-	if (mWorld->HasComponentPool<PauseMenuController>())
-	{
-		auto pauseEntities = mWorld->GetEntitiesWithComponent<PauseMenuController>();
-		if (!pauseEntities.empty())
-			if (auto* pc = mWorld->GetComponent<PauseMenuController>(pauseEntities[0]))
-				paused = pc->mPaused;
-	}
+	PlayerInputContext ctx{};
+	ctx.paused = IsPaused();
 
-	// ` 키로 인게임 카메라 조작 | ImGui 디버그 조작 토글
-	if (!paused && INPUT.GetKeyDown(eKeyCode::GRAVE))
-	{
-		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());
-	}
+	UpdateDebugMouseLookInput(ctx);
+	UpdateLobbyInput(dt, ctx);
 
-	//camera setting
-	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
-	
-	std::vector<Entity> mainCameraEntitys{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
-	CameraTypeComponent* cameraTypeComponent = mWorld->GetComponent<CameraTypeComponent>(mainCameraEntitys[0]);
+	if (!BuildCameraContext(ctx))
+		return;
 
-	// 로비
-	if (mWorld->HasComponentPool<ChoicePlayerComponent>()) {
-		std::vector<Entity> choiceEntitys{ mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>() };
-		ChoicePlayerComponent* choicecomponent = mWorld->GetComponent<ChoicePlayerComponent>(choiceEntitys[0]);
-		bool characterChanged = false;
-		if (INPUT.GetKeyDown(eKeyCode::LEFT))
-		{
-			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 2) % 3;
-			characterChanged = true;
-		}
-		else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
-		{
-			choicecomponent->mPlayerType = (choicecomponent->mPlayerType + 1) % 3;
-			characterChanged = true;
-		}
+	if (!mWorld->HasComponentPool<PlayerMovementComponent>())
+		return;
+	if (!mWorld->HasComponentPool<MainPlayerComponent>())
+		return;
 
-		// 캐릭터 변경을 서버에 알린다 (서버에서 ready 자동 해제)
-		if (characterChanged)
-		{
-			if (auto eventMgr = mWorld->GetEventManager())
-				eventMgr->Enqueue(EvRoomCharacterChanged{ choicecomponent->mPlayerType });
-		}
+	UpdateCameraModeInput(ctx);
 
-		// R 키 Ready 토글. (단축키라서 지워도 될듯)
-		bool inRoom = false;
-		if (mWorld->HasComponentPool<LobbyRoomListComponent>())
-		{
-			auto listEntities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
-			if (!listEntities.empty())
-			{
-				auto* listComp = mWorld->GetComponent<LobbyRoomListComponent>(listEntities[0]);
-				inRoom = (listComp != nullptr) && (listComp->mCurrentRoomId != 0);
-			}
-		}
+	if (!BuildPlayerContext(ctx))
+		return;
 
-		if (inRoom && INPUT.GetKeyDown(eKeyCode::R) && mWorld->HasComponentPool<LobbyRoomStateComponent>())
-		{
-			std::vector<Entity> roomStateEntities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
-			if (!roomStateEntities.empty())
-			{
-				LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(roomStateEntities[0]);
-				const uint32 myClientId = Network::GetInstance().mClientId;
-				bool currentReady = false;
-				if (state)
-				{
-					for (const auto& slot : state->mSlots)
-					{
-						if (slot.sessionId != 0 && slot.sessionId == myClientId)
-						{
-							currentReady = slot.ready;
-							break;
-						}
-					}
-				}
-				if (auto eventMgr = mWorld->GetEventManager())
-					eventMgr->Enqueue(EvRoomReadyChanged{ !currentReady });
-			}
-		}
-		// R 키 Ready 토글. 
-	}
+	if (UpdateFreeCameraInput(dt, ctx))
+		return;
+	if (UpdatePausedInput(ctx))
+		return;
+	if (UpdateDeadInput(ctx))
+		return;
 
-	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
-	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
+	UpdateAliveInput(dt, ctx);
+}
 
+bool PlayerInputSystem::IsPaused() const
+{
+	if (!mWorld->HasComponentPool<PauseMenuController>())
+		return false;
 
-	if (INPUT.GetKeyDown(eKeyCode::F1)) {
-		cameraTypeComponent->mPlayMode = ONE_FPS;
-	}
-	else if (INPUT.GetKeyDown(eKeyCode::F2)) {
-		cameraTypeComponent->mPlayMode = THREE_FPS;
-	}
-	else if (INPUT.GetKeyDown(eKeyCode::F3)) {
-		cameraTypeComponent->mPlayMode = THREE_RPG;
-	}
-	else if (INPUT.GetKeyDown(eKeyCode::F4)) {
-		cameraTypeComponent->mPlayMode = MAIN_CAMERA;
-		cameraTypeComponent->mFreeCamInit = false; // 진입 시 현재 카메라 위치에서 재초기화
-	}
+	auto pauseEntities = mWorld->GetEntitiesWithComponent<PauseMenuController>();
+	if (pauseEntities.empty())
+		return false;
 
-	//player move
+	const PauseMenuController* pause = mWorld->GetComponent<PauseMenuController>(pauseEntities[0]);
+	return pause != nullptr && pause->mPaused;
+}
 
-	auto entitys = mWorld->GetEntitiesWithComponents<
+void PlayerInputSystem::ClearGameplayInput(PlayerInputContext& ctx)
+{
+	if (ctx.movement == nullptr || ctx.player == nullptr)
+		return;
+
+	ctx.movement->mMovingDirection = { 0, 0, 0 };
+	ctx.movement->mJump = false;
+	ctx.movement->mDash = false;
+	ctx.movement->mAttack = false;
+	ctx.movement->mSkill1 = false;
+	ctx.movement->mSkill2 = false;
+	ctx.movement->mReload = false;
+	ctx.movement->mSpecial = false;
+	ctx.player->mSpeed = 0.0f;
+}
+
+bool PlayerInputSystem::BuildCameraContext(PlayerInputContext& ctx)
+{
+	if (!mWorld->HasComponentPool<MainCameraComponent>())
+		return false;
+
+	std::vector<Entity> mainCameraEntities{ mWorld->GetEntitiesWithComponent<MainCameraComponent>() };
+	if (mainCameraEntities.empty())
+		return false;
+
+	ctx.mainCameraEntity = mainCameraEntities[0];
+	ctx.cameraType = mWorld->GetComponent<CameraTypeComponent>(ctx.mainCameraEntity);
+	return true;
+}
+
+bool PlayerInputSystem::BuildPlayerContext(PlayerInputContext& ctx)
+{
+	if (!mWorld->HasComponentPool<PlayerMovementComponent>())
+		return false;
+	if (!mWorld->HasComponentPool<MainPlayerComponent>())
+		return false;
+
+	auto entities = mWorld->GetEntitiesWithComponents<
 		PlayerMovementComponent,
 		MainPlayerComponent,
 		BeatComponent,
 		LocalPlayerComponent>();
 
-	if (entitys.empty())
+	if (entities.empty())
+		return false;
+
+	ctx.playerEntity = entities[0];
+	ctx.movement = mWorld->GetComponent<PlayerMovementComponent>(ctx.playerEntity);
+	ctx.player = mWorld->GetComponent<MainPlayerComponent>(ctx.playerEntity);
+	ctx.beat = mWorld->GetComponent<BeatComponent>(ctx.playerEntity);
+
+	return ctx.movement != nullptr && ctx.player != nullptr && ctx.beat != nullptr;
+}
+
+bool PlayerInputSystem::IsPlayerDead(const MainPlayerComponent* player) const
+{
+	if (player == nullptr)
+		return false;
+
+	return player->mLowerState == static_cast<int>(ReplicatedMovementMode::Dead) ||
+		player->mUpperState == static_cast<int>(ReplicatedActionState::Dead);
+}
+
+void PlayerInputSystem::UpdateDebugMouseLookInput(const PlayerInputContext& ctx)
+{
+	if (!ctx.paused && INPUT.GetKeyDown(eKeyCode::GRAVE))
+		INPUT.SetForceMouseLook(!INPUT.IsMouseLookActive());
+}
+
+void PlayerInputSystem::UpdateLobbyInput(float, PlayerInputContext&)
+{
+	if (!mWorld->HasComponentPool<ChoicePlayerComponent>())
 		return;
 
+	std::vector<Entity> choiceEntities{ mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>() };
+	if (choiceEntities.empty())
+		return;
 
-	PlayerMovementComponent* movementComponent = mWorld->GetComponent<PlayerMovementComponent>(entitys[0]);
-	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
-	BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entitys[0]);
+	ChoicePlayerComponent* choice = mWorld->GetComponent<ChoicePlayerComponent>(choiceEntities[0]);
+	if (choice == nullptr)
+		return;
 
-	// F4 자유 카메라
-	if (cameraTypeComponent->mPlayMode == MAIN_CAMERA)
+	bool characterChanged = false;
+	if (INPUT.GetKeyDown(eKeyCode::LEFT))
 	{
-		TransformComponent* camTransform = mWorld->GetComponent<TransformComponent>(mainCameraEntitys[0]);
+		choice->mPlayerType = (choice->mPlayerType + 2) % 3;
+		characterChanged = true;
+	}
+	else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
+	{
+		choice->mPlayerType = (choice->mPlayerType + 1) % 3;
+		characterChanged = true;
+	}
 
-		// 진입 순간 현재 카메라 위치/회전에서 시작
-		if (!cameraTypeComponent->mFreeCamInit && camTransform)
+	if (characterChanged)
+	{
+		if (auto eventMgr = mWorld->GetEventManager())
+			eventMgr->Enqueue(EvRoomCharacterChanged{ choice->mPlayerType });
+	}
+
+	bool inRoom = false;
+	if (mWorld->HasComponentPool<LobbyRoomListComponent>())
+	{
+		auto listEntities = mWorld->GetEntitiesWithComponent<LobbyRoomListComponent>();
+		if (!listEntities.empty())
 		{
-			cameraTypeComponent->mFreeCamPos = camTransform->mLocalPosition;
-			cameraTypeComponent->mFreeYaw    = camTransform->mLocalRotationE.y;
-			cameraTypeComponent->mFreePitch  = camTransform->mLocalRotationE.x;
-			cameraTypeComponent->mFreeCamInit = true;
+			auto* list = mWorld->GetComponent<LobbyRoomListComponent>(listEntities[0]);
+			inRoom = (list != nullptr) && (list->mCurrentRoomId != 0);
 		}
+	}
 
-		// 마우스 룩으로 자유 시점 회전
-		if (INPUT.IsMouseLookActive())
+	if (!inRoom || !INPUT.GetKeyDown(eKeyCode::R) || !mWorld->HasComponentPool<LobbyRoomStateComponent>())
+		return;
+
+	std::vector<Entity> roomStateEntities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
+	if (roomStateEntities.empty())
+		return;
+
+	LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(roomStateEntities[0]);
+	const uint32 myClientId = Network::GetInstance().mClientId;
+	bool currentReady = false;
+
+	if (state != nullptr)
+	{
+		for (const auto& slot : state->mSlots)
 		{
-			auto mouseDelta = INPUT.GetMouseState().Delta;
-			float dPitch = (std::abs(mouseDelta.y) > deadzone) ? (float)mouseDelta.y : 0.0f;
-			float dYaw   = (std::abs(mouseDelta.x) > deadzone) ? (float)mouseDelta.x : 0.0f;
-			cameraTypeComponent->mFreePitch += dPitch * sensitivity * mDPI;
-			cameraTypeComponent->mFreeYaw   += dYaw   * sensitivity * mDPI;
-			cameraTypeComponent->mFreePitch = std::clamp(cameraTypeComponent->mFreePitch, -85.0f, 85.0f);
+			if (slot.sessionId != 0 && slot.sessionId == myClientId)
+			{
+				currentReady = slot.ready;
+				break;
+			}
 		}
-		INPUT.MouseStateClear();
-
-		// 플레이어 멈춤
-		movementComponent->mMovingDirection = { 0, 0, 0 };
-		movementComponent->mJump    = false;
-		movementComponent->mDash    = false;
-		movementComponent->mAttack  = false;
-		movementComponent->mSkill1  = false;
-		movementComponent->mSkill2  = false;
-		movementComponent->mReload  = false;
-		movementComponent->mSpecial = false;
-		mainPlayerComponent->mSpeed = 0.f;
-		return;
 	}
 
-	// 일시정지 중에는 로컬 플레이어 입력을 모두 무력화하고 종료.
-	if (paused)
+	if (auto eventMgr = mWorld->GetEventManager())
+		eventMgr->Enqueue(EvRoomReadyChanged{ !currentReady });
+}
+
+void PlayerInputSystem::UpdateCameraModeInput(PlayerInputContext& ctx)
+{
+	if (ctx.cameraType == nullptr)
+		return;
+
+	if (INPUT.GetKeyDown(eKeyCode::F1))
 	{
-		movementComponent->mMovingDirection = { 0, 0, 0 };
-		movementComponent->mJump    = false;
-		movementComponent->mDash    = false;
-		movementComponent->mAttack  = false;
-		movementComponent->mSkill1  = false;
-		movementComponent->mSkill2  = false;
-		movementComponent->mReload  = false;
-		movementComponent->mSpecial = false;
-		mainPlayerComponent->mSpeed = 0.f;
-		INPUT.MouseStateClear();
-		return;
+		ctx.cameraType->mPlayMode = ONE_FPS;
 	}
-
-	const bool playerDead =
-		mainPlayerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Dead) ||
-		mainPlayerComponent->mUpperState == static_cast<int>(ReplicatedActionState::Dead);
-
-	if (playerDead)	// 사망 상태 
+	else if (INPUT.GetKeyDown(eKeyCode::F2))
 	{
-		movementComponent->mMovingDirection = { 0, 0, 0 };
-		movementComponent->mJump = false;
-		movementComponent->mDash = false;
-		movementComponent->mAttack = false;
-		movementComponent->mSkill1 = false;
-		movementComponent->mSkill2 = false;
-		movementComponent->mReload = false;
-		movementComponent->mSpecial = false;
-		mainPlayerComponent->mSpeed = 0.0f;
-		INPUT.MouseStateClear();
-		return;
+		ctx.cameraType->mPlayMode = THREE_FPS;
+	}
+	else if (INPUT.GetKeyDown(eKeyCode::F3))
+	{
+		ctx.cameraType->mPlayMode = THREE_RPG;
+	}
+	else if (INPUT.GetKeyDown(eKeyCode::F4))
+	{
+		ctx.cameraType->mPlayMode = MAIN_CAMERA;
+		ctx.cameraType->mFreeCamInit = false;
+	}
+}
+
+bool PlayerInputSystem::UpdateFreeCameraInput(float, PlayerInputContext& ctx)
+{
+	if (ctx.cameraType == nullptr || ctx.cameraType->mPlayMode != MAIN_CAMERA)
+		return false;
+
+	TransformComponent* camTransform = mWorld->GetComponent<TransformComponent>(ctx.mainCameraEntity);
+
+	if (!ctx.cameraType->mFreeCamInit && camTransform != nullptr)
+	{
+		ctx.cameraType->mFreeCamPos = camTransform->mLocalPosition;
+		ctx.cameraType->mFreeYaw = camTransform->mLocalRotationE.y;
+		ctx.cameraType->mFreePitch = camTransform->mLocalRotationE.x;
+		ctx.cameraType->mFreeCamInit = true;
+	}
+
+	if (INPUT.IsMouseLookActive())
+	{
+		auto mouseDelta = INPUT.GetMouseState().Delta;
+		float dPitch = (std::abs(mouseDelta.y) > deadzone) ? static_cast<float>(mouseDelta.y) : 0.0f;
+		float dYaw = (std::abs(mouseDelta.x) > deadzone) ? static_cast<float>(mouseDelta.x) : 0.0f;
+		ctx.cameraType->mFreePitch += dPitch * sensitivity * mDPI;
+		ctx.cameraType->mFreeYaw += dYaw * sensitivity * mDPI;
+		ctx.cameraType->mFreePitch = std::clamp(ctx.cameraType->mFreePitch, -85.0f, 85.0f);
 	}
 
 
-	if (!INPUT.GetKey(eKeyCode::W) && !INPUT.GetKey(eKeyCode::A) && !INPUT.GetKey(eKeyCode::S) && !INPUT.GetKey(eKeyCode::D)) {
-		mainPlayerComponent->mSpeed = 0.f;
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, IdleState::Instance());
-	}
-	else {
-		//if (mainPlayerComponent->GetState() == S_Dash)mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-		//else mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed;
+	ClearGameplayInput(ctx);
+	INPUT.MouseStateClear();
+	return true;
+}
+
+bool PlayerInputSystem::UpdatePausedInput(PlayerInputContext& ctx)
+{
+	if (!ctx.paused)
+		return false;
+
+
+	ClearGameplayInput(ctx);
+	INPUT.MouseStateClear();
+	return true;
+}
+
+bool PlayerInputSystem::UpdateDeadInput(PlayerInputContext& ctx)
+{
+	if (!IsPlayerDead(ctx.player))
+		return false;
+
+	
+	if (DeathCamComponent* death = mWorld->GetComponent<DeathCamComponent>(ctx.mainCameraEntity))
+	{
+		if (INPUT.GetMouseLeftDown())
+			death->mSpectateCycleReq = 1;
+		else if (INPUT.GetMouseRightDown())
+			death->mSpectateCycleReq = -1;
 	}
 
-	movementComponent->mMovingDirection = { 0,0,0 };
-	movementComponent->mJump = INPUT.GetKey(eKeyCode::SPACE);
-	movementComponent->mDash = INPUT.GetKey(eKeyCode::SHIFT);
-	// 디버그 모드(마우스 룩 비활성)에서는 마우스 클릭을 게임에 반영하지 않음
+	ClearGameplayInput(ctx);
+	INPUT.MouseStateClear();
+	return true;
+}
+
+void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
+{
+	if (!INPUT.GetKey(eKeyCode::W) && !INPUT.GetKey(eKeyCode::A) &&
+		!INPUT.GetKey(eKeyCode::S) && !INPUT.GetKey(eKeyCode::D))
+	{
+		ctx.player->mSpeed = 0.f;
+	}
+
+	ctx.movement->mMovingDirection = { 0, 0, 0 };
+	ctx.movement->mJump = INPUT.GetKey(eKeyCode::SPACE);
+	ctx.movement->mDash = INPUT.GetKey(eKeyCode::SHIFT);
+
 	const bool mouseLook = INPUT.IsMouseLookActive();
-	movementComponent->mAttack = mouseLook && INPUT.GetMouseState().LeftDown;
-	movementComponent->mSkill1 = INPUT.GetKey(eKeyCode::Q);
-	movementComponent->mSkill2 = INPUT.GetKey(eKeyCode::E);
-	movementComponent->mReload = INPUT.GetKey(eKeyCode::R);
-	movementComponent->mSpecial = mouseLook && INPUT.GetMouseRightDown();
-
+	ctx.movement->mAttack = mouseLook && INPUT.GetMouseState().LeftDown;
+	ctx.movement->mSkill1 = INPUT.GetKey(eKeyCode::Q);
+	ctx.movement->mSkill2 = INPUT.GetKey(eKeyCode::E);
+	ctx.movement->mReload = INPUT.GetKey(eKeyCode::R);
+	ctx.movement->mSpecial = mouseLook && INPUT.GetMouseRightDown();
 
 	if (INPUT.GetMouseRightDown())
 	{
-		mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm + 1) % 4;
-		if (mainPlayerComponent->mNextRhythm != mainPlayerComponent->mRhythm)
-			mainPlayerComponent->mHasQueuedRhythmChange = true;
+		ctx.player->mNextRhythm = (ctx.player->mNextRhythm + 1) % 4;
+		if (ctx.player->mNextRhythm != ctx.player->mRhythm)
+			ctx.player->mHasQueuedRhythmChange = true;
 
-		cout << "next rythm:" << (int)mainPlayerComponent->mNextRhythm << endl;
-		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ mainPlayerComponent->mNextRhythm });
+		cout << "next rythm:" << static_cast<int>(ctx.player->mNextRhythm) << endl;
+		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ ctx.player->mNextRhythm });
 	}
 
+	if (INPUT.GetKey(eKeyCode::A))
+		ctx.movement->mMovingDirection.x -= 1;
+	if (INPUT.GetKey(eKeyCode::W))
+		ctx.movement->mMovingDirection.z += 1;
+	if (INPUT.GetKey(eKeyCode::S))
+		ctx.movement->mMovingDirection.z -= 1;
+	if (INPUT.GetKey(eKeyCode::D))
+		ctx.movement->mMovingDirection.x += 1;
 
-	if (INPUT.GetKey(eKeyCode::A)) {
-		movementComponent->mMovingDirection.x -= 1;
-	}
-	if (INPUT.GetKey(eKeyCode::W)) {
-		movementComponent->mMovingDirection.z += 1;
-	}
-	if (INPUT.GetKey(eKeyCode::S)) {
-		movementComponent->mMovingDirection.z -= 1;
-	}
-	if (INPUT.GetKey(eKeyCode::D)) {
-		movementComponent->mMovingDirection.x += 1;
-	}
-
-	if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
-		if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
-		else cout << "fail" << endl;
-		
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, JumpState::Instance());
-		//movementComponent->mJump = true;
-		
-	}
-	if (INPUT.GetKeyDown(eKeyCode::SHIFT)) {
-		//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, DashState::Instance());
-
+	if (INPUT.GetKeyDown(eKeyCode::SPACE))
+	{
+		if (ctx.beat->mBouns)
+			cout << "Hit Beat!" << endl;
+		else
+			cout << "fail" << endl;
 	}
 
-	
+	if (INPUT.GetKey(eKeyCode::Q))
+		ctx.movement->mMovingDirection.y -= 1;
+	if (INPUT.GetKey(eKeyCode::E))
+		ctx.movement->mMovingDirection.y += 1;
 
-	if (INPUT.GetKey(eKeyCode::Q)) {
-		movementComponent->mMovingDirection.y -= 1;
-	}
-	if (INPUT.GetKey(eKeyCode::E)) {
-		movementComponent->mMovingDirection.y += 1;
-	}
-
-
-
-
-	if (INPUT.IsMouseLookActive()) {
-		//attack
-
-
+	if (INPUT.IsMouseLookActive())
+	{
 		auto mouseDelta = INPUT.GetMouseState().Delta;
 
-		// 미세한 노이즈 제거
-		float deltaX = (std::abs(mouseDelta.y) > deadzone) ? (float)mouseDelta.y : 0.0f;
-		float deltaY = (std::abs(mouseDelta.x) > deadzone) ? (float)mouseDelta.x : 0.0f;
+		float deltaX = (std::abs(mouseDelta.y) > deadzone) ? static_cast<float>(mouseDelta.y) : 0.0f;
+		float deltaY = (std::abs(mouseDelta.x) > deadzone) ? static_cast<float>(mouseDelta.x) : 0.0f;
 
-		movementComponent->mTargetRotation.x += deltaX * sensitivity * mDPI;
-		movementComponent->mTargetRotation.y += deltaY * sensitivity * mDPI;
-		movementComponent->mTargetRotation.x = std::clamp(movementComponent->mTargetRotation.x, -60.0f, 60.0f);
+		ctx.movement->mTargetRotation.x += deltaX * sensitivity * mDPI;
+		ctx.movement->mTargetRotation.y += deltaY * sensitivity * mDPI;
+		ctx.movement->mTargetRotation.x = std::clamp(ctx.movement->mTargetRotation.x, -60.0f, 60.0f);
 
 		float alpha = std::clamp(dt * lerpFactor, 0.0f, 1.0f);
-		
 
-		movementComponent->mCurrentRotation.x = std::lerp(movementComponent->mCurrentRotation.x, movementComponent->mTargetRotation.x, alpha);
-		movementComponent->mCurrentRotation.y = std::lerp(movementComponent->mCurrentRotation.y, movementComponent->mTargetRotation.y, alpha);
+		ctx.movement->mCurrentRotation.x = std::lerp(ctx.movement->mCurrentRotation.x, ctx.movement->mTargetRotation.x, alpha);
+		ctx.movement->mCurrentRotation.y = std::lerp(ctx.movement->mCurrentRotation.y, ctx.movement->mTargetRotation.y, alpha);
 
-
-		movementComponent->mCameraRotationX = movementComponent->mCurrentRotation.x;
-		movementComponent->mCameraRotationY = movementComponent->mCurrentRotation.y;
-
-		// 짐벌락 방지 클램핑 (Pitch)
-		movementComponent->mCameraRotationX = std::clamp(movementComponent->mCameraRotationX, -60.0f, 60.0f);
+		ctx.movement->mCameraRotationX = ctx.movement->mCurrentRotation.x;
+		ctx.movement->mCameraRotationY = ctx.movement->mCurrentRotation.y;
+		ctx.movement->mCameraRotationX = std::clamp(ctx.movement->mCameraRotationX, -60.0f, 60.0f);
 	}
 
-
-		////screen move
-		//movementComponent->mCameraRotationX += (float)INPUT.GetMouseState().Delta.y * dt * mDPI;
-		//movementComponent->mCameraRotationY += (float)INPUT.GetMouseState().Delta.x * dt * mDPI;
-		INPUT.MouseStateClear();
-	
-
-	mainPlayerComponent->Update(dt);
-
+	INPUT.MouseStateClear();
+	ctx.player->Update(dt);
 }
+
+
+
+

@@ -50,12 +50,14 @@
 #include "WeaponTrailSystem.h"
 #include "DashSpeedLineSystem.h"
 #include "PlayerSystem.h"
+#include "SpectateSystem.h"
 #include "ParticleSystem.h"
 #include "VfxSystem.h"
 
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
 #include "HUDPortraitUpdateFeature.h"
+//#include "HUDSkillCooldownFeature.h"
 #include "IMGUISystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
@@ -1572,6 +1574,9 @@ void FirstScene::Initialize()
 	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
 	mUIFeatures.push_back(portraitModule);
 
+	/*auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
+	mUIFeatures.push_back(skillCooldownModule);*/
+
 
 	for (const auto& feature : mUIFeatures)
 	{
@@ -1604,6 +1609,7 @@ void FirstScene::Initialize()
 
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();  // Sim: 관전 대상 선정(입력=PlayerInputSystem, 프레이밍=CameraSystem)
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();

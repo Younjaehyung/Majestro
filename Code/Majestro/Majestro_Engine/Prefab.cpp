@@ -7,6 +7,7 @@
 #include "TransformComponent.h"
 #include "RenderComponent.h"
 #include "CameraComponent.h"
+#include "DeathCamComponent.h"
 #include "LightComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"
@@ -21,6 +22,7 @@
 #include "UISpriteComponent.h"
 #include "UIComponent.h"
 #include "HUDPortraitSlotComponent.h"
+#include "HUDSkillSlotComponent.h"
 #include "BeatComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
@@ -88,6 +90,7 @@ PlayerPrefab::PlayerPrefab(World* world)
 	world->AddComponent<CameraComponent>(testCamera);
 	world->AddComponent<TransformComponent>(testCamera, t);
 	world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
+	world->AddComponent<DeathCamComponent>(testCamera);
 
 	//FBX File's Mesh [Naming Convention : SM_(Meshname)_(parts)]
 	shared_ptr<Mesh> phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
@@ -449,13 +452,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		auto& dashLine = world->AddComponent<DashSpeedLineComponent>(mEntityID);
 		dashLine.mSourceEntity = mEntityID;
 		dashLine.mAutoActivateOnDash = true;
-		dashLine.mLifetime = 0.18f;
-		dashLine.mSampleInterval = 0.01f;
-		dashLine.mLineCount = 5;
-		dashLine.mLineWidth = 8.0f;
-		dashLine.mLineSpread = 50.0f;
-		dashLine.mBaseAlpha = 0.6f;
-		dashLine.mIntensity = 2.0f;
+		dashLine.mTextureName = L"DashSmoke"; // 대쉬 연기/베이퍼 텍스처        
+
 	}
 
 	world->AddComponent<BeatComponent>(mEntityID);
@@ -474,8 +472,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<CameraComponent>(testCamera);
 		world->AddComponent<TransformComponent>(testCamera, t);
 		world->AddComponent<CameraTypeComponent>(testCamera, mEntityID.GetID(), THREE_FPS);
+		world->AddComponent<DeathCamComponent>(testCamera);
 
 		HUDPortraitPrefab::HUDPortraitPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+		HUDSkillBarPrefab::HUDSkillBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type);
 		HUDWeaponPrefab::HUDWeaponPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDMusicPrefab::HUDMusicPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
@@ -1007,6 +1007,50 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 {
 }
 
+HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 /*playerType*/)
+{
+	// v1 범위: Skill1, Skill2 두 칸. 각 칸 = 아이콘 1 + 오버레이 1.
+	// 좌표/크기/텍스처는 placeholder (디자인 협의 전). 텍스처 없이도 배선 검증 가능.
+	const std::array<Vec2, 2> kSkillPos = { Vec2(340.f, -300.f), Vec2(452.f, -300.f) };
+	const Vec2  kSkillSize = Vec2(96.f, 96.f);
+	const uint8 kSkillSlotId[2] = { 1, 2 };  // Skill1, Skill2
+
+	for (int i = 0; i < 2; ++i)
+	{
+		Entity icon = world->CreateEntity();
+		{
+			auto& t = world->AddComponent<UITransformComponent>(icon);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = kSkillPos[i];
+			t.mSize = kSkillSize;
+			t.mUILayerIndex = 6;
+			auto& sp = world->AddComponent<UISpriteComponent>(icon /*, 스킬 아이콘 텍스처(추후)*/);
+			sp.mVisible = true;
+		}
+
+		Entity overlay = world->CreateEntity();
+		{
+			auto& t = world->AddComponent<UITransformComponent>(overlay);
+			t.mAnchor = Anchor::BottomLeft;
+			t.mPosition = kSkillPos[i];
+			t.mSize = kSkillSize;
+			t.mPivot = Vec2(0.f, 0.f);
+			t.mUILayerIndex = 7;   // 아이콘 위
+			auto& sp = world->AddComponent<UISpriteComponent>(overlay /*, 반투명 검정 텍스처(추후)*/);
+			sp.mVisible = false;
+		}
+
+		auto& slot = world->AddComponent<HUDSkillSlotComponent>(icon);
+		slot.mSkillSlot = kSkillSlotId[i];
+		slot.mIcon = icon;
+		slot.mOverlay = overlay;
+	}
+}
+
+HUDSkillBarPrefab::~HUDSkillBarPrefab()
+{
+}
+
 HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
 	{
@@ -1247,7 +1291,7 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 			switch (playerType) {
 			case Rudwig:
 			{
-				text.mText = L"OO";
+				text.mText = L"∞";
 				
 			}
 				break;

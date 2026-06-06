@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "CameraComponent.h"
+#include "DeathCamComponent.h"
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
 #include "InputManager.h"
@@ -46,7 +47,58 @@ void CameraSystem::Update(float dt)
 			auto& renderPool = mWorld->GetComponentPool<RenderComponent>();
 			RenderComponent* targetRender = renderPool.GetComponent(cameraTypeComponent->mTargetID);
 
-			if (cameraTypeComponent->mPlayMode == ONE_FPS) {
+			// 사망 카메라 연출 처리 
+			auto& playerPool = mWorld->GetComponentPool<MainPlayerComponent>();
+			MainPlayerComponent* targetPlayer = playerPool.GetComponent(cameraTypeComponent->mTargetID);
+			DeathCamComponent* death = mWorld->GetComponent<DeathCamComponent>(entity);
+			const bool isDead = targetPlayer &&
+				(targetPlayer->mLowerState == static_cast<int>(ReplicatedMovementMode::Dead) ||
+				 targetPlayer->mUpperState == static_cast<int>(ReplicatedActionState::Dead));
+
+			if (death)
+			{
+				if (!isDead)
+				{
+					// 낙사 판정 지점
+					const bool grounded = targetPlayer &&
+						(targetPlayer->mLowerState == static_cast<int>(ReplicatedMovementMode::Idle)     ||
+						 targetPlayer->mLowerState == static_cast<int>(ReplicatedMovementMode::Grounded) ||
+						 targetPlayer->mLowerState == static_cast<int>(ReplicatedMovementMode::Landing)  ||
+						 targetPlayer->mLowerState == static_cast<int>(ReplicatedMovementMode::Dashing));
+					if (grounded)
+					{
+						death->mGroundedAnchorPos = transformComponent->mLocalPosition;
+						death->mHasGroundedAnchor = true;
+					}
+					// 부활 시 데스캠 리셋
+					if (death->mActive)
+					{
+						death->mActive         = false;
+						death->mSpectating     = false;
+						death->mElapsed        = 0.f;
+						death->mSpectateTarget = 0;
+					}
+				}
+				else if (!death->mActive)
+				{
+					// 사망
+					death->mActive         = true;
+					death->mElapsed        = 0.f;
+					death->mSpectating     = false;
+					death->mSpectateTarget = 0;
+					death->mWasFall        = (playerPos->mLocalPosition.y < death->mFallDeathY);
+
+					if (death->mWasFall && death->mHasGroundedAnchor)
+						death->mCamPos = death->mGroundedAnchorPos; // 낙사: 마지막 지면
+					else
+						death->mCamPos = transformComponent->mLocalPosition;      // 일반: 현재 카메라 위치
+				}
+			}
+
+			if (death && death->mActive) {
+				UpdateDeathCamera(cameraTypeComponent, death, transformComponent, playerPos, dt);
+			}
+			else if (cameraTypeComponent->mPlayMode == ONE_FPS) {
 				// F1 1인칭: 카메라를 머리 위치(yaw 공간 고정 오프셋)에 배치
 				transformComponent->mLocalRotationE.x = movementComponent->mCameraRotationX;
 				transformComponent->mLocalRotationE.y = movementComponent->mCameraRotationY;
@@ -90,8 +142,8 @@ void CameraSystem::Update(float dt)
 					targetRender->mOpacity = 1.f;
 				cameraTypeComponent->mCurrentFadeAlpha = 1.f;
 			}
-			// 카메라 쉐이크: 공격 등의 임팩트 시 pitch를 sin 파형으로 진동
-			if (cameraTypeComponent && cameraTypeComponent->mShakeRemaining > 0.f)
+			// 카메라 쉐이크
+			if (cameraTypeComponent && !(death && death->mActive) && cameraTypeComponent->mShakeRemaining > 0.f)
 			{
 				cameraTypeComponent->mShakeRemaining -= dt;
 				cameraTypeComponent->mShakeTimeAcc   += dt;
@@ -239,6 +291,50 @@ void CameraSystem::UpdateFreeCamera(CameraTypeComponent* camType, TransformCompo
 
 	camType->mFreeCamPos += dir * dt * camType->mFreeCamSpeed;
 	transform->mLocalPosition = camType->mFreeCamPos;
+}
+
+
+void CameraSystem::UpdateDeathCamera(CameraTypeComponent* camType, DeathCamComponent* death,
+	TransformComponent* transform, TransformComponent* selfPlayer, float dt)
+{
+	death->mElapsed += dt;
+
+	// 사망 지점
+	transform->mLocalPosition = death->mCamPos;
+
+	// 자기 모델
+	auto& renderPool = mWorld->GetComponentPool<RenderComponent>();
+	if (RenderComponent* selfRender = renderPool.GetComponent(camType->mTargetID))
+		selfRender->mOpacity = 1.f;
+	camType->mCurrentFadeAlpha = 1.f;
+
+	// 기본 응시 대상 (자기 캐릭터)
+	Vec3 lookTarget = selfPlayer->mLocalPosition;
+	lookTarget.y += death->mLookHeight;
+
+	// 관전 대상
+	if (death->mSpectating && death->mSpectateTarget != 0)
+	{
+		auto& tfPool = mWorld->GetComponentPool<TransformComponent>();
+		if (TransformComponent* tp = tfPool.GetComponent(death->mSpectateTarget))
+		{
+			lookTarget = tp->mLocalPosition;
+			lookTarget.y += death->mLookHeight;
+		}
+	}
+
+	// 플레이어 바라보게끔함
+	Vec3 dir = lookTarget - transform->mLocalPosition;
+	if (dir.LengthSquared() > 1e-4f)
+	{
+		dir.Normalize();
+		const float yawDeg   =  DirectX::XMConvertToDegrees(atan2f(dir.x, dir.z));
+		const float pitchDeg = -DirectX::XMConvertToDegrees(asinf(std::clamp(dir.y, -1.f, 1.f)));
+		transform->mLocalRotationE.x = pitchDeg;
+		transform->mLocalRotationE.y = yawDeg;
+		transform->mLocalRotationE.z = 0.f;
+	}
+	transform->FinalUpdate();
 }
 
 

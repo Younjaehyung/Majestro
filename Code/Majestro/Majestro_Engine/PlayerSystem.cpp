@@ -45,7 +45,7 @@ void PlayerSystem::Update(float dt)
 		CameraTypeComponent* mainPlayer = mWorld->GetComponent<CameraTypeComponent>(entity);
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(mainPlayer->mTargetID);
-		
+
 
 		//if(mainPlayerComponent->mStatePacket == S_Attack1)
 		//{
@@ -157,3 +157,5 @@ void PlayerSystem::Update(float dt)
 
 	}
 }
+
+

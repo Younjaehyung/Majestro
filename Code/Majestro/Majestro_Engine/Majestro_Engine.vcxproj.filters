@@ -391,6 +391,9 @@
     <ClInclude Include="CameraComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="DeathCamComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="BeatComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
@@ -612,6 +615,9 @@
       <Filter>World\Script</Filter>
     </ClInclude>
     <ClInclude Include="PlayerSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="SpectateSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="GameRenderPipeline.h">
@@ -917,6 +923,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="PlayerSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SpectateSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="TransformSystem.cpp">

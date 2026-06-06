@@ -6,6 +6,7 @@ class CameraComponent;
 class CameraTypeComponent;
 class TransformComponent;
 class PlayerMovementComponent;
+class DeathCamComponent;
 
 class CameraSystem : public System
 {
@@ -23,5 +24,9 @@ private:
 
 	// MAIN_CAMERA 자유 비행 카메라
 	void UpdateFreeCamera(CameraTypeComponent* camType, TransformComponent* transform, float dt);
+
+	// 사망 카메라
+	void UpdateDeathCamera(CameraTypeComponent* camType, DeathCamComponent* death,
+		TransformComponent* transform, TransformComponent* selfPlayer, float dt);
 };
 

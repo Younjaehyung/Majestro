@@ -209,6 +209,7 @@
     <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraSystem.h" />
+    <ClInclude Include="DeathCamComponent.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
     <ClInclude Include="DualKawaseBlurPass.h" />
     <ClInclude Include="FXAAPass.h" />
@@ -309,6 +310,7 @@
     <ClInclude Include="PlayerComponent.h" />
     <ClInclude Include="PlayerInputSystem.h" />
     <ClInclude Include="PlayerSystem.h" />
+    <ClInclude Include="SpectateSystem.h" />
     <ClInclude Include="RenderPass.h" />
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="RecvBuffer.h" />
@@ -475,6 +477,7 @@
     <ClCompile Include="PlayerComponent.cpp" />
     <ClCompile Include="PlayerInputSystem.cpp" />
     <ClCompile Include="PlayerSystem.cpp" />
+    <ClCompile Include="SpectateSystem.cpp" />
     <ClCompile Include="RenderPass.cpp" />
     <ClCompile Include="Prefab.cpp" />
     <ClCompile Include="RecvBuffer.cpp" />

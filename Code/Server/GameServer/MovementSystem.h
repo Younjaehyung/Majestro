@@ -27,6 +27,7 @@ private:
 	void UpdateBullet(float deltaTime);
 
 	// 수평 이동을 Jolt StaticCollision(벽+바닥) 구 sweep 으로 해석하고 벽을 따라 슬라이드
+	Vec3 ResolvePlayerMoveByJolt(GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd);
 	Vec3 SweepSlideHorizontal(GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd);
 
 private:

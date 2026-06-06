@@ -125,6 +125,7 @@ public: // Query
     bool AddTerrainRayCastMesh(const CollisionMesh& mesh, const Matrix& worldMatrix);
     bool AddStaticCollisionMesh(Entity owner, const CollisionMesh& mesh, const Matrix& worldMatrix);
     bool CastMovingSphereAgainstStatic(const Vector3& start, const Vector3& end, float radius, JoltStaticHit& outHit) const;
+    bool ResolveSphereOverlapAgainstStatic(const Vector3& center, float radius, Vector3& outCorrection) const;
     void OptimizeJoltStaticCollision();
     bool HasJoltTerrain() const;
 public: // utils

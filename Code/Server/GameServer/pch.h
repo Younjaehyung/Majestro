@@ -86,7 +86,7 @@ using namespace DirectX::SimpleMath;
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
-
+#include <Jolt/Physics/Collision/CollideShape.h>
 
 #ifdef _DEBUG
 #pragma comment(lib, "Jolt/Jolt_D.lib")

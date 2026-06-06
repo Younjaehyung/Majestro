@@ -14,6 +14,7 @@
 
 
 
+
 namespace
 {
 	namespace JoltLayers
@@ -411,6 +412,62 @@ struct JoltTerrainState
 
 		if (outHit.point.LengthSquared() <= 1e-8f)
 			outHit.point = start + delta * fraction;
+		return true;
+	}
+
+	bool ResolveSphereOverlap(const Vec3& center, float radius, Vec3& outCorrection) const
+	{
+		outCorrection = Vec3::Zero;
+		if (BodyIDs.empty() || radius <= 0.0f)
+			return false;
+
+		class StaticOverlapCollector final : public JPH::CollideShapeCollector
+		{
+		public:
+			virtual void AddHit(const JPH::CollideShapeResult& inResult) override
+			{
+				if (inResult.mPenetrationDepth <= 0.0f)
+					return;
+
+				JPH::Vec3 normal = -inResult.mPenetrationAxis.NormalizedOr(JPH::Vec3::sZero());
+				if (normal.LengthSq() <= 1.0e-8f)
+					return;
+
+				const Vec3 correction = FromJoltVec3(normal) * inResult.mPenetrationDepth;
+				const float horizontalSq = correction.x * correction.x + correction.z * correction.z;
+				if (horizontalSq > BestHorizontalSq)
+				{
+					BestHorizontalSq = horizontalSq;
+					BestCorrection = correction;
+				}
+			}
+
+			Vec3 BestCorrection = Vec3::Zero;
+			float BestHorizontalSq = 0.0f;
+		};
+
+		JPH::SphereShape sphere(radius);
+		const JPH::RMat44 shapeTransform = JPH::RMat44::sTranslation(ToJoltRVec3(center));
+
+		JPH::CollideShapeSettings settings;
+		settings.mBackFaceMode = JPH::EBackFaceMode::CollideWithBackFaces;
+
+		StaticOverlapCollector collector;
+		JPH::SpecifiedObjectLayerFilter staticOnly(JoltLayers::StaticCollision);
+		PhysicsSystem.GetNarrowPhaseQuery().CollideShape(
+			&sphere,
+			JPH::Vec3::sReplicate(1.0f),
+			shapeTransform,
+			settings,
+			JPH::RVec3::sZero(),
+			collector,
+			{},
+			staticOnly);
+
+		if (collector.BestHorizontalSq <= 1.0e-8f)
+			return false;
+
+		outCorrection = collector.BestCorrection;
 		return true;
 	}
 
@@ -1140,6 +1197,13 @@ bool PhysicsWorld::CastMovingSphereAgainstStatic(const Vector3& start, const Vec
 	if (!mJoltTerrain)
 		return false;
 	return mJoltTerrain->CastMovingSphere(start, end, radius, outHit);
+}
+
+bool PhysicsWorld::ResolveSphereOverlapAgainstStatic(const Vector3& center, float radius, Vector3& outCorrection) const
+{
+	if (!mJoltTerrain)
+		return false;
+	return mJoltTerrain->ResolveSphereOverlap(center, radius, outCorrection);
 }
 
 void PhysicsWorld::OptimizeJoltStaticCollision()

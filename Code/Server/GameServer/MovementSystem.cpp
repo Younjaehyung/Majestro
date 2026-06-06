@@ -92,11 +92,17 @@ void MovementSystem::UpdateEvent(float dt)
 
 				if (auto* tr = mWorld->GetComponent<TransformComponent>(e.target))
 				{
-					tr->mLocalPosition.x += e.x;
-					tr->mLocalPosition.z += e.z;
+					GravityComponent* gr = mWorld->GetComponent<GravityComponent>(e.target);
+					Vec3 prevPos = tr->mLocalPosition;
+					Vec3 desiredEnd = prevPos;
+					desiredEnd.x += e.x;
+					desiredEnd.z += e.z;
 
-					tr->mMovingVector.x += e.x;
-					tr->mMovingVector.z += e.z;
+					Vec3 resolved = ResolvePlayerMoveByJolt(gr, prevPos, desiredEnd);
+					tr->mLocalPosition.x = resolved.x;
+					tr->mLocalPosition.z = resolved.z;
+					tr->mMovingVector.x += resolved.x - prevPos.x;
+					tr->mMovingVector.z += resolved.z - prevPos.z;
 				}
 
 				if (e.y != 0.0f)
@@ -153,6 +159,7 @@ void MovementSystem::UpdatePlayer(float dt)
 			//if (mainPlayerComponent->mPlayerType == 1 || mainPlayerComponent->mPlayerType == 2) correction = 3.14159265358979323846f;
 
 
+			Vec3 desiredMove = Vec3::Zero;
 			if (cameraTypeComponent->mPlayMode == ONE_FPS || cameraTypeComponent->mPlayMode == THREE_FPS) {
 				Vec3 forward = transformComponent->GetLook();
 				Vec3 right = transformComponent->GetRight();
@@ -168,8 +175,7 @@ void MovementSystem::UpdatePlayer(float dt)
 				if (desired.LengthSquared() > 0.0001f)
 					desired.Normalize();
 
-				transformComponent->mMovingVector = desired * dt * mainPlayerComponent->mSpeed;
-				transformComponent->mLocalPosition += transformComponent->mMovingVector;
+				desiredMove = desired * dt * mainPlayerComponent->mSpeed;
 
 				transformComponent->mLocalRotationE.y = inputComponent->Yaw;//movementComponent->mCameraRotationY;
 
@@ -192,9 +198,14 @@ void MovementSystem::UpdatePlayer(float dt)
 				if (mainPlayerComponent->mSpeed > 0) {
 					transformComponent->mLocalRotationE.y = inputComponent->Yaw;
 				}
-				transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
+			
+				desiredMove = desired * dt * mainPlayerComponent->mSpeed;
 
 			}
+
+			
+			transformComponent->mMovingVector = desiredMove;
+			transformComponent->mLocalPosition += transformComponent->mMovingVector;
 
 			TransformComponent* tf = transformComponent;
 			if (!tf) continue;
@@ -216,11 +227,10 @@ void MovementSystem::UpdatePlayer(float dt)
 			{
 				tf->mMovingVector.x = 0.0f;
 				tf->mMovingVector.z = 0.0f;
-				continue;
 			}
 
 			//  벽 처리 : Jolt StaticCollision 구 sweep + 슬라이드
-			Vec3 resolved = SweepSlideHorizontal(gravityComponent, prevPos, desiredEnd);
+			Vec3 resolved = ResolvePlayerMoveByJolt(gravityComponent, prevPos, desiredEnd);
 
 			// 이동 가능 영역 가드: 지면에 있을 때만 NavMesh 밖이면 차단 
 			const bool airborne = gravityComponent
@@ -248,6 +258,27 @@ void MovementSystem::UpdatePlayer(float dt)
 
 }
 
+Vec3 MovementSystem::ResolvePlayerMoveByJolt(GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd)
+{
+	Vec3 totalMove = desiredEnd - prevPos;
+	totalMove.y = 0.0f;
+
+	const float moveLen = sqrtf(totalMove.x * totalMove.x + totalMove.z * totalMove.z);
+	static constexpr float kMaxStepDistance = 20.0f;
+	const int subStepCount = (std::max)(1, (std::min)(12, static_cast<int>(ceilf(moveLen / kMaxStepDistance))));
+
+	Vec3 resolved = prevPos;
+	for (int step = 0; step < subStepCount; ++step)
+	{
+		Vec3 stepEnd = resolved;
+		stepEnd.x += totalMove.x / subStepCount;
+		stepEnd.z += totalMove.z / subStepCount;
+		resolved = SweepSlideHorizontal(grav, resolved, stepEnd);
+	}
+
+	return resolved;
+}
+
 Vec3 MovementSystem::SweepSlideHorizontal(GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd)
 {
 	Vec3 result = prevPos; // Y 는 prevPos.y 유지
@@ -266,7 +297,9 @@ Vec3 MovementSystem::SweepSlideHorizontal(GravityComponent* grav, const Vec3& pr
 
 	static constexpr float kPlayerRadius = 30.0f;
 	static constexpr float kSkin         = 2.0f;
-	static constexpr int   kMaxIters     = 3;     // 슬라이드 반복(모서리에서 자연스럽게 미끄러짐)
+	static constexpr int   kMaxDepenIters = 3;
+	static constexpr float kMaxDepenStep = 12.0f;
+	static constexpr int   kMaxIters     = 5;     // 슬라이드 반복
 
 	// 벽 sweep 구의 바닥을 발 위 stepClear 만큼 띄워서
 	// 오를 수 있는 단은 구 아래로 통과시켜 벽으로 오인하지 않고 그보다 높은 연속 벽만 막는다.
@@ -274,8 +307,40 @@ Vec3 MovementSystem::SweepSlideHorizontal(GravityComponent* grav, const Vec3& pr
 	const float feetY     = grav ? grav->mHight : prevPos.y;
 	const float castY     = feetY + stepClear + kPlayerRadius;
 
+	auto depenetrate = [&]()
+	{
+		for (int i = 0; i < kMaxDepenIters; ++i)
+		{
+			Vec3 correction = Vec3::Zero;
+			const Vec3 probe(result.x, castY, result.z);
+			if (!physics->ResolveSphereOverlapAgainstStatic(probe, kPlayerRadius, correction))
+				break;
+
+			correction.y = 0.0f;
+			float corrLen = sqrtf(correction.x * correction.x + correction.z * correction.z);
+			if (corrLen <= 1e-3f)
+				break;
+
+			if (corrLen > kMaxDepenStep)
+			{
+				const float scale = kMaxDepenStep / corrLen;
+				correction.x *= scale;
+				correction.z *= scale;
+				corrLen = kMaxDepenStep;
+			}
+
+			
+			result.x += correction.x + (correction.x / corrLen) * kSkin;
+			result.z += correction.z + (correction.z / corrLen) * kSkin;
+		}
+	};
+
+	depenetrate();
+
 	for (int iter = 0; iter < kMaxIters; ++iter)
 	{
+		depenetrate();
+
 		const float len = sqrtf(remaining.x * remaining.x + remaining.z * remaining.z);
 		if (len <= 1e-3f)
 			break;

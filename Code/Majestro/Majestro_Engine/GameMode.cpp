@@ -72,11 +72,6 @@ void MenuGameMode::Initialize()
 
 void MenuGameMode::PreUpdate(float deltaTime)
 {
-	if (INPUT.GetKeyDown(eKeyCode::SPACE)) {
-		Network::GetInstance().Awake();
-		mTargetSceneId = SceneId::Lobby;
-		IsSceneChanging() = true;
-	}
 }
 
 void WaveGameMode::Initialize()

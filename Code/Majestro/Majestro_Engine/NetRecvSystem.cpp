@@ -567,6 +567,7 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
     const S2C_RoomStatePacket* pkt = msg.ViewAs<S2C_RoomStatePacket>();
     if (!pkt) return;
 
+    // 로비 씬에서만
     if (!mWorld->HasComponentPool<LobbyRoomStateComponent>())
         return;
 
@@ -582,13 +583,12 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
         if (listComp->mCurrentRoomId != 0 && pkt->roomId != listComp->mCurrentRoomId)
             return;
 
-        // 재접속시 방 다시 접속
-        if (listComp->mCurrentRoomId == 0)
+        const uint32 me = Network::GetInstance().mClientId;
+        if (listComp->mCurrentRoomId == 0 && me != 0)
         {
-            const uint32 me = Network::GetInstance().mClientId;
             for (uint8 i = 0; i < pkt->maxPlayers && i < ROOM_MAX_PLAYERS; ++i)
             {
-                if (pkt->slots[i].sessionId == me)
+                if (pkt->slots[i].sessionId != 0 && pkt->slots[i].sessionId == me)
                 {
                     listComp->mCurrentRoomId = pkt->roomId;
                     break;

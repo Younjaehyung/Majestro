@@ -1007,42 +1007,135 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 {
 }
 
-HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 /*playerType*/)
+HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 {
-	const std::array<Vec2, 2> kSkillPos = { Vec2(340.f, -300.f), Vec2(452.f, -300.f) };
-	const Vec2  kSkillSize = Vec2(96.f, 96.f);
+	const std::array<Vec2, 2> kSkillPos = { Vec2(-452.f, -200.f), Vec2(-250.f, -200.f) };
+
+	const Vec2  kSkillSize = Vec2(128.f, 128.f);
 	const uint8 kSkillSlotId[2] = { 1, 2 };  // Skill1, Skill2
+
+#ifdef _IMGUI
+	std::vector<EditorProperty> props;
+	Entity imguiOwner = NULL_ENTITY;
+#endif
+
+	// 아이콘 아틀라스: 균일 격자 256X256. 열 0=Q(Skill1), 1=E(Skill2).
+	constexpr float kCell = 256.f;
+	int atlasRow = 3;  // 기본 Rudwig
+	switch (playerType)
+	{
+	case Rudwig:  atlasRow = 3; break;
+	case Ibanix:  atlasRow = 2; break;
+	case Fanthor: atlasRow = 1; break;
+	default:      atlasRow = 3; break;
+	}
+
+	shared_ptr<Texture> keyTex   = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
+	shared_ptr<Texture> backTex   = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
+	shared_ptr<Texture> skiilTex = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
+	shared_ptr<Texture> overlayTex = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
 
 	for (int i = 0; i < 2; ++i)
 	{
+		const float cellX = static_cast<float>(i) * kCell;   // 열: i =0 (Q), i=1 (E)
+		const float cellY = static_cast<float>(atlasRow) * kCell;
+		const Vec2 skillKey = Vec2(768.f + static_cast<float>(i) * kCell, 1024.f);
+#ifdef _IMGUI
+		const std::string imguiSlotName = (i == 0) ? "Skill1" : "Skill2";
+#endif
+
+		// 배경 패널 (아이콘 아래)
+		Entity back = world->CreateEntity();
+		{
+			auto& t = world->AddComponent<UITransformComponent>(back);
+			t.mAnchor = Anchor::BottomRight;
+			t.mPosition = kSkillPos[i];
+			t.mSize = kSkillSize;
+			t.mUILayerIndex = 5;
+			auto& sp = world->AddComponent<UISpriteComponent>(back, backTex);
+			sp.SetSourceRect(0, 1024, 512, 512);
+			sp.mVisible = true;
+#ifdef _IMGUI
+			props.push_back({ imguiSlotName + " Back Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
+			props.push_back({ imguiSlotName + " Back Size", PropertyType::Vec2, &(t.mSize), 0.f, 0.f });
+#endif
+		}
+
+		// 스킬 아이콘
 		Entity icon = world->CreateEntity();
+#ifdef _IMGUI
+		if (i == 0)
+			imguiOwner = icon;
+#endif
 		{
 			auto& t = world->AddComponent<UITransformComponent>(icon);
-			t.mAnchor = Anchor::BottomLeft;
+			t.mAnchor = Anchor::BottomRight;
 			t.mPosition = kSkillPos[i];
 			t.mSize = kSkillSize;
 			t.mUILayerIndex = 6;
-			auto& sp = world->AddComponent<UISpriteComponent>(icon /*, 스킬 아이콘 텍스처(추후)*/);
+			auto& sp = world->AddComponent<UISpriteComponent>(icon, skiilTex);
+#ifdef _IMGUI
+			props.push_back({ imguiSlotName + " Icon Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
+			props.push_back({ imguiSlotName + " Icon Size", PropertyType::Vec2, &(t.mSize), 0.f, 0.f });
+#endif
+			sp.SetSourceRect(cellX, cellY, kCell, kCell);   // 아틀라스 아이콘 셀
 			sp.mVisible = true;
 		}
 
+		// 쿨타임 오버레이
 		Entity overlay = world->CreateEntity();
 		{
 			auto& t = world->AddComponent<UITransformComponent>(overlay);
-			t.mAnchor = Anchor::BottomLeft;
+			t.mAnchor = Anchor::BottomRight;
 			t.mPosition = kSkillPos[i];
 			t.mSize = kSkillSize;
 			t.mPivot = Vec2(0.f, 0.f);
-			t.mUILayerIndex = 7;   // 아이콘 위
-			auto& sp = world->AddComponent<UISpriteComponent>(overlay /*, 반투명 검정 텍스처(추후)*/);
+			t.mUILayerIndex = 7;
+			auto& sp = world->AddComponent<UISpriteComponent>(overlay, overlayTex);
+#ifdef _IMGUI
+			props.push_back({ imguiSlotName + " Overlay Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
+			props.push_back({ imguiSlotName + " Overlay Size", PropertyType::Vec2, &(t.mSize), 0.f, 0.f });
+#endif
+			sp.SetSourceRect(cellX, cellY, kCell, kCell);
+			sp.mColorTint = Vec4(0.05f, 0.05f, 0.08f, 0.82f);  // 진한 반투명 덮개
 			sp.mVisible = false;
 		}
 
+
+		// 키 패널
+		Entity key = world->CreateEntity();
+		{
+			auto& t = world->AddComponent<UITransformComponent>(key);
+			t.mAnchor = Anchor::BottomRight;
+			t.mPosition = kSkillPos[i] + Vec2(0.f, 0.f);
+			t.mSize = Vec2(48.f, 48.f);
+			t.mUILayerIndex = 8;
+			auto& sp = world->AddComponent<UISpriteComponent>(key, keyTex);
+			sp.SetSourceRect(skillKey.x, skillKey.y, kCell, kCell);
+			sp.mVisible = true;
+#ifdef _IMGUI
+			props.push_back({ imguiSlotName + " Key Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
+			props.push_back({ imguiSlotName + " Key Size", PropertyType::Vec2, &(t.mSize), 0.f, 0.f });
+#endif
+		}
+
+
 		auto& slot = world->AddComponent<HUDSkillSlotComponent>(icon);
 		slot.mSkillSlot = kSkillSlotId[i];
+		slot.mKey = key;
+		slot.mBack = back;
 		slot.mIcon = icon;
 		slot.mOverlay = overlay;
 	}
+
+#ifdef _IMGUI
+	if (imguiOwner != NULL_ENTITY)
+	{
+		IMGUIComponent& imgui = world->AddComponent<IMGUIComponent>(imguiOwner);
+		imgui.SetName("HUD Skill Bar Prefab");
+		imgui.RegisterEditorProperties(props);
+	}
+#endif
 }
 
 HUDSkillBarPrefab::~HUDSkillBarPrefab()
@@ -1159,7 +1252,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 					static_cast<float>(health->mCurrentHp) / static_cast<float>(health->mMaxHp),
 					0.0f, 1.0f);
 				s->SetVisibleRangeKeepDestinationSize(false);
-				s->SetVisibleRangeNormalized(0.f, ratio);
+				s->SetVisibleRangeNormalizedX(0.f, ratio);
 			};
 
 			// HP 바 자체는 위 UISprite 가 그리고, 여기서 부착하는 UIHpBarComponent 는

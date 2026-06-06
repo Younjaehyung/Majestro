@@ -317,28 +317,42 @@ void UIRenderSystem::RenderSpirte()
             );
         }
 
-        // sourceRect가 이미 잡혀있다면(애니메이션/기본), 가시 구간 크롭을 추가 적용
+        // 가시 구간 크롭
         LONG baseWidth = 0;
-        if (spriteComp->mUseVisibleRange && !spriteComp->mUseSourceRect && sourceRectPtr != nullptr)
+        LONG baseHeight = 0;
+        if (spriteComp->mUseVisibleRange && sourceRectPtr != nullptr)
         {
-            const LONG fullWidth = sourceRect.right - sourceRect.left;
-            baseWidth = fullWidth;
-            LONG startOffset = 0;
-            LONG endOffset = fullWidth;
+            if (!spriteComp->mVisibleRangeVertical)
+            {   // 가로(X) 크롭
+                const LONG fullWidth = sourceRect.right - sourceRect.left;
+                baseWidth = fullWidth;
+                LONG startOffset = 0;
+                LONG endOffset = fullWidth;
 
-            if (spriteComp->mVisibleRangeUsePixels)
-            {
-                startOffset = static_cast<LONG>(spriteComp->mVisibleStartX);
-                endOffset = static_cast<LONG>(spriteComp->mVisibleEndX);
+                if (spriteComp->mVisibleRangeUsePixels)
+                {
+                    startOffset = static_cast<LONG>(spriteComp->mVisibleStartX);
+                    endOffset = static_cast<LONG>(spriteComp->mVisibleEndX);
+                }
+                else
+                {
+                    startOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleStartX);
+                    endOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleEndX);
+                }
+
+                sourceRect.left += std::clamp(startOffset, 0L, fullWidth);
+                sourceRect.right = sourceRect.left + std::clamp(endOffset - startOffset, 0L, fullWidth);
             }
             else
-            {
-                startOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleStartX);
-                endOffset = static_cast<LONG>(fullWidth * spriteComp->mVisibleEndX);
-            }
+            {   // 세로(Y) 크롭
+                const LONG fullHeight = sourceRect.bottom - sourceRect.top;
+                baseHeight = fullHeight;
+                const LONG startOffset = static_cast<LONG>(fullHeight * spriteComp->mVisibleStartY);
+                const LONG endOffset   = static_cast<LONG>(fullHeight * spriteComp->mVisibleEndY);
 
-            sourceRect.left += std::clamp(startOffset, 0L, fullWidth);
-            sourceRect.right = sourceRect.left + std::clamp(endOffset - startOffset, 0L, fullWidth);
+                sourceRect.top    += std::clamp(startOffset, 0L, fullHeight);
+                sourceRect.bottom  = sourceRect.top + std::clamp(endOffset - startOffset, 0L, fullHeight);
+            }
         }
 
         // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록
@@ -357,16 +371,21 @@ void UIRenderSystem::RenderSpirte()
 
         if ((spriteComp->mUseVisibleRange || spriteComp->mUseSourceRect) && sourceRectPtr != nullptr)
         {
-            const LONG croppedWidth = sourceRect.right - sourceRect.left;
+            const bool vertical = spriteComp->mUseVisibleRange && spriteComp->mVisibleRangeVertical;
+            const LONG croppedDim = vertical ? (sourceRect.bottom - sourceRect.top)
+                                             : (sourceRect.right - sourceRect.left);
+            const LONG baseDim = vertical ? baseHeight : baseWidth;
             float visibleRatio = 1.f;
-            if (spriteComp->mUseVisibleRange && baseWidth > 0)
-                visibleRatio = std::clamp(static_cast<float>(croppedWidth) / static_cast<float>(baseWidth), 0.f, 1.f);
+            if (spriteComp->mUseVisibleRange && baseDim > 0)
+                visibleRatio = std::clamp(static_cast<float>(croppedDim) / static_cast<float>(baseDim), 0.f, 1.f);
 
 
-            const bool keepWidth = spriteComp->mUseSourceRect || spriteComp->mVisibleRangeKeepDestinationSize;
-            const float destWidth = keepWidth
-                ? transComp->mFinalSize.x : transComp->mFinalSize.x * visibleRatio;
-            const float destHeight = transComp->mFinalSize.y;
+            // VisibleRange가 켜져 있으면 그쪽 keep 플래그를 따른다
+            // VisibleRange 없이 아틀라스만이면 원본 크기 유지.
+            const bool keepSize = spriteComp->mUseVisibleRange
+                ? spriteComp->mVisibleRangeKeepDestinationSize : spriteComp->mUseSourceRect;
+            const float destWidth  = (!vertical && !keepSize)  ? transComp->mFinalSize.x * visibleRatio : transComp->mFinalSize.x;
+            const float destHeight = ( vertical && !keepSize)  ? transComp->mFinalSize.y * visibleRatio : transComp->mFinalSize.y;
 
             const LONG left = static_cast<LONG>(transComp->mFinalPixelPos.x - (transComp->mPivot.x * destWidth));
             const LONG top = static_cast<LONG>(transComp->mFinalPixelPos.y - (transComp->mPivot.y * destHeight));

@@ -27,6 +27,7 @@ class UISpriteComponent : public Component<UISpriteComponent>
 public:
 	UISpriteComponent() = default;
 	UISpriteComponent(shared_ptr<Texture> texture);
+	UISpriteComponent(shared_ptr<Texture> texture, float x, float y, float width, float height);
 	UISpriteComponent(shared_ptr<Texture> texture, const Vec2& frameSize, int frameCount, float animationTime);
 	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures, float animationTime);
 	UISpriteComponent(std::vector<shared_ptr<Texture>>& textures);
@@ -42,7 +43,8 @@ public:
 	void SetSourceRect(float x, float y, float width, float height);
 	void ClearSourceRect();
 
-	void SetVisibleRangeNormalized(float startX, float endX);
+	void SetVisibleRangeNormalizedX(float startX, float endX);	// 가로(X) 크롭
+	void SetVisibleRangeNormalizedY(float startY, float endY);  // 세로(Y) 크롭
 	void SetVisibleRangePixels(float startPx, float endPx);
 	void SetVisibleRangeKeepDestinationSize(bool keepSize);
 	void ClearVisibleRange();
@@ -67,8 +69,11 @@ public :
 	bool mUseVisibleRange = false;
 	bool mVisibleRangeUsePixels = false;
 	bool mVisibleRangeKeepDestinationSize = false;
+	bool mVisibleRangeVertical = false;   // true면 가로(X) 대신 세로(Y) 크롭
 	float mVisibleStartX = 0.f;
 	float mVisibleEndX = 1.f;
+	float mVisibleStartY = 0.f;
+	float mVisibleEndY = 1.f;
 public:
 	bool mVisible{ true };
 	bool mUIVisibility = true;

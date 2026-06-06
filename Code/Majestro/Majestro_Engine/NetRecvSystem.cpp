@@ -288,13 +288,18 @@ void NetRecvSystem::HandleCooldown(const InputCommand& msg)
     if (!pkt) return;
     if (pkt->skillSlot >= MainPlayerComponent::kCooldownSlotCount) return;
 
-    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
-    MainPlayerComponent* mp = mWorld->GetComponent<MainPlayerComponent>(e);
-    if (!mp) return;
+    for (Entity e : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
+    {
+        if (!mWorld->HasComponent<LocalPlayerComponent>(e))
+            continue;
 
-    const float nowLocal = TIMER.GetTotalTime();
-    mp->mCooldownDuration[pkt->skillSlot] = pkt->durationSeconds;
-    mp->mCooldownEndLocal[pkt->skillSlot] = nowLocal + pkt->remainingSeconds;
+        MainPlayerComponent* mp = mWorld->GetComponent<MainPlayerComponent>(e);
+
+        const float nowLocal = TIMER.GetTotalTime();
+        mp->mCooldownDuration[pkt->skillSlot] = pkt->durationSeconds;
+        mp->mCooldownEndLocal[pkt->skillSlot] = nowLocal + pkt->remainingSeconds;
+        break;
+    }
 }
 
 

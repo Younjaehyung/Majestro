@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "HUDSkillCooldownFeature.h"
+#include "Engine.h"
+#include "Timer.h"
 #include "World.h"
 #include "HUDSkillSlotComponent.h"
 #include "PlayerComponent.h"
 #include "TagComponent.h"
 #include "UISpriteComponent.h"
-#include "Timer.h"
-#include <algorithm>
+
 
 void HUDSkillCooldownFeature::Update(float /*dt*/)
 {
@@ -42,7 +43,7 @@ void HUDSkillCooldownFeature::Update(float /*dt*/)
 		const float end    = mp->mCooldownEndLocal[slot->mSkillSlot];
 		const float remain = end - now;
 
-		if (dur <= 0.f || remain <= 0.f)   // 완료시 오버레이 숨김
+		if (dur <= 0.f || remain <= 0.f)   // 완료 덮개 숨김
 		{
 			ov->mVisible = false;
 			continue;
@@ -51,6 +52,6 @@ void HUDSkillCooldownFeature::Update(float /*dt*/)
 		const float ratio = std::clamp(remain / dur, 0.f, 1.f);  // 1=막 시작, 0=끝
 		ov->mVisible = true;
 		ov->SetVisibleRangeKeepDestinationSize(false);
-		ov->SetVisibleRangeNormalized(0.f, ratio);   // 위에서 아래로 줄어드는 덮개
+		ov->SetVisibleRangeNormalizedY(0.f, ratio);			// 세로 크롭 (0,ratio) + 오버레이 pivot.y=0(상단 고정)
 	}
 }

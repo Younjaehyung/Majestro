@@ -93,7 +93,7 @@ void HUDPortraitUpdateFeature::UpdateHpBar(HUDPortraitSlotComponent& slot, Entit
 	{
 		fill->mVisible = true;
 		fill->SetVisibleRangeKeepDestinationSize(false);   // HP 감소 시 바도 함께 줄어듦 (메인 바와 동일)
-		fill->SetVisibleRangeNormalized(0.f, ratio);
+		fill->SetVisibleRangeNormalizedX(0.f, ratio);
 	}
 
 	if (auto* text = mWorld->GetComponent<UITextComponent>(slot.mHpText))

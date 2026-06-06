@@ -177,6 +177,9 @@ class HUDSkillBarPrefab : public Prefab
 public:
 	HUDSkillBarPrefab(World* world, uint8 playerType);
 	~HUDSkillBarPrefab();
+
+private:
+
 };
 
 class HUDHPBarPrefab : public Prefab

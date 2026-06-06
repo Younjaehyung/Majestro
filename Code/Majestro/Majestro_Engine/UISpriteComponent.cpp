@@ -13,6 +13,12 @@ UISpriteComponent::UISpriteComponent(shared_ptr<Texture> texture)
 	}
 }
 
+UISpriteComponent::UISpriteComponent(shared_ptr<Texture> texture, float x, float y, float width, float height)
+{
+	mTexture = texture;
+	SetSourceRect(x, y, width, height);
+}
+
 UISpriteComponent::UISpriteComponent(shared_ptr<Texture> texture, const Vec2& frameSize, int frameCount, float animationTime)
 	: UISpriteComponent(texture)
 {
@@ -96,14 +102,26 @@ void UISpriteComponent::ClearSourceRect()
 	mSourceRect = RECT{ 0, 0, 0, 0 };
 }
 
-void UISpriteComponent::SetVisibleRangeNormalized(float startX, float endX)
+void UISpriteComponent::SetVisibleRangeNormalizedX(float startX, float endX)
 {
 	mUseVisibleRange = true;
 	mVisibleRangeUsePixels = false;
+	mVisibleRangeVertical = false;
 	mVisibleStartX = std::clamp(startX, 0.f, 1.f);
 	mVisibleEndX = std::clamp(endX, 0.f, 1.f);
 	if (mVisibleEndX < mVisibleStartX)
 		std::swap(mVisibleStartX, mVisibleEndX);
+}
+
+void UISpriteComponent::SetVisibleRangeNormalizedY(float startY, float endY)
+{
+	mUseVisibleRange = true;
+	mVisibleRangeUsePixels = false;
+	mVisibleRangeVertical = true;
+	mVisibleStartY = std::clamp(startY, 0.f, 1.f);
+	mVisibleEndY = std::clamp(endY, 0.f, 1.f);
+	if (mVisibleEndY < mVisibleStartY)
+		std::swap(mVisibleStartY, mVisibleEndY);
 }
 
 void UISpriteComponent::SetVisibleRangePixels(float startPx, float endPx)
@@ -126,6 +144,9 @@ void UISpriteComponent::ClearVisibleRange()
 	mUseVisibleRange = false;
 	mVisibleRangeUsePixels = false;
 	mVisibleRangeKeepDestinationSize = false;
+	mVisibleRangeVertical = false;
 	mVisibleStartX = 0.f;
 	mVisibleEndX = 1.f;
+	mVisibleStartY = 0.f;
+	mVisibleEndY = 1.f;
 }

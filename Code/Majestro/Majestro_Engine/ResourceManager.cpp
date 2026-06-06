@@ -2510,8 +2510,10 @@ void ResourceManager::CreateDefaultMaterial()
 	{
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Image\\Noise\\T_TilingNoise02_M.png");
-		// DashSmoke (대쉬 스피드라인 연기/베이퍼 텍스처 — 트레일 셰이더가 bindless 인덱스로 샘플)
+		// DashSmoke
 		Load<Texture>(L"DashSmoke", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG");
+		Load<Texture>(L"WorlyNoise", L"..\\Resources\\Image\\Noise\\T_WorlyNoise_3.PNG");
+
 
 
 		Load<Texture>(L"UI_Title_Control", L"..\\Resources\\Image\\UI\\UI_Title_Control.png");
@@ -2560,6 +2562,7 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_Ibanix_Display_01", L"..\\Resources\\Image\\UI\\UI_Ibanix_Display_01.png");
 			Load<Texture>(L"UI_Rudwig_Display_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Display_0.png");
 
+			Load<Texture>(L"UI_SkillIcon_Sheet", L"..\\Resources\\Image\\UI\\UI_SkillIcon_Sheet.png");
 
 			Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
 			Load<Texture>(L"UI_Rudwig_HP_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_0.png");

@@ -92,9 +92,8 @@ float4 PS_Main(VS_OUT input) : SV_Target
         float4 curView4 = mul(float4(currentWorldPos, 1.0f), PassParams.MatView);
         float3 curView  = curView4.xyz;
 
-        // Cascade Shadow Map으로 빛 가시성 계산
-        // viewNormal은 VLS에서 임의값 사용 (bias 계산에만 관여, 법선 없음)
-        float visibility = CalculateCSMShadow(curView, float3(0.0f, 1.0f, 0.0f), sunDir);
+        // VLS 전용 Cascade Shadow
+        float visibility = CalculateVLSShadow(curView);
 
         // In-scattering 누적 (Beer-Lambert 감쇠 가중)
         float3 Li = sunColor * phase * scatterCoeff * visibility;

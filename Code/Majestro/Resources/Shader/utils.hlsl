@@ -1673,6 +1673,109 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
+// Volumetric Light Scattering (VLS) 전용 그림자
+
+float SampleCascadeShadowVLS(float4 worldPos, uint cascadeIndex, out float cascadeCoverage)
+{
+    const float shadowMapSize = 4096.0f;
+
+    float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
+    float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
+    float3 shadowNdc = shadowClipPos.xyz * invW;
+
+    float2 uv;
+    uv.x = shadowNdc.x * 0.5f + 0.5f;
+    uv.y = -shadowNdc.y * 0.5f + 0.5f;
+
+    const float uvGuard = 0.005f;
+    const float zGuard = 0.0005f;
+    float2 uvMinDelta = uv - uvGuard;
+    float2 uvMaxDelta = (1.0f - uvGuard) - uv;
+    float uvCoverage = saturate(min(min(uvMinDelta.x, uvMinDelta.y), min(uvMaxDelta.x, uvMaxDelta.y)) / uvGuard);
+    float zCoverage = saturate((shadowNdc.z - zGuard) / zGuard) * saturate(((1.0f - zGuard) - shadowNdc.z) / zGuard);
+    cascadeCoverage = uvCoverage * zCoverage;
+
+    if (cascadeCoverage <= 0.0f)
+        return 1.0f;
+
+    // 법선 없음
+    float xScale = length(float3(
+        PassParams.CascadeShadowVP[cascadeIndex]._11,
+        PassParams.CascadeShadowVP[cascadeIndex]._21,
+        PassParams.CascadeShadowVP[cascadeIndex]._31));
+    float texelWorldSize = 2.0f / (shadowMapSize * max(xScale, 1e-5f));
+    float zScale = length(float3(
+        PassParams.CascadeShadowVP[cascadeIndex]._13,
+        PassParams.CascadeShadowVP[cascadeIndex]._23,
+        PassParams.CascadeShadowVP[cascadeIndex]._33));
+    float bias = texelWorldSize * 0.5f * zScale;
+
+    float lightDepth = saturate(shadowNdc.z);
+    float2 texelSize = 1.0f / shadowMapSize;
+    float shadow = 0.0f;
+    float weightSum = 0.0f;
+    float compareDepth = lightDepth - bias;
+
+    [unroll]
+    for (int y = -1; y <= 1; ++y)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; ++x)
+        {
+            float2 offset = float2(x, y);
+            float weight = 1.0f / (1.0f + dot(offset, offset));
+            float2 sampleUv = uv + offset * texelSize;
+            float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
+            shadow += shadowVal * weight;
+            weightSum += weight;
+        }
+    }
+
+    shadow /= max(weightSum, 1e-4f);
+    return 1.0f - shadow; // floor 없음: 완전 차폐 시 0
+}
+
+float CalculateVLSShadow(float3 viewPos)
+{
+    float viewDepth = abs(viewPos.z);
+
+    if (viewDepth > PassParams.CascadeSplitDistances.w)
+        return 1.0f;
+
+    uint cascadeIndex = SelectCascadeIndex(viewDepth);
+
+    float4 worldPos = mul(float4(viewPos, 1.f), PassParams.MatViewInv);
+
+    float currentCoverage = 0.0f;
+    float visibility = SampleCascadeShadowVLS(worldPos, cascadeIndex, currentCoverage);
+
+    float4 splits = PassParams.CascadeSplitDistances;
+    float splitDist = splits[cascadeIndex];
+
+    uint prevIndex = (cascadeIndex == 0u) ? 0u : (cascadeIndex - 1u);
+    float prevSplit = (cascadeIndex == 0u) ? 0.0f : splits[prevIndex];
+
+    float cascadeRange = max(splitDist - prevSplit, 1.0f);
+    float blendWidth = max(2.0f, cascadeRange * 0.15f);
+    float blendStart = splitDist - blendWidth;
+    float depthBlend = smoothstep(blendStart, splitDist, viewDepth);
+
+    float coverageFallback = 1.0f - currentCoverage;
+    float totalBlend = saturate(max(depthBlend, coverageFallback));
+
+    if (totalBlend > 0.0f && (cascadeIndex + 1u) < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT)
+    {
+        float nextCoverage = 0.0f;
+        float nextVisibility = SampleCascadeShadowVLS(worldPos, cascadeIndex + 1, nextCoverage);
+        float validBlend = totalBlend * nextCoverage;
+        visibility = lerp(visibility, nextVisibility, validBlend);
+    }
+
+    return visibility; // shadowFade(normal) 미적용
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
 // IBL (Image-Based Lighting)
 
 // roughness를 고려한 Fresnel — 환경광에서 F 계산 시 사용

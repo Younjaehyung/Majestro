@@ -150,7 +150,7 @@ public:
 	float mFadeLerpSpeed = 12.f;     // 페이드 보간 속도 (1/s)
 
 	BoundingOrientedBox mCameraBox;
-	float mCameraSphereRadius = 25.f;
+	float mCameraSphereRadius = 250.f;
 	float mCameraMargin = 5.f;
 
 	Vec3 mOffset = Vec3(80, 160, 0);

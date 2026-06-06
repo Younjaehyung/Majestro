@@ -206,6 +206,17 @@ void CameraSystem::UpdateOrbitCamera(CameraTypeComponent* camType, TransformComp
 	Vec3 pivot = playerPos + worldOffset;
 	Vec3 DestPos = pivot - camType->mCameraMaxLenth * look;
 
+	if (DestPos.y < playerPos.y)
+		DestPos.y = playerPos.y;
+
+
+	Vec3 sweepDir = DestPos - pivot;
+	float maxDist = sweepDir.Length();
+	if (maxDist > 1e-4f)
+		sweepDir /= maxDist;
+	else
+		sweepDir = -look;
+
 	auto physicsWorld = mWorld->GetPhysicsWorld();
 	JoltStaticHit joltHit{};
 	bool hasJoltHit = false;
@@ -226,21 +237,18 @@ void CameraSystem::UpdateOrbitCamera(CameraTypeComponent* camType, TransformComp
 	const bool  hit     = hasJoltHit || obbHit.hit;
 	const float hitDist = hasJoltHit ? joltHit.distance : obbHit.distance;
 
-	float cameraDistance = camType->mCameraMaxLenth;
+	float cameraDistance = maxDist;
 	if (hit)
 	{
 		cameraDistance = hitDist - camType->mCameraMargin;
 		if (cameraDistance < camType->mCameraMinLenth)
 			cameraDistance = camType->mCameraMinLenth;
-		if (cameraDistance > camType->mCameraMaxLenth)
-			cameraDistance = camType->mCameraMaxLenth;
+		if (cameraDistance > maxDist)
+			cameraDistance = maxDist;
 	}
 
-	transform->mLocalPosition = pivot - cameraDistance * look;
 
-	if (transform->mLocalPosition.y < playerPos.y) {
-		transform->mLocalPosition.y = playerPos.y;
-	}
+	transform->mLocalPosition = pivot + cameraDistance * sweepDir;
 
 	// Camera Dithered Fade
 	{

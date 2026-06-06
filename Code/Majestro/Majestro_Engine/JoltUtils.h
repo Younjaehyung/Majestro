@@ -233,6 +233,7 @@ struct JoltTerrainState
 		JPH::ShapeCastSettings settings;
 		settings.SetBackFaceMode(JPH::EBackFaceMode::CollideWithBackFaces);
 		settings.mReturnDeepestPoint = true;
+		settings.mActiveEdgeMode = JPH::EActiveEdgeMode::CollideWithAll;
 
 		JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector> collector;
 		JPH::SpecifiedObjectLayerFilter staticOnly(JoltLayers::StaticCollision);

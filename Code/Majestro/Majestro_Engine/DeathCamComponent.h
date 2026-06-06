@@ -15,7 +15,7 @@ public:
 	// 관전
 	bool     mSpectating     = false;  // 관전 진입 여부
 	EntityID mSpectateTarget = 0;      // 관전 대상 엔티티(0=없음/자기 시신)
-	int      mSpectateCycleReq = 0;    // 관전 순환 입력 의도(+1 다음/-1 이전/0 없음). PlayerInputSystem이 기록, SpectateSystem이 소비
+	int      mSpectateCycleReq = 0;    // 관전 순환 입력 의도(+1 다음/-1 이전/0 없음)
 
 	Vec3     mGroundedAnchorPos = Vec3::Zero;	// 낙사 판정 지점
 	bool     mHasGroundedAnchor = false;

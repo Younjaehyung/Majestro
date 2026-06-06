@@ -66,6 +66,7 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_HEALTH,            [this](auto& m){ HandleHealth(m); });
     reg(PKT_Type::S2C_PKT_ARMOR,             [this](auto& m){ HandleArmor(m); });
     reg(PKT_Type::S2C_PKT_AMMO,              [this](auto& m){ HandleAmmo(m); });
+    reg(PKT_Type::S2C_PKT_COOLDOWN,          [this](auto& m){ HandleCooldown(m); });
     reg(PKT_Type::S2C_PKT_COLLISION,         [this](auto& m){ HandleCollision(m); });
     reg(PKT_Type::S2C_PKT_BULLET_ACTIVATE,   [this](auto& m){ HandleBulletActivate(m); });
     reg(PKT_Type::S2C_PKT_BULLET_DEACTIVATE, [this](auto& m){ HandleBulletDeactivate(m); });
@@ -279,6 +280,21 @@ void NetRecvSystem::HandleAmmo(const InputCommand& msg)
     mWorld->GetEventManager()->Enqueue(EvBulletCountChanged{
     e, pkt->currentAmmo, pkt->maxAmmo
         });
+}
+
+void NetRecvSystem::HandleCooldown(const InputCommand& msg)
+{
+    const S2C_CooldownPacket* pkt = msg.ViewAs<S2C_CooldownPacket>();
+    if (!pkt) return;
+    if (pkt->skillSlot >= MainPlayerComponent::kCooldownSlotCount) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    MainPlayerComponent* mp = mWorld->GetComponent<MainPlayerComponent>(e);
+    if (!mp) return;
+
+    const float nowLocal = TIMER.GetTotalTime();
+    mp->mCooldownDuration[pkt->skillSlot] = pkt->durationSeconds;
+    mp->mCooldownEndLocal[pkt->skillSlot] = nowLocal + pkt->remainingSeconds;
 }
 
 
@@ -527,6 +543,8 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
     //escortComp->mRouteId = pkt->RouteId;
     escortComp->mEscortProgress = pkt->EscortProgress;
 	escortComp->mEscortStage = pkt->EscortStage;
+	escortComp->mStageCount = pkt->StageCount;
+	escortComp->mStageProgress = pkt->StageProgress;
 	escortComp->mEscortTime = pkt->EscortTime;
 	escortComp->mMoveState = pkt->MoveState;
 	

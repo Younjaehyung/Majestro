@@ -34,6 +34,7 @@ void NetSendSystem::Update(float dt)
 	SendHealthEvents();
 	SendArmorEvents();
 	SendAmmoEvents();
+	SendCooldownEvents();
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
 	SendHitConfirmEvents();
@@ -281,6 +282,30 @@ void NetSendSystem::SendAmmoEvents()
 		});
 }
 
+
+void NetSendSystem::SendCooldownEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	eventManager->Consume<EvCooldownStarted>([&](const EvCooldownStarted& e)
+		{
+			if (!e.target.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
+			if (netComp == nullptr || netComp->mSessionId == 0)
+				return;
+
+			S2C_CooldownPacket pkt(netComp->mNetEntityId, e.skillSlot, e.durationSeconds, e.durationSeconds);
+			mSendReq.SessionId = netComp->mSessionId;
+			mSendReq.Type = S2C_PKT_COOLDOWN;
+			mSendReq.Size = sizeof(S2C_CooldownPacket);
+			mSendReq.StoreAs<S2C_CooldownPacket>(pkt);
+			gSendQueue.Push(mSendReq);
+		});
+}
 
 void NetSendSystem::SendBulletDeactivateEvents()
 {

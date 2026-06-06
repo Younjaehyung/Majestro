@@ -223,6 +223,8 @@
     <ClInclude Include="GodRayPass.h" />
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GameRenderPipeline.h" />
+    <ClInclude Include="HUDSkillCooldownFeature.h" />
+    <ClInclude Include="HUDSkillSlotComponent.h" />
     <ClInclude Include="JoltUtils.h" />
     <ClInclude Include="JsonUtils.h" />
     <ClInclude Include="LobbyRenderPipeline.h" />
@@ -401,6 +403,7 @@
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="GodRayPass.cpp" />
     <ClCompile Include="GameMode.cpp" />
+    <ClCompile Include="HUDSkillCooldownFeature.cpp" />
     <ClCompile Include="JsonUtils.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MathUtils.cpp" />

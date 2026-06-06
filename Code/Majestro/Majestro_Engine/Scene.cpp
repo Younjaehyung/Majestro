@@ -57,7 +57,7 @@
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
 #include "HUDPortraitUpdateFeature.h"
-//#include "HUDSkillCooldownFeature.h"
+#include "HUDSkillCooldownFeature.h"
 #include "IMGUISystem.h"
 #include "BeatSystem.h"
 #include "MovementSystem.h"
@@ -1574,8 +1574,8 @@ void FirstScene::Initialize()
 	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
 	mUIFeatures.push_back(portraitModule);
 
-	/*auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
-	mUIFeatures.push_back(skillCooldownModule);*/
+	auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
+	mUIFeatures.push_back(skillCooldownModule);
 
 
 	for (const auto& feature : mUIFeatures)

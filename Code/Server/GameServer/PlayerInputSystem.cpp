@@ -267,6 +267,7 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 
 	float* nextTimePtr = nullptr;
 	float  cool = 0.f;
+	uint8  cdSlot = 0xFF;       // 0=Attack,1=Skill1,2=Skill2,3=Reload (쿨타임 UI 슬롯)
 	State<MainPlayerComponent>* nextState = nullptr;
 	bool   needsAmmo = false;
 
@@ -275,24 +276,28 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	case InputButtons::ATTACK:
 		nextTimePtr = &mp->mNextAttackTime;
 		cool        = mp->mAttackCool;
+		cdSlot      = 0;
 		nextState   = Attack1State::Instance();
 		needsAmmo   = (mp->mPlayerType == Ibanix); // Fanthor 탄0 기본공격 유지
 		break;
 	case InputButtons::SKILL1:
 		nextTimePtr = &mp->mNextSkill1Time;
 		cool        = mp->mSkill1Cool;
+		cdSlot      = 1;
 		nextState   = Skill1State::Instance();
 		needsAmmo   = (mp->mPlayerType == Ibanix); // 기존 룰
 		break;
 	case InputButtons::SKILL2:
 		nextTimePtr = &mp->mNextSkill2Time;
 		cool        = mp->mSkill2Cool;
+		cdSlot      = 2;
 		nextState   = Skill2State::Instance();
 		needsAmmo   = false;
 		break;
 	case InputButtons::RELOAD:
 		nextTimePtr = &mp->mNextReloadTime;
 		cool        = mp->mReloadCool;
+		cdSlot      = 3;
 		nextState   = ReloadState::Instance();
 		needsAmmo   = false;
 		break;
@@ -323,8 +328,7 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		}
 	}
 
-	if (button == InputButtons::SKILL1 &&
-		mp->mPlayerType == Rudwig)
+	if (button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig)
 	{
 		if (mp->mStateThrew)
 		{
@@ -371,6 +375,8 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	if (button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig)
 		mp->mStateThrew = true;
 	*nextTimePtr = now + Beat * cool;
+	// 쿨이 실제로 도는 경로에서만 1회 통지
+	em.Enqueue<EvCooldownStarted>({ e, cdSlot, Beat * cool });
 
 	if (button == InputButtons::ATTACK)
 	{

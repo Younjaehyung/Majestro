@@ -55,6 +55,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_ARMOR,
 	S2C_PKT_AMMO,
 	S2C_PKT_HIT_CONFIRM,
+	S2C_PKT_COOLDOWN,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -356,8 +357,10 @@ struct S2C_EscortPacket : public PacketTcpHeader {
 	uint8 RouteId = 0; // 호위 경로 ID
 	uint8 EscortStage = 0; // 현재 호위 stage (예: 1, 2, 3 등)
 	uint8 MoveState = 0; // 호위 대상 이동 상태 (0 = 정지, 1 = 이동 중)
+	uint8 StageCount = 0; // 전체 호위 구간 수 (UI 텍스처 칸 수와 일치해야 함)
 
-	float EscortProgress = 0.0f; // 호위 진행도 (0.0 ~ 1.0)
+	float EscortProgress = 0.0f; // 호위 진행도 (전체 경로 거리 기준 0.0 ~ 1.0)
+	float StageProgress = 0.0f; // 현재 구간 내 진행도 (0.0 ~ 1.0)
 	float EscortTime = 0.0f; // 게임 진행 시간
 	uint64 TruckNetId = 0; // 호위 대상 네트워크 ID
 	S2C_EscortPacket() : PacketTcpHeader{ sizeof(S2C_EscortPacket), PKT_Type::S2C_PKT_SCENE_ESCORT, 0.0 } {}
@@ -469,6 +472,20 @@ struct S2C_AmmoPacket : public PacketTcpHeader {
 	S2C_AmmoPacket(uint64 entityId, int32_t ammo, int32_t maxAmmoValue)
 		: PacketTcpHeader{ sizeof(S2C_AmmoPacket), PKT_Type::S2C_PKT_AMMO, 0.0 },
 		netEntityId(entityId), currentAmmo(ammo), maxAmmo(maxAmmoValue) {
+	}
+};
+struct S2C_CooldownPacket : public PacketTcpHeader {
+	uint64  netEntityId{};
+	uint8   skillSlot{};        // 0=Attack,1=Skill1,2=Skill2,3=Reload
+	uint8   pad0{};
+	uint16  pad1{};
+	float   durationSeconds{};  // 전체 쿨타임 길이(초)
+	float   remainingSeconds{}; // 남은 쿨타임(초).
+
+	S2C_CooldownPacket() : PacketTcpHeader{ sizeof(S2C_CooldownPacket), PKT_Type::S2C_PKT_COOLDOWN, 0.0 } {}
+	S2C_CooldownPacket(uint64 entityId, uint8 slot, float duration, float remaining)
+		: PacketTcpHeader{ sizeof(S2C_CooldownPacket), PKT_Type::S2C_PKT_COOLDOWN, 0.0 },
+		netEntityId(entityId), skillSlot(slot), durationSeconds(duration), remainingSeconds(remaining) {
 	}
 };
 struct S2C_MovePacket : public PacketUdpHeader {

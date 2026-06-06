@@ -1009,8 +1009,6 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 
 HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 /*playerType*/)
 {
-	// v1 범위: Skill1, Skill2 두 칸. 각 칸 = 아이콘 1 + 오버레이 1.
-	// 좌표/크기/텍스처는 placeholder (디자인 협의 전). 텍스처 없이도 배선 검증 가능.
 	const std::array<Vec2, 2> kSkillPos = { Vec2(340.f, -300.f), Vec2(452.f, -300.f) };
 	const Vec2  kSkillSize = Vec2(96.f, 96.f);
 	const uint8 kSkillSlotId[2] = { 1, 2 };  // Skill1, Skill2

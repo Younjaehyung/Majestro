@@ -115,6 +115,11 @@ public:
 	int mNowBullet = 0;
 	int mMaxBullet = 0;
 
+	// 스킬 쿨타임 (UI 표시용). 인덱스 0=Attack,1=Skill1,2=Skill2,3=Reload
+	static constexpr int kCooldownSlotCount = 4;
+	float mCooldownEndLocal[kCooldownSlotCount] = { 0.f, 0.f, 0.f, 0.f }; // 종료될 로컬 시각(초)
+	float mCooldownDuration[kCooldownSlotCount] = { 0.f, 0.f, 0.f, 0.f }; // 전체 길이(초)
+
 	uint8 mRhythm = 0;
 	uint8 mNextRhythm = 0;
 	bool mHasQueuedRhythmChange = false;

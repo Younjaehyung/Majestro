@@ -770,6 +770,12 @@
     <ClInclude Include="MenuRoomBrowserSystem.h">
       <Filter>World\System\UI\Menu</Filter>
     </ClInclude>
+    <ClInclude Include="HUDSkillCooldownFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="HUDSkillSlotComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -1225,6 +1231,9 @@
     </ClCompile>
     <ClCompile Include="MenuRoomBrowserSystem.cpp">
       <Filter>World\System\UI\Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="HUDSkillCooldownFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

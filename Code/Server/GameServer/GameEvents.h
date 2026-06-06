@@ -77,6 +77,13 @@ struct EvAmmoChanged
     int32 maxAmmo;
 };
 
+struct EvCooldownStarted
+{
+    Entity target;
+    uint8  skillSlot;        // 0=Attack,1=Skill1,2=Skill2,3=Reload
+    float  durationSeconds;  // = Beat * cool
+};
+
 struct EvBulletDeactivated
 {
     Entity bullet;
@@ -159,5 +166,6 @@ struct EvInteractableConsumed
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
     EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
-    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured, EvPlayerDeathRequest>;
+    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured, EvPlayerDeathRequest,
+    EvCooldownStarted>;
 

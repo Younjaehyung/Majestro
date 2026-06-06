@@ -168,7 +168,15 @@ public:
 
 	HUDPortraitPrefab(World* world, uint8 playerType);
 	~HUDPortraitPrefab();
-	
+
+};
+
+// 스킬 쿨타임 바
+class HUDSkillBarPrefab : public Prefab
+{
+public:
+	HUDSkillBarPrefab(World* world, uint8 playerType);
+	~HUDSkillBarPrefab();
 };
 
 class HUDHPBarPrefab : public Prefab

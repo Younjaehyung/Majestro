@@ -25,6 +25,7 @@ private:
 	void SendHealthEvents();
 	void SendArmorEvents();
 	void SendAmmoEvents();
+	void SendCooldownEvents();
 	void SendBulletDeactivateEvents();
 	void SendEffectSpawnEvents();
 	void SendHitConfirmEvents();

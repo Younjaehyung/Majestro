@@ -212,6 +212,9 @@ private: // 배치 버퍼
     uint32 InstanceCount;
     uint32 Cascade;
   } dum;
+public:
+  // ImGui 튜닝용 — CSM 스플릿 분포 lambda (0=균등, 1=로그)
+  float* GetCascadeSplitLambdaPtr() { return &mCascadeSplitLambda; }
 
 private:
   std::vector<Entity> mDummyVector;
@@ -225,7 +228,7 @@ private:
 
   array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };
-  float mCascadeSplitLambda = 0.85f;
+  float mCascadeSplitLambda = 0.7f;
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
   float shadowMapSize = 4096.f;

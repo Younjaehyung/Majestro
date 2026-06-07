@@ -537,8 +537,10 @@ void RenderSystem::PushObjectData() {
       const int32 animIdx = animationComponent ? animationComponent->mAnimInstanceID : -1;
 
       uint32 shadowSubIdx{};
+      const uint32 shadowSubMeshCount = renderComponent->mMesh ? renderComponent->mMesh->GetSubMeshCount() : 0;
       DrawItem shadowItem{};
       for (shared_ptr<Material>& material : renderComponent->mMaterials) {
+        if (shadowSubIdx >= shadowSubMeshCount) break; // 서브메시 수 초과 머티리얼 스킵
         renderParams = {renderComponent->mObjectIndex, material->GetIndex(), animIdx, 0};
         shadowItem = {material->GetShader(), renderComponent->mMesh,
                       material->GetShaderID(), renderComponent->mMesh->GetID(),
@@ -570,8 +572,11 @@ void RenderSystem::PushObjectData() {
     index2 = animationComponent ? animationComponent->mAnimInstanceID : -1;
 
     uint32 subMaterialIdx{};
+   
+    const uint32 subMeshCount = renderComponent->mMesh ? renderComponent->mMesh->GetSubMeshCount() : 0;
     DrawItem drawItem{};
     for (shared_ptr<Material> &material : renderComponent->mMaterials) {
+      if (subMaterialIdx >= subMeshCount) break;        // 메시 서브메시(인덱스버퍼) 수보다 머티리얼이 많으면
 
       // EffectFlagComponent가 있으면 object3에 플래그 주입 (PSO 변경 없이 쉐이더 분기)
       uint32 effectFlag = 0;
@@ -954,6 +959,7 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
       radius = max(radius, (Vec3::Lerp(frustumNearView[i], frustumFarView[i], farT) - centerView).Length());
     }
     radius = max(ceil(radius * 16.f) / 16.f, 1.f);
+    radius *= 1.05f;
 
     // 라이트 프러스텀 구체 저장 (shadow-only 컬링용)
     mCascadeFrustumCenter[cascadeIndex] = frustumCenter;

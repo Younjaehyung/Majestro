@@ -168,41 +168,29 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 				std::cerr << "FBX load failed (null data): " << name << "\n";
 				break;
 			}
-			else if (data->GetMaterials().empty()) {
-				std::cerr << "FBX load failed Material (null data): " << name << "\n";
-				continue;
-			}
 			else if (data->GetMeshs().empty()) {
 				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
 				continue;
 			}
 
-			Entity entity = mWorld->CreateEntity();
-			TransformComponent transform{};
-			transform.mWorldMatrix = inst.worldMtx;
+			const auto& meshes = data->GetMeshs();
+			const auto& meshMats = data->GetMeshMaterials();
+			for (size_t mi = 0; mi < meshes.size(); ++mi)
+			{
+				if (!meshes[mi]) continue;
 
-			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
-			trans.mIsStatic = true;
+				Entity entity = mWorld->CreateEntity();
+				TransformComponent transform{};
+				transform.mWorldMatrix = inst.worldMtx;
+				TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+				trans.mIsStatic = true;
 
-			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
-
-			//for (const auto& mat : data->GetMaterials()) {
-			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
-			//}
-			render.mMaterials = data->GetMaterials();
-
-			render.SetMesh(data->GetMeshs().at(0));
+				RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+				if (mi < meshMats.size())
+					render.mMaterials = meshMats[mi];
+				render.SetMesh(meshes[mi]);
+			}
 			i++;
-			/*		if (i == 550)
-						break;*/
-						/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-							data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
-
-
-						mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-			*/
-
-
 		}
 	}
 	catch (const std::exception& e)
@@ -233,41 +221,30 @@ void Scene::LoadJsonLevel(const wstring& path)
 				std::cerr << "FBX load failed (null data): " << name << "\n";
 				break;
 			}
-			else if (data->GetMaterials().empty()) {
-				std::cerr << "FBX load failed Material (null data): " << name << "\n";
-				continue;
-			}
 			else if (data->GetMeshs().empty()) {
 				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
 				continue;
 			}
 
-			Entity entity = mWorld->CreateEntity();
-			TransformComponent transform{};
-			transform.mWorldMatrix = inst.worldMtx;
+			
+			const auto& meshes = data->GetMeshs();
+			const auto& meshMats = data->GetMeshMaterials();
+			for (size_t mi = 0; mi < meshes.size(); ++mi)
+			{
+				if (!meshes[mi]) continue;
 
-			TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
-			trans.mIsStatic = true;
+				Entity entity = mWorld->CreateEntity();
+				TransformComponent transform{};
+				transform.mWorldMatrix = inst.worldMtx;
+				TransformComponent& trans = mWorld->AddComponent<TransformComponent>(entity, transform);
+				trans.mIsStatic = true;
 
-			RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
-
-			//for (const auto& mat : data->GetMaterials()) {
-			//	mat->SetTexture(RESOURCEMANAGER.Get<Texture>(L"T_Rock_BC"), DIFFUSEMAP0INDEX);
-			//}
-			render.mMaterials = data->GetMaterials();
-
-			render.SetMesh(data->GetMeshs().at(0));
+				RenderComponent& render = mWorld->AddComponent<RenderComponent>(entity);
+				if (mi < meshMats.size())
+					render.mMaterials = meshMats[mi];
+				render.SetMesh(meshes[mi]);
+			}
 			i++;
-			/*		if (i == 550)
-						break;*/
-						/*BoxColliderComponent& boxCollider = mWorld->AddComponent<BoxColliderComponent>(entity,
-							data->GetColliders().at(0)->GetOBB(), transform.mWorldMatrix);
-
-
-						mWorld->GetPhysicsWorld()->AddStaticOBB(entity, boxCollider.mWorldOBB, 0);
-			*/
-
-
 		}
 	}
 	catch (const std::exception& e)
@@ -1666,6 +1643,7 @@ void SecondScene::Initialize()
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
+	AreaConquestPrefab areaConquest{ mWorld.get() }; // 점령 영역 VFX 마커 (Conquest 전용 스테이지)
 
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
@@ -1675,57 +1653,6 @@ void SecondScene::Initialize()
 	LoadJsonLevel(L"..\\Resources\\Json\\MapDesert_Export.json");
 	LoadCollisionJson(L"..\\Resources\\Json\\MapDesert_Export.json");
 
-	/////////////////////////////////////////////////////////////////////
-	{
-		Entity vfxEntity = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(0.f, 35.f, 0.f);
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"vfx_dissolve_NoteBoar");
-		mWorld->AddComponent<TransformComponent>(vfxEntity, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(vfxEntity);
-		vfxComp.mVfx = vfx;
-	}
-	/////////////////////////////////////////////////////////////////////
-	{
-		Entity enityt = mWorld->CreateEntity();
-		TransformComponent t{};
-		t.mLocalPosition = Vec3(1500.f, 720.f, 0.f);
-		mWorld->AddComponent<TransformComponent>(enityt, t);
-		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Idle0");
-		std::vector<shared_ptr<Material>> materials;
-		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);
-
-	}
-	{
-		/*Entity enityt = mWorld->CreateEntity();
-		TransformComponent t{};
-		t.mLocalPosition = Vec3(-120.f, 720.f, 0.f);
-		t.mLocalRotationE = Vec3(0.f, 90.f, 0.f);
-			t.mLocalScale = Vec3(15.f, 15.f, 15.f);
-		mWorld->AddComponent<TransformComponent>(enityt, t);
-		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"Cube");
-		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"XYZ0");
-		std::vector<shared_ptr<Material>> materials;
-		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh,  materials);*/
-
-	}
-
-	{
-		/*Entity enityt = mWorld->CreateEntity();
-		TransformComponent t{};
-		t.mLocalPosition = Vec3(0.f, 720.f, 0.f);
-		mWorld->AddComponent<TransformComponent>(enityt, t);
-		shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rock_04");
-		shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(L"ZUP_Ascii_3dmax_Pivot0");
-		std::vector<shared_ptr<Material>> materials;
-		materials.push_back(material);
-		mWorld->AddComponent<RenderComponent>(enityt, mesh, materials);*/
-
-	}
-
 	/////////////////////////////////////////////////////////////////////////
 
 
@@ -1734,131 +1661,174 @@ void SecondScene::Initialize()
 
 	CreatePauseMenu();
 
-	{
-
-		shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(L"fire");
-		Entity fire = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UISpriteComponent>(fire, texture,
-			Vec2(64.f, 64.f), 4, 1.f);
-		auto& u = mWorld->AddComponent<UITransformComponent>(fire);
-		u.mAnchor = Anchor::Center;
-		u.mPosition = Vec2(0.f, 0.f);
-		u.mSize = Vec2(64, 64);
-
-	}
-
-	{
-		Entity text = mWorld->CreateEntity();
-		auto& t = mWorld->AddComponent<UITextComponent>(text);
-		t.mText = L"IN GAME";
-	}
-
-	{
-		Entity Aim = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"jAims");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Aim);
-		t.mAnchor = Anchor::Center;
-		t.mPosition = Vec2(-98.f, -64.f);
-		t.mSize = Vec2(196.f, 128.f);
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Aim, scorem);
-	}
-
-	{
-		Entity Ibanix_Ammo = mWorld->CreateEntity();
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Ammo");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Ammo);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(212.f, -212.f);
-		t.mSize = Vec2(196.f, 128.f);
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Ammo, scorem);
-	}
-
-	{
-		Entity Fanthor_Portrait = mWorld->CreateEntity();
-
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Fanthor_Portrait");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Fanthor_Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(32.f, -636.f);
-		t.mSize = Vec2(196.f, 196.f);
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Fanthor_Portrait, scorem);
-	}
-
-	{
-		Entity Ibanix_Portrait = mWorld->CreateEntity();
-
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Ibanix_Portrait");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Ibanix_Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(32.f, -424.f);
-		t.mSize = Vec2(196.f, 196.f);
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Ibanix_Portrait, scorem);
-	}
-
-	{
-		Entity Rudwig_Portrait = mWorld->CreateEntity();
-
-		shared_ptr<Material> scorem;
-		scorem = RESOURCEMANAGER.Get<Material>(L"Rudwig_Portrait");
-
-		auto& t = mWorld->AddComponent<UITransformComponent>(Rudwig_Portrait);
-		t.mAnchor = Anchor::BottomLeft;
-		t.mPosition = Vec2(32.f, -212.f);
-		t.mSize = Vec2(196.f, 196.f);
-
-		auto& m = mWorld->AddComponent<UICusSpriteComponent>(Rudwig_Portrait, scorem);
-	}
-
 #pragma endregion
 
 	/////////////////////////////////////////////////////////////////////////
 
 
 
+	// HUD / 게임 UI Feature
+	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
+	mUIFeatures.push_back(audioVisualizerModule);
+
+	auto actionModule = std::make_shared<UIActionUpdateFeature>();
+	mUIFeatures.push_back(actionModule);
+
+	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
+	mUIFeatures.push_back(hpBarModule);
+
+	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
+	mUIFeatures.push_back(damagePopupModule);
+
+	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
+	mUIFeatures.push_back(gameInfoModule);
+
+	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
+	mUIFeatures.push_back(gameProgressModule);
+
+	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
+	mUIFeatures.push_back(portraitModule);
+
+	auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
+	mUIFeatures.push_back(skillCooldownModule);
+
+	for (const auto& feature : mUIFeatures)
+	{
+		if (feature != nullptr)
+			feature->Initialize(mWorld.get());
+	}
+
+
 	mWorld->Initialize();
 
-	//// INPUT
-	//mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+	// INPUT
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
 
-	//// NETWORK
-	//mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
-	//mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
-	//mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	// NETWORK
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<GamePhaseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PauseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
 
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 
+	auto* renderSystemSS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemSS->SetPipeline(make_shared<GameRenderPipeline>());
+	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemSS->GetPipeline());
+	gp->SetWorldUIFeature(&mUIFeatures);
 
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
+
+	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
 }
 #pragma endregion
+
+
+
+
+
+
 
 #pragma region Victory / Lose Scene
 
 void VictoryScene::Initialize()
 {
+	mWorld->SetSceneId(mSceneId);
+	PrefabFactory::RegisterAllPrefabs();
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+	// 메인 카메라
+	{
+		Entity cam = mWorld->CreateEntity();
+		TransformComponent t{};
+		t.mLocalPosition = { 0.f, 0.f, -100.f };
+		mWorld->AddComponent<MainCameraComponent>(cam);
+		mWorld->AddComponent<CameraComponent>(cam);
+		mWorld->AddComponent<TransformComponent>(cam, t);
+	}
+
+	// 풀스크린 STAGE CLEAR 배경 이미지
+	{
+		Entity bg = mWorld->CreateEntity();
+		auto& tr = mWorld->AddComponent<UITransformComponent>(bg);
+		tr.mLayoutMode   = UILayoutMode::ScreenRatio;
+		tr.mAnchor       = Anchor::Center;
+		tr.mPositionRatio = Vec2(0.f, 0.f);
+		tr.mSizeRatio     = Vec2(1.f, 1.f);
+		tr.mPivot        = Vec2(0.5f, 0.5f);
+		tr.mUILayerIndex = 1;
+		mWorld->AddComponent<UISpriteComponent>(bg, RESOURCEMANAGER.Get<Texture>(L"UI_StageClear_0"));
+	}
+
+	// VICTORY 타이틀 텍스트
+	{
+		Entity title = mWorld->CreateEntity();
+		auto& tr = mWorld->AddComponent<UITransformComponent>(title);
+		tr.mAnchor       = Anchor::Center;
+		tr.mPosition     = Vec2(0.f, -250.f);
+		tr.mSize         = Vec2(600.f, 120.f);
+		tr.mPivot        = Vec2(0.5f, 0.5f);
+		tr.mUILayerIndex = 5;
+		auto& txt = mWorld->AddComponent<UITextComponent>(title);
+		txt.mText = L"VICTORY";
+	}
+
+	// MAIN MENU 버튼
+	CreateUIButton(mWorld.get(), {
+		.anchor   = Anchor::Center,
+		.position = Vec2(0.f, 250.f),
+		.size     = Vec2(320.f, 72.f),
+		.visual   = UIButtonVisual::Vfx,
+		.resKey   = L"VFX_UI_Select",
+		.label    = L"MAIN MENU",
+		.onClick  = []() { gEngine->GetSceneManager().RequestScene(SceneId::MainMenu); },
+		});
+
 	mWorld->Initialize();
+
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
+
+	auto* renderSystemVS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemVS->SetPipeline(make_shared<GameRenderPipeline>());
+
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
+
+	mSceneId = SceneId::VGame;
 }
 
 void LoseScene::Initialize()

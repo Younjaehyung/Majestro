@@ -52,6 +52,9 @@ void IMGUIRenderSystem::Update()
     {
         if (auto pipeline = renderSys->GetPipeline())
             pipeline->DrawImGui();
+
+        // CSM 스플릿 분포 lambda
+        ImGui::SliderFloat("CSM Split Lambda", renderSys->GetCascadeSplitLambdaPtr(), 0.0f, 1.0f);
     }
 
     // ── Camera Inspector ──────────────────────────────────────────────────────

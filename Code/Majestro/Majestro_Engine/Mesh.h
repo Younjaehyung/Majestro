@@ -32,6 +32,7 @@ public:
 	void BuildLocalOBBFromVertices(const vector<Vertex>& vertices, BoundingOrientedBox& outOBB);
 
 	const BoundingOrientedBox& GetLocalOBB() const { return mLocalOBB; }
+	uint32 GetSubMeshCount() const { return static_cast<uint32>(mVecIndexInfo.size()); }
 private:
 	ComPtr<ID3D12Resource>		mVertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW	mVertexBufferView = {};

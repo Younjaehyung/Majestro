@@ -273,6 +273,8 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring s
 
 		auto& mats = CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
 
+		// 이 메시의 머티리얼 묶음을 보관
+		mMeshMaterials.push_back(mats);
 
 	}
 	loader.close();

@@ -130,6 +130,7 @@ public:
 public:
 	const vector<shared_ptr<class Mesh>>& GetMeshs() const { return mMeshs; }
 	const vector<shared_ptr<class Material>>& GetMaterials() const { return mMaterials; }
+	const vector<vector<shared_ptr<class Material>>>& GetMeshMaterials() const { return mMeshMaterials; }
 	const vector<shared_ptr<CollisionMesh>>& GetColliders() const { return mColliders; }
 private:
 	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, wstring shader);
@@ -144,6 +145,7 @@ private:
 	FBXFileHeader					mHeader{};
 	vector<shared_ptr<Mesh>>		mMeshs;
 	vector<shared_ptr<Material>>	mMaterials;
+	vector<vector<shared_ptr<Material>>>	mMeshMaterials; // 메시별 머티리얼 묶음
 	shared_ptr<Skeleton>			mSkeleton;
 	vector<shared_ptr<Animator>>	mAnimators;
 

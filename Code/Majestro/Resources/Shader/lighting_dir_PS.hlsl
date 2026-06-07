@@ -84,6 +84,6 @@ PS_OUT PS_DirLight(VS_OUT input)
     float iblVisibility = lerp(0.55f, 1.f, visibility);
     output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao * iblVisibility, 1.0f);
     output.specular = color.specular + float4(ibl.specular * ao * iblVisibility, 0.0f);
-
+    output.diffuse.rgb += light.color.ambient.rgb * ao;
     return output;
 }

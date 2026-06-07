@@ -278,6 +278,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 	case EffectSpawnReason::Respawn:
 		return VfxSpawnDesc{ L"VFX_Wind_Energy_Field", Vec3::Zero, Vec3(1.0f) };
 
+	case EffectSpawnReason::CheckpointReached:
+		return VfxSpawnDesc{ L"VFX_Monster_Spawn", Vec3(0.f, 100.f, 0.f), Vec3(5.0f) };
+
 	default:
 		return std::nullopt;
 	}

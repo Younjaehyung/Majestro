@@ -19,6 +19,7 @@
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
 #include "MovementSystem.h"
+#include "VfxSystem.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
 #include "VfxComponent.h"
@@ -699,6 +700,16 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
         Entity e = CreateEntityFromArchetype(archetypeId);
         mWorld->NetIdBinding(netId, e);
 		std::cout << "HandleSpawn: netId=" << netId << " -> entityId=" << e.GetID() << std::endl;
+
+        // 몬스터 스폰 VFX
+        if (spawnPacket->prefabType == PrefabType::ENEMY && spawnPacket->hasInitialTransform != 0)
+        {
+            if (auto vfxSystem = mWorld->GetSystemManager()->GetSystem<VfxSystem>())
+            {
+                const Vec3 spawnPos(spawnPacket->x, spawnPacket->y + 100.f, spawnPacket->z);
+                vfxSystem->PlayOneShot(L"VFX_Monster_Spawn", spawnPos, Vec3::Zero, Vec3(5.0f));
+            }
+        }
     }
     else {
         std::cout << "HandleSpawn: netId=" << netId << " 이미 존재, 스킵" << std::endl;

@@ -2827,7 +2827,8 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Shield\\VFX_Bongoman_Shield.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Pianoman_Attack_01\\VFX_Pianoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Hornman_Bullet\\VFX_Hornman_Bullet.efk");
-	
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Monster_Spawn\\VFX_Monster_Spawn.efk");
+
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_Select\\VFX_UI_Select.efk");
 

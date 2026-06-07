@@ -248,6 +248,7 @@ enum class EffectSpawnReason : uint8
 	CollisionStatic = 2,
 	LifetimeExpired = 3,
 	Respawn = 4,
+	CheckpointReached = 5, // 화물이 거점(stopPoint)에 도착한 순간
 };
 
 // 로비 Room 시스템: 한 방의 최대 인원

@@ -265,6 +265,15 @@ void SpawnerSystem::BroadcastSpawnPacket(Entity spawnedEntity, uint8 prefabTypeR
     if (EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(spawnedEntity))
         spawnPkt.Type = enemyComp->mEnemyType;
 
+    // 스폰 위치
+    if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(spawnedEntity))
+    {
+        spawnPkt.hasInitialTransform = 1;
+        spawnPkt.x = transform->mLocalPosition.x;
+        spawnPkt.y = transform->mLocalPosition.y;
+        spawnPkt.z = transform->mLocalPosition.z;
+    }
+
     for (uint32 sessionId : CollectPlayerSessions())
     {
         SendRequest request{ sessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };

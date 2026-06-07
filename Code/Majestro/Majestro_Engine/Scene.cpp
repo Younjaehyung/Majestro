@@ -1386,8 +1386,14 @@ void FirstScene::Initialize()
 	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
+
+	OceanPrefab ocean{ mWorld.get() };
+
 	//EnemyPrefab	enemys {mWorld.get() };
 	AreaConquestPrefab areaConquest{ mWorld.get() };
+
+
+
 
 	// MAP export json load
 	// [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.
@@ -1396,6 +1402,7 @@ void FirstScene::Initialize()
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
 	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
+
 
 	/////////////////////////////////////////////////////////////////////
 

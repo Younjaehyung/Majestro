@@ -17,6 +17,7 @@ void ResourceManager::Initialize()
 
 	LoadPointMesh();
 	LoadRectangleMesh();
+	LoadPlaneMesh();
 	LoadSphereMesh();
 
 	LoadWireCubeMesh();
@@ -209,6 +210,29 @@ shared_ptr<Mesh> ResourceManager::LoadRectangleMesh()
 	shared_ptr<Mesh> mesh = make_shared<Mesh>();
 	mesh->Init(vec, idx);
 	Add(L"Rectangle", mesh);
+
+	return mesh;
+}
+
+shared_ptr<Mesh> ResourceManager::LoadPlaneMesh()
+{
+	shared_ptr<Mesh> findMesh = Get<Mesh>(L"Plane");
+	if (findMesh)
+		return findMesh;
+
+	// XZ 수평면, 법선 +Y, UV 0~1, 1x1
+	float h = 0.5f;
+	vector<Vertex> vec(4);
+	vec[0] = Vertex(Vec3(-h, 0.f, -h), Vec2(0.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
+	vec[1] = Vertex(Vec3(-h, 0.f, +h), Vec2(0.0f, 1.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
+	vec[2] = Vertex(Vec3(+h, 0.f, +h), Vec2(1.0f, 1.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
+	vec[3] = Vertex(Vec3(+h, 0.f, -h), Vec2(1.0f, 0.0f), Vec3(0.0f, 1.0f, 0.0f), Vec3(1.0f, 0.0f, 0.0f));
+
+	vector<uint32> idx{ 0, 1, 2, 0, 2, 3 };
+
+	shared_ptr<Mesh> mesh = make_shared<Mesh>();
+	mesh->Init(vec, idx);
+	Add(L"Plane", mesh);
 
 	return mesh;
 }
@@ -1012,6 +1036,25 @@ void ResourceManager::CreateDefaultShader()
 		//shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
 		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
 		Add<Shader>(L"Forward", shader);
+	}
+
+
+	// Ocean (Forward, 불투명)
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::LESS_EQUAL,
+			BLEND_TYPE::DEFAULT,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\ocean_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\ocean_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 4, ShaderArg());
+		Add<Shader>(L"Ocean", shader);
 	}
 
 
@@ -2456,6 +2499,32 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Game_Loading_Background", material);
 	}
 
+
+	// Ocean Material
+	{
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"Ocean");
+		auto& p = material->GetParams();
+		// foamEdgeWidth, foamSoftness, scrollSpeed, flowStrength
+		p.ExtValue[0] = Vec4(2.0f, 0.10f, 0.12f, 0.15f);
+		// shallowColor.rgb, shallowAlpha
+		p.ExtValue[1] = Vec4(0.15f, 0.78f, 0.72f, 0.55f);
+		// deepColor.rgb, deepAlpha
+		p.ExtValue[2] = Vec4(0.02f, 0.28f, 0.42f, 0.92f);
+		// texTiling, depthFadeScale, foamBrightness, surfaceFoamAmount(표면 whitecap 강도)
+		p.ExtValue[3] = Vec4(500.f, 8.0f, 1.0f, 0.7f);
+		// 거품 노이즈
+		shared_ptr<Texture> foamTex = Load<Texture>(L"OceanFoamNoise", L"..\\Resources\\Texture\\water_Normal_0.png");
+		shared_ptr<Texture> dirTex = Load<Texture>(L"T_GrassWindNoise", L"..\\Resources\\Image\\Noise\\T_WorlyNoise_3.png");
+		shared_ptr<Texture> waterNrm = Load<Texture>(L"OceanWaterNormal", L"..\\Resources\\Texture\\water_Normal_0.png");
+		
+
+		p.ExtTex[0] = static_cast<int32>(foamTex->GetImageIndex()); // 거품 노이즈
+		p.ExtTex[1] = static_cast<int32>(dirTex->GetImageIndex()); // 거품 노이즈
+		p.ExtTex[2] = static_cast<int32>(waterNrm->GetImageIndex()); // 물 노멀맵
+
+		Add<Material>(L"Ocean", material);
+	}
 
 	// DebugLine Material
 	{

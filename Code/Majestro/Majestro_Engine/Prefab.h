@@ -145,6 +145,14 @@ public:
 	//static Entity Build(World& world, const InputCommand& ctx);
 };
 
+
+class OceanPrefab : public Prefab
+{
+public:
+	OceanPrefab(World* world);
+	~OceanPrefab();
+};
+
 class BillboardPrefab : public Prefab
 {
 public:

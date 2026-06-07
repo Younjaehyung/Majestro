@@ -1507,6 +1507,12 @@
     <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_VS.hlsl">
       <Filter>World\Resource\Shader\90. UI</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ocean_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\ocean_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

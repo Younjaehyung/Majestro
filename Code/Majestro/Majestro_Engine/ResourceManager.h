@@ -46,6 +46,7 @@ public:
 
 	shared_ptr<Mesh> LoadPointMesh();
 	shared_ptr<Mesh> LoadRectangleMesh();
+	shared_ptr<Mesh> LoadPlaneMesh(); // XZ 수평면(법선 +Y)
 	shared_ptr<Mesh> LoadCubeMesh();
 	shared_ptr<Mesh> LoadMCubeMesh();
 	shared_ptr<Mesh> LoadWireCubeMesh();

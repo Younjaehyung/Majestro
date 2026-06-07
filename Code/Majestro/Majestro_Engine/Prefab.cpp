@@ -790,6 +790,30 @@ SkyBoxPrefab::~SkyBoxPrefab()
 {
 }
 
+// 해수면 높이(Y)
+static constexpr float kSeaLevelY = -350.0f;
+
+OceanPrefab::OceanPrefab(World* world)
+{
+	mEntityID = world->CreateEntity();
+
+	TransformComponent bt{};
+	bt.mLocalScale    = Vec3(30000.f, 1.f, 30000.f); // 맵을 덮는 대형 평면
+	bt.mLocalPosition = Vec3(10000.f, kSeaLevelY, 0.f);  // 해수면 높이
+
+	world->AddComponent<TransformComponent>(mEntityID, bt);
+
+	shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(L"Plane");
+	std::vector<shared_ptr<Material>> materials{ RESOURCEMANAGER.Get<Material>(L"Ocean") };
+
+	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, mesh, materials);
+	render.mCheckFrustum = false; // 항상 보이는 거대 평면
+}
+
+OceanPrefab::~OceanPrefab()
+{
+}
+
 TerrainPrefab::TerrainPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
@@ -867,9 +891,9 @@ DirLightPrefab::DirLightPrefab(World* world)
 {
 	LightComponent l{};
 	l.mLightInfo.Position = { Vec3(0, 0, 0) };
-	l.mLightInfo.Color.Ambient = { Vec3(0.5f, 0.5f, 0.5f) };
+	l.mLightInfo.Color.Ambient = { Vec3(0.2f, 0.2f, 0.2f) };
 	l.mLightInfo.Color.Diffuse = { Vec3(1.0f, 1.0f, 1.0f) };
-	l.mLightInfo.Color.Specular = { Vec3(0.1f, 0.1f, 0.1f) };
+	l.mLightInfo.Color.Specular = { Vec3(0.3f, 0.3f, 0.3f) };
 	l.SetLightDirection(Vec3(-0.0713f, -0.6448f, 0.7610f));
 	// 방향벡터이므로 각도를 계산해서 넣어줘야할듯
 	mEntityID = LightFactory::CreateLight(world, LIGHT_TYPE::DIRECTIONAL_LIGHT, l);

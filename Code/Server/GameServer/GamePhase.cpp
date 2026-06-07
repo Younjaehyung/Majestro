@@ -15,6 +15,7 @@
 #include "PathLoadComponent.h"
 #include "NetEntityComponent.h"
 #include "TruckComponent.h"
+#include "GameEvents.h"
 
 #include "Prefab.h"
 
@@ -395,6 +396,18 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 				// 거점 통과 순간
 				computeStageProgress(nextStopIndex);
+
+				// 화물이 VFX
+				if (auto* eventManager = mWorld->GetEventManager().get())
+				{
+					eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+						0, // effectType 미사용
+						targetTr->mLocalPosition.x,
+						targetTr->mLocalPosition.y,
+						targetTr->mLocalPosition.z,
+						EffectSpawnReason::CheckpointReached });
+				}
+
 				mIsCompleted = true;
 				return;
 			}

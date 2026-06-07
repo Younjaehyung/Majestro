@@ -30,7 +30,7 @@ void WaveGameMode::Initialize()
 
 
 	mPhaseQueue.push_back([] { return new EscortPhase(/*routeId=*/0); });
-	mPhaseQueue.push_back([] { return new BossPhase();                });
+	//mPhaseQueue.push_back([] { return new BossPhase();                });
 	
 	auto factory = std::move(mPhaseQueue.front());
 	mPhaseQueue.pop_front();

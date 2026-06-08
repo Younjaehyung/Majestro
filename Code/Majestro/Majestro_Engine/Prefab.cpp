@@ -311,49 +311,6 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Rhythm"));//aim
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Die"));//dead
 		world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", anmators0, PlayerType::Ibanix);
-
-		//// 총구 화염 소켓 + VFX\
-		//// (1) 총구 소켓 정의: 본 미부착(이름 빈 문자열) → 애니 본이 아니라 플레이어 월드행렬에
-		////     오프셋만 적용해 부착(SocketSystem). 오프셋은 플레이어 로컬 기준(+Z 전방, +Y 위).
-		//socket.mSockets.push_back(SocketDef{
-		//	"muzzle", "",
-		//	Matrix::CreateTranslation(Vec3(0.f, 110.f, 90.f)) });	// TODO: 총구 위치 튜닝(전방/높이/좌우)
-		//
-		//// (2) 총구를 따라다니는 화염 VFX 엔티티
-		//Entity muzzleVfxEntity = world->CreateEntity();
-
-		//TransformComponent muzzleVfxTransform{};
-		//muzzleVfxTransform.mLocalPosition = Vec3(0.f, -100000.f, 0.f);	// 첫 프레임 숨김 위치
-		//muzzleVfxTransform.mWorldPosition = muzzleVfxTransform.mLocalPosition;
-		//muzzleVfxTransform.mWorldMatrix   = Matrix::CreateTranslation(muzzleVfxTransform.mLocalPosition);
-		//world->AddComponent<TransformComponent>(muzzleVfxEntity, muzzleVfxTransform);
-
-		//auto& muzzleFollow = world->AddComponent<SocketFollowComponent>(muzzleVfxEntity);
-		//muzzleFollow.mSourceEntity            = mEntityID;
-		//muzzleFollow.mSocketName              = "muzzle";
-		//muzzleFollow.mFollowRotation          = true;	// 총구 방향(이미터 회전) 적용. 스프라이트 빌보드는 .efk 노드 설정이 담당
-		//muzzleFollow.mHideWhenInvalid         = true;
-		//muzzleFollow.mUseAttackState          = true;	// 공격 상태에서만
-		//muzzleFollow.mUseAnimationWindow      = true;
-		//muzzleFollow.mUseUpperAnimationWindow = false;
-		//muzzleFollow.mRestartVfxOnActivate    = true;	// 매 발사마다 처음부터 재생
-		//muzzleFollow.mPlayOnce                = true;	// 공격 진입 시 1회만 재생(애니 내내 반복 X)
-
-
-		//auto& muzzleVfx = world->AddComponent<VfxComponent>(muzzleVfxEntity);
-		//muzzleVfx.mVfx                  = RESOURCEMANAGER.Get<Vfx>(L"VFX_Ibanix_FireSmoke");
-		//muzzleVfx.mIsLoop               = false;	// 한 번만 재생(루프 X)
-		//muzzleVfx.mRestartWhenFinished  = false;	// 끝나면 자동 재시작 안 함 → 앞부분 반복 방지
-		//muzzleVfx.mStopRootWhenDisabled = false;	// 윈도우가 일찍 닫혀도 잔여 파티클 자연 소멸
-		//muzzleVfx.mUseWorldMatrix       = true;	// 소켓 위치+회전을 이미터에 적용(SetMatrix). 빌보드는 .efk 노드 설정이 담당
-		//muzzleVfx.mScale                = Vec3(15.f, 15.f, 15.f);	// TODO: 스케일 튜닝
-		//muzzleVfx.mWorldMatrix          = muzzleVfxTransform.mWorldMatrix;
-		//muzzleVfx.mShouldPlay           = false;	// SocketFollowSystem이 윈도우에서 켬
-		//// 풀 비대상(지속 엔티티)
-		//muzzleVfx.mIsPooled   = false;
-		//muzzleVfx.mInUse      = false;
-		//muzzleVfx.mAutoReturn = false;
-		//// ====================================================================
 	}
 		break;
 	case PlayerType::Fanthor:
@@ -414,39 +371,6 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
 
-
-	//{
-	//	Entity socketVfxEntity = world->CreateEntity();
-
-	//	TransformComponent socketVfxTransform{};
-	//	socketVfxTransform.mLocalPosition = Vec3(0.0f, -100000.0f, 0.0f);
-	//	socketVfxTransform.mWorldPosition = socketVfxTransform.mLocalPosition;
-	//	socketVfxTransform.mWorldMatrix = Matrix::CreateTranslation(socketVfxTransform.mLocalPosition);
-	//	world->AddComponent<TransformComponent>(socketVfxEntity, socketVfxTransform);
-
-	//	//auto& follow = world->AddComponent<SocketFollowComponent>(socketVfxEntity);
-	//	//follow.mIsActive = false;
-	//	//follow.mSourceEntity = mEntityID;
-	//	//follow.mSocketName = "weapon_tip";
-	//	//follow.mFollowRotation = true;
-	//	//follow.mUseAttackState = true;
-	//	//follow.mUseAnimationWindow = true;
-	//	//follow.mUseUpperAnimationWindow = true;
-	//	//follow.mUseAnimationFrameWindow = true;
-	//	//follow.mTrailStartFrame = 9;
-	//	//follow.mTrailEndFrame = 13;
-
-
-	//	VfxComponent& slashVfx = world->AddComponent<VfxComponent>(socketVfxEntity);
-	//	slashVfx.mIsLoop = true;
-	//	slashVfx.mRestartWhenFinished = true;
-	//	slashVfx.mStopRootWhenDisabled = true;
-	//	slashVfx.mUseWorldMatrix = true;
-	//	slashVfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Fanthor_Slash_02");
-	//	slashVfx.mScale = Vec3(1.0f, 1.0f, 1.0f);
-	//	slashVfx.mWorldMatrix = socketVfxTransform.mWorldMatrix;
-	//	slashVfx.mShouldPlay = false;
-	//}
 
 	{
 		auto& dashLine = world->AddComponent<DashSpeedLineComponent>(mEntityID);
@@ -513,7 +437,20 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	}
 	else 
 	{
-		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+		// 캐릭터별 전용 HP 텍스처
+		std::wstring hpBgName  = L"UI_Fanthor_HP_0";
+		std::wstring hpBarName = L"UI_Fanthor_HP_1";
+		switch (static_cast<PlayerType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type))
+		{
+		case PlayerType::Rudwig:
+			hpBgName = L"UI_Rudwig_HP_0";  hpBarName = L"UI_Rudwig_HP_1";  break;
+		case PlayerType::Ibanix:
+			hpBgName = L"UI_Ibanix_HP_0";  hpBarName = L"UI_Ibanix_HP_1";  break;
+		case PlayerType::Fanthor:
+			hpBgName = L"UI_Fanthor_HP_0"; hpBarName = L"UI_Fanthor_HP_1"; break;
+		}
+
+		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 3.f, hpBgName, hpBarName);
 
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
@@ -522,6 +459,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		hp.mHitEffectFrameCount = 4;
 		hp.mHitEffectSizePx = Vec2(128.f, 128.f);
 		hp.mHitEffectOffsetPx = Vec2(28.f, 0.f);
+
 	}
 
 
@@ -608,7 +546,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	shared_ptr<Material> material2;
 	vector<shared_ptr<Animator>> anmators;
 
-	auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 280.f, mEntityID, Vec3(0.f, 200.f, 0.f), 128.f, L"UI_Player_HP_0", L"UI_Player_HP_2");
+
+	auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 4.f, L"UI_Monster_Hp_0", L"UI_Monster_Hp_1");
 
 	{
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
@@ -616,8 +555,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		hp.mHitEffectCols = 4;
 		hp.mHitEffectRows = 1;
 		hp.mHitEffectFrameCount = 4;
-		hp.mHitEffectSizePx = Vec2(64.f, 64.f);
-		hp.mHitEffectOffsetPx = Vec2(32.f, 0.f);
+		hp.mHitEffectSizePx = Vec2(48.f, 48.f);
+		hp.mHitEffectOffsetPx = Vec2(24.f, 0.f);
 	}
 
 	switch (static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {
@@ -642,11 +581,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman);
 		break;
 	case EnemyType::Bongoman:
-		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Run0");
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Run"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Attack"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));*/
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Bongoman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Bongoman_Run0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Run"));
@@ -912,7 +846,7 @@ BillboardPrefab::~BillboardPrefab()
 }
 
 
-HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 /*playerType*/)
+HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 {
 	// 슬롯별 위치/크기 (slot0 = 메인 player, slot1/2 =  나머지 player)
 	struct SlotLayout { Vec2 pos; Vec2 size; };
@@ -925,6 +859,26 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 /*playerType*/)
 	const float BounceAmplitude = 0.05f;
 	const float BounceFrequency = 2.f;
 	const float BounceDamping   = 10.0f;
+
+	std::wstring hpBgName = L"UI_Fanthor_HP_0";
+	std::wstring hpBarName = L"UI_Fanthor_HP_1";
+
+
+	switch (playerType)
+	{
+	case PlayerType::Fanthor:
+		hpBgName = L"UI_Fanthor_HP_0";
+		hpBarName = L"UI_Fanthor_HP_1";
+		break;
+	case PlayerType::Rudwig:
+		hpBgName = L"UI_Rudwig_HP_0";
+		hpBarName = L"UI_Rudwig_HP_1";
+		break;
+	case PlayerType::Ibanix:
+		hpBgName = L"UI_Ibanix_HP_0";
+		hpBarName = L"UI_Ibanix_HP_1";
+		break;
+	}
 
 	for (uint8 i = 0; i < kLayout.size(); ++i)
 	{
@@ -988,7 +942,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 /*playerType*/)
 				t.mSize = hpSize;
 				t.mPivot = Vec2(0.f, 0.f);
 				t.mUILayerIndex = 5;
-				auto& sp = world->AddComponent<UISpriteComponent>(hpBack, RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1"));
+				auto& sp = world->AddComponent<UISpriteComponent>(hpBack, RESOURCEMANAGER.Get<Texture>(hpBgName));
 				sp.mVisible = false;
 			}
 
@@ -1001,7 +955,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 /*playerType*/)
 				t.mSize = hpSize;
 				t.mPivot = Vec2(0.f, 0.f);
 				t.mUILayerIndex = 6;
-				auto& sp = world->AddComponent<UISpriteComponent>(hpFill, RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2"));
+				auto& sp = world->AddComponent<UISpriteComponent>(hpFill, RESOURCEMANAGER.Get<Texture>(hpBarName));
 				sp.mVisible = false;
 			}
 
@@ -1192,7 +1146,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			auto& t = world->AddComponent<UITransformComponent>(back);
 			t.mAnchor = Anchor::Center;
 			t.mPosition = Vec2(0.f, 576.f);
-			t.mSize = Vec2(768.f, 96.f);
+			t.mSize = Vec2(768.f, 256.f);   // 텍스처 원본 비율 3:1 (768x256)
 			t.mPivot = Vec2(0.5f, 0.5f);
 			t.mUILayerIndex = 1;
 
@@ -1206,37 +1160,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 #endif
 		}
-		{	// BACK 1
-			Entity hpback = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
-			switch (playerType) {
-			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1");
-				break;
-			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1");
-				break;
-			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_1");
-				break;
-			}
-			auto& t = world->AddComponent<UITransformComponent>(hpback);
-			t.mAnchor = Anchor::Center;
-			t.mPosition = Vec2(-256.f, 548.f);
-			t.mSize = Vec2(512.f, 96.f);
-			t.mPivot = Vec2(0.0f, 0.0f);
-			t.mUILayerIndex = 3;
-
-
-			world->AddComponent<UISpriteComponent>(hpback, scorem);
-#ifdef _IMGUI
-
-			props.push_back({ "Back HP Back Pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
-			props.push_back({ "Back HP Back Size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
-
-#endif
-		}
 		{
 
 			Entity hp = world->CreateEntity();
@@ -1244,20 +1168,20 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			shared_ptr<Texture> scorem;
 			switch (playerType) {
 			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2");
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_HP_1");
 				break;
 			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2");
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_HP_1");
 				break;
 			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Player_HP_2");
+				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_HP_1");
 				break;
 			}
 			auto& t = world->AddComponent<UITransformComponent>(hp);
 			t.mAnchor = Anchor::Center;
-			t.mPosition = Vec2(-256.f, 548.f);
-			t.mSize = Vec2(512.f, 96.f);
-			t.mPivot = Vec2(0.0f, 0.0f);
+			t.mPosition = Vec2(-384.f, 448.f);
+			t.mSize = Vec2(768.f, 256.f);     
+			t.mPivot = Vec2(0.0f, 0.0f);      
 			t.mUILayerIndex = 2;
 
 
@@ -1282,17 +1206,35 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			// HP 바 자체는 위 UISprite 가 그리고, 여기서 부착하는 UIHpBarComponent 는
 			// 파편 + hit effect 만 담당 (HUD 모드: 화면 픽셀 직접 좌표, depth 무시).
 			{
-				auto& bar = world->AddComponent<UIHpBarComponent>(
-					hp, t.mSize.x, ownerEntity, Vec3::Zero, t.mSize.y,
-					L"UI_Player_HP_1", L"UI_Player_HP_2");
+				std::wstring hpBgName = L"UI_Fanthor_HP_0";
+				std::wstring hpBarName = L"UI_Fanthor_HP_1";
+
+
+				switch (playerType)
+				{
+				case PlayerType::Fanthor:
+					hpBgName = L"UI_Fanthor_HP_0";
+					hpBarName = L"UI_Fanthor_HP_1";
+					break;
+				case PlayerType::Rudwig:
+					hpBgName = L"UI_Rudwig_HP_0";
+					hpBarName = L"UI_Rudwig_HP_1";
+					break;
+				case PlayerType::Ibanix:
+					hpBgName = L"UI_Ibanix_HP_0";
+					hpBarName = L"UI_Ibanix_HP_1";
+					break;
+				}
+
+				auto& bar = world->AddComponent<UIHpBarComponent>( hp, t.mSize.x, ownerEntity, Vec3::Zero, t.mSize.y, hpBgName, hpBarName);
 				bar.mIsScreenSpace = true;
 				bar.mRenderBgFill = false;            // 위 UISprite 가 이미 그림
 				bar.mHitEffectTextureName = L"UI_Player_HP_3";
 				bar.mHitEffectCols = 4;
 				bar.mHitEffectRows = 1;
 				bar.mHitEffectFrameCount = 4;
-				bar.mHitEffectSizePx = Vec2(128.f, 128.f);
-				bar.mHitEffectOffsetPx = Vec2(28.f, 0.f);
+				bar.mHitEffectSizePx = Vec2(256.f, 256.f);
+				bar.mHitEffectOffsetPx = Vec2(56.f, 0.f);
 			}
 #ifdef _IMGUI
 

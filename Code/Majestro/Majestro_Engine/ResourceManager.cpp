@@ -2661,10 +2661,26 @@ void ResourceManager::CreateDefaultMaterial()
 
 #pragma region HPBar
 		{
-			Load<Texture>(L"UI_Player_HP_0", L"..\\Resources\\Image\\UI\\UI_Player_HP_0.png");
-			Load<Texture>(L"UI_Player_HP_1", L"..\\Resources\\Image\\UI\\UI_Player_HP_1.png");
-			Load<Texture>(L"UI_Player_HP_2", L"..\\Resources\\Image\\UI\\UI_Player_HP_2.png");
 			Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
+		}
+		{
+			Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
+			Load<Texture>(L"UI_Fanthor_HP_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_1.png");
+		}
+		{
+			Load<Texture>(L"UI_Ibanix_HP_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_0.png");
+			Load<Texture>(L"UI_Ibanix_HP_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_1.png");
+		}
+		{
+			Load<Texture>(L"UI_Rudwig_HP_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_0.png");
+			Load<Texture>(L"UI_Rudwig_HP_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_1.png");
+		}
+
+		{
+			Load<Texture>(L"UI_Monster_Hp_0", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_0.png");
+			Load<Texture>(L"UI_Monster_Hp_1", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_1.png");
+			Load<Texture>(L"UI_Monster_Hp_2", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_2.png");
+
 		}
 #pragma endregion
 

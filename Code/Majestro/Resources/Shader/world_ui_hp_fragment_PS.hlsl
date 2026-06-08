@@ -3,7 +3,6 @@
 #include "utils.hlsl"
 
 
-// HP 바 배경 텍스처의 alpha를 마스크로 사용
 // barycentric + fwidth로 삼각형 경계(엣지)를 검정으로 강조
 // VS에서 받은 alpha을 곱해 페이드아웃
 // PreDepth 비교로 occluded 영역은 discard
@@ -30,8 +29,9 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // sprite 모양으로 마스킹
     if (any(input.spriteUV < 0.0f) || any(input.spriteUV > 1.0f))
         discard;
-    float maskAlpha = TextureMaps[GlobalParams.HpBarBgTexIdx].Sample(g_sam_0, input.spriteUV).a;
-    if (maskAlpha < 0.05f)
+    // alpha는 모양 마스크
+    float4 fillTexel = TextureMaps[GlobalParams.HpBarFillTexIdx].Sample(g_sam_0, input.spriteUV);
+    if (fillTexel.a < 0.05f)
         discard;
 
     // Depth occlusion (HUD 모드는 스킵)

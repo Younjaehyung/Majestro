@@ -103,7 +103,7 @@ public:
 	float mFar = 200.f * 100.f;
 
 	float mShadowNear = 1.f;
-	float mShadowFar = 5000.f;
+	float mShadowFar = 2500.f;
 
 	float mFov = 103.f/2.0f;// XM_PI / 4.f; (오버워치 fov로 맞춤)
 	float mScale = 1.f;
@@ -141,7 +141,7 @@ public:
 	SweepHit mCameraSweep{};
 
 	float mCameraMaxLenth = 170;
-	float mCameraMinLenth = 100;
+	float mCameraMinLenth = 40;
 
 	// cameraDistance에 따른 디더로 페이드 아웃
 	float mCameraFadeStart = 150.f; // 알파 1 (불투명)
@@ -150,7 +150,7 @@ public:
 	float mFadeLerpSpeed = 12.f;     // 페이드 보간 속도 (1/s)
 
 	BoundingOrientedBox mCameraBox;
-	float mCameraSphereRadius = 250.f;
+	float mCameraSphereRadius = 15.f;
 	float mCameraMargin = 5.f;
 
 	Vec3 mOffset = Vec3(80, 160, 0);

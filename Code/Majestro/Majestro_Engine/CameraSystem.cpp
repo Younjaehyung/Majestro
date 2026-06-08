@@ -79,9 +79,9 @@ void CameraSystem::Update(float dt)
 						death->mSpectateTarget = 0;
 					}
 				}
-				else if (!death->mActive)
+				else if (!death->mActive && cameraTypeComponent->mPlayMode != MAIN_CAMERA)
 				{
-					// 사망
+					// 사망 (자유시점 중에는 데스캠 진입 안 함)
 					death->mActive         = true;
 					death->mElapsed        = 0.f;
 					death->mSpectating     = false;

@@ -29,9 +29,16 @@ void WaveGameMode::Initialize()
 	GameRuleComponent& rule = mScene->GetWorld()->AddComponent<GameRuleComponent>(mGameRuleEntity);
 
 
-	mPhaseQueue.push_back([] { return new EscortPhase(/*routeId=*/0); });
-	//mPhaseQueue.push_back([] { return new BossPhase();                });
-	
+	if (mHasCustomPhases)
+	{
+		// Scene에서 직접 지정한 초기 큐 사용 
+		mPhaseQueue = std::move(mInitialPhases);
+	}
+	else
+	{
+		mPhaseQueue.push_back([] { return new EscortPhase(/*routeId=*/0); });
+	}
+
 	auto factory = std::move(mPhaseQueue.front());
 	mPhaseQueue.pop_front();
 	TransitionTo(factory());
@@ -63,23 +70,21 @@ void WaveGameMode::TransitionTo(GamePhase* next)
 
 void WaveGameMode::AdvancePhase()
 {
+	// 현재 phase 가 끝나지 않았으면 대기 (Escort 가 마지막 stop 통과 시 ClearPhase 등을 큐에 삽입한다)
+	if (mCurrentPhase && false == mCurrentPhase->IsCompleted()) return;
+
 	if (mPhaseQueue.empty())
 	{
-		// 모든 phase 클리어 — 승리
+		// 현재 phase 까지 완료 + 큐 비었을 때 게임 종료/전환 (목적지는 씬이 지정)
 		mIsComplete = true;
-		mTargetSceneId = SceneId::VGame;
+		mTargetSceneId = mCompletionSceneId;
 		mIsSceneChanging = true;
 		return;
 	}
 
-	
-	if (false == mCurrentPhase->IsCompleted()) return;
-
 	auto factory = std::move(mPhaseQueue.front());
 	mPhaseQueue.pop_front();
 	TransitionTo(factory());
-
-
 }
 
 void WaveGameMode::InsertNextPhase(PhaseFactory factory)

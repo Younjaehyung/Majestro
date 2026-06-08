@@ -74,13 +74,27 @@ public:
 
 	virtual float GetGameTime() const { return mGameTime; }
 
+	// 모든 phase 클리어 시 전환할 씬
+	void SetCompletionScene(SceneId id) { mCompletionSceneId = id; }
+
+	// 초기 phase 큐를 직접 지정
+	void SetInitialPhases(std::deque<PhaseFactory> phases)
+	{
+		mInitialPhases = std::move(phases);
+		mHasCustomPhases = true;
+	}
+
 private:
 // 런타임
 	std::deque<PhaseFactory> mPhaseQueue;
 	GamePhase* mCurrentPhase = nullptr;
 	uint8 mCurrentPhaseIndex = 0;
 	float mGameTime = 0.0f; // 게임 진행 시간
-	
+	SceneId mCompletionSceneId = SceneId::MainMenu;
+
+	std::deque<PhaseFactory> mInitialPhases; // SetInitialPhases 로 지정된 초기 큐
+	bool mHasCustomPhases = false;
+
 };
 
 

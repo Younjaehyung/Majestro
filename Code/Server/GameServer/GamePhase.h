@@ -81,6 +81,20 @@ private:
 	// RailPathComponent* mRailPath = nullptr; // 호위 경로 정보 (예: 웨이브 점령과 달리, 호위는 특정 경로를 따라 이동해야 할 수 있음)
 };
 
+class ClearPhase : public GamePhase
+{
+public:
+    ClearPhase(float holdSeconds = 3.f) : mHoldSeconds(holdSeconds) {}
+    virtual void Enter(WaveGameMode& mode) override;
+    virtual void PostUpdate(float dt, WaveGameMode& mode) override;
+    virtual bool IsCompleted() const override { return mIsCompleted; }
+    virtual uint8 GetType() const override { return static_cast<uint8>(WavePhaseType::Clear); }
+
+private:
+    float mHoldSeconds = 3.f; // GameClear 배너를 띄워두는 시간
+    float mElapsed = 0.f;
+};
+
 class BossPhase : public GamePhase
 {
 public:

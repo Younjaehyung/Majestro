@@ -106,6 +106,23 @@ float NormalizeDistanceForPath(float distance, float length, bool closedLoop)
 }
 
 
+// JSON 의 특정 Vec3 필드를 선택적으로 읽음 (없으면 out 유지, false 반환)
+bool ReadOptionalVec3(const std::wstring& path, const char* key, Vec3& out)
+{
+	std::ifstream ifs(path);
+	if (!ifs.is_open())
+		return false;
+
+	json root;
+	ifs >> root;
+
+	if (!root.contains(key))
+		return false;
+
+	out = ParseVec3ArrayOrObject(root[key], 1.0f);
+	return true;
+}
+
 
 ///////////////////////////////////
 

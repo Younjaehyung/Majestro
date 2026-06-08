@@ -326,6 +326,20 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 	ruleComp->mMoveState = pathComp->mPaused ? 0 : 1;
 
+	// 인원 비례 속도
+	{
+		float multiplier = 1.0f;
+		const int32 fullCount = (ruleComp->mFullSpeedPlayerCount > 1) ? ruleComp->mFullSpeedPlayerCount : 1;
+		if (playerNum >= 1 && fullCount > 1)
+		{
+			const int32 clamped = (playerNum < fullCount) ? playerNum : fullCount; // 1..fullCount
+			const float t = static_cast<float>(clamped - 1) / static_cast<float>(fullCount - 1); // 0..1
+			multiplier = 1.0f + (ruleComp->mMaxSpeedMultiplier - 1.0f) * t;
+		}
+		ruleComp->mSpeedMultiplier = multiplier;
+		pathComp->mBaseSpeed = ruleComp->mTruckSpeed * multiplier;
+	}
+
 	ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
 		? pathComp->mCurrentDistance / pathComp->mTotalDistance : 0.f;
 
@@ -383,9 +397,21 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 				const uint8 zoneId = ResolveConquestZoneIdFromResumeEvent(stop.resumeEvent, nextStopIndex);
 				const float requiredSeconds = (stop.waitSeconds > 0.f) ? stop.waitSeconds : GameConquestComponent::mMaxWaveTime;
 
-				mode.InsertNextPhase([routeId, resumeDistance, nextStopIndex] {
-					return new EscortPhase(routeId, resumeDistance, nextStopIndex);
-				});
+
+				// 마지막 stop 이면 재개 호위 대신 ClearPhase 를 넣어 마지막 Conquest 직후 GameClear 및 씬 전환.
+				const bool isLastStop = (static_cast<size_t>(mNextStopIndex) + 1 >= stopPoints.size());
+				if (isLastStop)
+				{
+					mode.InsertNextPhase([] {
+						return new ClearPhase(3.0f);
+					});
+				}
+				else
+				{
+					mode.InsertNextPhase([routeId, resumeDistance, nextStopIndex] {
+						return new EscortPhase(routeId, resumeDistance, nextStopIndex);
+					});
+				}
 				mode.InsertNextPhase([zoneId, requiredSeconds] {
 					return new ConquestPhase(zoneId, requiredSeconds);
 				});
@@ -442,6 +468,28 @@ uint8 EscortPhase::ResolveConquestZoneIdFromResumeEvent(const std::string& resum
 	// resumeEvent가 CheckPoint1 형식이면 숫자로 점령 구역을 고르고, 숫자가 없으면 stopPoint 순서를 사용
 	const int32 zoneId = foundDigit ? value : fallbackZoneId;
 	return static_cast<uint8>(min(255, max(1, zoneId)));
+}
+
+////--------------------------------------------------------------
+
+
+
+void ClearPhase::Enter(WaveGameMode& mode)
+{
+	mWorld = mode.GetScene()->GetWorld();
+	mGameRuleEntity = mode.GetGameRuleEntity();
+
+	if (auto* rule = mWorld->GetComponent<GameRuleComponent>(mGameRuleEntity))
+		rule->mGamePhase = static_cast<uint8>(WavePhaseType::Clear);
+}
+
+void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
+{
+	mElapsed += dt;
+
+	// 배너를 잠시 보여준 뒤 완료
+	if (mElapsed >= mHoldSeconds)
+		mIsCompleted = true;
 }
 
 ////--------------------------------------------------------------

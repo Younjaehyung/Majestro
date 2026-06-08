@@ -15,12 +15,14 @@
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "GameRuleComponent.h"
+#include "PlayerSpawnComponent.h"
 #include "PathLoadComponent.h"
 #include "LevelImport.h"
 #include "Mesh.h"
 #include "Prefab.h"
 
 #include "GameMode.h"
+#include "GamePhase.h"
 #include "SystemManager.h"
 #include "CameraSystem.h"
 #include "TransformSystem.h"
@@ -115,6 +117,81 @@ namespace
 				entries.push_back(entry);
 		}
 		return entries;
+	}
+
+	uint8 ParseInteractableKind(const std::string& name)
+	{
+		if (name == "HealPack")     return static_cast<uint8>(InteractableKind::HealPack);
+		if (name == "ArmorPack")    return static_cast<uint8>(InteractableKind::ArmorPack);
+		if (name == "JumpPad")      return static_cast<uint8>(InteractableKind::JumpPad);
+		if (name == "SpeedPad")     return static_cast<uint8>(InteractableKind::SpeedPad);
+		if (name == "DamageZone")   return static_cast<uint8>(InteractableKind::DamageZone);
+		if (name == "ConquestZone") return static_cast<uint8>(InteractableKind::ConquestZone);
+		if (name == "EscortZone")   return static_cast<uint8>(InteractableKind::EscortZone);
+		if (name == "Checkpoint")   return static_cast<uint8>(InteractableKind::Checkpoint);
+		return static_cast<uint8>(InteractableKind::None);
+	}
+
+	InteractableTarget ParseInteractableTarget(const std::string& name)
+	{
+		if (name == "All")   return InteractableTarget_All;
+		if (name == "Enemy") return InteractableTarget_Enemy;
+		if (name == "None")  return InteractableTarget_None;
+		return InteractableTarget_Player; // 기본
+	}
+
+	void LoadInteractablesForScene(Scene* scene, World* world, const std::wstring& path)
+	{
+		if (!scene || !world)
+			return;
+
+		std::ifstream ifs(path);
+		if (!ifs.is_open())
+			throw std::runtime_error("Failed to open interactables json");
+
+		json root;
+		ifs >> root;
+
+		const auto& items = RequireJson(root, "interactables");
+		for (const auto& it : items)
+		{
+			const Vec3 position    = ParseVec3ArrayOrObject(RequireJson(it, "position"), 1.0f);
+			const Vec3 halfExtents = ParseVec3ArrayOrObject(RequireJson(it, "halfExtents"), 1.0f);
+
+			scene->SpawnInteractable(
+				world,
+				ParseInteractableKind(GetOptionalString(it, "kind", "None")),
+				position,
+				halfExtents,
+				GetOptionalFloat(it, "valueA", 0.0f),
+				GetOptionalFloat(it, "valueB", 0.0f),
+				GetOptionalFloat(it, "cooldown", 0.0f),
+				GetOptionalBool(it, "oneShot", false),
+				ParseInteractableTarget(GetOptionalString(it, "targetMask", "Player")));
+		}
+	}
+
+
+	// JSON 의 "playerSpawn" 을 읽어 스폰 지점 마커 엔티티를 배치
+	bool LoadPlayerSpawnForScene(World* world, const std::wstring& path)
+	{
+		if (!world)
+			return false;
+
+		std::ifstream ifs(path);
+		if (!ifs.is_open())
+			return false;
+
+		json root;
+		ifs >> root;
+
+		if (!root.contains("playerSpawn"))
+			return false;
+
+		Entity e = world->CreateEntity();
+		PlayerSpawnComponent& spawn = world->AddComponent<PlayerSpawnComponent>(e);
+		spawn.mPosition = ParseVec3ArrayOrObject(root["playerSpawn"], 1.0f);
+		return true;
 	}
 
 	void LoadSpawnerTablesForScene(Scene* scene, World* world, const std::wstring& path)
@@ -511,16 +588,27 @@ void FirstScene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 
 	// Modified: Server terrain height now comes from NavMesh fallback and Jolt MeshShape raycast, so TerrainComponent is not spawned.
-	
-	// 트럭 스폰
+
+	const std::wstring gimmickPath = L"../Resources/Json/Map001_Gimmicks.json";
+
+	// 트럭 스폰 (위치는 JSON truckSpawn 에서)
+	Vec3 truckSpawn(-4902.f, 135.f, -9240.f);
+	ReadOptionalVec3(gimmickPath, "truckSpawn", truckSpawn);
+
 	InputCommand dummy{};
 	Entity truck = PrefabFactory::Spawn(mWorld.get(), PrefabType::TRUCK, dummy);
-	PathLoadComponent* plc = mWorld->GetComponent<PathLoadComponent>(truck);
-	TransformComponent* trans = mWorld->GetComponent< TransformComponent>(truck);
-	plc->mBaseOffset = Vec3(-4902.f, 135.f, -9240.f);
-	trans -> mLocalPosition = Vec3(-4902.f, 135.f, -9240.f);
+	
 
-	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
+	PathLoadComponent* plc = mWorld->GetComponent<PathLoadComponent>(truck);
+	plc->mBaseOffset = truckSpawn;
+
+	TransformComponent* trans = mWorld->GetComponent< TransformComponent>(truck);
+	trans->mLocalPosition = truckSpawn;
+
+	
+	auto waveMode = make_shared<WaveGameMode>();
+	waveMode->SetCompletionScene(SceneId::SecondGame); // 마지막 Conquest 클리어 후 SecondGame 으로 전환
+	shared_ptr<GameMode> gameMode = waveMode;
 	SetGameMode(gameMode);
 	gameMode->Initialize();
 
@@ -553,38 +641,9 @@ void FirstScene::Initialize()
 	
 
 
-	// 힐팩: 10초 쿨다운, 75 회복. 월드 원점 근처에 배치.
-	SpawnInteractable(mWorld.get(),
-		static_cast<uint8>(InteractableKind::HealPack),
-		Vec3(-5843.0f, 278.0f, -3523.0f),
-		Vec3(  3.0f, 3.0f,   3.0f),
-		/*valueA(회복량)=*/75.0f,
-		/*valueB=*/0.0f,
-		/*cooldown=*/10.0f,
-		/*oneShot=*/false);
-
-	// 점프대: 지속 활성, 위로 1200 / 전방 400 임펄스.
-	SpawnInteractable(mWorld.get(),
-		static_cast<uint8>(InteractableKind::JumpPad),
-		Vec3(-2337.0f, 142.0f, -4987.0f),
-		Vec3(  150.0f, 5.0f,   150.0f),
-		/*valueA(Y 임펄스)=*/1200.0f,
-		/*valueB(전방 임펄스)=*/5.0f,
-		/*cooldown=*/0.5f,
-		/*oneShot=*/false);
-
-
-	// 점령지 1
-	SpawnInteractable(mWorld.get(),
-		static_cast<uint8>(InteractableKind::ConquestZone),
-		Vec3(-500.0f, -127.0f, 1240.0f),
-		Vec3(  300.0f, 300.0f,   300.0f),
-		/*valueA(점령지 넘버)=*/1.0f,
-		/*valueB(미정)=*/0.0f,
-		/*cooldown=*/0.0f,
-		/*oneShot=*/false,
-		InteractableTarget_All
-	);
+	// 플레이어 스폰/힐팩/점프대/점령지
+	LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
+	LoadInteractablesForScene(this, mWorld.get(), gimmickPath);
 
 
 	//// 몬스터 주기 스폰 포인트. 5초마다 스폰, 동시 최대 3마리, 반경 200 안에 랜덤 배치.
@@ -621,7 +680,7 @@ void FirstScene::Initialize()
 	//	sp.mActive = false; // EvInteractableConsumed로 true가 된다
 	//}
 
-	LoadSpawnerTablesForScene(this, mWorld.get(), L"../Resources/Json/SpawnTables.json");
+	LoadSpawnerTablesForScene(this, mWorld.get(), gimmickPath);
 
 	mSceneId = SceneId::FirstGame;
 
@@ -632,36 +691,57 @@ void FirstScene::Initialize()
 
 void SecondScene::Initialize()
 {
-	//PlayerPrefab p{ mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 
-	// Modified: Server terrain height now comes from NavMesh fallback and Jolt MeshShape raycast, so TerrainComponent is not spawned.
+	// Conquest 전용 게임 모드
+	auto waveMode = make_shared<WaveGameMode>();
+	waveMode->SetCompletionScene(SceneId::VGame);
+	{
+		std::deque<WaveGameMode::PhaseFactory> phases;
+		phases.push_back([] { return new ConquestPhase(/*zoneId=*/1, /*requiredSeconds=*/30.f); });
+		phases.push_back([] { return new ConquestPhase(/*zoneId=*/2, /*requiredSeconds=*/30.f); });
+		phases.push_back([] { return new ClearPhase(3.0f); });
+		waveMode->SetInitialPhases(std::move(phases));
+	}
+	shared_ptr<GameMode> gameMode = waveMode;
+	SetGameMode(gameMode);
 
-	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 	mWorld->Initialize();
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDesert_Export.json");
+
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 PreUpdate
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 2-1. 버프 틱/만료 처리
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
-	
 	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition) ← 이동 후 재계산
-	//mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();	// 8. 카메라 업데이트
 	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
 	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
 	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 최신 mWorldMatrix로 충돌 판정
 	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 힐팩/점프대 등 맵 상호작용 트리거 검사
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
-	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();     // 사망/리스폰 처리
-	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Jolt 위치를 NavMesh 표면에 투영(적 AI 길찾기 목표용), Transform 비파괴
+	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();         // 사망/리스폰 처리
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Jolt 위치를 NavMesh 표면에 투영
+	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate (점령 판정)
+	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
+	// 기믹(플레이어 스폰/점령지/힐팩/점프대/스포너) 
+	//  첫 ConquestPhase::Enter 가 점령지를 알아서 매핑
+	const std::wstring gimmickPath = L"../Resources/Json/MapDesert_Gimmicks.json";
+	LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);          // 플레이어 스폰 위치
+	LoadInteractablesForScene(this, mWorld.get(), gimmickPath);  // 점령지/힐팩/점프대 등
+	LoadSpawnerTablesForScene(this, mWorld.get(), gimmickPath);  // 몬스터 스포너
+
+
+	gameMode->Initialize();
+
 	mSceneId = SceneId::SecondGame;
-	shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
-	SetGameMode(gameMode);
 }
 
 void LobbyScene::Initialize()

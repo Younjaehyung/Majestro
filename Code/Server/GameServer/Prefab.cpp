@@ -19,6 +19,7 @@
 #include "TerrainComponent.h"
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
+#include "PlayerSpawnComponent.h"
 
 #include "BulletComponent.h"
 #include "HealthComponent.h"
@@ -69,7 +70,19 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   }
 
   TransformComponent t{};
+  // 씬에 PlayerSpawnComponent 마커가 있으면 그 위치, 없으면 기본 위치
   t.mLocalPosition = { -8002.9f, 1027.2f, -12519.6f };
+  if (world->HasComponentPool<PlayerSpawnComponent>())
+  {
+    for (Entity s : world->GetEntitiesWithComponent<PlayerSpawnComponent>())
+    {
+      if (PlayerSpawnComponent* sp = world->GetComponent<PlayerSpawnComponent>(s))
+      {
+        t.mLocalPosition = sp->mPosition;
+        break;
+      }
+    }
+  }
   Entity testCamera = world->CreateEntity();
   world->AddComponent<MainCameraComponent>(testCamera);
   world->AddComponent<CameraComponent>(testCamera);
@@ -78,7 +91,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
                                            THREE_FPS);
 
 
-
+  
 
   switch (playerType) {
   case PlayerType::Rudwig:

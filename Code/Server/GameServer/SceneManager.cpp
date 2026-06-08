@@ -6,6 +6,7 @@
 #include "RoomManager.h"
 #include "World.h"
 #include "NetSendSystem.h"
+
 void SceneManager::Initialize()
 {
 
@@ -42,10 +43,27 @@ void SceneManager::FactoryScene()
 
 }
 
+
+bool SceneManager::IsGameScene(SceneId id) const
+{
+	return id >= SceneId::FirstGame && id < SceneId::VGame;
+}
+
+
+shared_ptr<Scene> SceneManager::CreateSceneById(SceneId id)
+{
+	switch (id)
+	{
+	case SceneId::FirstGame:  return make_shared<FirstScene>();
+	case SceneId::SecondGame: return make_shared<SecondScene>();
+	default:                  return nullptr;
+	}
+}
+
 void SceneManager::TransitionToScene()
 {
-	// 게임이 끝난(GameMode 가 씬 전환 요청한) 방들을 수집
-	std::vector<uint32> finished;
+	// 게임이 끝난(GameMode 가 씬 전환 요청한) 방들을 수집 (목적지 씬도 함께)
+	std::vector<std::pair<uint32, SceneId>> finished;
 	for (auto& [roomId, scene] : mGameWorldsByRoom)
 	{
 		if (scene == nullptr) continue;
@@ -53,21 +71,31 @@ void SceneManager::TransitionToScene()
 		if (gm && gm->IsSceneChanging())
 		{
 			gm->IsSceneChanging() = false;
-			finished.push_back(roomId);
+			finished.push_back({ roomId, gm->GetTargetSceneId() });
 		}
 	}
 
-	// 게임 종료 (방 전원에게 Mainmenu 신호 후 방을 즉시 제거)
-	for (uint32 roomId : finished)
+	// 다음 게임 씬으로 가는 방은 World 만 교체(방 유지), 그 외는 게임 종료 + 방 해체
+	std::vector<std::pair<uint32, SceneId>> closing;
+	for (auto& [roomId, target] : finished)
+	{
+		if (IsGameScene(target))
+			SwapRoomWorldTo(roomId, target);
+		else
+			closing.push_back({ roomId, target });
+	}
+
+	// 게임 종료
+	for (auto& [roomId, target] : closing)
 	{
 		RoomState* room = mRoomManager ? mRoomManager->GetRoom(roomId) : nullptr;
 
 		std::vector<uint64> sessions = room ? room->GetSessionIds() : std::vector<uint64>{};
 
-		// 각 방원에게 MainMenu 복귀 통지 + 서버측 씬 매핑 정리
+		// 각 방원에게 목적지 씬 통지 + 서버측 씬 매핑 정리
 		for (uint64 s : sessions)
 		{
-			S2C_SceneChangeResultPacket resultPkt(SceneId::MainMenu, true);
+			S2C_SceneChangeResultPacket resultPkt(target, true);
 			SendRequest req{ static_cast<uint32>(s), PKT_Type::S2C_SCENE_CHANGE_RESULT, sizeof(resultPkt) };
 			req.StoreAs<S2C_SceneChangeResultPacket>(resultPkt);
 			gSendQueue.Push(req);
@@ -88,6 +116,38 @@ void SceneManager::TransitionToScene()
 		if (mRoomManager)
 			for (uint64 s : sessions)
 				mRoomManager->OnSessionLeave(s);
+	}
+}
+
+void SceneManager::SwapRoomWorldTo(uint32 roomId, SceneId target)
+{
+	
+	auto nextScene = CreateSceneById(target);
+	if (!nextScene)	// 게임 씬이 아니면 World 교체 대상이 아님
+		return;
+
+	RoomState* room = mRoomManager ? mRoomManager->GetRoom(roomId) : nullptr;
+	std::vector<uint64> sessions = room ? room->GetSessionIds() : std::vector<uint64>{};
+
+	// 새 target 게임 씬 World 생성
+	nextScene->Initialize();
+	nextScene->mIsStarted = true;
+
+	// 기존 게임 World 해제 후 같은 roomId 에 교체
+	auto gIt = mGameWorldsByRoom.find(roomId);
+	if (gIt != mGameWorldsByRoom.end() && gIt->second)
+		gIt->second->Release();
+	mGameWorldsByRoom[roomId] = nextScene;
+
+	// 전원 씬 상태 갱신 + target 전환 통지 (클라가 로딩 후 재스폰)
+	for (uint64 s : sessions)
+	{
+		mSceneBySession[s] = target;
+
+		S2C_SceneChangeResultPacket pkt(target, true);
+		SendRequest req{ static_cast<uint32>(s), PKT_Type::S2C_SCENE_CHANGE_RESULT, sizeof(pkt) };
+		req.StoreAs<S2C_SceneChangeResultPacket>(pkt);
+		gSendQueue.Push(req);
 	}
 }
 
@@ -160,7 +220,7 @@ shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
 		sceneState = stateIt->second;
 	}
 
-	if (sceneState == SceneId::FirstGame)
+	if (IsGameScene(sceneState))
 	{
 		uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(sessionId) : 0;
 		auto gIt = mGameWorldsByRoom.find(roomId);
@@ -279,10 +339,13 @@ bool SceneManager::HandleSceneChange(const InputCommand& command)
 			uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(command.SessionId) : 0;
 			if (mGameWorldsByRoom.find(roomId) == mGameWorldsByRoom.end())
 			{
-				auto scene = make_shared<FirstScene>();
-				scene->Initialize();
-				scene->mIsStarted = true;
-				mGameWorldsByRoom[roomId] = std::move(scene);
+				auto scene = CreateSceneById(requestedScene);
+				if (scene)
+				{
+					scene->Initialize();
+					scene->mIsStarted = true;
+					mGameWorldsByRoom[roomId] = std::move(scene);
+				}
 			}
 		}
 		else if (requestedScene == SceneId::Lobby)
@@ -331,15 +394,12 @@ bool SceneManager::IsSceneChangeAllowed(SceneId currentScene, SceneId requestedS
 	if (currentScene == requestedScene)
 		return false;
 
-	switch (currentScene)
-	{
-	case SceneId::Lobby:
+	
+	if (currentScene == SceneId::Lobby)	// 로비 -> 게임 시작 
 		return requestedScene == SceneId::FirstGame;
-	case SceneId::FirstGame:
+	if (IsGameScene(currentScene))	// 게임 씬 -> 로비 복귀
 		return requestedScene == SceneId::Lobby;
-	default:
-		return false;
-	}
+	return false;
 }
 
 
@@ -402,7 +462,7 @@ void SceneManager::CleanupRoomWorldIfEmpty(uint32 roomId)
 		for (uint64 s : room->GetSessionIds())
 		{
 			auto it = mSceneBySession.find(s);
-			if (it != mSceneBySession.end() && it->second == SceneId::FirstGame)
+			if (it != mSceneBySession.end() && IsGameScene(it->second))
 				++inGame;
 		}
 	}

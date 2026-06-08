@@ -69,11 +69,7 @@ void GameNetRuleSystem::Update(float deltaTime)
 			SendSceneEscort(rule);
 		}
 
-		EntityView escortEntity = mWorld->View<TruckComponent>();\
-			Entity escort = *escortEntity.begin();
-		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(escort);
-		// std::cout << "화물 위치" << tr->mLocalPosition.x << ", " << tr->mLocalPosition.y << ", " << tr->mLocalPosition.z << std::endl;
-		
+
 
 	}
 

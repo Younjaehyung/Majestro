@@ -33,6 +33,9 @@ private:
 	// 방의 게임 World 가 더 이상 InGame 세션을 갖지 않으면 Release
 	void CleanupRoomWorldIfEmpty(uint32 roomId);
 
+	// 방을 유지한 채 게임 World 를 target 게임 씬으로 교체하고 방원 전원에게 전환 통지
+	void SwapRoomWorldTo(uint32 roomId, SceneId target);
+
 	SceneId GetOrCreateSceneState(uint64 sessionId);
 
 	void SetLayerName(uint8 index, const wstring& name);
@@ -44,8 +47,11 @@ private:
 
 private:
 	void FactoryScene();	// 전체 씬을 생성하는 함수
+
+	bool IsGameScene(SceneId id) const;	// 게임 플레이 씬
 	
-	
+	shared_ptr<Scene> CreateSceneById(SceneId id);	// 게임 씬 인스턴스 생성. 
+
 	void TransitionToScene();	// Scene 전환
 
 private:

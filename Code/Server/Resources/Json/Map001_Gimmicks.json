@@ -1,0 +1,110 @@
+{
+    "_comment": "Map001(FirstGame) 기믹 위치. 엔진좌표(Y-up, cm). MapDesert_Gimmicks.json 과 동일 포맷.",
+
+    "playerSpawn": [ -8002.9, 1027.2, -12519.6 ],
+    "truckSpawn":  [ -4902.0, 135.0, -9240.0 ],
+
+    "interactables": [
+        {
+            "kind": "HealPack",
+            "position": [ -5843.0, 278.0, -3523.0 ],
+            "halfExtents": [ 3.0, 3.0, 3.0 ],
+            "valueA": 75.0,
+            "valueB": 0.0,
+            "cooldown": 10.0,
+            "oneShot": false,
+            "targetMask": "Player"
+        },
+        {
+            "kind": "JumpPad",
+            "position": [ -2337.0, 142.0, -4987.0 ],
+            "halfExtents": [ 150.0, 5.0, 150.0 ],
+            "valueA": 1200.0,
+            "valueB": 5.0,
+            "cooldown": 0.5,
+            "oneShot": false,
+            "targetMask": "Player"
+        },
+        {
+            "kind": "ConquestZone",
+            "position": [ -3379.0, 128.0, 26.0 ],
+            "halfExtents": [ 500.0, 300.0, 500.0 ],
+            "valueA": 1.0,
+            "valueB": 0.0,
+            "cooldown": 0.0,
+            "oneShot": false,
+            "targetMask": "All"
+        },
+        {
+            "kind": "ConquestZone",
+            "position": [ 4639.0, -106.0, 14597.0 ],
+            "halfExtents": [ 1500.0, 300.0, 1500.0 ],
+            "valueA": 2.0,
+            "valueB": 0.0,
+            "cooldown": 0.0,
+            "oneShot": false,
+            "targetMask": "All"
+        }
+    ],
+
+    "spawnTables": {
+        "table1": {
+            "entries": [
+                { "type": "Bongoman", "count": 2 },
+                { "type": "Pianoman", "count": 1 },
+                { "type": "HornMan", "count": 3 }
+            ]
+        },
+        "table2": {
+            "entries": [
+                { "type": "Pianoman", "count": 2 },
+                { "type": "HornMan", "count": 2 }
+            ]
+        },
+        "table3": {
+            "entries": [
+                { "type": "Bongoman", "count": 1 },
+                { "type": "HornMan", "count": 4 }
+            ]
+        }
+    },
+
+    "spawners": [
+        {
+            "id": "first_scene_spawner_a",
+            "position": [ -4910.0, 142.0, -1623.0 ],
+            "trigger": "Timed",
+            "interval": 8.0,
+            "maxAlive": 2,
+            "maxTotal": 6,
+            "spawnRadius": 150.0,
+            "startActive": true,
+            "randomSpawnFromTable": false,
+            "tablePool": [ "table1", "table3" ]
+        },
+        {
+            "id": "first_scene_spawner_b",
+            "position": [ -2307.0, 740.0, -4097.0 ],
+            "trigger": "Timed",
+            "interval": 8.0,
+            "maxAlive": 2,
+            "maxTotal": 6,
+            "spawnRadius": 150.0,
+            "startActive": true,
+            "randomSpawnFromTable": false,
+            "tablePool": [ "table2" ]
+        },
+        {
+            "id": "first_scene_spawner_c",
+            "position": [ -5943.0, 142.0, -5637.0 ],
+            "trigger": "Timed",
+            "interval": 8.0,
+            "maxAlive": 2,
+            "maxTotal": 6,
+            "spawnRadius": 150.0,
+            "startActive": true,
+            "randomSpawnFromTable": false,
+            "tablePool": [ "table1", "table2", "table3" ]
+        }
+    ]
+}

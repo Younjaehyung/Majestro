@@ -65,8 +65,7 @@ public:
 	uint8 mRouteId = 0;
 
 
-	static constexpr int mMaxWaves = 3; // 체크포인트 수
-	static constexpr float mMaxTruckSpeed = 30.f; // 최대 트럭 속도
+	static constexpr int mMaxWaves = 2; // 체크포인트 수
 
 
 	Entity mEscortTarget; // 호위 대상 엔티티 (예: 트럭)
@@ -79,7 +78,12 @@ public:
 	float mStageProgress = 0.f; // 현재 구간 내 진행도 (0~1)
 	uint8 mStageCount = 0; // 전체 호위 구간 수 (stopPoints 개수)
 	float mEscortTime = 0.f; // 호위 진행 시간
-	float mTruckSpeed = 100.f; // 호위 대상 이동 속도
+	float mTruckSpeed = 200.f; // 호위 대상 기본 이동 속도 (반경 내 1명 기준)
+
+	// 인원 비례 속도
+	int32 mFullSpeedPlayerCount = 3;    // 이 인원 이상이면 최대 배율 도달
+	float mMaxSpeedMultiplier   = 1.5f; // 최대 인원일 때 mTruckSpeed 대비 배율
+	float mSpeedMultiplier      = 1.0f; // 현재 적용 중인 배율 (디버그/UI 참조용)
 
 	int32 mPlayerNum = 0; // 플레이어 수
 	int32 mEnemyNum = 0; // 적 수

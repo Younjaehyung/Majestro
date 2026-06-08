@@ -487,6 +487,15 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
             sendSystem->RequestPendingGameStart();
 		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
         break;
+    case SceneId::SecondGame: // SecondScene 으로 교체
+        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
+            sendSystem->RequestPendingGameStart();
+		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::SecondGame, L"다음 스테이지 로딩 중...");
+        break;
+    case SceneId::VGame: // 승리 화면
+        Network::GetInstance().Shutdown();
+        gEngine->GetSceneManager().RequestScene(SceneId::VGame);
+        break;
     case SceneId::MainMenu: // 게임 종료 신호
         // 스스로 접속을 끊고 메인 메뉴로 복귀
         Network::GetInstance().Shutdown();

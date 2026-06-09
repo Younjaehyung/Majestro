@@ -1811,6 +1811,24 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"ToneMap", shader);
 	}
 
+	// LobbyBackground
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_BACK,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\final_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\lobby_background_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Final", "PS_Main");
+		Add<Shader>(L"LobbyBackground", shader);
+	}
+
 	// ChromaticAberration
 	{
 		ShaderInfo info =
@@ -2613,6 +2631,14 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
 		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 
+
+
+
+#pragma region LobbyUI
+		{
+			Load<Texture>(L"UI_Robby_Sheet", L"..\\Resources\\Image\\UI\\UI_Robby_Sheet.png");
+		}
+#pragma endregion
 
 		Load<Texture>(L"UI_Ibanix_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Weapon_0.png");
 		Load<Texture>(L"UI_Fanthor_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Weapon_0.png");

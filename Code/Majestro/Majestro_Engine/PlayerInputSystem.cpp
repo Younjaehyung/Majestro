@@ -19,6 +19,33 @@
 #include "GameEvents.h"
 #include "Network.h"
 #include "PauseMenuController.h"
+#include "RenderManager.h"
+
+namespace
+{
+	// 월드 좌표를 화면 픽셀로 투영. 카메라 뒤/화면 밖이면 false.
+	bool ProjectWorldToScreen(const Vec3& worldPos, const Matrix& view, const Matrix& proj,
+		float vpW, float vpH, Vec2& out)
+	{
+		const DirectX::XMVECTOR wp = DirectX::XMVectorSet(worldPos.x, worldPos.y, worldPos.z, 1.f);
+		const DirectX::XMVECTOR vp = DirectX::XMVector4Transform(wp, view);
+		const DirectX::XMVECTOR cp = DirectX::XMVector4Transform(vp, proj);
+
+		DirectX::XMFLOAT4 clip;
+		DirectX::XMStoreFloat4(&clip, cp);
+		if (clip.w <= 0.0001f)
+			return false;
+
+		const float ndcX = clip.x / clip.w;
+		const float ndcY = clip.y / clip.w;
+		out.x = (ndcX * 0.5f + 0.5f) * vpW;
+		out.y = (1.f - (ndcY * 0.5f + 0.5f)) * vpH;
+
+		if (ndcX < -1.2f || ndcX > 1.2f || ndcY < -1.2f || ndcY > 1.2f)
+			return false;
+		return true;
+	}
+}
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
 {
@@ -136,6 +163,90 @@ bool PlayerInputSystem::IsPlayerDead(const MainPlayerComponent* player) const
 		player->mUpperState == static_cast<int>(ReplicatedActionState::Dead);
 }
 
+bool PlayerInputSystem::IsLobbyCharacterLockedByOtherPlayer(uint8 playerType) const
+{
+
+	if (!mWorld->HasComponentPool<LobbyRoomStateComponent>())
+		return false;
+
+	std::vector<Entity> roomStateEntities = mWorld->GetEntitiesWithComponent<LobbyRoomStateComponent>();
+	if (roomStateEntities.empty())
+		return false;
+
+	const LobbyRoomStateComponent* state = mWorld->GetComponent<LobbyRoomStateComponent>(roomStateEntities[0]);
+	if (state == nullptr || !state->mHasSnapshot)
+		return false;
+
+	const uint32 myClientId = Network::GetInstance().mClientId;
+	const uint8 count = (state->mPlayerCount < ROOM_MAX_PLAYERS) ? state->mPlayerCount : ROOM_MAX_PLAYERS;
+	for (uint8 i = 0; i < count; ++i)
+	{
+		const auto& slot = state->mSlots[i];
+		if (slot.sessionId != 0 && slot.sessionId != myClientId &&
+			slot.ready && slot.playerType == playerType)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+int PlayerInputSystem::PickLobbyCharacterByMouse() const
+{
+	if (!mWorld->HasComponentPool<MannequinComponent>())  return -1;
+	if (!mWorld->HasComponentPool<MainCameraComponent>()) return -1;
+
+	auto cams = mWorld->GetEntitiesWithComponent<MainCameraComponent>();
+	if (cams.empty()) return -1;
+	CameraComponent* cam = mWorld->GetComponent<CameraComponent>(cams[0]);
+	if (!cam) return -1;
+
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+	const float vpW = static_cast<float>(window.Width);
+	const float vpH = static_cast<float>(window.Height);
+
+	const MouseState& mouse = INPUT.GetMouseState();
+	const Vec2 mousePos{ static_cast<float>(mouse.Position.x), static_cast<float>(mouse.Position.y) };
+
+	const Matrix view = cam->GetViewMatrix();
+	const Matrix proj = cam->GetProjectionMatrix();
+
+	// 캐릭터 클릭 히트박스(화면 픽셀).
+	constexpr float kTorsoUpOffset = 90.f;	//  발 원점이라 몸통 높이로 올려 투영함
+	constexpr float kHitHalfW = 110.f;
+	constexpr float kHitHalfH = 200.f;
+
+	int   best = -1;
+	float bestDist = FLT_MAX;
+	for (Entity e : mWorld->View<MannequinComponent>())
+	{
+		MannequinComponent* mann = mWorld->GetComponent<MannequinComponent>(e);
+		TransformComponent*  tr  = mWorld->GetComponent<TransformComponent>(e);
+		if (!mann || !tr) continue;
+
+		Vec3 worldPos = tr->mLocalPosition;
+		worldPos.y += kTorsoUpOffset;
+
+		Vec2 sp{};
+		if (!ProjectWorldToScreen(worldPos, view, proj, vpW, vpH, sp))
+			continue;
+
+		const float dx = mousePos.x - sp.x;
+		const float dy = mousePos.y - sp.y;
+		if (std::fabs(dx) > kHitHalfW || std::fabs(dy) > kHitHalfH)
+			continue;
+
+		const float d2 = dx * dx + dy * dy;
+		if (d2 < bestDist)
+		{
+			bestDist = d2;
+			best = static_cast<int>(mann->mPlayerType);
+		}
+	}
+	return best;
+}
+
 void PlayerInputSystem::UpdateDebugMouseLookInput(const PlayerInputContext& ctx)
 {
 	if (!ctx.paused && INPUT.GetKeyDown(eKeyCode::GRAVE))
@@ -156,15 +267,57 @@ void PlayerInputSystem::UpdateLobbyInput(float, PlayerInputContext&)
 		return;
 
 	bool characterChanged = false;
+
+	// 마우스 좌클릭으로 캐릭터 선택 ( 픽킹 )
+	if (INPUT.GetMouseLeftDown())
+	{
+		const int picked = PickLobbyCharacterByMouse();
+		if (picked >= 0)
+		{
+			const uint8 candidate = static_cast<uint8>(picked);
+			if (candidate != choice->mPlayerType && !IsLobbyCharacterLockedByOtherPlayer(candidate))
+			{
+				choice->mPlayerType = candidate;
+				characterChanged = true;
+			}
+		}
+	}
+
 	if (INPUT.GetKeyDown(eKeyCode::LEFT))
 	{
-		choice->mPlayerType = (choice->mPlayerType + 2) % 3;
-		characterChanged = true;
+		const uint8 currentType = choice->mPlayerType;
+		uint8 candidateType = currentType;
+		for (uint8 tryCount = 0; tryCount < 3; ++tryCount)
+		{
+			candidateType = static_cast<uint8>((candidateType + 2) % 3);
+			if (!IsLobbyCharacterLockedByOtherPlayer(candidateType))
+			{
+				if (candidateType != currentType)
+				{
+					choice->mPlayerType = candidateType;
+					characterChanged = true;
+				}
+				break;
+			}
+		}
 	}
 	else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
 	{
-		choice->mPlayerType = (choice->mPlayerType + 1) % 3;
-		characterChanged = true;
+		const uint8 currentType = choice->mPlayerType;
+		uint8 candidateType = currentType;
+		for (uint8 tryCount = 0; tryCount < 3; ++tryCount)
+		{
+			candidateType = static_cast<uint8>((candidateType + 1) % 3);
+			if (!IsLobbyCharacterLockedByOtherPlayer(candidateType))
+			{
+				if (candidateType != currentType)
+				{
+					choice->mPlayerType = candidateType;
+					characterChanged = true;
+				}
+				break;
+			}
+		}
 	}
 
 	if (characterChanged)

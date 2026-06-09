@@ -20,6 +20,7 @@ public:
 	std::wstring mText;
 	DirectX::SimpleMath::Vector2 mFontPos;
 	UIFontType mFontType{ UIFontType::Arial };
+	float mRotation = 0.f; // 라디안 (pivot 기준 회전)
 	bool mVisible = true; // false 이면 UIRenderSystem 텍스트 렌더 스킵
 
 	DirectX::XMVECTORF32 mColor{ { { 1.f, 1.f, 1.f, 1.f } } }; // RGBA

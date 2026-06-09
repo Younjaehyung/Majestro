@@ -63,6 +63,11 @@ float Rand01(float2 seed)
     return frac(sin(dot(seed, float2(12.9898f, 78.233f))) * 43758.5453f);
 }
 
+float Cross2(float2 a, float2 b)
+{
+    return a.x * b.y - a.y * b.x;
+}
+
 float4 FixQuatSign(float4 q, float4 refq)
 {
     return (dot(q, refq) < 0.0f) ? -q : q;

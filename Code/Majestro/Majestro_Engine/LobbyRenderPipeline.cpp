@@ -12,6 +12,7 @@
 #include "LightsPass.h"
 #include "OutlinePass.h"
 #include "DualKawaseBlurPass.h"
+#include "LobbyBackgroundPass.h"
 
 #include "Engine.h"
 #include "RenderManager.h"
@@ -39,6 +40,7 @@ void LobbyRenderPipeline::Initialize(World* world)
     mOutlinePass        = make_shared<OutlinePass>();
     mEffectPass         = make_shared<EffectPass>();
     mPostProcessPass    = make_shared<PostProcessPass>();
+    mLobbyBackgroundPass = make_shared<LobbyBackgroundPass>();
 	
 
     mEffectPass->Initialize(world);
@@ -49,6 +51,7 @@ void LobbyRenderPipeline::Initialize(World* world)
     mLightPass->Initialize();
     mForwardPass->Initialize();
     mOutlinePass->Initialize();
+    mLobbyBackgroundPass->Initialize();
 
     // Dual Kawase 이미시브 블룸 — GodRay 이후 HDR 체인에 등록
     mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
@@ -115,6 +118,8 @@ void LobbyRenderPipeline::Execute(const RenderContext& ctx)
 
     mDepthPrePass->Execute(*ctx.deferredBatchs);
     RenderDeferred(ctx);
+
+    mLobbyBackgroundPass->Execute(*ctx.deferredBatchs);
     mForwardPass->Execute(*ctx.deferredBatchs);
     mOutlinePass->Execute(*ctx.deferredBatchs);
     // Effekseer VFX

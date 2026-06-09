@@ -219,7 +219,7 @@ void UIRenderSystem::TextUpdate()
                              textSize.y * pivot.y };
 
         mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
-            textComp->mFontPos, textComp->mColor, 0.f, origin, scale);
+            textComp->mFontPos, textComp->mColor, textComp->mRotation, origin, scale);
     }
 
     mSpriteBatch->End();
@@ -387,8 +387,9 @@ void UIRenderSystem::RenderSpirte()
             const float destWidth  = (!vertical && !keepSize)  ? transComp->mFinalSize.x * visibleRatio : transComp->mFinalSize.x;
             const float destHeight = ( vertical && !keepSize)  ? transComp->mFinalSize.y * visibleRatio : transComp->mFinalSize.y;
 
-            const LONG left = static_cast<LONG>(transComp->mFinalPixelPos.x - (transComp->mPivot.x * destWidth));
-            const LONG top = static_cast<LONG>(transComp->mFinalPixelPos.y - (transComp->mPivot.y * destHeight));
+            // rotation=0 이면 기존과 동일한 위치
+            const LONG left = static_cast<LONG>(transComp->mFinalPixelPos.x);
+            const LONG top = static_cast<LONG>(transComp->mFinalPixelPos.y);
             const LONG right = left + static_cast<LONG>(destWidth);
             const LONG bottom = top + static_cast<LONG>(destHeight);
             const RECT destRect{ left, top, right, bottom };
@@ -398,8 +399,9 @@ void UIRenderSystem::RenderSpirte()
                 textureSize,
                 destRect,
                 sourceRectPtr,
-				spriteComp->mColorTint
-
+                spriteComp->mColorTint,
+                spriteComp->mRotation,
+                origin
             );
         }
         else
@@ -410,7 +412,7 @@ void UIRenderSystem::RenderSpirte()
                 transComp->mFinalPixelPos,
                 sourceRectPtr,
                 spriteComp->mColorTint,
-                0.f,    // rotation
+                spriteComp->mRotation,
                 origin  // pivot 적용
             );
         }

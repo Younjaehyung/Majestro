@@ -38,6 +38,8 @@ private:
 	bool BuildCameraContext(PlayerInputContext& ctx);
 	bool BuildPlayerContext(PlayerInputContext& ctx);
 	bool IsPlayerDead(const MainPlayerComponent* player) const;
+	bool IsLobbyCharacterLockedByOtherPlayer(uint8 playerType) const;		// 다른 사람에 의해 이미 선택된건지 확인
+	int  PickLobbyCharacterByMouse() const;									// 픽킹
 
 	void UpdateDebugMouseLookInput(const PlayerInputContext& ctx);
 	void UpdateLobbyInput(float dt, PlayerInputContext& ctx);

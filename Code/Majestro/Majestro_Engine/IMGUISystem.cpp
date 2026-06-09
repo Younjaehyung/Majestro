@@ -9,6 +9,11 @@
 #include "SystemManager.h"
 #include "WeaponTrailComponent.h"
 #include "SocketComponent.h"
+#include "TagComponent.h"
+#include "TransformComponent.h"
+#include "LobbyRoomSystem.h"
+#include "UITransformComponent.h"
+#include "UISpriteComponent.h"
 
 IMGUIRenderSystem::IMGUIRenderSystem(World* world) : System::System(world)
 {
@@ -62,6 +67,237 @@ void IMGUIRenderSystem::Update()
 
     // ── Weapon Trail Inspector ─────────────────────────────────────────────────
     DrawWeaponTrailInspector();
+
+    // Lobby character transform inspector change
+    DrawLobbyCharacterTransformInspector();
+
+    // 로비 룸 UI(info/ready/choose) 아틀라스 슬라이스/배치 조정
+    DrawLobbyRoomUIInspector();
+#endif
+}
+
+void IMGUIRenderSystem::DrawLobbyCharacterTransformInspector()
+{
+#ifdef _IMGUI
+    if (mWorld->GetSceneId() != SceneId::Lobby)
+        return;
+
+    if (!ImGui::Begin("Lobby Character Transform"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (!mWorld->HasComponentPool<MannequinComponent>() ||
+        !mWorld->HasComponentPool<TransformComponent>())
+    {
+        ImGui::Text("Lobby mannequin character not found");
+        ImGui::End();
+        return;
+    }
+
+    static const char* characterNames[] =
+    {
+        "Rudwig",
+        "Ibanix",
+        "Fanthor"
+    };
+    constexpr uint8 characterNameCount = 3;
+
+    auto entities = mWorld->GetEntitiesWithComponent<MannequinComponent>();
+    for (auto e : entities)
+    {
+        MannequinComponent* mannequin = mWorld->GetComponent<MannequinComponent>(e);
+        TransformComponent* transform = mWorld->GetComponent<TransformComponent>(e);
+        if (!mannequin || !transform)
+            continue;
+
+        const uint8 playerType = mannequin->mPlayerType;
+        const char* characterName =
+            playerType < characterNameCount
+            ? characterNames[playerType]
+            : "Unknown";
+
+        char header[96];
+        snprintf(header, sizeof(header), "%s Character (Entity %u)", characterName, e.GetID());
+
+        if (ImGui::CollapsingHeader(header, ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::PushID(static_cast<int>(e.GetID()));
+
+            ImGui::DragFloat3("Position", &transform->mLocalPosition.x, 1.0f, -10000.0f, 10000.0f, "%.2f");
+            ImGui::DragFloat3("Rotation", &transform->mLocalRotationE.x, 1.0f, -360.0f, 360.0f, "%.2f");
+
+            ImGui::Text("Current Position  %.2f  %.2f  %.2f",
+                transform->mLocalPosition.x,
+                transform->mLocalPosition.y,
+                transform->mLocalPosition.z);
+            ImGui::Text("Current Rotation  %.2f  %.2f  %.2f",
+                transform->mLocalRotationE.x,
+                transform->mLocalRotationE.y,
+                transform->mLocalRotationE.z);
+
+            ImGui::PopID();
+        }
+    }
+
+    ImGui::End();
+#endif
+}
+
+void IMGUIRenderSystem::DrawLobbyRoomUIInspector()
+{
+#ifdef _IMGUI
+    if (mWorld->GetSceneId() != SceneId::Lobby)
+        return;
+
+    auto* lobby = mWorld->GetSystemManager()->GetSystem<LobbyRoomSystem>();
+    if (!lobby)
+        return;
+
+    if (!ImGui::Begin("Lobby Room UI"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::Checkbox("Force show ready/choose", &lobby->mDebugForceShowOverlays);
+    ImGui::TextDisabled("(룸 입장 상태에서만 표시됩니다)");
+    ImGui::Separator();
+
+    static const char* names[] = { "Rudwig", "Ibanix", "Fanthor" };
+
+    // 한 스프라이트(UITransform + 아틀라스 소스렉트)를 라이브 편집한다.
+    auto editSprite = [this](const char* label, Entity e)
+    {
+        if (!e.IsValid())
+            return;
+        auto* tr = mWorld->GetComponent<UITransformComponent>(e);
+        auto* sp = mWorld->GetComponent<UISpriteComponent>(e);
+        if (!tr)
+            return;
+
+        ImGui::PushID(label);
+        if (ImGui::TreeNodeEx(label, ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::DragFloat2("Pos",  &tr->mPosition.x, 1.0f);
+            ImGui::DragFloat2("Size", &tr->mSize.x, 1.0f, 1.0f, 4096.0f);
+            if (sp)
+            {
+                // SliderAngle: 라디안 포인터를 받아 도(deg)로 표시/편집
+                ImGui::SliderAngle("Rotation", &sp->mRotation, -180.0f, 180.0f);
+            }
+
+            if (sp && sp->mUseSourceRect)
+            {
+                int rect[4] =
+                {
+                    static_cast<int>(sp->mSourceRect.left),
+                    static_cast<int>(sp->mSourceRect.top),
+                    static_cast<int>(sp->mSourceRect.right),
+                    static_cast<int>(sp->mSourceRect.bottom),
+                };
+                if (ImGui::DragInt4("Src L,T,R,B", rect, 1.0f, 0, 2048))
+                {
+                    sp->mSourceRect.left   = rect[0];
+                    sp->mSourceRect.top    = rect[1];
+                    sp->mSourceRect.right  = rect[2];
+                    sp->mSourceRect.bottom = rect[3];
+                }
+                ImGui::Text("Src WxH  %d x %d",
+                    static_cast<int>(sp->mSourceRect.right - sp->mSourceRect.left),
+                    static_cast<int>(sp->mSourceRect.bottom - sp->mSourceRect.top));
+            }
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    };
+
+    // 현재 라이브 값을 kCharacterUiLayouts 형식 코드로 클립보드에 복사한다.
+    if (ImGui::Button("Copy layout to clipboard"))
+    {
+        std::string out;
+        char buf[512];
+        for (uint8 i = 0; i < LobbyRoomSystem::DebugCharacterCount(); ++i)
+        {
+            Entity info, ready, choose[3], lock[3];
+            std::array<Entity, 3> chooseArr{}, lockArr{};
+            lobby->GetOverlayEntities(i, info, ready, chooseArr, lockArr);
+            for (int k = 0; k < 3; ++k) { choose[k] = chooseArr[k]; lock[k] = lockArr[k]; }
+
+            auto* infoTr = mWorld->GetComponent<UITransformComponent>(info);
+            auto* infoSp = mWorld->GetComponent<UISpriteComponent>(info);
+            auto* readyTr = mWorld->GetComponent<UITransformComponent>(ready);
+            auto* readySp = mWorld->GetComponent<UISpriteComponent>(ready);
+            auto* chooseSp = mWorld->GetComponent<UISpriteComponent>(choose[0]);
+            auto* lockSp = mWorld->GetComponent<UISpriteComponent>(lock[0]);
+            if (!infoTr || !infoSp || !readyTr || !readySp || !chooseSp)
+                continue;
+
+            const RECT& is = infoSp->mSourceRect;
+            const RECT& rs = readySp->mSourceRect;
+            const RECT& cs = chooseSp->mSourceRect;
+
+            snprintf(buf, sizeof(buf),
+                "// %s\n"
+                "Info  src(%ld,%ld,%ld,%ld) pos(%.0f,%.0f) size(%.0f,%.0f)\n"
+                "Ready src(%ld,%ld,%ld,%ld) pos(%.0f,%.0f) size(%.0f,%.0f)\n"
+                "Choose src(%ld,%ld,%ld,%ld)\n",
+                names[i],
+                is.left, is.top, is.right - is.left, is.bottom - is.top,
+                infoTr->mPosition.x, infoTr->mPosition.y, infoTr->mSize.x, infoTr->mSize.y,
+                rs.left, rs.top, rs.right - rs.left, rs.bottom - rs.top,
+                readyTr->mPosition.x, readyTr->mPosition.y, readyTr->mSize.x, readyTr->mSize.y,
+                cs.left, cs.top, cs.right - cs.left, cs.bottom - cs.top);
+            out += buf;
+
+            if (lockSp)
+            {
+                const RECT& ls = lockSp->mSourceRect;
+                snprintf(buf, sizeof(buf), "LockX src(%ld,%ld,%ld,%ld)\n",
+                    ls.left, ls.top, ls.right - ls.left, ls.bottom - ls.top);
+                out += buf;
+            }
+
+            for (int k = 0; k < 3; ++k)
+            {
+                auto* ctr = mWorld->GetComponent<UITransformComponent>(choose[k]);
+                if (!ctr) continue;
+                snprintf(buf, sizeof(buf),
+                    "Choose[%d] offset(%.0f,%.0f) size(%.0f,%.0f)\n",
+                    k, ctr->mPosition.x - infoTr->mPosition.x, ctr->mPosition.y - infoTr->mPosition.y,
+                    ctr->mSize.x, ctr->mSize.y);
+                out += buf;
+            }
+            out += "\n";
+        }
+        ImGui::SetClipboardText(out.c_str());
+    }
+    ImGui::Separator();
+
+    for (uint8 i = 0; i < LobbyRoomSystem::DebugCharacterCount(); ++i)
+    {
+        Entity info, ready, choose[3], lock[3];
+        std::array<Entity, 3> chooseArr{}, lockArr{};
+        lobby->GetOverlayEntities(i, info, ready, chooseArr, lockArr);
+        for (int k = 0; k < 3; ++k) { choose[k] = chooseArr[k]; lock[k] = lockArr[k]; }
+
+        if (ImGui::CollapsingHeader(names[i], ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::PushID(i);
+            editSprite("Info", info);
+            editSprite("Ready", ready);
+            editSprite("Choose 0", choose[0]);
+            editSprite("Choose 1", choose[1]);
+            editSprite("Choose 2", choose[2]);
+            editSprite("Lock X 0", lock[0]);
+            editSprite("Lock X 1", lock[1]);
+            editSprite("Lock X 2", lock[2]);
+            ImGui::PopID();
+        }
+    }
+
+    ImGui::End();
 #endif
 }
 

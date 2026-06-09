@@ -227,6 +227,7 @@
     <ClInclude Include="HUDSkillSlotComponent.h" />
     <ClInclude Include="JoltUtils.h" />
     <ClInclude Include="JsonUtils.h" />
+    <ClInclude Include="LobbyBackgroundPass.h" />
     <ClInclude Include="LobbyRenderPipeline.h" />
     <ClInclude Include="LuminancePass.h" />
     <ClInclude Include="MathUtils.h" />
@@ -432,6 +433,7 @@
     <ClCompile Include="GameRenderPipeline.cpp" />
     <ClCompile Include="GBufferPass.cpp" />
     <ClCompile Include="GravityComponent.cpp" />
+    <ClCompile Include="LobbyBackgroundPass.cpp" />
     <ClCompile Include="LobbyRenderPipeline.cpp" />
     <ClCompile Include="Imgui.cpp" />
     <ClCompile Include="IMGUIComponent.cpp" />

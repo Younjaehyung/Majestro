@@ -77,6 +77,7 @@ public :
 public:
 	bool mVisible{ true };
 	bool mUIVisibility = true;
+	float mRotation = 0.f; // 라디안 (pivot 기준)
 	Vec4 mColorTint = Colors::White.v;
 
 	std::vector<shared_ptr<Texture>> mTextures;

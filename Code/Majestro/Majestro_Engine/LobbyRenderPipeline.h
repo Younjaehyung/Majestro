@@ -11,6 +11,7 @@ class LightsPass;
 class ShadowPass;
 class OutlinePass;
 class DualKawaseBlurPass;
+class LobbyBackgroundPass;
 
 // 로비 / 메인메뉴 / 로딩 / 결과 씬용 간소 파이프라인
 // ForwardPass / EffectPass / PostProcess(ToneMap + FinalComposite)
@@ -42,6 +43,7 @@ private:
     shared_ptr<LightsPass>          mLightPass;
     shared_ptr<OutlinePass>         mOutlinePass;
     shared_ptr<DualKawaseBlurPass>  mEmissiveBloomPass;
+    shared_ptr<LobbyBackgroundPass> mLobbyBackgroundPass;
 
 
     World* mWorld = nullptr;

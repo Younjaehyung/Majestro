@@ -31,6 +31,7 @@ public:
 
     // 캐릭터 변경 시 변경한 본인의 ready 를 false 로 자동 해제
     bool SetPlayerCharacter(uint64 sessionId, uint8 playerType);
+    bool IsCharacterLockedByOtherReadyPlayer(uint64 sessionId, uint8 playerType) const;
 
     bool IsAllReady() const;
     bool IsHost(uint64 sessionId) const;

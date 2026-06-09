@@ -11,6 +11,7 @@ enum PlayerType : uint8
 	Rudwig,
 	Ibanix,
 	Fanthor,
+	Count,
 };
 
 

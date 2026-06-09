@@ -59,6 +59,9 @@ bool RoomState::SetReady(uint64 sessionId, bool ready)
 
 bool RoomState::SetPlayerCharacter(uint64 sessionId, uint8 playerType)
 {
+    if (IsCharacterLockedByOtherReadyPlayer(sessionId, playerType))
+        return false;
+
     for (auto& player : mPlayers)
     {
         if (player.sessionId == sessionId)
@@ -69,6 +72,20 @@ bool RoomState::SetPlayerCharacter(uint64 sessionId, uint8 playerType)
             return true;
         }
     }
+    return false;
+}
+
+bool RoomState::IsCharacterLockedByOtherReadyPlayer(uint64 sessionId, uint8 playerType) const
+{
+    for (const auto& player : mPlayers)
+    {
+        if (player.sessionId != 0 &&player.sessionId != sessionId &&
+            player.ready && player.playerType == playerType)
+        {
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -229,7 +246,11 @@ bool RoomManager::HandleRoomPacket(const InputCommand& command)
             SendError(sessionId, pkt->roomId, RoomErrorCode::InvalidRoom);
             return true;
         }
-        if (!room->SetPlayerCharacter(sessionId, pkt->playerType)) return false;
+        if (!room->SetPlayerCharacter(sessionId, pkt->playerType))
+        {
+            BroadcastRoomState(room->mRoomId);
+            return true;
+        }
         BroadcastRoomState(room->mRoomId);
         return true;
     }

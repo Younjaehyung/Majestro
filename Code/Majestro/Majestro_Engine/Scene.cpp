@@ -1158,13 +1158,9 @@ void MainMenuScene::Initialize()
 
 void LobbyScene::Initialize()
 {
-	//PlayerPrefab player{mWorld.get()};
 	mWorld->SetSceneId(mSceneId);
 	PrefabFactory::RegisterAllPrefabs();
-	//TerrainPrefab terrain{ mWorld.get() };
-	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
-	//EnemyPrefab	enemys {mWorld.get() };
 
 	/////////////////////////////////////////////////////////////////////
 
@@ -1184,7 +1180,7 @@ void LobbyScene::Initialize()
 
 	}
 
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < PlayerType::Count; ++i) {
 		Entity mEntityID = mWorld->CreateEntity();
 
 		TransformComponent t{};
@@ -1195,33 +1191,42 @@ void LobbyScene::Initialize()
 		vector<shared_ptr<Animator>> anmators0;
 
 		switch (i) {
-		case 0:
-			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0");
-			material2s.push_back(material2); rimPowers.push_back(Vec4(0.9f, 0.8f, 0.1f, 1.f));
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1");
-			material2s.push_back(material2); rimPowers.push_back(Vec4(0.8f, 0.7f, 0.0f, 1.f));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
-			break;
-		case 1:
-			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base0");
-			material2s.push_back(material2); rimPowers.push_back(Vec4(0.2f, 0.6f, 0.2f, 1.f));
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base1");
-			material2s.push_back(material2); rimPowers.push_back(Vec4(0.1f, 0.5f, 0.1f, 1.f));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
-			break;
-		case 2:
-			phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base0");
-			material2s.push_back(material2); rimPowers.push_back(Vec4(0.7f, 0.3f, 0.6f, 1.f));
-			material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base1");
-			material2s.push_back(material2); rimPowers.push_back(Vec4(0.6f, 0.2f, 0.5f, 1.f));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
-			anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
-			break;
+			case PlayerType::Rudwig:
+				phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
+				material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base0");
+				material2s.push_back(material2); rimPowers.push_back(Vec4(0.9f, 0.8f, 0.1f, 1.f));
+				material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Rudwig_Base1");
+				material2s.push_back(material2); rimPowers.push_back(Vec4(0.8f, 0.7f, 0.0f, 1.f));
+				anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Idle"));
+				anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Rudwig_Run"));
+
+				t.mLocalPosition = { -50.f, 0.f, 25.f };
+				t.mLocalRotationE = {0.f,30.f,0.f};
+				break;
+			case PlayerType::Ibanix:
+				phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
+				material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base0");
+				material2s.push_back(material2); rimPowers.push_back(Vec4(0.2f, 0.6f, 0.2f, 1.f));
+				material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Ibanix_Base1");
+				material2s.push_back(material2); rimPowers.push_back(Vec4(0.1f, 0.5f, 0.1f, 1.f));
+				anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Idle"));
+				anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Walk"));
+
+				t.mLocalPosition = { 100.f, 0.f, 50.f };
+				t.mLocalRotationE = { 0.f,30.f,0.f };
+				break;
+			case PlayerType::Fanthor:
+				phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
+				material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base0");
+				material2s.push_back(material2); rimPowers.push_back(Vec4(0.7f, 0.3f, 0.6f, 1.f));
+				material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Fanthor_Base1");
+				material2s.push_back(material2); rimPowers.push_back(Vec4(0.6f, 0.2f, 0.5f, 1.f));
+				anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Idle"));
+				anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Fanthor_Walk"));
+
+				t.mLocalPosition = { 250.f, 0.f, -25.f };
+				t.mLocalRotationE = { 0.f,30.f,0.f };
+				break;
 		}
 
 		// 타이틀 맵과 동일한 룩: 일반 머티리얼을 복제 후 Solid 셰이더 + RimPower 적용
@@ -1247,7 +1252,7 @@ void LobbyScene::Initialize()
 		std::vector<shared_ptr<Material>>& initMats =
 			(static_cast<uint8>(i) == choiceType) ? material2s : solidMats;
 
-		t.mLocalPosition = { i * 100.f, 0.f, 0.f };
+		
 		mWorld->AddComponent<TransformComponent>(mEntityID, t);
 		mWorld->AddComponent<RenderComponent>(mEntityID, phereMesh, initMats);
 		mWorld->AddComponent<AnimationComponent>(mEntityID, anmators0);
@@ -1288,6 +1293,7 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
 	uiUpdateSystem->SetFeatures(&mUIFeatures);
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();   // 버튼 마우스 히트테스트/클릭
 
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();

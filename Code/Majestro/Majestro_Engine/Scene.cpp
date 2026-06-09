@@ -100,9 +100,12 @@ namespace
 	// 맵 FBX 경로
 	std::wstring BuildMapFbxPath(const std::string& levelName, const std::string& stem)
 	{
-		std::string sub = "..\\Resources\\Map\\" + levelName + "\\" + stem + ".fbx";
-		if (std::filesystem::exists(sub))
-			return s2ws(sub);
+		if (!levelName.empty())
+		{
+			std::string subBase = "..\\Resources\\Map\\" + levelName + "\\" + stem;
+			if (std::filesystem::exists(subBase + ".mesh"))
+				return s2ws(subBase + ".fbx");   // 경로는 .fbx 로 넘기지만 로더가 parent\stem.mesh 를 읽음
+		}
 		return s2ws("..\\Resources\\Map\\" + stem + ".fbx");
 	}
 }

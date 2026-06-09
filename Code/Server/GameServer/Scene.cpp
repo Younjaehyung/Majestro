@@ -90,10 +90,10 @@ namespace
 	std::wstring BuildLevelFbxPath(const std::string& levelName, const std::string& stem)
 	{
 		if (!levelName.empty())
-		{	
-			std::string sub = "..\\Resources\\FBX\\" + levelName + "\\" + stem + ".fbx";
-			if (std::filesystem::exists(sub))	// Resources\FBX\<level>\<stem>.fbx 가 있으면 서브폴더
-				return s2ws(sub);
+		{
+			std::string subBase = "..\\Resources\\FBX\\" + levelName + "\\" + stem;
+			if (std::filesystem::exists(subBase + ".mesh"))	// Resources\FBX\<level>\<stem>.mesh 가 있으면 서브폴더
+				return s2ws(subBase + ".fbx");
 		}
 
 		// 없으면 기존 flat 경로

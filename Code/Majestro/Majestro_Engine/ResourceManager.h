@@ -42,7 +42,12 @@ public:
 		return mResources[static_cast<uint8>(objectType)];
 	}
 
-	
+
+	// 맵별 리소스 네임스페이스
+	static wstring MakeKey(const wstring& prefix, const wstring& name)
+	{
+		return prefix.empty() ? name : (prefix + L"/" + name);
+	}
 
 	shared_ptr<Mesh> LoadPointMesh();
 	shared_ptr<Mesh> LoadRectangleMesh();
@@ -58,8 +63,10 @@ public:
 	shared_ptr<NavMesh> LoadNavMesh(const wstring& path);
 
 
-	shared_ptr<FBXData>		LoadFBX(const wstring& path, const wstring& shader = L"Deferred");
-	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path);
+	shared_ptr<FBXData>		LoadFBX(const wstring& path, const wstring& shader = L"Deferred", const wstring& prefix = L"");
+	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path, const wstring& prefix = L"");
+
+
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
 	LevelImportData  LoadMapResourceJson(const wstring& path);
@@ -78,6 +85,9 @@ public:
 
 
 private:
+	// 같은 키에 다른 경로가 들어오는 silent collision 을 진단(_DEBUG 에서만 로그)
+	void DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path);
+
 	void CreateDefaultRootSignature();
 	void CreateDefaultShader();	//기본적인 공통쉐이더를 공통적으로 적용하기 위한 코드
 	void CreateDefaultMaterial();
@@ -100,7 +110,10 @@ inline shared_ptr<T> ResourceManager::Load(const wstring& key, const wstring& pa
 
 	auto findIt = keyObjMap.find(key);
 	if (findIt != keyObjMap.end())
+	{
+		DebugCheckKeyCollision(static_cast<uint8>(objectType), key, path);
 		return static_pointer_cast<T>(findIt->second);
+	}
 	//찾으면 출력
 
 	shared_ptr<T> object = make_shared<T>();

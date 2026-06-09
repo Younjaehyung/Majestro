@@ -125,6 +125,7 @@ public:
 	
 	virtual void Load(const wstring& path, const wstring& shader = L"Deferred");
 	void LoadMeshOnly(const wstring& path);
+	void SetNamespace(const wstring& ns) { mNamespace = ns; }   // 맵별 리소스 키 prefix
 	FBXMaterialInfo ReadMaterialData(std::ifstream& file);
 	FBXFileHeader	GetFBXFileHeader() { return mHeader; };
 public:
@@ -141,6 +142,7 @@ private:
 
 
 	std::string						mPath;
+	wstring							mNamespace;   // 맵별 리소스 키 prefix (비면 flat)
 
 	FBXFileHeader					mHeader{};
 	vector<shared_ptr<Mesh>>		mMeshs;

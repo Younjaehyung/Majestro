@@ -95,7 +95,7 @@ shared_ptr<Material> Material::Clone()
 
 	return material;
 }
-void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
+void Material::CreateMaterial(FBXMaterialInfo& fbxMat, const wstring& prefix)
 {
 	bool test = true;
 	std::cout << "Create Materail ID" << GetID() << std::endl;
@@ -111,75 +111,30 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat)
 	mParams.AlphaTest = fbxMat.MaterialValueInfo.AlphaTest;
 
 
-	std::wstring filePath{ L"..\\Resources\\Texture\\" };
-	shared_ptr<Texture> texture;
+	const std::wstring flatDir{ L"..\\Resources\\Texture\\" };
+	const std::wstring subDir = prefix.empty() ? flatDir : (flatDir + prefix + L"\\");
 
-	if (fbxMat.DiffuseMap0Name != "") {
-	
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.DiffuseMap0Name),filePath + s2ws(fbxMat.DiffuseMap0Name));
+	auto LoadTex = [&](const std::string& texName, uint8 slot)
+	{
+		if (texName.empty())
+			return;
+		std::wstring n = s2ws(texName);
+		bool useSub = !prefix.empty() && std::filesystem::exists(subDir + n);
+		std::wstring key = useSub ? (prefix + L"/" + n) : n;
+		std::wstring path = (useSub ? subDir : flatDir) + n;
+		shared_ptr<Texture> texture = RESOURCEMANAGER.Load<Texture>(key, path);
 		test = false;
-		SetTexture(texture, DIFFUSEMAP0INDEX);
-	}
+		SetTexture(texture, slot);
+	};
 
-	if (fbxMat.DiffuseMap1Name != "") {
-
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.DiffuseMap1Name), filePath + s2ws(fbxMat.DiffuseMap1Name)); test = false;
-		SetTexture(texture, DIFFUSEMAP1INDEX);
-	}
-
-	if (fbxMat.DiffuseMap2Name != "") {
-
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.DiffuseMap2Name), filePath + s2ws(fbxMat.DiffuseMap2Name)); test = false;
-	SetTexture(texture, DIFFUSEMAP2INDEX);
-	}
-
-	if (fbxMat.DiffuseMap3Name != "") {
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.DiffuseMap3Name), filePath + s2ws(fbxMat.DiffuseMap3Name)); test = false;
-
-	SetTexture(texture, DIFFUSEMAP3INDEX);
-	}
-
-	if (fbxMat.NormalMapName != "") {
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.NormalMapName), filePath + s2ws(fbxMat.NormalMapName)); test = false;
-
-	SetTexture(texture, NORMALMAPINDEX);
-	}
-
-	if (fbxMat.SpecularcMapName != "") {
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.SpecularcMapName), filePath + s2ws(fbxMat.SpecularcMapName)); test = false;
-
-	SetTexture(texture, SPECULARCMAPINDEX);
-	}
-
-	if (fbxMat.EmissiveMapName != "") {
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.EmissiveMapName), filePath + s2ws(fbxMat.EmissiveMapName)); test = false;
-
-	SetTexture(texture, EMISSIVEMAPINDEX);
-	}
-
-	if (fbxMat.MetallicMapName != "") {
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.MetallicMapName), filePath + s2ws(fbxMat.MetallicMapName)); test = false;
-
-	SetTexture(texture, METALLICMAPINDEX);
-	}
-
-	if (fbxMat.OcclusionMapName != "") {
-		texture = RESOURCEMANAGER.Load<Texture>(s2ws(fbxMat.OcclusionMapName), filePath + s2ws(fbxMat.OcclusionMapName)); test = false;
-
-	SetTexture(texture, OCCLUSIONMAPINDEX);
-	}
-
-
+	LoadTex(fbxMat.DiffuseMap0Name, DIFFUSEMAP0INDEX);
+	LoadTex(fbxMat.DiffuseMap1Name, DIFFUSEMAP1INDEX);
+	LoadTex(fbxMat.DiffuseMap2Name, DIFFUSEMAP2INDEX);
+	LoadTex(fbxMat.DiffuseMap3Name, DIFFUSEMAP3INDEX);
+	LoadTex(fbxMat.NormalMapName,	NORMALMAPINDEX);
+	LoadTex(fbxMat.SpecularcMapName, SPECULARCMAPINDEX);
+	LoadTex(fbxMat.EmissiveMapName, EMISSIVEMAPINDEX);
+	LoadTex(fbxMat.MetallicMapName, METALLICMAPINDEX);
+	LoadTex(fbxMat.OcclusionMapName, OCCLUSIONMAPINDEX);
 }
-//
-//void Material::SetShader(std::wstring shaderID)
-//{
-//
-//	shared_ptr<Shader> shader = RESOURCEMANAGER.Get<Shader>(shaderID);
-//	mShaderID = shaderID;
-//	
-//
-//
-//}
-
 

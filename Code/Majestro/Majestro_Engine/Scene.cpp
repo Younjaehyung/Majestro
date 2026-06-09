@@ -95,6 +95,18 @@
 
 
 
+namespace
+{
+	// 맵 FBX 경로
+	std::wstring BuildMapFbxPath(const std::string& levelName, const std::string& stem)
+	{
+		std::string sub = "..\\Resources\\Map\\" + levelName + "\\" + stem + ".fbx";
+		if (std::filesystem::exists(sub))
+			return s2ws(sub);
+		return s2ws("..\\Resources\\Map\\" + stem + ".fbx");
+	}
+}
+
 Scene::Scene()
 {
 
@@ -143,9 +155,10 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 		uniqueFbxNames.insert(name);
 	}
 
+	const std::wstring prefix = s2ws(level.levelName);
 	for (const auto& fbxName : uniqueFbxNames)
 	{
-		RESOURCEMANAGER.LoadFBXMesh(s2ws("..\\Resources\\Map\\" + fbxName + ".fbx"));
+		RESOURCEMANAGER.LoadFBXMesh(BuildMapFbxPath(level.levelName, fbxName), prefix);
 	}
 
 }
@@ -155,13 +168,14 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+		const std::wstring prefix = s2ws(level.levelName);
 
 		for (const auto& inst : level.instances)
 		{
 			// 파일명만 추출
 			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			/*name = "..\\Resources\\Map\\" + name + ".fbx";*/
-			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(s2ws(name));
+
+			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, s2ws(name)));
 
 			if (!data)
 			{
@@ -208,25 +222,25 @@ void Scene::LoadJsonLevel(const wstring& path)
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+		const std::wstring prefix = s2ws(level.levelName);
 
 		for (const auto& inst : level.instances)
 		{
 			// 파일명만 추출
-			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\Map\\" + name + ".fbx";
-			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
+			std::string stem = filesystem::path(inst.fbx).filename().stem().string();
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(BuildMapFbxPath(level.levelName, stem), prefix);
 
 			if (!data)
 			{
-				std::cerr << "FBX load failed (null data): " << name << "\n";
+				std::cerr << "FBX load failed (null data): " << stem << "\n";
 				break;
 			}
 			else if (data->GetMeshs().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				std::cerr << "FBX load failed Mesh (null data): " << stem << "\n";
 				continue;
 			}
 
-			
+
 			const auto& meshes = data->GetMeshs();
 			const auto& meshMats = data->GetMeshMaterials();
 			for (size_t mi = 0; mi < meshes.size(); ++mi)
@@ -261,6 +275,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+		const std::wstring prefix = s2ws(level.levelName);
 		auto physicsWorld = mWorld->GetPhysicsWorld();
 		if (!physicsWorld)
 			throw std::runtime_error("LoadCollisionJson requires PhysicsWorld");
@@ -280,8 +295,8 @@ void Scene::LoadCollisionJson(const wstring& path)
 				continue;
 			}
 
-			std::wstring fbxPath = L"..\\Resources\\Map\\" + s2ws(stem) + L".fbx";
-			shared_ptr<FBXData> collisionFbx = RESOURCEMANAGER.LoadFBXMesh(fbxPath);
+			std::wstring fbxPath = BuildMapFbxPath(level.levelName, stem);
+			shared_ptr<FBXData> collisionFbx = RESOURCEMANAGER.LoadFBXMesh(fbxPath, prefix);
 			if (!collisionFbx || collisionFbx->GetColliders().empty())
 			{
 				++skippedCount;
@@ -642,12 +657,11 @@ bool LoadingScene::LoadScene(SceneId id)
 		uniqueFbxNames.insert(name);
 	}
 
+	const std::string levelName = level.levelName;
 	for (const auto& fbxName : uniqueFbxNames)
 	{
-		mLoadTasks.push([fbxName]() {
-			std::string name = "..\\Resources\\Map\\" + fbxName + ".fbx";
-			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(s2ws(name));
-			});
+		mLoadTasks.push([fbxName, levelName]() {
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(BuildMapFbxPath(levelName, fbxName), s2ws(levelName));});
 	}
 
 	mTotalTaskCount = (int32)mLoadTasks.size();

@@ -536,30 +536,52 @@ shared_ptr<Mesh> ResourceManager::LoadSphereMesh()
 	return mesh;
 }
 
-shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path, const wstring& shader)
+shared_ptr<FBXData> ResourceManager::LoadFBX(const wstring& path, const wstring& shader, const wstring& prefix)
 {
-	shared_ptr<FBXData> meshData = Get<FBXData>(s2ws(filesystem::path(path).filename().stem().string()));
+	wstring stem = s2ws(filesystem::path(path).filename().stem().string());
+	wstring key = MakeKey(prefix, stem);
+
+	shared_ptr<FBXData> meshData = Get<FBXData>(key);
 	if (meshData)
 		return meshData;
 	meshData = make_shared<FBXData>();
+	meshData->SetNamespace(prefix);          // 내부 mesh/material/texture 키에 prefix 전파
 	meshData->Load(path, shader);
-	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
-	Add(s2ws(filesystem::path(path).filename().stem().string()), meshData);
+	meshData->SetName(key);
+	Add(key, meshData);
 
 	return meshData;
 }
 
-shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path)
+shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path, const wstring& prefix)
 {
-	shared_ptr<FBXData> meshData = Get<FBXData>(s2ws(filesystem::path(path).filename().stem().string()));
+	wstring stem = s2ws(filesystem::path(path).filename().stem().string());
+	wstring key = MakeKey(prefix, stem);
+
+	shared_ptr<FBXData> meshData = Get<FBXData>(key);
 	if (meshData)
 		return meshData;
 	meshData = make_shared<FBXData>();
+	meshData->SetNamespace(prefix);          // 내부 mesh/material/texture 키에 prefix 전파
 	meshData->LoadMeshOnly(path);
-	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
-	Add(s2ws(filesystem::path(path).filename().stem().string()), meshData);
+	meshData->SetName(key);
+	Add(key, meshData);
 
 	return meshData;
+}
+
+void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
+{
+#ifdef _DEBUG
+	static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
+	auto pk = std::make_pair(objectType, key);
+	auto it = sKeyPath.find(pk);
+	if (it == sKeyPath.end())
+		sKeyPath.emplace(pk, path);
+	else if (it->second != path)
+		std::cout << "[ResLoad][COLLISION] key=" << ws2s(key)
+		<< " old=" << ws2s(it->second) << " new=" << ws2s(path) << "\n";
+#endif
 }
 
 shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
@@ -2347,34 +2369,6 @@ void ResourceManager::CreateDefaultMaterial()
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
 		Add<Material>(L"HPBAR", material);
-	}
-
-	//HPBAR variants
-	{
-		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR_FANTHOR", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_01.png");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"UI");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-
-		Add<Material>(L"HPBAR_FANTHOR", material);
-	}
-
-	{
-		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR_IBANIX", L"..\\Resources\\Image\\UI\\UI_Ibanix_HP_01.png");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"UI");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-
-		Add<Material>(L"HPBAR_IBANIX", material);
-	}
-
-	{
-		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR_RUDWIG", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_01.png");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"UI");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
-
-		Add<Material>(L"HPBAR_RUDWIG", material);
 	}
 
 	//fire

@@ -260,7 +260,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring s
 				loader.read(reinterpret_cast<char*>(meshInfo.Indices[s].data()),
 					sizeof(uint32) * ic);
 		}
-		mesh->SetName(s2ws(meshName));
+		mesh->SetName(ResourceManager::MakeKey(mNamespace, s2ws(meshName)));
 		mesh->CreateMesh(meshInfo);
 		mMeshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
@@ -292,10 +292,10 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 	mMaterials.resize(metaInfo.MaterialCount);
 	for (uint32 s = 0; s < metaInfo.MaterialCount; ++s) {
 		mMaterials[s] =make_shared<Material>();
-		mMaterials[s]->SetName(s2ws(ReadString(loader)));
+		mMaterials[s]->SetName(ResourceManager::MakeKey(mNamespace, s2ws(ReadString(loader))));
 		meshInfo.Materials.push_back(ReadMaterialData(loader));
 
-		mMaterials[s]->CreateMaterial(meshInfo.Materials[s]);
+		mMaterials[s]->CreateMaterial(meshInfo.Materials[s], mNamespace);
 
 		std::wstring name = mMaterials[s]->mParamsName.DiffuseMap0Index;
 		bool isVegetation = (name.find(L"Leaves") != std::wstring::npos

@@ -91,7 +91,7 @@ public:
 	uint32 GetIndex() { return mStructuredBufferIndex; }
 	void SetIndex(uint32 index) { mStructuredBufferIndex = index; }
 	
-	void CreateMaterial(struct FBXMaterialInfo&);
+	void CreateMaterial(struct FBXMaterialInfo&, const wstring& prefix = L"");
 
 private:
 	wstring				mShaderName;

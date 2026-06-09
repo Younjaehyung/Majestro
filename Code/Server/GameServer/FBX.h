@@ -71,6 +71,7 @@ public:
 	~FBX();
 	
 	void Load(const wstring& path);
+	void SetNamespace(const wstring& ns) { mNamespace = ns; }
 	vector<shared_ptr<Mesh>>& CreateMeshFromFBX(ifstream& loader);
 	vector<shared_ptr<CollisionMesh>>& CreateColliderFromFBX(ifstream& loader);
 
@@ -79,6 +80,7 @@ public:
 private:
 
 	std::string						mPath;
+	wstring							mNamespace;   // 맵별 리소스 키 prefix
 
 	FBXFileHeader							mHeader{};
 	vector<shared_ptr<Mesh>>				mMeshs;

@@ -77,7 +77,7 @@ vector<shared_ptr<Mesh>>& FBX::CreateMeshFromFBX(ifstream& loader) {
 				loader.read(reinterpret_cast<char*>(meshInfo.Indices[s].data()),
 					sizeof(uint32) * ic);
 		}
-		mesh->SetName(s2ws(meshName));
+		mesh->SetName(ResourceManager::MakeKey(mNamespace, s2ws(meshName)));
 		mesh->CreateMesh(meshInfo);
 		mMeshs.push_back(mesh);
 		RESOURCEMANAGER.Add<Mesh>(mesh->GetName(), mesh);
@@ -124,7 +124,7 @@ vector<shared_ptr<CollisionMesh>>& FBX::CreateColliderFromFBX(ifstream& loader)
 				loader.read(reinterpret_cast<char*>(meshInfo.Indices[s].data()),
 					sizeof(uint32) * ic);
 		}
-		mesh->SetName(s2ws(meshName));
+		mesh->SetName(ResourceManager::MakeKey(mNamespace, s2ws(meshName)));
 		mesh->CreateCollisionMesh(meshInfo);
 		mColliders.push_back(mesh);
 		RESOURCEMANAGER.Add<CollisionMesh>(mesh->GetName(), mesh);

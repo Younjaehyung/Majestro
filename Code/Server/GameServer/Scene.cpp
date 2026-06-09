@@ -86,6 +86,20 @@ namespace
 		return candidates.empty() ? L"" : candidates.back().wstring();
 	}
 
+	// 맵 FBX 경로
+	std::wstring BuildLevelFbxPath(const std::string& levelName, const std::string& stem)
+	{
+		if (!levelName.empty())
+		{	
+			std::string sub = "..\\Resources\\FBX\\" + levelName + "\\" + stem + ".fbx";
+			if (std::filesystem::exists(sub))	// Resources\FBX\<level>\<stem>.fbx 가 있으면 서브폴더
+				return s2ws(sub);
+		}
+
+		// 없으면 기존 flat 경로
+		return s2ws("..\\Resources\\FBX\\" + stem + ".fbx");
+	}
+
 	uint8 ParseSpawnerTrigger(const std::string& triggerName)
 	{
 		if (triggerName == "Wave")
@@ -283,21 +297,22 @@ void Scene::LoadJsonLevel(const wstring& path)
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+		const std::wstring prefix = s2ws(level.levelName);
 
 		for (const auto& inst : level.instances)
 		{
 			// 파일명만 추출
-			std::string name = filesystem::path(inst.fbx).filename().stem().string();
-			name = "..\\Resources\\FBX\\" + name + ".fbx";
-			shared_ptr<FBX> data = RESOURCEMANAGER.LoadFBXMeshes(s2ws(name));
+			std::string stem = filesystem::path(inst.fbx).filename().stem().string();
+			std::wstring fbxPath = BuildLevelFbxPath(level.levelName, stem);
+			shared_ptr<FBX> data = RESOURCEMANAGER.LoadFBXMeshes(fbxPath, prefix);
 
 			if (!data)
 			{
-				std::cerr << "FBX load failed (null data): " << name << "\n";
+				std::cerr << "FBX load failed (null data): " << stem << "\n";
 				break;
 			}
 			else if (data->GetColliders().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				std::cerr << "FBX load failed Mesh (null data): " << stem << "\n";
 				continue;
 			}
 
@@ -331,6 +346,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 		try
 		{
 			LevelImportData level = RESOURCEMANAGER.LoadResourceJson(path);
+			const std::wstring prefix = s2ws(level.levelName);
 			auto physicsWorld = mWorld->GetPhysicsWorld();
 			if (!physicsWorld)
 				throw std::runtime_error("LoadCollisionJson requires World::Initialize before loading Jolt collision meshes");
@@ -350,7 +366,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 					continue;
 				}
 
-				shared_ptr<FBX> collisionFbx = RESOURCEMANAGER.LoadFBXMeshes(fbxPath);
+				shared_ptr<FBX> collisionFbx = RESOURCEMANAGER.LoadFBXMeshes(fbxPath, prefix);
 				if (!collisionFbx)
 				{
 					++skippedCount;

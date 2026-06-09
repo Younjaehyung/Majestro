@@ -168,17 +168,36 @@ void ResourceManager::LoadResources()
 	}
 }
 
-shared_ptr<FBX> ResourceManager::LoadFBXMeshes(const wstring& path)
+shared_ptr<FBX> ResourceManager::LoadFBXMeshes(const wstring& path, const wstring& prefix)
 {
-	shared_ptr<FBX> meshData = Get<FBX>(s2ws(filesystem::path(path).filename().stem().string()));
+	wstring stem = s2ws(filesystem::path(path).filename().stem().string());
+	wstring key = MakeKey(prefix, stem);
+
+	shared_ptr<FBX> meshData = Get<FBX>(key);
 	if (meshData)
 		return meshData;
 	meshData = make_shared<FBX>();
+	meshData->SetNamespace(prefix);
 	meshData->Load(path);
-	meshData->SetName(s2ws(filesystem::path(path).filename().stem().string()));
-	Add(s2ws(filesystem::path(path).filename().stem().string()), meshData);
+	meshData->SetName(key);
+	Add(key, meshData);
 
 	return meshData;
+}
+
+void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
+{
+#ifdef _DEBUG
+	
+	static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
+	auto pk = std::make_pair(objectType, key);
+	auto it = sKeyPath.find(pk);
+	if (it == sKeyPath.end())
+		sKeyPath.emplace(pk, path);
+	else if (it->second != path)
+		std::cout << "[ResLoad][COLLISION] key=" << ws2s(key)
+		<< " old=" << ws2s(it->second) << " new=" << ws2s(path) << "\n";
+#endif
 }
 
 shared_ptr<Mesh> ResourceManager::LoadMCubeMesh()

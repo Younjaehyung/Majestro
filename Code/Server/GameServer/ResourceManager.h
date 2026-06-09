@@ -46,8 +46,17 @@ public:
 	void LoadResources();
 	LevelImportData LoadResourceJson(const std::wstring& path);
 	shared_ptr<PayloadPathData> LoadPayloadPathJson(const std::wstring& path);
-	shared_ptr<FBX> LoadFBXMeshes(const wstring& path);
+	shared_ptr<FBX> LoadFBXMeshes(const wstring& path, const wstring& prefix = L"");
 	shared_ptr<Mesh> LoadMCubeMesh();
+
+	// 맵별 리소스 네임스페이스
+	static wstring MakeKey(const wstring& prefix, const wstring& name)
+	{
+		return prefix.empty() ? name : (prefix + L"/" + name);
+	}
+
+	// 같은 키에 다른 경로가 들어오는 충돌 진단(_DEBUG 에서만 로그)
+	void DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path);
 public:
 	array<KeyObjMap, OBJECT_TYPE_COUNT> mResources;
 
@@ -64,7 +73,10 @@ inline shared_ptr<T> ResourceManager::Load(const wstring& key, const wstring& pa
 
 	auto findIt = keyObjMap.find(key);
 	if (findIt != keyObjMap.end())
+	{
+		DebugCheckKeyCollision(static_cast<uint8>(objectType), key, path);
 		return static_pointer_cast<T>(findIt->second);
+	}
 	//찾으면 출력
 
 	shared_ptr<T> object = make_shared<T>();

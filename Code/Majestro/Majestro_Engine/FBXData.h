@@ -125,6 +125,7 @@ public:
 	
 	virtual void Load(const wstring& path, const wstring& shader = L"Deferred");
 	void LoadMeshOnly(const wstring& path);
+	void LoadModelOnly(const wstring& path);
 	void SetNamespace(const wstring& ns) { mNamespace = ns; }   // 맵별 리소스 키 prefix
 	FBXMaterialInfo ReadMaterialData(std::ifstream& file);
 	FBXFileHeader	GetFBXFileHeader() { return mHeader; };
@@ -135,7 +136,7 @@ public:
 	const vector<shared_ptr<CollisionMesh>>& GetColliders() const { return mColliders; }
 private:
 	vector<shared_ptr<class Material>>& CreateMaterialFromFBX(ifstream& loader, FBXMeshInfo& metaInfo, FBXBMeshInfo& meshInfo, wstring shader);
-	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader, wstring shader = L"Deferred");
+	vector<shared_ptr<class Mesh>>& CreateMeshFromFBX(ifstream& loader, int isMesh = true ,wstring shader = L"Deferred");
 	shared_ptr<class Skeleton> CreateSkeletonFromFBX(ifstream& loader);
 	vector<shared_ptr<class Animator>>& CreateAnimatorFromFBX(ifstream& loader);
 private:

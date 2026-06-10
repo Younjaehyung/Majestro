@@ -65,6 +65,7 @@ public:
 
 	shared_ptr<FBXData>		LoadFBX(const wstring& path, const wstring& shader = L"Deferred", const wstring& prefix = L"");
 	shared_ptr<FBXData>		LoadFBXMesh(const wstring& path, const wstring& prefix = L"");
+	shared_ptr<FBXData>		LoadFBXModel(const wstring& path, const wstring& prefix);
 
 
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);

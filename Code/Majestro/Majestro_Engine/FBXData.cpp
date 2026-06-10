@@ -195,7 +195,7 @@ void FBXData::Load(const wstring& path, const wstring& shader)
 
 	if (std::ifstream f(filePath + ".mesh", std::ios::binary);f) {
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
-		CreateMeshFromFBX(f, shader);
+		CreateMeshFromFBX(f, true, shader);
 	}
 	if (std::ifstream f(filePath + ".skel", std::ios::binary); f) {
 		CreateSkeletonFromFBX(f);
@@ -215,12 +215,25 @@ void FBXData::LoadMeshOnly(const wstring& path)
 
 	if (std::ifstream f(filePath + ".mesh", std::ios::binary); f) {
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
+		CreateMeshFromFBX(f,false);
+	}
+
+}
+
+void FBXData::LoadModelOnly(const wstring& path)
+{
+	mPath = ws2s(path);
+	std::string filePath{ filesystem::path(mPath).parent_path().string() + "\\" + filesystem::path(mPath).filename().stem().string() };
+
+
+	if (std::ifstream f(filePath + ".mesh", std::ios::binary); f) {
+		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
 		CreateMeshFromFBX(f);
 	}
 
 }
 
-vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring shader)
+vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, int isMesh, wstring shader)
 {
 	for (uint8 i = 0; i < mHeader.MeshCount; ++i) {
 		shared_ptr<Mesh> mesh = make_shared<Mesh>();
@@ -270,12 +283,12 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, wstring s
 		mColliders.push_back(collisionMesh);
 
 		
+		if (isMesh) {
+			auto& mats = CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
 
-		auto& mats = CreateMaterialFromFBX(loader, metaMeshInfo, meshInfo, shader);
-
-		// 이 메시의 머티리얼 묶음을 보관
-		mMeshMaterials.push_back(mats);
-
+			// 이 메시의 머티리얼 묶음을 보관
+			mMeshMaterials.push_back(mats);
+		}
 	}
 	loader.close();
 	cout << "Materials OVER" << endl;
@@ -302,6 +315,10 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 			|| name.find(L"Grass") != std::wstring::npos
 			|| name.find(L"Fern") != std::wstring::npos
 			|| name.find(L"hang") != std::wstring::npos
+			|| name.find(L"Bush") != std::wstring::npos
+			|| name.find(L"BabyBlueEyes") != std::wstring::npos
+			|| name.find(L"Poppies") != std::wstring::npos
+			|| name.find(L"Dandelions") != std::wstring::npos
 			|| name.find(L"plant") != std::wstring::npos);
 		if (isVegetation) {
 			// 풀

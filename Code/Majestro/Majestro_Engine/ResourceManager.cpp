@@ -570,6 +570,23 @@ shared_ptr<FBXData> ResourceManager::LoadFBXMesh(const wstring& path, const wstr
 	return meshData;
 }
 
+shared_ptr<FBXData> ResourceManager::LoadFBXModel(const wstring& path, const wstring& prefix)
+{
+	wstring stem = s2ws(filesystem::path(path).filename().stem().string());
+	wstring key = MakeKey(prefix, stem);
+
+	shared_ptr<FBXData> meshData = Get<FBXData>(key);
+	if (meshData)
+		return meshData;
+	meshData = make_shared<FBXData>();
+	meshData->SetNamespace(prefix);          // 내부 mesh/material/texture 키에 prefix 전파
+	meshData->LoadModelOnly(path);
+	meshData->SetName(key);
+	Add(key, meshData);
+
+	return meshData;
+}
+
 void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
 {
 #ifdef _DEBUG

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "LobbyRoomSystem.h"
 #include "Engine.h"
+#include "SceneManager.h"
 #include "ResourceManager.h"
 #include "World.h"
 #include "EventManager.h"
@@ -153,7 +154,7 @@ void LobbyRoomSystem::BuildUI()
 
     mReadyButton = CreateUIButton(mWorld, {
         .anchor       = Anchor::BottomRight,
-        .position     = Vec2(-230.f, -240.f),
+        .position     = Vec2(-230.f, -360.f),
         .size         = btnSize,
         .visual       = UIButtonVisual::Texture,
         .resKey       = L"UI_Robby_Sheet",
@@ -185,7 +186,7 @@ void LobbyRoomSystem::BuildUI()
 
     mStartButton = CreateUIButton(mWorld, {
         .anchor       = Anchor::BottomRight,
-        .position     = Vec2(-230.f, -120.f),
+        .position     = Vec2(-230.f, -240.f),
         .size         = btnSize,
         .visual       = UIButtonVisual::Texture,
         .resKey       = L"UI_Robby_Sheet",
@@ -221,9 +222,43 @@ void LobbyRoomSystem::BuildUI()
         },
     });
 
+    mExitButton = CreateUIButton(mWorld, {
+        .anchor       = Anchor::BottomRight,
+        .position     = Vec2(-230.f, -120.f),
+        .size         = btnSize,
+        .visual       = UIButtonVisual::Texture,
+        .resKey       = L"UI_Robby_Sheet",
+        .sourceRect   = MakeAtlasRect(1152, 384, 384, 128),
+        .label        = L"EXIT",
+        .normalColor  = mBtnNormal,
+        .hoveredColor = mBtnHovered,
+        .pressedColor = mBtnPressed,
+        .onClick      = [this]()
+        {
+            if (mLeaving || mStarting)
+                return;
+
+            LobbyRoomListComponent* listState = GetListState();
+            if (!listState || listState->mCurrentRoomId == 0)
+                return;
+
+            // 서버에 방 나가기
+            if (auto em = mWorld->GetEventManager())
+                em->Enqueue(EvRoomLeave{ listState->mCurrentRoomId });
+
+            listState->mCurrentRoomId = 0;
+            if (auto* st = GetState())
+                st->mHasSnapshot = false;
+
+            mLeaving = true;
+        },
+    });
+
     if (auto* sp = mWorld->GetComponent<UISpriteComponent>(mReadyButton))
         sp->mColorTint = mBtnNormal;
     if (auto* sp = mWorld->GetComponent<UISpriteComponent>(mStartButton))
+        sp->mColorTint = mBtnNormal;
+    if (auto* sp = mWorld->GetComponent<UISpriteComponent>(mExitButton))
         sp->mColorTint = mBtnNormal;
 
     mStartReasonText = CreateText({ 0.f, -60.f }, { 900.f, 60.f }, Anchor::BottomCenter, L"", mColNotReady);
@@ -236,6 +271,26 @@ void LobbyRoomSystem::BuildUI()
 
 void LobbyRoomSystem::Update(float dt)
 {
+    
+    if (mLeaving)
+    {
+        mLeaving = false;
+        mWasInRoom = false;
+        gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
+        // 방 나가기 송신한 뒤 메인메뉴로 복귀
+        return;
+    }
+
+    // ImGui용 방탈출
+    if (!mStarting)
+    {
+        LobbyRoomListComponent* listState = GetListState();
+        const bool inRoom = (listState != nullptr) && (listState->mCurrentRoomId != 0);
+        if (mWasInRoom && !inRoom)
+            mLeaving = true;
+        mWasInRoom = inRoom;
+    }
+
     if (auto eventMgr = mWorld->GetEventManager())
     {
         eventMgr->Consume<EvRoomError>([this](const EvRoomError& e)
@@ -475,11 +530,14 @@ void LobbyRoomSystem::SetWaitingRoomVisible(bool visible)
 
     SetVisible(mReadyButton, visible);
     SetVisible(mStartButton, visible);
+    SetVisible(mExitButton, visible);
     SetVisible(mStartReasonText, visible);
 
     if (auto* b = mWorld->GetComponent<UIButtonComponent>(mReadyButton))
         b->mEnabled = visible;
     if (auto* b = mWorld->GetComponent<UIButtonComponent>(mStartButton))
+        b->mEnabled = visible;
+    if (auto* b = mWorld->GetComponent<UIButtonComponent>(mExitButton))
         b->mEnabled = visible;
 }
 

@@ -73,11 +73,14 @@ private:
     std::array<CharacterOverlayUI, kLobbyCharacterCount> mCharacterOverlays{};
     Entity mReadyButton{};
     Entity mStartButton{};
+    Entity mExitButton{};
     Entity mStartReasonText{};
     Entity mErrorToastText{};
 
     bool mUiBuilt = false;
     bool mStarting = false;
+    bool mLeaving = false;          // 방 나가기
+    bool mWasInRoom = false;
     bool mRequestedInitialList = false;
 
     uint8 mLastErrorCode = 0;

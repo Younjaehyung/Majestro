@@ -55,6 +55,8 @@ public: // 외부통신용
 	void Stop();
 	void Shutdown();
 
+	bool IsRunning() const { return mIsRunning; }
+
 private: // Session
 
 	// send

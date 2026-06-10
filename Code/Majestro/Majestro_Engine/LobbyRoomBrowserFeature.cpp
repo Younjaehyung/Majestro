@@ -131,7 +131,7 @@ void LobbyRoomBrowserFeature::PostSpriteRender(std::vector<UIInstanceData>& /*in
     {
         const uint32 rid = listComp->mCurrentRoomId;
         if (auto em = mWorld->GetEventManager()) em->Enqueue(EvRoomLeave{ rid });
-        // 즉시 홀로 전환
+
         listComp->mCurrentRoomId = 0;
         if (auto* st = GetStateComp()) st->mHasSnapshot = false;
     }

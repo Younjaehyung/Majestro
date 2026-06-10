@@ -945,6 +945,10 @@ void MainMenuScene::Initialize()
 		ctrl->mStates[(size_t)MainMenuState::RoomList].background = makeBg(L"UI_Title_Search");
 		ctrl->mStates[(size_t)MainMenuState::Exit].background     = makeBg(L"UI_Title_QuitGame");
 
+		// 방에서 나와 복귀한 경우(서버 연결 유지 중) 타이틀을 건너뛰고 방 목록으로 직행
+		if (Network::GetInstance().IsRunning())
+			ctrl->Request(MainMenuState::RoomList);
+
 		// 배경 장식 애니메이션
 		auto makeAnim = [this](const std::wstring& texKey, const Vec2& pos, const Vec2& size,
 		                       const Vec2& frameSize, int frameCount, float animTime) -> Entity
@@ -1321,7 +1325,9 @@ void LobbyScene::Initialize()
 	//}
 
 	{
-		AUDIOMANAGER.InitSpectrumDSP(4096 * 4);
+		// FFT 윈도우 2048 = FMOD 기본값. 16384는 믹서 스레드 FFT 비용이 ~10배인데
+		// 32개 바의 로그 스케일 대역 분할에는 1024빈(2048/2) 해상도로 충분하다.
+		AUDIOMANAGER.InitSpectrumDSP(2048);
 
 		Entity visEntity = mWorld->CreateEntity();
 		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);

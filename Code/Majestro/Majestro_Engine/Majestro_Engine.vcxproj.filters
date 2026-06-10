@@ -523,6 +523,9 @@
     <ClInclude Include="DamageFeedbackComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="RhythmEmissiveComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="DashTrailComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
@@ -624,9 +627,6 @@
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="LobbyRenderPipeline.h">
-      <Filter>World\System\Render\00.Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="LobbyBackgroundPass.h">
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="EffectFlagComponent.h">
@@ -778,6 +778,12 @@
     </ClInclude>
     <ClInclude Include="HUDSkillSlotComponent.h">
       <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="LobbyBackgroundPass.h">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClInclude>
+    <ClInclude Include="RhythmSystem.h">
+      <Filter>World\System\Logic</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1118,9 +1124,6 @@
     <ClCompile Include="LobbyRenderPipeline.cpp">
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="LobbyBackgroundPass.cpp">
-      <Filter>World\System\Render\00.Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="GodRayPass.cpp">
       <Filter>World\System\Render\08.Post\HDR</Filter>
     </ClCompile>
@@ -1240,6 +1243,12 @@
     </ClCompile>
     <ClCompile Include="HUDSkillCooldownFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="LobbyBackgroundPass.cpp">
+      <Filter>World\System\Render\08.Post</Filter>
+    </ClCompile>
+    <ClCompile Include="RhythmSystem.cpp">
+      <Filter>World\System\Logic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

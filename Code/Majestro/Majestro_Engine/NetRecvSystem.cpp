@@ -15,6 +15,7 @@
 #include "Prefab.h"
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
+#include "RhythmEmissiveComponent.h"
 #include "TagComponent.h"
 #include "BoxColliderComponent.h"
 #include "NetSendSystem.h"
@@ -193,7 +194,13 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
         playerComp->mExternalMoveMode = pkt->externalMoveMode;
         playerComp->mStateSequence = pkt->stateSequence;
 
-       
+        // 리듬 변경 이미시브
+        const int rhythmChange = static_cast<int>(ReplicatedActionState::RhythmChange);
+        if (playerComp->mUpperState == rhythmChange && playerComp->mPrevStatePacket != rhythmChange)
+        {
+            auto* rhythmEmissive = mWorld->GetComponent<RhythmEmissiveComponent>(e);
+            rhythmEmissive->mTimer = rhythmEmissive->mDuration;
+        }
     }
     else if (enemyComp)
     {

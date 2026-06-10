@@ -39,7 +39,8 @@ struct OBJECTINFO
     matrix MatWorld;
     // x = ObjectAlpha
     // y = HitFlashStrength (0~1, forward_plus_PS에서 red lerp 가중치)
-    // z/w = 예비
+    // z = EmissiveGate (0~1, forward_plus_PS 발광 블렌드 가중치, 기본 1)
+    // w = 예비
     float4 Extra;
 };
 //////////////

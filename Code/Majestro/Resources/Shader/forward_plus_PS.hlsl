@@ -43,6 +43,8 @@ float4 PS_Main(VS_OUT input) : SV_Target
     float objectAlpha = Objects[instance.ObjectIndex].Extra.x;
     // Hit Flash: 0~1, 최종 컬러를 빨강으로 lerp하는 가중치
     float hitFlash    = saturate(Objects[instance.ObjectIndex].Extra.y);
+    // Emissive Gate: 0~1, 발광 결과
+    float emissiveGate = Objects[instance.ObjectIndex].Extra.z;
 
 
     ApplyIGNDitherFade(input.pos.xy, objectAlpha);
@@ -86,20 +88,18 @@ float4 PS_Main(VS_OUT input) : SV_Target
         viewNormal = normalize(mul(n, tbn));
     }
 
-    // Emissive
+
     float3 emissive = mtl.Emission;
     if (mtl.EmissiveMapIndex >= 0)
     {
         emissive = TextureMaps[mtl.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
         if (any(emissive.rgb))
         {
-            color.rgb *= emissive * max(1.0f, abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2) * 10.f);
+            color.rgb *= emissive * max(1.0f, abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2) * 10.f * emissiveGate);
             // color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
             color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
             return color;
         }
-            
-
     }
 
     ////////////////////////////////////////////////////////////////////////

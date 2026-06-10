@@ -17,6 +17,7 @@
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
+#include "RhythmEmissiveComponent.h"
 #include "Network.h"
 #include "PauseMenuController.h"
 #include "RenderManager.h"
@@ -476,6 +477,10 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 
 		cout << "next rythm:" << static_cast<int>(ctx.player->mNextRhythm) << endl;
 		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ ctx.player->mNextRhythm });
+
+		// 리듬 변경 이미시브
+		auto* rhythmEmissive = mWorld->GetComponent<RhythmEmissiveComponent>(ctx.playerEntity);
+		rhythmEmissive->mTimer = rhythmEmissive->mDuration;
 	}
 
 	if (INPUT.GetKey(eKeyCode::A))

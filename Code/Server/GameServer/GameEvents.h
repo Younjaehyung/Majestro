@@ -161,11 +161,18 @@ struct EvInteractableConsumed
     Entity user;
 };
 
+// Interactable(힐팩 등)의 표시 상태
+struct EvInteractableStateChanged
+{
+    Entity trigger;
+    bool active;    // active=false : 먹혀서 숨김, active=true : 쿨다운 종료로 재등장.
+};
+
 
 
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
     EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
-    EvHeal, EvImpulse, EvInteractableConsumed, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured, EvPlayerDeathRequest,
+    EvHeal, EvImpulse, EvInteractableConsumed, EvInteractableStateChanged, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured, EvPlayerDeathRequest,
     EvCooldownStarted>;
 

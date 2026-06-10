@@ -56,6 +56,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_AMMO,
 	S2C_PKT_HIT_CONFIRM,
 	S2C_PKT_COOLDOWN,
+	S2C_PKT_GIMMICK_STATE,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -544,6 +545,18 @@ struct S2C_SpawnsPacekt : public PacketTcpHeader {
 	S2C_SpawnsPacekt(uint32 sessionId, uint64 entityId, PrefabType type = PrefabType::NONE)
 		: PacketTcpHeader{ sizeof(S2C_SpawnPacekt), PKT_Type::S2C_PKT_SPAWN, 0.0 },
 		SessionId(sessionId), netEntityId(entityId), prefabType(type) {
+	}
+};
+
+// 기믹 활성/비활성 통지.
+struct S2C_GimmickStatePacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+	uint8  active{ 1 };	// active=0 : 먹혀서 숨김, active=1 : 쿨다운이 끝나 재등장.
+
+	S2C_GimmickStatePacket() : PacketTcpHeader{ sizeof(S2C_GimmickStatePacket), PKT_Type::S2C_PKT_GIMMICK_STATE, 0.0 } {}
+	S2C_GimmickStatePacket(uint64 entityId, bool isActive)
+		: PacketTcpHeader{ sizeof(S2C_GimmickStatePacket), PKT_Type::S2C_PKT_GIMMICK_STATE, 0.0 },
+		netEntityId(entityId), active(isActive ? 1 : 0) {
 	}
 };
 

@@ -15,13 +15,22 @@
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
 
-InteractionSystem::InteractionSystem(World* world)
-    : System(world)
+InteractionSystem::InteractionSystem(World* world) : System(world)
 {
     mPhase = SysPhase::Sim;
 }
 
 
+
+namespace
+{
+    // 먹으면 사라져야 하는 것인지
+    bool IsPickupKind(InteractableKind kind)
+    {
+        return kind == InteractableKind::HealPack ||
+               kind == InteractableKind::ArmorPack;
+    }
+}
 
 bool InteractionSystem::MatchesTargetMask(World* world, Entity e, uint8 mask)
 {
@@ -78,6 +87,14 @@ void InteractionSystem::Update(float dt)
   
         if (!inter || !trTr ) continue;
         if (!inter->mActive) continue;
+
+      
+        if (inter->mHiddenForClients && now >= inter->mNextAvailableTime)
+        {
+            inter->mHiddenForClients = false;     // 쿨타임이 끝난 픽업류는 클라이언트에 재등장을 통지
+            eventManager->Enqueue<EvInteractableStateChanged>(EvInteractableStateChanged{ t, true });
+        }
+
         if (now < inter->mNextAvailableTime) continue;
 
 
@@ -130,6 +147,13 @@ void InteractionSystem::Update(float dt)
             inter->mLastUserId = user.GetID();
             inter->mLastTriggerTime = now;
             inter->mNextAvailableTime = now + inter->mCooldown;
+
+
+            if (IsPickupKind(inter->mKind) && (inter->mOneShot || inter->mCooldown > 0.0f))
+            {
+                inter->mHiddenForClients = true;    // 클라이언트에서 숨김
+                eventManager->Enqueue<EvInteractableStateChanged>(EvInteractableStateChanged{ t, false });
+            }
 
             if (inter->mOneShot)
             {   // 일회용

@@ -38,6 +38,7 @@ void NetSendSystem::Update(float dt)
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
 	SendHitConfirmEvents();
+	SendGimmickStateEvents();
 
 
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
@@ -63,6 +64,10 @@ void NetSendSystem::SendMove(float dt)
 		{
 
 			TransformComponent* transComp = mWorld->GetComponent<TransformComponent>(netComp->mOwnerEntity);
+
+			// 정적 엔티티는 이동 송신에서 제외
+			if (transComp == nullptr || transComp->mIsStatic)
+				continue;
 
 			S2C_MovePacket movePkt;
 
@@ -396,6 +401,28 @@ void NetSendSystem::SendEffectSpawnEvents()
 		});
 }
 
+void NetSendSystem::SendGimmickStateEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	// 힐팩 등의 숨김/재등장을 전체 세션에 통지
+	eventManager->Consume<EvInteractableStateChanged>([&](const EvInteractableStateChanged& e)
+		{
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.trigger);
+			if (netComp == nullptr)
+				return;
+
+			S2C_GimmickStatePacket pkt(netComp->mNetEntityId, e.active);
+			Broadcast(recipients, S2C_PKT_GIMMICK_STATE, pkt);
+		});
+}
+
 
 // ─── 신규 세션 입장 처리 ─────────────────────────────────────
 
@@ -527,6 +554,7 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 		}
 
 		PrefabType prefabType = PrefabType::NONE;
+		bool hiddenForClients = false; // 쿨타임 중 숨김 상태면 스폰 직후 숨김 통지를 같이 보냄
 
 		if (mWorld->HasComponent<TruckComponent>(entity))
 		{
@@ -536,6 +564,8 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 		{
 			if (!interactable->mActive)
 				continue;
+
+			hiddenForClients = interactable->mHiddenForClients;
 
 			switch (interactable->mKind)
 			{
@@ -574,9 +604,19 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 			spawnPkt.z = transform->mLocalPosition.z;
 		}
 
+
 		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
 		gSendQueue.Push(req);
+
+		// 쿨타임 중인 픽업은 스폰 후 바로 숨김 상태
+		if (hiddenForClients)
+		{
+			S2C_GimmickStatePacket statePkt(netComp->mNetEntityId, false);
+			SendRequest stateReq{ newSessionId, PKT_Type::S2C_PKT_GIMMICK_STATE, sizeof(S2C_GimmickStatePacket) };
+			stateReq.StoreAs<S2C_GimmickStatePacket>(statePkt);
+			gSendQueue.Push(stateReq);
+		}
 	}
 }
 

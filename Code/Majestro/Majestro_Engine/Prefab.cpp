@@ -60,7 +60,6 @@ Entity PrefabFactory::BuildWorldMarkerPrefab(World* world, const InputCommand& c
 		}
 	}
 	world->AddComponent<TransformComponent>(entity, transform);
-	world->AddComponent<NetTransformComponent>(entity);
 
 	auto& netComp = world->AddComponent<NetEntityComponent>(entity);
 	netComp.mOwnerEntity = entity;

@@ -29,6 +29,7 @@ private:
 	void SendBulletDeactivateEvents();
 	void SendEffectSpawnEvents();
 	void SendHitConfirmEvents();
+	void SendGimmickStateEvents();
 
 	// 신규 세션 입장 시 EvSessionJoined 를 소비해서 초기 World 상태를 송신.
 	void HandleSessionJoinedEvents();

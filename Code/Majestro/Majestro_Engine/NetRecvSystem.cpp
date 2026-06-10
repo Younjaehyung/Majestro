@@ -83,6 +83,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_ROOM_LIST, [this](auto& m) { HandleRoomList(m); });
 	reg(PKT_Type::S2C_ROOM_JOIN_RESULT, [this](auto& m) { HandleRoomJoinResult(m); });
 	reg(PKT_Type::S2C_PKT_DESPAWN, [this](auto& m) { HandleDespawn(m); });
+	reg(PKT_Type::S2C_PKT_GIMMICK_STATE, [this](auto& m) { HandleGimmickState(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -746,6 +747,23 @@ void NetRecvSystem::HandleDespawn(const InputCommand& msg)
     // 이탈/접속 종료한 캐릭터 제거
     mWorld->DestroyEntity(e);
     mWorld->NetIdUnbinding(netId);
+}
+
+void NetRecvSystem::HandleGimmickState(const InputCommand& msg)
+{
+    const S2C_GimmickStatePacket* pkt = msg.ViewAs<S2C_GimmickStatePacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    std::cout << "[Gimmick] state recv netId=" << pkt->netEntityId
+        << " active=" << static_cast<int>(pkt->active)
+        << (e == NULL_ENTITY ? " (엔티티 없음)" : "") << std::endl;
+
+    if (e == NULL_ENTITY) return;
+
+    // 기믹 엔티티는 파괴하지 않고 VFX 표시만 토글
+    if (VfxComponent* vfx = mWorld->GetComponent<VfxComponent>(e))
+        vfx->mShouldPlay = (pkt->active != 0);
 }
 
 void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)

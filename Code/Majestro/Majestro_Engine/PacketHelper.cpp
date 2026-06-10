@@ -87,6 +87,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_ARMOR:
 	case PKT_Type::S2C_PKT_AMMO:
 	case PKT_Type::S2C_PKT_COOLDOWN:
+	case PKT_Type::S2C_PKT_GIMMICK_STATE:
 	case PKT_Type::S2C_PKT_HIT_CONFIRM:
 	case PKT_Type::S2C_PKT_SCENE_STATE:
 	case PKT_Type::S2C_PKT_SCENE_CONQUEST:

@@ -52,6 +52,7 @@ public:
 	float mNextAvailableTime = 0.0f; // 다음 발동 가능 시간 (쿨다운 끝나는 시점)
     bool  mOneShot = false;          // 일회용 (먹힌 후 소멸)
     bool  mActive  = true;           // false면 스킵함
+    bool  mHiddenForClients = false; // 클라이언트에 숨김 통지를 보낸 상태
 
     EntityID mLastUserId = 0;
     float    mLastTriggerTime = 0.0f;

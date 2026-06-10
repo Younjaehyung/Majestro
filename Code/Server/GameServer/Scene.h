@@ -37,6 +37,12 @@ public:
 	void SetGameMode(shared_ptr<GameMode>& gameMode);
 	shared_ptr<GameMode>& GetGameMode() { return mGameMode; }
 	SceneId GetSceneId() const { return mSceneId; }
+
+	// JSON 의 phaseSpawners 로 정의된 phase 키와 스포너 id 세트 등록.
+	void SetPhaseSpawnerSets(std::unordered_map<std::string, std::vector<std::string>> sets);
+
+	// phase 키에 해당하는 스포너만 활성화.
+	void ApplyPhaseSpawnerSet(const std::string& phaseKey);
 public:
 	bool mIsStarted = false;
 
@@ -45,6 +51,12 @@ protected:
 	shared_ptr<World>				mWorld = make_shared<World>();
 	shared_ptr<GameMode>			mGameMode;
 	SceneId							mSceneId;
+
+	// phase 키 , 활성화할 스포너 id 목록 
+	std::unordered_map<std::string, std::vector<std::string>> mPhaseSpawnerSets;
+
+	// phaseSpawners 에 한 번이라도 등장한 스포너 id 
+	std::unordered_set<std::string> mPhaseManagedSpawnerIds;
 };
 
 // INGAME SCENE 

@@ -23,6 +23,8 @@ void PreparePhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
 	mGameRuleEntity = mode.GetGameRuleEntity();
+
+	mode.GetScene()->ApplyPhaseSpawnerSet("Prepare");
 }
 
 void PreparePhase::Exit(WaveGameMode& mode)
@@ -70,6 +72,9 @@ void ConquestPhase::Enter(WaveGameMode& mode)
 			conquestComp.mConquestPointRect[idx] = e;
 		}
 	}
+
+	// 점령지 번호별 스포너 세트
+	mode.GetScene()->ApplyPhaseSpawnerSet("Conquest:" + std::to_string(static_cast<int32>(mZoneId)));
 }
 
 void ConquestPhase::Exit(WaveGameMode& mode)
@@ -206,6 +211,10 @@ EscortPhase::EscortPhase(uint8 routeId, float startDistance, int32 nextStopIndex
 void EscortPhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
+
+	// 호위 구간별 스포너 세트 적용
+	mode.GetScene()->ApplyPhaseSpawnerSet("Escort:" + std::to_string(mNextStopIndex));
+
 	Entity rule = mode.GetGameRuleEntity();
 	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(rule);
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
@@ -481,6 +490,9 @@ void ClearPhase::Enter(WaveGameMode& mode)
 
 	if (auto* rule = mWorld->GetComponent<GameRuleComponent>(mGameRuleEntity))
 		rule->mGamePhase = static_cast<uint8>(WavePhaseType::Clear);
+
+
+	mode.GetScene()->ApplyPhaseSpawnerSet("Clear");
 }
 
 void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
@@ -498,6 +510,7 @@ void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 void BossPhase::Enter(WaveGameMode& mode)
 {
+	mode.GetScene()->ApplyPhaseSpawnerSet("Boss:" + std::to_string(static_cast<int32>(mZoneId)));
 }
 
 void BossPhase::Exit(WaveGameMode& mode)

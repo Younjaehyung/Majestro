@@ -49,6 +49,7 @@
 #include "JsonUtils.h"
 #include "GameRuleSystem.h"
 #include "PathFollowSystem.h"
+#include "GameTimer.h"
 
 namespace
 {
@@ -167,6 +168,7 @@ namespace
 		ifs >> root;
 
 		const auto& items = RequireJson(root, "interactables");
+		int loadedCount = 0;
 		for (const auto& it : items)
 		{
 			const Vec3 position    = ParseVec3ArrayOrObject(RequireJson(it, "position"), 1.0f);
@@ -182,7 +184,9 @@ namespace
 				GetOptionalFloat(it, "cooldown", 0.0f),
 				GetOptionalBool(it, "oneShot", false),
 				ParseInteractableTarget(GetOptionalString(it, "targetMask", "Player")));
+			++loadedCount;
 		}
+		std::cout << "[Gimmick] interactables loaded: " << loadedCount << std::endl;
 	}
 
 
@@ -263,6 +267,27 @@ namespace
 					sp->mSpawnTablePool.push_back(found->second);
 			}
 		}
+
+		// phase 별 스포너 세트
+		std::unordered_map<std::string, std::vector<std::string>> phaseSets;
+		if (root.contains("phaseSpawners"))
+		{
+			const auto& phaseJson = root["phaseSpawners"];
+			for (auto it = phaseJson.begin(); it != phaseJson.end(); ++it)
+			{
+				if (!it.value().is_array())	// "_comment" 등 무시
+					continue;
+
+				std::vector<std::string> ids;
+				for (const auto& idJson : it.value())
+				{
+					if (idJson.is_string())
+						ids.push_back(idJson.get<std::string>());
+				}
+				phaseSets.emplace(it.key(), std::move(ids));
+			}
+		}
+		scene->SetPhaseSpawnerSets(std::move(phaseSets));
 	}
 }
 
@@ -531,6 +556,7 @@ Entity Scene::SpawnInteractable(World* world,
 
 	TransformComponent transform{};
 	transform.mLocalPosition = position;
+	transform.mWorldPosition = position;
 	transform.mWorldMatrix = Matrix::CreateTranslation(position);
 	transform.mIsStatic = true;
 	world->AddComponent<TransformComponent>(e, transform);
@@ -570,6 +596,7 @@ Entity Scene::SpawnMonsterSpawner(World* world,
 
 	TransformComponent transform{};
 	transform.mLocalPosition = position;
+	transform.mWorldPosition = position;
 	transform.mWorldMatrix = Matrix::CreateTranslation(position);
 	transform.mIsStatic = true;
 	world->AddComponent<TransformComponent>(e, transform);
@@ -586,6 +613,74 @@ Entity Scene::SpawnMonsterSpawner(World* world,
 	world->AddComponent<NetEntityComponent>(e, world, e);
 	sp.mNextSpawnTime = 0.0f; // 다음 Update에서 즉시 후보
 	return e;
+}
+
+void Scene::SetPhaseSpawnerSets(std::unordered_map<std::string, std::vector<std::string>> sets)
+{
+	mPhaseSpawnerSets = std::move(sets);
+
+	mPhaseManagedSpawnerIds.clear();
+	for (const auto& [phaseKey, ids] : mPhaseSpawnerSets)
+		for (const std::string& id : ids)
+			mPhaseManagedSpawnerIds.insert(id);
+
+	if (mPhaseManagedSpawnerIds.empty() || !mWorld->HasComponentPool<SpawnerComponent>())
+		return;
+
+	// phase 관리 대상은 startActive flase
+	for (Entity e : mWorld->GetEntitiesWithComponent<SpawnerComponent>())
+	{
+		SpawnerComponent* sp = mWorld->GetComponent<SpawnerComponent>(e);
+		if (sp && mPhaseManagedSpawnerIds.count(sp->mSpawnerId) > 0)
+			sp->mActive = false;
+	}
+}
+
+void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
+{
+	// phaseSpawners 를 정의하지 않은 맵은 기존 동작(Timed/startActive) 그대로 둔다.
+	if (mPhaseManagedSpawnerIds.empty())
+		return;
+	if (!mWorld->HasComponentPool<SpawnerComponent>())
+		return;
+
+	static const std::vector<std::string> kEmpty;
+	const auto found = mPhaseSpawnerSets.find(phaseKey);
+	const std::vector<std::string>& activeIds = (found != mPhaseSpawnerSets.end()) ? found->second : kEmpty;
+
+	const float now = GetServerTotalTimeSeconds();
+	int activated = 0;
+	for (Entity e : mWorld->GetEntitiesWithComponent<SpawnerComponent>())
+	{
+		SpawnerComponent* sp = mWorld->GetComponent<SpawnerComponent>(e);
+		if (!sp || sp->mSpawnerId.empty())
+			continue;
+		if (mPhaseManagedSpawnerIds.count(sp->mSpawnerId) == 0) // phase 관리 대상이 아닌 스포너
+			continue;
+
+		const bool shouldBeActive =
+			std::find(activeIds.begin(), activeIds.end(), sp->mSpawnerId) != activeIds.end();
+
+		if (shouldBeActive)
+		{
+			// phase 마다 reset
+			sp->mActive = true;
+			sp->mTotalSpawned = 0;
+			sp->mSelectedTableIndex = -1;
+			sp->mCurrentSpawnPlan.clear();
+			sp->mCurrentSpawnPlanIndex = 0;
+			sp->mCurrentEntryRemaining = 0;
+			sp->mNextSpawnTime = now;	// 즉시 첫 스폰 허용
+			++activated;
+		}
+		else
+		{
+			sp->mActive = false;	// 이미 스폰된 개체는 그대로 둔다
+		}
+	}
+
+	std::cout << "[PhaseSpawner] phase=" << phaseKey << " active=" << activated
+		<< "/" << mPhaseManagedSpawnerIds.size() << std::endl;
 }
 
 void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
@@ -626,7 +721,7 @@ void FirstScene::Initialize()
 	waveMode->SetCompletionScene(SceneId::SecondGame); // 마지막 Conquest 클리어 후 SecondGame 으로 전환
 	shared_ptr<GameMode> gameMode = waveMode;
 	SetGameMode(gameMode);
-	gameMode->Initialize();
+
 
 	mWorld->Initialize();
 	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
@@ -697,6 +792,8 @@ void FirstScene::Initialize()
 	//}
 
 	LoadSpawnerTablesForScene(this, mWorld.get(), gimmickPath);
+
+	gameMode->Initialize();
 
 	mSceneId = SceneId::FirstGame;
 

@@ -161,7 +161,7 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 	const std::wstring prefix = s2ws(level.levelName);
 	for (const auto& fbxName : uniqueFbxNames)
 	{
-		RESOURCEMANAGER.LoadFBXMesh(BuildMapFbxPath(level.levelName, fbxName), prefix);
+		RESOURCEMANAGER.LoadFBXModel(BuildMapFbxPath(level.levelName, fbxName), prefix);
 	}
 
 }
@@ -231,7 +231,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 		{
 			// 파일명만 추출
 			std::string stem = filesystem::path(inst.fbx).filename().stem().string();
-			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXMesh(BuildMapFbxPath(level.levelName, stem), prefix);
+			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXModel(BuildMapFbxPath(level.levelName, stem), prefix);
 
 			if (!data)
 			{

@@ -18,6 +18,9 @@ struct UIButtonDesc
     UIButtonVisual visual = UIButtonVisual::Texture;
     const wchar_t* resKey = nullptr;   // 리소스 이름
 
+    // Texture 전용: 아틀라스 소스 렉트
+    RECT sourceRect { 0, 0, 0, 0 };
+
     Vec2  frameSize {};                // SpriteSheet 전용: 한 프레임 픽셀 크기
     int   frameCount = 1;              // SpriteSheet 전용: 프레임 수
     float animTime   = 1.f;            // SpriteSheet 전용: 한 바퀴 재생 시간(초)

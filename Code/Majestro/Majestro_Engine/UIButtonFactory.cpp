@@ -25,8 +25,19 @@ Entity CreateUIButton(World* world, const UIButtonDesc& d)
     switch (d.visual)
     {
     case UIButtonVisual::Texture:
-        world->AddComponent<UISpriteComponent>(e, RESOURCEMANAGER.Get<Texture>(d.resKey));
+    {
+        auto& sp = world->AddComponent<UISpriteComponent>(e, RESOURCEMANAGER.Get<Texture>(d.resKey));
+
+        // 아틀라스 텍스쳐용
+        if (d.sourceRect.right > d.sourceRect.left && d.sourceRect.bottom > d.sourceRect.top)
+        {
+            sp.SetSourceRect(static_cast<float>(d.sourceRect.left),
+                             static_cast<float>(d.sourceRect.top),
+                             static_cast<float>(d.sourceRect.right - d.sourceRect.left),
+                             static_cast<float>(d.sourceRect.bottom - d.sourceRect.top));
+        }
         break;
+    }
 
     case UIButtonVisual::SpriteSheet:
         world->AddComponent<UISpriteComponent>(

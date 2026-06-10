@@ -22,6 +22,13 @@ public:
 
 	virtual bool& IsSceneChanging() { return mIsSceneChanging; }
 	virtual SceneId GetTargetSceneId() const { return mTargetSceneId; }
+
+	// [디버그] 게임 완료를 기다리지 않고 지정 씬으로 강제 전환
+	void DebugForceTransition(SceneId target)
+	{
+		mTargetSceneId = target;
+		mIsSceneChanging = true;
+	}
 	virtual GameModeType GetType() const = 0;
 
 	virtual void SetScene(shared_ptr<Scene> scene) { mScene = scene; }

@@ -83,8 +83,11 @@ void WaveGameMode::PreUpdate(float deltaTime)
 {
 	Entity e = mScene->GetWorld()->GetGameRuleEntity(); // 게임 규칙 엔티티에서 필요한 정보 가져오기
 
-
-
+	// [디버그] F5: FirstScene 클리어를 기다리지 않고 SecondScene 으로 강제 전환 요청
+	if (mScene->GetSceneId() == SceneId::FirstGame && INPUT.GetKeyDown(eKeyCode::F5))
+	{
+		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::SecondGame });
+	}
 }
 
 void WaveGameMode::PostUpdate(float deltaTime)

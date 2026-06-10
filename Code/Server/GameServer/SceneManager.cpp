@@ -330,6 +330,23 @@ bool SceneManager::HandleSceneChange(const InputCommand& command)
 		mRoomManager->OnGameStarted(command.SessionId);
 	}
 
+	// [디버그] 게임 씬 강제 전환 요청
+	if (IsGameScene(currentScene) && IsGameScene(requestedScene) && currentScene != requestedScene)
+	{
+		uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(command.SessionId) : 0;
+		auto gIt = mGameWorldsByRoom.find(roomId);
+		if (gIt != mGameWorldsByRoom.end() && gIt->second)
+		{
+			if (auto& gameMode = gIt->second->GetGameMode())
+			{
+				gameMode->DebugForceTransition(requestedScene);
+				cout << "[DEBUG] 강제 씬 전환: room=" << roomId
+					<< " scene=" << (int)currentScene << " -> " << (int)requestedScene << endl;
+			}
+		}
+		return true;
+	}
+
 	const bool isApproved = IsSceneChangeAllowed(currentScene, requestedScene);
 	if (isApproved)
 	{

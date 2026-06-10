@@ -53,7 +53,7 @@ float3 MakeTriangleColor(float2 uv)
     float3 color = baseColor;
 
     [unroll]
-    for (int i = 0; i < 52; ++i)
+    for (int i = 0; i < 152; ++i)
     {
         float fi = (float)i;
         float2 seed = float2(fi * 3.17f + 0.23f, fi * 7.91f + 4.61f);
@@ -81,7 +81,7 @@ float3 MakeTriangleColor(float2 uv)
 
         float mask = IrregularTriangleMask(uv, a, b, c);
         float shade = rnd1.y * 2.0f - 1.0f;
-        float shimmer = sin(time * lerp(0.55f, 1.65f, rnd2.y) + rnd3.x * 6.28318f) * 0.5f + 0.5f;
+        float shimmer = sin(1.5f*time * lerp(0.4f, 2.2f, rnd2.y) + rnd3.x * 6.28318f) * 0.5f + 0.5f;
 
         float3 lightTri = float3(0.94f, 0.96f, 1.0f);
         float3 darkTri = float3(0.22f, 0.22f, 0.30f);
@@ -89,8 +89,10 @@ float3 MakeTriangleColor(float2 uv)
             ? lerp(baseColor, lightTri, shade * 0.34f)
             : lerp(baseColor, darkTri, -shade * 0.45f);
 
-        float layerAlpha = lerp(0.035f, 0.12f, rnd0.x) + shimmer * 0.045f * 8.f;
-        color = lerp(color, triColor, mask * layerAlpha);
+        triColor = lerp(triColor, lightTri, shimmer * 0.15f);
+        
+        float layerAlpha = lerp(0.035f, 0.12f, rnd0.x) + shimmer * 0.045f;
+        color = lerp(color, triColor, mask * layerAlpha * 5.f);
     }
 
     float vignette = 1.0f - smoothstep(0.46f, 0.95f, length(centered));

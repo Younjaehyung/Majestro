@@ -60,6 +60,13 @@ void IMGUIRenderSystem::Update()
 
         // CSM 스플릿 분포 lambda
         ImGui::SliderFloat("CSM Split Lambda", renderSys->GetCascadeSplitLambdaPtr(), 0.0f, 1.0f);
+
+        // 맵 고정 (4-cascade) — 정적 그림자 캐시 상태
+        ImGui::Text("Map Cascade  dirty: %d  staticCasters: %u",
+            renderSys->IsMapCascadeDirty() ? 1 : 0, renderSys->GetStaticCasterCount());
+        ImGui::SameLine();
+        if (ImGui::Button("Rebuild##MapCascade"))
+            renderSys->ForceMapCascadeDirty();
     }
 
     // ── Camera Inspector ──────────────────────────────────────────────────────

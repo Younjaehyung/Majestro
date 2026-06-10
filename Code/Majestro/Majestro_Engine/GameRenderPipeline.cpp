@@ -409,9 +409,11 @@ void GameRenderPipeline::RenderDepthPrePass(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 {
+    static bool sDummyDirty = false;  // ctx 미연결 파이프라인 폴백
     mShadowPass->Execute(
         *ctx.cascadeBatchs,
-        const_cast<std::array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>&>(*ctx.cascadeActive));
+        const_cast<std::array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>&>(*ctx.cascadeActive),
+        ctx.mapCascadeDirty ? *ctx.mapCascadeDirty : sDummyDirty);
 }
 
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)

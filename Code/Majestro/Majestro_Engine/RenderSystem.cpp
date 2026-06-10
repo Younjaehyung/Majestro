@@ -135,6 +135,7 @@ void RenderSystem::Update() {
   ctx.cascadeBatchs   = &mCascadeDrawBatchs;
   ctx.lightBatchs     = &mLightDrawBatchs;
   ctx.cascadeActive  = &mCascadeActive;
+  ctx.mapCascadeDirty = &mMapCascadeDirty;
   ctx.camera         = mCamera;
   ctx.deltaTime      = DELTA_TIME;
   ctx.frameIndex     = mFrameCount;
@@ -242,9 +243,10 @@ void RenderSystem::PushFrameData() {
       static_cast<float>(RENDERMANAGER.GetWindow().Width),
       static_cast<float>(RENDERMANAGER.GetWindow().Height)};
   passParams.TotalTime = TIMER.GetTotalTime();
+  // .z(=마지막 split)와 .w(하드 컷 거리)는 카메라 far — 맵 고정 cascade가 그 너머까지 커버
   if (mHasDirectionalShadow && mCamera)
       passParams.CascadeSplitDistances =
-      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mShadowFar);
+      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mFar);
   else
       passParams.CascadeSplitDistances = Vec4(0.f, 0.f, 0.f, 0.f);
 
@@ -517,16 +519,8 @@ void RenderSystem::PushObjectData() {
                                     obb.Extents.z * obb.Extents.z);
 
 
-      uint8 shadowCascadeMask = 0;
-      for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
-        if (!mCascadeActive[ci]) continue;
-        const Vec3 toObj      = objCenter - mCascadeFrustumCenter[ci];
-        const float projX     = fabsf(toObj.Dot(mCascadeLightRight[ci]));
-        const float projY     = fabsf(toObj.Dot(mCascadeLightUp[ci]));
-        const float halfExtent = mCascadeFrustumRadius[ci] + objRadius;
-        if (projX < halfExtent && projY < halfExtent)
-          shadowCascadeMask |= static_cast<uint8>(1 << ci);
-      }
+      const uint8 shadowCascadeMask =
+          ComputeCascadeMask(objCenter, objRadius, transformComponent->mIsStatic);
       if (!shadowCascadeMask) continue;  // 어떤 cascade에도 속하지 않으면 생략
 
       // shadow-only 오브젝트: 트랜스폼 및 드로우 아이템 등록
@@ -571,8 +565,26 @@ void RenderSystem::PushObjectData() {
     animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
     index2 = animationComponent ? animationComponent->mAnimInstanceID : -1;
 
+    // 그림자 cascade 교차 마스크 — 프러스텀 내 오브젝트도 교차하는 cascade에만 그림
+    uint8 visCascadeMask = 0;
+    if (renderComponent->mCheckFrustum) {
+      // IsVisibleInFrustum에서 mWorldOBB가 이미 갱신된 상태
+      const auto& vObb = renderComponent->mWorldOBB;
+      const Vec3 vCenter(vObb.Center.x, vObb.Center.y, vObb.Center.z);
+      const float vRadius = sqrtf(vObb.Extents.x * vObb.Extents.x +
+                                  vObb.Extents.y * vObb.Extents.y +
+                                  vObb.Extents.z * vObb.Extents.z);
+      visCascadeMask = ComputeCascadeMask(vCenter, vRadius, transformComponent->mIsStatic);
+    } else {
+      // OBB 미갱신(mCheckFrustum=false) 오브젝트는 보수적으로 이동 cascade 전부 (기존 동작 유지)
+      for (uint32 ci = 0; ci < SHADOW_MAP_CASCADE_INDEX; ++ci)
+        if (mCascadeActive[ci]) visCascadeMask |= static_cast<uint8>(1 << ci);
+      if (mMapCascadeDirty && transformComponent->mIsStatic && mCascadeActive[SHADOW_MAP_CASCADE_INDEX])
+        visCascadeMask |= static_cast<uint8>(1 << SHADOW_MAP_CASCADE_INDEX);
+    }
+
     uint32 subMaterialIdx{};
-   
+
     const uint32 subMeshCount = renderComponent->mMesh ? renderComponent->mMesh->GetSubMeshCount() : 0;
     DrawItem drawItem{};
     for (shared_ptr<Material> &material : renderComponent->mMaterials) {
@@ -597,7 +609,7 @@ void RenderSystem::PushObjectData() {
 
 
       for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
-        if (mCascadeActive[ci])
+        if (visCascadeMask & static_cast<uint8>(1 << ci))
           mCascadeDrawItems[ci].push_back(drawItem);
       }
       /*mDeferredDrawItems.emplace_back(
@@ -879,14 +891,17 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   const float farForSplit = max(cameraFar, nearForSplit + 0.001f);
   const float ratio = farForSplit / nearForSplit;
   const float lambda = min(max(mCascadeSplitLambda, 0.0f), 1.0f);
-  constexpr float cascadeCount = static_cast<float>(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
+  // 카메라 추종(이동) cascade는 마지막(맵 고정) 슬라이스를 제외한 개수 — 0..mShadowFar를 분할
+  constexpr float movingCascadeCount = static_cast<float>(SHADOW_MAP_CASCADE_INDEX);
 
-  for (uint32 i = 0; i < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++i) {
-      const float p = static_cast<float>(i + 1) / cascadeCount;
+  for (uint32 i = 0; i < SHADOW_MAP_CASCADE_INDEX; ++i) {
+      const float p = static_cast<float>(i + 1) / movingCascadeCount;
       const float logSplit = nearForSplit * powf(ratio, p);
       const float uniformSplit = nearForSplit + (farForSplit - nearForSplit) * p;
       CascadeSplit[i] = lambda * logSplit + (1.0f - lambda) * uniformSplit;
   }
+  // 맵 고정 cascade는 카메라 far까지 커버 — 셰이더 SelectCascadeIndex가 splits.z 기준으로 선택
+  CascadeSplit[SHADOW_MAP_CASCADE_INDEX] = mCamera->mFar;
 
 
   const Matrix invProj = mCamera->mProjection.Invert();
@@ -917,8 +932,8 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 
 
-  for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex) {
-     
+  for (uint32 cascadeIndex = 0; cascadeIndex < SHADOW_MAP_CASCADE_INDEX; ++cascadeIndex) {
+
     const float splitNear =
         (cascadeIndex == 0) ? cameraNear
         : min(CascadeSplit[cascadeIndex - 1], cameraFar);
@@ -1009,9 +1024,132 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     passParams.CascadeShadowVP[cascadeIndex] = (lightView * lightProj).Transpose();
   }
 
-  passParams.CascadeSplitDistances =
-      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], cameraFar);
+  // 마지막 슬라이스— dirty일 때만 VP 재계산
+  UpdateMapCascade(lightDir);
 
+
+  passParams.CascadeSplitDistances =
+      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mFar);
+
+}
+
+void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
+{
+  constexpr uint32 mapIdx = SHADOW_MAP_CASCADE_INDEX;
+
+  // 정적 캐스터 수 집계 — dirty 검출용 (AABB 계산은 dirty 프레임에만)
+  uint32 staticCount = 0;
+  auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, RenderComponent>();
+
+  for (Entity e : entities) {
+    TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
+    RenderComponent* rc = mWorld->GetComponent<RenderComponent>(e);
+
+    if (!tr->mIsStatic || !rc->mVisibility || !rc->mMesh) continue;
+    ++staticCount;
+  }
+
+  // dirty 트리거: 라이트 방향 변화 / 정적 캐스터 수 변화 / 첫 프레임(초기값 true)
+  if ((lightDir - mPrevLightDir).LengthSquared() > 1e-6f || staticCount != mPrevStaticCasterCount)
+    mMapCascadeDirty = true;
+
+  mPrevLightDir = lightDir;
+  mPrevStaticCasterCount = staticCount;
+
+  if (staticCount == 0) {
+    mCascadeActive[mapIdx] = false;
+    passParams.CascadeShadowVP[mapIdx] = Matrix::Identity.Transpose();
+    return;
+  }
+
+  mCascadeActive[mapIdx] = true;
+
+  if (mMapCascadeDirty) {
+    // 정적 캐스터 전체의 월드 AABB
+    Vec3 aabbMin(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3 aabbMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+
+    for (Entity e : entities) {
+      TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
+      RenderComponent* rc = mWorld->GetComponent<RenderComponent>(e);
+      if (!tr->mIsStatic || !rc->mVisibility || !rc->mMesh) continue;
+
+      rc->UpdateWorldOBB(tr);  // 첫 프레임 등 OBB 미갱신 상태 대비
+      XMFLOAT3 corners[BoundingOrientedBox::CORNER_COUNT];
+      rc->mWorldOBB.GetCorners(corners);
+
+      for (const XMFLOAT3& c : corners) {
+        aabbMin = Vec3::Min(aabbMin, Vec3(c.x, c.y, c.z));
+        aabbMax = Vec3::Max(aabbMax, Vec3(c.x, c.y, c.z));
+      }
+    }
+
+    const Vec3 center = (aabbMin + aabbMax) * 0.5f;
+    const float radius = ((aabbMax - aabbMin) * 0.5f).Length();
+
+    const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+    const Vec3 eye = center - lightDir * (radius * 2.f);
+    const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
+
+    // AABB 8코너를 light space로 변환해 정확한 ortho 범위 산출
+    Vec3 minLS(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3 maxLS(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+
+    const Vec3 cornersW[8] = {
+        {aabbMin.x, aabbMin.y, aabbMin.z}, {aabbMax.x, aabbMin.y, aabbMin.z},
+        {aabbMin.x, aabbMax.y, aabbMin.z}, {aabbMax.x, aabbMax.y, aabbMin.z},
+        {aabbMin.x, aabbMin.y, aabbMax.z}, {aabbMax.x, aabbMin.y, aabbMax.z},
+        {aabbMin.x, aabbMax.y, aabbMax.z}, {aabbMax.x, aabbMax.y, aabbMax.z},
+    };
+
+
+    for (const Vec3& cw : cornersW) {
+      const Vec3 ls = Vec3::Transform(cw, lightView);
+      minLS = Vec3::Min(minLS, ls);
+      maxLS = Vec3::Max(maxLS, ls);
+    }
+
+    // 고정 VP라 texel snapping 불필요. 경계 여유만 소량 부여
+    const Vec3 margin = (maxLS - minLS) * 0.05f;
+    const Matrix lightProj = Matrix::CreateOrthographicOffCenter(
+        minLS.x - margin.x, maxLS.x + margin.x,
+        minLS.y - margin.y, maxLS.y + margin.y,
+        minLS.z - margin.z, maxLS.z + margin.z);
+
+    mMapCascadeVP = lightView * lightProj;
+
+    // 캐스터 컬링 데이터 (ComputeCascadeMask 공용)
+    mCascadeFrustumCenter[mapIdx] = center;
+    mCascadeFrustumRadius[mapIdx] = radius * 1.05f;
+    mCascadeLightRight[mapIdx] = Vec3(lightView._11, lightView._12, lightView._13);
+    mCascadeLightUp[mapIdx]    = Vec3(lightView._21, lightView._22, lightView._23);
+  }
+
+  // VP는 고정값이므로 dirty 여부와 무관하게 매 프레임 동일 값 업로드
+  passParams.CascadeShadowVP[mapIdx] = mMapCascadeVP.Transpose();
+}
+
+
+
+uint8 RenderSystem::ComputeCascadeMask(const Vec3& objCenter, float objRadius, bool isStatic) const
+{
+  uint8 mask = 0;
+  for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci) {
+    if (!mCascadeActive[ci]) continue;  
+    // 캐시
+    if (ci == SHADOW_MAP_CASCADE_INDEX && (!isStatic || !mMapCascadeDirty)) continue;
+
+    const Vec3 toObj      = objCenter - mCascadeFrustumCenter[ci];
+    const float projX     = fabsf(toObj.Dot(mCascadeLightRight[ci]));
+    const float projY     = fabsf(toObj.Dot(mCascadeLightUp[ci]));
+    const float halfExtent = mCascadeFrustumRadius[ci] + objRadius;
+
+    if (projX < halfExtent && projY < halfExtent)
+      mask |= static_cast<uint8>(1 << ci);
+  }
+  return mask;
 }
 
 

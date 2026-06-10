@@ -103,7 +103,8 @@ public:
 	float mFar = 200.f * 100.f;
 
 	float mShadowNear = 1.f;
-	float mShadowFar = 2500.f;
+	// 이동(카메라 추종) cascade 범위 — 이 너머는 맵 고정 4-cascade(정적 캐시)가 커버
+	float mShadowFar = 10000.f;
 
 	float mFov = 103.f/2.0f;// XM_PI / 4.f; (오버워치 fov로 맞춤)
 	float mScale = 1.f;

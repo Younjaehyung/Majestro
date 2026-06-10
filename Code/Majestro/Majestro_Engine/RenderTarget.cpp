@@ -276,7 +276,7 @@ void RenderTargetGroup::ClearRenderTargetView(uint32 index)
 
 }
 
-void RenderTargetGroup::ClearRenderTargetView()
+void RenderTargetGroup::TransitionToTarget()
 {
 	// SHADOW, PRE_DEPTH: 텍스처 초기 상태가 DEPTH_WRITE이므로 첫 프레임엔 배리어 불필요
 	if ((mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW || mGroupType == RENDER_TARGET_GROUP_TYPE::PRE_DEPTH) && mFirstUse)
@@ -285,8 +285,13 @@ void RenderTargetGroup::ClearRenderTargetView()
 	}
 	else
 	{
-		WaitResourceToTarget();	//클리어 하기전에 리소스를 타켓으로 변환
+		WaitResourceToTarget();	//그리기 전에 리소스를 타켓으로 변환
 	}
+}
+
+void RenderTargetGroup::ClearRenderTargetView()
+{
+	TransitionToTarget();
 	uint32 size = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	if (mGroupType == RENDER_TARGET_GROUP_TYPE::SHADOW)
 	{

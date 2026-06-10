@@ -61,6 +61,9 @@ struct RenderContext
 
 	std::array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>* cascadeActive = nullptr;  // 활성 캐스케이드 플래그
 
+	// 맵 고정 cascade(마지막 슬라이스) 재렌더 필요 플래그
+	bool* mapCascadeDirty = nullptr;
+
 	CameraComponent* camera = nullptr;
 	float                         deltaTime = 0.f;
 	uint32                        frameIndex = 0;

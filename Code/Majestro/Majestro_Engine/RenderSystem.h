@@ -177,6 +177,9 @@ private: // Push&Clear Data
   void PushDebugging();
 
   void UpdateCascadeShadowMatrices(LightComponent* lightComponent);
+  void UpdateMapCascade(const Vec3& lightDir);  // 맵 전체 고정 cascade (마지막 슬라이스)
+  // 오브젝트 구체가 교차하는 cascade 비트마스크 — 4-cascade는 정적 캐스터 + dirty 프레임 한정
+  uint8 ComputeCascadeMask(const Vec3& objCenter, float objRadius, bool isStatic) const;
 
 private: // Render
   void InstancingRender(DrawBatch &);
@@ -216,6 +219,11 @@ public:
   // ImGui 튜닝용 — CSM 스플릿 분포 lambda (0=균등, 1=로그)
   float* GetCascadeSplitLambdaPtr() { return &mCascadeSplitLambda; }
 
+  // ImGui 디버그 — 맵 고정 cascade 상태
+  bool IsMapCascadeDirty() const { return mMapCascadeDirty; }
+  uint32 GetStaticCasterCount() const { return mPrevStaticCasterCount; }
+  void ForceMapCascadeDirty() { mMapCascadeDirty = true; }
+
 private:
   std::vector<Entity> mDummyVector;
   // RenderManager의 structuerdBuffer로 복사할 데이터들
@@ -226,9 +234,9 @@ private:
   std::vector<MaterialParams> mMaterialVector;
   std::vector<ParticleSharedParams> mPatricleVector;
 
-  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
+  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true, true };
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };
-  float mCascadeSplitLambda = 0.7f;
+  float mCascadeSplitLambda = 0.85f;
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
   float shadowMapSize = 4096.f;
@@ -240,6 +248,12 @@ private:
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeLightRight{};
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeLightUp{};
   bool mHasDirectionalShadow = false;
+
+  // 맵 전체 고정 4-cascade — dirty일 때만 그림자 캐시
+  bool   mMapCascadeDirty = true;              // 첫 프레임 강제 렌더
+  Matrix mMapCascadeVP = Matrix::Identity;     // 고정 VP (transpose 전)
+  Vec3   mPrevLightDir = Vec3::Zero;           // dirty 검출: 라이트 방향 변화
+  uint32 mPrevStaticCasterCount = 0;           // dirty 검출: 정적 캐스터 수 변화
 
 private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms

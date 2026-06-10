@@ -538,16 +538,6 @@ void LoadingScene::Initialize()
 		tr.mSize = Vec2(2560.f, 1440.f);
 		tr.mPivot = Vec2(0.f, 0.f);
 
-		//switch (gEngine->GetSceneManager().Get)
-		//{
-		//case SceneCommandType::LoadingThenScene:
-		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Title_Background");
-		//	break;
-		//case SceneCommandType::LoadScene:
-		//default:
-		//	loadingMaterial = RESOURCEMANAGER.Get<Material>(L"Game_Loading_Background");
-		//	break;
-		//}
 		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01");
 
 
@@ -690,16 +680,6 @@ void LoadingScene::Update(float deltaTime)
 	UITransformComponent* bar = mWorld->GetComponent<UITransformComponent>(mProgressBar);
 	if (bar)
 		bar->mSize.x = mProgressBarMaxWidth * progress;
-
-
-
-	/*UITextComponent* loadingText = mWorld->GetComponent<UITextComponent>("AA");
-	if (loadingText)
-	{
-		loadingText->mText = gEngine->GetSceneManager().GetLoadingMessage();
-		if (loadingText->mText.empty())
-			loadingText->mText = L"Loading...";
-	}*/
 
 	mWorld->Update(deltaTime);
 }
@@ -972,11 +952,7 @@ void MainMenuScene::Initialize()
 		ctrl->mStates[(size_t)MainMenuState::MainMenu].animations = {
 			makeAnim(L"UI_Title_PaintSplash_0", Vec2(0.f, 0.f), Vec2(2320.f, 464.f), Vec2(464.f, 464.f), 5, 2.0f),
 		};
-		/*ctrl->mStates[(size_t)MainMenuState::Setting].animations  = { makeAnim(L"UI_Title_PaintSplash_0", ...) };
-		ctrl->mStates[(size_t)MainMenuState::Manual].animations   = { makeAnim(L"UI_Title_PaintSplash_0", ...) };
-		ctrl->mStates[(size_t)MainMenuState::RoomList].animations = { makeAnim(L"UI_Title_PaintSplash_0", ...) };
-		ctrl->mStates[(size_t)MainMenuState::Exit].animations     = { makeAnim(L"UI_Title_PaintSplash_0", ...) };*/
-
+	
 		auto applyVisible = [this](Entity e, bool v)
 			{
 				if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = v;
@@ -1325,8 +1301,6 @@ void LobbyScene::Initialize()
 	//}
 
 	{
-		// FFT 윈도우 2048 = FMOD 기본값. 16384는 믹서 스레드 FFT 비용이 ~10배인데
-		// 32개 바의 로그 스케일 대역 분할에는 1024빈(2048/2) 해상도로 충분하다.
 		AUDIOMANAGER.InitSpectrumDSP(2048);
 
 		Entity visEntity = mWorld->CreateEntity();
@@ -1482,84 +1456,6 @@ void FirstScene::Initialize()
 	/////////////////////////////////////////////////////////////////////////
 #pragma endregion
 
-#pragma region Game Objects
-	// 점프대
-	{
-		Entity jumpEntity = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(-2337.f, 142.f, -4987.f);
-
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Escort_Shockwave");
-
-		mWorld->AddComponent<TransformComponent>(jumpEntity, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(jumpEntity);
-		vfxComp.mVfx = vfx;
-		vfxComp.mIsLoop = true;
-		vfxComp.mRestartWhenFinished = true;
-		vfxComp.mScale = Vec3(15.f, 10.f, 15.f);
-	}
-
-	// 힐팩
-	{
-		Entity healEntity = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(-5843.f, 278.f, -3523.f);
-
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Heal");
-
-		mWorld->AddComponent<TransformComponent>(healEntity, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(healEntity);
-		vfxComp.mVfx = vfx;
-		vfxComp.mIsLoop = true;
-		vfxComp.mRestartWhenFinished = true;
-		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
-	}
-
-	// 몬스터 스포너
-	{
-		Entity spawnMonEntity1 = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(-4910.0f, 142.0f, -1623.0f);
-
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Spawn");
-
-		mWorld->AddComponent<TransformComponent>(spawnMonEntity1, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity1);
-		vfxComp.mVfx = vfx;
-		vfxComp.mIsLoop = true;
-		vfxComp.mRestartWhenFinished = true;
-		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
-	}
-	{
-		Entity spawnMonEntity2 = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(-2307.0f, 740.0f, -4097.0f);
-
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Spawn");
-
-		mWorld->AddComponent<TransformComponent>(spawnMonEntity2, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity2);
-		vfxComp.mVfx = vfx;
-		vfxComp.mIsLoop = true;
-		vfxComp.mRestartWhenFinished = true;
-		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
-	}
-	{
-		Entity spawnMonEntity3 = mWorld->CreateEntity();
-		TransformComponent vfxTransform{};
-		vfxTransform.mLocalPosition = Vec3(-5943.f, 142.0f, -5637.0f);
-
-		shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Spawn");
-
-		mWorld->AddComponent<TransformComponent>(spawnMonEntity3, vfxTransform);
-		VfxComponent& vfxComp = mWorld->AddComponent<VfxComponent>(spawnMonEntity3);
-		vfxComp.mVfx = vfx;
-		vfxComp.mIsLoop = true;
-		vfxComp.mRestartWhenFinished = true;
-		vfxComp.mScale = Vec3(5.f, 5.f, 5.f);
-	}
-
-#pragma endregion
 
 #pragma region UI
 

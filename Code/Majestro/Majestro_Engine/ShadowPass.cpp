@@ -15,22 +15,33 @@ void ShadowPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUS
 
 }
 
-void ShadowPass::Execute(std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeDrawBatchs, array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeActive)
+void ShadowPass::Execute(std::array<std::vector<DrawBatch>, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeDrawBatchs, array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& cascadeActive, bool& mapCascadeDirty)
 {
     auto& shadowGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SHADOW));
-    shadowGroup.ClearRenderTargetView();  // 모든 cascade slice 클리어
+    shadowGroup.TransitionToTarget();  // PSR -> DEPTH_WRITE (첫 프레임은 생략)
 
     for (uint32 cascadeIndex = 0; cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++cascadeIndex) {
-        if (!cascadeActive[cascadeIndex])
+        const bool isMapCascade = (cascadeIndex == SHADOW_MAP_CASCADE_INDEX);
+
+        if (!cascadeActive[cascadeIndex]) {
+            // 비활성 이동 cascade 클리어
+            if (!isMapCascade)
+                shadowGroup.ClearRenderTargetView(cascadeIndex);
+            continue;
+        }
+
+
+        // 맵 고정 cascade: dirty가 아니면 이전 프레임 depth 유지 (캐쉬)
+        if (isMapCascade && !mapCascadeDirty)
             continue;
 
-
+        shadowGroup.ClearRenderTargetView(cascadeIndex);  // 해당 슬라이스만 클리어
         shadowGroup.OMSetRenderTargets(0, cascadeIndex);
-
 
         RenderShadowCamera(cascadeDrawBatchs[cascadeIndex], cascadeIndex);
     }
 
+    mapCascadeDirty = false;  // 소비 — 다음 무효화까지 맵 슬라이스 재사용
     shadowGroup.WaitTargetToResource();
 }
 

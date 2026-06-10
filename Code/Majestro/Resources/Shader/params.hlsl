@@ -2,7 +2,8 @@
 #define _PARAMS_HLSL_
 
 
-#define RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT 3
+// SHADOW_TARGET_TYPE 개수
+#define RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT 4
 
 //////////////Light
 struct LightColor

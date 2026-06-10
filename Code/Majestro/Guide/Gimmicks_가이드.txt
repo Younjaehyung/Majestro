@@ -1,0 +1,53 @@
+1. playerSpawn — 플레이어 스폰 위치
+
+2. truckSpawn — 호위(Escort) 트럭 시작 위치
+
+3. interactables — 트리거 볼륨 (힐팩/점프대/점령지)
+
+ "kind": HealPack | JumpPad | ConquestZone
+ "position": [ -5843.0, 278.0, -3523.0 ],
+ "halfExtents": 구역으로 할 사각형 공간. 한 변의 절반 길이
+ "valueA": 힐팩일시 : 힐량 | 점프일시 : Y축 점프 충격량 | 점령지일시 : 점령지역1 ,2 3
+ "valueB": 점프일시 : 플레이어 기준 전방 방향 충격량
+ "cooldown": 쿨타임
+ "oneShot": 한번만 사용할것인지
+ "targetMask": Player | Enemy | All (적용 대상)
+
+  4. spawnTables — 몬스터 스폰 구성표
+	"table1": {
+ 		 "_comment": "균형",
+  		"entries": [
+   		 	{
+    		  		"type": "Bongoman",	// 몬스터 종류
+     				 "count": 2			// 스폰 수
+   			 },
+   		 	{
+     		 		"type": "Pianoman",
+    		  		"count": 1
+   	 		},
+   			 {
+   	   			"type": "HornMan",
+   	   			"count": 3
+   	 		}
+	 		 ]
+		},
+
+  5. spawners — 몬스터 스포너 엔티티
+
+  - id →json내에서 지정할 스포너 이름
+  - position + spawnRadius → 스폰 위치와 스폰너 반경 몇 cm에 랜덤 스폰할지
+  - trigger: 
+  │ "Timed"         │ 고정 시간 주기 자동 스폰. startActive(또는 phaseSpawners)로 켜지면 바로 interval 주기로 1마리씩 스폰 시작.                                                                                                                      │
+  │ "Wave"          │ 기본 비활성. WaveGameMode 같은 외부 코드가 명시적으로 mActive = true를 켜줘야 동작.                                                                                                                                                                                          │
+  │ "OnPlayerEnter" │ 기본 비활성. "플레이어가 트리거 볼륨을 밟으면 그 자리에서 몬스터가 튀어나옴" 
+
+
+  - maxAlive(2) → 이 스포너에서 태어나 살아있는 개체가 이 수 이상이면 스폰 잠시보류
+  - maxTotal(6) → 누적 스폰이 도달하면 mActive=false로 스스로 스포너 꺼짐
+  - randomSpawnFromTable: false → tablePool에서 테이블 하나를 랜덤 선택한 뒤 그 테이블의 entry들을 순서대로 전부 소진하고, 다 쓰면 다시 랜덤 선택. true면 entry 사이에서도 랜덤하게 뽑는 방식.
+  - startActive: true → 즉시 가동, phaseSpawners에 적혀있는 스포너이면 스포너 페이즈에 맞게 알아서 켜짐
+
+  6. phaseSpawners — 게임 페이즈별 스포너 스케줄
+    - 해당 phase 목록에 있는 스포너만 켜지고,  나머지는 꺼짐. 
+
+

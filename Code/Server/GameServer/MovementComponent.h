@@ -36,4 +36,13 @@ public:
 	Vec3  mTarget;                       // 마지막 탐색 목적지
 	float mPathTimer = 0.f;           // 남은 쿨다운
 	float mPathInterval = 0.5f;          // 재탐색 주기 (초)
+
+	// ---- 정체 감지 / detour 복구 ----
+	Vec3  mProgressSamplePos = Vec3::Zero;
+	float mProgressSampleElapsed = 0.f;
+	float mStuckElapsed = 0.f;
+
+	bool  mDetourActive = false;
+	Vec3  mDetourStartPos = Vec3::Zero;
+	float mDetourEndTime = 0.f;
 };

@@ -17,6 +17,16 @@
 #include "GameEvents.h"
 #include "GameTimer.h"
 
+namespace
+{
+    float FlatDistanceSquared(const Vec3& a, const Vec3& b)
+    {
+        const float dx = a.x - b.x;
+        const float dz = a.z - b.z;
+        return dx * dx + dz * dz;
+    }
+}
+
 
 
 EnemySystem::EnemySystem(World* world) : System(world)
@@ -206,7 +216,7 @@ void EnemySystem::Update(float dt)
             continue;
         }
 
-        HandleRunState(entity, enemyComp, mc, myPos, playerPos, navSystem, dt, entityIndex);
+        HandleRunState(entity, enemyComp, mc, myPos, playerPos, navSystem, now, dt, entityIndex);
 
         ++entityIndex;
     }
@@ -378,6 +388,7 @@ void EnemySystem::HandleRunState(
     const Vec3& myPos,
     const Vec3& playerPos,
     const std::shared_ptr<Navigation>& navSystem,
+    float nowSeconds,
     float dt,
     int entityIndex)
 {
@@ -391,6 +402,33 @@ void EnemySystem::HandleRunState(
         if (TryComputeOnnxBaseMoveTarget(entity, myPos, playerPos, navSystem, onnxTarget))
             desiredTarget = onnxTarget;
     }
+
+    UpdateDetourState(movementComp, myPos, desiredTarget, dt);
+
+    if (movementComp->mDetourActive)
+    {
+        const bool movedFarEnough = FlatDistanceSquared(myPos, movementComp->mDetourStartPos) >= DETOUR_EXIT_DISTANCE * DETOUR_EXIT_DISTANCE;
+        const bool timedOut = nowSeconds >= movementComp->mDetourEndTime;
+
+        if (movedFarEnough || timedOut)
+        {
+            movementComp->mDetourActive = false;
+            movementComp->mStuckElapsed = 0.0f;
+            movementComp->mProgressSampleElapsed = 0.0f;
+            movementComp->mProgressSamplePos = myPos;
+        }
+    }
+
+    if (!movementComp->mDetourActive && ShouldEnterDetour(movementComp, myPos, desiredTarget))
+    {
+        movementComp->mDetourActive = true;
+        movementComp->mDetourStartPos = myPos;
+        movementComp->mDetourEndTime = nowSeconds + DETOUR_TIMEOUT_SECONDS;
+        movementComp->mStuckElapsed = 0.0f;
+    }
+
+    if (movementComp->mDetourActive)
+        desiredTarget = playerPos;
 
     // ---- 재탐색 판단 ----
     movementComp->mPathTimer -= dt;
@@ -450,6 +488,50 @@ void EnemySystem::HandleRunState(
             enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
         }
     }
+}
+
+void EnemySystem::UpdateDetourState(
+    EnemyMovementComponent* movementComp,
+    const Vec3& myPos,
+    const Vec3& desiredTarget,
+    float dt)
+{
+    if (!movementComp)
+        return;
+
+    if (movementComp->mProgressSampleElapsed <= 0.0f)
+        movementComp->mProgressSamplePos = myPos;
+
+    movementComp->mProgressSampleElapsed += dt;
+    if (movementComp->mProgressSampleElapsed < STUCK_PROGRESS_WINDOW)
+        return;
+
+    const float movedSq = FlatDistanceSquared(myPos, movementComp->mProgressSamplePos);
+    const float targetDistSq = FlatDistanceSquared(myPos, desiredTarget);
+    const bool hasMoveIntent = movementComp->mPathCount > 0 || movementComp->mMovingDirection.LengthSquared() > 1e-8f;
+    const bool targetIsFar = targetDistSq >= STUCK_TARGET_DISTANCE * STUCK_TARGET_DISTANCE;
+
+    if (hasMoveIntent && targetIsFar && movedSq < STUCK_PROGRESS_DISTANCE * STUCK_PROGRESS_DISTANCE)
+        movementComp->mStuckElapsed += movementComp->mProgressSampleElapsed;
+    else
+        movementComp->mStuckElapsed = 0.0f;
+
+    movementComp->mProgressSamplePos = myPos;
+    movementComp->mProgressSampleElapsed = 0.0f;
+}
+
+bool EnemySystem::ShouldEnterDetour(
+    const EnemyMovementComponent* movementComp,
+    const Vec3& myPos,
+    const Vec3& desiredTarget) const
+{
+    if (!movementComp)
+        return false;
+
+    if (movementComp->mStuckElapsed < STUCK_TRIGGER_SECONDS)
+        return false;
+
+    return FlatDistanceSquared(myPos, desiredTarget) >= STUCK_TARGET_DISTANCE * STUCK_TARGET_DISTANCE;
 }
 
 void EnemySystem::UpdateOnnxToggle()
@@ -603,6 +685,9 @@ void EnemySystem::HaltByState(EnemyComponent* enemyComp, EnemyMovementComponent*
     movementComp->mMovingDirection = Vec3::Zero;
     movementComp->mPathCount = 0;
     movementComp->mPathIndex = 0;
+    movementComp->mDetourActive = false;
+    movementComp->mStuckElapsed = 0.0f;
+    movementComp->mProgressSampleElapsed = 0.0f;
 }
 
 Vec3 EnemySystem::PathFinder(const Vec3& from)

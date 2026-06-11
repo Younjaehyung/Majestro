@@ -950,7 +950,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 				t.mPosition = hpPos;
 				t.mSize = hpSize;
 				t.mPivot = Vec2(0.f, 0.f);
-				t.mUILayerIndex = 5;
+				t.mUILayerIndex = 6;
 				auto& sp = world->AddComponent<UISpriteComponent>(hpBack, RESOURCEMANAGER.Get<Texture>(hpBgName));
 				sp.mVisible = false;
 			}
@@ -963,7 +963,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 				t.mPosition = hpPos;
 				t.mSize = hpSize;
 				t.mPivot = Vec2(0.f, 0.f);
-				t.mUILayerIndex = 6;
+				t.mUILayerIndex = 5;
 				auto& sp = world->AddComponent<UISpriteComponent>(hpFill, RESOURCEMANAGER.Get<Texture>(hpBarName));
 				sp.mVisible = false;
 			}
@@ -1157,7 +1157,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			t.mPosition = Vec2(0.f, 576.f);
 			t.mSize = Vec2(768.f, 256.f);   // 텍스처 원본 비율 3:1 (768x256)
 			t.mPivot = Vec2(0.5f, 0.5f);
-			t.mUILayerIndex = 1;
+			t.mUILayerIndex = 2;
 
 			world->AddComponent<UISpriteComponent>(back, scorem);
 #ifdef _IMGUI
@@ -1191,7 +1191,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			t.mPosition = Vec2(-384.f, 448.f);
 			t.mSize = Vec2(768.f, 256.f);     
 			t.mPivot = Vec2(0.0f, 0.0f);      
-			t.mUILayerIndex = 2;
+			t.mUILayerIndex = 1;
 
 
 			world->AddComponent<UISpriteComponent>(hp, scorem);
@@ -1277,7 +1277,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			t.mPosition = Vec2(-256.f, 548.f);
 			t.mSize = Vec2(512.f, 96.f);
 			t.mPivot = Vec2(0.0f, 0.0f);
-			t.mUILayerIndex = 2;
+			t.mUILayerIndex = 5;
 
 			auto& text = world->AddComponent<UITextComponent>(hp);
 			text.mText = L"HP";

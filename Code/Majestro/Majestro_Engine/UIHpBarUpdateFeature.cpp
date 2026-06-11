@@ -166,11 +166,14 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     if (hpBar->mRenderBgFill && spriteShader != nullptr && bgTex != nullptr)
     {
         spriteShader->Update();
-        quadMesh->Render(1, 0, 0, 0); // 배경 (casdcae=0)
 
-        const uint32 role = 1;
-        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &role, 2); // 채움 (casdcae=1)
-        quadMesh->Render(1, 0, 0, 0);
+        const uint32 fillRole = 1;
+        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &fillRole, 2);
+        quadMesh->Render(1, 0, 0, 0);   // 채움 먼저 (바닥)
+
+        const uint32 bgRole = 0;
+        GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &bgRole, 2);
+        quadMesh->Render(1, 0, 0, 0);   // 배경 나중 (위)
     }
 
     // 파편 + hit effect 인스턴스를 한 번에 업로드

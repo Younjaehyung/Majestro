@@ -341,26 +341,29 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 			return false;
 	}
 
-	// 박자 약화: Fanthor ATTACK만 rhythm 사용. 박자 빗나가면 rhythm=0 폴백.
-	uint8 rhythm = 0;
-	if (button == InputButtons::ATTACK
-		&& mp->mPlayerType == Fanthor
-		&& mp->mNowBullet > 0)
-	{
-		BeatComponent* bc = mWorld->GetComponent<BeatComponent>(e);
-		rhythm = (bc != nullptr && bc->mBouns) ? mp->mRhythm : 0;
-	}
+		// Fanthor 기본공격:
+		// rhythm 0 은 항상 근접 GuitarAttack,
+		// rhythm 1~3 은 박자 성공 여부와 무관하게 탄이 있으면 해당 원거리 공격을 사용한다.
+		uint8 rhythm = 0;
+		if (button == InputButtons::ATTACK && mp->mPlayerType == Fanthor)
+		{
+			rhythm = mp->mRhythm;
+			if (rhythm != 0 && mp->mNowBullet <= 0)
+				rhythm = 0;
+		}
 
 	const int prevAmmo = mp->mNowBullet;
 	const SkillType bulletType = ResolveSkillType(mp->mPlayerType, button, rhythm);
 	EnqueueAttackEventByCategory(em, e, bulletType);
 
-	switch (button)
-	{
-	case InputButtons::ATTACK:
-		if (mp->mPlayerType == Ibanix || mp->mPlayerType == Fanthor)
-			mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
-		break;
+		switch (button)
+		{
+		case InputButtons::ATTACK:
+			if (mp->mPlayerType == Ibanix)
+				mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
+			else if (mp->mPlayerType == Fanthor && bulletType != SkillType::GuitarAttack)
+				mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
+			break;
 	case InputButtons::SKILL1:
 		if (mp->mPlayerType == Ibanix)
 			mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);

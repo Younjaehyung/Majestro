@@ -246,8 +246,8 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		/*if (skillType == SkillType::GuitarAttack)
 			return VfxSpawnDesc{ L"VFX_Fanthor_Slash_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };*/
 
-		if (skillType == SkillType::GuitarSkill1)
-			return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
+			if (skillType == SkillType::GuitarSkill1)
+				return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
 
 		if (skillType == SkillType::DrumSkill1)
 			return VfxSpawnDesc{ L"VFX_Rudwig_Skill_01", Vec3(0.f, 100.f, 80.f), Vec3(10.0f) };
@@ -291,10 +291,13 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 	switch (skillType)
 	{
 	case SkillType::GuitarAttack:
-	case SkillType::GuitarAttack_1:
-	case SkillType::GuitarAttack_2:
-	case SkillType::GuitarAttack_3:
 		return BulletVfxDesc{ L"VFX_Fanthor_Slash_01", Vec3(12.0f, 12.0f, 12.0f) };
+	case SkillType::GuitarAttack_1:
+		return BulletVfxDesc{ L"VFX_Fanthor_Bullet_Slash_1", Vec3(1.0f, 1.0f, 1.0f) };
+	case SkillType::GuitarAttack_2:
+		return BulletVfxDesc{ L"VFX_Fanthor_Bullet_Slash_2", Vec3(1.0f, 1.0f, 1.0f) };
+	case SkillType::GuitarAttack_3:
+		return BulletVfxDesc{ L"VFX_Fanthor_Bullet_Slash_3", Vec3(1.0f, 1.0f, 1.0f) };
 
 	case SkillType::BaseAttack:
 	case SkillType::BaseSkill1:

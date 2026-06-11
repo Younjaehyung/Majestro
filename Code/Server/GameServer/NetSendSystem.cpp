@@ -265,26 +265,50 @@ void NetSendSystem::SendAmmoEvents()
 	if (!eventManager)
 		return;
 
-	eventManager->Consume<EvAmmoChanged>([&](const EvAmmoChanged& e)
+	auto sendAmmoPacket = [&](Entity target, int32 currentAmmo, int32 maxAmmo)
 		{
-			if (!e.target.IsValid())
+			if (!target.IsValid())
 				return;
-			
-			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.target);
-			if (netComp == nullptr || netComp->mSessionId == 0)
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(target);
+			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(target);
+			if (netComp == nullptr || netComp->mSessionId == 0 || playerComp == nullptr)
 				return;
 
 			S2C_AmmoPacket ammoPkt;
 			ammoPkt.netEntityId = netComp->mNetEntityId;
-			ammoPkt.currentAmmo = e.currentAmmo;
-			ammoPkt.maxAmmo = e.maxAmmo;
-			cout << "send ammo : " << "ammoPkt.currentAmmo" << endl;
+			ammoPkt.currentAmmo = currentAmmo;
+			ammoPkt.maxAmmo = maxAmmo;
+
 			mSendReq.SessionId = netComp->mSessionId;
 			mSendReq.Type = S2C_PKT_AMMO;
 			mSendReq.Size = sizeof(S2C_AmmoPacket);
 			mSendReq.StoreAs<S2C_AmmoPacket>(ammoPkt);
 			gSendQueue.Push(mSendReq);
+
+			playerComp->mLastReplicatedAmmo = currentAmmo;
+		};
+
+	eventManager->Consume<EvAmmoChanged>([&](const EvAmmoChanged& e)
+		{
+			sendAmmoPacket(e.target, e.currentAmmo, e.maxAmmo);
 		});
+
+	if (!mWorld->HasComponentPool<MainPlayerComponent>())
+		return;
+
+	auto players = mWorld->GetEntitiesWithComponents<MainPlayerComponent, NetEntityComponent>();
+	for (Entity player : players)
+	{
+		MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(player);
+		if (playerComp == nullptr)
+			continue;
+
+		if (playerComp->mLastReplicatedAmmo == playerComp->mNowBullet)
+			continue;
+
+		sendAmmoPacket(player, static_cast<int32>(playerComp->mNowBullet), static_cast<int32>(playerComp->mMaxBullet));
+	}
 }
 
 

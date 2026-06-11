@@ -166,8 +166,9 @@ public:
 	float mDt = 0.0f;
 	uint32 mStateSequence = 0;
 
-	int mMaxBullet;
-	int mNowBullet;
+		int mMaxBullet;
+		int mNowBullet;
+		int mLastReplicatedAmmo = -1;
 
 };
 

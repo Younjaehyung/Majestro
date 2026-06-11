@@ -140,7 +140,8 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     gp.HpBarPivotPxX = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x;
     gp.HpBarPivotPxY = hpBar->mScreenOffsetPx.y;
 
-    gp.HpBarFollowRatio = std::clamp(hpBar->mPreviousHpRatio, 0.f, 1.f);
+    // 텍스처 여백 보정
+    gp.HpBarFollowRatio = RemapBarRatioToUv(std::clamp(hpBar->mPreviousHpRatio, 0.f, 1.f), hpBar->mFillUvRangeX);
     gp.HpBarBgTexIdx = (bgTex != nullptr) ? bgTex->GetImageIndex() : 0u;
     gp.HpBarFillTexIdx = (fillTex != nullptr) ? fillTex->GetImageIndex() : 0u;
     gp.HpBarHitTexIdx = (hitTex != nullptr) ? hitTex->GetImageIndex() : 0u;
@@ -279,9 +280,9 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
         return;
 
     // 잃은 영역의 픽셀 단위 크기(앵커 기준)
-    // HP 바의 왼쪽 끝이 0, 오른쪽 끝이 mMaxWidth 라고 생각할 때, 잃은 HP 영역의 시작/끝 위치
-    const float lostLocalStart = hpBar->mMaxWidth * clampedNew;
-    const float lostLocalEnd = hpBar->mMaxWidth * clampedOld;
+    // 텍스처 여백 보정
+    const float lostLocalStart = hpBar->mMaxWidth * RemapBarRatioToUv(clampedNew, hpBar->mFillUvRangeX);
+    const float lostLocalEnd = hpBar->mMaxWidth * RemapBarRatioToUv(clampedOld, hpBar->mFillUvRangeX);
     const float lostWidth = lostLocalEnd - lostLocalStart; 
 	if (lostWidth <= 1.f || hpBar->mHeight <= 0.f)  // 너무 작은 피해는 파편 생략
         return;
@@ -289,8 +290,9 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
     // 앵커 기준 오프셋 (바 좌상단 = (-mMaxWidth/2, 0))
     const float x0 = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x + lostLocalStart;
     const float x1 = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x + lostLocalEnd;
-    const float y0 = hpBar->mScreenOffsetPx.y;
-    const float y1 = hpBar->mScreenOffsetPx.y + hpBar->mHeight;
+ 
+    const float y0 = hpBar->mScreenOffsetPx.y + hpBar->mHeight * hpBar->mFillUvRangeY.x;
+    const float y1 = hpBar->mScreenOffsetPx.y + hpBar->mHeight * hpBar->mFillUvRangeY.y;
 
     // 파편 이벤트 용량 관리
     if (static_cast<int>(hpBar->mLossFragments.size()) + 1 > hpBar->mMaxFragmentCount)
@@ -333,7 +335,7 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
     mFragment.Triangles.reserve(static_cast<size_t>(cols) * rows * 2);
     mFragment.LifeTime = hpBar->mFragmentLifeTime;
     mFragment.Age = 0.f;
-    mFragment.HitAnchorPx = Vec2(x0, y0 + hpBar->mHeight * 0.5f);
+    mFragment.HitAnchorPx = Vec2(x0, (y0 + y1) * 0.5f);
    
 
     for (int j = 0; j < rows; ++j)

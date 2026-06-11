@@ -455,6 +455,10 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 3.f, hpBgName, hpBarName);
 
+		// 텍스처 여백 보정: UI_<캐릭터>_HP_1 (768x256) 의 바 픽셀 영역
+		// X 118~718 / Y 116~140 — 세 캐릭터 공통 (알파 스캔 측정, ±1px)
+		hp.mFillUvRangeX = Vec2(118.f / 768.f, 718.f / 768.f);
+		hp.mFillUvRangeY = Vec2(116.f / 256.f, 140.f / 256.f);
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;
@@ -553,6 +557,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 4.f, L"UI_Monster_Hp_0", L"UI_Monster_Hp_1");
 
 	{
+		// 텍스처 여백 보정: UI_Monster_Hp_1 (1024px) 의 바 픽셀 영역 X 278~900
+		hp.mFillUvRangeX = Vec2(278.f / 1024.f, 900.f / 1024.f);
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;
@@ -1202,8 +1208,15 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 				const float ratio = std::clamp(
 					static_cast<float>(health->mCurrentHp) / static_cast<float>(health->mMaxHp),
 					0.0f, 1.0f);
+
+				// 텍스처 여백 보정: 크롭 끝 위치를 캔버스 전체가 아닌
+				// 실제 바 구간(UIHpBarComponent::mFillUvRangeX) 기준으로 리매핑
+				Vec2 fillUvRange = Vec2(0.f, 1.f);
+				if (UIHpBarComponent* barComp = world->GetComponent<UIHpBarComponent>(hp))
+					fillUvRange = barComp->mFillUvRangeX;
+
 				s->SetVisibleRangeKeepDestinationSize(false);
-				s->SetVisibleRangeNormalizedX(0.f, ratio);
+				s->SetVisibleRangeNormalizedX(0.f, RemapBarRatioToUv(ratio, fillUvRange));
 			};
 
 			// HP 바 자체는 위 UISprite 가 그리고, 여기서 부착하는 UIHpBarComponent 는
@@ -1238,6 +1251,15 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 				bar.mHitEffectFrameCount = 4;
 				bar.mHitEffectSizePx = Vec2(256.f, 256.f);
 				bar.mHitEffectOffsetPx = Vec2(56.f, 0.f);
+
+				// 텍스처 여백 보정: UI_<캐릭터>_HP_1 (768x256) 의 바 픽셀 영역
+				// X 118~718 / Y 116~140 — 세 캐릭터 공통 (알파 스캔 측정, ±1px)
+				bar.mFillUvRangeX = Vec2(118.f / 768.f, 718.f / 768.f);
+				bar.mFillUvRangeY = Vec2(116.f / 256.f, 140.f / 256.f);
+#ifdef _IMGUI
+				props.push_back({ "Hud Hp Fill UV RangeX",  PropertyType::Vec2,  &(bar.mFillUvRangeX),   0.f,    0.f });
+				props.push_back({ "Hud Hp Fill UV RangeY",  PropertyType::Vec2,  &(bar.mFillUvRangeY),   0.f,    0.f });
+#endif
 			}
 #ifdef _IMGUI
 

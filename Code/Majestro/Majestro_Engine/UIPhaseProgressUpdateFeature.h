@@ -44,6 +44,11 @@ private:
 	Vec2  mEscortCursorSizeRatio = Vec2(0.0167f, 0.0296f);
 
 	float mEscortProgress = 0.f;
+
+	// 라인/체크 텍스처 캔버스 안에서 실제 트랙이 차지하는 가로 UV 구간
+	// UI_Escort_Info_1 (1536px):  픽셀 195~1385 이면 195/1536, 1385/1536
+	Vec2  mEscortFillUvRange = Vec2(195.f / 1536.f, 1385.f / 1536.f);
+
 	std::wstring mEscortBgTextureName = L"UI_Escort_Info_0";
 	std::wstring mEscortLineTextureName = L"UI_Escort_Info_1";
 	std::wstring mEscortCheckTextureName = L"UI_Escort_Info_2";

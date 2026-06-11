@@ -250,11 +250,15 @@ void UIPhaseProgressUpdateFeature::DrawDebugPanel()
 		ImGui::DragFloat2("EscortCursorSizeRatio", &mEscortCursorSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
 		ImGui::Text("EscortCursorSizePx : %.1f, %.1f", escortCursorSizePx.x, escortCursorSizePx.y);
 
+		// 텍스처 캔버스 내 실제 트랙 UV 구간 (x=시작U, y=끝U)
+		ImGui::DragFloat2("EscortFillUvRange", &mEscortFillUvRange.x, 0.001f, 0.f, 1.f, "%.4f");
 
 		mEscortSizeRatio.x = std::clamp(mEscortSizeRatio.x, 0.f, 1.f);
 		mEscortSizeRatio.y = std::clamp(mEscortSizeRatio.y, 0.f, 1.f);
 		mEscortCursorSizeRatio.x = std::clamp(mEscortCursorSizeRatio.x, 0.f, 1.f);
 		mEscortCursorSizeRatio.y = std::clamp(mEscortCursorSizeRatio.y, 0.f, 1.f);
+		mEscortFillUvRange.x = std::clamp(mEscortFillUvRange.x, 0.f, 1.f);
+		mEscortFillUvRange.y = std::clamp(mEscortFillUvRange.y, mEscortFillUvRange.x, 1.f);
 	}
 
 	ImGui::End();
@@ -286,6 +290,8 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	RENDERMANAGER.SetGraphicsTable();
 
 	const float fillRatio = std::clamp(mEscortProgress, 0.f, 1.f);
+	// 텍스처 여백 보정
+	const float fillCutU = RemapBarRatioToUv(fillRatio, mEscortFillUvRange);
 	const Vec2 escortSizePx = GetProgressSizePx(mEscortSizeRatio);
 	const Vec2 escortCursorSizePx = GetProgressSizePx(mEscortCursorSizeRatio);
 
@@ -303,7 +309,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	gp.HpBarSizePxY      = escortSizePx.y;
 	gp.HpBarPivotPxX     = -escortSizePx.x * 0.5f;
 	gp.HpBarPivotPxY     = -escortSizePx.y * 0.5f;
-	gp.HpBarFollowRatio  = fillRatio;
+	gp.HpBarFollowRatio  = fillCutU;
 	gp.HpBarHitTexIdx    = 0;
 	gp.HpBarHitConfig    = 0;
 
@@ -328,7 +334,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 
 	const uint32 fillRole = 1;
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &fillRole, 2);
-	quadMesh->Render(1, 0, 0, 0);                     // check (role=1, uv.x>fillRatio discard)
+	quadMesh->Render(1, 0, 0, 0);                     // check (role=1, uv.x>fillCutU discard)
 
 	// 4) Cursor — 같은 앵커, Pivot 만 진행도 위치로 평행 이동
 	if (cursorTex != nullptr)
@@ -336,9 +342,8 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 		gp.casdcae         = 0;
 		gp.HpBarSizePxX    = escortCursorSizePx.x;
 		gp.HpBarSizePxY    = escortCursorSizePx.y;
-		// 가로: 바 좌끝(-w/2) + fillRatio * w 위치에 커서 가운데 정렬
 		gp.HpBarPivotPxX   = -escortSizePx.x * 0.5f
-		                   + fillRatio * escortSizePx.x
+		                   + fillCutU * escortSizePx.x
 		                   - escortCursorSizePx.x * 0.5f;
 		// 세로: 바와 같은 중앙선 정렬
 		gp.HpBarPivotPxY   = -escortCursorSizePx.y * 0.5f;

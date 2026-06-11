@@ -10,6 +10,7 @@
 #include "TagComponent.h"      
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
+#include "UIComponent.h" 
 #include "HealthComponent.h"
 #include <algorithm>
 #include <array>
@@ -93,7 +94,7 @@ void HUDPortraitUpdateFeature::UpdateHpBar(HUDPortraitSlotComponent& slot, Entit
 	{
 		fill->mVisible = true;
 		fill->SetVisibleRangeKeepDestinationSize(false);   // HP 감소 시 바도 함께 줄어듦 (메인 바와 동일)
-		fill->SetVisibleRangeNormalizedX(0.f, ratio);
+		fill->SetVisibleRangeNormalizedX(0.f, RemapBarRatioToUv(ratio, mHpFillUvRangeX));
 	}
 
 	if (auto* text = mWorld->GetComponent<UITextComponent>(slot.mHpText))

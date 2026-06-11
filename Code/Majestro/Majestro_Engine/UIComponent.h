@@ -33,6 +33,12 @@ struct UIHpLossFragment
 	float LifeTime = 0.35f;
 };
 
+// 채움 비율(0~1)을 텍스처 캔버스 UV 위치로 자르기
+inline float RemapBarRatioToUv(float ratio, const Vec2& uvRange)
+{
+	return uvRange.x + ratio * (uvRange.y - uvRange.x);
+}
+
 class UIHpBarComponent : public Component<UIHpBarComponent>
 {
 public:
@@ -59,6 +65,10 @@ public:
 	Vec2 mScreenOffsetPx = Vec2(0.f, 0.f);
 	std::wstring mBackgroundMaterialName = L"UI_Player_HP_1";
 	std::wstring mFillMaterialName = L"UI_Player_HP_2";
+
+	// 채움 텍스처 캔버스 안에서 실제 바 그림이 차지하는 UV 구간
+	Vec2 mFillUvRangeX = Vec2(0.f, 1.f);
+	Vec2 mFillUvRangeY = Vec2(0.f, 1.f);
 
 	Entity mBackgroundUIEntity = NULL_ENTITY;
 	Entity mFillUIEntity = NULL_ENTITY;

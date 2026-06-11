@@ -284,17 +284,17 @@ void PlayerInputSystem::UpdateLobbyInput(float, PlayerInputContext&)
 		}
 	}
 
-	if (INPUT.GetKeyDown(eKeyCode::LEFT))
-	{
-		const uint8 currentType = choice->mPlayerType;
-		uint8 candidateType = currentType;
-		for (uint8 tryCount = 0; tryCount < 3; ++tryCount)
+		if (INPUT.GetKeyDown(eKeyCode::LEFT))
 		{
-			candidateType = static_cast<uint8>((candidateType + 2) % 3);
-			if (!IsLobbyCharacterLockedByOtherPlayer(candidateType))
+			const uint8 currentType = choice->mPlayerType;
+			uint8 candidateType = currentType;
+			for (uint8 tryCount = 0; tryCount < 3; ++tryCount)
 			{
-				if (candidateType != currentType)
+				candidateType = static_cast<uint8>((candidateType + 1) % 3);
+				if (!IsLobbyCharacterLockedByOtherPlayer(candidateType))
 				{
+					if (candidateType != currentType)
+					{
 					choice->mPlayerType = candidateType;
 					characterChanged = true;
 				}
@@ -302,17 +302,17 @@ void PlayerInputSystem::UpdateLobbyInput(float, PlayerInputContext&)
 			}
 		}
 	}
-	else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
-	{
-		const uint8 currentType = choice->mPlayerType;
-		uint8 candidateType = currentType;
-		for (uint8 tryCount = 0; tryCount < 3; ++tryCount)
+		else if (INPUT.GetKeyDown(eKeyCode::RIGHT))
 		{
-			candidateType = static_cast<uint8>((candidateType + 1) % 3);
-			if (!IsLobbyCharacterLockedByOtherPlayer(candidateType))
+			const uint8 currentType = choice->mPlayerType;
+			uint8 candidateType = currentType;
+			for (uint8 tryCount = 0; tryCount < 3; ++tryCount)
 			{
-				if (candidateType != currentType)
+				candidateType = static_cast<uint8>((candidateType + 2) % 3);
+				if (!IsLobbyCharacterLockedByOtherPlayer(candidateType))
 				{
+					if (candidateType != currentType)
+					{
 					choice->mPlayerType = candidateType;
 					characterChanged = true;
 				}

@@ -7,6 +7,7 @@
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "BuffComponent.h"
+#include "TransformComponent.h"
 #include "GameTimer.h"
 
 BeatSystem::BeatSystem(World* world) : System(world)
@@ -232,6 +233,24 @@ void BeatSystem::ApplyPendingBuffRequests()
 
 				buffComp->AddOrRefresh(buff);
 			}
+
+			// DrumSkill3 vfx
+			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(request.target);
+			if (transformComponent != nullptr)
+			{
+				eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+					static_cast<uint8>(request.skillType),
+					transformComponent->mWorldPosition.x,
+					transformComponent->mWorldPosition.y,
+					transformComponent->mWorldPosition.z,
+					EffectSpawnReason::Fire,
+					transformComponent->mLocalRotationE.x,
+					transformComponent->mLocalRotationE.y,
+					transformComponent->mLocalRotationE.z
+					});
+			}
+
+
 		}
 	}
 

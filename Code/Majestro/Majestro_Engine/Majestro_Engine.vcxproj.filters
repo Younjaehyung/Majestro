@@ -1420,9 +1420,6 @@
     <FxCompile Include="..\Resources\Shader\depth_prepass_VS.hlsl">
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\depth_prepass_alpha_VS.hlsl">
-      <Filter>World\Resource\Shader\01.Shadow</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_PS.hlsl">
       <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
     </FxCompile>

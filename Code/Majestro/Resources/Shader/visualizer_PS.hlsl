@@ -3,11 +3,10 @@
 #include "utils.hlsl"
 
 // visualizer_PS.hlsl
-// AudioVisualizerPass 전용 픽셀 셰이더.
-// VS는 UI_VS.hlsl을 그대로 재사용한다.
+// AudioVisualizer 전용 픽셀 셰이더. VS는 visualizer_VS.hlsl (BaseInstanceID 오프셋 가산).
 //
 // UIInstanceData 필드 재해석:
-//   MaterialIndex — 바 인덱스 (0~63), 주파수 그라데이션 색상 결정
+//   MaterialIndex — 바 인덱스 (0~31), 주파수 그라데이션 색상 결정
 //   ZOrder        — 정규화 바 높이 (0~1), 글로우 강도 계산
 
 struct VS_OUT
@@ -25,12 +24,12 @@ float4 PS_Main(VS_OUT input) : SV_Target
 {
     UIInstanceData inst = UIInstances[input.instanceID];
 
-    int   barIdx  = (int) inst.MaterialIndex;   // 0 ~ 63
+    int   barIdx  = (int) inst.MaterialIndex;   // 0 ~ 31 (VISUALIZER_BAR_COUNT - 1)
     float normH   = inst.ZOrder;                // 0~1: 현재 바 높이 비율
     float uvY     = input.uv.y;                 // 0=꼭대기, 1=바닥
 
     // 주파수 T: 0 = 저음(베이스), 1 = 고음(트레블)
-    float freqT = saturate((float) barIdx / 63.0f);
+    float freqT = saturate((float) barIdx / 31.0f);
 
     // ----- 주파수별 기본 색상 (저음=주황, 중음=보라, 고음=하늘) -----
     float3 lowColor  = float3(1.00f, 0.35f, 0.05f);

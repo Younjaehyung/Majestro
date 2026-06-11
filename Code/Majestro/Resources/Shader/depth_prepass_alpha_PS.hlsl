@@ -1,10 +1,15 @@
 #include "params.hlsl"
 
+// VS는 forward_alpha_VS.hlsl 공용
 struct VS_OUT
 {
-    float4 pos        : SV_Position;
-    float2 uv         : TEXCOORD;
-    uint   instanceID : InstanceID;
+    float4 pos          : SV_Position;
+    float2 uv           : TEXCOORD;
+    float3 viewPos      : POSITION;
+    float3 viewNormal   : NORMAL;
+    float3 viewTangent  : TANGENT;
+    float3 viewBinormal : BINORMAL;
+    uint   instanceID   : InstanceID;
 };
 
 // 알파값전용 Depth Pre-Pass.

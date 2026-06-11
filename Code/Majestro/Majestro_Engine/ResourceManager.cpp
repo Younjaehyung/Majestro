@@ -1524,7 +1524,7 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"UI", shader);
 	}
 
-	// AudioVisualizer — UI_VS.hlsl 재사용, visualizer_PS.hlsl 전용 PS
+	// AudioVisualizer — visualizer_VS(BaseInstanceID 오프셋) + visualizer_PS
 	// UIInstanceData의 MaterialIndex를 바 인덱스로, ZOrder를 정규화 높이로 재해석
 	{
 		ShaderInfo info =
@@ -1535,12 +1535,30 @@ void ResourceManager::CreateDefaultShader()
 			BLEND_TYPE::ALPHA_BLEND,
 		};
 		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\UI_VS.hlsl",
+			.VS = L"..\\Resources\\Shader\\visualizer_VS.hlsl",
 			.PS = L"..\\Resources\\Shader\\visualizer_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
 		Add<Shader>(L"AudioVisualizer", shader);
+	}
+
+	// CircularVisualizer — 원형 오디오 비주얼라이저
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::UI,
+			RASTERIZER_TYPE::CULL_NONE,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\circular_vis_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\circular_vis_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
+		Add<Shader>(L"CircularVisualizer", shader);
 	}
 
 	// UIHpFragment — HP 손실 파편(삼각형) 전용
@@ -1723,8 +1741,8 @@ void ResourceManager::CreateDefaultShader()
 
 	// Forward Alpha
 	// CULL_NONE     : 풀잎 양면 렌더
-	// LESS_EQUAL    : DepthPrePass 없이 직접 깊이 기록
-	// ALPHA_TEST    : DepthPrePass에서 스킵됨
+	// LESS_EQUAL    : DepthPrepassAlpha가 기록한 깊이에 EQUAL 매치 (ForwardPass DSV는 read-only)
+	// ALPHA_TEST    : DepthPrePass에서 DepthPrepassAlpha PSO로 깊이 선기록됨
 	{
 		ShaderInfo info =
 		{
@@ -1744,8 +1762,8 @@ void ResourceManager::CreateDefaultShader()
 
 	// Forward Alpha (식생 알파 컷아웃 전용)
 	// CULL_NONE     : 풀잎 양면 렌더
-	// LESS_EQUAL    : DepthPrePass 없이 직접 깊이 기록
-	// ALPHA_TEST    : DepthPrePass에서 스킵됨
+	// LESS_EQUAL    : DepthPrepassAlpha가 기록한 깊이에 EQUAL 매치 (ForwardPass DSV는 read-only)
+	// ALPHA_TEST    : DepthPrePass에서 DepthPrepassAlpha PSO로 깊이 선기록됨
 	{
 		ShaderInfo info =
 		{
@@ -1941,7 +1959,7 @@ void ResourceManager::CreateDefaultShader()
 			BLEND_TYPE::ALPHA_TEST,
 		};
 		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\depth_prepass_alpha_VS.hlsl",
+			.VS = L"..\\Resources\\Shader\\forward_alpha_VS.hlsl",
 			.PS = L"..\\Resources\\Shader\\depth_prepass_alpha_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
@@ -2881,6 +2899,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Pianoman_Attack_01\\VFX_Pianoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Hornman_Bullet\\VFX_Hornman_Bullet.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Monster_Spawn\\VFX_Monster_Spawn.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Reload\\VFX_Rudwig_Reload.efk");
 
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_Select\\VFX_UI_Select.efk");

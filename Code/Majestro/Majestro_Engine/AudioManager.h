@@ -1,9 +1,4 @@
 #pragma once
-//#include <string>
-//#include <vector>
-//#include <unordered_map>
-//#include <initializer_list>
-#include <mutex>
 #include <FMod/fmod_studio.h>
 #include <FMod/fmod_studio.hpp>
 
@@ -32,6 +27,9 @@ enum class SOUNDNAME {
     End
 
 };
+
+// 상태 연동 루프 사운드용 불투명 핸들. 0 = invalid.
+using SfxHandle = uint32;
 
 class FmodBackend {
 public:
@@ -73,6 +71,19 @@ public:
     void PlayBGM(const char* eventPath, SOUNDNAME soundEnum);
     void StopBGM(SOUNDNAME soundEnum);
 
+    // 같은 슬롯에 같은 곡이 이미 재생 중이면 아무것도 하지 않는다(씬 전환 시 끊김 없이 이어짐).  다른 곡이면 교체한다
+    void RequestBGM(const char* eventPath, SOUNDNAME soundEnum);
+
+    // 상태 연동 루프 사운드 (인스턴스 추적)
+    // PlayOneShot과 달리 인스턴스를 보관한다. 호출자가 StopLoop으로 수명을 끝내야 한다.
+    SfxHandle StartLoop(const char* eventPath);
+    SfxHandle StartLoop3D(const char* eventPath, const FMOD_3D_ATTRIBUTES& attr);
+
+    void StopLoop(SfxHandle handle, bool allowFadeout = true);
+    void SetLoop3DAttributes(SfxHandle handle, const FMOD_3D_ATTRIBUTES& attr);
+    void SetLoopParam(SfxHandle handle, const char* name, float value);
+    void StopAllLoops();
+
     void SetGlobalParam(const char* name, float v);
     void SetBusVolume(const char* busPath, float v);
 
@@ -113,16 +124,28 @@ private:
     static FMOD_RESULT F_CALLBACK OnBGMEventCallback(FMOD_STUDIO_EVENT_CALLBACK_TYPE type, FMOD_STUDIO_EVENTINSTANCE* event, void* parameters);
     void UpdateBGMTimelineMarker(SOUNDNAME soundEnum, const char* markerName);
     void ReleaseBGMInstance(FMOD::Studio::EventInstance*& instance, SOUNDNAME soundEnum);
+    void SyncBGMToListener(const FMOD_3D_ATTRIBUTES& listenerAttr);
 
     FmodBackend mFMOD;
+
+    // 상태 연동 루프 인스턴스 (핸들 <-> 인스턴스)
+    std::unordered_map<SfxHandle, FMOD::Studio::EventInstance*> mLoopInstances;
+    SfxHandle mNextLoopHandle = 1;
+
     FMOD::Studio::EventInstance* mBGM = nullptr;
 	std::vector<FMOD::Studio::EventInstance*> mAllBGM;
     std::vector<std::string> mCurrentBGMMarkers;
     mutable std::mutex mMarkerMutex;
+    FMOD_3D_ATTRIBUTES mListenerAttr{};
+    bool mHasListenerAttr = false;
 
     // FFT DSP
     FMOD::DSP* mSpectrumDSP      = nullptr;
     float      mSpectrumSampleRate = 44100.f;
+
+	// FFT 연산 자동 정지 방지용 타이머.
+    float      mSpectrumIdleTime = 0.f;
+    bool       mSpectrumBypassed = false;
 };
 
 

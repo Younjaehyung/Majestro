@@ -151,6 +151,13 @@ struct EvRoomLeave
 };
 
 
+struct EvSfxRequest
+{
+    std::string sfxKey;         // SfxTable.json 의 키
+    Vec3 position{};            // Zero 면 2D 재생
+};
+
+
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged,
     EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged,
     EvRoomReadyChanged, EvRoomCharacterChanged, EvRoomError,

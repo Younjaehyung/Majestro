@@ -25,6 +25,10 @@ public:
     std::function<void()> mOnHoverEnter;  // 호버 진입 시 1회
     std::function<void()> mOnHoverExit;   // 호버 이탈 시 1회
 
+    // ── 효과음 키 (SfxTable.json) ──────────────────────────────
+    std::string mClickSfxKey = "ui/button_click";
+    std::string mHoverSfxKey = "ui/button_hover";
+
     // ── 상태별 Diffuse 색상 (UI_PS.hlsl에 전달) ────────────────
     Vec4 mNormalColor  = { 0.15f, 0.15f, 0.45f, 0.85f };
     Vec4 mHoveredColor = { 0.35f, 0.35f, 0.80f, 1.00f };

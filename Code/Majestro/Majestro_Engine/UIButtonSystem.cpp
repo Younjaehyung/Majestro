@@ -9,6 +9,7 @@
 #include "RenderManager.h"
 #include "UIUpdateSystem.h"
 #include "UIVfxComponent.h"
+#include "SfxSystem.h"
 
 UIButtonSystem::UIButtonSystem(World* world) : System(world)
 {
@@ -49,6 +50,9 @@ void UIButtonSystem::Update(float dt)
     const WindowInfo& window = RENDERMANAGER.GetWindow();
     const Vec2 screenSize = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
 
+    // 버튼음은 이벤트 큐 대신 직접 호출 (임시)
+    SfxSystem* sfxSystem = mWorld->GetSystemManager()->GetSystem<SfxSystem>();
+
     std::vector<Entity> entities =
         mWorld->GetEntitiesWithComponents<UITransformComponent, UIButtonComponent>();
 
@@ -72,6 +76,9 @@ void UIButtonSystem::Update(float dt)
         if (inside && !btn->mHovered)
         {
             btn->mHovered = true;
+            if (sfxSystem && !btn->mHoverSfxKey.empty())
+                sfxSystem->Play(btn->mHoverSfxKey);
+
             if (btn->mOnHoverEnter) btn->mOnHoverEnter();
         }
         else if (!inside && btn->mHovered)
@@ -84,6 +91,11 @@ void UIButtonSystem::Update(float dt)
         if (inside && leftDown && !btn->mPressed)
         {
             btn->mPressed = true;
+            
+            // 소리부터 재생 (임시)
+            if (sfxSystem && !btn->mClickSfxKey.empty())
+                sfxSystem->Play(btn->mClickSfxKey);
+
             if (btn->mOnClick) btn->mOnClick();
         }
         if (!leftDown)

@@ -54,6 +54,7 @@
 #include "SpectateSystem.h"
 #include "ParticleSystem.h"
 #include "VfxSystem.h"
+#include "SfxSystem.h"
 
 #include "UIRenderSystem.h"
 #include "UIUpdateSystem.h"
@@ -600,6 +601,7 @@ void LoadingScene::Initialize()
 	uiUpdateSystem->SetFeatures(&mUIFeatures);
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<LobbyRenderPipeline>());
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
@@ -1115,6 +1117,7 @@ void MainMenuScene::Initialize()
 
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
 	//mWorld->GetSystemManager()->RegisterSystem<SocketTrailSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
@@ -1278,6 +1281,7 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();   // 버튼 마우스 히트테스트/클릭
 
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
@@ -1314,8 +1318,7 @@ void LobbyScene::Initialize()
 		vis.barSpacing = 0.5f;
 		vis.maxBarHeight = 25.f;
 		vis.gain = 8.f;
-		// 원형 비주얼라이저로 대체 — 같은 위치에 겹치므로 기본 숨김 (ImGui로 재활성 가능)
-		// vis.isVisible = false;
+		vis.isVisible = true;
 
 #ifdef _IMGUI
 
@@ -1334,34 +1337,34 @@ void LobbyScene::Initialize()
 #endif
 	}
 
-//	// 원형 오디오 비주얼라이저 — 화면 중앙, 흰색 방사형 막대 (미니멀 스타일)
-//	{
-//		Entity circEntity = mWorld->CreateEntity();
-//		CircularVisualizerComponent& circ = mWorld->AddComponent<CircularVisualizerComponent>(circEntity);
-//		circ.center       = Vec2(2560.f * 0.5f, 1440.f * 0.5f);  // 화면 정중앙
-//		circ.baseRadius   = 160.f;  // 막대 안쪽 끝 고정 반지름 — 중앙 원은 비워짐
-//		circ.minBarLength = 4.f;    // 무음 시 점선 링 형태 유지
-//		circ.maxBarLength = 90.f;
-//		circ.barWidth     = 3.f;    // 둘레 간격(2πr/128 ≈ 7.9px)보다 작아 막대끼리 분리됨
-//		circ.gain         = 12.f;
-//
-//#ifdef _IMGUI
-//		IMGUIComponent& circImgui = mWorld->AddComponent<IMGUIComponent>(circEntity);
-//		std::vector<EditorProperty> circProps;
-//		circProps.push_back({ "Center",          PropertyType::Vec2,  &circ.center,        0.f,    0.f });
-//		circProps.push_back({ "Base Radius",     PropertyType::Float, &circ.baseRadius,   10.f,  600.f });
-//		circProps.push_back({ "Min Bar Length",  PropertyType::Float, &circ.minBarLength,  0.f,   30.f });
-//		circProps.push_back({ "Max Bar Length",  PropertyType::Float, &circ.maxBarLength,  5.f,  400.f });
-//		circProps.push_back({ "Bar Width",       PropertyType::Float, &circ.barWidth,      1.f,   10.f });
-//		circProps.push_back({ "Gain",            PropertyType::Float, &circ.gain,          0.1f,  30.f });
-//		circProps.push_back({ "Rise Smooth",     PropertyType::Float, &circ.riseSmooth,    1.f,   80.f });
-//		circProps.push_back({ "Fall Smooth",     PropertyType::Float, &circ.fallSmooth,    0.1f,  30.f });
-//		circProps.push_back({ "Use Spikes",      PropertyType::Bool,  &circ.useSpikes,     0.f,    0.f });
-//		circProps.push_back({ "Visible",         PropertyType::Bool,  &circ.isVisible,     0.f,    0.f });
-//		circImgui.RegisterEditorProperties(circProps);
-//		circImgui.SetName("Circular Visualizer");
-//#endif
-//	}
+	// 원형 오디오 비주얼라이저 — 화면 중앙, 흰색 방사형 막대 (미니멀 스타일)
+	{
+		Entity circEntity = mWorld->CreateEntity();
+		CircularVisualizerComponent& circ = mWorld->AddComponent<CircularVisualizerComponent>(circEntity);
+		circ.center       = Vec2(2560.f * 0.5f, 1440.f * 0.5f);  // 화면 정중앙
+		circ.baseRadius   = 160.f;  // 막대 안쪽 끝 고정 반지름 — 중앙 원은 비워짐
+		circ.minBarLength = 4.f;    // 무음 시 점선 링 형태 유지
+		circ.maxBarLength = 90.f;
+		circ.barWidth     = 3.f;    // 둘레 간격(2πr/128 ≈ 7.9px)보다 작아 막대끼리 분리됨
+		circ.gain         = 12.f;
+
+#ifdef _IMGUI
+		IMGUIComponent& circImgui = mWorld->AddComponent<IMGUIComponent>(circEntity);
+		std::vector<EditorProperty> circProps;
+		circProps.push_back({ "Center",          PropertyType::Vec2,  &circ.center,        0.f,    0.f });
+		circProps.push_back({ "Base Radius",     PropertyType::Float, &circ.baseRadius,   10.f,  600.f });
+		circProps.push_back({ "Min Bar Length",  PropertyType::Float, &circ.minBarLength,  0.f,   30.f });
+		circProps.push_back({ "Max Bar Length",  PropertyType::Float, &circ.maxBarLength,  5.f,  400.f });
+		circProps.push_back({ "Bar Width",       PropertyType::Float, &circ.barWidth,      1.f,   10.f });
+		circProps.push_back({ "Gain",            PropertyType::Float, &circ.gain,          0.1f,  30.f });
+		circProps.push_back({ "Rise Smooth",     PropertyType::Float, &circ.riseSmooth,    1.f,   80.f });
+		circProps.push_back({ "Fall Smooth",     PropertyType::Float, &circ.fallSmooth,    0.1f,  30.f });
+		circProps.push_back({ "Use Spikes",      PropertyType::Bool,  &circ.useSpikes,     0.f,    0.f });
+		circProps.push_back({ "Visible",         PropertyType::Bool,  &circ.isVisible,     0.f,    0.f });
+		circImgui.RegisterEditorProperties(circProps);
+		circImgui.SetName("Circular Visualizer");
+#endif
+	}
 
 	// 로비 Room 엔티티
 	{
@@ -1374,7 +1377,7 @@ void LobbyScene::Initialize()
 	mUIFeatures.push_back(std::make_shared<LobbyRoomBrowserFeature>());
 
 	// 오디오 비주얼라이저 바
-	//mUIFeatures.push_back(std::make_shared<UIAudioVisualizerFeature>());
+	mUIFeatures.push_back(std::make_shared<UIAudioVisualizerFeature>());
 
 	for (const auto& feature : mUIFeatures)
 	{
@@ -1562,6 +1565,7 @@ void FirstScene::Initialize()
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
 	uiUpdateSystem->SetFeatures(&mUIFeatures);
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
@@ -1583,33 +1587,33 @@ void FirstScene::Initialize()
 
 #pragma endregion
 
-//	// 오디오 비주얼라이저 (확인용 — ImGui Inspector "Audio Visualizer"의 Visible로 토글)
-//	{
-//		AUDIOMANAGER.InitSpectrumDSP(2048);  // 이미 초기화됐으면 no-op
-//
-//		Entity visEntity = mWorld->CreateEntity();
-//		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
-//		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
-//		vis.barWidth = 6.f;
-//		vis.barSpacing = 0.5f;
-//		vis.maxBarHeight = 25.f;
-//		vis.gain = 8.f;
-//
-//#ifdef _IMGUI
-//		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
-//		std::vector<EditorProperty> props;
-//		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
-//		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
-//		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
-//		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
-//		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
-//		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
-//		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
-//		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
-//		visImgui.RegisterEditorProperties(props);
-//		visImgui.SetName("Audio Visualizer");
-//#endif
-//	}
+	// 오디오 비주얼라이저 (확인용 — ImGui Inspector "Audio Visualizer"의 Visible로 토글)
+	{
+		AUDIOMANAGER.InitSpectrumDSP(2048);  // 이미 초기화됐으면 no-op
+
+		Entity visEntity = mWorld->CreateEntity();
+		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
+		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
+		vis.barWidth = 6.f;
+		vis.barSpacing = 0.5f;
+		vis.maxBarHeight = 25.f;
+		vis.gain = 8.f;
+
+#ifdef _IMGUI
+		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
+		std::vector<EditorProperty> props;
+		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
+		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
+		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
+		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
+		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
+		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
+		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
+		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
+		visImgui.RegisterEditorProperties(props);
+		visImgui.SetName("Audio Visualizer");
+#endif
+	}
 
 	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
 
@@ -1715,6 +1719,7 @@ void SecondScene::Initialize()
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
 	uiUpdateSystem->SetFeatures(&mUIFeatures);
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
@@ -1807,6 +1812,7 @@ void VictoryScene::Initialize()
 	uiUpdateSystem->SetFeatures(&mUIFeatures);
 	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 
 	auto* renderSystemVS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();

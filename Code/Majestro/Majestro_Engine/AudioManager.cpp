@@ -2,6 +2,26 @@
 #include "AudioManager.h"
 
 
+namespace
+{
+    bool IsEventInstance3D(FMOD::Studio::EventInstance* instance)
+    {
+        if (instance == nullptr)
+            return false;
+
+        FMOD::Studio::EventDescription* desc = nullptr;
+        if (instance->getDescription(&desc) != FMOD_OK || desc == nullptr)
+            return false;
+
+        bool is3D = false;
+        if (desc->is3D(&is3D) != FMOD_OK)
+            return false;
+
+        return is3D;
+    }
+}
+
+
 // ---------------------- FmodBackend ---------------------- //
 
 std::string FmodBackend::JoinPath(const std::string& a, const std::string& b) {
@@ -118,6 +138,8 @@ void AudioManager::Shutdown() {
     // FFT DSP가 남아 있으면 먼저 해제 (Studio 릴리즈 전에 수행해야 함)
     ShutdownSpectrumDSP();
 
+    StopAllLoops();
+
     if (!mAllBGM.empty()) {
         for (size_t i = 0; i < mAllBGM.size(); ++i) {
             if (!mAllBGM[i]) {
@@ -132,8 +154,18 @@ void AudioManager::Shutdown() {
     mFMOD.Shutdown();
 }
 
-void AudioManager::Update(float /*dt*/) {
+void AudioManager::Update(float dt) {
     mFMOD.Update();
+
+    // 아무도 스펙트럼을 읽지 않는 씬(게임 플레이 등)에서는 FFT DSP를 bypass시켜  믹서 스레드의 FFT 연산을 중단
+    constexpr float kSpectrumIdleBypassSec = 1.f;
+    if (mSpectrumDSP && !mSpectrumBypassed) {
+        mSpectrumIdleTime += dt;
+        if (mSpectrumIdleTime > kSpectrumIdleBypassSec) {
+            mSpectrumDSP->setBypass(true);
+            mSpectrumBypassed = true;
+        }
+    }
 }
 
 void AudioManager::PreloadBanks(std::initializer_list<std::string> banks) {
@@ -154,6 +186,61 @@ void AudioManager::PlayOneShot3D(const char* eventPath, const FMOD_3D_ATTRIBUTES
     FMOD_CHECK(inst->set3DAttributes(&attr));
     FMOD_CHECK(inst->start());
     FMOD_CHECK(inst->release());
+}
+
+// ── 상태 연동 루프 사운드 ──────────────────────────────────────────────
+
+SfxHandle AudioManager::StartLoop(const char* eventPath) {
+    auto* inst = mFMOD.CreateInstance(eventPath);
+    FMOD_CHECK(inst->start());
+
+    const SfxHandle handle = mNextLoopHandle++;
+    if (mNextLoopHandle == 0) mNextLoopHandle = 1; // 랩어라운드 시 invalid(0) 회피
+    mLoopInstances[handle] = inst;
+    return handle;
+}
+
+SfxHandle AudioManager::StartLoop3D(const char* eventPath, const FMOD_3D_ATTRIBUTES& attr) {
+    auto* inst = mFMOD.CreateInstance(eventPath);
+    FMOD_CHECK(inst->set3DAttributes(&attr));
+    FMOD_CHECK(inst->start());
+
+    const SfxHandle handle = mNextLoopHandle++;
+    if (mNextLoopHandle == 0) mNextLoopHandle = 1;
+    mLoopInstances[handle] = inst;
+    return handle;
+}
+
+void AudioManager::StopLoop(SfxHandle handle, bool allowFadeout) {
+    auto it = mLoopInstances.find(handle);
+    if (it == mLoopInstances.end()) return;
+
+    // 페이드아웃 길이는 FMOD Studio 이벤트의 AHDSR Release가 결정
+    it->second->stop(allowFadeout ? FMOD_STUDIO_STOP_ALLOWFADEOUT : FMOD_STUDIO_STOP_IMMEDIATE);
+    it->second->release();
+    mLoopInstances.erase(it);
+}
+
+void AudioManager::SetLoop3DAttributes(SfxHandle handle, const FMOD_3D_ATTRIBUTES& attr) {
+    auto it = mLoopInstances.find(handle);
+    if (it == mLoopInstances.end()) return;
+    it->second->set3DAttributes(&attr);
+}
+
+void AudioManager::SetLoopParam(SfxHandle handle, const char* name, float value) {
+    auto it = mLoopInstances.find(handle);
+    if (it == mLoopInstances.end()) return;
+    it->second->setParameterByName(name, value);
+}
+
+void AudioManager::StopAllLoops() {
+    for (auto& kv : mLoopInstances) {
+        if (kv.second) {
+            kv.second->stop(FMOD_STUDIO_STOP_IMMEDIATE);
+            kv.second->release();
+        }
+    }
+    mLoopInstances.clear();
 }
 
 void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
@@ -181,6 +268,10 @@ void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
         mCurrentBGMMarkers[idx].clear();
     }
     // �ʿ� �� �Ķ����/���� ����� ����
+    // BGM 이벤트가 3D여도 리스너 위치에서 재생해 거리 감쇠 없이 2D처럼 들리게 한다.
+    if (mHasListenerAttr) {
+        SyncBGMToListener(mListenerAttr);
+    }
     FMOD_CHECK(mBGM->start());
     // �����ϸ� ������ ���̹Ƿ� release�� ���⼭ ���� ����(Shutdown/StopBGM����)
 }
@@ -191,6 +282,20 @@ void AudioManager::StopBGM(SOUNDNAME soundEnum) {
 
     if (!mAllBGM[idx]) return;
     ReleaseBGMInstance(mAllBGM[idx], soundEnum);
+}
+
+void AudioManager::RequestBGM(const char* eventPath, SOUNDNAME soundEnum) {
+    // 씬 전환 시 같은 곡이면 재시작하지 않고 그대로 이어간다.
+
+    std::string currentPath;
+    if (IsBGMPlaying(soundEnum) &&
+        GetBGMEventPath(soundEnum, currentPath) &&
+        currentPath == eventPath)
+    {
+        return;
+    }
+
+    PlayBGM(eventPath, soundEnum);
 }
 
 void AudioManager::SetGlobalParam(const char* name, float v) {
@@ -204,7 +309,14 @@ void AudioManager::SetBusVolume(const char* busPath, float v) {
 }
 
 void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {
+
     FMOD_CHECK(mFMOD.GetStudio()->setListenerAttributes(index, &attr));
+
+    if (index == 0) {
+        mListenerAttr = attr;
+        mHasListenerAttr = true;
+        SyncBGMToListener(attr);
+    }
 }
 
 void AudioManager::SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed) {
@@ -336,6 +448,21 @@ void AudioManager::UpdateBGMTimelineMarker(SOUNDNAME soundEnum, const char* mark
     mCurrentBGMMarkers[idx] = (markerName != nullptr) ? markerName : "";
 }
 
+void AudioManager::SyncBGMToListener(const FMOD_3D_ATTRIBUTES& listenerAttr) {
+	// 2D처럼 들려야 하는 BGM 이벤트도 3D로 만들어졌을 수 있으므로, 리스너 위치에 맞춰 3D 속성을 업데이트한다.
+
+    for (FMOD::Studio::EventInstance* bgm : mAllBGM) {
+        if (bgm == nullptr || IsEventInstance3D(bgm) == false) {
+            continue;
+        }
+
+        
+        FMOD_3D_ATTRIBUTES bgmAttr = listenerAttr;
+        bgmAttr.velocity = { 0, 0, 0 };
+        FMOD_CHECK(bgm->set3DAttributes(&bgmAttr));
+    }
+}
+
 void AudioManager::ReleaseBGMInstance(FMOD::Studio::EventInstance*& instance, SOUNDNAME soundEnum) {
     if (!instance) {
         return;
@@ -398,12 +525,23 @@ void AudioManager::ShutdownSpectrumDSP()
 
     mSpectrumDSP->release();
     mSpectrumDSP = nullptr;
+    mSpectrumIdleTime = 0.f;
+    mSpectrumBypassed = false;
 }
 
 bool AudioManager::GetSpectrumData(std::vector<float>& outSpectrum)
 {
     if (!mSpectrumDSP)
         return false;
+
+    
+    mSpectrumIdleTime = 0.f;
+    if (mSpectrumBypassed)
+    {
+        mSpectrumDSP->setBypass(false);
+        mSpectrumBypassed = false;
+        return false;
+    }
 
     FMOD_DSP_PARAMETER_FFT* fftData = nullptr;
     FMOD_RESULT r = mSpectrumDSP->getParameterData(

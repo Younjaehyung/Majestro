@@ -692,6 +692,9 @@
     <ClInclude Include="VfxSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="SfxSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\UI\System</Filter>
     </ClInclude>
@@ -1182,6 +1185,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="VfxSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="SfxSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="UIRenderSystem.cpp">

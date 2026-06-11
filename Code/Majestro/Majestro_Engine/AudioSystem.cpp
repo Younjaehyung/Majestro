@@ -7,6 +7,7 @@
 #include "PlayerComponent.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
+#include "TagComponent.h"
 
 namespace
 {
@@ -39,46 +40,46 @@ AudioSystem::AudioSystem(World* world) : System::System(world)
 void AudioSystem::Initialize()
 {
    
-    AUDIOMANAGER.PreloadBanks({"MajestroBank.bank"}); // 필요 컨텐츠만
-   
-    AUDIOMANAGER.PlayBGM("event:/Elec", SOUNDNAME::Elec);              // BGM 시작
-    AUDIOMANAGER.PlayBGM("event:/Bass" ,SOUNDNAME::Bass);              // BGM 시작
-    AUDIOMANAGER.PlayBGM("event:/Drum", SOUNDNAME::Drum);              // BGM 시작
+    AUDIOMANAGER.PreloadBanks({"MajestroBank.bank"});
+
+
+    AUDIOMANAGER.RequestBGM("event:/Elec", SOUNDNAME::Elec);
+    AUDIOMANAGER.RequestBGM("event:/Bass", SOUNDNAME::Bass);
+    AUDIOMANAGER.RequestBGM("event:/Drum", SOUNDNAME::Drum);
     
 
 }
 
 void AudioSystem::Update(float deltaTime)
 {
+
     FMOD_3D_ATTRIBUTES listener{};
     listener.position = { 0, 0, 0 };
     listener.forward = { 0, 0, 1 };
     listener.up = { 0, 1, 0 };
+
+    if (mWorld->HasComponentPool<MainCameraComponent>())
+    {
+        auto cameraEntities = mWorld->GetEntitiesWithComponent<MainCameraComponent>();
+        if (!cameraEntities.empty())
+        {
+            if (TransformComponent* cameraTransform = mWorld->GetComponent<TransformComponent>(cameraEntities[0]))
+            {
+                const Matrix& world = cameraTransform->mWorldMatrix;
+                listener.position = { world._41, world._42, world._43 };
+
+                Vec3 forward(world._31, world._32, world._33);
+                Vec3 up(world._21, world._22, world._23);
+                forward.Normalize();
+                up.Normalize();
+                listener.forward = { forward.x, forward.y, forward.z };
+                listener.up = { up.x, up.y, up.z };
+            }
+        }
+    }
     AUDIOMANAGER.SetListener(listener);
-    AUDIOMANAGER.Update(deltaTime);
 
     time += deltaTime;
-
-    /*if(INPUT.GetKeyDown(eKeyCode::_1)){
-        AUDIOMANAGER.SetBGMParam("To Bass02", SOUNDNAME::Bass, 1.f, true);
-	}
-    if(INPUT.GetKeyDown(eKeyCode::_2)){
-        AUDIOMANAGER.SetBGMParam("To Bass03", SOUNDNAME::Bass, 1.f, true);
-	}
-
-    if(INPUT.GetKeyDown(eKeyCode::_3)){
-        AUDIOMANAGER.SetBGMParam("To Elec02", SOUNDNAME::Elec, 1.f, true);
-	}
-    if(INPUT.GetKeyDown(eKeyCode::_4)){
-        AUDIOMANAGER.SetBGMParam("To Elec03", SOUNDNAME::Elec, 1.f, true);
-	}
-
-    if(INPUT.GetKeyDown(eKeyCode::_5)){
-        AUDIOMANAGER.SetBGMParam("To Drum02", SOUNDNAME::Drum, 1.f, true);
-	}
-    if(INPUT.GetKeyDown(eKeyCode::_6)){
-        AUDIOMANAGER.SetBGMParam("To Drum03", SOUNDNAME::Drum, 1.f, true);
-	}*/
 
     if (!mWorld->HasComponentPool<MainPlayerComponent>())
         return;

@@ -210,7 +210,8 @@ enum class ReplicatedActionState : uint8
 	Aim,
 	Hit,
 	Stun,
-	Dead
+	Dead,
+	Count
 };
 
 enum class ReplicatedMovementMode : uint8

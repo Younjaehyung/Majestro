@@ -13,6 +13,7 @@
 #include "MovementComponent.h"
 #include "AnimationComponent.h"
 #include "MovementSystem.h"
+#include "CameraShakeTable.h"
 
 #include "MathUtils.h"
 
@@ -22,6 +23,8 @@ PlayerSystem::PlayerSystem(World* world) : System(world)
 
 void PlayerSystem::Initialize()
 {
+	//  모션별 카메라 쉐이크 프리셋
+	CameraShakeTable::Load("../Resources/Json/CameraShakeSetting.json");
 }
 
 std::vector<std::type_index> PlayerSystem::After() const
@@ -34,32 +37,12 @@ void PlayerSystem::Update(float dt)
 	if (false == mWorld->HasComponentPool<MainPlayerComponent>())return;
 	if (false == mWorld->HasComponentPool<LocalPlayerComponent>())return;
 
-	/*std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponents<ControllerComponent, TransformComponent>() };
-	if (entitys.empty())return;
-	MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entitys[0]);
-	mainPlayerComponent->Update(dt);*/
-
 	std::vector<Entity> playerEntitys= mWorld->GetEntitiesWithComponent<CameraTypeComponent>() ;
 	for (auto& entity : playerEntitys) {
 
 		CameraTypeComponent* mainPlayer = mWorld->GetComponent<CameraTypeComponent>(entity);
 		CameraComponent* cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
 		MainPlayerComponent* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(mainPlayer->mTargetID);
-
-
-		//if(mainPlayerComponent->mStatePacket == S_Attack1)
-		//{
-		//	mainPlayerComponent->mShakeCameraTime += dt;
-
-
-		//	cameraComponent->mFov = lerp(cameraComponent->mFov, (103.f / 2.0f) + 0.2f, mainPlayerComponent->mDashTime);
-		//	
-		//}
-		//else
-		//{
-		//	mainPlayerComponent->mShakeCameraTime = 0.f;
-		//	cameraComponent->
-		//}
 
 
 
@@ -106,53 +89,14 @@ void PlayerSystem::Update(float dt)
 		}
 
 		
-		// 공격 상태 진입 시 카메라 쉐이크 트리거
+		// 공격 상태 진입 시 캐릭터 모션별 카메라 쉐이크
 		if (mainPlayerComponent->mUpperState != mainPlayerComponent->mPrevStatePacket ||
 			mainPlayerComponent->mStateSequence != mainPlayerComponent->mPrevStateSequence)
 		{
-			uint32 entityID = entity.GetID();
-			int32  currState = mainPlayerComponent->mUpperState;
-
-			//mainPlayerComponent->mPlayerType = 0 1 2
-
-
-			// TriggerShake(float magnitude, float duration, float frequency)
-			switch (mainPlayerComponent->mPlayerType) 
-			{
-			case Rudwig:
-				if (currState)
-				{
-					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
-						|| currState == static_cast<int>(ReplicatedActionState::Skill1) || currState == static_cast<int>(ReplicatedActionState::Skill2)
-						|| currState == static_cast<int>(ReplicatedActionState::Special));
-					if (bAttackState)
-						mainPlayer->TriggerShake(1.5f, 0.05f, 20.f);
-					std::cout << "ATTACK!@" << std::endl;
-				}
-				break;
-			case Ibanix:
-				if (currState)
-				{
-					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
-						|| currState == static_cast<int>(ReplicatedActionState::Skill1) || currState == static_cast<int>(ReplicatedActionState::Skill2)
-						|| currState == static_cast<int>(ReplicatedActionState::Special));
-					if (bAttackState)
-						mainPlayer->TriggerShake(0.5f, 0.05f, 20.f);
-
-				}
-				break;
-			case Fanthor: 
-				if (currState)
-				{
-					bool bAttackState = (currState == static_cast<int>(ReplicatedActionState::Attack1) || currState == static_cast<int>(ReplicatedActionState::Attack2)
-						|| currState == static_cast<int>(ReplicatedActionState::Skill1) || currState == static_cast<int>(ReplicatedActionState::Skill2)
-						|| currState == static_cast<int>(ReplicatedActionState::Special));
-					if (bAttackState)
-						mainPlayer->TriggerShake(0.5f, 0.05f, 20.f);
-
-				}
-				break;
-			}
+			const ShakePreset* preset = CameraShakeTable::Find(mainPlayerComponent->mPlayerType,
+				static_cast<ReplicatedActionState>(mainPlayerComponent->mUpperState));
+			if (preset)
+				mainPlayer->TriggerShake(preset->mAngles, preset->mDuration, preset->mFrequency);
 		}
 
 	}

@@ -168,22 +168,23 @@ public:
 	float mFreeCamSpeed = 1300.f;  // 자유 비행 속도
 
 	// 카메라 쉐이크
-	float mShakeRemaining = 0.f;   // 남은 진동 시간
-	float mShakeDuration  = 0.f;   // 초기 지속 시간 (decay 계산용)
-	float mShakeMagnitude = 0.f;   // 최대 흔들림 각도 (degree)
-	float mShakeFrequency = 20.f;  // 진동 주파수 (Hz)
-	float mShakeTimeAcc   = 0.f;   // sin 누적 시간
+	float mShakeRemaining = 0.f;        // 남은 진동 시간
+	float mShakeDuration  = 0.f;        // 초기 지속 시간 (decay 계산용)
+	Vec3  mShakeAngles    = Vec3::Zero; // pitch/yaw/roll 최대 흔들림 각도 (degree)
+	float mShakeFrequency = 20.f;       // 진동 주파수 (Hz)
+	float mShakeTimeAcc   = 0.f;        // sin 누적 시간
 
-	void TriggerShake(float magnitude, float duration, float frequency)
+	void TriggerShake(const Vec3& angles, float duration, float frequency)
 	{
-		if (duration <= 0.f || magnitude <= 0.f || frequency <= 0.f)
+		if (duration <= 0.f || frequency <= 0.f)
+			return;
+		if (angles.x == 0.f && angles.y == 0.f && angles.z == 0.f)
 			return;
 
-
-		mShakeMagnitude = magnitude;
-		mShakeDuration = duration;
+		mShakeAngles    = angles;
+		mShakeDuration  = duration;
 		mShakeRemaining = duration;
 		mShakeFrequency = frequency;
-		mShakeTimeAcc = 0.f;
+		mShakeTimeAcc   = 0.f;
 	}
 };

@@ -367,6 +367,9 @@
     <ClInclude Include="CameraSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="CameraShakeTable.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="TransformSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -935,6 +938,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="CameraSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraShakeTable.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="PlayerSystem.cpp">

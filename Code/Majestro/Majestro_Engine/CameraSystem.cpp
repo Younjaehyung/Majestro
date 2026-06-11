@@ -142,18 +142,13 @@ void CameraSystem::Update(float dt)
 					targetRender->mOpacity = 1.f;
 				cameraTypeComponent->mCurrentFadeAlpha = 1.f;
 			}
+
+
+
+
 			// 카메라 쉐이크
-			if (cameraTypeComponent && !(death && death->mActive) && cameraTypeComponent->mShakeRemaining > 0.f)
-			{
-				cameraTypeComponent->mShakeRemaining -= dt;
-				cameraTypeComponent->mShakeTimeAcc   += dt;
-
-				float decay      = cameraTypeComponent->mShakeRemaining / cameraTypeComponent->mShakeDuration;
-				float shakeAngle = sinf(cameraTypeComponent->mShakeTimeAcc * cameraTypeComponent->mShakeFrequency * XM_2PI)
-								   * cameraTypeComponent->mShakeMagnitude * decay;
-
-				transformComponent->mLocalRotationE.x += shakeAngle;
-			}
+			if(!(death && death->mActive))
+				CameraShake(cameraTypeComponent, transformComponent, dt);
 
 			transformComponent->FinalUpdate();
 		}
@@ -257,10 +252,7 @@ void CameraSystem::UpdateOrbitCamera(CameraTypeComponent* camType, TransformComp
 		float targetAlpha = 1.f;
 		if (fadeStart > fadeEnd + 0.001f)
 		{
-			float t = (cameraDistance - fadeEnd) / (fadeStart - fadeEnd);
-			if (t < 0.f) t = 0.f;
-			else if (t > 1.f) t = 1.f;
-			targetAlpha = t;
+			targetAlpha=  std::clamp((cameraDistance - fadeEnd) / (fadeStart - fadeEnd), 0.3f, 1.f);
 		}
 
 		float lerpFactor = camType->mFadeLerpSpeed * dt;
@@ -343,6 +335,23 @@ void CameraSystem::UpdateDeathCamera(CameraTypeComponent* camType, DeathCamCompo
 		transform->mLocalRotationE.z = 0.f;
 	}
 	transform->FinalUpdate();
+}
+
+void CameraSystem::CameraShake(CameraTypeComponent* camType, TransformComponent* transform, float dt)
+{
+	if (camType->mShakeRemaining <= 0.f || camType->mShakeDuration <= 0.f)
+		return;
+
+	camType->mShakeRemaining -= dt;
+	camType->mShakeTimeAcc += dt;
+
+	float decay = camType->mShakeRemaining / camType->mShakeDuration;
+	float t = camType->mShakeTimeAcc * camType->mShakeFrequency * XM_2PI;
+	const Vec3& angles = camType->mShakeAngles;
+
+	transform->mLocalRotationE.x += sinf(t) * angles.x * decay;
+	transform->mLocalRotationE.y += sinf(t + 1.7f) * angles.y * decay;
+	transform->mLocalRotationE.z += sinf(t + 3.4f) * angles.z * decay;
 }
 
 

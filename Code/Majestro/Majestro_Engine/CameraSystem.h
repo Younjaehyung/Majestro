@@ -28,5 +28,7 @@ private:
 	// 사망 카메라
 	void UpdateDeathCamera(CameraTypeComponent* camType, DeathCamComponent* death,
 		TransformComponent* transform, TransformComponent* selfPlayer, float dt);
+
+	void CameraShake(CameraTypeComponent* camType, TransformComponent* transform, float dt);
 };
 

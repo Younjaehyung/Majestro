@@ -175,6 +175,7 @@ struct EvRhythmChanged
     uint8 previousRhythm;
     uint8 changedRhythm;
     uint8 playerType;
+    int64 applyAtBeatIndex; 
 };
 
 

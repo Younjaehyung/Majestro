@@ -18,4 +18,9 @@ public:
 
 	// 발밑 레이가 일시적으로 빗나가도 직전 바닥을 유지하는 유예 시간.
 	float mGroundGraceLeft = 0.0f;
+
+	// 단차 낙하 확정 디바운스.
+	// 곧바로 낙하로 확정하지 않고, dist 초과가 mDropConfirmDelay 동안 지속될 때만 낙하
+	float mDropConfirmDelay = 0.1f;		// 낙하 확정까지 지속돼야 하는 시간(초)
+	float mDropConfirmLeft  = 0.1f;		// 남은 확정 카운트다운
 };

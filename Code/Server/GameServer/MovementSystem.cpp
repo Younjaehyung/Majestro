@@ -554,17 +554,28 @@ void MovementSystem::UpdateGravity(float dt)
 				gravityComponent->mGravity  = 0.0f;
 				gravityComponent->mFalling  = false;
 				gravityComponent->mDropping = false;
+
+
+				// 착지시 다음 단차 판정을 새로 시작
+				gravityComponent->mDropConfirmLeft = gravityComponent->mDropConfirmDelay;
 			}
 		}
 		else
 		{
 			const float dist = gravityComponent->mHight - gravityComponent->mGround; // >0: 지면 위
-			if (dist > stepDown)	// 바닥이 단차 이상 꺼짐
+			if (dist > stepDown)	// 바닥이 단차 이상 꺼짐(낙하 후보)
 			{
-				// 자동 낙하 (걸어서 떨어지기
-				gravityComponent->mFalling  = true;
-				gravityComponent->mDropping = true;
-				gravityComponent->mGravity  = (std::max)(0.0f, gravityComponent->mGravity);
+				// 바로 낙하 확정하면 계단 중간에 빠지므로, dist 초과가 mDropConfirmDelay 동안 지속될 때만 낙하로 확정
+				gravityComponent->mDropConfirmLeft -= dt;
+				if (gravityComponent->mDropConfirmLeft <= 0.0f)
+				{
+					// 지속된다 ==> 진짜 낭떠러지(걸어서 떨어지기)
+					gravityComponent->mFalling  = true;
+					gravityComponent->mDropping = true;
+					gravityComponent->mGravity  = (std::max)(0.0f, gravityComponent->mGravity);
+				}
+
+				// 잠시후 내려가게끔함
 			}
 			else // // 단차 이내(오르막/내리막/평지)
 			{
@@ -573,6 +584,9 @@ void MovementSystem::UpdateGravity(float dt)
 				gravityComponent->mGravity  = 0.0f;
 				gravityComponent->mFalling  = false;
 				gravityComponent->mDropping = false;
+
+				// 정상 접지시 디바운스 타이머 리셋
+				gravityComponent->mDropConfirmLeft = gravityComponent->mDropConfirmDelay;
 			}
 		}
 

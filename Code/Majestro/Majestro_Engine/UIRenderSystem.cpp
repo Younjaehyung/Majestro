@@ -113,28 +113,24 @@ void UIRenderSystem::CustomSpriteRender()
 {
     mInstances.clear();
 
-    if (false == mWorld->HasComponentPool<UICusSpriteComponent>()) return;
+    if (mWorld->HasComponentPool<UICusSpriteComponent>())
+        RenderCustomSprite();
 
-    RenderCustomSprite();
+    const uint32 regularCount = static_cast<uint32>(mInstances.size());
+
+    if (mFeatures != nullptr)
+    {
+        for (const auto& spritePass : *mFeatures)
+        {
+            if (spritePass != nullptr)
+                spritePass->CustomSpriteRender(mInstances);
+        }
+    }
 
     UploadInstanceBuffer();
 
-    // 일반 UI 스프라이트 드로우 (startInstance = 0)
-    InstancingRender(static_cast<uint32>(mInstances.size()), 0);
-
-    // ── 비주얼라이저 바 데이터를 인스턴스 벡터 뒤에 추가 ──────────────
-    // UIInfo 버퍼 레이아웃: [일반 UI (0..N-1)] [바 데이터 (N..N+M-1)]
-    // DrawIndexedInstanced의 StartInstanceLocation으로 각 파트를 독립적으로 드로우
-
-    if (mFeatures == nullptr)
-        return;
-
-    for (const auto& spritePass : *mFeatures)
-    {
-        if (spritePass != nullptr)
-            spritePass->CustomSpriteRender(mInstances);
-    }
-
+    // 일반 UI 스프라이트 드로우
+    InstancingRender(regularCount, 0);
 }
 
 void UIRenderSystem::SpriteUpdate()

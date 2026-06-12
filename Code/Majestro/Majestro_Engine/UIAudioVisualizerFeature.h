@@ -4,6 +4,7 @@
 #include "UIFeature.h"
 
 class Mesh;
+class CircularVisualizerPass;
 
 // AudioVisualizerPass
 // 동작 방식:
@@ -31,10 +32,12 @@ public:
 
     void Update(float dt) override;
 
+    // 바 인스턴스를 벡터 뒤에 추가
     void CustomSpriteRender(std::vector<UIInstanceData>& instances) override;
 
+    
+    void PostSpriteRender(std::vector<UIInstanceData>& instances) override;
 
-    // UploadInstanceBuffer() 및 일반 UI 렌더링 이후 호출
     // startInstance: UIInfo 버퍼에서 바 데이터가 시작되는 인덱스
     void Execute(uint32 startInstance, uint32 barCount);
 
@@ -51,4 +54,18 @@ private:
 private:
     World*             mWorld     = nullptr;
     shared_ptr<Mesh>   mQuadMesh;
+
+    // 원형 비주얼라이저 렌더 패스 (자체 버텍스 버퍼)
+    shared_ptr<CircularVisualizerPass> mCircularPass;
+
+    // 스펙트럼 폴링 버퍼
+    std::vector<float> mSpectrum;
+
+    // 빈 범위 캐시: 스펙트럼 크기가 바뀔 때만 재계산
+    std::array<std::pair<int, int>, kInternalBands> mBinRanges{};
+    int mCachedSpectrumSize = 0;
+
+    // CustomSpriteRender(append)와 PostSpriteRender(draw) 사이에 전달되는 프레임 상태
+    uint32 mBarStartInstance = 0;
+    uint32 mBarCount         = 0;
 };

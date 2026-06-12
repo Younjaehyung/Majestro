@@ -17,18 +17,40 @@ void AudioVisualizerSystem::Update(float dt)
     if (!mWorld->HasComponentPool<AudioVisualizerComponent>())
         return;
 
-    // FMOD FFT DSP에서 스펙트럼 데이터 폴링
-    std::vector<float> spectrum;
-    if (!AUDIOMANAGER.GetSpectrumData(spectrum))
+    // 보이는 비주얼라이저가 하나도 없으면 폴링하지 않는다.
+    auto entities = mWorld->GetEntitiesWithComponent<AudioVisualizerComponent>();
+    bool anyVisible = false;
+    for (auto entity : entities)
+    {
+        auto* vis = mWorld->GetComponent<AudioVisualizerComponent>(entity);
+        if (vis && vis->isVisible)
+        {
+            anyVisible = true;
+            break;
+        }
+    }
+    if (!anyVisible)
         return;
 
-    int specSize = static_cast<int>(spectrum.size());
+    // FMOD FFT DSP에서 스펙트럼 데이터 폴링 (멤버 버퍼 재사용 — 힙 재할당 방지)
+    if (!AUDIOMANAGER.GetSpectrumData(mSpectrum))
+        return;
+
+    int specSize = static_cast<int>(mSpectrum.size());
     if (specSize == 0)
         return;
 
     float sampleRate = AUDIOMANAGER.GetSpectrumSampleRate();
 
-    for (auto entity : mWorld->GetEntitiesWithComponent<AudioVisualizerComponent>())
+    // 빈 범위는 스펙트럼 크기에만 의존하므로 크기가 바뀔 때만 재계산
+    if (specSize != mCachedSpectrumSize)
+    {
+        for (int i = 0; i < VISUALIZER_BAR_COUNT; i++)
+            mBinRanges[i] = GetBinRange(i, VISUALIZER_BAR_COUNT, specSize, sampleRate);
+        mCachedSpectrumSize = specSize;
+    }
+
+    for (auto entity : entities)
     {
         auto* vis = mWorld->GetComponent<AudioVisualizerComponent>(entity);
         if (!vis || !vis->isVisible)
@@ -36,12 +58,12 @@ void AudioVisualizerSystem::Update(float dt)
 
         for (int i = 0; i < VISUALIZER_BAR_COUNT; i++)
         {
-            auto [binStart, binEnd] = GetBinRange(i, VISUALIZER_BAR_COUNT, specSize, sampleRate);
+            auto [binStart, binEnd] = mBinRanges[i];
 
             // 해당 주파수 대역의 피크값 추출
             float peak = 0.f;
             for (int b = binStart; b < binEnd; b++)
-                peak = max(peak, spectrum[b]);
+                peak = max(peak, mSpectrum[b]);
 
             // 주파수 대역별 EQ gain: 저음(0.5×) ~ 고음(4.0×)
             // 저음역의 과도한 에너지를 억제하고 고음역을 부각시켜 균등한 시각적 분포를 만든다

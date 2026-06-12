@@ -9,11 +9,16 @@
 #include "Shader.h"
 #include "World.h"
 #include "CircularVisualizerComponent.h"
+#include "CircularVisualizerPass.h"
 
 void UIAudioVisualizerFeature::Initialize(World* world)
 {
     mWorld     = world;
     mQuadMesh  = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
+
+
+    mCircularPass = std::make_shared<CircularVisualizerPass>();
+    mCircularPass->Initialize(world);
 }
 
 void UIAudioVisualizerFeature::AppendBarInstances(std::vector<UIInstanceData>& instances) const
@@ -83,10 +88,9 @@ void UIAudioVisualizerFeature::Execute(uint32 startInstance, uint32 barCount)
 
     shader->Update();  // PSO 설정
 
-    // StartInstanceLocation = startInstance
-    // → SV_InstanceID = startInstance + 0 ~ startInstance + barCount - 1
-    // → UIInstances[SV_InstanceID] 가 UIInfo 버퍼의 바 데이터를 올바르게 인덱싱
-    mQuadMesh->Render(barCount, 0, 0, startInstance);
+
+    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &startInstance, 0);
+    mQuadMesh->Render(barCount, 0, 0, 0);
 }
 
 
@@ -95,21 +99,44 @@ void UIAudioVisualizerFeature::UpdateAudioVisualizer(float dt)
     if (mWorld->HasComponentPool<CircularVisualizerComponent>() == false)
         return;
 
-    std::vector<float> spectrum;
-    if (AUDIOMANAGER.GetSpectrumData(spectrum) == false)
+    // 보이는 비주얼라이저가 없으면 폴링하지 않는다 
+    auto entities = mWorld->GetEntitiesWithComponent<CircularVisualizerComponent>();
+    bool anyVisible = false;
+    for (Entity entity : entities)
+    {
+        CircularVisualizerComponent* vis = mWorld->GetComponent<CircularVisualizerComponent>(entity);
+        if (vis != nullptr && vis->isVisible)
+        {
+            anyVisible = true;
+            break;
+        }
+    }
+    if (anyVisible == false)
         return;
 
-    const int spectrumSize = static_cast<int>(spectrum.size());
+    // 멤버 버퍼 재사용 — 매 프레임 힙 할당 방지
+    if (AUDIOMANAGER.GetSpectrumData(mSpectrum) == false)
+        return;
+
+    const int spectrumSize = static_cast<int>(mSpectrum.size());
     if (spectrumSize == 0)
         return;
 
     const float sampleRate = AUDIOMANAGER.GetSpectrumSampleRate();
 
+    // 빈 범위는 스펙트럼 크기에만 의존하므로 크기가 바뀔 때만 재계산
+    if (spectrumSize != mCachedSpectrumSize)
+    {
+        for (int band = 0; band < kInternalBands; ++band)
+            mBinRanges[band] = GetBinRange(band, kInternalBands, spectrumSize, sampleRate);
+        mCachedSpectrumSize = spectrumSize;
+    }
+
     static std::mt19937 rng{ std::random_device{}() };
     std::uniform_int_distribution<int> countDist(2, 4);
     std::uniform_int_distribution<int> indexDist(0, CIRC_VIS_POINTS - 1);
 
-    for (Entity entity : mWorld->GetEntitiesWithComponent<CircularVisualizerComponent>())
+    for (Entity entity : entities)
     {
         CircularVisualizerComponent* visualizer = mWorld->GetComponent<CircularVisualizerComponent>(entity);
         if (visualizer == nullptr || visualizer->isVisible == false)
@@ -118,15 +145,17 @@ void UIAudioVisualizerFeature::UpdateAudioVisualizer(float dt)
         float bands[kInternalBands] = {};
         for (int band = 0; band < kInternalBands; ++band)
         {
-            auto [binStart, binEnd] = GetBinRange(band, kInternalBands, spectrumSize, sampleRate);
+            auto [binStart, binEnd] = mBinRanges[band];
 
             float peak = 0.f;
             for (int bin = binStart; bin < binEnd; ++bin)
-                peak = max(peak, spectrum[bin]);
+                peak = max(peak, mSpectrum[bin]);
 
             const float freqT = static_cast<float>(band) / static_cast<float>(kInternalBands - 1);
             const float eqGain = 0.5f + freqT * 3.5f;
-            bands[band] = std::clamp(peak * visualizer->gain * eqGain, 0.6f, 1.f);
+            // 하한 0: 무음 구간은 진폭 0이어야 막대가 minBarLength(점선 링)로 가라앉는다
+            // (기존 0.6 바닥값은 옛 리본 디자인용 — 막대 스타일에서는 부적합)
+            bands[band] = std::clamp(peak * visualizer->gain * eqGain, 0.f, 1.f);
         }
 
         float bassEnergy = 0.f;
@@ -148,6 +177,11 @@ void UIAudioVisualizerFeature::UpdateAudioVisualizer(float dt)
                 bassEnergy += current;
         }
         bassEnergy /= static_cast<float>(kBassPoints);
+
+        // 스파이크는 선택 기능 — 미니멀 스타일(균등·FFT 기반)에서는 기본 비활성.
+        // 활성 시 저음 비트마다 랜덤 막대가 순간 돌출한다.
+        if (visualizer->useSpikes == false)
+            continue;
 
         visualizer->cooldownTimer -= dt;
         for (auto& spike : visualizer->spikes)
@@ -222,12 +256,21 @@ std::pair<int, int> UIAudioVisualizerFeature::GetBinRange(
 
 void UIAudioVisualizerFeature::CustomSpriteRender(std::vector<UIInstanceData>& instances)
 {
+    // 바 데이터를 인스턴스 벡터 뒤에 추가만 한다.
+    // 시작 오프셋/개수를 기억해 두고, 실제 드로우는 업로드 이후인 PostSpriteRender에서 수행.
+    mBarStartInstance = static_cast<uint32>(instances.size());
     AppendBarInstances(instances);
+    mBarCount = static_cast<uint32>(instances.size()) - mBarStartInstance;
+}
 
-	uint32 regularCount = static_cast<uint32>(instances.size());
+void UIAudioVisualizerFeature::PostSpriteRender(std::vector<UIInstanceData>& /*instances*/)
+{
+    // UploadInstanceBuffer() 이후 호출되므로 UIInfo 버퍼에 바 데이터가 올라가 있다
+    if (mBarCount > 0)
+        Execute(mBarStartInstance, mBarCount);
+    mBarCount = 0;
 
-    uint32 barCount = static_cast<uint32>(instances.size()) - regularCount;
-
-    if (barCount > 0)  Execute(regularCount, barCount);
-
+    // 원형 비주얼라이저 — 자체 버텍스 버퍼 드로우 (컴포넌트 없으면 내부에서 early-out)
+    if (mCircularPass)
+        mCircularPass->Execute();
 }

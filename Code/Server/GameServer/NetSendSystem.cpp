@@ -39,6 +39,7 @@ void NetSendSystem::Update(float dt)
 	SendEffectSpawnEvents();
 	SendHitConfirmEvents();
 	SendGimmickStateEvents();
+	SendRhythmChangedEvents();
 
 
 	if (mMovementRate.Tick(dt))           // 30Hz 주기 전송 (UDP)
@@ -444,6 +445,32 @@ void NetSendSystem::SendGimmickStateEvents()
 
 			S2C_GimmickStatePacket pkt(netComp->mNetEntityId, e.active);
 			Broadcast(recipients, S2C_PKT_GIMMICK_STATE, pkt);
+		});
+}
+
+void NetSendSystem::SendRhythmChangedEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvRhythmChanged>([&](const EvRhythmChanged& e)
+		{
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e.player);
+			if (netComp == nullptr)
+				return;
+
+			S2C_RhythmChangedPacket pkt{};
+			pkt.netEntityId = netComp->mNetEntityId;
+			pkt.previousRhythm = e.previousRhythm;
+			pkt.changedRhythm = e.changedRhythm;
+			pkt.playerType = e.playerType;
+
+			Broadcast(recipients, S2C_PKT_RHYTHM_CHANGED, pkt);
 		});
 }
 

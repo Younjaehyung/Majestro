@@ -14,6 +14,7 @@ public:
 	void Shutdown();
 private:
 	float time{};
+	int mPrevEscortStage = -1;   // 호위 거점 변화 감지용 (-1 = 미초기화)
 	void ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm);
 	bool IsCurrentRhythmMatched(uint8 playerType, uint8 rhythm) const;
 	static SOUNDNAME GetSoundNameByPlayerType(uint8 playerType);

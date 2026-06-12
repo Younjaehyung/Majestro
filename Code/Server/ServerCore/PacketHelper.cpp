@@ -29,6 +29,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::S2C_PKT_AMMO:
 	case PKT_Type::S2C_PKT_COOLDOWN:
 	case PKT_Type::S2C_PKT_GIMMICK_STATE:
+	case PKT_Type::S2C_PKT_RHYTHM_CHANGED:
 	case PKT_Type::S2C_PKT_HIT_CONFIRM:
 	case PKT_Type::S2C_PKT_SCENE_STATE:
 	case PKT_Type::S2C_PKT_SCENE_CONQUEST:

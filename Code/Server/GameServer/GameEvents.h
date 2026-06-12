@@ -168,11 +168,20 @@ struct EvInteractableStateChanged
     bool active;    // active=false : 먹혀서 숨김, active=true : 쿨다운 종료로 재등장.
 };
 
+// 특정 플레이어의 리듬(담당 음악) 변경 — 전체 클라에 브로드캐스트해 원격 음악 동기화.
+struct EvRhythmChanged
+{
+    Entity player;
+    uint8 previousRhythm;
+    uint8 changedRhythm;
+    uint8 playerType;
+};
+
 
 
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvHealthChanged, EvArmorChanged, EvAmmoChanged,
     EvBulletDeactivated, EvEffectSpawn, EvBuffRequest, EvRangedAttackRequest, EvMeleeAttackRequest,
     EvHeal, EvImpulse, EvInteractableConsumed, EvInteractableStateChanged, EvHitConfirm, EvConquestPointCaptured, EvEscortPointCaptured, EvPlayerDeathRequest,
-    EvCooldownStarted>;
+    EvCooldownStarted, EvRhythmChanged>;
 

@@ -57,6 +57,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_HIT_CONFIRM,
 	S2C_PKT_COOLDOWN,
 	S2C_PKT_GIMMICK_STATE,
+	S2C_PKT_RHYTHM_CHANGED,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -752,6 +753,16 @@ struct C2S_RhythmChangedPacket : public PacketTcpHeader {
 	uint8 playerType{};
 	uint8 reserved{};
 	C2S_RhythmChangedPacket() : PacketTcpHeader{ sizeof(C2S_RhythmChangedPacket), PKT_Type::C2S_PKT_RHYTHM_CHANGED, 0.0 } {}
+};
+
+// 서버가 특정 플레이어의 리듬 변경을 전체 클라에 브로드캐스트 — 원격 플레이어 담당 음악 동기화.
+struct S2C_RhythmChangedPacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+	uint8 previousRhythm{};
+	uint8 changedRhythm{};
+	uint8 playerType{};
+	uint8 reserved{};
+	S2C_RhythmChangedPacket() : PacketTcpHeader{ sizeof(S2C_RhythmChangedPacket), PKT_Type::S2C_PKT_RHYTHM_CHANGED, 0.0 } {}
 };
 
 

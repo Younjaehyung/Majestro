@@ -519,6 +519,9 @@ void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 #pragma region Loading Scenes
 void LoadingScene::Initialize()
 {
+	AUDIOMANAGER.RequestBGM("event:/Loading", SOUNDNAME::Ambient);
+	AUDIOMANAGER.Update(0.f);
+
 	PrefabFactory::RegisterAllPrefabs();
 	// SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
@@ -663,6 +666,10 @@ bool LoadingScene::LoadScene(SceneId id)
 
 	mTotalTaskCount = (int32)mLoadTasks.size();
 
+
+	AUDIOMANAGER.RequestBGM("event:/Loading", SOUNDNAME::Ambient);
+	AUDIOMANAGER.Update(0.f);
+
 	return true;
 }
 
@@ -698,6 +705,9 @@ void LoadingScene::Update(float deltaTime)
 void MainMenuScene::Initialize()
 {
 	mWorld->SetSceneId(mSceneId);
+
+	
+	AUDIOMANAGER.RequestBGM("event:/Menu", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
@@ -1398,6 +1408,9 @@ void LobbyScene::Initialize()
 void FirstScene::Initialize()
 {
 	mWorld->SetSceneId(mSceneId);
+
+	
+	AUDIOMANAGER.RequestBGM("event:/Escort", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
@@ -1627,6 +1640,9 @@ void FirstScene::Initialize()
 void SecondScene::Initialize()
 {
 	mWorld->SetSceneId(mSceneId);
+
+	
+	AUDIOMANAGER.RequestBGM("event:/Escort", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	TerrainPrefab terrain{ mWorld.get() };

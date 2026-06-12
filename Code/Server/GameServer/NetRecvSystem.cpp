@@ -130,6 +130,17 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 	playerComp->mRhythm = previousRhythm;
 	playerComp->mNextRhythm = changedRhythm;
 	playerComp->mHasQueuedRhythmChange = true;
+
+
+	if (std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager())
+	{
+		EvRhythmChanged ev{};
+		ev.player = e;
+		ev.previousRhythm = previousRhythm;
+		ev.changedRhythm = changedRhythm;
+		ev.playerType = playerComp->mPlayerType;
+		eventManager->Enqueue<EvRhythmChanged>(ev);
+	}
 }
 
 // ─── 게임 시작 처리 ──────────────────────────────────────────

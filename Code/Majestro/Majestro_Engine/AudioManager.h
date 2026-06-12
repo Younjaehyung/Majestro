@@ -66,16 +66,18 @@ public:
     void Shutdown();
     void Update(float dt);
 
+    // 효과음
     void PlayOneShot(const char* eventPath);
     void PlayOneShot3D(const char* eventPath, const FMOD_3D_ATTRIBUTES& attr);
+
+    // 배경음
     void PlayBGM(const char* eventPath, SOUNDNAME soundEnum);
     void StopBGM(SOUNDNAME soundEnum);
 
     // 같은 슬롯에 같은 곡이 이미 재생 중이면 아무것도 하지 않는다(씬 전환 시 끊김 없이 이어짐).  다른 곡이면 교체한다
     void RequestBGM(const char* eventPath, SOUNDNAME soundEnum);
 
-    // 상태 연동 루프 사운드 (인스턴스 추적)
-    // PlayOneShot과 달리 인스턴스를 보관한다. 호출자가 StopLoop으로 수명을 끝내야 한다.
+    // 루프 효과음
     SfxHandle StartLoop(const char* eventPath);
     SfxHandle StartLoop3D(const char* eventPath, const FMOD_3D_ATTRIBUTES& attr);
 

@@ -85,6 +85,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_ROOM_JOIN_RESULT, [this](auto& m) { HandleRoomJoinResult(m); });
 	reg(PKT_Type::S2C_PKT_DESPAWN, [this](auto& m) { HandleDespawn(m); });
 	reg(PKT_Type::S2C_PKT_GIMMICK_STATE, [this](auto& m) { HandleGimmickState(m); });
+	reg(PKT_Type::S2C_PKT_RHYTHM_CHANGED, [this](auto& m) { HandleRhythmChanged(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -211,6 +212,25 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
         netTransform->mElapsed = 0.0f;
 
 
+}
+
+void NetRecvSystem::HandleRhythmChanged(const InputCommand& msg)
+{
+    const S2C_RhythmChangedPacket* pkt = msg.ViewAs<S2C_RhythmChangedPacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
+    if (!playerComp) return;
+
+    // 로컬 플레이어
+    if (mWorld->GetComponent<LocalPlayerComponent>(e))
+        return;
+
+    // 원격 플레이어
+    playerComp->mRhythm = static_cast<uint8>(pkt->changedRhythm % 4);
+    playerComp->mNextRhythm = static_cast<uint8>(pkt->changedRhythm % 4);
+    playerComp->mHasQueuedRhythmChange = true;
 }
 
 void NetRecvSystem::HandleHealth(const InputCommand& msg)

@@ -81,6 +81,41 @@ void FmodBackend::LoadBank(const std::string& bank, bool preloadSampleData) {
     if (preloadSampleData) {
         FMOD_CHECK(b->loadSampleData());
     }
+
+    // SfxTable.json/RequestBGM에 쓸 이름 확인용.
+
+    int eventCount = 0;
+    if (b->getEventCount(&eventCount) == FMOD_OK && eventCount > 0) {
+        std::vector<FMOD::Studio::EventDescription*> events(eventCount);
+        if (b->getEventList(events.data(), eventCount, &eventCount) == FMOD_OK) {
+            std::cout << "[FMOD] bank '" << bank << "' events (" << eventCount << "):" << std::endl;
+            for (int i = 0; i < eventCount; ++i) {
+                if (events[i] == nullptr)
+                    continue;
+
+                char path[256] = {};
+                int retrieved = 0;
+                if (events[i]->getPath(path, sizeof(path), &retrieved) == FMOD_OK)
+                {
+                    std::cout << "    " << path << std::endl;
+                }
+                else
+                {
+                    // 경로 문자열 없음 
+                    FMOD_GUID id{};
+                    if (events[i]->getID(&id) == FMOD_OK) {
+                        char guid[64] = {};
+                        snprintf(guid, sizeof(guid),
+                            "{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
+                            id.Data1, id.Data2, id.Data3,
+                            id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3],
+                            id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
+                        std::cout << "    (이름 없음 — strings 뱅크 갱신 필요) GUID " << guid << std::endl;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void FmodBackend::UnloadBank(const std::string& bank) {
@@ -122,8 +157,12 @@ void AudioManager::Initialize(const std::string& bankRoot) {
     mFMOD.Initialize(bankRoot, /*rightHanded3D=*/false);
 
     // ���ڿ� ��ȸ�� �ʼ�
-    mFMOD.LoadBank("Master.bank");
+
     mFMOD.LoadBank("Master.strings.bank", /*preloadSampleData=*/false);
+    mFMOD.LoadBank("Master.bank");
+
+
+    mFMOD.LoadBank("MajestroBank.bank");
 
 	mAllBGM.resize(static_cast<size_t>(SOUNDNAME::End) + 1, nullptr);
     mCurrentBGMMarkers.resize(static_cast<size_t>(SOUNDNAME::End) + 1);
@@ -295,7 +334,13 @@ void AudioManager::RequestBGM(const char* eventPath, SOUNDNAME soundEnum) {
         return;
     }
 
-    PlayBGM(eventPath, soundEnum);
+    try {
+        PlayBGM(eventPath, soundEnum);
+    }
+    catch (const std::exception& e) {
+        // 이벤트가 뱅크에 아직 없으면 throw 
+        std::cout << "[BGM] request failed (" << eventPath << "): " << e.what() << std::endl;
+    }
 }
 
 void AudioManager::SetGlobalParam(const char* name, float v) {

@@ -8,6 +8,7 @@
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "TagComponent.h"
+#include "GameRuleComponent.h"
 
 namespace
 {
@@ -42,10 +43,22 @@ void AudioSystem::Initialize()
    
     AUDIOMANAGER.PreloadBanks({"MajestroBank.bank"});
 
+    // 리듬 음악
+    const SceneId sceneId = mWorld->GetSceneId();
+    const bool inGame = (sceneId == SceneId::FirstGame || sceneId == SceneId::SecondGame);
 
-    AUDIOMANAGER.RequestBGM("event:/Elec", SOUNDNAME::Elec);
-    AUDIOMANAGER.RequestBGM("event:/Bass", SOUNDNAME::Bass);
-    AUDIOMANAGER.RequestBGM("event:/Drum", SOUNDNAME::Drum);
+    if (inGame)
+    {
+        AUDIOMANAGER.RequestBGM("event:/Elec", SOUNDNAME::Elec);
+        AUDIOMANAGER.RequestBGM("event:/Bass", SOUNDNAME::Bass);
+        AUDIOMANAGER.RequestBGM("event:/Drum", SOUNDNAME::Drum);
+    }
+    else
+    {
+        AUDIOMANAGER.StopBGM(SOUNDNAME::Elec);
+        AUDIOMANAGER.StopBGM(SOUNDNAME::Bass);
+        AUDIOMANAGER.StopBGM(SOUNDNAME::Drum);
+    }
     
 
 }
@@ -81,6 +94,26 @@ void AudioSystem::Update(float deltaTime)
 
     time += deltaTime;
 
+    // 호위 BGM 파라미터
+    if (mWorld->HasComponentPool<GameEscortComponent>())
+    {
+        auto escortEntities = mWorld->GetEntitiesWithComponent<GameEscortComponent>();
+        if (!escortEntities.empty())
+        {
+            GameEscortComponent* escort = mWorld->GetComponent<GameEscortComponent>(escortEntities[0]);
+            if (escort != nullptr && static_cast<int>(escort->mEscortStage) != mPrevEscortStage)
+            {
+                mPrevEscortStage = static_cast<int>(escort->mEscortStage);
+
+
+                float param = 0.5f * static_cast<float>(mPrevEscortStage);
+                if (param > 1.f) param = 1.f;
+                AUDIOMANAGER.SetBGMParam("NextEscort", SOUNDNAME::Ambient, param, true);
+                std::cout << "[BGM] NextEscort=" << param << " (escortStage=" << mPrevEscortStage << ")" << std::endl;
+            }
+        }
+    }
+
     if (!mWorld->HasComponentPool<MainPlayerComponent>())
         return;
 
@@ -94,14 +127,17 @@ void AudioSystem::Update(float deltaTime)
         if (playerComponent == nullptr)
             continue;
 
+        // 음악 레이어 적용은 로컬/원격 모두
         if (playerComponent->mHasQueuedRhythmChange)
         {
             ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
             playerComponent->mHasQueuedRhythmChange = false;
         }
 
-        if (playerComponent->mRhythm != playerComponent->mNextRhythm) {
-            
+        // C2S 리듬 변경 송신은 로컬 소유 플레이어만
+        if (mWorld->GetComponent<LocalPlayerComponent>(playerEntity) &&
+            playerComponent->mRhythm != playerComponent->mNextRhythm) {
+
             if (IsCurrentRhythmMatched(playerComponent->mPlayerType, playerComponent->mNextRhythm))
             {
                 SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mNextRhythm, playerComponent->mPlayerType);

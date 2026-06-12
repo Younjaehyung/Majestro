@@ -299,7 +299,7 @@ void EnemySystem::Update(float dt) {
 			if (!drawEnemyRanged && !drawPlayerRanged)
 				continue;
 
-			const float radius = (std::max)(0.0f, bulletTransform->mLocalScale.x * 0.5f);
+			const float radius = (std::max)(0.0f, bulletTransform->mLocalScale.x);
 			if (radius <= 0.0f)
 				continue;
 

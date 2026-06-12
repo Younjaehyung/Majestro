@@ -475,7 +475,7 @@ void NetSendSystem::SendRhythmChangedEvents()
 
 			S2C_RhythmChangedPacket pkt{};
 			pkt.netEntityId = netComp->mNetEntityId;
-			pkt.applyAtBeatIndex = e.applyAtBeatIndex;
+			//pkt.applyAtBeatIndex = e.applyAtBeatIndex;
 			pkt.previousRhythm = e.previousRhythm;
 			pkt.changedRhythm = e.changedRhythm;
 			pkt.playerType = e.playerType;

@@ -34,7 +34,7 @@
         "LandState": {
             "time": 3.5,
             "animOnce": true,
-            "animEndTime": 1.06667
+            "animEndTime": 0.56667
         },
         "DashState": {
             "time": 0.35,

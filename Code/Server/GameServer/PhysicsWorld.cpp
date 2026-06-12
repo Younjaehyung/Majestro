@@ -917,8 +917,11 @@ std::vector<Entity> PhysicsWorld::FindNearbyEnemies(const Entity& entity, float 
             continue;
 
         Vec3 delta = otherTf->mLocalPosition - selfTf->mLocalPosition;
-        delta.y = 0.0f;
-        sortedCandidates.push_back({ delta.LengthSquared(), other });
+        const float distanceSq = delta.LengthSquared();
+        if (distanceSq > radius * radius)
+            continue;
+
+        sortedCandidates.push_back({ distanceSq, other });
     }
 
     std::sort(sortedCandidates.begin(), sortedCandidates.end(),

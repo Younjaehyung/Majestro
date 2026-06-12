@@ -39,7 +39,7 @@ public:
 	double mFixedDtSec = 1.0 / 60.0;
 
 	// [추가] 스냅샷 주기 관련
-	double mSnapshotHz = 20.0;
+	double mSnapshotHz = 30.0;
 
 	// [변경] 초 기반이 아니라 tick 기반으로 들고 있음
 	double mInterpDelayTicksF = 7.5;  // 예: 60Hz에서 0.125s면 7.5 ticks

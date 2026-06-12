@@ -27,6 +27,9 @@ void NetSendSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<NetEntityComponent>())return;
 
+	// 실시간 서버 클럭 누적
+	mServerClockSec += dt;
+
 
 	HandleSessionJoinedEvents();   // 신규 세션 초기 상태 송신
 	SendAction();
@@ -55,6 +58,11 @@ void NetSendSystem::SendMove(float dt)
 	if (recipients.empty())
 		return;
 
+	const uint32 sendTick = static_cast<uint32>(mServerClockSec * 60.0);
+
+	// mMovingVector 초당 속도
+	constexpr float kServerSimHz = 60.0f;
+
 	std::vector<Entity> entities = mWorld->GetEntitiesWithComponent<NetEntityComponent>();
 	for (auto& entity : entities)
 	{
@@ -73,13 +81,14 @@ void NetSendSystem::SendMove(float dt)
 			S2C_MovePacket movePkt;
 
 			movePkt.netEntityId = netComp->mNetEntityId;
+			movePkt.Sequence = sendTick;
 			movePkt.x = transComp->mWorldPosition.x;
 			movePkt.y = transComp->mWorldPosition.y;
 			movePkt.z = transComp->mWorldPosition.z;
 
-			movePkt.vx = transComp->mMovingVector.x;
-			movePkt.vy = transComp->mMovingVector.y;
-			movePkt.vz = transComp->mMovingVector.z;
+			movePkt.vx = transComp->mMovingVector.x * kServerSimHz;
+			movePkt.vy = transComp->mMovingVector.y * kServerSimHz;
+			movePkt.vz = transComp->mMovingVector.z * kServerSimHz;
 			
 			movePkt.rx = transComp->mLocalRotationQ.x;
 			movePkt.ry = transComp->mLocalRotationQ.y;
@@ -466,6 +475,7 @@ void NetSendSystem::SendRhythmChangedEvents()
 
 			S2C_RhythmChangedPacket pkt{};
 			pkt.netEntityId = netComp->mNetEntityId;
+			pkt.applyAtBeatIndex = e.applyAtBeatIndex;
 			pkt.previousRhythm = e.previousRhythm;
 			pkt.changedRhythm = e.changedRhythm;
 			pkt.playerType = e.playerType;

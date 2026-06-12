@@ -75,6 +75,8 @@ private:
 
 	uint32 mSequence = 0;
 
+	double mServerClockSec = 0.0;	// 실시간 누적 서버 클럭(초)
+
 	RateLimiter mMovementRate{ 30.f };  // 이동 입력 30Hz
 
 };

@@ -18,7 +18,7 @@ public:
 
     void Update(float deltaTime) override;
 
-    Vec3 PathFinder(const Vec3& from);  // 가장 가까운 플레이어 위치 탐색
+    Vec3 PathFinder(const Vec3& from, bool preserveHeight = false);  // 가장 가까운 플레이어 위치 탐색
 
 private:
     void UpdateOnnxToggle();

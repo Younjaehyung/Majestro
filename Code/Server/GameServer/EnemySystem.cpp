@@ -98,7 +98,7 @@ void EnemySystem::Update(float dt)
         if (!tf || !mc) { ++entityIndex; continue; }
 
         const Vec3 myPos      = tf->mLocalPosition;
-        const Vec3 playerPos  = PathFinder(myPos);
+        const Vec3 playerPos  = PathFinder(myPos, true);
         const std::vector<Entity> nearbyEnemies = mWorld->GetPhysicsWorld()
             ? mWorld->GetPhysicsWorld()->FindNearbyEnemies(entity, NEARBY_ENEMY_RADIUS, MAX_NEARBY_ENEMIES)
             : std::vector<Entity>{};
@@ -248,7 +248,7 @@ bool EnemySystem::HandleAttackState(
     if (TransformComponent* tf = mWorld->GetComponent<TransformComponent>(entity))
     {
         myPos = tf->mLocalPosition;
-        playerPos = PathFinder(myPos);
+        playerPos = PathFinder(myPos, true);
     }
 
     switch (enemyComp->mEnemyType)
@@ -428,7 +428,7 @@ void EnemySystem::HandleRunState(
     }
 
     if (movementComp->mDetourActive)
-        desiredTarget = playerPos;
+        desiredTarget = PathFinder(myPos, true);
 
     // ---- 재탐색 판단 ----
     movementComp->mPathTimer -= dt;
@@ -690,7 +690,7 @@ void EnemySystem::HaltByState(EnemyComponent* enemyComp, EnemyMovementComponent*
     movementComp->mProgressSampleElapsed = 0.0f;
 }
 
-Vec3 EnemySystem::PathFinder(const Vec3& from)
+Vec3 EnemySystem::PathFinder(const Vec3& from, bool preserveHeight)
 {
     auto FlatDistSq = [](const Vec3& a, const Vec3& b) -> float
         {
@@ -706,6 +706,7 @@ Vec3 EnemySystem::PathFinder(const Vec3& from)
         const float d = FlatDistSq(from, mPlayerPositions[i]);
         if (d < minDistSq) { minDistSq = d; nearest = mPlayerPositions[i]; }
     }
-    nearest.y = from.y;
+    if (!preserveHeight)
+        nearest.y = from.y;
     return nearest;
 }

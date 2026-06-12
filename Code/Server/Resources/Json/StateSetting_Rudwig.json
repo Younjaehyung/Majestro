@@ -14,7 +14,7 @@
         "IdleState": {
             "time": 9999.0,
             "animOnce": false,
-            "animEndTime": 1.83333
+            "animEndTime": 0.83333
         },
         "WalkForwardState": {
             "time": 9999.0,
@@ -64,12 +64,12 @@
         "Skill1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.26667
+            "animEndTime": 1.0
         },
         "Skill2State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 0.7
+            "animEndTime": 1.0
         },
         "SpecialState": {
             "time": 0.35,
@@ -79,12 +79,12 @@
         "ReloadState": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 0.8
+            "animEndTime": 0.7
         },
         "RhythmChangeState": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 0.833333
+            "animEndTime": 1.0
         },
         "DeadState": {
             "time": 0.35,

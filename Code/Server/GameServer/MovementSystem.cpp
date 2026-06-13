@@ -13,7 +13,98 @@
 #include "EnemyComponent.h"
 #include "InputComponent.h"
 #include "BulletComponent.h"
+#include "ColliderComponent.h"
 #include "GameEvents.h"
+
+namespace
+{
+	float GetColliderRadiusXZ(const BoxColliderComponent* collider)
+	{
+		if (!collider)
+			return 0.0f;
+
+		const Vec3 half = collider->mHalfExtents;
+		return std::sqrt(half.x * half.x + half.z * half.z);
+	}
+
+	Vec3 ResolvePlayerMoveAgainstEnemies(World* world, Entity playerEntity, const Vec3& startPos, const Vec3& desiredEnd)
+	{
+		if (!world || !playerEntity.IsValid())
+			return desiredEnd;
+
+		const float moveX = desiredEnd.x - startPos.x;
+		const float moveZ = desiredEnd.z - startPos.z;
+		const float moveLenSq = moveX * moveX + moveZ * moveZ;
+		if (moveLenSq <= 1e-8f)
+			return desiredEnd;
+
+		static constexpr float kPlayerRadius = 30.0f;
+		static constexpr float kEnemyBlockSkin = 2.0f;
+
+		float earliestT = 1.0f;
+		bool blocked = false;
+
+		for (const Entity& enemyEntity : world->GetEntitiesWithComponents<EnemyMovementComponent, TransformComponent, BoxColliderComponent>())
+		{
+			if (!enemyEntity.IsValid() || enemyEntity == playerEntity)
+				continue;
+
+			const TransformComponent* enemyTransform = world->GetComponent<TransformComponent>(enemyEntity);
+			const BoxColliderComponent* enemyCollider = world->GetComponent<BoxColliderComponent>(enemyEntity);
+			const EnemyComponent* enemyComp = world->GetComponent<EnemyComponent>(enemyEntity);
+			if (!enemyTransform || !enemyCollider || !enemyComp)
+				continue;
+
+			if (enemyComp->mAnimState == static_cast<uint8>(EnemyAnimState::Dead))
+				continue;
+
+			const float combinedRadius = kPlayerRadius + GetColliderRadiusXZ(enemyCollider);
+			if (combinedRadius <= 0.0f)
+				continue;
+
+			const float cx = enemyTransform->mLocalPosition.x;
+			const float cz = enemyTransform->mLocalPosition.z;
+			const float sx = startPos.x - cx;
+			const float sz = startPos.z - cz;
+
+			if (sx * sx + sz * sz <= combinedRadius * combinedRadius)
+				continue;
+
+			const float a = moveLenSq;
+			const float b = 2.0f * (sx * moveX + sz * moveZ);
+			const float c = sx * sx + sz * sz - combinedRadius * combinedRadius;
+			const float discriminant = b * b - 4.0f * a * c;
+			if (discriminant < 0.0f)
+				continue;
+
+			const float sqrtDiscriminant = std::sqrt(discriminant);
+			const float invDenom = 0.5f / a;
+			const float t0 = (-b - sqrtDiscriminant) * invDenom;
+			const float t1 = (-b + sqrtDiscriminant) * invDenom;
+			const float hitT = (t0 >= 0.0f && t0 <= 1.0f) ? t0 : ((t1 >= 0.0f && t1 <= 1.0f) ? t1 : -1.0f);
+			if (hitT < 0.0f)
+				continue;
+
+			if (hitT < earliestT)
+			{
+				earliestT = hitT;
+				blocked = true;
+			}
+		}
+
+		if (!blocked)
+			return desiredEnd;
+
+		const float moveLen = std::sqrt(moveLenSq);
+		const float safeDistance = (std::max)(0.0f, moveLen * earliestT - kEnemyBlockSkin);
+		const float invMoveLen = moveLen > 1e-6f ? 1.0f / moveLen : 0.0f;
+
+		Vec3 resolved = startPos;
+		resolved.x += moveX * invMoveLen * safeDistance;
+		resolved.z += moveZ * invMoveLen * safeDistance;
+		return resolved;
+	}
+}
 
 float MovementSystem::WrapAngleDeg(float angleDeg)
 {
@@ -98,7 +189,7 @@ void MovementSystem::UpdateEvent(float dt)
 					desiredEnd.x += e.x;
 					desiredEnd.z += e.z;
 
-					Vec3 resolved = ResolvePlayerMoveByJolt(gr, prevPos, desiredEnd);
+					Vec3 resolved = ResolvePlayerMoveByJolt(e.target, gr, prevPos, desiredEnd);
 					tr->mLocalPosition.x = resolved.x;
 					tr->mLocalPosition.z = resolved.z;
 					tr->mMovingVector.x += resolved.x - prevPos.x;
@@ -230,7 +321,7 @@ void MovementSystem::UpdatePlayer(float dt)
 			}
 
 			//  벽 처리 : Jolt StaticCollision 구 sweep + 슬라이드
-			Vec3 resolved = ResolvePlayerMoveByJolt(gravityComponent, prevPos, desiredEnd);
+			Vec3 resolved = ResolvePlayerMoveByJolt(entity, gravityComponent, prevPos, desiredEnd);
 
 			// 이동 가능 영역 가드: 지면에 있을 때만 NavMesh 밖이면 차단 
 			const bool airborne = gravityComponent
@@ -258,7 +349,7 @@ void MovementSystem::UpdatePlayer(float dt)
 
 }
 
-Vec3 MovementSystem::ResolvePlayerMoveByJolt(GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd)
+Vec3 MovementSystem::ResolvePlayerMoveByJolt(Entity playerEntity, GravityComponent* grav, const Vec3& prevPos, const Vec3& desiredEnd)
 {
 	Vec3 totalMove = desiredEnd - prevPos;
 	totalMove.y = 0.0f;
@@ -273,7 +364,8 @@ Vec3 MovementSystem::ResolvePlayerMoveByJolt(GravityComponent* grav, const Vec3&
 		Vec3 stepEnd = resolved;
 		stepEnd.x += totalMove.x / subStepCount;
 		stepEnd.z += totalMove.z / subStepCount;
-		resolved = SweepSlideHorizontal(grav, resolved, stepEnd);
+		const Vec3 staticResolved = SweepSlideHorizontal(grav, resolved, stepEnd);
+		resolved = ResolvePlayerMoveAgainstEnemies(mWorld, playerEntity, resolved, staticResolved);
 	}
 
 	return resolved;

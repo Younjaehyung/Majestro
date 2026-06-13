@@ -26,7 +26,7 @@ public:
 
     float mTimer{ 0.f };           // 남은 시간 (0 이하면 비활성)
     float mDuration{ 0.2f };       // 플래시 총 길이
-    float mPeakStrength{ 0.7f };   // 최대 틴트 강도 (0~1, forward_plus PS에서 red lerp 가중치)
+    float mPeakStrength{ 0.7f };   // 최대 틴트 강도 (0~1, JHToon_PS에서 red lerp 가중치)
 
     float mCurrentStrength{ 0.f };
 };

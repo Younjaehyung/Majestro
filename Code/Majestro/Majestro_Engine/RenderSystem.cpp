@@ -551,7 +551,7 @@ void RenderSystem::PushObjectData() {
     if (false == renderComponent->mVisibility)
       continue;
 
-    // Hit Flash: 피격 시 forward_plus_PS에서 빨강으로 lerp되는 강도(0~1)
+    // Hit Flash: 피격 시 JHToon_PS에서 빨강으로 lerp되는 강도(0~1)
     // Extra.x = ObjectAlpha, Extra.y = HitFlashStrength, Extra.z = EmissiveGate
     float hitFlash = 0.f;
     if (auto* f = mWorld->GetComponent<HitFlashComponent>(gameObject))
@@ -563,7 +563,7 @@ void RenderSystem::PushObjectData() {
       emissiveGate = re->mCurrentGate;
 
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
-    objectParams.Extra = Vec4(renderComponent->mOpacity, hitFlash, emissiveGate, 0.f);
+    objectParams.Extra = Vec4(renderComponent->mOpacity, hitFlash, emissiveGate, renderComponent->mDissolve);
     mObjectVector.push_back(objectParams); // 트랜스폼 갱신
 
     renderComponent->mObjectIndex = index++; // objectParams의 index 지정

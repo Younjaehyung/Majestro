@@ -37,10 +37,11 @@ struct LIGHTINFO
 struct OBJECTINFO
 {
     matrix MatWorld;
+    
     // x = ObjectAlpha
-    // y = HitFlashStrength (0~1, forward_plus_PS에서 red lerp 가중치)
-    // z = EmissiveGate (0~1, forward_plus_PS 발광 블렌드 가중치, 기본 1)
-    // w = 예비
+    // y = HitFlashStrength (0~1, JHToon_PS에서 red lerp 가중치)
+    // z = EmissiveGate (0~1, JHToon_PS 발광 블렌드 가중치, 기본 1)
+    // w = DissolveAmount (0~1, 적 사망 소멸 연출. 0=정상, 1=완전 소멸.
     float4 Extra;
 };
 //////////////

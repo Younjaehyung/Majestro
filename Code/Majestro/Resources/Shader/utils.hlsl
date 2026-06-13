@@ -37,6 +37,14 @@ void ApplyIGNDitherFade(float2 svPosition, float alpha)
     clip(alpha - noise);
 }
 
+// 디졸브 노이즈 샘플 (0~1) — texIdx>=0이면 텍스처 R채널, 아니면 절차적 value noise 사용
+float SampleDissolveNoise(int texIdx, float2 uv)
+{
+    if (texIdx >= 0)
+        return TextureMaps[texIdx].Sample(g_sam_0, uv).r;
+    return ValueNoise2D(uv * DISSOLVE_NOISE_SCALE);
+}
+
 float3 CalcWindOffset(float3 worldPos, float localY, float4 windParam)
 {
     // worldPos : 월드 공간 좌표 (위상 계산에 사용)

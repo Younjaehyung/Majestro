@@ -48,7 +48,24 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
 
     ApplyIGNDitherFade(input.pos.xy, objectAlpha);
-    
+
+    // ── 디졸브 소멸 연출 (적 사망) ─────────────────────────────
+    // Extra.w = 진행도(0=정상, 1=완전 소멸). 노이즈 경계 기준으로 clip하고
+    // 경계 근처는 발광색을 더해 타들어가는 느낌을 준다.
+    const float3 kDissolveGlowColor = float3(3.0f, 0.9f, 0.15f); // HDR 주황 발광
+    const float  kDissolveEdgeWidth = 0.10f;
+    float dissolve = saturate(Objects[instance.ObjectIndex].Extra.w);
+    float dissolveEdge = 0.0f;
+    if (dissolve > 0.0f)
+    {
+        float dnoise = SampleDissolveNoise(mtl.ExtTex[2], input.uv); // 머티리얼 노이즈 텍스처 우선, 없으면 절차적
+        if (dnoise < dissolve)
+            discard; // 이미 소멸한 영역
+        // 경계(노이즈 값이 임계치에 가까운 곳)일수록 1
+        dissolveEdge = 1.0f - saturate((dnoise - dissolve) / kDissolveEdgeWidth);
+    }
+
+
 
     ////////////////////////////////////////////////////////////////////////
     // Diffuse 텍스처
@@ -98,6 +115,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
             color.rgb *= emissive * max(1.0f, abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2) * 10.f * emissiveGate);
             // color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
             color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
+            color.rgb += kDissolveGlowColor * dissolveEdge;
             return color;
         }
     }
@@ -239,6 +257,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
     // Hit Flash: 피격 시 그림자 속에서도 보이도록 라이팅 결과 위에 빨강으로 lerp
     color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
+    color.rgb += kDissolveGlowColor * dissolveEdge;
 
     return color;
 }

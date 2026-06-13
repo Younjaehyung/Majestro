@@ -44,6 +44,9 @@ public:
 
 	float mOpacity{ 1.f };
 
+	// 디졸브 소멸 진행도 (0=정상, 1=완전 소멸)
+	float mDissolve{ 0.f };
+
 	Vec3 mObbCenter = Vec3(0.f, 0.f, 0.f);
 	Vec3 mObbHalfExtents = Vec3(0.5f, 0.5f, 0.5f);
 

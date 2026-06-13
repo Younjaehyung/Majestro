@@ -1405,7 +1405,7 @@
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\forward_plus_PS.hlsl">
+    <FxCompile Include="..\Resources\Shader\JHToon_PS.hlsl">
       <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">

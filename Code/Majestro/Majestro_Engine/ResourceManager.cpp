@@ -1721,7 +1721,7 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"DebugLine_NoDepth", shader);
 	}
 
-	// Forward+ Cel (Forward)
+	// JHToon (Forward) — 메인 캐릭터/적 툰 셰이딩 PS
 	{
 		ShaderInfo info =
 		{
@@ -1732,11 +1732,11 @@ void ResourceManager::CreateDefaultShader()
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
-			.PS = L"..\\Resources\\Shader\\forward_plus_PS.hlsl"
+			.PS = L"..\\Resources\\Shader\\JHToon_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, ShaderArg());
-		Add<Shader>(L"ForwardPlusCel", shader);
+		Add<Shader>(L"JHToon", shader);
 	}
 
 	// Forward Alpha
@@ -2798,83 +2798,83 @@ void ResourceManager::CreateDefaultMaterial()
 	// .ani, .mesh, .skel의 파일을 묶어서 fbx라는 이름으로 임의로 가져온다는 뜻임
 	//따라서 진짜 fbx 파일을 로드하지 않아도 됨.
 
-	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\oo1.fbx", L"JHToon");
 	//LoadFBX(L"..\\Resources\\FBX\\XYZ.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\ZUP_Ascii_3dmax_Pivot.fbx");
 	//LoadFBX(L"..\\Resources\\FBX\\YUP_Ascii_3dmax_Pivot.fbx");
 
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Base.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Run.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_fall.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_BackRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_RightRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_LeftRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Reload.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Skill_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Skill_02.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Rhythm.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Die.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Base.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Walk.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Jump.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Land.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_fall.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_BackRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_RightRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_LeftRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Reload.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Skill_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Skill_02.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Rhythm.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Rudwig\\Anim_Rudwig_Die.fbx", L"JHToon");
 
 
 
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Base.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Attack_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Jump.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Run.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_BackRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_RightRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_LeftRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Walk.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Land.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Fall.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Skill_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Skill_02.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Reload.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Rhythm.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Die.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Base.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Jump.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_BackRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_RightRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_LeftRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Walk.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Land.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Fall.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Skill_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Skill_02.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Reload.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Rhythm.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Ibanix\\Anim_Ibanix_Die.fbx", L"JHToon");
 
 
 
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Base.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_02.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_03.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_BackRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_RightRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_LeftRun.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Reload.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_02.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Rhythm.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Die.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Base.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_02.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Attack_03.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Jump.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Walk.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Land.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Fall.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_BackRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_RightRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_LeftRun.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Reload.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Skill_02.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Rhythm.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Character\\Fanthor\\Anim_Fanthor_Die.fbx", L"JHToon");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"JHToon");
 
 	//mop
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"JHToon");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"JHToon");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"ForwardPlusCel");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"ForwardPlusCel");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 
@@ -2932,6 +2932,13 @@ void ResourceManager::CreateDefaultMaterial()
 
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[0] = Get<Texture>(L"ramp_default")->GetImageIndex();
 	Get<Material>(L"Anim_Rudwig_Base1")->GetParams().ExtTex[1] = Get<Texture>(L"T_Rudwig_Mace_SAMR")->GetImageIndex();
+
+	// 적 사망 디졸브 노이즈 텍스처 (ExtTex[2])
+	// ExtTex[2] = -1로 두면 셰이더가 절차적 노이즈 사용
+	int32 dissolveNoiseIdx = Load<Texture>(L"T_Dissolve_MusicMask", L"..\\Resources\\Image\\Noise\\T_Dissolve_MusicWaveMask.png")->GetImageIndex();
+	Get<Material>(L"Anim_Hornman_Run0")->GetParams().ExtTex[2]  = -1;
+	Get<Material>(L"Anim_Pianoman_Run0")->GetParams().ExtTex[2] = -1;
+	Get<Material>(L"Anim_Bongoman_Run0")->GetParams().ExtTex[2] = -1;
 	//	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
 	//	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
 }

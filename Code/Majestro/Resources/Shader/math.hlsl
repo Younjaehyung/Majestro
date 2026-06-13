@@ -18,6 +18,23 @@ float Hash(float n)
     return frac(sin(n) * 43758.5453f);
 }
 
+// 디졸브 노이즈 패턴 밀도
+#define DISSOLVE_NOISE_SCALE 12.0f
+
+float ValueNoise2D(float2 p)
+{ // 디졸브 경계 생성에 사용.
+    float2 i = floor(p);
+    float2 f = frac(p);
+    f = smoothstep(0.0f, 1.0f, f);
+
+    float a = Hash(dot(i + float2(0, 0), float2(1.0f, 57.0f)));
+    float b = Hash(dot(i + float2(1, 0), float2(1.0f, 57.0f)));
+    float c = Hash(dot(i + float2(0, 1), float2(1.0f, 57.0f)));
+    float d = Hash(dot(i + float2(1, 1), float2(1.0f, 57.0f)));
+
+    return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
+}
+
 float3 BlendNormalSimple(float3 nA, float3 nB)
 {
 

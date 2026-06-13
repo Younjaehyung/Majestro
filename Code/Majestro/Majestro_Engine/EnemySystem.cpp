@@ -268,6 +268,14 @@ void EnemySystem::Update(float dt) {
 			if (deadClipIdx < animationComponent->mAnimClips.size()) {
 				const shared_ptr<Animator>& deadClip = animationComponent->mAnimClips.at(deadClipIdx);
 				const float deadDuration = max(static_cast<float>(deadClip->mDuration), 0.f);
+
+				// 사망 애니 후반부(60% 지점)부터 디졸브 시작해서 애니 종료 시점에 완전 소멸
+				constexpr float kDissolveStartRatio = 0.6f;
+				const float dissolveStart = deadDuration * kDissolveStartRatio;
+				const float dissolveSpan = max(deadDuration - dissolveStart, 1e-4f);
+				const float dissolveT = (enemyComponent->mDeadElapsedTime - dissolveStart) / dissolveSpan;
+				renderComponent->mDissolve = std::clamp(dissolveT, 0.f, 1.f);
+
 				renderComponent->mVisibility = enemyComponent->mDeadElapsedTime < deadDuration;
 			}
 			else {
@@ -277,6 +285,7 @@ void EnemySystem::Update(float dt) {
 		else {
 			renderComponent->mVisibility = true;
 			enemyComponent->mDeadElapsedTime = 0.f;
+			renderComponent->mDissolve = 0.f;
 		}
 
 			if (!isDead && RenderSystem::GetDrawEnemyRanges())

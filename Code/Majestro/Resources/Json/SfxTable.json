@@ -113,7 +113,7 @@
       "is3d": true
     },
     "action/Rudwig/Reload": {
-      "event:/SFX/Rudwig/SFX_Rudwig_Reload",
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Reload",
       "is3d": true
     },
 

@@ -22,14 +22,13 @@
 void PreparePhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
-	mGameRuleEntity = mode.GetGameRuleEntity();
 
 	mode.GetScene()->ApplyPhaseSpawnerSet("Prepare");
 }
 
 void PreparePhase::Exit(WaveGameMode& mode)
 {
-	//mWorld->RemoveComponent<GameRuleComponent>(mGameRuleEntity);
+	//mWorld->RemoveSingleton<GameRuleComponent>();
 }
 
 void PreparePhase::PreUpdate(float dt, WaveGameMode& mode)
@@ -49,11 +48,10 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 void ConquestPhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
-	mGameRuleEntity = mode.GetGameRuleEntity();
-	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(mGameRuleEntity);
+	GameRuleComponent* ruleComp = mWorld->GetSingleton<GameRuleComponent>();
 
 
-	GameConquestComponent& conquestComp = mWorld->AddComponent<GameConquestComponent>(mGameRuleEntity);
+	GameConquestComponent& conquestComp = mWorld->AddSingleton<GameConquestComponent>();
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Conquest);
 	conquestComp.mActiveZoneIndex = min(GameConquestComponent::mMaxWaves - 1, max(0, static_cast<int32>(mZoneId) - 1));
 	conquestComp.mRequiredConquestTime = max(0.1f, mRequiredSeconds);
@@ -80,7 +78,7 @@ void ConquestPhase::Enter(WaveGameMode& mode)
 void ConquestPhase::Exit(WaveGameMode& mode)
 {
 
-	mWorld->RemoveComponent<GameConquestComponent>(mGameRuleEntity);
+	mWorld->RemoveSingleton<GameConquestComponent>();
 
 }
 
@@ -93,7 +91,7 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 	int playerNum = 0;
 	int enemyNum = 0;
 
-	GameConquestComponent* ruleComp = mWorld->GetComponent<GameConquestComponent>(mGameRuleEntity);
+	GameConquestComponent* ruleComp = mWorld->GetSingleton<GameConquestComponent>();
 	if (!ruleComp) return;
 
 	const int32 idx = ruleComp->mActiveZoneIndex;
@@ -215,16 +213,15 @@ void EscortPhase::Enter(WaveGameMode& mode)
 	// 호위 구간별 스포너 세트 적용
 	mode.GetScene()->ApplyPhaseSpawnerSet("Escort:" + std::to_string(mNextStopIndex));
 
-	Entity rule = mode.GetGameRuleEntity();
-	GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(rule);
+	GameRuleComponent* ruleComp = mWorld->GetSingleton<GameRuleComponent>();
 	ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Escort);
 
 
-	auto& state = mWorld->AddComponent<GameEscortComponent>(rule);
+	auto& state = mWorld->AddSingleton<GameEscortComponent>();
 	state.mRouteId = mRouteId;
 
 
-	GameEscortComponent* escortComp = mWorld->GetComponent<GameEscortComponent>(rule);
+	GameEscortComponent* escortComp = mWorld->GetSingleton<GameEscortComponent>();
 	escortComp->mEscortStage = static_cast<uint8>(mNextStopIndex);
 	EntityView pathEntity = mWorld->View<PathLoadComponent, TruckComponent>();
 
@@ -271,7 +268,7 @@ void EscortPhase::Enter(WaveGameMode& mode)
 
 void EscortPhase::Exit(WaveGameMode& mode)
 {
-	mWorld->RemoveComponent<GameEscortComponent>(mode.GetGameRuleEntity());
+	mWorld->RemoveSingleton<GameEscortComponent>();
 }
 
 void EscortPhase::PreUpdate(float dt, WaveGameMode& mode)
@@ -280,8 +277,7 @@ void EscortPhase::PreUpdate(float dt, WaveGameMode& mode)
 
 void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
-	Entity rule = mode.GetGameRuleEntity();
-	GameEscortComponent* ruleComp = mWorld->GetComponent<GameEscortComponent>(rule);
+	GameEscortComponent* ruleComp = mWorld->GetSingleton<GameEscortComponent>();
 	if (!ruleComp)
 		return;
 
@@ -486,9 +482,8 @@ uint8 EscortPhase::ResolveConquestZoneIdFromResumeEvent(const std::string& resum
 void ClearPhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
-	mGameRuleEntity = mode.GetGameRuleEntity();
 
-	if (auto* rule = mWorld->GetComponent<GameRuleComponent>(mGameRuleEntity))
+	if (auto* rule = mWorld->GetSingleton<GameRuleComponent>())
 		rule->mGamePhase = static_cast<uint8>(WavePhaseType::Clear);
 
 

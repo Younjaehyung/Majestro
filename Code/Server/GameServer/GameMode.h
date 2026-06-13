@@ -33,7 +33,6 @@ public:
 
 	virtual void SetScene(shared_ptr<Scene> scene) { mScene = scene; }
 	virtual shared_ptr<Scene> GetScene() const { return mScene; }
-	virtual Entity GetGameRuleEntity() const { return mGameRuleEntity; }
 
 
 protected:
@@ -45,7 +44,6 @@ protected:
 	bool mIsTransitioning = false; // 씬 전환 중 여부 (예: 로비에서 게임으로, 게임에서 결과 화면으로 등)
 
 	SceneId mTargetSceneId; // 전환할 씬의 ID (예: SceneId::Game, SceneId::Result 등)
-	Entity mGameRuleEntity; // 게임 규칙 컴포넌트가 붙은 엔티티
 
 };
 

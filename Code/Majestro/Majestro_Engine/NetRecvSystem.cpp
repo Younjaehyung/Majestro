@@ -573,9 +573,7 @@ void NetRecvSystem::HandleSceneState(const InputCommand& msg)
      if (!pkt) return;
 	 // 씬 상태 정보 처리 (예: 라운드 시작, 종료, 점수 업데이트 등)
 
-	 Entity e = mWorld->GetGameRuleEntity();
-
-	 GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
+	 GameRuleComponent* gameRuleComp = mWorld->GetSingleton<GameRuleComponent>();
 	 if (!gameRuleComp) return;
 
 	 gameRuleComp->mGameTime = pkt->GameTime;
@@ -593,9 +591,7 @@ void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
 	if (!pkt) return;
 	// Conquest 씬 상태 정보 처리 (예: 점령 상태, 팀 점수 등)
     
-    Entity e = mWorld->GetGameRuleEntity();
-
-	GameConquestComponent* conquestComp = mWorld->GetComponent<GameConquestComponent>(e);
+	GameConquestComponent* conquestComp = mWorld->GetSingleton<GameConquestComponent>();
 	if (!conquestComp) return;
 
 	conquestComp->mWaveCheckPoint = pkt->WaveCheckPoint;
@@ -613,8 +609,7 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
     const S2C_EscortPacket* pkt = msg.ViewAs<S2C_EscortPacket>();
     if (!pkt) return;
     // Escort 씬 상태 정보 처리 (예: 호위 대상 HP, 남은 시간 등)
-    Entity e = mWorld->GetGameRuleEntity();
-    GameEscortComponent* escortComp = mWorld->GetComponent<GameEscortComponent>(e);
+    GameEscortComponent* escortComp = mWorld->GetSingleton<GameEscortComponent>();
     if (!escortComp) return;
     //escortComp->mRouteId = pkt->RouteId;
     escortComp->mEscortProgress = pkt->EscortProgress;

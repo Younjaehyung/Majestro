@@ -127,8 +127,7 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 
 void UIGameInfoUpdateFeature::Update(float dt)
 {
-	Entity e = mWorld->GetGameRuleEntity();
-	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
+	GameRuleComponent* gameRuleComp = mWorld->GetSingleton<GameRuleComponent>();
 	if (!gameRuleComp) return;
 	mTotalGameTime = gameRuleComp->mGameTime;
 

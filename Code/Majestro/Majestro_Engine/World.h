@@ -21,7 +21,7 @@ public:
     }
     void Initialize() {
         mSystemManager = std::make_shared<SystemManager>(this);
-		mGameRuleEntity = CreateEntity(); // 게임 규칙 컴포넌트가 붙을 엔티티 생성
+		mSingletonEntity = CreateEntity();
     }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
     void Render() { mSystemManager->Render(); }
@@ -74,6 +74,21 @@ public:
     template<typename T>
     const ComponentPool<T>& GetComponentPool() const;
 
+public:
+    // 싱글톤 컴포넌트
+    Entity GetSingletonEntity() const { return mSingletonEntity; }
+
+    template<typename T, typename... Args>
+    T& AddSingleton(Args&&... args) { return AddComponent<T>(mSingletonEntity, std::forward<Args>(args)...); }
+
+    template<typename T>
+    T* GetSingleton() { return GetComponent<T>(mSingletonEntity); }
+
+    template<typename T>
+    const T* GetSingleton() const { return GetComponent<T>(mSingletonEntity); }
+
+    template<typename T>
+    void RemoveSingleton() { RemoveComponent<T>(mSingletonEntity); }
 
 public:
     // 전체 정리
@@ -98,7 +113,7 @@ public:
 	// Event Manager
 	std::shared_ptr<EventManager>& GetEventManager() { return mEventManager; }
 
-	Entity GetGameRuleEntity() const { return mGameRuleEntity; }
+
 public:
     void NetIdBinding(uint64 netID, Entity entity) { mNetIdMap->Bind(mSceneId, netID, entity); }
     void NetIdUnbinding(uint64 netID) { mNetIdMap->Unbind(mSceneId, netID); }
@@ -120,8 +135,8 @@ private:
     std::shared_ptr<PhysicsWorld>       mPhysicsWorld;
     std::shared_ptr<EventManager>       mEventManager;
 
-	// GameMode에서 사용할 게임 규칙 컴포넌트가 붙은 엔티티 참조
-	Entity mGameRuleEntity; // 게임 규칙 컴포넌트가 붙은 엔티티
+
+	Entity mSingletonEntity;	// 싱글톤 컴포넌트 전용 엔티티
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 };

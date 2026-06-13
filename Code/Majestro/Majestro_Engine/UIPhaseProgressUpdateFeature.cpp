@@ -19,7 +19,7 @@ void UIPhaseProgressUpdateFeature::Initialize(World* world)
 
 void UIPhaseProgressUpdateFeature::Update(float dt)
 {
-	Entity e = mWorld->GetGameRuleEntity();
+	Entity e = mWorld->GetSingletonEntity();
 
 	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
 
@@ -60,7 +60,7 @@ void UIPhaseProgressUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>&
 {
 
 
-	Entity e = mWorld->GetGameRuleEntity();
+	Entity e = mWorld->GetSingletonEntity();
 
 	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
 

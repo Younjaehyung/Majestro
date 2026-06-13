@@ -31,6 +31,7 @@ void World::Clear() {
     mEntities.clear();
     mComponentPools.clear();
     mNextEntityID = 1;
+    mSingletonEntity = Entity{};
 }
 
 void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)

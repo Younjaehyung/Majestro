@@ -25,8 +25,8 @@ void LobbyGameMode::PostUpdate(float deltaTime)
 
 void WaveGameMode::Initialize()
 {
-	mGameRuleEntity = mScene->GetWorld()->CreateEntity();
-	GameRuleComponent& rule = mScene->GetWorld()->AddComponent<GameRuleComponent>(mGameRuleEntity);
+	
+	GameRuleComponent& rule = mScene->GetWorld()->AddSingleton<GameRuleComponent>();
 
 
 	if (mHasCustomPhases)

@@ -12,8 +12,8 @@ void GamePhaseSystem::Initialize()
 
 void GamePhaseSystem::Update(float deltaTime)
 {
-	Entity e = mWorld->GetGameRuleEntity();
-	
+	Entity e = mWorld->GetSingletonEntity();
+
 	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
 	if (!gameRuleComp) return;
 	WavePhaseType currentPhase = static_cast<WavePhaseType>(gameRuleComp->mGamePhase);

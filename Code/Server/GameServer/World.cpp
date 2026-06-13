@@ -34,6 +34,7 @@ void World::Clear() {
     mComponentPools.clear();
     mNextEntityID = 1;
     mActiveBulletEntityIds.clear();
+    mSingletonEntity = Entity{};
 }
 
 uint32 World::GetSessionIDByEntity(Entity entity)

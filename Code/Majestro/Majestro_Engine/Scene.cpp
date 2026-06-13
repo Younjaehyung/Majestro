@@ -1628,7 +1628,7 @@ void FirstScene::Initialize()
 #endif
 	}
 
-	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
+	mWorld->AddSingleton<GameRuleComponent>();
 
 	particleSystem->SpawnEffect(L"Particle_AuraRise", Vec3(-8002.9f, 1027.2f, -12519.6f));
 
@@ -1753,7 +1753,7 @@ void SecondScene::Initialize()
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 
-	mWorld->AddComponent<GameRuleComponent>(mWorld->GetGameRuleEntity());
+	mWorld->AddSingleton<GameRuleComponent>();
 }
 #pragma endregion
 

@@ -20,7 +20,6 @@ public:
 
 protected:
 	bool mIsCompleted = false;
-    Entity mGameRuleEntity;
     shared_ptr<World> mWorld;
 };
 

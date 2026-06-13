@@ -26,6 +26,7 @@ public:
         mPhysicsWorld = std::make_shared<PhysicsWorld>(this);
         mSystemManager = std::make_shared<SystemManager>(this);
 		mEventManager = std::make_shared<EventManager>(this);
+		mSingletonEntity = CreateEntity();
     }
     void Update(float deltaTime) { mSystemManager->Update(deltaTime); }
 public:
@@ -75,6 +76,22 @@ public:
 
     template<typename T>
     const ComponentPool<T>& GetComponentPool() const;
+
+public: // 싱글톤 컴포넌트
+
+    Entity GetSingletonEntity() const { return mSingletonEntity; }
+
+    template<typename T, typename... Args>
+    T& AddSingleton(Args&&... args) { return AddComponent<T>(mSingletonEntity, std::forward<Args>(args)...); }
+
+    template<typename T>
+    T* GetSingleton() { return GetComponent<T>(mSingletonEntity); }
+
+    template<typename T>
+    const T* GetSingleton() const { return GetComponent<T>(mSingletonEntity); }
+
+    template<typename T>
+    void RemoveSingleton() { RemoveComponent<T>(mSingletonEntity); }
 
 public:
     // 전체 정리
@@ -135,6 +152,9 @@ private:
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 
     std::vector<EntityID> mActiveBulletEntityIds;
+
+    
+    Entity mSingletonEntity;    // 싱글톤 컴포넌트 전용 엔티티
 
     SpscRingQueue<InputCommand, 1024> mInboundCommands;
 };

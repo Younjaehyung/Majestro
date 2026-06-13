@@ -31,7 +31,7 @@ void GamePostRuleSystem::Update(float deltaTime)
 
 	if (mGameMode) {
 
-		GameRuleComponent* ruleComp = mWorld->GetComponent<GameRuleComponent>(mGameMode->GetGameRuleEntity());
+		GameRuleComponent* ruleComp = mWorld->GetSingleton<GameRuleComponent>();
 		if (ruleComp) ruleComp->mGameTime += deltaTime;
 
 
@@ -55,7 +55,7 @@ void GameNetRuleSystem::Update(float deltaTime)
 
         if (mSessionSet.empty()) return;
 
-        Entity rule = mGameMode->GetGameRuleEntity();
+        Entity rule = mWorld->GetSingletonEntity();
 
 
 		// 글로벌 — 항상 존재

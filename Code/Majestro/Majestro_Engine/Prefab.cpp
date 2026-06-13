@@ -1726,13 +1726,10 @@ HUDTimerPrefab::HUDTimerPrefab(World* world)
 	dbgTransform.mSize = Vec2(400.f, 50.f);
 	dbgTransform.mUILayerIndex = 15;
 
-	Entity mEntityID = world->GetGameRuleEntity(); // 게임 규칙 컴포넌트를 붙일 엔티티
-
-
 	world->AddComponent<UIScriptComponent>(timer).mOnUpdate =
-		[world, mEntityID, timer](float /*dt*/)
+		[world, timer](float /*dt*/)
 		{
-			GameRuleComponent* gameRuleComp = world->GetComponent<GameRuleComponent>(mEntityID);
+			GameRuleComponent* gameRuleComp = world->GetSingleton<GameRuleComponent>();
 			UITextComponent* textComp = world->GetComponent<UITextComponent>(timer);
 
 			if (gameRuleComp && textComp)

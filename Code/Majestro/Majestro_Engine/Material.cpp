@@ -100,13 +100,31 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat, const wstring& prefix)
 	bool test = true;
 	std::cout << "Create Materail ID" << GetID() << std::endl;
 
-	mParams.Diffuse =/* fbxMat.MaterialValueInfo.Diffuse;*/Vec4(1.0f,1.0f,1.0f,1.0f);
-	mParams.Ambient = /*fbxMat.MaterialValueInfo.Ambient;*/ Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	mParams.Specular = /*fbxMat.MaterialValueInfo.Specular; */ Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	auto SanitizeColor = [](const Vec4& c)->Vec4    
+		{
+		const float kEps = 0.001f;
+		const bool rgbZero = (c.x + c.y + c.z) < kEps;        // 색이 사실상 검정        
+		const bool alphaZero = c.w < kEps;                            // 투명 
+		return (rgbZero || alphaZero) ? Vec4(1.0f, 1.0f, 1.0f, 1.0f) : c;
+		};
+
+
+	mParams.Diffuse = SanitizeColor(fbxMat.MaterialValueInfo.Diffuse);
+	mParams.Ambient = SanitizeColor(fbxMat.MaterialValueInfo.Ambient);
+	mParams.Specular = SanitizeColor(fbxMat.MaterialValueInfo.Specular);
 	mParams.Emission = fbxMat.MaterialValueInfo.Emission;
 
-	mParams.Metallic = 0;// fbxMat.MaterialValueInfo.Metallic;
-	mParams.Roughness = 1.0f; fbxMat.MaterialValueInfo.Roughness;
+	mParams.Metallic =  fbxMat.MaterialValueInfo.Metallic;
+
+
+	const bool hasPbrTex    = !fbxMat.SpecularcMapName.empty() || !fbxMat.MetallicMapName.empty();
+	const bool hasNormalMap = !fbxMat.NormalMapName.empty();
+	float roughness = fbxMat.MaterialValueInfo.Roughness;
+	if (!hasPbrTex)
+		roughness = max(roughness, hasNormalMap ? 0.8f : 0.9f);
+	mParams.Roughness = roughness;
+
 	mParams.OcclusionMask = fbxMat.MaterialValueInfo.OcclusionMask;
 	mParams.AlphaTest = fbxMat.MaterialValueInfo.AlphaTest;
 
@@ -119,7 +137,9 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat, const wstring& prefix)
 		if (texName.empty())
 			return;
 		std::wstring n = s2ws(texName);
-		bool useSub = !prefix.empty() && std::filesystem::exists(subDir + n);
+		std::wstring ddsName = std::filesystem::path(n).replace_extension(L".dds").wstring();
+		bool useSub = !prefix.empty() &&
+			(std::filesystem::exists(subDir + n) || std::filesystem::exists(subDir + ddsName));
 		std::wstring key = useSub ? (prefix + L"/" + n) : n;
 		std::wstring path = (useSub ? subDir : flatDir) + n;
 		shared_ptr<Texture> texture = RESOURCEMANAGER.Load<Texture>(key, path);

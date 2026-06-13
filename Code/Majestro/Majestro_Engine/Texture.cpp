@@ -15,8 +15,17 @@ Texture::~Texture()
 {
 }
 
-void Texture::Load(const wstring& path)
+void Texture::Load(const wstring& inPath)
 {
+
+	wstring path = inPath;
+	wstring ext0 = std::filesystem::path(path).extension();
+	if (ext0 != L".dds" && ext0 != L".DDS")
+	{
+		wstring ddsPath = std::filesystem::path(path).replace_extension(L".dds").wstring();
+		if (std::filesystem::exists(ddsPath))
+			path = ddsPath;
+	}
 
 	wstring ext = std::filesystem::path(path).extension();
 	mIsCubeMap = false;

@@ -49,6 +49,7 @@
 #include "SocketSystem.h"
 #include "SocketFollowSystem.h"
 #include "WeaponTrailSystem.h"
+#include "AnimNotifySystem.h"
 #include "DashSpeedLineSystem.h"
 #include "PlayerSystem.h"
 #include "SpectateSystem.h"
@@ -1584,6 +1585,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimNotifySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
 	ParticleSystem* particleSystem = mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
@@ -1741,6 +1743,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimNotifySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();

@@ -2516,35 +2516,35 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"Ibanix_Skill_02", material);
 	}
 
-	//Title_Background
-	{
-		shared_ptr<Texture> texture = Load<Texture>(L"Title_Background", L"..\\Resources\\Image\\UI\\UI_Main_Title.png");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"UI");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+	////Title_Background
+	//{
+	//	shared_ptr<Texture> texture = Load<Texture>(L"Title_Background", L"..\\Resources\\Image\\UI\\UI_Main_Title.png");
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"UI");
+	//	material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
-		Add<Material>(L"Title_Background", material);
-	}
+	//	Add<Material>(L"Title_Background", material);
+	//}
 
-	//Ingame_Background
-	{
-		shared_ptr<Texture> texture = Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"UI");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+	////Ingame_Background
+	//{
+	//	shared_ptr<Texture> texture = Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"UI");
+	//	material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
-		Add<Material>(L"Ingame_Back", material);
-	}
+	//	Add<Material>(L"Ingame_Back", material);
+	//}
 
-	//Game_Loading_Background
-	{
-		shared_ptr<Texture> texture = Load<Texture>(L"Game_Loading_Background", L"..\\Resources\\Image\\UI\\UI_Fanthor_Loading.png");
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"UI");
-		material->SetTexture(texture, DIFFUSEMAP0INDEX);
+	////Game_Loading_Background
+	//{
+	//	shared_ptr<Texture> texture = Load<Texture>(L"Game_Loading_Background", L"..\\Resources\\Image\\UI\\UI_Fanthor_Loading.png");
+	//	shared_ptr<Material> material = make_shared<Material>();
+	//	material->SetShader(L"UI");
+	//	material->SetTexture(texture, DIFFUSEMAP0INDEX);
 
-		Add<Material>(L"Game_Loading_Background", material);
-	}
+	//	Add<Material>(L"Game_Loading_Background", material);
+	//}
 
 
 	// Ocean Material
@@ -2663,7 +2663,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
 		Load<Texture>(L"UI_Loading_Circle", L"..\\Resources\\Image\\UI\\UI_Loading_Circle.png");
-		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
+		//Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
 		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 
 

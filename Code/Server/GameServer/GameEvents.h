@@ -26,6 +26,7 @@ struct EvDamage
     Entity target;
     int32 amount;
     Entity instigator; // 0이면 환경
+    bool isCritical = false;
 };
 
 struct EvDespawn
@@ -61,6 +62,7 @@ struct EvHealthChanged
     int32 currentHp;
     int32 maxHp;
     Entity instigator{}; // 어택커 엔티티. 무효 엔티티면 hit이 아닌 변동(힐, DOT, 환경)
+    bool isCritical = false;
 };
 
 struct EvArmorChanged
@@ -124,12 +126,14 @@ struct EvRangedAttackRequest
 {
     Entity shooter;
     SkillType bulletType;
+    bool isCritical = false;
 };
 
 struct EvMeleeAttackRequest
 {
     Entity shooter;
     SkillType bulletType;
+    bool isCritical = false;
 };
 
 struct EvHeal

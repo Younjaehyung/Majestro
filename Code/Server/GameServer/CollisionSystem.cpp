@@ -576,6 +576,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                     damageEvent.instigator = instigator;
                     damageEvent.target = target;
                     damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
+                    damageEvent.isCritical = bullet->mIsCritical;
                     eventManager->Enqueue<EvDamage>(damageEvent);
                 }
             };

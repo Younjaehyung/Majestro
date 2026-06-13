@@ -229,6 +229,7 @@ void NetSendSystem::SendHealthEvents()
 			healthPkt.netEntityId = netComp->mNetEntityId;
 			healthPkt.currentHp = e.currentHp;
 			healthPkt.maxHp = e.maxHp;
+			healthPkt.isCritical = e.isCritical ? 1 : 0;
 
 			// 어택커 NetEntityId (없으면 0) — 클라이언트가 hit direction 계산에 사용.
 			if (e.instigator.IsValid())

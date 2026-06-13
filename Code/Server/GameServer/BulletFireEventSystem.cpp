@@ -27,12 +27,12 @@ void BulletFireEventSystem::Update(float dt)
 
 		eventManager->Consume<EvRangedAttackRequest>([&](const EvRangedAttackRequest& e)
 			{
-				ActivateBulletAndNotify(e.shooter, e.bulletType);
+				ActivateBulletAndNotify(e.shooter, e.bulletType, e.isCritical);
 			});
 	}
 }
 
-void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillType bulletType)
+void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillType bulletType, bool isCritical)
 {
 	if (false == mWorld->HasComponentPool<BulletComponent>())
 		return;
@@ -131,6 +131,8 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		BulletStat bulletStat = GetBulletStat(bulletType);
 		const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
 		bulletStat.Damage *= attackMultiplier;
+		if (isCritical)
+			bulletStat.Damage *= 2.0f;
 
 		bulletTransform->mWorldPosition = spawnPosition;
 		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
@@ -147,7 +149,7 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 
 		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
 		bulletComp->mPenetrates = bulletStat.Penetrates;
-		bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance);
+		bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance, isCritical);
 		
 		mWorld->RegisterActiveBullet(bulletEntity);
 

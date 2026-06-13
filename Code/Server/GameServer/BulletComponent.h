@@ -53,6 +53,7 @@ public:
 	float mKnockbackDistance = 0.0f;
 	float mElapsedTime = 0.0f;
 	bool mPenetrates = false;
+	bool mIsCritical = false;
 
 	Vec3 mDirection = Vec3::Forward;
 	Vec3 mVelocity = {};
@@ -61,7 +62,7 @@ public:
 	std::unordered_set<EntityID> mHitTargetIds;
 
 	void Activate(SkillType type, uint64 ownerNetId, uint32 bulletNetId, uint16 generation,
-		const Vec3& direction, float speed, float lifeTime, float damage, float knockbackDistance)
+		const Vec3& direction, float speed, float lifeTime, float damage, float knockbackDistance, bool isCritical = false)
 	{
 		mType = type;
 		mOwnerNetId = ownerNetId;
@@ -72,6 +73,7 @@ public:
 		mLifeTime = lifeTime;
 		mDamage = damage;
 		mKnockbackDistance = (std::max)(0.0f, knockbackDistance);
+		mIsCritical = isCritical;
 		mElapsedTime = 0.0f;
 		mHitTargetIds.clear();
 		mIsActive = true;
@@ -81,6 +83,7 @@ public:
 	{
 		mIsActive = false;
 		mElapsedTime = 0.0f;
+		mIsCritical = false;
 		mHitTargetIds.clear();
 	}
 

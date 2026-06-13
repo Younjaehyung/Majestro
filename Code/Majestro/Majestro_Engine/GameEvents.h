@@ -46,6 +46,7 @@ struct EvHealthChanged
     int32 hp;          // 새 HP
     int32 maxHp;       // 최대 HP
     int32 previousHp;  // 이전 HP
+    bool  isCritical{}; // 서버 권위 크리티컬 여부
 
     // 0 벡터면 없음, 피격시 존재
     Vec3 hitDirection{ 0.f, 0.f, 0.f };

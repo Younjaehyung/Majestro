@@ -303,7 +303,7 @@ void NetRecvSystem::HandleHealth(const InputCommand& msg)
     }
 
     mWorld->GetEventManager()->Enqueue(EvHealthChanged{
-       e, pkt->currentHp, pkt->maxHp, previousHp, hitDir
+       e, pkt->currentHp, pkt->maxHp, previousHp, pkt->isCritical != 0, hitDir
 		});
 }
 

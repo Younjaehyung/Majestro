@@ -125,20 +125,28 @@ void PlayerInputSystem::Update(float dt)
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {
-			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::ATTACK, now, Beat))
+			const uint8 judgement = EvaluateBeatJudgement(mainPlayerComponent, inputComp, beatSystem);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::ATTACK, now, Beat,
+				judgement == static_cast<uint8>(BeatJudgement::Perfect)))
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::ATTACK);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
-			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL1, now, Beat))
+			const uint8 judgement = EvaluateBeatJudgement(mainPlayerComponent, inputComp, beatSystem);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL1, now, Beat,
+				judgement == static_cast<uint8>(BeatJudgement::Perfect)))
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::SKILL1);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL2, now, Beat))
+			const uint8 judgement = EvaluateBeatJudgement(mainPlayerComponent, inputComp, beatSystem);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL2, now, Beat,
+				judgement == static_cast<uint8>(BeatJudgement::Perfect)))
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::SKILL2);
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
-			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::RELOAD, now, Beat))
+			const uint8 judgement = EvaluateBeatJudgement(mainPlayerComponent, inputComp, beatSystem);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::RELOAD, now, Beat,
+				judgement == static_cast<uint8>(BeatJudgement::Perfect)))
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::RELOAD);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {
@@ -162,6 +170,22 @@ void PlayerInputSystem::Update(float dt)
 	
 }
 
+uint8 PlayerInputSystem::EvaluateBeatJudgement(const MainPlayerComponent* mp, const InputComponent* inputComp, const BeatSystem* beatSystem) const
+{
+	(void)mp;
+	if (mp == nullptr || inputComp == nullptr || beatSystem == nullptr)
+		return static_cast<uint8>(BeatJudgement::Miss);
+
+	const float beatSec = beatSystem->mBpmSeconds;
+	const float serverSongPos = beatSystem->GetSongPosition();
+	const float inputSongPos = inputComp->InputSongPos;
+	const float drift = serverSongPos - inputSongPos;
+	if (drift < -kMaxInputSongPosDrift || drift > kMaxInputSongPosDrift)
+		return static_cast<uint8>(BeatJudgement::Miss);
+
+	return ClassifyBeatJudgement(inputSongPos, beatSec);
+}
+
 
 void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputComponent* inputComp,
                                       BeatSystem* beatSystem, InputButtons button)
@@ -169,8 +193,6 @@ void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputC
 	if (mp == nullptr || inputComp == nullptr || beatSystem == nullptr)
 		return;
 
-	const float beatSec       = beatSystem->mBpmSeconds;
-	const float serverSongPos = beatSystem->GetSongPosition();
 	const float inputSongPos  = inputComp->InputSongPos;
 
 	// 같은 입력에 대한 중복 판정 방지
@@ -179,12 +201,7 @@ void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputC
 	mp->mLastJudgedInputSongPos = inputSongPos;
 
 	// 판정은 입력 순간 곡 위치 기준. 
-	uint8 judgement;
-	const float drift = serverSongPos - inputSongPos;
-	if (drift < -kMaxInputSongPosDrift || drift > kMaxInputSongPosDrift)
-		judgement = static_cast<uint8>(BeatJudgement::Miss);	// 단 서버 현재 위치와 과도하게 벌어지면(지연/조작) Miss.
-	else
-		judgement = ClassifyBeatJudgement(inputSongPos, beatSec);
+	const uint8 judgement = EvaluateBeatJudgement(mp, inputComp, beatSystem);
 
 	mp->mLastBeatJudgement = judgement; // 판정 저장
 
@@ -204,10 +221,10 @@ void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputC
 
 	cout << "[BeatJudge] session " << netComp->mSessionId
 	     << " btn " << static_cast<int>(button) << " => " << static_cast<int>(judgement)
-	     << " (inputPos " << inputSongPos << " serverPos " << serverSongPos << ")" << endl;
+	     << " (inputPos " << inputSongPos << ")" << endl;
 }
 
-bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType)
+bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType, bool isCritical)
 {
 	switch (bulletType)
 	{
@@ -215,7 +232,7 @@ bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager,
 	case SkillType::DrumSkill1:
 	case SkillType::GuitarAttack:
 	case SkillType::GuitarSkill1:
-		eventManager.Enqueue<EvMeleeAttackRequest>({ shooter, bulletType });
+		eventManager.Enqueue<EvMeleeAttackRequest>({ shooter, bulletType, isCritical });
 		return true;
 
 	case SkillType::BaseAttack:
@@ -223,7 +240,7 @@ bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager,
 	case SkillType::GuitarAttack_1:
 	case SkillType::GuitarAttack_2:
 	case SkillType::GuitarAttack_3:
-		eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType });
+		eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType, isCritical });
 		return true;
 
 
@@ -297,7 +314,7 @@ void PlayerInputSystem::EnqueueAmmoChangedIfNeeded(World* world, EventManager& e
 }
 
 bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
-                                      InputButtons button, float now, float Beat)
+                                      InputButtons button, float now, float Beat, bool isCritical)
 {
 	if (mp == nullptr) return false;
 
@@ -390,7 +407,7 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 
 	const int prevAmmo = mp->mNowBullet;
 	const SkillType bulletType = ResolveSkillType(mp->mPlayerType, button, rhythm);
-	EnqueueAttackEventByCategory(em, e, bulletType);
+	EnqueueAttackEventByCategory(em, e, bulletType, isCritical);
 
 		switch (button)
 		{

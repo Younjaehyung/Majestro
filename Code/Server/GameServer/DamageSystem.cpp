@@ -72,6 +72,7 @@ void DamageSystem::Update(float deltaTime)
             healthChanged.currentHp = afterHp;
             healthChanged.maxHp = health->mMaxHp;
             healthChanged.instigator = e.instigator;
+            healthChanged.isCritical = e.isCritical;
             eventManager->Enqueue<EvHealthChanged>(healthChanged);
         }
 

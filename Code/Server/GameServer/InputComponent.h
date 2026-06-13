@@ -40,6 +40,8 @@ public:
     float Yaw = 0.0f;
     float Pitch = 0.0f;
 
+    float InputSongPos = 0.0f; // 마지막 행동 입력 순간의 공유 Song Clock 곡 위치(초) — 박자 판정용
+
     Vec3 AimCameraPosition = Vec3::Zero;
     Vec3 AimCameraDirection = Vec3::Forward;
     bool HasAimCameraRay = false;

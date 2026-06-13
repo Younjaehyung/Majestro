@@ -24,8 +24,14 @@ private:
 public:
 	float mBpmSeconds = 60.f / mBpm;
 
+	// 서버 권위 곡 진행 시간(초) — 공유 Song Clock 동기에 사용.
+	float GetSongPosition() const { return mSeconds; }
+
+	// 모듈로 전의 절대 박자 인덱스 — 리듬 전환 look-ahead 스케줄에 사용.
+	int64 GetAbsoluteBeatIndex() const { return static_cast<int64>(mSeconds / mBpmSeconds); }
+
 private:
-	int mBpm = 168;
+	int mBpm = 160;
 	int mBeat =0;
 
 	float mSeconds = 0.0f;

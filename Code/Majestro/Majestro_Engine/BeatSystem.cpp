@@ -14,14 +14,15 @@ void BeatSystem::Initialize()
 
 void BeatSystem::Update(float dt)
 {
-
+	// 박자 시계
 	mSeconds += dt;
-	//cout << "time :" << mSeconds << endl;
-	mBeat = (int)(mSeconds / mBpmSeconds);
-	mBeat %= mBpm;
-	//cout << "Beat :" << mBeat << endl;
-	float s = mSeconds - (float)mBeat * mBpmSeconds;
-	if (false == mWorld->HasComponentPool<BeatComponent>())return;
+
+	const int64 absBeat = static_cast<int64>(mSeconds / mBpmSeconds);
+	mBeat = static_cast<int>(absBeat % mBpm);
+	const float s = mSeconds - static_cast<float>(absBeat) * mBpmSeconds;
+
+	if (false == mWorld->HasComponentPool<BeatComponent>()) return;
+
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<BeatComponent>() };
 
 
@@ -36,8 +37,17 @@ void BeatSystem::Update(float dt)
 	for (auto& entity : entitys) {
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entity);
 		beatComponent->mBeat = this->mBeat;
-		if (s * s < mBonusTime * mBonusTime) beatComponent->mBouns = true;
-		else beatComponent->mBouns = false;
 	}
-	
+
+}
+
+void BeatSystem::SyncSongPosition(float serverSongPos)
+{
+	// 박자 시계(mSeconds)를 서버 곡위치로 보정
+	mHasSynced = true;
+	const float diff = serverSongPos - mSeconds;
+	if (fabsf(diff) > mResyncSnapThreshold)
+		mSeconds = serverSongPos;        // 큰 오차: 즉시 스냅
+	else
+		mSeconds += diff * mDriftCorrectGain; // 작은 오차: 서서히 수렴
 }

@@ -29,6 +29,7 @@
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
+#include "BeatSystem.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -86,6 +87,8 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_DESPAWN, [this](auto& m) { HandleDespawn(m); });
 	reg(PKT_Type::S2C_PKT_GIMMICK_STATE, [this](auto& m) { HandleGimmickState(m); });
 	reg(PKT_Type::S2C_PKT_RHYTHM_CHANGED, [this](auto& m) { HandleRhythmChanged(m); });
+	reg(PKT_Type::S2C_PKT_SYNC, [this](auto& m) { HandleSync(m); });
+	reg(PKT_Type::S2C_PKT_BEAT_JUDGEMENT, [this](auto& m) { HandleBeatJudgement(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -223,14 +226,44 @@ void NetRecvSystem::HandleRhythmChanged(const InputCommand& msg)
     MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
     if (!playerComp) return;
 
-    // 로컬 플레이어
-    if (mWorld->GetComponent<LocalPlayerComponent>(e))
-        return;
-
-    // 원격 플레이어
-    playerComp->mRhythm = static_cast<uint8>(pkt->changedRhythm % 4);
-    playerComp->mNextRhythm = static_cast<uint8>(pkt->changedRhythm % 4);
+    playerComp->mNextRhythm = NormalizeRhythm(pkt->changedRhythm);
+    playerComp->mRhythmApplyBeat = pkt->applyAtBeatIndex;
     playerComp->mHasQueuedRhythmChange = true;
+}
+
+// 공유 Song Clock: 서버와 클라 간 시간 동기화. 서버가 보낸 곡 위치 + 편도 지연으로 클라 곡 위치 보정
+void NetRecvSystem::HandleSync(const InputCommand& msg)
+{
+    const S2C_SyncPacket* pkt = msg.ViewAs<S2C_SyncPacket>();
+    if (!pkt) return;
+
+    auto systemManager = mWorld->GetSystemManager();
+    if (!systemManager) return;
+
+    BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>();
+    if (!beatSystem) return;
+
+    const double now = static_cast<double>(TIMER.GetTotalTime());
+    const double rtt = now - pkt->clientEchoTime;
+    // 비정상 RTT 방어 후 편도 지연 값 추정  
+    const float halfRtt = static_cast<float>((std::max)(0.0, (std::min)(rtt, 1.0)) * 0.5);
+
+    // 응답 도착 시점의 서버 곡 위치
+    const float estimatedServerSongPos = pkt->serverSongPos + halfRtt;  // 서버가 보낸 곡 위치 + 편도 지연
+    beatSystem->SyncSongPosition(estimatedServerSongPos);
+}
+
+// 서버 박자 판정 수신
+void NetRecvSystem::HandleBeatJudgement(const InputCommand& msg)
+{
+    const S2C_BeatJudgementPacket* pkt = msg.ViewAs<S2C_BeatJudgementPacket>();
+    if (!pkt) return;
+
+    // 클라 즉시 예측(predicted=true)을 서버 결과(predicted=false)로 보정
+    mWorld->GetEventManager()->Enqueue(EvBeatJudgement{ pkt->judgement, pkt->actionButton, false });
+
+    std::cout << "[BeatJudge/server] btn " << static_cast<int>(pkt->actionButton)
+              << " => " << static_cast<int>(pkt->judgement) << std::endl;
 }
 
 void NetRecvSystem::HandleHealth(const InputCommand& msg)

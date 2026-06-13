@@ -196,6 +196,9 @@ void AudioManager::Shutdown() {
 void AudioManager::Update(float dt) {
     mFMOD.Update();
 
+    // 시킹 검증 프로브 폴링 (디버그용)
+    PollSeekProbe();
+
     // 아무도 스펙트럼을 읽지 않는 씬(게임 플레이 등)에서는 FFT DSP를 bypass시켜  믹서 스레드의 FFT 연산을 중단
     constexpr float kSpectrumIdleBypassSec = 1.f;
     if (mSpectrumDSP && !mSpectrumBypassed) {
@@ -375,6 +378,90 @@ void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const
     if (!mAllBGM[idx]) return;
     // ����(Discrete Labeled) �Ķ���͸� ���ڿ� �󺧷� ���� ����
     FMOD_CHECK(mAllBGM[idx]->setParameterByNameWithLabel(name, label, ignoreSeekSpeed));
+}
+
+// FMOD 시킹
+void AudioManager::SeekBGM(SOUNDNAME soundEnum, float seconds) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return;
+    const int ms = static_cast<int>(seconds * 1000.f);
+    FMOD_CHECK(mAllBGM[idx]->setTimelinePosition(ms));
+}
+
+bool AudioManager::GetBGMTimelinePositionMs(SOUNDNAME soundEnum, int& outMs) const {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return false;
+    return mAllBGM[idx]->getTimelinePosition(&outMs) == FMOD_OK;
+}
+
+void AudioManager::SetBGMPitch(SOUNDNAME soundEnum, float pitch) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return;
+    mAllBGM[idx]->setPitch(pitch);
+}
+
+void AudioManager::SetBGMPaused(SOUNDNAME soundEnum, bool paused) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return;
+    mAllBGM[idx]->setPaused(paused);
+}
+
+void AudioManager::DebugStartSeekProbe(float targetSeconds) {
+    const SOUNDNAME stems[] = { SOUNDNAME::Drum, SOUNDNAME::Bass, SOUNDNAME::Elec };
+    const int reqMs = static_cast<int>(targetSeconds * 1000.f);
+
+    std::cout << "[SeekProbe] ==== setTimelinePosition(" << targetSeconds
+              << "s = " << reqMs << "ms) on Drum/Bass/Elec ====" << std::endl;
+
+    for (SOUNDNAME s : stems) {
+        const size_t i = static_cast<size_t>(s);
+        int before = -1;
+        GetBGMTimelinePositionMs(s, before);
+        try {
+            SeekBGM(s, targetSeconds);
+        }
+        catch (const std::exception& e) {
+            std::cout << "[SeekProbe] stem " << static_cast<int>(s)
+                      << " seek FAILED: " << e.what() << std::endl;
+            continue;
+        }
+        int immediate = -1;
+        GetBGMTimelinePositionMs(s, immediate);
+        std::cout << "[SeekProbe] stem " << static_cast<int>(s)
+                  << " before=" << before << "ms requested=" << reqMs
+                  << "ms immediateReadback=" << immediate << "ms" << std::endl;
+        mSeekProbe.lastMs[i] = immediate;
+    }
+
+    mSeekProbe.active = true;
+    mSeekProbe.framesLeft = 12;
+    mSeekProbe.requestedSec = targetSeconds;
+}
+
+void AudioManager::PollSeekProbe() {
+    if (!mSeekProbe.active) return;
+
+    const SOUNDNAME stems[] = { SOUNDNAME::Drum, SOUNDNAME::Bass, SOUNDNAME::Elec };
+
+    for (SOUNDNAME s : stems) {
+        const size_t i = static_cast<size_t>(s);
+        int now = -1;
+        if (!GetBGMTimelinePositionMs(s, now)) continue;
+        const int delta = now - mSeekProbe.lastMs[i];
+        std::cout << "[SeekProbe] f" << mSeekProbe.framesLeft
+                  << " stem " << static_cast<int>(s)
+                  << " pos=" << now << "ms (delta " << (delta >= 0 ? "+" : "") << delta << ")"
+                  << std::endl;
+        mSeekProbe.lastMs[i] = now;
+    }
+
+   /* if (--mSeekProbe.framesLeft <= 0) {
+        mSeekProbe.active = false;
+        std::cout << "[SeekProbe] ==== done. 판정 가이드: "
+                     "pos 가 요청값 근처에서 시작해 매 프레임 +dt(약 +16ms) 단조 증가하면 시킹 정상. "
+                     "요청과 동떨어진 값으로 스냅/역행/고정이면 트랜지션 리전·퀀타이즈 간섭(오디오 위상 보정 불가)."
+                  << std::endl;
+    }*/
 }
 
 bool AudioManager::GetBGMParam(const char* name, SOUNDNAME soundEnum, float& outValue, float* outFinalValue) const {

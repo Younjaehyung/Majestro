@@ -123,7 +123,15 @@ public:
 
 	uint8 mRhythm = 0;
 	uint8 mNextRhythm = 0;
-	bool mHasQueuedRhythmChange = false;
+
+	bool mHasQueuedRhythmChange = false;     // 서버가 스케줄한 전환 대기
+	int64 mRhythmApplyBeat = -1;             // 이 절대 박자 인덱스에 mNextRhythm 적용
+
+
+	uint8 mDesiredRhythm = 0;                // 최종 리듬
+	bool mRhythmChangeInFlight = false;      // 송신 후 적용 전까지 true
+	float mRhythmSettleTimer = 0.f;          // 클릭이 멎길 기다리는 중. 만료 시 송신 시도
+	static constexpr float kRhythmSettleTime = 0.15f; // 연타 합치기 윈도우(초)
 };
 
 //player base --------------------------------------------------

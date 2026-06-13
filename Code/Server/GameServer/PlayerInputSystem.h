@@ -4,6 +4,8 @@
 #include "BulletComponent.h"
 
 class MainPlayerComponent;
+class InputComponent;
+class BeatSystem;
 enum class InputButtons : uint8;
 
 class PlayerInputSystem : public System
@@ -23,6 +25,10 @@ private:
 
 	bool TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
 	                   InputButtons button, float now, float Beat);
+
+	// 입력 순간 곡 위치로 박자 판정
+	void JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputComponent* inputComp,
+	                    BeatSystem* beatSystem, InputButtons button);
 
 public:
 	const float mDPI = 5.f;

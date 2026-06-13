@@ -77,6 +77,13 @@ struct EvBeat {
     int beat; // 현재 박자 번호
 };
 
+// 박자 입력 판정 결과
+struct EvBeatJudgement {
+    uint8 judgement{};    // BeatJudgement (0=Miss,1=Good,2=Perfect)
+    uint8 actionButton{};
+    bool  predicted{};      // true 는 클라 즉시 1차 판정(반응성), false 는 서버 권위 확정.
+};
+
 struct EvRhythmChanged {
 	uint8 musicNum; // 리듬변경이 발생한 박자 번호
 };
@@ -161,4 +168,4 @@ struct EvSfxRequest
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged,
     EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged,
     EvRoomReadyChanged, EvRoomCharacterChanged, EvRoomError,
-    EvRoomCreate, EvRoomJoin, EvRoomListRequest, EvRoomLeave>;
+    EvRoomCreate, EvRoomJoin, EvRoomListRequest, EvRoomLeave, EvBeatJudgement>;

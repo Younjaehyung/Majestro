@@ -9,6 +9,8 @@
 #include "MovementComponent.h"
 #include "GameEvents.h"
 #include "EventManager.h"
+#include "BeatSystem.h"
+#include "GameTimer.h"
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
@@ -40,6 +42,12 @@ void NetRecvSystem::Update(float dt)
 			{
 				const C2S_RhythmChangedPacket* pkt = mInputCommand.ViewAs<C2S_RhythmChangedPacket>();
 				if (pkt) RecvRhythmChanged(mInputCommand.SessionId, *pkt);
+				break;
+			}
+			case PKT_Type::C2S_PKT_SYNC:
+			{
+				const C2S_SyncPacket* pkt = mInputCommand.ViewAs<C2S_SyncPacket>();
+				if (pkt) RecvSync(mInputCommand.SessionId, *pkt);
 				break;
 			}
 			case PKT_Type::C2S_GAME_START:
@@ -92,7 +100,8 @@ void NetRecvSystem::RecvAction(uint32 sessionId, const C2S_ActionPacket& pkt)
 	if (inputComp == nullptr) return;
 
 	inputComp->Buttons = pkt.Buttons;
-	
+	inputComp->InputSongPos = pkt.inputSongPos; // 박자 판정 기준(입력 순간 곡 위치)
+
 	inputComp->Yaw = pkt.Yaw;
 	inputComp->Pitch = pkt.Pitch;
 	inputComp->AimCameraPosition = Vec3(pkt.CameraX, pkt.CameraY, pkt.CameraZ);
@@ -119,17 +128,32 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 			return;
 	}
 
-	const uint8 previousRhythm = static_cast<uint8>(pkt.previousRhythm % 4);
-	const uint8 changedRhythm = static_cast<uint8>(pkt.changedRhythm % 4);
+	const uint8 previousRhythm = NormalizeRhythm(pkt.previousRhythm);
+	const uint8 changedRhythm = NormalizeRhythm(pkt.changedRhythm);
 	if (previousRhythm != playerComp->mRhythm)
 		return;
 
 	if (changedRhythm == playerComp->mRhythm)
 		return;
 
+	// 전환은 다음 마디(16박=6초) 경계에 스케줄
+	int64 applyAtBeatIndex = kBeatsPerBar;
+	if (auto systemManager = mWorld->GetSystemManager())
+	{
+		if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+		{
+			const int64 cur = beatSystem->GetAbsoluteBeatIndex();
+			int64 nextBar = (cur / kBeatsPerBar + 1) * kBeatsPerBar;
+			if (nextBar - cur < kRhythmLookAheadBeats)
+				nextBar += kBeatsPerBar;
+			applyAtBeatIndex = nextBar;
+		}
+	}
+
 	playerComp->mRhythm = previousRhythm;
 	playerComp->mNextRhythm = changedRhythm;
 	playerComp->mHasQueuedRhythmChange = true;
+	playerComp->mRhythmApplyBeat = applyAtBeatIndex;
 
 
 	if (std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager())
@@ -139,8 +163,33 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 		ev.previousRhythm = previousRhythm;
 		ev.changedRhythm = changedRhythm;
 		ev.playerType = playerComp->mPlayerType;
+		ev.applyAtBeatIndex = applyAtBeatIndex;
 		eventManager->Enqueue<EvRhythmChanged>(ev);
 	}
+}
+
+// ─── 시간 동기 (공유 Song Clock) ─────────────────────────────
+void NetRecvSystem::RecvSync(uint32 sessionId, const C2S_SyncPacket& pkt)
+{
+	// RTT 값 측정
+
+	auto systemManager = mWorld->GetSystemManager();
+	if (systemManager == nullptr)
+		return;
+
+	BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>();
+	if (beatSystem == nullptr)
+		return;
+
+	S2C_SyncPacket resp{};
+	resp.clientId = pkt.clientId;
+	resp.serverSongPos = beatSystem->GetSongPosition();
+	resp.clientEchoTime = pkt.SendTime;   // 클라 송신 시각 그대로 echo
+
+
+	SendRequest req{ sessionId, PKT_Type::S2C_PKT_SYNC, sizeof(S2C_SyncPacket) };
+	req.StoreAs<S2C_SyncPacket>(resp);
+	gSendQueue.Push(req);
 }
 
 // ─── 게임 시작 처리 ──────────────────────────────────────────

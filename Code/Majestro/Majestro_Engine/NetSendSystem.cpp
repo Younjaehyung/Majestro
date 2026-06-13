@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "NetSendSystem.h"
 #include "Engine.h"
-#include "EnginePch.h"
 #include "Entity.h"
 #include "World.h"
+#include "Timer.h"
 
 #include "NetEntityComponent.h"
 #include "InputManager.h"
@@ -13,10 +13,9 @@
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
+#include "BeatSystem.h"
 
 #include "SceneManager.h"
-
-#include <bitset>
 
 
 NetSendSystem::NetSendSystem(World* world) : System::System(world)
@@ -56,6 +55,22 @@ void NetSendSystem::Update(float deltaTime)
 
 	if (mMovementRate.Tick(deltaTime))           // 30Hz 주기 전송 (UDP)
 		TrySendMovement();
+
+	if (mSyncRate.Tick(deltaTime))               // 시간 동기 ping (TCP, 4Hz)
+		TrySendSync();
+}
+
+// 공유 Song Clock
+void NetSendSystem::TrySendSync()
+{
+	// 게임 씬(로컬 플레이어 존재)에서만 동기
+	if (!mWorld->HasComponentPool<LocalPlayerComponent>())
+		return;
+
+	C2S_SyncPacket pkt{};
+	pkt.clientId = Network::GetInstance().mClientId;
+	pkt.SendTime = static_cast<double>(TIMER.GetTotalTime());
+	SendPacket(pkt);
 }
 
 uint32 NetSendSystem::GetCurrentRoomId() const
@@ -133,7 +148,40 @@ void NetSendSystem::TrySendActionEvents()
 	FillCameraFields(pkt.CameraX, pkt.CameraY, pkt.CameraZ,
 	                 pkt.CameraDirX, pkt.CameraDirY, pkt.CameraDirZ);
 
+	// 박자 판정 기준
+	float songPos = 0.f, beatSec = 0.f;
+	if (auto systemManager = mWorld->GetSystemManager())
+	{
+		if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+		{
+			songPos = beatSystem->GetSongPosition();	// 입력 순간의 공유 Song Clock 곡 위치
+			beatSec = beatSystem->GetBeatSeconds();
+		}
+	}
+	pkt.inputSongPos = songPos;
+
 	SendPacket(pkt);
+
+	// 클라 즉시 1차 판정(예측)
+	const uint32 pressed = changed & pkt.Buttons;
+	const uint32 actionMask =
+		(1u << static_cast<uint8>(InputButtons::ATTACK)) |
+		(1u << static_cast<uint8>(InputButtons::SKILL1)) |
+		(1u << static_cast<uint8>(InputButtons::SKILL2)) |
+		(1u << static_cast<uint8>(InputButtons::RELOAD));
+	if ((pressed & actionMask) && beatSec > 0.f)
+	{
+		uint8 actionButton = static_cast<uint8>(InputButtons::ATTACK);
+		if      (pressed & (1u << static_cast<uint8>(InputButtons::ATTACK))) actionButton = static_cast<uint8>(InputButtons::ATTACK);
+		else if (pressed & (1u << static_cast<uint8>(InputButtons::SKILL1))) actionButton = static_cast<uint8>(InputButtons::SKILL1);
+		else if (pressed & (1u << static_cast<uint8>(InputButtons::SKILL2))) actionButton = static_cast<uint8>(InputButtons::SKILL2);
+		else if (pressed & (1u << static_cast<uint8>(InputButtons::RELOAD))) actionButton = static_cast<uint8>(InputButtons::RELOAD);
+
+		const uint8 judgement = ClassifyBeatJudgement(songPos, beatSec);
+		mWorld->GetEventManager()->Enqueue(EvBeatJudgement{ judgement, actionButton, true });
+		std::cout << "[BeatJudge/predict] btn " << static_cast<int>(actionButton)
+		          << " => " << static_cast<int>(judgement) << std::endl;
+	}
 }
 
 void NetSendSystem::FillCameraFields(float& outPosX, float& outPosY, float& outPosZ,

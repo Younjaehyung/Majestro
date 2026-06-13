@@ -10,6 +10,49 @@
 #include "TransformComponent.h"
 #include "GameTimer.h"
 
+namespace
+{
+	struct RhythmBuffDef
+	{
+		BuffType          type = BuffType::None;					// 버프 유형
+		BuffExecutionType exec = BuffExecutionType::Persistent;		// 버프 실행 방식
+	};
+
+	constexpr int kPlayerTypeCount = PlayerType::Count;
+
+
+	constexpr RhythmBuffDef kRhythmBuffTable[kPlayerTypeCount][static_cast<int>(Rhythm::Count)] =
+	{
+		/* Rudwig  */ {
+			{ BuffType::None,        BuffExecutionType::Persistent }, // Neutral
+			{ BuffType::AttackUp,    BuffExecutionType::Persistent }, // R1
+			{ BuffType::ScoreBoost,  BuffExecutionType::Persistent }, // R2
+			{ BuffType::MoveSpeedUp, BuffExecutionType::Persistent }, // R3
+		},
+		/* Ibanix  */ {
+			{ BuffType::None,           BuffExecutionType::Persistent }, // Neutral
+			{ BuffType::ScoreOverTime,  BuffExecutionType::Periodic   }, // R1
+			{ BuffType::ShieldOverTime, BuffExecutionType::Periodic   }, // R2
+			{ BuffType::HealOverTime,   BuffExecutionType::Periodic   }, // R3
+		},
+		/* Fanthor */ {
+			{ BuffType::None, BuffExecutionType::Persistent }, // Neutral
+			{ BuffType::None, BuffExecutionType::Persistent }, // R1 (없음)
+			{ BuffType::None, BuffExecutionType::Persistent }, // R2 (없음)
+			{ BuffType::None, BuffExecutionType::Persistent }, // R3 (없음)
+		},
+	};
+
+	
+	const RhythmBuffDef& LookupRhythmBuff(uint8 playerType, uint8 rhythm)
+	{
+		static constexpr RhythmBuffDef kNone{};
+		if (playerType >= kPlayerTypeCount || rhythm >= static_cast<uint8>(Rhythm::Count))
+			return kNone;	// 범위 밖은 None
+		return kRhythmBuffTable[playerType][rhythm];
+	}
+}
+
 BeatSystem::BeatSystem(World* world) : System(world)
 {
 	mBpmSeconds = 60.f / (float)mBpm;
@@ -37,119 +80,57 @@ void BeatSystem::Update(float dt)
 
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<BeatComponent>() };
 
-	float s = mSeconds - (float)mBeat * mBpmSeconds;
-	//cout << "seconds :" << s << endl;
 	for (auto& entity : entitys) {
 		BeatComponent* beatComponent = mWorld->GetComponent<BeatComponent>(entity);
 		beatComponent->mBeat = this->mBeat;
-		if (s*s < mBonusTime* mBonusTime)beatComponent->mBouns = true;
-		else beatComponent->mBouns = false;
 
 		//rythm buff----------------------------------------------------------
 
 		if (auto* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity))
 		{
-			if (mainPlayerComponent->mHasQueuedRhythmChange)
+			// look-ahead: 예약된 절대 박자에 도달했을 때만 전환 확정
+			if (mainPlayerComponent->mHasQueuedRhythmChange && GetAbsoluteBeatIndex() >= mainPlayerComponent->mRhythmApplyBeat)
 			{
 				BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(entity);
 				if (buffComponent == nullptr)
 					continue;
-				BuffData buff;
-				BuffType rBuff = BuffType::None;
 
-				if (mainPlayerComponent->mPlayerType == 0) {
-					switch (mainPlayerComponent->mNextRhythm) {
-					case 1:
-						buff.mKind = EffectKind::Buff;
-						buff.mType = BuffType::AttackUp;
-						buff.mDurationPolicy = DurationPolicy::UntilSignal;
-						buff.mExecutionType = BuffExecutionType::Persistent;
-						break;
-					case 2:
-						buff.mKind = EffectKind::Buff;
-						buff.mType = BuffType::ScoreBoost;
-						buff.mDurationPolicy = DurationPolicy::UntilSignal;
-						buff.mExecutionType = BuffExecutionType::Persistent;
-						break;
-					case 3:
-						buff.mKind = EffectKind::Buff;
-						buff.mType = BuffType::MoveSpeedUp;
-						buff.mDurationPolicy = DurationPolicy::UntilSignal;
-						buff.mExecutionType = BuffExecutionType::Persistent;
-						break;
-					}
-					switch (mainPlayerComponent->mRhythm) {
-					case 1:
-						rBuff = BuffType::AttackUp;
-						break;
-					case 2:
-						rBuff = BuffType::ScoreBoost;
-						break;
-					case 3:
-						rBuff = BuffType::MoveSpeedUp;
-						break;
-					}
-				}
-				if (mainPlayerComponent->mPlayerType == 1) {
-					switch (mainPlayerComponent->mNextRhythm) {
-					case 1:
-						buff.mKind = EffectKind::Buff;
-						buff.mType = BuffType::ScoreOverTime;
-						buff.mDurationPolicy = DurationPolicy::UntilSignal;
-						buff.mExecutionType = BuffExecutionType::Periodic;
-						buff.mTickInterval = mBpmSeconds;
-						buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
-						break;
-					case 2:
-						buff.mKind = EffectKind::Buff;
-						buff.mType = BuffType::ShieldOverTime;
-						buff.mDurationPolicy = DurationPolicy::UntilSignal;
-						buff.mExecutionType = BuffExecutionType::Periodic;
-						buff.mTickInterval = mBpmSeconds;
-						buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
-						break;
-					case 3:
-						buff.mKind = EffectKind::Buff;
-						buff.mType = BuffType::HealOverTime;
-						buff.mDurationPolicy = DurationPolicy::UntilSignal;
-						buff.mExecutionType = BuffExecutionType::Periodic;
-						buff.mTickInterval = mBpmSeconds;
-						buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
-						break;
-					}
-					switch (mainPlayerComponent->mRhythm) {
-					case 1:
-						rBuff = BuffType::ScoreOverTime;
-						break;
-					case 2:
-						rBuff = BuffType::ShieldOverTime;
-						break;
-					case 3:
-						rBuff = BuffType::HealOverTime;
-						break;
-					}
+				const uint8 playerType = static_cast<uint8>(mainPlayerComponent->mPlayerType);
+				const RhythmBuffDef& newDef = LookupRhythmBuff(playerType, mainPlayerComponent->mNextRhythm);
+				const RhythmBuffDef& oldDef = LookupRhythmBuff(playerType, mainPlayerComponent->mRhythm);
+
+				BuffData buff;
+				buff.mKind = EffectKind::Buff;
+				buff.mType = newDef.type;
+				buff.mDurationPolicy = DurationPolicy::UntilSignal;
+				buff.mExecutionType = newDef.exec;
+				if (newDef.exec == BuffExecutionType::Periodic)
+				{
+					buff.mTickInterval = mBpmSeconds;
+					buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
 				}
 
 				std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
-				
+
 				for (Entity player : players)
 				{
 					BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(player);
 					if (buffComp == nullptr)
 						continue;
 
-					if (mainPlayerComponent->mNextRhythm != 0)
+					if (newDef.type != BuffType::None)
 						buffComp->AddOrRefresh(buff);
 
-					if (mainPlayerComponent->mRhythm != 0)
-						buffComp->RemoveBuff(rBuff);
-						
+					if (oldDef.type != BuffType::None)
+						buffComp->RemoveBuff(oldDef.type);
 				}
 
 				mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
 				mainPlayerComponent->mHasQueuedRhythmChange = false;
+				mainPlayerComponent->mRhythmApplyBeat = -1;
 
-				cout << "Rhythm Changed:" << (int)mainPlayerComponent->mRhythm << endl;
+				cout << "Rhythm Changed @beat " << GetAbsoluteBeatIndex()
+					<< " : " << (int)mainPlayerComponent->mRhythm << endl;
 			}
 
 

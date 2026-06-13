@@ -9,6 +9,7 @@ enum PlayerType : uint8
 	Rudwig,
 	Ibanix ,
 	Fanthor,
+	Count,
 };
 
 class ControllerComponent : public Component<ControllerComponent>
@@ -139,9 +140,15 @@ public:
 	float mNextSkill2Time = 1.f;
 	float mNextReloadTime = 1.f;
 	float mNextRythmChangeTime = 1.f;
+
 	uint8 mRhythm = 0;
 	uint8 mNextRhythm = 0;
 	bool mHasQueuedRhythmChange = false;
+	int64 mRhythmApplyBeat = -1; // 이 절대 박자 인덱스 도달 시 mNextRhythm 확정
+	uint8 mLastBeatJudgement = 0; // 마지막 행동의 박자 판정(BeatJudgement)
+	float mLastJudgedInputSongPos = -1.f; // 동일 입력 중복 판정 방지
+
+
 	float mComboExpireTime = 0.0f;
 	float mComboInputWindow = 0.75f;
 	uint8 mComboStep = 0;

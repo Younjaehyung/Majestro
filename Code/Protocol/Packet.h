@@ -21,6 +21,7 @@ enum PKT_Type : uint32 {
 	C2S_PKT_MOVE,
 	C2S_PKT_ACTION,
 	C2S_PKT_RHYTHM_CHANGED,
+	C2S_PKT_SYNC,
 
 	// 로비 Room
 	C2S_ROOM_READY,
@@ -58,6 +59,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_COOLDOWN,
 	S2C_PKT_GIMMICK_STATE,
 	S2C_PKT_RHYTHM_CHANGED,
+	S2C_PKT_BEAT_JUDGEMENT,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -292,7 +294,44 @@ struct RoomListEntry {
 	uint8  reserved{};
 };
 
+// 박자 입력 판정 (공유 Song Clock 기반)
+// 판정은 패킷 도착 벽시계가 아니라 입력 순간의 곡 위치(songPos)로 한다
+enum class BeatJudgement : uint8 { Miss = 0, Good = 1, Perfect = 2 };
 
+constexpr float kBeatPerfectWindow = 0.08f; // 가장 가까운 박자까지 이내면 : Perfect
+constexpr float kBeatGoodWindow = 0.185f; // 그 밖 이내면 Good (160~161bpm 반박자 거의 0.18s)
+constexpr float kMaxInputSongPosDrift = 0.5f; // 서버 songPos 와 이보다 벌어지면 치팅/지연 : Miss
+
+// 리듬 전환 look-ahead 박자 수
+constexpr int64 kRhythmLookAheadBeats = 2;	// 서버가 (현재 절대박자 + 이 값)에 전환을 스케줄해 오차를 흡수.
+constexpr int64 kBeatsPerBar = 16;	// 한 마디의 박자 수
+
+// 리듬(노래 변주) 인덱스
+enum class Rhythm : uint8 { Neutral = 0, R1, R2, R3, Count };
+
+// 다음 리듬으로 순환(우클릭 입력).
+inline uint8 NextRhythm(uint8 cur) { return static_cast<uint8>((cur + 1) % static_cast<uint8>(Rhythm::Count)); }
+
+// 리듬 값 정규화
+inline uint8 NormalizeRhythm(uint8 v) { return static_cast<uint8>(v % static_cast<uint8>(Rhythm::Count)); }
+
+// 박자 판정
+inline uint8 ClassifyBeatJudgement(float songPos, float beatSec)
+{
+	if (beatSec <= 0.f) return static_cast<uint8>(BeatJudgement::Miss);
+
+	float phase = songPos - beatSec * static_cast<float>(static_cast<int64>(songPos / beatSec));
+
+	if (phase < 0.f) phase += beatSec;
+
+	const float err = (phase < beatSec - phase) ? phase : (beatSec - phase);
+
+	// 곡 위치를 가장 가까운 박자와 비교해 판정
+	if (err <= kBeatPerfectWindow) return static_cast<uint8>(BeatJudgement::Perfect);
+	if (err <= kBeatGoodWindow)    return static_cast<uint8>(BeatJudgement::Good);
+
+	return static_cast<uint8>(BeatJudgement::Miss);
+}
 ///////////////////////////////////////////
 
 struct LoginPacket : public PacketTcpHeader {
@@ -383,15 +422,20 @@ struct S2C_StartGamePacket : public PacketTcpHeader {
 };
 
 
+// 시간 동기 ping
+struct C2S_SyncPacket : public PacketTcpHeader {
+	uint32_t clientId{};
+
+	C2S_SyncPacket() : PacketTcpHeader{ sizeof(C2S_SyncPacket), PKT_Type::C2S_PKT_SYNC, 0.0 } {}
+};
+
+// 서버 권위 곡 시간(songPos)을 클라에 통지 — 공유 Song Clock.
 struct S2C_SyncPacket : public PacketTcpHeader {
 	uint32_t clientId{};
-	float    rhythmTime{};
+	float    serverSongPos{};   // 서버 BeatSystem 누적 곡 진행 시간(초)
+	double   clientEchoTime{};  // 클라 C2S_SyncPacket 의 SendTime echo
 
 	S2C_SyncPacket() : PacketTcpHeader{ sizeof(S2C_SyncPacket), PKT_Type::S2C_PKT_SYNC, 0.0 } {}
-	S2C_SyncPacket(uint32_t id, float time)
-		: PacketTcpHeader{ sizeof(S2C_SyncPacket), PKT_Type::S2C_PKT_SYNC, 0.0 },
-		clientId(id), rhythmTime(time) {
-	}
 };
 
 struct S2C_PosPacket : public PacketTcpHeader {
@@ -743,6 +787,7 @@ struct C2S_ActionPacket : public PacketTcpHeader {
 	float  CameraDirX{};
 	float  CameraDirY{};
 	float  CameraDirZ{};
+	float  inputSongPos{}; // 입력 순간의 공유 Song Clock 곡 위치(초) — 박자 판정 기준
 	C2S_ActionPacket() : PacketTcpHeader{ sizeof(C2S_ActionPacket), PKT_Type::C2S_PKT_ACTION, 0.0 } {}
 };
 
@@ -758,11 +803,22 @@ struct C2S_RhythmChangedPacket : public PacketTcpHeader {
 // 서버가 특정 플레이어의 리듬 변경을 전체 클라에 브로드캐스트 — 원격 플레이어 담당 음악 동기화.
 struct S2C_RhythmChangedPacket : public PacketTcpHeader {
 	uint64 netEntityId{};
+	int64  applyAtBeatIndex{};	// 공유 Song Clock 의 절대 박자 인덱스. 서버, 전 클라가 이 박자에 도달할 때 동시에 전환 적용.
 	uint8 previousRhythm{};
 	uint8 changedRhythm{};
 	uint8 playerType{};
 	uint8 reserved{};
 	S2C_RhythmChangedPacket() : PacketTcpHeader{ sizeof(S2C_RhythmChangedPacket), PKT_Type::S2C_PKT_RHYTHM_CHANGED, 0.0 } {}
+};
+
+
+// 서버가 행동을 발동한 플레이어에게 unicast 로 보내는 박자 판정 결과
+struct S2C_BeatJudgementPacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+	uint8  judgement{};    // BeatJudgement
+	uint8  actionButton{}; // InputButtons (어떤 입력에 대한 판정인지)
+	uint16 reserved{};
+	S2C_BeatJudgementPacket() : PacketTcpHeader{ sizeof(S2C_BeatJudgementPacket), PKT_Type::S2C_PKT_BEAT_JUDGEMENT, 0.0 } {}
 };
 
 

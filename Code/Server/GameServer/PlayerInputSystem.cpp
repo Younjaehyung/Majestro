@@ -125,32 +125,24 @@ void PlayerInputSystem::Update(float dt)
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::ATTACK)) {
-			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::ATTACK, now, Beat);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::ATTACK, now, Beat))
+				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::ATTACK);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
-			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL1, now, Beat);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL1, now, Beat))
+				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::SKILL1);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL2)) {
-			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL2, now, Beat);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::SKILL2, now, Beat))
+				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::SKILL2);
 		}
 
 		if (inputComp->IsButtonPressed(InputButtons::RELOAD)) {
-			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::RELOAD, now, Beat);
+			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::RELOAD, now, Beat))
+				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::RELOAD);
 		}
-		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {//mRhythm change - R click
+		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RhythmChangeState::Instance());
-			//if (beatComponent->mBouns) cout << "Hit Beat!" << endl;
-			//else cout << "fail" << endl;
-
-			/*if (mainPlayerComponent->mNextRythmChangeTime <= now) {
-				mainPlayerComponent->mNextRythmChangeTime = now + 0.1f;
-				mainPlayerComponent->mNextRhythm = (mainPlayerComponent->mNextRhythm + 1) % 4;
-				if (mainPlayerComponent->mRhythm != mainPlayerComponent->mNextRhythm) mainPlayerComponent->mHasQueuedRhythmChange = true;
-
-			}*/
-
-			//std::cout << "special" << std::endl;
-			//mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
 		}
 
 		//cout << "bullet: " << mainPlayerComponent->mNowBullet << endl;
@@ -170,6 +162,50 @@ void PlayerInputSystem::Update(float dt)
 	
 }
 
+
+void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputComponent* inputComp,
+                                      BeatSystem* beatSystem, InputButtons button)
+{
+	if (mp == nullptr || inputComp == nullptr || beatSystem == nullptr)
+		return;
+
+	const float beatSec       = beatSystem->mBpmSeconds;
+	const float serverSongPos = beatSystem->GetSongPosition();
+	const float inputSongPos  = inputComp->InputSongPos;
+
+	// 같은 입력에 대한 중복 판정 방지
+	if (inputSongPos == mp->mLastJudgedInputSongPos)
+		return;
+	mp->mLastJudgedInputSongPos = inputSongPos;
+
+	// 판정은 입력 순간 곡 위치 기준. 
+	uint8 judgement;
+	const float drift = serverSongPos - inputSongPos;
+	if (drift < -kMaxInputSongPosDrift || drift > kMaxInputSongPosDrift)
+		judgement = static_cast<uint8>(BeatJudgement::Miss);	// 단 서버 현재 위치와 과도하게 벌어지면(지연/조작) Miss.
+	else
+		judgement = ClassifyBeatJudgement(inputSongPos, beatSec);
+
+	mp->mLastBeatJudgement = judgement; // 판정 저장
+
+	// 행동한 플레이어에게만 unicast 통지
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+	if (netComp == nullptr || netComp->mSessionId == 0)
+		return;
+
+	S2C_BeatJudgementPacket pkt{};
+	pkt.netEntityId  = netComp->mNetEntityId;
+	pkt.judgement    = judgement;
+	pkt.actionButton = static_cast<uint8>(button);
+
+	SendRequest req{ netComp->mSessionId, PKT_Type::S2C_PKT_BEAT_JUDGEMENT, sizeof(S2C_BeatJudgementPacket) };
+	req.StoreAs<S2C_BeatJudgementPacket>(pkt);
+	gSendQueue.Push(req);
+
+	cout << "[BeatJudge] session " << netComp->mSessionId
+	     << " btn " << static_cast<int>(button) << " => " << static_cast<int>(judgement)
+	     << " (inputPos " << inputSongPos << " serverPos " << serverSongPos << ")" << endl;
+}
 
 bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType)
 {

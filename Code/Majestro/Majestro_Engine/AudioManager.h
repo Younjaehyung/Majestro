@@ -96,6 +96,14 @@ public:
     void SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed = false);
     void SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed = false);
 
+    // FMOD 점프 검증
+    void SeekBGM(SOUNDNAME soundEnum, float seconds);                       // setTimelinePosition(ms)
+    bool GetBGMTimelinePositionMs(SOUNDNAME soundEnum, int& outMs) const;   // getTimelinePosition
+    void SetBGMPitch(SOUNDNAME soundEnum, float pitch);                     // setPitch (드리프트 피치 너지)
+    void SetBGMPaused(SOUNDNAME soundEnum, bool paused);                    // setPaused
+    
+    void DebugStartSeekProbe(float targetSeconds);                          // 여러 프레임 위치를 로그
+        
     // 선택: 레벨 전환 시 묶음 프리로드/언로드
     void PreloadBanks(std::initializer_list<std::string> banks);
     void UnloadBanks(std::initializer_list<std::string> banks);
@@ -125,6 +133,17 @@ private:
     };
     static FMOD_RESULT F_CALLBACK OnBGMEventCallback(FMOD_STUDIO_EVENT_CALLBACK_TYPE type, FMOD_STUDIO_EVENTINSTANCE* event, void* parameters);
     void UpdateBGMTimelineMarker(SOUNDNAME soundEnum, const char* markerName);
+
+    // 시킹 검증 프로브: 시킹 직후 N 프레임 동안 타임라인 위치를 추적.
+    struct SeekProbe {
+        bool  active = false;
+        int   framesLeft = 0;
+        float requestedSec = 0.f;
+        int   lastMs[static_cast<size_t>(SOUNDNAME::End)] = {};
+    };
+
+    SeekProbe mSeekProbe;
+    void PollSeekProbe();
     void ReleaseBGMInstance(FMOD::Studio::EventInstance*& instance, SOUNDNAME soundEnum);
     void SyncBGMToListener(const FMOD_3D_ATTRIBUTES& listenerAttr);
 

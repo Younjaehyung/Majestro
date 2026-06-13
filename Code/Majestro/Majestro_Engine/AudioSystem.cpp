@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Engine.h"
+#include "Timer.h"
 #include "AudioManager.h"
 #include "AudioSystem.h"
 #include "InputManager.h"
@@ -49,9 +50,14 @@ void AudioSystem::Initialize()
 
     if (inGame)
     {
-        AUDIOMANAGER.RequestBGM("event:/Elec", SOUNDNAME::Elec);
-        AUDIOMANAGER.RequestBGM("event:/Bass", SOUNDNAME::Bass);
-        AUDIOMANAGER.RequestBGM("event:/Drum", SOUNDNAME::Drum);
+        AUDIOMANAGER.RequestBGM("event:/ElecMulti", SOUNDNAME::Elec);
+        AUDIOMANAGER.RequestBGM("event:/BassMulti", SOUNDNAME::Bass);
+        AUDIOMANAGER.RequestBGM("event:/DrumMulti", SOUNDNAME::Drum);
+
+        // T0 정렬 전까지 무음(일시정지)
+        AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Elec, true);
+        AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Bass, true);
+        AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Drum, true);
     }
     else
     {
@@ -92,6 +98,18 @@ void AudioSystem::Update(float deltaTime)
     }
     AUDIOMANAGER.SetListener(listener);
 
+    // FMOD 시킹 검증(디버그)
+    if (INPUT.GetKeyDown(eKeyCode::NUMPAD1))    // 2초 위치 시킹
+        AUDIOMANAGER.DebugStartSeekProbe(2.0f); 
+    if (INPUT.GetKeyDown(eKeyCode::NUMPAD2))    // 20초 위치 시킹
+        AUDIOMANAGER.DebugStartSeekProbe(20.0f);
+
+    // 곡 시작 T0 정렬
+    AlignBgmToServerSongClock();
+
+    // 드리프트 보정
+    CorrectBgmDrift();
+
     time += deltaTime;
 
     // 호위 BGM 파라미터
@@ -121,167 +139,198 @@ void AudioSystem::Update(float deltaTime)
     if (playerEntities.empty())
         return;
 
+    // 공유 Song Clock 절대 박자
+    int64 currentBeat = -1;
+    if (auto systemManager = mWorld->GetSystemManager())
+    {
+        if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+            currentBeat = beatSystem->GetAbsoluteBeatIndex();
+    }
+
     for (Entity playerEntity : playerEntities)
     {
         MainPlayerComponent* playerComponent = mWorld->GetComponent<MainPlayerComponent>(playerEntity);
         if (playerComponent == nullptr)
             continue;
 
-        // 음악 레이어 적용은 로컬/원격 모두
-        if (playerComponent->mHasQueuedRhythmChange)
+        LocalPlayerComponent* localPlayer = mWorld->GetComponent<LocalPlayerComponent>(playerEntity);
+
+        // 리듬 변경 전송
+        if (localPlayer && playerComponent->mRhythmSettleTimer > 0.f)
         {
-            ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
-            playerComponent->mHasQueuedRhythmChange = false;
-        }
-
-        // C2S 리듬 변경 송신은 로컬 소유 플레이어만
-        if (mWorld->GetComponent<LocalPlayerComponent>(playerEntity) &&
-            playerComponent->mRhythm != playerComponent->mNextRhythm) {
-
-            if (IsCurrentRhythmMatched(playerComponent->mPlayerType, playerComponent->mNextRhythm))
+            playerComponent->mRhythmSettleTimer -= deltaTime;
+            if (playerComponent->mRhythmSettleTimer <= 0.f)
             {
-                SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mNextRhythm, playerComponent->mPlayerType);
-                playerComponent->mRhythm = playerComponent->mNextRhythm;
-
-                //cout << "rythm change succese :" << (int)playerComponent->mRhythm << endl;
+                playerComponent->mRhythmSettleTimer = 0.f;
+                
+                if (!playerComponent->mRhythmChangeInFlight &&
+                    playerComponent->mDesiredRhythm != playerComponent->mRhythm)
+                {
+                    SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mDesiredRhythm, playerComponent->mPlayerType);
+                    playerComponent->mRhythmChangeInFlight = true;   // 적용될 때까지 추가 송신 차단
+                }
             }
         }
 
+        // 전환 적용
+        if (playerComponent->mHasQueuedRhythmChange && currentBeat >= playerComponent->mRhythmApplyBeat)
+        {
+            ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
+
+            // 디버그 : 전환이 곡의 어느 위치에서 일어나는지. 
+            int fmodMs = 0;
+
+            AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, fmodMs);
+
+
+            std::cout << "[RhythmApply] applyBeat=" << playerComponent->mRhythmApplyBeat
+                      << " curBeat=" << currentBeat
+                      << " beatInBar=" << (currentBeat % 16)
+                      << " fmodPos=" << (fmodMs / 1000.f) << "s"
+                      << " -> rhythm=" << (int)playerComponent->mNextRhythm << std::endl;
+            // 마디 정렬이 맞으면 beatInBar = 0, fmodPos = 0(또는 mLoopLen 배수 근처)
+
+
+            playerComponent->mRhythm = playerComponent->mNextRhythm;
+            playerComponent->mHasQueuedRhythmChange = false;
+            playerComponent->mRhythmApplyBeat = -1;
+            playerComponent->mRhythmChangeInFlight = false;      // 전환 완료 (다음 요청 허용)
+
+            
+            // 최신 desired 로 한 번에 전환
+            if (localPlayer && playerComponent->mDesiredRhythm != playerComponent->mRhythm)
+                playerComponent->mRhythmSettleTimer = MainPlayerComponent::kRhythmSettleTime;
+        }
     }
 
 }
 
+
+// 곡 시작 T0 정렬 
+void AudioSystem::AlignBgmToServerSongClock()
+{
+    if (mBgmStartAligned)
+        return;
+
+    // 곡 인스턴스가 생성 성공 여부 확인
+    int probeMs = 0;
+    if (!AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, probeMs))
+        return;
+
+    auto systemManager = mWorld->GetSystemManager();
+    if (systemManager == nullptr)
+        return;
+
+    BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>();
+    if (beatSystem == nullptr)
+        return;
+
+    // 서버 sync 가 한 번이라도 도착한 뒤에 시작
+    if (!beatSystem->HasSynced())
+        return;
+
+    // 일시정지 상태에서 박자 위치로 시킹 요청
+    if (mAlignSeekFrame < 0)
+    {
+        float targetPhase = fmodf(beatSystem->GetSongPosition(), mLoopLen);
+        if (targetPhase < 0.f)
+            targetPhase += mLoopLen;
+
+        AUDIOMANAGER.SeekBGM(SOUNDNAME::Drum, targetPhase);
+        AUDIOMANAGER.SeekBGM(SOUNDNAME::Bass, targetPhase);
+        AUDIOMANAGER.SeekBGM(SOUNDNAME::Elec, targetPhase);
+
+        mAlignSeekFrame = 0;
+        std::cout << "[T0] seek to beat phase = " << targetPhase << "s (paused)" << std::endl;
+        return;
+    }
+
+    // 시킹이 비동기로 반영될 시간 대기 후 정렬된 위치에서 재생 시작.
+    if (++mAlignSeekFrame < 5)
+        return;
+
+    AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Drum, false);
+    AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Bass, false);
+    AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Elec, false);
+
+    mBgmStartAligned = true;
+    std::cout << "[T0] BGM aligned & resumed" << std::endl;
+}
+
+// 드리프트 보정(피치 너지)
+void AudioSystem::CorrectBgmDrift()
+{
+    if (!mBgmStartAligned)   // T0 정렬 이후에만
+        return;
+
+    auto systemManager = mWorld->GetSystemManager();
+    if (systemManager == nullptr)
+        return;
+
+    BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>();
+    if (beatSystem == nullptr || !beatSystem->HasSynced())
+        return;
+
+    // 다 똑같아서 Elec으로 일단 하는중임
+    int fmodMs = 0;
+    if (!AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, fmodMs))
+        return;
+
+    // 위상 비교
+    const float fmodPhase = fmodf(fmodMs / 1000.f, mLoopLen);
+    const float beatPhase = fmodf(beatSystem->GetSongPosition(), mLoopLen);
+    float driftRaw = fmodPhase - beatPhase;
+    // 최단 방향으로 보정(-loopLen/2 ~ +loopLen/2)
+    if (driftRaw >  mLoopLen * 0.5f) driftRaw -= mLoopLen;
+    if (driftRaw < -mLoopLen * 0.5f) driftRaw += mLoopLen;
+
+    // EMA 평활화 (부드럽게 보정)
+    mDriftSmoothed = mDriftSmoothed * (1.0f - mDriftEmaAlpha) + driftRaw * mDriftEmaAlpha;
+
+
+    // drift>0(클라 음악이 서버보다 앞섬) : 느리게(pitch<1)
+    // drift<0(뒤처짐) : 빠르게(pitch>1)
+
+    float pitch = 1.0f;
+    if (fabsf(mDriftSmoothed) > mDriftDeadzone)
+    {
+        float nudge = -mDriftSmoothed * mDriftGain; // 앞서면 음수(느리게), 뒤처지면 양수(빠르게)
+        if (nudge >  mDriftMaxNudge) nudge =  mDriftMaxNudge;
+        if (nudge < -mDriftMaxNudge) nudge = -mDriftMaxNudge;
+        pitch = 1.0f + nudge;
+    }
+
+    AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Drum, pitch);
+    AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Bass, pitch);
+    AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Elec, pitch);
+
+    // 검증 로그(1초마다):   
+    mDriftLogTimer += DELTA_TIME;
+    if (mDriftLogTimer >= 1.0f)
+    {
+        mDriftLogTimer = 0.f;
+        std::cout << "[Drift] raw=" << (driftRaw * 1000.f)          // 드리프트 raw
+                  << "ms smooth=" << (mDriftSmoothed * 1000.f)      // 평활(ms)
+                  << "ms pitch=" << pitch << std::endl;             // 적용 피치
+    }
+}
 
 void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
 {
-    if (playerType > 2)
+    if (rhythm >= static_cast<uint8>(Rhythm::Count))
         return;
 
-
+    SOUNDNAME stem;
     switch (playerType)
     {
-    case 0: // Drum player
-        switch (rhythm)
-        {
-        case 0:
-            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.f, true);
-            break;
-        case 1:
-            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.25f, true);
-            break;
-        case 2:
-            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.50f, true);
-            break;
-        case 3:
-            AUDIOMANAGER.SetBGMParam("NextDrum", SOUNDNAME::Drum, 0.75f, true);
-            break;
-        }
-        break;
-
-    case 1: // Bass player
-        switch (rhythm)
-        {
-        case 0:
-            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.f, true);
-            break;
-        case 1:
-            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.25f, true);
-            break;
-        case 2:
-            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.50f, true);
-            break;
-        case 3:
-            AUDIOMANAGER.SetBGMParam("NextBass", SOUNDNAME::Bass, 0.75f, true);
-            break;
-        }
-        break;
-
-    case 2: // Elec player
-        switch (rhythm)
-        {
-        case 0:
-            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.f, true);
-            break;
-        case 1:
-            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.25f, true);
-            break;
-        case 2:
-            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.50f, true);
-            break;
-        case 3:
-            AUDIOMANAGER.SetBGMParam("NextElec", SOUNDNAME::Elec, 0.75f, true);
-            break;
-        }
-        break;
-
-    default:
-        return;
+    case 0: stem = SOUNDNAME::Drum; break; // Drum player — DrumMulti
+    case 1: stem = SOUNDNAME::Bass; break; // Bass player — BassMulti
+    case 2: stem = SOUNDNAME::Elec; break; // Elec player — ElecMulti
+    default: return;
     }
 
+    AUDIOMANAGER.SetBGMParam("Parameter 1", stem, static_cast<float>(rhythm), true);
 }
-
-bool AudioSystem::IsCurrentRhythmMatched(uint8 playerType, uint8 rhythm) const
-{
-    const SOUNDNAME soundEnum = GetSoundNameByPlayerType(playerType);
-    if (soundEnum == SOUNDNAME::End) {
-        return false;
-    }
-
-    std::string currentMarker;
-    if (!AUDIOMANAGER.GetBGMTimelineMarker(soundEnum, currentMarker))
-        return false;
-
-    const char* expectedMarker = GetExpectedMarkerByPlayerType(playerType, rhythm);
-    if (expectedMarker == nullptr) {
-        return false;
-    }
-
-    return currentMarker == expectedMarker;
-}
-
-SOUNDNAME AudioSystem::GetSoundNameByPlayerType(uint8 playerType)
-{
-    switch (playerType)
-    {
-    case 0: return SOUNDNAME::Drum;
-    case 1: return SOUNDNAME::Bass;
-    case 2: return SOUNDNAME::Elec;
-    default: return SOUNDNAME::End;
-    }
-}
-
-const char* AudioSystem::GetExpectedMarkerByPlayerType(uint8 playerType, uint8 rhythm)
-{
-    switch (playerType) {
-    case 0:
-        switch (rhythm % 4) {
-        case 0: return "Drum00";
-        case 1: return "Drum01";
-        case 2: return "Drum02";
-        case 3: return "Drum03";
-        default: return nullptr;
-        }
-    case 1:
-        switch (rhythm % 4) {
-        case 0: return "Bass00";
-        case 1: return "Bass01";
-        case 2: return "Bass02";
-        case 3: return "Bass03";
-        default: return nullptr;
-        }
-    case 2:
-        switch (rhythm % 4) {
-        case 0: return "Elec00";
-        case 1: return "Elec01";
-        case 2: return "Elec02";
-        case 3: return "Elec03";
-        default: return nullptr;
-        }
-    default:
-        return nullptr;
-    }
-}
-
 
 void OnExplosion(float x, float y, float z) {
     FMOD_3D_ATTRIBUTES a{};

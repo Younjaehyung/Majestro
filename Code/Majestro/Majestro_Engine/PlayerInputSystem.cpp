@@ -471,12 +471,13 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 
 	if (INPUT.GetMouseRightDown())
 	{
-		ctx.player->mNextRhythm = (ctx.player->mNextRhythm + 1) % 4;
-		if (ctx.player->mNextRhythm != ctx.player->mRhythm)
-			ctx.player->mHasQueuedRhythmChange = true;
+		// 즉시 송신하지 않고 원하는 최종 리듬만 누적
+		ctx.player->mDesiredRhythm = NextRhythm(ctx.player->mDesiredRhythm);
+		ctx.player->mRhythmSettleTimer = MainPlayerComponent::kRhythmSettleTime;
 
-		cout << "next rythm:" << static_cast<int>(ctx.player->mNextRhythm) << endl;
-		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ ctx.player->mNextRhythm });
+		cout << "desired rythm:" << static_cast<int>(ctx.player->mDesiredRhythm) << endl;
+
+		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ ctx.player->mDesiredRhythm });
 
 		// 리듬 변경 이미시브
 		auto* rhythmEmissive = mWorld->GetComponent<RhythmEmissiveComponent>(ctx.playerEntity);
@@ -491,14 +492,6 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 		ctx.movement->mMovingDirection.z -= 1;
 	if (INPUT.GetKey(eKeyCode::D))
 		ctx.movement->mMovingDirection.x += 1;
-
-	if (INPUT.GetKeyDown(eKeyCode::SPACE))
-	{
-		if (ctx.beat->mBouns)
-			cout << "Hit Beat!" << endl;
-		else
-			cout << "fail" << endl;
-	}
 
 	if (INPUT.GetKey(eKeyCode::Q))
 		ctx.movement->mMovingDirection.y -= 1;

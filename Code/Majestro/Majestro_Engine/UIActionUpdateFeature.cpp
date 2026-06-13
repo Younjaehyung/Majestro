@@ -7,6 +7,8 @@
 #include "UITransformComponent.h"
 #include "Engine.h"
 #include "RenderManager.h"
+#include "BeatSystem.h"
+
 
 void UIActionUpdateFeature::Update(float dt)
 {
@@ -18,10 +20,20 @@ void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
     if (mWorld->HasComponentPool<UIActionComponent>() == false)
         return;
 
-    bool beatFired = false;
-    mWorld->GetEventManager()->Consume<EvBeat>([&](const EvBeat&) {
-        beatFired = true;
-    });
+    float beatProgress = 0.f;   // 0~1, 한 박자 안에서의 위치
+    bool  hasBeat = false;
+    if (auto systemManager = mWorld->GetSystemManager())
+    {
+        if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+        {
+            const float beatSec = beatSystem->GetBeatSeconds();
+            if (beatSec > 0.f)
+            {
+                beatProgress = std::fmod(beatSystem->GetSongPosition(), beatSec) / beatSec;
+                hasBeat = true;
+            }
+        }
+    }
 
     for (Entity e : mWorld->GetEntitiesWithComponent<UIActionComponent>())
     {
@@ -48,10 +60,16 @@ void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
             }
         }
 
-        if (beatFired && uiAction->mState == UIActionState::Bounce)
+        // 박자 바운스
+        if (uiAction->mState == UIActionState::Bounce)
         {
-            uiAction->mElapsedTime = 0.f;
-            uiAction->mIsActive = true;
+            if (hasBeat)
+            {
+                const float decay = 1.f - beatProgress;
+                const float bounce = decay * decay * uiAction->mBounceAmplitude;
+                uiTransform->mFinalSize = baseSize * (1.f + bounce);
+            }
+            continue;
         }
 
         if (uiAction->mIsActive == false)
@@ -75,12 +93,6 @@ void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
         {
             const float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
             uiTransform->mFinalSize = baseSize * (uiAction->mDefaultScale + (uiAction->mHoverScale - uiAction->mDefaultScale) * progress);
-        }
-        else if (uiAction->mState == UIActionState::Bounce)
-        {
-            const float progress = std::clamp(uiAction->mElapsedTime / uiAction->mDuration, 0.f, 1.f);
-            const float bounce = std::sin(progress * kPI) * uiAction->mBounceAmplitude;
-            uiTransform->mFinalSize = baseSize * (1.f + bounce);
         }
 
         if (uiAction->mElapsedTime >= uiAction->mDuration)

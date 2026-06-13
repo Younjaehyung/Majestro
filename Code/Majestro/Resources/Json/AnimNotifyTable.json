@@ -1,0 +1,230 @@
+{
+  "_comment": "애니메이션 프레임 동기 VFX/SFX(AnimNotify) 테이블. 최상위 키는 클립명(Animator::GetName, 예: Anim_Fanthor_Attack_01). 값은 엔트리 배열이며, 각 엔트리는 해당 클립이 'frame'에 도달하는 순간 1회 발동된다(구간 아님). 필드: frame=발동 프레임, kind=vfx|sfx, anchor=root|socket(위치 기준), useUpper=상체/하체 레이어 플레이헤드로 판정(공격은 보통 true), vfx=Effekseer 리소스명, sfx=SfxTable.json 키, socket=anchor가 socket일 때 소켓 이름, offset/rotation/scale=벡터(DX 공간), follow=true면 VFX가 소켓을 수명 동안 추적(anchor=socket 전제), is3d=SFX 3D 여부. 미등록 클립/키는 무시되므로 준비된 항목부터 채우면 된다. JSON 값만 바꿔 재빌드 없이 타이밍 튜닝 가능.",
+
+  "Anim_Ibanix_Base": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Rudwig/Swing",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Idle": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Rudwig/Swing",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Run": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_RightRun": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    },
+    {
+      "frame": 19,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+
+  ],
+  "Anim_Ibanix_LeftRun": [
+    {
+      "frame": 0,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    },
+    {
+      "frame": 16,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_BackRun": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Land": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Jump": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+
+  "Anim_Ibanix_Fall": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Die": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+
+
+  "Anim_Ibanix_Attack_01": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+
+  "Anim_Ibanix_Skill_01": [
+    {
+      "frame": 20,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Rhythm": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+  "Anim_Ibanix_Reload": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ],
+
+
+
+  "Anim_Fanthor_Attack_01": [
+    {
+      "frame": 12,
+      "kind": "vfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "vfx": "VFX_Fanthor_Slash_01",
+      "socket": "weapon_tip",
+      "offset": [ 0, 0, 0 ],
+      "rotation": [ 0, 0, 0 ],
+      "scale": [ 12, 12, 12 ],
+      "follow": false
+    },
+    {
+      "frame": 11,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Fanthor/Swing",
+      "socket": "weapon_tip",
+      "is3d": true
+    }
+  ],
+
+  "Anim_Fanthor_Attack_02": [
+    {
+      "frame": 10,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Fanthor/Swing",
+      "socket": "weapon_tip",
+      "is3d": true
+    }
+  ],
+
+  "Anim_Rudwig_Attack_01": [
+    {
+      "frame": 8,
+      "kind": "sfx",
+      "anchor": "socket",
+      "useUpper": true,
+      "sfx": "notify/Rudwig/Swing",
+      "socket": "rhand_tip",
+      "is3d": true
+    }
+  ]
+
+}

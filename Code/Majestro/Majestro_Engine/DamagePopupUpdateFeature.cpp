@@ -23,7 +23,11 @@ namespace
     constexpr float POP_IN_HI = 0.15f;
     constexpr float POP_IN_SCALE = 0.3f;
     constexpr float FADE_OUT_SCALE = 0.2f;
+
     constexpr float BASE_SCALE = 1.0f;
+    constexpr float CRITICAL_SCALE_MUL = 1.3f; // 크리티컬 히트 글자 크기 배수
+    constexpr float NORMAL_OUTLINE_PX = 2.0f;   // 일반 피격 외곽선 두께(px)
+    constexpr float CRITICAL_OUTLINE_PX = 3.0f; // 크리티컬 외곽선 두께(px)
 
 }
 
@@ -52,6 +56,7 @@ void DamagePopupUpdateFeature::ConsumeEvents()
         DamagePopupComponent& dmgComp = mWorld->AddComponent<DamagePopupComponent>(popup);
         dmgComp.mAnchor = e.target;
         dmgComp.mDamageValue = dmg;
+        dmgComp.mIsCritical = e.isCritical;
 
         // X 방향으로 살짝 무작위 흔들기 — 연속 피격이 겹쳐 보이지 않게
         const float jitter = (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX) - 0.5f) * SPAWN_JITTER_X;
@@ -69,6 +74,13 @@ void DamagePopupUpdateFeature::ConsumeEvents()
 
         UITextComponent& text = mWorld->AddComponent<UITextComponent>(popup);
         text.mText = std::to_wstring(dmg);
+        if (e.isCritical) text.mText += L"!"; // 크리티컬 강조
+
+        // 외곽선
+        text.mOutlineThickness = e.isCritical ? CRITICAL_OUTLINE_PX : NORMAL_OUTLINE_PX;
+        text.mOutlineColor = e.isCritical
+            ? DirectX::XMVECTORF32{ { { 1.f, 1.f, 1.f, 1.f } } }   // 흰색
+            : DirectX::XMVECTORF32{ { { 0.f, 0.f, 0.f, 1.f } } };  // 검정
         text.mVisible = false; // 다음 Update에서 투영 후 켜진다
     });
 }
@@ -130,12 +142,19 @@ void DamagePopupUpdateFeature::UpdatePopups(float dt)
         // 페이드 / 스케일 애니메이션
         const float t = dmg->mAge / dmg->mLifetime;
         const float alpha = 1.f - SmoothStep(SMOOTHSTEP_LO, SMOOTHSTEP_HI, t);
-        const float scale = BASE_SCALE
+        float scale = BASE_SCALE
                             + POP_IN_SCALE * SmoothStep(POP_IN_LO, POP_IN_HI, t)
                             - FADE_OUT_SCALE * SmoothStep(SMOOTHSTEP_LO, SMOOTHSTEP_HI, t);
 
-        // 황금색
-        text->mColor = DirectX::XMVECTORF32{ { { 1.f, 0.85f, 0.2f, alpha } } };
+        // 크리티컬은 글자 크기 강조
+        if (dmg->mIsCritical)
+            scale *= CRITICAL_SCALE_MUL;
+
+        
+        if (dmg->mIsCritical)
+            text->mColor = DirectX::XMVECTORF32{ { { 1.f, 0.25f, 0.15f, alpha } } };
+        else
+            text->mColor = DirectX::XMVECTORF32{ { { 1.f, 0.85f, 0.2f, alpha } } };
         tr->mScale = Vec2(scale, scale);
     }
 

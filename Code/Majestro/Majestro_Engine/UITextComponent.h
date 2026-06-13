@@ -24,5 +24,9 @@ public:
 	bool mVisible = true; // false 이면 UIRenderSystem 텍스트 렌더 스킵
 
 	DirectX::XMVECTORF32 mColor{ { { 1.f, 1.f, 1.f, 1.f } } }; // RGBA
+
+	// 외곽선(아웃라인)
+	float mOutlineThickness{ 0.f }; // 픽셀 단위 외곽선 두께 (0이면 비활성)
+	DirectX::XMVECTORF32 mOutlineColor{ { { 0.f, 0.f, 0.f, 1.f } } }; // 외곽선 RGB (알파는 본체 따라감)
 };
 

@@ -214,6 +214,28 @@ void UIRenderSystem::TextUpdate()
         XMFLOAT2 origin = { textSize.x * pivot.x,
                              textSize.y * pivot.y };
 
+        // 외곽선(아웃라인) - 사실상 글자들 여러번 쓰기임
+        if (textComp->mOutlineThickness > 0.f)
+        {
+            const float th = textComp->mOutlineThickness;
+            static const DirectX::SimpleMath::Vector2 kDirs[8] = {
+                { -1.f, -1.f }, { 0.f, -1.f }, { 1.f, -1.f },
+                { -1.f,  0.f },                { 1.f,  0.f },
+                { -1.f,  1.f }, { 0.f,  1.f }, { 1.f,  1.f },
+            };
+
+            // 외곽선 알파는 본체 알파를 따라감
+            DirectX::XMVECTORF32 outlineColor = textComp->mOutlineColor;
+
+            outlineColor.f[3] *= textComp->mColor.f[3];
+            for (const auto& d : kDirs)
+            {
+                const DirectX::SimpleMath::Vector2 offsetPos = textComp->mFontPos + d * th;
+                mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
+                    offsetPos, outlineColor, textComp->mRotation, origin, scale);
+            }
+        }
+
         mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
             textComp->mFontPos, textComp->mColor, textComp->mRotation, origin, scale);
     }

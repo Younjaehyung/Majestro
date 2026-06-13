@@ -22,6 +22,9 @@ public:
 
     int32 mDamageValue{ 0 };
 
+    // 크리티컬 히트 여부
+    bool mIsCritical{ false };
+
     // 엔티티가 파괴된 이후에도 마지막 알려진 월드 위치를 유지하기 위한 캐시
     Vec3 mLastWorldPos{ Vec3::Zero };
     bool mHasLastWorldPos{ false };

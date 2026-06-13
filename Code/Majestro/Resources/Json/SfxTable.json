@@ -2,66 +2,195 @@
   "_comment": "효과음 매핑 테이블. 키 규칙: skill/<SkillType>/<EffectSpawnReason>, action/<PlayerType>/<ReplicatedActionState>, move/<PlayerType>/<ReplicatedMovementMode>, 그 외 자유 키는 EvSfxRequest로 발행. event 는 FMOD Studio 이벤트 경로. is3d=위치 기반 재생, loop=상태 연동(진입 시작/이탈 페이드아웃 정지), cooldown=동일 키 최소 재발행 간격(초). 미등록 키와 뱅크에 없는 이벤트는 콘솔 1회 로그 후 무시되므로 사운드가 준비된 항목부터 채우면 된다.",
   "defaultCooldown": 0.05,
   "sfx": {
+    "ui/hitmarker": {
+      "event": "event:/SFX/HitMarker",
+      "is3d": false
+    },
+    "ui/killmarker": {
+      "event": "event:/SFX/KillMarker",
+      "is3d": false
+    },
+    "ui/select": {
+      "event": "event:/SFX/UI/SFX_UI_Select",
+      "is3d": false
+    },
+    "ui/hover": {
+      "event": "event:/SFX/UI/SFX_UI_Switch",
+      "is3d": false,
+      "cooldown": 0.06
+    },
+    "ui/switch": {
+      "event": "event:/SFX/UI/SFX_UI_Switch",
+      "is3d": false,
+      "cooldown": 0.06
+    },
+    "ui/back": {
+      "event": "event:/SFX/UI/SFX_UI_Back",
+      "is3d": false
+    },
 
-    "ui/hitmarker": { "event": "event:/SFX/HitMarker", "is3d": false },
-    "ui/killmarker": { "event": "event:/SFX/KillMarker", "is3d": false },
-    "ui/select": { "event": "event:/SFX/Button_Click", "is3d": false },
-    "ui/hover": { "event": "event:/SFX/Button_Hover", "is3d": false, "cooldown": 0.06 },
-    "ui/switch": { "event": "event:/SFX/Button_Hover", "is3d": false, "cooldown": 0.06 },
+    "player/Rebirth": {
+      "event": "event:/SFX/Player/SFX_Player_Rebirth",
+      "is3d": true
+    },
+    "player/Die": {
+      "event": "event:/SFX/Player/SFX_Player_Die",
+      "is3d": true
+    },
+    "player/Cooltime": {
+      "event": "event:/SFX/Player/SFX_Player_Cooldown",
+      "is3d": false
+    },
+    "player/healpack": {
+      "event": "event:/SFX/Player/SFX_Player_Healpack",
+      "is3d": true
+    },
+    "player/jumppad": {
+      "event": "event:/SFX/Player/SFX_Player_Jumppad",
+      "is3d": true
+    },
+    "player/Hit": {
+      "event": "event:/SFX/Player/SFX_Player_Hit",
+      "is3d": true
+    },
 
-    "player/Rebirth": { "event": "event:/SFX/Hurt", "is3d": false },
-    "player/Die": { "event": "event:/SFX/Hurt", "is3d": false },
-    "player/Cooltime": { "event": "event:/SFX/Hurt", "is3d": false },
-    "player/healpack": { "event": "event:/SFX/Hurt", "is3d": false },
-    "player/jumpped": { "event": "event:/SFX/Hurt", "is3d": false },
+    "skill/GuitarSkill1/Fire": {
+      "event": "event:/SFX/Guitar_Skill1_Fire",
+      "is3d": true
+    },
+    "skill/BaseAttack/CollisionEntity": {
+      "event": "event:/SFX/Hit_Impact",
+      "is3d": true
+    },
 
+    "skill/Ibanix_Skill_01/ChargeShot": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_01",
+      "is3d": true
+    },
+    "skill/Ibanix_Skill_02/Dash": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_02",
+      "is3d": true,
+      "cooldown": 0.06
+    },
+    "skill/Rudwig_Skill_01/Dash": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_01",
+      "is3d": true,
+      "cooldown": 0.06
+    },
+    "skill/Rudwig_Skill_02/Shield": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_02",
+      "is3d": true
+    },
+    "skill/Fanthor_Skill_01/Smash": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_01",
+      "is3d": true
+    },
+    "skill/Fanthor_Skill_02/Dash": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_02",
+      "is3d": true,
+      "cooldown": 0.06
+    },
 
+    "action/Rudwig/RhythmChange": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_RhythmChange",
+      "is3d": true
+    },
+    "action/Ibanix/RhythmChange": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_RhythmChange",
+      "is3d": true
+    },
+    "action/Fanthor/RhythmChange": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_RhythmChange",
+      "is3d": true
+    },
 
+    "action/Ibanix/Reload": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Reload",
+      "is3d": true
+    },
+    "action/Fanthor/Reload": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Reload",
+      "is3d": true
+    },
+    "action/Rudwig/Reload": {
+      "event:/SFX/Rudwig/SFX_Rudwig_Reload",
+      "is3d": true
+    },
 
+    "action/Ibanix/Attack": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Atk",
+      "is3d": true,
+      "loop": false
+    },
+    "action/Rudwig/Attack": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Atk",
+      "is3d": true,
+      "loop": false
+    },
+    "action/Fanthor/Attack": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Atk",
+      "is3d": true,
+      "loop": false
+    },
 
+    "move/Ibanix/Jump": {
+      "event": "event:/SFX/Player/SFX_Player_Jump",
+      "is3d": true
+    },
+    "move/Ibanix/Land": {
+      "event": "event:/SFX/Land",
+      "is3d": true
+    },
 
-    "skill/GuitarSkill1/Fire": { "event": "event:/SFX/Guitar_Skill1_Fire", "is3d": true },
-    "skill/BaseAttack/CollisionEntity": { "event": "event:/SFX/Hit_Impact", "is3d": true },
+    "move/Rudwig/Jump": {
+      "event": "event:/SFX/Player/SFX_Player_Jump",
+      "is3d": true
+    },
+    "move/Rudwig/Land": {
+      "event": "event:/SFX/Land",
+      "is3d": true
+    },
 
-    
-    
-    "action/Rudwig/RhythmChange": { "event": "event:/SFX/RhythmChange", "is3d": true },
-    "action/Ibanix/RhythmChange": { "event": "event:/SFX/RhythmChange", "is3d": true },
-    "action/Fanthor/RhythmChange": { "event": "event:/SFX/RhythmChange", "is3d": true },
+    "move/Fanthor/Jump": {
+      "event": "event:/SFX/Player/SFX_Player_Jump",
+      "is3d": true
+    },
+    "move/Fanthor/Land": {
+      "event": "event:/SFX/Land",
+      "is3d": true
+    },
 
-    "action/Ibanix/Reload": { "event": "event:/SFX/Reload", "is3d": true },
-    "action/Fanthor/Reload": { "event": "event:/SFX/Reload", "is3d": true },
+    "notify/Ibanix/Run": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Footstep",
+      "is3d": true,
+      "cooldown": 0.25
+    },
+    "notify/Rudwig/Run": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Footstep",
+      "is3d": true,
+      "cooldown": 0.25
+    },
+    "notify/Fanthor/Run": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Footstep",
+      "is3d": true,
+      "cooldown": 0.25
+    },
 
-
-    "action/Ibanix/Attack": { "event": "event:/SFX/Aim_Hum", "is3d": true, "loop": true },
-    "action/Rudwig/Attack": { "event": "event:/SFX/Aim_Hum", "is3d": true, "loop": true },
-    "action/Fanthor/Attack": { "event": "event:/SFX/Aim_Hum", "is3d": true, "loop": true },
-
-
-    "action/Ibanix/S": { "event": "event:/SFX/Aim_Hum", "is3d": true, "loop": true },
-
-
-
-    "move/Ibanix/Jump": { "event": "event:/SFX/Jump", "is3d": true },
-    "move/Ibanix/Land": { "event": "event:/SFX/Land", "is3d": true },
-    "move/Ibanix/Dashing": { "event": "event:/SFX/Dash", "is3d": true, "cooldown": 0.2 },
-
-    "move/Rudwig/Jump": { "event": "event:/SFX/Jump", "is3d": true },
-    "move/Rudwig/Land": { "event": "event:/SFX/Land", "is3d": true },
-    "move/Rudwig/Dashing": { "event": "event:/SFX/Dash", "is3d": true, "cooldown": 0.2 },
-
-    "move/Fanthor/Jump": { "event": "event:/SFX/Jump", "is3d": true },
-    "move/Fanthor/Land": { "event": "event:/SFX/Land", "is3d": true },
-    "move/Fanthor/Dashing": { "event": "event:/SFX/Dash", "is3d": true, "cooldown": 0.2 },
-
-
-    "notify/Ibanix/Run": { "event": "event:/SFX/Sword_Swing", "is3d": true, "cooldown": 0.05 },
-    "notify/Rudwig/Run": { "event": "event:/SFX/Hammer_Swing", "is3d": true, "cooldown": 0.05 },
-    "notify/Fanthor/Run": { "event": "event:/SFX/Sword_Swing", "is3d": true, "cooldown": 0.05 },
-
-    "notify/Game/Clear": { "event": "event:/SFX/Sword_Swing", "is3d": true, "cooldown": 0.05 },
-    "notify/Game/Escort_Clear": { "event": "event:/SFX/Hammer_Swing", "is3d": true, "cooldown": 0.05 },
-    "notify/Game/Conquest_Clear": { "event": "event:/SFX/Sword_Swing", "is3d": true, "cooldown": 0.05 }
-
+    "notify/Game/Clear": {
+      "event": "event:/SFX/Game/SFX_Game_Clear",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Escort_Clear": {
+      "event": "event:/SFX/Game/SFX_Game_Escort_Clear",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Conquest_Clear": {
+      "event": "event:/SFX/Game/SFX_Game_Conquer_Clear",
+      "is3d": false,
+      "cooldown": 0.05
+    }
   }
 }
+

@@ -550,6 +550,12 @@
     <ClInclude Include="WeaponTrailSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="AnimNotifyComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimNotifySystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="SocketComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
@@ -917,6 +923,9 @@
       <Filter>World\System\Render\07.Effect</Filter>
     </ClCompile>
     <ClCompile Include="WeaponTrailSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimNotifySystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="SocketFollowSystem.cpp">

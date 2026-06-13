@@ -271,6 +271,8 @@
     <ClInclude Include="TrailRenderTypes.h" />
     <ClInclude Include="WeaponTrailComponent.h" />
     <ClInclude Include="WeaponTrailSystem.h" />
+    <ClInclude Include="AnimNotifyComponent.h" />
+    <ClInclude Include="AnimNotifySystem.h" />
     <ClInclude Include="SocketComponent.h" />
     <ClInclude Include="SocketFollowComponent.h" />
     <ClInclude Include="SocketFollowSystem.h" />
@@ -476,6 +478,7 @@
     <ClCompile Include="DashSpeedLineSystem.cpp" />
     <ClCompile Include="TrailRenderPass.cpp" />
     <ClCompile Include="WeaponTrailSystem.cpp" />
+    <ClCompile Include="AnimNotifySystem.cpp" />
     <ClCompile Include="SocketFollowSystem.cpp" />
     <ClCompile Include="SocketSystem.cpp" />
     <ClCompile Include="pch.cpp">

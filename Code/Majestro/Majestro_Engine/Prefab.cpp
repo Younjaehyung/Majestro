@@ -17,6 +17,7 @@
 #include "SocketFollowComponent.h"
 #include "RhythmEmissiveComponent.h"
 #include "WeaponTrailComponent.h"
+#include "AnimNotifyComponent.h"
 #include "DashSpeedLineComponent.h"
 #include "TerrainComponent.h"
 #include "UITransformComponent.h"
@@ -381,6 +382,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
+
+	world->AddComponent<AnimNotifyComponent>(mEntityID);
 
 
 	{

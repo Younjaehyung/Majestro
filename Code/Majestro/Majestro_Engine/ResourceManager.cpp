@@ -2880,7 +2880,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump\\VFX_Sector_Jump.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk");

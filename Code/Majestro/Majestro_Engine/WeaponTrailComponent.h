@@ -1,5 +1,4 @@
 #pragma once
-#include <string>
 #include "Component.h"
 #include "Entity.h"
 
@@ -82,6 +81,9 @@ public:
 	float mTrailEndTime = 0.0f;
 	uint32 mTrailStartFrame = 0;
 	uint32 mTrailEndFrame = 0;
+
+	// key : 애니메이션 이름  value : (startFrame, endFrame).
+	std::unordered_map<std::wstring, std::pair<uint32, uint32>> mFrameWindowByAnim;
 	float mLifetime = 0.16f;
 	float mSampleInterval = 0.005f;
 	float mMinSegmentDistance = 2.0f;

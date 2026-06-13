@@ -79,11 +79,20 @@ bool WeaponTrailSystem::IsAnimationWindowActive(Entity sourceEntity, const Weapo
 	float endTime = trail.mTrailEndTime;
 	if (trail.mUseAnimationFrameWindow)
 	{
+		// 현재 클립 이름이 맵에 있으면 애니별 윈도우로 덮어쓰기
+		uint32 winStartFrame = trail.mTrailStartFrame;
+		uint32 winEndFrame = trail.mTrailEndFrame;
+		if (const auto it = trail.mFrameWindowByAnim.find(clip->GetName());
+			it != trail.mFrameWindowByAnim.end())
+		{
+			winStartFrame = it->second.first;
+			winEndFrame = it->second.second;
+		}
 
 		const uint32 frameCount = max(clip->mClipMeta.NumFrame, 1u);
 		const float frameDuration = duration / static_cast<float>(frameCount);
-		const uint32 startFrame = min(trail.mTrailStartFrame, frameCount - 1u);
-		const uint32 endFrame = min(trail.mTrailEndFrame, frameCount - 1u);
+		const uint32 startFrame = min(winStartFrame, frameCount - 1u);
+		const uint32 endFrame = min(winEndFrame, frameCount - 1u);
 
 		startTime = static_cast<float>(startFrame) * frameDuration;
 		endTime = min(static_cast<float>(endFrame + 1u) * frameDuration, duration);

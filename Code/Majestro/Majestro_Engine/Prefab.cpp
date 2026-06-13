@@ -361,7 +361,15 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		socket.mSockets.push_back(SocketDef{ "weapon_tip",  "Bip001 Prop1", Matrix::CreateTranslation(Vec3(6.f, 159.f, 13.25f)) });		// 칼 끝
 		socket.mSockets.push_back(SocketDef{ "weapon_base", "Bip001 Prop1", Matrix::CreateTranslation(Vec3(0.f, 0.f, 0.f)) });		// 칼 손잡이 쪽
 
-		applySlashTrailStyle(world->AddComponent<WeaponTrailComponent>(mEntityID), mEntityID, "weapon_tip", "weapon_base", 11, 15, fanthorLook);
+		WeaponTrailComponent& fanthorTrail = world->AddComponent<WeaponTrailComponent>(mEntityID);
+		applySlashTrailStyle(fanthorTrail, mEntityID, "weapon_tip", "weapon_base", 11, 15, fanthorLook);
+
+
+		fanthorTrail.mFrameWindowByAnim = {
+			{ L"Anim_Fanthor_Attack_01", { 11, 15 } },	// Attack1 / Attack2 / Special
+			{ L"Anim_Fanthor_Attack_02", {  9, 13 } },	// ComboAttack1
+			{ L"Anim_Fanthor_Attack_03", {  5,  9 } },	// ComboAttack2
+		};
 	}
 		break;
 	}
@@ -692,7 +700,7 @@ JumpPadPrefab::~JumpPadPrefab()
 
 Entity JumpPadPrefab::Build(World* world, const InputCommand& ctx)
 {
-	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Escort_Shockwave", Vec3(15.f, 10.f, 15.f));
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Jump", Vec3(15.f, 10.f, 15.f));
 }
 
 MonsterSpawnerMarkerPrefab::MonsterSpawnerMarkerPrefab(World* world)

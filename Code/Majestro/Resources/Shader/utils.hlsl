@@ -1794,6 +1794,12 @@ float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
     return F0 + (maxVal - F0) * pow(saturate(1.0f - cosTheta), 5.0f);
 }
 
+// Specular Occlusion (Frostbite / Lagarde)
+float ComputeSpecularOcclusion(float NdotV, float ao, float roughness)
+{
+    return saturate(pow(saturate(NdotV + ao), exp2(-16.0f * roughness - 1.0f)) - 1.0f + ao);
+}
+
 // IBL 계산 결과 — diffuse와 specular를 분리해서 반환
 // diffuse  DiffuseLightTarget (final pass에서 albedo와 곱해짐)
 // specular  SpecularLightTarget (final pass에서 albedo 없이 그대로 더해짐)
@@ -1847,8 +1853,11 @@ IBLResult CalculateIBLAmbient(float3 N_view, float3 V_view,
     // BRDF LUT: (NdotV, roughness) → (scale, bias) — split-sum 근사의 BRDF 적분 항
     // g_sam_Terrain(s1)은 CLAMP 모드로 LUT 경계 오류를 방지
     float2 brdf = TextureMaps[PassParams.BrdfLutIndex].Sample(
-        g_sam_Terrain, float2(NdotV, 1.0f - roughness)).rg; // [수정 2]
-    result.specular = prefilteredColor * (F * brdf.x + brdf.y); // [수정 1]
+        g_sam_Terrain, float2(NdotV, roughness)).rg;
+    result.specular = prefilteredColor * (F * brdf.x + brdf.y);
+
+    // Horizon specular occlusion
+    result.specular *= smoothstep(0.0f, 0.25f, NdotV);
     return result;
 }
 

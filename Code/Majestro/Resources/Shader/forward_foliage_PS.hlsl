@@ -117,8 +117,9 @@ float4 PS_Main(VS_OUT input, bool isFrontFace : SV_IsFrontFace) : SV_Target
         viewNormal, V, baseColor.rgb, metallic, roughness);
 
 
+    // 풀은 specular 반사가 없음
     float3 finalRGB = baseColor.rgb * (totalDiffuse + ibl.diffuse)
-                    + (totalSpecular + ibl.specular);
+                    + totalSpecular;
 
     //return float4(finalRGB, 1,0f);
     return float4(finalRGB, baseColor.a);

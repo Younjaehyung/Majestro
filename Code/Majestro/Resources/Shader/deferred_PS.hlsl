@@ -84,6 +84,34 @@ PS_OUT PS_Main(VS_OUT input)
         // tangent -> view
         viewNormal = normalize(mul(tangentSpaceNormal, matTBN));
     }
+    else if (materials.DiffuseMap0Index != -1 &&
+             dot(input.viewTangent, input.viewTangent) > 1e-6f)
+    {
+        // 가짜 bump
+        const float bumpStrength = 0.2f;
+
+        float2 texSize;
+        TextureMaps[materials.DiffuseMap0Index].GetDimensions(texSize.x, texSize.y);
+        float2 texel = 1.0f / max(texSize, float2(1.0f, 1.0f));
+
+        const float3 lumaW = float3(0.299f, 0.587f, 0.114f);
+        float hC = dot(TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv).rgb, lumaW);
+        float hR = dot(TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv + float2(texel.x, 0.0f)).rgb, lumaW);
+        float hU = dot(TextureMaps[materials.DiffuseMap0Index].Sample(g_sam_0, input.uv + float2(0.0f, texel.y)).rgb, lumaW);
+
+        // 밝기 기울기 이용 tangent-space 노멀
+        float3 bumpN = normalize(float3(-(hR - hC) * bumpStrength,
+                                        -(hU - hC) * bumpStrength,
+                                        1.0f));
+
+        float3x3 matTBN = float3x3(
+            normalize(input.viewTangent),
+            normalize(input.viewBinormal),
+            normalize(input.viewNormal)
+        );
+
+        viewNormal = normalize(mul(bumpN, matTBN));
+    }
 
 
     float metallic = materials.Metallic;

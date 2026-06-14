@@ -81,9 +81,16 @@ PS_OUT PS_DirLight(VS_OUT input)
     }
 
     // IBL도 그림자 영역에서 완전히 차단하지 않고 최소값(0.15)을 유지하면서 감쇠
-    float iblVisibility = lerp(0.55f, 1.f, visibility);
+    float iblVisibility = lerp(0.15f, 1.f, visibility);
+
+    float NdotV = saturate(dot(viewNormal, V_view));
+    float specOcclusion = ComputeSpecularOcclusion(NdotV, ao, roughness);
+
+
+    float iblSpecularScale = lerp(0.25f, 1.0f, metallic);
+    
     output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao * iblVisibility, 1.0f);
-    output.specular = color.specular + float4(ibl.specular * ao * iblVisibility, 0.0f);
+    output.specular = color.specular + float4(ibl.specular * specOcclusion * iblVisibility * iblSpecularScale, 0.0f);
     output.diffuse.rgb += light.color.ambient.rgb * ao;
     return output;
 }

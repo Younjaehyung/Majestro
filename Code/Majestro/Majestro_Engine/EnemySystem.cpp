@@ -20,6 +20,7 @@ namespace
 	constexpr float kPianomanAttackRadius = 200.0f;
 	constexpr float kBongomanAttackRadius = 500.0f;
 	constexpr float kPlayerMeleeAttackRadius = 500.0f;
+	constexpr float kGuitarAttack2ExplosionRadius = 300.0f;
 	constexpr float kPlayerMeleeAttackAngleDegrees = 150.0f;
 	constexpr float kMeleeAttackForwardDistance = 3.0f;
 	constexpr float kAttackDebugDuration = 1.0f;
@@ -357,6 +358,14 @@ void EnemySystem::Update(float dt) {
 				isPlayerAttack = true;
 				radius = kPlayerMeleeAttackRadius;
 			}
+			else if (e.skillType == SkillType::GuitarAttack_2 &&
+				e.reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity))
+			{
+				if (!RenderSystem::GetDrawPlayerAttackRanges())
+					return;
+				isPlayerAttack = true;
+				radius = kGuitarAttack2ExplosionRadius;
+			}
 
 			if (radius <= 0.0f)
 				return;
@@ -373,6 +382,7 @@ void EnemySystem::Update(float dt) {
 			indicator.color = color;
 			indicator.isPlayerAttack = isPlayerAttack;
 			indicator.isSector = isPlayerAttack && e.skillType != SkillType::DrumSkill1;
+			indicator.isSphere = (e.skillType == SkillType::GuitarAttack_2);
 			mAttackDebugIndicators.push_back(indicator);
 		});
 	}
@@ -431,7 +441,9 @@ void EnemySystem::UpdateAttackDebugIndicators(float dt)
 				continue;
 		}
 
-		if (indicator.isSector)
+		if (indicator.isSphere)
+			SubmitDebugSphere(indicator.center, indicator.radius, indicator.color);
+		else if (indicator.isSector)
 			SubmitDebugSectorCylinder(
 				indicator.center,
 				indicator.forward,

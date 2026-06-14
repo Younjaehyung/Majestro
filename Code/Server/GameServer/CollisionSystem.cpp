@@ -20,6 +20,9 @@
 
 namespace
 {
+    constexpr float kGuitarAttack2ExplosionRadius = 300.0f;
+    constexpr float kGuitarAttack2ExplosionDamageScale = 0.6f;
+
     bool NormalizeOBBOrientation(BoundingOrientedBox& obb)
     {
         const XMVECTOR orientation = XMLoadFloat4(&obb.Orientation);
@@ -581,6 +584,49 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 }
             };
 
+        const auto enqueueExplosionDamage = [&](const Vec3& impactPosition, Entity directTarget)
+            {
+                if (bullet->mType != SkillType::GuitarAttack_2)
+                    return;
+                if (!mWorld->HasComponent<EnemyComponent>(directTarget))
+                    return;
+
+                auto eventManager = mWorld->GetEventManager();
+                if (!eventManager)
+                    return;
+
+                const float radiusSq = kGuitarAttack2ExplosionRadius * kGuitarAttack2ExplosionRadius;
+                const int32 explosionDamage = static_cast<int32>(
+                    (std::max)(0.0f, bullet->mDamage * kGuitarAttack2ExplosionDamageScale));
+                if (explosionDamage <= 0)
+                    return;
+
+                for (Entity splashTarget : dynamicEntities)
+                {
+                    if (!splashTarget.IsValid() || splashTarget == directTarget || splashTarget == bulletEntity)
+                        continue;
+                    if (IsDeadEnemy(mWorld, splashTarget))
+                        continue;
+                    if (!canDamageTarget(instigator, splashTarget))
+                        continue;
+
+                    TransformComponent* splashTransform = mWorld->GetComponent<TransformComponent>(splashTarget);
+                    if (!splashTransform)
+                        continue;
+
+                    Vec3 delta = splashTransform->mLocalPosition - impactPosition;
+                    if (delta.LengthSquared() > radiusSq)
+                        continue;
+
+                    EvDamage splashDamage{};
+                    splashDamage.instigator = instigator;
+                    splashDamage.target = splashTarget;
+                    splashDamage.amount = explosionDamage;
+                    splashDamage.isCritical = bullet->mIsCritical;
+                    eventManager->Enqueue<EvDamage>(splashDamage);
+                }
+            };
+
         for (const BulletHitCandidate& hitCandidate : hitCandidates)
         {
             if (!shouldPenetrate && hitCandidate.Distance > nearestHitDistance)
@@ -596,6 +642,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
 
             applyKnockback(hitCandidate.Target);
             enqueueDamage(hitCandidate.Target);
+            enqueueExplosionDamage(impactPosition, hitCandidate.Target);
 
             if (auto eventManager = mWorld->GetEventManager())
             {

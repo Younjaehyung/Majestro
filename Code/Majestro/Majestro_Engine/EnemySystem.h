@@ -21,6 +21,7 @@ private:
 		Vec4 color = Vec4::One;
 		bool isPlayerAttack = false;
 		bool isSector = false;
+		bool isSphere = false;
 	};
 
 	void UpdateAttackDebugIndicators(float dt);

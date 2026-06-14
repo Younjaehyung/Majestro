@@ -215,14 +215,16 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 50,100,50 };
 	world->AddComponent<MovableComponent>(mEntityID);
 
-	uint8 enemyType = static_cast<uint8>(mSpawnCount % 3);
+	uint8 enemyType = static_cast<uint8>(mSpawnCount % 6);
 	if (const EnemySpawnContext* spawnContext = ctx.ViewAs<EnemySpawnContext>())
 		enemyType = spawnContext->enemyType;
 
 	switch (enemyType) {
 	case EnemyType::HornMan:
-
-		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::HornMan, 300);
+	case EnemyType::Obelisk:
+	case EnemyType::Fly:
+	case EnemyType::Brass:
+		world->AddComponent<EnemyComponent>(mEntityID, enemyType, 300);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
 	case EnemyType::Pianoman:

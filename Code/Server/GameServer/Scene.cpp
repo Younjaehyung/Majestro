@@ -116,6 +116,12 @@ namespace
 			return static_cast<uint8>(EnemyType::Pianoman);
 		if (typeName == "Bongoman")
 			return static_cast<uint8>(EnemyType::Bongoman);
+		if (typeName == "Obelisk")
+			return static_cast<uint8>(EnemyType::Obelisk);
+		if (typeName == "Fly")
+			return static_cast<uint8>(EnemyType::Fly);
+		if (typeName == "Brass")
+			return static_cast<uint8>(EnemyType::Brass);
 		return static_cast<uint8>(EnemyType::HornMan);
 	}
 

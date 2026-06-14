@@ -5,7 +5,10 @@
 enum EnemyType {
 	HornMan,
 	Pianoman,
-	Bongoman
+	Bongoman,
+	Obelisk,
+	Fly,
+	Brass
 };
 
 enum class EnemyAnimState : uint8
@@ -14,6 +17,7 @@ enum class EnemyAnimState : uint8
 	Attack,
 	Dead,
 	Shield,
+	RushEnd,
 };
 
 class EnemyComponent : public Component<EnemyComponent>

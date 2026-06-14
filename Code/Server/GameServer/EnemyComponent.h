@@ -6,7 +6,10 @@
 enum EnemyType {
 	HornMan,
 	Pianoman,
-	Bongoman
+	Bongoman,
+	Obelisk,
+	Fly,
+	Brass
 };
 
 enum class EnemyAnimState : uint8
@@ -14,7 +17,8 @@ enum class EnemyAnimState : uint8
 	Run,
 	Attack,
 	Dead,
-	Shield
+	Shield,
+	RushEnd
 };
 
 class EnemyComponent : public Component<EnemyComponent>
@@ -26,6 +30,9 @@ public:
 	
 		switch(mEnemyType){
 		case EnemyType::HornMan:
+		case EnemyType::Obelisk:
+		case EnemyType::Fly:
+		case EnemyType::Brass:
 			mAttackCool = 16;
 			AttackRange = 1000.f;
 			AttackRangeSq = AttackRange * AttackRange;
@@ -70,4 +77,6 @@ public:
 	float mAttackAnimTime = 1.0f;
 	float mShieldAnimEndTime = 0.0f;
 	float mShieldAnimTime = 1.0f;
+	float mRushEndAnimEndTime = 0.0f;
+	float mRushEndAnimTime = 0.45f;
 };

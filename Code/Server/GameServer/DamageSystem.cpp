@@ -95,8 +95,19 @@ void DamageSystem::Update(float deltaTime)
                     }
 
                     const float nowSeconds = GetServerTotalTimeSeconds();
+                    const bool wasRushing =
+                        enemy->mAnimState == static_cast<uint8>(EnemyAnimState::Attack) ||
+                        enemy->mPianoRushVfxPlayed;
                     enemy->mNextAttackTime = nowSeconds + beatSeconds * enemy->mAttackCool;
-                    enemy->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+                    if (wasRushing)
+                    {
+                        enemy->mRushEndAnimEndTime = nowSeconds + enemy->mRushEndAnimTime;
+                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+                    }
+                    else
+                    {
+                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+                    }
                     enemy->mPianoRushVfxPlayed = false;
                 }
             }

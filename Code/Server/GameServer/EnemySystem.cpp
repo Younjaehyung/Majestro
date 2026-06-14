@@ -268,20 +268,62 @@ bool EnemySystem::HandleAttackState(
     case EnemyType::Pianoman:
     {
         constexpr float kPianoMeleeRange = 160.0f;
-
-        movementComp->mPathCount = 0;
-        movementComp->mPathIndex = 0;
+        constexpr float kPianoArriveThresholdSq = 4.0f * 100.0f;
         movementComp->mMovingSpeed = enemyComp->mSpeed * 1.2f;
 
         const bool pianoAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
         if (pianoAttackOnCooldown)
         {
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
             movementComp->mMovingDirection = Vec3::Zero;
         }
         else
         {
-            Vec3 rushDir = playerPos - myPos;
-            rushDir.y = 0.0f;
+            Vec3 rushTarget = playerPos;
+            auto navSystem = mWorld->GetNavSystem();
+            if (/*mUseOnnxBaseMove*/ false && navSystem)
+            {
+                Vec3 frontTarget = playerPos;
+                if (TryComputeOnnxModelTarget(L"front", entity, myPos, playerPos, navSystem, frontTarget))
+                    rushTarget = frontTarget;
+            }
+
+            bool hasPathDir = false;
+            Vec3 rushDir = Vec3::Zero;
+            if (navSystem && navSystem->IsInitialized())
+            {
+                bool ok = navSystem->FindPath(myPos, rushTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
+                if (!ok)
+                {
+                    movementComp->mPathCount = 1;
+                    movementComp->mPath[0] = rushTarget;
+                }
+
+                movementComp->mPathIndex = 0;
+                while (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount - 1)
+                {
+                    Vec3 toWp = movementComp->mPath[movementComp->mPathIndex] - myPos;
+                    toWp.y = 0.0f;
+                    if (toWp.LengthSquared() < kPianoArriveThresholdSq)
+                        ++movementComp->mPathIndex;
+                    else
+                        break;
+                }
+
+                if (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount)
+                {
+                    rushDir = movementComp->mPath[movementComp->mPathIndex] - myPos;
+                    rushDir.y = 0.0f;
+                    hasPathDir = true;
+                }
+            }
+
+            if (!hasPathDir)
+            {
+                rushDir = rushTarget - myPos;
+                rushDir.y = 0.0f;
+            }
 
             const bool canTriggerRushVfx = nearestPlayerDistSq > kPianoMeleeRange * kPianoMeleeRange;
             if (rushDir.LengthSquared() > 1e-8f)
@@ -553,7 +595,18 @@ bool EnemySystem::TryComputeOnnxBaseMoveTarget(
     const std::shared_ptr<Navigation>& navSystem,
     Vec3& outTarget) const
 {
-    if (!AIMANAGER.HasModel(L"base_move"))
+    return TryComputeOnnxModelTarget(L"base_move", entity, myPos, playerPos, navSystem, outTarget);
+}
+
+bool EnemySystem::TryComputeOnnxModelTarget(
+    const std::wstring& modelKey,
+    const Entity& entity,
+    const Vec3& myPos,
+    const Vec3& playerPos,
+    const std::shared_ptr<Navigation>& navSystem,
+    Vec3& outTarget) const
+{
+    if (!AIMANAGER.HasModel(modelKey))
         return false;
 
     TransformComponent* myTransform = mWorld->GetComponent<TransformComponent>(entity);
@@ -652,12 +705,12 @@ bool EnemySystem::TryComputeOnnxBaseMoveTarget(
 
     AIManager::OutputArray output{};
     std::wstring errorMessage;
-    if (!AIMANAGER.RunModel(L"base_move", input, output, &errorMessage))
+    if (!AIMANAGER.RunModel(modelKey, input, output, &errorMessage))
     {
         static bool loggedFailure = false;
         if (!loggedFailure)
         {
-            std::wcerr << L"[EnemySystem] ONNX base_move inference failed: " << errorMessage << std::endl;
+            std::wcerr << L"[EnemySystem] ONNX " << modelKey << L" inference failed: " << errorMessage << std::endl;
             loggedFailure = true;
         }
         return false;

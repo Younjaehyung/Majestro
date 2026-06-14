@@ -41,6 +41,14 @@ private:
         const std::shared_ptr<Navigation>& navSystem,
         Vec3& outTarget) const;
 
+    bool TryComputeOnnxModelTarget(
+        const std::wstring& modelKey,
+        const Entity& entity,
+        const Vec3& myPos,
+        const Vec3& playerPos,
+        const std::shared_ptr<Navigation>& navSystem,
+        Vec3& outTarget) const;
+
     bool HandleAttackState(
         const Entity& entity,
         EnemyComponent* enemyComp,

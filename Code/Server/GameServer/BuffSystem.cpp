@@ -7,6 +7,7 @@
 #include "GameEvents.h"
 #include "GameTimer.h"
 #include "HealthComponent.h"
+#include "PlayerComponent.h"
 #include "World.h"
 
 BuffSystem::BuffSystem(World* world)
@@ -62,6 +63,18 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
     auto eventManager = mWorld->GetEventManager();
     if (!eventManager)
         return;
+
+    if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(target))
+    {
+        if (player->IsDeathActive())
+            return;
+
+        if (HealthComponent* health = mWorld->GetComponent<HealthComponent>(target))
+        {
+            if (health->mCurrentHp <= 0)
+                return;
+        }
+    }
 
     switch (buff.mType)
     {

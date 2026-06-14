@@ -9,6 +9,7 @@
 #include "BuffComponent.h"
 #include "TransformComponent.h"
 #include "GameTimer.h"
+#include "HealthComponent.h"
 
 namespace
 {
@@ -165,6 +166,18 @@ void BeatSystem::ApplyPendingBuffRequests()
 
 	for (const EvBuffRequest& request : mPendingBuffRequests)
 	{
+		if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(request.target))
+		{
+			if (player->IsDeathActive())
+				continue;
+
+			if (HealthComponent* health = mWorld->GetComponent<HealthComponent>(request.target))
+			{
+				if (health->mCurrentHp <= 0)
+					continue;
+			}
+		}
+
 		ArmorComponent* armorComponent = mWorld->GetComponent<ArmorComponent>(request.target);
 		if (armorComponent == nullptr)
 			continue;

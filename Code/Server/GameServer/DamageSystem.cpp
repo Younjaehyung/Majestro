@@ -156,6 +156,8 @@ void DamageSystem::Update(float deltaTime)
             if (player->IsDeathActive())
                 return;
         }
+        if (health->mCurrentHp <= 0)
+            return;
 
         const int32 appliedHeal = (std::max)(0, e.amount);
         if (appliedHeal == 0)

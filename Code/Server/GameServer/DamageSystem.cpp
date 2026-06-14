@@ -37,6 +37,8 @@ void DamageSystem::Update(float deltaTime)
         MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(e.target);
         if (player && player->IsDeathActive())
             return;
+        if (player && player->mDash)
+            return;
 
         const int32 appliedDamage = (std::max)(0, e.amount);
         const int32 beforeHp = health->mCurrentHp;

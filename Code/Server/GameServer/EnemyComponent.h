@@ -30,8 +30,27 @@ public:
 	
 		switch(mEnemyType){
 		case EnemyType::HornMan:
+			mAttackCool = 16;
+			AttackRange = 1000.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
+			mNextUtilityTime = GetServerTotalTimeSeconds();
+			break;
 		case EnemyType::Obelisk:
+			mAttackCool = 16;
+			AttackRange = 1000.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
+			mSpeed = 0.0f;
+			mNextUtilityTime = GetServerTotalTimeSeconds();
+			mUtilityIntervalBeats = 4.0f;
+			mUtilityAmount = 10;
+			break;
 		case EnemyType::Fly:
+			mAttackCool = 16;
+			AttackRange = 1000.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
 		case EnemyType::Brass:
 			mAttackCool = 16;
 			AttackRange = 1000.f;
@@ -79,4 +98,8 @@ public:
 	float mShieldAnimTime = 1.0f;
 	float mRushEndAnimEndTime = 0.0f;
 	float mRushEndAnimTime = 0.45f;
+	float mNextUtilityTime = 0.0f;
+	float mUtilityIntervalBeats = 0.0f;
+	int32 mUtilityAmount = 0;
+	Entity mLinkedPlayer{};
 };

@@ -11,11 +11,13 @@
 #include "BeatSystem.h"
 #include "EnemyComponent.h"
 #include "ArmorComponent.h"
+#include "BuffComponent.h"
 #include "HealthComponent.h"
 #include "GravityComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "GameTimer.h"
+#include "PlayerComponent.h"
 
 namespace
 {
@@ -109,9 +111,105 @@ void EnemySystem::Update(float dt)
         mc->mMovingSpeed = enemyComp->mSpeed;
 
 
-        if (enemyHealthComp && enemyHealthComp->mCurrentHp <= 0)
+        if (enemyHealthComp &&
+            enemyHealthComp->mCurrentHp <= 0 &&
+            enemyComp->mEnemyType != EnemyType::Obelisk)
         {
             HaltByState(enemyComp, mc, EnemyAnimState::Dead);
+            ++entityIndex;
+            continue;
+        }
+
+        if (enemyComp->mEnemyType == EnemyType::Obelisk)
+        {
+            HaltByState(enemyComp, mc, EnemyAnimState::Run);
+
+            auto clearSilenceFromLinkedPlayer = [&]()
+            {
+                if (!enemyComp->mLinkedPlayer.IsValid())
+                    return;
+
+                if (BuffComponent* targetBuff = mWorld->GetComponent<BuffComponent>(enemyComp->mLinkedPlayer))
+                    targetBuff->RemoveBuff(BuffType::Silence, entity);
+
+                enemyComp->mLinkedPlayer = Entity{};
+            };
+
+            if (enemyComp->mLinkedPlayer.IsValid())
+            {
+                MainPlayerComponent* linkedPlayer = mWorld->GetComponent<MainPlayerComponent>(enemyComp->mLinkedPlayer);
+                HealthComponent* linkedHealth = mWorld->GetComponent<HealthComponent>(enemyComp->mLinkedPlayer);
+                if (!linkedPlayer || (linkedPlayer->IsDeathActive()) || (linkedHealth && linkedHealth->mCurrentHp <= 0))
+                    clearSilenceFromLinkedPlayer();
+            }
+
+            if (enemyHealthComp && enemyHealthComp->mCurrentHp <= 0)
+            {
+                clearSilenceFromLinkedPlayer();
+            }
+            else if (enemyHealthComp &&
+                enemyHealthComp->mCurrentHp >= enemyHealthComp->mMaxHp &&
+                !enemyComp->mLinkedPlayer.IsValid())
+            {
+                Entity selectedPlayer{};
+                float bestDistSq = (std::numeric_limits<float>::max)();
+                for (auto& playerEntity : mWorld->GetEntitiesWithComponent<PlayerMovementComponent>())
+                {
+                    MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity);
+                    TransformComponent* playerTf = transformPool.GetComponent(playerEntity.GetID());
+                    HealthComponent* playerHealth = mWorld->GetComponent<HealthComponent>(playerEntity);
+                    if (!playerComp || !playerTf || playerComp->IsDeathActive() || (playerHealth && playerHealth->mCurrentHp <= 0))
+                        continue;
+
+                    const float distSq = Vec3::DistanceSquared(myPos, playerTf->mLocalPosition);
+                    if (distSq < bestDistSq)
+                    {
+                        bestDistSq = distSq;
+                        selectedPlayer = playerEntity;
+                    }
+                }
+
+                if (selectedPlayer.IsValid())
+                {
+                    if (BuffComponent* targetBuff = mWorld->GetComponent<BuffComponent>(selectedPlayer))
+                    {
+                        BuffData silence{};
+                        silence.mKind = EffectKind::Debuff;
+                        silence.mType = BuffType::Silence;
+                        silence.mDurationPolicy = DurationPolicy::UntilSignal;
+                        silence.mExecutionType = BuffExecutionType::Persistent;
+                        silence.mSource = entity;
+                        targetBuff->AddOrRefresh(silence);
+                        enemyComp->mLinkedPlayer = selectedPlayer;
+                    }
+                }
+            }
+
+            if (eventManager && enemyHealthComp &&
+                enemyHealthComp->mCurrentHp < enemyHealthComp->mMaxHp &&
+                now >= enemyComp->mNextUtilityTime)
+            {
+                const int32 beforeHp = enemyHealthComp->mCurrentHp;
+                enemyHealthComp->mCurrentHp = (std::min)(enemyHealthComp->mMaxHp, enemyHealthComp->mCurrentHp + enemyComp->mUtilityAmount);
+                enemyComp->mNextUtilityTime = now + Beat * enemyComp->mUtilityIntervalBeats;
+
+                if (beforeHp != enemyHealthComp->mCurrentHp)
+                {
+                    eventManager->Enqueue<EvHealthChanged>({
+                        entity,
+                        enemyHealthComp->mCurrentHp,
+                        enemyHealthComp->mMaxHp
+                    });
+                }
+            }
+
+            ++entityIndex;
+            continue;
+        }
+
+        if (enemyComp->mEnemyType == EnemyType::Fly || enemyComp->mEnemyType == EnemyType::Brass)
+        {
+            HaltByState(enemyComp, mc, EnemyAnimState::Run);
             ++entityIndex;
             continue;
         }

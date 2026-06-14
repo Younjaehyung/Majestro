@@ -395,12 +395,14 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	}
 
 		// Fanthor 기본공격:
-		// rhythm 0 은 항상 근접 GuitarAttack,
-		// rhythm 1~3 은 박자 성공 여부와 무관하게 탄이 있으면 해당 원거리 공격을 사용한다.
+		// silence 상태면 항상 근접 GuitarAttack만 사용한다.
+		// 그 외에는 rhythm 0 은 근접, rhythm 1~3 은 탄이 있으면 해당 원거리 공격을 사용한다.
 		uint8 rhythm = 0;
 		if (button == InputButtons::ATTACK && mp->mPlayerType == Fanthor)
 		{
-			rhythm = mp->mRhythm;
+			const BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
+			const bool isSilenced = buffComp && buffComp->FindBuff(BuffType::Silence) != nullptr;
+			rhythm = isSilenced ? 0 : mp->mRhythm;
 			if (rhythm != 0 && mp->mNowBullet <= 0)
 				rhythm = 0;
 		}

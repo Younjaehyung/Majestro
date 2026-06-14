@@ -1,92 +1,94 @@
 #include "pch.h"
 #include "BuffComponent.h"
 
-BuffData* BuffComponent::FindBuff(BuffType type)
+BuffData* BuffComponent::FindBuff(BuffType type, Entity source)
 {
-    auto it = std::find_if(mBuffs.begin(), mBuffs.end(), [type](const BuffData& buff)
+    return const_cast<BuffData*>(static_cast<const BuffComponent*>(this)->FindBuff(type, source));
+}
+
+const BuffData* BuffComponent::FindBuff(BuffType type, Entity source) const
+{
+    auto it = std::find_if(mBuffs.begin(), mBuffs.end(), [type, source](const BuffData& buff)
     {
-        return buff.mType == type;
+        if (buff.mType != type)
+            return false;
+        return !source.IsValid() || buff.mSource == source;
     });
     return (it == mBuffs.end()) ? nullptr : &(*it);
 }
 
-void BuffComponent::ApplyBuffEffect(const BuffData& buff)
+BuffData* BuffComponent::FindRhythmBuffFromSource(Entity source)
 {
-    switch (buff.mType)
-    {
-    case BuffType::BuffPowerUp:
-        buffPowerUp = true;
-        if(FindBuff(BuffType::AttackUp))  mAttackMultiplier = 2.0f;
-        else if(FindBuff(BuffType::ScoreBoost))  mAttackMultiplier = 4.0f;
-        else if(FindBuff(BuffType::MoveSpeedUp))  mMoveSpeedMultiplier = 1.3f;
-        break;
-
-    case BuffType::AttackUp:
-        if(buffPowerUp) mAttackMultiplier = 2.0f;
-        else mAttackMultiplier = 1.5f;
-        break;
-
-    case BuffType::MoveSpeedUp:
-        if (buffPowerUp)mMoveSpeedMultiplier = 1.1f;
-        else mMoveSpeedMultiplier = 1.3f;
-        break;
-
-    default:
-        break;
-    }
+    return const_cast<BuffData*>(static_cast<const BuffComponent*>(this)->FindRhythmBuffFromSource(source));
 }
 
-void BuffComponent::RemoveBuffEffect(const BuffData& buff)
+const BuffData* BuffComponent::FindRhythmBuffFromSource(Entity source) const
 {
-    switch (buff.mType)
+    auto it = std::find_if(mBuffs.begin(), mBuffs.end(), [source](const BuffData& buff)
     {
-    case BuffType::BuffPowerUp:
-        buffPowerUp = false;
-        break;
+        return buff.mIsRhythmEffect && buff.mSource == source;
+    });
+    return (it == mBuffs.end()) ? nullptr : &(*it);
+}
 
-    case BuffType::AttackUp:
-        mAttackMultiplier = 1.0f;
-        break;
+void BuffComponent::RecalculateDerivedEffects()
+{
+    const bool hasBuffPowerUp = FindBuff(BuffType::BuffPowerUp) != nullptr;
+    const bool hasAttackUp = FindBuff(BuffType::AttackUp) != nullptr;
+    const bool hasScoreBoost = FindBuff(BuffType::ScoreBoost) != nullptr;
+    const bool hasMoveSpeedUp = FindBuff(BuffType::MoveSpeedUp) != nullptr;
 
-    case BuffType::MoveSpeedUp:
-        mMoveSpeedMultiplier = 1.0f;
-        break;
+    buffPowerUp = hasBuffPowerUp;
+    mAttackMultiplier = 1.0f;
+    mMoveSpeedMultiplier = 1.0f;
 
-    default:
-        break;
+    if (hasBuffPowerUp)
+    {
+        if (hasAttackUp)
+            mAttackMultiplier = 2.0f;
+        else if (hasScoreBoost)
+            mAttackMultiplier = 4.0f;
     }
+    else if (hasAttackUp)
+    {
+        mAttackMultiplier = 1.5f;
+    }
+
+    if (hasMoveSpeedUp)
+        mMoveSpeedMultiplier = hasBuffPowerUp ? 1.1f : 1.3f;
 }
 
 BuffData& BuffComponent::AddOrRefresh(const BuffData& buff)
 {
-
-    if (BuffData* existing = FindBuff(buff.mType))
+    if (BuffData* existing = FindBuff(buff.mType, buff.mSource))
     {
-        RemoveBuffEffect(*existing);
-
         *existing = buff;
-
-        ApplyBuffEffect(*existing);
+        RecalculateDerivedEffects();
         return *existing;
     }
 
-
     mBuffs.push_back(buff);
-    ApplyBuffEffect(mBuffs.back());
+    RecalculateDerivedEffects();
     return mBuffs.back();
 }
 
-bool BuffComponent::RemoveBuff(BuffType type)
+bool BuffComponent::RemoveBuff(BuffType type, Entity source, bool rhythmEffectOnly)
 {
-    auto it = std::find_if(mBuffs.begin(), mBuffs.end(), [type](const BuffData& buff)
+    auto it = std::find_if(mBuffs.begin(), mBuffs.end(), [type, source, rhythmEffectOnly](const BuffData& buff)
         {
-            return buff.mType == type;
+            if (buff.mType != type)
+                return false;
+            if (source.IsValid() && buff.mSource != source)
+                return false;
+            if (rhythmEffectOnly && !buff.mIsRhythmEffect)
+                return false;
+            return true;
         });
 
     if (it == mBuffs.end())
         return false;
 
-    RemoveBuffEffect(*it);
     mBuffs.erase(it);
+    RecalculateDerivedEffects();
     return true;
 }

@@ -133,6 +133,12 @@ void DamageSystem::Update(float deltaTime)
         if (!health->IsDead())
             return;
 
+        if (EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(e.target))
+        {
+            if (enemy->mEnemyType == EnemyType::Obelisk)
+                return;
+        }
+
         if (player)
         {
             // 사망

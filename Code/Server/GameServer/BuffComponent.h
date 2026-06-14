@@ -35,7 +35,8 @@ enum class BuffType
     ShieldOverTime,
     HealOverTime,
     //de buff
-    ShieldDown
+    ShieldDown,
+    Silence
 };
 struct BuffData
 {
@@ -48,6 +49,8 @@ struct BuffData
 
     float mTickInterval = 0.0f;
     float mNextTriggerTime = 0.0f;
+    Entity mSource{};
+    bool mIsRhythmEffect = false;
 
 };
 
@@ -56,11 +59,13 @@ class BuffComponent : public Component<BuffComponent>
 public:
     BuffComponent() = default;
 
-    BuffData* FindBuff(BuffType type);
-    void ApplyBuffEffect(const BuffData& buff);
-    void RemoveBuffEffect(const BuffData& buff);
+    BuffData* FindBuff(BuffType type, Entity source = {});
+    const BuffData* FindBuff(BuffType type, Entity source = {}) const;
+    BuffData* FindRhythmBuffFromSource(Entity source);
+    const BuffData* FindRhythmBuffFromSource(Entity source) const;
+    void RecalculateDerivedEffects();
     BuffData& AddOrRefresh(const BuffData& buff);
-    bool RemoveBuff(BuffType type);
+    bool RemoveBuff(BuffType type, Entity source = {}, bool rhythmEffectOnly = false);
 
     std::vector<BuffData> mBuffs;
 

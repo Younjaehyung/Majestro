@@ -555,6 +555,15 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	TransformComponent t{};
 	t.mLocalPosition = { 0.f, 0.f, 0.f };
 	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
+	if (const S2C_SpawnPacekt* spawnPacket = ctx.ViewAs<S2C_SpawnPacekt>())
+	{
+		if (spawnPacket->hasInitialTransform != 0)
+		{
+			t.mLocalPosition = Vec3(spawnPacket->x, spawnPacket->y, spawnPacket->z);
+			t.mWorldPosition = t.mLocalPosition;
+			t.mWorldMatrix = Matrix::CreateTranslation(t.mLocalPosition);
+		}
+	}
 
 	Vec3 center{ 0,50,0 };
 	Vec3 half{ 50,100,50 };
@@ -581,9 +590,6 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 	switch (static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {
 	case EnemyType::HornMan:
-	case EnemyType::Obelisk:
-	case EnemyType::Fly:
-	case EnemyType::Brass:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
@@ -620,18 +626,55 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		center = Vec3(0, 50, 0);
 		half = Vec3(100, 200, 100);
 		break;
+	case EnemyType::Obelisk:
+
+		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Obelisk");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Ocean");*/
+
+		if (shared_ptr<FBXData> obeliskData = RESOURCEMANAGER.Get<FBXData>(L"Obelisk"))
+		{
+			if (!obeliskData->GetMeshs().empty())
+				phereMesh = obeliskData->GetMeshs().front();
+			if (!obeliskData->GetMeshMaterials().empty() && !obeliskData->GetMeshMaterials().front().empty())
+				material2s = obeliskData->GetMeshMaterials().front();
+			else if (!obeliskData->GetMaterials().empty())
+				material2s.push_back(obeliskData->GetMaterials().front());
+		}
+
+		//t.mLocalScale = { 100.0f, 100.0f, 100.0f };
+		world->AddComponent<HealthComponent>(mEntityID, 200, 0);
+		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
+		break;
+	case EnemyType::Fly:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+
+		world->AddComponent<HealthComponent>(mEntityID, 20, 20);
+		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
+		break;
+	case EnemyType::Brass:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
+		break;
 	}
 
-	
-
-	material2s.push_back(material2);
+	/*if (material2s.empty() && material2)
+		material2s.push_back(material2);*/
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
-
-	auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
-	enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
-
+	const EnemyType enemyType = static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+	if (enemyType != EnemyType::Obelisk) {
+		auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
+		enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
+	}
 	world->AddComponent<BoxColliderComponent>(mEntityID,half, center);
 
 

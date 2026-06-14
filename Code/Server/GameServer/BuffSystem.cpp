@@ -49,7 +49,7 @@ void BuffSystem::Update(float dt)
             const bool isTimedOut = (buff.mDurationPolicy == DurationPolicy::Timed) && (now >= buff.mEndTime);
             if (isTimedOut)
             {
-                buffComponent->RemoveBuff(buff.mType);
+                buffComponent->RemoveBuff(buff.mType, buff.mSource, buff.mIsRhythmEffect);
                 continue;
             }
 

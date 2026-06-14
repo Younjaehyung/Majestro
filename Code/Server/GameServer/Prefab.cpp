@@ -215,15 +215,12 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	Vec3 half{ 50,100,50 };
 	world->AddComponent<MovableComponent>(mEntityID);
 
-	uint8 enemyType = static_cast<uint8>(mSpawnCount % 6);
+	uint8 enemyType = static_cast<uint8>(mSpawnCount % 3);
 	if (const EnemySpawnContext* spawnContext = ctx.ViewAs<EnemySpawnContext>())
 		enemyType = spawnContext->enemyType;
 
 	switch (enemyType) {
 	case EnemyType::HornMan:
-	case EnemyType::Obelisk:
-	case EnemyType::Fly:
-	case EnemyType::Brass:
 		world->AddComponent<EnemyComponent>(mEntityID, enemyType, 300);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
@@ -237,6 +234,18 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
 		center = Vec3(0,50,0);
 		half = Vec3(100,200,100);
+		break;
+	case EnemyType::Obelisk:
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Obelisk, 0);
+		world->AddComponent<HealthComponent>(mEntityID, 200, 0);
+		break;
+	case EnemyType::Fly:
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Fly, 300);
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		break;
+	case EnemyType::Brass:
+		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Brass, 300);
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
 	}
 

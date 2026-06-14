@@ -16,7 +16,6 @@ private:
 	void HandleGameStart(InputCommand& inputCommand);
 
 	Entity SpawnPlayer(InputCommand& inputCommand);
-	void EnsureEnemyPool(InputCommand& inputCommand);
 	void EnsureBulletPool(InputCommand& inputCommand);
 
 	Entity FindEntityBySession(uint32 sessionId) const;
@@ -24,7 +23,6 @@ private:
 
 	bool IsNewerSeq(uint32 lhs, uint32 rhs){return static_cast<int32>(lhs - rhs) > 0;}
 private:
-	bool mEnemySpawnOnce = true;
 	bool mBulletSpawnOnce = true;
 
 	InputCommand mInputCommand;

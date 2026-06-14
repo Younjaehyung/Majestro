@@ -11,6 +11,59 @@
 #include "EventManager.h"
 #include "BeatSystem.h"
 #include "GameTimer.h"
+#include "TransformComponent.h"
+#include "GravityComponent.h"
+#include "HealthComponent.h"
+#include "EnemyComponent.h"
+
+namespace
+{
+	void BroadcastEnemySpawn(World* world, Entity spawnedEntity)
+	{
+		if (!world || !spawnedEntity.IsValid())
+			return;
+
+		NetEntityComponent* netComp = world->GetComponent<NetEntityComponent>(spawnedEntity);
+		EnemyComponent* enemyComp = world->GetComponent<EnemyComponent>(spawnedEntity);
+		if (!netComp || !enemyComp)
+			return;
+
+		S2C_SpawnPacekt spawnPkt(0, netComp->mNetEntityId, PrefabType::ENEMY);
+		spawnPkt.isLocalPlayer = 0;
+		spawnPkt.Type = enemyComp->mEnemyType;
+
+		if (TransformComponent* transform = world->GetComponent<TransformComponent>(spawnedEntity))
+		{
+			spawnPkt.hasInitialTransform = 1;
+			spawnPkt.x = transform->mLocalPosition.x;
+			spawnPkt.y = transform->mLocalPosition.y;
+			spawnPkt.z = transform->mLocalPosition.z;
+		}
+
+		for (auto playerEntity : world->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+		{
+			NetEntityComponent* playerNetComp = world->GetComponent<NetEntityComponent>(playerEntity);
+			if (!playerNetComp || playerNetComp->mSessionId == 0)
+				continue;
+
+			SendRequest request{ playerNetComp->mSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
+			request.StoreAs<S2C_SpawnPacekt>(spawnPkt);
+			gSendQueue.Push(request);
+		}
+
+		if (auto eventManager = world->GetEventManager())
+		{
+			if (HealthComponent* hp = world->GetComponent<HealthComponent>(spawnedEntity))
+			{
+				EvHealthChanged evt{};
+				evt.target = spawnedEntity;
+				evt.currentHp = hp->mCurrentHp;
+				evt.maxHp = hp->mMaxHp;
+				eventManager->Enqueue<EvHealthChanged>(evt);
+			}
+		}
+	}
+}
 
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
@@ -200,8 +253,61 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 	if (!playerEntity.IsValid())
 		return;
 
-	EnsureEnemyPool(inputCommand);
 	EnsureBulletPool(inputCommand);
+
+	bool hasObelisk = false;
+	if (mWorld->HasComponentPool<EnemyComponent>())
+	{
+		for (Entity enemyEntity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
+		{
+			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(enemyEntity);
+			if (enemyComp && enemyComp->mEnemyType == EnemyType::Obelisk)
+			{
+				hasObelisk = true;
+				break;
+			}
+		}
+	}
+
+	if (!hasObelisk)
+	{
+		InputCommand obeliskSpawn{};
+		obeliskSpawn.SessionId = 0;
+		obeliskSpawn.Type = PKT_Type::S2C_PKT_SPAWN;
+		obeliskSpawn.StoreAs(EnemySpawnContext{ static_cast<uint8>(EnemyType::Obelisk) });
+
+		Entity obeliskEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, obeliskSpawn);
+		if (obeliskEntity.IsValid())
+		{
+			if (TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity))
+			{
+				Vec3 spawnPos = playerTransform->mLocalPosition + Vec3(0.0f, 0.0f, 300.0f);
+				if (auto& physicsWorld = mWorld->GetPhysicsWorld())
+				{
+					float ground = 0.0f;
+					if (physicsWorld->TryQueryTerrainHeightNear(spawnPos, spawnPos.y, 100.0f, 100.0f, ground))
+						spawnPos.y = ground;
+				}
+
+				if (TransformComponent* obeliskTransform = mWorld->GetComponent<TransformComponent>(obeliskEntity))
+				{
+					obeliskTransform->mLocalPosition = spawnPos;
+					obeliskTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
+				}
+				if (GravityComponent* obeliskGravity = mWorld->GetComponent<GravityComponent>(obeliskEntity))
+				{
+					obeliskGravity->mGround = spawnPos.y;
+					obeliskGravity->mHight = spawnPos.y;
+					obeliskGravity->mGravity = 0.0f;
+					obeliskGravity->mFalling = false;
+					obeliskGravity->mDropping = false;
+					obeliskGravity->mGroundGraceLeft = 0.0f;
+				}
+			}
+
+			BroadcastEnemySpawn(mWorld, obeliskEntity);
+		}
+	}
 
 	uint8 playerType = 1;
 	if (MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity))
@@ -242,19 +348,7 @@ Entity NetRecvSystem::SpawnPlayer(InputCommand& inputCommand)
 	return PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
 }
 
-// ─── 에너미 / 불릿 풀 스폰 ──────────────────────────────────
-
-void NetRecvSystem::EnsureEnemyPool(InputCommand& inputCommand)
-{
-	if (!mEnemySpawnOnce)
-		return;
-
-	for (int i = 0; i < 10; ++i)
-	{
-		PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, inputCommand);
-	}
-	mEnemySpawnOnce = false;
-}
+// ─── 불릿 풀 스폰 ────────────────────────────────────────────
 
 void NetRecvSystem::EnsureBulletPool(InputCommand& inputCommand)
 {

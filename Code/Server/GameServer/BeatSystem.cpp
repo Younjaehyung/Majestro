@@ -52,6 +52,62 @@ namespace
 			return kNone;	// 범위 밖은 None
 		return kRhythmBuffTable[playerType][rhythm];
 	}
+
+	bool IsSilenced(World* world, Entity playerEntity)
+	{
+		if (!world || !playerEntity.IsValid())
+			return false;
+
+		BuffComponent* buffComponent = world->GetComponent<BuffComponent>(playerEntity);
+		return buffComponent && buffComponent->FindBuff(BuffType::Silence) != nullptr;
+	}
+
+	void SyncRhythmBuffForProvider(World* world, Entity provider, MainPlayerComponent* providerPlayer, float bpmSeconds)
+	{
+		if (!world || !providerPlayer || !world->HasComponentPool<MainPlayerComponent>())
+			return;
+
+		const RhythmBuffDef& def = LookupRhythmBuff(static_cast<uint8>(providerPlayer->mPlayerType), providerPlayer->mRhythm);
+		const bool shouldEnable = !IsSilenced(world, provider) && def.type != BuffType::None;
+		const float now = GetServerTotalTimeSeconds();
+
+		std::vector<Entity> players = world->GetEntitiesWithComponent<MainPlayerComponent>();
+		for (Entity player : players)
+		{
+			BuffComponent* buffComp = world->GetComponent<BuffComponent>(player);
+			if (!buffComp)
+				continue;
+
+			BuffData* current = buffComp->FindRhythmBuffFromSource(provider);
+			const bool needsRemoval =
+				current &&
+				(!shouldEnable || current->mType != def.type || current->mExecutionType != def.exec);
+			if (needsRemoval)
+				buffComp->RemoveBuff(current->mType, provider, true);
+
+			if (!shouldEnable)
+				continue;
+
+			current = buffComp->FindRhythmBuffFromSource(provider);
+			if (current)
+				continue;
+
+			BuffData buff;
+			buff.mKind = EffectKind::Buff;
+			buff.mType = def.type;
+			buff.mDurationPolicy = DurationPolicy::UntilSignal;
+			buff.mExecutionType = def.exec;
+			buff.mSource = provider;
+			buff.mIsRhythmEffect = true;
+			if (def.exec == BuffExecutionType::Periodic)
+			{
+				buff.mTickInterval = bpmSeconds;
+				buff.mNextTriggerTime = now + bpmSeconds;
+			}
+
+			buffComp->AddOrRefresh(buff);
+		}
+	}
 }
 
 BeatSystem::BeatSystem(World* world) : System(world)
@@ -92,40 +148,6 @@ void BeatSystem::Update(float dt)
 			// look-ahead: 예약된 절대 박자에 도달했을 때만 전환 확정
 			if (mainPlayerComponent->mHasQueuedRhythmChange && GetAbsoluteBeatIndex() >= mainPlayerComponent->mRhythmApplyBeat)
 			{
-				BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(entity);
-				if (buffComponent == nullptr)
-					continue;
-
-				const uint8 playerType = static_cast<uint8>(mainPlayerComponent->mPlayerType);
-				const RhythmBuffDef& newDef = LookupRhythmBuff(playerType, mainPlayerComponent->mNextRhythm);
-				const RhythmBuffDef& oldDef = LookupRhythmBuff(playerType, mainPlayerComponent->mRhythm);
-
-				BuffData buff;
-				buff.mKind = EffectKind::Buff;
-				buff.mType = newDef.type;
-				buff.mDurationPolicy = DurationPolicy::UntilSignal;
-				buff.mExecutionType = newDef.exec;
-				if (newDef.exec == BuffExecutionType::Periodic)
-				{
-					buff.mTickInterval = mBpmSeconds;
-					buff.mNextTriggerTime = GetServerTotalTimeSeconds() + mBpmSeconds;
-				}
-
-				std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
-
-				for (Entity player : players)
-				{
-					BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(player);
-					if (buffComp == nullptr)
-						continue;
-
-					if (newDef.type != BuffType::None)
-						buffComp->AddOrRefresh(buff);
-
-					if (oldDef.type != BuffType::None)
-						buffComp->RemoveBuff(oldDef.type);
-				}
-
 				mainPlayerComponent->mRhythm = mainPlayerComponent->mNextRhythm;
 				mainPlayerComponent->mHasQueuedRhythmChange = false;
 				mainPlayerComponent->mRhythmApplyBeat = -1;
@@ -137,6 +159,12 @@ void BeatSystem::Update(float dt)
 
 		}
 		
+	}
+
+	for (auto& entity : entitys)
+	{
+		if (auto* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity))
+			SyncRhythmBuffForProvider(mWorld, entity, mainPlayerComponent, mBpmSeconds);
 	}
 
 	

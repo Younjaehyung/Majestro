@@ -184,7 +184,7 @@ void DeathSystem::RespawnPlayer(Entity entity)
     if (auto& physicsWorld = mWorld->GetPhysicsWorld())
     {
         float ground = 0.0f;
-        if (physicsWorld->TryQueryTerrainHeightNear(pos, pos.y, 2000.0f, 5000.0f, ground))
+        if (physicsWorld->TryQueryTerrainHeightNear(pos, pos.y, 100.0f, 100.0f, ground))
             pos.y = ground;
     }
 

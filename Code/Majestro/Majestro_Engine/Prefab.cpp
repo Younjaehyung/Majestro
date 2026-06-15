@@ -628,10 +628,10 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Obelisk:
 
-		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Obelisk");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Ocean");*/
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Obelisk");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Ocean");
 
-		if (shared_ptr<FBXData> obeliskData = RESOURCEMANAGER.Get<FBXData>(L"Obelisk"))
+		/*if (shared_ptr<FBXData> obeliskData = RESOURCEMANAGER.Get<FBXData>(L"Obelisk"))
 		{
 			if (!obeliskData->GetMeshs().empty())
 				phereMesh = obeliskData->GetMeshs().front();
@@ -639,7 +639,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 				material2s = obeliskData->GetMeshMaterials().front();
 			else if (!obeliskData->GetMaterials().empty())
 				material2s.push_back(obeliskData->GetMaterials().front());
-		}
+		}*/
 
 		//t.mLocalScale = { 100.0f, 100.0f, 100.0f };
 		world->AddComponent<HealthComponent>(mEntityID, 200, 0);
@@ -648,6 +648,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	case EnemyType::Fly:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
 
@@ -665,8 +666,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	}
 
-	/*if (material2s.empty() && material2)
-		material2s.push_back(material2);*/
+	if (material2s.empty() && material2)
+		material2s.push_back(material2);
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);

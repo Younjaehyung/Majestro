@@ -203,21 +203,25 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity mEntityID = world->CreateEntity();
 
+	uint8 enemyType = static_cast<uint8>(mSpawnCount % 3);
+	if (const EnemySpawnContext* spawnContext = ctx.ViewAs<EnemySpawnContext>())
+		enemyType = spawnContext->enemyType;
+
 	TransformComponent t{};
 	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
-	GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
-	grav.mGround = t.mLocalPosition.y;
-	grav.mHight = t.mLocalPosition.y + 30.f;
-	world->AddComponent<EnemyMovementComponent>(mEntityID);
-	Vec3 center{ 0,50,0 };
-	Vec3 half{ 50,100,50 };
-	world->AddComponent<MovableComponent>(mEntityID);
 
-	uint8 enemyType = static_cast<uint8>(mSpawnCount % 3);
-	if (const EnemySpawnContext* spawnContext = ctx.ViewAs<EnemySpawnContext>())
-		enemyType = spawnContext->enemyType;
+	if (enemyType != EnemyType::Fly) {
+		GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
+		grav.mGround = t.mLocalPosition.y;
+		grav.mHight = t.mLocalPosition.y + 30.f;
+	}
+		world->AddComponent<EnemyMovementComponent>(mEntityID);
+		Vec3 center{ 0,50,0 };
+		Vec3 half{ 50,100,50 };
+		world->AddComponent<MovableComponent>(mEntityID);
+	
 
 	switch (enemyType) {
 	case EnemyType::HornMan:
@@ -241,7 +245,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Fly:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Fly, 300);
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 20, 20);
 		break;
 	case EnemyType::Brass:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Brass, 300);

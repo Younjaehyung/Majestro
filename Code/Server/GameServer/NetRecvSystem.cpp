@@ -255,29 +255,31 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 
 	EnsureBulletPool(inputCommand);
 
-	bool hasObelisk = false;
+	bool hasFly = false;
 	if (mWorld->HasComponentPool<EnemyComponent>())
 	{
 		for (Entity enemyEntity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
 		{
 			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(enemyEntity);
-			if (enemyComp && enemyComp->mEnemyType == EnemyType::Obelisk)
+			if (enemyComp && enemyComp->mEnemyType == EnemyType::Fly)
 			{
-				hasObelisk = true;
+				hasFly = true;
 				break;
 			}
 		}
 	}
 
-	if (!hasObelisk)
+	if (!hasFly)
 	{
-		InputCommand obeliskSpawn{};
-		obeliskSpawn.SessionId = 0;
-		obeliskSpawn.Type = PKT_Type::S2C_PKT_SPAWN;
-		obeliskSpawn.StoreAs(EnemySpawnContext{ static_cast<uint8>(EnemyType::Obelisk) });
+		// NOTE:
+		// Obelisk one-off spawn is disabled for Fly behavior testing.
+		InputCommand flySpawn{};
+		flySpawn.SessionId = 0;
+		flySpawn.Type = PKT_Type::S2C_PKT_SPAWN;
+		flySpawn.StoreAs(EnemySpawnContext{ static_cast<uint8>(EnemyType::Fly) });
 
-		Entity obeliskEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, obeliskSpawn);
-		if (obeliskEntity.IsValid())
+		Entity flyEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, flySpawn);
+		if (flyEntity.IsValid())
 		{
 			if (TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity))
 			{
@@ -289,23 +291,23 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 						spawnPos.y = ground;
 				}
 
-				if (TransformComponent* obeliskTransform = mWorld->GetComponent<TransformComponent>(obeliskEntity))
+				if (TransformComponent* flyTransform = mWorld->GetComponent<TransformComponent>(flyEntity))
 				{
-					obeliskTransform->mLocalPosition = spawnPos;
-					obeliskTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
+					flyTransform->mLocalPosition = spawnPos;
+					flyTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
 				}
-				if (GravityComponent* obeliskGravity = mWorld->GetComponent<GravityComponent>(obeliskEntity))
+				if (GravityComponent* flyGravity = mWorld->GetComponent<GravityComponent>(flyEntity))
 				{
-					obeliskGravity->mGround = spawnPos.y;
-					obeliskGravity->mHight = spawnPos.y;
-					obeliskGravity->mGravity = 0.0f;
-					obeliskGravity->mFalling = false;
-					obeliskGravity->mDropping = false;
-					obeliskGravity->mGroundGraceLeft = 0.0f;
+					flyGravity->mGround = spawnPos.y;
+					flyGravity->mHight = spawnPos.y;
+					flyGravity->mGravity = 0.0f;
+					flyGravity->mFalling = false;
+					flyGravity->mDropping = false;
+					flyGravity->mGroundGraceLeft = 0.0f;
 				}
 			}
 
-			BroadcastEnemySpawn(mWorld, obeliskEntity);
+			BroadcastEnemySpawn(mWorld, flyEntity);
 		}
 	}
 

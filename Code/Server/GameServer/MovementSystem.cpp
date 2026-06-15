@@ -632,6 +632,20 @@ void MovementSystem::UpdateGravity(float dt)
 			}
 		}
 
+		if (EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity))
+		{
+			if (enemyComponent->mEnemyType == EnemyType::Fly)
+			{
+				gravityComponent->mHight = gravityComponent->mGround + enemyComponent->mHoverHeight;
+				gravityComponent->mGravity = 0.0f;
+				gravityComponent->mFalling = false;
+				gravityComponent->mDropping = false;
+				gravityComponent->mDropConfirmLeft = gravityComponent->mDropConfirmDelay;
+				transformComponent->mLocalPosition.y = gravityComponent->mHight + 3.f;
+				continue;
+			}
+		}
+
 		// === 수직 적분 ===
 		if (airborne)
 		{

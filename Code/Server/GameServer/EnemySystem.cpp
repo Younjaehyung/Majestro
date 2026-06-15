@@ -207,7 +207,7 @@ void EnemySystem::Update(float dt)
             continue;
         }
 
-        if (enemyComp->mEnemyType == EnemyType::Fly || enemyComp->mEnemyType == EnemyType::Brass)
+        if (enemyComp->mEnemyType == EnemyType::Brass)
         {
             HaltByState(enemyComp, mc, EnemyAnimState::Run);
             ++entityIndex;
@@ -358,7 +358,6 @@ bool EnemySystem::HandleAttackState(
     {
     case EnemyType::HornMan:
     case EnemyType::Obelisk:
-    case EnemyType::Fly:
     case EnemyType::Brass:
         movementComp->mMovingDirection = Vec3::Zero;
         movementComp->mPathCount = 0;
@@ -371,6 +370,82 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }
         break;
+    case EnemyType::Fly:
+    {
+        constexpr float kFlyMeleeRange = 180.0f;
+        constexpr float kFlyArriveThresholdSq = 4.0f * 100.0f;
+        movementComp->mMovingSpeed = enemyComp->mSpeed * 1.15f;
+
+        const bool flyAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
+        if (flyAttackOnCooldown)
+        {
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+            movementComp->mMovingDirection = Vec3::Zero;
+        }
+        else
+        {
+            const Vec3 rushTarget = playerPos;
+            auto navSystem = mWorld->GetNavSystem();
+
+            bool hasPathDir = false;
+            Vec3 rushDir = Vec3::Zero;
+            if (navSystem && navSystem->IsInitialized())
+            {
+                bool ok = navSystem->FindPath(myPos, rushTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
+                if (!ok)
+                {
+                    movementComp->mPathCount = 1;
+                    movementComp->mPath[0] = rushTarget;
+                }
+
+                movementComp->mPathIndex = 0;
+                while (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount - 1)
+                {
+                    Vec3 toWp = movementComp->mPath[movementComp->mPathIndex] - myPos;
+                    toWp.y = 0.0f;
+                    if (toWp.LengthSquared() < kFlyArriveThresholdSq)
+                        ++movementComp->mPathIndex;
+                    else
+                        break;
+                }
+
+                if (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount)
+                {
+                    rushDir = movementComp->mPath[movementComp->mPathIndex] - myPos;
+                    rushDir.y = 0.0f;
+                    hasPathDir = true;
+                }
+            }
+
+            if (!hasPathDir)
+            {
+                rushDir = rushTarget - myPos;
+                rushDir.y = 0.0f;
+            }
+
+            if (rushDir.LengthSquared() > 1e-8f)
+            {
+                rushDir.Normalize();
+                movementComp->mMovingDirection = rushDir;
+            }
+            else
+            {
+                movementComp->mMovingDirection = Vec3::Zero;
+            }
+        }
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds && nearestPlayerDistSq <= kFlyMeleeRange * kFlyMeleeRange)
+        {
+            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::PianoAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+            movementComp->mMovingDirection = Vec3::Zero;
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+        }
+        break;
+    }
     case EnemyType::Pianoman:
     {
         constexpr float kPianoMeleeRange = 160.0f;

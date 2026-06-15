@@ -51,6 +51,8 @@ public:
 			AttackRange = 1000.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
+			mHoverHeight = 250.0f;
+			break;
 		case EnemyType::Brass:
 			mAttackCool = 16;
 			AttackRange = 1000.f;
@@ -101,5 +103,6 @@ public:
 	float mNextUtilityTime = 0.0f;
 	float mUtilityIntervalBeats = 0.0f;
 	int32 mUtilityAmount = 0;
+	float mHoverHeight = 0.0f;
 	Entity mLinkedPlayer{};
 };

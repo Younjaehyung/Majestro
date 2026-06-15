@@ -11,6 +11,7 @@
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
 #include "MovementComponent.h"
+#include "BeatSystem.h"
 
 namespace
 {
@@ -155,6 +156,8 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 
 	const MeleeAttackStat stat = GetMeleeAttackStat(request.bulletType);
 	Vec3 forward = Vec3::Forward;
+	const EnemyComponent* attackerEnemy = attackerIsEnemy ? mWorld->GetComponent<EnemyComponent>(request.shooter) : nullptr;
+	const bool attackerIsFly = attackerEnemy && attackerEnemy->mEnemyType == EnemyType::Fly;
 
 	if (attackerIsPlayer)
 	{
@@ -250,11 +253,35 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		EvDamage damageEvent{};
 		damageEvent.instigator = request.shooter;
 		damageEvent.target = target;
-		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage * attackMultiplier));
+		const float baseDamage = attackerIsFly ? 10.0f : stat.damage;
+		damageEvent.amount = static_cast<int32>((std::max)(0.0f, baseDamage * attackMultiplier));
 		damageEvent.isCritical = request.isCritical;
 		if (damageEvent.isCritical)
 			damageEvent.amount *= 2;
 		eventManager->Enqueue<EvDamage>(damageEvent);
+
+		if (attackerIsFly && targetIsPlayer)
+		{
+			BuffComponent* targetBuff = mWorld->GetComponent<BuffComponent>(target);
+			if (targetBuff)
+			{
+				float beatSeconds = 0.0f;
+				if (auto systemManager = mWorld->GetSystemManager())
+				{
+					if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+						beatSeconds = beatSystem->mBpmSeconds;
+				}
+
+				BuffData silence{};
+				silence.mKind = EffectKind::Debuff;
+				silence.mType = BuffType::Silence;
+				silence.mDurationPolicy = DurationPolicy::Timed;
+				silence.mExecutionType = BuffExecutionType::Persistent;
+				silence.mSource = request.shooter;
+				silence.mEndTime = GetServerTotalTimeSeconds() + beatSeconds * 8.0f;
+				targetBuff->AddOrRefresh(silence);
+			}
+		}
 
 		eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
 			static_cast<uint8>(request.bulletType),

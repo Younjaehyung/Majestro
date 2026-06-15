@@ -87,6 +87,7 @@ public:
 
 	shared_ptr<Material> Clone();
 	MaterialParams& GetParams() { return mParams; }
+	MaterialParamsName& GetParamsName() { return mParamsName; }
 
 	uint32 GetIndex() { return mStructuredBufferIndex; }
 	void SetIndex(uint32 index) { mStructuredBufferIndex = index; }

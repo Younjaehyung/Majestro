@@ -49,15 +49,12 @@ void ShadowPass::RenderShadowCamera(std::vector<DrawBatch>& deferredDrawBatchs, 
 {
     shared_ptr<Shader> defaultShadowShader = RESOURCEMANAGER.Get<Shader>(L"Shadow");
     shared_ptr<Shader> alphaShadowShader   = RESOURCEMANAGER.Get<Shader>(L"ShadowAlpha");
-    shared_ptr<Shader> terrainShader       = RESOURCEMANAGER.Get<Shader>(L"Terrain");
 
     // 일반 불투명 오브젝트
     defaultShadowShader->Update();
     for (auto& drawBatch : deferredDrawBatchs) {
         const SHADER_TYPE type = drawBatch.PSOShader->GetShaderType();
         if (type != SHADER_TYPE::DEFERRED && type != SHADER_TYPE::FORWARD)
-            continue;
-        if (drawBatch.PSOShader == terrainShader)
             continue;
         if (drawBatch.PSOShader->GetBlendType() == BLEND_TYPE::ALPHA_TEST)
             continue;

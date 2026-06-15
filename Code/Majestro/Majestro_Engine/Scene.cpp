@@ -183,7 +183,7 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 			std::string name = filesystem::path(inst.fbx).filename().stem().string();
 
 			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, s2ws(name)));
-
+		
 			if (!data)
 			{
 				std::cerr << "FBX load failed (null data): " << name << "\n";
@@ -236,7 +236,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 			// 파일명만 추출
 			std::string stem = filesystem::path(inst.fbx).filename().stem().string();
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXModel(BuildMapFbxPath(level.levelName, stem), prefix);
-
+			
 			if (!data)
 			{
 				std::cerr << "FBX load failed (null data): " << stem << "\n";
@@ -1602,33 +1602,33 @@ void FirstScene::Initialize()
 
 #pragma endregion
 
-	// 오디오 비주얼라이저 (확인용 — ImGui Inspector "Audio Visualizer"의 Visible로 토글)
-	{
-		AUDIOMANAGER.InitSpectrumDSP(2048);  // 이미 초기화됐으면 no-op
-
-		Entity visEntity = mWorld->CreateEntity();
-		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
-		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
-		vis.barWidth = 6.f;
-		vis.barSpacing = 0.5f;
-		vis.maxBarHeight = 25.f;
-		vis.gain = 8.f;
-
-#ifdef _IMGUI
-		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
-		std::vector<EditorProperty> props;
-		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
-		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
-		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
-		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
-		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
-		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
-		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
-		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
-		visImgui.RegisterEditorProperties(props);
-		visImgui.SetName("Audio Visualizer");
-#endif
-	}
+//	// 오디오 비주얼라이저 (확인용 — ImGui Inspector "Audio Visualizer"의 Visible로 토글)
+//	{
+//		AUDIOMANAGER.InitSpectrumDSP(2048);  // 이미 초기화됐으면 no-op
+//
+//		Entity visEntity = mWorld->CreateEntity();
+//		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
+//		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
+//		vis.barWidth = 6.f;
+//		vis.barSpacing = 0.5f;
+//		vis.maxBarHeight = 25.f;
+//		vis.gain = 8.f;
+//
+//#ifdef _IMGUI
+//		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
+//		std::vector<EditorProperty> props;
+//		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
+//		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
+//		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
+//		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
+//		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
+//		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
+//		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
+//		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
+//		visImgui.RegisterEditorProperties(props);
+//		visImgui.SetName("Audio Visualizer");
+//#endif
+//	}
 
 	mWorld->AddSingleton<GameRuleComponent>();
 

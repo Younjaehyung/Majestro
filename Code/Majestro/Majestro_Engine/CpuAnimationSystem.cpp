@@ -75,8 +75,8 @@ void CpuAnimationSystem::Initialize()
 
 	RENDERMANAGER.GetAnimationBuffers()->AnimationMeta->PushDefaultToData(
 		mAniClipMeta.data(), static_cast<uint32>(mAniClipMeta.size() * sizeof(AnimationClipMeta)));
-	RENDERMANAGER.GetAnimationBuffers()->AnimationClip->PushDefaultToData(
-		mAniKeyFrame.data(), static_cast<uint32>(mAniKeyFrame.size() * sizeof(KeyFrameInfo)));
+	/*RENDERMANAGER.GetAnimationBuffers()->AnimationClip->PushDefaultToData(
+		mAniKeyFrame.data(), static_cast<uint32>(mAniKeyFrame.size() * sizeof(KeyFrameInfo)));*/
 	RENDERMANAGER.GetAnimationBuffers()->SkeletonBone->PushDefaultToData(
 		mBoneData.data(), static_cast<uint32>(mBoneData.size() * sizeof(SkeletonBoneParams)));
 }

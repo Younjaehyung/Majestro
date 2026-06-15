@@ -7,6 +7,7 @@
 
 #include "TransformComponent.h"
 #include "MovementComponent.h"
+#include "FlyComponent.h"
 
 #include "BeatSystem.h"
 #include "EnemyComponent.h"
@@ -14,6 +15,7 @@
 #include "BuffComponent.h"
 #include "HealthComponent.h"
 #include "GravityComponent.h"
+#include "PhysicsWorld.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "GameTimer.h"
@@ -26,6 +28,15 @@ namespace
         const float dx = a.x - b.x;
         const float dz = a.z - b.z;
         return dx * dx + dz * dz;
+    }
+
+    bool HasDirectPath(World* world, const Vec3& start, const Vec3& end)
+    {
+        if (!world || !world->GetPhysicsWorld())
+            return true;
+
+        JoltStaticHit hit{};
+        return !world->GetPhysicsWorld()->RayCastStatic(start, end, hit);
     }
 }
 
@@ -246,6 +257,16 @@ void EnemySystem::Update(float dt)
             nearestPlayerDistSq = (std::min)(nearestPlayerDistSq, distSq);
         }
 
+        if (enemyComp->mEnemyType == EnemyType::Fly)
+        {
+            if (FlyComponent* flyComp = mWorld->GetComponent<FlyComponent>(entity))
+            {
+                const float retreatDistSq = flyComp->mRetreatDistance * flyComp->mRetreatDistance;
+                if (flyComp->mRetreating && nearestPlayerDistSq >= retreatDistSq)
+                    flyComp->mRetreating = false;
+            }
+        }
+
         EnemyAnimState currentState = EnemyAnimState::Run;
         const bool pianoRushEnding =
             enemyComp->mEnemyType == EnemyType::Pianoman &&
@@ -374,6 +395,42 @@ bool EnemySystem::HandleAttackState(
     {
         constexpr float kFlyMeleeRange = 180.0f;
         constexpr float kFlyArriveThresholdSq = 4.0f * 100.0f;
+        FlyComponent* flyComp = mWorld->GetComponent<FlyComponent>(entity);
+        if (flyComp)
+            flyComp->mDirectFlight = false;
+
+        if (flyComp && flyComp->mRetreating)
+        {
+            const float retreatDistSq = flyComp->mRetreatDistance * flyComp->mRetreatDistance;
+            if (nearestPlayerDistSq >= retreatDistSq)
+            {
+                flyComp->mRetreating = false;
+                movementComp->mMovingDirection = Vec3::Zero;
+                movementComp->mPathCount = 0;
+                movementComp->mPathIndex = 0;
+                return false;
+            }
+
+            movementComp->mMovingSpeed = enemyComp->mSpeed * flyComp->mRetreatSpeedMultiplier;
+            flyComp->mDirectFlight = true;
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+
+            Vec3 retreatDir = myPos - playerPos;
+            const float desiredY = flyComp->mGround + flyComp->mHoverHeight + 3.0f;
+            retreatDir.y = (std::max)(0.0f, desiredY - myPos.y);
+            if (retreatDir.LengthSquared() > 1e-8f)
+            {
+                retreatDir.Normalize();
+                movementComp->mMovingDirection = retreatDir;
+            }
+            else
+            {
+                movementComp->mMovingDirection = Vec3::Up;
+            }
+            break;
+        }
+
         movementComp->mMovingSpeed = enemyComp->mSpeed * 1.15f;
 
         const bool flyAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
@@ -387,10 +444,17 @@ bool EnemySystem::HandleAttackState(
         {
             const Vec3 rushTarget = playerPos;
             auto navSystem = mWorld->GetNavSystem();
+            Vec3 rayStart = myPos;
+            Vec3 rayEnd = rushTarget;
+            rayStart.y += 60.0f;
+            rayEnd.y += 60.0f;
+            const bool directPath = HasDirectPath(mWorld, rayStart, rayEnd);
+            if (flyComp)
+                flyComp->mDirectFlight = directPath;
 
             bool hasPathDir = false;
             Vec3 rushDir = Vec3::Zero;
-            if (navSystem && navSystem->IsInitialized())
+            if (!directPath && navSystem && navSystem->IsInitialized())
             {
                 bool ok = navSystem->FindPath(myPos, rushTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
                 if (!ok)
@@ -413,15 +477,21 @@ bool EnemySystem::HandleAttackState(
                 if (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount)
                 {
                     rushDir = movementComp->mPath[movementComp->mPathIndex] - myPos;
-                    rushDir.y = 0.0f;
+                    rushDir.y = rushTarget.y - myPos.y;
                     hasPathDir = true;
                 }
+            }
+            else if (directPath)
+            {
+                movementComp->mPathCount = 0;
+                movementComp->mPathIndex = 0;
+                rushDir = rushTarget - myPos;
+                hasPathDir = true;
             }
 
             if (!hasPathDir)
             {
                 rushDir = rushTarget - myPos;
-                rushDir.y = 0.0f;
             }
 
             if (rushDir.LengthSquared() > 1e-8f)
@@ -440,7 +510,23 @@ bool EnemySystem::HandleAttackState(
             eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::PianoAttack });
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-            movementComp->mMovingDirection = Vec3::Zero;
+            if (flyComp)
+                flyComp->mRetreating = true;
+            Vec3 retreatDir = myPos - playerPos;
+            if (flyComp)
+            {
+                const float desiredY = flyComp->mGround + flyComp->mHoverHeight + 3.0f;
+                retreatDir.y = (std::max)(0.0f, desiredY - myPos.y);
+            }
+            if (retreatDir.LengthSquared() > 1e-8f)
+            {
+                retreatDir.Normalize();
+                movementComp->mMovingDirection = retreatDir;
+            }
+            else
+            {
+                movementComp->mMovingDirection = Vec3::Up;
+            }
             movementComp->mPathCount = 0;
             movementComp->mPathIndex = 0;
         }
@@ -600,6 +686,10 @@ bool EnemySystem::HandleAttackState(
         const bool pianoAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
         enemyComp->mAnimState = static_cast<uint8>(pianoAttackOnCooldown ? EnemyAnimState::Run : EnemyAnimState::Attack);
     }
+    else if (enemyComp->mEnemyType == EnemyType::Fly)
+    {
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    }
     else if (nowSeconds <= enemyComp->mAttackAnimEndTime)
     {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
@@ -625,6 +715,12 @@ void EnemySystem::HandleRunState(
 {
     if (!enemyComp || !movementComp)
         return;
+
+    FlyComponent* flyComp = enemyComp->mEnemyType == EnemyType::Fly
+        ? mWorld->GetComponent<FlyComponent>(entity)
+        : nullptr;
+    if (flyComp)
+        flyComp->mDirectFlight = false;
 
     Vec3 desiredTarget = playerPos;
     if (mUseOnnxBaseMove)
@@ -672,7 +768,21 @@ void EnemySystem::HandleRunState(
         movementComp->mTarget = desiredTarget;
 
         bool ok = false;
-        if (navSystem && navSystem->IsInitialized())
+        Vec3 rayStart = myPos;
+        Vec3 rayEnd = desiredTarget;
+        rayStart.y += 60.0f;
+        rayEnd.y += 60.0f;
+        const bool directPath = enemyComp->mEnemyType == EnemyType::Fly &&
+            HasDirectPath(mWorld, rayStart, rayEnd);
+        if (flyComp)
+            flyComp->mDirectFlight = directPath;
+        if (directPath)
+        {
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+            ok = true;
+        }
+        else if (navSystem && navSystem->IsInitialized())
         {
             ok = navSystem->FindPath(myPos, desiredTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
         }

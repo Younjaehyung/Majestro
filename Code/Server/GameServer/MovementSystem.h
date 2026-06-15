@@ -24,6 +24,7 @@ private:
 	void UpdatePlayer(float deltaTIme);
 	void UpdateEnemy(float deltaTime);
 	void UpdateGravity(float deltaTime);
+	void UpdateFlyHeight(float deltaTime);
 	void UpdateBullet(float deltaTime);
 
 	// 수평 이동을 Jolt StaticCollision(벽+바닥) 구 sweep 으로 해석하고 벽을 따라 슬라이드

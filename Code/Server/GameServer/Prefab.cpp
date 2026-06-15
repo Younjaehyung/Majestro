@@ -20,6 +20,7 @@
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
 #include "PlayerSpawnComponent.h"
+#include "FlyComponent.h"
 
 #include "BulletComponent.h"
 #include "HealthComponent.h"
@@ -211,16 +212,15 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	t.mLocalScale = { 1.3f, 1.3f, 1.3f };
 
 	world->AddComponent<TransformComponent>(mEntityID, t);
-
 	if (enemyType != EnemyType::Fly) {
 		GravityComponent& grav = world->AddComponent<GravityComponent>(mEntityID);
 		grav.mGround = t.mLocalPosition.y;
 		grav.mHight = t.mLocalPosition.y + 30.f;
 	}
-		world->AddComponent<EnemyMovementComponent>(mEntityID);
-		Vec3 center{ 0,50,0 };
-		Vec3 half{ 50,100,50 };
-		world->AddComponent<MovableComponent>(mEntityID);
+	world->AddComponent<EnemyMovementComponent>(mEntityID);
+	Vec3 center{ 0,50,0 };
+	Vec3 half{ 50,100,50 };
+	world->AddComponent<MovableComponent>(mEntityID);
 	
 
 	switch (enemyType) {
@@ -245,6 +245,10 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Fly:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Fly, 300);
+		{
+			FlyComponent& fly = world->AddComponent<FlyComponent>(mEntityID);
+			fly.mGround = t.mLocalPosition.y;
+		}
 		world->AddComponent<HealthComponent>(mEntityID, 20, 20);
 		break;
 	case EnemyType::Brass:

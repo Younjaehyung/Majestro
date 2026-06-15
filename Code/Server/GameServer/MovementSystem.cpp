@@ -6,6 +6,7 @@
 
 #include "TransformComponent.h"
 #include "GravityComponent.h"
+#include "FlyComponent.h"
 #include "MovementComponent.h"
 #include "CameraComponent.h"
 #include "TagComponent.h"
@@ -141,6 +142,7 @@ void MovementSystem::Update(float dt) {
 	UpdateGravity(dt);
 	UpdatePlayer(dt);
 	UpdateEnemy(dt);
+	UpdateFlyHeight(dt);
 	UpdateBullet(dt);
 
 }
@@ -483,13 +485,19 @@ void MovementSystem::UpdateEnemy(float dt)
 	for (auto& entity : enemyEntitys) {
 		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
 		EnemyMovementComponent* enemyMovementComponent = mWorld->GetComponent<EnemyMovementComponent>(entity);
+		EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
+		FlyComponent* flyComponent = mWorld->GetComponent<FlyComponent>(entity);
 
 		if (!transformComponent || !enemyMovementComponent) continue;
 
 		transformComponent->mMovingVector = enemyMovementComponent->mMovingDirection * dt * enemyMovementComponent->mMovingSpeed;
 		transformComponent->mLocalPosition += transformComponent->mMovingVector;
 
-		if (nav && nav->IsInitialized())
+		const bool skipNavSurface = enemyComponent &&
+			enemyComponent->mEnemyType == EnemyType::Fly &&
+			flyComponent && flyComponent->mDirectFlight;
+
+		if (!skipNavSurface && nav && nav->IsInitialized())
 		{
 			const float moveXSq = transformComponent->mMovingVector.x * transformComponent->mMovingVector.x
 				+ transformComponent->mMovingVector.z * transformComponent->mMovingVector.z;
@@ -632,20 +640,6 @@ void MovementSystem::UpdateGravity(float dt)
 			}
 		}
 
-		if (EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity))
-		{
-			if (enemyComponent->mEnemyType == EnemyType::Fly)
-			{
-				gravityComponent->mHight = gravityComponent->mGround + enemyComponent->mHoverHeight;
-				gravityComponent->mGravity = 0.0f;
-				gravityComponent->mFalling = false;
-				gravityComponent->mDropping = false;
-				gravityComponent->mDropConfirmLeft = gravityComponent->mDropConfirmDelay;
-				transformComponent->mLocalPosition.y = gravityComponent->mHight + 3.f;
-				continue;
-			}
-		}
-
 		// === 수직 적분 ===
 		if (airborne)
 		{
@@ -697,6 +691,56 @@ void MovementSystem::UpdateGravity(float dt)
 		}
 
 		transformComponent->mLocalPosition.y = gravityComponent->mHight + 3.f;
+	}
+}
+
+void MovementSystem::UpdateFlyHeight(float dt)
+{
+	(void)dt;
+
+	auto physicsWorld = mWorld->GetPhysicsWorld();
+	if (!physicsWorld || !mWorld->HasComponentPool<FlyComponent>())
+		return;
+
+	for (const Entity& entity : mWorld->GetEntitiesWithComponent<FlyComponent>())
+	{
+		TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(entity);
+		FlyComponent* flyComponent = mWorld->GetComponent<FlyComponent>(entity);
+		EnemyComponent* enemyComponent = mWorld->GetComponent<EnemyComponent>(entity);
+		if (!transformComponent || !flyComponent)
+			continue;
+
+		float ground = flyComponent->mGround;
+		if (physicsWorld->TryQueryTerrainHeightNear(
+			transformComponent->mLocalPosition,
+			transformComponent->mLocalPosition.y,
+			100.0f,
+			5000.0f,
+			ground))
+		{
+			flyComponent->mGround = ground;
+		}
+
+		const bool divingAttack = enemyComponent &&
+			enemyComponent->mEnemyType == EnemyType::Fly &&
+			enemyComponent->mAnimState == static_cast<uint8>(EnemyAnimState::Attack);
+		if (divingAttack)
+			continue;
+
+		const float targetHoverHeight = flyComponent->mHoverHeight;
+		float desiredY = flyComponent->mGround + targetHoverHeight + 3.0f;
+		const float clearance = transformComponent->mLocalPosition.y - flyComponent->mGround;
+		if (clearance < flyComponent->mMinGroundClearance)
+		{
+			desiredY = (std::max)(desiredY, flyComponent->mGround + flyComponent->mMinGroundClearance + 3.0f);
+		}
+
+		const float maxVerticalStep = flyComponent->mVerticalMoveSpeed * dt;
+		const float deltaY = desiredY - transformComponent->mLocalPosition.y;
+		if (fabsf(deltaY) <= maxVerticalStep)
+			transformComponent->mLocalPosition.y = desiredY;
+		else
+			transformComponent->mLocalPosition.y += (deltaY > 0.0f ? maxVerticalStep : -maxVerticalStep);
 	}
 }
 

@@ -7,6 +7,7 @@
 #include "PlayerComponent.h"
 #include "TagComponent.h"
 #include "UISpriteComponent.h"
+#include "GameEvents.h"
 
 
 void HUDSkillCooldownFeature::Update(float /*dt*/)
@@ -39,11 +40,21 @@ void HUDSkillCooldownFeature::Update(float /*dt*/)
 		if (ov == nullptr)
 			continue;
 
-		const float dur    = mp->mCooldownDuration[slot->mSkillSlot];
-		const float end    = mp->mCooldownEndLocal[slot->mSkillSlot];
+		const uint8 idx    = slot->mSkillSlot;
+		const float dur    = mp->mCooldownDuration[idx];
+		const float end    = mp->mCooldownEndLocal[idx];
 		const float remain = end - now;
+		const bool  cooling = (dur > 0.f && remain > 0.f);
 
-		if (dur <= 0.f || remain <= 0.f)   // 완료 덮개 숨김
+		// 쿨다운 진행 
+		if (mWasCooling[idx] && !cooling && (idx == 1 || idx == 2))
+		{
+			if (auto em = mWorld->GetEventManager())
+				em->Enqueue(EvSfxRequest{ "player/Cooltime", Vec3::Zero });
+		}
+		mWasCooling[idx] = cooling;
+
+		if (!cooling)   // 완료 덮개 숨김
 		{
 			ov->mVisible = false;
 			continue;

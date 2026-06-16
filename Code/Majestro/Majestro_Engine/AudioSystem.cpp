@@ -50,9 +50,9 @@ void AudioSystem::Initialize()
 
     if (inGame)
     {
-        AUDIOMANAGER.RequestBGM("event:/ElecMulti", SOUNDNAME::Elec);
-        AUDIOMANAGER.RequestBGM("event:/BassMulti", SOUNDNAME::Bass);
-        AUDIOMANAGER.RequestBGM("event:/DrumMulti", SOUNDNAME::Drum);
+        AUDIOMANAGER.RequestBGM("event:/OST/ElecMulti", SOUNDNAME::Elec);
+        AUDIOMANAGER.RequestBGM("event:/OST/BassMulti", SOUNDNAME::Bass);
+        AUDIOMANAGER.RequestBGM("event:/OST/DrumMulti", SOUNDNAME::Drum);
 
         // T0 정렬 전까지 무음(일시정지)
         AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Elec, true);
@@ -321,15 +321,16 @@ void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
         return;
 
     SOUNDNAME stem;
+    const char* paramName;
     switch (playerType)
     {
-    case 0: stem = SOUNDNAME::Drum; break; // Drum player — DrumMulti
-    case 1: stem = SOUNDNAME::Bass; break; // Bass player — BassMulti
-    case 2: stem = SOUNDNAME::Elec; break; // Elec player — ElecMulti
+    case 0: stem = SOUNDNAME::Drum; paramName = "DrumParam"; break; // Drum player — DrumMulti
+    case 1: stem = SOUNDNAME::Bass; paramName = "BassParam"; break; // Bass player — BassMulti
+    case 2: stem = SOUNDNAME::Elec; paramName = "ElecParam"; break; // Elec player — ElecMulti
     default: return;
     }
 
-    AUDIOMANAGER.SetBGMParam("Parameter 1", stem, static_cast<float>(rhythm), true);
+    AUDIOMANAGER.SetBGMParam(paramName, stem, static_cast<float>(rhythm), true);
 }
 
 void OnExplosion(float x, float y, float z) {

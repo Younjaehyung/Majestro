@@ -252,6 +252,7 @@ void LobbyRoomSystem::BuildUI()
 
             mLeaving = true;
         },
+        .clickSfxKey  = "ui/back",
     });
 
     if (auto* sp = mWorld->GetComponent<UISpriteComponent>(mReadyButton))

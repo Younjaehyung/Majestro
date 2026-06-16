@@ -45,6 +45,10 @@ struct UIButtonDesc
 
 
     std::function<void()> onClick;
+
+    // 효과음 키
+    const char* clickSfxKey = nullptr;
+    const char* hoverSfxKey = nullptr;
 };
 
 Entity CreateUIButton(World* world, const UIButtonDesc& desc);

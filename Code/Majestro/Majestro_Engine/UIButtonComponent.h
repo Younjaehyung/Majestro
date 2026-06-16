@@ -26,8 +26,9 @@ public:
     std::function<void()> mOnHoverExit;   // 호버 이탈 시 1회
 
     // ── 효과음 키 (SfxTable.json) ──────────────────────────────
-    std::string mClickSfxKey = "ui/button_click";
-    std::string mHoverSfxKey = "ui/button_hover";
+    // UIButtonSystem이 클릭/호버 시 SfxSystem::Play(key) 직접 호출
+    std::string mClickSfxKey = "ui/select";   // 클릭 확정음
+    std::string mHoverSfxKey = "ui/hover";    // 마우스 진입음
 
     // ── 상태별 Diffuse 색상 (UI_PS.hlsl에 전달) ────────────────
     Vec4 mNormalColor  = { 0.15f, 0.15f, 0.45f, 0.85f };

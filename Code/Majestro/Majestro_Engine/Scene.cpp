@@ -443,6 +443,7 @@ void Scene::CreatePauseMenu()
 			.resKey = L"VFX_UI_Select",
 			.label = L"BACK",
 			.onClick = [requestPause]() { requestPause(PauseMenuState::Root); },
+			.clickSfxKey = "ui/back",
 			});
 
 		// ConfirmDisconnect: Yes / No
@@ -477,6 +478,7 @@ void Scene::CreatePauseMenu()
 			.resKey = L"VFX_UI_Select",
 			.label = L"NO",
 			.onClick = [requestPause]() { requestPause(PauseMenuState::Root); },
+			.clickSfxKey = "ui/back",
 			});
 
 		// 상태별 entity 등록 (Hidden 은 비움). 배경은 세 상태 공유.
@@ -520,7 +522,7 @@ void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)
 #pragma region Loading Scenes
 void LoadingScene::Initialize()
 {
-	AUDIOMANAGER.RequestBGM("event:/Loading", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/Loading", SOUNDNAME::Ambient);
 	AUDIOMANAGER.Update(0.f);
 
 	PrefabFactory::RegisterAllPrefabs();
@@ -668,7 +670,7 @@ bool LoadingScene::LoadScene(SceneId id)
 	mTotalTaskCount = (int32)mLoadTasks.size();
 
 
-	AUDIOMANAGER.RequestBGM("event:/Loading", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/Loading", SOUNDNAME::Ambient);
 	AUDIOMANAGER.Update(0.f);
 
 	return true;
@@ -708,7 +710,7 @@ void MainMenuScene::Initialize()
 	mWorld->SetSceneId(mSceneId);
 
 	
-	AUDIOMANAGER.RequestBGM("event:/Menu", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/Menu", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
@@ -868,6 +870,7 @@ void MainMenuScene::Initialize()
 			.resKey = L"VFX_UI_Select",
 			.label = L"BACK",
 			.onClick = [requestState]() { requestState(MainMenuState::MainMenu); },
+			.clickSfxKey = "ui/back",
 			});
 		Entity bSubExit = CreateUIButton(mWorld.get(), {
 			.position = Vec2(startX, startY + gap * 5),
@@ -894,6 +897,7 @@ void MainMenuScene::Initialize()
 			.resKey = L"VFX_UI_Select",
 			.label = L"NO",
 			.onClick = [requestState]() { requestState(MainMenuState::MainMenu); },
+			.clickSfxKey = "ui/back",
 			});
 
 		// Title 텍스트 (PRESS ANY KEY)
@@ -1411,7 +1415,7 @@ void FirstScene::Initialize()
 	mWorld->SetSceneId(mSceneId);
 
 	
-	AUDIOMANAGER.RequestBGM("event:/Escort", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/Escort", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };

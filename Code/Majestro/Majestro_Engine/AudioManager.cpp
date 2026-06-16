@@ -369,8 +369,12 @@ void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {
 
 void AudioManager::SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed) {
     uint32 idx = static_cast<uint32>(soundEnum);
-    if (!mAllBGM[idx]) return; // ���� BGM�� ���۵��� �ʾҴٸ� ����
-    FMOD_CHECK(mAllBGM[idx]->setParameterByName(name, value, ignoreSeekSpeed));
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return; // BGM이 시작되지 않았다면 무시
+    // 파라미터 이름이 이벤트에 없을시 로그
+    FMOD_RESULT r = mAllBGM[idx]->setParameterByName(name, value, ignoreSeekSpeed);
+    if (r != FMOD_OK) {
+        std::cout << "[BGM] SetBGMParam('" << name << "') failed: " << FMOD_ErrorString(r) << std::endl;
+    }
 }
 
 void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed) {

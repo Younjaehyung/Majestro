@@ -70,6 +70,10 @@ Entity CreateUIButton(World* world, const UIButtonDesc& d)
     btn.mHoveredColor = d.hoveredColor;
     btn.mPressedColor = d.pressedColor;
 
+    // 효과음 키 오버라이드
+    if (d.clickSfxKey) btn.mClickSfxKey = d.clickSfxKey;
+    if (d.hoverSfxKey) btn.mHoverSfxKey = d.hoverSfxKey;
+
     // VFX 이펙트 스케일
     if (d.visual == UIButtonVisual::Vfx)
     {

@@ -167,10 +167,30 @@ void SfxSystem::ConsumeEvents()
 		Play("phase/" + std::to_string(static_cast<int>(e.newPhase)));
 	});
 
+	// 플레이어 HP 변화
 	eventManager->Consume<EvHealthChanged>([this](const EvHealthChanged& e)
 	{
-		if (e.hp < e.previousHp)
-			Play("player/hurt");
+		// 플레이어 대상
+		if (mWorld->GetComponent<MainPlayerComponent>(e.target) == nullptr)
+			return;
+
+		
+		Vec3 pos = Vec3::Zero;
+		const Vec3* posPtr = nullptr;
+		if (TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e.target))
+		{
+			pos = tr->mWorldPosition;
+			posPtr = &pos;
+		}
+
+		if (e.previousHp <= 0 && e.hp > 0)
+			Play("player/Rebirth", posPtr);   // 사망(0) -> 양수 : 부활
+		else if (e.hp <= 0 && e.previousHp > 0)
+			Play("player/Die", posPtr);       // 양수 -> 0 : 사망
+		else if (e.hp < e.previousHp)
+			Play("player/Hit", posPtr);       // 그 외 HP 감소 : 피격
+		else if (e.hp > e.previousHp)
+			Play("player/healpack", posPtr);  // HP 증가 : 회복
 	});
 
 	

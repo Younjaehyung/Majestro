@@ -111,16 +111,12 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 	// Clear:
 	{
 		PhaseGoalSpec s;
-		s.mTextureName = L"UI_Goal_Clear";
-		s.mIntro   = IntroAnim::DropFromTop;
+		s.mTextureName = L"UI_StageClear_0";
+		s.mFullscreen = true;                 // 전체화면
+		s.mIntro   = IntroAnim::FadeInCenter; // 페이드인
 		s.mSettled = SettledAnim::Static;
-		s.mOutro   = OutroAnim::FadeOut;
-		s.mParams.mIntroDuration = 0.7f;
-		s.mParams.mHoldDuration  = 1.5f;
-		s.mParams.mOutroDuration = 0.6f;
-		s.mParams.mDropFromOffset = Vec2(0.f, -800.f);
-		s.mParams.mDropBounceFreq = 6.f;
-		s.mParams.mDropBounceDamp = 4.f;
+		s.mOutro   = OutroAnim::None;         
+		s.mParams.mIntroDuration = 1.5f;      // 페이드인 시간(초)
 		mTable[WavePhaseType::Clear] = s;
 	}
 }
@@ -603,21 +599,31 @@ void UIGameInfoUpdateFeature::EnsureBannerEntities()
 
 void UIGameInfoUpdateFeature::ApplyBannerSpec(const PhaseGoalSpec& spec)
 {
-	if (auto* tr = mWorld->GetComponent<UITransformComponent>(mBannerEntity))
+	auto applyLayout = [&](Entity ent)
 	{
-		tr->mSize  = spec.mBannerSize;
+		auto* tr = mWorld->GetComponent<UITransformComponent>(ent);
+		if (tr == nullptr) return;
+
+		if (spec.mFullscreen)	// 풀스크린
+		{
+			tr->mAnchor = Anchor::Center;
+			tr->mPivot  = Vec2(0.5f, 0.5f);
+			tr->UseScreenRatioLayout(Vec2(0.f, 0.f), Vec2(1.f, 1.f));
+		}
+		else
+		{
+			tr->mLayoutMode = UILayoutMode::ReferenceResolution;
+			tr->mSize       = spec.mBannerSize;
+		}
 		tr->mScale = Vec2(1.f, 1.f); // 새 phase 진입 시 스케일 초기화.
-	}
+	};
+
+	applyLayout(mBannerEntity);
+	applyLayout(mBannerTextEntity);
 
 	if (auto* spr = mWorld->GetComponent<UISpriteComponent>(mBannerEntity))
 	{
 		spr->mTexture = RESOURCEMANAGER.Get<Texture>(spec.mTextureName);
-	}
-
-	if (auto* tt = mWorld->GetComponent<UITransformComponent>(mBannerTextEntity))
-	{
-		tt->mSize  = spec.mBannerSize;
-		tt->mScale = Vec2(1.f, 1.f);
 	}
 
 	if (auto* txt = mWorld->GetComponent<UITextComponent>(mBannerTextEntity))

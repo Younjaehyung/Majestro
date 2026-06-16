@@ -2807,6 +2807,9 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss_0.png");
 			Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success_0.png");
 
+			// 스테이지 클리어 전체화면 오버레이 (Clear phase 진입 시 페이드인)
+			Load<Texture>(L"UI_StageClear_0", L"..\\Resources\\Image\\UI\\UI_StageClear_0.png");
+
 			Load<Texture>(L"UI_Ingame_Conquest_Info_0", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_0.png");
 			Load<Texture>(L"UI_Ingame_Conquest_Info_1", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_1.png");
 			Load<Texture>(L"UI_Ingame_Conquest_Info_2", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_2.png");

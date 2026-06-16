@@ -68,6 +68,8 @@ struct PhaseGoalSpec
 	std::wstring mTextureName;                  // RESOURCEMANAGER.Get<Texture> 키
 	std::wstring mTitleText;                    // 빈 문자열이면 텍스트 미표시
 	Vec2         mBannerSize = { 640.f, 200.f };
+	// true 면 ScreenRatio(1,1) 레이아웃으로 종횡비 무관 전체화면 (mBannerSize 무시).
+	bool         mFullscreen = false;
 
 	IntroAnim    mIntro   = IntroAnim::FadeInCenter;
 	SettledAnim  mSettled = SettledAnim::MoveToTop;

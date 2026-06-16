@@ -312,6 +312,10 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	case SkillType::PianoAttack:    return "PianoAttack";
 	case SkillType::BongoAttack:    return "BongoAttack";
 	case SkillType::BongoShild:     return "BongoShild";
+	case SkillType::BrassSkill1:    return "BrassSkill1";
+	case SkillType::BrassSkill2:    return "BrassSkill2";
+	case SkillType::BrassSkill3:    return "BrassSkill3";
+	case SkillType::BrassSkill4:    return "BrassSkill4";
 	default:                        return std::to_string(static_cast<int>(type));
 	}
 }

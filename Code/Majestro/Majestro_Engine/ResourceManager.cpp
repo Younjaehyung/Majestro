@@ -2933,6 +2933,12 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"JHToon");
 
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_02.fbx", L"JHToon");
+
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 	LoadFBXModel(L"..\\Resources\\FBX\\Object\\Obelisk.fbx", L"Deferred");
 

@@ -18,6 +18,10 @@ enum class EnemyAnimState : uint8
 	Dead,
 	Shield,
 	RushEnd,
+	BrassAttack1,
+	BrassAttack2,
+	BrassAttack3,
+	BrassAttack4,
 };
 
 class EnemyComponent : public Component<EnemyComponent>

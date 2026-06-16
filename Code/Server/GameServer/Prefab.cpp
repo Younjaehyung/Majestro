@@ -264,7 +264,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Brass:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Brass, 300);
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 1000, 1000);
 		break;
 	}
 

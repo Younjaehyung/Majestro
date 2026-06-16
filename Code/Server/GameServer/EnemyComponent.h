@@ -18,7 +18,11 @@ enum class EnemyAnimState : uint8
 	Attack,
 	Dead,
 	Shield,
-	RushEnd
+	RushEnd,
+	BrassAttack1,
+	BrassAttack2,
+	BrassAttack3,
+	BrassAttack4
 };
 
 class EnemyComponent : public Component<EnemyComponent>
@@ -55,9 +59,15 @@ public:
 			break;
 		case EnemyType::Brass:
 			mAttackCool = 16;
-			AttackRange = 1000.f;
+			AttackRange = 700.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
+			mBrassAttackCool[0] = 8.0f;
+			mBrassAttackCool[1] = 12.0f;
+			mBrassAttackCool[2] = 16.0f;
+			mBrassAttackCool[3] = 24.0f;
+			for (int i = 0; i < 4; ++i)
+				mBrassNextAttackTime[i] = GetServerTotalTimeSeconds();
 			break;
 		case EnemyType::Pianoman:
 			mAttackCool = 16;
@@ -105,4 +115,7 @@ public:
 	int32 mUtilityAmount = 0;
 	float mHoverHeight = 0.0f;
 	Entity mLinkedPlayer{};
+	uint8 mBrassAttackPattern = 0;
+	float mBrassAttackCool[4] = { 0.f, 0.f, 0.f, 0.f };
+	float mBrassNextAttackTime[4] = { 0.f, 0.f, 0.f, 0.f };
 };

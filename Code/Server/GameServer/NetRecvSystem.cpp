@@ -255,35 +255,35 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 
 	EnsureBulletPool(inputCommand);
 
-	bool hasFly = false;
+	bool hasBrass = false;
 	if (mWorld->HasComponentPool<EnemyComponent>())
 	{
 		for (Entity enemyEntity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
 		{
 			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(enemyEntity);
-			if (enemyComp && enemyComp->mEnemyType == EnemyType::Fly)
+			if (enemyComp && enemyComp->mEnemyType == EnemyType::Brass)
 			{
-				hasFly = true;
+				hasBrass = true;
 				break;
 			}
 		}
 	}
 
-	if (!hasFly)
+	if (!hasBrass)
 	{
 		// NOTE:
-		// Obelisk one-off spawn is disabled for Fly behavior testing.
-		InputCommand flySpawn{};
-		flySpawn.SessionId = 0;
-		flySpawn.Type = PKT_Type::S2C_PKT_SPAWN;
-		flySpawn.StoreAs(EnemySpawnContext{ static_cast<uint8>(EnemyType::Fly) });
+		// Fly one-off spawn is disabled for Brass behavior testing.
+		InputCommand brassSpawn{};
+		brassSpawn.SessionId = 0;
+		brassSpawn.Type = PKT_Type::S2C_PKT_SPAWN;
+		brassSpawn.StoreAs(EnemySpawnContext{ static_cast<uint8>(EnemyType::Brass) });
 
-		Entity flyEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, flySpawn);
-		if (flyEntity.IsValid())
+		Entity brassEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, brassSpawn);
+		if (brassEntity.IsValid())
 		{
 			if (TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity))
 			{
-				Vec3 spawnPos = playerTransform->mLocalPosition + Vec3(0.0f, 0.0f, 300.0f);
+				Vec3 spawnPos = playerTransform->mLocalPosition + Vec3(0.0f, 0.0f, 1200.0f);
 				if (auto& physicsWorld = mWorld->GetPhysicsWorld())
 				{
 					float ground = 0.0f;
@@ -291,23 +291,23 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 						spawnPos.y = ground;
 				}
 
-				if (TransformComponent* flyTransform = mWorld->GetComponent<TransformComponent>(flyEntity))
+				if (TransformComponent* brassTransform = mWorld->GetComponent<TransformComponent>(brassEntity))
 				{
-					flyTransform->mLocalPosition = spawnPos;
-					flyTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
+					brassTransform->mLocalPosition = spawnPos;
+					brassTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
 				}
-				if (GravityComponent* flyGravity = mWorld->GetComponent<GravityComponent>(flyEntity))
+				if (GravityComponent* brassGravity = mWorld->GetComponent<GravityComponent>(brassEntity))
 				{
-					flyGravity->mGround = spawnPos.y;
-					flyGravity->mHight = spawnPos.y;
-					flyGravity->mGravity = 0.0f;
-					flyGravity->mFalling = false;
-					flyGravity->mDropping = false;
-					flyGravity->mGroundGraceLeft = 0.0f;
+					brassGravity->mGround = spawnPos.y;
+					brassGravity->mHight = spawnPos.y;
+					brassGravity->mGravity = 0.0f;
+					brassGravity->mFalling = false;
+					brassGravity->mDropping = false;
+					brassGravity->mGroundGraceLeft = 0.0f;
 				}
 			}
 
-			BroadcastEnemySpawn(mWorld, flyEntity);
+			BroadcastEnemySpawn(mWorld, brassEntity);
 		}
 	}
 

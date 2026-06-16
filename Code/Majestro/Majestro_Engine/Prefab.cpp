@@ -656,12 +656,20 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Brass:
-		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_BrassBoss");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_BrassBoss_Attack_010");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Idle"));//die
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Attack_01"));//none
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_01"));//none
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
 
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		t.mLocalScale = { 1.3f, 1.3f, 1.3f };
+		world->AddComponent<HealthComponent>(mEntityID, 1000, 1000);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	}

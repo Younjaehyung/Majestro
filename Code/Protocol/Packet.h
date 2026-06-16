@@ -100,6 +100,10 @@ enum class SkillType : uint8
 	PianoAttack,
 	BongoAttack,
 	BongoShild,
+	BrassSkill1,
+	BrassSkill2,
+	BrassSkill3,
+	BrassSkill4,
 
 	Max
 };

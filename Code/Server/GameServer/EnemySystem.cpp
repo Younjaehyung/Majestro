@@ -207,13 +207,6 @@ void EnemySystem::Update(float dt)
             continue;
         }
 
-        if (enemyComp->mEnemyType == EnemyType::Brass)
-        {
-            HaltByState(enemyComp, mc, EnemyAnimState::Run);
-            ++entityIndex;
-            continue;
-        }
-
         if (!loggedNearbyThisFrame)
         {
           //  std::cout << "[SpatialDebug] enemy=" << entity.GetID() << " nearby_count=" << nearbyEnemies.size();
@@ -368,7 +361,6 @@ bool EnemySystem::HandleAttackState(
     {
     case EnemyType::HornMan:
     case EnemyType::Obelisk:
-    case EnemyType::Brass:
         movementComp->mMovingDirection = Vec3::Zero;
         movementComp->mPathCount = 0;
         movementComp->mPathIndex = 0;
@@ -376,6 +368,18 @@ bool EnemySystem::HandleAttackState(
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
             eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+        }
+        break;
+    case EnemyType::Brass:
+        movementComp->mMovingDirection = Vec3::Zero;
+        movementComp->mPathCount = 0;
+        movementComp->mPathIndex = 0;
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+        {
+            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::BongoAttack });
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }
@@ -676,6 +680,10 @@ bool EnemySystem::HandleAttackState(
         enemyComp->mAnimState = static_cast<uint8>(pianoAttackOnCooldown ? EnemyAnimState::Run : EnemyAnimState::Attack);
     }
     else if (enemyComp->mEnemyType == EnemyType::Fly)
+    {
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+    }
+    else if (enemyComp->mEnemyType == EnemyType::Brass)
     {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
     }

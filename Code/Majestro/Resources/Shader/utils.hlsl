@@ -79,6 +79,7 @@ float3 CalcWindOffset(float3 worldPos, float localY, float4 windParam)
 
 
 
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // 색수차(Chromatic Aberration) 
 
@@ -1198,7 +1199,7 @@ LightColor CalculateLightColorPBRNPR(
                 float wrapped = saturate((rawNdotL + wrap) / (1.0f + wrap));
                 shadowArea = 1.0f - wrapped;
                 break;
-        }
+            }
         case MAT_HAIR:
         {
             // Hair: Wrap lighting — 경계 완만, 그늘까지 빛이 들어옴
@@ -1206,7 +1207,7 @@ LightColor CalculateLightColorPBRNPR(
                 float wrapped = saturate((rawNdotL + wrap) / (1.0f + wrap));
                 shadowArea = 1.0f - wrapped;
                 break;
-        }
+            }
         case MAT_SILK:
         {
             // Silk, Stocking : 기본 Sigmoid보다 1.5배 부드럽게
@@ -1214,16 +1215,16 @@ LightColor CalculateLightColorPBRNPR(
                                      npr.ShadowOffset,
                                      npr.ShadowSmooth * 1.5f);
                 break;
-        }
+            }
         case MAT_METAL:
         {
             // Metal: Sigmoid 경계를 기본보다 좁게 
             
-            shadowArea = NPR_Sigmoid(1.0f - halfLambert,
+                shadowArea = NPR_Sigmoid(1.0f - halfLambert,
                                      npr.ShadowOffset,
                                      npr.ShadowSmooth * 0.6f);
-            break;
-        }
+                break;
+            }
         case MAT_SOFT:
         {
             // Soft Matte : 넓은 반음영
@@ -1231,12 +1232,12 @@ LightColor CalculateLightColorPBRNPR(
                                      npr.ShadowOffset,
                                      npr.ShadowSmooth * 2.0f);
                 break;
-        }
+            }
         default: // Hard Default
         {
                 shadowArea = NPR_Sigmoid(1.0f - halfLambert, npr.ShadowOffset, npr.ShadowSmooth);
                 break;
-        }
+            }
     }
     shadowArea *= npr.ShadowStrength;
     float NdotLRemap = saturate(1.0f - shadowArea); // 0=그림자, 1=빛
@@ -1256,7 +1257,7 @@ LightColor CalculateLightColorPBRNPR(
     
     
     //  재질별 물성 보정
-    float  effectiveMetallic = metallic;
+    float effectiveMetallic = metallic;
     float3 F0;
     switch (npr.MatClass)
     {
@@ -1267,7 +1268,7 @@ LightColor CalculateLightColorPBRNPR(
             F0 = lerp(float3(0.04f, 0.04f, 0.04f), albedo, effectiveMetallic);
             break;
         case MAT_SKIN:
-            F0 = float3(0.028f, 0.028f, 0.028f);   // 피부: 낮게
+            F0 = float3(0.028f, 0.028f, 0.028f); // 피부: 낮게
             break;
         case MAT_SILK:
             F0 = lerp(float3(0.05f, 0.05f, 0.05f), albedo, metallic);
@@ -1287,7 +1288,7 @@ LightColor CalculateLightColorPBRNPR(
     {
         // 피부:PBR에서 벗어난 NPR 표현
         float3 kDiff = (1.0f - F) * oneMinusReflectivity;
-        float  sssBand = saturate(1.0f - abs(rawNdotL * 2.0f - 0.5f));
+        float sssBand = saturate(1.0f - abs(rawNdotL * 2.0f - 0.5f));
         float3 sssTint = float3(0.9f, 0.4f, 0.35f);
         directDiffColor = kDiff * albedo + sssBand * sssTint * albedo * 0.12f;
     }
@@ -1342,7 +1343,7 @@ LightColor CalculateLightColorPBRNPR(
     float3 directSpecColor;
     if (npr.RampTexIdx >= 0)
     {
-        float  specRange   = saturate(NDF * G / max(denom, 0.0001f));
+        float specRange = saturate(NDF * G / max(denom, 0.0001f));
         float3 specRampCol = SampleSpecularRamp(npr.RampTexIdx, specRange);
 
         float specBoost = saturate(dot(BRDFSpec, float3(0.299f, 0.587f, 0.114f)));
@@ -1358,14 +1359,22 @@ LightColor CalculateLightColorPBRNPR(
     float specFloor;
     switch (npr.MatClass)
     {
-        case MAT_METAL: specFloor = 0.25f; break;
-        case MAT_SILK:  specFloor = 0.08f; break;
-        case MAT_HAIR:  specFloor = 0.10f; break;
-        default:        specFloor = 0.0f;  break;
+        case MAT_METAL:
+            specFloor = 0.25f;
+            break;
+        case MAT_SILK:
+            specFloor = 0.08f;
+            break;
+        case MAT_HAIR:
+            specFloor = 0.10f;
+            break;
+        default:
+            specFloor = 0.0f;
+            break;
     }
     float specWeight = max(NdotLRemap, specFloor);
 
-    float3 lightColor  = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 lightColor = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
     float3 directLight = (directDiffColor * shadowRamp + directSpecColor * specWeight) * lightColor;
 
     result.diffuse = float4(directLight, 1.0f);
@@ -1611,23 +1620,50 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
     float weightSum = 0.0f;
     float compareDepth = lightDepth - bias;
 
-    [unroll]
-    for (int y = -1; y <= 1; ++y)
+    // Cost control: only the nearest cascade uses full 3x3 PCF.
+    if (cascadeIndex == 0u)
     {
         [unroll]
-        for (int x = -1; x <= 1; ++x)
+        for (int y = -1; y <= 1; ++y)
         {
-            float2 offset = float2(x, y);
-            float weight = 1.0f / (1.0f + dot(offset, offset));
+            [unroll]
+            for (int x = -1; x <= 1; ++x)
+            {
+                float2 offset = float2(x, y);
+                float weight = 1.0f / (1.0f + dot(offset, offset));
+                float2 sampleUv = sampleUvBase + offset * texelSize;
+                float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
+                shadow += shadowVal * weight;
+                weightSum += weight;
+            }
+        }
+    }
+    else
+    {
+        [unroll]
+        for (int i = 0; i < 4; ++i)
+        {
+            float2 offset = float2(((i & 1) != 0) ? 0.5f : -0.5f, ((i & 2) != 0) ? 0.5f : -0.5f);
             float2 sampleUv = sampleUvBase + offset * texelSize;
             float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
-            shadow += shadowVal * weight;
-            weightSum += weight;
+            shadow += shadowVal;
         }
+        weightSum = 4.0f;
     }
 
     shadow /= max(weightSum, 1e-4f);
     return 1.0f - shadow * 0.75f;
+}
+
+float ApplyFarCascadeVisibilityFade(float visibility, float viewDepth, float4 splits)
+{
+    // Fix: use the same far cascade fade for direct selection and boundary blending.
+    float farRange = max(splits.w - splits.z, 1.0f);
+    float farFadeInEnd = splits.z + farRange * 0.35f;
+    float farFadeIn = smoothstep(splits.z, farFadeInEnd, viewDepth);
+    float farFadeOut = 1.0f - smoothstep(splits.w - farRange * 0.15f, splits.w, viewDepth);
+    float farShadowStrength = farFadeIn * farFadeOut * 0.45f;
+    return lerp(1.0f, visibility, farShadowStrength);
 }
 
 float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
@@ -1671,10 +1707,17 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
     if (totalBlend > 0.0f && (cascadeIndex + 1u) < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT)
     {
         float nextCoverage = 0.0f;
-        float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, cascadeIndex + 1, nextCoverage);
+        uint nextCascadeIndex = cascadeIndex + 1u;
+        float nextVisibility = SampleCascadeShadow(worldPos, worldNormal, lightDirWorld, nextCascadeIndex, nextCoverage);
+        if (nextCascadeIndex == (RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1))
+            nextVisibility = ApplyFarCascadeVisibilityFade(nextVisibility, viewDepth, splits);
         float validBlend = totalBlend * nextCoverage;
         visibility = lerp(visibility, nextVisibility, validBlend);
     }
+
+    // Fix: attenuate the far cached cascade so its low resolution boundary is not obvious.
+    if (cascadeIndex == (RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1))
+        visibility = ApplyFarCascadeVisibilityFade(visibility, viewDepth, splits);
 
     return visibility * shadowFade;
 }
@@ -1719,25 +1762,13 @@ float SampleCascadeShadowVLS(float4 worldPos, uint cascadeIndex, out float casca
     float bias = texelWorldSize * 0.5f * zScale;
 
     float lightDepth = saturate(shadowNdc.z);
-    float2 texelSize = 1.0f / shadowMapSize;
     float shadow = 0.0f;
     float weightSum = 0.0f;
     float compareDepth = lightDepth - bias;
 
-    [unroll]
-    for (int y = -1; y <= 1; ++y)
-    {
-        [unroll]
-        for (int x = -1; x <= 1; ++x)
-        {
-            float2 offset = float2(x, y);
-            float weight = 1.0f / (1.0f + dot(offset, offset));
-            float2 sampleUv = uv + offset * texelSize;
-            float shadowVal = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(sampleUv, cascadeIndex), compareDepth);
-            shadow += shadowVal * weight;
-            weightSum += weight;
-        }
-    }
+    // VLS is already ray-marched, so use one compare sample to avoid multiplying CSM cost.
+    shadow = ShadowMaps.SampleCmpLevelZero(g_sam_shadow, float3(uv, cascadeIndex), compareDepth);
+    weightSum = 1.0f;
 
     shadow /= max(weightSum, 1e-4f);
     return 1.0f - shadow; // floor 없음: 완전 차폐 시 0
@@ -1774,13 +1805,22 @@ float CalculateVLSShadow(float3 viewPos)
     if (totalBlend > 0.0f && (cascadeIndex + 1u) < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT)
     {
         float nextCoverage = 0.0f;
-        float nextVisibility = SampleCascadeShadowVLS(worldPos, cascadeIndex + 1, nextCoverage);
+        uint nextCascadeIndex = cascadeIndex + 1u;
+        float nextVisibility = SampleCascadeShadowVLS(worldPos, nextCascadeIndex, nextCoverage);
+        if (nextCascadeIndex == (RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1))
+            nextVisibility = ApplyFarCascadeVisibilityFade(nextVisibility, viewDepth, splits);
         float validBlend = totalBlend * nextCoverage;
         visibility = lerp(visibility, nextVisibility, validBlend);
     }
 
+    // Fix: keep the volumetric shadow boundary consistent with the regular CSM path.
+    if (cascadeIndex == (RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1))
+        visibility = ApplyFarCascadeVisibilityFade(visibility, viewDepth, splits);
+
+    // VLS has no surface normal, so it does not use the regular shadowFade term.
     return visibility; // shadowFade(normal) 미적용
 }
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////

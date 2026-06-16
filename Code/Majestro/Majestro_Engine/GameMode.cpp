@@ -80,11 +80,16 @@ void WaveGameMode::Initialize()
 }
 
 void WaveGameMode::PreUpdate(float deltaTime)
-{
-	// [디버그] F5: FirstScene 클리어를 기다리지 않고 SecondScene 으로 강제 전환 요청
+{	// 씬전환 디버그
+	// [디버그]
 	if (mScene->GetSceneId() == SceneId::FirstGame && INPUT.GetKeyDown(eKeyCode::F5))
 	{
 		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::SecondGame });
+	}
+	// [디버그]
+	if (mScene->GetSceneId() == SceneId::SecondGame && INPUT.GetKeyDown(eKeyCode::F5))
+	{
+		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::ThirdGame });
 	}
 }
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "RenderPass.h"
 
+class Shader;
+
 class OutlinePass : public RenderPass
 {
 public:
@@ -12,4 +14,5 @@ public:
 	virtual void Execute(std::vector<DrawBatch>& drawBatches) override;
 
 private:
+	std::shared_ptr<Shader> mOutlineShader;
 };

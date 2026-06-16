@@ -121,8 +121,8 @@ void Material::CreateMaterial(FBXMaterialInfo& fbxMat, const wstring& prefix)
 	const bool hasPbrTex    = !fbxMat.SpecularcMapName.empty() || !fbxMat.MetallicMapName.empty();
 	const bool hasNormalMap = !fbxMat.NormalMapName.empty();
 	float roughness = fbxMat.MaterialValueInfo.Roughness;
-	if (!hasPbrTex)
-		roughness = max(roughness, hasNormalMap ? 0.8f : 0.9f);
+	/*if (!hasPbrTex)
+		roughness = max(roughness, hasNormalMap ? 0.8f : 0.9f);*/
 	mParams.Roughness = roughness;
 
 	mParams.OcclusionMask = fbxMat.MaterialValueInfo.OcclusionMask;

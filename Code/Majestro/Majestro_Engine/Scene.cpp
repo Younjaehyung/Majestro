@@ -1609,7 +1609,7 @@ void FirstScene::Initialize()
 	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemFS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
-
+	gp->SetColorLUT(L"ColorLUT", 33);
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
@@ -1766,6 +1766,7 @@ void SecondScene::Initialize()
 	renderSystemSS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemSS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
+	gp->SetColorLUT(L"ColorLUT", 33);
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);

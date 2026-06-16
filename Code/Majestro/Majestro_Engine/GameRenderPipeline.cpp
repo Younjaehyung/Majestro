@@ -388,6 +388,13 @@ void GameRenderPipeline::SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* f
 		mWorldUIPass->SetFeatures(features);
 }
 
+
+void GameRenderPipeline::SetColorLUT(const std::wstring& name, int size, float strength)
+{
+    if (mPostProcessPass) mPostProcessPass->SetColorLUT(name, size, strength);
+}
+
+
 void GameRenderPipeline::AddHDREffect(shared_ptr<RenderPass> pass)
 {
     if (mPostProcessPass) mPostProcessPass->AddHDRPass(pass);

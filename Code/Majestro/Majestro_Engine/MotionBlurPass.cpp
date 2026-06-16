@@ -21,7 +21,7 @@ void MotionBlurPass::SetData(
 
 	dataTable[passIndex].PreviousStep = static_cast<int32>(ToGBufferIndex(before));
 	dataTable[passIndex].ExtTex[0] = static_cast<int32>(GBUFFER_INDEX::GBUFFER_MOTIONVEC_INDEX);
-	dataTable[passIndex].ExtTex[1] = RESOURCEMANAGER.Get<Texture>(L"NoiseTex")->GetSrvIndex();
+	dataTable[passIndex].ExtTex[1] = RESOURCEMANAGER.Get<Texture>(L"NoiseTex")->GetImageIndex();
 
 	// 대시 속도 효과 조정 값 
 	// y : 대시 블렌드

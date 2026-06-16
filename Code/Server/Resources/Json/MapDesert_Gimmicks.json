@@ -51,7 +51,7 @@
         {
             "_comment": "점령지 좌표는 미제공 — 플레이 영역 내 추정 배치. JSON 에서 자유 조정.",
             "kind": "ConquestZone",
-            "position": [ -3000.0, 300.0, -8000.0 ],
+            "position": [ -3330.0, 103.0, -5251.0 ],
             "halfExtents": [ 500.0, 600.0, 500.0 ],
             "valueA": 1.0,
             "valueB": 0.0,

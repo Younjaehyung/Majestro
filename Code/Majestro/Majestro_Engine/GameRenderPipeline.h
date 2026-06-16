@@ -58,6 +58,7 @@ public:
     void SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality);
     void SetHealthVignetteNoiseTexture(const std::wstring& textureName);
 	void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
+    void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
     DualKawaseBlurPass*  GetEmissiveBloom() const { return mEmissiveBloomPass.get(); }

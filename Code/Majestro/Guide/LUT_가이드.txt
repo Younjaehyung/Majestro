@@ -1,0 +1,11 @@
+PowerShell 관리자 권환으로 실행 후
+다음 명령어 입력
+[주의] 명령어 입력 전 다음 코드 수정할 것.
+
+1. < "파일 경로" > 수정할 것
+<C:\Programming\Majestro\.claude\worktrees\happy-hamilton-f15ab9\Code\Majestro\Resources\tools>\cube_to_strip.ps1
+
+2. < "파일 경로\파일 이름.cube" > 수정할 것 (경로와 파일이름까지 수정)
+<C:\Users\Admin\Desktop\LUT\Harsh_Sunset.cube>
+
+powershell -ExecutionPolicy Bypass -File "C:\Programming\Majestro\.claude\worktrees\happy-hamilton-f15ab9\Code\Majestro\Resources\tools\cube_to_strip.ps1" -CubePath "C:\Users\Admin\Desktop\LUT\Harsh_Sunset.cube"

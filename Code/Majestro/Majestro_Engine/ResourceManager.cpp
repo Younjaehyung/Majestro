@@ -2683,6 +2683,8 @@ void ResourceManager::CreateDefaultMaterial()
 	{
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Image\\Noise\\T_TilingNoise02_M.png");
+		// 컬러 그레이딩 LUT
+		Load<Texture>(L"ColorLUT", L"..\\Resources\\Texture\\Cinematic_strip.dds");
 		// DashSmoke
 		Load<Texture>(L"DashSmoke", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG");
 		Load<Texture>(L"WorlyNoise", L"..\\Resources\\Image\\Noise\\T_WorlyNoise_3.PNG");

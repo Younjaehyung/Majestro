@@ -109,9 +109,14 @@ void PostProcessPass::SetData(std::array<PassCustomData, static_cast<uint32>(PAS
     mFinalCompositePass->SetData(passTable, ldrBefore, ldrBefore);
 }
 
+void PostProcessPass::SetColorLUT(const std::wstring& name, int size, float strength)
+{
+    if (mToneMapPass) mToneMapPass->SetColorLUT(name, size, strength);
+}
+
 void PostProcessPass::SetColorGrading(const ColorGradingParams& params)
 {
-	if (mToneMapPass) mToneMapPass->SetColorGrading(params);
+    if (mToneMapPass) mToneMapPass->SetColorGrading(params);
 }
 
 const ColorGradingParams& PostProcessPass::GetColorGrading() const

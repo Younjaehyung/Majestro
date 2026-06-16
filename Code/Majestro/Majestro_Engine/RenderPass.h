@@ -126,6 +126,7 @@ public:
   
   void Initialize();
   void SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>&);
+  void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);
   void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 
   void AddHDRPass(shared_ptr<RenderPass> pass) { mHDRPasses.push_back(pass); }

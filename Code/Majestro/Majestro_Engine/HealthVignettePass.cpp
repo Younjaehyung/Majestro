@@ -34,7 +34,7 @@ void HealthVignettePass::SetData(
 		if (noiseTexture != nullptr)
 		{
 			// 비네팅 얼룩 노이즈 텍스처 슬롯
-			d.ExtTex[0] = static_cast<int32>(noiseTexture->GetSrvIndex());
+			d.ExtTex[0] = static_cast<int32>(noiseTexture->GetImageIndex());
 		}
 	}
 	// x  : 시간 y :  빈사 강도 z  : 회복 강도 w : 노이즈 텍스처 타일링

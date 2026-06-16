@@ -4,11 +4,17 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
+#include "Texture.h"
 
 #include "RenderSystem.h"
 
 void ToneMapPass::Initialize()
 {
+}
+
+void ToneMapPass::SetColorLUT(const std::wstring& name, int size, float strength)
+{
+	mLutName = name; mLutSize = size; mLutStrength = strength;
 }
 
 void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
@@ -50,6 +56,12 @@ void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 		mColorGrading.HighlightTint.y,
 		mColorGrading.HighlightTint.z,
 		mColorGrading.HighlightStrength);
+
+	// LUT 텍스처와 파라미터 전달
+	auto lut = mLutName.empty() ? nullptr : RESOURCEMANAGER.Get<Texture>(mLutName);
+	entry.ExtTex[0] = lut ? static_cast<int32>(lut->GetImageIndex()) : -1;
+	entry.ExtTex[1] = mLutSize;
+	entry.ExtTex[2] = (int)(std::clamp(mLutStrength, 0.f, 1.f) * 100); // 강도 0~100
 }
 
 void ToneMapPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
@@ -65,3 +77,4 @@ void ToneMapPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)
 
 	outputGroup.WaitTargetToResource();
 }
+

@@ -96,6 +96,29 @@ float3 ApplyColorGrading(float3 color, PASS_CUSTOM_DATA data)
     return color;
 }
 
+// ──────────────────────────────────────────────────────────────
+// 컬러 LUT (언랩 스트립)
+float3 ApplyColorLUT(int lutIdx, float N, float3 color)
+{
+    color = saturate(color);
+
+    float texU   = 1.0f / (N * N); // 가로 텍셀 폭
+    float texV   = 1.0f / N;       // 세로 텍셀 폭
+    float sliceU = 1.0f / N;       // blue 슬라이스 1개의 U 폭
+
+    float bluePos = color.b * (N - 1.0f);
+    float slice0  = floor(bluePos);
+    float slice1  = min(slice0 + 1.0f, N - 1.0f);
+    float fBlue   = bluePos - slice0;
+
+    float uLocal = (color.r * (N - 1.0f) + 0.5f) * texU; // 슬라이스 내부 red 오프셋
+    float v      = (color.g * (N - 1.0f) + 0.5f) * texV; // green
+
+    float3 c0 = TextureMaps[lutIdx].SampleLevel(g_sam_Terrain, float2(slice0 * sliceU + uLocal, v), 0).rgb;
+    float3 c1 = TextureMaps[lutIdx].SampleLevel(g_sam_Terrain, float2(slice1 * sliceU + uLocal, v), 0).rgb;
+    return lerp(c0, c1, fBlue); // blue 축 수동 보간(하드웨어가 red/green 보간)
+}
+
 float4 PS_Main(VS_OUT input) : SV_Target
 {
     PASS_CUSTOM_DATA data = PassCustomTable[2];
@@ -115,8 +138,16 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // 감마 보정
   //  float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 2.2f);
    float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 1.8f);
-    
-    
+
+    // 컬러 LUT
+    int lutIdx = data.ExtTex[0];
+    if (lutIdx >= 0)
+    {
+        float N = (float) data.ExtTex[1];
+        float strength = data.ExtTex[2] / 100.0f;
+        float3 graded = ApplyColorLUT(lutIdx, N, gammaCorrected);
+        gammaCorrected = lerp(gammaCorrected, graded, strength);
+    }
     // 비네트
     //float2 d = input.uv - float2(0.5f, 0.5f);
     //d.x *= PassParams.ScreenSize.x / PassParams.ScreenSize.y; // 화면 종횡비 보정

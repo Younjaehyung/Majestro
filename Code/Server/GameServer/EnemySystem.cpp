@@ -48,17 +48,6 @@ EnemySystem::EnemySystem(World* world) : System(world)
 
 void EnemySystem::Initialize()
 {
-
-    mNavMesh = RESOURCEMANAGER.Get<NavMesh>(L"NavMesh");
-    if (mNavMesh == nullptr)
-    {
-        wstring navMeshPath = L"../Resources/NavMesh/navmesh.bin";
-        mNavMesh = make_shared<NavMesh>();
-        mNavMesh->Load(ws2s(navMeshPath));
-        RESOURCEMANAGER.Add<NavMesh>(L"NavMesh", mNavMesh);
-    }
-    if (mNavMesh && mNavMesh->mDtNavMesh)
-        mWorld->GetNavSystem()->Initialize(mNavMesh);
 }
 
 

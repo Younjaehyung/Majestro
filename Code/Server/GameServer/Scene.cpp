@@ -547,6 +547,21 @@ void Scene::LoadCollisionJson(const wstring& path)
 // halfExtents = 트리거 영역 반경 / valueA,valueB = kind별 파라미터 / cooldown = 0이면 지속형.
 #endif
 
+
+void Scene::LoadNavMesh(const wstring& path)
+{
+	mNavMeshPath = path;
+	shared_ptr<NavMesh> navMesh = RESOURCEMANAGER.Get<NavMesh>(mNavMeshPath);
+	if (navMesh == nullptr)
+	{
+		navMesh = make_shared<NavMesh>();
+		navMesh->Load(ws2s(mNavMeshPath));
+		RESOURCEMANAGER.Add<NavMesh>(mNavMeshPath, navMesh);
+	}
+	if (navMesh && navMesh->mDtNavMesh)
+		mWorld->GetNavSystem()->Initialize(navMesh);
+}
+
 Entity Scene::SpawnInteractable(World* world,
 	uint8 kind,
 	const Vec3& position,
@@ -731,6 +746,8 @@ void FirstScene::Initialize()
 
 	mWorld->Initialize();
 	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
+	LoadNavMesh(L"NavMesh_FirstGame");
+
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
 	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 체크 (예: 승패 조건, 라운드 진행 등)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
@@ -826,7 +843,8 @@ void SecondScene::Initialize()
 	SetGameMode(gameMode);
 
 	mWorld->Initialize();
-	LoadCollisionJson(L"..\\Resources\\Json\\MapDesert_Export.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDesert_Nav_Export.json");
+	LoadNavMesh(L"NavMesh_SecondGame");
 
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
 	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 PreUpdate

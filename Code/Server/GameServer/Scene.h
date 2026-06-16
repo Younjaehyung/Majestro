@@ -12,6 +12,8 @@ public:
 	virtual void Update(float deltaTime);
 	virtual void LoadJsonLevel(const wstring& path);
 	virtual void LoadCollisionJson(const wstring& path);
+	virtual void LoadNavMesh(const wstring& path);
+
 	Entity SpawnInteractable(World* world,
 		uint8 kind,
 		const Vec3& position,
@@ -51,6 +53,7 @@ protected:
 	shared_ptr<World>				mWorld = make_shared<World>();
 	shared_ptr<GameMode>			mGameMode;
 	SceneId							mSceneId;
+	wstring							mNavMeshPath;
 
 	// phase 키 , 활성화할 스포너 id 목록 
 	std::unordered_map<std::string, std::vector<std::string>> mPhaseSpawnerSets;

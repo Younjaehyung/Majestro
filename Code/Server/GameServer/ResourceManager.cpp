@@ -157,10 +157,16 @@ void ResourceManager::LoadResources()
 		//Add<HeightField>(L"TerrainHeightField", heightField);
     }
 	{
-		// NavMesh
+		// NavMesh - FirstGame
 		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
 		navMesh->Load("../Resources/NavMesh/all_tiles_navmesh.bin");
-		Add<NavMesh>(L"NavMesh", navMesh);
+		Add<NavMesh>(L"NavMesh_FirstGame", navMesh);
+	}
+	{
+		// NavMesh - SecondGame
+		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
+		navMesh->Load("../Resources/NavMesh/MapDesert_navmesh.bin");
+		Add<NavMesh>(L"NavMesh_SecondGame", navMesh);
 	}
 	{
 		LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");

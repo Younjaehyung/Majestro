@@ -7,7 +7,7 @@
       "kind": "sfx",
       "anchor": "root",
       "useUpper": false,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "is3d": true
     }
   ],
@@ -17,7 +17,7 @@
       "kind": "sfx",
       "anchor": "root",
       "useUpper": false,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "is3d": true
     }
   ],
@@ -27,7 +27,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -38,7 +38,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     },
@@ -47,7 +47,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -59,7 +59,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     },
@@ -68,7 +68,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -79,7 +79,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -90,7 +90,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -101,7 +101,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -113,7 +113,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -124,7 +124,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -137,7 +137,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -149,7 +149,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -160,7 +160,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }
@@ -171,7 +171,7 @@
       "kind": "sfx",
       "anchor": "socket",
       "useUpper": true,
-      "sfx": "notify/Rudwig/Swing",
+      "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
     }

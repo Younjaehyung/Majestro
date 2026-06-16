@@ -505,6 +505,12 @@ void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
 
 void BossPhase::Enter(WaveGameMode& mode)
 {
+	mWorld = mode.GetScene()->GetWorld();
+
+
+	if (auto* rule = mWorld->GetSingleton<GameRuleComponent>())
+		rule->mGamePhase = static_cast<uint8>(WavePhaseType::Boss);
+
 	mode.GetScene()->ApplyPhaseSpawnerSet("Boss:" + std::to_string(static_cast<int32>(mZoneId)));
 }
 
@@ -518,5 +524,8 @@ void BossPhase::PreUpdate(float dt, WaveGameMode& mode)
 
 void BossPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
-	// 보스의 체력이나 행동 패턴을 체크하여 보스가 처치되었는지 판단하는 로직을 구현할 수 있습니다.
+	// [TODO] 보스 처치 판정. 보스가 죽으면 아래 한 줄로 단계가 완료되어
+	//  
+	//   mIsCompleted = true;
+
 }

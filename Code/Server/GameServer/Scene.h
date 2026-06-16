@@ -78,6 +78,14 @@ public:
 
 };
 
+// 보스전 씬
+class ThirdScene : public Scene
+{
+public:
+	virtual void Initialize() override;
+
+};
+
 // LOBBY SCENE
 
 class LobbyScene : public Scene

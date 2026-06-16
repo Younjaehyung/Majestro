@@ -46,7 +46,7 @@ void AudioSystem::Initialize()
 
     // 리듬 음악
     const SceneId sceneId = mWorld->GetSceneId();
-    const bool inGame = (sceneId == SceneId::FirstGame || sceneId == SceneId::SecondGame);
+    const bool inGame = (sceneId == SceneId::FirstGame || sceneId == SceneId::SecondGame || sceneId == SceneId::ThirdGame);
 
     if (inGame)
     {

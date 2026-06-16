@@ -117,6 +117,15 @@ public:
 
 };
 
+
+class ThirdScene : public Scene
+{
+public:
+	ThirdScene() { mSceneId = SceneId::ThirdGame; }
+	virtual void Initialize() override;
+
+};
+
 // RESULT SCENE
 
 class VictoryScene : public Scene

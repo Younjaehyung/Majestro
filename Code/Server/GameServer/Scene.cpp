@@ -831,7 +831,7 @@ void SecondScene::Initialize()
 
 	// Conquest 전용 게임 모드
 	auto waveMode = make_shared<WaveGameMode>();
-	waveMode->SetCompletionScene(SceneId::VGame);
+	waveMode->SetCompletionScene(SceneId::ThirdGame); // 모든 Conquest 클리어 후 보스전(ThirdGame)으로 전환
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
 		phases.push_back([] { return new ConquestPhase(/*zoneId=*/1, /*requiredSeconds=*/30.f); });
@@ -879,6 +879,59 @@ void SecondScene::Initialize()
 	gameMode->Initialize();
 
 	mSceneId = SceneId::SecondGame;
+}
+
+void ThirdScene::Initialize()
+{
+	PrefabFactory::RegisterAllPrefabs();
+
+
+	auto waveMode = make_shared<WaveGameMode>();
+	waveMode->SetCompletionScene(SceneId::VGame); // 보스전 클리어 후 승리 화면으로 전환
+	{
+		std::deque<WaveGameMode::PhaseFactory> phases;
+		phases.push_back([] { return new BossPhase(/*zoneId=*/0); });
+		phases.push_back([] { return new ClearPhase(3.0f); });
+		waveMode->SetInitialPhases(std::move(phases));
+	}
+	shared_ptr<GameMode> gameMode = waveMode;
+	SetGameMode(gameMode);
+
+	mWorld->Initialize();
+
+	// 임시
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDesert_Nav_Export.json");
+	LoadNavMesh(L"NavMesh_SecondGame");
+
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 PreUpdate
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 2-1. 버프 틱/만료 처리
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition)
+	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
+	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
+	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 충돌 판정
+	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 맵 상호작용
+	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 몬스터 스폰
+	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복
+	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();         // 사망/리스폰
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. NavMesh 투영
+	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate
+	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+
+	// 임시
+	const std::wstring gimmickPath = L"../Resources/Json/MapDesert_Gimmicks.json";
+	LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
+
+	gameMode->Initialize();
+
+	mSceneId = SceneId::ThirdGame;
 }
 
 void LobbyScene::Initialize()

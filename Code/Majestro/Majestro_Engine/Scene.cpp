@@ -644,6 +644,10 @@ bool LoadingScene::LoadScene(SceneId id)
 		mapPath = L"..\\Resources\\Json\\MapDesert_Export.json";
 	}
 								   break;
+	case (uint8)SceneId::ThirdGame: {
+		mTotalTaskCount = 0;	// 임시
+		return true;
+	}
 	default:
 		return false;
 		break;
@@ -1761,6 +1765,106 @@ void SecondScene::Initialize()
 	auto* renderSystemSS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemSS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemSS->GetPipeline());
+	gp->SetWorldUIFeature(&mUIFeatures);
+
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
+
+	mWorld->AddSingleton<GameRuleComponent>();
+}
+
+void ThirdScene::Initialize()
+{
+	mWorld->SetSceneId(mSceneId);
+
+	AUDIOMANAGER.RequestBGM("event:/OST/Escort", SOUNDNAME::Ambient);
+	PrefabFactory::RegisterAllPrefabs();
+
+
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+#pragma region UI
+
+	CreatePauseMenu();
+
+
+	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
+	mUIFeatures.push_back(audioVisualizerModule);
+
+	auto actionModule = std::make_shared<UIActionUpdateFeature>();
+	mUIFeatures.push_back(actionModule);
+
+	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
+	mUIFeatures.push_back(hpBarModule);
+
+	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
+	mUIFeatures.push_back(damagePopupModule);
+
+	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
+	mUIFeatures.push_back(gameInfoModule);
+
+	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
+	mUIFeatures.push_back(gameProgressModule);
+
+	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
+	mUIFeatures.push_back(portraitModule);
+
+	auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
+	mUIFeatures.push_back(skillCooldownModule);
+
+	for (const auto& feature : mUIFeatures)
+	{
+		if (feature != nullptr)
+			feature->Initialize(mWorld.get());
+	}
+
+#pragma endregion
+
+	mWorld->Initialize();
+
+	// INPUT
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+
+	// NETWORK
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<GamePhaseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PauseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimNotifySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
+
+	auto* renderSystemTS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemTS->SetPipeline(make_shared<GameRenderPipeline>());
+	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemTS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();

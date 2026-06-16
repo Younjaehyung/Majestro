@@ -3,6 +3,8 @@
 
 #include "GameRuleComponent.h"
 #include "VfxComponent.h"
+#include "TransformComponent.h"
+#include "Prefab.h"
 
 
 void GamePhaseSystem::Initialize()
@@ -26,9 +28,13 @@ void GamePhaseSystem::Update(float deltaTime)
 		// 준비 단계 로직 (예: 웨이브 시작 대기, UI 업데이트 등)
 		break;
 	case WavePhaseType::Conquest:
-		// 점령 단계 로직 (예: 점령 시간 감소, 점령 상태 체크 등)
-		
+	{
+		// 점령 구역 마커 VFX 를 활성 구역으로 이동
+		GameConquestComponent* conquest = mWorld->GetComponent<GameConquestComponent>(e);
+		if (conquest)
+			UpdateConquestZoneMarker(conquest);
 		break;
+	}
 	case WavePhaseType::Escort:
 	{
 		// 호위 단계 로직: 트럭 이동 상태(mMoveState)에 따라 VFX_Escort_Shockwave loop 토글
@@ -77,7 +83,10 @@ void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
 			// 준비 단계 로직 (예: 웨이브 시작 대기, UI 업데이트 등)
 			break;
 		case WavePhaseType::Conquest:
-			// 점령 단계 로직 (예: 점령 시간 감소, 점령 상태 체크 등)
+			// 점령 단계 종료
+			
+			// 구역 마커 VFX 끄기 + 싱글톤 정리
+			StopConquestZoneMarker();
 			mWorld->RemoveComponent<GameConquestComponent>(e);
 			break;
 		case WavePhaseType::Escort:
@@ -124,4 +133,65 @@ void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
 		}
 
 		});
+}
+
+Entity GamePhaseSystem::EnsureConquestMarker()
+{
+	// 첫 Conquest 진입 시에만 생성하고 이후 씬 동안 재사용
+	if (!mConquestMarker.IsValid())
+	{
+		InputCommand ctx{};
+		mConquestMarker = AreaConquestPrefab::Build(mWorld, ctx);
+	}
+	return mConquestMarker;
+}
+
+void GamePhaseSystem::UpdateConquestZoneMarker(GameConquestComponent* conquest)
+{
+	const uint8 zoneId = static_cast<uint8>(conquest->mActiveZoneId);
+
+	// 활성 구역 정보가 아직 안 옴
+	if (zoneId == 0)
+	{	// 마커 꺼둠
+		StopConquestZoneMarker();
+		return;
+	}
+
+	Entity marker = EnsureConquestMarker();
+	VfxComponent* vfx = mWorld->GetComponent<VfxComponent>(marker);
+	TransformComponent* tr = mWorld->GetComponent<TransformComponent>(marker);
+	if (vfx == nullptr || tr == nullptr)
+		return;
+
+	// 활성 구역이 바뀌면
+	// 이전 위치의 VFX 는 끄고 새 구역 위치에서 재시작한다.
+	if (zoneId != mShownConquestZoneId)
+	{
+		tr->mLocalPosition = conquest->mActiveZonePos;
+		tr->mWorldPosition = conquest->mActiveZonePos;
+		tr->mWorldMatrix = Matrix::CreateTranslation(conquest->mActiveZonePos);
+
+		vfx->efkHandle = -1;   // 새 위치에서 새 핸들로 재생 (이전 위치 잔상 방지)
+		vfx->mFinished = false;
+		mShownConquestZoneId = zoneId;
+	}
+
+	// 오픈 ~ 마감까지 계속 loop 재생
+	vfx->mShouldPlay = true;
+	vfx->mRestartWhenFinished = true;
+}
+
+void GamePhaseSystem::StopConquestZoneMarker()
+{
+	mShownConquestZoneId = 0;
+
+	if (!mConquestMarker.IsValid())
+		return;
+
+	if (VfxComponent* vfx = mWorld->GetComponent<VfxComponent>(mConquestMarker))
+	{
+		// 종료
+		vfx->mShouldPlay = false;
+		vfx->mRestartWhenFinished = false;
+	}
 }

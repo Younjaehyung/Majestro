@@ -30,6 +30,8 @@ public:
 	static constexpr float mMaxConquestTime = 30.f; // 최대 웨이브 수
 
 	// 런타임
+	int32 mActiveZoneId = 0; // 현재 활성 점령 구역 번호 (0=없음). 배너/구역 VFX 식별용
+	Vec3  mActiveZonePos = Vec3::Zero; // 활성 점령 구역 월드 좌표 (구역 마커 VFX 배치용)
 	int32 mWaveCheckPoint = 0; // 현재 웨이브 체크포인트 번호 (0부터 시작)
 	int32 mWave = 1;          // 현재 웨이브 번호 (1부터 시작)
 

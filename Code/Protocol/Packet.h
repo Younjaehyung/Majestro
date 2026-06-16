@@ -382,6 +382,11 @@ struct S2C_SceneStatePacket : public PacketTcpHeader {
 struct S2C_ConquestPacket : public PacketTcpHeader {
 	uint32 clientId{};
 
+	uint8 ActiveZoneId = 0; // 현재 활성 점령 구역 번호 (1-based, 0=없음). 클라 배너/구역 VFX 식별용
+	float ZoneX = 0.0f; // 활성 점령 구역 월드 좌표
+	float ZoneY = 0.0f;
+	float ZoneZ = 0.0f;
+
 	int WaveCheckPoint = 0; // 현재 웨이브 체크포인트 번호 (0부터 시작)
 	int Wave = 1;          // 현재 웨이브 번호 (1부터 시작)
 

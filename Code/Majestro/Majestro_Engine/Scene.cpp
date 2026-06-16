@@ -1432,7 +1432,6 @@ void FirstScene::Initialize()
 	OceanPrefab ocean{ mWorld.get() };
 
 	//EnemyPrefab	enemys {mWorld.get() };
-	AreaConquestPrefab areaConquest{ mWorld.get() };
 
 
 
@@ -1662,7 +1661,7 @@ void SecondScene::Initialize()
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };
-	AreaConquestPrefab areaConquest{ mWorld.get() }; // 점령 영역 VFX 마커 (Conquest 전용 스테이지)
+
 
 // MAP export json load
 // [참고] 현재 FBX LOADER에서 NormalMap을 읽지 못하게 함.

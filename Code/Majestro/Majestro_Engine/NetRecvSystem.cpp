@@ -597,6 +597,8 @@ void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
 	GameConquestComponent* conquestComp = mWorld->GetSingleton<GameConquestComponent>();
 	if (!conquestComp) return;
 
+	conquestComp->mActiveZoneId = pkt->ActiveZoneId;
+	conquestComp->mActiveZonePos = Vec3(pkt->ZoneX, pkt->ZoneY, pkt->ZoneZ);
 	conquestComp->mWaveCheckPoint = pkt->WaveCheckPoint;
 	conquestComp->mWave = pkt->Wave;
 	conquestComp->mWaveInterval = pkt->WaveInterval;

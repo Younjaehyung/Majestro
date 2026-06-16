@@ -6,6 +6,7 @@
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
 #include "TruckComponent.h"
+#include "TransformComponent.h"
 #include "Prefab.h"
 
 
@@ -94,6 +95,24 @@ void GameNetRuleSystem::SendSceneConquest(Entity rule)
 	if (auto* g = mWorld->GetComponent<GameConquestComponent>(rule))
 	{
 		S2C_ConquestPacket pkt{};
+		pkt.ActiveZoneId = static_cast<uint8>(g->mActiveZoneIndex + 1);
+
+		// 구역 좌표 동봉
+		const int32 zoneIdx = g->mActiveZoneIndex;
+		if (zoneIdx >= 0 && zoneIdx < GameConquestComponent::mMaxWaves)
+		{
+			Entity zone = g->mConquestPointRect[zoneIdx];
+			if (zone.IsValid())
+			{
+				if (auto* zoneTr = mWorld->GetComponent<TransformComponent>(zone))
+				{
+					pkt.ZoneX = zoneTr->mWorldPosition.x;
+					pkt.ZoneY = zoneTr->mWorldPosition.y;
+					pkt.ZoneZ = zoneTr->mWorldPosition.z;
+				}
+			}
+		}
+
 		pkt.WaveCheckPoint = g->mWaveCheckPoint;
 		pkt.Wave = g->mWave;
 		pkt.WaveInterval = g->mWaveInterval;

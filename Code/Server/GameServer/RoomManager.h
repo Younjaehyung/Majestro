@@ -36,6 +36,12 @@ public:
     // 세션의 선택 캐릭터 조회
     bool GetPlayerType(uint64 sessionId, uint8& outType) const;
 
+    // 한 캐릭터를 확정한 직후, 같은 캐릭터를 고르던 미확정 플레이어들을 자동 이동
+    void EvictConflictingSelections(uint64 lockerSessionId, uint8 lockedType);
+
+    // 해당 세션이 쓸 수 있는 캐릭터
+    uint8 PickFreeCharacter(uint64 sessionId) const;
+
     bool IsAllReady() const;
     bool IsHost(uint64 sessionId) const;
 

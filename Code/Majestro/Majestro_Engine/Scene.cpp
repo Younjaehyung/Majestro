@@ -1176,7 +1176,8 @@ void LobbyScene::Initialize()
 
 	{
 		Entity mannequinEntity = mWorld->CreateEntity();
-		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 1);
+		// 미선택(0xFF)
+		mWorld->AddComponent<ChoicePlayerComponent>(mannequinEntity, 0xFF);
 
 	}
 

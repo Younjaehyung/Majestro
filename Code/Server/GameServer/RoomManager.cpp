@@ -13,7 +13,8 @@ bool RoomState::AddPlayer(uint64 sessionId)
 
     RoomPlayerEntry entry{};
     entry.sessionId = sessionId;
-    entry.playerType = 0;
+    // 빈 캐릭터를 기본 배정
+    entry.playerType = PickFreeCharacter(sessionId);
     entry.ready = false;
     entry.isHost = (mHostSessionId == 0);  // 빈 방이면 첫 입장자가 Host
 
@@ -50,6 +51,10 @@ bool RoomState::SetReady(uint64 sessionId, bool ready)
     {
         if (player.sessionId == sessionId)
         {
+            // Ready 확정 시, 내 캐릭터가 이미 다른 ready 플레이어와 겹치면 거부.
+            // (해제(ready=false)는 항상 허용)
+            if (ready && IsCharacterLockedByOtherReadyPlayer(sessionId, player.playerType))
+                return false;
             player.ready = ready;
             return true;
         }
@@ -73,6 +78,36 @@ bool RoomState::SetPlayerCharacter(uint64 sessionId, uint8 playerType)
         }
     }
     return false;
+}
+
+uint8 RoomState::PickFreeCharacter(uint64 sessionId) const
+{
+    // 자신을 제외한 아무도 고르지 않은 캐릭터로 부여
+    for (uint8 t = 0; t < ROOM_CHARACTER_COUNT; ++t)
+    {
+        bool taken = false;
+        for (const auto& p : mPlayers)
+            if (p.sessionId != 0 && p.sessionId != sessionId && p.playerType == t) { taken = true; break; }
+        if (!taken) return t;
+    }
+    // ready 로 잠기지 않은 캐릭터(미확정자끼리는 겹쳐도 허용)
+    for (uint8 t = 0; t < ROOM_CHARACTER_COUNT; ++t)
+        if (!IsCharacterLockedByOtherReadyPlayer(sessionId, t))
+            return t;
+    return 0;  // 도달 불가
+}
+
+void RoomState::EvictConflictingSelections(uint64 lockerSessionId, uint8 lockedType)
+{
+    for (auto& player : mPlayers)
+    {
+        if (player.sessionId == 0) continue;
+        if (player.sessionId == lockerSessionId) continue;
+        if (player.ready) continue;                     // 이미 확정한 사람은 건드리지 않음
+        if (player.playerType != lockedType) continue;  // 겹치는 미확정자만 이동
+
+        player.playerType = PickFreeCharacter(player.sessionId);
+    }
 }
 
 bool RoomState::GetPlayerType(uint64 sessionId, uint8& outType) const
@@ -245,7 +280,20 @@ bool RoomManager::HandleRoomPacket(const InputCommand& command)
             SendError(sessionId, pkt->roomId, RoomErrorCode::InvalidRoom);
             return true;
         }
-        if (!room->SetReady(sessionId, pkt->ready != 0)) return false;
+        if (!room->SetReady(sessionId, pkt->ready != 0))
+        {
+            // 이미 확정된 캐릭터로 Ready 시도시 거부 통지 + 상태 재동기화
+            SendError(sessionId, room->mRoomId, RoomErrorCode::CharacterTaken);
+            BroadcastRoomState(room->mRoomId);
+            return true;
+        }
+        // 확정 성공 시, 같은 캐릭터를 고르던 미확정 플레이어들을 빈 캐릭터로 밀어냄
+        if (pkt->ready != 0)
+        {
+            uint8 lockedType = 0;
+            if (room->GetPlayerType(sessionId, lockedType))
+                room->EvictConflictingSelections(sessionId, lockedType);
+        }
         BroadcastRoomState(room->mRoomId);
         return true;
     }

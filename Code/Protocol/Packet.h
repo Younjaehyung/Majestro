@@ -259,6 +259,9 @@ enum class EffectSpawnReason : uint8
 // 로비 Room 시스템: 한 방의 최대 인원
 static constexpr uint8 ROOM_MAX_PLAYERS = 3;
 
+// 선택 가능한 캐릭터 수
+static constexpr uint8 ROOM_CHARACTER_COUNT = 3;
+
 
 // 한 S2C_ROOM_LIST 패킷에 담을 최대 방 수
 static constexpr uint8 ROOM_LIST_MAX_ENTRIES = 12;
@@ -274,6 +277,7 @@ enum class RoomErrorCode : uint8
 	RoomFull,            // 정원 초과
 	AlreadyInRoom,       // 이미 다른 방에 속함
 	RoomInGame,          // 게임 중이라 입장 불가
+	CharacterTaken,      // 이미 다른 ready 플레이어가 확정한 캐릭터로 Ready 시도
 };
 
 // 한 플레이어 슬롯. sessionId == 0 은 비어 있는 슬롯

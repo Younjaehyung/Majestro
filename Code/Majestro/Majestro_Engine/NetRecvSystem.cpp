@@ -660,6 +660,15 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
                 if (pkt->slots[i].sessionId != 0 && pkt->slots[i].sessionId == me)
                 {
                     listComp->mCurrentRoomId = pkt->roomId;
+
+                    // 미러링
+                    if (mWorld->HasComponentPool<ChoicePlayerComponent>())
+                    {
+                        auto choiceEnts = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+                        if (!choiceEnts.empty())
+                            if (auto* choice = mWorld->GetComponent<ChoicePlayerComponent>(choiceEnts[0]))
+                                choice->mPlayerType = pkt->slots[i].playerType;
+                    }
                     break;
                 }
             }
@@ -680,6 +689,31 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
         state->mSlots[i].isHost = (pkt->slots[i].isHost != 0);
     }
     state->mHasSnapshot = true;
+
+    // 미러링 2
+    if (mWorld->HasComponentPool<ChoicePlayerComponent>())
+    {
+        auto choiceEnts = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
+        if (!choiceEnts.empty())
+        {
+            if (auto* choice = mWorld->GetComponent<ChoicePlayerComponent>(choiceEnts[0]))
+            {
+                const uint32 me = Network::GetInstance().mClientId;
+                uint8 mySlotType   = choice->mPlayerType;
+                bool  foundMySlot  = false;
+                bool  lockedByOther = false;
+                for (uint8 i = 0; i < copyCount; ++i)
+                {
+                    const auto& s = state->mSlots[i];
+                    if (s.sessionId == 0) continue;
+                    if (s.sessionId == me)            { mySlotType = s.playerType; foundMySlot = true; }
+                    else if (s.ready && s.playerType == choice->mPlayerType) lockedByOther = true;
+                }
+                if (foundMySlot && lockedByOther)
+                    choice->mPlayerType = mySlotType;
+            }
+        }
+    }
 }
 
 // 서버 거부 사유 수신

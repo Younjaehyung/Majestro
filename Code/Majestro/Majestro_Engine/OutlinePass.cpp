@@ -8,6 +8,7 @@
 
 void OutlinePass::Initialize()
 {
+	mOutlineShader = RESOURCEMANAGER.Get<Shader>(L"Outline");
 }
 
 void OutlinePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
@@ -18,13 +19,13 @@ void OutlinePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].PreviousStep = static_cast<int32>(ToGBufferIndex(before));
 	//dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].ExtValue[0] = Vec4(0.0015f, 0.0f, 0.0f, 0.0f);
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS)].ExtValue[0] = Vec4(0.0012f, 0.1f, 0.1f, 0.1f);
+
+	
 }
 
 void OutlinePass::Execute(std::vector<DrawBatch>& drawBatches)
 {
-	auto outlineShader = RESOURCEMANAGER.Get<Shader>(L"Outline");
-	if (!outlineShader)
-		return;
+	if (!mEnabled || mOutlineShader == nullptr) return;
 
 	auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(
 		static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
@@ -32,7 +33,7 @@ void OutlinePass::Execute(std::vector<DrawBatch>& drawBatches)
 	hdrGroup.WaitResourceToTarget();
 	hdrGroup.OMSetRenderTargets();
 
-	outlineShader->Update();
+	mOutlineShader->Update();
 
 	
 	const uint32 passCustomIdx = static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS);

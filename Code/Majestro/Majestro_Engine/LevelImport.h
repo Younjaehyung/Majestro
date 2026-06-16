@@ -33,11 +33,21 @@ struct MeshInstance
     Matrix worldMtx; //  DX12에 바로 넣을 월드행렬 캐시
 };
 
+// 맵별 스카이박스 / IBL 텍스처
+struct MapSkyInfo
+{
+    std::string skybox;      // Diffuse 스카이박스 큐브맵 stem
+    std::string irradiance;  // IEM(Irradiance) 큐브맵 stem
+    std::string prefiltered; // PMREM(Pre-filtered Env) 큐브맵 stem
+    bool valid = false;      // "sky" 블록 존재 여부
+};
+
 struct LevelImportData
 {
     std::string levelName;
     std::string actualExportRoot; // JSON에 들어있던 값(참고용)
     std::vector<MeshInstance> instances;
+    MapSkyInfo sky;               // 맵별 스카이박스/IBL
 };
 
 

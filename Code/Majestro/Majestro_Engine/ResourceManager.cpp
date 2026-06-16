@@ -633,6 +633,16 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 	LevelImportData out{};
 	out.levelName = GetString(root, "level_name");
 
+	// 맵별 스카이박스/IBL —{ "skybox", "irradiance", "prefiltered" }
+	if (root.contains("sky") && root["sky"].is_object())
+	{
+		const auto& sky = root["sky"];
+		out.sky.skybox      = GetOptionalString(sky, "skybox");
+		out.sky.irradiance  = GetOptionalString(sky, "irradiance");
+		out.sky.prefiltered = GetOptionalString(sky, "prefiltered");
+		out.sky.valid = !out.sky.skybox.empty();
+	}
+
 	if (root.contains("actual_export_root"))
 		out.actualExportRoot = root["actual_export_root"].get<std::string>();
 
@@ -731,6 +741,53 @@ LevelImportData ResourceManager::LoadMapResourceJson(const std::wstring& path)
 	}
 
 	return out;
+}
+
+void ResourceManager::ApplyMapSky(const LevelImportData& level)
+{
+	// sky 블록이 없으면 기본 스카이박스를 유지
+	if (!level.sky.valid)
+		return;
+
+	const std::string lv = level.levelName;
+
+	// <LevelName> 하위 우선
+	auto resolve = [&](const std::string& stem) -> std::string {
+		if (stem.empty())
+			return "";
+		if (!lv.empty())
+		{
+			std::string sub = "..\\Resources\\Texture\\" + lv + "\\" + stem + ".dds";
+			if (std::filesystem::exists(sub))
+				return sub;
+		}
+		return "..\\Resources\\Texture\\" + stem + ".dds";
+	};
+
+	// 파일별 캐시 키
+	auto loadTex = [&](const std::string& stem) -> shared_ptr<Texture> {
+		std::string path = resolve(stem);
+		if (path.empty() || !std::filesystem::exists(path))
+			return nullptr;
+		return Load<Texture>(s2ws(stem), s2ws(path));
+	};
+
+	shared_ptr<Texture> skyboxTex = loadTex(level.sky.skybox);
+	shared_ptr<Texture> iemTex    = loadTex(level.sky.irradiance);
+	shared_ptr<Texture> pmremTex  = loadTex(level.sky.prefiltered);
+
+	// Skybox / IBL 맵 텍스처로 교체 
+	if (skyboxTex)
+	{
+		if (auto skyboxMat = Get<Material>(L"Skybox"))
+			skyboxMat->SetTexture(skyboxTex, DIFFUSEMAP0INDEX);
+		Replace<Texture>(L"SkyboxTexture", skyboxTex);
+	}
+	if (iemTex)
+		Replace<Texture>(L"IBL_Irradiance", iemTex);
+	if (pmremTex)
+		Replace<Texture>(L"IBL_PreFiltered", pmremTex);
+	// BRDF LUT(IBL_BrdfLut) 은 환경 무관이라 전역 유지 — 교체하지 않는다.
 }
 
 shared_ptr<PayloadPathData> ResourceManager::LoadPayloadPathJson(const std::wstring& path)
@@ -2175,16 +2232,16 @@ void ResourceManager::CreateDefaultMaterial()
 
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"Skybox");
-		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\skybox.dds"), DIFFUSEMAP0INDEX);
+		material->SetTexture(Load<Texture>(L"SkyboxTexture", L"..\\Resources\\Texture\\de_skybox.dds"), DIFFUSEMAP0INDEX);
 		Add<Material>(L"Skybox", material);
 
 		// IBL 텍스처 로드
 		{
 			// Irradiance Map (Diffuse IBL용 큐브맵)                                                                                                                                                                                                                                                                         Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox_irradiance.dds");
-			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\skybox2DiffuseHDR.dds");
+			Load<Texture>(L"IBL_Irradiance", L"..\\Resources\\Texture\\de_iem.dds");
 
 			// Pre-filtered Env Map (Specular IBL용 큐브맵, mip 포함)
-			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\skybox2SpecularHDR.dds");
+			Load<Texture>(L"IBL_PreFiltered", L"..\\Resources\\Texture\\de_pmrem.dds");
 
 			// BRDF LUT (2D 텍스처)
 			Load<Texture>(L"IBL_BrdfLut", L"..\\Resources\\Texture\\skybox2Brdf.dds");

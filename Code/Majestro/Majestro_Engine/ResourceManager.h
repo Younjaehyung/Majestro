@@ -32,6 +32,10 @@ public:
 	template<typename T>
 	shared_ptr<T> Get(const wstring& Key);
 
+	// 기존 키를 무조건 덮어쓰기
+	template<typename T>
+	void Replace(const wstring& key, shared_ptr<T> object);
+
 	template<typename T>
 	OBJECT_TYPE GetObjectType();
 
@@ -71,6 +75,9 @@ public:
 	shared_ptr<Vfx>			LoadEffect(const wstring& path);
 	void LoadAllTexture(const wstring& path);
 	LevelImportData  LoadMapResourceJson(const wstring& path);
+
+	// 맵별 스카이박스/IBL 적용
+	void ApplyMapSky(const LevelImportData& level);
 	shared_ptr<PayloadPathData>  LoadPayloadPathJson(const wstring& path);
 	std::vector<CameraView> LoadCameraViews(const wstring& path);
 
@@ -152,6 +159,13 @@ shared_ptr<T> ResourceManager::Get(const wstring& key)
 		return static_pointer_cast<T>(findIt->second);
 
 	return nullptr;
+}
+
+template<typename T>
+void ResourceManager::Replace(const wstring& key, shared_ptr<T> object)
+{
+	OBJECT_TYPE objectType = GetObjectType<T>();
+	mResources[static_cast<uint8>(objectType)][key] = object;
 }
 
 template<typename T>

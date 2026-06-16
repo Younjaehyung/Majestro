@@ -168,6 +168,7 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 		RESOURCEMANAGER.LoadFBXModel(BuildMapFbxPath(level.levelName, fbxName), prefix);
 	}
 
+	RESOURCEMANAGER.ApplyMapSky(level);
 }
 
 void Scene::LoadJsonLevelData(const wstring& path) {
@@ -176,6 +177,8 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 		const std::wstring prefix = s2ws(level.levelName);
+
+		RESOURCEMANAGER.ApplyMapSky(level);
 
 		for (const auto& inst : level.instances)
 		{
@@ -230,6 +233,8 @@ void Scene::LoadJsonLevel(const wstring& path)
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 		const std::wstring prefix = s2ws(level.levelName);
+
+		RESOURCEMANAGER.ApplyMapSky(level);
 
 		for (const auto& inst : level.instances)
 		{
@@ -723,6 +728,7 @@ void MainMenuScene::Initialize()
 		// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelFBX(L"..\\Resources\\Json\\Map_Title_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map_Title_Export.json");
+
 	//LoadCollisionJson(L"..\\Resources\\Json\\Map001_CRX.json");
 
 	{ // Title LOGO

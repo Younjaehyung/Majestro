@@ -1,7 +1,7 @@
 {
     "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm.",
 
-    "playerSpawn": [ -8310, 130, -5500 ],
+    "playerSpawn": [ -8200, 103, -7346 ],
 
     "interactables": [
         {

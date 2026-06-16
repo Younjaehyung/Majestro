@@ -24,29 +24,8 @@ NetSendSystem::NetSendSystem(World* world) : System::System(world)
 }
 
 
-void NetSendSystem::UpdateCachedPlayerType()
-{
-
-	if (!mWorld->HasComponentPool<ChoicePlayerComponent>())
-		return;
-
-	std::vector<Entity> choiceplayerEntities = mWorld->GetEntitiesWithComponent<ChoicePlayerComponent>();
-	if (choiceplayerEntities.empty())
-		return;
-
-	ChoicePlayerComponent* characterChoice = mWorld->GetComponent<ChoicePlayerComponent>(choiceplayerEntities[0]);
-
-	if (characterChoice)
-	{
-		//SetCachedPlayerType(characterChoice->mPlayerType);
-		mCachedPlayerType = characterChoice->mPlayerType;
-		//cout << (int)mCachedPlayerType << endl;
-	}
-}
-
 void NetSendSystem::Update(float deltaTime)
 {
-	UpdateCachedPlayerType();
 	TrySendGameStart();
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
@@ -93,15 +72,11 @@ void NetSendSystem::TrySendGameStart()
 	if (mHasSentGameStart)
 		return;
 
-	UpdateCachedPlayerType();
-
-	//cout << "start Game" << endl;
-	//cout << "send Pack Player type " << (int)mCachedPlayerType << endl;
-
 	const uint32 clientId = Network::GetInstance().mClientId;
 	C2S_StartGamePacket startPacket;
 	startPacket.clientId    = clientId;
-	startPacket.playerType  = mCachedPlayerType;
+	// 캐릭터는 서버가 RoomState로 가져옴
+	startPacket.playerType  = 0;
 	startPacket.SessionId   = clientId;
 
 	SendPacket(startPacket);
@@ -242,7 +217,6 @@ void NetSendSystem::TrySendMovement()
 void NetSendSystem::TrySendScene()
 {
 	mWorld->GetEventManager()->Consume<EvNetSceneChange>([this](const EvNetSceneChange& e) {
-		UpdateCachedPlayerType();
 		mHasSentGameStart = false;
 		mPendingGameStart = (e.targetScene == SceneId::FirstGame);
 		SendPacket(C2S_SceneChangePacket(e.targetScene));

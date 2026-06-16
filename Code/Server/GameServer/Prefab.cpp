@@ -65,9 +65,20 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   Entity mEntityID = world->CreateEntity();
 
   uint8 playerType = 1;
-  if (ctx.Type == PKT_Type::C2S_GAME_START) {
-	  const C2S_StartGamePacket* startPacket = ctx.ViewAs<C2S_StartGamePacket>();
-	  playerType = startPacket->playerType;
+
+  // 로비에서 보낸 RoomState 슬롯의 값
+  bool resolved = false;
+  if (RoomState* room = gGameCore->GetRoomManager().GetRoomByPlayer(ctx.SessionId)) {
+	  uint8 roomType = 0;
+	  if (room->GetPlayerType(ctx.SessionId, roomType)) {
+		  playerType = roomType;
+		  resolved = true;
+	  }
+  }
+  //  방 정보가 없는 경우(예: 방 없이 접속하는 테스트 더미)에는 패킷 값을 사용
+  if (!resolved && ctx.Type == PKT_Type::C2S_GAME_START) {
+	  if (const C2S_StartGamePacket* startPacket = ctx.ViewAs<C2S_StartGamePacket>())
+		  playerType = startPacket->playerType;
   }
 
   TransformComponent t{};

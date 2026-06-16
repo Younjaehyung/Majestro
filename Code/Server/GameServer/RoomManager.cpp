@@ -75,6 +75,19 @@ bool RoomState::SetPlayerCharacter(uint64 sessionId, uint8 playerType)
     return false;
 }
 
+bool RoomState::GetPlayerType(uint64 sessionId, uint8& outType) const
+{
+    for (const auto& player : mPlayers)
+    {
+        if (player.sessionId == sessionId)
+        {
+            outType = player.playerType;
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RoomState::IsCharacterLockedByOtherReadyPlayer(uint64 sessionId, uint8 playerType) const
 {
     for (const auto& player : mPlayers)

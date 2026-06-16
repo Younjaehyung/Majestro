@@ -54,8 +54,6 @@ public:
 	void Update(float deltaTime);
 
 
-    void SetCachedPlayerType(uint8 playerType){mCachedPlayerType = playerType;}
-
     void RequestPendingGameStart()
     {
         mPendingGameStart = true;
@@ -73,7 +71,6 @@ private:
     void TrySendRoomEvents();          // 로비 Room : Ready/Character 변경 이벤트를 서버 패킷으로
     void TrySendRoomBrowserEvents();   // 로비 Room : 방 생성/입장/목록/나가기 이벤트
     uint32 GetCurrentRoomId() const;   // LobbyRoomListComponent.mCurrentRoomId (없으면 0)
-    void UpdateCachedPlayerType();
 
 
     void FillCameraFields(float& outPosX, float& outPosY, float& outPosZ, float& outDirX, float& outDirY, float& outDirZ);
@@ -89,7 +86,6 @@ private:
         gSendBuffer.Push(req);
     }
 
-    uint8 mCachedPlayerType = 0;
     bool mHasSentGameStart = false;
     bool mPendingGameStart = false;
 

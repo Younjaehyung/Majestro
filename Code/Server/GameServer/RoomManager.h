@@ -33,6 +33,9 @@ public:
     bool SetPlayerCharacter(uint64 sessionId, uint8 playerType);
     bool IsCharacterLockedByOtherReadyPlayer(uint64 sessionId, uint8 playerType) const;
 
+    // 세션의 선택 캐릭터 조회
+    bool GetPlayerType(uint64 sessionId, uint8& outType) const;
+
     bool IsAllReady() const;
     bool IsHost(uint64 sessionId) const;
 

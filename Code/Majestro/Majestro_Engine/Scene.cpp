@@ -645,7 +645,7 @@ bool LoadingScene::LoadScene(SceneId id)
 	}
 								   break;
 	case (uint8)SceneId::ThirdGame: {
-		mTotalTaskCount = 0;	// 임시
+		mapPath = L"..\\Resources\\Json\\Map003_Export.json";
 		return true;
 	}
 	default:
@@ -1787,6 +1787,9 @@ void ThirdScene::Initialize()
 #pragma region UI
 
 	CreatePauseMenu();
+
+	LoadJsonLevelFBX(L"..\\Resources\\Json\\Map003_Export.json");
+	LoadJsonLevelData(L"..\\Resources\\Json\\Map003_Export.json");
 
 
 	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();

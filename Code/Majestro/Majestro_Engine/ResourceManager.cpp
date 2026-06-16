@@ -1102,7 +1102,7 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::DEFERRED,
-			RASTERIZER_TYPE::CULL_BACK,
+			RASTERIZER_TYPE::CULL_NONE,
 			DEPTH_STENCIL_TYPE::EQUAL_NO_WRITE
 		};
 
@@ -1994,7 +1994,7 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::DEPTH_PREPASS,
-			RASTERIZER_TYPE::CULL_BACK,
+			RASTERIZER_TYPE::CULL_NONE,
 			DEPTH_STENCIL_TYPE::LESS,
 		};
 		ShaderPath shaderPath{
@@ -2920,18 +2920,18 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"JHToon");
 
 	//mop
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"Deferred");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"Deferred");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"Deferred");
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 	LoadFBXModel(L"..\\Resources\\FBX\\Object\\Obelisk.fbx", L"Deferred");

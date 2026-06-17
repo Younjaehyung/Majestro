@@ -46,6 +46,8 @@
 #include "EnemyComponent.h"
 #include "SpawnerSystem.h"
 #include "SpawnerComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
 #include "JsonUtils.h"
 #include "GameRuleSystem.h"
 #include "PathFollowSystem.h"
@@ -670,6 +672,7 @@ void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
 	const std::vector<std::string>& activeIds = (found != mPhaseSpawnerSets.end()) ? found->second : kEmpty;
 
 	const float now = GetServerTotalTimeSeconds();
+	auto em = mWorld->GetEventManager();
 	int activated = 0;
 	for (Entity e : mWorld->GetEntitiesWithComponent<SpawnerComponent>())
 	{
@@ -681,6 +684,8 @@ void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
 
 		const bool shouldBeActive =
 			std::find(activeIds.begin(), activeIds.end(), sp->mSpawnerId) != activeIds.end();
+
+		const bool wasActive = sp->mActive;
 
 		if (shouldBeActive)
 		{
@@ -698,6 +703,10 @@ void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
 		{
 			sp->mActive = false;	// 이미 스폰된 개체는 그대로 둔다
 		}
+
+		// 활성 상태가 실제로 바뀐 스포너만 클라 마커 VFX 토글을 broadcast
+		if (em && sp->mActive != wasActive)
+			em->Enqueue<EvInteractableStateChanged>(EvInteractableStateChanged{ e, sp->mActive });
 	}
 
 	std::cout << "[PhaseSpawner] phase=" << phaseKey << " active=" << activated

@@ -42,6 +42,25 @@ namespace
         return !world->GetPhysicsWorld()->RayCastStatic(start, end, hit);
     }
 
+    // 사망(또는 사망 처리 중) 플레이어는 타게팅 대상에서 제외
+    bool IsPlayerDead(World* world, Entity playerEntity)
+    {
+        if (!world)
+            return false;
+
+        if (MainPlayerComponent* playerComp = world->GetComponent<MainPlayerComponent>(playerEntity))
+        {
+            if (playerComp->IsDeathActive())
+                return true;
+        }
+        if (HealthComponent* health = world->GetComponent<HealthComponent>(playerEntity))
+        {
+            if (health->mCurrentHp <= 0)
+                return true;
+        }
+        return false;
+    }
+
     SkillType GetBrassSkillType(uint8 pattern)
     {
         switch (pattern)
@@ -192,6 +211,9 @@ void EnemySystem::Update(float dt)
         {
             TransformComponent* tf = transformPool.GetComponent(playerEntity.GetID());
             if (!tf) continue;
+
+            // 사망 플레이어는 길찾기 목표에서 제외 (생존자로 타게팅 전환).
+            if (IsPlayerDead(mWorld, playerEntity)) continue;
 
             PlayerMovementComponent* pmc = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
             if (pmc && pmc->mNavPositionValid)
@@ -352,6 +374,10 @@ void EnemySystem::Update(float dt)
         {
             TransformComponent* playerTf = transformPool.GetComponent(playerEntity.GetID());
             if (!playerTf)
+                continue;
+
+            // 사망 플레이어는 공격 범위 판단에서도 제외.
+            if (IsPlayerDead(mWorld, playerEntity))
                 continue;
 
             const float distSq = Vec3::DistanceSquared(myPos, playerTf->mLocalPosition);

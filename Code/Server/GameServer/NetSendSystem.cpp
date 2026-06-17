@@ -643,9 +643,9 @@ void NetSendSystem::SendWorldObjectsToNewSession(uint32 newSessionId)
 		}
 		else if (SpawnerComponent* spawner = mWorld->GetComponent<SpawnerComponent>(entity))
 		{
-			if (!spawner->mActive)
-				continue;
 			prefabType = PrefabType::MONSTER_SPAWNER;
+			// 비활성 스포너도 마커는 미리 보내두고, 숨김 상태로 시작
+			hiddenForClients = !spawner->mActive;
 		}
 		else
 		{

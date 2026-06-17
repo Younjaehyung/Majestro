@@ -1,224 +1,281 @@
 {
     "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm.",
 
-    "playerSpawn": [ -8200, 103, -7346 ],
+  "playerSpawn": [ -8200, 103, -7346 ],
 
-    "interactables": [
-        {
-            "_src_ue": "Healpack UE(-8680,-30,325)",
-            "kind": "HealPack",
-            "position": [ -30.0, 325.0, -8680.0 ],
-            "halfExtents": [ 60.0, 120.0, 60.0 ],
-            "valueA": 75.0,
-            "valueB": 0.0,
-            "cooldown": 10.0,
-            "oneShot": false,
-            "targetMask": "Player"
-        },
-        {
-            "_src_ue": "Healpack UE(-7175,1850,115)",
-            "kind": "HealPack",
-            "position": [ 1850.0, 115.0, -7175.0 ],
-            "halfExtents": [ 60.0, 120.0, 60.0 ],
-            "valueA": 75.0,
-            "valueB": 0.0,
-            "cooldown": 10.0,
-            "oneShot": false,
-            "targetMask": "Player"
-        },
-        {
-            "_src_ue": "JumpPad UE(-5460,-2435,105)",
-            "kind": "JumpPad",
-            "position": [ -2435.0, 105.0, -5460.0 ],
-            "halfExtents": [ 150.0, 5.0, 150.0 ],
-            "valueA": 1200.0,
-            "valueB": 5.0,
-            "cooldown": 0.5,
-            "oneShot": false,
-            "targetMask": "Player"
-        },
-        {
-            "_src_ue": "JumpPad UE(-8205,750,105)",
-            "kind": "JumpPad",
-            "position": [ 750.0, 105.0, -8205.0 ],
-            "halfExtents": [ 150.0, 5.0, 150.0 ],
-            "valueA": 1200.0,
-            "valueB": 5.0,
-            "cooldown": 0.5,
-            "oneShot": false,
-            "targetMask": "Player"
-        },
-        {
-            "_comment": "점령지 좌표는 미제공 — 플레이 영역 내 추정 배치. JSON 에서 자유 조정.",
-            "kind": "ConquestZone",
-            "position": [ -3330.0, 103.0, -5251.0 ],
-            "halfExtents": [ 500.0, 600.0, 500.0 ],
-            "valueA": 1.0,
-            "valueB": 0.0,
-            "cooldown": 0.0,
-            "oneShot": false,
-            "targetMask": "All"
-        },
-        {
-            "_comment": "점령지 2 (추정). JSON 에서 자유 조정.",
-            "kind": "ConquestZone",
-            "position": [ 0.0, 300.0, -6500.0 ],
-            "halfExtents": [ 500.0, 600.0, 500.0 ],
-            "valueA": 2.0,
-            "valueB": 0.0,
-            "cooldown": 0.0,
-            "oneShot": false,
-            "targetMask": "All"
-        }
-    ],
-
-    "spawnTables": {
-        "table1": {
-            "entries": [
-                { "type": "Bongoman", "count": 2 },
-                { "type": "Pianoman", "count": 1 },
-                { "type": "HornMan", "count": 3 }
-            ]
-        },
-        "table2": {
-            "entries": [
-                { "type": "Pianoman", "count": 2 },
-                { "type": "HornMan", "count": 2 }
-            ]
-        },
-        "table3": {
-            "entries": [
-                { "type": "Bongoman", "count": 1 },
-                { "type": "HornMan", "count": 4 }
-            ]
-        }
+  "interactables": [
+    {
+      "_src_ue": "Healpack UE(-8680,-30,325)",
+      "kind": "HealPack",
+      "position": [ -30.0, 325.0, -8680.0 ],
+      "halfExtents": [ 60.0, 120.0, 60.0 ],
+      "valueA": 75.0,
+      "valueB": 0.0,
+      "cooldown": 10.0,
+      "oneShot": false,
+      "targetMask": "Player"
     },
-
-    "spawners": [
-        {
-            "_src_ue": "Spawner UE(-10560,-3285,130)",
-            "id": "desert_spawner_a",
-            "position": [ -3285.0, 130.0, -10560.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table1", "table3" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-4460,-3100,130)",
-            "id": "desert_spawner_b",
-            "position": [ -3100.0, 130.0, -4460.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table2" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-9920,1960,130)",
-            "id": "desert_spawner_c",
-            "position": [ 1960.0, 130.0, -9920.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table1", "table2", "table3" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-10560,-3285,130)",
-            "id": "desert_spawner_d",
-            "position": [ -3285.0, 130.0, -10560.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table1", "table3" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-4460,-3100,130)",
-            "id": "desert_spawner_e",
-            "position": [ -3100.0, 130.0, -4460.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table2" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-9920,1960,130)",
-            "id": "desert_spawner_f",
-            "position": [ 1960.0, 130.0, -9920.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table1", "table2", "table3" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-10560,-3285,130)",
-            "id": "desert_spawner_g",
-            "position": [ -3285.0, 130.0, -10560.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table1", "table3" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-4460,-3100,130)",
-            "id": "desert_spawner_h",
-            "position": [ -3100.0, 130.0, -4460.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table2" ]
-        },
-        {
-            "_src_ue": "Spawner UE(-9920,1960,130)",
-            "id": "desert_spawner_i",
-            "position": [ 1960.0, 130.0, -9920.0 ],
-            "trigger": "Timed",
-            "interval": 8.0,
-            "maxAlive": 2,
-            "maxTotal": 6,
-            "spawnRadius": 150.0,
-            "startActive": true,
-            "randomSpawnFromTable": false,
-            "tablePool": [ "table1", "table2", "table3" ]
-        }
-    ],
-
-    "phaseSpawners": {
-        "_comment": "phase 키별 활성 스포너 id. 키: Conquest:<점령지번호>, Escort:<구간인덱스>, Prepare, Clear, Boss:<번호>. 여기 한 번이라도 등장한 스포너는 startActive 무시 — 해당 phase 진입 시에만 켜지고, 목록에 없는 phase 에선 꺼진다. phase 진입 시 누적 스폰 수(maxTotal)는 리셋됨.",
-        "Conquest:1": [ "desert_spawner_a", "desert_spawner_b", "desert_spawner_c" ],
-        "Conquest:2": [ "desert_spawner_d", "desert_spawner_e", "desert_spawner_f" ],
-        "Conquest:3": [ "desert_spawner_g", "desert_spawner_h", "desert_spawner_i" ]
-
+    {
+      "_src_ue": "Healpack UE(-7175,1850,115)",
+      "kind": "HealPack",
+      "position": [ 1850.0, 115.0, -7175.0 ],
+      "halfExtents": [ 60.0, 120.0, 60.0 ],
+      "valueA": 75.0,
+      "valueB": 0.0,
+      "cooldown": 10.0,
+      "oneShot": false,
+      "targetMask": "Player"
+    },
+    {
+      "_src_ue": "JumpPad UE(-5460,-2435,105)",
+      "kind": "JumpPad",
+      "position": [ -2435.0, 105.0, -5460.0 ],
+      "halfExtents": [ 150.0, 5.0, 150.0 ],
+      "valueA": 1200.0,
+      "valueB": 5.0,
+      "cooldown": 0.5,
+      "oneShot": false,
+      "targetMask": "Player"
+    },
+    {
+      "_src_ue": "JumpPad UE(-8205,750,105)",
+      "kind": "JumpPad",
+      "position": [ 750.0, 105.0, -8205.0 ],
+      "halfExtents": [ 150.0, 5.0, 150.0 ],
+      "valueA": 1200.0,
+      "valueB": 5.0,
+      "cooldown": 0.5,
+      "oneShot": false,
+      "targetMask": "Player"
+    },
+    {
+      "_comment": "점령지 1 (추정). JSON에서 위치 조정.",
+      "kind": "ConquestZone",
+      "position": [ -3330.0, 103.0, -5251.0 ],
+      "halfExtents": [ 500.0, 600.0, 500.0 ],
+      "valueA": 1.0,
+      "valueB": 0.0,
+      "cooldown": 0.0,
+      "oneShot": false,
+      "targetMask": "All"
+    },
+    {
+      "_comment": "점령지 2 (추정). JSON에서 위치 조정.",
+      "kind": "ConquestZone",
+      "position": [ 0.0, 300.0, -6500.0 ],
+      "halfExtents": [ 500.0, 600.0, 500.0 ],
+      "valueA": 2.0,
+      "valueB": 0.0,
+      "cooldown": 0.0,
+      "oneShot": false,
+      "targetMask": "All"
     }
+  ],
+
+  "spawnTables": {
+    "table1": {
+      "entries": [
+        {
+          "type": "Bongoman",
+          "count": 2
+        },
+        {
+          "type": "Pianoman",
+          "count": 1
+        },
+        {
+          "type": "HornMan",
+          "count": 3
+        }
+      ]
+    },
+    "table2": {
+      "entries": [
+        {
+          "type": "Pianoman",
+          "count": 2
+        },
+        {
+          "type": "HornMan",
+          "count": 2
+        }
+      ]
+    },
+    "table3": {
+      "entries": [
+        {
+          "type": "Bongoman",
+          "count": 1
+        },
+        {
+          "type": "HornMan",
+          "count": 4
+        }
+      ]
+    }
+  },
+
+  "spawners": [
+    {
+      "_src_ue": "Spawner UE(-10560,-3285,130)",
+      "id": "desert_spawner_a",
+      "position": [ -3285.0, 130.0, -10560.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table1", "table3" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-4460,-3100,130)",
+      "id": "desert_spawner_b",
+      "position": [ -3100.0, 130.0, -4460.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table2" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-9920,1960,130)",
+      "id": "desert_spawner_c",
+      "position": [ 1960.0, 130.0, -9920.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table1", "table2", "table3" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-10560,-3285,130)",
+      "id": "desert_spawner_d",
+      "position": [ -3285.0, 130.0, -10560.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table1", "table3" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-4460,-3100,130)",
+      "id": "desert_spawner_e",
+      "position": [ -3100.0, 130.0, -4460.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table2" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-9920,1960,130)",
+      "id": "desert_spawner_f",
+      "position": [ 1960.0, 130.0, -9920.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table1", "table2", "table3" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-10560,-3285,130)",
+      "id": "desert_spawner_g",
+      "position": [ -3285.0, 130.0, -10560.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table1", "table3" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-4460,-3100,130)",
+      "id": "desert_spawner_h",
+      "position": [ -3100.0, 130.0, -4460.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table2" ]
+    },
+    {
+      "_src_ue": "Spawner UE(-9920,1960,130)",
+      "id": "desert_spawner_i",
+      "position": [ 1960.0, 130.0, -9920.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table1", "table2", "table3" ]
+    }
+  ],
+
+  "phaseSpawners": {
+    "_comment": "phase 별 생성 스포너 id. Conquest:<?점령지번호>, Escort:<구간번호>, Prepare, Clear, Boss:<번호>. 초기 phase가 시작될 때 startActive 무시하고 해당 phase 진입 시에 켜짐. 목록에 없는 phase 진입 시 기존 스포너는 꺼짐. phase 진입 시 적 스폰(maxTotal) 리셋됨.",
+    "Conquest:1": [ "desert_spawner_a", "desert_spawner_b", "desert_spawner_c" ],
+    "Conquest:2": [ "desert_spawner_d", "desert_spawner_e", "desert_spawner_f" ],
+    "Conquest:3": [ "desert_spawner_g", "desert_spawner_h", "desert_spawner_i" ]
+
+  }
 }

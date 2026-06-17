@@ -16,3 +16,6 @@ Code/Server/Resources/Map/
 Code/Majestro/Resources/Sample/TouhouStrategy/Texture/splash01.png
 Code/Server/Resources/Json/Map001_CRX.json
 Code/Server/Resources/Json/MapDesert_Export.json
+Code/Server/Resources/Json/Map001_Export.json
+Code/Server/Resources/Json/Map002_Export.json
+Code/Server/Resources/Json/Map003_Export.json

@@ -1013,7 +1013,8 @@ void EnemySystem::HandleRunState(
         flyComp->mDirectFlight = false;
 
     Vec3 desiredTarget = playerPos;
-    if (mUseOnnxBaseMove)
+    const bool allowOnnxBaseMove = mUseOnnxBaseMove && enemyComp->mEnemyType != EnemyType::Brass;
+    if (allowOnnxBaseMove)
     {
         Vec3 onnxTarget = playerPos;
         if (TryComputeOnnxBaseMoveTarget(entity, myPos, playerPos, navSystem, onnxTarget))

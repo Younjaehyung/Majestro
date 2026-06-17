@@ -330,6 +330,7 @@ namespace
 							sp->mSpawnTablePool.push_back(std::move(filteredEntries));
 					}
 				}
+
 			}
 
 		// phase 별 스포너 세트
@@ -748,6 +749,10 @@ void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
 			// phase 마다 reset
 			sp->mActive = true;
 			sp->mTotalSpawned = 0;
+
+			sp->mTablePoolCycleStarted = false;
+			sp->mCurrentTableCompletedAfterSpawn = false;
+			sp->mRemainingTableIndices.clear();
 			sp->mSelectedTableIndex = -1;
 			sp->mCurrentSpawnPlan.clear();
 			sp->mCurrentSpawnPlanIndex = 0;

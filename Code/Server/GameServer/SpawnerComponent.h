@@ -36,9 +36,17 @@ public:
     size_t mCurrentSpawnPlanIndex = 0;
     int32 mCurrentEntryRemaining = 0;
     bool mRandomSpawnFromTable = false;
+    bool mRandomTableFromPool = true;
+    bool mRepeatTablePool = true;
+    bool mTablePoolCycleStarted = false;
+    bool mCurrentTableCompletedAfterSpawn = false;
+    std::vector<int32> mRemainingTableIndices;
 
     // 랜덤 스폰 반경
     float mSpawnRadius = 0.0f;
+
+    
+    float mNextTableInterval = 5.0f;
 
     float mInterval = 5.0f;                 // 스폰 간격. 0 이하면 즉시 연속 스폰
     float mNextSpawnTime = 0.0f;            // 다음 스폰 가능 절대시간

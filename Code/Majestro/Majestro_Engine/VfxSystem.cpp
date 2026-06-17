@@ -285,7 +285,7 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		return std::nullopt;
 
 	case EffectSpawnReason::Respawn:
-		return VfxSpawnDesc{ L"VFX_Player_Rebirth", Vec3::Zero, Vec3(10.0f) };
+		return VfxSpawnDesc{ L"VFX_Player_Rebirth", Vec3::Zero, Vec3(100.0f) };
 
 	case EffectSpawnReason::CheckpointReached:
 		return VfxSpawnDesc{ L"VFX_Monster_Spawn", Vec3(0.f, 100.f, 0.f), Vec3(5.0f) };

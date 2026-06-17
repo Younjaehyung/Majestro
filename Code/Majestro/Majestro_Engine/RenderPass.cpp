@@ -119,6 +119,11 @@ void PostProcessPass::SetColorGrading(const ColorGradingParams& params)
     if (mToneMapPass) mToneMapPass->SetColorGrading(params);
 }
 
+void PostProcessPass::SetBlur(const bool on)
+{
+    if (mFinalCompositePass) mFinalCompositePass->SetBlur(on);
+}
+
 const ColorGradingParams& PostProcessPass::GetColorGrading() const
 {
 	static const ColorGradingParams sDefault{};

@@ -205,25 +205,16 @@ void GameRenderPipeline::Execute(const RenderContext& ctx)
 {
     UpdatePassStates();
 
-    if (!mIsPaused) // 인게임 풀 파이프라인
-    {
 
-        RenderDepthPrePass(ctx);
-        RenderShadow(ctx);
-        RenderDeferred(ctx);
-        RenderForward(ctx);
-        RenderOutline(ctx);
-        RenderEffect(ctx);
-        RenderPost(ctx);
-        RenderWorldUI(ctx);
-    }
-    else
-    {
-        // PauseMenu: 게임 월드는 마지막 프레임 HDR 유지, UI 오버레이만
-        // ToneMap + FinalComposite만 실행해 기존 프레임버퍼 출력
-        RenderPost(ctx);
-        RenderWorldUI(ctx);
-    }
+    RenderDepthPrePass(ctx);
+    RenderShadow(ctx);
+    RenderDeferred(ctx);
+    RenderForward(ctx);
+    RenderOutline(ctx);
+    RenderEffect(ctx);
+    RenderPost(ctx);
+    RenderWorldUI(ctx);
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -411,6 +402,12 @@ void GameRenderPipeline::SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* f
 void GameRenderPipeline::SetColorLUT(const std::wstring& name, int size, float strength)
 {
     if (mPostProcessPass) mPostProcessPass->SetColorLUT(name, size, strength);
+}
+
+void GameRenderPipeline::SetBlur(bool on)
+{
+    mIsBlured = on;
+    if (mPostProcessPass) mPostProcessPass->SetBlur(mIsBlured);
 }
 
 

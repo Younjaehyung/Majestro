@@ -25,6 +25,9 @@ public:
     // 상태별 가시화할 UI entity 목록 (PauseSystem 이 visible/enabled 토글)
     std::array<std::vector<Entity>, (size_t)PauseMenuState::Count> mStateEntities;
 
+    // 캐릭터별 전체화면 배경 레이어 sprite
+    Entity mBackgroundEntity = NULL_ENTITY;
+
     void Request(PauseMenuState next)
     {
         mPendingState = next;

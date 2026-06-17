@@ -13,12 +13,18 @@ void FinalCompositePass::Initialize()
 
 }
 
+void FinalCompositePass::SetBlur(bool on)
+{
+	mBlurEnabled = on;
+}
+
 void FinalCompositePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable,
 	RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after)
 {
 	mBefore = before;
 	mAfter = after;
 	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::COMPOSITE_PASS)].PreviousStep = static_cast<int32>(ToGBufferIndex(before));
+	dataTable[static_cast<uint32>(PASS_CUSTOM_INDEX::COMPOSITE_PASS)].ExtValue[0] = Vec4(float(mBlurEnabled), 1.0f, 1.0f, 1.0f);
 }
 
 void FinalCompositePass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)

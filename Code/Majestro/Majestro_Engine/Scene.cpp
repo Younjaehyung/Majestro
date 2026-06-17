@@ -371,7 +371,21 @@ void Scene::CreatePauseMenu()
 					c->Request(s);
 			};
 
-		// 풀스크린 배경
+		// 캐릭터별 전체화면 배경 레이어 (dim 보다 뒤). pause 진입 시 PauseSystem 이 텍스처 교체.
+		Entity pauseBg = mWorld->CreateEntity();
+		{
+			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseBg);
+			tr.mAnchor = Anchor::TopLeft;
+			tr.mPosition = Vec2(0.f, 0.f);
+			tr.mSize = Vec2(2560.f, 1440.f);
+			tr.mPivot = Vec2(0.f, 0.f);
+			tr.mUILayerIndex = 101;            
+			// 초기 텍스처는 placeholder. 실제 캐릭터별 텍스처는 pause 진입 시 교체.
+			mWorld->AddComponent<UISpriteComponent>(pauseBg,
+				RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01"));
+		}
+
+		// 풀스크린 배경 (반투명 검정 dim — 캐릭터 배경 위에 깔려 대비 확보)
 		Entity pauseDim = mWorld->CreateEntity();
 		{
 			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseDim);
@@ -379,10 +393,10 @@ void Scene::CreatePauseMenu()
 			tr.mPosition = Vec2(0.f, 0.f);
 			tr.mSize = Vec2(2560.f, 1440.f);
 			tr.mPivot = Vec2(0.f, 0.f);
-			tr.mUILayerIndex = 1;            // 버튼(5)보다 뒤
-			auto& sp = mWorld->AddComponent<UISpriteComponent>(pauseDim,
-				RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01"));
-			sp.mColorTint = Vec4(0.f, 0.f, 0.f, 0.6f);
+			tr.mUILayerIndex = 100;            // 버튼(5)보다 뒤
+			//auto& sp = mWorld->AddComponent<UISpriteComponent>(pauseDim,
+			//	RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01"));
+			//sp.mColorTint = Vec4(1.f, 1.f, 1.f, 0.0f);
 		}
 
 		// Pause: 타이틀 + Resume / Setting / Disconnect
@@ -393,7 +407,7 @@ void Scene::CreatePauseMenu()
 			tr.mPosition = Vec2(0.f, -260.f);
 			tr.mSize = Vec2(400.f, 80.f);
 			tr.mPivot = Vec2(0.5f, 0.5f);
-			tr.mUILayerIndex = 5;
+			tr.mUILayerIndex = 105;
 			auto& txt = mWorld->AddComponent<UITextComponent>(pauseTitle);
 			txt.mText = L"PAUSED";
 		}
@@ -438,7 +452,7 @@ void Scene::CreatePauseMenu()
 			tr.mPosition = Vec2(0.f, -320.f);
 			tr.mSize = Vec2(400.f, 70.f);
 			tr.mPivot = Vec2(0.5f, 0.5f);
-			tr.mUILayerIndex = 5;
+			tr.mUILayerIndex = 105;
 			auto& txt = mWorld->AddComponent<UITextComponent>(settingTitle);
 			txt.mText = L"SETTING";
 		}
@@ -513,7 +527,7 @@ void Scene::CreatePauseMenu()
 					tr.mPosition = Vec2(-220.f, rowY);
 					tr.mSize = Vec2(240.f, 60.f);
 					tr.mPivot = Vec2(0.5f, 0.5f);
-					tr.mUILayerIndex = 5;
+					tr.mUILayerIndex = 105;
 					mWorld->AddComponent<UITextComponent>(label).mText = name;
 				}
 				// 값 텍스트
@@ -524,7 +538,7 @@ void Scene::CreatePauseMenu()
 					tr.mPosition = Vec2(120.f, rowY);
 					tr.mSize = Vec2(120.f, 60.f);
 					tr.mPivot = Vec2(0.5f, 0.5f);
-					tr.mUILayerIndex = 5;
+					tr.mUILayerIndex = 105;
 					mWorld->AddComponent<UITextComponent>(valueText);
 				}
 				auto refresh = [this, valueText, cat]()
@@ -567,7 +581,7 @@ void Scene::CreatePauseMenu()
 			tr.mPosition = Vec2(0.f, -100.f);
 			tr.mSize = Vec2(800.f, 80.f);
 			tr.mPivot = Vec2(0.5f, 0.5f);
-			tr.mUILayerIndex = 5;
+			tr.mUILayerIndex = 105;
 			auto& txt = mWorld->AddComponent<UITextComponent>(confirmText);
 			txt.mText = L"게임에서 나가시겠습니까?";
 		}
@@ -594,12 +608,13 @@ void Scene::CreatePauseMenu()
 			.clickSfxKey = "ui/back",
 			});
 
-		// 상태별 entity 등록 (Hidden 은 비움). 배경은 모든 상태 공유.
+		// 상태별 entity 등록 (Hidden 은 비움). 배경(캐릭터 레이어 + dim)은 모든 상태 공유.
 		auto* pctrl = mWorld->GetComponent<PauseMenuController>(pauseCtrlEnt);
-		pctrl->mStateEntities[(size_t)PauseMenuState::Root] = { pauseDim, pauseTitle, bResume, bSetting, bDisconnect };
+		pctrl->mBackgroundEntity = pauseBg;
+		pctrl->mStateEntities[(size_t)PauseMenuState::Root] = { pauseBg, pauseDim, pauseTitle, bResume, bSetting, bDisconnect };
 
 		// 두 Setting 탭이 공유하는 요소 (제목/탭헤더/BACK + 배경)
-		const std::vector<Entity> settingShared = { pauseDim, settingTitle, bTabGraphics, bTabSound, bSettingBack };
+		const std::vector<Entity> settingShared = { pauseBg, pauseDim, settingTitle, bTabGraphics, bTabSound, bSettingBack };
 
 		// Graphics 탭
 		std::vector<Entity> gfxState = settingShared;
@@ -611,7 +626,7 @@ void Scene::CreatePauseMenu()
 		sndState.insert(sndState.end(), soundEntities.begin(), soundEntities.end());
 		pctrl->mStateEntities[(size_t)PauseMenuState::SettingSound] = std::move(sndState);
 
-		pctrl->mStateEntities[(size_t)PauseMenuState::ConfirmDisconnect] = { pauseDim, confirmText, bYes, bNo };
+		pctrl->mStateEntities[(size_t)PauseMenuState::ConfirmDisconnect] = { pauseBg, pauseDim, confirmText, bYes, bNo };
 
 		// 시작 시 모든 일시정지 UI 숨김
 		auto hidePause = [this](Entity e)

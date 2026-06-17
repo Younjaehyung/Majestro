@@ -44,9 +44,6 @@ public:
     void Execute(const RenderContext& ctx)    override;
 
     
-    // PauseMenu 진입 시 게임 월드 렌더 생략, UI 오버레이만 실행
-    void SetPaused(bool paused) { mIsPaused = paused; }
-    bool IsPaused() const       { return mIsPaused; }
 
     // 이벤트 기반 PostProcess on/off
     void SetMotionBlurEnabled(bool on);
@@ -59,6 +56,7 @@ public:
     void SetHealthVignetteNoiseTexture(const std::wstring& textureName);
 	void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
     void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);
+    void SetBlur(bool on);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
     DualKawaseBlurPass*  GetEmissiveBloom() const { return mEmissiveBloomPass.get(); }
@@ -106,7 +104,7 @@ private:
     shared_ptr<WorldUIPass>         mWorldUIPass;
 
     World* mWorld    = nullptr;
-    bool   mIsPaused = false;
+    bool   mIsBlured = false;
 
     bool mHasPreviousHealthRatio = false;
     float mPreviousHealthRatio = 1.0f;

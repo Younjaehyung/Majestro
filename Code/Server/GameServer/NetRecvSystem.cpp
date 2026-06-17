@@ -328,6 +328,8 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 
 	if (!hasBrass)
 		spawnOneEnemy(EnemyType::Brass, Vec3(0.0f, 0.0f, 1200.0f));
+	if (!hasFly)
+		spawnOneEnemy(EnemyType::Fly, Vec3(-700.0f, 0.0f, 900.0f));
 	if (!hasObelisk)
 		spawnOneEnemy(EnemyType::Obelisk, Vec3(700.0f, 0.0f, 900.0f));
 

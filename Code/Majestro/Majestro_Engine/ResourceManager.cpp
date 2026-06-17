@@ -2947,10 +2947,10 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_03.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_04.fbx", L"JHToon");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_Run_Forward.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_Combat_Unarmed_Dodge.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_Dead.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Die.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Idle.ani.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Run.fbx", L"JHToon");
 
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");

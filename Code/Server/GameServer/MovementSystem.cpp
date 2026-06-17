@@ -725,7 +725,7 @@ void MovementSystem::UpdateFlyHeight(float dt)
 
 		const bool divingAttack = enemyComponent &&
 			enemyComponent->mEnemyType == EnemyType::Fly &&
-			enemyComponent->mAnimState == static_cast<uint8>(EnemyAnimState::Attack);
+			flyComponent->mAttackDiveActive;
 		if (divingAttack)
 			continue;
 

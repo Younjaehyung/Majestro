@@ -646,24 +646,24 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Fly:
-		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SK_Stingray");
-		material2 = RESOURCEMANAGER.Get<Material>(L"A_Stingray_Run_Forward0");
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"A_Stingray_Run_Forward"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"A_Stingray_Combat_Unarmed_Dodge"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"A_Stingray_Dead"));
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Mew_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Mew_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Mew_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Mew_Attack_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Mew_Die"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 20, 20);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Brass:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_BrassBoss");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_BrassBoss_Attack_010");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_BrassBoss_Run0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Die"));//die
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Attack_01"));//none
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_01"));//none
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Attack_01"));//none
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_03"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_04"));

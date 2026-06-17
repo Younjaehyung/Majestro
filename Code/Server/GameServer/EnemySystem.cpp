@@ -390,7 +390,10 @@ bool EnemySystem::HandleAttackState(
         constexpr float kFlyArriveThresholdSq = 4.0f * 100.0f;
         FlyComponent* flyComp = mWorld->GetComponent<FlyComponent>(entity);
         if (flyComp)
+        {
             flyComp->mDirectFlight = false;
+            flyComp->mAttackDiveActive = false;
+        }
 
         if (flyComp && flyComp->mRetreating)
         {
@@ -435,6 +438,9 @@ bool EnemySystem::HandleAttackState(
         }
         else
         {
+            if (flyComp)
+                flyComp->mAttackDiveActive = true;
+
             const Vec3 rushTarget = playerPos;
             auto navSystem = mWorld->GetNavSystem();
             Vec3 rayStart = myPos;
@@ -681,7 +687,10 @@ bool EnemySystem::HandleAttackState(
     }
     else if (enemyComp->mEnemyType == EnemyType::Fly)
     {
-        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+        enemyComp->mAnimState = static_cast<uint8>(
+            nowSeconds <= enemyComp->mAttackAnimEndTime
+            ? EnemyAnimState::Attack
+            : EnemyAnimState::Run);
     }
     else if (enemyComp->mEnemyType == EnemyType::Brass)
     {

@@ -167,6 +167,9 @@ void AudioManager::Initialize(const std::string& bankRoot) {
 	mAllBGM.resize(static_cast<size_t>(SOUNDNAME::End) + 1, nullptr);
     mCurrentBGMMarkers.resize(static_cast<size_t>(SOUNDNAME::End) + 1);
 
+    // 보관 중인 카테고리 음량을 버스에 반영
+    ApplyCategoryVolumes();
+
 	// 모든 mAllBGM을 nullptr로 초기화
 
 
@@ -351,9 +354,43 @@ void AudioManager::SetGlobalParam(const char* name, float v) {
 }
 
 void AudioManager::SetBusVolume(const char* busPath, float v) {
+    // FMOD 프로젝트에 해당 버스가 없으면 getBus 로그
     FMOD::Studio::Bus* bus = nullptr;
-    FMOD_CHECK(mFMOD.GetStudio()->getBus(busPath, &bus));
-    FMOD_CHECK(bus->setVolume(v));
+    if (mFMOD.GetStudio()->getBus(busPath, &bus) != FMOD_OK || !bus) {
+        static std::unordered_set<std::string> sWarned;
+        if (sWarned.insert(busPath).second)
+            OutputDebugStringA((std::string("[Audio] bus not found: ") + busPath + "\n").c_str());
+        return;
+    }
+    bus->setVolume(v);
+}
+
+const char* AudioManager::BusPathOf(AudioCategory cat) {
+    switch (cat) {
+    case AudioCategory::Master:  return "bus:/";
+    case AudioCategory::Vfx:     return "bus:/SFX";
+    case AudioCategory::Ambient: return "bus:/Ambient";
+    default:                     return "bus:/";
+    }
+}
+
+void AudioManager::SetCategoryVolume(AudioCategory cat, float v01) {
+    const size_t idx = static_cast<size_t>(cat);
+    if (idx >= static_cast<size_t>(AudioCategory::Count)) return;
+    v01 = std::clamp(v01, 0.f, 1.f);
+    mCategoryVolume[idx] = v01;
+    SetBusVolume(BusPathOf(cat), v01);
+}
+
+float AudioManager::GetCategoryVolume(AudioCategory cat) const {
+    const size_t idx = static_cast<size_t>(cat);
+    if (idx >= static_cast<size_t>(AudioCategory::Count)) return 1.f;
+    return mCategoryVolume[idx];
+}
+
+void AudioManager::ApplyCategoryVolumes() {
+    for (size_t i = 0; i < static_cast<size_t>(AudioCategory::Count); ++i)
+        SetBusVolume(BusPathOf(static_cast<AudioCategory>(i)), mCategoryVolume[i]);
 }
 
 void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {

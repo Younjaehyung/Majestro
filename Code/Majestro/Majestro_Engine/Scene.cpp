@@ -418,7 +418,7 @@ void Scene::CreatePauseMenu()
 			.visual = UIButtonVisual::Vfx,
 			.resKey = L"VFX_UI_Select",
 			.label = L"SETTING",
-			.onClick = [requestPause]() { requestPause(PauseMenuState::Setting); },
+			.onClick = [requestPause]() { requestPause(PauseMenuState::SettingGraphics); },
 			});
 		Entity bDisconnect = CreateUIButton(mWorld.get(), {
 			.position = Vec2(0.f, 100.f),
@@ -429,20 +429,34 @@ void Scene::CreatePauseMenu()
 			.onClick = [requestPause]() { requestPause(PauseMenuState::ConfirmDisconnect); },
 			});
 
-		// Setting: Back (실제 옵션 UI 는 추후)
-		Entity settingText = mWorld->CreateEntity();
+		// Setting (Graphics / Sound 탭)
+		// 공유 요소: 제목 + 탭 헤더 2개 + BACK (두 탭 상태에 모두 포함)
+		Entity settingTitle = mWorld->CreateEntity();
 		{
-			auto& tr = mWorld->AddComponent<UITransformComponent>(settingText);
+			auto& tr = mWorld->AddComponent<UITransformComponent>(settingTitle);
 			tr.mAnchor = Anchor::Center;
-			tr.mPosition = Vec2(0.f, -100.f);
-			tr.mSize = Vec2(600.f, 80.f);
+			tr.mPosition = Vec2(0.f, -320.f);
+			tr.mSize = Vec2(400.f, 70.f);
 			tr.mPivot = Vec2(0.5f, 0.5f);
 			tr.mUILayerIndex = 5;
-			auto& txt = mWorld->AddComponent<UITextComponent>(settingText);
-			txt.mText = L"SETTING (준비 중)";
+			auto& txt = mWorld->AddComponent<UITextComponent>(settingTitle);
+			txt.mText = L"SETTING";
 		}
+		const Vec2 tabSize = { 260.f, 64.f };
+		Entity bTabGraphics = CreateUIButton(mWorld.get(), {
+			.position = Vec2(-150.f, -240.f), .size = tabSize,
+			.visual = UIButtonVisual::Vfx, .resKey = L"VFX_UI_Select",
+			.label = L"GRAPHICS",
+			.onClick = [requestPause]() { requestPause(PauseMenuState::SettingGraphics); },
+			});
+		Entity bTabSound = CreateUIButton(mWorld.get(), {
+			.position = Vec2(150.f, -240.f), .size = tabSize,
+			.visual = UIButtonVisual::Vfx, .resKey = L"VFX_UI_Select",
+			.label = L"SOUND",
+			.onClick = [requestPause]() { requestPause(PauseMenuState::SettingSound); },
+			});
 		Entity bSettingBack = CreateUIButton(mWorld.get(), {
-			.position = Vec2(0.f, 80.f),
+			.position = Vec2(0.f, 300.f),
 			.size = btnSize,
 			.visual = UIButtonVisual::Vfx,
 			.resKey = L"VFX_UI_Select",
@@ -450,6 +464,100 @@ void Scene::CreatePauseMenu()
 			.onClick = [requestPause]() { requestPause(PauseMenuState::Root); },
 			.clickSfxKey = "ui/back",
 			});
+
+		// Graphics 탭
+		auto makeGfxToggle =
+			[this](Vec2 pos, const wchar_t* name, std::function<bool&()> field) -> Entity
+			{
+				Entity btn = CreateUIButton(mWorld.get(), {
+					.position = pos, .size = Vec2(300.f, 64.f),
+					.visual = UIButtonVisual::Vfx, .resKey = L"VFX_UI_Select",
+					.label = name,
+					});
+				auto refresh = [this, btn, name, field]()
+					{
+						if (auto* t = mWorld->GetComponent<UITextComponent>(btn))
+							t->mText = std::wstring(name) + (field() ? L" : ON" : L" : OFF");
+					};
+				if (auto* b = mWorld->GetComponent<UIButtonComponent>(btn))
+					b->mOnClick = [this, field, refresh]()
+					{
+						field() = !field();
+						if (auto* rs = mWorld->GetSystemManager()->GetSystem<RenderSystem>())
+							if (auto p = std::static_pointer_cast<GameRenderPipeline>(rs->GetPipeline()))
+								p->ApplyGraphicsSettings();
+						refresh();
+					};
+				refresh();
+				return btn;
+			};
+
+		Entity gFog     = makeGfxToggle({ -160.f, -150.f }, L"FOG",     []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bFog; });
+		Entity gGodRay  = makeGfxToggle({  160.f, -150.f }, L"GODRAY",  []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bGodRay; });
+		Entity gBloom   = makeGfxToggle({ -160.f,  -60.f }, L"BLOOM",   []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bBloom; });
+		Entity gOutline = makeGfxToggle({  160.f,  -60.f }, L"OUTLINE", []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bOutline; });
+		Entity gHBAO    = makeGfxToggle({ -160.f,   30.f }, L"HBAO",    []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bHBAO; });
+		Entity gFXAA    = makeGfxToggle({  160.f,   30.f }, L"FXAA",    []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bFXAA; });
+		Entity gShadow  = makeGfxToggle({ -160.f,  120.f }, L"SHADOW",  []() -> bool& { return RENDERMANAGER.GetGraphicsSettings().bShadow; });
+
+		// Sound 탭: Master / VFX / Ambient 음량 (좌우 화살표 10% 스텝)
+		std::vector<Entity> soundEntities;
+		auto makeVolumeRow =
+			[this, &soundEntities](float rowY, const wchar_t* name, AudioCategory cat)
+			{
+				// 라벨
+				Entity label = mWorld->CreateEntity();
+				{
+					auto& tr = mWorld->AddComponent<UITransformComponent>(label);
+					tr.mAnchor = Anchor::Center;
+					tr.mPosition = Vec2(-220.f, rowY);
+					tr.mSize = Vec2(240.f, 60.f);
+					tr.mPivot = Vec2(0.5f, 0.5f);
+					tr.mUILayerIndex = 5;
+					mWorld->AddComponent<UITextComponent>(label).mText = name;
+				}
+				// 값 텍스트
+				Entity valueText = mWorld->CreateEntity();
+				{
+					auto& tr = mWorld->AddComponent<UITransformComponent>(valueText);
+					tr.mAnchor = Anchor::Center;
+					tr.mPosition = Vec2(120.f, rowY);
+					tr.mSize = Vec2(120.f, 60.f);
+					tr.mPivot = Vec2(0.5f, 0.5f);
+					tr.mUILayerIndex = 5;
+					mWorld->AddComponent<UITextComponent>(valueText);
+				}
+				auto refresh = [this, valueText, cat]()
+					{
+						if (auto* t = mWorld->GetComponent<UITextComponent>(valueText))
+						{
+							int pct = (int)(AUDIOMANAGER.GetCategoryVolume(cat) * 100.f + 0.5f); // 0~1 → 반올림 %
+							t->mText = std::to_wstring(pct) + L"%";
+						}
+					};
+				auto step = [this, cat, refresh](float delta)
+					{
+						AUDIOMANAGER.SetCategoryVolume(cat, AUDIOMANAGER.GetCategoryVolume(cat) + delta); // 내부 clamp
+						refresh();
+					};
+				Entity minus = CreateUIButton(mWorld.get(), {
+					.position = Vec2(20.f, rowY), .size = Vec2(72.f, 60.f),
+					.visual = UIButtonVisual::Vfx, .resKey = L"VFX_UI_Select",
+					.label = L"<",
+					.onClick = [step]() { step(-0.1f); },
+					});
+				Entity plus = CreateUIButton(mWorld.get(), {
+					.position = Vec2(220.f, rowY), .size = Vec2(72.f, 60.f),
+					.visual = UIButtonVisual::Vfx, .resKey = L"VFX_UI_Select",
+					.label = L">",
+					.onClick = [step]() { step(+0.1f); },
+					});
+				refresh();
+				soundEntities.insert(soundEntities.end(), { label, valueText, minus, plus });
+			};
+		makeVolumeRow(-100.f, L"MASTER",  AudioCategory::Master);
+		makeVolumeRow(   0.f, L"VFX",     AudioCategory::Vfx);
+		makeVolumeRow( 100.f, L"AMBIENT", AudioCategory::Ambient);
 
 		// ConfirmDisconnect: Yes / No
 		Entity confirmText = mWorld->CreateEntity();
@@ -486,10 +594,23 @@ void Scene::CreatePauseMenu()
 			.clickSfxKey = "ui/back",
 			});
 
-		// 상태별 entity 등록 (Hidden 은 비움). 배경은 세 상태 공유.
+		// 상태별 entity 등록 (Hidden 은 비움). 배경은 모든 상태 공유.
 		auto* pctrl = mWorld->GetComponent<PauseMenuController>(pauseCtrlEnt);
 		pctrl->mStateEntities[(size_t)PauseMenuState::Root] = { pauseDim, pauseTitle, bResume, bSetting, bDisconnect };
-		pctrl->mStateEntities[(size_t)PauseMenuState::Setting] = { pauseDim, settingText, bSettingBack };
+
+		// 두 Setting 탭이 공유하는 요소 (제목/탭헤더/BACK + 배경)
+		const std::vector<Entity> settingShared = { pauseDim, settingTitle, bTabGraphics, bTabSound, bSettingBack };
+
+		// Graphics 탭
+		std::vector<Entity> gfxState = settingShared;
+		gfxState.insert(gfxState.end(), { gFog, gGodRay, gBloom, gOutline, gHBAO, gFXAA, gShadow });
+		pctrl->mStateEntities[(size_t)PauseMenuState::SettingGraphics] = std::move(gfxState);
+
+		// Sound 탭 
+		std::vector<Entity> sndState = settingShared;
+		sndState.insert(sndState.end(), soundEntities.begin(), soundEntities.end());
+		pctrl->mStateEntities[(size_t)PauseMenuState::SettingSound] = std::move(sndState);
+
 		pctrl->mStateEntities[(size_t)PauseMenuState::ConfirmDisconnect] = { pauseDim, confirmText, bYes, bNo };
 
 		// 시작 시 모든 일시정지 UI 숨김

@@ -875,6 +875,11 @@ void RenderSystem::PushShadowCascades() {
         passParams.CascadeShadowVP[ci] = Matrix::Identity.Transpose();
     }
 
+    // 사용자 그래픽 설정 : 그림자 OFF시 종료
+    if (!RENDERMANAGER.GetGraphicsSettings().bShadow) {
+        passParams.CascadeSplitDistances = Vec4(0.f, 0.f, 0.f, 0.f);
+        return;
+    }
 
     for (auto& light : mWorld->GetEntitiesWithComponent<LightComponent>()) {
         LightComponent* lightComponent = mWorld->GetComponent<LightComponent>(light);

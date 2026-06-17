@@ -28,6 +28,14 @@ enum class SOUNDNAME {
 
 };
 
+// 음량 카테고리
+enum class AudioCategory : uint8 {
+    Master,   // bus:/        (전체)
+    Vfx,      // bus:/SFX     (효과음)
+    Ambient,  // bus:/Ambient (환경/배경음)
+    Count
+};
+
 // 상태 연동 루프 사운드용 불투명 핸들. 0 = invalid.
 using SfxHandle = uint32;
 
@@ -89,6 +97,11 @@ public:
     void SetGlobalParam(const char* name, float v);
     void SetBusVolume(const char* busPath, float v);
 
+    // 카테고리 음량 (Setting UI) 
+    void  SetCategoryVolume(AudioCategory cat, float v01);
+    float GetCategoryVolume(AudioCategory cat) const;
+    void  ApplyCategoryVolumes();   // 보관 중인 음량을 FMOD 버스에 일괄 반영
+
     // 리스너는 매 프레임 동기화 (카메라 기반)
     void SetListener(const FMOD_3D_ATTRIBUTES& attr, int index = 0);
 
@@ -148,6 +161,10 @@ private:
     void SyncBGMToListener(const FMOD_3D_ATTRIBUTES& listenerAttr);
 
     FmodBackend mFMOD;
+
+    // 카테고리별 음량 (0~1).
+    float mCategoryVolume[static_cast<size_t>(AudioCategory::Count)] = { 1.f, 1.f, 1.f };   // 인덱스 = AudioCategory.
+    static const char* BusPathOf(AudioCategory cat);
 
     // 상태 연동 루프 인스턴스 (핸들 <-> 인스턴스)
     std::unordered_map<SfxHandle, FMOD::Studio::EventInstance*> mLoopInstances;

@@ -67,6 +67,17 @@ public:
 
     void SetHBAOEnabled(bool on);
 
+    // 현재 Pass on/off 조회
+    bool IsFogEnabled()     const;
+    bool IsGodRayEnabled()  const;
+    bool IsBloomEnabled()   const;
+    bool IsOutlineEnabled() const;
+    bool IsHBAOEnabled()    const;
+    bool IsFXAAEnabled()    const;
+
+    // RenderManager::GetGraphicsSettings() 값을 일괄 반영.
+    void ApplyGraphicsSettings();
+
     // 동적 HDR PostProcess 추가/제거
     void AddHDREffect(shared_ptr<class RenderPass> pass);
     void RemoveHDREffect(shared_ptr<class RenderPass> pass);

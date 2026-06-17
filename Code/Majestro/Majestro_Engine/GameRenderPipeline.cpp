@@ -123,8 +123,8 @@ void GameRenderPipeline::Initialize(World* world)
     );
     mPostProcessPass->AddLDRPass(mFXAAPass);
 
-    
-    
+    // 사용자 그래픽 설정 복원
+    ApplyGraphicsSettings();
 }
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)
@@ -369,6 +369,25 @@ void GameRenderPipeline::SetHBAOEnabled(bool on)
 void GameRenderPipeline::SetFXAAEnabled(bool on)
 {
     if (mFXAAPass) mFXAAPass->SetEnabled(on);
+}
+
+// Pass on/off 조회
+bool GameRenderPipeline::IsFogEnabled()     const { return mFogPass          && mFogPass->IsEnabled(); }
+bool GameRenderPipeline::IsGodRayEnabled()  const { return mGodRayPass       && mGodRayPass->IsEnabled(); }
+bool GameRenderPipeline::IsBloomEnabled()   const { return mEmissiveBloomPass && mEmissiveBloomPass->IsEnabled(); }
+bool GameRenderPipeline::IsOutlineEnabled() const { return mOutlinePass      && mOutlinePass->IsEnabled(); }
+bool GameRenderPipeline::IsHBAOEnabled()    const { return mHBAOPass         && mHBAOPass->IsEnabled(); }
+bool GameRenderPipeline::IsFXAAEnabled()    const { return mFXAAPass         && mFXAAPass->IsEnabled(); }
+
+void GameRenderPipeline::ApplyGraphicsSettings()
+{
+    const GraphicsSettings& g = RENDERMANAGER.GetGraphicsSettings();
+    SetFogEnabled(g.bFog);
+    SetGodRayEnabled(g.bGodRay);
+    SetEmissiveBloomEnabled(g.bBloom);
+    SetOutlineEnabled(g.bOutline);
+    SetHBAOEnabled(g.bHBAO);
+    SetFXAAEnabled(g.bFXAA);
 }
 
 void GameRenderPipeline::SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality)

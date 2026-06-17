@@ -7,8 +7,9 @@ enum class PauseMenuState : int
 {
     Hidden            = 0,  // 게임 진행 중, 메뉴 없음
     Root              = 1,  // Resume / Setting / Disconnect
-    Setting           = 2,  // 자리표시자 + Back
-    ConfirmDisconnect = 3,  // "나가시겠습니까?" Yes / No
+    SettingGraphics   = 2,  // Setting > Graphics 탭
+    SettingSound      = 3,  // Setting > Sound 탭
+    ConfirmDisconnect = 4,  // "나가시겠습니까?" Yes / No
     Count
 };
 

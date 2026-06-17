@@ -13,6 +13,18 @@
 class SceneManager;
 
 
+// 사용자 그래픽 설정
+struct GraphicsSettings {
+	bool bFog          = true;
+	bool bGodRay       = true;
+	bool bBloom        = true;
+	bool bOutline      = true;
+	bool bHBAO         = true;
+	bool bFXAA         = true;
+	bool bShadow       = true;
+};
+
+
 struct GroupBuffer {
 	shared_ptr<ConstantBuffer> PassInfo;
 	shared_ptr<StructuredBuffer> InstanceInfo;
@@ -62,6 +74,10 @@ public:
 	uint32 GetMsaaSampleCount() const { return mMsaaSampleCount; }
 	uint32 GetMsaaQuality() const { return mMsaaQuality; }
 	bool IsMsaaEnabled() const { return false /*mMsaaSampleCount > 1*/; }
+
+	// 사용자 그래픽 설정
+	GraphicsSettings&       GetGraphicsSettings()       { return mGraphicsSettings; }
+	const GraphicsSettings& GetGraphicsSettings() const { return mGraphicsSettings; }
 
 public:
 	shared_ptr<Device>					GetDevice()				{ return mDevice; }
@@ -160,7 +176,8 @@ private:
 	Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> mEfkMemoryPoolUI;
 	Effekseer::RefPtr<EffekseerRenderer::CommandList>   mEfkCmdListUI;
 
-
+private:
+	GraphicsSettings mGraphicsSettings;   // 사용자 그래픽 설정
 
 };
 

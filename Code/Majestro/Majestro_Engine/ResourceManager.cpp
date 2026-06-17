@@ -2726,7 +2726,9 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 
 
-
+		Load<Texture>(L"UI_Rudwig_Paused_Main", L"..\\Resources\\Image\\UI\\UI_Rudwig_Paused_Main.png");
+		Load<Texture>(L"UI_Ibanix_Paused_Main", L"..\\Resources\\Image\\UI\\UI_Ibanix_Paused_Main.png");
+		Load<Texture>(L"UI_Fanthor_Paused_Main", L"..\\Resources\\Image\\UI\\UI_Fanthor_Paused_Main.png");
 
 #pragma region LobbyUI
 		{
@@ -2982,6 +2984,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Pianoman_Attack_01\\VFX_Pianoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Hornman_Bullet\\VFX_Hornman_Bullet.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Monster_Spawn\\VFX_Monster_Spawn.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Player_Rebirth\\VFX_Player_Rebirth.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Die\\VFX_BrassBoss_Die.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_01\\VFX_BrassBoss_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_02\\VFX_BrassBoss_Skill_02.efk");

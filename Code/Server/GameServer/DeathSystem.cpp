@@ -138,38 +138,38 @@ void DeathSystem::CompletePlayerDeath(Entity entity)
 
 void DeathSystem::BeginRespawnVfx(Entity entity)
 {
-    //if (!mEventManager)
-    //    return;
+    if (!mEventManager)
+        return;
 
-    //MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity);
-    //if (!player)
-    //    return;
+    MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity);
+    if (!player)
+        return;
 
-    //TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity);
+    TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity);
 
-    //// 리스폰될 위치 계산: 낙사는 스폰 지점(지형 높이 스냅), 일반 사망은 현재 위치(제자리 부활).
-    //// RespawnPlayer()의 위치 산정과 동일하게 맞춰 VFX가 실제 부활 지점에 뜨도록 한다.
-    //Vec3 pos = transform ? transform->mLocalPosition : Vec3::Zero;
-    //if (player->mDeathCause == PlayerDeathCause::Fall)
-    //{
-    //    pos = player->mSpawnPosition;
-    //    if (auto& physicsWorld = mWorld->GetPhysicsWorld())
-    //    {
-    //        float ground = 0.0f;
-    //        if (physicsWorld->TryQueryTerrainHeightNear(pos, pos.y, 2000.0f, 5000.0f, ground))
-    //            pos.y = ground;
-    //    }
-    //}
+    // 리스폰될 위치 계산: 낙사는 스폰 지점(지형 높이 스냅), 일반 사망은 현재 위치(제자리 부활).
+    // RespawnPlayer()의 위치 산정과 동일하게 맞춰 VFX가 실제 부활 지점에 뜨도록 한다.
+    Vec3 pos = transform ? transform->mLocalPosition : Vec3::Zero;
+    if (player->mDeathCause == PlayerDeathCause::Fall)
+    {
+        pos = player->mSpawnPosition;
+        if (auto& physicsWorld = mWorld->GetPhysicsWorld())
+        {
+            float ground = 0.0f;
+            if (physicsWorld->TryQueryTerrainHeightNear(pos, pos.y, 2000.0f, 5000.0f, ground))
+                pos.y = ground;
+        }
+    }
 
-    //// 클라이언트로 방송되는 스폰 연출 VFX.
-    //// reason=Respawn 이면 클라 VfxSystem::ResolveVfxSpawn 이 바람 필드(VFX_Wind_Energy_Field)를 재생한다.
-    //EvEffectSpawn fx{};
-    //fx.effectType = 0;                       // Respawn reason 에서는 사용하지 않음
-    //fx.x = pos.x;
-    //fx.y = pos.y;
-    //fx.z = pos.z;
-    //fx.reason = EffectSpawnReason::Respawn;
-    //mEventManager->Enqueue<EvEffectSpawn>(fx);
+    // 클라이언트로 방송되는 부활 연출 VFX.
+    // reason=Respawn 이면 클라 VfxSystem::ResolveVfxSpawn 이 VFX_Player_Rebirth 를 재생한다.
+    EvEffectSpawn fx{};
+    fx.effectType = 0;                       // Respawn reason 에서는 사용하지 않음
+    fx.x = pos.x;
+    fx.y = pos.y;
+    fx.z = pos.z;
+    fx.reason = EffectSpawnReason::Respawn;
+    mEventManager->Enqueue<EvEffectSpawn>(fx);
 }
 
 void DeathSystem::RespawnPlayer(Entity entity)

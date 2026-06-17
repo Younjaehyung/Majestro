@@ -256,6 +256,21 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 
 	EnsureBulletPool(inputCommand);
 
+	// 최초 스폰 위치에 부활
+	if (auto eventManager = mWorld->GetEventManager())
+	{
+		if (TransformComponent* spawnTransform = mWorld->GetComponent<TransformComponent>(playerEntity))
+		{
+			EvEffectSpawn fx{};
+			fx.effectType = 0;
+			fx.x = spawnTransform->mLocalPosition.x;
+			fx.y = spawnTransform->mLocalPosition.y;
+			fx.z = spawnTransform->mLocalPosition.z;
+			fx.reason = EffectSpawnReason::Respawn;
+			eventManager->Enqueue<EvEffectSpawn>(fx);
+		}
+	}
+
 	bool hasBrass = false;
 	bool hasFly = false;
 	bool hasObelisk = false;

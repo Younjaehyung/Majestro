@@ -909,8 +909,8 @@ void ThirdScene::Initialize()
 	mWorld->Initialize();
 
 	// 임시
-	LoadCollisionJson(L"..\\Resources\\Json\\MapDesert_Nav_Export.json");
-	LoadNavMesh(L"NavMesh_SecondGame");
+	LoadCollisionJson(L"..\\Resources\\Json\\Map003_Nav_Export.json");
+	LoadNavMesh(L"NavMesh_ThirdGame");
 
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
 	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 PreUpdate
@@ -935,7 +935,7 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
 	// 임시
-	const std::wstring gimmickPath = L"../Resources/Json/MapDesert_Gimmicks.json";
+	const std::wstring gimmickPath = L"../Resources/Json/Map003_Gimmicks.json";
 	LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
 
 	gameMode->Initialize();

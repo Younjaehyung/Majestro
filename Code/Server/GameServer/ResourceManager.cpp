@@ -161,6 +161,8 @@ void ResourceManager::LoadResources()
 		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
 		navMesh->Load("../Resources/NavMesh/all_tiles_navmesh.bin");
 		Add<NavMesh>(L"NavMesh_FirstGame", navMesh);
+
+		LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");
 	}
 	{
 		// NavMesh - SecondGame
@@ -169,8 +171,10 @@ void ResourceManager::LoadResources()
 		Add<NavMesh>(L"NavMesh_SecondGame", navMesh);
 	}
 	{
-		LoadPayloadPathJson(L"../Resources/Json/BP_Payroad_path_C_2_PayloadPath.json");
-	
+		// NavMesh - ThirdGame
+		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
+		navMesh->Load("../Resources/NavMesh/Map003_navmesh.bin");
+		Add<NavMesh>(L"NavMesh_ThirdGame", navMesh);
 	}
 }
 

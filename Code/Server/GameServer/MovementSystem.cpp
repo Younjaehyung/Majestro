@@ -532,6 +532,8 @@ void MovementSystem::UpdateEnemy(float dt)
 		{
 			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
 			if (!enemyComp) continue;
+			if (enemyComp->mEnemyType == EnemyType::Obelisk)
+				continue;
 
 			const Vec3 myPos = transformComponent->mLocalPosition;
 			float nearestPlayerDistSq = (std::numeric_limits<float>::max)();

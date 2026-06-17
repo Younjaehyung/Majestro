@@ -10,7 +10,8 @@
         "table2": {
             "entries": [
                 { "type": "Pianoman", "count": 2 },
-                { "type": "HornMan", "count": 2 }
+                { "type": "HornMan", "count": 2 },
+                { "type": "Fly", "count": 2 }
             ]
         },
         "table3": {

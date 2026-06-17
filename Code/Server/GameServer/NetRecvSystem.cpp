@@ -13,6 +13,7 @@
 #include "GameTimer.h"
 #include "TransformComponent.h"
 #include "GravityComponent.h"
+#include "FlyComponent.h"
 #include "HealthComponent.h"
 #include "EnemyComponent.h"
 
@@ -256,60 +257,79 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 	EnsureBulletPool(inputCommand);
 
 	bool hasBrass = false;
+	bool hasFly = false;
+	bool hasObelisk = false;
 	if (mWorld->HasComponentPool<EnemyComponent>())
 	{
 		for (Entity enemyEntity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
 		{
 			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(enemyEntity);
-			if (enemyComp && enemyComp->mEnemyType == EnemyType::Brass)
+			if (!enemyComp)
+				continue;
+
+			if (enemyComp->mEnemyType == EnemyType::Brass)
 			{
 				hasBrass = true;
-				break;
+			}
+			else if (enemyComp->mEnemyType == EnemyType::Fly)
+			{
+				hasFly = true;
+			}
+			else if (enemyComp->mEnemyType == EnemyType::Obelisk)
+			{
+				hasObelisk = true;
 			}
 		}
 	}
+
+	auto spawnOneEnemy = [&](EnemyType enemyType, const Vec3& localOffset)
+	{
+		InputCommand spawnCmd{};
+		spawnCmd.SessionId = 0;
+		spawnCmd.Type = PKT_Type::S2C_PKT_SPAWN;
+		spawnCmd.StoreAs(EnemySpawnContext{ static_cast<uint8>(enemyType) });
+
+		Entity enemyEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, spawnCmd);
+		if (!enemyEntity.IsValid())
+			return;
+
+		if (TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity))
+		{
+			Vec3 spawnPos = playerTransform->mLocalPosition + localOffset;
+			if (auto& physicsWorld = mWorld->GetPhysicsWorld())
+			{
+				float ground = 0.0f;
+				if (physicsWorld->TryQueryTerrainHeightNear(spawnPos, spawnPos.y, 100.0f, 100.0f, ground))
+					spawnPos.y = ground;
+			}
+
+			if (TransformComponent* enemyTransform = mWorld->GetComponent<TransformComponent>(enemyEntity))
+			{
+				enemyTransform->mLocalPosition = spawnPos;
+				enemyTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
+			}
+			if (GravityComponent* enemyGravity = mWorld->GetComponent<GravityComponent>(enemyEntity))
+			{
+				enemyGravity->mGround = spawnPos.y;
+				enemyGravity->mHight = spawnPos.y;
+				enemyGravity->mGravity = 0.0f;
+				enemyGravity->mFalling = false;
+				enemyGravity->mDropping = false;
+				enemyGravity->mGroundGraceLeft = 0.0f;
+			}
+			if (FlyComponent* flyComponent = mWorld->GetComponent<FlyComponent>(enemyEntity))
+			{
+				flyComponent->mGround = spawnPos.y;
+			}
+		}
+
+		BroadcastEnemySpawn(mWorld, enemyEntity);
+	};
 
 	if (!hasBrass)
-	{
-		// NOTE:
-		// Fly one-off spawn is disabled for Brass behavior testing.
-		InputCommand brassSpawn{};
-		brassSpawn.SessionId = 0;
-		brassSpawn.Type = PKT_Type::S2C_PKT_SPAWN;
-		brassSpawn.StoreAs(EnemySpawnContext{ static_cast<uint8>(EnemyType::Brass) });
-
-		Entity brassEntity = PrefabFactory::Spawn(mWorld, PrefabType::ENEMY, brassSpawn);
-		if (brassEntity.IsValid())
-		{
-			if (TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(playerEntity))
-			{
-				Vec3 spawnPos = playerTransform->mLocalPosition + Vec3(0.0f, 0.0f, 1200.0f);
-				if (auto& physicsWorld = mWorld->GetPhysicsWorld())
-				{
-					float ground = 0.0f;
-					if (physicsWorld->TryQueryTerrainHeightNear(spawnPos, spawnPos.y, 100.0f, 100.0f, ground))
-						spawnPos.y = ground;
-				}
-
-				if (TransformComponent* brassTransform = mWorld->GetComponent<TransformComponent>(brassEntity))
-				{
-					brassTransform->mLocalPosition = spawnPos;
-					brassTransform->mWorldMatrix = Matrix::CreateTranslation(spawnPos);
-				}
-				if (GravityComponent* brassGravity = mWorld->GetComponent<GravityComponent>(brassEntity))
-				{
-					brassGravity->mGround = spawnPos.y;
-					brassGravity->mHight = spawnPos.y;
-					brassGravity->mGravity = 0.0f;
-					brassGravity->mFalling = false;
-					brassGravity->mDropping = false;
-					brassGravity->mGroundGraceLeft = 0.0f;
-				}
-			}
-
-			BroadcastEnemySpawn(mWorld, brassEntity);
-		}
-	}
+		spawnOneEnemy(EnemyType::Brass, Vec3(0.0f, 0.0f, 1200.0f));
+	if (!hasObelisk)
+		spawnOneEnemy(EnemyType::Obelisk, Vec3(700.0f, 0.0f, 900.0f));
 
 	uint8 playerType = 1;
 	if (MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity))

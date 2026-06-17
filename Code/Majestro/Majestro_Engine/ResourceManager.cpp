@@ -2684,7 +2684,7 @@ void ResourceManager::CreateDefaultMaterial()
 		//auto Tex = Load<Texture>(L"GradientTex", L"..\\Resources\\Texture\\GradientTex.png");
 		auto Noise = Load<Texture>(L"NoiseTex", L"..\\Resources\\Image\\Noise\\T_TilingNoise02_M.png");
 		// 컬러 그레이딩 LUT
-		Load<Texture>(L"ColorLUT", L"..\\Resources\\Texture\\Cinematic_strip.dds");
+		//Load<Texture>(L"ColorLUT", L"..\\Resources\\Texture\\Cinematic_strip.dds");
 		// DashSmoke
 		Load<Texture>(L"DashSmoke", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG");
 		Load<Texture>(L"WorlyNoise", L"..\\Resources\\Image\\Noise\\T_WorlyNoise_3.PNG");
@@ -2940,13 +2940,22 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Idle.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Die.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Run.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_01.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_02.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_03.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_04.fbx", L"JHToon");
+
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_Run_Forward.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_Combat_Unarmed_Dodge.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_Dead.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Fly\\A_Stingray_idle.fbx", L"JHToon");
+
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 	LoadFBXModel(L"..\\Resources\\FBX\\Object\\Obelisk.fbx", L"Deferred");
-
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Obelisk\\SM_Obelisk.fbx", L"JHToon");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump\\VFX_Sector_Jump.efk");

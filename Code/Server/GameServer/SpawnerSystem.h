@@ -16,6 +16,8 @@ private:
     void PruneDead(class SpawnerComponent* sp);
     void ResetSpawnPlan(class SpawnerComponent* sp);
     bool PrepareNextSpawnEntry(class SpawnerComponent* sp);
+    bool SelectNextSpawnTable(class SpawnerComponent* sp);
+    bool CurrentSpawnPlanHasRemainingEntries(const class SpawnerComponent* sp) const;
 
     class Entity SpawnOne(class Entity spawnerEntity, class SpawnerComponent* sp);
 

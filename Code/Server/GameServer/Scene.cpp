@@ -266,6 +266,17 @@ namespace
 			sp->mSelectedTableIndex = -1;
 			sp->mRandomSpawnFromTable = GetOptionalBool(spawnerJson, "randomSpawnFromTable", false);
 
+			sp->mInterval = GetOptionalFloat(
+				spawnerJson,
+				"tableSpawnInterval",
+				GetOptionalFloat(spawnerJson, "spawnInterval", sp->mInterval));
+			sp->mNextTableInterval = GetOptionalFloat(spawnerJson, "nextTableInterval", sp->mInterval);
+			sp->mRepeatTablePool = GetOptionalBool(spawnerJson, "repeatPool", true);
+			sp->mRandomTableFromPool = GetOptionalBool(spawnerJson, "randomTableFromPool", true);
+			sp->mTablePoolCycleStarted = false;
+			sp->mCurrentTableCompletedAfterSpawn = false;
+			sp->mRemainingTableIndices.clear();
+
 			const auto& tablePoolJson = RequireJson(spawnerJson, "tablePool");
 			for (const auto& tableNameJson : tablePoolJson)
 			{
@@ -692,6 +703,10 @@ void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
 			// phase 마다 reset
 			sp->mActive = true;
 			sp->mTotalSpawned = 0;
+
+			sp->mTablePoolCycleStarted = false;
+			sp->mCurrentTableCompletedAfterSpawn = false;
+			sp->mRemainingTableIndices.clear();
 			sp->mSelectedTableIndex = -1;
 			sp->mCurrentSpawnPlan.clear();
 			sp->mCurrentSpawnPlanIndex = 0;

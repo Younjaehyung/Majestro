@@ -86,18 +86,21 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance, isCritical);
 			mWorld->RegisterActiveBullet(bulletEntity);
 
-			if (auto eventManager = mWorld->GetEventManager())
-			{
-				eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
-					static_cast<uint8>(bulletType),
-					bulletTransform->mWorldPosition.x,
-					bulletTransform->mWorldPosition.y,
-					bulletTransform->mWorldPosition.z,
-					EffectSpawnReason::Fire,
-					bulletTransform->mLocalRotationE.x,
-					bulletTransform->mLocalRotationE.y,
-					bulletTransform->mLocalRotationE.z });
-			}
+				if (bulletType != SkillType::BrassSkill3)
+				{
+					if (auto eventManager = mWorld->GetEventManager())
+					{
+						eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+							static_cast<uint8>(bulletType),
+							bulletTransform->mWorldPosition.x,
+							bulletTransform->mWorldPosition.y,
+							bulletTransform->mWorldPosition.z,
+							EffectSpawnReason::Fire,
+							bulletTransform->mLocalRotationE.x,
+							bulletTransform->mLocalRotationE.y,
+							bulletTransform->mLocalRotationE.z });
+					}
+				}
 
 			S2C_BulletActivatePacket bulletPacket{};
 			bulletPacket.SendTime = std::chrono::duration<double>(

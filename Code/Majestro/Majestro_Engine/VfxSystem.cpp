@@ -267,14 +267,8 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::BrassSkill1)
 			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(15.0f) };
 
-		if (skillType == SkillType::BrassSkill2)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_02", Vec3(0.f, 100.f, 0.f), Vec3(15.0f) };
-
 		if (skillType == SkillType::BrassSkill3)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
-
-		if (skillType == SkillType::BrassSkill4)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_04", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
+			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
 
 		return std::nullopt;
 
@@ -318,10 +312,17 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 	case SkillType::BaseSkill1:
 		return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
 
-	case SkillType::HornAttack:
-		return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
+		case SkillType::HornAttack:
+			return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
 
-	default:
-		return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };
+		case SkillType::BrassSkill2:
+			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_02", Vec3(150.0f, 150.0f, 150.0f) };
+		case SkillType::BrassSkill3:
+			return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(10.0f, 10.0f, 10.0f) };
+		case SkillType::BrassSkill4:
+			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_04", Vec3(40.0f, 40.0f, 40.0f) };
+
+		default:
+			return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };
+		}
 	}
-}

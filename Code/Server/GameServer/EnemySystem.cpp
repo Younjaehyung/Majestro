@@ -535,7 +535,7 @@ bool EnemySystem::HandleAttackState(
 
             const int shotsFired = 8 - static_cast<int>(enemyComp->mBrassSkill3ShotsRemaining);
             const float startYawDeg = -70.0f;
-            const float yawStepDeg = 20.0f;
+            const float yawStepDeg = 45.0f;
             const float shotYawDeg = startYawDeg + yawStepDeg * shotsFired;
             const float shotYawRad = DirectX::XMConvertToRadians(shotYawDeg);
             const float cosYaw = std::cos(shotYawRad);
@@ -582,16 +582,6 @@ bool EnemySystem::HandleAttackState(
             if (attackDir.x * attackDir.x + attackDir.z * attackDir.z > 1e-8f)
                 attackYawDeg = DirectX::XMConvertToDegrees(std::atan2(attackDir.x, attackDir.z));
 
-            eventManager->Enqueue<EvEffectSpawn>({
-                static_cast<uint8>(SkillType::BrassSkill2),
-                myPos.x,
-                myPos.y,
-                myPos.z,
-                EffectSpawnReason::Fire,
-                0.0f,
-                attackYawDeg,
-                0.0f
-            });
             eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill2 });
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
             enemyComp->mPendingAttackTime = -1.0f;
@@ -629,17 +619,10 @@ bool EnemySystem::HandleAttackState(
             {
                 enemyComp->mPendingAttackTime = nowSeconds;
                 enemyComp->mPendingSkillType = static_cast<uint8>(brassSkill);
-                enemyComp->mAttackAnimEndTime = nowSeconds + beatSeconds;
+                enemyComp->mAttackAnimEndTime = nowSeconds + beatSeconds * 4.0f;
                 enemyComp->mBrassSkill3ShotsRemaining = 8;
-                enemyComp->mBrassSkill3ShotInterval = beatSeconds / 8.0f;
+                enemyComp->mBrassSkill3ShotInterval = beatSeconds * 4.0f / 8.0f;
                 enemyComp->mBrassSkill3NextShotTime = nowSeconds;
-            }
-            else
-            {
-                enemyComp->mPendingAttackTime = -1.0f;
-                enemyComp->mPendingSkillType = 0;
-                enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-
                 eventManager->Enqueue<EvEffectSpawn>({
                     static_cast<uint8>(brassSkill),
                     myPos.x,
@@ -650,9 +633,25 @@ bool EnemySystem::HandleAttackState(
                     attackYawDeg,
                     0.0f
                 });
+            }
+            else
+            {
+                enemyComp->mPendingAttackTime = -1.0f;
+                enemyComp->mPendingSkillType = 0;
+                enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
 
                 if (brassSkill == SkillType::BrassSkill1)
                 {
+                    eventManager->Enqueue<EvEffectSpawn>({
+                        static_cast<uint8>(brassSkill),
+                        myPos.x,
+                        myPos.y,
+                        myPos.z,
+                        EffectSpawnReason::Fire,
+                        0.0f,
+                        attackYawDeg,
+                        0.0f
+                    });
                     SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
                     SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
                     SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));

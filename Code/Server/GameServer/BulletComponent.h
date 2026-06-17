@@ -31,7 +31,7 @@ inline BulletStat GetBulletStat(SkillType type)
 
 
 	case SkillType::HornAttack: return BulletStat{ 20.0f, 950.0f, 0.45f, 2.8f, 0.0f, false };
-	case SkillType::BrassSkill2: return BulletStat{ 75.0f, 300.0f, 0.45f, 5.0f, 0.0f, false };
+	case SkillType::BrassSkill2: return BulletStat{ 75.0f, 500.0f, 0.45f, 5.0f, 0.0f, false };
 	case SkillType::BrassSkill3: return BulletStat{ 25.0f, 1100.0f, 0.40f, 2.2f, 0.0f, false };
 	case SkillType::BrassSkill4: return BulletStat{ 50.0f, 900.0f, 0.50f, 3.0f, 0.0f, false };
 

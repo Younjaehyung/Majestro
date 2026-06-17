@@ -317,6 +317,11 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
                                       InputButtons button, float now, float Beat, bool isCritical)
 {
 	if (mp == nullptr) return false;
+	if (GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(e))
+	{
+		if (gravityComp->mFalling && button != InputButtons::RELOAD)
+			return false;
+	}
 
 	float* nextTimePtr = nullptr;
 	float  cool = 0.f;

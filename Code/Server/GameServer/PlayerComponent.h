@@ -81,6 +81,14 @@ enum class PendingAction : uint8_t
 	Reload
 };
 
+// 플레이어별 FSM State
+struct PlayerStateTiming
+{
+	bool  animOnce = false;
+	float stateTime = 3.0f;
+	float animEndTime = 0.0f;
+};
+
 class MainPlayerComponent : public Component<MainPlayerComponent>
 {
 public:
@@ -112,6 +120,10 @@ public:
 	bool mStateThrew = true;
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState = 0;
+
+	//  플레이어별 상태 타이밍
+	static constexpr int kPlayerStateCount = 32;
+	std::array<PlayerStateTiming, kPlayerStateCount> mStateTimings{};
 
 	Vec2 mPlayerMovingDir = Vec2::Zero;
 

@@ -51,6 +51,34 @@ static StateId NameToId(const std::string& n) {
 	return 255;
 }
 
+// State 싱글톤 포인터 <-> StateId.
+static StateId ResolveTimingStateId(State<MainPlayerComponent>* s)
+{
+    if (s == IdleState::Instance()) return S_Idle;
+    if (s == RunForwardState::Instance()) return S_RunForward;
+    if (s == RunBackwardState::Instance()) return S_RunBackward;
+    if (s == RunRightState::Instance()) return S_RunRight;
+    if (s == RunLeftState::Instance()) return S_RunLeft;
+    if (s == JumpState::Instance()) return S_Jump;
+    if (s == FallState::Instance()) return S_Fall;
+    if (s == LandState::Instance()) return S_Land;
+    if (s == DashState::Instance()) return S_Dash;
+    if (s == AimState::Instance()) return S_Aim;
+    if (s == ReloadState::Instance()) return S_Reload;
+    if (s == RhythmChangeState::Instance()) return S_RhythmChange;
+    if (s == HitState::Instance()) return S_Hit;
+    if (s == StunState::Instance()) return S_Stun;
+    if (s == DeadState::Instance()) return S_Dead;
+    if (s == Attack1State::Instance()) return S_Attack1;
+    if (s == Attack2State::Instance()) return S_Attack2;
+    if (s == ComboAttack1State::Instance()) return S_ComboAttack1;
+    if (s == ComboAttack2State::Instance()) return S_ComboAttack2;
+    if (s == Skill1State::Instance()) return S_Skill1;
+    if (s == Skill2State::Instance()) return S_Skill2;
+    if (s == SpecialState::Instance()) return S_Special;
+    return 255;
+}
+
 static std::vector<StateId> ResolveStateIdsForGuard(
     const std::string& name,
     const std::vector<State<MainPlayerComponent>*>& states,
@@ -464,34 +492,50 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         if (!props.contains(name))
             continue;
 
+        // 공유 싱글톤 대신 플레이어별 mStateTimings 에 기록
+        const StateId id = ResolveTimingStateId(st);
+        if (id >= kPlayerStateCount)
+            continue;
+        PlayerStateTiming& timing = mStateTimings[id];
+
         auto& _p = props[name];
 
         if (_p.contains("time"))
-            st->mStateTime = _p["time"].get<float>();
+            timing.stateTime = _p["time"].get<float>();
 
         if (_p.contains("animOnce"))
-            st->mAnimOnce = _p["animOnce"].get<bool>();
+            timing.animOnce = _p["animOnce"].get<bool>();
 
         if (_p.contains("animEndTime"))
         {
             float t = _p["animEndTime"].get<float>();
             if (t > 0.0f)
-                st->mAnimEndTime = t;
+                timing.animEndTime = t;
             // else: 0 이하이면 "설정 안 함" 취급 -> 기존 값 유지
         }
-        
+
     }
 
     std::cout << "[State Props Loaded]\n";
 }
 
 //-------------------------------------------------------------------------------------------------
+// 플레이어별 상태 타이밍 조회
+static PlayerStateTiming GetStateTiming(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
+{
+    const StateId id = ResolveTimingStateId(s);
+    if (id < MainPlayerComponent::kPlayerStateCount)
+        return owner->mStateTimings[id];
+    return PlayerStateTiming{};
+}
+
 void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
 {
-	
+
 	if (owner->GetReplicatedActionState() != static_cast<uint8>(ReplicatedActionState::None))
 		++(owner->mStateSequence);
-    owner->mStateEnd = GetServerTotalTimeSeconds()  + s->mAnimEndTime;
+    const PlayerStateTiming timing = GetStateTiming(s, owner);
+    owner->mStateEnd = GetServerTotalTimeSeconds()  + timing.animEndTime;
     owner->mNextState = S_Idle;
     if (owner->mHasMoveInput)
         {
@@ -501,12 +545,13 @@ void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
         else if (owner->mPlayerMovingDir.x < 0.0f) owner->mNextState = S_RunBackward;
         }
     if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }
-    if (s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
+    if (timing.animOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
 void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
-    if (s->mAnimOnce && owner->mStateEnd <= GetServerTotalTimeSeconds()) {
-        if (s->mAnimOnce) ClearFlag(owner->mFlags, FLAG_ANIM);
+    const PlayerStateTiming timing = GetStateTiming(s, owner);
+    if (timing.animOnce && owner->mStateEnd <= GetServerTotalTimeSeconds()) {
+        ClearFlag(owner->mFlags, FLAG_ANIM);
         owner->mFsm.ChangeState(owner, mStateList[owner->mNextState]);
     }
 }

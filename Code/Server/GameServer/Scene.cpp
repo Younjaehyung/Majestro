@@ -52,6 +52,7 @@
 #include "GameRuleSystem.h"
 #include "PathFollowSystem.h"
 #include "GameTimer.h"
+#include "FlyComponent.h"
 
 namespace
 {
@@ -112,20 +113,65 @@ namespace
 		return static_cast<uint8>(SpawnerTrigger::Timed);
 	}
 
-	uint8 ParseEnemyTypeName(const std::string& typeName)
-	{
-		if (typeName == "Pianoman")
-			return static_cast<uint8>(EnemyType::Pianoman);
+		uint8 ParseEnemyTypeName(const std::string& typeName)
+		{
+			if (typeName == "Pianoman")
+				return static_cast<uint8>(EnemyType::Pianoman);
 		if (typeName == "Bongoman")
 			return static_cast<uint8>(EnemyType::Bongoman);
 		if (typeName == "Obelisk")
 			return static_cast<uint8>(EnemyType::Obelisk);
 		if (typeName == "Fly")
 			return static_cast<uint8>(EnemyType::Fly);
-		if (typeName == "Brass")
-			return static_cast<uint8>(EnemyType::Brass);
-		return static_cast<uint8>(EnemyType::HornMan);
-	}
+			if (typeName == "Brass")
+				return static_cast<uint8>(EnemyType::Brass);
+			return static_cast<uint8>(EnemyType::HornMan);
+		}
+
+		bool IsEnemyAllowedForScene(SceneId sceneId, uint8 enemyType)
+		{
+			if (enemyType == static_cast<uint8>(EnemyType::Obelisk))
+				return sceneId == SceneId::SecondGame;
+			if (enemyType == static_cast<uint8>(EnemyType::Brass))
+				return sceneId == SceneId::ThirdGame;
+			return true;
+		}
+
+		Entity SpawnFixedEnemy(World* world, EnemyType enemyType, const Vec3& position)
+		{
+			if (!world)
+				return Entity{};
+
+			InputCommand spawnCmd{};
+			spawnCmd.SessionId = 0;
+			spawnCmd.Type = PKT_Type::S2C_PKT_SPAWN;
+			spawnCmd.StoreAs(EnemySpawnContext{ static_cast<uint8>(enemyType) });
+
+			Entity spawned = PrefabFactory::Spawn(world, PrefabType::ENEMY, spawnCmd);
+			if (!spawned.IsValid())
+				return Entity{};
+
+			if (TransformComponent* transform = world->GetComponent<TransformComponent>(spawned))
+			{
+				transform->mLocalPosition = position;
+				transform->mWorldMatrix = Matrix::CreateTranslation(position);
+			}
+
+			if (GravityComponent* gravity = world->GetComponent<GravityComponent>(spawned))
+			{
+				gravity->mGround = position.y;
+				gravity->mHight = position.y;
+				gravity->mGravity = 0.0f;
+				gravity->mFalling = false;
+				gravity->mDropping = false;
+				gravity->mGroundGraceLeft = 0.0f;
+			}
+
+			if (FlyComponent* fly = world->GetComponent<FlyComponent>(spawned))
+				fly->mGround = position.y;
+
+			return spawned;
+		}
 
 	std::vector<SpawnTableEntry> ParseSpawnTableEntries(const json& tableJson)
 	{
@@ -266,15 +312,25 @@ namespace
 			sp->mSelectedTableIndex = -1;
 			sp->mRandomSpawnFromTable = GetOptionalBool(spawnerJson, "randomSpawnFromTable", false);
 
-			const auto& tablePoolJson = RequireJson(spawnerJson, "tablePool");
-			for (const auto& tableNameJson : tablePoolJson)
-			{
-				const std::string tableName = tableNameJson.get<std::string>();
-				auto found = tableMap.find(tableName);
-				if (found != tableMap.end() && !found->second.empty())
-					sp->mSpawnTablePool.push_back(found->second);
+				const auto& tablePoolJson = RequireJson(spawnerJson, "tablePool");
+				for (const auto& tableNameJson : tablePoolJson)
+				{
+					const std::string tableName = tableNameJson.get<std::string>();
+					auto found = tableMap.find(tableName);
+					if (found != tableMap.end() && !found->second.empty())
+					{
+						std::vector<SpawnTableEntry> filteredEntries;
+						filteredEntries.reserve(found->second.size());
+						for (const SpawnTableEntry& entry : found->second)
+						{
+							if (IsEnemyAllowedForScene(scene->GetSceneId(), entry.enemyType))
+								filteredEntries.push_back(entry);
+						}
+						if (!filteredEntries.empty())
+							sp->mSpawnTablePool.push_back(std::move(filteredEntries));
+					}
+				}
 			}
-		}
 
 		// phase 별 스포너 세트
 		std::unordered_map<std::string, std::vector<std::string>> phaseSets;
@@ -879,10 +935,11 @@ void SecondScene::Initialize()
 
 	// 기믹(플레이어 스폰/점령지/힐팩/점프대/스포너) 
 	//  첫 ConquestPhase::Enter 가 점령지를 알아서 매핑
-	const std::wstring gimmickPath = L"../Resources/Json/MapDesert_Gimmicks.json";
-	LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);          // 플레이어 스폰 위치
-	LoadInteractablesForScene(this, mWorld.get(), gimmickPath);  // 점령지/힐팩/점프대 등
-	LoadSpawnerTablesForScene(this, mWorld.get(), gimmickPath);  // 몬스터 스포너
+		const std::wstring gimmickPath = L"../Resources/Json/MapDesert_Gimmicks.json";
+		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);          // 플레이어 스폰 위치
+		LoadInteractablesForScene(this, mWorld.get(), gimmickPath);  // 점령지/힐팩/점프대 등
+		LoadSpawnerTablesForScene(this, mWorld.get(), gimmickPath);  // 몬스터 스포너
+		SpawnFixedEnemy(mWorld.get(), EnemyType::Obelisk, Vec3(-3389.0f,104.0f, -5221.0f));
 
 
 	gameMode->Initialize();
@@ -934,11 +991,14 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송
 	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
 
-	// 임시
-	const std::wstring gimmickPath = L"../Resources/Json/Map003_Gimmicks.json";
-	LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
+		// 임시
+		const std::wstring gimmickPath = L"../Resources/Json/Map003_Gimmicks.json";
+		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
+		SpawnFixedEnemy(mWorld.get(), EnemyType::Brass, Vec3(-1600.0f, 0.0f, 5.0f));
+		SpawnFixedEnemy(mWorld.get(), EnemyType::Obelisk, Vec3(-1600.0f, 0.0f, 500.0f));
+		SpawnFixedEnemy(mWorld.get(), EnemyType::Obelisk, Vec3(-1600.0f, 0.0f, -470.0f));
 
-	gameMode->Initialize();
+		gameMode->Initialize();
 
 	mSceneId = SceneId::ThirdGame;
 }

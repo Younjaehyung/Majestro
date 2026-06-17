@@ -271,9 +271,7 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 		}
 	}
 
-	bool hasBrass = false;
 	bool hasFly = false;
-	bool hasObelisk = false;
 	if (mWorld->HasComponentPool<EnemyComponent>())
 	{
 		for (Entity enemyEntity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
@@ -282,17 +280,9 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 			if (!enemyComp)
 				continue;
 
-			if (enemyComp->mEnemyType == EnemyType::Brass)
-			{
-				hasBrass = true;
-			}
-			else if (enemyComp->mEnemyType == EnemyType::Fly)
+			if (enemyComp->mEnemyType == EnemyType::Fly)
 			{
 				hasFly = true;
-			}
-			else if (enemyComp->mEnemyType == EnemyType::Obelisk)
-			{
-				hasObelisk = true;
 			}
 		}
 	}
@@ -341,12 +331,8 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 		BroadcastEnemySpawn(mWorld, enemyEntity);
 	};
 
-	if (!hasBrass)
-		spawnOneEnemy(EnemyType::Brass, Vec3(0.0f, 0.0f, 1200.0f));
 	if (!hasFly)
 		spawnOneEnemy(EnemyType::Fly, Vec3(-700.0f, 0.0f, 900.0f));
-	if (!hasObelisk)
-		spawnOneEnemy(EnemyType::Obelisk, Vec3(700.0f, 0.0f, 900.0f));
 
 	uint8 playerType = 1;
 	if (MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity))

@@ -628,8 +628,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Obelisk:
 
-		/*phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Obelisk");
-		material2 = RESOURCEMANAGER.Get<Material>(L"SM_Obelisk0");*/
+		t.mLocalScale = { 2.3f, 2.3f, 2.3f };
 
 		if (shared_ptr<FBXData> obeliskData = RESOURCEMANAGER.Get<FBXData>(L"SM_Obelisk"))
 		{

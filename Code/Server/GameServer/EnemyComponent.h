@@ -102,6 +102,7 @@ public:
 	float mNextAttackTime = 5.f;
 	float mNextShildTime = 0.0f;
 	float mPendingAttackTime = -1.0f;
+	uint8 mPendingSkillType = 0;
 	bool mPianoRushVfxPlayed = false;
 
 	float mAttackAnimEndTime = 0.0f;
@@ -118,4 +119,7 @@ public:
 	uint8 mBrassAttackPattern = 0;
 	float mBrassAttackCool[4] = { 0.f, 0.f, 0.f, 0.f };
 	float mBrassNextAttackTime[4] = { 0.f, 0.f, 0.f, 0.f };
+	uint8 mBrassSkill3ShotsRemaining = 0;
+	float mBrassSkill3NextShotTime = 0.0f;
+	float mBrassSkill3ShotInterval = 0.0f;
 };

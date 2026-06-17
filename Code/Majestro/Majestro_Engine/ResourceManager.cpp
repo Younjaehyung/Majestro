@@ -2974,13 +2974,20 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Bullet_Slash_3\\VFX_Fanthor_Bullet_Slash_3.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Reload\\VFX_Rudwig_Reload.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
+
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Attack\\VFX_Bongoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Shield\\VFX_Bongoman_Shield.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Pianoman_Attack_01\\VFX_Pianoman_Attack_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Hornman_Bullet\\VFX_Hornman_Bullet.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Monster_Spawn\\VFX_Monster_Spawn.efk");
-	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Reload\\VFX_Rudwig_Reload.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Die\\VFX_BrassBoss_Die.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_01\\VFX_BrassBoss_Skill_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_02\\VFX_BrassBoss_Skill_02.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_03\\VFX_BrassBoss_Skill_03.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_04\\VFX_BrassBoss_Skill_04.efk");
+
 
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_Select\\VFX_UI_Select.efk");

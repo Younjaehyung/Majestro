@@ -49,6 +49,136 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 	if (!shooterIsPlayer && !shooterIsEnemy)
 		return;
 
+	auto activateSingleBullet = [&](const Vec3& spawnPosition, const Vec3& direction)
+	{
+		auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
+		for (auto bulletEntity : bulletEntities)
+		{
+			BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
+			if (bulletComp == nullptr || bulletComp->mIsActive)
+				continue;
+
+			TransformComponent* bulletTransform = mWorld->GetComponent<TransformComponent>(bulletEntity);
+			NetEntityComponent* bulletNetComp = mWorld->GetComponent<NetEntityComponent>(bulletEntity);
+			if (bulletTransform == nullptr || bulletNetComp == nullptr)
+				continue;
+
+			BulletStat bulletStat = GetBulletStat(bulletType);
+			const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
+			bulletStat.Damage *= attackMultiplier;
+			if (isCritical)
+				bulletStat.Damage *= 2.0f;
+
+			bulletTransform->mWorldPosition = spawnPosition;
+			bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
+			bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
+			bulletTransform->mMovingVector = Vec3::Zero;
+			bulletTransform->LookAt(direction);
+
+			if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
+			{
+				const float halfSize = bulletStat.Size * 0.5f;
+				bulletCollider->SetBox(Vec3(halfSize, halfSize, halfSize), Vec3::Zero);
+			}
+
+			const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
+			bulletComp->mPenetrates = bulletStat.Penetrates;
+			bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance, isCritical);
+			mWorld->RegisterActiveBullet(bulletEntity);
+
+			if (auto eventManager = mWorld->GetEventManager())
+			{
+				eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+					static_cast<uint8>(bulletType),
+					bulletTransform->mWorldPosition.x,
+					bulletTransform->mWorldPosition.y,
+					bulletTransform->mWorldPosition.z,
+					EffectSpawnReason::Fire,
+					bulletTransform->mLocalRotationE.x,
+					bulletTransform->mLocalRotationE.y,
+					bulletTransform->mLocalRotationE.z });
+			}
+
+			S2C_BulletActivatePacket bulletPacket{};
+			bulletPacket.SendTime = std::chrono::duration<double>(
+				std::chrono::system_clock::now().time_since_epoch()).count();
+			bulletPacket.ownerNetEntityId = shooterNetComp->mNetEntityId;
+			bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
+			bulletPacket.bulletGeneration = bulletComp->mGeneration;
+			bulletPacket.bulletType = static_cast<uint8>(bulletType);
+			bulletPacket.x = bulletTransform->mWorldPosition.x;
+			bulletPacket.y = bulletTransform->mWorldPosition.y;
+			bulletPacket.z = bulletTransform->mWorldPosition.z;
+			bulletPacket.dirX = direction.x;
+			bulletPacket.dirY = direction.y;
+			bulletPacket.dirZ = direction.z;
+			bulletPacket.rotX = bulletTransform->mLocalRotationE.x;
+			bulletPacket.rotY = bulletTransform->mLocalRotationE.y;
+			bulletPacket.rotZ = bulletTransform->mLocalRotationE.z;
+			bulletPacket.speed = bulletComp->mSpeed;
+			bulletPacket.lifeTime = bulletComp->mLifeTime;
+			bulletPacket.size = bulletStat.Size;
+
+			auto recipients = CollectPlayerSessions();
+			for (uint32 sessionId : recipients)
+			{
+				SendRequest request{ sessionId, PKT_Type::S2C_PKT_BULLET_ACTIVATE, sizeof(S2C_BulletActivatePacket) };
+				request.StoreAs<S2C_BulletActivatePacket>(bulletPacket);
+				gSendQueue.Push(request);
+			}
+
+			return true;
+		}
+
+		return false;
+	};
+
+	if (shooterIsEnemy && bulletType == SkillType::BrassSkill4)
+	{
+		Vec3 baseDir = shooterTransform->GetLook();
+		baseDir.y = 0.0f;
+		if (baseDir.LengthSquared() <= 0.0001f)
+			baseDir = Vec3::Forward;
+		else
+			baseDir.Normalize();
+
+		Vec3 right = shooterTransform->GetRight();
+		right.y = 0.0f;
+		if (right.LengthSquared() <= 0.0001f)
+			right = Vec3::Right;
+		else
+			right.Normalize();
+
+		const Vec3 offsets[3] = {
+			Vec3(-2000.0f, 0.0f,    0.0f),
+			Vec3(-2000.0f, 0.0f,  500.0f),
+			Vec3(-2000.0f, 0.0f, -500.0f),
+		};
+
+		const Vec3 centerSpawnPosition = shooterTransform->mWorldPosition
+			+ right * offsets[0].x
+			+ baseDir * offsets[0].z
+			+ Vec3(0.f, 90.f, 0.f);
+
+		Vec3 sharedDir = shooterTransform->mWorldPosition - centerSpawnPosition;
+		sharedDir.y = 0.0f;
+		if (sharedDir.LengthSquared() <= 0.0001f)
+			sharedDir = -right;
+		else
+			sharedDir.Normalize();
+
+		for (const Vec3& localOffset : offsets)
+		{
+			const Vec3 spawnPosition = shooterTransform->mWorldPosition
+				+ right * localOffset.x
+				+ baseDir * localOffset.z
+				+ Vec3(0.f, 90.f, 0.f);
+
+			activateSingleBullet(spawnPosition, sharedDir);
+		}
+		return;
+	}
+
 	auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
 	for (auto bulletEntity : bulletEntities)
 	{
@@ -104,23 +234,30 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 		}
 		else
 		{
-			float nearestDistSq = (std::numeric_limits<float>::max)();
-			Vec3 nearestPlayerPosition = shooterTransform->mWorldPosition;
-			for (auto playerTarget : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+			if (bulletType == SkillType::BrassSkill3)
 			{
-				TransformComponent* playerTargetTransform = mWorld->GetComponent<TransformComponent>(playerTarget);
-				if (!playerTargetTransform)
-					continue;
-
-				const float distSq = Vec3::DistanceSquared(shooterTransform->mWorldPosition, playerTargetTransform->mWorldPosition);
-				if (distSq < nearestDistSq)
-				{
-					nearestDistSq = distSq;
-					nearestPlayerPosition = playerTargetTransform->mWorldPosition;
-				}
+				direction = shooterTransform->GetLook();
 			}
+			else
+			{
+				float nearestDistSq = (std::numeric_limits<float>::max)();
+				Vec3 nearestPlayerPosition = shooterTransform->mWorldPosition;
+				for (auto playerTarget : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+				{
+					TransformComponent* playerTargetTransform = mWorld->GetComponent<TransformComponent>(playerTarget);
+					if (!playerTargetTransform)
+						continue;
 
-			direction = nearestPlayerPosition - shooterTransform->mWorldPosition;
+					const float distSq = Vec3::DistanceSquared(shooterTransform->mWorldPosition, playerTargetTransform->mWorldPosition);
+					if (distSq < nearestDistSq)
+					{
+						nearestDistSq = distSq;
+						nearestPlayerPosition = playerTargetTransform->mWorldPosition;
+					}
+				}
+
+				direction = nearestPlayerPosition - shooterTransform->mWorldPosition;
+			}
 			if (direction.LengthSquared() <= 0.0001f)
 				direction = shooterTransform->GetLook();
 			if (direction.LengthSquared() <= 0.0001f)
@@ -128,75 +265,7 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			direction.Normalize();
 			spawnPosition = shooterTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		}
-		BulletStat bulletStat = GetBulletStat(bulletType);
-		const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
-		bulletStat.Damage *= attackMultiplier;
-		if (isCritical)
-			bulletStat.Damage *= 2.0f;
-
-		bulletTransform->mWorldPosition = spawnPosition;
-		bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
-		bulletTransform->mLocalScale = Vec3(bulletStat.Size, bulletStat.Size, bulletStat.Size);
-		bulletTransform->mMovingVector = Vec3::Zero;
-		
-		bulletTransform->LookAt(direction);
-
-		if (BoxColliderComponent* bulletCollider = mWorld->GetComponent<BoxColliderComponent>(bulletEntity))
-		{
-			const float halfSize = bulletStat.Size * 0.5f;
-			bulletCollider->SetBox(Vec3(halfSize, halfSize, halfSize), Vec3::Zero);
-		}
-
-		const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
-		bulletComp->mPenetrates = bulletStat.Penetrates;
-		bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance, isCritical);
-		
-		mWorld->RegisterActiveBullet(bulletEntity);
-
-		//effectSpawn
-		if (auto eventManager = mWorld->GetEventManager())
-		{
-			eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
-				static_cast<uint8>(bulletType),
-				bulletTransform->mWorldPosition.x,
-				bulletTransform->mWorldPosition.y,
-				bulletTransform->mWorldPosition.z,
-				EffectSpawnReason::Fire,
-				bulletTransform->mLocalRotationE.x,
-				bulletTransform->mLocalRotationE.y,
-				bulletTransform->mLocalRotationE.z });
-		}
-
-		S2C_BulletActivatePacket bulletPacket{};
-		bulletPacket.SendTime = std::chrono::duration<double>(
-			std::chrono::system_clock::now().time_since_epoch()).count();
-		bulletPacket.ownerNetEntityId = shooterNetComp->mNetEntityId;
-		bulletPacket.bulletNetEntityId = bulletNetComp->mNetEntityId;
-		bulletPacket.bulletGeneration = bulletComp->mGeneration;
-		bulletPacket.bulletType = static_cast<uint8>(bulletType);
-		bulletPacket.x = bulletTransform->mWorldPosition.x;
-		bulletPacket.y = bulletTransform->mWorldPosition.y;
-		bulletPacket.z = bulletTransform->mWorldPosition.z;
-		bulletPacket.dirX = direction.x;
-		bulletPacket.dirY = direction.y;
-		bulletPacket.dirZ = direction.z;
-		
-		bulletPacket.rotX = bulletTransform->mLocalRotationE.x;
-		bulletPacket.rotY = bulletTransform->mLocalRotationE.y;
-		bulletPacket.rotZ = bulletTransform->mLocalRotationE.z;
-		bulletPacket.speed = bulletComp->mSpeed;
-		
-		bulletPacket.lifeTime = bulletComp->mLifeTime;
-		bulletPacket.size = bulletStat.Size;
-
-		auto recipients = CollectPlayerSessions();
-		for (uint32 sessionId : recipients)
-		{
-			SendRequest request{ sessionId, PKT_Type::S2C_PKT_BULLET_ACTIVATE, sizeof(S2C_BulletActivatePacket) };
-			request.StoreAs<S2C_BulletActivatePacket>(bulletPacket);
-			gSendQueue.Push(request);
-		}
-
+		activateSingleBullet(spawnPosition, direction);
 		return;
 	}
 }

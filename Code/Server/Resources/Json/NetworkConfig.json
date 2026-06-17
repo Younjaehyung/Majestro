@@ -1,0 +1,5 @@
+{
+  "serverIp": "0.0.0.0",
+  "port": 9000,
+  "_comment": "port: 리슨할 TCP 포트(UDP는 port+1 자동). 서버는 모든 인터페이스(INADDR_ANY)에 바인드하므로 serverIp는 사용하지 않는다."
+}

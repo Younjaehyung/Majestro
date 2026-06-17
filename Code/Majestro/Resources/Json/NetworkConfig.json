@@ -1,0 +1,5 @@
+{
+  "serverIp": "127.0.0.1",
+  "port": 9000,
+  "_comment": "serverIp: 접속할 서버 IP. port: TCP 포트(UDP는 port+1 자동). 클라이언트는 serverIp+port를 읽어 접속한다."
+}

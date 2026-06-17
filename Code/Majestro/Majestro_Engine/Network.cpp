@@ -1,9 +1,41 @@
 #include "pch.h"
 #include "Network.h"
 #include "PacketHelper.h"
+#include <fstream>
 
 SpscRingQueue<SendRequest, 1024>		gSendBuffer;
 SpscRingQueue<InputCommand, 1024>	gRecvBuffer;
+
+// NetworkConfig.json 에서 서버 IP/포트를 읽기
+static void LoadNetworkConfig(std::string& outIp, int& outPort)
+{
+	const char* path = "../Resources/Json/NetworkConfig.json";
+	try
+	{
+		std::ifstream file(path);
+		if (!file.is_open())
+		{	// 파일이 없거나 파싱에 실패하면 인자값(기본 하드코딩값)을 그대로 유지
+			std::cout << "[Network] NetworkConfig.json 없음 -> 기본값 사용 ("
+				<< outIp << ":" << outPort << ")" << std::endl;
+			return;
+		}
+
+		json config;
+		file >> config;
+
+		if (config.contains("serverIp") && config["serverIp"].is_string())
+			outIp = config["serverIp"].get<std::string>();
+		if (config.contains("port") && config["port"].is_number_integer())
+			outPort = config["port"].get<int>();
+
+		std::cout << "[Network] NetworkConfig 로드: " << outIp << ":" << outPort << std::endl;
+	}
+	catch (const std::exception& e)
+	{
+		std::cout << "[Network] NetworkConfig 파싱 실패(" << e.what()
+			<< ") -> 기본값 사용 (" << outIp << ":" << outPort << ")" << std::endl;
+	}
+}
 
 Network::Network()
 {
@@ -39,8 +71,11 @@ void Network::Initialize() {
 
 bool Network::Awake()
 {
+	std::string ip = SERVERIP;
+	int port = TCPSERVERPORT;
+	LoadNetworkConfig(ip, port);	// 실패해도 기본값 유지
 
-	if(ConnectToServer())
+	if(ConnectToServer(ip.c_str(), port))
 	{
 		std::cout << "Connected to server successfully." << std::endl;
 		return true;

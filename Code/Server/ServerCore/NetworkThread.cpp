@@ -5,7 +5,38 @@
 #include "SendBuffer.h"
 #include "SocketUtils.h"
 #include "Session.h"
+#include <fstream>
 
+// NetworkConfig.json 에서 리슨 포트를 읽기
+// 서버는 INADDR_ANY 로 바인드하므로 serverIp 필드는 사용 X
+static int LoadServerPort(int defaultPort)
+{
+    const char* path = "../Resources/Json/NetworkConfig.json";
+    try
+    {
+        std::ifstream file(path);
+        if (!file.is_open())
+        {   // 파일이 없거나 파싱에 실패하면 기본 포트(9000)를 사용
+            LOG_INFO("NetworkConfig.json 없음 -> 기본 포트 {} 사용", defaultPort);
+            return defaultPort;
+        }
+
+        json config;
+        file >> config;
+
+        if (config.contains("port") && config["port"].is_number_integer())
+        {
+            int port = config["port"].get<int>();
+            LOG_INFO("NetworkConfig 로드: TCP {}, UDP {}", port, port + 1);
+            return port;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        LOG_ERROR("NetworkConfig 파싱 실패({}) -> 기본 포트 {} 사용", e.what(), defaultPort);
+    }
+    return defaultPort;
+}
 
 
 NetworkThread::NetworkThread()
@@ -30,7 +61,10 @@ NetworkThread::~NetworkThread()
 void NetworkThread::Initialize()
 {
     mSessionMgr.Initialize();
-    
+
+    // 리슨 포트 결정 (config 우선, 실패 시 기본 9000)
+    const int tcpPort = LoadServerPort(9000);
+    const int udpPort = tcpPort + 1;
 
     // 소켓 생성
     mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -46,7 +80,7 @@ void NetworkThread::Initialize()
     sockaddr_in udpAddr{};
     udpAddr.sin_family = AF_INET;
     udpAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    udpAddr.sin_port = htons(9000 + 1);   // 클라가 보내는 서버 UDP 포트
+    udpAddr.sin_port = htons(udpPort);   // 클라가 보내는 서버 UDP 포트
 
     if (::bind(mUdpSock, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
         int32 error = WSAGetLastError();
@@ -67,7 +101,7 @@ void NetworkThread::Initialize()
         
 
     // bind()
-    if (false == SocketUtils::BindAnyAddress(mListenSocket, 9000)) {
+    if (false == SocketUtils::BindAnyAddress(mListenSocket, tcpPort)) {
         LOG_ERROR("err(bind)");
         SocketUtils::Close(mListenSocket);
         SocketUtils::Clear();

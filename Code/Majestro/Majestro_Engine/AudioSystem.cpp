@@ -181,8 +181,8 @@ void AudioSystem::Update(float deltaTime)
             }
         }
 
-        // 전환 적용
-        if (playerComponent->mHasQueuedRhythmChange && currentBeat >= playerComponent->mRhythmApplyBeat)
+        // 전환 적용: 서버가 즉시 승인한 리듬 변경은 다음 오디오 업데이트에서 바로 반영
+        if (playerComponent->mHasQueuedRhythmChange)
         {
             ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
 
@@ -192,8 +192,7 @@ void AudioSystem::Update(float deltaTime)
             AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, fmodMs);
 
 
-            std::cout << "[RhythmApply] applyBeat=" << playerComponent->mRhythmApplyBeat
-                      << " curBeat=" << currentBeat
+            std::cout << "[RhythmApply] curBeat=" << currentBeat
                       << " beatInBar=" << (currentBeat % 16)
                       << " fmodPos=" << (fmodMs / 1000.f) << "s"
                       << " -> rhythm=" << (int)playerComponent->mNextRhythm << std::endl;

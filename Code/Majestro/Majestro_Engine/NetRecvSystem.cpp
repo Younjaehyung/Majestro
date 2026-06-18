@@ -232,7 +232,7 @@ void NetRecvSystem::HandleRhythmChanged(const InputCommand& msg)
     if (!playerComp) return;
 
     playerComp->mNextRhythm = NormalizeRhythm(pkt->changedRhythm);
-    playerComp->mRhythmApplyBeat = pkt->applyAtBeatIndex;
+    playerComp->mRhythmApplyBeat = -1;
     playerComp->mHasQueuedRhythmChange = true;
 }
 

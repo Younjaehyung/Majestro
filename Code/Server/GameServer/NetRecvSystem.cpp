@@ -213,24 +213,10 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 	if (changedRhythm == playerComp->mRhythm)
 		return;
 
-	// 전환은 다음 마디(16박=6초) 경계에 스케줄
-	int64 applyAtBeatIndex = kBeatsPerBar;
-	if (auto systemManager = mWorld->GetSystemManager())
-	{
-		if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
-		{
-			const int64 cur = beatSystem->GetAbsoluteBeatIndex();
-			int64 nextBar = (cur / kBeatsPerBar + 1) * kBeatsPerBar;
-			if (nextBar - cur < kRhythmLookAheadBeats)
-				nextBar += kBeatsPerBar;
-			applyAtBeatIndex = nextBar;
-		}
-	}
-
-	playerComp->mRhythm = previousRhythm;
+	playerComp->mRhythm = changedRhythm;
 	playerComp->mNextRhythm = changedRhythm;
-	playerComp->mHasQueuedRhythmChange = true;
-	playerComp->mRhythmApplyBeat = applyAtBeatIndex;
+	playerComp->mHasQueuedRhythmChange = false;
+	playerComp->mRhythmApplyBeat = -1;
 
 
 	if (std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager())
@@ -240,7 +226,7 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 		ev.previousRhythm = previousRhythm;
 		ev.changedRhythm = changedRhythm;
 		ev.playerType = playerComp->mPlayerType;
-		ev.applyAtBeatIndex = applyAtBeatIndex;
+		ev.applyAtBeatIndex = 0;
 		eventManager->Enqueue<EvRhythmChanged>(ev);
 	}
 }

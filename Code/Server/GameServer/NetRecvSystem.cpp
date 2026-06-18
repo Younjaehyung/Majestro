@@ -213,10 +213,22 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 	if (changedRhythm == playerComp->mRhythm)
 		return;
 
-	playerComp->mRhythm = changedRhythm;
+	auto systemManager = mWorld->GetSystemManager();
+	if (systemManager == nullptr)
+		return;
+
+	BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>();
+	if (beatSystem == nullptr)
+		return;
+
+	const int64 currentBeat = beatSystem->GetAbsoluteBeatIndex();
+	const int64 beatsPerBar = 16;
+	const int64 applyAtBeatIndex = ((currentBeat / beatsPerBar) + 1) * beatsPerBar;
+
 	playerComp->mNextRhythm = changedRhythm;
-	playerComp->mHasQueuedRhythmChange = false;
-	playerComp->mRhythmApplyBeat = -1;
+	playerComp->mHasQueuedRhythmChange = true;
+	playerComp->mRhythmApplyBeat = applyAtBeatIndex;
+	beatSystem->SyncAllRhythmBuffsNow();
 
 
 	if (std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager())
@@ -226,7 +238,7 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 		ev.previousRhythm = previousRhythm;
 		ev.changedRhythm = changedRhythm;
 		ev.playerType = playerComp->mPlayerType;
-		ev.applyAtBeatIndex = 0;
+		ev.applyAtBeatIndex = applyAtBeatIndex;
 		eventManager->Enqueue<EvRhythmChanged>(ev);
 	}
 }

@@ -53,6 +53,16 @@ namespace
 		return kRhythmBuffTable[playerType][rhythm];
 	}
 
+	uint8 GetEffectiveRhythmForBuffs(const MainPlayerComponent* providerPlayer)
+	{
+		if (!providerPlayer)
+			return 0;
+
+		return providerPlayer->mHasQueuedRhythmChange
+			? providerPlayer->mNextRhythm
+			: providerPlayer->mRhythm;
+	}
+
 	bool IsSilenced(World* world, Entity playerEntity)
 	{
 		if (!world || !playerEntity.IsValid())
@@ -67,7 +77,8 @@ namespace
 		if (!world || !providerPlayer || !world->HasComponentPool<MainPlayerComponent>())
 			return;
 
-		const RhythmBuffDef& def = LookupRhythmBuff(static_cast<uint8>(providerPlayer->mPlayerType), providerPlayer->mRhythm);
+		const uint8 effectiveRhythm = GetEffectiveRhythmForBuffs(providerPlayer);
+		const RhythmBuffDef& def = LookupRhythmBuff(static_cast<uint8>(providerPlayer->mPlayerType), effectiveRhythm);
 		const bool shouldEnable = !IsSilenced(world, provider) && def.type != BuffType::None;
 		const float now = GetServerTotalTimeSeconds();
 
@@ -120,6 +131,19 @@ void BeatSystem::Initialize()
 {
 }
 
+void BeatSystem::SyncAllRhythmBuffsNow()
+{
+	if (!mWorld || !mWorld->HasComponentPool<MainPlayerComponent>())
+		return;
+
+	std::vector<Entity> players = mWorld->GetEntitiesWithComponent<MainPlayerComponent>();
+	for (Entity entity : players)
+	{
+		if (auto* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity))
+			SyncRhythmBuffForProvider(mWorld, entity, mainPlayerComponent, mBpmSeconds);
+	}
+}
+
 void BeatSystem::Update(float dt)
 {
 	if (false == mWorld->HasComponentPool<BeatComponent>())return;
@@ -161,11 +185,7 @@ void BeatSystem::Update(float dt)
 		
 	}
 
-	for (auto& entity : entitys)
-	{
-		if (auto* mainPlayerComponent = mWorld->GetComponent<MainPlayerComponent>(entity))
-			SyncRhythmBuffForProvider(mWorld, entity, mainPlayerComponent, mBpmSeconds);
-	}
+	SyncAllRhythmBuffsNow();
 
 	
 	ApplyPendingBuffRequests();

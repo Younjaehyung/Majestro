@@ -181,8 +181,9 @@ void AudioSystem::Update(float deltaTime)
             }
         }
 
-        // 전환 적용: 서버가 즉시 승인한 리듬 변경은 다음 오디오 업데이트에서 바로 반영
-        if (playerComponent->mHasQueuedRhythmChange)
+        // 전환 적용: 서버가 지정한 절대 박자에 도달했을 때만 오디오/리듬 상태를 바꾼다.
+        if (playerComponent->mHasQueuedRhythmChange &&
+            currentBeat >= playerComponent->mRhythmApplyBeat)
         {
             ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
 

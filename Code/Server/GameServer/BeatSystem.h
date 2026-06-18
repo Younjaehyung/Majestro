@@ -16,6 +16,7 @@ public:
 
 	void Initialize();
 	void Update(float dt);
+	void SyncAllRhythmBuffsNow();
 
 private:
 	void CollectPendingBuffRequests();

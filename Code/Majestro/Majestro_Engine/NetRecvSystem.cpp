@@ -11,6 +11,7 @@
 #include "BulletComponent.h"
 #include "NetIdMap.h"
 #include "TransformComponent.h"
+#include "RenderComponent.h"
 #include "NetTransformComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
@@ -804,11 +805,58 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
     if (spawnPacket == nullptr) return;
 	archetypeId = static_cast<uint32_t>(spawnPacket->prefabType);
 	netId = static_cast<uint32_t>(spawnPacket->netEntityId);
-	std::cout << "HandleSpawn called with netId: " << netId << " archetypeId: " << archetypeId << std::endl;
-    if (mWorld->GetEntityByNetId(netId) == NULL_ENTITY) {
-        Entity e = CreateEntityFromArchetype(archetypeId);
+
+	auto shouldRecreateExisting = [&](Entity existing) -> bool
+	{
+		if (existing == NULL_ENTITY)
+			return false;
+
+		TransformComponent* transform = mWorld->GetComponent<TransformComponent>(existing);
+		NetTransformComponent* netTransform = mWorld->GetComponent<NetTransformComponent>(existing);
+		NetEntityComponent* netEntity = mWorld->GetComponent<NetEntityComponent>(existing);
+		if (!transform || !netTransform || !netEntity)
+			return true;
+
+		switch (spawnPacket->prefabType)
+		{
+		case PrefabType::ENEMY:
+		{
+			EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(existing);
+			RenderComponent* render = mWorld->GetComponent<RenderComponent>(existing);
+			HealthComponent* health = mWorld->GetComponent<HealthComponent>(existing);
+			if (!enemy || !render || !health)
+				return true;
+			if (enemy->mEnemyType != spawnPacket->Type)
+				return true;
+			break;
+		}
+		case PrefabType::PLAYER:
+			if (!mWorld->GetComponent<MainPlayerComponent>(existing))
+				return true;
+			break;
+		case PrefabType::BULLET:
+			if (!mWorld->GetComponent<BulletComponent>(existing))
+				return true;
+			break;
+		default:
+			break;
+		}
+
+		return false;
+	};
+
+	Entity existing = mWorld->GetEntityByNetId(netId);
+	const bool forceRecreateEnemy = (spawnPacket->prefabType == PrefabType::ENEMY && existing != NULL_ENTITY);
+	if (forceRecreateEnemy || shouldRecreateExisting(existing))
+	{
+		mWorld->DestroyEntity(existing);
+		mWorld->NetIdUnbinding(netId);
+		existing = NULL_ENTITY;
+	}
+
+    if (existing == NULL_ENTITY) {
+        Entity e = CreateEntityFromArchetype(archetypeId, msg);
         mWorld->NetIdBinding(netId, e);
-		std::cout << "HandleSpawn: netId=" << netId << " -> entityId=" << e.GetID() << std::endl;
 
         // 몬스터 스폰 VFX
         if (spawnPacket->prefabType == PrefabType::ENEMY && spawnPacket->hasInitialTransform != 0)
@@ -821,7 +869,15 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
         }
     }
     else {
-        std::cout << "HandleSpawn: netId=" << netId << " 이미 존재, 스킵" << std::endl;
+        if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(existing))
+        {
+            std::cout << "[SpawnSkipPos] netId=" << netId
+                << " entityId=" << existing.GetID()
+                << " pos=(" << transform->mLocalPosition.x
+                << ", " << transform->mLocalPosition.y
+                << ", " << transform->mLocalPosition.z << ")"
+                << std::endl;
+        }
     }
        
 
@@ -899,8 +955,7 @@ void NetRecvSystem::HandleReplicationDelta(const InputCommand& msg)
     }
 }
 
-Entity NetRecvSystem::CreateEntityFromArchetype(uint32_t archetypeId)
+Entity NetRecvSystem::CreateEntityFromArchetype(uint32_t archetypeId, const InputCommand& spawnCommand)
 {
-    //Entity entity = mWorld->CreateEntity();
-    return PrefabFactory::Spawn(mWorld, static_cast<PrefabType>(archetypeId), mInputCommand);
+    return PrefabFactory::Spawn(mWorld, static_cast<PrefabType>(archetypeId), spawnCommand);
 }

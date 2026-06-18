@@ -166,7 +166,13 @@ void AudioSystem::Update(float deltaTime)
             {
                 playerComponent->mRhythmSettleTimer = 0.f;
                 
-                if (!playerComponent->mRhythmChangeInFlight &&
+                const bool airborneForRhythmChange =
+                    playerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Airborne) ||
+                    playerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Falling) ||
+                    playerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Landing);
+
+                if (!airborneForRhythmChange &&
+                    !playerComponent->mRhythmChangeInFlight &&
                     playerComponent->mDesiredRhythm != playerComponent->mRhythm)
                 {
                     SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mDesiredRhythm, playerComponent->mPlayerType);

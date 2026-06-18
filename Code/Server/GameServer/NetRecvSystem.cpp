@@ -190,6 +190,14 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 	if (playerComp == nullptr)
 		return;
 
+	const uint8 movementMode = playerComp->GetReplicatedMovementMode();
+	if (movementMode == static_cast<uint8>(ReplicatedMovementMode::Airborne) ||
+		movementMode == static_cast<uint8>(ReplicatedMovementMode::Falling) ||
+		movementMode == static_cast<uint8>(ReplicatedMovementMode::Landing))
+	{
+		return;
+	}
+
 	if (pkt.netEntityId != 0)
 	{
 		NetEntityComponent* netEntityComp = mWorld->GetComponent<NetEntityComponent>(e);

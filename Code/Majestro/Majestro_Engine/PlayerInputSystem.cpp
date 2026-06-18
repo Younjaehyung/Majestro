@@ -164,6 +164,16 @@ bool PlayerInputSystem::IsPlayerDead(const MainPlayerComponent* player) const
 		player->mUpperState == static_cast<int>(ReplicatedActionState::Dead);
 }
 
+bool PlayerInputSystem::IsPlayerAirborneForRhythmChange(const MainPlayerComponent* player) const
+{
+	if (player == nullptr)
+		return false;
+
+	return player->mLowerState == static_cast<int>(ReplicatedMovementMode::Airborne) ||
+		player->mLowerState == static_cast<int>(ReplicatedMovementMode::Falling) ||
+		player->mLowerState == static_cast<int>(ReplicatedMovementMode::Landing);
+}
+
 bool PlayerInputSystem::IsLobbyCharacterLockedByOtherPlayer(uint8 playerType) const
 {
 
@@ -469,7 +479,7 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	ctx.movement->mReload = INPUT.GetKey(eKeyCode::R);
 	ctx.movement->mSpecial = mouseLook && INPUT.GetMouseRightDown();
 
-	if (INPUT.GetMouseRightDown())
+	if (INPUT.GetMouseRightDown() && !IsPlayerAirborneForRhythmChange(ctx.player))
 	{
 		// 즉시 송신하지 않고 원하는 최종 리듬만 누적
 		ctx.player->mDesiredRhythm = NextRhythm(ctx.player->mDesiredRhythm);

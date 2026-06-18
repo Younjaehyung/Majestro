@@ -1,5 +1,5 @@
 {
-  "_comment": "Map001(FirstGame) 기믹 위치. 엔진좌표(Y-up, cm). MapDesert_Gimmicks.json 과 동일 포맷.",
+  "_comment": "Map001(FirstGame) 기믹 위치. 엔진좌표(Y-up, cm).",
 
   "playerSpawn": [ -8002.9, 1027.2, -12519.6 ],
   "truckSpawn": [ -4902.0, 135.0, -9240.0 ],
@@ -16,28 +16,6 @@
       "targetMask": "Player"
     },
     {
-      "kind": "HealPack",
-      "position": [ -5843.0, 278.0, -3523.0 ],
-      "halfExtents": [ 60.0, 120.0, 60.0 ],
-      "valueA": 75.0,
-      "valueB": 0.0,
-      "cooldown": 10.0,
-      "oneShot": false,
-      "targetMask": "Player"
-    },
-    {
-      "kind": "HealPack",
-      "position": [ -5843.0, 278.0, -3523.0 ],
-      "halfExtents": [ 60.0, 120.0, 60.0 ],
-      "valueA": 75.0,
-      "valueB": 0.0,
-      "cooldown": 10.0,
-      "oneShot": false,
-      "targetMask": "Player"
-    },
-
-
-    {
       "kind": "JumpPad",
       "position": [ -2337.0, 142.0, -4987.0 ],
       "halfExtents": [ 150.0, 5.0, 150.0 ],
@@ -47,29 +25,6 @@
       "oneShot": false,
       "targetMask": "Player"
     },
-    {
-      "kind": "JumpPad",
-      "position": [ -2337.0, 142.0, -4987.0 ],
-      "halfExtents": [ 150.0, 5.0, 150.0 ],
-      "valueA": 1200.0,
-      "valueB": 5.0,
-      "cooldown": 0.5,
-      "oneShot": false,
-      "targetMask": "Player"
-    },
-    {
-      "kind": "JumpPad",
-      "position": [ -2337.0, 142.0, -4987.0 ],
-      "halfExtents": [ 150.0, 5.0, 150.0 ],
-      "valueA": 1200.0,
-      "valueB": 5.0,
-      "cooldown": 0.5,
-      "oneShot": false,
-      "targetMask": "Player"
-    },
-
-
-
     {
       "kind": "ConquestZone",
       "position": [ -3379.0, 128.0, 26.0 ],
@@ -92,63 +47,90 @@
     }
   ],
 
-
-
   "spawnTables": {
-    "table1": {
-      "_comment": "균형",
+    "table_horn_easy_intro": {
+      "_comment": "혼맨_입문",
       "entries": [
         {
-          "type": "Bongoman",
-          "count": 2
-        },
+          "type": "HornMan",
+          "count": 1
+        }
+      ]
+    },
+    "table_fly_easy_intro": {
+      "_comment": "플라이몹_입문",
+      "entries": [
+        {
+          "type": "fly",
+          "count": 1
+        }
+      ]
+    },
+    "table_piano_easy_intro": {
+      "_comment": "피아노맨_입문",
+      "entries": [
         {
           "type": "Pianoman",
           "count": 1
-        },
-        {
-          "type": "HornMan",
-          "count": 3
         }
       ]
     },
-    "table2": {
-      "_comment": "돌격",
+    "table_horn_easy": {
+      "_comment": "혼맨_쉬움",
+      "entries": [
+        {
+          "type": "HornMan",
+          "count": 2
+        }
+      ]
+    },
+    "table_fly_easy": {
+      "_comment": "플라이몹 쉬움",
+      "entries": [
+        {
+          "type": "fly",
+          "count": 2
+        }
+      ]
+    },
+    "table_piano_easy": {
+      "_comment": "피아노맨_쉬움",
       "entries": [
         {
           "type": "Pianoman",
           "count": 2
-        },
-        {
-          "type": "HornMan",
-          "count": 2
         }
       ]
     },
-    "table3": {
-      "_comment": "원거리",
+    "table_bongo_easy_intro": {
+      "_comment": "봉고맨_입문",
       "entries": [
         {
           "type": "Bongoman",
           "count": 1
-        },
-        {
-          "type": "HornMan",
-          "count": 4
         }
       ]
     },
-    "table4": {
-      "_comment": "탱커",
+    "table_bongo_easy": {
+      "_comment": "봉고맨_쉬움",
       "entries": [
         {
           "type": "Bongoman",
+          "count": 2
+        }
+      ]
+    },
+    "table_fly_normal": {
+      "_comment": "플라이몹 보통",
+      "entries": [
+        {
+          "type": "fly",
           "count": 3
         }
       ]
     },
-    "table5": {
-      "_comment": "돌진",
+    "table_piano_normal": {
+      "_comment": "피아노맨_보통",
       "entries": [
         {
           "type": "Pianoman",
@@ -156,12 +138,12 @@
         }
       ]
     },
-    "table6": {
-      "_comment": "원딜",
+    "table_horn_normal": {
+      "_comment": "혼맨 보통",
       "entries": [
         {
           "type": "HornMan",
-          "count": 4
+          "count": 3
         }
       ]
     }
@@ -170,58 +152,58 @@
   "spawners": [
     {
       "id": "first_scene_spawner_a",
-      "position": [ -4910.0, 142.0, -1623.0 ],
+      "position": [ -6030.0, 230.0, -5605.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 4.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
       "maxAlive": 2,
-      "maxTotal": 6,
+      "maxTotal": 2,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table3" ]
+      "tablePool": [ "table_horn_easy_intro" ]
     },
     {
       "id": "first_scene_spawner_b",
-      "position": [ -2307.0, 740.0, -4097.0 ],
+      "position": [ -2205.0, 840.0, -4225.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 4.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
       "maxAlive": 2,
-      "maxTotal": 6,
+      "maxTotal": 2,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table2" ]
+      "tablePool": [ "table_fly_easy_intro" ]
     },
     {
       "id": "first_scene_spawner_c",
-      "position": [ -5943.0, 142.0, -5637.0 ],
+      "position": [ -4995.0, 190.0, -7175.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 4.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
       "maxAlive": 2,
-      "maxTotal": 6,
+      "maxTotal": 2,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table2", "table3" ]
+      "tablePool": [ "table_piano_easy_intro" ]
     },
     {
       "id": "first_scene_spawner_d",
-      "position": [ -4910.0, 142.0, -1623.0 ],
+      "position": [ -4500.0, 190.0, -790.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 2.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
@@ -230,147 +212,174 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table4", "table1" ]
+      "tablePool": [ "table_horn_easy" ]
     },
     {
       "id": "first_scene_spawner_e",
-      "position": [ -2307.0, 740.0, -4097.0 ],
+      "position": [ -4500.0, 190.0, 695.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 6.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
       "maxAlive": 2,
-      "maxTotal": 6,
+      "maxTotal": 4,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table5" ]
+      "tablePool": [ "table_fly_easy" ]
     },
     {
       "id": "first_scene_spawner_f",
-      "position": [ -5943.0, 142.0, -5637.0 ],
+      "position": [ -755.0, -65.0, -560.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
-      "nextTableInterval": 8.0,
+      "tableSpawnInterval": 6.0,
+      "nextTableInterval": 6.0,
       "repeatPool": true,
       "randomTableFromPool": true,
       "maxAlive": 2,
-      "maxTotal": 6,
+      "maxTotal": 4,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table6", "table3" ]
+      "tablePool": [ "table_piano_easy" ]
     },
     {
       "id": "first_scene_spawner_g",
-      "position": [ -4910.0, 142.0, -1623.0 ],
+      "position": [ -1005.0, -65.0, 815.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 8.0,
       "nextTableInterval": 8.0,
-      "repeatPool": true,
+      "repeatPool": false,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 1,
+      "maxTotal": 1,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table3" ]
+      "tablePool": [ "table_bongo_easy_intro" ]
     },
     {
       "id": "first_scene_spawner_h",
-      "position": [ -2307.0, 740.0, -4097.0 ],
+      "position": [ -2370.0, 330.0, 3745.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 6.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
+      "maxAlive": 3,
       "maxTotal": 6,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table2" ]
+      "tablePool": [ "table_fly_normal" ]
     },
     {
       "id": "first_scene_spawner_i",
-      "position": [ -5943.0, 142.0, -5637.0 ],
+      "position": [ 1160.0, -70.0, 3855.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 6.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
+      "maxAlive": 3,
       "maxTotal": 6,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table2", "table3" ]
+      "tablePool": [ "table_piano_normal" ]
     },
     {
       "id": "first_scene_spawner_j",
-      "position": [ -4910.0, 142.0, -1623.0 ],
+      "position": [ 2235.0, 170.0, 5845.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 6.0,
       "nextTableInterval": 8.0,
-      "repeatPool": true,
+      "repeatPool": false,
       "randomTableFromPool": true,
       "maxAlive": 2,
-      "maxTotal": 6,
+      "maxTotal": 3,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table3" ]
+      "tablePool": [ "table_bongo_easy" ]
     },
     {
       "id": "first_scene_spawner_k",
-      "position": [ -2307.0, 740.0, -4097.0 ],
+      "position": [ 1395.0, 170.0, 10330.0 ],
       "trigger": "Timed",
       "interval": 8.0,
-      "tableSpawnInterval": 8.0,
+      "tableSpawnInterval": 6.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
+      "maxAlive": 3,
       "maxTotal": 6,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table2" ]
+      "tablePool": [ "table_horn_normal" ]
     },
     {
       "id": "first_scene_spawner_l",
-      "position": [ -5943.0, 142.0, -5637.0 ],
+      "position": [ 4495.0, -85.0, 18455.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 3.0,
+      "nextTableInterval": 6.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 5,
+      "maxTotal": 8,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table_piano_normal", "table_bongo_easy" ]
+    },
+    {
+      "id": "first_scene_spawner_n",
+      "position": [ 7890.0, -85.0, 15740.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 8.0,
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
+      "maxAlive": 3,
       "maxTotal": 6,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table2", "table3" ]
+      "tablePool": [ "table_horn_normal" ]
+    },
+    {
+      "id": "first_scene_spawner_m",
+      "position": [ 7535.0, -85.0, 15350.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 8.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 3,
+      "maxTotal": 6,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "table_fly_normal" ]
     }
   ],
 
-
-
   "phaseSpawners": {
-    "_comment": "phase 별 생성 스포너 id. Conquest:<?점령지번호>, Escort:<구간번호>, Prepare, Clear, Boss:<번호>. 초기 phase가 시작될 때 startActive 무시하고 해당 phase 진입 시에 켜짐. 목록에 없는 phase 진입 시 기존 스포너는 꺼짐. phase 진입 시 적 스폰(maxTotal) 리셋됨.",
     "Escort:0": [ "first_scene_spawner_a", "first_scene_spawner_b", "first_scene_spawner_c" ],
-    "Conquest:1": [ "first_scene_spawner_d", "first_scene_spawner_e", "first_scene_spawner_f" ],
-    "Escort:1": [ "first_scene_spawner_g", "first_scene_spawner_h", "first_scene_spawner_i" ],
-    "Conquest:2": [ "first_scene_spawner_j", "first_scene_spawner_k", "first_scene_spawner_l" ]
+    "Conquest:1": [ "first_scene_spawner_d", "first_scene_spawner_e", "first_scene_spawner_f", "first_scene_spawner_g" ],
+    "Escort:1": [ "first_scene_spawner_h", "first_scene_spawner_i", "first_scene_spawner_j", "first_scene_spawner_k" ],
+    "Conquest:2": [ "first_scene_spawner_l", "first_scene_spawner_n", "first_scene_spawner_m" ]
   }
-
-
 }

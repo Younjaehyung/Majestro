@@ -54,7 +54,7 @@ private:
 	void HandleRoomList(const InputCommand& msg);      
 	void HandleRoomJoinResult(const InputCommand& msg);
 
-	Entity CreateEntityFromArchetype(uint32_t archetypeId);
+	Entity CreateEntityFromArchetype(uint32_t archetypeId, const InputCommand& spawnCommand);
 
 private:
 	using Handler = std::function<void(const InputCommand&)>;

@@ -447,6 +447,15 @@ void AudioManager::SetBGMPaused(SOUNDNAME soundEnum, bool paused) {
     mAllBGM[idx]->setPaused(paused);
 }
 
+void AudioManager::SetBGMVolume(SOUNDNAME soundEnum, float volume) {
+    uint32 idx = static_cast<uint32>(soundEnum);
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return;
+
+    // 수정사항: 설정의 Ambient 버스 음량은 유지하고 개별 음악 출력에 추가 배율만 적용한다.
+    const float clampedVolume = volume < 0.0f ? 0.0f : (volume > 1.0f ? 1.0f : volume);
+    FMOD_CHECK(mAllBGM[idx]->setVolume(clampedVolume));
+}
+
 void AudioManager::DebugStartSeekProbe(float targetSeconds) {
     const SOUNDNAME stems[] = { SOUNDNAME::Drum, SOUNDNAME::Bass, SOUNDNAME::Elec };
     const int reqMs = static_cast<int>(targetSeconds * 1000.f);

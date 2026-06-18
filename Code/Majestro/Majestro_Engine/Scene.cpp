@@ -86,6 +86,7 @@
 #include "UICommonUpdateFeature.h"
 #include "UIHpBarUpdateFeature.h"
 #include "UIGameInfoUpdateFeature.h"
+#include "PlayerStatusUIFeature.h"
 #include "UIPhaseProgressUpdateFeature.h"
 
 #include "MainMenuController.h"
@@ -1677,6 +1678,9 @@ void FirstScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
+	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
+	mUIFeatures.push_back(playerStatusModule);
+
 	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
 	mUIFeatures.push_back(gameProgressModule);
 
@@ -1841,6 +1845,9 @@ void SecondScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
+	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
+	mUIFeatures.push_back(playerStatusModule);
+
 	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
 	mUIFeatures.push_back(gameProgressModule);
 
@@ -1943,6 +1950,9 @@ void ThirdScene::Initialize()
 
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
+
+	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
+	mUIFeatures.push_back(playerStatusModule);
 
 	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
 	mUIFeatures.push_back(gameProgressModule);

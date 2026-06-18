@@ -34,6 +34,7 @@ private:
 	void HandleHealth(const InputCommand& msg);
 	void HandleArmor(const InputCommand& msg);
 	void HandleAmmo(const InputCommand& msg);
+	void HandlePlayerStatus(const InputCommand& msg);
 	void HandleCooldown(const InputCommand& msg);
 	void HandleCollision(const InputCommand& msg);
 	void HandleBulletActivate(const InputCommand& msg);
@@ -43,8 +44,10 @@ private:
 	void HandleGameStart(const InputCommand& msg);
 	void HandleSceneChangeResult(const InputCommand& msg);
 	void HandleSceneState(const InputCommand& msg);
+	void HandlePrepareSceneState(const InputCommand& msg);
 	void HandleConquestSceneState(const InputCommand& msg);
 	void HandleEscortSceneState(const InputCommand& msg);
+	void HandleClearSceneState(const InputCommand& msg);
 	void HandleReplicationDelta(const InputCommand& msg);
 	void HandleRoomState(const InputCommand& msg);
 	void HandleRoomError(const InputCommand& msg);

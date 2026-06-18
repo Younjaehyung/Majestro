@@ -114,6 +114,7 @@ public:
     bool GetBGMTimelinePositionMs(SOUNDNAME soundEnum, int& outMs) const;   // getTimelinePosition
     void SetBGMPitch(SOUNDNAME soundEnum, float pitch);                     // setPitch (드리프트 피치 너지)
     void SetBGMPaused(SOUNDNAME soundEnum, bool paused);                    // setPaused
+    void SetBGMVolume(SOUNDNAME soundEnum, float volume);                   // 개별 음악 음량 배율 설정
     
     void DebugStartSeekProbe(float targetSeconds);                          // 여러 프레임 위치를 로그
         

@@ -31,5 +31,10 @@ private:
 	float mDriftGain = 0.1f;       // drift 대비 너지 비례 계수
 
 	void ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm);
+	void UpdateSilenceMusicState();
+
+	// 수정사항: Silence 상태가 바뀔 때만 로컬 플레이어 음악의 출력 배율을 변경한다.
+	bool mSilenceMusicMuted = false;
+	SOUNDNAME mSilenceMusicStem = SOUNDNAME::End;
 };
 

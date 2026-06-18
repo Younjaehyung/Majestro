@@ -36,8 +36,10 @@ public:
 private:
 
 	void SendSceneState(Entity rule);
+	void SendScenePrepare(Entity rule);
 	void SendSceneConquest(Entity rule);
 	void SendSceneEscort(Entity rule);
+	void SendSceneClear(Entity rule);
 
 private:
 	template<typename PktT>

@@ -13,6 +13,31 @@ public:
 	uint8 mGamePhase = 0; // 현재 게임 phase (예: 준비, 점령, 호위 등)
 };
 
+class GamePrepareComponent : public Component<GamePrepareComponent>
+{
+public:
+	GamePrepareComponent() = default;
+
+	int32 mReadyPlayers = 0;
+	int32 mTotalPlayers = 0;
+	float mReadyCheckRemaining = 0.0f;
+	float mForcedStartRemaining = 0.0f;
+	float mCountdownRemaining = 0.0f;
+	bool mCountdownStarted = false;
+	bool mAllPlayersReady = false;
+};
+
+class GameClearComponent : public Component<GameClearComponent>
+{
+public:
+	GameClearComponent() = default;
+
+	uint8 mPlayerCount = 0;
+	int32 mTeamScore = 0;
+	float mGameTime = 0.0f;
+	std::array<uint32, ROOM_MAX_PLAYERS> mSessionIds{};
+	std::array<uint8, ROOM_MAX_PLAYERS> mPlayerTypes{};
+};
 
 class GameConquestComponent : public Component<GameConquestComponent>
 {

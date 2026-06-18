@@ -23,12 +23,35 @@ void PreparePhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
 
+	// PreparePhase 재진입 시 이전 준비 상태가 남지 않도록 모든 값을 초기화한다.
+	mIsCompleted = false;
+	mStartCount = 0.0f;
+	mStartCountDown = 0.0f;
+	mCountdownStarted = false;
+	mReadyPlayers = 0;
+	mTotalPlayers = 0;
+
+	if (GameRuleComponent* ruleComp = mWorld->GetSingleton<GameRuleComponent>())
+		ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Prepare);
+
+	// Prepare UI 동기화에 사용할 서버 상태를 생성하고 초기값을 기록한다.
+	GamePrepareComponent& prepareComp = mWorld->AddSingleton<GamePrepareComponent>();
+	prepareComp.mReadyPlayers = 0;
+	prepareComp.mTotalPlayers = 0;
+	prepareComp.mReadyCheckRemaining = kRequiredReadyTime;
+	prepareComp.mForcedStartRemaining = kMaxReadyTime;
+	prepareComp.mCountdownRemaining = 0.0f;
+	prepareComp.mCountdownStarted = false;
+	prepareComp.mAllPlayersReady = false;
+
 	mode.GetScene()->ApplyPhaseSpawnerSet("Prepare");
 }
 
 void PreparePhase::Exit(WaveGameMode& mode)
 {
-	//mWorld->RemoveSingleton<GameRuleComponent>();
+	// 다음 Phase에서 Prepare UI 상태가 남지 않도록 전용 상태를 제거한다.
+	if (mWorld)
+		mWorld->RemoveSingleton<GamePrepareComponent>();
 }
 
 void PreparePhase::PreUpdate(float dt, WaveGameMode& mode)
@@ -37,8 +60,86 @@ void PreparePhase::PreUpdate(float dt, WaveGameMode& mode)
 
 void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 {
-	// 준비 단계에서는 플레이어가 준비를 완료했는지 체크하는 로직
-	// 예: 모든 플레이어가 준비 상태가 되었는지 확인하고, 준비가 완료되면 mIsCompleted를 true로 설정하여 다음 단계로 전환
+	if (mIsCompleted || !mWorld)
+		return;
+
+	mStartCount += max(0.0f, dt);
+
+	// 게임 Scene에는 별도 Ready 플래그가 없으므로 방 세션의 플레이어 엔티티가
+	// 현재 World에 모두 생성된 상태를 해당 플레이어의 준비 완료로 판단한다.
+	std::unordered_set<uint32> spawnedSessions;
+	if (mWorld->HasComponentPool<NetEntityComponent>() &&
+		mWorld->HasComponentPool<MainPlayerComponent>())
+	{
+		for (Entity entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+		{
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			if (netComp && netComp->mSessionId != 0)
+				spawnedSessions.insert(netComp->mSessionId);
+		}
+	}
+
+	mReadyPlayers = static_cast<int32>(spawnedSessions.size());
+	mTotalPlayers = 0;
+
+	if (gGameCore && !spawnedSessions.empty())
+	{
+		const uint32 anySessionId = *spawnedSessions.begin();
+		if (RoomState* room = gGameCore->GetRoomManager().GetRoomByPlayer(anySessionId))
+		{
+			const std::vector<uint64> roomSessions = room->GetSessionIds();
+			mTotalPlayers = static_cast<int32>(roomSessions.size());
+			mReadyPlayers = 0;
+
+			for (uint64 sessionId : roomSessions)
+			{
+				if (spawnedSessions.count(static_cast<uint32>(sessionId)) > 0)
+					++mReadyPlayers;
+			}
+		}
+	}
+
+	if (!mCountdownStarted)
+	{
+		const bool minimumWaitPassed = mStartCount >= kRequiredReadyTime;
+		const bool allPlayersReady = mTotalPlayers > 0 && mReadyPlayers >= mTotalPlayers;
+		const bool forcedStart = mStartCount >= kMaxReadyTime;
+
+		// 5초 이후 전원이 준비됐거나 30초가 지나면 3초 카운트다운을 시작한다.
+		if ((minimumWaitPassed && allPlayersReady) || forcedStart)
+		{
+			mCountdownStarted = true;
+			mStartCountDown = kStartCountdownDuration;
+		}
+
+		if (GamePrepareComponent* prepareComp = mWorld->GetSingleton<GamePrepareComponent>())
+		{
+			prepareComp->mReadyPlayers = mReadyPlayers;
+			prepareComp->mTotalPlayers = mTotalPlayers;
+			prepareComp->mReadyCheckRemaining = max(0.0f, kRequiredReadyTime - mStartCount);
+			prepareComp->mForcedStartRemaining = max(0.0f, kMaxReadyTime - mStartCount);
+			prepareComp->mCountdownRemaining = mStartCountDown;
+			prepareComp->mCountdownStarted = mCountdownStarted;
+			prepareComp->mAllPlayersReady = allPlayersReady;
+		}
+		return;
+	}
+
+	mStartCountDown = max(0.0f, mStartCountDown - max(0.0f, dt));
+	if (GamePrepareComponent* prepareComp = mWorld->GetSingleton<GamePrepareComponent>())
+	{
+		prepareComp->mReadyPlayers = mReadyPlayers;
+		prepareComp->mTotalPlayers = mTotalPlayers;
+		prepareComp->mReadyCheckRemaining = 0.0f;
+		prepareComp->mForcedStartRemaining = max(0.0f, kMaxReadyTime - mStartCount);
+		prepareComp->mCountdownRemaining = mStartCountDown;
+		prepareComp->mCountdownStarted = true;
+		prepareComp->mAllPlayersReady = mTotalPlayers > 0 && mReadyPlayers >= mTotalPlayers;
+	}
+
+	if (mStartCountDown <= 0.0f)
+		mIsCompleted = true;
+
 }
 
 ////--------------------------------------------------------------
@@ -482,17 +583,63 @@ uint8 EscortPhase::ResolveConquestZoneIdFromResumeEvent(const std::string& resum
 void ClearPhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
+	mElapsed = 0.0f;
+	mIsCompleted = false;
 
 	if (auto* rule = mWorld->GetSingleton<GameRuleComponent>())
 		rule->mGamePhase = static_cast<uint8>(WavePhaseType::Clear);
 
+	// Clear UI가 사용할 플레이어 목록과 팀 결과를 현재 World에서 수집한다.
+	GameClearComponent& clearComp = mWorld->AddSingleton<GameClearComponent>();
+	clearComp = GameClearComponent{};
+
+	if (GameRuleComponent* rule = mWorld->GetSingleton<GameRuleComponent>())
+	{
+		clearComp.mTeamScore = rule->mPlayerScore;
+		clearComp.mGameTime = rule->mGameTime;
+	}
+
+	if (mWorld->HasComponentPool<NetEntityComponent>() &&
+		mWorld->HasComponentPool<MainPlayerComponent>())
+	{
+		for (Entity entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+		{
+			if (clearComp.mPlayerCount >= ROOM_MAX_PLAYERS)
+				break;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(entity);
+			if (!netComp || !playerComp || netComp->mSessionId == 0)
+				continue;
+
+			const uint8 index = clearComp.mPlayerCount++;
+			clearComp.mSessionIds[index] = netComp->mSessionId;
+			clearComp.mPlayerTypes[index] = static_cast<uint8>(playerComp->mPlayerType);
+		}
+	}
 
 	mode.GetScene()->ApplyPhaseSpawnerSet("Clear");
+}
+
+void ClearPhase::Exit(WaveGameMode& mode)
+{
+	// 다음 Phase 또는 Scene에 Clear 결과가 남지 않도록 전용 상태를 제거한다.
+	if (mWorld)
+		mWorld->RemoveSingleton<GameClearComponent>();
 }
 
 void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
 	mElapsed += dt;
+
+	if (GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>())
+	{
+		if (GameRuleComponent* rule = mWorld->GetSingleton<GameRuleComponent>())
+		{
+			clearComp->mTeamScore = rule->mPlayerScore;
+			clearComp->mGameTime = rule->mGameTime;
+		}
+	}
 
 	// 배너를 잠시 보여준 뒤 완료
 	if (mElapsed >= mHoldSeconds)

@@ -18,10 +18,12 @@
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
 #include "GameRuleComponent.h"
+#include "PlayerComponent.h"
 #include "GameEvents.h"
 #include "EventManager.h"
 
 #include "MathUtils.h"
+#include <sstream>
 
 void UIGameInfoUpdateFeature::Initialize(World* world)
 {
@@ -29,11 +31,13 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 
 
 	mTable.clear();
+	mRevealStampAnimationTable.clear();
+	mRevealStampAnimation = RevealStampAnimationState{};
 
 	// Prepare:
 	{
 		PhaseGoalSpec s;
-		s.mTextureName = L"UI_Ingame_Conquest";
+		s.mTextureName = L"UI_Ingame_Prepare";
 		s.mIntro   = IntroAnim::FadeInCenter;
 		s.mSettled = SettledAnim::MoveToTop;
 		s.mOutro   = OutroAnim::None;
@@ -108,16 +112,27 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		mTable[WavePhaseType::Fail] = s;
 	}
 
-	// Clear:
+	// Phase별 Reveal과 Stamp 연출은 이 테이블에 설정만 추가해 재사용한다.
 	{
-		PhaseGoalSpec s;
-		s.mTextureName = L"UI_StageClear_0";
-		s.mFullscreen = true;                 // 전체화면
-		s.mIntro   = IntroAnim::FadeInCenter; // 페이드인
-		s.mSettled = SettledAnim::Static;
-		s.mOutro   = OutroAnim::None;         
-		s.mParams.mIntroDuration = 1.5f;      // 페이드인 시간(초)
-		mTable[WavePhaseType::Clear] = s;
+		RevealStampAnimationSpec clearSpec;
+		clearSpec.mRevealTextureName = L"UI_StageClear_1";
+		clearSpec.mStampTextureName = L"UI_StageClear_2";
+		clearSpec.mRevealDuration = 0.9f;
+		clearSpec.mStampStartTime = 0.75f;
+		clearSpec.mStampDuration = 0.32f;
+		clearSpec.mStampStartScale = 1.65f;
+		clearSpec.mRevealLayer = 8;
+		clearSpec.mStampLayer = 9;
+		clearSpec.mCameraShakeAngles = Vec3(1.2f, 0.8f, 1.8f);
+		clearSpec.mCameraShakeDuration = 0.22f;
+		clearSpec.mCameraShakeFrequency = 24.0f;
+		mRevealStampAnimationTable[WavePhaseType::Clear] = clearSpec;
+
+		// Fail 페이즈에서도 GameClear와 완전히 같은 타이밍과 카메라 연출을 재사용한다.
+		RevealStampAnimationSpec gameOverSpec = clearSpec;
+		gameOverSpec.mRevealTextureName = L"UI_GameOver_1";
+		gameOverSpec.mStampTextureName = L"UI_GameOver_2";
+		mRevealStampAnimationTable[WavePhaseType::Fail] = gameOverSpec;
 	}
 }
 
@@ -142,11 +157,13 @@ void UIGameInfoUpdateFeature::Update(float dt)
 
 	// 단일 상태머신 tick.
 	TickGoalBanner(dt);
+	TickRevealStampAnimation(dt);
 
 	// 디버그 패널은 Render phase 에서 호출해야 함 (NewFrame 이후).
 	// → PostSpriteRender 에서 호출.
 
 	// phase 별 지속 표시 (점수/타이머 등) — 기존 코드 유지.
+	SetPhaseStatusVisible(false);
 	switch (gameRuleComp->mGamePhase)
 	{
 	case uint8(WavePhaseType::Prepare):
@@ -157,6 +174,9 @@ void UIGameInfoUpdateFeature::Update(float dt)
 		break;
 	case uint8(WavePhaseType::Escort):
 		UpdateEscortPhase(dt, gameRuleComp);
+		break;
+	case uint8(WavePhaseType::Clear):
+		UpdateClearPhase(dt, gameRuleComp);
 		break;
 	}
 }
@@ -188,6 +208,44 @@ void UIGameInfoUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>& uiIn
 
 void UIGameInfoUpdateFeature::UpdatePreparePhase(float dt, GameRuleComponent* gameRuleComp)
 {
+	GamePrepareComponent* prepareComp = mWorld->GetSingleton<GamePrepareComponent>();
+	if (!prepareComp)
+		return;
+
+	EnsurePhaseStatusText();
+	SetPhaseStatusVisible(true);
+
+	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
+		transform->mPosition = Vec2(0.0f, -250.0f);
+
+	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mPhaseStatusTextEntity);
+	if (!text)
+		return;
+
+	std::wstringstream stream;
+	stream << L"Players Ready: " << prepareComp->mReadyPlayers
+		<< L" / " << prepareComp->mTotalPlayers << L"\n";
+
+	if (prepareComp->mCountdownStarted)
+	{
+		if (prepareComp->mAllPlayersReady)
+			stream << L"All Players Ready\n";
+
+		stream << L"Game Starts In: "
+			<< static_cast<int32>(std::ceil(prepareComp->mCountdownRemaining));
+	}
+	else if (prepareComp->mReadyCheckRemaining > 0.0f)
+	{
+		stream << L"Ready Check In: "
+			<< static_cast<int32>(std::ceil(prepareComp->mReadyCheckRemaining));
+	}
+	else
+	{
+		stream << L"Force Start In: "
+			<< static_cast<int32>(std::ceil(prepareComp->mForcedStartRemaining));
+	}
+
+	text->mText = stream.str();
 }
 
 void UIGameInfoUpdateFeature::UpdateConquestPhase(float dt, GameRuleComponent* gameRuleComp)
@@ -197,6 +255,46 @@ void UIGameInfoUpdateFeature::UpdateConquestPhase(float dt, GameRuleComponent* g
 
 void UIGameInfoUpdateFeature::UpdateEscortPhase(float dt, GameRuleComponent* gameRuleComp)
 {
+}
+
+void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp)
+{
+	GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>();
+	if (!clearComp)
+		return;
+
+	EnsurePhaseStatusText();
+	SetPhaseStatusVisible(true);
+
+	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
+		transform->mPosition = Vec2(0.0f, 180.0f);
+
+	auto playerTypeName = [](uint8 playerType) -> const wchar_t*
+	{
+		switch (static_cast<PlayerType>(playerType))
+		{
+		case PlayerType::Rudwig: return L"Rudwig";
+		case PlayerType::Ibanix: return L"Ibanix";
+		case PlayerType::Fanthor: return L"Fanthor";
+		default: return L"Unknown";
+		}
+	};
+
+	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mPhaseStatusTextEntity);
+	if (!text)
+		return;
+
+	std::wstringstream stream;
+	stream << L"Players: " << static_cast<int32>(clearComp->mPlayerCount) << L"\n";
+	for (uint8 index = 0; index < clearComp->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
+	{
+		stream << static_cast<int32>(index + 1) << L". "
+			<< playerTypeName(clearComp->mPlayerTypes[index]) << L"\n";
+	}
+
+	stream << L"Team Score: " << clearComp->mTeamScore << L"\n";
+	stream << L"Play Time: " << static_cast<int32>(clearComp->mGameTime) << L"s";
+	text->mText = stream.str();
 }
 
 // 게임 정보 렌더링 함수 구현
@@ -219,6 +317,18 @@ void UIGameInfoUpdateFeature::RenderMainGoal(CameraComponent* camera)
 
 void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 {
+	const auto revealStampIt = mRevealStampAnimationTable.find(newPhase);
+	if (revealStampIt != mRevealStampAnimationTable.end())
+	{
+		SetBannerVisible(false);
+		mStage = BannerStage::Idle;
+		mStageElapsed = 0.0f;
+		StartRevealStampAnimation(revealStampIt->second);
+		return;
+	}
+
+	StopRevealStampAnimation();
+
 	const auto& table = GetPhaseTable();
 	auto it = table.find(newPhase);
 	if (it == table.end())
@@ -254,6 +364,58 @@ void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 	{
 		mStage = BannerStage::Intro;
 	}
+}
+
+void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
+{
+	if (!mRevealStampAnimation.mActive)
+		return;
+
+	mRevealStampAnimation.mElapsed += max(0.0f, dt);
+	const RevealStampAnimationSpec& spec = mRevealStampAnimation.mSpec;
+
+	UISpriteComponent* revealSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mRevealEntity);
+	UISpriteComponent* stampSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mStampEntity);
+	UITransformComponent* stampTransform =
+		mWorld->GetComponent<UITransformComponent>(mRevealStampAnimation.mStampEntity);
+	if (!revealSprite || !stampSprite || !stampTransform)
+		return;
+
+	// Reveal 레이어는 이동하지 않고 왼쪽부터 오른쪽으로 표시 범위와 알파를 늘린다.
+	const float revealDuration = max(spec.mRevealDuration, 0.001f);
+	const float revealLinear = std::clamp(
+		mRevealStampAnimation.mElapsed / revealDuration, 0.0f, 1.0f);
+	const float revealProgress =
+		revealLinear * revealLinear * (3.0f - 2.0f * revealLinear);
+	revealSprite->SetVisibleRangeNormalizedX(0.0f, revealProgress);
+	revealSprite->SetVisibleRangeKeepDestinationSize(true);
+	revealSprite->mColorTint.w = revealProgress;
+
+	// Stamp 레이어는 설정된 시점에 큰 스케일로 나타나 원래 크기로 빠르게 수렴한다.
+	if (mRevealStampAnimation.mElapsed < spec.mStampStartTime)
+	{
+		stampSprite->mVisible = false;
+		return;
+	}
+
+	if (!mRevealStampAnimation.mStampTriggered)
+	{
+		mRevealStampAnimation.mStampTriggered = true;
+		TriggerAnimationCameraShake(spec);
+	}
+
+	stampSprite->mVisible = true;
+	const float stampDuration = max(spec.mStampDuration, 0.001f);
+	const float stampProgress = std::clamp(
+		(mRevealStampAnimation.mElapsed - spec.mStampStartTime) / stampDuration,
+		0.0f, 1.0f);
+	const float eased = 1.0f - std::pow(1.0f - stampProgress, 3.0f);
+	const float scale =
+		1.0f + (spec.mStampStartScale - 1.0f) * (1.0f - eased);
+	stampTransform->mScale = Vec2(scale, scale);
+	stampSprite->mColorTint.w = std::clamp(stampProgress * 5.0f, 0.0f, 1.0f);
 }
 
 void UIGameInfoUpdateFeature::TickGoalBanner(float dt)
@@ -597,6 +759,128 @@ void UIGameInfoUpdateFeature::EnsureBannerEntities()
 	}
 }
 
+void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
+{
+	auto createFullscreenLayer = [this](Entity& entity, const std::wstring& textureName, uint8 layer)
+	{
+		if (entity == NULL_ENTITY)
+		{
+			entity = mWorld->CreateEntity();
+
+			auto& transform = mWorld->AddComponent<UITransformComponent>(entity);
+			transform.mAnchor = Anchor::Center;
+			transform.mPivot = Vec2(0.5f, 0.5f);
+			transform.UseScreenRatioLayout(Vec2(0.0f, 0.0f), Vec2(1.0f, 1.0f));
+
+			mWorld->AddComponent<UISpriteComponent>(entity);
+		}
+
+		if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(entity))
+			transform->mUILayerIndex = layer;
+
+		UISpriteComponent& sprite = *mWorld->GetComponent<UISpriteComponent>(entity);
+		sprite.mTexture = RESOURCEMANAGER.Get<Texture>(textureName);
+		sprite.mVisible = false;
+		sprite.mColorTint = Vec4(1.0f, 1.0f, 1.0f, 0.0f);
+	};
+
+	const RevealStampAnimationSpec& spec = mRevealStampAnimation.mSpec;
+	createFullscreenLayer(
+		mRevealStampAnimation.mRevealEntity, spec.mRevealTextureName, spec.mRevealLayer);
+	createFullscreenLayer(
+		mRevealStampAnimation.mStampEntity, spec.mStampTextureName, spec.mStampLayer);
+}
+
+void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimationSpec& spec)
+{
+	StopRevealStampAnimation();
+
+	mRevealStampAnimation.mSpec = spec;
+	mRevealStampAnimation.mElapsed = 0.0f;
+	mRevealStampAnimation.mActive = true;
+	mRevealStampAnimation.mStampTriggered = false;
+	EnsureRevealStampEntities();
+
+	if (UISpriteComponent* revealSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mRevealEntity))
+	{
+		revealSprite->mVisible = true;
+		revealSprite->mColorTint = Vec4(1.0f, 1.0f, 1.0f, 0.0f);
+		revealSprite->SetVisibleRangeNormalizedX(0.0f, 0.0f);
+		revealSprite->SetVisibleRangeKeepDestinationSize(true);
+	}
+
+	if (UISpriteComponent* stampSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mStampEntity))
+	{
+		stampSprite->mVisible = false;
+		stampSprite->mColorTint = Vec4(1.0f, 1.0f, 1.0f, 0.0f);
+	}
+
+	if (UITransformComponent* stampTransform =
+		mWorld->GetComponent<UITransformComponent>(mRevealStampAnimation.mStampEntity))
+	{
+		stampTransform->mScale =
+			Vec2(spec.mStampStartScale, spec.mStampStartScale);
+	}
+}
+
+void UIGameInfoUpdateFeature::StopRevealStampAnimation()
+{
+	mRevealStampAnimation.mActive = false;
+
+	if (UISpriteComponent* revealSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mRevealEntity))
+	{
+		revealSprite->mVisible = false;
+	}
+
+	if (UISpriteComponent* stampSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mStampEntity))
+	{
+		stampSprite->mVisible = false;
+	}
+}
+
+void UIGameInfoUpdateFeature::TriggerAnimationCameraShake(
+	const RevealStampAnimationSpec& spec)
+{
+	if (!mWorld->HasComponentPool<CameraTypeComponent>())
+		return;
+
+	// Stamp가 나타나는 프레임에 설정값으로 현재 게임 카메라를 흔든다.
+	for (Entity cameraEntity : mWorld->GetEntitiesWithComponent<CameraTypeComponent>())
+	{
+		if (CameraTypeComponent* camera = mWorld->GetComponent<CameraTypeComponent>(cameraEntity))
+		{
+			camera->TriggerShake(
+				spec.mCameraShakeAngles,
+				spec.mCameraShakeDuration,
+				spec.mCameraShakeFrequency);
+		}
+	}
+}
+
+void UIGameInfoUpdateFeature::EnsurePhaseStatusText()
+{
+	if (mPhaseStatusTextEntity != NULL_ENTITY)
+		return;
+
+	mPhaseStatusTextEntity = mWorld->CreateEntity();
+
+	auto& transform = mWorld->AddComponent<UITransformComponent>(mPhaseStatusTextEntity);
+	transform.mAnchor = Anchor::Center;
+	transform.mPivot = Vec2(0.5f, 0.5f);
+	transform.mSize = Vec2(900.0f, 400.0f);
+	transform.mPosition = Vec2(0.0f, 0.0f);
+	transform.mUILayerIndex = 10;
+
+	auto& text = mWorld->AddComponent<UITextComponent>(mPhaseStatusTextEntity);
+	text.mFontType = UIFontType::Esamanru;
+	text.mVisible = false;
+	text.mOutlineThickness = 2.0f;
+}
+
 void UIGameInfoUpdateFeature::ApplyBannerSpec(const PhaseGoalSpec& spec)
 {
 	auto applyLayout = [&](Entity ent)
@@ -639,6 +923,15 @@ void UIGameInfoUpdateFeature::SetBannerVisible(bool visible)
 		if (auto* spr = mWorld->GetComponent<UISpriteComponent>(mBannerEntity))
 			spr->mVisible = visible;
 	}
+}
+
+void UIGameInfoUpdateFeature::SetPhaseStatusVisible(bool visible)
+{
+	if (mPhaseStatusTextEntity == NULL_ENTITY)
+		return;
+
+	if (UITextComponent* text = mWorld->GetComponent<UITextComponent>(mPhaseStatusTextEntity))
+		text->mVisible = visible;
 }
 
 void UIGameInfoUpdateFeature::DrawDebugPanel()

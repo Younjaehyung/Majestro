@@ -66,8 +66,10 @@ void GameNetRuleSystem::Update(float deltaTime)
 
 		// 활성 phase
 		if (mScenePhaseSendRate.Tick(deltaTime)) {
+			SendScenePrepare(rule);
 			SendSceneConquest(rule);
 			SendSceneEscort(rule);
+			SendSceneClear(rule);
 		}
 
 
@@ -86,6 +88,23 @@ void GameNetRuleSystem::SendSceneState(Entity rule)
 		pkt.PlayerScore = s->mPlayerScore;
 		
 		Broadcast(S2C_PKT_SCENE_STATE, pkt);
+	}
+}
+
+void GameNetRuleSystem::SendScenePrepare(Entity rule)
+{
+	if (auto* prepare = mWorld->GetComponent<GamePrepareComponent>(rule))
+	{
+		S2C_PreparePacket pkt{};
+		pkt.ReadyPlayers = prepare->mReadyPlayers;
+		pkt.TotalPlayers = prepare->mTotalPlayers;
+		pkt.ReadyCheckRemaining = prepare->mReadyCheckRemaining;
+		pkt.ForcedStartRemaining = prepare->mForcedStartRemaining;
+		pkt.CountdownRemaining = prepare->mCountdownRemaining;
+		pkt.CountdownStarted = prepare->mCountdownStarted ? 1 : 0;
+		pkt.AllPlayersReady = prepare->mAllPlayersReady ? 1 : 0;
+
+		Broadcast(S2C_PKT_SCENE_PREPARE, pkt);
 	}
 }
 
@@ -144,6 +163,25 @@ void GameNetRuleSystem::SendSceneEscort(Entity rule)
 				pkt.TruckNetId = net->mNetEntityId;
 		}
 		Broadcast(S2C_PKT_SCENE_ESCORT, pkt);
+	}
+}
+
+void GameNetRuleSystem::SendSceneClear(Entity rule)
+{
+	if (auto* clear = mWorld->GetComponent<GameClearComponent>(rule))
+	{
+		S2C_ClearPacket pkt{};
+		pkt.PlayerCount = clear->mPlayerCount;
+		pkt.TeamScore = clear->mTeamScore;
+		pkt.GameTime = clear->mGameTime;
+
+		for (uint8 index = 0; index < clear->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
+		{
+			pkt.Players[index].SessionId = clear->mSessionIds[index];
+			pkt.Players[index].PlayerType = clear->mPlayerTypes[index];
+		}
+
+		Broadcast(S2C_PKT_SCENE_CLEAR, pkt);
 	}
 }
 

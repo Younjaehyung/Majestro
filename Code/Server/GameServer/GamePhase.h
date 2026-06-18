@@ -35,6 +35,18 @@ public:
 	virtual void PostUpdate(float dt, WaveGameMode& mode) override;
     virtual bool IsCompleted() const override { return mIsCompleted; }
     virtual uint8 GetType() const override { return static_cast<uint8>(WavePhaseType::Prepare); }
+
+private:
+	constexpr static float kRequiredReadyTime = 5.f; // Prepare 진입 후 전원 준비 판정을 허용하는 최소 대기 시간
+	constexpr static float kMaxReadyTime = 30.f; // 전원 준비 여부와 관계없이 카운트다운을 시작하는 최대 대기 시간
+	constexpr static float kStartCountdownDuration = 3.f; // 다음 Phase로 전환하기 전 카운트다운 시간
+
+	float mStartCount = 0.f; // PreparePhase 진입 후 경과 시간
+	float mStartCountDown = 0.f; // 카운트다운 시작 후 남은 시간
+	bool mCountdownStarted = false; // 전원 준비 또는 제한 시간으로 카운트다운이 시작됐는지 여부
+
+	int32 mReadyPlayers = 0; // 현재 World에 플레이어 엔티티 생성이 완료된 방 인원 수
+	int32 mTotalPlayers = 0; // 현재 방에 소속된 전체 세션 수
 };
 
 class ConquestPhase : public GamePhase
@@ -85,6 +97,7 @@ class ClearPhase : public GamePhase
 public:
     ClearPhase(float holdSeconds = 3.f) : mHoldSeconds(holdSeconds) {}
     virtual void Enter(WaveGameMode& mode) override;
+    virtual void Exit(WaveGameMode& mode) override;
     virtual void PostUpdate(float dt, WaveGameMode& mode) override;
     virtual bool IsCompleted() const override { return mIsCompleted; }
     virtual uint8 GetType() const override { return static_cast<uint8>(WavePhaseType::Clear); }

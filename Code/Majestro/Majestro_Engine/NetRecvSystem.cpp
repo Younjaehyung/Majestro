@@ -26,6 +26,7 @@
 #include "ArmorComponent.h"
 #include "VfxComponent.h"
 #include "GameRuleComponent.h"
+#include "PlayerStatusComponent.h"
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
@@ -70,6 +71,7 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_HEALTH,            [this](auto& m){ HandleHealth(m); });
     reg(PKT_Type::S2C_PKT_ARMOR,             [this](auto& m){ HandleArmor(m); });
     reg(PKT_Type::S2C_PKT_AMMO,              [this](auto& m){ HandleAmmo(m); });
+    reg(PKT_Type::S2C_PKT_PLAYER_STATUS,     [this](auto& m){ HandlePlayerStatus(m); });
     reg(PKT_Type::S2C_PKT_COOLDOWN,          [this](auto& m){ HandleCooldown(m); });
     reg(PKT_Type::S2C_PKT_COLLISION,         [this](auto& m){ HandleCollision(m); });
     reg(PKT_Type::S2C_PKT_BULLET_ACTIVATE,   [this](auto& m){ HandleBulletActivate(m); });
@@ -77,10 +79,12 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_EFFECT_SPAWN,      [this](auto& m){ HandleEffectSpawn(m); });
     reg(PKT_Type::S2C_PKT_HIT_CONFIRM,       [this](auto& m){ HandleHitConfirm(m); });
     reg(PKT_Type::S2C_GAME_START,            [this](auto& m){ HandleGameStart(m); });
-    reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
+	reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_STATE,       [this](auto& m) { HandleSceneState(m); });
+	reg(PKT_Type::S2C_PKT_SCENE_PREPARE, [this](auto& m) { HandlePrepareSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_CONQUEST, [this](auto& m) { HandleConquestSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
+	reg(PKT_Type::S2C_PKT_SCENE_CLEAR, [this](auto& m) { HandleClearSceneState(m); });
 	reg(PKT_Type::S2C_ROOM_STATE, [this](auto& m) { HandleRoomState(m); });
 	reg(PKT_Type::S2C_ROOM_ERROR, [this](auto& m) { HandleRoomError(m); });
 	reg(PKT_Type::S2C_ROOM_LIST, [this](auto& m) { HandleRoomList(m); });
@@ -345,6 +349,33 @@ void NetRecvSystem::HandleAmmo(const InputCommand& msg)
         });
 }
 
+void NetRecvSystem::HandlePlayerStatus(const InputCommand& msg)
+{
+	const S2C_PlayerStatusPacket* pkt = msg.ViewAs<S2C_PlayerStatusPacket>();
+	if (!pkt) return;
+
+	Entity entity = mWorld->GetEntityByNetId(pkt->netEntityId);
+	if (entity == NULL_ENTITY || !mWorld->HasComponent<LocalPlayerComponent>(entity))
+		return;
+
+	PlayerStatusComponent* status = mWorld->GetComponent<PlayerStatusComponent>(entity);
+	if (!status)
+		status = &mWorld->AddComponent<PlayerStatusComponent>(entity);
+
+	status->mStatusFlags = pkt->statusFlags;
+	status->mStunRemaining = pkt->stunRemaining;
+	status->mRespawnRemaining = pkt->respawnRemaining;
+	status->mBuffCount = std::min<uint8>(pkt->buffCount, MAX_REPLICATED_BUFFS);
+
+	for (uint8 index = 0; index < MAX_REPLICATED_BUFFS; ++index)
+	{
+		status->mBuffs[index] =
+			index < status->mBuffCount
+			? pkt->buffs[index]
+			: ReplicatedBuffState{};
+	}
+}
+
 void NetRecvSystem::HandleCooldown(const InputCommand& msg)
 {
     const S2C_CooldownPacket* pkt = msg.ViewAs<S2C_CooldownPacket>();
@@ -594,6 +625,24 @@ void NetRecvSystem::HandleSceneState(const InputCommand& msg)
 	 gameRuleComp->mGamePhase = pkt->GamePhase;
 }
 
+void NetRecvSystem::HandlePrepareSceneState(const InputCommand& msg)
+{
+	const S2C_PreparePacket* pkt = msg.ViewAs<S2C_PreparePacket>();
+	if (!pkt) return;
+
+	GamePrepareComponent* prepareComp = mWorld->GetSingleton<GamePrepareComponent>();
+	if (!prepareComp)
+		prepareComp = &mWorld->AddSingleton<GamePrepareComponent>();
+
+	prepareComp->mReadyPlayers = pkt->ReadyPlayers;
+	prepareComp->mTotalPlayers = pkt->TotalPlayers;
+	prepareComp->mReadyCheckRemaining = pkt->ReadyCheckRemaining;
+	prepareComp->mForcedStartRemaining = pkt->ForcedStartRemaining;
+	prepareComp->mCountdownRemaining = pkt->CountdownRemaining;
+	prepareComp->mCountdownStarted = pkt->CountdownStarted != 0;
+	prepareComp->mAllPlayersReady = pkt->AllPlayersReady != 0;
+}
+
 void NetRecvSystem::HandleConquestSceneState(const InputCommand& msg)
 {
     const S2C_ConquestPacket* pkt = msg.ViewAs<S2C_ConquestPacket>();
@@ -635,6 +684,26 @@ void NetRecvSystem::HandleEscortSceneState(const InputCommand& msg)
 		Entity truck = mWorld->GetEntityByNetId(pkt->TruckNetId);
 		if (truck != NULL_ENTITY)
 			escortComp->mEscortTarget = truck;
+	}
+}
+
+void NetRecvSystem::HandleClearSceneState(const InputCommand& msg)
+{
+	const S2C_ClearPacket* pkt = msg.ViewAs<S2C_ClearPacket>();
+	if (!pkt) return;
+
+	GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>();
+	if (!clearComp)
+		clearComp = &mWorld->AddSingleton<GameClearComponent>();
+
+	clearComp->mPlayerCount = std::min<uint8>(pkt->PlayerCount, ROOM_MAX_PLAYERS);
+	clearComp->mTeamScore = pkt->TeamScore;
+	clearComp->mGameTime = pkt->GameTime;
+
+	for (uint8 index = 0; index < ROOM_MAX_PLAYERS; ++index)
+	{
+		clearComp->mSessionIds[index] = pkt->Players[index].SessionId;
+		clearComp->mPlayerTypes[index] = pkt->Players[index].PlayerType;
 	}
 }
 

@@ -36,8 +36,10 @@ enum PKT_Type : uint32 {
 	S2C_PKT_LOGIN,
 	S2C_PKT_LOGOUT,			// 아직 안함
 	S2C_PKT_SCENE_STATE,
+	S2C_PKT_SCENE_PREPARE,
 	S2C_PKT_SCENE_CONQUEST,
 	S2C_PKT_SCENE_ESCORT,
+	S2C_PKT_SCENE_CLEAR,
 	S2C_PKT_POS,
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
@@ -55,6 +57,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_HEALTH,
 	S2C_PKT_ARMOR,
 	S2C_PKT_AMMO,
+	S2C_PKT_PLAYER_STATUS,
 	S2C_PKT_HIT_CONFIRM,
 	S2C_PKT_COOLDOWN,
 	S2C_PKT_GIMMICK_STATE,
@@ -382,7 +385,73 @@ struct S2C_SceneStatePacket : public PacketTcpHeader {
 		clientId(id), GameTime(gameTime), GamePhase(gamePhase), PlayerScore(score) {
 	}
 };
-	
+
+enum PlayerStatusFlags : uint8
+{
+	PlayerStatus_None = 0,
+	PlayerStatus_Stunned = 1 << 0,
+	PlayerStatus_Dead = 1 << 1
+};
+
+enum class ReplicatedBuffType : uint8
+{
+	None = 0,
+	AttackUp,
+	ScoreBoost,
+	MoveSpeedUp,
+	BuffPowerUp,
+	ScoreOverTime,
+	ShieldOverTime,
+	HealOverTime,
+	ShieldDown,
+	Silence
+};
+
+enum ReplicatedBuffFlags : uint8
+{
+	ReplicatedBuff_None = 0,
+	ReplicatedBuff_Timed = 1 << 0,
+	ReplicatedBuff_Periodic = 1 << 1,
+	ReplicatedBuff_Debuff = 1 << 2,
+	ReplicatedBuff_Rhythm = 1 << 3
+};
+
+static constexpr uint8 MAX_REPLICATED_BUFFS = 12;
+
+struct ReplicatedBuffState
+{
+	ReplicatedBuffType buffType = ReplicatedBuffType::None;
+	uint8 buffFlags = ReplicatedBuff_None;
+	float remainingTime = 0.0f;
+};
+
+struct S2C_PreparePacket : public PacketTcpHeader {
+	int32 ReadyPlayers = 0;
+	int32 TotalPlayers = 0;
+	float ReadyCheckRemaining = 0.0f;
+	float ForcedStartRemaining = 0.0f;
+	float CountdownRemaining = 0.0f;
+	uint8 CountdownStarted = 0;
+	uint8 AllPlayersReady = 0;
+
+	S2C_PreparePacket()
+		: PacketTcpHeader{ sizeof(S2C_PreparePacket), PKT_Type::S2C_PKT_SCENE_PREPARE, 0.0 } {}
+};
+
+struct ClearPlayerInfo {
+	uint32 SessionId = 0;
+	uint8 PlayerType = 0;
+};
+
+struct S2C_ClearPacket : public PacketTcpHeader {
+	uint8 PlayerCount = 0;
+	int32 TeamScore = 0;
+	float GameTime = 0.0f;
+	ClearPlayerInfo Players[ROOM_MAX_PLAYERS]{};
+
+	S2C_ClearPacket()
+		: PacketTcpHeader{ sizeof(S2C_ClearPacket), PKT_Type::S2C_PKT_SCENE_CLEAR, 0.0 } {}
+};
 
 struct S2C_ConquestPacket : public PacketTcpHeader {
 	uint32 clientId{};
@@ -486,6 +555,20 @@ struct S2C_StatePacket : public PacketTcpHeader {
 		netEntityId(entityId), stateId(sId) {
 	}
 };
+
+struct S2C_PlayerStatusPacket : public PacketTcpHeader {
+	uint64_t netEntityId{};
+	uint8_t statusFlags = PlayerStatus_None;
+	float stunRemaining = 0.0f;
+	float respawnRemaining = 0.0f;
+	uint8 buffCount = 0;
+	ReplicatedBuffState buffs[MAX_REPLICATED_BUFFS]{};
+
+	S2C_PlayerStatusPacket()
+		: PacketTcpHeader{ sizeof(S2C_PlayerStatusPacket), PKT_Type::S2C_PKT_PLAYER_STATUS, 0.0 } {}
+};
+static_assert(sizeof(S2C_PlayerStatusPacket) <= MAX_PACKET_SIZE,
+	"S2C_PlayerStatusPacket exceeds MAX_PACKET_SIZE");
 
 struct S2C_HealthPacket : public PacketTcpHeader {
 	uint64_t netEntityId{};

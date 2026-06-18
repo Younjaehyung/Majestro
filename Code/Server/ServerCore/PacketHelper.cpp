@@ -27,14 +27,17 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::S2C_PKT_HEALTH:
 	case PKT_Type::S2C_PKT_ARMOR:
 	case PKT_Type::S2C_PKT_AMMO:
+	case PKT_Type::S2C_PKT_PLAYER_STATUS:
 	case PKT_Type::S2C_PKT_COOLDOWN:
 	case PKT_Type::S2C_PKT_GIMMICK_STATE:
 	case PKT_Type::S2C_PKT_RHYTHM_CHANGED:
 	case PKT_Type::S2C_PKT_BEAT_JUDGEMENT:
 	case PKT_Type::S2C_PKT_HIT_CONFIRM:
 	case PKT_Type::S2C_PKT_SCENE_STATE:
+	case PKT_Type::S2C_PKT_SCENE_PREPARE:
 	case PKT_Type::S2C_PKT_SCENE_CONQUEST:
 	case PKT_Type::S2C_PKT_SCENE_ESCORT:
+	case PKT_Type::S2C_PKT_SCENE_CLEAR:
 	case PKT_Type::S2C_ROOM_STATE:
 	case PKT_Type::S2C_ROOM_ERROR:
 	case PKT_Type::S2C_ROOM_LIST:

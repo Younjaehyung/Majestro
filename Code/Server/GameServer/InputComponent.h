@@ -47,6 +47,7 @@ public:
     bool HasAimCameraRay = false;
 
     uint32 lastSeq = 0;
+    float mLastMoveInputTime = -1.0f; // 이동 패킷 단절 시 고착 입력을 해제하기 위한 마지막 수신 시각
 
 public:
     // InputButtons 버튼 마스킹 

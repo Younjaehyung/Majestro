@@ -99,6 +99,36 @@ struct BannerVisual
 	float mAlpha    = 1.f;
 };
 
+// 좌측부터 드러나는 배경과 중앙 Stamp를 조합한 재사용 가능한 Phase 연출 설정.
+struct RevealStampAnimationSpec
+{
+	std::wstring mRevealTextureName;
+	std::wstring mStampTextureName;
+
+	float mRevealDuration = 0.9f;
+	float mStampStartTime = 0.75f;
+	float mStampDuration = 0.32f;
+	float mStampStartScale = 1.65f;
+
+	uint8 mRevealLayer = 8;
+	uint8 mStampLayer = 9;
+
+	Vec3 mCameraShakeAngles = Vec3(1.2f, 0.8f, 1.8f);
+	float mCameraShakeDuration = 0.22f;
+	float mCameraShakeFrequency = 24.0f;
+};
+
+// 연출 엔티티와 타이머를 한곳에서 관리해 다른 Phase에서도 같은 실행기를 재사용한다.
+struct RevealStampAnimationState
+{
+	RevealStampAnimationSpec mSpec;
+	Entity mRevealEntity = NULL_ENTITY;
+	Entity mStampEntity = NULL_ENTITY;
+	float mElapsed = 0.0f;
+	bool mActive = false;
+	bool mStampTriggered = false;
+};
+
 class UIGameInfoUpdateFeature : public UIFeature
 {
 public:
@@ -114,6 +144,7 @@ private:
 	void UpdatePreparePhase(float dt, GameRuleComponent* gameRuleComp);
 	void UpdateConquestPhase(float dt, GameRuleComponent* gameRuleComp);
 	void UpdateEscortPhase(float dt, GameRuleComponent* gameRuleComp);
+	void UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp);
 
 	void RenderGameTime(CameraComponent* camera);
 	void RenderPlayerScore(CameraComponent* camera);
@@ -124,11 +155,18 @@ private:
 
 	// 매 프레임 호출 — stage 진행/전이 + 시각 속성 계산/적용.
 	void TickGoalBanner(float dt);
+	void TickRevealStampAnimation(float dt);
 
 	// 배너 엔티티 (재활용).
 	void EnsureBannerEntities();
+	void EnsureRevealStampEntities();
+	void EnsurePhaseStatusText();
 	void ApplyBannerSpec(const PhaseGoalSpec& spec);
 	void SetBannerVisible(bool visible);
+	void SetPhaseStatusVisible(bool visible);
+	void StartRevealStampAnimation(const RevealStampAnimationSpec& spec);
+	void StopRevealStampAnimation();
+	void TriggerAnimationCameraShake(const RevealStampAnimationSpec& spec);
 
 	// 시각 속성을 BannerVisual 한 번에 엔티티 컴포넌트로 적용.
 	void ApplyVisual(const BannerVisual& v);
@@ -171,5 +209,8 @@ private:
 
 	Entity        mBannerEntity     = NULL_ENTITY;
 	Entity        mBannerTextEntity = NULL_ENTITY;
-};
+	Entity        mPhaseStatusTextEntity = NULL_ENTITY;
 
+	std::unordered_map<WavePhaseType, RevealStampAnimationSpec> mRevealStampAnimationTable;
+	RevealStampAnimationState mRevealStampAnimation;
+};

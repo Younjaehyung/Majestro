@@ -142,7 +142,12 @@ void RenderSystem::Update() {
   ctx.frameIndex     = mFrameCount;
 
   mActivePipeline->PreCompute(ctx);
-  mActivePipeline->Execute(ctx);
+  mActivePipeline->ExecuteIndependentGraphics(ctx);
+
+  // Submit graphics passes that do not consume compute output before the queue wait.
+  RENDERMANAGER.SubmitIndependentGraphics();
+
+  mActivePipeline->ExecuteDependentGraphics(ctx);
 }
 
 void RenderSystem::PushData() {

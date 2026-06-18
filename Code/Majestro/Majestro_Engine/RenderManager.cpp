@@ -228,7 +228,6 @@ void RenderManager::StartRender()
 	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
 	mGraphicsCommandQueue->WaitForBackBuffer(backIndex);
 	mGraphicsCommandQueue->WaitForFrame(mFrameResourceIndex);
-	mGraphicsCommandQueue->WaitForFence(mComputeCommandQueue->GetFence().Get(), mAnimationComputeFenceValue);
 	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
 	// 인게임 VFX (HDR renderer) 프레임 시작
@@ -246,6 +245,20 @@ void RenderManager::StartRender()
 		EffekseerRendererDX12::BeginCommandList(mEfkCmdListUI, GRAPHICS_CMD_LIST.Get());
 		mEfkRendererUI->SetCommandList(mEfkCmdListUI);
 	}
+}
+
+void RenderManager::SubmitIndependentGraphics()
+{
+	// Execute depth, shadow, and deferred work before waiting for Forward Plus compute.
+	mGraphicsCommandQueue->SubmitIndependentWork(mFrameResourceIndex);
+
+	// Insert the queue wait after independent work so the graphics and compute queues can overlap.
+	mGraphicsCommandQueue->WaitForFence(
+		mComputeCommandQueue->GetFence().Get(),
+		mAnimationComputeFenceValue);
+
+	// Reset clears command list state, so restore the shared graphics bindings.
+	SetGraphicsTable();
 }
 
 

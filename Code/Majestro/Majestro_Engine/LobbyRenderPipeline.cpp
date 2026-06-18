@@ -115,11 +115,22 @@ void LobbyRenderPipeline::PreCompute(const RenderContext& ctx)
 
 void LobbyRenderPipeline::Execute(const RenderContext& ctx)
 {
+    ExecuteIndependentGraphics(ctx);
+    ExecuteDependentGraphics(ctx);
+}
 
+void LobbyRenderPipeline::ExecuteIndependentGraphics(const RenderContext& ctx)
+{
+    // These passes do not read Forward Plus compute output and can overlap with it.
     mDepthPrePass->Execute(*ctx.deferredBatchs);
     RenderDeferred(ctx);
 
     mLobbyBackgroundPass->Execute(*ctx.deferredBatchs);
+}
+
+void LobbyRenderPipeline::ExecuteDependentGraphics(const RenderContext& ctx)
+{
+    // Forward rendering is the first pass that consumes Forward Plus compute output.
     mForwardPass->Execute(*ctx.deferredBatchs);
     mOutlinePass->Execute(*ctx.deferredBatchs);
     // Effekseer VFX

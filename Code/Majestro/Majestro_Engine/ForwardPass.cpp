@@ -133,7 +133,5 @@ void ForwardPass::Compute()
     const uint64 fenceValue = RENDERMANAGER.GetComputeCmdQueue()->ExecuteCommandList(
         RENDERMANAGER.GetFrameResourceIndex());
     RENDERMANAGER.SetAnimationComputeFenceValue(fenceValue);
-    RENDERMANAGER.GetGraphicsCmdQueue()->WaitForFence(
-        RENDERMANAGER.GetComputeCmdQueue()->GetFence().Get(), fenceValue);
 #endif
 }

@@ -58,6 +58,7 @@ public:
 	void Update();
 
 	void StartRender();
+	void SubmitIndependentGraphics();
 	void Render() {};
 	void EndRender();
 

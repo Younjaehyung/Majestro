@@ -15,6 +15,7 @@ public:
 
 
 	void RenderBegin(uint32 frameIndex);
+	void SubmitIndependentWork(uint32 frameIndex);
 	void RenderEnd();
 
 	void SignalFrame(uint32 frameIndex, uint32 backBufferIndex);
@@ -36,6 +37,7 @@ private:
 
 	ComPtr<ID3D12CommandQueue>			mCommandQueue;
 	array<ComPtr<ID3D12CommandAllocator>, FRAMEGROUP_COUNT> mCommandAllocators;
+	array<ComPtr<ID3D12CommandAllocator>, FRAMEGROUP_COUNT> mContinuationCommandAllocators;
 	ComPtr<ID3D12GraphicsCommandList>	mCommandList;
 	
 	//리소스 로딩용 CMD

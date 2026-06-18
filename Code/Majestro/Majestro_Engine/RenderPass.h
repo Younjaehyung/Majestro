@@ -88,6 +88,8 @@ public:
 
 	// Compute Shader 사전 연산 | RenderSystem::PreProcess() 역할
 	virtual void PreCompute(const RenderContext& ctx) {}
+	virtual void ExecuteIndependentGraphics(const RenderContext& ctx) {}
+	virtual void ExecuteDependentGraphics(const RenderContext& ctx) { Execute(ctx); }
 	virtual void Execute(const RenderContext& ctx) = 0;
 
 	// #ifdef _IMGUI 블록 안에서 ImGui 위젯

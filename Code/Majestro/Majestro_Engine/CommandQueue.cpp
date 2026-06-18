@@ -42,6 +42,7 @@ void GraphicsCommandQueue::WaitForGpuComplete()
 void GraphicsCommandQueue::RenderBegin(uint32 frameIndex)
 {
 	mCommandAllocators[frameIndex]->Reset();
+	mContinuationCommandAllocators[frameIndex]->Reset();
 	mCommandList->Reset(mCommandAllocators[frameIndex].Get(), nullptr);
 	// 기존 정보들 클리어
 
@@ -65,6 +66,19 @@ void GraphicsCommandQueue::RenderBegin(uint32 frameIndex)
 	}
 
 
+}
+
+void GraphicsCommandQueue::SubmitIndependentWork(uint32 frameIndex)
+{
+	// Submit graphics work that does not consume compute results.
+	// The second allocator is required because the first allocator can still be in use by the GPU.
+	mCommandList->Close();
+
+	ID3D12CommandList* cmdListArr[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdListArr), cmdListArr);
+
+	// Continue dependent graphics recording with a separate allocator for this frame.
+	mCommandList->Reset(mContinuationCommandAllocators[frameIndex].Get(), nullptr);
 }
 
 void GraphicsCommandQueue::RenderEnd()
@@ -190,6 +204,10 @@ void GraphicsCommandQueue::CreateCommandQueue()
 
 	// - D3D12_COMMAND_LIST_TYPE_DIRECT : GPU가 직접 실행하는 명령 목록
 	for (auto& commandAllocator : mCommandAllocators)
+	{
+		mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+	}
+	for (auto& commandAllocator : mContinuationCommandAllocators)
 	{
 		mDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
 	}

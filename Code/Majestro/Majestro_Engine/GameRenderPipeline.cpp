@@ -203,12 +203,23 @@ void GameRenderPipeline::PreCompute(const RenderContext& ctx)
 
 void GameRenderPipeline::Execute(const RenderContext& ctx)
 {
+    ExecuteIndependentGraphics(ctx);
+    ExecuteDependentGraphics(ctx);
+}
+
+void GameRenderPipeline::ExecuteIndependentGraphics(const RenderContext& ctx)
+{
     UpdatePassStates();
 
-
+    // These passes do not read Forward Plus compute output and can overlap with it.
     RenderDepthPrePass(ctx);
     RenderShadow(ctx);
     RenderDeferred(ctx);
+}
+
+void GameRenderPipeline::ExecuteDependentGraphics(const RenderContext& ctx)
+{
+    // Forward rendering is the first pass that consumes Forward Plus compute output.
     RenderForward(ctx);
     RenderOutline(ctx);
     RenderEffect(ctx);

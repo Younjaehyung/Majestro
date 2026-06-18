@@ -56,6 +56,16 @@ void PlayerInputSystem::Update(float dt)
 		const float Beat = beatSystem->mBpmSeconds;
 		const float now  = GetServerTotalTimeSeconds();
 
+		constexpr float MoveInputTimeout = 0.25f;
+		if (inputComp->mLastMoveInputTime >= 0.0f &&
+			now - inputComp->mLastMoveInputTime > MoveInputTimeout)
+		{
+			// 씬 로딩이나 네트워크 단절로 키 해제 패킷을 받지 못해도 이동 입력이 고착되지 않게 한다
+			inputComp->MoveX = 0.0f;
+			inputComp->MoveY = 0.0f;
+			inputComp->MoveZ = 0.0f;
+		}
+
 		//연속행동
 		if (mainPlayerComponent->mPendingAction != PendingAction::None)
 		{

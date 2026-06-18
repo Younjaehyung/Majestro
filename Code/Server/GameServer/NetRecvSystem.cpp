@@ -121,6 +121,13 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& pkt)
 	Entity e = FindEntityBySession(sessionId);
 	if (!e.IsValid()) return;
 
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+	if (netComp == nullptr || netComp->mNetEntityId != pkt.netEntityId)
+	{
+		// 이전 씬에서 늦게 도착한 UDP 입력이 새 씬 플레이어에게 적용되는 것을 막는다
+		return;
+	}
+
 	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 	if (inputComp == nullptr) return;
 
@@ -137,6 +144,7 @@ void NetRecvSystem::RecvInput(uint32 sessionId, const C2S_MovePacket& pkt)
 	inputComp->Yaw    = pkt.Yaw;
 	inputComp->Pitch  = pkt.Pitch;
 	inputComp->lastSeq = pkt.Seq;
+	inputComp->mLastMoveInputTime = GetServerTotalTimeSeconds();
 
 	inputComp->AimCameraPosition  = Vec3(pkt.CameraX, pkt.CameraY, pkt.CameraZ);
 	inputComp->AimCameraDirection = Vec3(pkt.CameraDirX, pkt.CameraDirY, pkt.CameraDirZ);
@@ -149,6 +157,13 @@ void NetRecvSystem::RecvAction(uint32 sessionId, const C2S_ActionPacket& pkt)
 {
 	Entity e = FindEntityBySession(sessionId);
 	if (!e.IsValid()) return;
+
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+	if (netComp == nullptr || netComp->mNetEntityId != pkt.netEntityId)
+	{
+		// 이전 씬의 지연된 액션 패킷이 새 씬 플레이어 상태를 변경하지 못하게 한다
+		return;
+	}
 
 	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(e);
 	if (inputComp == nullptr) return;

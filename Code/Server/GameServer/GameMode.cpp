@@ -36,6 +36,7 @@ void WaveGameMode::Initialize()
 	}
 	else
 	{
+		mPhaseQueue.push_back([] { return new PreparePhase(); });
 		mPhaseQueue.push_back([] { return new EscortPhase(/*routeId=*/0); });
 	}
 

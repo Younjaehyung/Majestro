@@ -2803,14 +2803,21 @@ void ResourceManager::CreateDefaultMaterial()
 
 #pragma region InGame
 		{
+			Load<Texture>(L"UI_Ingame_Prepare", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 			Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
 			Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort_0.png");
 			Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
 			Load<Texture>(L"UI_Ingame_Killboss", L"..\\Resources\\Image\\UI\\UI_Ingame_Killboss_0.png");
 			Load<Texture>(L"UI_Ingame_Success", L"..\\Resources\\Image\\UI\\UI_Ingame_Success_0.png");
 
-			// 스테이지 클리어 전체화면 오버레이 (Clear phase 진입 시 페이드인)
+			// 스테이지 클리어
 			Load<Texture>(L"UI_StageClear_0", L"..\\Resources\\Image\\UI\\UI_StageClear_0.png");
+			Load<Texture>(L"UI_StageClear_1", L"..\\Resources\\Image\\UI\\UI_StageClear_1.png");
+			Load<Texture>(L"UI_StageClear_2", L"..\\Resources\\Image\\UI\\UI_StageClear_2.png");
+
+			// GameOver
+			Load<Texture>(L"UI_GameOver_1", L"..\\Resources\\Image\\UI\\UI_GameOver_1.png");
+			Load<Texture>(L"UI_GameOver_2", L"..\\Resources\\Image\\UI\\UI_GameOver_2.png");
 
 			Load<Texture>(L"UI_Ingame_Conquest_Info_0", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_0.png");
 			Load<Texture>(L"UI_Ingame_Conquest_Info_1", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_1.png");

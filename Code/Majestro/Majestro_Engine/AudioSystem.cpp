@@ -10,6 +10,7 @@
 #include "NetEntityComponent.h"
 #include "TagComponent.h"
 #include "GameRuleComponent.h"
+#include "PlayerStatusComponent.h"
 
 namespace
 {
@@ -109,6 +110,8 @@ void AudioSystem::Update(float deltaTime)
 
     // 드리프트 보정
     CorrectBgmDrift();
+
+    UpdateSilenceMusicState();
 
     time += deltaTime;
 
@@ -331,6 +334,75 @@ void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
     }
 
     AUDIOMANAGER.SetBGMParam(paramName, stem, static_cast<float>(rhythm), true);
+}
+
+void AudioSystem::UpdateSilenceMusicState()
+{
+    Entity localPlayerEntity = NULL_ENTITY;
+
+    if (mWorld->HasComponentPool<MainPlayerComponent>() &&
+        mWorld->HasComponentPool<LocalPlayerComponent>())
+    {
+        const auto localPlayers =
+            mWorld->GetEntitiesWithComponents<MainPlayerComponent, LocalPlayerComponent>();
+
+        if (!localPlayers.empty())
+            localPlayerEntity = localPlayers.front();
+    }
+
+    if (localPlayerEntity == NULL_ENTITY)
+    {
+        if (mSilenceMusicMuted && mSilenceMusicStem != SOUNDNAME::End)
+            AUDIOMANAGER.SetBGMVolume(mSilenceMusicStem, 1.0f);
+
+        mSilenceMusicMuted = false;
+        mSilenceMusicStem = SOUNDNAME::End;
+        return;
+    }
+
+    const MainPlayerComponent* player =
+        mWorld->GetComponent<MainPlayerComponent>(localPlayerEntity);
+    if (player == nullptr)
+        return;
+
+    SOUNDNAME playerMusic = SOUNDNAME::End;
+    switch (player->mPlayerType)
+    {
+    case PlayerType::Rudwig:
+        playerMusic = SOUNDNAME::Drum;
+        break;
+    case PlayerType::Ibanix:
+        playerMusic = SOUNDNAME::Bass;
+        break;
+    case PlayerType::Fanthor:
+        playerMusic = SOUNDNAME::Elec;
+        break;
+    default:
+        return;
+    }
+
+    if (mSilenceMusicStem != playerMusic)
+    {
+        if (mSilenceMusicMuted && mSilenceMusicStem != SOUNDNAME::End)
+            AUDIOMANAGER.SetBGMVolume(mSilenceMusicStem, 1.0f);
+
+        mSilenceMusicStem = playerMusic;
+        mSilenceMusicMuted = false;
+    }
+
+    const PlayerStatusComponent* status =
+        mWorld->GetComponent<PlayerStatusComponent>(localPlayerEntity);
+    const bool shouldMute =
+        status != nullptr &&
+        status->FindBuff(ReplicatedBuffType::Silence) != nullptr;
+
+    if (mSilenceMusicMuted == shouldMute)
+        return;
+
+    // 수정사항: 재생 위치를 멈추지 않고 로컬 캐릭터에 대응하는 음악만 음소거한다.
+    // 개별 배율은 Ambient 버스 음량과 곱해지므로 설정 음량 비율이 그대로 유지된다.
+    AUDIOMANAGER.SetBGMVolume(playerMusic, shouldMute ? 0.0f : 1.0f);
+    mSilenceMusicMuted = shouldMute;
 }
 
 void OnExplosion(float x, float y, float z) {

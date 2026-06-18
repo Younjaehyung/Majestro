@@ -16,7 +16,28 @@
 #include "InteractableComponent.h"
 #include "SpawnerComponent.h"
 #include "TruckComponent.h"
+#include "BuffComponent.h"
+#include "GameTimer.h"
 
+namespace
+{
+	ReplicatedBuffType ToReplicatedBuffType(BuffType type)
+	{
+		switch (type)
+		{
+		case BuffType::AttackUp: return ReplicatedBuffType::AttackUp;
+		case BuffType::ScoreBoost: return ReplicatedBuffType::ScoreBoost;
+		case BuffType::MoveSpeedUp: return ReplicatedBuffType::MoveSpeedUp;
+		case BuffType::BuffPowerUp: return ReplicatedBuffType::BuffPowerUp;
+		case BuffType::ScoreOverTime: return ReplicatedBuffType::ScoreOverTime;
+		case BuffType::ShieldOverTime: return ReplicatedBuffType::ShieldOverTime;
+		case BuffType::HealOverTime: return ReplicatedBuffType::HealOverTime;
+		case BuffType::ShieldDown: return ReplicatedBuffType::ShieldDown;
+		case BuffType::Silence: return ReplicatedBuffType::Silence;
+		default: return ReplicatedBuffType::None;
+		}
+	}
+}
 
 NetSendSystem::NetSendSystem(World* world) : System(world)
 {
@@ -33,6 +54,8 @@ void NetSendSystem::Update(float dt)
 
 	HandleSessionJoinedEvents();   // 신규 세션 초기 상태 송신
 	SendAction();
+	if (mPlayerStatusRate.Tick(dt))
+		SendPlayerStatus();
 	SendCollision();
 	SendHealthEvents();
 	SendArmorEvents();
@@ -49,6 +72,81 @@ void NetSendSystem::Update(float dt)
 		SendMove(dt);	//move
 
 
+}
+
+void NetSendSystem::SendPlayerStatus()
+{
+	if (!mWorld->HasComponentPool<MainPlayerComponent>() ||
+		!mWorld->HasComponentPool<NetEntityComponent>())
+	{
+		return;
+	}
+
+	const float now = GetServerTotalTimeSeconds();
+	for (Entity entity : mWorld->GetEntitiesWithComponents<MainPlayerComponent, NetEntityComponent>())
+	{
+		MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity);
+		NetEntityComponent* net = mWorld->GetComponent<NetEntityComponent>(entity);
+		if (!player || !net || net->mSessionId == 0)
+			continue;
+
+		S2C_PlayerStatusPacket packet{};
+		packet.netEntityId = net->mNetEntityId;
+
+		if (player->IsDeathActive())
+		{
+			packet.statusFlags |= PlayerStatus_Dead;
+			packet.respawnRemaining = max(0.0f, player->mDeathEndTime - now);
+		}
+
+		if (player->GetReplicatedActionState() ==
+			static_cast<uint8>(ReplicatedActionState::Stun))
+		{
+			packet.statusFlags |= PlayerStatus_Stunned;
+			packet.stunRemaining = max(0.0f, player->mStateEnd - now);
+		}
+
+		if (BuffComponent* buffs = mWorld->GetComponent<BuffComponent>(entity))
+		{
+			for (const BuffData& buff : buffs->mBuffs)
+			{
+				if (packet.buffCount >= MAX_REPLICATED_BUFFS)
+					break;
+
+				const ReplicatedBuffType replicatedType =
+					ToReplicatedBuffType(buff.mType);
+				if (replicatedType == ReplicatedBuffType::None)
+					continue;
+
+				ReplicatedBuffState& state = packet.buffs[packet.buffCount++];
+				state.buffType = replicatedType;
+				state.buffFlags = ReplicatedBuff_None;
+
+				if (buff.mDurationPolicy == DurationPolicy::Timed)
+				{
+					state.buffFlags |= ReplicatedBuff_Timed;
+					state.remainingTime = max(0.0f, buff.mEndTime - now);
+				}
+				else
+				{
+					state.remainingTime = -1.0f;
+				}
+
+				if (buff.mExecutionType == BuffExecutionType::Periodic)
+					state.buffFlags |= ReplicatedBuff_Periodic;
+				if (buff.mKind == EffectKind::Debuff)
+					state.buffFlags |= ReplicatedBuff_Debuff;
+				if (buff.mIsRhythmEffect)
+					state.buffFlags |= ReplicatedBuff_Rhythm;
+			}
+		}
+
+		SendRequest request{};
+		request.SessionId = net->mSessionId;
+		request.Type = S2C_PKT_PLAYER_STATUS;
+		request.StoreAs(packet);
+		gSendQueue.Push(request);
+	}
 }
 
 void NetSendSystem::SendMove(float dt)
@@ -696,6 +794,15 @@ void NetSendSystem::SendEnemyPoolToNewSession(uint32 newSessionId)
 		S2C_SpawnPacekt spawnPkt(newSessionId, netComp->mNetEntityId, PrefabType::ENEMY);
 		spawnPkt.isLocalPlayer = 0;
 		spawnPkt.Type = enemyComp->mEnemyType;
+
+		if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity))
+		{
+			// 기존 적 스폰 패킷에도 현재 위치를 포함해 클라이언트의 원점 생성을 방지한다
+			spawnPkt.hasInitialTransform = 1;
+			spawnPkt.x = transform->mLocalPosition.x;
+			spawnPkt.y = transform->mLocalPosition.y;
+			spawnPkt.z = transform->mLocalPosition.z;
+		}
 
 		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);

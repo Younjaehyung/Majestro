@@ -361,6 +361,8 @@
     <ClInclude Include="UICommonUpdateFeature.h" />
     <ClInclude Include="UIEffectPass.h" />
     <ClInclude Include="UIGameInfoUpdateFeature.h" />
+    <ClInclude Include="PlayerStatusComponent.h" />
+    <ClInclude Include="PlayerStatusUIFeature.h" />
     <ClInclude Include="UIHpBarUpdateFeature.h" />
     <ClInclude Include="UIPhaseProgressUpdateFeature.h" />
     <ClInclude Include="UIRenderSystem.h" />
@@ -527,6 +529,7 @@
     <ClCompile Include="UICommonUpdateFeature.cpp" />
     <ClCompile Include="UIEffectPass.cpp" />
     <ClCompile Include="UIGameInfoUpdateFeature.cpp" />
+    <ClCompile Include="PlayerStatusUIFeature.cpp" />
     <ClCompile Include="UIHpBarUpdateFeature.cpp" />
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp" />
     <ClCompile Include="LobbyRoomSystem.cpp" />

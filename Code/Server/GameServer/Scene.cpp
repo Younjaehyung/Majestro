@@ -904,6 +904,7 @@ void SecondScene::Initialize()
 	waveMode->SetCompletionScene(SceneId::ThirdGame); // 모든 Conquest 클리어 후 보스전(ThirdGame)으로 전환
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
+		phases.push_back([] { return new PreparePhase(); });
 		phases.push_back([] { return new ConquestPhase(/*zoneId=*/1, /*requiredSeconds=*/30.f); });
 		phases.push_back([] { return new ConquestPhase(/*zoneId=*/2, /*requiredSeconds=*/30.f); });
 		phases.push_back([] { return new ClearPhase(3.0f); });
@@ -961,6 +962,7 @@ void ThirdScene::Initialize()
 	waveMode->SetCompletionScene(SceneId::VGame); // 보스전 클리어 후 승리 화면으로 전환
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
+		phases.push_back([] { return new PreparePhase(); });
 		phases.push_back([] { return new BossPhase(/*zoneId=*/0); });
 		phases.push_back([] { return new ClearPhase(3.0f); });
 		waveMode->SetInitialPhases(std::move(phases));

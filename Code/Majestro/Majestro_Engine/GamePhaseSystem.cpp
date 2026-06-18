@@ -80,7 +80,8 @@ void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
 		switch (static_cast<WavePhaseType>(ev.prevPhase))
 		{
 		case WavePhaseType::Prepare:
-			// 준비 단계 로직 (예: 웨이브 시작 대기, UI 업데이트 등)
+			// Prepare 전용 네트워크 상태가 다음 Phase에 남지 않도록 제거한다.
+			mWorld->RemoveComponent<GamePrepareComponent>(e);
 			break;
 		case WavePhaseType::Conquest:
 			// 점령 단계 종료
@@ -100,7 +101,8 @@ void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
 			// 실패 단계 로직 (예: 게임 오버 처리, 리스타트 대기 등)
 			break;
 		case WavePhaseType::Clear:
-			// 클리어 단계 로직 (예: 승리 처리, 다음 스테이지 준비 등)
+			// Clear 결과 상태는 Clear Phase에서만 유지한다.
+			mWorld->RemoveComponent<GameClearComponent>(e);
 			break;
 		default:
 			break;
@@ -109,7 +111,9 @@ void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
 		switch (static_cast<WavePhaseType>(ev.newPhase))
 		{
 		case WavePhaseType::Prepare:
-			// 준비 단계 로직 (예: 웨이브 시작 대기, UI 업데이트 등)
+			// Prepare 패킷 수신 전에 UI가 접근해도 안전하도록 상태를 생성한다.
+			if (!mWorld->GetComponent<GamePrepareComponent>(e))
+				mWorld->AddComponent<GamePrepareComponent>(e);
 			break;
 		case WavePhaseType::Conquest:
 			// 점령 단계 로직 (예: 점령 시간 감소, 점령 상태 체크 등)
@@ -126,7 +130,9 @@ void GamePhaseSystem::ConsumePreparePhase(float deltaTime, Entity e)
 			// 실패 단계 로직 (예: 게임 오버 처리, 리스타트 대기 등)
 			break;
 		case WavePhaseType::Clear:
-			// 클리어 단계 로직 (예: 승리 처리, 다음 스테이지 준비 등)
+			// Clear 패킷 수신 전에 UI가 접근해도 안전하도록 상태를 생성한다.
+			if (!mWorld->GetComponent<GameClearComponent>(e))
+				mWorld->AddComponent<GameClearComponent>(e);
 			break;
 		default:
 			break;

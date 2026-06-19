@@ -140,6 +140,13 @@
       "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
+    },
+    {
+      "startFrame": 3,
+      "endFrame": 8,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Ibanix_Attack01"
     }
   ],
 
@@ -152,6 +159,13 @@
       "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
+    },
+    {
+      "startFrame": 11,
+      "endFrame": 15,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Ibanix_Skill01"
     }
   ],
   "Anim_Ibanix_Rhythm": [
@@ -163,6 +177,13 @@
       "sfx": "notify/Ibanix/Swing",
       "socket": "rhand_tip",
       "is3d": true
+    },
+    {
+      "startFrame": 4,
+      "endFrame": 12,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Ibanix_Rhythm"
     }
   ],
   "Anim_Ibanix_Reload": [
@@ -176,8 +197,6 @@
       "is3d": true
     }
   ],
-
-
 
   "Anim_Fanthor_Attack_01": [
     {
@@ -202,8 +221,8 @@
       "is3d": true
     },
     {
-      "startFrame": 11,
-      "endFrame": 15,
+      "startFrame": 9,
+      "endFrame": 14,
       "kind": "cameraShake",
       "useUpper": true,
       "preset": "Fanthor_Attack1"
@@ -212,20 +231,41 @@
 
   "Anim_Fanthor_Attack_02": [
     {
-      "frame": 10,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Fanthor/Swing",
-      "socket": "weapon_tip",
-      "is3d": true
-    },
-    {
       "startFrame": 9,
-      "endFrame": 13,
+      "endFrame": 14,
       "kind": "cameraShake",
       "useUpper": true,
       "preset": "Fanthor_Attack2"
+    }
+  ],
+
+  "Anim_Fanthor_Attack_03": [
+    {
+      "startFrame": 4,
+      "endFrame": 10,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Fanthor_Attack3"
+    }
+  ],
+
+  "Anim_Fanthor_Skill_01": [
+    {
+      "startFrame": 26,
+      "endFrame": 32,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Fanthor_Skill1"
+    }
+  ],
+
+  "Anim_Fanthor_Skill_02": [
+    {
+      "startFrame": 11,
+      "endFrame": 15,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Fanthor_Skill2"
     }
   ],
 
@@ -253,6 +293,51 @@
       "useUpper": true,
       "preset": "Rudwig_Attack1"
     }
-  ]
+  ],
 
+  "Anim_Rudwig_Rhythm": [
+    {
+      "startFrame": 7,
+      "endFrame": 12,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Rudwig_Rhythm"
+    },
+    {
+      "startFrame": 18,
+      "endFrame": 22,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Rudwig_Rhythm"
+    }
+  ],
+
+  "Anim_Rudwig_Skill_01": [
+    {
+      "startFrame": 15,
+      "endFrame": 25,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Rudwig_Skill1"
+    }
+  ],
+
+  "Anim_Rudwig_Skill_02": [
+    {
+      "startFrame": 5,
+      "endFrame": 10,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Rudwig_Skill2"
+    }
+  ],
+  "Anim_Rudwig_Reload": [
+    {
+      "startFrame": 5,
+      "endFrame": 18,
+      "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Rudwig_Reload"
+    }
+  ]
 }

@@ -26,6 +26,7 @@ struct EvDamage
     Entity target;
     int32 amount;
     Entity instigator; // 0이면 환경
+    SkillType skillType = SkillType::Default;
     bool isCritical = false;
 };
 

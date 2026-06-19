@@ -253,6 +253,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		EvDamage damageEvent{};
 		damageEvent.instigator = request.shooter;
 		damageEvent.target = target;
+		damageEvent.skillType = request.bulletType;
 		const float baseDamage = attackerIsFly ? 10.0f : stat.damage;
 		damageEvent.amount = static_cast<int32>((std::max)(0.0f, baseDamage * attackMultiplier));
 		damageEvent.isCritical = request.isCritical;

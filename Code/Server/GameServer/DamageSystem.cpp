@@ -88,6 +88,53 @@ void DamageSystem::Update(float deltaTime)
         {
             if (EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(e.target))
             {
+                if (e.instigator.IsValid() &&
+                    e.skillType == SkillType::DrumAttack &&
+                    e.isCritical)
+                {
+                    if (MainPlayerComponent* instigatorPlayer = mWorld->GetComponent<MainPlayerComponent>(e.instigator))
+                    {
+                        if (instigatorPlayer->mPlayerType == PlayerType::Rudwig)
+                        {
+                            float beatSeconds = 0.0f;
+                            if (auto systemManager = mWorld->GetSystemManager())
+                            {
+                                if (auto* beatSystem = systemManager->GetSystem<BeatSystem>())
+                                    beatSeconds = beatSystem->mBpmSeconds;
+                            }
+
+                            if (instigatorPlayer->mRhythm == static_cast<uint8>(Rhythm::R2))
+                            {
+                                if (mWorld->HasComponentPool<MainPlayerComponent>())
+                                {
+                                    for (Entity playerEntity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
+                                    {
+                                        ArmorComponent* armor = mWorld->GetComponent<ArmorComponent>(playerEntity);
+                                        if (!armor)
+                                            continue;
+
+                                        const int32 beforeArmor = armor->mCurrentArmor;
+                                        armor->mCurrentArmor = (std::min)(armor->mMaxArmor, armor->mCurrentArmor + 10);
+
+                                        if (beforeArmor != armor->mCurrentArmor)
+                                        {
+                                            EvArmorChanged armorChanged{};
+                                            armorChanged.target = playerEntity;
+                                            armorChanged.currentArmor = armor->mCurrentArmor;
+                                            armorChanged.maxArmor = armor->mMaxArmor;
+                                            eventManager->Enqueue<EvArmorChanged>(armorChanged);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                instigatorPlayer->mRhythmBuffProvideUntil = GetServerTotalTimeSeconds() + 4.0f * beatSeconds;
+                            }
+                        }
+                    }
+                }
+
                 if (enemy->mEnemyType == EnemyType::Pianoman)
                 {
                     float beatSeconds = 0.0f;
@@ -212,4 +259,3 @@ void DamageSystem::Update(float deltaTime)
         }
     });
 }
-

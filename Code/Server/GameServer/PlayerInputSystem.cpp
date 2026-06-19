@@ -138,7 +138,9 @@ void PlayerInputSystem::Update(float dt)
 			const uint8 judgement = EvaluateBeatJudgement(mainPlayerComponent, inputComp, beatSystem);
 			if (TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::ATTACK, now, Beat,
 				judgement == static_cast<uint8>(BeatJudgement::Perfect)))
+			{
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::ATTACK);
+			}
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SKILL1)) {
 			const uint8 judgement = EvaluateBeatJudgement(mainPlayerComponent, inputComp, beatSystem);

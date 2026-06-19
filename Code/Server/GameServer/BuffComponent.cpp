@@ -56,9 +56,10 @@ void BuffComponent::RecalculateDerivedEffects()
     }
 
     if (hasMoveSpeedUp)
-        mMoveSpeedMultiplier = hasBuffPowerUp ? 1.1f : 1.3f;
-    else if (hasMoveSpeedUp10)
-        mMoveSpeedMultiplier = 1.1f;
+        mMoveSpeedMultiplier *= hasBuffPowerUp ? 1.1f : 1.3f;
+
+    if (hasMoveSpeedUp10)
+        mMoveSpeedMultiplier *= 1.1f;
 }
 
 BuffData& BuffComponent::AddOrRefresh(const BuffData& buff)

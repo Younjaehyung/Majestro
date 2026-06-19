@@ -13,6 +13,7 @@
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "GameRuleComponent.h"
 #include "GameTimer.h"
 
 DeathSystem::DeathSystem(World* world)  : System(world)
@@ -27,8 +28,13 @@ void DeathSystem::Update(float deltaTime)
     const float now = GetServerTotalTimeSeconds();
     mEventManager = mWorld->GetEventManager();
 
+    // 게임오버(전원 사망 → Fail phase) 중에는 죽은 플레이어를 부활시키지 않는다.
+    // 사망 상태를 그대로 유지한 채 씬이 MainMenu 로 전환되길 기다린다.
+    bool gameOver = false;
+    if (GameRuleComponent* rule = mWorld->GetSingleton<GameRuleComponent>())
+        gameOver = (rule->mGamePhase == static_cast<uint8>(WavePhaseType::Fail));
 
-    if (mWorld->HasComponentPool<MainPlayerComponent>())
+    if (!gameOver && mWorld->HasComponentPool<MainPlayerComponent>())
     {
         for (auto& entity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
         {

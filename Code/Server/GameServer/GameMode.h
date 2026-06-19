@@ -77,6 +77,10 @@ public:
 	void AdvancePhase();
 	void InsertNextPhase(PhaseFactory factory);
 
+	// 전원 사망(와이프) 시 GameOver(Fail) phase 로 진입한다.
+	bool ShouldTriggerGameOver() const;
+	void TriggerGameOver();
+
 	virtual float GetGameTime() const { return mGameTime; }
 
 	// 모든 phase 클리어 시 전환할 씬
@@ -99,6 +103,8 @@ private:
 
 	std::deque<PhaseFactory> mInitialPhases; // SetInitialPhases 로 지정된 초기 큐
 	bool mHasCustomPhases = false;
+
+	bool mFailed = false; // 전원 사망으로 GameOver 가 발동됐는지 (중복 진입 방지 + 종료 목적지를 MainMenu 로 강제)
 
 };
 

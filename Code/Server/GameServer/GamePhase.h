@@ -47,6 +47,8 @@ private:
 
 	int32 mReadyPlayers = 0; // 현재 World에 플레이어 엔티티 생성이 완료된 방 인원 수
 	int32 mTotalPlayers = 0; // 현재 방에 소속된 전체 세션 수
+
+	bool mSkipKeyHeld = false; // [디버그] F10 즉시 시작 키 엣지 감지용
 };
 
 class ConquestPhase : public GamePhase
@@ -104,6 +106,21 @@ public:
 
 private:
     float mHoldSeconds = 3.f; // GameClear 배너를 띄워두는 시간
+    float mElapsed = 0.f;
+};
+
+class FailPhase : public GamePhase
+{
+public:
+    FailPhase(float holdSeconds = 3.f) : mHoldSeconds(holdSeconds) {}
+    virtual void Enter(WaveGameMode& mode) override;
+    virtual void Exit(WaveGameMode& mode) override;
+    virtual void PostUpdate(float dt, WaveGameMode& mode) override;
+    virtual bool IsCompleted() const override { return mIsCompleted; }
+    virtual uint8 GetType() const override { return static_cast<uint8>(WavePhaseType::Fail); }
+
+private:
+    float mHoldSeconds = 3.f; // GameOver 배너를 띄워두는 시간
     float mElapsed = 0.f;
 };
 

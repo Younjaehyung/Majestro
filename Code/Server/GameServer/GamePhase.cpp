@@ -63,6 +63,17 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 	if (mIsCompleted || !mWorld)
 		return;
 
+	// [디버그] F10 을 누르면 준비 단계를 즉시 종료하고 다음 Phase 로 전환한다.
+	const bool skipPressed = (GetAsyncKeyState(VK_F10) & 0x8000) != 0;
+	if (skipPressed && !mSkipKeyHeld)
+	{
+		std::cout << "[PreparePhase] F10 입력 - 준비 단계 즉시 전환" << std::endl;
+		mSkipKeyHeld = skipPressed;
+		mIsCompleted = true;
+		return;
+	}
+	mSkipKeyHeld = skipPressed;
+
 	mStartCount += max(0.0f, dt);
 
 	// 게임 Scene에는 별도 Ready 플래그가 없으므로 방 세션의 플레이어 엔티티가
@@ -101,12 +112,11 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 
 	if (!mCountdownStarted)
 	{
-		const bool minimumWaitPassed = mStartCount >= kRequiredReadyTime;
 		const bool allPlayersReady = mTotalPlayers > 0 && mReadyPlayers >= mTotalPlayers;
 		const bool forcedStart = mStartCount >= kMaxReadyTime;
 
-		// 5초 이후 전원이 준비됐거나 30초가 지나면 3초 카운트다운을 시작한다.
-		if ((minimumWaitPassed && allPlayersReady) || forcedStart)
+		// 인원 준비 여부와 무관하게 입장 후 30초가 지나면 3초 카운트다운을 시작한다.
+		if (forcedStart)
 		{
 			mCountdownStarted = true;
 			mStartCountDown = kStartCountdownDuration;
@@ -646,6 +656,37 @@ void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
 	}
 
 	// 배너를 잠시 보여준 뒤 완료
+	if (mElapsed >= mHoldSeconds)
+		mIsCompleted = true;
+}
+
+////--------------------------------------------------------------
+
+
+
+void FailPhase::Enter(WaveGameMode& mode)
+{
+	mWorld = mode.GetScene()->GetWorld();
+	mElapsed = 0.0f;
+	mIsCompleted = false;
+
+	// 클라이언트가 GameOver 배너를 띄우도록 Fail phase 로 표시한다.
+	if (auto* rule = mWorld->GetSingleton<GameRuleComponent>())
+		rule->mGamePhase = static_cast<uint8>(WavePhaseType::Fail);
+
+	// 전원 사망 후에는 적 스폰을 멈춘다. (정의되지 않은 키 → 모든 phase 관리 스포너 비활성)
+	mode.GetScene()->ApplyPhaseSpawnerSet("Fail");
+}
+
+void FailPhase::Exit(WaveGameMode& mode)
+{
+}
+
+void FailPhase::PostUpdate(float dt, WaveGameMode& mode)
+{
+	mElapsed += dt;
+
+	// 배너를 잠시 보여준 뒤 완료 → AdvancePhase 가 빈 큐를 보고 씬 전환(MainMenu)을 요청한다.
 	if (mElapsed >= mHoldSeconds)
 		mIsCompleted = true;
 }

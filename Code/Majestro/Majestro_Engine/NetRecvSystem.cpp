@@ -598,6 +598,8 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
         gEngine->GetSceneManager().RequestScene(SceneId::VGame);
         break;
     case SceneId::MainMenu: // 게임 종료 신호
+        // 게임 중에는 마우스 룩으로 커서를 숨겨두므로, 메인 메뉴에서 다시 커서가 보이도록 복원한다.
+        INPUT.SetForceMouseLook(false);
         // 스스로 접속을 끊고 메인 메뉴로 복귀
         Network::GetInstance().Shutdown();
         gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);

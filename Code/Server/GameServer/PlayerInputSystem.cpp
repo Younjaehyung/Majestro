@@ -396,11 +396,11 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		}
 	}
 
-	const bool delaySkill1UntilAnimEnd =
+	const bool delaySkill1Attack =
 		button == InputButtons::SKILL1 &&
 		(mp->mPlayerType == Rudwig || mp->mPlayerType == Fanthor);
 
-	if (delaySkill1UntilAnimEnd)
+	if (delaySkill1Attack)
 	{
 		if (mp->mStateThrew)
 		{
@@ -409,7 +409,7 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 			return true;
 		}
 
-		if (mp->GetState() == S_Skill1)
+		if (mp->GetState() == S_Skill1 && mp->mPendingAction != PendingAction::Skill1)
 			return false;
 	}
 
@@ -446,10 +446,10 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		break;
 	}
 
-	if (!(delaySkill1UntilAnimEnd && !mp->mStateThrew))
+	if (!(delaySkill1Attack && !mp->mStateThrew))
 		mp->mFsm.ChangeState(mp, nextState);
 
-	if (delaySkill1UntilAnimEnd)
+	if (delaySkill1Attack)
 		mp->mStateThrew = true;
 	*nextTimePtr = now + Beat * cool;
 	// 쿨이 실제로 도는 경로에서만 1회 통지

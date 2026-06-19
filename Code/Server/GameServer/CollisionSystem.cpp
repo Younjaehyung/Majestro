@@ -702,6 +702,12 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
             continue;
         }
 
+        if (bullet->mPenetratesStatic)
+        {
+            ++i;
+            continue;
+        }
+
         const Vec3 movement = tr->mMovingVector;
         if (movement.LengthSquared() <= 1e-8f)
         {
@@ -1041,4 +1047,3 @@ void CollisionSystem::AvoidCollisionWithStaticSphere(
         inputComp->MoveZ = 0.0f;
     }
 }
-

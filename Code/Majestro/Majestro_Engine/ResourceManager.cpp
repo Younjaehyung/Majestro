@@ -2925,6 +2925,8 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Attack_Hit\\VFX_Fanthor_Attack_Hit.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Attack_Hit\\VFX_Rudwig_Attack_Hit.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Escort_Shockwave\\VFX_Escort_Shockwave.efk");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Bullet\\VFX_Ibanix_Bullet.efk");

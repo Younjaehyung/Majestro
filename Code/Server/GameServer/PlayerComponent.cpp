@@ -945,16 +945,34 @@ void Skill1State::Enter(MainPlayerComponent* owner)
         owner->mDashEnd = GetServerTotalTimeSeconds() + owner->mDashTime;
     }
     StateEnter(this, owner);
+
+    if (owner->mPlayerType == Fanthor)
+    {
+        constexpr float kFanthorSkill1ActionRatio = 0.75f;
+        const float now = GetServerTotalTimeSeconds();
+        const float duration = (std::max)(0.0f, owner->mStateEnd - now);
+        owner->mSkill1PendingActionTime = now + duration * kFanthorSkill1ActionRatio;
+    }
 }
 void Skill1State::Update(MainPlayerComponent* owner)
 {
     //if (owner->mPlayerType == 0 && owner->mStateThrew) owner->mFsm.ChangeState(owner, DashState::Instance());
+    if (owner->mPlayerType == Fanthor &&
+        !owner->mStateThrew &&
+        owner->mPendingAction == PendingAction::None &&
+        owner->mSkill1PendingActionTime <= GetServerTotalTimeSeconds())
+    {
+        owner->mPendingAction = PendingAction::Skill1;
+    }
+
     StateUpdate(this, owner);
 }
 void Skill1State::Exit(MainPlayerComponent* owner)
 {
-    if (owner->mPlayerType == Rudwig || owner->mPlayerType == Fanthor)
+    if (owner->mPlayerType == Rudwig ||
+        (owner->mPlayerType == Fanthor && !owner->mStateThrew))
         owner->mPendingAction = PendingAction::Skill1;
+    owner->mSkill1PendingActionTime = 0.0f;
     StateExit(this, owner);
 }
 

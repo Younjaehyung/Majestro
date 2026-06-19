@@ -238,8 +238,7 @@ void BeatSystem::ApplyPendingBuffRequests()
 
 		if (request.skillType == SkillType::DrumSkill2)
 		{
-			armorComponent->mMaxArmor += 160;
-			armorComponent->mCurrentArmor = (std::min)(armorComponent->mCurrentArmor + 160, armorComponent->mMaxArmor);
+				armorComponent->mCurrentArmor = (std::min)(armorComponent->mCurrentArmor + 100, armorComponent->mMaxArmor);
 
 			eventManager->Enqueue<EvArmorChanged>({ request.target, armorComponent->mCurrentArmor, armorComponent->mMaxArmor });
 
@@ -248,7 +247,7 @@ void BeatSystem::ApplyPendingBuffRequests()
 			buff.mType = BuffType::ShieldDown;
 			buff.mDurationPolicy = DurationPolicy::Timed;
 			buff.mExecutionType = BuffExecutionType::Periodic;
-			buff.mEndTime = now + mBpmSeconds *16;
+				buff.mEndTime = now + mBpmSeconds * 10;
 
 			buff.mTickInterval = mBpmSeconds;
 			buff.mNextTriggerTime = now + mBpmSeconds;

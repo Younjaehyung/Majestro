@@ -263,7 +263,7 @@ void EnemySystem::Update(float dt)
 
         if (enemyComp->mEnemyType == EnemyType::Obelisk)
         {
-            HaltByState(enemyComp, mc, EnemyAnimState::Run);
+            HaltByState(enemyComp, mc, EnemyAnimState::Idle);
 
             auto clearSilenceFromLinkedPlayer = [&]()
             {
@@ -423,9 +423,11 @@ void EnemySystem::Update(float dt)
             }
         }
         if (pianoRushEnding)
-            currentState = EnemyAnimState::RushEnd;
+            currentState = EnemyAnimState::Idle;
         else if (brassRushEnding)
-            currentState = EnemyAnimState::RushEnd;
+            currentState = (enemyComp->mBrassAttackPattern == 2)
+                ? EnemyAnimState::Idle
+                : EnemyAnimState::Attack;
         else if (enemyComp->mEnemyType == EnemyType::Brass)
             currentState = (brassFacingReady && (now >= enemyComp->mNextAttackTime ||
                 enemyComp->mPendingSkillType != 0 ||
@@ -549,7 +551,7 @@ bool EnemySystem::HandleAttackState(
                 movementComp->mMovingDirection = Vec3::Zero;
                 movementComp->mPathCount = 0;
                 movementComp->mPathIndex = 0;
-                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
                 return false;
             }
         }
@@ -576,15 +578,19 @@ bool EnemySystem::HandleAttackState(
 	        {
 	            return beatSeconds * enemyComp->mBrassAttackCool[enemyComp->mBrassAttackPattern];
 	        };
+            const bool brassHoldKeepsAttackAnim = enemyComp->mBrassAttackPattern != 2;
 
 	        if (enemyComp->mBrassRushEndHoldUntilTime > nowSeconds)
 	        {
 	            movementComp->mMovingDirection = Vec3::Zero;
-            movementComp->mPathCount = 0;
-            movementComp->mPathIndex = 0;
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
-            break;
-        }
+                movementComp->mPathCount = 0;
+                movementComp->mPathIndex = 0;
+                enemyComp->mAnimState = static_cast<uint8>(
+                    brassHoldKeepsAttackAnim
+                    ? GetBrassAnimState(enemyComp->mBrassAttackPattern)
+                    : EnemyAnimState::Idle);
+                break;
+            }
 
         const bool brassSkill3Active =
             enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::BrassSkill3) &&
@@ -647,7 +653,7 @@ bool EnemySystem::HandleAttackState(
 	                    enemyComp->mPendingAttackTime = -1.0f;
 	                    enemyComp->mPendingSkillType = 0;
 	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
-	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
 	                }
 	            }
 
@@ -674,14 +680,14 @@ bool EnemySystem::HandleAttackState(
 	            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
 	            enemyComp->mPendingAttackTime = -1.0f;
 	            enemyComp->mPendingSkillType = 0;
-	            enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
-	            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
-	            break;
-	        }
+		            enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
+		            enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
+		            break;
+		        }
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            std::uniform_int_distribution<int> brassPick(0, 3);
+            std::uniform_int_distribution<int> brassPick(3, 3);
 	            const uint8 pattern = static_cast<uint8>(brassPick(RandomEngine()));
 	            enemyComp->mBrassAttackPattern = pattern;
 
@@ -745,13 +751,13 @@ bool EnemySystem::HandleAttackState(
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));
 	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
-	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
 	                }
 	                else if (brassSkill == SkillType::BrassSkill4)
 	                {
 	                    eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill4 });
 	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
-	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
 	                }
 	            }
         }
@@ -1051,26 +1057,26 @@ bool EnemySystem::HandleAttackState(
 
     if (enemyComp->mEnemyType == EnemyType::Pianoman && enemyComp->mRushEndAnimEndTime > nowSeconds)
     {
-        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
     }
     else if (enemyComp->mEnemyType == EnemyType::Pianoman)
     {
         const bool pianoAttackOnCooldown = enemyComp->mNextAttackTime > nowSeconds;
-        enemyComp->mAnimState = static_cast<uint8>(pianoAttackOnCooldown ? EnemyAnimState::Run : EnemyAnimState::Attack);
+        enemyComp->mAnimState = static_cast<uint8>(pianoAttackOnCooldown ? EnemyAnimState::Idle : EnemyAnimState::Attack);
     }
     else if (enemyComp->mEnemyType == EnemyType::Fly)
     {
         enemyComp->mAnimState = static_cast<uint8>(
             nowSeconds <= enemyComp->mAttackAnimEndTime
             ? EnemyAnimState::Attack
-            : EnemyAnimState::Run);
+            : EnemyAnimState::Idle);
     }
     else if (enemyComp->mEnemyType == EnemyType::Brass)
     {
         enemyComp->mAnimState = static_cast<uint8>(
             nowSeconds <= enemyComp->mAttackAnimEndTime
             ? GetBrassAnimState(enemyComp->mBrassAttackPattern)
-            : EnemyAnimState::Run);
+            : EnemyAnimState::Idle);
     }
     else if (nowSeconds <= enemyComp->mAttackAnimEndTime)
     {
@@ -1078,7 +1084,7 @@ bool EnemySystem::HandleAttackState(
     }
     else
     {
-        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
     }
 
     return true;
@@ -1113,7 +1119,7 @@ void EnemySystem::HandleRunState(
             movementComp->mMovingDirection = Vec3::Zero;
             movementComp->mPathCount = 0;
             movementComp->mPathIndex = 0;
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
             return;
         }
     }
@@ -1223,7 +1229,7 @@ void EnemySystem::HandleRunState(
         else
         {
             movementComp->mMovingDirection = Vec3::Zero;
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
         }
     }
 }

@@ -18,7 +18,7 @@ enum class EnemyAnimState : uint8
 	Attack,
 	Dead,
 	Shield,
-	RushEnd,
+	Idle,
 	BrassAttack1,
 	BrassAttack2,
 	BrassAttack3,
@@ -92,7 +92,7 @@ public:
 
 public:
 	uint8 mEnemyType = 0;
-	uint8 mAnimState = static_cast<int>(EnemyAnimState::Run);
+	uint8 mAnimState = static_cast<int>(EnemyAnimState::Idle);
 	float mSpeed = 10.f;
 
 	float AttackRange = 100.f;

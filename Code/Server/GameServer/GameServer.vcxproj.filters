@@ -323,6 +323,9 @@
     <ClInclude Include="ResourceManager.h">
       <Filter>Manager</Filter>
     </ClInclude>
+    <ClInclude Include="ScoreBoardComponent.h">
+      <Filter>Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="Object.h">
       <Filter>Resource</Filter>
     </ClInclude>

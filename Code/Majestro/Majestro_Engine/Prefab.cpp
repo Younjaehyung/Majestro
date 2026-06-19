@@ -644,6 +644,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	case EnemyType::Obelisk:
 
 		t.mLocalScale = { 2.3f, 2.3f, 2.3f };
+		hp.mWorldOffset = Vec3(0.f, 500.f, 0.f);
 
 		if (shared_ptr<FBXData> obeliskData = RESOURCEMANAGER.Get<FBXData>(L"SM_Obelisk"))
 		{

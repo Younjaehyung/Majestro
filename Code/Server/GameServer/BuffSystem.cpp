@@ -123,7 +123,7 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
         }
         break;
     }
-    case BuffType::ScoreOverTime:
+    case BuffType::MoveSpeedUp10:
     default:
         break;
     }

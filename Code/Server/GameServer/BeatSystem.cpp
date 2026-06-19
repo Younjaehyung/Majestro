@@ -27,12 +27,12 @@ namespace
 		/* Rudwig  */ {
 			{ BuffType::None,        BuffExecutionType::Persistent }, // Neutral
 			{ BuffType::AttackUp,    BuffExecutionType::Persistent }, // R1
-			{ BuffType::ScoreBoost,  BuffExecutionType::Persistent }, // R2
+			{ BuffType::None,        BuffExecutionType::Persistent }, // R2 -> crit DrumAttack hit: team shield +10
 			{ BuffType::MoveSpeedUp, BuffExecutionType::Persistent }, // R3
 		},
 		/* Ibanix  */ {
 			{ BuffType::None,           BuffExecutionType::Persistent }, // Neutral
-			{ BuffType::ScoreOverTime,  BuffExecutionType::Periodic   }, // R1
+			{ BuffType::MoveSpeedUp10,  BuffExecutionType::Persistent }, // R1 -> 10% move speed
 			{ BuffType::ShieldOverTime, BuffExecutionType::Periodic   }, // R2
 			{ BuffType::HealOverTime,   BuffExecutionType::Periodic   }, // R3
 		},
@@ -79,8 +79,14 @@ namespace
 
 		const uint8 effectiveRhythm = GetEffectiveRhythmForBuffs(providerPlayer);
 		const RhythmBuffDef& def = LookupRhythmBuff(static_cast<uint8>(providerPlayer->mPlayerType), effectiveRhythm);
-		const bool shouldEnable = !IsSilenced(world, provider) && def.type != BuffType::None;
 		const float now = GetServerTotalTimeSeconds();
+		const bool ludwigWindowActive =
+			providerPlayer->mPlayerType != PlayerType::Rudwig ||
+			now < providerPlayer->mRhythmBuffProvideUntil;
+		const bool shouldEnable =
+			!IsSilenced(world, provider) &&
+			def.type != BuffType::None &&
+			ludwigWindowActive;
 
 		std::vector<Entity> players = world->GetEntitiesWithComponent<MainPlayerComponent>();
 		for (Entity player : players)

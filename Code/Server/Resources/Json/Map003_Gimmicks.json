@@ -1,5 +1,5 @@
 {
-  "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm.",
+  "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm. ConquestZone: valueA=점령지 번호, valueB=점령 시간(초, 0이면 기본값).",
 
     "playerSpawn": [ 1850.0, 0.0, 5.0 ],
 
@@ -54,7 +54,7 @@
       "position": [ -3330.0, 103.0, -5251.0 ],
       "halfExtents": [ 500.0, 600.0, 500.0 ],
       "valueA": 1.0,
-      "valueB": 0.0,
+      "valueB": 30.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"
@@ -65,7 +65,7 @@
       "position": [ 0.0, 300.0, -6500.0 ],
       "halfExtents": [ 500.0, 600.0, 500.0 ],
       "valueA": 2.0,
-      "valueB": 0.0,
+      "valueB": 30.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"

@@ -10,6 +10,7 @@ enum class InteractableKind : uint8
     // 임펄스, valueA = 수직 임펄스량, valueB = 수평(XZ) 임펄스량
     // 이동속도 버프 buffType = BuffType
     // 겹치는 동안 데미지. vlaueA = 초당 데미지량, valueB = 지속 시간
+    // 점령지. valueA = 점령지 번호(1부터), valueB = 점령에 필요한 시간(초, 0이면 기본값 사용)
     // 리스폰 지점
 
     None = 0,   

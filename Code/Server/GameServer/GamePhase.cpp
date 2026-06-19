@@ -169,6 +169,10 @@ void ConquestPhase::Enter(WaveGameMode& mode)
 			if (idx < 0 || idx >= GameConquestComponent::mMaxWaves) continue;
 
 			conquestComp.mConquestPointRect[idx] = e;
+
+			// Map_Gimmicks.json 의 valueB(점령 시간)가 지정돼 있으면 이번 활성 구역의 필요 점령 시간을 덮어쓴다.
+			if (idx == conquestComp.mActiveZoneIndex && inter->mValueB > 0.f)
+				conquestComp.mRequiredConquestTime = inter->mValueB;
 		}
 	}
 

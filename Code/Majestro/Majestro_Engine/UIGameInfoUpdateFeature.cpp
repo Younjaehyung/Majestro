@@ -773,6 +773,10 @@ void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 			transform.UseScreenRatioLayout(Vec2(0.0f, 0.0f), Vec2(1.0f, 1.0f));
 
 			mWorld->AddComponent<UISpriteComponent>(entity);
+
+			// 게임 오버 렌더 필터를 통과시킬 전용 배너 엔티티임을 표시한다.
+			// 일반 HUD와 GameWorld UI는 Fail 상태에서 렌더링되지 않는다.
+			mWorld->AddComponent<GameOverUIComponent>(entity);
 		}
 
 		if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(entity))

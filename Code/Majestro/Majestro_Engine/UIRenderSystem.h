@@ -39,6 +39,8 @@ private:
     
 	void RenderCustomSprite();
 	void RenderSpirte();
+	bool IsGameOver() const;
+	bool CanRenderDuringGameOver(Entity entity) const;
 	// void RenderText();
 	
 	

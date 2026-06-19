@@ -16,6 +16,8 @@
 #include "UIHpBarUpdateFeature.h"
 #include "UIFeature.h"
 #include "UIAudioVisualizerFeature.h"
+#include "GameRuleComponent.h"
+#include "GameMode.h"
 #include "Timer.h"
 
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
@@ -88,6 +90,8 @@ void UIRenderSystem::Update()
 {
     if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 
+    const bool isGameOver = IsGameOver();
+
     // UI 전체를 SwapChain RT에 렌더링 (ToneMap 이후)
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
     RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN)).OMSetRenderTargets(1, backIndex);
@@ -95,12 +99,17 @@ void UIRenderSystem::Update()
    
     RENDERMANAGER.SetGraphicsTable();
 
-    CustomSpriteRender();
+    // 게임 오버 배너는 일반 UISpriteComponent로 렌더링한다.
+    // 그 외 커스텀 UI와 Feature 직접 렌더 경로는 게임 오버 동안 실행하지 않는다.
+    if (!isGameOver)
+        CustomSpriteRender();
     TextUpdate();
     SpriteUpdate();
-    PostSpriteRender();
+    if (!isGameOver)
+        PostSpriteRender();
 
-    mUIEffectPass->Execute(DELTA_TIME);
+    if (!isGameOver)
+        mUIEffectPass->Execute(DELTA_TIME);
 
 
     RENDERMANAGER.SetGraphicsTable();
@@ -143,7 +152,7 @@ void UIRenderSystem::SpriteUpdate()
 
     RenderSpirte();
 
-    if (mFeatures != nullptr){
+    if (!IsGameOver() && mFeatures != nullptr){
         for (const auto& spritePass : *mFeatures)
         {
             if (spritePass != nullptr)
@@ -191,6 +200,10 @@ void UIRenderSystem::TextUpdate()
             continue;
 
         if (!textComp->mVisible)
+            continue;
+
+        // Fail 상태에서는 게임 오버 전용 표식이 없는 텍스트를 모두 숨긴다.
+        if (!CanRenderDuringGameOver(a))
             continue;
 
         // InitializeFont() 이후에 생성된 엔티티(런타임 스폰)도 폰트를 할당
@@ -285,6 +298,10 @@ void UIRenderSystem::RenderSpirte()
             continue;
 
         if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
+            continue;
+
+        // Fail 상태에서는 Reveal과 Stamp 배너만 렌더링한다.
+        if (!CanRenderDuringGameOver(a))
             continue;
 
         XMUINT2 textureSize;
@@ -438,6 +455,25 @@ void UIRenderSystem::RenderSpirte()
 
 }
 
+
+bool UIRenderSystem::IsGameOver() const
+{
+    if (mWorld == nullptr)
+        return false;
+
+    const GameRuleComponent* gameRule =
+        mWorld->GetSingleton<GameRuleComponent>();
+    return gameRule != nullptr &&
+        gameRule->mGamePhase == static_cast<uint8>(WavePhaseType::Fail);
+}
+
+bool UIRenderSystem::CanRenderDuringGameOver(Entity entity) const
+{
+    if (!IsGameOver())
+        return true;
+
+    return mWorld->GetComponent<GameOverUIComponent>(entity) != nullptr;
+}
 
 void UIRenderSystem::SortSpriteLayer(std::vector<Entity>& entitys)
 {

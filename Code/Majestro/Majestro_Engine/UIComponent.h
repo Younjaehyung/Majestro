@@ -5,6 +5,12 @@
 class Mesh;
 class Material;
 
+// 게임 오버 중에도 렌더링해야 하는 UI 엔티티에만 부착하는 표식 컴포넌트.
+// UIRenderSystem은 Fail 상태에서 이 컴포넌트가 없는 일반 UI를 모두 건너뛴다.
+class GameOverUIComponent : public Component<GameOverUIComponent>
+{
+};
+
 // UIScriptComponent.h
 class UIScriptComponent : public Component<UIScriptComponent>
 {

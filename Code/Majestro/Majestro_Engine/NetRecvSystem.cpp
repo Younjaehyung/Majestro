@@ -6,6 +6,7 @@
 #include "Scene.h"
 #include "World.h"
 #include "Timer.h"
+#include "InputManager.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "BulletComponent.h"

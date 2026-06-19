@@ -28,6 +28,9 @@ namespace
 		{ "Skill1",       ReplicatedActionState::Skill1       },
 		{ "Skill2",       ReplicatedActionState::Skill2       },
 		{ "Special",      ReplicatedActionState::Special      },
+		{ "Rythm",        ReplicatedActionState::RhythmChange       },
+		{ "Reload",       ReplicatedActionState::Reload       },
+		{ "Special",      ReplicatedActionState::Special      },
 	};
 }
 

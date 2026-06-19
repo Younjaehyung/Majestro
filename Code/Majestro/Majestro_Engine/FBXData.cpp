@@ -311,7 +311,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 		mMaterials[s]->CreateMaterial(meshInfo.Materials[s], mNamespace);
 
 		std::wstring name = mMaterials[s]->mParamsName.DiffuseMap0Index;
-		bool isVegetation = false;/*(name.find(L"Leaves") != std::wstring::npos
+		bool isVegetation = (name.find(L"Leaves") != std::wstring::npos
 			|| name.find(L"Grass") != std::wstring::npos
 			|| name.find(L"Fern") != std::wstring::npos
 			|| name.find(L"hang") != std::wstring::npos
@@ -319,7 +319,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 			|| name.find(L"BabyBlueEyes") != std::wstring::npos
 			|| name.find(L"Poppies") != std::wstring::npos
 			|| name.find(L"Dandelions") != std::wstring::npos
-			|| name.find(L"plant") != std::wstring::npos);*/
+			|| name.find(L"plant") != std::wstring::npos);
 		if (isVegetation) {
 			// 풀
 			//	ExtValue[0]: (세기, 주파수, 방향X, 방향Z)

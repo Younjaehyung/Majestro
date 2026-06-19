@@ -2932,7 +2932,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Bullet_Slash_2\\VFX_Fanthor_Bullet_Slash_2.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Bullet_Slash_3\\VFX_Fanthor_Bullet_Slash_3.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
-	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Reload\\VFX_Rudwig_Reload.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
 

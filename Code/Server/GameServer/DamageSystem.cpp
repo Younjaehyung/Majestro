@@ -8,6 +8,7 @@
 #include "ArmorComponent.h"
 #include "EnemyComponent.h"
 #include "PlayerComponent.h"
+#include "ScoreBoardComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "BeatSystem.h"
@@ -15,6 +16,8 @@
 
 DamageSystem::DamageSystem(World* world) : System(world)
 {
+    if (mWorld && mWorld->GetSingleton<ScoreBoardComponent>() == nullptr)
+        mWorld->AddSingleton<ScoreBoardComponent>();
 }
 
 void DamageSystem::Update(float deltaTime)
@@ -137,6 +140,21 @@ void DamageSystem::Update(float deltaTime)
         {
             if (enemy->mEnemyType == EnemyType::Obelisk)
                 return;
+
+            if (e.instigator.IsValid())
+            {
+                if (MainPlayerComponent* instigatorPlayer = mWorld->GetComponent<MainPlayerComponent>(e.instigator))
+                {
+                    if (ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>())
+                    {
+                        scoreBoard->RecordKill(
+                            e.instigator,
+                            mWorld->GetSessionIDByEntity(e.instigator),
+                            static_cast<uint8>(instigatorPlayer->mPlayerType),
+                            enemy->mEnemyType);
+                    }
+                }
+            }
         }
 
         if (player)
@@ -194,5 +212,4 @@ void DamageSystem::Update(float deltaTime)
         }
     });
 }
-
 

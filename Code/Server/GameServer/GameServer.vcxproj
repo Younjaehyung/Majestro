@@ -345,6 +345,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClInclude Include="Prefab.h" />
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="RoomManager.h" />
+    <ClInclude Include="ScoreBoardComponent.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="SpawnerComponent.h" />

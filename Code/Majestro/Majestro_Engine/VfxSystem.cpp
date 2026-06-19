@@ -247,7 +247,7 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 			return VfxSpawnDesc{ L"VFX_Fanthor_Slash_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };*/
 
 			if (skillType == SkillType::GuitarSkill1)
-				return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
+				return VfxSpawnDesc{ L"VFX_Fanthor_Skill_01", Vec3(0.f, 20.f, 0.f), Vec3(30.0f) };
 
 		if (skillType == SkillType::DrumSkill1)
 			return VfxSpawnDesc{ L"VFX_Rudwig_Skill_01", Vec3(0.f, 100.f, 80.f), Vec3(10.0f) };
@@ -259,7 +259,7 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 			return VfxSpawnDesc{ L"VFX_Pianoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(15.0f) };
 
 		if (skillType == SkillType::BongoAttack)
-			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
+			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 20.f, 0.f), Vec3(100.0f) };
 
 		if (skillType == SkillType::BongoShild)
 			return VfxSpawnDesc{ L"VFX_Bongoman_Shield", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
@@ -275,6 +275,17 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 	case EffectSpawnReason::CollisionEntity:
 		if (IsBaseSkill(skillType))
 			return VfxSpawnDesc{ L"VFX_Ibanix_Attack_Hit_01", Vec3::Zero, Vec3(30.0f) };
+
+		if (skillType == SkillType::DrumAttack ||
+			skillType == SkillType::DrumSkill1)
+			return VfxSpawnDesc{ L"VFX_Rudwig_Attack_Hit", Vec3::Zero, Vec3(30.0f) };
+
+		if (skillType == SkillType::GuitarAttack ||
+			skillType == SkillType::GuitarSkill1 ||
+			skillType == SkillType::GuitarAttack_1 ||
+			skillType == SkillType::GuitarAttack_2 ||
+			skillType == SkillType::GuitarAttack_3)
+			return VfxSpawnDesc{ L"VFX_Fanthor_Attack_Hit", Vec3::Zero, Vec3(30.0f) };
 
 		return std::nullopt;
 
@@ -320,7 +331,7 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 		case SkillType::BrassSkill3:
 			return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(10.0f, 10.0f, 10.0f) };
 		case SkillType::BrassSkill4:
-			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_04", Vec3(40.0f, 40.0f, 40.0f) };
+			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_02", Vec3(40.0f, 40.0f, 40.0f) };
 
 		default:
 			return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };

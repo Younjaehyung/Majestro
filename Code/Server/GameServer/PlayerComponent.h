@@ -118,6 +118,7 @@ public:
 public:
 	PendingAction mPendingAction = PendingAction::None;
 	bool mStateThrew = true;
+	float mSkill1PendingActionTime = 0.0f;
 	StateMachine<MainPlayerComponent> mFsm{this};
 	int mNextState = 0;
 

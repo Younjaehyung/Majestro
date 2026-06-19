@@ -2,8 +2,6 @@
 #include "utils.hlsl"
 #include "math.hlsl"
 
-#define FORWARD_PLUS_TILE_SIZE          16
-#define FORWARD_PLUS_MAX_LIGHTS_PER_TILE 128
 
 
 // ============================================================
@@ -17,7 +15,8 @@ struct VS_OUT
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
-    uint instanceID : InstanceID;
+    nointerpolation uint materialIndex : MaterialIndex;
+    nointerpolation float4 objectExtra : ObjectExtra;
 };
 
 // ============================================================
@@ -26,25 +25,19 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
     // Forward+ Tile 인덱스 계산
-    const uint2 pixelCoord = uint2(input.pos.xy);
-    const uint tileCountX = (uint) ceil(PassParams.ScreenSize.x / FORWARD_PLUS_TILE_SIZE);
-    const uint2 tileCoord = pixelCoord / FORWARD_PLUS_TILE_SIZE;
-    const uint tileIndex = tileCoord.y * tileCountX + tileCoord.x;
-    const uint2 tileMeta = ForwardPlusTileMeta[tileIndex];
 
-    const uint idx = GlobalParams.BaseInstanceID + input.instanceID;
-    const RENDERPARAMS instance = InstanceParams[idx];
-    const MATERIALINFO mtl = Materials[instance.MaterialInfoIndex];
+    // 인스턴스와 오브젝트 정보를 픽셀마다 다시 조회하지 않는다.
+    const MATERIALINFO mtl = Materials[input.materialIndex];
 
     ////////////////////////////////////////////////////////////////////////
    
     
     
-    float objectAlpha = Objects[instance.ObjectIndex].Extra.x;
+    float objectAlpha = input.objectExtra.x;
     // Hit Flash: 0~1, 최종 컬러를 빨강으로 lerp하는 가중치
-    float hitFlash    = saturate(Objects[instance.ObjectIndex].Extra.y);
+    float hitFlash    = saturate(input.objectExtra.y);
     // Emissive Gate: 0~1, 발광 결과
-    float emissiveGate = Objects[instance.ObjectIndex].Extra.z;
+    float emissiveGate = input.objectExtra.z;
 
 
     ApplyIGNDitherFade(input.pos.xy, objectAlpha);
@@ -54,7 +47,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // 경계 근처는 발광색을 더해 타들어가는 느낌을 준다.
     const float3 kDissolveGlowColor = float3(3.0f, 0.9f, 0.15f); // HDR 주황 발광
     const float  kDissolveEdgeWidth = 0.10f;
-    float dissolve = saturate(Objects[instance.ObjectIndex].Extra.w);
+    float dissolve = saturate(input.objectExtra.w);
     float dissolveEdge = 0.0f;
     if (dissolve > 0.0f)
     {
@@ -190,36 +183,19 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
     ////////////////////////////////////////////////////////////////////////
     // 메인 방향광 방향 추출
-    float3 dirLightDir = float3(0, 0, 1);
-    [loop]
-    for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
-    {
-        uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
-        if (Lights[lightIndex].lightType == 0)
-        {
-            float3 viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-            dirLightDir = normalize(-viewLightDir);
-            break;
-        }
-    }
+    // 단일 방향광은 타일 목록 조회 없이 직접 사용한다.
+    float3 viewLightDir = normalize(
+        mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f),
+            PassParams.MatView).xyz);
+    float3 dirLightDir = normalize(-viewLightDir);
 
     float3 N = normalize(viewNormal);
     float3 V = normalize(-input.viewPos);
 
     ////////////////////////////////////////////////////////////////////////
     // PBR+NPR
-    LightColor totalColor = (LightColor) 0.f;
-    [loop]
-    for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
-    {
-        const uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
-        //const LightColor lc = CalculateLightColorPBRNPR1(
-        //    lightIndex, N, input.viewPos, albedo, metallic, roughness, npr);
-        const LightColor lc = CalculateLightColorPBRNPR(
-            lightIndex, N, input.viewPos, albedo, metallic, roughness, npr);
-
-        totalColor.diffuse += (lc.diffuse );
-    }
+    LightColor totalColor = CalculateLightColorPBRNPR(
+        N, input.viewPos, albedo, metallic, roughness, npr);
 
     ////////////////////////////////////////////////////////////////////////
     // 재질별 Rim / IBL 스케일

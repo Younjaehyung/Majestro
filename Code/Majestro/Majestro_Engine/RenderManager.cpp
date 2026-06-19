@@ -104,14 +104,6 @@ void RenderManager::CreateGroup()
 {
 	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
 
-	constexpr uint32 forwardPlusTileSize = 16;
-	constexpr uint32 forwardPlusMaxWidth = 3840;
-	constexpr uint32 forwardPlusMaxHeight = 2160;
-	constexpr uint32 forwardPlusMaxLightsPerTile = 128;
-	const uint32 maxTileCountX = (forwardPlusMaxWidth + forwardPlusTileSize - 1) / forwardPlusTileSize;
-	const uint32 maxTileCountY = (forwardPlusMaxHeight + forwardPlusTileSize - 1) / forwardPlusTileSize;
-	const uint32 maxTileCount = maxTileCountX * maxTileCountY;
-
 	uint32 i = 0;
 	for (shared_ptr<GroupBuffer>& group : mGroupBuffer) {
 		group = make_shared<GroupBuffer>();
@@ -121,17 +113,15 @@ void RenderManager::CreateGroup()
 		group->PassInfo->CreateView(i, CONSTANT_INDEX_START, static_cast<uint32>(CONSTANT_INDEX::CBV_PASSINFO_INDEX), GROUP_COUNT);
 
 		group->InstanceInfo = make_shared<StructuredBuffer>();
-		group->InstanceInfo->CreateUploadBuffer(sizeof(RenderParams), 4096 * 40);
+		// 셰이더가 반복해서 읽는 데이터는 GPU 로컬 메모리에 배치한다.
+		// CPU 데이터는 프레임별 업로드 스테이징 버퍼를 거쳐 복사한다.
+		group->InstanceInfo->CreateDefaultBuffer(sizeof(RenderParams), 4096 * 40);
 		group->InstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
 
 
-		group->LightInfo = make_shared<StructuredBuffer>();
-		group->LightInfo->CreateUploadBuffer(sizeof(LightParams), 64);
-		group->LightInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_LIGHT_INDEX), GROUP_COUNT);
-
-
 		group->ObjectInfo = make_shared<StructuredBuffer>();
-		group->ObjectInfo->CreateUploadBuffer(sizeof(ObjectParams), 4096 * 40);
+		// 여러 셰이더 단계에서 사용하는 오브젝트 정보는 GPU 로컬 메모리에 둔다.
+		group->ObjectInfo->CreateDefaultBuffer(sizeof(ObjectParams), 4096 * 40);
 		group->ObjectInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 
@@ -154,19 +144,11 @@ void RenderManager::CreateGroup()
 		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
 		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
-		group->ForwardPlusTileMetaInfo = make_shared<StructuredBuffer>();
-		group->ForwardPlusTileMetaInfo->CreateDefaultBuffer(sizeof(uint32) * 2, maxTileCount);
-		group->ForwardPlusTileMetaInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FORWARDPLUS_TILE_META_INDEX), GROUP_COUNT);
-		group->ForwardPlusTileMetaInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FORWARDPLUS_TILE_META_INDEX), GROUP_COUNT);
-
-		group->ForwardPlusLightIndexInfo = make_shared<StructuredBuffer>();
-		group->ForwardPlusLightIndexInfo->CreateDefaultBuffer(sizeof(uint32), maxTileCount * forwardPlusMaxLightsPerTile);
-		group->ForwardPlusLightIndexInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FORWARDPLUS_LIGHT_INDEX), GROUP_COUNT);
-		group->ForwardPlusLightIndexInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FORWARDPLUS_LIGHT_INDEX), GROUP_COUNT);
-
 		// pass별 커스텀 텍스처/파라미터 테이블: 각 pass가 자신의 행(PASS_CUSTOM_INDEX)을 사용
 		group->PassCustomTableInfo = make_shared<StructuredBuffer>();
-		group->PassCustomTableInfo->CreateUploadBuffer(sizeof(PassCustomData), static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT));
+		// 전체 화면 패스에서 픽셀마다 읽으므로 GPU 로컬 메모리를 사용한다.
+		group->PassCustomTableInfo->CreateDefaultBuffer(sizeof(PassCustomData),
+			static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT));
 		group->PassCustomTableInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PASS_CUSTOM_INDEX), GROUP_COUNT);
 
 		i++;

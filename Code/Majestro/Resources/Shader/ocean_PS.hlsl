@@ -122,17 +122,11 @@ float4 PS_Main(VS_OUT input) : SV_Target
         // 방향광(태양)
         float3 sunDiffuse = float3(1.0f, 1.0f, 1.0f);
         float3 L = N;
-        [loop]
-        for (int li = 0; li < PassParams.LightsCount; ++li)
-        {
-            if (Lights[li].lightType == 0)
-            {
-                float3 viewLightDir = normalize(mul(float4(Lights[li].direction.xyz, 0.f), PassParams.MatView).xyz);
-                L = normalize(-viewLightDir); 
-                sunDiffuse = Lights[li].color.diffuse.rgb;
-                break;
-            }
-        }
+        float3 viewLightDir = normalize(
+            mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f),
+                PassParams.MatView).xyz);
+        L = normalize(-viewLightDir);
+        sunDiffuse = PassParams.DirectionalLight.color.diffuse.rgb;
 
         // 햇빛 반짝임 (Blinn-Phong 스펙큘러)
         float3 H    = normalize(L + V);

@@ -44,18 +44,16 @@ void CS_Main(
         if (lightIndex >= totalLights)
             break;
 
-        const LIGHTINFO light = Lights[lightIndex];
-
         bool intersects = false;
 
-        if (light.lightType == 0)
+        if (PassParams.DirectionalLight.lightType == 0)
         {
             // 방향광은 모든 타일에 포함
             intersects = true;
         }
         else
         {
-            const float3 viewLightPos = mul(float4(light.position.xyz, 1.f), PassParams.MatView).xyz;
+            const float3 viewLightPos = mul(float4(PassParams.DirectionalLight.position.xyz, 1.f), PassParams.MatView).xyz;
             const float4 clipCenter   = mul(float4(viewLightPos, 1.f), PassParams.MatProjection);
 
             if (clipCenter.w > 1e-5f)
@@ -65,7 +63,7 @@ void CS_Main(
                     ( ndcCenter.x * 0.5f + 0.5f) * PassParams.ScreenSize.x,
                     (-ndcCenter.y * 0.5f + 0.5f) * PassParams.ScreenSize.y);
 
-                const float3 viewOffset  = viewLightPos + float3(light.range, 0.f, 0.f);
+                const float3 viewOffset  = viewLightPos + float3(PassParams.DirectionalLight.range, 0.f, 0.f);
                 const float4 clipOffset  = mul(float4(viewOffset, 1.f), PassParams.MatProjection);
                 const float2 ndcOffset   = clipOffset.xy / max(clipOffset.w, 1e-5f);
                 float radiusPixels = abs((ndcOffset.x - ndcCenter.x) * 0.5f * PassParams.ScreenSize.x);

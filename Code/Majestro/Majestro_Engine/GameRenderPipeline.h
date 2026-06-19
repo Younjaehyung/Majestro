@@ -40,7 +40,7 @@ public:
         std::array<PassCustomData,
         static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& table) override;
 
-    void PreCompute(const RenderContext& ctx) override; // ForwardPlus Cull Compute
+    void PreCompute(const RenderContext& ctx) override;
     void ExecuteIndependentGraphics(const RenderContext& ctx) override;
     void ExecuteDependentGraphics(const RenderContext& ctx) override;
     void Execute(const RenderContext& ctx)    override;

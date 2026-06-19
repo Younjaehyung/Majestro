@@ -70,6 +70,10 @@ struct PassParams {
   int32 PreFilteredMipLevels{8}; // pre-filtered 큐브맵 mip 단계 수
   int32 IBLPadding0{};
   int32 IBLPadding1{};
+
+  // 프로젝트는 방향광 하나만 사용한다.
+  // 픽셀마다 StructuredBuffer를 조회하지 않도록 패스 상수에 직접 저장한다.
+  LightParams DirectionalLight{};
 };
 
 // 디버그 라인 렌더링 요청 구조체
@@ -156,7 +160,7 @@ private:           // RenderPass
   void ClearRTV(); // clear
   void ClearBuffer();
   void PushData();
-  
+  int b = false;
 private: // Culling
   bool IsCustomCulled(uint8 layer) {
     return (mCullingMask & (1 << layer)) != 0;
@@ -229,7 +233,6 @@ private:
   // RenderManager의 structuerdBuffer로 복사할 데이터들
 
   std::vector<RenderParams> mInstanceVector;
-  std::vector<LightParams> mLightVector;
   std::vector<ObjectParams> mObjectVector;
   std::vector<MaterialParams> mMaterialVector;
   std::vector<ParticleSharedParams> mPatricleVector;
@@ -259,7 +262,6 @@ private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms
   PassParams passParams{};
   ObjectParams objectParams{};
-  LightParams lightParams{};
   RenderParams renderParams{};
 
   DrawBatch mBatch{};

@@ -11,19 +11,15 @@ struct VS_OUT
     float3 viewTangent : TANGENT;   //T
     float3 viewBinormal : BINORMAL; //B
     
-    uint instanceID : InstanceID;
+    nointerpolation uint materialIndex : MaterialIndex;
 };
 
 
 float4 PS_Main(VS_OUT input) : SV_Target
 {
  
-    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
-    RENDERPARAMS Instance = InstanceParams[idx];
-    
-    uint objectIndex = Instance.ObjectIndex;
-    int materialIndex = Instance.MaterialInfoIndex;
-    MATERIALINFO materials = Materials[materialIndex];
+    // 정점 셰이더가 전달한 인덱스를 사용해 픽셀당 인스턴스 조회를 제거한다.
+    MATERIALINFO materials = Materials[input.materialIndex];
 
     float4 color = materials.Diffuse;
     
@@ -72,29 +68,16 @@ float4 PS_Main(VS_OUT input) : SV_Target
         viewNormal = normalize(mul(tangentSpaceNormal, matTBN));
     }
 
-    LightColor totalColor = (LightColor)0.f;
-    
-    for (int i = 0; i < PassParams.LightsCount; ++i)
-    {
-        LightColor color = CalculateLightColor(i, viewNormal, input.viewPos);
-         totalColor.diffuse += color.diffuse;
-         totalColor.ambient += color.ambient;
-         totalColor.specular += color.specular;
-    }
+    // 단일 방향광을 한 번만 계산한다.
+    LightColor totalColor = CalculateLightColor(viewNormal, input.viewPos);
 
     color.xyz = (totalColor.diffuse.xyz * color.xyz)
         + totalColor.ambient.xyz * color.xyz
         + totalColor.specular.xyz;
 
-    for (int i = 0; i < PassParams.LightsCount; ++i)
-    {
-        if (Lights[i].lightType == 0)
-        {
-            float visibility = CalculateCSMShadow(input.viewPos, viewNormal, Lights[i].direction.xyz);
-            color.xyz *= visibility;
-            break;
-        }
-    }
+    float visibility = CalculateCSMShadow(
+        input.viewPos, viewNormal, PassParams.DirectionalLight.direction.xyz);
+    color.xyz *= visibility;
 
 
     

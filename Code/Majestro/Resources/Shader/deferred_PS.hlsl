@@ -9,7 +9,7 @@ struct VS_OUT
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
     
-    uint instanceID : InstanceID;
+    nointerpolation uint materialIndex : MaterialIndex;
 };
 
 struct PS_OUT
@@ -26,11 +26,9 @@ PS_OUT PS_Main(VS_OUT input)
 {
     PS_OUT output = (PS_OUT) 0;
 
-    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
-    RENDERPARAMS instance = InstanceParams[idx];
-    uint materialIndex = instance.MaterialInfoIndex;
-    MATERIALINFO materials = Materials[materialIndex];
-
+    // 정점 셰이더에서 결정한 값으로 픽셀마다 InstanceParams를 다시 읽지 않는다.
+    MATERIALINFO materials = Materials[input.materialIndex];
+   
 
     float4 baseColor = materials.Diffuse;
 

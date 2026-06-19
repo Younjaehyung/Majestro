@@ -169,70 +169,17 @@ EvaluatedLight EvaluateLightVS(int lightIndex, float3 viewPos, float3 viewNormal
 {
     EvaluatedLight o = (EvaluatedLight) 0;
 
-    o.type = Lights[lightIndex].lightType;
-    o.diffRGB = Lights[lightIndex].color.diffuse.rgb;
-    o.specRGB = Lights[lightIndex].color.specular.rgb;
-    o.ambRGB = Lights[lightIndex].color.ambient.rgb;
+    o.type = 0;
+    o.diffRGB = PassParams.DirectionalLight.color.diffuse.rgb;
+    o.specRGB = PassParams.DirectionalLight.color.specular.rgb;
+    o.ambRGB = PassParams.DirectionalLight.color.ambient.rgb;
 
-    float3 viewLightDir = 0.0f; // light -> surface
-    float distanceRatio = 1.0f;
-
-    if (o.type == 0)
-    {
-        // Directional
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        o.L = normalize(-viewLightDir); // surface -> light (view space)
-        o.NdotL = saturate(dot(o.L, viewNormal));
-        o.atten = 1.0f;
-    }
-    else if (o.type == 1)
-    {
-        // Point
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos); // light -> surface
-        o.L = normalize(-viewLightDir);
-        o.NdotL = saturate(dot(o.L, viewNormal));
-
-        float dist = distance(viewPos, viewLightPos);
-        if (Lights[lightIndex].range == 0.f)
-            distanceRatio = 0.f;
-        else
-            distanceRatio = saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
-
-        o.atten = distanceRatio;
-    }
-    else
-    {
-        // Spot
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos); // light -> surface
-        o.L = normalize(-viewLightDir);
-        o.NdotL = saturate(dot(o.L, viewNormal));
-
-        if (Lights[lightIndex].range == 0.f)
-        {
-            o.atten = 0.f;
-        }
-        else
-        {
-            float halfAngle = Lights[lightIndex].angle * 0.5f;
-
-            float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-
-            float centerDist = dot(viewLightVec, viewCenterLightDir);
-            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterLightDir));
-
-            if (centerDist < 0.f || centerDist > Lights[lightIndex].range)
-                distanceRatio = 0.f;
-            else if (lightAngle > halfAngle)
-                distanceRatio = 0.f;
-            else
-                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
-
-            o.atten = distanceRatio;
-        }
-    }
+    float3 viewLightDir = normalize(
+        mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f),
+            PassParams.MatView).xyz);
+    o.L = normalize(-viewLightDir);
+    o.NdotL = saturate(dot(o.L, viewNormal));
+    o.atten = 1.0f;
 
     return o;
 }
@@ -668,53 +615,9 @@ LightColor CalculateLightColorToon(
 {
     LightColor color = (LightColor) 0.f;
 
-    float3 viewLightDir = (float3) 0.f;
+    float3 viewLightDir = normalize(mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f), PassParams.MatView).xyz);
     float distanceRatio = 1.f;
-    float rawNdotL = 0.f; // 리매핑 전 원본 NdotL [-1, 1]
-
-    if (Lights[lightIndex].lightType == 0)
-    {
-        // Directional Light
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-    }
-    else if (Lights[lightIndex].lightType == 1)
-    {
-        // Point Light
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-
-        float dist = distance(viewPos, viewLightPos);
-        distanceRatio = (Lights[lightIndex].range == 0.f)
-                        ? 0.f
-                        : saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
-    }
-    else
-    {
-        // Spot Light
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-
-        if (Lights[lightIndex].range == 0.f)
-        {
-            distanceRatio = 0.f;
-        }
-        else
-        {
-            float halfAngle = Lights[lightIndex].angle / 2.f;
-            float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-            float centerDist = dot(viewLightVec, viewCenterDir);
-            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterDir));
-
-            if (centerDist < 0.f || centerDist > Lights[lightIndex].range || lightAngle > halfAngle)
-                distanceRatio = 0.f;
-            else
-                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
-        }
-    }
+    float rawNdotL = dot(-viewLightDir, viewNormal);
 
     if (distanceRatio <= 0.f)
         return color;
@@ -742,7 +645,7 @@ LightColor CalculateLightColorToon(
     float3 shadColor = float3(224.f / 255.f, 187.f / 255.f, 178.f / 255.f);
     float3 litColor = float3(1.f, 1.f, 1.f);
     float3 lerpColor = lerp(shadColor, litColor, shadowFactor);
-    float4 colorLight = Lights[lightIndex].color.ambient * distanceRatio;
+    float4 colorLight = PassParams.DirectionalLight.color.ambient * distanceRatio;
 
     color.diffuse = float4(baseColor * lerpColor, 1.0f);
     color.specular = float4(0, 0, 0, 1);
@@ -806,66 +709,19 @@ float DistributionGGX_Anisotropic(float3 H, float3 T, float3 B, float3 N,
     return 1.0f / (PI * ax * ay * denom * denom + 1e-6f);
 }
 
-LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 viewPos,
+LightColor CalculateLightColorPBR(float3 viewNormal, float3 viewPos,
                                   float3 baseColor, float metallic, float roughness)
 {
     LightColor color = (LightColor) 0.f;
 
-    float3 viewLightDir = (float3) 0.f;
+    float3 viewLightDir = normalize(mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f), PassParams.MatView).xyz);
     float distanceRatio = 1.f;
-    float NdotL = 0.f;
-
-    if (Lights[lightIndex].lightType == 0)
-    {
-        // Directional
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        NdotL = saturate(dot(-viewLightDir, viewNormal));
-    }
-    else if (Lights[lightIndex].lightType == 1)
-    {
-        // Point
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        NdotL = saturate(dot(-viewLightDir, viewNormal));
-
-        float dist = distance(viewPos, viewLightPos);
-        if (Lights[lightIndex].range == 0.f)
-            distanceRatio = 0.f;
-        else
-            distanceRatio = saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
-    }
-    else
-    {
-
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        NdotL = saturate(dot(-viewLightDir, viewNormal));
-
-        if (Lights[lightIndex].range == 0.f)
-            distanceRatio = 0.f;
-        else
-        {
-            float halfAngle = Lights[lightIndex].angle / 2;
-
-            float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-
-            float centerDist = dot(viewLightVec, viewCenterLightDir);
-            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterLightDir));
-
-            if (centerDist < 0.f || centerDist > Lights[lightIndex].range)
-                distanceRatio = 0.f;
-            else if (lightAngle > halfAngle)
-                distanceRatio = 0.f;
-            else
-                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
-        }
-    }
+    float NdotL = saturate(dot(-viewLightDir, viewNormal));
 
 
     if (NdotL <= 0.0f || distanceRatio <= 0.0f)
     {
-        color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
+        color.ambient = PassParams.DirectionalLight.color.ambient * float4(baseColor, 1.f) * distanceRatio;
         return color;
     }
 
@@ -908,7 +764,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     // -----------------------------
     // 3) 라이트 색/세기 적용
     // -----------------------------
-    float3 radiance = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 radiance = PassParams.DirectionalLight.color.diffuse.rgb * distanceRatio;
 
     float3 outDiffuse = diffuse * radiance * NdotL;
     float3 outSpecular = specular * radiance * NdotL;
@@ -917,7 +773,7 @@ LightColor CalculateLightColorPBR(int lightIndex, float3 viewNormal, float3 view
     color.specular = float4(outSpecular, 1.0f);
 
   
-    color.ambient = Lights[lightIndex].color.ambient * float4(baseColor, 1.f) * distanceRatio;
+    color.ambient = PassParams.DirectionalLight.color.ambient * float4(baseColor, 1.f) * distanceRatio;
 
     return color;
 }
@@ -973,47 +829,9 @@ LightColor CalculateLightColorPBRNPR1(
 {
     LightColor result = (LightColor) 0;
 
-    float3 viewLightDir = 0.0f;
-    float distanceRatio = 1.0f;
-    float rawNdotL = 0.0f;
-
-    if (Lights[lightIndex].lightType == 0)
-    {
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-    }
-    else if (Lights[lightIndex].lightType == 1)
-    {
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-        float dist = distance(viewPos, viewLightPos);
-        distanceRatio = (Lights[lightIndex].range == 0.f)
-            ? 0.f
-            : saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
-    }
-    else
-    {
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-        if (Lights[lightIndex].range == 0.f)
-        {
-            distanceRatio = 0.f;
-        }
-        else
-        {
-            float halfAngle = Lights[lightIndex].angle * 0.5f;
-            float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-            float centerDist = dot(viewLightVec, viewCenterDir);
-            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterDir));
-            if (centerDist < 0.f || centerDist > Lights[lightIndex].range || lightAngle > halfAngle)
-                distanceRatio = 0.f;
-            else
-                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
-        }
-    }
+    float3 viewLightDir = normalize(mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f), PassParams.MatView).xyz);
+    float distanceRatio = 1.f;
+    float rawNdotL = dot(-viewLightDir, viewNormal);
 
     if (distanceRatio <= 0.f)
         return result;
@@ -1075,7 +893,7 @@ LightColor CalculateLightColorPBRNPR1(
     }
 
     // final color
-    float3 lightColor = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 lightColor = PassParams.DirectionalLight.color.diffuse.rgb * distanceRatio;
     float3 directLight = (directDiffColor * shadowRamp + directSpecColor * NdotLRemap)
                        * lightColor;
 
@@ -1120,7 +938,6 @@ uint ClassifyMaterial(float b)
 
 
 LightColor CalculateLightColorPBRNPR(
-    int lightIndex,
     float3 viewNormal,
     float3 viewPos,
     float3 albedo,
@@ -1130,47 +947,9 @@ LightColor CalculateLightColorPBRNPR(
 {
     LightColor result = (LightColor) 0;
 
-    float3 viewLightDir = 0.0f;
-    float distanceRatio = 1.0f;
-    float rawNdotL = 0.0f;
-
-    if (Lights[lightIndex].lightType == 0)
-    {
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-    }
-    else if (Lights[lightIndex].lightType == 1)
-    {
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-        float dist = distance(viewPos, viewLightPos);
-        distanceRatio = (Lights[lightIndex].range == 0.f)
-            ? 0.f
-            : saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
-    }
-    else
-    {
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        rawNdotL = dot(-viewLightDir, viewNormal);
-        if (Lights[lightIndex].range == 0.f)
-        {
-            distanceRatio = 0.f;
-        }
-        else
-        {
-            float halfAngle = Lights[lightIndex].angle * 0.5f;
-            float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-            float centerDist = dot(viewLightVec, viewCenterDir);
-            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterDir));
-            if (centerDist < 0.f || centerDist > Lights[lightIndex].range || lightAngle > halfAngle)
-                distanceRatio = 0.f;
-            else
-                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
-        }
-    }
+    float3 viewLightDir = normalize(mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f), PassParams.MatView).xyz);
+    float distanceRatio = 1.f;
+    float rawNdotL = dot(-viewLightDir, viewNormal);
 
     if (distanceRatio <= 0.f)
         return result;
@@ -1374,7 +1153,7 @@ LightColor CalculateLightColorPBRNPR(
     }
     float specWeight = max(NdotLRemap, specFloor);
 
-    float3 lightColor = Lights[lightIndex].color.diffuse.rgb * distanceRatio;
+    float3 lightColor = PassParams.DirectionalLight.color.diffuse.rgb * distanceRatio;
     float3 directLight = (directDiffColor * shadowRamp + directSpecColor * specWeight) * lightColor;
 
     result.diffuse = float4(directLight, 1.0f);
@@ -1385,69 +1164,26 @@ LightColor CalculateLightColorPBRNPR(
 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Default Lihgting (Blinn-Phong)
-LightColor CalculateLightColor(int lightIndex, float3 viewNormal, float3 viewPos)
+LightColor CalculateLightColor(float3 viewNormal, float3 viewPos)
 {
     // 기존 Blinn-Phong
     LightColor color = (LightColor) 0.f;
 
-    float3 viewLightDir = (float3) 0.f;
-
-    float diffuseRatio = 0.f;
+    float3 viewLightDir = normalize(
+        mul(float4(PassParams.DirectionalLight.direction.xyz, 0.f),
+            PassParams.MatView).xyz);
+    float diffuseRatio = saturate(dot(-viewLightDir, viewNormal));
     float specularRatio = 0.f;
     float distanceRatio = 1.f;
-
-    if (Lights[lightIndex].lightType == 0)
-    {
-        viewLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-        diffuseRatio = saturate(dot(-viewLightDir, viewNormal));
-    }
-    else if (Lights[lightIndex].lightType == 1)
-    {
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        diffuseRatio = saturate(dot(-viewLightDir, viewNormal));
-
-        float dist = distance(viewPos, viewLightPos);
-        if (Lights[lightIndex].range == 0.f)
-            distanceRatio = 0.f;
-        else
-            distanceRatio = saturate(1.f - pow(dist / Lights[lightIndex].range, 2));
-    }
-    else
-    {
-        float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz;
-        viewLightDir = normalize(viewPos - viewLightPos);
-        diffuseRatio = saturate(dot(-viewLightDir, viewNormal));
-
-        if (Lights[lightIndex].range == 0.f)
-            distanceRatio = 0.f;
-        else
-        {
-            float halfAngle = Lights[lightIndex].angle / 2;
-
-            float3 viewLightVec = viewPos - viewLightPos;
-            float3 viewCenterLightDir = normalize(mul(float4(Lights[lightIndex].direction.xyz, 0.f), PassParams.MatView).xyz);
-
-            float centerDist = dot(viewLightVec, viewCenterLightDir);
-            float lightAngle = acos(dot(normalize(viewLightVec), viewCenterLightDir));
-
-            if (centerDist < 0.f || centerDist > Lights[lightIndex].range)
-                distanceRatio = 0.f;
-            else if (lightAngle > halfAngle)
-                distanceRatio = 0.f;
-            else
-                distanceRatio = saturate(1.f - pow(centerDist / Lights[lightIndex].range, 2));
-        }
-    }
 
     float3 reflectionDir = normalize(viewLightDir + 2 * (saturate(dot(-viewLightDir, viewNormal)) * viewNormal));
     float3 eyeDir = normalize(viewPos);
     specularRatio = saturate(dot(-eyeDir, reflectionDir));
     specularRatio = pow(specularRatio, 2);
 
-    color.diffuse = Lights[lightIndex].color.diffuse * diffuseRatio * distanceRatio;
-    color.ambient = Lights[lightIndex].color.ambient * distanceRatio;
-    color.specular = Lights[lightIndex].color.specular * specularRatio * distanceRatio;
+    color.diffuse = PassParams.DirectionalLight.color.diffuse * diffuseRatio * distanceRatio;
+    color.ambient = PassParams.DirectionalLight.color.ambient * distanceRatio;
+    color.specular = PassParams.DirectionalLight.color.specular * specularRatio * distanceRatio;
 
     return color;
 }

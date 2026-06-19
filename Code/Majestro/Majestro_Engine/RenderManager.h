@@ -28,14 +28,11 @@ struct GraphicsSettings {
 struct GroupBuffer {
 	shared_ptr<ConstantBuffer> PassInfo;
 	shared_ptr<StructuredBuffer> InstanceInfo;
-	shared_ptr<StructuredBuffer> LightInfo;
 	shared_ptr<StructuredBuffer> ObjectInfo;
 	shared_ptr<StructuredBuffer> ParticleInfo;
 	shared_ptr<StructuredBuffer> UIInfo;
 	shared_ptr<StructuredBuffer> AnimInstanceInfo;
 	shared_ptr<StructuredBuffer> AnimResultInfo;
-	shared_ptr<StructuredBuffer> ForwardPlusTileMetaInfo;
-	shared_ptr<StructuredBuffer> ForwardPlusLightIndexInfo;
 	shared_ptr<StructuredBuffer> PassCustomTableInfo;  // pass별 커스텀 텍스처/파라미터 테이블
 
 

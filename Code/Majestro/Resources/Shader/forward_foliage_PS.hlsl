@@ -1,6 +1,4 @@
 
-#define FORWARD_PLUS_TILE_SIZE           16
-#define FORWARD_PLUS_MAX_LIGHTS_PER_TILE 128
 
 #include "params.hlsl"
 #include "utils.hlsl"
@@ -48,7 +46,7 @@ float4 PS_Main(VS_OUT input, bool isFrontFace : SV_IsFrontFace) : SV_Target
         clip(-1);
    
     
-    float3 viewNormal = normalize(mul(-Lights[0].direction, PassParams.MatView).xyz);
+    float3 viewNormal = normalize(mul(-PassParams.DirectionalLight.direction, PassParams.MatView).xyz);
 
     if (mtl.NormalMapIndex >= 0)
     {
@@ -74,42 +72,15 @@ float4 PS_Main(VS_OUT input, bool isFrontFace : SV_IsFrontFace) : SV_Target
     roughness = saturate(roughness);
 
     // Forward+ 타일 인덱스 계산
-    const uint2 pixelCoord = uint2(input.pos.xy);
-    const uint  tileCountX = (uint) ceil(PassParams.ScreenSize.x / FORWARD_PLUS_TILE_SIZE);
-    const uint2 tileCoord  = pixelCoord / FORWARD_PLUS_TILE_SIZE;
-    const uint  tileIndex  = tileCoord.y * tileCountX + tileCoord.x;
-    const uint2 tileMeta   = ForwardPlusTileMeta[tileIndex];
+    // 단일 방향광을 픽셀당 한 번만 계산한다.
+    LightColor lc = CalculateLightColorPBR(
+        viewNormal, input.viewPos,
+        baseColor.rgb, metallic, roughness);
 
-
-    float3 totalDiffuse  = 0.0f;
-    float3 totalSpecular = 0.0f;
-    bool   shadowApplied = false;
-
-    [loop]
-    for (uint i = 0; i < tileMeta.y && i < FORWARD_PLUS_MAX_LIGHTS_PER_TILE; ++i)
-    {
-        const uint lightIndex = ForwardPlusLightIndices[tileMeta.x + i];
-
-        LightColor lc = CalculateLightColorPBR(
-            lightIndex, viewNormal, input.viewPos,
-            baseColor.rgb, metallic, roughness);
-
-        float3 diff = lc.diffuse.rgb;
-        float3 spec = lc.specular.rgb;
-
-
-        if (Lights[lightIndex].lightType == 0 && !shadowApplied)
-        {
-            float vis = CalculateCSMShadow(
-                input.viewPos, viewNormal, Lights[lightIndex].direction.xyz);
-            diff *= vis;
-            spec *= vis;
-            shadowApplied = true;
-        }
-
-        totalDiffuse  += diff;
-        totalSpecular += spec;
-    }
+    float visibility = CalculateCSMShadow(
+        input.viewPos, viewNormal, PassParams.DirectionalLight.direction.xyz);
+    float3 totalDiffuse = lc.diffuse.rgb * visibility;
+    float3 totalSpecular = lc.specular.rgb * visibility;
 
    
     float3 V = normalize(-input.viewPos);

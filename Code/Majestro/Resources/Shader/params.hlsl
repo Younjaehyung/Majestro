@@ -16,20 +16,7 @@ struct LightColor
 struct LIGHTINFO
 {
     LightColor  color;
-    float4	    position;
-    float4	    direction; 
-    int		    lightType;
-    float	    range;
-    float	    angle;
-    int         padding; // 데이터 사이즈용 padding
-    
-    matrix MatWorld;
-    matrix MatView;
-    matrix MatProjection;
-    matrix MatViewInv;
-    matrix MatProjectionInv;
-    
-
+    float4	    direction;
 };
 //////////////
 
@@ -263,6 +250,9 @@ struct PASSINFO
     int PreFilteredMipLevels; // pre-filtered 큐브맵 mip 단계 수
     int IBLPadding0;
     int IBLPadding1;
+
+    // 단일 방향광을 패스 상수에 저장해 별도 SRV 조회를 제거한다.
+    LIGHTINFO DirectionalLight;
     
     //int PassTexture1;
     //int PassTexture2;
@@ -339,18 +329,13 @@ Texture2DArray ShadowMaps : register(t13, space0);
  ///////////////////////////GROUP///////////////////////////////////
 ConstantBuffer<PASSINFO> PassParams : register(b0, space1);
 StructuredBuffer<RENDERPARAMS> InstanceParams : register(t0, space1);
-StructuredBuffer<LIGHTINFO> Lights : register(t1, space1);
-StructuredBuffer<OBJECTINFO> Objects : register(t2, space1);
-StructuredBuffer<PARTICLESHARED> ParticleShared : register(t3, space1); // 속성값 (SRV)
-StructuredBuffer<UIInstanceData> UIInstances : register(t4, space1);
-StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t5, space1);
-StructuredBuffer<Matrix> SFinalBone : register(t6, space1);
-StructuredBuffer<uint2> ForwardPlusTileMeta : register(t7, space1);
-StructuredBuffer<uint> ForwardPlusLightIndices : register(t8, space1);
-StructuredBuffer<PASS_CUSTOM_DATA> PassCustomTable : register(t9, space1); // pass별 커스텀 텍스처/파라미터 테이블
+StructuredBuffer<OBJECTINFO> Objects : register(t1, space1);
+StructuredBuffer<PARTICLESHARED> ParticleShared : register(t2, space1); // 속성값 (SRV)
+StructuredBuffer<UIInstanceData> UIInstances : register(t3, space1);
+StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t4, space1);
+StructuredBuffer<Matrix> SFinalBone : register(t5, space1);
+StructuredBuffer<PASS_CUSTOM_DATA> PassCustomTable : register(t6, space1);
 RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
-RWStructuredBuffer<uint2> RWForwardPlusTileMeta : register(u1, space1);
-RWStructuredBuffer<uint> RWForwardPlusLightIndices : register(u2, space1);
 
  ///////////////////////////////////////////////////////////////////
 

@@ -22,7 +22,8 @@ struct VS_OUT
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
     
-    uint instanceID : InstanceID;
+    // 인스턴스마다 고정된 머티리얼 인덱스를 픽셀 셰이더에 직접 전달한다.
+    nointerpolation uint materialIndex : MaterialIndex;
 };
 
 
@@ -36,11 +37,9 @@ struct VS_OUT
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0;
-    output.instanceID = input.instanceID;
-
-    
     uint idx = GlobalParams.BaseInstanceID + input.instanceID;;
     RENDERPARAMS instance = InstanceParams[idx];
+    output.materialIndex = instance.MaterialInfoIndex;
     
     matrix WV = mul(Objects[instance.ObjectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);

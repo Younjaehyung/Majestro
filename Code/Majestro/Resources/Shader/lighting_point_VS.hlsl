@@ -33,10 +33,10 @@ VS_OUT VS_PointLight(VS_IN input)
     RENDERPARAMS Instance = InstanceParams[input.instanceID];
     
     
-    LIGHTINFO light = Lights[Instance.LightIndex];
-    
-    
-    output.pos = mul(float4(input.pos, 1.f), mul(light.MatWorld, mul(PassParams.MatView, PassParams.MatProjection)));
+    output.pos = mul(
+        float4(input.pos, 1.f),
+        mul(PassParams.DirectionalLight.MatWorld,
+            mul(PassParams.MatView, PassParams.MatProjection)));
     output.uv = input.uv;
 
     return output;

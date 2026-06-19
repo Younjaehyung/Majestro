@@ -16,23 +16,14 @@ struct LightColor	//빛의 3개 속성
 	Vec4	Specular;
 };
 
-struct LightParams	//빛과 관련된 정보
+struct LightParams
 {
 	LightColor	Color;
-	Vec4		Position;	//DIRECTIONAL_LIGHT은 사실상 필요 없음
-	Vec4		Direction;	//POINT_LIGHT은 사실상 필요 없음
-	int32		LightType;	//LIGHT_TYPE
-	float		Range;
-	float		Angle;
-	int32		Padding;	//데이터 사이즈용 padding
-
-	Matrix MatWorld;
-	Matrix MatView;
-	Matrix MatProjection;
-	Matrix MatViewInv;
-	Matrix MatProjectionInv;
-
+	Vec4		Direction;
 };
+
+// HLSL LIGHTINFO와 동일한 64바이트 방향광 전용 레이아웃이다.
+static_assert(sizeof(LightParams) == 64);
 
 struct LightInfo	//빛과 관련된 정보
 {

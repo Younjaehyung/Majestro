@@ -1190,24 +1190,6 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"DirLight", shader);
 	}
 
-	// PointLight
-	{
-		ShaderInfo info =
-		{
-			SHADER_TYPE::LIGHTING,
-			RASTERIZER_TYPE::CULL_NONE,
-			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
-			BLEND_TYPE::ONE_TO_ONE_BLEND
-		};
-		ShaderPath shaderPath{
-			.VS = L"..\\Resources\\Shader\\lighting_point_VS.hlsl",
-			.PS = L"..\\Resources\\Shader\\lighting_point_PS.hlsl"
-		};
-		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_PointLight", "PS_PointLight");
-		Add<Shader>(L"PointLight", shader);
-	}
-
 	// Final
 	{
 		ShaderInfo info =
@@ -1875,17 +1857,6 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"Solid", shader);
 	}
 
-	// Forward+ Tile Culling (Compute)
-	{
-		ShaderPath shaderPath{
-			.CS = L"..\\Resources\\Shader\\forward_plus_cull_CS.hlsl",
-		};
-
-		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateComputeShader(shaderPath, "CS_Main");
-		Add<Shader>(L"ForwardPlusCull", shader);
-	}
-
 	// ToneMap
 	{
 		ShaderInfo info =
@@ -2039,17 +2010,6 @@ void ResourceManager::CreateDefaultShader()
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 		Add<Shader>(L"Outline", shader);
-	}
-
-	// Motion Vector (CS)
-	{
-		ShaderPath shaderPath{
-			.CS = L"..\\Resources\\Shader\\forward_plus_cull_CS.hlsl",
-		};
-
-		shared_ptr<Shader> shader = make_shared<Shader>();
-		shader->CreateComputeShader(shaderPath, "CS_Main");
-		Add<Shader>(L"ForwardPlusCull", shader);
 	}
 
 	// Luminance
@@ -2260,20 +2220,6 @@ void ResourceManager::CreateDefaultMaterial()
 		//material->SetTexture(Get<Texture>(L"PositionTarget"), );
 		//material->SetTexture(1, Get<Texture>(L"NormalTarget"));
 		Add<Material>(L"DirLight", material);
-	}
-
-	// PointLight
-	{
-		const WindowInfo& window = RENDERMANAGER.GetWindow();
-		Vec2 resolution = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
-
-
-		shared_ptr<Material> material = make_shared<Material>();
-		material->SetShader(L"PointLight");
-		//material->SetTexture(0, Get<Texture>(L"PositionTarget"));
-		//material->SetTexture(1, Get<Texture>(L"NormalTarget"));
-		//material->SetVec2(0, resolution);
-		Add<Material>(L"PointLight", material);
 	}
 
 	// Final

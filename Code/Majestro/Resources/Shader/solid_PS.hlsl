@@ -9,7 +9,7 @@ struct VS_OUT
     float3 viewNormal : NORMAL;
     float3 viewTangent : TANGENT;
     float3 viewBinormal : BINORMAL;
-    uint instanceID : InstanceID;
+    nointerpolation uint materialIndex : MaterialIndex;
 };
 
 
@@ -17,10 +17,8 @@ float4 PS_Main(VS_OUT input) : SV_Target
 {
    // 임시 RED
     
-    uint idx = GlobalParams.BaseInstanceID + input.instanceID;
-    RENDERPARAMS instance = InstanceParams[idx];
-    uint materialIndex = instance.MaterialInfoIndex;
-    MATERIALINFO materials = Materials[materialIndex];
+    // forward 정점 셰이더가 전달한 머티리얼 인덱스를 재사용한다.
+    MATERIALINFO materials = Materials[input.materialIndex];
     
     
     

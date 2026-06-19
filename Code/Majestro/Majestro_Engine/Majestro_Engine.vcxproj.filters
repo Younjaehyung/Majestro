@@ -1291,12 +1291,6 @@
     <FxCompile Include="..\Resources\Shader\deferred_PS.hlsl">
       <Filter>World\Resource\Shader\40.Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\lighting_point_PS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\lighting_point_VS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_PS.hlsl">
       <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
@@ -1424,9 +1418,6 @@
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\JHToon_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
-    </FxCompile>
-    <FxCompile Include="..\Resources\Shader\forward_plus_cull_CS.hlsl">
       <Filter>World\Resource\Shader\50.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\FianlComposite_PS.hlsl">

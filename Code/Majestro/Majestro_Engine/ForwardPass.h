@@ -13,14 +13,8 @@ public:
 	void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 	void Compute();
 private:
-	void DispatchForwardPlusCull();
-
-private:
 	uint32 mCurrPSOID{};
-	uint32 mFrameIndex{};
 
-	static constexpr uint32 FORWARD_PLUS_TILE_SIZE = 16;
-	static constexpr uint32 FORWARD_PLUS_MAX_LIGHTS_PER_TILE = 128;
 
 };
 

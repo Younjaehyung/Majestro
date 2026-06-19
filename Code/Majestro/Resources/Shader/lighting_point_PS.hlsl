@@ -35,9 +35,9 @@ PS_OUT PS_PointLight(VS_OUT input)
         clip(-1);
 
     int lightIndex = Instance.LightIndex;
-    float3 viewLightPos = mul(float4(Lights[lightIndex].position.xyz, 1.f), PassParams.MatView).xyz; //position: 빛의 원래 좌표   
+    float3 viewLightPos = mul(float4(PassParams.DirectionalLight.position.xyz, 1.f), PassParams.MatView).xyz; //position: 빛의 원래 좌표
     float distance = length(viewPos - viewLightPos);
-    if (distance > Lights[lightIndex].range)   // 원래좌표와 빛의 좌표를 이용해서 구 내부인지 확인
+    if (distance > PassParams.DirectionalLight.range)   // 원래좌표와 빛의 좌표를 이용해서 구 내부인지 확인
         clip(-1);
 
     float3 viewNormal = Gbuffer[2].Sample(g_sam_0, uv).xyz;

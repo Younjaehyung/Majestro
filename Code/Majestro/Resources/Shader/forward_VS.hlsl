@@ -23,17 +23,19 @@ struct VS_OUT
     float3 viewTangent : TANGENT;   //T
     float3 viewBinormal : BINORMAL; //B
     
-    uint instanceID : InstanceID;
+    nointerpolation uint materialIndex : MaterialIndex;
+    nointerpolation float4 objectExtra : ObjectExtra;
 };
 
 VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT)0;
 
-    output.instanceID = input.instanceID;
-
     uint idx = GlobalParams.BaseInstanceID + input.instanceID;
     RENDERPARAMS Instance = InstanceParams[idx];
+    output.materialIndex = Instance.MaterialInfoIndex;
+    // 오브젝트 부가 정보는 정점 단계에서 한 번 읽고 픽셀 단계에 전달한다.
+    output.objectExtra = Objects[Instance.ObjectIndex].Extra;
     
     
     uint objectIndex = Instance.ObjectIndex;

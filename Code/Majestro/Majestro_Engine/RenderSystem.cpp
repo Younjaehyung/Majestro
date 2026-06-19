@@ -157,10 +157,16 @@ void RenderSystem::PushData() {
   PushCubeData();
 
   PushShadowCascades(); // 라이트 구체 사전 계산 
-  PushObjectData();
-  PushLightData();
+
+   PushObjectData();
+   PushLightData();
+
+  
+
+
   PushPassData();
   PushFrameData();
+
   PushInstanceData();
 }
 
@@ -226,7 +232,6 @@ void RenderSystem::ClearBuffer() {
   mInstanceVector.clear();
   // passParams = {};
 
-  mLightVector.clear();
   mObjectVector.clear();
   mDummyVector.clear();
 }
@@ -397,56 +402,41 @@ void RenderSystem::PushPassData()
 
 
     auto& groupBuf = RENDERMANAGER.GetGroupBuffer(mFrameCount);
-    groupBuf->PassCustomTableInfo->PushGraphicsData(mPassTable.data(), sizeof(mPassTable));
+    // 포스트 프로세싱 전에 현재 프레임의 GPU 로컬 버퍼로 한 번 복사한다.
+    groupBuf->PassCustomTableInfo->UpdateDefaultFromCpu(mPassTable.data(), sizeof(mPassTable));
 }
 
 void RenderSystem::PushInstanceData() {
+  // 프레임별 스테이징 버퍼에서 GPU 로컬 버퍼로 복사해 셰이더의 PCIe 읽기를 제거한다.
   RENDERMANAGER.GetGroupBuffer(mFrameCount)
-      ->InstanceInfo->PushGraphicsData(
+      ->InstanceInfo->UpdateDefaultFromCpu(
           mInstanceVector.data(),
           static_cast<uint32>(mInstanceVector.size() * sizeof(RenderParams)));
 }
 
 void RenderSystem::PushLightData() {
-  // light Component 추출
+  // 프로젝트는 방향광 하나만 사용하므로 첫 번째 방향광을 패스 상수에 직접 기록한다.
+  // 기존 LightInfo StructuredBuffer 업로드와 픽셀 셰이더의 전역 메모리 조회를 제거한다.
+  passParams.DirectionalLight = {};
+  passParams.LightsCount = 0;
+
   const vector<Entity> &entities =
       mWorld->GetEntitiesWithComponent<LightComponent>();
-  // ComponentPool<LightComponent>& lightComponents =
-  // mWorld->GetComponentPool<LightComponent>();
-
-  TransformComponent *transformComponent;
-  LightComponent *lightComponent;
-  RenderComponent *renderComponent;
-  CameraComponent *cameraComponent;
 
   for (auto &entity : entities) {
-    transformComponent = mWorld->GetComponent<TransformComponent>(entity);
-    lightComponent = mWorld->GetComponent<LightComponent>(entity);
-    renderComponent = mWorld->GetComponent<RenderComponent>(entity);
-    cameraComponent = mWorld->GetComponent<CameraComponent>(entity);
+    LightComponent *lightComponent = mWorld->GetComponent<LightComponent>(entity);
+    if (!lightComponent ||
+        lightComponent->mLightInfo.LightType !=
+            static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
+      continue;
 
-    lightParams = {};
+    LightParams &directionalLight = passParams.DirectionalLight;
+    directionalLight.Color = lightComponent->mLightInfo.Color;
+    directionalLight.Direction = lightComponent->mLightInfo.Direction;
 
-    lightParams.Color = lightComponent->mLightInfo.Color;
-    lightParams.Position = lightComponent->mLightInfo.Position;
-    lightParams.Direction = lightComponent->mLightInfo.Direction;
-    lightParams.LightType = lightComponent->mLightInfo.LightType;
-    lightParams.Range = lightComponent->mLightInfo.Range;
-    lightParams.Angle = lightComponent->mLightInfo.Angle;
-
-    lightParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
-    lightParams.MatView = cameraComponent->mView.Transpose();
-    lightParams.MatProjection = cameraComponent->mProjection.Transpose();
-    lightParams.MatViewInv = cameraComponent->mView.Invert().Transpose();
-    lightParams.MatProjectionInv = cameraComponent->mProjection.Invert().Transpose();
-
-    mLightVector.push_back(lightParams);
+    passParams.LightsCount = 1;
+    break;
   }
-  passParams.LightsCount = static_cast<uint32>(mLightVector.size());
-  RENDERMANAGER.GetGroupBuffer(mFrameCount)->LightInfo->
-      PushGraphicsData(mLightVector.data(), static_cast<uint32>(sizeof(LightParams) * mLightVector.size()));
-
-
 
   auto lights =
       mWorld->GetEntitiesWithComponents<LightComponent, TransformComponent,
@@ -455,6 +445,12 @@ void RenderSystem::PushLightData() {
 
   DrawBatch drawBatch{};
   for (auto& light : lights) {
+      LightComponent* lightInfo = mWorld->GetComponent<LightComponent>(light);
+      if (!lightInfo ||
+          lightInfo->mLightInfo.LightType !=
+              static_cast<int32>(LIGHT_TYPE::DIRECTIONAL_LIGHT))
+          continue;
+
       RenderComponent* lightComponent = mWorld->GetComponent<RenderComponent>(light);
       drawBatch.PSOShader = RESOURCEMANAGER.Get<Shader>(lightComponent->mMaterials[0]->GetShaderName());
       drawBatch.Mesh = lightComponent->mMesh;
@@ -865,7 +861,7 @@ void RenderSystem::PushObjectData() {
   }
 
   RENDERMANAGER.GetGroupBuffer(mFrameCount)
-      ->ObjectInfo->PushGraphicsData(
+      ->ObjectInfo->UpdateDefaultFromCpu(
           mObjectVector.data(),
           static_cast<uint32>(sizeof(objectParams) * mObjectVector.size()));
 }

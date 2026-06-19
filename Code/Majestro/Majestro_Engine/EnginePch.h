@@ -370,14 +370,11 @@ enum class CONSTANT_INDEX : uint8		//DescriptorTable CBV
 enum class GROUP_SRV_INDEX : uint8		//DescriptorTable SRV
 { // t레지스터 space 1
 	SRV_INSTANCE_INDEX,
-	SRV_LIGHT_INDEX,
 	SRV_OBJECTINFO_INDEX,
 	SRV_PARTICLE_INDEX,	// 파티클 system view
 	SRV_UI_INDEX,
 	SRV_ANIMINSTANCE_INDEX,
 	SRV_FINALUBONE_INDEX,
-	SRV_FORWARDPLUS_TILE_META_INDEX,
-	SRV_FORWARDPLUS_LIGHT_INDEX,
 	SRV_PASS_CUSTOM_INDEX,			// pass별 커스텀 텍스처/파라미터 테이블 (t9, space1)
 	GROUP_SRV_END,
 	//SRV_PARTICLE_INDEX,
@@ -389,8 +386,6 @@ enum class GROUP_SRV_INDEX : uint8		//DescriptorTable SRV
 enum class GROUP_UAV_INDEX : uint8		//DescriptorTable UAV
 { // t레지스터 space 1
 	UAV_FINALUBONE_INDEX,
-	UAV_FORWARDPLUS_TILE_META_INDEX,
-	UAV_FORWARDPLUS_LIGHT_INDEX,
 	GROUP_UAV_END
 };
 

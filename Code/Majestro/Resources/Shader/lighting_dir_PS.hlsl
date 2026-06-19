@@ -25,25 +25,10 @@ PS_OUT PS_DirLight(VS_OUT input)
     PS_OUT output = (PS_OUT) 0;
 
 
-    int index = -1;
-    [loop]
-    for (int i = 0; i < PassParams.LightsCount; ++i)
-    {
-        if (Lights[i].lightType == 0)
-        {
-            index = i;
-            break;
-        }
-    }
-
-
-    if (index < 0)
+    if (PassParams.LightsCount == 0)
     {
         return output;
     }
-
-    LIGHTINFO light = Lights[index];
-
 
     float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
 
@@ -59,9 +44,11 @@ PS_OUT PS_DirLight(VS_OUT input)
     float roughness = saturate(a_r.a);
 
 
-    LightColor color = CalculateLightColorPBR(index, viewNormal, viewPos, baseColor, metallic, roughness);
+    LightColor color = CalculateLightColorPBR(
+        viewNormal, viewPos, baseColor, metallic, roughness);
 
-    float visibility = CalculateCSMShadow(viewPos, viewNormal, light.direction.xyz);
+    float visibility = CalculateCSMShadow(
+        viewPos, viewNormal, PassParams.DirectionalLight.direction.xyz);
     color.diffuse  *= visibility;
     color.specular *= visibility;
 
@@ -91,6 +78,6 @@ PS_OUT PS_DirLight(VS_OUT input)
     
     output.diffuse  = color.diffuse  + float4(ibl.diffuse  * ao * iblVisibility, 1.0f);
     output.specular = color.specular + float4(ibl.specular * specOcclusion * iblVisibility * iblSpecularScale, 0.0f);
-    output.diffuse.rgb += light.color.ambient.rgb * ao;
+    output.diffuse.rgb += PassParams.DirectionalLight.color.ambient.rgb * ao;
     return output;
 }

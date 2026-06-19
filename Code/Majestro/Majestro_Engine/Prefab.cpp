@@ -660,7 +660,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Die"));//die
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Attack_01"));//none
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Idle"));//none
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Idle"));//none
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_02"));

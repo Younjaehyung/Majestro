@@ -396,7 +396,11 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		}
 	}
 
-	if (button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig)
+	const bool delaySkill1UntilAnimEnd =
+		button == InputButtons::SKILL1 &&
+		(mp->mPlayerType == Rudwig || mp->mPlayerType == Fanthor);
+
+	if (delaySkill1UntilAnimEnd)
 	{
 		if (mp->mStateThrew)
 		{
@@ -442,10 +446,10 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		break;
 	}
 
-	if (!(button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig && !mp->mStateThrew))
+	if (!(delaySkill1UntilAnimEnd && !mp->mStateThrew))
 		mp->mFsm.ChangeState(mp, nextState);
 
-	if (button == InputButtons::SKILL1 && mp->mPlayerType == Rudwig)
+	if (delaySkill1UntilAnimEnd)
 		mp->mStateThrew = true;
 	*nextTimePtr = now + Beat * cool;
 	// 쿨이 실제로 도는 경로에서만 1회 통지

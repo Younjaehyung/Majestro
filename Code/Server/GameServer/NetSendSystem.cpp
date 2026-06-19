@@ -613,6 +613,14 @@ void NetSendSystem::SendPlayerSelfSpawn(uint32 sessionId, Entity playerEntity, u
 	S2C_SpawnPacekt spawnPkt(sessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 	spawnPkt.Type = playerType;
 	spawnPkt.isLocalPlayer = 1;
+	if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(playerEntity))
+	{
+		// PreparePhase에서 확정한 캐릭터별 위치를 클라이언트 최초 생성 좌표로 전달한다.
+		spawnPkt.hasInitialTransform = 1;
+		spawnPkt.x = transform->mLocalPosition.x;
+		spawnPkt.y = transform->mLocalPosition.y;
+		spawnPkt.z = transform->mLocalPosition.z;
+	}
 
 	SendRequest req{ sessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 	req.StoreAs<S2C_SpawnPacekt>(spawnPkt);
@@ -627,6 +635,14 @@ void NetSendSystem::BroadcastPlayerToOthers(uint32 sessionId, Entity playerEntit
 	S2C_SpawnPacekt spawnPkt(sessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 	spawnPkt.Type = playerType;
 	spawnPkt.isLocalPlayer = 0;
+	if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(playerEntity))
+	{
+		// 다른 클라이언트에도 같은 캐릭터별 스폰 위치를 전달한다.
+		spawnPkt.hasInitialTransform = 1;
+		spawnPkt.x = transform->mLocalPosition.x;
+		spawnPkt.y = transform->mLocalPosition.y;
+		spawnPkt.z = transform->mLocalPosition.z;
+	}
 
 	for (uint32 otherSessionId : CollectPlayerSessions())
 	{
@@ -690,6 +706,14 @@ void NetSendSystem::SendExistingPlayersToNewSession(uint32 newSessionId)
 
 		S2C_SpawnPacekt spawnPkt(netComp->mSessionId, netComp->mNetEntityId, PrefabType::PLAYER);
 		spawnPkt.Type = playerComp ? playerComp->mPlayerType : 1;
+		if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity))
+		{
+			// 늦게 입장한 클라이언트도 기존 플레이어의 현재 위치에서 생성한다.
+			spawnPkt.hasInitialTransform = 1;
+			spawnPkt.x = transform->mLocalPosition.x;
+			spawnPkt.y = transform->mLocalPosition.y;
+			spawnPkt.z = transform->mLocalPosition.z;
+		}
 
 		SendRequest req{ newSessionId, PKT_Type::S2C_PKT_SPAWN, sizeof(S2C_SpawnPacekt) };
 		req.StoreAs<S2C_SpawnPacekt>(spawnPkt);

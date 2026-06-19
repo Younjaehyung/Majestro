@@ -380,6 +380,16 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	TransformComponent t{};
 	t.mLocalPosition = { -8002.9f, 1027.2f, -12519.6f };
+	if (const S2C_SpawnPacekt* spawnPacket = ctx.ViewAs<S2C_SpawnPacekt>())
+	{
+		// 서버 PreparePhase에서 확정한 캐릭터별 위치로 플레이어를 생성한다.
+		if (spawnPacket->hasInitialTransform != 0)
+		{
+			t.mLocalPosition = Vec3(spawnPacket->x, spawnPacket->y, spawnPacket->z);
+			t.mWorldPosition = t.mLocalPosition;
+			t.mWorldMatrix = Matrix::CreateTranslation(t.mLocalPosition);
+		}
+	}
 	world->AddComponent<TransformComponent>(mEntityID, t);
 	RenderComponent& render = world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	world->AddComponent<AnimationComponent>(mEntityID, anmators0);
@@ -1519,9 +1529,9 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 		Entity fill = world->CreateEntity();
 		auto& transform = world->AddComponent<UITransformComponent>(fill);
 		transform.mAnchor = Anchor::TopCenter;
-		transform.mPosition = bossBarPosition;
+		transform.mPosition = Vec2(-bossBarSize.x * 0.5f, bossBarPosition.y);
 		transform.mSize = bossBarSize;
-		transform.mPivot = Vec2(0.5f, 0.f);
+		transform.mPivot = Vec2(0.f, 0.f);
 		transform.mUILayerIndex = 11;
 
 		auto& sprite = world->AddComponent<UISpriteComponent>(
@@ -1529,6 +1539,26 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 			RESOURCEMANAGER.Get<Texture>(L"UI_Boss_HP_1"));
 		sprite.SetVisibleRangeKeepDestinationSize(false);
 		sprite.SetVisibleRangeNormalizedX(0.f, fillEndX);
+
+		// 플레이어 로컬 HP HUD와 동일하게 UIHpBarComponent를 연결해 체력 손실 파편과 피격 효과를 생성한다.
+		auto& hpBar = world->AddComponent<UIHpBarComponent>(
+			fill,
+			bossBarSize.x,
+			bossEntity,
+			Vec3::Zero,
+			bossBarSize.y,
+			L"UI_Boss_HP_0",
+			L"UI_Boss_HP_1");
+		hpBar.mIsScreenSpace = true;
+		hpBar.mRenderBgFill = false;
+		hpBar.mFillUvRangeX = Vec2(fillStartX, fillEndX);
+		hpBar.mFillUvRangeY = Vec2(63.f / 128.f, 75.f / 128.f);
+		hpBar.mHitEffectTextureName = L"UI_Player_HP_3";
+		hpBar.mHitEffectCols = 4;
+		hpBar.mHitEffectRows = 1;
+		hpBar.mHitEffectFrameCount = 4;
+		hpBar.mHitEffectSizePx = Vec2(256.f, 256.f);
+		hpBar.mHitEffectOffsetPx = Vec2::Zero;
 
 		world->AddComponent<UIScriptComponent>(fill).mOnUpdate =
 			[world, fill, bossEntity, fillStartX, fillEndX](float)
@@ -1896,10 +1926,11 @@ HUDMusicPrefab::~HUDMusicPrefab()
 
 HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 {
-	constexpr float rhythmTargetDistance = 180.f;
-	constexpr float rhythmSpawnDistance = 560.f;
-	constexpr float rhythmTargetSize = 176.f;
-	constexpr float rhythmNoteSize = 112.f;
+	// 리듬바 전체를 중앙으로 당기고 기존 크기의 절반으로 축소한다.
+	constexpr float rhythmTargetDistance = 115.f;
+	constexpr float rhythmSpawnDistance = 460.f;
+	constexpr float rhythmTargetSize = 88.f;
+	constexpr float rhythmNoteSize = 56.f;
 
 	const shared_ptr<Texture> leftRhythmTexture =
 		RESOURCEMANAGER.Get<Texture>(L"UI_Aim_Bar_Left");

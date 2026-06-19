@@ -2420,7 +2420,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 	//HPBAR
 	{
-		shared_ptr<Texture> texture = Load<Texture>(L"HPBAR", L"..\\Resources\\Image\\UI\\UI_Hpbar_01.dds");
+		shared_ptr<Texture> texture = Load<Texture>(L"Loading", L"..\\Resources\\Image\\UI\\UI_Rudwig_HP_1.png");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
@@ -2735,6 +2735,8 @@ void ResourceManager::CreateDefaultMaterial()
 		{
 			Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
 			Load<Texture>(L"UI_Player_Shield", L"..\\Resources\\Image\\UI\\UI_Player_Shield.png");
+			// 수정사항: 캐릭터별 뮤트 상태 아이콘을 한 장의 시트로 등록한다.
+			Load<Texture>(L"UI_Player_Mute_Sheet", L"..\\Resources\\Image\\UI\\UI_Player_Mute_Sheet.png");
 		}
 		{
 			Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
@@ -2773,6 +2775,8 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_StageClear_0", L"..\\Resources\\Image\\UI\\UI_StageClear_0.png");
 			Load<Texture>(L"UI_StageClear_1", L"..\\Resources\\Image\\UI\\UI_StageClear_1.png");
 			Load<Texture>(L"UI_StageClear_2", L"..\\Resources\\Image\\UI\\UI_StageClear_2.png");
+			// ThirdScene 최종 GameClear 전체 화면 레이어에서 사용하는 텍스처를 등록한다.
+			Load<Texture>(L"UI_GameClear", L"..\\Resources\\Image\\UI\\UI_GameClear.png");
 
 			// GameOver
 			Load<Texture>(L"UI_GameOver_1", L"..\\Resources\\Image\\UI\\UI_GameOver_1.png");

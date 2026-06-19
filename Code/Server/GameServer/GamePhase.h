@@ -1,6 +1,7 @@
 #pragma once
 #include "GameMode.h"
 #include "Scene.h"
+#include <unordered_set>
 
 class World;
 class PayloadPathData;
@@ -49,6 +50,7 @@ private:
 	int32 mTotalPlayers = 0; // 현재 방에 소속된 전체 세션 수
 
 	bool mSkipKeyHeld = false; // [디버그] F10 즉시 시작 키 엣지 감지용
+	std::unordered_set<uint64> mPositionedPlayers;
 };
 
 class ConquestPhase : public GamePhase
@@ -139,5 +141,7 @@ public:
 
 private:
     uint8 mZoneId = 0;
+
+    bool mBossDetected = false;
 
 };

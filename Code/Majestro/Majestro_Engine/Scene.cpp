@@ -729,7 +729,7 @@ void LoadingScene::Initialize()
 		tr.mSize = Vec2(0.f, 30.f); // 초기 크기 (진행률에 따라 변경)
 		tr.mPivot = Vec2(0.f, 0.5f);
 		mProgressBarMaxWidth = 400.f; // 최대 너비 설정
-		shared_ptr<Texture> progressBarMaterial = RESOURCEMANAGER.Get<Texture>(L"HPBAR");
+		shared_ptr<Texture> progressBarMaterial = RESOURCEMANAGER.Get<Texture>(L"Loading");
 		mWorld->AddComponent<UISpriteComponent>(mProgressBar, progressBarMaterial);
 	}
 

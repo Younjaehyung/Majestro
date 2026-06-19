@@ -263,6 +263,22 @@ namespace
 		Entity e = world->CreateEntity();
 		PlayerSpawnComponent& spawn = world->AddComponent<PlayerSpawnComponent>(e);
 		spawn.mPosition = ParseVec3ArrayOrObject(root["playerSpawn"], 1.0f);
+
+		// 캐릭터별 위치가 없으면 기존 공통 스폰 위치를 그대로 사용한다.
+		spawn.mCharacterPositions.fill(spawn.mPosition);
+		if (root.contains("playerSpawns"))
+		{
+			const json& playerSpawns = root["playerSpawns"];
+			if (playerSpawns.contains("Rudwig"))
+				spawn.mCharacterPositions[PlayerType::Rudwig] =
+					ParseVec3ArrayOrObject(playerSpawns["Rudwig"], 1.0f);
+			if (playerSpawns.contains("Ibanix"))
+				spawn.mCharacterPositions[PlayerType::Ibanix] =
+					ParseVec3ArrayOrObject(playerSpawns["Ibanix"], 1.0f);
+			if (playerSpawns.contains("Fanthor"))
+				spawn.mCharacterPositions[PlayerType::Fanthor] =
+					ParseVec3ArrayOrObject(playerSpawns["Fanthor"], 1.0f);
+		}
 		return true;
 	}
 
@@ -960,12 +976,13 @@ void ThirdScene::Initialize()
 
 
 	auto waveMode = make_shared<WaveGameMode>();
-	waveMode->SetCompletionScene(SceneId::VGame); // 보스전 클리어 후 승리 화면으로 전환
+	waveMode->SetCompletionScene(SceneId::MainMenu);
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
 		phases.push_back([] { return new PreparePhase(); });
 		phases.push_back([] { return new BossPhase(/*zoneId=*/0); });
-		phases.push_back([] { return new ClearPhase(3.0f); });
+		// GameClear 도장 연출이 완료된 뒤 약 15초 동안 유지하고 MainMenu로 전환한다.
+		phases.push_back([] { return new ClearPhase(17.0f); });
 		waveMode->SetInitialPhases(std::move(phases));
 	}
 	shared_ptr<GameMode> gameMode = waveMode;

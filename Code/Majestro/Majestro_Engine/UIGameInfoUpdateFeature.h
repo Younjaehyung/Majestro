@@ -128,6 +128,7 @@ struct RevealStampAnimationState
 	RevealStampAnimationSpec mSpec;
 	Entity mRevealEntity = NULL_ENTITY;
 	Entity mStampEntity = NULL_ENTITY;
+	Entity mFinalStampEntity = NULL_ENTITY;
 	float mElapsed = 0.0f;
 	bool mActive = false;
 	bool mStampTriggered = false;

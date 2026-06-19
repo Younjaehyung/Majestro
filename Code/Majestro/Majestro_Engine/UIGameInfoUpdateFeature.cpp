@@ -396,6 +396,18 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 	if (!revealSprite || !stampSprite || !stampTransform)
 		return;
 
+	UISpriteComponent* finalStampSprite = nullptr;
+	UITransformComponent* finalStampTransform = nullptr;
+	if (!spec.mFinalStampTextureName.empty())
+	{
+		finalStampSprite =
+			mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mFinalStampEntity);
+		finalStampTransform =
+			mWorld->GetComponent<UITransformComponent>(mRevealStampAnimation.mFinalStampEntity);
+		if (!finalStampSprite || !finalStampTransform)
+			return;
+	}
+
 	// Reveal 레이어는 이동하지 않고 왼쪽부터 오른쪽으로 표시 범위와 알파를 늘린다.
 	const float revealDuration = max(spec.mRevealDuration, 0.001f);
 	const float revealLinear = std::clamp(
@@ -436,12 +448,12 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 
 	if (!mRevealStampAnimation.mFinalStampTriggered)
 	{
-		// StageClear 도장 연출이 끝난 뒤 같은 레이어를 GameClear 이미지로 교체해 한 번 더
+		// StageClear 도장 연출이 끝난 뒤 별도 전체 화면 레이어에 GameClear 이미지를 한 번 더 찍는다.
 		mRevealStampAnimation.mFinalStampTriggered = true;
-		stampSprite->mTexture = RESOURCEMANAGER.Get<Texture>(spec.mFinalStampTextureName);
-		stampTransform->mScale =
+		finalStampSprite->mVisible = true;
+		finalStampTransform->mScale =
 			Vec2(spec.mFinalStampStartScale, spec.mFinalStampStartScale);
-		stampSprite->mColorTint.w = 0.0f;
+		finalStampSprite->mColorTint.w = 0.0f;
 		TriggerAnimationCameraShake(spec);
 	}
 
@@ -454,8 +466,8 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 	const float finalStampScale =
 		1.0f +
 		(spec.mFinalStampStartScale - 1.0f) * (1.0f - finalStampEased);
-	stampTransform->mScale = Vec2(finalStampScale, finalStampScale);
-	stampSprite->mColorTint.w =
+	finalStampTransform->mScale = Vec2(finalStampScale, finalStampScale);
+	finalStampSprite->mColorTint.w =
 		std::clamp(finalStampProgress * 5.0f, 0.0f, 1.0f);
 }
 
@@ -834,6 +846,13 @@ void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 		mRevealStampAnimation.mRevealEntity, spec.mRevealTextureName, spec.mRevealLayer);
 	createFullscreenLayer(
 		mRevealStampAnimation.mStampEntity, spec.mStampTextureName, spec.mStampLayer);
+	if (!spec.mFinalStampTextureName.empty())
+	{
+		createFullscreenLayer(
+			mRevealStampAnimation.mFinalStampEntity,
+			spec.mFinalStampTextureName,
+			255);
+	}
 }
 
 void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimationSpec& spec)
@@ -869,6 +888,20 @@ void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimati
 		stampTransform->mScale =
 			Vec2(spec.mStampStartScale, spec.mStampStartScale);
 	}
+
+	if (UISpriteComponent* finalStampSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mFinalStampEntity))
+	{
+		finalStampSprite->mVisible = false;
+		finalStampSprite->mColorTint = Vec4(1.0f, 1.0f, 1.0f, 0.0f);
+	}
+
+	if (UITransformComponent* finalStampTransform =
+		mWorld->GetComponent<UITransformComponent>(mRevealStampAnimation.mFinalStampEntity))
+	{
+		finalStampTransform->mScale =
+			Vec2(spec.mFinalStampStartScale, spec.mFinalStampStartScale);
+	}
 }
 
 void UIGameInfoUpdateFeature::StopRevealStampAnimation()
@@ -885,6 +918,12 @@ void UIGameInfoUpdateFeature::StopRevealStampAnimation()
 		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mStampEntity))
 	{
 		stampSprite->mVisible = false;
+	}
+
+	if (UISpriteComponent* finalStampSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mFinalStampEntity))
+	{
+		finalStampSprite->mVisible = false;
 	}
 }
 

@@ -16,8 +16,74 @@
 #include "NetEntityComponent.h"
 #include "TruckComponent.h"
 #include "GameEvents.h"
+#include "GravityComponent.h"
+#include "MovementComponent.h"
+#include "PlayerSpawnComponent.h"
+#include "NavMeshLoader.h"
 
 #include "Prefab.h"
+
+namespace
+{
+	void ApplyPrepareSpawnPosition(World* world, Entity playerEntity)
+	{
+		if (!world || !world->HasComponentPool<PlayerSpawnComponent>())
+			return;
+
+		MainPlayerComponent* player = world->GetComponent<MainPlayerComponent>(playerEntity);
+		TransformComponent* transform = world->GetComponent<TransformComponent>(playerEntity);
+		if (!player || !transform)
+			return;
+
+		const uint8 playerType = player->mPlayerType;
+		if (playerType >= PlayerType::Count)
+			return;
+
+		auto spawnEntities = world->GetEntitiesWithComponent<PlayerSpawnComponent>();
+		if (spawnEntities.empty())
+			return;
+
+		PlayerSpawnComponent* spawn =
+			world->GetComponent<PlayerSpawnComponent>(spawnEntities[0]);
+		if (!spawn)
+			return;
+
+		Vec3 spawnPosition = spawn->mCharacterPositions[playerType];
+
+		// FirstScene처럼 지정 위치가 NavMesh에서 벗어난 경우 가장 가까운 이동 가능 지점으로 보정한다.
+		shared_ptr<Navigation>& navigation = world->GetNavSystem();
+		if (navigation && navigation->IsInitialized())
+		{
+			constexpr float spawnSearchRadius = 1000.0f;
+			if (navigation->IsPointOnNavMesh(spawnPosition, spawnSearchRadius))
+				spawnPosition = navigation->GetNearestPointOnNavMesh(spawnPosition, spawnSearchRadius);
+		}
+
+		transform->mLocalPosition = spawnPosition;
+		transform->mWorldPosition = spawnPosition;
+		transform->mWorldMatrix = Matrix::CreateTranslation(spawnPosition);
+		transform->mMovingVector = Vec3::Zero;
+		player->mSpawnPosition = spawnPosition;
+
+		if (PlayerMovementComponent* movement =
+			world->GetComponent<PlayerMovementComponent>(playerEntity))
+		{
+			movement->mMovingDirection = Vec3::Zero;
+			movement->mNavPosition = spawnPosition;
+			movement->mNavPositionValid = true;
+		}
+
+		if (GravityComponent* gravity = world->GetComponent<GravityComponent>(playerEntity))
+		{
+			gravity->mHight = spawnPosition.y;
+			gravity->mGround = spawnPosition.y;
+			gravity->mGravity = 0.0f;
+			gravity->mFalling = false;
+			gravity->mDropping = false;
+			gravity->mGroundGraceLeft = 0.0f;
+		}
+	}
+}
 
 void PreparePhase::Enter(WaveGameMode& mode)
 {
@@ -30,6 +96,7 @@ void PreparePhase::Enter(WaveGameMode& mode)
 	mCountdownStarted = false;
 	mReadyPlayers = 0;
 	mTotalPlayers = 0;
+	mPositionedPlayers.clear();
 
 	if (GameRuleComponent* ruleComp = mWorld->GetSingleton<GameRuleComponent>())
 		ruleComp->mGamePhase = static_cast<uint8>(WavePhaseType::Prepare);
@@ -63,7 +130,22 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 	if (mIsCompleted || !mWorld)
 		return;
 
-	// [디버그] F10 을 누르면 준비 단계를 즉시 종료하고 다음 Phase 로 전환한다.
+	// PreparePhase 중 새로 생성된 플레이어를 캐릭터별 지정 위치에 한 번만 강제 배치한다.
+	if (mWorld->HasComponentPool<NetEntityComponent>() &&
+		mWorld->HasComponentPool<MainPlayerComponent>())
+	{
+		for (Entity entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+		{
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+			if (!netComp || netComp->mNetEntityId == 0)
+				continue;
+
+			if (mPositionedPlayers.insert(netComp->mNetEntityId).second)
+				ApplyPrepareSpawnPosition(mWorld.get(), entity);
+		}
+	}
+
+	// 디버그 F10 을 누르면 준비 단계를 즉시 종료하고 다음 Phase 로 전환한다.
 	const bool skipPressed = (GetAsyncKeyState(VK_F10) & 0x8000) != 0;
 	if (skipPressed && !mSkipKeyHeld)
 	{
@@ -655,8 +737,9 @@ void ClearPhase::PostUpdate(float dt, WaveGameMode& mode)
 		}
 	}
 
-	// 배너를 잠시 보여준 뒤 완료
-	if (mElapsed >= mHoldSeconds)
+	// 유지 시간이 0 이하인 ClearPhase는 최종 결과 화면을 현재 게임 씬에 계속 유지한다.
+	// 양수인 기존 스테이지 ClearPhase만 지정 시간 이후 다음 씬으로 진행한다.
+	if (mHoldSeconds > 0.0f && mElapsed >= mHoldSeconds)
 		mIsCompleted = true;
 }
 
@@ -698,6 +781,8 @@ void FailPhase::PostUpdate(float dt, WaveGameMode& mode)
 void BossPhase::Enter(WaveGameMode& mode)
 {
 	mWorld = mode.GetScene()->GetWorld();
+	mIsCompleted = false;
+	mBossDetected = false;
 
 
 	if (auto* rule = mWorld->GetSingleton<GameRuleComponent>())
@@ -716,8 +801,38 @@ void BossPhase::PreUpdate(float dt, WaveGameMode& mode)
 
 void BossPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
-	// [TODO] 보스 처치 판정. 보스가 죽으면 아래 한 줄로 단계가 완료되어
-	//  
-	//   mIsCompleted = true;
+	(void)dt;
+	(void)mode;
+
+	if (mIsCompleted || !mWorld)
+		return;
+
+	if (!mWorld->HasComponentPool<EnemyComponent>() ||
+		!mWorld->HasComponentPool<HealthComponent>())
+		return;
+
+	bool brassBossExists = false;
+	for (Entity entity : mWorld->GetEntitiesWithComponents<EnemyComponent, HealthComponent>())
+	{
+		EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(entity);
+		HealthComponent* health = mWorld->GetComponent<HealthComponent>(entity);
+		if (!enemy || !health || enemy->mEnemyType != EnemyType::Brass)
+			continue;
+
+		brassBossExists = true;
+		mBossDetected = true;
+
+		// Brass 보스 체력이 0 이하가 되면 BossPhase를 완료한다.
+		// 다음 서버 틱에서 기존 Phase 큐의 ClearPhase가 시작되고 클라이언트에 Clear 상태가 전송된다.
+		if (health->IsDead())
+		{
+			mIsCompleted = true;
+			return;
+		}
+	}
+
+	// 보스를 확인한 뒤 사망 처리로 엔티티가 제거된 경우도 처치 완료로 판정한다.
+	if (mBossDetected && !brassBossExists)
+		mIsCompleted = true;
 
 }

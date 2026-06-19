@@ -30,6 +30,6 @@ private:
 
 	static constexpr float kMuzzleRightOffset = 35.0f;
 	static constexpr float kMuzzleUpOffset = 110.0f;
-	static constexpr float kMuzzleForwardOffset = 60.0f;
+		static constexpr float kMuzzleForwardOffset = 5.0f;
 
 };

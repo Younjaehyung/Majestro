@@ -297,22 +297,6 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 		}
 	}
 
-	bool hasFly = false;
-	if (mWorld->HasComponentPool<EnemyComponent>())
-	{
-		for (Entity enemyEntity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
-		{
-			EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(enemyEntity);
-			if (!enemyComp)
-				continue;
-
-			if (enemyComp->mEnemyType == EnemyType::Fly)
-			{
-				hasFly = true;
-			}
-		}
-	}
-
 	auto spawnOneEnemy = [&](EnemyType enemyType, const Vec3& localOffset)
 	{
 		InputCommand spawnCmd{};
@@ -356,9 +340,6 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 
 		BroadcastEnemySpawn(mWorld, enemyEntity);
 	};
-
-	if (!hasFly)
-		spawnOneEnemy(EnemyType::Fly, Vec3(-700.0f, 0.0f, 900.0f));
 
 	uint8 playerType = 1;
 	if (MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity))

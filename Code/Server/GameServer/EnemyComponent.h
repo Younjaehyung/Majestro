@@ -62,10 +62,10 @@ public:
 			AttackRange = 700.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
-			mBrassAttackCool[0] = 8.0f;
-			mBrassAttackCool[1] = 12.0f;
-			mBrassAttackCool[2] = 16.0f;
-			mBrassAttackCool[3] = 24.0f;
+			mBrassAttackCool[0] = 4.0f;
+			mBrassAttackCool[1] = 4.0f;
+			mBrassAttackCool[2] = 4.0f;
+			mBrassAttackCool[3] = 4.0f;
 			for (int i = 0; i < 4; ++i)
 				mBrassNextAttackTime[i] = GetServerTotalTimeSeconds();
 			break;
@@ -123,4 +123,5 @@ public:
 	float mBrassSkill3NextShotTime = 0.0f;
 	float mBrassSkill3ShotInterval = 0.0f;
 	float mBrassRushEndHoldUntilTime = 0.0f;
+	bool mBossEncounterActivated = false;
 };

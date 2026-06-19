@@ -515,6 +515,28 @@ bool EnemySystem::HandleAttackState(
         playerPos = PathFinder(myPos, true);
     }
 
+    if (enemyComp->mEnemyType == EnemyType::Brass)
+    {
+        constexpr float kBrassWakeRange = 2000.0f;
+        constexpr float kBrassWakeRangeSq = kBrassWakeRange * kBrassWakeRange;
+
+        if (!enemyComp->mBossEncounterActivated)
+        {
+            if (nearestPlayerDistSq <= kBrassWakeRangeSq)
+            {
+                enemyComp->mBossEncounterActivated = true;
+            }
+            else
+            {
+                movementComp->mMovingDirection = Vec3::Zero;
+                movementComp->mPathCount = 0;
+                movementComp->mPathIndex = 0;
+                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+                return false;
+            }
+        }
+    }
+
     switch (enemyComp->mEnemyType)
     {
     case EnemyType::HornMan:

@@ -953,7 +953,7 @@ void Skill1State::Update(MainPlayerComponent* owner)
 }
 void Skill1State::Exit(MainPlayerComponent* owner)
 {
-    if (owner->mPlayerType == Rudwig)
+    if (owner->mPlayerType == Rudwig || owner->mPlayerType == Fanthor)
         owner->mPendingAction = PendingAction::Skill1;
     StateExit(this, owner);
 }

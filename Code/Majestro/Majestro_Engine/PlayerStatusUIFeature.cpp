@@ -1,9 +1,13 @@
 #include "pch.h"
 #include "PlayerStatusUIFeature.h"
 
+#include "PlayerComponent.h"
 #include "PlayerStatusComponent.h"
+#include "ResourceManager.h"
 #include "TagComponent.h"
+#include "Texture.h"
 #include "UITransformComponent.h"
+#include "UISpriteComponent.h"
 #include "UITextComponent.h"
 #include "World.h"
 
@@ -68,7 +72,7 @@ void PlayerStatusUIFeature::Update(float dt)
 
 	ChangeStatus(SelectStatus(player));
 	TickAnimation(dt);
-	UpdateText(player);
+	UpdateVisual(player);
 }
 
 Entity PlayerStatusUIFeature::FindLocalPlayer() const
@@ -183,11 +187,24 @@ void PlayerStatusUIFeature::TickAnimation(float dt)
 	if (mStage == PlayerStatusUIStage::Idle)
 		return;
 
-	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mTextEntity);
+	const bool useMuteIcon = mCurrentStatus == PlayerStatusUIType::Silenced;
 	UITransformComponent* transform =
-		mWorld->GetComponent<UITransformComponent>(mTextEntity);
-	if (!text || !transform)
+		mWorld->GetComponent<UITransformComponent>(
+			useMuteIcon ? mMuteIconEntity : mTextEntity);
+	UITextComponent* text =
+		useMuteIcon ? nullptr : mWorld->GetComponent<UITextComponent>(mTextEntity);
+	UISpriteComponent* muteIcon =
+		useMuteIcon ? mWorld->GetComponent<UISpriteComponent>(mMuteIconEntity) : nullptr;
+	if (!transform || (!text && !muteIcon))
 		return;
+
+	auto setAlpha = [&](float alpha)
+	{
+		if (text)
+			text->mColor.f[3] = alpha;
+		if (muteIcon)
+			muteIcon->mColorTint.w = alpha;
+	};
 
 	mStageElapsed += max(0.0f, dt);
 	const PlayerStatusUISpec& spec = mSpecs[mCurrentStatus];
@@ -202,7 +219,7 @@ void PlayerStatusUIFeature::TickAnimation(float dt)
 		const float scale =
 			1.0f + (spec.mIntroStartScale - 1.0f) * (1.0f - eased);
 		transform->mScale = Vec2(scale, scale);
-		text->mColor.f[3] = progress;
+		setAlpha(progress);
 
 		if (progress >= 1.0f)
 		{
@@ -213,13 +230,13 @@ void PlayerStatusUIFeature::TickAnimation(float dt)
 	}
 	case PlayerStatusUIStage::Hold:
 		transform->mScale = Vec2(1.0f, 1.0f);
-		text->mColor.f[3] = 1.0f;
+		setAlpha(1.0f);
 		break;
 	case PlayerStatusUIStage::Outro:
 	{
 		const float progress =
 			std::clamp(mStageElapsed / max(spec.mOutroDuration, 0.001f), 0.0f, 1.0f);
-		text->mColor.f[3] = 1.0f - progress;
+		setAlpha(1.0f - progress);
 		transform->mScale = Vec2(1.0f - progress * 0.1f, 1.0f - progress * 0.1f);
 
 		if (progress >= 1.0f)
@@ -237,6 +254,21 @@ void PlayerStatusUIFeature::TickAnimation(float dt)
 			{
 				mStage = PlayerStatusUIStage::Intro;
 				SetVisible(true);
+
+				// 텍스트와 아이콘이 서로 전환될 때 새 표시 요소가 한 프레임 먼저 보이지 않도록 알파를 초기화
+				if (mCurrentStatus == PlayerStatusUIType::Silenced)
+				{
+					if (UISpriteComponent* muteIcon =
+						mWorld->GetComponent<UISpriteComponent>(mMuteIconEntity))
+					{
+						muteIcon->mColorTint.w = 0.0f;
+					}
+				}
+				else if (UITextComponent* nextText =
+					mWorld->GetComponent<UITextComponent>(mTextEntity))
+				{
+					nextText->mColor.f[3] = 0.0f;
+				}
 			}
 		}
 		break;
@@ -246,14 +278,49 @@ void PlayerStatusUIFeature::TickAnimation(float dt)
 	}
 }
 
-void PlayerStatusUIFeature::UpdateText(Entity player)
+void PlayerStatusUIFeature::UpdateVisual(Entity player)
 {
 	if (mCurrentStatus == PlayerStatusUIType::None)
 		return;
 
+	if (mCurrentStatus == PlayerStatusUIType::Silenced)
+	{
+		UISpriteComponent* muteIcon =
+			mWorld->GetComponent<UISpriteComponent>(mMuteIconEntity);
+		if (!muteIcon)
+			return;
+
+		const int32 frameIndex = GetMuteIconFrameIndex(player);
+		if (frameIndex < 0)
+		{
+			muteIcon->mVisible = false;
+			return;
+		}
+
+		// \768 x 256 시트에서 로컬 캐릭터에 맞는 256 x 256 아이콘만 잘라 표시
+		constexpr float muteIconSize = 256.0f;
+		muteIcon->SetSourceRect(
+			muteIconSize * static_cast<float>(frameIndex),
+			0.0f,
+			muteIconSize,
+			muteIconSize);
+		muteIcon->mVisible = true;
+
+		if (UITextComponent* text = mWorld->GetComponent<UITextComponent>(mTextEntity))
+			text->mVisible = false;
+		return;
+	}
+
 	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mTextEntity);
 	if (!text)
 		return;
+
+	if (UISpriteComponent* muteIcon =
+		mWorld->GetComponent<UISpriteComponent>(mMuteIconEntity))
+	{
+		muteIcon->mVisible = false;
+	}
+	text->mVisible = true;
 
 	const PlayerStatusUISpec& spec = mSpecs[mCurrentStatus];
 	const float remaining = GetRemaining(player, mCurrentStatus);
@@ -270,9 +337,30 @@ void PlayerStatusUIFeature::UpdateText(Entity player)
 	};
 }
 
+int32 PlayerStatusUIFeature::GetMuteIconFrameIndex(Entity player) const
+{
+	const MainPlayerComponent* mainPlayer =
+		mWorld->GetComponent<MainPlayerComponent>(player);
+	if (!mainPlayer)
+		return -1;
+
+	// 시트의 아이콘 순서와 PlayerType 순서를 명시적으로 연결
+	switch (mainPlayer->mPlayerType)
+	{
+	case PlayerType::Rudwig:
+		return 0;
+	case PlayerType::Ibanix:
+		return 1;
+	case PlayerType::Fanthor:
+		return 2;
+	default:
+		return -1;
+	}
+}
+
 void PlayerStatusUIFeature::EnsureUI()
 {
-	if (mTextEntity != NULL_ENTITY)
+	if (mTextEntity != NULL_ENTITY && mMuteIconEntity != NULL_ENTITY)
 		return;
 
 	mTextEntity = mWorld->CreateEntity();
@@ -289,10 +377,37 @@ void PlayerStatusUIFeature::EnsureUI()
 	text.mVisible = false;
 	text.mOutlineThickness = 3.0f;
 	text.mColor = DirectX::Colors::White;
+
+	mMuteIconEntity = mWorld->CreateEntity();
+
+	auto& muteTransform =
+		mWorld->AddComponent<UITransformComponent>(mMuteIconEntity);
+	muteTransform.mAnchor = Anchor::Center;
+	muteTransform.mPivot = Vec2(0.5f, 0.5f);
+	muteTransform.mPosition = Vec2(0.0f, -150.0f);
+	muteTransform.mSize = Vec2(128.0f, 128.0f);
+	muteTransform.mUILayerIndex = 30;
+
+	// 캐릭터별 뮤트 아이콘 시트를 사용하는 스프라이트를 생성
+	auto& muteIcon = mWorld->AddComponent<UISpriteComponent>(
+		mMuteIconEntity,
+		RESOURCEMANAGER.Get<Texture>(L"UI_Player_Mute_Sheet"));
+	muteIcon.mVisible = false;
+	muteIcon.SetSourceRect(0.0f, 0.0f, 256.0f, 256.0f);
 }
 
 void PlayerStatusUIFeature::SetVisible(bool visible)
 {
 	if (UITextComponent* text = mWorld->GetComponent<UITextComponent>(mTextEntity))
-		text->mVisible = visible;
+	{
+		text->mVisible =
+			visible && mCurrentStatus != PlayerStatusUIType::Silenced;
+	}
+
+	if (UISpriteComponent* muteIcon =
+		mWorld->GetComponent<UISpriteComponent>(mMuteIconEntity))
+	{
+		muteIcon->mVisible =
+			visible && mCurrentStatus == PlayerStatusUIType::Silenced;
+	}
 }

@@ -40,13 +40,15 @@ private:
 	float GetRemaining(Entity player, PlayerStatusUIType type) const;
 	void ChangeStatus(PlayerStatusUIType nextStatus);
 	void TickAnimation(float dt);
-	void UpdateText(Entity player);
+	void UpdateVisual(Entity player);
+	int32 GetMuteIconFrameIndex(Entity player) const;
 	void EnsureUI();
 	void SetVisible(bool visible);
 
 private:
 	std::unordered_map<PlayerStatusUIType, PlayerStatusUISpec> mSpecs;
 	Entity mTextEntity = NULL_ENTITY;
+	Entity mMuteIconEntity = NULL_ENTITY;
 	PlayerStatusUIType mCurrentStatus = PlayerStatusUIType::None;
 	PlayerStatusUIType mPendingStatus = PlayerStatusUIType::None;
 	PlayerStatusUIStage mStage = PlayerStatusUIStage::Idle;

@@ -1035,6 +1035,20 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 				sp.mVisible = false;
 			}
 
+			// 쉴드(아머) 바 — 체력 오른쪽에 이어붙음. 위치/크기는 매 프레임 갱신(HUDPortraitUpdateFeature)
+			Entity hpShield = world->CreateEntity();
+			{
+				auto& t = world->AddComponent<UITransformComponent>(hpShield);
+				t.mAnchor = Anchor::BottomLeft;
+				t.mPosition = hpPos;
+				t.mSize = hpSize;
+				t.mPivot = Vec2(0.f, 0.f);
+				t.mUILayerIndex = 5;
+				auto& sp = world->AddComponent<UISpriteComponent>(hpShield, RESOURCEMANAGER.Get<Texture>(L"UI_Player_Shield"));
+				sp.SetSourceRect(118.f, 116.f, 600.f, 24.f);   // 바 픽셀 구간만 크롭
+				sp.mVisible = false;
+			}
+
 			// HP 텍스트
 			Entity hpText = world->CreateEntity();
 			{
@@ -1052,6 +1066,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 
 			slot.mHpBack = hpBack;
 			slot.mHpFill = hpFill;
+			slot.mHpShield = hpShield;
 			slot.mHpText = hpText;
 		}
 	}
@@ -1272,8 +1287,16 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 				if (s == nullptr)
 					return;
 
+				// 상용게임 오버실드 방식: 바 전체 스케일 denom = max(MaxHp, 현재체력+쉴드).
+				//  - 체력+쉴드 <= MaxHp : denom=MaxHp 고정 → 체력 비율 유지, 쉴드는 잃은 체력 공백만 채움.
+				//  - 체력+쉴드 >  MaxHp : 쉴드가 바를 넘쳐야 denom이 늘며 체력/쉴드 비율이 재조정됨.
+				ArmorComponent* armor = world->GetComponent<ArmorComponent>(ownerEntity);
+				const int32 shield = (armor != nullptr) ? (std::max)(0, armor->mCurrentArmor) : 0;
+				const int32 curHp  = (std::max)(0, health->mCurrentHp);
+				const float denom  = static_cast<float>((std::max)(health->mMaxHp, curHp + shield));
+
 				const float ratio = std::clamp(
-					static_cast<float>(health->mCurrentHp) / static_cast<float>(health->mMaxHp),
+					static_cast<float>(curHp) / denom,
 					0.0f, 1.0f);
 
 				// 텍스처 여백 보정: 크롭 끝 위치를 캔버스 전체가 아닌
@@ -1335,6 +1358,57 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 #endif
 
+		}
+		{	// 쉴드(아머) 바 — 체력바 레이어 안에서 체력 오른쪽에 이어 붙여 표시
+			Entity shield = world->CreateEntity();
+
+			// 체력바 레이어(BACK 프레임 안의 실제 바 구간)의 디자인 좌표.
+			// HP fill(pos -384,448 / size 768x256) + mFillUvRangeX(118~718/768) / Y(116~140/256) 에서 도출.
+			const float barLeftX  = -266.f;   // -384 + 118
+			const float barWidth  = 600.f;    // 718 - 118
+			const float barTopY   = 564.f;    // 448 + 116
+			const float barHeight = 24.f;     // 140 - 116
+
+			auto& t = world->AddComponent<UITransformComponent>(shield);
+			t.mAnchor = Anchor::Center;
+			t.mPosition = Vec2(barLeftX, barTopY);   // 매 프레임 스크립트가 갱신
+			t.mSize = Vec2(barWidth, barHeight);
+			t.mPivot = Vec2(0.f, 0.f);
+			t.mUILayerIndex = 1;                     // HP fill 과 동일 (BACK 프레임 아래)
+
+			auto& sp = world->AddComponent<UISpriteComponent>(shield, RESOURCEMANAGER.Get<Texture>(L"UI_Player_Shield"));
+			// 쉴드 텍스처(768x256)의 실제 바 픽셀 구간만 크롭 — HP 바 구간과 동일 좌표계로 정렬.
+			sp.SetSourceRect(118.f, 116.f, 600.f, 24.f);
+			sp.mVisible = false;
+
+			world->AddComponent<UIScriptComponent>(shield).mOnUpdate =
+				[world, shield, ownerEntity, barLeftX, barWidth, barTopY, barHeight](float /*dt*/)
+			{
+				UISpriteComponent* sp = world->GetComponent<UISpriteComponent>(shield);
+				UITransformComponent* tr = world->GetComponent<UITransformComponent>(shield);
+				if (sp == nullptr || tr == nullptr)
+					return;
+
+				HealthComponent* health = world->GetComponent<HealthComponent>(ownerEntity);
+				ArmorComponent*  armor  = world->GetComponent<ArmorComponent>(ownerEntity);
+				const int32 shieldAmt = (armor != nullptr) ? (std::max)(0, armor->mCurrentArmor) : 0;
+				if (health == nullptr || health->mMaxHp <= 0 || shieldAmt <= 0)
+				{
+					sp->mVisible = false;   // 쉴드 없으면 숨김 → HP 바가 레이어 전체 사용
+					return;
+				}
+
+				// 바 전체 스케일 denom = max(MaxHp, 현재체력+쉴드) (HP fill 과 동일 공식).
+				// 쉴드는 "현재 체력" 바로 오른쪽 = [currentHp/denom, (currentHp+쉴드)/denom] 을 채운다.
+				const int32 curHpI       = (std::max)(0, health->mCurrentHp);
+				const float denom        = static_cast<float>((std::max)(health->mMaxHp, curHpI + shieldAmt));
+				const float segLeftFrac  = static_cast<float>(curHpI)     / denom; // 현재 체력 끝 = 쉴드 시작
+				const float segWidthFrac = static_cast<float>(shieldAmt)  / denom; // 쉴드 폭
+
+				tr->mPosition = Vec2(barLeftX + barWidth * segLeftFrac, barTopY);
+				tr->mSize     = Vec2(barWidth * segWidthFrac, barHeight);
+				sp->mVisible  = true;
+			};
 		}
 		{
 

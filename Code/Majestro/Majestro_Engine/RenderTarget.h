@@ -34,10 +34,9 @@ enum class Deferrd_TARGET_GROUP_TYPE : uint8
 
 enum class SHADOW_TARGET_TYPE : uint8	// CastShadow 맵 용도
 {
-	SHADOW_CASCADE0,
-	SHADOW_CASCADE1,
-	SHADOW_CASCADE2,
-	SHADOW_CASCADE3,	// 맵 전체 고정 cascade (정적 캐시)
+	SHADOW_CASCADE0,	// 이동(카메라 추종) cascade
+	SHADOW_CASCADE1,	// 이동(카메라 추종) cascade
+	SHADOW_CASCADE2,	// 맵 전체 고정 cascade (정적 캐시) — 마지막 슬라이스
 	END,
 };
 

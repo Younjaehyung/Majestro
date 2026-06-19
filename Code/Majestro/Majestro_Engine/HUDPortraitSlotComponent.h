@@ -16,6 +16,7 @@ public:
 	// 타 플레이어용 슬롯
 	Entity mHpBack = NULL_ENTITY; // 빈 바 배경
 	Entity mHpFill = NULL_ENTITY; // 체력바 채움
+	Entity mHpShield = NULL_ENTITY; // 쉴드(아머) 바 — 체력 오른쪽에 이어붙음
 	Entity mHpText = NULL_ENTITY; // HP 텍스트
 
 	Entity mOwnerEntity = NULL_ENTITY; // 현재 이 슬롯에 배정된 플레이어 엔티티 (HP 조회용)

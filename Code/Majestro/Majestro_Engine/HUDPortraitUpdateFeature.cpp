@@ -10,8 +10,10 @@
 #include "TagComponent.h"      
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
-#include "UIComponent.h" 
+#include "UITransformComponent.h"
+#include "UIComponent.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
 #include <algorithm>
 #include <array>
 #include <vector>
@@ -67,6 +69,7 @@ void HUDPortraitUpdateFeature::HideHpBar(HUDPortraitSlotComponent& slot)
 		return;
 	if (auto* sp = mWorld->GetComponent<UISpriteComponent>(slot.mHpBack)) sp->mVisible = false;
 	if (auto* sp = mWorld->GetComponent<UISpriteComponent>(slot.mHpFill)) sp->mVisible = false;
+	if (auto* sp = mWorld->GetComponent<UISpriteComponent>(slot.mHpShield)) sp->mVisible = false;
 	if (auto* tx = mWorld->GetComponent<UITextComponent>(slot.mHpText))   tx->mVisible = false;
 }
 
@@ -83,8 +86,15 @@ void HUDPortraitUpdateFeature::UpdateHpBar(HUDPortraitSlotComponent& slot, Entit
 		return;
 	}
 
+	// 상용게임 오버실드 방식: 바 전체 스케일 denom = max(MaxHp, 현재체력+쉴드).
+	// 체력+쉴드 <= MaxHp 면 denom=MaxHp 고정(체력 비율 유지), 넘칠 때만 비율 재조정.
+	ArmorComponent* armor = mWorld->GetComponent<ArmorComponent>(owner);
+	const int32 shield = (armor != nullptr) ? (std::max)(0, armor->mCurrentArmor) : 0;
+	const int32 curHp = (std::max)(0, health->mCurrentHp);
+	const float denom = static_cast<float>((std::max)(health->mMaxHp, curHp + shield));
+
 	const float ratio = std::clamp(
-		static_cast<float>(health->mCurrentHp) / static_cast<float>(health->mMaxHp),
+		static_cast<float>(curHp) / denom,
 		0.0f, 1.0f);
 
 	if (auto* back = mWorld->GetComponent<UISpriteComponent>(slot.mHpBack))
@@ -95,6 +105,33 @@ void HUDPortraitUpdateFeature::UpdateHpBar(HUDPortraitSlotComponent& slot, Entit
 		fill->mVisible = true;
 		fill->SetVisibleRangeKeepDestinationSize(false);   // HP 감소 시 바도 함께 줄어듦 (메인 바와 동일)
 		fill->SetVisibleRangeNormalizedX(0.f, RemapBarRatioToUv(ratio, mHpFillUvRangeX));
+	}
+
+	// 쉴드 바: "현재 체력" 바로 오른쪽 [currentHp/denom, (currentHp+쉴드)/denom] 구간을 채운다.
+	if (auto* shieldSp = mWorld->GetComponent<UISpriteComponent>(slot.mHpShield))
+	{
+		UITransformComponent* fillTr = mWorld->GetComponent<UITransformComponent>(slot.mHpFill);
+		UITransformComponent* shieldTr = mWorld->GetComponent<UITransformComponent>(slot.mHpShield);
+		if (shield > 0 && fillTr != nullptr && shieldTr != nullptr)
+		{
+			// HP fill 트랜스폼 + UV 구간에서 실제 바 영역(디자인 좌표) 도출.
+			const float barLeftX = fillTr->mPosition.x + fillTr->mSize.x * mHpFillUvRangeX.x;
+			const float barWidth = fillTr->mSize.x * (mHpFillUvRangeX.y - mHpFillUvRangeX.x);
+			// 미니 바는 Y UV 구간을 안 쓰므로 메인 바와 동일한 116~140/256 사용.
+			const float barTopY = fillTr->mPosition.y + fillTr->mSize.y * (116.f / 256.f);
+			const float barHeight = fillTr->mSize.y * (24.f / 256.f);
+
+			const float segLeftFrac = static_cast<float>((std::max)(0, health->mCurrentHp)) / denom;
+			const float segWidthFrac = static_cast<float>(shield) / denom;
+
+			shieldTr->mPosition = Vec2(barLeftX + barWidth * segLeftFrac, barTopY);
+			shieldTr->mSize = Vec2(barWidth * segWidthFrac, barHeight);
+			shieldSp->mVisible = true;
+		}
+		else
+		{
+			shieldSp->mVisible = false;
+		}
 	}
 
 	if (auto* text = mWorld->GetComponent<UITextComponent>(slot.mHpText))

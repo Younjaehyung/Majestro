@@ -234,7 +234,7 @@ private:
   std::vector<MaterialParams> mMaterialVector;
   std::vector<ParticleSharedParams> mPatricleVector;
 
-  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true, true };
+  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };
   float mCascadeSplitLambda = 0.85f;
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};

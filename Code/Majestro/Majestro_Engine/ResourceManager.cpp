@@ -2778,6 +2778,7 @@ void ResourceManager::CreateDefaultMaterial()
 #pragma region HPBar
 		{
 			Load<Texture>(L"UI_Player_HP_3", L"..\\Resources\\Image\\UI\\UI_Player_HP_3.png");
+			Load<Texture>(L"UI_Player_Shield", L"..\\Resources\\Image\\UI\\UI_Player_Shield.png");
 		}
 		{
 			Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");

@@ -1,0 +1,23 @@
+{
+    "Rudwig": {
+        "Attack1": { "pitch": 1.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Attack2": { "pitch": 1.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Skill1":  { "pitch": 1.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Skill2":  { "pitch": 1.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Special": { "pitch": 1.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 }
+    },
+    "Ibanix": {
+        "Attack1": { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Attack2": { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Skill1":  { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Skill2":  { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Special": { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 }
+    },
+    "Fanthor": {
+        "Attack1": { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Attack2": { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Skill1":  { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Skill2":  { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 },
+        "Special": { "pitch": 0.5, "yaw": 0.0, "roll": 0.0, "frequency": 20.0 }
+    }
+}

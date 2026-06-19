@@ -21,7 +21,8 @@ private:
 	void ProcessLayer(Entity owner, AnimationComponent& anim, bool useUpper,
 		AnimNotifyComponent::LayerTrack& track);
 
-	void Fire(Entity owner, const AnimNotifyEntry& entry);
+	void Fire(Entity owner, const AnimNotifyEntry& entry, float frameDuration);
+	void FireCameraShake(Entity owner, const AnimNotifyEntry& entry, float frameDuration);
 	bool ResolveAnchor(Entity owner, const AnimNotifyEntry& entry, Vec3& outPos) const;
 
 	void UpdateActiveFollows();

@@ -2,18 +2,21 @@
 #include "Component.h"
 #include "Entity.h"
 
-enum class AnimNotifyKind : uint8 { Vfx = 0, Sfx = 1 };
+enum class AnimNotifyKind : uint8 { Vfx = 0, Sfx = 1, CameraShake = 2 };
 enum class AnimNotifyAnchor : uint8 { PlayerRoot = 0, Socket = 1 };
 
 struct AnimNotifyEntry
 {
 	uint32           frame = 0;                          // 발동 프레임
+	uint32           startFrame = 0;                     // 카메라 흔들림 시작 프레임
+	uint32           endFrame = 0;                       // 카메라 흔들림 종료 프레임
 	AnimNotifyKind   kind = AnimNotifyKind::Vfx;
 	AnimNotifyAnchor anchor = AnimNotifyAnchor::PlayerRoot;
 	bool             useUpperLayer = true;               // 상체/하체 어느 부위로 판정할지
 
 	std::wstring     vfxName;                            // kind==Vfx : 리소스명(L"VFX_...")
 	std::string      sfxKey;                             // kind==Sfx : SfxTable.json 키
+	std::string      cameraShakePreset;                  // CameraShakeSetting.json 프리셋 이름
 	std::string      socketName;                         // anchor==Socket | Root
 
 

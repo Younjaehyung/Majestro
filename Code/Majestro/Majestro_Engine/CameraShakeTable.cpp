@@ -11,6 +11,7 @@ namespace
 
 	// [PlayerType][ActionState]
 	std::array<std::array<std::optional<ShakePreset>, kActionStateCount>, kPlayerTypeCount> gShakeTable{};
+	std::unordered_map<std::string, ShakePreset> gNamedShakeTable;
 
 	// JSON 문자열 키 → enum 매핑
 	const std::unordered_map<std::string, PlayerType> kPlayerTypeByName = {
@@ -35,6 +36,7 @@ void CameraShakeTable::Load(const std::string& path)
 	for (auto& row : gShakeTable)
 		for (auto& slot : row)
 			slot.reset();
+	gNamedShakeTable.clear();
 
 	std::ifstream ifs(path);
 	if (!ifs)
@@ -68,10 +70,10 @@ void CameraShakeTable::Load(const std::string& path)
 			preset.mAngles.x  = GetOptionalFloat(value, "pitch");
 			preset.mAngles.y  = GetOptionalFloat(value, "yaw");
 			preset.mAngles.z  = GetOptionalFloat(value, "roll");
-			preset.mDuration  = GetOptionalFloat(value, "duration");
 			preset.mFrequency = GetOptionalFloat(value, "frequency", 20.f);
 
 			gShakeTable[static_cast<size_t>(typeIt->second)][static_cast<size_t>(stateIt->second)] = preset;
+			gNamedShakeTable.emplace(characterName + "_" + stateName, preset);
 		}
 	}
 }
@@ -86,4 +88,10 @@ const ShakePreset* CameraShakeTable::Find(PlayerType playerType, ReplicatedActio
 
 	const auto& slot = gShakeTable[typeIdx][stateIdx];
 	return slot.has_value() ? &slot.value() : nullptr;
+}
+
+const ShakePreset* CameraShakeTable::Find(const std::string& presetName)
+{
+	const auto it = gNamedShakeTable.find(presetName);
+	return it != gNamedShakeTable.end() ? &it->second : nullptr;
 }

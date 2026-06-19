@@ -8,6 +8,9 @@
 #include "VfxSystem.h"
 
 #include "AnimationComponent.h"
+#include "CameraComponent.h"
+#include "CameraShakeTable.h"
+#include "TagComponent.h"
 #include "TransformComponent.h"
 #include "SocketComponent.h"
 #include "VfxComponent.h"
@@ -27,6 +30,8 @@ std::vector<std::type_index> AnimNotifySystem::After() const
 
 void AnimNotifySystem::Initialize()
 {
+	// Load shake presets here because animation notifies now own shake timing.
+	CameraShakeTable::Load("../Resources/Json/CameraShakeSetting.json");
 	LoadTable("../Resources/Json/AnimNotifyTable.json");
 }
 
@@ -90,9 +95,11 @@ void AnimNotifySystem::ProcessLayer(Entity owner, AnimationComponent& anim, bool
 			if (entry.useUpperLayer != useUpper)
 				continue;   // 다른 부위는 해당 레이어에서만 판정
 
-			const float f = static_cast<float>(entry.frame);
+			const uint32 triggerFrame =
+				entry.kind == AnimNotifyKind::CameraShake ? entry.startFrame : entry.frame;
+			const float f = static_cast<float>(triggerFrame);
 			if (f > track.lastFrameF && f <= currF)   // 1회 재생
-				Fire(owner, entry);
+				Fire(owner, entry, frameDuration);
 		}
 	}
 
@@ -120,8 +127,15 @@ bool AnimNotifySystem::ResolveAnchor(Entity owner, const AnimNotifyEntry& entry,
 	return true;
 }
 
-void AnimNotifySystem::Fire(Entity owner, const AnimNotifyEntry& entry)
+void AnimNotifySystem::Fire(Entity owner, const AnimNotifyEntry& entry, float frameDuration)
 {
+	// 카메라 흔들림은 위치나 소켓 계산 없이 애니메이션 프레임 구간으로 실행한다.
+	if (entry.kind == AnimNotifyKind::CameraShake)
+	{
+		FireCameraShake(owner, entry, frameDuration);
+		return;
+	}
+
 	Vec3 worldPos;
 	if (ResolveAnchor(owner, entry, worldPos) == false)
 		return;   // 스킵
@@ -145,6 +159,42 @@ void AnimNotifySystem::Fire(Entity owner, const AnimNotifyEntry& entry)
 		req.sfxKey = entry.sfxKey;
 		req.position = entry.is3dSfx ? worldPos : Vec3::Zero;   // Zero 면 2D 재생
 		mWorld->GetEventManager()->Enqueue(req);
+	}
+}
+
+void AnimNotifySystem::FireCameraShake(
+	Entity owner, const AnimNotifyEntry& entry, float frameDuration)
+{
+	// 원격 캐릭터의 공격 애니메이션은 현재 클라이언트 화면을 흔들지 않는다.
+	if (mWorld->GetComponent<LocalPlayerComponent>(owner) == nullptr)
+		return;
+
+	if (entry.endFrame <= entry.startFrame)
+	{
+		std::cout << "[AnimNotify] invalid camera shake frame range: "
+			<< entry.startFrame << " to " << entry.endFrame << std::endl;
+		return;
+	}
+
+	const ShakePreset* preset = CameraShakeTable::Find(entry.cameraShakePreset);
+	if (preset == nullptr)
+	{
+		std::cout << "[AnimNotify] camera shake preset not found: "
+			<< entry.cameraShakePreset << std::endl;
+		return;
+	}
+
+	for (Entity cameraEntity : mWorld->GetEntitiesWithComponent<CameraTypeComponent>())
+	{
+		CameraTypeComponent* camera = mWorld->GetComponent<CameraTypeComponent>(cameraEntity);
+		if (camera != nullptr && camera->mTargetID == owner.GetID())
+		{
+			// 종료 프레임에서 시작 프레임을 뺀 실제 애니메이션 시간만큼 흔든다.
+			const float shakeDuration =
+				static_cast<float>(entry.endFrame - entry.startFrame) * frameDuration;
+			camera->TriggerShake(preset->mAngles, shakeDuration, preset->mFrequency);
+			return;
+		}
 	}
 }
 
@@ -209,16 +259,24 @@ void AnimNotifySystem::LoadTable(const std::string& path)
 
 			AnimNotifyEntry entry{};
 			entry.frame = static_cast<uint32>(GetOptionalFloat(e, "frame", 0.f));
+			entry.startFrame = static_cast<uint32>(GetOptionalFloat(e, "startFrame", 0.f));
+			entry.endFrame = static_cast<uint32>(GetOptionalFloat(e, "endFrame", 0.f));
 			entry.useUpperLayer = GetOptionalBool(e, "useUpper", true);
 
 			const std::string kind = GetOptionalString(e, "kind", "vfx");
-			entry.kind = (kind == "sfx") ? AnimNotifyKind::Sfx : AnimNotifyKind::Vfx;
+			if (kind == "sfx")
+				entry.kind = AnimNotifyKind::Sfx;
+			else if (kind == "cameraShake")
+				entry.kind = AnimNotifyKind::CameraShake;
+			else
+				entry.kind = AnimNotifyKind::Vfx;
 
 			const std::string anchor = GetOptionalString(e, "anchor", "root");
 			entry.anchor = (anchor == "socket") ? AnimNotifyAnchor::Socket : AnimNotifyAnchor::PlayerRoot;
 
 			entry.vfxName = s2ws(GetOptionalString(e, "vfx", ""));
 			entry.sfxKey = GetOptionalString(e, "sfx", "");
+			entry.cameraShakePreset = GetOptionalString(e, "preset", "");
 			entry.socketName = GetOptionalString(e, "socket", "");
 
 			if (e.contains("offset"))   entry.offset = ParseVec3ArrayOrObject(e["offset"], 1.f);

@@ -13,7 +13,6 @@
 #include "MovementComponent.h"
 #include "AnimationComponent.h"
 #include "MovementSystem.h"
-#include "CameraShakeTable.h"
 
 #include "MathUtils.h"
 
@@ -23,8 +22,6 @@ PlayerSystem::PlayerSystem(World* world) : System(world)
 
 void PlayerSystem::Initialize()
 {
-	//  모션별 카메라 쉐이크 프리셋
-	CameraShakeTable::Load("../Resources/Json/CameraShakeSetting.json");
 }
 
 std::vector<std::type_index> PlayerSystem::After() const
@@ -86,17 +83,6 @@ void PlayerSystem::Update(float dt)
 			animCom->mEnableAimOffset = aimActive;
 			animCom->mAimPitch = aimActive ? (pitchDeg * deg2rad) : 0.f;
 			animCom->mAimYaw   = aimActive ? (clampedYaw * deg2rad) : 0.f;
-		}
-
-		
-		// 공격 상태 진입 시 캐릭터 모션별 카메라 쉐이크
-		if (mainPlayerComponent->mUpperState != mainPlayerComponent->mPrevStatePacket ||
-			mainPlayerComponent->mStateSequence != mainPlayerComponent->mPrevStateSequence)
-		{
-			const ShakePreset* preset = CameraShakeTable::Find(mainPlayerComponent->mPlayerType,
-				static_cast<ReplicatedActionState>(mainPlayerComponent->mUpperState));
-			if (preset)
-				mainPlayer->TriggerShake(preset->mAngles, preset->mDuration, preset->mFrequency);
 		}
 
 	}

@@ -251,6 +251,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		half = Vec3(100,200,100);
 		break;
 	case EnemyType::Obelisk:
+		t.mLocalScale = { 2.3f, 2.3f, 2.3f };
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Obelisk, 0);
 		world->AddComponent<HealthComponent>(mEntityID, 200, 0);
 		break;

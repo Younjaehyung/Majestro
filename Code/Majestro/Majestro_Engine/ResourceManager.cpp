@@ -2935,15 +2935,18 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"JHToon");
 
 	//mop
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Idle.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"Deferred");
 
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Idle.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"Deferred");
 
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Idle.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"Deferred");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"Deferred");
@@ -3032,9 +3035,9 @@ void ResourceManager::CreateDefaultMaterial()
 	// 적 사망 디졸브 노이즈 텍스처 (ExtTex[2])
 	// ExtTex[2] = -1로 두면 셰이더가 절차적 노이즈 사용
 	int32 dissolveNoiseIdx = Load<Texture>(L"T_Dissolve_MusicMask", L"..\\Resources\\Image\\Noise\\T_Dissolve_MusicWaveMask.png")->GetImageIndex();
-	Get<Material>(L"Anim_Hornman_Run0")->GetParams().ExtTex[2]  = -1;
-	Get<Material>(L"Anim_Pianoman_Run0")->GetParams().ExtTex[2] = -1;
-	Get<Material>(L"Anim_Bongoman_Run0")->GetParams().ExtTex[2] = -1;
+	Get<Material>(L"Anim_Hornman_Idle0")->GetParams().ExtTex[2]  = -1;
+	Get<Material>(L"Anim_Pianoman_Idle0")->GetParams().ExtTex[2] = -1;
+	Get<Material>(L"Anim_Bongoman_Idle0")->GetParams().ExtTex[2] = -1;
 	//	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
 	//	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
 }

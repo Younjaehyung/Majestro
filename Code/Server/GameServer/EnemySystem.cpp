@@ -404,14 +404,32 @@ void EnemySystem::Update(float dt)
         const bool bongomanCommittedAttack =
             enemyComp->mEnemyType == EnemyType::Bongoman &&
             enemyComp->mPendingAttackTime >= 0.0f;
+        bool brassFacingReady = false;
+        if (enemyComp->mEnemyType == EnemyType::Brass)
+        {
+            Vec3 toPlayer = playerPos - myPos;
+            toPlayer.y = 0.0f;
+            if (toPlayer.LengthSquared() > 1e-8f)
+            {
+                toPlayer.Normalize();
+                Vec3 look = tf->GetLook();
+                look.y = 0.0f;
+                if (look.LengthSquared() > 1e-8f)
+                {
+                    look.Normalize();
+                    constexpr float kBrassAttackEnterFacingDot = 0.94f;
+                    brassFacingReady = look.Dot(toPlayer) >= kBrassAttackEnterFacingDot;
+                }
+            }
+        }
         if (pianoRushEnding)
             currentState = EnemyAnimState::RushEnd;
         else if (brassRushEnding)
             currentState = EnemyAnimState::RushEnd;
         else if (enemyComp->mEnemyType == EnemyType::Brass)
-            currentState = (now >= enemyComp->mNextAttackTime ||
+            currentState = (brassFacingReady && (now >= enemyComp->mNextAttackTime ||
                 enemyComp->mPendingSkillType != 0 ||
-                now <= enemyComp->mAttackAnimEndTime)
+                now <= enemyComp->mAttackAnimEndTime))
                 ? EnemyAnimState::Attack
                 : EnemyAnimState::Run;
         else if (nearestPlayerDistSq <= enemyComp->AttackRangeSq || bongomanCommittedAttack)
@@ -552,11 +570,16 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }
         break;
-    case EnemyType::Brass:
-    {
-        if (enemyComp->mBrassRushEndHoldUntilTime > nowSeconds)
-        {
-            movementComp->mMovingDirection = Vec3::Zero;
+	    case EnemyType::Brass:
+	    {
+	        auto getBrassRushEndDuration = [&]()
+	        {
+	            return beatSeconds * enemyComp->mBrassAttackCool[enemyComp->mBrassAttackPattern];
+	        };
+
+	        if (enemyComp->mBrassRushEndHoldUntilTime > nowSeconds)
+	        {
+	            movementComp->mMovingDirection = Vec3::Zero;
             movementComp->mPathCount = 0;
             movementComp->mPathIndex = 0;
             enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
@@ -619,14 +642,14 @@ bool EnemySystem::HandleAttackState(
                 --enemyComp->mBrassSkill3ShotsRemaining;
                 enemyComp->mBrassSkill3NextShotTime += enemyComp->mBrassSkill3ShotInterval;
 
-                if (enemyComp->mBrassSkill3ShotsRemaining == 0)
-                {
-                    enemyComp->mPendingAttackTime = -1.0f;
-                    enemyComp->mPendingSkillType = 0;
-                    enemyComp->mBrassRushEndHoldUntilTime = enemyComp->mNextAttackTime;
-                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
-                }
-            }
+	                if (enemyComp->mBrassSkill3ShotsRemaining == 0)
+	                {
+	                    enemyComp->mPendingAttackTime = -1.0f;
+	                    enemyComp->mPendingSkillType = 0;
+	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
+	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	                }
+	            }
 
             if (enemyComp->mBrassSkill3ShotsRemaining > 0)
                 enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::BrassAttack3);
@@ -647,27 +670,27 @@ bool EnemySystem::HandleAttackState(
             if (attackDir.x * attackDir.x + attackDir.z * attackDir.z > 1e-8f)
                 attackYawDeg = DirectX::XMConvertToDegrees(std::atan2(attackDir.x, attackDir.z));
 
-            eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill2 });
-            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-            enemyComp->mPendingAttackTime = -1.0f;
-            enemyComp->mPendingSkillType = 0;
-            enemyComp->mBrassRushEndHoldUntilTime = enemyComp->mNextAttackTime;
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
-            break;
-        }
+	            eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill2 });
+	            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+	            enemyComp->mPendingAttackTime = -1.0f;
+	            enemyComp->mPendingSkillType = 0;
+	            enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
+	            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	            break;
+	        }
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
             std::uniform_int_distribution<int> brassPick(0, 3);
-            const uint8 pattern = static_cast<uint8>(brassPick(RandomEngine()));
-            enemyComp->mBrassAttackPattern = pattern;
+	            const uint8 pattern = static_cast<uint8>(brassPick(RandomEngine()));
+	            enemyComp->mBrassAttackPattern = pattern;
 
-            const SkillType brassSkill = GetBrassSkillType(pattern);
-            enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(pattern));
-            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mBrassAttackCool[pattern];
-            enemyComp->mBrassNextAttackTime[pattern] = enemyComp->mNextAttackTime;
-            enemyComp->mBrassSkill3ShotsRemaining = 0;
-            enemyComp->mBrassSkill3NextShotTime = 0.0f;
+	            const SkillType brassSkill = GetBrassSkillType(pattern);
+	            enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(pattern));
+	            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+	            enemyComp->mBrassNextAttackTime[pattern] = enemyComp->mNextAttackTime;
+	            enemyComp->mBrassSkill3ShotsRemaining = 0;
+	            enemyComp->mBrassSkill3NextShotTime = 0.0f;
             enemyComp->mBrassSkill3ShotInterval = 0.0f;
 
             const Vec3 attackDir = playerPos - myPos;
@@ -717,20 +740,20 @@ bool EnemySystem::HandleAttackState(
                         0.0f,
                         attackYawDeg,
                         0.0f
-                    });
-                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
-                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
-                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));
-                    enemyComp->mBrassRushEndHoldUntilTime = enemyComp->mNextAttackTime;
-                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
-                }
-                else if (brassSkill == SkillType::BrassSkill4)
-                {
-                    eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill4 });
-                    enemyComp->mBrassRushEndHoldUntilTime = enemyComp->mNextAttackTime;
-                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
-                }
-            }
+	                    });
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));
+	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
+	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	                }
+	                else if (brassSkill == SkillType::BrassSkill4)
+	                {
+	                    eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill4 });
+	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
+	                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+	                }
+	            }
         }
         break;
     }
@@ -1080,6 +1103,20 @@ void EnemySystem::HandleRunState(
         : nullptr;
     if (flyComp)
         flyComp->mDirectFlight = false;
+
+    if (enemyComp->mEnemyType == EnemyType::Brass)
+    {
+        Vec3 toPlayer = playerPos - myPos;
+        toPlayer.y = 0.0f;
+        if (toPlayer.LengthSquared() <= enemyComp->AttackRangeSq)
+        {
+            movementComp->mMovingDirection = Vec3::Zero;
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+            return;
+        }
+    }
 
     Vec3 desiredTarget = playerPos;
     const bool allowOnnxBaseMove = mUseOnnxBaseMove && enemyComp->mEnemyType != EnemyType::Brass;

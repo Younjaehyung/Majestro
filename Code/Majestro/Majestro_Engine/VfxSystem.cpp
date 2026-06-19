@@ -265,7 +265,7 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 			return VfxSpawnDesc{ L"VFX_Bongoman_Shield", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
 
 		if (skillType == SkillType::BrassSkill1)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(15.0f) };
+			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(1.0f) };
 
 		if (skillType == SkillType::BrassSkill3)
 			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };

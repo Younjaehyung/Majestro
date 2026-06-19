@@ -63,7 +63,7 @@ public:
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			mBrassAttackCool[0] = 4.0f;
-			mBrassAttackCool[1] = 4.0f;
+			mBrassAttackCool[1] = 1.0f;
 			mBrassAttackCool[2] = 4.0f;
 			mBrassAttackCool[3] = 4.0f;
 			for (int i = 0; i < 4; ++i)

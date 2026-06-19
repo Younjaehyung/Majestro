@@ -70,6 +70,13 @@ public:
 	Vec2 mFillUvRangeX = Vec2(0.f, 1.f);
 	Vec2 mFillUvRangeY = Vec2(0.f, 1.f);
 
+	// 쉴드(아머) 바 — 비어있으면 미표시. (적 월드 바 전용; mRenderBgFill=true 인 셰이더 경로)
+	// HP 채움 아래에 그린 뒤 HP가 위를 덮어, "현재 체력 오른쪽"부터 (curHp+shield)/denom 까지만 보인다.
+	// 쉴드 텍스처의 색 영역(UV)을 HP 바 하우징에 리맵해 같은 줄에 정렬한다.
+	std::wstring mShieldMaterialName;
+	Vec2 mShieldUvRangeX = Vec2(0.f, 1.f);
+	Vec2 mShieldUvRangeY = Vec2(0.f, 1.f);
+
 	Entity mBackgroundUIEntity = NULL_ENTITY;
 	Entity mFillUIEntity = NULL_ENTITY;
 	bool mHasPreviousHpRatio = false;

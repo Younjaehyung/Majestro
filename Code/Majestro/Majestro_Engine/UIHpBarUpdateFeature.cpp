@@ -3,6 +3,7 @@
 
 #include "Engine.h"
 #include "HealthComponent.h"
+#include "ArmorComponent.h"
 #include "RenderComponent.h"
 #include "TransformComponent.h"
 #include "RenderManager.h"
@@ -121,6 +122,27 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     if (hpBar->mHitEffectTextureName.empty() == false)
         hitTex = RESOURCEMANAGER.Get<Texture>(hpBar->mHitEffectTextureName);
 
+    // 쉴드(아머) 바 데이터 — mShieldMaterialName 지정 + 쉴드>0 일 때만 그린다.
+    shared_ptr<Texture> shieldTex = nullptr;
+    float shieldEndRatio = 0.f;   // (curHp+shield)/denom — 쉴드 우측 끝 (하우징 분율, 0~1)
+    if (hpBar->mRenderBgFill && hpBar->mShieldMaterialName.empty() == false)
+    {
+        HealthComponent* h = mWorld->GetComponent<HealthComponent>(hpBar->mTargetEntity);
+        ArmorComponent*  a = mWorld->GetComponent<ArmorComponent>(hpBar->mTargetEntity);
+        if (h != nullptr && h->mMaxHp > 0 && a != nullptr)
+        {
+            const int32 maxHp = h->mMaxHp;
+            const int32 curHp = std::clamp(h->mCurrentHp, 0, maxHp);
+            const int32 shieldAmt = (std::max)(0, a->mCurrentArmor);
+            if (shieldAmt > 0)
+            {
+                const float denom = static_cast<float>((std::max)(maxHp, curHp + shieldAmt));
+                shieldEndRatio = static_cast<float>(curHp + shieldAmt) / denom;
+                shieldTex = RESOURCEMANAGER.Get<Texture>(hpBar->mShieldMaterialName);
+            }
+        }
+    }
+
     // per-bar GlobalParams 구성
     GlobalParamsLayout gp{};
     gp.BaseInstanceID = 0;
@@ -167,9 +189,40 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     {
         spriteShader->Update();
 
+        // 쉴드 바 (HP 채움 아래) — 쉴드 텍스처의 색 영역(UV)을 HP 바 하우징에 리맵해
+        // 같은 줄에 정렬하고, [0, shieldEndRatio] 까지 그린다. 이후 HP 채움이 [0, curHp/denom]을
+        // 위에서 덮어, 쉴드는 "현재 체력 오른쪽 ~ (curHp+쉴드)/denom" 구간만 보인다.
+        if (shieldTex != nullptr)
+        {
+            const Vec2 hux = hpBar->mFillUvRangeX;     // HP 색 영역 X
+            const Vec2 huy = hpBar->mFillUvRangeY;     // HP 색 영역 Y
+            const Vec2 sux = hpBar->mShieldUvRangeX;   // 쉴드 색 영역 X
+            const Vec2 suy = hpBar->mShieldUvRangeY;   // 쉴드 색 영역 Y
+
+            GlobalParamsLayout gpS = gp;
+            gpS.HpBarFillTexIdx = shieldTex->GetImageIndex();
+            // 쉴드 색 영역(sux/suy)이 HP 색 영역(hux/huy) 스크린 위치에 정확히 오도록 스케일/피벗 보정.
+            const float sx = (hux.y - hux.x) / (std::max)(1e-4f, sux.y - sux.x) * hpBar->mMaxWidth;
+            const float sy = (huy.y - huy.x) / (std::max)(1e-4f, suy.y - suy.x) * hpBar->mHeight;
+            gpS.HpBarSizePxX = sx;
+            gpS.HpBarSizePxY = sy;
+            gpS.HpBarPivotPxX = gp.HpBarPivotPxX + hux.x * hpBar->mMaxWidth - sux.x * sx;
+            gpS.HpBarPivotPxY = gp.HpBarPivotPxY + huy.x * hpBar->mHeight   - suy.x * sy;
+            // 우측 컷오프(셰이더 discard)는 쉴드 UV 공간에서: 하우징 분율 shieldEndRatio → 쉴드 UV
+            gpS.HpBarFollowRatio = RemapBarRatioToUv(std::clamp(shieldEndRatio, 0.f, 1.f), sux);
+
+            GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gpS, 0);
+            const uint32 shieldRole = 1;
+            GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &shieldRole, 2);
+            quadMesh->Render(1, 0, 0, 0);
+
+            // HP 채움/배경용 원본 GlobalParams 복원
+            GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
+        }
+
         const uint32 fillRole = 1;
         GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &fillRole, 2);
-        quadMesh->Render(1, 0, 0, 0);   // 채움 먼저 (바닥)
+        quadMesh->Render(1, 0, 0, 0);   // 채움 먼저 (쉴드 위, 배경 아래)
 
         const uint32 bgRole = 0;
         GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &bgRole, 2);
@@ -404,7 +457,19 @@ void UIHpBarUpdateFeature::UpdateHpBarUI(float dt)
         if (followHealth == nullptr)
             continue;
 
-        const float followRatio = std::clamp(static_cast<float>(followHealth->mCurrentHp) /static_cast<float>((std::max)(1, followHealth->mMaxHp)),  0.0f, 1.0f);
+        // 쉴드 바가 있는 바(적)는 오버실드 방식 denom = max(MaxHp, curHp+쉴드).
+        // 쉴드 바가 없으면 shield=0 → denom=MaxHp 로 기존 동작 유지.
+        const int32 maxHp = (std::max)(1, followHealth->mMaxHp);
+        const int32 curHp = std::clamp(followHealth->mCurrentHp, 0, maxHp);
+        int32 shield = 0;
+        if (hpBar->mShieldMaterialName.empty() == false)
+        {
+            ArmorComponent* followArmor = mWorld->GetComponent<ArmorComponent>(hpBar->mTargetEntity);
+            if (followArmor != nullptr)
+                shield = (std::max)(0, followArmor->mCurrentArmor);
+        }
+        const float denom = static_cast<float>((std::max)(maxHp, curHp + shield));
+        const float followRatio = std::clamp(static_cast<float>(curHp) / denom, 0.0f, 1.0f);
 
         if (hpBar->mHasPreviousHpRatio == false)
         {

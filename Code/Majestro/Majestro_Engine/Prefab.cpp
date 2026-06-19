@@ -470,6 +470,11 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		// X 118~718 / Y 116~140 — 세 캐릭터 공통 (알파 스캔 측정, ±1px)
 		hp.mFillUvRangeX = Vec2(118.f / 768.f, 718.f / 768.f);
 		hp.mFillUvRangeY = Vec2(116.f / 256.f, 140.f / 256.f);
+		// 쉴드(아머) 바: UI_Player_Shield (768x256) 의 바 색 영역 X 120~718 / Y 118~138 을
+		// HP 바 하우징에 리맵해 같은 줄 오른쪽에 표시 (적 월드 바와 동일 방식).
+		hp.mShieldMaterialName = L"UI_Player_Shield";
+		hp.mShieldUvRangeX = Vec2(120.f / 768.f, 718.f / 768.f);
+		hp.mShieldUvRangeY = Vec2(118.f / 256.f, 138.f / 256.f);
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;
@@ -577,8 +582,14 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 4.f, L"UI_Monster_Hp_0", L"UI_Monster_Hp_1");
 
 	{
-		// 텍스처 여백 보정: UI_Monster_Hp_1 (1024px) 의 바 픽셀 영역 X 278~900
+		// 텍스처 여백 보정: UI_Monster_Hp_1 (1024x256) 의 바 픽셀 영역 X 278~900 / Y 94~114
 		hp.mFillUvRangeX = Vec2(278.f / 1024.f, 900.f / 1024.f);
+		hp.mFillUvRangeY = Vec2(94.f / 256.f, 114.f / 256.f);
+		// 쉴드(아머) 바: UI_Monster_Hp_2 (1024x256) 의 바 색 영역 X 270~640 / Y 62~96.
+		// 이 색 영역을 HP 바 하우징(위 X/Y 구간)에 리맵해 같은 줄 오른쪽에 그린다.
+		hp.mShieldMaterialName = L"UI_Monster_Hp_2";
+		hp.mShieldUvRangeX = Vec2(270.f / 1024.f, 640.f / 1024.f);
+		hp.mShieldUvRangeY = Vec2(62.f / 256.f, 96.f / 256.f);
 		hp.mScreenOffsetPx = Vec2(0.f, -(hp.mHeight + 8.f));
 		hp.mHitEffectTextureName = L"UI_Player_HP_3";
 		hp.mHitEffectCols = 4;

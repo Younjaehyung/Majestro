@@ -51,8 +51,8 @@
     {
       "_comment": "점령지 1 (추정). JSON에서 위치 조정.",
       "kind": "ConquestZone",
-      "position": [ -3330.0, 103.0, -5251.0 ],
-      "halfExtents": [ 500.0, 600.0, 500.0 ],
+      "position": [ -3930.0, 120.0, -5140.0 ],
+      "halfExtents": [ 300.0, 600.0, 300.0 ],
       "valueA": 1.0,
       "valueB": 30.0,
       "cooldown": 0.0,
@@ -62,9 +62,20 @@
     {
       "_comment": "점령지 2 (추정). JSON에서 위치 조정.",
       "kind": "ConquestZone",
-      "position": [ 0.0, 300.0, -6500.0 ],
-      "halfExtents": [ 500.0, 600.0, 500.0 ],
+      "position": [ 650.0, 120.0, -6510.0 ],
+      "halfExtents": [ 300.0, 600.0, 300.0 ],
       "valueA": 2.0,
+      "valueB": 30.0,
+      "cooldown": 0.0,
+      "oneShot": false,
+      "targetMask": "All"
+    },
+    {
+      "_comment": "점령지 3 (추정). JSON에서 위치 조정.",
+      "kind": "ConquestZone",
+      "position": [ 950.0, 120.0, -9790.0 ],
+      "halfExtents": [ 300.0, 600.0, 300.0 ],
+      "valueA": 3.0,
       "valueB": 30.0,
       "cooldown": 0.0,
       "oneShot": false,

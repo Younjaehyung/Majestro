@@ -177,7 +177,9 @@ void GamePhaseSystem::UpdateConquestZoneMarker(GameConquestComponent* conquest)
 		tr->mWorldPosition = conquest->mActiveZonePos;
 		tr->mWorldMatrix = Matrix::CreateTranslation(conquest->mActiveZonePos);
 
-		vfx->efkHandle = -1;   // 새 위치에서 새 핸들로 재생 (이전 위치 잔상 방지)
+		// 수정: 기존 VFX 핸들을 제거하면 mIsPlaying 상태와 불일치하여
+		// 다음 점령지에서 새 VFX가 재생되지 않으므로 핸들을 유지한 채 위치만 갱신한다.
+		// EffectPass가 매 프레임 Transform 위치를 Effekseer 핸들에 반영한다.
 		vfx->mFinished = false;
 		mShownConquestZoneId = zoneId;
 	}

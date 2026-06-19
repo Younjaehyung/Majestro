@@ -102,11 +102,11 @@ void DamageSystem::Update(float deltaTime)
                     if (wasRushing)
                     {
                         enemy->mRushEndAnimEndTime = nowSeconds + enemy->mRushEndAnimTime;
-                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::RushEnd);
+                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
                     }
                     else
                     {
-                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+                        enemy->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
                     }
                     enemy->mPianoRushVfxPlayed = false;
                 }

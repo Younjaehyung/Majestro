@@ -602,33 +602,36 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	switch (static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {
 	case EnemyType::HornMan:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Hornman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Run0");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Hornman_Idle0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Hornman_Idle"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Pianoman:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Run0");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Idle0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
-		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Idle"));
 
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman);
 		break;
 	case EnemyType::Bongoman:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Bongoman_Body");
-		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Bongoman_Run0");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Bongoman_Idle0");
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Run"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Die"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Shield"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Idle"));
 		hp.mWorldOffset = Vec3(0.f, 400.f, 0.f);
 		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);

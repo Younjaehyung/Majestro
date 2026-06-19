@@ -10,10 +10,18 @@ void HealthVignettePass::Initialize()
 {
 }
 
-void HealthVignettePass::SetFeedbackState(float lowHealthStrength, float healStrength)
+void HealthVignettePass::SetFeedbackState(
+	float lowHealthStrength,
+	float healStrength,
+	const Vec4& buffIconStrengths)
 {
 	mLowHealthStrength = std::clamp(lowHealthStrength, 0.0f, 1.0f);
 	mHealStrength = std::clamp(healStrength, 0.0f, 1.0f);
+	mBuffIconStrengths = Vec4(
+		std::clamp(buffIconStrengths.x, 0.0f, 1.0f),
+		std::clamp(buffIconStrengths.y, 0.0f, 1.0f),
+		std::clamp(buffIconStrengths.z, 0.0f, 1.0f),
+		std::clamp(buffIconStrengths.w, 0.0f, 1.0f));
 }
 
 void HealthVignettePass::SetData(
@@ -37,6 +45,16 @@ void HealthVignettePass::SetData(
 			d.ExtTex[0] = static_cast<int32>(noiseTexture->GetImageIndex());
 		}
 	}
+
+	if (mEffectAtlasTextureName.empty() == false)
+	{
+		shared_ptr<Texture> effectAtlasTexture = RESOURCEMANAGER.Get<Texture>(mEffectAtlasTextureName);
+		if (effectAtlasTexture != nullptr)
+		{
+			// UI 효과 아이콘 시트의 TextureMaps 인덱스를 전달
+			d.ExtTex[1] = static_cast<int32>(effectAtlasTexture->GetImageIndex());
+		}
+	}
 	// x  : 시간 y :  빈사 강도 z  : 회복 강도 w : 노이즈 텍스처 타일링
 	d.ExtValue[0] = Vec4(TIMER.GetTotalTime(), mLowHealthStrength, mHealStrength, 2.25f);
 
@@ -46,9 +64,8 @@ void HealthVignettePass::SetData(
 	// x,y,z : 회복 비네팅 w: 색 맥동 속도
 	d.ExtValue[2] = Vec4(0.35f, 1.0f, 0.08f, 3.0f);
 
-	// 외곽 마스크와 일렁임 모양 조정 값
-	// x : 시작 반경 y : 최대 반경 z :  일렁임 크기 w : 일렁임 빈도
-	d.ExtValue[3] = Vec4(0.42f, 0.90f, 0.26f, 18.0f);
+	// x부터 회복, 이동 속도, 보호막, 공격 아이콘의 표시 강도
+	d.ExtValue[3] = mBuffIconStrengths;
 }
 
 void HealthVignettePass::Execute(std::vector<DrawBatch>& /*deferredDrawBatchs*/)

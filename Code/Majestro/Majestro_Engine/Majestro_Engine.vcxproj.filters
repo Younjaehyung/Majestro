@@ -1501,7 +1501,7 @@
     <FxCompile Include="..\Resources\Shader\fxaa_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
-    <FxCompile Include="..\Resources\Shader\HealthVignette_PS.hlsl">
+    <FxCompile Include="..\Resources\Shader\HealthBuffVignette_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">

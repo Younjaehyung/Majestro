@@ -2176,7 +2176,8 @@ void ResourceManager::CreateDefaultShader()
 		};
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\Luminance_VS.hlsl",
-			.PS = L"..\\Resources\\Shader\\HealthVignette_PS.hlsl"
+			// 수정사항: 중간 include 파일 없이 통합된 체력 및 버프 비네팅 셰이더를 직접 로드한다.
+			.PS = L"..\\Resources\\Shader\\HealthBuffVignette_PS.hlsl"
 		};
 		shared_ptr<Shader> shader = make_shared<Shader>();
 		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
@@ -2472,6 +2473,13 @@ void ResourceManager::CreateDefaultMaterial()
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"jAims", L"..\\Resources\\Image\\UI\\UI_Aim_01.png");
 		shared_ptr<Texture> textures = Load<Texture>(L"jAims2", L"..\\Resources\\Image\\UI\\UI_Aim_02.png");
+		// 크로스헤어 양옆에서 박자 위치를 보여 주는 좌우 리듬바 텍스처를 등록한다.
+		Load<Texture>(L"UI_Aim_Bar_Left", L"..\\Resources\\Image\\UI\\UI_Aim_Bar_Left.png");
+		Load<Texture>(L"UI_Aim_Bar_Right", L"..\\Resources\\Image\\UI\\UI_Aim_Bar_Right.png");
+		// 박자 판정과 실제 타격 결과에 따라 기존 UI_Aim_02 대신 표시할 조준 UI를 등록한다.
+		Load<Texture>(L"UI_Aim_Perfect", L"..\\Resources\\Image\\UI\\UI_Aim_Perfect.png");
+		Load<Texture>(L"UI_Aim_Good", L"..\\Resources\\Image\\UI\\UI_Aim_Good.png");
+		Load<Texture>(L"UI_Aim_Miss", L"..\\Resources\\Image\\UI\\UI_Aim_Miss.png");
 		shared_ptr<Material> material = make_shared<Material>();
 		material->SetShader(L"UI");
 		material->SetTexture(texture, DIFFUSEMAP0INDEX);
@@ -2634,6 +2642,8 @@ void ResourceManager::CreateDefaultMaterial()
 		// DashSmoke
 		Load<Texture>(L"DashSmoke", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG");
 		Load<Texture>(L"WorlyNoise", L"..\\Resources\\Image\\Noise\\T_WorlyNoise_3.PNG");
+		// 화면 외곽 버프 피드백에 사용하는 2행 2열 아이콘 시트다.
+		Load<Texture>(L"UI_Effect_Sheet", L"..\\Resources\\Image\\UI\\UI_Effect_Sheet.png");
 
 
 
@@ -2744,6 +2754,8 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_Monster_Hp_1", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_1.png");
 			Load<Texture>(L"UI_Monster_Hp_2", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_2.png");
 
+			Load<Texture>(L"UI_Boss_HP_0", L"..\\Resources\\Image\\UI\\UI_Boss_HP_0.png");
+			Load<Texture>(L"UI_Boss_HP_1", L"..\\Resources\\Image\\UI\\UI_Boss_HP_1.png");
 		}
 #pragma endregion
 

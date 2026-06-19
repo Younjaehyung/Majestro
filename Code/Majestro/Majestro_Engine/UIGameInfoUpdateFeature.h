@@ -104,11 +104,15 @@ struct RevealStampAnimationSpec
 {
 	std::wstring mRevealTextureName;
 	std::wstring mStampTextureName;
+	std::wstring mFinalStampTextureName;
 
 	float mRevealDuration = 0.9f;
 	float mStampStartTime = 0.75f;
 	float mStampDuration = 0.32f;
 	float mStampStartScale = 1.65f;
+	float mFinalStampStartTime = 1.45f;
+	float mFinalStampDuration = 0.42f;
+	float mFinalStampStartScale = 1.5f;
 
 	uint8 mRevealLayer = 8;
 	uint8 mStampLayer = 9;
@@ -127,6 +131,7 @@ struct RevealStampAnimationState
 	float mElapsed = 0.0f;
 	bool mActive = false;
 	bool mStampTriggered = false;
+	bool mFinalStampTriggered = false;
 };
 
 class UIGameInfoUpdateFeature : public UIFeature

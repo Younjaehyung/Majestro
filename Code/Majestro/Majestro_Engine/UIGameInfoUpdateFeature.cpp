@@ -117,10 +117,15 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		RevealStampAnimationSpec clearSpec;
 		clearSpec.mRevealTextureName = L"UI_StageClear_1";
 		clearSpec.mStampTextureName = L"UI_StageClear_2";
+		if (mWorld->GetSceneId() == SceneId::ThirdGame)
+			clearSpec.mFinalStampTextureName = L"UI_GameClear";
 		clearSpec.mRevealDuration = 0.9f;
 		clearSpec.mStampStartTime = 0.75f;
 		clearSpec.mStampDuration = 0.32f;
 		clearSpec.mStampStartScale = 1.65f;
+		clearSpec.mFinalStampStartTime = 1.45f;
+		clearSpec.mFinalStampDuration = 0.42f;
+		clearSpec.mFinalStampStartScale = 1.5f;
 		clearSpec.mRevealLayer = 8;
 		clearSpec.mStampLayer = 9;
 		clearSpec.mCameraShakeAngles = Vec3(1.2f, 0.8f, 1.8f);
@@ -132,6 +137,7 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		RevealStampAnimationSpec gameOverSpec = clearSpec;
 		gameOverSpec.mRevealTextureName = L"UI_GameOver_1";
 		gameOverSpec.mStampTextureName = L"UI_GameOver_2";
+		gameOverSpec.mFinalStampTextureName.clear();
 		mRevealStampAnimationTable[WavePhaseType::Fail] = gameOverSpec;
 	}
 }
@@ -262,6 +268,13 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 	GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>();
 	if (!clearComp)
 		return;
+
+	// 최종 UI_GameClear 도장이 찍힌 뒤 전체 화면 결과
+	if (mRevealStampAnimation.mFinalStampTriggered)
+	{
+		SetPhaseStatusVisible(false);
+		return;
+	}
 
 	EnsurePhaseStatusText();
 	SetPhaseStatusVisible(true);
@@ -416,6 +429,34 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 		1.0f + (spec.mStampStartScale - 1.0f) * (1.0f - eased);
 	stampTransform->mScale = Vec2(scale, scale);
 	stampSprite->mColorTint.w = std::clamp(stampProgress * 5.0f, 0.0f, 1.0f);
+
+	if (spec.mFinalStampTextureName.empty() ||
+		mRevealStampAnimation.mElapsed < spec.mFinalStampStartTime)
+		return;
+
+	if (!mRevealStampAnimation.mFinalStampTriggered)
+	{
+		// StageClear 도장 연출이 끝난 뒤 같은 레이어를 GameClear 이미지로 교체해 한 번 더
+		mRevealStampAnimation.mFinalStampTriggered = true;
+		stampSprite->mTexture = RESOURCEMANAGER.Get<Texture>(spec.mFinalStampTextureName);
+		stampTransform->mScale =
+			Vec2(spec.mFinalStampStartScale, spec.mFinalStampStartScale);
+		stampSprite->mColorTint.w = 0.0f;
+		TriggerAnimationCameraShake(spec);
+	}
+
+	const float finalStampDuration = max(spec.mFinalStampDuration, 0.001f);
+	const float finalStampProgress = std::clamp(
+		(mRevealStampAnimation.mElapsed - spec.mFinalStampStartTime) / finalStampDuration,
+		0.0f, 1.0f);
+	const float finalStampEased =
+		1.0f - std::pow(1.0f - finalStampProgress, 3.0f);
+	const float finalStampScale =
+		1.0f +
+		(spec.mFinalStampStartScale - 1.0f) * (1.0f - finalStampEased);
+	stampTransform->mScale = Vec2(finalStampScale, finalStampScale);
+	stampSprite->mColorTint.w =
+		std::clamp(finalStampProgress * 5.0f, 0.0f, 1.0f);
 }
 
 void UIGameInfoUpdateFeature::TickGoalBanner(float dt)
@@ -803,6 +844,7 @@ void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimati
 	mRevealStampAnimation.mElapsed = 0.0f;
 	mRevealStampAnimation.mActive = true;
 	mRevealStampAnimation.mStampTriggered = false;
+	mRevealStampAnimation.mFinalStampTriggered = false;
 	EnsureRevealStampEntities();
 
 	if (UISpriteComponent* revealSprite =

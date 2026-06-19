@@ -29,7 +29,7 @@ namespace
 		case BuffType::ScoreBoost: return ReplicatedBuffType::ScoreBoost;
 		case BuffType::MoveSpeedUp: return ReplicatedBuffType::MoveSpeedUp;
 		case BuffType::BuffPowerUp: return ReplicatedBuffType::BuffPowerUp;
-		case BuffType::ScoreOverTime: return ReplicatedBuffType::ScoreOverTime;
+		case BuffType::MoveSpeedUp10: return ReplicatedBuffType::MoveSpeedUp10;
 		case BuffType::ShieldOverTime: return ReplicatedBuffType::ShieldOverTime;
 		case BuffType::HealOverTime: return ReplicatedBuffType::HealOverTime;
 		case BuffType::ShieldDown: return ReplicatedBuffType::ShieldDown;

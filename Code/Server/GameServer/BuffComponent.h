@@ -31,7 +31,7 @@ enum class BuffType
     MoveSpeedUp,
     BuffPowerUp,
 
-    ScoreOverTime,
+    MoveSpeedUp10,
     ShieldOverTime,
     HealOverTime,
     //de buff

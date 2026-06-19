@@ -32,7 +32,7 @@ namespace
 		},
 		/* Ibanix  */ {
 			{ BuffType::None,           BuffExecutionType::Persistent }, // Neutral
-			{ BuffType::ScoreOverTime,  BuffExecutionType::Periodic   }, // R1
+			{ BuffType::MoveSpeedUp10,  BuffExecutionType::Persistent }, // R1 -> 10% move speed
 			{ BuffType::ShieldOverTime, BuffExecutionType::Periodic   }, // R2
 			{ BuffType::HealOverTime,   BuffExecutionType::Periodic   }, // R3
 		},

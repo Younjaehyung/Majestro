@@ -400,7 +400,7 @@ enum class ReplicatedBuffType : uint8
 	ScoreBoost,
 	MoveSpeedUp,
 	BuffPowerUp,
-	ScoreOverTime,
+	MoveSpeedUp10,
 	ShieldOverTime,
 	HealOverTime,
 	ShieldDown,

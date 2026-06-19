@@ -37,6 +37,7 @@ void BuffComponent::RecalculateDerivedEffects()
     const bool hasAttackUp = FindBuff(BuffType::AttackUp) != nullptr;
     const bool hasScoreBoost = FindBuff(BuffType::ScoreBoost) != nullptr;
     const bool hasMoveSpeedUp = FindBuff(BuffType::MoveSpeedUp) != nullptr;
+    const bool hasMoveSpeedUp10 = FindBuff(BuffType::MoveSpeedUp10) != nullptr;
 
     buffPowerUp = hasBuffPowerUp;
     mAttackMultiplier = 1.0f;
@@ -56,6 +57,8 @@ void BuffComponent::RecalculateDerivedEffects()
 
     if (hasMoveSpeedUp)
         mMoveSpeedMultiplier = hasBuffPowerUp ? 1.1f : 1.3f;
+    else if (hasMoveSpeedUp10)
+        mMoveSpeedMultiplier = 1.1f;
 }
 
 BuffData& BuffComponent::AddOrRefresh(const BuffData& buff)

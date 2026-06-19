@@ -197,6 +197,13 @@ public:
 	~HUDHPBarPrefab();
 };
 
+class HUDBossHPBarPrefab : public Prefab
+{
+public:
+	HUDBossHPBarPrefab(World* world, Entity bossEntity);
+	~HUDBossHPBarPrefab();
+};
+
 class HUDWeaponPrefab : public Prefab
 {
 public:

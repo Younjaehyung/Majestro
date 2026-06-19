@@ -26,6 +26,7 @@
 #include "HUDPortraitSlotComponent.h"
 #include "HUDSkillSlotComponent.h"
 #include "BeatComponent.h"
+#include "BeatSystem.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "VfxComponent.h"
@@ -706,6 +707,11 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
 	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
 
+
+	if ( enemyType == EnemyType::Brass)
+	{
+		HUDBossHPBarPrefab bossHpBar{ world, mEntityID };
+	}
 
 
 
@@ -1476,6 +1482,121 @@ HUDHPBarPrefab::~HUDHPBarPrefab()
 
 }
 
+HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
+{
+	const Vec2 bossBarSize = Vec2(1024.f, 128.f);
+	const Vec2 bossBarPosition = Vec2(0.f, 32.f);
+	const float fillStartX = 25.f / 1024.f;
+	const float fillEndX = 999.f / 1024.f;
+
+	{
+		Entity background = world->CreateEntity();
+		auto& transform = world->AddComponent<UITransformComponent>(background);
+		transform.mAnchor = Anchor::TopCenter;
+		transform.mPosition = bossBarPosition;
+		transform.mSize = bossBarSize;
+		transform.mPivot = Vec2(0.5f, 0.f);
+		transform.mUILayerIndex = 10;
+
+		auto& sprite = world->AddComponent<UISpriteComponent>(
+			background,
+			RESOURCEMANAGER.Get<Texture>(L"UI_Boss_HP_0"));
+
+		// 보스 엔티티가 제거되면 남아 있는 배경 HUD도 표시하지 않는다.
+		world->AddComponent<UIScriptComponent>(background).mOnUpdate =
+			[world, background, bossEntity](float)
+			{
+				UISpriteComponent* backgroundSprite = world->GetComponent<UISpriteComponent>(background);
+				if (backgroundSprite == nullptr)
+					return;
+
+				backgroundSprite->mVisible = world->GetComponent<HealthComponent>(bossEntity) != nullptr;
+			};
+	}
+
+	{
+		Entity fill = world->CreateEntity();
+		auto& transform = world->AddComponent<UITransformComponent>(fill);
+		transform.mAnchor = Anchor::TopCenter;
+		transform.mPosition = bossBarPosition;
+		transform.mSize = bossBarSize;
+		transform.mPivot = Vec2(0.5f, 0.f);
+		transform.mUILayerIndex = 11;
+
+		auto& sprite = world->AddComponent<UISpriteComponent>(
+			fill,
+			RESOURCEMANAGER.Get<Texture>(L"UI_Boss_HP_1"));
+		sprite.SetVisibleRangeKeepDestinationSize(false);
+		sprite.SetVisibleRangeNormalizedX(0.f, fillEndX);
+
+		world->AddComponent<UIScriptComponent>(fill).mOnUpdate =
+			[world, fill, bossEntity, fillStartX, fillEndX](float)
+			{
+				UISpriteComponent* fillSprite = world->GetComponent<UISpriteComponent>(fill);
+				HealthComponent* health = world->GetComponent<HealthComponent>(bossEntity);
+				if (fillSprite == nullptr)
+					return;
+
+				if (health == nullptr || health->mMaxHp <= 0)
+				{
+					fillSprite->mVisible = false;
+					return;
+				}
+
+				// UI_Boss_HP_1에서 실제 붉은 체력 영역인 X 25부터 998까지만 체력 비율로 자른다.
+				const float hpRatio = std::clamp(
+					static_cast<float>((std::max)(0, health->mCurrentHp)) /
+					static_cast<float>(health->mMaxHp),
+					0.f,
+					1.f);
+				const float visibleEndX = fillStartX + hpRatio * (fillEndX - fillStartX);
+
+				fillSprite->mVisible = true;
+				fillSprite->SetVisibleRangeKeepDestinationSize(false);
+				fillSprite->SetVisibleRangeNormalizedX(0.f, visibleEndX);
+			};
+	}
+
+	{
+		Entity hpText = world->CreateEntity();
+		auto& transform = world->AddComponent<UITransformComponent>(hpText);
+		transform.mAnchor = Anchor::TopCenter;
+		transform.mPosition = Vec2(0.f, 92.f);
+		transform.mSize = Vec2(600.f, 40.f);
+		transform.mPivot = Vec2(0.5f, 0.5f);
+		transform.mUILayerIndex = 12;
+
+		auto& text = world->AddComponent<UITextComponent>(hpText);
+		text.mText = L"BOSS HP";
+		text.mOutlineThickness = 2.f;
+		text.mOnTextChanged = [world, hpText, bossEntity]()
+			{
+				UITextComponent* hpTextComponent = world->GetComponent<UITextComponent>(hpText);
+				HealthComponent* health = world->GetComponent<HealthComponent>(bossEntity);
+				if (hpTextComponent == nullptr)
+					return;
+
+				if (health == nullptr || health->mMaxHp <= 0)
+				{
+					hpTextComponent->mVisible = false;
+					return;
+				}
+
+				// 체력바와 함께 현재 체력과 최대 체력을 숫자로 표시한다.
+				hpTextComponent->mVisible = true;
+				hpTextComponent->mText =
+					L"BOSS HP " +
+					std::to_wstring((std::max)(0, health->mCurrentHp)) +
+					L" / " +
+					std::to_wstring(health->mMaxHp);
+			};
+	}
+}
+
+HUDBossHPBarPrefab::~HUDBossHPBarPrefab()
+{
+}
+
 HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
 
@@ -1774,6 +1895,170 @@ HUDMusicPrefab::~HUDMusicPrefab()
 
 HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 {
+	constexpr float rhythmTargetDistance = 180.f;
+	constexpr float rhythmSpawnDistance = 560.f;
+	constexpr float rhythmTargetSize = 176.f;
+	constexpr float rhythmNoteSize = 112.f;
+
+	const shared_ptr<Texture> leftRhythmTexture =
+		RESOURCEMANAGER.Get<Texture>(L"UI_Aim_Bar_Left");
+	const shared_ptr<Texture> rightRhythmTexture =
+		RESOURCEMANAGER.Get<Texture>(L"UI_Aim_Bar_Right");
+
+	auto createRhythmBar =
+		[world](const shared_ptr<Texture>& texture, const Vec2& position, float size, uint8 layer, float alpha)
+		{
+			Entity entity = world->CreateEntity();
+
+			auto& transform = world->AddComponent<UITransformComponent>(entity);
+			transform.mAnchor = Anchor::Center;
+			transform.mPosition = position;
+			transform.mSize = Vec2(size, size);
+			transform.mUILayerIndex = layer;
+			transform.mPivot = Vec2(0.5f, 0.5f);
+
+			auto& sprite = world->AddComponent<UISpriteComponent>(entity, texture);
+			sprite.mColorTint.w = alpha;
+
+			return entity;
+		};
+
+	// 중앙의 큰 좌우 표식은 박자가 도착해야 하는 고정 판정선으로 사용한다.
+	const Entity leftTarget = createRhythmBar(
+		leftRhythmTexture,
+		Vec2(-rhythmTargetDistance, 0.f),
+		rhythmTargetSize,
+		4,
+		0.75f);
+	const Entity rightTarget = createRhythmBar(
+		rightRhythmTexture,
+		Vec2(rhythmTargetDistance, 0.f),
+		rhythmTargetSize,
+		4,
+		0.75f);
+
+	// 좌우 이동 표식은 같은 박자 진행률을 사용하고 잔상만 바깥쪽에 떨어뜨려 표시한다.
+	const Entity leftNote = createRhythmBar(
+		leftRhythmTexture,
+		Vec2(-rhythmSpawnDistance, 0.f),
+		rhythmNoteSize,
+		5,
+		1.f);
+	const Entity rightNote = createRhythmBar(
+		rightRhythmTexture,
+		Vec2(rhythmSpawnDistance, 0.f),
+		rhythmNoteSize,
+		5,
+		1.f);
+	const Entity leftTrailNear = createRhythmBar(
+		leftRhythmTexture,
+		Vec2(-rhythmSpawnDistance, 0.f),
+		rhythmNoteSize,
+		3,
+		1.f);
+	const Entity rightTrailNear = createRhythmBar(
+		rightRhythmTexture,
+		Vec2(rhythmSpawnDistance, 0.f),
+		rhythmNoteSize,
+		3,
+		1.f);
+	const Entity leftTrailFar = createRhythmBar(
+		leftRhythmTexture,
+		Vec2(-rhythmSpawnDistance, 0.f),
+		rhythmNoteSize,
+		3,
+		1.f);
+	const Entity rightTrailFar = createRhythmBar(
+		rightRhythmTexture,
+		Vec2(rhythmSpawnDistance, 0.f),
+		rhythmNoteSize,
+		3,
+		1.f);
+
+	Entity rhythmController = world->CreateEntity();
+	world->AddComponent<UIScriptComponent>(rhythmController).mOnUpdate =
+		[world,
+		 leftTarget,
+		 rightTarget,
+		 leftNote,
+		 rightNote,
+		 leftTrailNear,
+		 rightTrailNear,
+		 leftTrailFar,
+		 rightTrailFar,
+		 rhythmTargetDistance,
+		 rhythmSpawnDistance](float)
+		{
+			BeatSystem* beatSystem = nullptr;
+			if (auto systemManager = world->GetSystemManager())
+				beatSystem = systemManager->GetSystem<BeatSystem>();
+
+			if (beatSystem == nullptr || beatSystem->GetBeatSeconds() <= 0.f)
+				return;
+
+			const float beatSeconds = beatSystem->GetBeatSeconds();
+			const float beatProgress =
+				std::fmod(beatSystem->GetSongPosition(), beatSeconds) / beatSeconds;
+			const float noteSpacing =
+				(rhythmSpawnDistance - rhythmTargetDistance) / 3.f;
+
+			auto updateRhythmNote =
+				[world, rhythmTargetDistance, rhythmSpawnDistance](Entity entity, float signedDistance)
+				{
+					UITransformComponent* transform =
+						world->GetComponent<UITransformComponent>(entity);
+					UISpriteComponent* sprite =
+						world->GetComponent<UISpriteComponent>(entity);
+					if (transform == nullptr || sprite == nullptr)
+						return;
+
+					const float distance = std::abs(signedDistance);
+					const float distanceRatio = std::clamp(
+						(distance - rhythmTargetDistance) /
+						(rhythmSpawnDistance - rhythmTargetDistance),
+						0.f,
+						1.f);
+
+					transform->mPosition.x = signedDistance;
+
+					// 바깥쪽 표식일수록 작고 흐리게 표시해 앞 표식과 뒤 표식의 깊이를 구분한다.
+					const float noteScale = std::lerp(1.f, 0.68f, distanceRatio);
+					transform->mScale = Vec2(noteScale, noteScale);
+					sprite->mColorTint.w = std::lerp(1.f, 0.14f, distanceRatio);
+				};
+
+			// 세 표식을 고정 간격의 대열로 이동시킨다.
+			// 박자 경계에서는 앞 표식 하나만 사라지고 동일한 표식이 대열 맨 뒤로 순환한다.
+			const float firstDistance =
+				rhythmTargetDistance + noteSpacing * (1.f - beatProgress);
+			const float secondDistance = firstDistance + noteSpacing;
+			const float thirdDistance = secondDistance + noteSpacing;
+
+			updateRhythmNote(leftNote, -firstDistance);
+			updateRhythmNote(rightNote, firstDistance);
+			updateRhythmNote(leftTrailNear, -secondDistance);
+			updateRhythmNote(rightTrailNear, secondDistance);
+			updateRhythmNote(leftTrailFar, -thirdDistance);
+			updateRhythmNote(rightTrailFar, thirdDistance);
+
+			// 박자 경계에서 고정 판정선을 짧게 확대해 표식 도착 시점을 명확하게 보여 준다.
+			const float distanceFromBeat = (std::min)(beatProgress, 1.f - beatProgress);
+			const float pulseRatio = std::clamp(1.f - distanceFromBeat / 0.16f, 0.f, 1.f);
+			const float targetScale = 1.f + pulseRatio * 0.12f;
+
+			if (UITransformComponent* transform =
+				world->GetComponent<UITransformComponent>(leftTarget))
+			{
+				transform->mScale = Vec2(targetScale, targetScale);
+			}
+			if (UITransformComponent* transform =
+				world->GetComponent<UITransformComponent>(rightTarget))
+			{
+				transform->mScale = Vec2(targetScale, targetScale);
+			}
+
+		};
+
 	// 기본 크로스헤어 (항상 표시)
 	Entity crosshair = world->CreateEntity();
 	{
@@ -1787,11 +2072,15 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 		world->AddComponent<UISpriteComponent>(crosshair, scorem);
 	}
 
-	// Hit marker (jAims2): 평소 숨김, EvHitMarker 수신 시 잠깐 나타나면서 작아짐.
-	// EvHitMarker 는 NetRecvSystem::HandleHitConfirm 이 enqueue.
+	// 박자 판정 결과 Miss, Good, Perfect 전용 텍스처를 선택
 	{
 		Entity hit = world->CreateEntity();
-		shared_ptr<Texture> hitTex = RESOURCEMANAGER.Get<Texture>(L"jAims2");
+		const shared_ptr<Texture> perfectTex =
+			RESOURCEMANAGER.Get<Texture>(L"UI_Aim_Perfect");
+		const shared_ptr<Texture> goodTex =
+			RESOURCEMANAGER.Get<Texture>(L"UI_Aim_Good");
+		const shared_ptr<Texture> missTex =
+			RESOURCEMANAGER.Get<Texture>(L"UI_Aim_Miss");
 
 		constexpr float kStartSize = 128.f;
 		constexpr float kEndSize   = 96.f;
@@ -1804,20 +2093,36 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 		t.mUILayerIndex = 6;
 		t.mPivot = Vec2(0.5f, 0.5f);
 
-		auto& spr = world->AddComponent<UISpriteComponent>(hit, hitTex);
+		auto& spr = world->AddComponent<UISpriteComponent>(hit, missTex);
 		spr.mVisible = false;
 
 		auto& script = world->AddComponent<UIScriptComponent>(hit);
 		script.mOnUpdate =
-			[world, hit, active = false, elapsed = 0.f](float dt) mutable
+			[world,
+			 hit,
+			 perfectTex,
+			 goodTex,
+			 missTex,
+			 active = false,
+			 elapsed = 0.f,
+			 lastJudgement = uint8{ 0 }](float dt) mutable
 			{
 				
 
 				EventManager* em = world->GetEventManager().get();
 				if (em)
 				{
+					em->Consume<EvBeatJudgement>([&](const EvBeatJudgement& event)
+						{
+							// 입력 직후의 예측 판정과 서버 확정 판정 모두 즉시 조준 UI에 반영한다.
+							lastJudgement = event.judgement;
+							active = true;
+							elapsed = 0.f;
+						});
+
 					em->Consume<EvHitMarker>([&](const EvHitMarker&)
 						{
+							// 실제 타격 확인 시 가장 최근 판정 결과를 다시 표시한다.
 							active = true;
 							elapsed = 0.f;
 						});
@@ -1826,6 +2131,14 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 				UITransformComponent* ui  = world->GetComponent<UITransformComponent>(hit);
 				UISpriteComponent*    spr = world->GetComponent<UISpriteComponent>(hit);
 				if (!ui || !spr) return;
+
+				// BeatJudgement 값은 Miss 0, Good 1, Perfect 2 순서다.
+				if (lastJudgement == 2)
+					spr->mTexture = perfectTex;
+				else if (lastJudgement == 1)
+					spr->mTexture = goodTex;
+				else
+					spr->mTexture = missTex;
 
 				if (!active)
 				{

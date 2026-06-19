@@ -310,8 +310,9 @@ struct RoomListEntry {
 // 판정은 패킷 도착 벽시계가 아니라 입력 순간의 곡 위치(songPos)로 한다
 enum class BeatJudgement : uint8 { Miss = 0, Good = 1, Perfect = 2 };
 
-constexpr float kBeatPerfectWindow = 0.08f; // 가장 가까운 박자까지 이내면 : Perfect
-constexpr float kBeatGoodWindow = 0.185f; // 그 밖 이내면 Good (160~161bpm 반박자 거의 0.18s)
+
+constexpr float kBeatPerfectWindow = 0.06f; // 가장 가까운 박자와 60ms 이내면 Perfect
+constexpr float kBeatGoodWindow = 0.12f; // Perfect 범위 밖이고 120ms 이내면 Good
 constexpr float kMaxInputSongPosDrift = 0.5f; // 서버 songPos 와 이보다 벌어지면 치팅/지연 : Miss
 
 // 리듬 전환 look-ahead 박자 수

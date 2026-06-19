@@ -11,9 +11,12 @@ void HBAOPass::Initialize()
     uint32 sw = static_cast<uint32>(RENDERMANAGER.GetViewPort().Width);
     uint32 sh = static_cast<uint32>(RENDERMANAGER.GetViewPort().Height);
 
-    
-    mAoRT   = CreateHbaoRT(L"HbaoAoRT",   sw, sh, DXGI_FORMAT_R8_UNORM);
-    mBlurRT = CreateHbaoRT(L"HbaoBlurRT", sw, sh, DXGI_FORMAT_R8_UNORM);
+    // 절반 해상도 AO
+    uint32 hw = max(sw / 2u, 1u);
+    uint32 hh = max(sh / 2u, 1u);
+
+    mAoRT   = CreateHbaoRT(L"HbaoAoRT",   hw, hh, DXGI_FORMAT_R8_UNORM);
+    mBlurRT = CreateHbaoRT(L"HbaoBlurRT", hw, hh, DXGI_FORMAT_R8_UNORM);
 }
 
 void HBAOPass::SetData(
@@ -25,10 +28,9 @@ void HBAOPass::SetData(
     mBefore = before;
     mAfter  = after;
 
-    float sw = RENDERMANAGER.GetViewPort().Width;
-    float sh = RENDERMANAGER.GetViewPort().Height;
-    float texelW = 1.0f / sw;
-    float texelH = 1.0f / sh;
+    // texel = AO 렌더타깃(절반 해상도) 기준 — HBAO 스크린 반경/블러 스텝이 RT 픽셀 단위라 RT 크기와 일치해야 함
+    float texelW = 1.0f / static_cast<float>(mAoRT.width);
+    float texelH = 1.0f / static_cast<float>(mAoRT.height);
 
    
     // ExtValue[0] = (radius, bias, intensity, numSteps)
@@ -68,6 +70,8 @@ void HBAOPass::Execute(std::vector<DrawBatch>& /*batches*/)
     RunBlurH();
     RunBlurV();
 
+    // 절반 해상도로 렌더했으니 뷰포트를 풀해상도로 복구 (다음 LightsPass가 전체 화면 렌더)
+    RestoreViewportAndScissor();
 }
 
 

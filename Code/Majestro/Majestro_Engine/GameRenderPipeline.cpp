@@ -35,6 +35,7 @@
 #include "World.h"
 #include "CameraComponent.h"
 #include "PlayerComponent.h" 
+#include "PlayerStatusComponent.h"
 #include "HealthComponent.h"
 #include "RenderSystem.h"
 #include "TagComponent.h"
@@ -45,18 +46,18 @@ void GameRenderPipeline::Initialize(World* world)
     mWorld = world;
 
 
-    mDepthPrePass    = make_shared<DepthPrePass>();
-    mShadowPass      = make_shared<ShadowPass>();
-    mGBufferPass     = make_shared<GBufferPass>();
-    mLightPass       = make_shared<LightsPass>();
+    mDepthPrePass = make_shared<DepthPrePass>();
+    mShadowPass = make_shared<ShadowPass>();
+    mGBufferPass = make_shared<GBufferPass>();
+    mLightPass = make_shared<LightsPass>();
     mMotionVectorPass = make_shared<MotionVectorPass>();
-    mForwardPass     = make_shared<ForwardPass>();
-    mOutlinePass     = make_shared<OutlinePass>();
-    mEffectPass      = make_shared<EffectPass>();
+    mForwardPass = make_shared<ForwardPass>();
+    mOutlinePass = make_shared<OutlinePass>();
+    mEffectPass = make_shared<EffectPass>();
     mTrailRenderPass = make_shared<TrailRenderPass>();
-    mParticlePass    = make_shared<ParticlePass>();
+    mParticlePass = make_shared<ParticlePass>();
     mPostProcessPass = make_shared<PostProcessPass>();
-    mWorldUIPass    = make_shared<WorldUIPass>();
+    mWorldUIPass = make_shared<WorldUIPass>();
 
     mHBAOPass = make_shared<HBAOPass>();
     mHBAOPass->Initialize();
@@ -69,9 +70,9 @@ void GameRenderPipeline::Initialize(World* world)
     mHBAOPass->SetBlurRadius(3.0f);
 
     mDepthPrePass->Initialize();
-	mShadowPass->Initialize();
-	mGBufferPass->Initialize();
-	mLightPass->Initialize();
+    mShadowPass->Initialize();
+    mGBufferPass->Initialize();
+    mLightPass->Initialize();
     mMotionVectorPass->Initialize();
     mForwardPass->Initialize();
     mOutlinePass->Initialize();
@@ -81,8 +82,8 @@ void GameRenderPipeline::Initialize(World* world)
     mPostProcessPass->Initialize();
     mWorldUIPass->Initialize(world);
 
-    
-   
+
+
     mMotionBlurPass = make_shared<MotionBlurPass>();
     mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
@@ -100,6 +101,7 @@ void GameRenderPipeline::Initialize(World* world)
     mGodRayPass->SetMieAsymmetry(0.76f);
     mGodRayPass->SetSunColor(Vec3(1.0f, 0.97f, 0.82f));
     mGodRayPass->SetAbsorptionCoeff(0.00002f);
+    mGodRayPass->Initialize();   // 절반 해상도 scatter 타깃 생성
     mPostProcessPass->AddHDRPass(mGodRayPass);
 
     mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
@@ -129,7 +131,7 @@ void GameRenderPipeline::Initialize(World* world)
 
 void GameRenderPipeline::OnResize(uint32 w, uint32 h)
 {
-    
+
 }
 
 void GameRenderPipeline::SetupPassTable(
@@ -182,8 +184,8 @@ void GameRenderPipeline::SetupPassTable(
             if (light && light->GetLightType() == LIGHT_TYPE::DIRECTIONAL_LIGHT)
             {
                 Vec3 dir = Vec3(light->mLightInfo.Direction.x,
-                                light->mLightInfo.Direction.y,
-                                light->mLightInfo.Direction.z);
+                    light->mLightInfo.Direction.y,
+                    light->mLightInfo.Direction.z);
                 mGodRayPass->SetSunDirection(dir);
                 break;
             }
@@ -270,7 +272,12 @@ void GameRenderPipeline::UpdateHealthVignetteState()
             const float healStrength = (mHealthVignetteHealDuration > 0.0f)
                 ? std::clamp(mHealthVignetteHealTimer / mHealthVignetteHealDuration, 0.0f, 1.0f)
                 : 0.0f;
-            mHealthVignettePass->SetFeedbackState(mHealthVignetteLowStrength, healStrength);
+            const float buffFadeAlpha = std::clamp(dt * 6.0f, 0.0f, 1.0f);
+            mBuffIconStrengths += (Vec4::Zero - mBuffIconStrengths) * buffFadeAlpha;
+            mHealthVignettePass->SetFeedbackState(
+                mHealthVignetteLowStrength,
+                healStrength,
+                mBuffIconStrengths);
         };
 
     if (mWorld == nullptr || mWorld->HasComponentPool<LocalPlayerComponent>() == false)
@@ -281,6 +288,7 @@ void GameRenderPipeline::UpdateHealthVignetteState()
 
     float hpRatio = 1.0f;
     bool hasHealth = false;
+    PlayerStatusComponent* localStatus = nullptr;
 
     auto players = mWorld->GetEntitiesWithComponent<LocalPlayerComponent>();
     for (auto e : players)
@@ -293,6 +301,7 @@ void GameRenderPipeline::UpdateHealthVignetteState()
             static_cast<float>(health->mCurrentHp) / static_cast<float>((std::max)(1, health->mMaxHp)),
             0.0f,
             1.0f);
+        localStatus = mWorld->GetComponent<PlayerStatusComponent>(e);
         hasHealth = true;
         break;
     }
@@ -330,7 +339,40 @@ void GameRenderPipeline::UpdateHealthVignetteState()
     const float healStrength = (mHealthVignetteHealDuration > 0.0f)
         ? std::clamp(mHealthVignetteHealTimer / mHealthVignetteHealDuration, 0.0f, 1.0f)
         : 0.0f;
-    mHealthVignettePass->SetFeedbackState(mHealthVignetteLowStrength, healStrength);
+    Vec4 targetBuffIconStrengths = Vec4::Zero;
+    if (localStatus != nullptr)
+    {
+        // 회복 효과는 더하기, 이동 효과는 화살표, 
+        // 보호 효과는 방패, 공격 효과는 검 아이콘으로 화면 외곽
+        const bool hasHeal =
+            localStatus->FindBuff(ReplicatedBuffType::HealOverTime) != nullptr;
+        const bool hasMoveSpeed =
+            localStatus->FindBuff(ReplicatedBuffType::MoveSpeedUp) != nullptr;
+        const bool hasShield =
+            localStatus->FindBuff(ReplicatedBuffType::ShieldOverTime) != nullptr;
+        const bool hasAttack =
+            localStatus->FindBuff(ReplicatedBuffType::AttackUp) != nullptr ||
+            localStatus->FindBuff(ReplicatedBuffType::BuffPowerUp) != nullptr;
+
+        targetBuffIconStrengths = Vec4(
+            hasHeal ? 1.0f : 0.0f,
+            hasMoveSpeed ? 1.0f : 0.0f,
+            hasShield ? 1.0f : 0.0f,
+            hasAttack ? 1.0f : 0.0f);
+    }
+
+    // 버프가 갱신될 때 아이콘이 갑자기 나타나거나 사라지지 않도록 보간
+    const float buffFadeAlpha = std::clamp(dt * 6.0f, 0.0f, 1.0f);
+    mBuffIconStrengths += (targetBuffIconStrengths - mBuffIconStrengths) * buffFadeAlpha;
+
+    // 실제 체력이 회복된 순간에도 짧게 회복 아이콘을 표시
+    Vec4 displayedBuffIconStrengths = mBuffIconStrengths;
+    displayedBuffIconStrengths.x = (std::max)(displayedBuffIconStrengths.x, healStrength);
+
+    mHealthVignettePass->SetFeedbackState(
+        mHealthVignetteLowStrength,
+        healStrength,
+        displayedBuffIconStrengths);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -374,12 +416,12 @@ void GameRenderPipeline::SetFXAAEnabled(bool on)
 }
 
 // Pass on/off 조회
-bool GameRenderPipeline::IsFogEnabled()     const { return mFogPass          && mFogPass->IsEnabled(); }
-bool GameRenderPipeline::IsGodRayEnabled()  const { return mGodRayPass       && mGodRayPass->IsEnabled(); }
+bool GameRenderPipeline::IsFogEnabled()     const { return mFogPass && mFogPass->IsEnabled(); }
+bool GameRenderPipeline::IsGodRayEnabled()  const { return mGodRayPass && mGodRayPass->IsEnabled(); }
 bool GameRenderPipeline::IsBloomEnabled()   const { return mEmissiveBloomPass && mEmissiveBloomPass->IsEnabled(); }
-bool GameRenderPipeline::IsOutlineEnabled() const { return mOutlinePass      && mOutlinePass->IsEnabled(); }
-bool GameRenderPipeline::IsHBAOEnabled()    const { return mHBAOPass         && mHBAOPass->IsEnabled(); }
-bool GameRenderPipeline::IsFXAAEnabled()    const { return mFXAAPass         && mFXAAPass->IsEnabled(); }
+bool GameRenderPipeline::IsOutlineEnabled() const { return mOutlinePass && mOutlinePass->IsEnabled(); }
+bool GameRenderPipeline::IsHBAOEnabled()    const { return mHBAOPass && mHBAOPass->IsEnabled(); }
+bool GameRenderPipeline::IsFXAAEnabled()    const { return mFXAAPass && mFXAAPass->IsEnabled(); }
 
 void GameRenderPipeline::ApplyGraphicsSettings()
 {
@@ -406,7 +448,7 @@ void GameRenderPipeline::SetHealthVignetteNoiseTexture(const std::wstring& textu
 void GameRenderPipeline::SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features)
 {
     if (mWorldUIPass)
-		mWorldUIPass->SetFeatures(features);
+        mWorldUIPass->SetFeatures(features);
 }
 
 
@@ -438,11 +480,13 @@ void GameRenderPipeline::RemoveHDREffect(shared_ptr<RenderPass> pass)
 
 void GameRenderPipeline::RenderDepthPrePass(const RenderContext& ctx)
 {
+    GPU_MARKER(L"DepthPrePass");
     mDepthPrePass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 {
+    GPU_MARKER(L"ShadowPass");
     static bool sDummyDirty = false;  // ctx 미연결 파이프라인 폴백
     mShadowPass->Execute(
         *ctx.cascadeBatchs,
@@ -453,56 +497,61 @@ void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
 
-    mGBufferPass->Execute(*ctx.deferredBatchs);
+    { GPU_MARKER(L"GBuffer"); mGBufferPass->Execute(*ctx.deferredBatchs); }
 
     // HBAO+: G-Buffer 완성 직후, 조명 계산 전에 AO 생성
     // (Gbuffer[1]=Position, Gbuffer[2]=Normal 이 PSR 상태로 준비되어 있음)
-    mHBAOPass->Execute(*ctx.deferredBatchs);
+    { GPU_MARKER(L"HBAO"); mHBAOPass->Execute(*ctx.deferredBatchs); }
 
-    mLightPass->Execute(*ctx.lightBatchs);
+    { GPU_MARKER(L"DeferredLighting"); mLightPass->Execute(*ctx.lightBatchs); }
 
-
-    int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
-
-    if (RENDERMANAGER.IsMsaaEnabled())
     {
-        RENDERMANAGER.GetRenderTargetGroup(
-            static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN))
-            .OMSetRenderTargets(1, backIndex);
+        GPU_MARKER(L"FinalComposite");
+
+        int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+
+        if (RENDERMANAGER.IsMsaaEnabled())
+        {
+            RENDERMANAGER.GetRenderTargetGroup(
+                static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN))
+                .OMSetRenderTargets(1, backIndex);
+        }
+
+        auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(
+            static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
+        hdrGroup.OMSetRenderTargets();
+
+        RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
+        RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
+
+        if (RENDERMANAGER.IsMsaaEnabled())
+        {
+            RENDERMANAGER.GetRenderTargetGroup(
+                static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN))
+                .WaitTargetToResource();
+        }
+        hdrGroup.WaitTargetToResource();
     }
 
-    auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(
-        static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
-    hdrGroup.OMSetRenderTargets();
-
-    RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
-    RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
-
-    if (RENDERMANAGER.IsMsaaEnabled())
-    {
-        RENDERMANAGER.GetRenderTargetGroup(
-            static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::MSAA_SWAP_CHAIN))
-            .WaitTargetToResource();
-    }
-    hdrGroup.WaitTargetToResource();
-
-
-    mMotionVectorPass->Execute(*ctx.deferredBatchs);
+    { GPU_MARKER(L"MotionVector"); mMotionVectorPass->Execute(*ctx.deferredBatchs); }
 }
 
 void GameRenderPipeline::RenderForward(const RenderContext& ctx)
 {
+    GPU_MARKER(L"ForwardPlus");
     mForwardPass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderOutline(const RenderContext& ctx)
 {
+    GPU_MARKER(L"Outline");
     mOutlinePass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
 {
     if (!ctx.camera) return;
+    GPU_MARKER(L"Effects");
 
     float dt = ctx.deltaTime;
     Effekseer::Matrix44 viewMat = mEffectPass->ToEfkMatrix(ctx.camera->GetViewMatrix());
@@ -519,11 +568,13 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderPost(const RenderContext& ctx)
 {
+    GPU_MARKER(L"PostProcess");
     mPostProcessPass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderWorldUI(const RenderContext& ctx)
 {
+    GPU_MARKER(L"WorldUI");
     if (mWorldUIPass)
         mWorldUIPass->Execute(ctx.camera);
 }
@@ -545,22 +596,22 @@ void GameRenderPipeline::DrawImGui()
     if (ImGui::CollapsingHeader("Pass On/Off", ImGuiTreeNodeFlags_DefaultOpen))
     {
         bool fogOn = mFogPass ? mFogPass->IsEnabled() : false;
-        if (ImGui::Checkbox("Fog",              &fogOn))          SetFogEnabled(fogOn);
+        if (ImGui::Checkbox("Fog", &fogOn))          SetFogEnabled(fogOn);
 
         bool godRayOn = mGodRayPass ? mGodRayPass->IsEnabled() : false;
-        if (ImGui::Checkbox("GodRay (VLS)",     &godRayOn))       SetGodRayEnabled(godRayOn);
+        if (ImGui::Checkbox("GodRay (VLS)", &godRayOn))       SetGodRayEnabled(godRayOn);
 
         bool bloomOn = mEmissiveBloomPass ? mEmissiveBloomPass->IsEnabled() : false;
-        if (ImGui::Checkbox("EmissiveBloom",    &bloomOn))        SetEmissiveBloomEnabled(bloomOn);
+        if (ImGui::Checkbox("EmissiveBloom", &bloomOn))        SetEmissiveBloomEnabled(bloomOn);
 
         bool outlineOn = mOutlinePass ? mOutlinePass->IsEnabled() : false;
-        if (ImGui::Checkbox("Outline",          &outlineOn))      SetOutlineEnabled(outlineOn);
+        if (ImGui::Checkbox("Outline", &outlineOn))      SetOutlineEnabled(outlineOn);
 
         bool hbaoOn = mHBAOPass ? mHBAOPass->IsEnabled() : false;
-        if (ImGui::Checkbox("HBAO+",            &hbaoOn))         SetHBAOEnabled(hbaoOn);
+        if (ImGui::Checkbox("HBAO+", &hbaoOn))         SetHBAOEnabled(hbaoOn);
 
         bool fxaaOn = mFXAAPass ? mFXAAPass->IsEnabled() : false;
-        if (ImGui::Checkbox("FXAA",             &fxaaOn))         SetFXAAEnabled(fxaaOn);
+        if (ImGui::Checkbox("FXAA", &fxaaOn))         SetFXAAEnabled(fxaaOn);
 
         bool collidersOn = RenderSystem::GetDrawColliders();
         if (ImGui::Checkbox("Collision Boxes", &collidersOn))
@@ -679,14 +730,14 @@ void GameRenderPipeline::DrawImGui()
     // ── FXAA 파라미터 ─────────────────────────────────────────────────────────
     if (mFXAAPass && ImGui::CollapsingHeader("FXAA 파라미터"))
     {
-        float edgeThr    = mFXAAPass->GetEdgeThreshold();
+        float edgeThr = mFXAAPass->GetEdgeThreshold();
         float edgeThrMin = mFXAAPass->GetEdgeThresholdMin();
-        float subpix     = mFXAAPass->GetSubpixQuality();
+        float subpix = mFXAAPass->GetSubpixQuality();
 
         bool changed = false;
-        changed |= ImGui::SliderFloat("EdgeThreshold##FXAA",    &edgeThr,    0.063f, 0.333f);
+        changed |= ImGui::SliderFloat("EdgeThreshold##FXAA", &edgeThr, 0.063f, 0.333f);
         changed |= ImGui::SliderFloat("EdgeThresholdMin##FXAA", &edgeThrMin, 0.031f, 0.083f);
-        changed |= ImGui::SliderFloat("SubpixQuality##FXAA",    &subpix,     0.0f,   1.0f);
+        changed |= ImGui::SliderFloat("SubpixQuality##FXAA", &subpix, 0.0f, 1.0f);
 
         if (changed)
             mFXAAPass->SetParams(edgeThr, edgeThrMin, subpix);
@@ -698,10 +749,10 @@ void GameRenderPipeline::DrawImGui()
         ColorGradingParams p = mPostProcessPass->GetColorGrading();
         bool changed = false;
 
-        changed |= ImGui::SliderFloat("Saturation##CG",  &p.Saturation,  0.0f, 3.0f);
-        changed |= ImGui::SliderFloat("Contrast##CG",    &p.Contrast,    0.0f, 3.0f);
-        changed |= ImGui::SliderFloat("Brightness##CG",  &p.Brightness, -1.0f, 1.0f);
-        changed |= ImGui::SliderFloat("Exposure##CG",    &p.Exposure,    0.1f, 5.0f);
+        changed |= ImGui::SliderFloat("Saturation##CG", &p.Saturation, 0.0f, 3.0f);
+        changed |= ImGui::SliderFloat("Contrast##CG", &p.Contrast, 0.0f, 3.0f);
+        changed |= ImGui::SliderFloat("Brightness##CG", &p.Brightness, -1.0f, 1.0f);
+        changed |= ImGui::SliderFloat("Exposure##CG", &p.Exposure, 0.1f, 5.0f);
 
         ImGui::Separator();
         float shadow[3] = { p.ShadowTint.x, p.ShadowTint.y, p.ShadowTint.z };
@@ -710,7 +761,7 @@ void GameRenderPipeline::DrawImGui()
             p.ShadowTint = Vec3(shadow[0], shadow[1], shadow[2]);
             changed = true;
         }
-        changed |= ImGui::SliderFloat("ShadowStrength##CG",    &p.ShadowStrength,    0.0f, 1.0f);
+        changed |= ImGui::SliderFloat("ShadowStrength##CG", &p.ShadowStrength, 0.0f, 1.0f);
 
         float mid[3] = { p.MidtoneTint.x, p.MidtoneTint.y, p.MidtoneTint.z };
         if (ImGui::ColorEdit3("MidtoneTint##CG", mid))
@@ -718,7 +769,7 @@ void GameRenderPipeline::DrawImGui()
             p.MidtoneTint = Vec3(mid[0], mid[1], mid[2]);
             changed = true;
         }
-        changed |= ImGui::SliderFloat("MidtoneStrength##CG",   &p.MidtoneStrength,   0.0f, 1.0f);
+        changed |= ImGui::SliderFloat("MidtoneStrength##CG", &p.MidtoneStrength, 0.0f, 1.0f);
 
         float hi[3] = { p.HighlightTint.x, p.HighlightTint.y, p.HighlightTint.z };
         if (ImGui::ColorEdit3("HighlightTint##CG", hi))

@@ -114,6 +114,7 @@ private:
     float mHealthVignetteHealTimer = 0.0f;
     float mHealthVignetteLowThreshold = 0.55f;
     float mHealthVignetteHealDuration = 0.75f;
+    Vec4 mBuffIconStrengths = Vec4::Zero;
 private:
 
     void UpdatePassStates();

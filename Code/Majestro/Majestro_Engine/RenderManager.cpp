@@ -477,7 +477,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"NormalTarget",
-			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,  // 뷰노멀+metallic → R16F 무손실, 128→64bit
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 

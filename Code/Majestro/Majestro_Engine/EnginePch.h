@@ -624,6 +624,28 @@ extern unique_ptr<class Engine> gEngine;
 #define COMPUTE_CMD_LIST  gEngine->GetRenderManager().GetComputeCmdQueue()->GetComputeCmdList()
 #define Graphics_DescHeap gEngine->GetRenderManager().GetGraphicsDescHeap()
 
+// GPU 디버그 마커
+//  토글: 1=켬, 0=끔(no-op). 호출부(GPU_MARKER(...))
+#define ENABLE_GPU_MARKERS 0
+#if ENABLE_GPU_MARKERS
+#include "Engine.h"
+#include "RenderManager.h"
+
+struct GpuScopedMarker
+{
+	explicit GpuScopedMarker(const wchar_t* name)
+	{
+		GRAPHICS_CMD_LIST->BeginEvent(2 /* PIX_EVENT_UNICODE_VERSION */, name,
+			static_cast<UINT>((wcslen(name) + 1) * sizeof(wchar_t)));
+	}
+	~GpuScopedMarker() { GRAPHICS_CMD_LIST->EndEvent(); }
+};
+#define GPU_MARKER_CONCAT2(a, b) a##b
+#define GPU_MARKER_CONCAT(a, b) GPU_MARKER_CONCAT2(a, b)
+#define GPU_MARKER(name) GpuScopedMarker GPU_MARKER_CONCAT(_gpuMarker_, __LINE__)(name)
+#else
+#define GPU_MARKER(name) ((void)0)
+#endif
 //#define GRAPHICS_ROOT_SIGNATURE gEngine->GetRenderManager().GetRootSignature()->GetGraphicsRootSignature()
 //#define COMPUTE_ROOT_SIGNATURE gEngine->GetRenderManager()->GetRootSignature()->GetComputeRootSignature()
 

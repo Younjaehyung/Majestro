@@ -69,7 +69,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 	case SHADER_TYPE::DEFERRED:
 		mGraphicsPipelineDesc.NumRenderTargets = RENDER_TARGET_G_BUFFER_GROUP_MEMBER_COUNT;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;  // POSITION
-		mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;  // NORMAL
+		mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // NORMAL (R16F 무손실, RT 포맷과 일치 필수)
 		mGraphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;      // COLOR
 		mGraphicsPipelineDesc.RTVFormats[3] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // EMISSIVE
 		break;
@@ -282,7 +282,7 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 	case SHADER_TYPE::DEFERRED:
 		mGraphicsPipelineDesc.NumRenderTargets = RENDER_TARGET_G_BUFFER_GROUP_MEMBER_COUNT;
 		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;  // POSITION
-		mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;  // NORMAL
+		mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // NORMAL (R16F 무손실, RT 포맷과 일치 필수)
 		mGraphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;      // COLOR
 		mGraphicsPipelineDesc.RTVFormats[3] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // EMISSIVE
 		break;

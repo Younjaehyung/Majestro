@@ -310,8 +310,8 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 {
 	switch (skillType)
 	{
-	case SkillType::GuitarAttack:
-		return BulletVfxDesc{ L"VFX_Fanthor_Slash_01", Vec3(12.0f, 12.0f, 12.0f) };
+	/*case SkillType::GuitarAttack:
+		return BulletVfxDesc{ L"VFX_Fanthor_Slash_01", Vec3(12.0f, 12.0f, 12.0f) };*/
 	case SkillType::GuitarAttack_1:
 		return BulletVfxDesc{ L"VFX_Fanthor_Bullet_Slash_1", Vec3(1.0f, 1.0f, 1.0f) };
 	case SkillType::GuitarAttack_2:

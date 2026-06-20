@@ -239,10 +239,10 @@ private:
 
   array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };
-  float mCascadeSplitLambda = 0.85f;
+  float mCascadeSplitLambda = 0.303f;
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
-  float shadowMapSize = 4096.f;
+  float shadowMapSize = 2048.f;   // CSM 해상도 (RenderManager 텍스처 + utils.hlsl ×2 동기)
   // 라이트 프러스텀 구체 (shadow 컬링용)
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>  mCascadeFrustumCenter{};
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeFrustumRadius{};

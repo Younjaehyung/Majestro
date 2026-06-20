@@ -39,6 +39,15 @@ float4 PS_Main(VS_OUT input) : SV_Target
     uint texIdx = isFilled ? GlobalParams.HpBarFillTexIdx : GlobalParams.HpBarBgTexIdx;
     float4 srcColor = TextureMaps[texIdx].Sample(g_sam_0, input.uv);
 
+    // 점령 완료 플래시 (PassCustomIndex: 0=기본 불투명, 1..1000 = 플래시 알파*1000)
+    // 0 이면 기존 동작과 동일 — 다른 씬(FirstGame 등)의 단일 링에는 영향 없음.
+    if (GlobalParams.PassCustomIndex != 0)
+    {
+        float flashAlpha = saturate(float(GlobalParams.PassCustomIndex) * 0.001f);
+        srcColor.a   *= flashAlpha;
+        srcColor.rgb *= 1.5f; // 살짝 밝게(글로우 느낌)
+    }
+
     if (srcColor.a < 0.05f)
         discard;
 

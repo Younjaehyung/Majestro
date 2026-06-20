@@ -6,7 +6,8 @@ class DepthPrePass : public RenderPass{
 public:
     void Initialize();
 	void SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT)>& dataTable, RENDER_TARGET_GROUP_TYPE before, RENDER_TARGET_GROUP_TYPE after) override;
-    void Execute(std::vector<DrawBatch>& drawBatchs);
+    // forwardOnly=true면 FORWARD 타입만 깊이 기록
+    void Execute(std::vector<DrawBatch>& drawBatchs, bool forwardOnly = false);
 
 private:
     uint32 mCurrPSOID{};

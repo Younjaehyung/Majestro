@@ -17,7 +17,7 @@ void DepthPrePass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_C
 
 }
 
-void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
+void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs, bool forwardOnly) {
     auto& depthGroup = RENDERMANAGER.GetRenderTargetGroup(
         static_cast<uint32>(mAfter));
 
@@ -34,7 +34,13 @@ void DepthPrePass::Execute(vector<DrawBatch>& drawBatchs) {
     mDepthShader->Update();
     for (auto& batch : drawBatchs) {
         const SHADER_TYPE type = batch.PSOShader->GetShaderType();
-        if (type != SHADER_TYPE::DEFERRED && type != SHADER_TYPE::FORWARD)
+        // forwardOnly: DEFERRED 불투명은 GBuffer가 LESS_EQUAL로 자체 깊이를 채우므로 제외(prepass 비용 절감).
+        // FORWARD는 read-only depth(ForwardPass)라 자체 write 불가 → 항상 prepass가 깊이를 제공해야 함(빠지면 빈 공간 누락).
+        if (forwardOnly) {
+            if (type != SHADER_TYPE::FORWARD)
+                continue;
+        }
+        else if (type != SHADER_TYPE::DEFERRED && type != SHADER_TYPE::FORWARD)
             continue;
 
         const BLEND_TYPE blend = batch.PSOShader->GetBlendType();

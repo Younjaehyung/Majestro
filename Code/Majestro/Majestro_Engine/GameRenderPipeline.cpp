@@ -214,6 +214,7 @@ void GameRenderPipeline::ExecuteIndependentGraphics(const RenderContext& ctx)
     UpdatePassStates();
 
     // These passes do not read Forward Plus compute output and can overlap with it.
+    // DepthPrePass는 항상 호출(FORWARD 깊이는 ForwardPass가 read-only라 필수). full/forward-only는 내부에서 분기.
     RenderDepthPrePass(ctx);
     RenderShadow(ctx);
     RenderDeferred(ctx);
@@ -481,7 +482,8 @@ void GameRenderPipeline::RemoveHDREffect(shared_ptr<RenderPass> pass)
 void GameRenderPipeline::RenderDepthPrePass(const RenderContext& ctx)
 {
     GPU_MARKER(L"DepthPrePass");
-    mDepthPrePass->Execute(*ctx.deferredBatchs);
+    // mUseDepthPrePass=false면 forwardOnly=true → FORWARD만 깊이 기록(DEFERRED는 GBuffer가 LESS_EQUAL로 자체 처리)
+    mDepthPrePass->Execute(*ctx.deferredBatchs, !mUseDepthPrePass);
 }
 
 void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
@@ -496,7 +498,7 @@ void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
-
+    // DepthPrePass가 항상 깊이를 클리어하므로(full/forward-only 무관) 여기서 별도 클리어 불필요.
     { GPU_MARKER(L"GBuffer"); mGBufferPass->Execute(*ctx.deferredBatchs); }
 
     // HBAO+: G-Buffer 완성 직후, 조명 계산 전에 AO 생성
@@ -612,6 +614,9 @@ void GameRenderPipeline::DrawImGui()
 
         bool fxaaOn = mFXAAPass ? mFXAAPass->IsEnabled() : false;
         if (ImGui::Checkbox("FXAA", &fxaaOn))         SetFXAAEnabled(fxaaOn);
+
+        // 임시 A/B: DepthPrePass on/off (off=GBuffer 자체 깊이, early-Z 없음). GpuProfiler로 active 비교용
+        ImGui::Checkbox("DepthPrePass full (uncheck=FORWARD-only)", &mUseDepthPrePass);
 
         bool collidersOn = RenderSystem::GetDrawColliders();
         if (ImGui::Checkbox("Collision Boxes", &collidersOn))

@@ -107,6 +107,7 @@ private:
 
     World* mWorld    = nullptr;
     bool   mIsBlured = false;
+    bool   mUseDepthPrePass = true;   // 임시 A/B 측정용: off면 DepthPrePass 생략하고 GBuffer가 LESS+Write로 자체 깊이 생성
 
     bool mHasPreviousHealthRatio = false;
     float mPreviousHealthRatio = 1.0f;

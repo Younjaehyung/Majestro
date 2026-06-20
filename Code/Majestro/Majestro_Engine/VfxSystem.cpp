@@ -336,7 +336,7 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 		case SkillType::BrassSkill3:
 			return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(10.0f, 10.0f, 10.0f) };
 		case SkillType::BrassSkill4:
-			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_02", Vec3(40.0f, 40.0f, 40.0f) };
+			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_02", Vec3(60.0f, 60.0f, 60.0f) };
 
 		default:
 			return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(2.0f, 2.0f, 2.0f) };

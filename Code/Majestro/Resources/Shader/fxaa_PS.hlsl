@@ -29,7 +29,8 @@ struct VS_OUT
 };
 
 // 최대 엔드포인트 탐색 스텝 (품질↑ = 스텝 수↑, 성능↓)
-static const int   FXAA_SEARCH_STEPS = 12;
+// 식생 많은 씬은 엣지가 짧아 긴 탐색 불필요 → 12→6으로 최악 탭 반감 (긴 직선 엣지만 살짝 영향)
+static const int   FXAA_SEARCH_STEPS = 6;
 
 // Rec.2002 루마 계수
 float Luma(float3 rgb)

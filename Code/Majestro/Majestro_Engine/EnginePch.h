@@ -424,6 +424,7 @@ enum class PASS_CUSTOM_INDEX : uint32 {
 
 	POST_HEALTH_VIGNETTE_PASS, //=19 체력 회복과 빈사 상태의 화면 외곽 비네팅
 	POST_FXAA_PASS,       //=20 FXAA LDR 앤티얼라이싱
+	LOBBY_BACKGROUND_PASS, // 로컬 선택 캐릭터의 테마 색상을 로비 배경 셰이더에 전달
 
 	PASS_CUSTOM_COUNT
 };
@@ -626,7 +627,7 @@ extern unique_ptr<class Engine> gEngine;
 
 // GPU 디버그 마커
 //  토글: 1=켬, 0=끔(no-op). 호출부(GPU_MARKER(...))
-#define ENABLE_GPU_MARKERS 0
+#define ENABLE_GPU_MARKERS 1
 #if ENABLE_GPU_MARKERS
 #include "Engine.h"
 #include "RenderManager.h"

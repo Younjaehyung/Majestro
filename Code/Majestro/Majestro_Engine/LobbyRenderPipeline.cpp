@@ -51,7 +51,7 @@ void LobbyRenderPipeline::Initialize(World* world)
     mLightPass->Initialize();
     mForwardPass->Initialize();
     mOutlinePass->Initialize();
-    mLobbyBackgroundPass->Initialize();
+    mLobbyBackgroundPass->Initialize(world);
 
     // Dual Kawase 이미시브 블룸 — GodRay 이후 HDR 체인에 등록
     mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
@@ -96,6 +96,10 @@ void LobbyRenderPipeline::SetupPassTable(
         RENDER_TARGET_GROUP_TYPE::HDR);
 
     mOutlinePass->SetData(table,
+        RENDER_TARGET_GROUP_TYPE::HDR,
+        RENDER_TARGET_GROUP_TYPE::HDR);
+
+    mLobbyBackgroundPass->SetData(table,
         RENDER_TARGET_GROUP_TYPE::HDR,
         RENDER_TARGET_GROUP_TYPE::HDR);
 

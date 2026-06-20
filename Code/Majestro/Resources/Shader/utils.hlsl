@@ -1294,7 +1294,7 @@ uint SelectCascadeIndex(float viewDepth)
 
 float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWorld, uint cascadeIndex, out float cascadeCoverage)
 {
-    const float shadowMapSize = 4096.0f;
+    const float shadowMapSize = 2048.0f;
 
     float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
@@ -1464,7 +1464,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
 
 float SampleCascadeShadowVLS(float4 worldPos, uint cascadeIndex, out float cascadeCoverage)
 {
-    const float shadowMapSize = 4096.0f;
+    const float shadowMapSize = 2048.0f;
 
     float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));

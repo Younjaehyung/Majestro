@@ -993,25 +993,22 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     mCascadeFrustumRadius[cascadeIndex] = radius;
 
     const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
-    const Vec3 eye = frustumCenter - lightDir * (radius * 2.f);
-    Matrix lightView = Matrix::CreateLookAt(eye, frustumCenter, up);
+
+    // [흔들림 수정] 월드 원점 기준 고정 라이트 뷰(방향만). 프러스텀 중심으로 재센터링하면
+    // 중심이 항상 라이트공간 (0,0)에 투영돼 텍셀 스냅이 무력화된다(=기존 버그, 이동 시 crawl 원인).
+    // 원점 고정이면 중심의 X/Y가 카메라 따라 변하고, 스냅이 실제로 작동해 그림자가
+    // 텍셀 그리드에 고정된다 → 이동 시 흔들림 제거. (lightView 재생성 안 함이 핵심)
+    Matrix lightView = Matrix::CreateLookAt(Vec3::Zero, lightDir, up);
 
     // Light 공간 XY 축 저장 — AABB 컬링에 사용 (행렬 Row 0/1 = Right/Up)
     mCascadeLightRight[cascadeIndex] = Vec3(lightView._11, lightView._12, lightView._13);
     mCascadeLightUp[cascadeIndex]    = Vec3(lightView._21, lightView._22, lightView._23);
 
-
+    // 프러스텀 중심을 (고정) 라이트공간으로 투영 → X/Y를 텍셀 그리드에 스냅
     Vec3 centerLS = Vec3::Transform(frustumCenter, lightView);
     const float texelWorldSize = max((radius * 2.f) / shadowMapSize, 1e-5f);
-    centerLS.x = floor(centerLS.x / texelWorldSize + 0.5f) * texelWorldSize;
-    centerLS.y = floor(centerLS.y / texelWorldSize + 0.5f) * texelWorldSize;
-
-    const Matrix invLightView = lightView.Invert();
-    const Vec3 snappedCenterWorld = Vec3::Transform(centerLS, invLightView);
-
-    // [수정] 스냅된 월드 중심으로 lightView 재생성
-    const Vec3 snappedEye = snappedCenterWorld - lightDir * (radius * 2.f);
-    lightView = Matrix::CreateLookAt(snappedEye, snappedCenterWorld, up);
+    centerLS.x = floor(centerLS.x / texelWorldSize) * texelWorldSize;
+    centerLS.y = floor(centerLS.y / texelWorldSize) * texelWorldSize;
 
     Vec3 minExtents(centerLS.x - radius, centerLS.y - radius, FLT_MAX);
     Vec3 maxExtents(centerLS.x + radius, centerLS.y + radius, -FLT_MAX);

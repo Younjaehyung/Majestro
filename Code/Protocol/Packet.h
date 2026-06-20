@@ -219,6 +219,7 @@ enum class ReplicatedActionState : uint8
 	Special,
 	Reload,
 	RhythmChange,
+	Dance1,
 	Aim,
 	Hit,
 	Stun,

@@ -25,6 +25,7 @@ enum class ClientAnimState : uint16
 	Special,
 	Reload,
 	RhythmChange,
+	Dance1,
 	Aim,
 	Dead,
 	Hit,
@@ -58,6 +59,7 @@ inline ClientAnimState ToClientActionState(int actionState)
 	case ReplicatedActionState::Special: return ClientAnimState::Special;
 	case ReplicatedActionState::Reload: return ClientAnimState::Reload;
 	case ReplicatedActionState::RhythmChange: return ClientAnimState::RhythmChange;
+	case ReplicatedActionState::Dance1: return ClientAnimState::Dance1;
 	case ReplicatedActionState::Aim: return ClientAnimState::Aim;
 	case ReplicatedActionState::Hit: return ClientAnimState::Hit;
 	case ReplicatedActionState::Stun: return ClientAnimState::Stun;
@@ -159,6 +161,7 @@ inline uint32 GetDefaultClipIndex(ClientAnimState state)
 	case ClientAnimState::RhythmChange: return 17;
 	case ClientAnimState::Aim: return 18;
 	case ClientAnimState::Dead: return 19;
+	case ClientAnimState::Dance1: return 20;
 	case ClientAnimState::Idle:
 	case ClientAnimState::Hit:
 	case ClientAnimState::Stun:
@@ -198,6 +201,7 @@ inline bool IsFullBodyState(ClientAnimState state)
 	case ClientAnimState::Dead:
 	case ClientAnimState::Skill1:
 	case ClientAnimState::Skill2:
+	case ClientAnimState::Dance1:
 		return true;
 	default:
 		return false;

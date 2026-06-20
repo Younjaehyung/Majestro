@@ -478,6 +478,7 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	ctx.movement->mSkill2 = INPUT.GetKey(eKeyCode::E);
 	ctx.movement->mReload = INPUT.GetKey(eKeyCode::R);
 	ctx.movement->mSpecial = mouseLook && INPUT.GetMouseRightDown();
+	ctx.movement->mDance1 = INPUT.GetKeyDown(eKeyCode::_1);
 
 	if (INPUT.GetMouseRightDown() && !IsPlayerAirborneForRhythmChange(ctx.player))
 	{

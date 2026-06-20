@@ -108,6 +108,7 @@ void NetSendSystem::TrySendActionEvents()
 	if (comp->mSkill2)  pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::SKILL2));
 	if (comp->mReload)  pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::RELOAD));
 	if (comp->mSpecial) pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::SPECIAL));
+	if (comp->mDance1)  pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::DANCE1));
 
 	//std::cout << "Buttons bitmask: " << std::bitset<8>(pkt.Buttons) << std::endl;
 	

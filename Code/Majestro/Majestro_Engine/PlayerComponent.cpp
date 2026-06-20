@@ -82,6 +82,7 @@ static StateId NameToId(const std::string& n) {
     if (n == "Aim")  return S_Aim;
     if (n == "Reload")  return S_Reload;
     if (n == "RhythmChange")  return S_RhythmChange;
+    if (n == "Dance1")  return S_Dance1;
 
     if (n == "Hit")  return S_Hit;
     if (n == "Stun")  return S_Stun;
@@ -122,6 +123,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
 
     ReloadState::Instance(),
     RhythmChangeState::Instance(),
+    Dance1State::Instance(),
     AimState::Instance(),
 
     DeadState::Instance(),
@@ -591,6 +593,23 @@ void RhythmChangeState::Update(MainPlayerComponent* owner)
     StateUpdate(this, owner);
 }
 void RhythmChangeState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+Dance1State* Dance1State::Instance() {
+    static Dance1State inst;
+    return &inst;
+}
+void Dance1State::Enter(MainPlayerComponent* owner)
+{
+    StateEnter(this, owner);
+}
+void Dance1State::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+}
+void Dance1State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

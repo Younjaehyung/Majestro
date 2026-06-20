@@ -87,6 +87,7 @@ void PlayerInputSystem::Update(float dt)
 			std::abs(inputComp->MoveX) > 0.01f ||
 			std::abs(inputComp->MoveZ) > 0.01f;
 
+		const bool dance1Active = (mainPlayerComponent->mFsm.GetState() == S_Dance1);
 		const bool hasActionState =
 			mainPlayerComponent->GetReplicatedActionState() != static_cast<uint8>(ReplicatedActionState::None);
 		const bool canUseHorizontalInput = mainPlayerComponent->CanUseHorizontalInput();
@@ -110,7 +111,7 @@ void PlayerInputSystem::Update(float dt)
 			inputComp->MoveZ = 1;
 			inputComp->MoveX = 0;
 		}
-		else if (canUseHorizontalInput && !hasActionState) {
+		else if (canUseHorizontalInput && (!hasActionState || dance1Active)) {
 			if (inputComp->MoveX == 1) {
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RunRightState::Instance());
 			}
@@ -163,6 +164,9 @@ void PlayerInputSystem::Update(float dt)
 		}
 		if (inputComp->IsButtonPressed(InputButtons::SPECIAL)) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, RhythmChangeState::Instance());
+		}
+		if (inputComp->IsButtonPressed(InputButtons::DANCE1)) {
+			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Dance1State::Instance());
 		}
 
 		//cout << "bullet: " << mainPlayerComponent->mNowBullet << endl;

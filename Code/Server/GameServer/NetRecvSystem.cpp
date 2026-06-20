@@ -341,8 +341,6 @@ void NetRecvSystem::HandleGameStart(InputCommand& inputCommand)
 		BroadcastEnemySpawn(mWorld, enemyEntity);
 	};
 
-	spawnOneEnemy(EnemyType::Slime, Vec3(250.0f, 0.0f, 150.0f));
-
 	uint8 playerType = 1;
 	if (MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity))
 		playerType = playerComp->mPlayerType;

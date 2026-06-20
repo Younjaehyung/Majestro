@@ -359,6 +359,7 @@ std::string SfxSystem::ActionStateName(int state)
 	case ReplicatedActionState::Special:      return "Special";
 	case ReplicatedActionState::Reload:       return "Reload";
 	case ReplicatedActionState::RhythmChange: return "RhythmChange";
+	case ReplicatedActionState::Dance1:       return "Dance1";
 	case ReplicatedActionState::Aim:          return "Aim";
 	case ReplicatedActionState::Hit:          return "Hit";
 	case ReplicatedActionState::Stun:         return "Stun";

@@ -90,6 +90,12 @@ void DamageSystem::Update(float deltaTime)
         const bool armorAbsorbed = (beforeArmor != afterArmor);
         const bool hpDamaged = (beforeHp != afterHp);
 
+        if (player && (armorAbsorbed || hpDamaged) &&
+            player->mFsm.GetState() == S_Dance1)
+        {
+            player->mFsm.ChangeState(player, IdleState::Instance());
+        }
+
         if (player && (armorAbsorbed || hpDamaged) && e.instigator.IsValid())
         {
             if (EnemyComponent* instigatorEnemy = mWorld->GetComponent<EnemyComponent>(e.instigator))

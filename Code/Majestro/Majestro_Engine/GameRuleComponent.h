@@ -39,6 +39,24 @@ public:
 	std::array<uint8, ROOM_MAX_PLAYERS> mPlayerTypes{};
 };
 
+struct ClientPlayerScore
+{
+	uint32 mSessionId = 0;
+	uint8 mPlayerType = 0;
+	int32 mScore = 0;
+	int32 mTotalKills = 0;
+};
+
+// Stores the latest server score snapshot without recalculating score on the client.
+class ScoreBoardComponent : public Component<ScoreBoardComponent>
+{
+public:
+	ScoreBoardComponent() = default;
+
+	uint8 mPlayerCount = 0;
+	std::array<ClientPlayerScore, ROOM_MAX_PLAYERS> mPlayers{};
+};
+
 class GameConquestComponent : public Component<GameConquestComponent>
 {
 public:

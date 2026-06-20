@@ -86,6 +86,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_SCENE_CONQUEST, [this](auto& m) { HandleConquestSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_ESCORT, [this](auto& m) { HandleEscortSceneState(m); });
 	reg(PKT_Type::S2C_PKT_SCENE_CLEAR, [this](auto& m) { HandleClearSceneState(m); });
+	reg(PKT_Type::S2C_PKT_SCORE_BOARD, [this](auto& m) { HandleScoreBoard(m); });
 	reg(PKT_Type::S2C_ROOM_STATE, [this](auto& m) { HandleRoomState(m); });
 	reg(PKT_Type::S2C_ROOM_ERROR, [this](auto& m) { HandleRoomError(m); });
 	reg(PKT_Type::S2C_ROOM_LIST, [this](auto& m) { HandleRoomList(m); });
@@ -707,6 +708,31 @@ void NetRecvSystem::HandleClearSceneState(const InputCommand& msg)
 	{
 		clearComp->mSessionIds[index] = pkt->Players[index].SessionId;
 		clearComp->mPlayerTypes[index] = pkt->Players[index].PlayerType;
+	}
+}
+
+void NetRecvSystem::HandleScoreBoard(const InputCommand& msg)
+{
+	const S2C_ScoreBoardPacket* pkt = msg.ViewAs<S2C_ScoreBoardPacket>();
+	if (!pkt)
+		return;
+
+	ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
+	if (!scoreBoard)
+		scoreBoard = &mWorld->AddSingleton<ScoreBoardComponent>();
+
+	// Replace the local snapshot so disconnected players do not remain on the board.
+	*scoreBoard = ScoreBoardComponent{};
+	scoreBoard->mPlayerCount = (std::min)(pkt->PlayerCount, static_cast<uint8>(ROOM_MAX_PLAYERS));
+
+	for (uint8 index = 0; index < scoreBoard->mPlayerCount; ++index)
+	{
+		const ScoreBoardPlayerInfo& source = pkt->Players[index];
+		ClientPlayerScore& target = scoreBoard->mPlayers[index];
+		target.mSessionId = source.SessionId;
+		target.mPlayerType = source.PlayerType;
+		target.mScore = source.Score;
+		target.mTotalKills = source.TotalKills;
 	}
 }
 

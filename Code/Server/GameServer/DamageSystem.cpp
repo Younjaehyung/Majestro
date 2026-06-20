@@ -9,6 +9,7 @@
 #include "EnemyComponent.h"
 #include "PlayerComponent.h"
 #include "ScoreBoardComponent.h"
+#include "GameRuleComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "BeatSystem.h"
@@ -69,6 +70,8 @@ void DamageSystem::Update(float deltaTime)
 
         health->mCurrentHp = (std::max)(0, health->mCurrentHp - remainDamage);
         const int32 afterHp = health->mCurrentHp;
+
+        const bool killedNow = beforeHp > 0 && afterHp == 0;
 
         if (beforeHp != afterHp)
         {
@@ -180,7 +183,7 @@ void DamageSystem::Update(float deltaTime)
             << " hp=" << afterHp << "/" << health->mMaxHp
             << " (" << beforeHp << "->" << afterHp << ")" << std::endl;
 
-        if (!health->IsDead())
+        if (!health->IsDead()) //         if (!killedNow)
             return;
 
         if (EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(e.target))
@@ -194,11 +197,14 @@ void DamageSystem::Update(float deltaTime)
                 {
                     if (ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>())
                     {
-                        scoreBoard->RecordKill(
-                            e.instigator,
+                        const int32 awardedScore = scoreBoard->RecordKill(
                             mWorld->GetSessionIDByEntity(e.instigator),
                             static_cast<uint8>(instigatorPlayer->mPlayerType),
                             enemy->mEnemyType);
+
+                        // The legacy team score is the sum of all server awarded player scores.
+                        if (GameRuleComponent* rule = mWorld->GetSingleton<GameRuleComponent>())
+                            rule->mPlayerScore += awardedScore;
                     }
                 }
             }

@@ -86,6 +86,7 @@
 #include "UICommonUpdateFeature.h"
 #include "UIHpBarUpdateFeature.h"
 #include "UIGameInfoUpdateFeature.h"
+#include "UIScoreBoardFeature.h"
 #include "PlayerStatusUIFeature.h"
 #include "UIPhaseProgressUpdateFeature.h"
 
@@ -1678,6 +1679,10 @@ void FirstScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
+	// Register the Tab score board separately from phase UI.
+	auto scoreBoardModule = std::make_shared<UIScoreBoardFeature>();
+	mUIFeatures.push_back(scoreBoardModule);
+
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);
 
@@ -1845,6 +1850,10 @@ void SecondScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
+	// Register the Tab score board separately from phase UI.
+	auto scoreBoardModule = std::make_shared<UIScoreBoardFeature>();
+	mUIFeatures.push_back(scoreBoardModule);
+
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);
 
@@ -1950,6 +1959,10 @@ void ThirdScene::Initialize()
 
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
+
+	// Register the Tab score board separately from phase UI.
+	auto scoreBoardModule = std::make_shared<UIScoreBoardFeature>();
+	mUIFeatures.push_back(scoreBoardModule);
 
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);

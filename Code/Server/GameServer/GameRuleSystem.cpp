@@ -5,6 +5,7 @@
 #include "GameRuleComponent.h"
 #include "NetEntityComponent.h"
 #include "PlayerComponent.h"
+#include "ScoreBoardComponent.h"
 #include "TruckComponent.h"
 #include "TransformComponent.h"
 #include "Prefab.h"
@@ -72,7 +73,9 @@ void GameNetRuleSystem::Update(float deltaTime)
 			SendSceneClear(rule);
 		}
 
-
+		// The score board is replicated at a low fixed rate so newly joined clients receive it too.
+		if (mScoreBoardSendRate.Tick(deltaTime))
+			SendScoreBoard();
 
 	}
 
@@ -183,6 +186,57 @@ void GameNetRuleSystem::SendSceneClear(Entity rule)
 
 		Broadcast(S2C_PKT_SCENE_CLEAR, pkt);
 	}
+}
+
+void GameNetRuleSystem::SendScoreBoard()
+{
+	if (!mWorld->HasComponentPool<NetEntityComponent>() ||
+		!mWorld->HasComponentPool<MainPlayerComponent>())
+		return;
+
+	const ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
+	std::vector<ScoreBoardPlayerInfo> players;
+	players.reserve(ROOM_MAX_PLAYERS);
+
+	for (Entity entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
+	{
+		const NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
+		const MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(entity);
+		if (!netComp || !playerComp || netComp->mSessionId == 0)
+			continue;
+
+		ScoreBoardPlayerInfo info{};
+		info.SessionId = netComp->mSessionId;
+		info.PlayerType = static_cast<uint8>(playerComp->mPlayerType);
+
+		if (scoreBoard)
+		{
+			if (const PlayerScoreStat* stat = scoreBoard->Find(netComp->mSessionId))
+			{
+				info.Score = stat->mScore;
+				info.TotalKills = stat->mTotalKills;
+			}
+		}
+
+		players.push_back(info);
+	}
+
+	// Keep packet order deterministic and show the highest score first.
+	std::sort(players.begin(), players.end(), [](const ScoreBoardPlayerInfo& lhs, const ScoreBoardPlayerInfo& rhs)
+	{
+		if (lhs.Score != rhs.Score)
+			return lhs.Score > rhs.Score;
+		if (lhs.TotalKills != rhs.TotalKills)
+			return lhs.TotalKills > rhs.TotalKills;
+		return lhs.SessionId < rhs.SessionId;
+	});
+
+	S2C_ScoreBoardPacket pkt{};
+	pkt.PlayerCount = static_cast<uint8>((std::min)(players.size(), static_cast<size_t>(ROOM_MAX_PLAYERS)));
+	for (uint8 index = 0; index < pkt.PlayerCount; ++index)
+		pkt.Players[index] = players[index];
+
+	Broadcast(S2C_PKT_SCORE_BOARD, pkt);
 }
 
 

@@ -40,6 +40,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_SCENE_CONQUEST,
 	S2C_PKT_SCENE_ESCORT,
 	S2C_PKT_SCENE_CLEAR,
+	S2C_PKT_SCORE_BOARD,
 	S2C_PKT_POS,
 	S2C_PKT_SYNC,
 	S2C_PKT_SPAWN,
@@ -452,6 +453,22 @@ struct S2C_ClearPacket : public PacketTcpHeader {
 
 	S2C_ClearPacket()
 		: PacketTcpHeader{ sizeof(S2C_ClearPacket), PKT_Type::S2C_PKT_SCENE_CLEAR, 0.0 } {}
+};
+
+struct ScoreBoardPlayerInfo {
+	uint32 SessionId = 0;
+	uint8 PlayerType = 0;
+	int32 Score = 0;
+	int32 TotalKills = 0;
+};
+
+// Server owned score snapshot used by the client result screen.
+struct S2C_ScoreBoardPacket : public PacketTcpHeader {
+	uint8 PlayerCount = 0;
+	ScoreBoardPlayerInfo Players[ROOM_MAX_PLAYERS]{};
+
+	S2C_ScoreBoardPacket()
+		: PacketTcpHeader{ sizeof(S2C_ScoreBoardPacket), PKT_Type::S2C_PKT_SCORE_BOARD, 0.0 } {}
 };
 
 struct S2C_ConquestPacket : public PacketTcpHeader {

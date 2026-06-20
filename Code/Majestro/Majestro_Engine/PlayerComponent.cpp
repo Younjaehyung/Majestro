@@ -96,7 +96,7 @@ static StateId NameToId(const std::string& n) {
     return 255;
 }
 
-MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0ull)
+MainPlayerComponent::MainPlayerComponent() : mFsm(this), mSpeed(0.0f), mFlags(0ull) 
 {
 }
 

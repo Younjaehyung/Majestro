@@ -118,7 +118,7 @@ public:
 	float							mUpperBlendTimer = 0.f;
 	float							mUpperBlendDuration = 0.1f;
 	float							mUpperBlendWeight = 0.f;
-	float							mUpperLayerWeight = 1.f;
+	float							mUpperLayerWeight = 0.f;
 	float							mUpperLayerFadeOutDuration = 0.15f;	// 상체 레이어 종료 시 가중치 1->0 페이드아웃 시간(초)
 	uint32							mUpperBlendMaskStart = 2;
 	uint32							mUpperBlendMaskEnd = 66;

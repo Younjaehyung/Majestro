@@ -98,6 +98,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_SCENE_CONQUEST:
 	case PKT_Type:: S2C_PKT_SCENE_ESCORT:
 	case PKT_Type::S2C_PKT_SCENE_CLEAR:
+	case PKT_Type::S2C_PKT_SCORE_BOARD:
 	case PKT_Type::S2C_ROOM_STATE:
 	case PKT_Type::S2C_ROOM_ERROR:
 	case PKT_Type::S2C_ROOM_LIST:

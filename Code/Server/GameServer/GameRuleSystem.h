@@ -40,6 +40,7 @@ private:
 	void SendSceneConquest(Entity rule);
 	void SendSceneEscort(Entity rule);
 	void SendSceneClear(Entity rule);
+	void SendScoreBoard();
 
 private:
 	template<typename PktT>
@@ -63,4 +64,5 @@ private:
 
 	RateLimiter mSceneStateSendRate{ 60.f };
 	RateLimiter mScenePhaseSendRate{ 60.f };
+	RateLimiter mScoreBoardSendRate{ 4.f };
 };

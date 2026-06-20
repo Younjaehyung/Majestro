@@ -48,6 +48,7 @@ private:
 	void HandleConquestSceneState(const InputCommand& msg);
 	void HandleEscortSceneState(const InputCommand& msg);
 	void HandleClearSceneState(const InputCommand& msg);
+	void HandleScoreBoard(const InputCommand& msg);
 	void HandleReplicationDelta(const InputCommand& msg);
 	void HandleRoomState(const InputCommand& msg);
 	void HandleRoomError(const InputCommand& msg);

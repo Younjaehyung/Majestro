@@ -83,16 +83,16 @@ public:
 	void LoadStateSettingFromJson(const std::string& path);
 
 public:
-	PlayerType mPlayerType;
+	PlayerType mPlayerType{};
 public:
 	StateMachine<MainPlayerComponent> mFsm{this};
-	int mNextState;
+	int mNextState{};
 
-	int mPrevStatePacket;
-	int mPrevLowerStatePacket;
+	int mPrevStatePacket{};
+	int mPrevLowerStatePacket{};
 
-	int mUpperState; 
-	int mLowerState;
+	int mUpperState{}; 
+	int mLowerState{};
 	int mControlFlags = Control_None;
 	int mExternalMoveMode = static_cast<int>(ReplicatedExternalMoveMode::None);
 	uint32 mPrevStateSequence = 0;

@@ -269,18 +269,16 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 	if (!clearComp)
 		return;
 
-	// 최종 UI_GameClear 도장이 찍힌 뒤 전체 화면 결과
-	if (mRevealStampAnimation.mFinalStampTriggered)
-	{
-		SetPhaseStatusVisible(false);
-		return;
-	}
-
+	// Keep the result table visible before and after the final clear image appears.
 	EnsurePhaseStatusText();
 	SetPhaseStatusVisible(true);
 
 	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
-		transform->mPosition = Vec2(0.0f, 180.0f);
+	{
+		// Layer 10 keeps the score board above the final clear image on layer 9.
+		transform->mPosition = Vec2(0.0f, 120.0f);
+		transform->mSize = Vec2(1000.0f, 520.0f);
+	}
 
 	auto playerTypeName = [](uint8 playerType) -> const wchar_t*
 	{
@@ -298,15 +296,33 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 		return;
 
 	std::wstringstream stream;
-	stream << L"Players: " << static_cast<int32>(clearComp->mPlayerCount) << L"\n";
-	for (uint8 index = 0; index < clearComp->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
+	stream << L"SCORE BOARD\n";
+	stream << L"RANK  PLAYER  SCORE  KILLS\n";
+
+	ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
+	if (scoreBoard && scoreBoard->mPlayerCount > 0)
 	{
-		stream << static_cast<int32>(index + 1) << L". "
-			<< playerTypeName(clearComp->mPlayerTypes[index]) << L"\n";
+		for (uint8 index = 0; index < scoreBoard->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
+		{
+			const ClientPlayerScore& player = scoreBoard->mPlayers[index];
+			stream << static_cast<int32>(index + 1) << L".  "
+				<< playerTypeName(player.mPlayerType) << L"  "
+				<< player.mScore << L"  "
+				<< player.mTotalKills << L"\n";
+		}
+	}
+	else
+	{
+		// Keep the player list visible if the first score board packet has not arrived yet.
+		for (uint8 index = 0; index < clearComp->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
+		{
+			stream << static_cast<int32>(index + 1) << L".  "
+				<< playerTypeName(clearComp->mPlayerTypes[index]) << L"  0  0\n";
+		}
 	}
 
-	stream << L"Team Score: " << clearComp->mTeamScore << L"\n";
-	stream << L"Play Time: " << static_cast<int32>(clearComp->mGameTime) << L"s";
+	stream << L"\nTEAM SCORE  " << clearComp->mTeamScore << L"\n";
+	stream << L"PLAY TIME  " << static_cast<int32>(clearComp->mGameTime) << L"s";
 	text->mText = stream.str();
 }
 

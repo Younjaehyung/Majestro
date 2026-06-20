@@ -39,6 +39,12 @@ void AnimationEvaluator::Evaluate(
 
 	if (kUseMeshSpaceUpperRotation)
 	{
+		baseMeshRot.clear();
+		upperMeshRot.clear();
+		blendMeshRot.clear();
+		effUpperW.clear();
+
+
 		baseMeshRot.resize(boneCount);
 		upperMeshRot.resize(boneCount);
 		blendMeshRot.resize(boneCount);

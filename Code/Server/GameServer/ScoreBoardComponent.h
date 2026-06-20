@@ -4,16 +4,18 @@
 #include "Entity.h"
 #include "EnemyComponent.h"
 
-struct PlayerMonsterKillStat
+struct PlayerScoreStat
 {
     uint32 mSessionId = 0;
     uint8 mPlayerType = 0;
+    int32 mScore = 0;
     int32 mTotalKills = 0;
     std::array<int32, static_cast<size_t>(EnemyType::Brass) + 1> mKillsByEnemyType{};
 
-    void RecordKill(uint8 enemyType)
+    void RecordKill(uint8 enemyType, int32 score)
     {
         ++mTotalKills;
+        mScore += score;
 
         const size_t index = static_cast<size_t>(enemyType);
         if (index < mKillsByEnemyType.size())
@@ -26,26 +28,30 @@ class ScoreBoardComponent : public Component<ScoreBoardComponent>
 public:
     ScoreBoardComponent() = default;
 
-    void RecordKill(Entity playerEntity, uint32 sessionId, uint8 playerType, uint8 enemyType)
-    {
-        if (!playerEntity.IsValid())
-            return;
+    static constexpr int32 mMonsterKillScore = 100;
 
-        PlayerMonsterKillStat& stat = mPlayerKillStats[playerEntity.GetID()];
+    int32 RecordKill(uint32 sessionId, uint8 playerType, uint8 enemyType)
+    {
+        if (sessionId == 0)
+            return 0;
+
+        // SessionId keeps the score stable even if the player entity is recreated.
+        PlayerScoreStat& stat = mPlayerStats[sessionId];
         stat.mSessionId = sessionId;
         stat.mPlayerType = playerType;
-        stat.RecordKill(enemyType);
+        stat.RecordKill(enemyType, mMonsterKillScore);
+        return mMonsterKillScore;
     }
 
-    const PlayerMonsterKillStat* Find(Entity playerEntity) const
+    const PlayerScoreStat* Find(uint32 sessionId) const
     {
-        auto it = mPlayerKillStats.find(playerEntity.GetID());
-        if (it == mPlayerKillStats.end())
+        auto it = mPlayerStats.find(sessionId);
+        if (it == mPlayerStats.end())
             return nullptr;
 
         return &it->second;
     }
 
 public:
-    std::unordered_map<EntityID, PlayerMonsterKillStat> mPlayerKillStats;
+    std::unordered_map<uint32, PlayerScoreStat> mPlayerStats;
 };

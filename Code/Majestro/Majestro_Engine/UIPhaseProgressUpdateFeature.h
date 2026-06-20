@@ -20,6 +20,7 @@ private:
 	void UpdateEscortProgress(float dt, GameEscortComponent* escortComp);
 
 	void DrawConquestRing();
+	void DrawConquestRingMulti(); // SecondGame 전용: 3개 점령지 링 + 포커스 이동/완료 연출
 	void DrawEscortBar();
 	Vec2 GetProgressAnchorPx() const;
 	Vec2 GetProgressSizePx(const Vec2& sizeRatio) const;
@@ -31,13 +32,27 @@ private:
 	Vec2  mProgressAnchorRatio = Vec2(0.5f, 0.1019f);
 
 	// Conquest UI.
-	Vec2  mConquestSizeRatio = Vec2(0.2667f, 0.4741f);
-	float mConquestInnerRadius = 0.78f;            // 도넛 두께 (0=원판, 1=링 없음)
+	Vec2  mConquestSizeRatio = Vec2(0.11f ,0.17f);
+	float mConquestInnerRadius = 0.0f;            // 도넛 두께 (0=원판, 1=링 없음)
 	std::wstring mConquestBgTextureName = L"UI_Ingame_Conquest_Info_0";
 	std::wstring mConquestFillTextureName = L"UI_Ingame_Conquest_Info_1";
 
 	float mConquestProgress = 0.f;
 	int32 mCachedConquestWaveCheckPoint = 0;
+
+	// --- SecondGame 다단계(3 점령지) 표시 ---
+	float mConquestRingGapRatio = 0.13f;  // 링 중심 간 가로 간격 (화면 너비 비율)
+	float mConquestActiveScale  = 1.30f;  // 현재 활성 링 확대 배율
+	float mConquestInactiveScale = 0.78f; // 완료/대기 링 축소 배율
+
+	// 포커스 이동 애니메이션 + 완료 연출 상태
+	int32 mPrevWave          = 1;     // 직전 프레임의 점령지 번호 (1부터)
+	float mFocusAnimT        = 1.f;   // 0=완료 직후, 1=정착
+	float mFocusAnimDuration = 0.45f; // 포커스 이동/플래시 지속 시간 (초)
+	int32 mCompletedRingIdx  = -1;    // 방금 완료된 링 인덱스(플래시 대상), -1=없음
+
+	// 점령 완료 SFX 키 (SfxTable.json)
+	std::string mConquestCaptureSfxKey = "notify/Game/Conquest_Clear";
 
 	// Escort UI.
 	Vec2  mEscortSizeRatio = Vec2(0.4f, 0.1185f);

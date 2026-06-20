@@ -219,6 +219,11 @@ void UIGameInfoUpdateFeature::UpdatePreparePhase(float dt, GameRuleComponent* ga
 		return;
 
 	EnsurePhaseStatusText();
+	if (UIRenderGroupComponent* group =
+		mWorld->GetComponent<UIRenderGroupComponent>(mPhaseStatusTextEntity))
+	{
+		group->mGroup = UIRenderGroup::Gameplay;
+	}
 	SetPhaseStatusVisible(true);
 
 	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
@@ -271,6 +276,11 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 
 	// Keep the result table visible before and after the final clear image appears.
 	EnsurePhaseStatusText();
+	if (UIRenderGroupComponent* group =
+		mWorld->GetComponent<UIRenderGroupComponent>(mPhaseStatusTextEntity))
+	{
+		group->mGroup = UIRenderGroup::Clear;
+	}
 	SetPhaseStatusVisible(true);
 
 	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
@@ -346,6 +356,9 @@ void UIGameInfoUpdateFeature::RenderMainGoal(CameraComponent* camera)
 
 void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 {
+	// 새 모드 배너 연출이 끝날 때까지 이전 모드의 고정 배너는 숨긴다.
+	SetPinnedBannerVisible(false);
+
 	const auto revealStampIt = mRevealStampAnimationTable.find(newPhase);
 	if (revealStampIt != mRevealStampAnimationTable.end())
 	{
@@ -542,6 +555,14 @@ void UIGameInfoUpdateFeature::TickGoalBanner(float dt)
 		// Outro = None 이면 Hold 에서 정지 (다음 phase 까지 유지).
 		if (spec.mOutro == OutroAnim::None)
 		{
+			if (SupportsPinnedBanner(mCurrentPhase) &&
+				mStageElapsed >= p.mHoldDuration)
+			{
+				// 연출이 끝나면 중앙 배너를 숨기고 현재 모드를 왼쪽 상단에 고정한다.
+				SetBannerVisible(false);
+				ShowPinnedBanner();
+				mStage = BannerStage::Done;
+			}
 			// stage 그대로, elapsed 만 누적 — Shake/BeatPulse 위상에 사용.
 			break;
 		}
@@ -561,6 +582,7 @@ void UIGameInfoUpdateFeature::TickGoalBanner(float dt)
 		if (t >= 1.f)
 		{
 			SetBannerVisible(false);
+			ShowPinnedBanner();
 			mStage = BannerStage::Done;
 		}
 		break;
@@ -828,8 +850,73 @@ void UIGameInfoUpdateFeature::EnsureBannerEntities()
 	}
 }
 
+void UIGameInfoUpdateFeature::EnsurePinnedBannerEntity()
+{
+	if (mPinnedBannerEntity != NULL_ENTITY)
+		return;
+
+	mPinnedBannerEntity = mWorld->CreateEntity();
+
+	auto& transform =
+		mWorld->AddComponent<UITransformComponent>(mPinnedBannerEntity);
+	transform.mAnchor = Anchor::TopLeft;
+	transform.mPivot = Vec2(0.0f, 0.0f);
+	transform.mPosition = Vec2(36.0f, 36.0f);
+	transform.mSize = Vec2(320.0f, 100.0f);
+	transform.mUILayerIndex = 7;
+
+	auto& sprite =
+		mWorld->AddComponent<UISpriteComponent>(mPinnedBannerEntity);
+	sprite.mVisible = false;
+
+	// 일반 인게임 HUD 그룹으로 지정해 Pause와 결과 화면에서는 자동으로 숨긴다.
+	mWorld->AddComponent<UIRenderGroupComponent>(
+		mPinnedBannerEntity, UIRenderGroup::Gameplay);
+}
+
+bool UIGameInfoUpdateFeature::SupportsPinnedBanner(WavePhaseType phase) const
+{
+	return phase == WavePhaseType::Conquest ||
+		phase == WavePhaseType::Escort ||
+		phase == WavePhaseType::Boss;
+}
+
+void UIGameInfoUpdateFeature::ShowPinnedBanner()
+{
+	if (!SupportsPinnedBanner(mCurrentPhase))
+		return;
+
+	EnsurePinnedBannerEntity();
+
+	if (UISpriteComponent* sprite =
+		mWorld->GetComponent<UISpriteComponent>(mPinnedBannerEntity))
+	{
+		sprite->mTexture =
+			RESOURCEMANAGER.Get<Texture>(mActiveSpec.mTextureName);
+		sprite->mColorTint = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		sprite->mVisible = true;
+	}
+}
+
+void UIGameInfoUpdateFeature::SetPinnedBannerVisible(bool visible)
+{
+	if (mPinnedBannerEntity == NULL_ENTITY)
+		return;
+
+	if (UISpriteComponent* sprite =
+		mWorld->GetComponent<UISpriteComponent>(mPinnedBannerEntity))
+	{
+		sprite->mVisible = visible;
+	}
+}
+
 void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 {
+	const UIRenderGroup renderGroup =
+		mCurrentPhase == WavePhaseType::Fail
+		? UIRenderGroup::GameOver
+		: UIRenderGroup::Clear;
+
 	auto createFullscreenLayer = [this](Entity& entity, const std::wstring& textureName, uint8 layer)
 	{
 		if (entity == NULL_ENTITY)
@@ -843,9 +930,6 @@ void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 
 			mWorld->AddComponent<UISpriteComponent>(entity);
 
-			// 게임 오버 렌더 필터를 통과시킬 전용 배너 엔티티임을 표시한다.
-			// 일반 HUD와 GameWorld UI는 Fail 상태에서 렌더링되지 않는다.
-			mWorld->AddComponent<GameOverUIComponent>(entity);
 		}
 
 		if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(entity))
@@ -868,6 +952,27 @@ void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 			mRevealStampAnimation.mFinalStampEntity,
 			spec.mFinalStampTextureName,
 			255);
+	}
+
+	// 같은 엔티티를 Clear와 Fail에서 재사용하므로 애니메이션 시작 시 그룹을 갱신한다.
+	for (Entity entity : {
+		mRevealStampAnimation.mRevealEntity,
+		mRevealStampAnimation.mStampEntity,
+		mRevealStampAnimation.mFinalStampEntity })
+	{
+		if (entity == NULL_ENTITY)
+			continue;
+
+		if (mWorld->HasComponent<UIRenderGroupComponent>(entity))
+		{
+			UIRenderGroupComponent* group =
+				mWorld->GetComponent<UIRenderGroupComponent>(entity);
+			group->mGroup = renderGroup;
+		}
+		else
+		{
+			mWorld->AddComponent<UIRenderGroupComponent>(entity, renderGroup);
+		}
 	}
 }
 
@@ -980,6 +1085,10 @@ void UIGameInfoUpdateFeature::EnsurePhaseStatusText()
 	text.mFontType = UIFontType::Esamanru;
 	text.mVisible = false;
 	text.mOutlineThickness = 2.0f;
+
+	// 준비 단계에서는 Gameplay로 표시하고 Clear 진입 시 Clear 그룹으로 변경한다.
+	mWorld->AddComponent<UIRenderGroupComponent>(
+		mPhaseStatusTextEntity, UIRenderGroup::Gameplay);
 }
 
 void UIGameInfoUpdateFeature::ApplyBannerSpec(const PhaseGoalSpec& spec)

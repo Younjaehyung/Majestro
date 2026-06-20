@@ -18,8 +18,13 @@
 
 namespace
 {
-    constexpr float kRowStartY = -40.f;   // 첫 행 Y (Center 기준)
-    constexpr float kRowGap    = 96.f;     // 행 간격
+    // UI Title Search 예시처럼 방 검색 UI 전체를 화면 왼쪽 영역에 배치한다.
+    constexpr float kPanelCenterX = -500.f;
+    constexpr float kRowStartY = -110.f;
+    constexpr float kRowGap = 115.f;
+
+    // UI Title Sheet 02의 첫 번째 상자 스프라이트 영역이다.
+    constexpr RECT kRoomBoxSprite = { 0, 0, 768, 256 };
 }
 
 MenuRoomBrowserSystem::MenuRoomBrowserSystem(World* world) : System::System(world)
@@ -36,19 +41,32 @@ void MenuRoomBrowserSystem::BuildUI()
 {
     const Vec4 colWhite = { 0.95f, 0.95f, 0.95f, 1.0f };
     const Vec4 colDim   = { 0.55f, 0.55f, 0.62f, 0.9f };
-    const Vec2 wideBtn  = { 720.f, 84.f };
-    const Vec2 smallBtn = { 340.f, 84.f };
+    // 긴 방 정보 문구가 테두리를 벗어나지 않도록 상자 크기를 확대한다.
+    const Vec2 roomBoxSize = { 940.f, 104.f };
+    const Vec2 actionBoxSize = { 360.f, 88.f };
 
-    mTitle    = CreateText({ 0.f, -360.f }, { 800.f, 90.f }, Anchor::Center, L"SELECT ROOM", colWhite);
-    mInfoText = CreateText({ 0.f, -250.f }, { 900.f, 70.f }, Anchor::Center, L"CONNECTING...", colDim);
+    // 예시 화면의 왼쪽 검색 영역 안에서 제목과 방 목록을 정렬한다.
+    mTitle = CreateText(
+        { kPanelCenterX, -390.f },
+        { 800.f, 90.f },
+        Anchor::Center,
+        L"ROOM SEARCH",
+        colWhite);
+    mInfoText = CreateText(
+        { kPanelCenterX, -120.f },
+        { 900.f, 70.f },
+        Anchor::Center,
+        L"CONNECTING",
+        colDim);
 
-    // Create / Refresh
+    // CreateRoom과 Refresh는 방 카드와 같은 상자 스프라이트를 축소해 사용한다.
     mCreateButton = CreateUIButton(mWorld, {
         .anchor   = Anchor::Center,
-        .position = Vec2(-200.f, -250.f),
-        .size     = smallBtn,
-        .visual   = UIButtonVisual::Vfx,
-        .resKey   = L"VFX_UI_Select",
+        .position = Vec2(kPanelCenterX - 220.f, -275.f),
+        .size     = actionBoxSize,
+        .visual   = UIButtonVisual::Texture,
+        .resKey   = L"UI_Title_Sheet_02",
+        .sourceRect = kRoomBoxSprite,
         .label    = L"CREATE ROOM",
         .onClick  = [this]()
         {
@@ -59,10 +77,11 @@ void MenuRoomBrowserSystem::BuildUI()
 
     mRefreshButton = CreateUIButton(mWorld, {
         .anchor   = Anchor::Center,
-        .position = Vec2(200.f, -250.f),
-        .size     = smallBtn,
-        .visual   = UIButtonVisual::Vfx,
-        .resKey   = L"VFX_UI_Select",
+        .position = Vec2(kPanelCenterX + 220.f, -275.f),
+        .size     = actionBoxSize,
+        .visual   = UIButtonVisual::Texture,
+        .resKey   = L"UI_Title_Sheet_02",
+        .sourceRect = kRoomBoxSprite,
         .label    = L"REFRESH",
         .onClick  = [this]()
         {
@@ -71,16 +90,19 @@ void MenuRoomBrowserSystem::BuildUI()
         },
     });
 
-    // 방 목록 행 버튼
+    // 각 방은 상자 스프라이트 위에 방 정보를 글꼴로 출력하며 상자 전체를 입장 버튼으로 사용한다.
     for (uint8 i = 0; i < kRowCount; ++i)
     {
         const uint8 idx = i;
         mRowButtons[i] = CreateUIButton(mWorld, {
             .anchor   = Anchor::Center,
-            .position = Vec2(0.f, kRowStartY + kRowGap * static_cast<float>(i)),
-            .size     = wideBtn,
-            .visual   = UIButtonVisual::Vfx,
-            .resKey   = L"VFX_UI_Select",
+            .position = Vec2(
+                kPanelCenterX,
+                kRowStartY + kRowGap * static_cast<float>(i)),
+            .size     = roomBoxSize,
+            .visual   = UIButtonVisual::Texture,
+            .resKey   = L"UI_Title_Sheet_02",
+            .sourceRect = kRoomBoxSprite,
             .label    = L"",
             .onClick  = [this, idx]()
             {
@@ -140,7 +162,7 @@ void MenuRoomBrowserSystem::Refresh(LobbyRoomListComponent* list)
             mRowRoomId[i] = e.roomId;
 
             wchar_t buf[96];
-            swprintf_s(buf, L"ROOM %u    %u / %u    %s",
+            swprintf_s(buf, L"ROOM %u    PLAYERS %u OF %u    STATUS %s",
                 e.roomId,
                 static_cast<unsigned>(e.playerCount),
                 static_cast<unsigned>(e.maxPlayers),
@@ -161,7 +183,11 @@ void MenuRoomBrowserSystem::Refresh(LobbyRoomListComponent* list)
     const bool empty = (count == 0);
     SetVisible(mInfoText, empty);
     if (empty)
-        SetText(mInfoText, (list && list->mHasList) ? L"NO ROOMS - CREATE ONE" : L"CONNECTING...");
+        SetText(
+            mInfoText,
+            (list && list->mHasList)
+                ? L"NO ROOMS    CREATE A ROOM"
+                : L"CONNECTING");
 }
 
 void MenuRoomBrowserSystem::SetBrowserVisible(bool visible)

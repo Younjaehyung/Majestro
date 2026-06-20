@@ -1,7 +1,10 @@
 #include "pch.h"
 #include "UIPhaseProgressUpdateFeature.h"
+#include "MathUtils.h"
 #include "GameRuleComponent.h"
 #include "GameMode.h"
+#include "GameEvents.h"
+#include "EventManager.h"
 
 #include "Engine.h"
 #include "RenderManager.h"
@@ -10,7 +13,20 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "World.h"
-#include "UIHpBarUpdateFeature.h" 
+#include "UIHpBarUpdateFeature.h"
+
+namespace
+{
+	// 살짝 튀어 올랐다 정착하는 ease-out-back (포커스 pop 연출용)
+	float EaseOutBack(float t)
+	{
+		t = std::clamp(t, 0.f, 1.f);
+		constexpr float c1 = 1.70158f;
+		constexpr float c3 = c1 + 1.f;
+		const float p = t - 1.f;
+		return 1.f + c3 * p * p * p + c1 * p * p;
+	}
+}
 
 void UIPhaseProgressUpdateFeature::Initialize(World* world)
 {
@@ -72,7 +88,14 @@ void UIPhaseProgressUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>&
 	case uint8(WavePhaseType::Conquest): { // Conquest
 
 		GameConquestComponent* gameConquestComp = mWorld->GetComponent<GameConquestComponent>(e);
-		if (gameConquestComp) DrawConquestRing();
+		if (gameConquestComp)
+		{
+			// SecondGame 만 3개 점령지 표시. 그 외(FirstGame 등)는 기존 단일 링 유지.
+			if (mWorld->GetSceneId() == SceneId::SecondGame)
+				DrawConquestRingMulti();
+			else
+				DrawConquestRing();
+		}
 		break;
 	}
 	case uint8(WavePhaseType::Escort): { // Escort
@@ -103,6 +126,33 @@ void UIPhaseProgressUpdateFeature::UpdateConquestProgress(float dt, GameConquest
 	const float ratio = (total > 0.f) ? (conquestComp->mWaveTime / total) : 0.f;
 	mConquestProgress       = std::clamp(ratio, 0.f, 1.f);
 	mCachedConquestWaveCheckPoint = conquestComp->mWaveCheckPoint;
+
+	// SecondGame 전용: 3개 점령지 포커스 이동 + 완료 연출 (FirstGame 등은 손대지 않음)
+	if (mWorld->GetSceneId() != SceneId::SecondGame)
+		return;
+
+	const int32 wave = std::clamp(conquestComp->mWave, 1, GameConquestComponent::mMaxConquest);
+
+	// 점령지 완료 = 웨이브 번호 증가 감지
+	if (wave > mPrevWave)
+	{
+		mCompletedRingIdx = mPrevWave - 1; // 방금 채워진 링 (0-based)
+		mFocusAnimT       = 0.f;           // 포커스 이동/플래시 시작
+
+		// 완료 SFX (2D)
+		if (auto em = mWorld->GetEventManager())
+			em->Enqueue(EvSfxRequest{ mConquestCaptureSfxKey, Vec3::Zero });
+	}
+	mPrevWave = wave;
+
+	// 포커스 이동/플래시 애니메이션 진행
+	if (mFocusAnimT < 1.f)
+	{
+		const float step = (mFocusAnimDuration > 0.f) ? (dt / mFocusAnimDuration) : 1.f;
+		mFocusAnimT = std::min(1.f, mFocusAnimT + step);
+		if (mFocusAnimT >= 1.f)
+			mCompletedRingIdx = -1; // 플래시 종료
+	}
 }
 
 void UIPhaseProgressUpdateFeature::UpdateEscortProgress(float dt, GameEscortComponent* escortComp)
@@ -199,6 +249,106 @@ void UIPhaseProgressUpdateFeature::DrawConquestRing()
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);
 }
 
+void UIPhaseProgressUpdateFeature::DrawConquestRingMulti()
+{
+	auto ringShader = RESOURCEMANAGER.Get<Shader>(L"WorldUIConquestRing");
+	auto quadMesh   = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
+	if (ringShader == nullptr || quadMesh == nullptr)
+		return;
+
+	shared_ptr<Texture> bgTex   = RESOURCEMANAGER.Get<Texture>(mConquestBgTextureName);
+	shared_ptr<Texture> fillTex = RESOURCEMANAGER.Get<Texture>(mConquestFillTextureName);
+	if (bgTex == nullptr)
+		return;
+	if (fillTex == nullptr)
+		fillTex = bgTex;
+
+	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
+	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN))
+		.OMSetRenderTargets(1, backIndex);
+
+	RENDERMANAGER.SetGraphicsTable();
+
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+	const Vec2 anchorPx   = GetProgressAnchorPx();
+	const Vec2 baseSizePx = GetProgressSizePx(mConquestSizeRatio);
+	const float gapPx     = static_cast<float>(window.Width) * std::clamp(mConquestRingGapRatio, 0.f, 1.f);
+
+	const int32 maxConquest = GameConquestComponent::mMaxConquest;
+	const int32 current     = std::clamp(mPrevWave - 1, 0, maxConquest - 1);
+	const float t           = std::clamp(mFocusAnimT, 0.f, 1.f);
+
+	const uint32 innerEnc = static_cast<uint32>(std::clamp(mConquestInnerRadius, 0.f, 1.f) * 1000.f);
+
+	// 링 1개 그리기. flash01: 1=기본 불투명, 0..1=완료 플래시 알파.
+	auto drawRing = [&](float centerX, const Vec2& sizePx, float progress, float flash01)
+	{
+		GlobalParamsLayout gp{};
+		gp.BaseInstanceID  = 0;
+		gp.etc             = 1; // HUD 모드
+		gp.casdcae         = innerEnc;
+		// PassCustomIndex: 0=기본(불투명). 1..1000 = 완료 플래시 알파*1000 (PS 에서 복원)
+		gp.PassCustomIndex = (flash01 >= 0.999f) ? 0u
+		                   : static_cast<uint32>(std::clamp(flash01, 0.f, 1.f) * 1000.f);
+
+		gp.HpBarAnchorWorldX = centerX;
+		gp.HpBarAnchorWorldY = anchorPx.y;
+		gp.HpBarAnchorWorldZ = 0.f;
+		gp.HpBarFollowRatio  = std::clamp(progress, 0.f, 1.f);
+
+		gp.HpBarSizePxX  = sizePx.x;
+		gp.HpBarSizePxY  = sizePx.y;
+		gp.HpBarPivotPxX = -sizePx.x * 0.5f;
+		gp.HpBarPivotPxY = -sizePx.y * 0.5f;
+
+		gp.HpBarBgTexIdx   = bgTex->GetImageIndex();
+		gp.HpBarFillTexIdx = fillTex->GetImageIndex();
+		gp.HpBarHitTexIdx  = 0;
+		gp.HpBarHitConfig  = 0;
+
+		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
+		ringShader->Update();
+		quadMesh->Render(1, 0, 0, 0);
+	};
+
+	for (int32 i = 0; i < maxConquest; ++i)
+	{
+		// 앵커(중앙) 기준 좌우 대칭 배치
+		const float centerX = anchorPx.x + (static_cast<float>(i) - (maxConquest - 1) * 0.5f) * gapPx;
+
+		float progress;
+		if      (i <  current) progress = 1.f;               // 완료된 점령지
+		else if (i == current) progress = mConquestProgress; // 진행중 점령지
+		else                   progress = 0.f;               // 대기중 점령지
+
+		// 포커스 이동: 현재 링은 (대기/완료 배율 -> 활성 배율)로 pop, 직전 링은 반대로 빠짐
+		float scale = mConquestInactiveScale;
+		const float pop = ::EaseOutBack(t);
+		if (i == current)
+			scale = mConquestInactiveScale + (mConquestActiveScale - mConquestInactiveScale) * pop;
+		else if (i == current - 1 && t < 1.f)
+			scale = mConquestInactiveScale + (mConquestActiveScale - mConquestInactiveScale) * (1.f - t);
+
+		drawRing(centerX, baseSizePx * scale, progress, 1.f);
+	}
+
+	// 완료 플래시: 방금 채워진 링 위에 확대 + 페이드 오버레이
+	if (mCompletedRingIdx >= 0 && mCompletedRingIdx < maxConquest && t < 1.f)
+	{
+		const int32 i = mCompletedRingIdx;
+		const float centerX    = anchorPx.x + (static_cast<float>(i) - (maxConquest - 1) * 0.5f) * gapPx;
+		const float flashScale = mConquestActiveScale + 0.6f * t; // 점점 확대
+		const float flashAlpha = 1.f - t;                          // 점점 투명
+		drawRing(centerX, baseSizePx * flashScale, 1.f, flashAlpha);
+	}
+
+	// 후속 패스 보호 — BaseInstanceID / casdcae / PassCustomIndex 원복
+	const uint32 zero = 0;
+	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
+	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);
+	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 3);
+}
+
 void UIPhaseProgressUpdateFeature::DrawDebugPanel()
 {
 #ifdef _IMGUI
@@ -237,10 +387,29 @@ void UIPhaseProgressUpdateFeature::DrawDebugPanel()
 		ImGui::Text("ConquestSizePx : %.1f, %.1f", conquestSizePx.x, conquestSizePx.y);
 		ImGui::SliderFloat("ConquestInnerRadius", &mConquestInnerRadius, 0.f, 1.f);
 
-		
+
 		mConquestSizeRatio.x = std::clamp(mConquestSizeRatio.x, 0.f, 1.f);
 		mConquestSizeRatio.y = std::clamp(mConquestSizeRatio.y, 0.f, 1.f);
 		mConquestInnerRadius = std::clamp(mConquestInnerRadius, 0.f, 1.f);
+
+		// SecondGame 3개 점령지 표시 전용 튜닝값
+		ImGui::Separator();
+		ImGui::Text("Conquest Multi (SecondGame)");
+		ImGui::DragFloat("RingGapRatio", &mConquestRingGapRatio, 0.001f, 0.f, 0.5f, "%.4f");
+		ImGui::DragFloat("ActiveScale", &mConquestActiveScale, 0.01f, 0.5f, 3.f, "%.2f");
+		ImGui::DragFloat("InactiveScale", &mConquestInactiveScale, 0.01f, 0.3f, 1.5f, "%.2f");
+		ImGui::DragFloat("FocusAnimDuration", &mFocusAnimDuration, 0.01f, 0.f, 2.f, "%.2f");
+		ImGui::Text("PrevWave : %d / %d  (focusT %.2f)", mPrevWave, GameConquestComponent::mMaxConquest, mFocusAnimT);
+		if (ImGui::Button("Test Focus Anim"))
+		{
+			mCompletedRingIdx = std::clamp(mPrevWave - 1, 0, GameConquestComponent::mMaxConquest - 1);
+			mFocusAnimT = 0.f;
+		}
+
+		mConquestRingGapRatio  = std::clamp(mConquestRingGapRatio, 0.f, 0.5f);
+		mConquestActiveScale   = std::clamp(mConquestActiveScale, 0.5f, 3.f);
+		mConquestInactiveScale = std::clamp(mConquestInactiveScale, 0.3f, 1.5f);
+		mFocusAnimDuration     = std::clamp(mFocusAnimDuration, 0.f, 2.f);
 	}
 
 	if (ImGui::CollapsingHeader("Escort", ImGuiTreeNodeFlags_DefaultOpen))

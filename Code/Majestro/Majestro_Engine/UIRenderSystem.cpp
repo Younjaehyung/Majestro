@@ -17,6 +17,7 @@
 #include "UIFeature.h"
 #include "UIAudioVisualizerFeature.h"
 #include "GameRuleComponent.h"
+#include "PauseMenuController.h"
 #include "GameMode.h"
 #include "Timer.h"
 
@@ -90,7 +91,9 @@ void UIRenderSystem::Update()
 {
     if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 
-    const bool isGameOver = IsGameOver();
+    // 활성 그룹은 프레임당 한 번 계산하고 모든 UI 렌더 경로에서 공유한다.
+    mActiveRenderGroup = GetActiveRenderGroup();
+    const bool isGameplayGroupActive = IsGameplayGroupActive();
 
     // UI 전체를 SwapChain RT에 렌더링 (ToneMap 이후)
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
@@ -99,16 +102,14 @@ void UIRenderSystem::Update()
    
     RENDERMANAGER.SetGraphicsTable();
 
-    // 게임 오버 배너는 일반 UISpriteComponent로 렌더링한다.
-    // 그 외 커스텀 UI와 Feature 직접 렌더 경로는 게임 오버 동안 실행하지 않는다.
-    if (!isGameOver)
-        CustomSpriteRender();
+    // 모달 UI가 활성화되어도 해당 그룹의 일반 UI는 렌더링한다.
+    CustomSpriteRender();
     TextUpdate();
     SpriteUpdate();
-    if (!isGameOver)
+    if (isGameplayGroupActive)
         PostSpriteRender();
 
-    if (!isGameOver)
+    if (isGameplayGroupActive)
         mUIEffectPass->Execute(DELTA_TIME);
 
 
@@ -127,7 +128,8 @@ void UIRenderSystem::CustomSpriteRender()
 
     const uint32 regularCount = static_cast<uint32>(mInstances.size());
 
-    if (mFeatures != nullptr)
+    // Feature가 직접 생성하는 인게임 HUD는 Gameplay 화면에서만 추가한다.
+    if (IsGameplayGroupActive() && mFeatures != nullptr)
     {
         for (const auto& spritePass : *mFeatures)
         {
@@ -152,7 +154,7 @@ void UIRenderSystem::SpriteUpdate()
 
     RenderSpirte();
 
-    if (!IsGameOver() && mFeatures != nullptr){
+    if (IsGameplayGroupActive() && mFeatures != nullptr){
         for (const auto& spritePass : *mFeatures)
         {
             if (spritePass != nullptr)
@@ -202,8 +204,8 @@ void UIRenderSystem::TextUpdate()
         if (!textComp->mVisible)
             continue;
 
-        // Fail 상태에서는 게임 오버 전용 표식이 없는 텍스트를 모두 숨긴다.
-        if (!CanRenderDuringGameOver(a))
+        // 현재 화면 그룹에 속하지 않는 텍스트는 숨긴다.
+        if (!CanRenderEntity(a))
             continue;
 
         // InitializeFont() 이후에 생성된 엔티티(런타임 스폰)도 폰트를 할당
@@ -272,6 +274,10 @@ void UIRenderSystem::RenderCustomSprite()
         if (!sp->mVisible)
             continue;
 
+        // 커스텀 스프라이트에도 일반 스프라이트와 같은 그룹 필터를 적용한다.
+        if (!CanRenderEntity(e))
+            continue;
+
         UIInstanceData data;
         data.Position = tr->mFinalPixelPos;
         data.Size = tr->mFinalSize;
@@ -300,8 +306,8 @@ void UIRenderSystem::RenderSpirte()
         if (!spriteComp->mVisible || spriteComp->mTexture == nullptr)
             continue;
 
-        // Fail 상태에서는 Reveal과 Stamp 배너만 렌더링한다.
-        if (!CanRenderDuringGameOver(a))
+        // 현재 화면 그룹에 속하지 않는 스프라이트는 숨긴다.
+        if (!CanRenderEntity(a))
             continue;
 
         XMUINT2 textureSize;
@@ -456,23 +462,58 @@ void UIRenderSystem::RenderSpirte()
 }
 
 
-bool UIRenderSystem::IsGameOver() const
+UIRenderGroup UIRenderSystem::GetActiveRenderGroup() const
 {
     if (mWorld == nullptr)
-        return false;
+        return UIRenderGroup::Gameplay;
 
     const GameRuleComponent* gameRule =
         mWorld->GetSingleton<GameRuleComponent>();
-    return gameRule != nullptr &&
-        gameRule->mGamePhase == static_cast<uint8>(WavePhaseType::Fail);
+    if (gameRule != nullptr)
+    {
+        if (gameRule->mGamePhase == static_cast<uint8>(WavePhaseType::Fail))
+            return UIRenderGroup::GameOver;
+
+        if (gameRule->mGamePhase == static_cast<uint8>(WavePhaseType::Clear))
+            return UIRenderGroup::Clear;
+    }
+
+    if (mWorld->HasComponentPool<PauseMenuController>())
+    {
+        const std::vector<Entity> pauseEntities =
+            mWorld->GetEntitiesWithComponent<PauseMenuController>();
+        if (!pauseEntities.empty())
+        {
+            const PauseMenuController* pause =
+                mWorld->GetComponent<PauseMenuController>(pauseEntities.front());
+            if (pause != nullptr && pause->mPaused)
+                return UIRenderGroup::Pause;
+        }
+    }
+
+    return UIRenderGroup::Gameplay;
 }
 
-bool UIRenderSystem::CanRenderDuringGameOver(Entity entity) const
+bool UIRenderSystem::IsGameplayGroupActive() const
 {
-    if (!IsGameOver())
-        return true;
+    return mActiveRenderGroup == UIRenderGroup::Gameplay;
+}
 
-    return mWorld->GetComponent<GameOverUIComponent>(entity) != nullptr;
+bool UIRenderSystem::CanRenderEntity(Entity entity) const
+{
+    const UIRenderGroupComponent* renderGroup = nullptr;
+    if (mWorld->HasComponentPool<UIRenderGroupComponent>())
+    {
+        const World* world = mWorld;
+        renderGroup = world->GetComponent<UIRenderGroupComponent>(entity);
+    }
+
+    // 별도 표식이 없는 기존 UI는 Gameplay 그룹으로 간주한다.
+    const UIRenderGroup entityGroup = renderGroup != nullptr
+        ? renderGroup->mGroup
+        : UIRenderGroup::Gameplay;
+
+    return entityGroup == mActiveRenderGroup;
 }
 
 void UIRenderSystem::SortSpriteLayer(std::vector<Entity>& entitys)

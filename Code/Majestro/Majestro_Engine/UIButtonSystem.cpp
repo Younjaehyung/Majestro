@@ -65,6 +65,9 @@ void UIButtonSystem::Update(float dt)
         // 비활성화된 버튼은 hover/click 처리 스킵
         if (!btn->mEnabled)
         {
+            // 외부에서 버튼이 비활성화된 경우 호버 전용 스프라이트가 남지 않도록 종료 콜백을 호출한다.
+            if (btn->mHovered && btn->mOnHoverExit)
+                btn->mOnHoverExit();
             btn->mHovered = false;
             btn->mPressed = false;
             continue;

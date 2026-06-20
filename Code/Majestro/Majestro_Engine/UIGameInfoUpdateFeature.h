@@ -165,10 +165,14 @@ private:
 
 	// 배너 엔티티 (재활용).
 	void EnsureBannerEntities();
+	void EnsurePinnedBannerEntity();
 	void EnsureRevealStampEntities();
 	void EnsurePhaseStatusText();
 	void ApplyBannerSpec(const PhaseGoalSpec& spec);
 	void SetBannerVisible(bool visible);
+	void SetPinnedBannerVisible(bool visible);
+	void ShowPinnedBanner();
+	bool SupportsPinnedBanner(WavePhaseType phase) const;
 	void SetPhaseStatusVisible(bool visible);
 	void StartRevealStampAnimation(const RevealStampAnimationSpec& spec);
 	void StopRevealStampAnimation();
@@ -215,6 +219,7 @@ private:
 
 	Entity        mBannerEntity     = NULL_ENTITY;
 	Entity        mBannerTextEntity = NULL_ENTITY;
+	Entity        mPinnedBannerEntity = NULL_ENTITY;
 	Entity        mPhaseStatusTextEntity = NULL_ENTITY;
 
 	std::unordered_map<WavePhaseType, RevealStampAnimationSpec> mRevealStampAnimationTable;

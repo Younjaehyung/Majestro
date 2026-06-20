@@ -159,7 +159,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     
     
     // gradient overlay
-    float mask = smoothstep(0.93f, 1.0f, input.uv.y);
+    float mask = smoothstep(0.9f, 1.0f, input.uv.y);
     float3 overlayColor = float3(0.0f, 0.0f, 0.0f);
 
     gammaCorrected.rgb = lerp(gammaCorrected.rgb, overlayColor, mask * 0.6f);

@@ -5,10 +5,27 @@
 class Mesh;
 class Material;
 
-// 게임 오버 중에도 렌더링해야 하는 UI 엔티티에만 부착하는 표식 컴포넌트.
-// UIRenderSystem은 Fail 상태에서 이 컴포넌트가 없는 일반 UI를 모두 건너뛴다.
-class GameOverUIComponent : public Component<GameOverUIComponent>
+// Gameplay와 Pause 및 결과 화면의 UI를 렌더 단계에서 분리하기 위한 그룹이다.
+enum class UIRenderGroup : uint8
 {
+	Gameplay = 0,
+	Pause,
+	Clear,
+	GameOver
+};
+
+// 현재 화면 상태에 따라 렌더링할 UI를 구분한다.
+// 별도 컴포넌트가 없는 기존 UI는 Gameplay 그룹으로 처리한다.
+class UIRenderGroupComponent : public Component<UIRenderGroupComponent>
+{
+public:
+	UIRenderGroupComponent() = default;
+	explicit UIRenderGroupComponent(UIRenderGroup group)
+		: mGroup(group)
+	{
+	}
+
+	UIRenderGroup mGroup = UIRenderGroup::Gameplay;
 };
 
 // UIScriptComponent.h
@@ -35,6 +52,8 @@ struct UIHpLossFragment
 
 	// Hit effect(스프라이트 시트 오버레이) 앵커 — 피격 순간의 남은 HP 우측 끝
 	Vec2 HitAnchorPx = Vec2::Zero;
+	// 이번 피해로 잃은 바 폭(픽셀). hit 스프라이트 가로(U) 크기를 피해량만큼 늘리는 데 사용.
+	float LostWidthPx = 0.f;
 	float Age = 0.f;
 	float LifeTime = 0.35f;
 };
@@ -107,7 +126,12 @@ public:
 	int mHitEffectCols = 1;
 	int mHitEffectRows = 1;
 	int mHitEffectFrameCount = 1;
-	Vec2 mHitEffectSizePx = Vec2(64.f, 64.f); // 화면 픽셀 크기는 (HP 바와 독립).
+	// hit 스프라이트 높이 = 바의 보이는 높이(mHeight × fillUvRangeY 폭) × 이 배수 (기본 정사각).
+	// 절대 픽셀이 아니라 바에 비례하므로 바 크기가 바뀌어도 자동으로 맞춰진다.
+	float mHitEffectHeightScale = 2.0f;
+	// hit 스프라이트 가로(U)에 추가되는 폭 = 잃은 피 폭 × 이 배수.
+	// 0이면 정사각, 클수록 피해량에 따라 가로로 더 늘어나 "피 깎임"이 잘 보인다.
+	float mHitEffectWidthLossScale = 1.0f;
 
 	// 앵커(피격 경계점) 기준 추가 오프셋 — 양수 X = 화면 오른쪽 / 양수 Y = 아래쪽.
 	Vec2 mHitEffectOffsetPx = Vec2::Zero;

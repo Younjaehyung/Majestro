@@ -9,9 +9,9 @@ public:
 	void Update(float dt) override;
 
 private:
-	static const wchar_t* PortraitPrefix(uint8 playerType);
+	static int32 PortraitAtlasRow(uint8 playerType);
 
-	// 초상화
+	// 초상화 크기와 레이어는 유지하고 캐릭터에 맞는 아틀라스 셀만 교체한다.
 	void ApplyTextures(HUDPortraitSlotComponent& slot, uint8 playerType);
 	void SetSlotVisible(HUDPortraitSlotComponent& slot, bool visible);
 

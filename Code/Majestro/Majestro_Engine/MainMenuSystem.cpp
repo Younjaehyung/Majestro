@@ -13,6 +13,7 @@
 #include "UITransformComponent.h"
 #include "UIVfxComponent.h"
 #include "UITextComponent.h"
+#include "UIComponent.h"
 #include "MathUtils.h"
 
 
@@ -41,7 +42,18 @@ void UIMainMenuSystem::SetEntitiesVisible(const std::vector<Entity>& es, bool vi
         if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = visible;
         if (auto* vf = mWorld->GetComponent<UIVfxComponent>(e))    vf->mVisible = visible;
         if (auto* tx = mWorld->GetComponent<UITextComponent>(e))   tx->mVisible = visible;
-        if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e)) bt->mEnabled = visible;
+        if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e))
+        {
+            // 메뉴 상태가 바뀌어 버튼이 숨겨질 때 남아 있는 호버 오버레이도 즉시 제거한다.
+            if (!visible && bt->mHovered && bt->mOnHoverExit)
+                bt->mOnHoverExit();
+            if (!visible)
+            {
+                bt->mHovered = false;
+                bt->mPressed = false;
+            }
+            bt->mEnabled = visible;
+        }
     }
 }
 
@@ -76,6 +88,7 @@ void UIMainMenuSystem::Update(float dt)
             {
                 SetEntitiesVisible(ctrl->mStates[(size_t)ctrl->mState].entities, true);
 
+                // 상태 표시 직후 내부 탭 제어 스크립트를 실행해 비활성 그룹을 같은 프레임에 숨긴다.
                 // 장식 애니메이션
                 for (Entity a : ctrl->mStates[(size_t)ctrl->mState].animations)
                 {
@@ -88,6 +101,14 @@ void UIMainMenuSystem::Update(float dt)
                 }
 
                 ctrl->mEntitiesPendingReveal = false;
+
+                // 상태 표시 직후 내부 탭 제어 스크립트를 실행해 비활성 그룹을 같은 프레임에 숨긴다.
+                for (Entity stateEntity : ctrl->mStates[(size_t)ctrl->mState].entities)
+                {
+                    if (auto* script = mWorld->GetComponent<UIScriptComponent>(stateEntity))
+                        if (script->mOnUpdate)
+                            script->mOnUpdate(0.f);
+                }
             }
 
             // 배경

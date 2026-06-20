@@ -291,6 +291,11 @@ UIHpBarUpdateFeature::UIInstanceRanges UIHpBarUpdateFeature::UploadBarInstances(
     ranges.HitStart = static_cast<uint32>(instances.size());
     if (hitEnabled)
     {
+        // hit 스프라이트는 바의 "보이는 높이"에 비례한 정사각 크기로 그린다.
+        // (mHeight × fillUvRangeY 폭 = 텍스처 캔버스 안에서 실제 바가 차지하는 화면 높이)
+        const float visibleBarH = hpBar->mHeight * (std::max)(0.f, hpBar->mFillUvRangeY.y - hpBar->mFillUvRangeY.x);
+        const float hitSidePx = (std::max)(1.f, visibleBarH * hpBar->mHitEffectHeightScale);
+
         for (const UIHpLossFragment& mFragment : hpBar->mLossFragments)
         {
             if (mFragment.LifeTime <= 0.f)
@@ -300,9 +305,14 @@ UIHpBarUpdateFeature::UIInstanceRanges UIHpBarUpdateFeature::UploadBarInstances(
             if (alpha <= 0.01f)
                 continue;
 
+            // 가로(U)만 잃은 피 폭만큼 늘려 "피 깎임" 구간을 덮는다. 높이는 정사각 기준 유지.
+            const float hitWidthPx = hitSidePx + mFragment.LostWidthPx * hpBar->mHitEffectWidthLossScale;
+
+            // 셰이더는 중앙 정렬이므로, 중심을 가로 폭 절반만큼 오른쪽으로 밀어
+            // 스프라이트 왼쪽 변을 경계점(파편 왼쪽 x0)에 고정하고 잃은 구간(오른쪽)으로만 늘린다.
             UIInstanceData d{};
-            d.Position = mFragment.HitAnchorPx + hpBar->mHitEffectOffsetPx; // 경계점 + 시각 보정
-            d.Size = hpBar->mHitEffectSizePx;      // 화면 픽셀 크기
+            d.Position = mFragment.HitAnchorPx + hpBar->mHitEffectOffsetPx + Vec2(hitWidthPx * 0.5f, 0.f);
+            d.Size = Vec2(hitWidthPx, hitSidePx);  // 가로=높이+피해폭, 세로=바 높이 비례
             d.Pivot = Vec2(alpha, ageRatio);       // x=알파, y=시트 프레임 산출용
             d.MaterialIndex = 0;
             d.ZOrder = 0.f;
@@ -392,6 +402,7 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
     mFragment.LifeTime = hpBar->mFragmentLifeTime;
     mFragment.Age = 0.f;
     mFragment.HitAnchorPx = Vec2(x0, (y0 + y1) * 0.5f);
+    mFragment.LostWidthPx = lostWidth;
    
 
     for (int j = 0; j < rows; ++j)

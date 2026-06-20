@@ -21,38 +21,52 @@
 
 namespace
 {
+	constexpr float kPortraitCellSize = 768.0f;
 	constexpr uint8 kPortraitSlotCount = 3;   // ROOM_MAX_PLAYERS 기준
 }
 
-const wchar_t* HUDPortraitUpdateFeature::PortraitPrefix(uint8 playerType)
+int32 HUDPortraitUpdateFeature::PortraitAtlasRow(uint8 playerType)
 {
 	switch (static_cast<PlayerType>(playerType))
 	{
-	case PlayerType::Rudwig:  return L"Rudwig";
-	case PlayerType::Ibanix:  return L"Ibanix";
-	case PlayerType::Fanthor: return L"Fanthor";
-	default:                  return nullptr;
+	case PlayerType::Ibanix:  return 0;
+	case PlayerType::Rudwig:  return 1;
+	case PlayerType::Fanthor: return 2;
+	default:                  return -1;
 	}
 }
 
 void HUDPortraitUpdateFeature::ApplyTextures(HUDPortraitSlotComponent& slot, uint8 playerType)
 {
-	const wchar_t* prefix = PortraitPrefix(playerType);
-	if (prefix == nullptr)
+	const int32 row = PortraitAtlasRow(playerType);
+	if (row < 0)
 		return;
 
-	const std::wstring base = std::wstring(L"UI_") + prefix;
+	const shared_ptr<Texture> atlas =
+		RESOURCEMANAGER.Get<Texture>(L"UI_Ingame_Sheet");
+	if (atlas == nullptr)
+		return;
 
-	auto setTex = [this](Entity e, const std::wstring& key)
+	// 초상화 영역은 768 픽셀 정사각형 셀이다.
+	// 열 순서는 Head_0, Head_1, Portrait_0, Portrait_1이다.
+	auto applyCell = [this, &atlas, row](Entity entity, int32 column)
 	{
-		if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e))
-			sp->mTexture = RESOURCEMANAGER.Get<Texture>(key);
+		if (UISpriteComponent* sprite =
+			mWorld->GetComponent<UISpriteComponent>(entity))
+		{
+			sprite->mTexture = atlas;
+			sprite->SetSourceRect(
+				kPortraitCellSize * static_cast<float>(column),
+				kPortraitCellSize * static_cast<float>(row),
+				kPortraitCellSize,
+				kPortraitCellSize);
+		}
 	};
 
-	setTex(slot.mBack0, base + L"_Portrait_0");
-	setTex(slot.mBack1, base + L"_Portrait_1");
-	setTex(slot.mHead0, base + L"_Portrait_Head_0");
-	setTex(slot.mHead1, base + L"_Portrait_Head_1");
+	applyCell(slot.mBack0, 2);
+	applyCell(slot.mBack1, 3);
+	applyCell(slot.mHead0, 0);
+	applyCell(slot.mHead1, 1);
 }
 
 void HUDPortraitUpdateFeature::SetSlotVisible(HUDPortraitSlotComponent& slot, bool visible)

@@ -8,6 +8,7 @@
 #include "UIVfxComponent.h"
 #include "UITextComponent.h"
 #include "UIButtonComponent.h"
+#include "UITransformComponent.h"
 #include "RenderSystem.h"
 #include "GameRenderPipeline.h"
 #include "PlayerComponent.h" 
@@ -33,7 +34,18 @@ void PauseSystem::SetEntitiesVisible(const std::vector<Entity>& es, bool visible
         if (auto* sp = mWorld->GetComponent<UISpriteComponent>(e)) sp->mVisible = visible;
         if (auto* vf = mWorld->GetComponent<UIVfxComponent>(e))    vf->mVisible = visible;
         if (auto* tx = mWorld->GetComponent<UITextComponent>(e))   tx->mVisible = visible;
-        if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e)) bt->mEnabled = visible;
+        if (auto* bt = mWorld->GetComponent<UIButtonComponent>(e))
+        {
+            // Pause 하위 화면으로 전환할 때 루트 버튼의 호버 선이 남지 않도록 정리한다.
+            if (!visible && bt->mHovered && bt->mOnHoverExit)
+                bt->mOnHoverExit();
+            if (!visible)
+            {
+                bt->mHovered = false;
+                bt->mPressed = false;
+            }
+            bt->mEnabled = visible;
+        }
     }
 }
 
@@ -83,7 +95,35 @@ void PauseSystem::Update(float dt)
         if (prev != ctrl->mState)
         {
             SetEntitiesVisible(ctrl->mStateEntities[(size_t)prev], false);
+            ApplyBackgroundTexture(ctrl);
             SetEntitiesVisible(ctrl->mStateEntities[(size_t)ctrl->mState], true);
+        }
+    }
+
+    if (ctrl->mPaused)
+    {
+        // 두 장을 한 세트로 왼쪽 이동시키고 첫 장이 화면 밖으로 나가면
+        // 정확히 한 장 너비만큼 되돌려 끊김 없는 반복 띠를 유지한다.
+        ctrl->mWordBandOffset -= ctrl->mWordBandScrollSpeed * dt;
+        while (ctrl->mWordBandOffset <= -ctrl->mWordBandTileWidth)
+            ctrl->mWordBandOffset += ctrl->mWordBandTileWidth;
+
+        const float firstX = ctrl->mWordBandOffset;
+        const float secondX = firstX + ctrl->mWordBandTileWidth;
+        const Vec2 positions[4] = {
+            Vec2(firstX, ctrl->mWordBandTopY),
+            Vec2(secondX, ctrl->mWordBandTopY),
+            Vec2(firstX, ctrl->mWordBandBottomY),
+            Vec2(secondX, ctrl->mWordBandBottomY)
+        };
+
+        for (size_t i = 0; i < ctrl->mWordBandEntities.size(); ++i)
+        {
+            if (UITransformComponent* transform =
+                mWorld->GetComponent<UITransformComponent>(ctrl->mWordBandEntities[i]))
+            {
+                transform->mPosition = positions[i];
+            }
         }
     }
 }
@@ -110,6 +150,7 @@ void PauseSystem::ApplyBackgroundTexture(PauseMenuController* ctrl)
 
     // 로컬 플레이어의 캐릭터 타입 조회
     const wchar_t* prefix = nullptr;
+    PlayerType localPlayerType = PlayerType::Count;
     for (Entity e : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
     {
         if (!mWorld->HasComponent<LocalPlayerComponent>(e))
@@ -126,6 +167,7 @@ void PauseSystem::ApplyBackgroundTexture(PauseMenuController* ctrl)
         case PlayerType::Fanthor: prefix = L"Fanthor"; break;
         default:                  prefix = nullptr;    break;
         }
+        localPlayerType = mp->mPlayerType;
         break;
     }
 
@@ -133,8 +175,77 @@ void PauseSystem::ApplyBackgroundTexture(PauseMenuController* ctrl)
         return;
 
     // 캐릭터별 배경 텍스처가 등록되어 있을 때만 교체.
-    const std::wstring key = std::wstring(L"UI_") + prefix + L"_Paused_Main";
+    const wchar_t* screenSuffix = L"Main";
+    switch (ctrl->mState)
+    {
+    case PauseMenuState::Manual:
+        screenSuffix = L"Manual";
+        break;
+    case PauseMenuState::SettingGraphics:
+    case PauseMenuState::SettingSound:
+        screenSuffix = L"Setting";
+        break;
+    case PauseMenuState::ConfirmDisconnect:
+        screenSuffix = L"Quit";
+        break;
+    default:
+        screenSuffix = L"Main";
+        break;
+    }
+
+    const std::wstring key =
+        std::wstring(L"UI_") + prefix + L"_Paused_" + screenSuffix;
     auto tex = RESOURCEMANAGER.Get<Texture>(key);
     if (tex)
         sprite->mTexture = tex;
+
+    // 캐릭터 일러스트가 차지하지 않는 검은 영역에 메뉴를 배치한다.
+    const bool useRightMenu = localPlayerType == PlayerType::Fanthor;
+    const float menuLeftX = useRightMenu ? 200.f : -1000.f;
+    const float menuY[4] = { -220.f, 10.f, 240.f, 470.f };
+
+    RECT hoverSource = { 0, 366, 768, 405 };
+    if (localPlayerType == PlayerType::Rudwig)
+        hoverSource = RECT{ 768, 366, 1536, 405 };
+    else if (localPlayerType == PlayerType::Ibanix)
+        hoverSource = RECT{ 0, 526, 768, 565 };
+
+    // 아틀라스의 첫 행은 Ibanix, 둘째 행은 Ludwig, 셋째 행은 Fanthor 색상이다.
+    RECT wordBandSource = { 0, 0, 2048, 128 };
+    if (localPlayerType == PlayerType::Rudwig)
+        wordBandSource = RECT{ 0, 128, 2048, 256 };
+    else if (localPlayerType == PlayerType::Fanthor)
+        wordBandSource = RECT{ 0, 256, 2048, 384 };
+
+    for (Entity bandEntity : ctrl->mWordBandEntities)
+    {
+        if (UISpriteComponent* bandSprite =
+            mWorld->GetComponent<UISpriteComponent>(bandEntity))
+        {
+            bandSprite->SetSourceRect(
+                static_cast<float>(wordBandSource.left),
+                static_cast<float>(wordBandSource.top),
+                static_cast<float>(wordBandSource.right - wordBandSource.left),
+                static_cast<float>(wordBandSource.bottom - wordBandSource.top));
+        }
+    }
+
+    for (size_t i = 0; i < ctrl->mRootButtons.size(); ++i)
+    {
+        if (auto* tr = mWorld->GetComponent<UITransformComponent>(ctrl->mRootButtons[i]))
+            tr->mPosition = Vec2(menuLeftX, menuY[i]);
+
+        if (auto* lineTr = mWorld->GetComponent<UITransformComponent>(ctrl->mRootHoverLines[i]))
+            lineTr->mPosition = Vec2(menuLeftX - 90.f, menuY[i] + 120.f);
+
+        if (auto* lineSprite = mWorld->GetComponent<UISpriteComponent>(ctrl->mRootHoverLines[i]))
+        {
+            lineSprite->SetSourceRect(
+                static_cast<float>(hoverSource.left),
+                static_cast<float>(hoverSource.top),
+                static_cast<float>(hoverSource.right - hoverSource.left),
+                static_cast<float>(hoverSource.bottom - hoverSource.top));
+            lineSprite->mVisible = false;
+        }
+    }
 }

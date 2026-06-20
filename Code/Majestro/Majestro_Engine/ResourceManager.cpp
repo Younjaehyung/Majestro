@@ -1103,7 +1103,10 @@ void ResourceManager::CreateDefaultShader()
 		{
 			SHADER_TYPE::DEFERRED,
 			RASTERIZER_TYPE::CULL_NONE,
-			DEPTH_STENCIL_TYPE::EQUAL_NO_WRITE
+			// LESS_EQUAL(Write ON): GBuffer가 자체 깊이를 생성하도록 변경.
+			// DepthPrePass가 FORWARD-only로 축소되어도 DEFERRED 깊이가 GBuffer에서 채워짐.
+			// (이전 EQUAL_NO_WRITE는 DepthPrePass 깊이에 완전 의존했음)
+			DEPTH_STENCIL_TYPE::LESS_EQUAL
 		};
 
 		ShaderPath shaderPath{
@@ -2648,10 +2651,19 @@ void ResourceManager::CreateDefaultMaterial()
 
 
 		Load<Texture>(L"UI_Title_Control", L"..\\Resources\\Image\\UI\\UI_Title_Control.png");
+		// Control 안내 화면은 공통 조작법과 캐릭터별 설명을 포함한 4개 페이지로 구성한다.
+		Load<Texture>(L"UI_Title_Control_0", L"..\\Resources\\Image\\UI\\UI_Title_Control_0.png");
+		Load<Texture>(L"UI_Title_Control_1", L"..\\Resources\\Image\\UI\\UI_Title_Control_1.png");
+		Load<Texture>(L"UI_Title_Control_2", L"..\\Resources\\Image\\UI\\UI_Title_Control_2.png");
+		Load<Texture>(L"UI_Title_Control_3", L"..\\Resources\\Image\\UI\\UI_Title_Control_3.png");
 		Load<Texture>(L"UI_Title_QuitGame", L"..\\Resources\\Image\\UI\\UI_Title_QuitGame.png");
 		Load<Texture>(L"UI_Title_Search", L"..\\Resources\\Image\\UI\\UI_Title_Search.png");
 		Load<Texture>(L"UI_Title_SelectFrame", L"..\\Resources\\Image\\UI\\UI_Title_SelectFrame.png");
 		Load<Texture>(L"UI_Title_Setting", L"..\\Resources\\Image\\UI\\UI_Title_Setting.png");
+		// 메인 메뉴 버튼은 이 타이틀 버튼 아틀라스에서 필요한 영역을 잘라 사용한다.
+		Load<Texture>(L"UI_Title_Sheet_01", L"..\\Resources\\Image\\UI\\UI_Title_Sheet_01.png");
+		// Setting 항목 상자와 체크박스는 두 번째 타이틀 UI 아틀라스를 사용한다.
+		Load<Texture>(L"UI_Title_Sheet_02", L"..\\Resources\\Image\\UI\\UI_Title_Sheet_02.png");
 
 		Load<Texture>(L"UI_Title_PaintSplash_0", L"..\\Resources\\Image\\UI\\UI_Title_PaintSplash_0.png");
 		// Load<Texture>(L"UI_Title_Button_Back", L"..\\Resources\\Image\\UI\\UI_Title_Button_Back.png");
@@ -2659,22 +2671,8 @@ void ResourceManager::CreateDefaultMaterial()
 
 
 
-		Load<Texture>(L"UI_Rudwig_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_0.png");
-		Load<Texture>(L"UI_Rudwig_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_1.png");
-		Load<Texture>(L"UI_Rudwig_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_Head_0.png");
-		Load<Texture>(L"UI_Rudwig_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Portrait_Head_1.png");
-
-
-
-		Load<Texture>(L"UI_Ibanix_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_0.png");
-		Load<Texture>(L"UI_Ibanix_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_1.png");
-		Load<Texture>(L"UI_Ibanix_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_Head_0.png");
-		Load<Texture>(L"UI_Ibanix_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Portrait_Head_1.png");
-
-		Load<Texture>(L"UI_Fanthor_Portrait_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_0.png");
-		Load<Texture>(L"UI_Fanthor_Portrait_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_1.png");
-		Load<Texture>(L"UI_Fanthor_Portrait_Head_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_0.png");
-		Load<Texture>(L"UI_Fanthor_Portrait_Head_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Portrait_Head_1.png");
+		// 세 캐릭터의 초상화 레이어를 하나의 아틀라스에서 잘라 사용한다.
+		Load<Texture>(L"UI_Ingame_Sheet", L"..\\Resources\\Image\\UI\\UI_Ingame_Sheet.png");
 
 		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
 		Load<Texture>(L"UI_Loading_Circle", L"..\\Resources\\Image\\UI\\UI_Loading_Circle.png");
@@ -2685,6 +2683,19 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Rudwig_Paused_Main", L"..\\Resources\\Image\\UI\\UI_Rudwig_Paused_Main.png");
 		Load<Texture>(L"UI_Ibanix_Paused_Main", L"..\\Resources\\Image\\UI\\UI_Ibanix_Paused_Main.png");
 		Load<Texture>(L"UI_Fanthor_Paused_Main", L"..\\Resources\\Image\\UI\\UI_Fanthor_Paused_Main.png");
+		Load<Texture>(L"UI_Rudwig_Paused_Manual", L"..\\Resources\\Image\\UI\\UI_Rudwig_Paused_Manual.png");
+		Load<Texture>(L"UI_Ibanix_Paused_Manual", L"..\\Resources\\Image\\UI\\UI_Ibanix_Paused_Manual.png");
+		Load<Texture>(L"UI_Fanthor_Paused_Manual", L"..\\Resources\\Image\\UI\\UI_Fanthor_Paused_Manual.png");
+		Load<Texture>(L"UI_Rudwig_Paused_Setting", L"..\\Resources\\Image\\UI\\UI_Rudwig_Paused_Setting.png");
+		Load<Texture>(L"UI_Ibanix_Paused_Setting", L"..\\Resources\\Image\\UI\\UI_Ibanix_Paused_Setting.png");
+		Load<Texture>(L"UI_Fanthor_Paused_Setting", L"..\\Resources\\Image\\UI\\UI_Fanthor_Paused_Setting.png");
+		Load<Texture>(L"UI_Rudwig_Paused_Quit", L"..\\Resources\\Image\\UI\\UI_Rudwig_Paused_Quit.png");
+		Load<Texture>(L"UI_Ibanix_Paused_Quit", L"..\\Resources\\Image\\UI\\UI_Ibanix_Paused_Quit.png");
+		Load<Texture>(L"UI_Fanthor_Paused_Quit", L"..\\Resources\\Image\\UI\\UI_Fanthor_Paused_Quit.png");
+		// Pause 루트 메뉴 버튼과 캐릭터별 호버 선을 포함하는 아틀라스다.
+		Load<Texture>(L"UI_Paused_Sheet_01", L"..\\Resources\\Image\\UI\\UI_Paused_Sheet_01.png");
+		// Pause 화면 상단과 하단에서 반복 이동하는 플레이어별 문구 띠 아틀라스.
+		Load<Texture>(L"UI_Paused_Word_Sheet", L"..\\Resources\\Image\\UI\\UI_Paused_Word_Sheet.png");
 
 #pragma region LobbyUI
 		{
@@ -2692,17 +2703,8 @@ void ResourceManager::CreateDefaultMaterial()
 		}
 #pragma endregion
 
-		Load<Texture>(L"UI_Ibanix_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Weapon_0.png");
-		Load<Texture>(L"UI_Fanthor_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Weapon_0.png");
-		Load<Texture>(L"UI_Rudwig_Weapon_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Weapon_0.png");
-
-
 #pragma region Display&HPBG
 		{
-			Load<Texture>(L"UI_Fanthor_Display_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Display_0.png");
-			Load<Texture>(L"UI_Ibanix_Display_01", L"..\\Resources\\Image\\UI\\UI_Ibanix_Display_01.png");
-			Load<Texture>(L"UI_Rudwig_Display_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Display_0.png");
-
 			Load<Texture>(L"UI_SkillIcon_Sheet", L"..\\Resources\\Image\\UI\\UI_SkillIcon_Sheet.png");
 
 			Load<Texture>(L"UI_Fanthor_HP_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_HP_0.png");
@@ -2713,20 +2715,6 @@ void ResourceManager::CreateDefaultMaterial()
 
 #pragma region Text
 		{
-			Load<Texture>(L"UI_Rudwig_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_0.png");
-			Load<Texture>(L"UI_Rudwig_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_1.png");
-			Load<Texture>(L"UI_Rudwig_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_2.png");
-			Load<Texture>(L"UI_Rudwig_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Rudwig_Rhythm_Text_3.png");
-
-			Load<Texture>(L"UI_Ibanix_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_0.png");
-			Load<Texture>(L"UI_Ibanix_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_1.png");
-			Load<Texture>(L"UI_Ibanix_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_2.png");
-			Load<Texture>(L"UI_Ibanix_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Ibanix_Rhythm_Text_3.png");
-
-			Load<Texture>(L"UI_Fanthor_Rhythm_Text_0", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_0.png");
-			Load<Texture>(L"UI_Fanthor_Rhythm_Text_1", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_1.png");
-			Load<Texture>(L"UI_Fanthor_Rhythm_Text_2", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_2.png");
-			Load<Texture>(L"UI_Fanthor_Rhythm_Text_3", L"..\\Resources\\Image\\UI\\UI_Fanthor_Rhythm_Text_3.png");
 
 		}
 #pragma endregion

@@ -494,8 +494,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		hp.mHitEffectCols = 4;
 		hp.mHitEffectRows = 1;
 		hp.mHitEffectFrameCount = 4;
-		hp.mHitEffectSizePx = Vec2(128.f, 128.f);
-		hp.mHitEffectOffsetPx = Vec2(28.f, 0.f);
+		hp.mHitEffectHeightScale = 2.0f;
+		hp.mHitEffectOffsetPx = Vec2::Zero;
 
 	}
 
@@ -609,8 +609,8 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		hp.mHitEffectCols = 4;
 		hp.mHitEffectRows = 1;
 		hp.mHitEffectFrameCount = 4;
-		hp.mHitEffectSizePx = Vec2(48.f, 48.f);
-		hp.mHitEffectOffsetPx = Vec2(24.f, 0.f);
+		hp.mHitEffectHeightScale = 2.0f;
+		hp.mHitEffectOffsetPx = Vec2::Zero;
 	}
 
 	switch (static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type)) {
@@ -1390,8 +1390,8 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 				bar.mHitEffectCols = 4;
 				bar.mHitEffectRows = 1;
 				bar.mHitEffectFrameCount = 4;
-				bar.mHitEffectSizePx = Vec2(256.f, 256.f);
-				bar.mHitEffectOffsetPx = Vec2(56.f, 0.f);
+				bar.mHitEffectHeightScale = 2.0f;
+				bar.mHitEffectOffsetPx = Vec2::Zero;
 
 				// 텍스처 여백 보정: UI_<캐릭터>_HP_1 (768x256) 의 바 픽셀 영역
 				// X 118~718 / Y 116~140 — 세 캐릭터 공통 (알파 스캔 측정, ±1px)
@@ -1400,6 +1400,8 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 #ifdef _IMGUI
 				props.push_back({ "Hud Hp Fill UV RangeX",  PropertyType::Vec2,  &(bar.mFillUvRangeX),   0.f,    0.f });
 				props.push_back({ "Hud Hp Fill UV RangeY",  PropertyType::Vec2,  &(bar.mFillUvRangeY),   0.f,    0.f });
+				props.push_back({ "Hud Hit Effect Scale",   PropertyType::Float, &(bar.mHitEffectHeightScale), 0.f, 8.f });
+				props.push_back({ "Hud Hit Width Loss",     PropertyType::Float, &(bar.mHitEffectWidthLossScale), 0.f, 4.f });
 #endif
 			}
 #ifdef _IMGUI
@@ -1577,7 +1579,7 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 		hpBar.mHitEffectCols = 4;
 		hpBar.mHitEffectRows = 1;
 		hpBar.mHitEffectFrameCount = 4;
-		hpBar.mHitEffectSizePx = Vec2(256.f, 256.f);
+		hpBar.mHitEffectHeightScale = 2.0f;
 		hpBar.mHitEffectOffsetPx = Vec2::Zero;
 
 		world->AddComponent<UIScriptComponent>(fill).mOnUpdate =
@@ -1650,6 +1652,15 @@ HUDBossHPBarPrefab::~HUDBossHPBarPrefab()
 
 HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
+	// 캐릭터별 Display와 Weapon 이미지는 UI_Ingame_Sheet의 고정 셀을 사용한다.
+	const float displaySourceX =
+		playerType == PlayerType::Ibanix ? 768.0f :
+		playerType == PlayerType::Rudwig ? 1024.0f : 1280.0f;
+	const float weaponSourceX =
+		playerType == PlayerType::Ibanix ? 0.0f :
+		playerType == PlayerType::Rudwig ? 256.0f : 512.0f;
+	const shared_ptr<Texture> ingameAtlas =
+		RESOURCEMANAGER.Get<Texture>(L"UI_Ingame_Sheet");
 
 	{
 		const float  BounceAmplitude = 0.05f;
@@ -1664,25 +1675,15 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 		{	// BACK 0
 			Entity weapon = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
-			switch (playerType) {
-			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Display_0");
-				break;
-			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Display_01");
-				break;
-			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Display_0");
-				break;
-			}
 			auto& t = world->AddComponent<UITransformComponent>(weapon);
 			t.mAnchor = Anchor::BottomLeft;
 			t.mPosition = Vec2(352.f, -160.f);
 			t.mSize = Vec2(128.f, 96.f);
 			t.mUILayerIndex = 1;
 			t.mPivot = Vec2(0.5f, 0.5f);
-			world->AddComponent<UISpriteComponent>(weapon, scorem);
+			auto& sprite =
+				world->AddComponent<UISpriteComponent>(weapon, ingameAtlas);
+			sprite.SetSourceRect(displaySourceX, 2304.0f, 256.0f, 256.0f);
 #ifdef _IMGUI
 
 
@@ -1750,18 +1751,6 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 		{	// Weapon
 			Entity sound = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
-			switch (playerType) {
-			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Weapon_0");
-				break;
-			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Weapon_0");
-				break;
-			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Weapon_0");
-				break;
-			}
 			auto& t = world->AddComponent<UITransformComponent>(sound);
 			t.mAnchor = Anchor::BottomLeft;
 			t.mPosition = Vec2(432.f, -160.f);
@@ -1769,7 +1758,9 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 			t.mUILayerIndex = 2;
 			t.mPivot = Vec2(0.5f, 0.5f);
 
-			world->AddComponent<UISpriteComponent>(sound, scorem);
+			auto& sprite =
+				world->AddComponent<UISpriteComponent>(sound, ingameAtlas);
+			sprite.SetSourceRect(weaponSourceX, 2368.0f, 256.0f, 128.0f);
 #ifdef _IMGUI
 
 			props.push_back({ "Weapon pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
@@ -1804,6 +1795,20 @@ HUDWeaponPrefab::~HUDWeaponPrefab()
 
 HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
+	// Music HUD의 배경도 Weapon HUD와 동일한 캐릭터별 Display 셀을 공유한다.
+	const float displaySourceX =
+		playerType == PlayerType::Ibanix ? 768.0f :
+		playerType == PlayerType::Rudwig ? 1024.0f : 1280.0f;
+	// 리듬 텍스트와 아이콘은 Fanthor, Ibanix, Ludwig 순서로 각 네 칸씩 배치되어 있다.
+	const int32 rhythmAtlasBaseIndex =
+		playerType == PlayerType::Fanthor ? 0 :
+		playerType == PlayerType::Ibanix ? 4 : 8;
+	const float rhythmPaintSourceX =
+		playerType == PlayerType::Ibanix ? 1536.0f :
+		playerType == PlayerType::Rudwig ? 1792.0f : 2048.0f;
+	const shared_ptr<Texture> ingameAtlas =
+		RESOURCEMANAGER.Get<Texture>(L"UI_Ingame_Sheet");
+
 	{
 		const float  BounceAmplitude = 0.05f;
 		const float  mBounceFrequency = 2.f;
@@ -1818,18 +1823,6 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 			
 			Entity back = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
-			switch (playerType) {
-			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Display_0");
-				break;
-			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Display_01");
-				break;
-			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Display_0");
-				break;
-			}
 			auto& t = world->AddComponent<UITransformComponent>(back);
 			t.mAnchor = Anchor::BottomLeft;
 			t.mPosition = Vec2(352.f, -96.f);
@@ -1837,7 +1830,9 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 			t.mUILayerIndex = 2;
 			t.mPivot = Vec2(0.5f, 0.5f);
 
-			world->AddComponent<UISpriteComponent>(back, scorem);
+			auto& sprite =
+				world->AddComponent<UISpriteComponent>(back, ingameAtlas);
+			sprite.SetSourceRect(displaySourceX, 2304.0f, 256.0f, 256.0f);
 #ifdef _IMGUI
 
 
@@ -1850,60 +1845,186 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 		{	// BACK 1
 			Entity sound = world->CreateEntity();
 
-			std::vector<shared_ptr<Texture>> scorem;
-			switch (playerType) {
-			case 0:
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_0"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_1"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_2"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_Rhythm_Text_3"));
-				break;
-			case 1:
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_0"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_1"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_2"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_Rhythm_Text_3"));
-				break;
-			case 2:
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_0"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_1"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_2"));
-				scorem.push_back(RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_Rhythm_Text_3"));
-				break;
-			}
 			auto& t = world->AddComponent<UITransformComponent>(sound);
 			t.mAnchor = Anchor::BottomLeft;
 			t.mPosition = Vec2(480.f, -88.f);
 			t.mSize = Vec2(256.f, 96.f);
 			t.mUILayerIndex = 1;
 			t.mPivot = Vec2(0.5f, 0.5f);
-			world->AddComponent<UISpriteComponent>(sound, scorem);
-			UIScriptComponent& script = world->AddComponent<UIScriptComponent>(sound);
-			script.mOnUpdate = [world, sound, scorem](float deltaTime) {
-				(void)deltaTime;
+			world->AddComponent<UISpriteComponent>(sound, ingameAtlas);
 
-				if (!world->HasComponentPool<LocalPlayerComponent>())
-					return;
+			// 크로스헤어 위 중앙에는 물감 배경, 리듬 아이콘, 설명 텍스트를 순서대로 겹친다.
+			auto createCenterRhythmSprite =
+				[world, &ingameAtlas](
+					const Vec2& position,
+					const Vec2& size,
+					uint8 layer,
+					const RECT& sourceRect) -> Entity
+				{
+					Entity entity = world->CreateEntity();
+					auto& transform =
+						world->AddComponent<UITransformComponent>(entity);
+					transform.mAnchor = Anchor::Center;
+					transform.mPosition = position;
+					transform.mSize = size;
+					transform.mPivot = Vec2(0.5f, 0.5f);
+					transform.mUILayerIndex = layer;
+
+					auto& sprite =
+						world->AddComponent<UISpriteComponent>(entity, ingameAtlas);
+					sprite.SetSourceRect(
+						static_cast<float>(sourceRect.left),
+						static_cast<float>(sourceRect.top),
+						static_cast<float>(sourceRect.right - sourceRect.left),
+						static_cast<float>(sourceRect.bottom - sourceRect.top));
+					return entity;
+				};
+
+			const Entity centerPaint = createCenterRhythmSprite(
+				Vec2(0.0f, -260.0f),
+				Vec2(220.0f, 220.0f),
+				6,
+				RECT{
+					static_cast<LONG>(rhythmPaintSourceX),
+					2304,
+					static_cast<LONG>(rhythmPaintSourceX + 256.0f),
+					2560 });
+			const Entity centerIcon = createCenterRhythmSprite(
+				Vec2(0.0f, -260.0f),
+				Vec2(110.0f, 110.0f),
+				7,
+				RECT{ 0, 2560, 256, 2816 });
+			const Entity centerText = createCenterRhythmSprite(
+				Vec2(0.0f, -80.0f),
+				Vec2(360.0f, 360.0f),
+				8,
+				RECT{ 0, 2816, 256, 3072 });
+
+			// 현재 적용 중인 패시브 리듬을 항상 확인할 수 있도록
+			// 크로스헤어 아래에 FadeOut되지 않는 소형 아이콘을 별도로 둔다.
+			const Entity passiveRhythmIcon = createCenterRhythmSprite(
+				Vec2(0.0f, 105.0f),
+				Vec2(64.0f, 64.0f),
+				6,
+				RECT{ 0, 2560, 256, 2816 });
+
+			// 중앙 리듬 알림은 선택이 바뀔 때만 나타나므로 처음에는 투명하게 시작한다.
+			for (Entity entity : { centerPaint, centerIcon, centerText })
+			{
+				if (UISpriteComponent* sprite =
+					world->GetComponent<UISpriteComponent>(entity))
+				{
+					sprite->mColorTint.w = 0.0f;
+				}
+			}
+
+			const auto previousRhythm = std::make_shared<uint8>(0);
+			const auto hasPreviousRhythm = std::make_shared<bool>(false);
+			const auto centerNoticeElapsed = std::make_shared<float>(1.5f);
+
+			UIScriptComponent& script = world->AddComponent<UIScriptComponent>(sound);
+			script.mOnUpdate = [
+				world,
+				ownerEntity,
+				sound,
+				centerPaint,
+				centerIcon,
+				centerText,
+				passiveRhythmIcon,
+				rhythmAtlasBaseIndex,
+				previousRhythm,
+				hasPreviousRhythm,
+				centerNoticeElapsed](float deltaTime) {
 
 				UISpriteComponent* sprite = world->GetComponent<UISpriteComponent>(sound);
 				if (!sprite)
 					return;
 
-				std::vector<Entity> localPlayers = world->GetEntitiesWithComponents<MainPlayerComponent, LocalPlayerComponent>();
-				if (localPlayers.empty())
-					return;
-
-				MainPlayerComponent* player = world->GetComponent<MainPlayerComponent>(localPlayers.front());
+				MainPlayerComponent* player =
+					world->GetComponent<MainPlayerComponent>(ownerEntity);
 				if (!player)
 					return;
 
 				uint8 rhythmIndex = player->mRhythm;
 				if (player->mDesiredRhythm != player->mRhythm)
 					rhythmIndex = player->mDesiredRhythm;
-				if (rhythmIndex >= scorem.size())
+				if (rhythmIndex >= 4)
 					rhythmIndex = 0;
+				const uint8 currentRhythmIndex =
+					player->mRhythm < 4 ? player->mRhythm : 0;
 
-				sprite->mTexture = scorem[rhythmIndex];
+				// 첫 갱신에서는 현재 상태만 기억하고 알림을 표시하지 않는다.
+				// 이후 우클릭으로 선택 리듬이 바뀔 때마다 표시 시간을 처음부터 다시 시작한다.
+				if (!*hasPreviousRhythm)
+				{
+					*previousRhythm = rhythmIndex;
+					*hasPreviousRhythm = true;
+				}
+				else if (*previousRhythm != rhythmIndex)
+				{
+					*previousRhythm = rhythmIndex;
+					*centerNoticeElapsed = 0.0f;
+				}
+
+				const float sourceX = static_cast<float>(
+					(rhythmAtlasBaseIndex + rhythmIndex) * 256);
+
+				// 좌하단과 중앙 텍스트는 같은 아틀라스 셀을 사용한다.
+				sprite->SetSourceRect(sourceX, 2816.0f, 256.0f, 256.0f);
+
+				if (UISpriteComponent* iconSprite =
+					world->GetComponent<UISpriteComponent>(centerIcon))
+				{
+					iconSprite->SetSourceRect(
+						sourceX, 2560.0f, 256.0f, 256.0f);
+				}
+
+				if (UISpriteComponent* textSprite =
+					world->GetComponent<UISpriteComponent>(centerText))
+				{
+					textSprite->SetSourceRect(
+						sourceX, 2816.0f, 256.0f, 256.0f);
+				}
+
+				// 패시브 아이콘은 FadeOut 대상이 아니며 현재 선택 리듬을 계속 표시한다.
+				if (UISpriteComponent* passiveSprite =
+					world->GetComponent<UISpriteComponent>(passiveRhythmIcon))
+				{
+					const float passiveSourceX = static_cast<float>(
+						(rhythmAtlasBaseIndex + currentRhythmIndex) * 256);
+					passiveSprite->SetSourceRect(
+						passiveSourceX, 2560.0f, 256.0f, 256.0f);
+					passiveSprite->mColorTint.w = 1.0f;
+				}
+
+				// 선택 직후 0.7초 동안 완전히 표시하고 다음 1.0초 동안 서서히 사라진다.
+				constexpr float holdDuration = 0.7f;
+				constexpr float fadeDuration = 1.f;
+				constexpr float totalDuration = holdDuration + fadeDuration;
+
+				float alpha = 0.0f;
+				if (*centerNoticeElapsed < holdDuration)
+				{
+					alpha = 1.0f;
+				}
+				else if (*centerNoticeElapsed < totalDuration)
+				{
+					alpha = 1.0f -
+						(*centerNoticeElapsed - holdDuration) / fadeDuration;
+				}
+
+				for (Entity entity : { centerPaint, centerIcon, centerText })
+				{
+					if (UISpriteComponent* centerSprite =
+						world->GetComponent<UISpriteComponent>(entity))
+					{
+						centerSprite->mColorTint.w =
+							std::clamp(alpha, 0.0f, 1.0f);
+					}
+				}
+
+				*centerNoticeElapsed =
+					(std::min)(*centerNoticeElapsed + deltaTime, totalDuration);
 			};
 			
 
@@ -1913,6 +2034,23 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 			props.push_back({ "MusicName pos",  PropertyType::Vec2,  &(t.mPosition),   0.f,    0.f });
 			props.push_back({ "MusicName size",  PropertyType::Vec2,  &(t.mSize),   0.f,    0.f });
+			if (UITransformComponent* passiveTransform =
+				world->GetComponent<UITransformComponent>(passiveRhythmIcon))
+			{
+				// HUDMusicPrefab 디버그 패널에서 패시브 리듬 아이콘의 위치와 크기를 조절한다.
+				props.push_back({
+					"PassiveRhythmIcon pos",
+					PropertyType::Vec2,
+					&(passiveTransform->mPosition),
+					0.f,
+					0.f });
+				props.push_back({
+					"PassiveRhythmIcon size",
+					PropertyType::Vec2,
+					&(passiveTransform->mSize),
+					0.f,
+					0.f });
+			}
 
 #endif
 

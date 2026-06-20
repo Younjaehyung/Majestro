@@ -14,7 +14,9 @@ void SwapChain::UpdateBackBufferIndex()
 
 void SwapChain::Present()
 {
-	mSwapChain->Present(0, 0);
+	UINT presentFlags = 0;
+	presentFlags |= DXGI_PRESENT_ALLOW_TEARING;
+	mSwapChain->Present(0, presentFlags);
 }
 
 void SwapChain::SwapIndex()
@@ -42,7 +44,7 @@ void SwapChain::CreateSwapChain(const WindowInfo& info, ComPtr<IDXGIFactory> dxg
 	SWAP_CHAIN_DESC.OutputWindow = info.Hwnd;
 	SWAP_CHAIN_DESC.Windowed = info.ScreenState;
 	SWAP_CHAIN_DESC.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // 전면 후면 버퍼 교체 시 이전 프레임 정보 버림
-	SWAP_CHAIN_DESC.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	SWAP_CHAIN_DESC.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 	
 

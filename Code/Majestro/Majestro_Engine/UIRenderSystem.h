@@ -3,6 +3,7 @@
 #include "World.h"
 #include "ComponentPool.h"
 #include "Mesh.h"
+#include "UIComponent.h"
 
 class UISpriteComponent;
 
@@ -39,8 +40,9 @@ private:
     
 	void RenderCustomSprite();
 	void RenderSpirte();
-	bool IsGameOver() const;
-	bool CanRenderDuringGameOver(Entity entity) const;
+	UIRenderGroup GetActiveRenderGroup() const;
+	bool IsGameplayGroupActive() const;
+	bool CanRenderEntity(Entity entity) const;
 	// void RenderText();
 	
 	
@@ -57,4 +59,5 @@ private:
 	std::vector<UIInstanceData> mInstances;
 	std::vector<std::shared_ptr<UIFeature>>* mFeatures;
 	std::shared_ptr<UIEffectPass> mUIEffectPass;
+	UIRenderGroup mActiveRenderGroup = UIRenderGroup::Gameplay;
 };

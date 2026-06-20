@@ -310,6 +310,7 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	case SkillType::GuitarAttack_3: return "GuitarAttack_3";
 	case SkillType::HornAttack:     return "HornAttack";
 	case SkillType::PianoAttack:    return "PianoAttack";
+	case SkillType::SlimeAttack:    return "SlimeAttack";
 	case SkillType::BongoAttack:    return "BongoAttack";
 	case SkillType::BongoShild:     return "BongoShild";
 	case SkillType::BrassSkill1:    return "BrassSkill1";

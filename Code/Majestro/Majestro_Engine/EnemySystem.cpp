@@ -351,6 +351,12 @@ void EnemySystem::Update(float dt) {
 					return;
 				radius = kPianomanAttackRadius;
 			}
+			else if (e.skillType == SkillType::SlimeAttack)
+			{
+				if (!RenderSystem::GetDrawEnemyAttackRanges())
+					return;
+				radius = kBongomanAttackRadius;
+			}
 			else if (e.skillType == SkillType::BongoAttack)
 			{
 				if (!RenderSystem::GetDrawEnemyAttackRanges())

@@ -623,6 +623,23 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
+	case EnemyType::Slime:
+
+		t.mLocalScale = { 0.7f, 0.7f, 0.7f };
+
+		center = Vec3(0, 50, 0);
+		half = Vec3(130, 250, 130);
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Slime");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Slime_Idle0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Attack"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Idle"));
+
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
+		break;
 	case EnemyType::Pianoman:
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Pianoman_Body");
 		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_Pianoman_Idle0");
@@ -1860,17 +1877,31 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 			world->AddComponent<UISpriteComponent>(sound, scorem);
 			UIScriptComponent& script = world->AddComponent<UIScriptComponent>(sound);
 			script.mOnUpdate = [world, sound, scorem](float deltaTime) {
-				
-				world->GetEventManager()->Consume<EvRhythmChanged>([world, sound, scorem](const EvRhythmChanged& e) {
-					// 비트 이벤트가 발생할 때마다 텍스처 변경
-					UISpriteComponent* sprite = world->GetComponent<UISpriteComponent>(sound);
-					if (sprite) {
-						sprite->mTexture = scorem[e.musicNum]; // 리듬 단계에 따라 텍스처 변경
-					}
-					});
+				(void)deltaTime;
 
-				
-				};
+				if (!world->HasComponentPool<LocalPlayerComponent>())
+					return;
+
+				UISpriteComponent* sprite = world->GetComponent<UISpriteComponent>(sound);
+				if (!sprite)
+					return;
+
+				std::vector<Entity> localPlayers = world->GetEntitiesWithComponents<MainPlayerComponent, LocalPlayerComponent>();
+				if (localPlayers.empty())
+					return;
+
+				MainPlayerComponent* player = world->GetComponent<MainPlayerComponent>(localPlayers.front());
+				if (!player)
+					return;
+
+				uint8 rhythmIndex = player->mRhythm;
+				if (player->mDesiredRhythm != player->mRhythm)
+					rhythmIndex = player->mDesiredRhythm;
+				if (rhythmIndex >= scorem.size())
+					rhythmIndex = 0;
+
+				sprite->mTexture = scorem[rhythmIndex];
+			};
 			
 
 

@@ -233,8 +233,12 @@ void NetRecvSystem::HandleRhythmChanged(const InputCommand& msg)
     if (!playerComp) return;
 
     playerComp->mNextRhythm = NormalizeRhythm(pkt->changedRhythm);
+    playerComp->mRhythm = playerComp->mNextRhythm;
     playerComp->mRhythmApplyBeat = pkt->applyAtBeatIndex;
     playerComp->mHasQueuedRhythmChange = true;
+    playerComp->mDesiredRhythm = playerComp->mNextRhythm;
+    playerComp->mRhythmSettleTimer = 0.f;
+    playerComp->mRhythmChangeInFlight = false;
 }
 
 // 공유 Song Clock: 서버와 클라 간 시간 동기화. 서버가 보낸 곡 위치 + 편도 지연으로 클라 곡 위치 보정
@@ -518,6 +522,8 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 
     const bool pianoAttackDebug = skillType == SkillType::PianoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired);
+    const bool slimeAttackDebug = skillType == SkillType::SlimeAttack &&
+        pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
     const bool bongoAttackDebug = skillType == SkillType::BongoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
     const bool playerMeleeDebug =
@@ -529,7 +535,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     const bool guitarAttack2ExplosionDebug =
         skillType == SkillType::GuitarAttack_2 &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity);
-    if (pianoAttackDebug || bongoAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug)
+    if (pianoAttackDebug || slimeAttackDebug || bongoAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug)
     {
         mWorld->GetEventManager()->Enqueue(EvEnemyAttackDebug{
             skillType,

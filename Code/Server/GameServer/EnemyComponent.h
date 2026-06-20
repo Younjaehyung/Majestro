@@ -9,7 +9,8 @@ enum EnemyType {
 	Bongoman,
 	Obelisk,
 	Fly,
-	Brass
+	Brass,
+	Slime
 };
 
 enum class EnemyAnimState : uint8
@@ -39,6 +40,12 @@ public:
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			mNextUtilityTime = GetServerTotalTimeSeconds();
+			break;
+		case EnemyType::Slime:
+			mAttackCool = 8;
+			AttackRange = 180.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
 			break;
 		case EnemyType::Obelisk:
 			mAttackCool = 16;

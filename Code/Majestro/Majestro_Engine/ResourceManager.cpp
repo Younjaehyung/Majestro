@@ -2927,6 +2927,11 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Idle.ani.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Run.fbx", L"JHToon");
 
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Attack.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Die.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Run.fbx", L"JHToon");
+
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 	LoadFBXModel(L"..\\Resources\\FBX\\Object\\Obelisk.fbx", L"Deferred");

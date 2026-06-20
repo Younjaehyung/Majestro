@@ -725,6 +725,9 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	const EnemyType enemyType = static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+	if (enemyType == EnemyType::Brass)
+		world->RemoveComponent<UIHpBarComponent>(mEntityID);
+
 	if (enemyType != EnemyType::Obelisk) {
 		auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
 		enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성

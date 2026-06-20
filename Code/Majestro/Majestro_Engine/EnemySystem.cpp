@@ -123,7 +123,8 @@ namespace
 
 	bool IsEnemyRangedSkill(SkillType skillType)
 	{
-		return skillType == SkillType::HornAttack;
+		return skillType == SkillType::HornAttack ||
+			skillType == SkillType::BrassSkill4;
 	}
 
 	bool IsPlayerRangedSkill(SkillType skillType)

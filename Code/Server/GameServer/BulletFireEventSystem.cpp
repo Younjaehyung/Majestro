@@ -139,45 +139,15 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 
 	if (shooterIsEnemy && bulletType == SkillType::BrassSkill4)
 	{
-		Vec3 baseDir = shooterTransform->GetLook();
-		baseDir.y = 0.0f;
-		if (baseDir.LengthSquared() <= 0.0001f)
-			baseDir = Vec3::Forward;
-		else
-			baseDir.Normalize();
-
-		Vec3 right = shooterTransform->GetRight();
-		right.y = 0.0f;
-		if (right.LengthSquared() <= 0.0001f)
-			right = Vec3::Right;
-		else
-			right.Normalize();
-
-		const Vec3 offsets[3] = {
-			Vec3(-2000.0f, 0.0f,    0.0f),
-			Vec3(-2000.0f, 0.0f,  500.0f),
-			Vec3(-2000.0f, 0.0f, -500.0f),
+		const Vec3 fixedSpawnPositions[3] = {
+			Vec3(-3500.0f, 200.0f,    0.0f),
+			Vec3(-3500.0f, 200.0f, -470.0f),
+			Vec3(-3500.0f, 200.0f,  470.0f),
 		};
+		const Vec3 sharedDir = Vec3::Right;
 
-		const Vec3 centerSpawnPosition = shooterTransform->mWorldPosition
-			+ right * offsets[0].x
-			+ baseDir * offsets[0].z
-			+ Vec3(0.f, 90.f, 0.f);
-
-		Vec3 sharedDir = shooterTransform->mWorldPosition - centerSpawnPosition;
-		sharedDir.y = 0.0f;
-		if (sharedDir.LengthSquared() <= 0.0001f)
-			sharedDir = -right;
-		else
-			sharedDir.Normalize();
-
-		for (const Vec3& localOffset : offsets)
+		for (const Vec3& spawnPosition : fixedSpawnPositions)
 		{
-			const Vec3 spawnPosition = shooterTransform->mWorldPosition
-				+ right * localOffset.x
-				+ baseDir * localOffset.z
-				+ Vec3(0.f, 90.f, 0.f);
-
 			activateSingleBullet(spawnPosition, sharedDir);
 		}
 		return;

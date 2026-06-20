@@ -572,6 +572,18 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }
         break;
+    case EnemyType::Slime:
+        movementComp->mMovingDirection = Vec3::Zero;
+        movementComp->mPathCount = 0;
+        movementComp->mPathIndex = 0;
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+        {
+            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::SlimeAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+        }
+        break;
 	    case EnemyType::Brass:
 	    {
 	        auto getBrassRushEndDuration = [&]()

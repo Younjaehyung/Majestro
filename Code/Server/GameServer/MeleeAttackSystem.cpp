@@ -109,6 +109,8 @@ namespace
 			return { 30.0f, 3.0f, 800.0f, 150.0f, 0.0f };
 		case SkillType::PianoAttack:
 			return { 20.0f, 3.0f, 200.0f, 360.0f, 0.0f };
+		case SkillType::SlimeAttack:
+			return { 10.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::BongoAttack:
 			return { 40.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		default:

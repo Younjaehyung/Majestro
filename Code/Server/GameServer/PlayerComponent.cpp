@@ -35,6 +35,7 @@ static StateId NameToId(const std::string& n) {
     if (n == "Aim")  return S_Aim;
     if (n == "Reload")  return S_Reload;
     if (n == "RhythmChange")  return S_RhythmChange;
+    if (n == "Dance1")  return S_Dance1;
 
     if (n == "Hit")  return S_Hit;
     if (n == "Stun")  return S_Stun;
@@ -66,6 +67,7 @@ static StateId ResolveTimingStateId(State<MainPlayerComponent>* s)
     if (s == AimState::Instance()) return S_Aim;
     if (s == ReloadState::Instance()) return S_Reload;
     if (s == RhythmChangeState::Instance()) return S_RhythmChange;
+    if (s == Dance1State::Instance()) return S_Dance1;
     if (s == HitState::Instance()) return S_Hit;
     if (s == StunState::Instance()) return S_Stun;
     if (s == DeadState::Instance()) return S_Dead;
@@ -146,6 +148,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType pla
 
     ReloadState::Instance(),
     RhythmChangeState::Instance(),
+    Dance1State::Instance(),
     AimState::Instance(),
 
     DeadState::Instance(),
@@ -216,6 +219,7 @@ uint8 MainPlayerComponent::GetReplicatedActionState()
 	case S_Special: return static_cast<uint8>(ReplicatedActionState::Special);
 	case S_Reload: return static_cast<uint8>(ReplicatedActionState::Reload);
 	case S_RhythmChange: return static_cast<uint8>(ReplicatedActionState::RhythmChange);
+	case S_Dance1: return static_cast<uint8>(ReplicatedActionState::Dance1);
 	case S_Aim: return static_cast<uint8>(ReplicatedActionState::Aim);
 	case S_Hit: return static_cast<uint8>(ReplicatedActionState::Hit);
 	case S_Stun: return static_cast<uint8>(ReplicatedActionState::Stun);
@@ -343,6 +347,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 
         if (s == ReloadState::Instance()) return S_Reload;
         if (s == RhythmChangeState::Instance()) return S_RhythmChange;
+        if (s == Dance1State::Instance()) return S_Dance1;
         if (s == DeadState::Instance()) return S_Dead;
         return 255;
         };
@@ -798,6 +803,23 @@ void RhythmChangeState::Update(MainPlayerComponent* owner)
     StateUpdate(this, owner);
 }
 void RhythmChangeState::Exit(MainPlayerComponent* owner)
+{
+    StateExit(this, owner);
+}
+
+Dance1State* Dance1State::Instance() {
+    static Dance1State inst;
+    return &inst;
+}
+void Dance1State::Enter(MainPlayerComponent* owner)
+{
+    StateEnter(this, owner);
+}
+void Dance1State::Update(MainPlayerComponent* owner)
+{
+    StateUpdate(this, owner);
+}
+void Dance1State::Exit(MainPlayerComponent* owner)
 {
     StateExit(this, owner);
 }

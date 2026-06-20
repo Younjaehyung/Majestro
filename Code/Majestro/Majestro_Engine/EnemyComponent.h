@@ -8,7 +8,8 @@ enum EnemyType {
 	Bongoman,
 	Obelisk,
 	Fly,
-	Brass
+	Brass,
+	Slime
 };
 
 enum class EnemyAnimState : uint8

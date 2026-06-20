@@ -76,6 +76,11 @@
             "animOnce": true,
             "animEndTime": 0.4
         },
+        "Dance1State": {
+            "time": 9999.0,
+            "animOnce": false,
+            "animEndTime": 1.0
+        },
         "DeadState": {
             "time": 0.35,
             "animOnce": true,

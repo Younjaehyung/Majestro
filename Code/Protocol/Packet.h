@@ -102,6 +102,7 @@ enum class SkillType : uint8
 
 	HornAttack,
 	PianoAttack,
+	SlimeAttack,
 	BongoAttack,
 	BongoShild,
 	BrassSkill1,
@@ -219,6 +220,7 @@ enum class ReplicatedActionState : uint8
 	Special,
 	Reload,
 	RhythmChange,
+	Dance1,
 	Aim,
 	Hit,
 	Stun,

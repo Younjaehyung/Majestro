@@ -310,6 +310,7 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	case SkillType::GuitarAttack_3: return "GuitarAttack_3";
 	case SkillType::HornAttack:     return "HornAttack";
 	case SkillType::PianoAttack:    return "PianoAttack";
+	case SkillType::SlimeAttack:    return "SlimeAttack";
 	case SkillType::BongoAttack:    return "BongoAttack";
 	case SkillType::BongoShild:     return "BongoShild";
 	case SkillType::BrassSkill1:    return "BrassSkill1";
@@ -358,6 +359,7 @@ std::string SfxSystem::ActionStateName(int state)
 	case ReplicatedActionState::Special:      return "Special";
 	case ReplicatedActionState::Reload:       return "Reload";
 	case ReplicatedActionState::RhythmChange: return "RhythmChange";
+	case ReplicatedActionState::Dance1:       return "Dance1";
 	case ReplicatedActionState::Aim:          return "Aim";
 	case ReplicatedActionState::Hit:          return "Hit";
 	case ReplicatedActionState::Stun:         return "Stun";

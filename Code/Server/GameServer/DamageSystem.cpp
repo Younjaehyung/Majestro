@@ -38,6 +38,12 @@ void DamageSystem::Update(float deltaTime)
         if (!health)
             return;
 
+        if (EnemyComponent* targetEnemy = mWorld->GetComponent<EnemyComponent>(e.target))
+        {
+            if (targetEnemy->mEnemyType == EnemyType::Slime && !e.isCritical)
+                return;
+        }
+
         MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(e.target);
         if (player && player->IsDeathActive())
             return;
@@ -86,6 +92,53 @@ void DamageSystem::Update(float deltaTime)
 
         const bool armorAbsorbed = (beforeArmor != afterArmor);
         const bool hpDamaged = (beforeHp != afterHp);
+
+        if (player && (armorAbsorbed || hpDamaged) &&
+            player->mFsm.GetState() == S_Dance1)
+        {
+            player->mFsm.ChangeState(player, IdleState::Instance());
+        }
+
+        if (player && (armorAbsorbed || hpDamaged) && e.instigator.IsValid())
+        {
+            if (EnemyComponent* instigatorEnemy = mWorld->GetComponent<EnemyComponent>(e.instigator))
+            {
+                if (instigatorEnemy->mEnemyType == EnemyType::Slime)
+                {
+                    const uint8 previousRhythm = player->mRhythm;
+                    const bool hadQueuedRhythmChange = player->mHasQueuedRhythmChange;
+                    const bool needForceRhythmZero = (previousRhythm != 0) || hadQueuedRhythmChange || (player->mNextRhythm != 0);
+
+                    if (needForceRhythmZero)
+                    {
+                        int64 applyAtBeatIndex = 0;
+                        BeatSystem* beatSystem = nullptr;
+                        if (auto systemManager = mWorld->GetSystemManager())
+                            beatSystem = systemManager->GetSystem<BeatSystem>();
+
+                        if (beatSystem)
+                            applyAtBeatIndex = beatSystem->GetAbsoluteBeatIndex();
+
+                        player->mRhythm = 0;
+                        player->mNextRhythm = 0;
+                        player->mHasQueuedRhythmChange = false;
+                        player->mRhythmApplyBeat = -1;
+                        player->mRhythmBuffProvideUntil = 0.0f;
+
+                        if (beatSystem)
+                            beatSystem->SyncAllRhythmBuffsNow();
+
+                        EvRhythmChanged rhythmChanged{};
+                        rhythmChanged.player = e.target;
+                        rhythmChanged.previousRhythm = previousRhythm;
+                        rhythmChanged.changedRhythm = 0;
+                        rhythmChanged.playerType = player->mPlayerType;
+                        rhythmChanged.applyAtBeatIndex = applyAtBeatIndex;
+                        eventManager->Enqueue<EvRhythmChanged>(rhythmChanged);
+                    }
+                }
+            }
+        }
 
         if (armorAbsorbed || hpDamaged)
         {

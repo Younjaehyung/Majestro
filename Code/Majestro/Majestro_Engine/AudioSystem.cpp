@@ -181,7 +181,7 @@ void AudioSystem::Update(float deltaTime)
             }
         }
 
-        // 전환 적용: 서버가 지정한 절대 박자에 도달했을 때만 오디오/리듬 상태를 바꾼다.
+        // 전환 적용: 논리 리듬/UI는 이미 반영되어 있고, 오디오만 지정 박자에 맞춰 바꾼다.
         if (playerComponent->mHasQueuedRhythmChange &&
             currentBeat >= playerComponent->mRhythmApplyBeat)
         {
@@ -198,9 +198,6 @@ void AudioSystem::Update(float deltaTime)
                       << " fmodPos=" << (fmodMs / 1000.f) << "s"
                       << " -> rhythm=" << (int)playerComponent->mNextRhythm << std::endl;
             // 마디 정렬이 맞으면 beatInBar = 0, fmodPos = 0(또는 mLoopLen 배수 근처)
-
-
-            playerComponent->mRhythm = playerComponent->mNextRhythm;
             playerComponent->mHasQueuedRhythmChange = false;
             playerComponent->mRhythmApplyBeat = -1;
             playerComponent->mRhythmChangeInFlight = false;      // 전환 완료 (다음 요청 허용)

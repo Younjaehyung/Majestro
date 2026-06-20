@@ -15,6 +15,7 @@ public:
 	bool mSkill2 = false;
 	bool mSpecial = false;
 	bool mReload = false;
+	bool mDance1 = false;
 
 
 	Vec2 mCameraView;

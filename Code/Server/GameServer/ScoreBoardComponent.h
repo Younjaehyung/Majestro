@@ -10,7 +10,7 @@ struct PlayerScoreStat
     uint8 mPlayerType = 0;
     int32 mScore = 0;
     int32 mTotalKills = 0;
-    std::array<int32, static_cast<size_t>(EnemyType::Brass) + 1> mKillsByEnemyType{};
+    std::array<int32, static_cast<size_t>(EnemyType::Slime) + 1> mKillsByEnemyType{};
 
     void RecordKill(uint8 enemyType, int32 score)
     {

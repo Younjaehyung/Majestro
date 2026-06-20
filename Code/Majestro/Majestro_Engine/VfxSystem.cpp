@@ -281,14 +281,16 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 
 		if (skillType == SkillType::DrumAttack ||
 			skillType == SkillType::DrumSkill1)
-			return VfxSpawnDesc{ L"VFX_Rudwig_Attack_Hit", Vec3::Zero, Vec3(30.0f) };
+			return VfxSpawnDesc{ L"VFX_Rudwig_Attack_Hit", Vec3(0.f, 100.f, 0.f), Vec3(50.0f) };
 
 		if (skillType == SkillType::GuitarAttack ||
-			skillType == SkillType::GuitarSkill1 ||
-			skillType == SkillType::GuitarAttack_1 ||
+			skillType == SkillType::GuitarSkill1)
+			return VfxSpawnDesc{ L"VFX_Fanthor_Attack_Hit", Vec3(0.f, 100.f, 0.f), Vec3(50.0f) };
+
+		if (skillType == SkillType::GuitarAttack_1 ||
 			skillType == SkillType::GuitarAttack_2 ||
 			skillType == SkillType::GuitarAttack_3)
-			return VfxSpawnDesc{ L"VFX_Fanthor_Attack_Hit", Vec3::Zero, Vec3(30.0f) };
+			return VfxSpawnDesc{ L"VFX_Fanthor_Attack_Hit", Vec3::Zero, Vec3(50.0f) };
 
 		return std::nullopt;
 

@@ -2,6 +2,11 @@
   "_comment": "Map001(FirstGame) 기믹 위치. 엔진좌표(Y-up, cm). ConquestZone: valueA=점령지 번호, valueB=점령 시간(초, 0이면 기본값).",
 
   "playerSpawn": [ -8002.9, 1027.2, -12519.6 ],
+  "playerSpawns": {
+    "Rudwig": [ -8122.9, 1027.2, -12519.6 ],
+    "Ibanix": [ -8002.9, 1027.2, -12519.6 ],
+    "Fanthor": [ -7882.9, 1027.2, -12519.6 ]
+  },
   "truckSpawn": [ -4902.0, 135.0, -9240.0 ],
 
   "interactables": [

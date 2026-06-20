@@ -2,6 +2,11 @@
   "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm. ConquestZone: valueA=점령지 번호, valueB=점령 시간(초, 0이면 기본값).",
 
     "playerSpawn": [ 1850.0, 0.0, 5.0 ],
+    "playerSpawns": {
+      "Rudwig": [ 1730.0, 0.0, 5.0 ],
+      "Ibanix": [ 1850.0, 0.0, 5.0 ],
+      "Fanthor": [ 1970.0, 0.0, 5.0 ]
+    },
 
   "interactables": [
     {

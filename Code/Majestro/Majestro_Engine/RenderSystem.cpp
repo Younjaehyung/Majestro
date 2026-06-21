@@ -24,11 +24,11 @@
 #include "RhythmEmissiveComponent.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
-bool RenderSystem::sDrawColliders = true;
+bool RenderSystem::sDrawColliders = false;
 bool RenderSystem::sDrawCullingOBB = false;
-bool RenderSystem::sDrawEnemyRanges = true;
-bool RenderSystem::sDrawEnemyAttackRanges = true;
-bool RenderSystem::sDrawPlayerAttackRanges = true;
+bool RenderSystem::sDrawEnemyRanges = false;
+bool RenderSystem::sDrawEnemyAttackRanges = false;
+bool RenderSystem::sDrawPlayerAttackRanges = false;
 
 void RenderSystem::SubmitDebugLine(const Vec3& start, const Vec3& end, const Vec4& color)
 {

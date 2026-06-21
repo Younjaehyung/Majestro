@@ -551,7 +551,7 @@ bool EnemySystem::HandleAttackState(
 
     if (enemyComp->mEnemyType == EnemyType::Brass)
     {
-        constexpr float kBrassWakeRange = 2000.0f;
+        constexpr float kBrassWakeRange = 3000.0f;
         constexpr float kBrassWakeRangeSq = kBrassWakeRange * kBrassWakeRange;
 
         if (!enemyComp->mBossEncounterActivated)

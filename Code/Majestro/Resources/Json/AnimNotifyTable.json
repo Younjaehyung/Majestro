@@ -164,14 +164,7 @@
   ],
 
   "Anim_Fanthor_Skill_02": [
-    {
-      "startFrame": 11,
-      "endFrame": 15,
-      "kind": "cameraShake",
-      "useUpper": false,
-      "preset": "Fanthor_Skill2"
-    },
-    {
+     {
       "startFrame": 6,
       "endFrame": 22,
       "kind": "cameraDolly",

@@ -34,9 +34,13 @@ const BuffData* BuffComponent::FindRhythmBuffFromSource(Entity source) const
 void BuffComponent::RecalculateDerivedEffects()
 {
     const bool hasBuffPowerUp = FindBuff(BuffType::BuffPowerUp) != nullptr;
-    const bool hasAttackUp = FindBuff(BuffType::AttackUp) != nullptr;
+    const bool hasAttackUp =
+        FindBuff(BuffType::AttackUp) != nullptr ||
+        FindBuff(BuffType::CritAttackUp) != nullptr;
     const bool hasScoreBoost = FindBuff(BuffType::ScoreBoost) != nullptr;
-    const bool hasMoveSpeedUp = FindBuff(BuffType::MoveSpeedUp) != nullptr;
+    const bool hasMoveSpeedUp =
+        FindBuff(BuffType::MoveSpeedUp) != nullptr ||
+        FindBuff(BuffType::CritMoveSpeedUp) != nullptr;
     const bool hasMoveSpeedUp10 = FindBuff(BuffType::MoveSpeedUp10) != nullptr;
 
     buffPowerUp = hasBuffPowerUp;

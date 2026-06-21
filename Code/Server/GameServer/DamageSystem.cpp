@@ -183,9 +183,30 @@ void DamageSystem::Update(float deltaTime)
                                     }
                                 }
                             }
-                            else
+                            else if (mWorld->HasComponentPool<MainPlayerComponent>())
                             {
-                                instigatorPlayer->mRhythmBuffProvideUntil = GetServerTotalTimeSeconds() + 4.0f * beatSeconds;
+                                const float now = GetServerTotalTimeSeconds();
+                                const BuffType critBuffType =
+                                    (instigatorPlayer->mRhythm == static_cast<uint8>(Rhythm::R3))
+                                    ? BuffType::CritMoveSpeedUp
+                                    : BuffType::CritAttackUp;
+
+                                for (Entity playerEntity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
+                                {
+                                    BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(playerEntity);
+                                    if (!buffComp)
+                                        continue;
+
+                                    BuffData buff{};
+                                    buff.mKind = EffectKind::Buff;
+                                    buff.mType = critBuffType;
+                                    buff.mDurationPolicy = DurationPolicy::Timed;
+                                    buff.mExecutionType = BuffExecutionType::Persistent;
+                                    buff.mEndTime = now + 4.0f * beatSeconds;
+                                    buff.mSource = e.instigator;
+
+                                    buffComp->AddOrRefresh(buff);
+                                }
                             }
                         }
                     }

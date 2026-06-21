@@ -27,8 +27,10 @@ enum class BuffType
     None,
 
     AttackUp,
+    CritAttackUp,
     ScoreBoost,
     MoveSpeedUp,
+    CritMoveSpeedUp,
     BuffPowerUp,
 
     MoveSpeedUp10,

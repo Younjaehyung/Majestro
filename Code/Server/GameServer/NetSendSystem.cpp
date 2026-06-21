@@ -26,8 +26,10 @@ namespace
 		switch (type)
 		{
 		case BuffType::AttackUp: return ReplicatedBuffType::AttackUp;
+		case BuffType::CritAttackUp: return ReplicatedBuffType::AttackUp;
 		case BuffType::ScoreBoost: return ReplicatedBuffType::ScoreBoost;
 		case BuffType::MoveSpeedUp: return ReplicatedBuffType::MoveSpeedUp;
+		case BuffType::CritMoveSpeedUp: return ReplicatedBuffType::MoveSpeedUp;
 		case BuffType::BuffPowerUp: return ReplicatedBuffType::BuffPowerUp;
 		case BuffType::MoveSpeedUp10: return ReplicatedBuffType::MoveSpeedUp10;
 		case BuffType::ShieldOverTime: return ReplicatedBuffType::ShieldOverTime;

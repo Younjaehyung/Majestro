@@ -103,33 +103,10 @@
     },
 
 
-
-
-
-    "action/Ibanix/Skill1": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_01",
-      "is3d": true
-    },
-    "action/Ibanix/Skill2": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_02",
+    "skill/BaseAttack/Fire": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Atk",
       "is3d": true,
-      "cooldown": 0.06
-    },
-
-    "action/Fanthor/Skill1": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_01",
-      "is3d": true
-    },
-    "action/Fanthor/Skill2": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_02",
-      "is3d": true,
-      "cooldown": 0.06
-    },
-
-
-    "skill/GuitarSkill1/Fire": {
-      "event": "event:/SFX/Guitar_Skill1_Fire",
-      "is3d": true
+      "cooldown": 0.0
     },
 
     "skill/DrumSkill1/Fire": {
@@ -150,17 +127,19 @@
 
 
 
-
-
-    "action/Ibanix/Attack1": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Atk",
-      "is3d": true,
-      "loop": false
-    },
     "move/Ibanix/Airborne": {
       "event": "event:/SFX/Player/SFX_Player_Jump",
       "cooldown": 0.05,
       "is3d": true
+    },
+    "action/Ibanix/Skill1": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_01",
+      "is3d": true
+    },
+    "action/Ibanix/Skill2": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_02",
+      "is3d": true,
+      "cooldown": 0.06
     },
     "action/Ibanix/Reload": {
       "event": "event:/SFX/Ibanix/SFX_Ibanix_Reload",
@@ -191,6 +170,23 @@
       "is3d": true
     },
 
+    "action/Fanthor/Skill1": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_01",
+      "is3d": true
+    },
+    "action/Fanthor/Skill2": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_02",
+      "is3d": true,
+      "cooldown": 0.06
+    },
+    "action/Fanthor/Reload": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Reload",
+      "is3d": true
+    },
+    "action/Fanthor/RhythmChange": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_RhythmChange",
+      "is3d": true
+    },
     "action/Fanthor/Attack1": {
       "event": "event:/SFX/Fanthor/SFX_Fanthor_Atk",
       "is3d": true,
@@ -201,14 +197,7 @@
       "cooldown": 0.05,
       "is3d": true
     },
-    "action/Fanthor/Reload": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Reload",
-      "is3d": true
-    },
-    "action/Fanthor/RhythmChange": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_RhythmChange",
-      "is3d": true
-    },
+
 
 
 

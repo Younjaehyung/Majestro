@@ -1968,7 +1968,7 @@ void ResourceManager::CreateDefaultShader()
 		ShaderInfo info =
 		{
 			SHADER_TYPE::DEPTH_PREPASS,
-			RASTERIZER_TYPE::CULL_NONE,
+			RASTERIZER_TYPE::CULL_BACK,
 			DEPTH_STENCIL_TYPE::LESS,
 		};
 		ShaderPath shaderPath{

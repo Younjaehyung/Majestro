@@ -526,6 +526,8 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         pkt->reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired);
     const bool slimeAttackDebug = skillType == SkillType::SlimeAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+    const bool flyAttackDebug = skillType == SkillType::FlyAttack &&
+        pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
     const bool bongoAttackDebug = skillType == SkillType::BongoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
     const bool playerMeleeDebug =
@@ -537,7 +539,7 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     const bool guitarAttack2ExplosionDebug =
         skillType == SkillType::GuitarAttack_2 &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity);
-    if (pianoAttackDebug || slimeAttackDebug || bongoAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug)
+    if (pianoAttackDebug || slimeAttackDebug || flyAttackDebug || bongoAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug)
     {
         mWorld->GetEventManager()->Enqueue(EvEnemyAttackDebug{
             skillType,

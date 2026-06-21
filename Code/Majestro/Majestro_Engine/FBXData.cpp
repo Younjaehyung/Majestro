@@ -312,6 +312,7 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 
 		std::wstring name = mMaterials[s]->mParamsName.DiffuseMap0Index;
 		bool isVegetation = ( name.find(L"Grass") != std::wstring::npos
+			|| name.find(L"Leaves") != std::wstring::npos
 			|| name.find(L"Fern") != std::wstring::npos
 			|| name.find(L"hang") != std::wstring::npos
 			|| name.find(L"Bush") != std::wstring::npos

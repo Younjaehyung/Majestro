@@ -58,6 +58,7 @@ public:
     void SetHealthVignetteNoiseTexture(const std::wstring& textureName);
 	void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
     void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);
+    void SetColorGrading(const ColorGradingParams& params);
     void SetBlur(bool on);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }

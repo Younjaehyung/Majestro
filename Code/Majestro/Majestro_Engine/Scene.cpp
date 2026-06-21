@@ -2313,6 +2313,16 @@ void FirstScene::Initialize()
 	gp->SetWorldUIFeature(&mUIFeatures);
 	gp->SetColorLUT(L"ColorLUT", 33);
 
+	// FirstScene 컬러 그레이딩
+	{
+		ColorGradingParams cg;
+		cg.Saturation = 1.5f;
+		cg.Contrast   = 1.0f;
+		cg.Brightness = 0.0f;
+		cg.Exposure   = 1.6f;
+		gp->SetColorGrading(cg);
+	}
+
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 
@@ -2476,6 +2486,16 @@ void SecondScene::Initialize()
 	gp->SetWorldUIFeature(&mUIFeatures);
 	gp->SetColorLUT(L"ColorLUT", 33);
 
+	// SecondScene 컬러 그레이딩
+	{
+		ColorGradingParams cg;
+		cg.Saturation = 1.5f;
+		cg.Contrast   = 1.0f;
+		cg.Brightness = 0.0f;
+		cg.Exposure   = 1.3f;
+		gp->SetColorGrading(cg);
+	}
+
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 
@@ -2585,6 +2605,16 @@ void ThirdScene::Initialize()
 	renderSystemTS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemTS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
+
+	// ThirdScene 컬러 그레이딩
+	{
+		ColorGradingParams cg;
+		cg.Saturation     = 2.0f;
+		cg.Contrast       = 1.1f;
+		cg.Brightness     = 0.04f;
+		cg.Exposure       = 0.7f;
+		gp->SetColorGrading(cg);
+	}
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);

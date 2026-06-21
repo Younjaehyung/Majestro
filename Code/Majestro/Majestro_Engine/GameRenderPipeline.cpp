@@ -460,6 +460,11 @@ void GameRenderPipeline::SetColorLUT(const std::wstring& name, int size, float s
     if (mPostProcessPass) mPostProcessPass->SetColorLUT(name, size, strength);
 }
 
+void GameRenderPipeline::SetColorGrading(const ColorGradingParams& params)
+{
+    if (mPostProcessPass) mPostProcessPass->SetColorGrading(params);
+}
+
 void GameRenderPipeline::SetBlur(bool on)
 {
     mIsBlured = on;

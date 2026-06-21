@@ -2316,7 +2316,7 @@ void FirstScene::Initialize()
 	// FirstScene 컬러 그레이딩
 	{
 		ColorGradingParams cg;
-		cg.Saturation = 1.5f;
+		cg.Saturation = 1.3f;
 		cg.Contrast   = 1.0f;
 		cg.Brightness = 0.0f;
 		cg.Exposure   = 1.6f;
@@ -2609,7 +2609,7 @@ void ThirdScene::Initialize()
 	// ThirdScene 컬러 그레이딩
 	{
 		ColorGradingParams cg;
-		cg.Saturation     = 1.6f;
+		cg.Saturation     = 1.3f;
 		cg.Contrast       = 1.1f;
 		cg.Brightness     = 0.04f;
 		cg.Exposure       = 0.7f;

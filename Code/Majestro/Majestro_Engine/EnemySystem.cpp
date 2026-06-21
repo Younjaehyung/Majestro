@@ -17,7 +17,7 @@ namespace
 
 	constexpr float kEnemyAggroRange = 1000.0f;
 	constexpr float kBongomanAggroRange = 300.0f;
-	constexpr float kBrassWakeRange = 2000.0f;
+	constexpr float kBrassWakeRange = 3000.0f;
 	constexpr float kPianomanMeleeRange = 160.0f;
 	constexpr float kPianomanAttackRadius = 200.0f;
 	constexpr float kBongomanAttackRadius = 500.0f;
@@ -124,6 +124,7 @@ namespace
 	bool IsEnemyRangedSkill(SkillType skillType)
 	{
 		return skillType == SkillType::HornAttack ||
+			skillType == SkillType::BrassSkill2 ||
 			skillType == SkillType::BrassSkill4;
 	}
 

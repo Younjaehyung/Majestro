@@ -21,6 +21,9 @@
 #include "PlayerComponent.h"
 #include "GameEvents.h"
 #include "EventManager.h"
+#include "SceneManager.h"
+#include "Network.h"
+#include "InputManager.h"
 
 #include "MathUtils.h"
 #include <sstream>
@@ -117,13 +120,24 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		RevealStampAnimationSpec clearSpec;
 		clearSpec.mRevealTextureName = L"UI_StageClear_1";
 		clearSpec.mStampTextureName = L"UI_StageClear_2";
-		if (mWorld->GetSceneId() == SceneId::ThirdGame)
-			clearSpec.mFinalStampTextureName = L"UI_GameClear";
 		clearSpec.mRevealDuration = 0.9f;
 		clearSpec.mStampStartTime = 0.75f;
 		clearSpec.mStampDuration = 0.32f;
 		clearSpec.mStampStartScale = 1.65f;
-		clearSpec.mFinalStampStartTime = 1.45f;
+
+		// StageClear_2 가 등장하고 3초 뒤에 점수판(Result)을 도장처럼 찍는다.
+		clearSpec.mResultTextureName = L"UI_StageClear_Result";
+		clearSpec.mResultStartTime = clearSpec.mStampStartTime + 3.0f;
+		clearSpec.mResultDuration = 0.42f;
+		clearSpec.mResultStartScale = 1.5f;
+		clearSpec.mResultLayer = 250;
+
+		// 마지막 씬에서는 점수판(Result) 등장 5초 뒤에 최종 GameClear 이미지를 찍는다.
+		if (mWorld->GetSceneId() == SceneId::ThirdGame)
+		{
+			clearSpec.mFinalStampTextureName = L"UI_GameClear";
+			clearSpec.mFinalStampStartTime = clearSpec.mResultStartTime + 5.0f;
+		}
 		clearSpec.mFinalStampDuration = 0.42f;
 		clearSpec.mFinalStampStartScale = 1.5f;
 		clearSpec.mRevealLayer = 8;
@@ -133,7 +147,8 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		clearSpec.mCameraShakeFrequency = 24.0f;
 		mRevealStampAnimationTable[WavePhaseType::Clear] = clearSpec;
 
-		// Fail 페이즈에서도 GameClear와 완전히 같은 타이밍과 카메라 연출을 재사용한다.
+		// Fail 페이즈도 Clear와 동일하게 점수판(Result) 도장 연출을 재사용한다.
+		// 단, 최종 GameClear 단계는 사용하지 않고(게임 오버), 이후 메인메뉴로 복귀한다.
 		RevealStampAnimationSpec gameOverSpec = clearSpec;
 		gameOverSpec.mRevealTextureName = L"UI_GameOver_1";
 		gameOverSpec.mStampTextureName = L"UI_GameOver_2";
@@ -207,6 +222,9 @@ void UIGameInfoUpdateFeature::Update(float dt)
 		break;
 	case uint8(WavePhaseType::Clear):
 		UpdateClearPhase(dt, gameRuleComp);
+		break;
+	case uint8(WavePhaseType::Fail):
+		UpdateFailPhase(dt, gameRuleComp);
 		break;
 	}
 }
@@ -330,25 +348,49 @@ void UIGameInfoUpdateFeature::UpdateEscortPhase(float dt, GameRuleComponent* gam
 
 void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp)
 {
-	GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>();
-	if (!clearComp)
-		return;
+	UpdateResultScoreBoard(gameRuleComp, UIRenderGroup::Clear);
+}
 
-	// Keep the result table visible before and after the final clear image appears.
+void UIGameInfoUpdateFeature::UpdateFailPhase(float dt, GameRuleComponent* gameRuleComp)
+{
+	UpdateResultScoreBoard(gameRuleComp, UIRenderGroup::GameOver);
+
+	// Result/점수판이 등장하고 3초 뒤 클라이언트가 스스로 메인메뉴로 복귀하며 게임을 종료한다.
+	const RevealStampAnimationSpec& spec = mRevealStampAnimation.mSpec;
+	if (!mGameOverReturnTriggered &&
+		mRevealStampAnimation.mResultTriggered &&
+		mRevealStampAnimation.mElapsed >= spec.mResultStartTime + 3.0f)
+	{
+		mGameOverReturnTriggered = true;
+		// 게임 중 숨겨둔 커서를 메인메뉴에서 복원하고, 접속을 끊은 뒤 메인메뉴로 복귀한다.
+		INPUT.SetForceMouseLook(false);
+		Network::GetInstance().Shutdown();
+		gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
+	}
+}
+
+void UIGameInfoUpdateFeature::UpdateResultScoreBoard(GameRuleComponent* gameRuleComp, UIRenderGroup group)
+{
+	// 점수판은 Result 도장 단계가 트리거된 뒤에야 노출한다(StageClear_2 등장 3초 후).
 	EnsurePhaseStatusText();
-	if (UIRenderGroupComponent* group =
+	if (UIRenderGroupComponent* groupComp =
 		mWorld->GetComponent<UIRenderGroupComponent>(mPhaseStatusTextEntity))
 	{
-		group->mGroup = UIRenderGroup::Clear;
+		groupComp->mGroup = group;
 	}
-	SetPhaseStatusVisible(true);
+	SetPhaseStatusVisible(mRevealStampAnimation.mResultTriggered);
 
 	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
 	{
-		// Layer 10 keeps the score board above the final clear image on layer 9.
+		// 점수판 레이어(251)는 Result 프레임(250)보다 위에 두어 도장 위에 점수판이 보이게 한다.
+		// 스케일은 Result 도장과 동기화되어 TickResultStamp 에서 갱신된다.
 		transform->mPosition = Vec2(0.0f, 120.0f);
 		transform->mSize = Vec2(1000.0f, 520.0f);
 	}
+
+	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mPhaseStatusTextEntity);
+	if (!text)
+		return;
 
 	auto playerTypeName = [](uint8 playerType) -> const wchar_t*
 	{
@@ -361,17 +403,19 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 		}
 	};
 
-	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mPhaseStatusTextEntity);
-	if (!text)
-		return;
+	// GameClearComponent 는 Clear 전용이므로, 점수/시간 데이터는 ScoreBoard 와 게임룰에서도 보완한다.
+	GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>();
+	ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
 
 	std::wstringstream stream;
 	stream << L"SCORE BOARD\n";
 	stream << L"RANK  PLAYER  SCORE  KILLS\n";
 
-	ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
+	int32 teamScore = clearComp ? clearComp->mTeamScore : 0;
+
 	if (scoreBoard && scoreBoard->mPlayerCount > 0)
 	{
+		int32 scoreSum = 0;
 		for (uint8 index = 0; index < scoreBoard->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
 		{
 			const ClientPlayerScore& player = scoreBoard->mPlayers[index];
@@ -379,9 +423,13 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 				<< playerTypeName(player.mPlayerType) << L"  "
 				<< player.mScore << L"  "
 				<< player.mTotalKills << L"\n";
+			scoreSum += player.mScore;
 		}
+		// Clear 패킷이 없는 게임오버에서는 팀 점수를 개별 점수 합으로 대체한다.
+		if (!clearComp)
+			teamScore = scoreSum;
 	}
-	else
+	else if (clearComp)
 	{
 		// Keep the player list visible if the first score board packet has not arrived yet.
 		for (uint8 index = 0; index < clearComp->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
@@ -391,8 +439,11 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 		}
 	}
 
-	stream << L"\nTEAM SCORE  " << clearComp->mTeamScore << L"\n";
-	stream << L"PLAY TIME  " << static_cast<int32>(clearComp->mGameTime) << L"s";
+	// 플레이 시간은 Clear 패킷이 있으면 그 값을, 없으면(게임오버) 게임룰 누적 시간을 사용한다.
+	const float playTime = clearComp ? clearComp->mGameTime : (gameRuleComp ? gameRuleComp->mGameTime : 0.0f);
+
+	stream << L"\nTEAM SCORE  " << teamScore << L"\n";
+	stream << L"PLAY TIME  " << static_cast<int32>(playTime) << L"s";
 	text->mText = stream.str();
 }
 
@@ -419,10 +470,7 @@ void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 	// 새 모드 배너 연출이 끝날 때까지 이전 모드의 고정 배너는 숨긴다.
 	SetPinnedBannerVisible(false);
 
-	// Clear and Fail both open the result presentation first.
-	if (newPhase == WavePhaseType::Clear ||
-		newPhase == WavePhaseType::Fail)
-		RequestGameSfx("notify/Game/Result");
+	// Result/점수판 도장 연출 시점에 결과음을 재생하므로 여기서는 트리거하지 않는다.
 
 	const auto revealStampIt = mRevealStampAnimationTable.find(newPhase);
 	if (revealStampIt != mRevealStampAnimationTable.end())
@@ -549,6 +597,11 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 	stampTransform->mScale = Vec2(scale, scale);
 	stampSprite->mColorTint.w = std::clamp(stampProgress * 5.0f, 0.0f, 1.0f);
 
+	// 점수판 배경(Result) 도장 — 설정된 시점부터 점수판과 동기화해 도장 연출을 진행한다.
+	if (!spec.mResultTextureName.empty() &&
+		mRevealStampAnimation.mElapsed >= spec.mResultStartTime)
+		TickResultStamp(spec);
+
 	if (spec.mFinalStampTextureName.empty() ||
 		mRevealStampAnimation.mElapsed < spec.mFinalStampStartTime)
 		return;
@@ -580,6 +633,48 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 	finalStampTransform->mScale = Vec2(finalStampScale, finalStampScale);
 	finalStampSprite->mColorTint.w =
 		std::clamp(finalStampProgress * 5.0f, 0.0f, 1.0f);
+}
+
+void UIGameInfoUpdateFeature::TickResultStamp(const RevealStampAnimationSpec& spec)
+{
+	UISpriteComponent* resultSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mResultEntity);
+	UITransformComponent* resultTransform =
+		mWorld->GetComponent<UITransformComponent>(mRevealStampAnimation.mResultEntity);
+	if (!resultSprite || !resultTransform)
+		return;
+
+	// 등장 프레임에 점수판/Result 프레임을 도장처럼 찍고 카메라를 흔든다.
+	if (!mRevealStampAnimation.mResultTriggered)
+	{
+		mRevealStampAnimation.mResultTriggered = true;
+		resultSprite->mVisible = true;
+		resultSprite->mColorTint.w = 0.0f;
+		resultTransform->mScale = Vec2(spec.mResultStartScale, spec.mResultStartScale);
+		TriggerAnimationCameraShake(spec);
+
+		// 점수판/Result 가 실제로 등장하는 시점에 결과음을 재생한다.
+		RequestGameSfx("notify/Game/Result");
+	}
+
+	// Stamp 와 동일한 가속 곡선으로 큰 스케일에서 1.0 으로 수렴한다.
+	const float resultDuration = max(spec.mResultDuration, 0.001f);
+	const float resultProgress = std::clamp(
+		(mRevealStampAnimation.mElapsed - spec.mResultStartTime) / resultDuration,
+		0.0f, 1.0f);
+	const float resultEased = 1.0f - std::pow(1.0f - resultProgress, 3.0f);
+	const float resultScale =
+		1.0f + (spec.mResultStartScale - 1.0f) * (1.0f - resultEased);
+	resultTransform->mScale = Vec2(resultScale, resultScale);
+	resultSprite->mColorTint.w = std::clamp(resultProgress * 5.0f, 0.0f, 1.0f);
+
+	// 점수판도 같은 스케일 곡선으로 도장처럼 등장시킨다(가시화는 UpdateClearPhase가 처리).
+	if (mPhaseStatusTextEntity != NULL_ENTITY)
+	{
+		if (UITransformComponent* boardTransform =
+			mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
+			boardTransform->mScale = Vec2(resultScale, resultScale);
+	}
 }
 
 void UIGameInfoUpdateFeature::TickGoalBanner(float dt)
@@ -1028,6 +1123,13 @@ void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 		mRevealStampAnimation.mRevealEntity, spec.mRevealTextureName, spec.mRevealLayer);
 	createFullscreenLayer(
 		mRevealStampAnimation.mStampEntity, spec.mStampTextureName, spec.mStampLayer);
+	if (!spec.mResultTextureName.empty())
+	{
+		createFullscreenLayer(
+			mRevealStampAnimation.mResultEntity,
+			spec.mResultTextureName,
+			spec.mResultLayer);
+	}
 	if (!spec.mFinalStampTextureName.empty())
 	{
 		createFullscreenLayer(
@@ -1040,6 +1142,7 @@ void UIGameInfoUpdateFeature::EnsureRevealStampEntities()
 	for (Entity entity : {
 		mRevealStampAnimation.mRevealEntity,
 		mRevealStampAnimation.mStampEntity,
+		mRevealStampAnimation.mResultEntity,
 		mRevealStampAnimation.mFinalStampEntity })
 	{
 		if (entity == NULL_ENTITY)
@@ -1066,7 +1169,9 @@ void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimati
 	mRevealStampAnimation.mElapsed = 0.0f;
 	mRevealStampAnimation.mActive = true;
 	mRevealStampAnimation.mStampTriggered = false;
+	mRevealStampAnimation.mResultTriggered = false;
 	mRevealStampAnimation.mFinalStampTriggered = false;
+	mGameOverReturnTriggered = false;
 	EnsureRevealStampEntities();
 
 	if (UISpriteComponent* revealSprite =
@@ -1090,6 +1195,20 @@ void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimati
 	{
 		stampTransform->mScale =
 			Vec2(spec.mStampStartScale, spec.mStampStartScale);
+	}
+
+	if (UISpriteComponent* resultSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mResultEntity))
+	{
+		resultSprite->mVisible = false;
+		resultSprite->mColorTint = Vec4(1.0f, 1.0f, 1.0f, 0.0f);
+	}
+
+	if (UITransformComponent* resultTransform =
+		mWorld->GetComponent<UITransformComponent>(mRevealStampAnimation.mResultEntity))
+	{
+		resultTransform->mScale =
+			Vec2(spec.mResultStartScale, spec.mResultStartScale);
 	}
 
 	if (UISpriteComponent* finalStampSprite =
@@ -1123,10 +1242,24 @@ void UIGameInfoUpdateFeature::StopRevealStampAnimation()
 		stampSprite->mVisible = false;
 	}
 
+	if (UISpriteComponent* resultSprite =
+		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mResultEntity))
+	{
+		resultSprite->mVisible = false;
+	}
+
 	if (UISpriteComponent* finalStampSprite =
 		mWorld->GetComponent<UISpriteComponent>(mRevealStampAnimation.mFinalStampEntity))
 	{
 		finalStampSprite->mVisible = false;
+	}
+
+	// 점수판 스케일은 도장 연출에서 변형되므로 정지 시 기본값으로 되돌린다.
+	if (mPhaseStatusTextEntity != NULL_ENTITY)
+	{
+		if (UITransformComponent* boardTransform =
+			mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
+			boardTransform->mScale = Vec2(1.0f, 1.0f);
 	}
 }
 
@@ -1161,7 +1294,8 @@ void UIGameInfoUpdateFeature::EnsurePhaseStatusText()
 	transform.mPivot = Vec2(0.5f, 0.5f);
 	transform.mSize = Vec2(900.0f, 400.0f);
 	transform.mPosition = Vec2(0.0f, 0.0f);
-	transform.mUILayerIndex = 10;
+	// Result 프레임(250)보다 위 레이어로 두어 도장 위에 점수판이 함께 보이게 한다.
+	transform.mUILayerIndex = 251;
 
 	auto& text = mWorld->AddComponent<UITextComponent>(mPhaseStatusTextEntity);
 	text.mFontType = UIFontType::Esamanru;

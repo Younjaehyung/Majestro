@@ -114,8 +114,16 @@ struct RevealStampAnimationSpec
 	float mFinalStampDuration = 0.42f;
 	float mFinalStampStartScale = 1.5f;
 
+	// 점수판 배경(Result) 도장 — 비어 있으면 단계를 건너뛴다.
+	// Stamp(StageClear_2) 이후 mResultStartTime 시점에 점수판과 함께 도장처럼 등장한다.
+	std::wstring mResultTextureName;
+	float mResultStartTime = 0.0f;
+	float mResultDuration = 0.42f;
+	float mResultStartScale = 1.5f;
+
 	uint8 mRevealLayer = 8;
 	uint8 mStampLayer = 9;
+	uint8 mResultLayer = 250;
 
 	Vec3 mCameraShakeAngles = Vec3(1.2f, 0.8f, 1.8f);
 	float mCameraShakeDuration = 0.22f;
@@ -128,10 +136,12 @@ struct RevealStampAnimationState
 	RevealStampAnimationSpec mSpec;
 	Entity mRevealEntity = NULL_ENTITY;
 	Entity mStampEntity = NULL_ENTITY;
+	Entity mResultEntity = NULL_ENTITY;
 	Entity mFinalStampEntity = NULL_ENTITY;
 	float mElapsed = 0.0f;
 	bool mActive = false;
 	bool mStampTriggered = false;
+	bool mResultTriggered = false;
 	bool mFinalStampTriggered = false;
 };
 
@@ -151,6 +161,9 @@ private:
 	void UpdateConquestPhase(float dt, GameRuleComponent* gameRuleComp);
 	void UpdateEscortPhase(float dt, GameRuleComponent* gameRuleComp);
 	void UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp);
+	void UpdateFailPhase(float dt, GameRuleComponent* gameRuleComp);
+	// Clear/Fail 공용 점수판 갱신 — Result 도장이 트리거된 뒤에만 노출한다.
+	void UpdateResultScoreBoard(GameRuleComponent* gameRuleComp, UIRenderGroup group);
 
 	void RenderGameTime(CameraComponent* camera);
 	void RenderPlayerScore(CameraComponent* camera);
@@ -162,6 +175,8 @@ private:
 	// 매 프레임 호출 — stage 진행/전이 + 시각 속성 계산/적용.
 	void TickGoalBanner(float dt);
 	void TickRevealStampAnimation(float dt);
+	// 점수판 배경(Result) 도장 단계 — 점수판과 동기화하여 도장 연출을 적용.
+	void TickResultStamp(const RevealStampAnimationSpec& spec);
 
 	// 배너 엔티티 (재활용).
 	void EnsureBannerEntities();
@@ -230,4 +245,7 @@ private:
 	int32 mLastReadyCountdown = -1;
 	int32 mTrackedConquestZoneId = 0;
 	bool mConquestSuccessPlayed = false;
+
+	// GameOver Result/점수판 등장 후 메인메뉴 복귀를 1회만 트리거하기 위한 플래그.
+	bool mGameOverReturnTriggered = false;
 };

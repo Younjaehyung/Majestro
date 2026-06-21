@@ -348,14 +348,13 @@ void UIGameInfoUpdateFeature::UpdateEscortPhase(float dt, GameRuleComponent* gam
 
 void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp)
 {
-	UpdateResultScoreBoard(gameRuleComp, UIRenderGroup::Clear);
+	// 점수판 텍스트는 제거됨 — Clear 연출(Reveal/Stamp/Result/GameClear 이미지)은
+	// TickRevealStampAnimation 이 전담한다.
 }
 
 void UIGameInfoUpdateFeature::UpdateFailPhase(float dt, GameRuleComponent* gameRuleComp)
 {
-	UpdateResultScoreBoard(gameRuleComp, UIRenderGroup::GameOver);
-
-	// Result/점수판이 등장하고 3초 뒤 클라이언트가 스스로 메인메뉴로 복귀하며 게임을 종료한다.
+	// Result 이미지가 등장하고 3초 뒤 클라이언트가 스스로 메인메뉴로 복귀하며 게임을 종료한다.
 	const RevealStampAnimationSpec& spec = mRevealStampAnimation.mSpec;
 	if (!mGameOverReturnTriggered &&
 		mRevealStampAnimation.mResultTriggered &&
@@ -367,84 +366,6 @@ void UIGameInfoUpdateFeature::UpdateFailPhase(float dt, GameRuleComponent* gameR
 		Network::GetInstance().Shutdown();
 		gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
 	}
-}
-
-void UIGameInfoUpdateFeature::UpdateResultScoreBoard(GameRuleComponent* gameRuleComp, UIRenderGroup group)
-{
-	// 점수판은 Result 도장 단계가 트리거된 뒤에야 노출한다(StageClear_2 등장 3초 후).
-	EnsurePhaseStatusText();
-	if (UIRenderGroupComponent* groupComp =
-		mWorld->GetComponent<UIRenderGroupComponent>(mPhaseStatusTextEntity))
-	{
-		groupComp->mGroup = group;
-	}
-	SetPhaseStatusVisible(mRevealStampAnimation.mResultTriggered);
-
-	if (UITransformComponent* transform = mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
-	{
-		// 점수판 레이어(251)는 Result 프레임(250)보다 위에 두어 도장 위에 점수판이 보이게 한다.
-		// 스케일은 Result 도장과 동기화되어 TickResultStamp 에서 갱신된다.
-		transform->mPosition = Vec2(0.0f, 120.0f);
-		transform->mSize = Vec2(1000.0f, 520.0f);
-	}
-
-	UITextComponent* text = mWorld->GetComponent<UITextComponent>(mPhaseStatusTextEntity);
-	if (!text)
-		return;
-
-	auto playerTypeName = [](uint8 playerType) -> const wchar_t*
-	{
-		switch (static_cast<PlayerType>(playerType))
-		{
-		case PlayerType::Rudwig: return L"Rudwig";
-		case PlayerType::Ibanix: return L"Ibanix";
-		case PlayerType::Fanthor: return L"Fanthor";
-		default: return L"Unknown";
-		}
-	};
-
-	// GameClearComponent 는 Clear 전용이므로, 점수/시간 데이터는 ScoreBoard 와 게임룰에서도 보완한다.
-	GameClearComponent* clearComp = mWorld->GetSingleton<GameClearComponent>();
-	ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
-
-	std::wstringstream stream;
-	stream << L"SCORE BOARD\n";
-	stream << L"RANK  PLAYER  SCORE  KILLS\n";
-
-	int32 teamScore = clearComp ? clearComp->mTeamScore : 0;
-
-	if (scoreBoard && scoreBoard->mPlayerCount > 0)
-	{
-		int32 scoreSum = 0;
-		for (uint8 index = 0; index < scoreBoard->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
-		{
-			const ClientPlayerScore& player = scoreBoard->mPlayers[index];
-			stream << static_cast<int32>(index + 1) << L".  "
-				<< playerTypeName(player.mPlayerType) << L"  "
-				<< player.mScore << L"  "
-				<< player.mTotalKills << L"\n";
-			scoreSum += player.mScore;
-		}
-		// Clear 패킷이 없는 게임오버에서는 팀 점수를 개별 점수 합으로 대체한다.
-		if (!clearComp)
-			teamScore = scoreSum;
-	}
-	else if (clearComp)
-	{
-		// Keep the player list visible if the first score board packet has not arrived yet.
-		for (uint8 index = 0; index < clearComp->mPlayerCount && index < ROOM_MAX_PLAYERS; ++index)
-		{
-			stream << static_cast<int32>(index + 1) << L".  "
-				<< playerTypeName(clearComp->mPlayerTypes[index]) << L"  0  0\n";
-		}
-	}
-
-	// 플레이 시간은 Clear 패킷이 있으면 그 값을, 없으면(게임오버) 게임룰 누적 시간을 사용한다.
-	const float playTime = clearComp ? clearComp->mGameTime : (gameRuleComp ? gameRuleComp->mGameTime : 0.0f);
-
-	stream << L"\nTEAM SCORE  " << teamScore << L"\n";
-	stream << L"PLAY TIME  " << static_cast<int32>(playTime) << L"s";
-	text->mText = stream.str();
 }
 
 // 게임 정보 렌더링 함수 구현
@@ -667,14 +588,6 @@ void UIGameInfoUpdateFeature::TickResultStamp(const RevealStampAnimationSpec& sp
 		1.0f + (spec.mResultStartScale - 1.0f) * (1.0f - resultEased);
 	resultTransform->mScale = Vec2(resultScale, resultScale);
 	resultSprite->mColorTint.w = std::clamp(resultProgress * 5.0f, 0.0f, 1.0f);
-
-	// 점수판도 같은 스케일 곡선으로 도장처럼 등장시킨다(가시화는 UpdateClearPhase가 처리).
-	if (mPhaseStatusTextEntity != NULL_ENTITY)
-	{
-		if (UITransformComponent* boardTransform =
-			mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
-			boardTransform->mScale = Vec2(resultScale, resultScale);
-	}
 }
 
 void UIGameInfoUpdateFeature::TickGoalBanner(float dt)
@@ -1253,14 +1166,6 @@ void UIGameInfoUpdateFeature::StopRevealStampAnimation()
 	{
 		finalStampSprite->mVisible = false;
 	}
-
-	// 점수판 스케일은 도장 연출에서 변형되므로 정지 시 기본값으로 되돌린다.
-	if (mPhaseStatusTextEntity != NULL_ENTITY)
-	{
-		if (UITransformComponent* boardTransform =
-			mWorld->GetComponent<UITransformComponent>(mPhaseStatusTextEntity))
-			boardTransform->mScale = Vec2(1.0f, 1.0f);
-	}
 }
 
 void UIGameInfoUpdateFeature::TriggerAnimationCameraShake(
@@ -1294,8 +1199,7 @@ void UIGameInfoUpdateFeature::EnsurePhaseStatusText()
 	transform.mPivot = Vec2(0.5f, 0.5f);
 	transform.mSize = Vec2(900.0f, 400.0f);
 	transform.mPosition = Vec2(0.0f, 0.0f);
-	// Result 프레임(250)보다 위 레이어로 두어 도장 위에 점수판이 함께 보이게 한다.
-	transform.mUILayerIndex = 251;
+	transform.mUILayerIndex = 10;
 
 	auto& text = mWorld->AddComponent<UITextComponent>(mPhaseStatusTextEntity);
 	text.mFontType = UIFontType::Esamanru;

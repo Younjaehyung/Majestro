@@ -162,8 +162,6 @@ private:
 	void UpdateEscortPhase(float dt, GameRuleComponent* gameRuleComp);
 	void UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp);
 	void UpdateFailPhase(float dt, GameRuleComponent* gameRuleComp);
-	// Clear/Fail 공용 점수판 갱신 — Result 도장이 트리거된 뒤에만 노출한다.
-	void UpdateResultScoreBoard(GameRuleComponent* gameRuleComp, UIRenderGroup group);
 
 	void RenderGameTime(CameraComponent* camera);
 	void RenderPlayerScore(CameraComponent* camera);

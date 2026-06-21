@@ -136,12 +136,12 @@ void MovementSystem::Update(float dt) {
 
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
-
+	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
 
 
 	UpdateGravity(dt);
 	UpdatePlayer(dt);
-	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;;
+	
 	UpdateEnemy(dt);
 	UpdateFlyHeight(dt);
 	UpdateBullet(dt);

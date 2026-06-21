@@ -272,7 +272,7 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
     {
         float ground = 0.0f;
         if (pw->TryQueryTerrainHeightNear(placePos, placePos.y,
-                /*maxStepUp=*/2000.0f, /*maxDropDown=*/5000.0f, ground))
+                /*maxStepUp=*/30.0f, /*maxDropDown=*/5000.0f, ground))
             placePos.y = ground;
     }
 

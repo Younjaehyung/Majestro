@@ -715,7 +715,7 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            std::uniform_int_distribution<int> brassPick(1, 1);
+            std::uniform_int_distribution<int> brassPick(0, 3);
 	            const uint8 pattern = static_cast<uint8>(brassPick(RandomEngine()));
 	            enemyComp->mBrassAttackPattern = pattern;
 

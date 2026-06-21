@@ -65,7 +65,7 @@ public:
 			mHoverHeight = 250.0f;
 			break;
 		case EnemyType::Brass:
-			mAttackCool = 16;
+			mAttackCool = 8;
 			AttackRange = 700.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();

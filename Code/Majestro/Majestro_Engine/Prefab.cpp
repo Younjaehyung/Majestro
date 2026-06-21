@@ -640,7 +640,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Die"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Idle"));
 
-		world->AddComponent<HealthComponent>(mEntityID, 200, 200);
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Pianoman:

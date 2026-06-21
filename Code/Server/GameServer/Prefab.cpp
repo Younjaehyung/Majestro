@@ -244,7 +244,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		center = Vec3(0, 50, 0);
 		half = Vec3(130, 250, 130);
 		world->AddComponent<EnemyComponent>(mEntityID, enemyType, 200);
-		world->AddComponent<HealthComponent>(mEntityID, 200, 200);
+		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
 		break;
 	case EnemyType::Pianoman:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 300);

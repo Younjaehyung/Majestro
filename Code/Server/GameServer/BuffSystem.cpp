@@ -100,7 +100,7 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
             return;
 
         const int32 beforeHp = health->mCurrentHp;
-        health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + 5);
+        health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + 2);
 
         if (beforeHp != health->mCurrentHp)
         {

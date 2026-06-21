@@ -790,9 +790,12 @@ bool EnemySystem::HandleAttackState(
                         casterNetId
 	                    });
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-650.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -650.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(-500.0f, 0.0f, -150.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(-800.0f, 0.0f, -150.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Slime, Vec3(500.0f, 0.0f, -150.0f));
 	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
 	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));

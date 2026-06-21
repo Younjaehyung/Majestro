@@ -35,7 +35,7 @@
       "is3d": false
     },
     "player/healpack": {
-      "event": "event:/SFX/Player/SFX_Player_Healpack",
+      "event": "event:/SFX/Player/SFX_Player_Heal",
       "is3d": true
     },
     "player/jumppad": {

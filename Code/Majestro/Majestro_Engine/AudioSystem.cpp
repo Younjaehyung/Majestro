@@ -55,6 +55,9 @@ void AudioSystem::Initialize()
         AUDIOMANAGER.RequestBGM("event:/OST/BassMulti", SOUNDNAME::Bass);
         AUDIOMANAGER.RequestBGM("event:/OST/DrumMulti", SOUNDNAME::Drum);
 
+        // Brass 보스 음악: BrassParam=0 으로 시작, 보스 스킬 사용 시 파라미터로 연출 전환
+        AUDIOMANAGER.RequestBGM("event:/OST/BrassBossMulti", SOUNDNAME::BrassBoss);
+
         // T0 정렬 전까지 무음(일시정지)
         AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Elec, true);
         AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Bass, true);
@@ -65,6 +68,7 @@ void AudioSystem::Initialize()
         AUDIOMANAGER.StopBGM(SOUNDNAME::Elec);
         AUDIOMANAGER.StopBGM(SOUNDNAME::Bass);
         AUDIOMANAGER.StopBGM(SOUNDNAME::Drum);
+        AUDIOMANAGER.StopBGM(SOUNDNAME::BrassBoss);
     }
     
 

@@ -24,6 +24,7 @@ enum class SOUNDNAME {
 	Drum,
     Bass,
 	Elec,
+    BrassBoss,   // Brass 보스 전용 음악 (BrassParam 으로 스킬 연출)
     End
 
 };

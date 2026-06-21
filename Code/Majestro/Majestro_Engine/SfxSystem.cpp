@@ -319,6 +319,10 @@ void SfxSystem::PollEnemyStates()
 					? "monster/Brass/Die"
 					: "monster/Die";
 				Play(key, position);
+
+				// Brass 보스가 죽으면 전용 음악도 정지
+				if (enemy->mEnemyType == EnemyType::Brass)
+					AUDIOMANAGER.StopBGM(SOUNDNAME::BrassBoss);
 			}
 			// Normal monster attacks are mapped by enemy type.
 			else if (currentState == static_cast<int>(EnemyAnimState::Attack))
@@ -340,15 +344,19 @@ void SfxSystem::PollEnemyStates()
 				{
 				case EnemyAnimState::BrassAttack1:
 					Play("monster/Brass/Skill1", position);
+					AUDIOMANAGER.SetBGMParam("BrassParam", SOUNDNAME::BrassBoss, 1.f, true);
 					break;
 				case EnemyAnimState::BrassAttack2:
 					Play("monster/Brass/Skill2", position);
+					AUDIOMANAGER.SetBGMParam("BrassParam", SOUNDNAME::BrassBoss, 2.f, true);
 					break;
 				case EnemyAnimState::BrassAttack3:
 					Play("monster/Brass/Skill3", position);
+					AUDIOMANAGER.SetBGMParam("BrassParam", SOUNDNAME::BrassBoss, 3.f, true);
 					break;
 				case EnemyAnimState::BrassAttack4:
 					Play("monster/Brass/Skill4", position);
+					AUDIOMANAGER.SetBGMParam("BrassParam", SOUNDNAME::BrassBoss, 4.f, true);
 					break;
 				default:
 					break;

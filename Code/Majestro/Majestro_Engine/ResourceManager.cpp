@@ -2798,7 +2798,8 @@ void ResourceManager::CreateDefaultMaterial()
 
 #pragma region InGame
 		{
-			Load<Texture>(L"UI_Ingame_Prepare", L"..\\Resources\\Image\\UI\\UI_Logo.png");
+
+			Load<Texture>(L"UI_Ingame_Prepare", L"..\\Resources\\Image\\UI\\UI_Game_Ready.png");
 			Load<Texture>(L"UI_Ingame_Conquest", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquer.png");
 			Load<Texture>(L"UI_Ingame_Escort", L"..\\Resources\\Image\\UI\\UI_Ingame_Escort_0.png");
 			Load<Texture>(L"UI_Ingame_Fail", L"..\\Resources\\Image\\UI\\UI_Ingame_Fail.png");
@@ -2809,7 +2810,7 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_StageClear_0", L"..\\Resources\\Image\\UI\\UI_StageClear_0.png");
 			Load<Texture>(L"UI_StageClear_1", L"..\\Resources\\Image\\UI\\UI_StageClear_1.png");
 			Load<Texture>(L"UI_StageClear_2", L"..\\Resources\\Image\\UI\\UI_StageClear_2.png");
-			// ThirdScene 최종 GameClear 전체 화면 레이어에서 사용하는 텍스처를 등록한다.
+			Load<Texture>(L"UI_StageClear_Result", L"..\\Resources\\Image\\UI\\UI_StageClear_Result.png");
 			Load<Texture>(L"UI_GameClear", L"..\\Resources\\Image\\UI\\UI_GameClear.png");
 
 			// GameOver

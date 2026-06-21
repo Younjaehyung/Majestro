@@ -1091,7 +1091,7 @@ void MainMenuScene::Initialize()
 		render.SetMesh(data);
 
 		TransformComponent& transform = mWorld->AddComponent<TransformComponent>(logo);
-		transform.mLocalPosition = { 274.f, 648.f, -4270.f };
+		transform.mLocalPosition = { 200.f, 612.f, -4270.f };
 		transform.mLocalRotationE = { 0.f, 180.0f, 0.0f };
 		transform.mLocalScale = { 300.f, 300.f, 1.f };
 
@@ -1671,7 +1671,7 @@ void MainMenuScene::Initialize()
 			{
 				Entity e = mWorld->CreateEntity();
 				auto& tr = mWorld->AddComponent<UITransformComponent>(e);
-				tr.mAnchor       = Anchor::Center;
+				tr.mAnchor       = Anchor::TopRight;
 				tr.mPosition     = pos;
 				tr.mSize         = size;
 				tr.mPivot        = Vec2(0.5f, 0.5f);
@@ -2609,7 +2609,7 @@ void ThirdScene::Initialize()
 	// ThirdScene 컬러 그레이딩
 	{
 		ColorGradingParams cg;
-		cg.Saturation     = 2.0f;
+		cg.Saturation     = 1.6f;
 		cg.Contrast       = 1.1f;
 		cg.Brightness     = 0.04f;
 		cg.Exposure       = 0.7f;

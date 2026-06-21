@@ -103,6 +103,7 @@ struct EvVfxSpawnRequest
     uint8 reason = 0;
     Vec3 position{};
     Vec3 rotation{};
+    uint64 casterNetId = 0;     // 0이면 시전자 없음(고정 VFX). 그 외면 추종 대상 NetworkID
 };
 
 struct EvEnemyAttackDebug

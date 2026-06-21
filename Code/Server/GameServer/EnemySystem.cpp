@@ -737,6 +737,12 @@ bool EnemySystem::HandleAttackState(
                 enemyComp->mBrassSkill3ShotInterval =
                     beatSeconds * kBrassSkill3DurationBeats / static_cast<float>(kBrassSkill3ShotCount);
                 enemyComp->mBrassSkill3NextShotTime = nowSeconds;
+
+                // 시전자(보스) NetworkID를 함께 보내 클라가 VFX를 보스에 추종시키도록 한다.
+                uint64 casterNetId = 0;
+                if (NetEntityComponent* bossNet = mWorld->GetComponent<NetEntityComponent>(entity))
+                    casterNetId = bossNet->mNetEntityId;
+
                 eventManager->Enqueue<EvEffectSpawn>({
                     static_cast<uint8>(brassSkill),
                     myPos.x,
@@ -745,7 +751,8 @@ bool EnemySystem::HandleAttackState(
                     EffectSpawnReason::Fire,
                     0.0f,
                     attackYawDeg,
-                    0.0f
+                    0.0f,
+                    casterNetId
                 });
             }
             else
@@ -756,6 +763,11 @@ bool EnemySystem::HandleAttackState(
 
                 if (brassSkill == SkillType::BrassSkill1)
                 {
+                    // 보스 따라가는 vfx
+                    uint64 casterNetId = 0;
+                    if (NetEntityComponent* bossNet = mWorld->GetComponent<NetEntityComponent>(entity))
+                        casterNetId = bossNet->mNetEntityId;
+
                     eventManager->Enqueue<EvEffectSpawn>({
                         static_cast<uint8>(brassSkill),
                         myPos.x,
@@ -764,7 +776,8 @@ bool EnemySystem::HandleAttackState(
                         EffectSpawnReason::Fire,
                         0.0f,
                         attackYawDeg,
-                        0.0f
+                        0.0f,
+                        casterNetId
 	                    });
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));

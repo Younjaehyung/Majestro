@@ -35,6 +35,7 @@ private:
 	};
 
 	bool IsPaused() const;
+	bool IsCinematicPlaying() const;	// 씬 진입 시네마틱(IntroSequence) 재생 중 여부
 	bool BuildCameraContext(PlayerInputContext& ctx);
 	bool BuildPlayerContext(PlayerInputContext& ctx);
 	bool IsPlayerDead(const MainPlayerComponent* player) const;
@@ -46,6 +47,7 @@ private:
 	void UpdateLobbyInput(float dt, PlayerInputContext& ctx);
 	void UpdateCameraModeInput(PlayerInputContext& ctx);
 	bool UpdateFreeCameraInput(float dt, PlayerInputContext& ctx);
+	bool UpdateCinematicInput(PlayerInputContext& ctx);		// 시네마틱 중 입력 완전 잠금
 	bool UpdatePausedInput(PlayerInputContext& ctx);
 	bool UpdateDeadInput(PlayerInputContext& ctx);
 	void UpdateAliveInput(float dt, PlayerInputContext& ctx);

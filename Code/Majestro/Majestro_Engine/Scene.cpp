@@ -94,6 +94,8 @@
 #include "MainMenuCameraComponent.h"
 #include "MainMenuSystem.h"
 #include "MainMenuCameraSystem.h"
+#include "IntroSequenceComponent.h"
+#include "IntroSequenceSystem.h"
 #include "UIButtonFactory.h"
 
 #include "PauseMenuController.h"
@@ -377,14 +379,15 @@ void Scene::CreatePauseMenu()
 		Entity pauseBg = mWorld->CreateEntity();
 		{
 			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseBg);
-			tr.mAnchor = Anchor::TopLeft;
+			tr.mAnchor = Anchor::Center;        // 중앙 기준 줌인 연출을 위해 중앙 정렬
 			tr.mPosition = Vec2(0.f, 0.f);
 			tr.mSize = Vec2(2560.f, 1440.f);
-			tr.mPivot = Vec2(0.f, 0.f);
-			tr.mUILayerIndex = 101;            
+			tr.mPivot = Vec2(0.5f, 0.5f);       // 중앙 기준 줌
+			tr.mUILayerIndex = 101;
 			// 초기 텍스처는 placeholder. 실제 캐릭터별 텍스처는 pause 진입 시 교체.
-			mWorld->AddComponent<UISpriteComponent>(pauseBg,
+			auto& bgSp = mWorld->AddComponent<UISpriteComponent>(pauseBg,
 				RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01"));
+			bgSp.mColorTint = Vec4(1.f, 1.f, 1.f, 0.f);   // 알파 0 시작(등장 연출 전 숨김)
 		}
 
 		// 풀스크린 배경 (반투명 검정 dim — 캐릭터 배경 위에 깔려 대비 확보)
@@ -982,8 +985,8 @@ bool LoadingScene::LoadScene(SceneId id)
 								   break;
 	case (uint8)SceneId::ThirdGame: {
 		mapPath = L"..\\Resources\\Json\\Map003_Export.json";
-		return true;
 	}
+								  break;
 	default:
 		return false;
 		break;
@@ -2593,6 +2596,16 @@ void ThirdScene::Initialize()
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 
 	mWorld->AddSingleton<GameRuleComponent>();
+
+	// 씬 진입(PreparePhase 대기) 시네마틱 카메라.
+	// CameraSystem 이후에 실행되어 카메라를 최종 오버라이드한다.
+	mWorld->GetSystemManager()->RegisterSystem<IntroSequenceSystem>();
+
+	// 시퀀스 데이터 로드(골격: JSON 미준비 시 빈 시퀀스 → 재생 안 함).
+	// 추후 언리얼 시퀀서 export(JSON) 경로를 여기에 연결한다.
+	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
+	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\Map003Camera.json");
 }
 #pragma endregion
 

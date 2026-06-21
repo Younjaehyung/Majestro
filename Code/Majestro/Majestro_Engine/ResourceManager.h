@@ -80,6 +80,7 @@ public:
 	void ApplyMapSky(const LevelImportData& level);
 	shared_ptr<PayloadPathData>  LoadPayloadPathJson(const wstring& path);
 	std::vector<CameraView> LoadCameraViews(const wstring& path);
+	std::vector<CameraKeyframe> LoadCameraSequence(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수

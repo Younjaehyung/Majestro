@@ -529,6 +529,7 @@ void NetSendSystem::SendEffectSpawnEvents()
 			effectPkt.rotX = e.rotX;
 			effectPkt.rotY = e.rotY;
 			effectPkt.rotZ = e.rotZ;
+			effectPkt.casterNetId = e.casterNetId;
 
 			//cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
 

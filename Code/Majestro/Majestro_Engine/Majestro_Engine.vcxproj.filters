@@ -367,6 +367,9 @@
     <ClInclude Include="CameraSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="IntroSequenceSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="CameraShakeTable.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -398,6 +401,9 @@
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="DeathCamComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="IntroSequenceComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="BeatComponent.h">
@@ -962,6 +968,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="CameraSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="IntroSequenceSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="CameraShakeTable.cpp">

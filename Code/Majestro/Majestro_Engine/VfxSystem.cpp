@@ -29,6 +29,7 @@ void VfxSystem::Update(float deltaTime)
 
 	ReturnFinishedEffects();
 	ConsumeSpawnEvents();
+	UpdateFollowTargets();
 }
 
 Entity VfxSystem::PlayOneShot(const wstring& effectName, const Vec3& position, const Vec3& rotation, const Vec3& scale)
@@ -103,7 +104,22 @@ void VfxSystem::ConsumeSpawnEvents()
 		if (!desc || desc->effectName == nullptr)
 			return;
 
-		PlayOneShot(desc->effectName, event.position + desc->positionOffset, event.rotation, desc->scale);
+		const Entity vfxEntity = PlayOneShot(desc->effectName, event.position + desc->positionOffset, event.rotation, desc->scale);
+
+		// 시전자 추종 VFX는 패킷의 casterNetId로 시전자 엔티티를 찾아 부착한다.
+		// (NetIdMap 조회라 적/플레이어/보스 다수 무관하게 정확히 매핑됨)
+		if (desc->followCaster && event.casterNetId != 0 && vfxEntity.IsValid())
+		{
+			const Entity target = mWorld->GetEntityByNetId(event.casterNetId);
+			if (target.IsValid())
+			{
+				if (VfxComponent* component = mWorld->GetComponent<VfxComponent>(vfxEntity))
+				{
+					component->mFollowTarget = target;
+					component->mFollowOffset = desc->positionOffset;	// 스폰 오프셋을 추종 중에도 유지
+				}
+			}
+		}
 	});
 
 	eventManager->Consume<EvAttachBulletVfx>([this](const EvAttachBulletVfx& event)
@@ -129,6 +145,37 @@ void VfxSystem::ReturnFinishedEffects()
 		component->mIsPooled = true;
 		component->mAutoReturn = true;
 		SetHiddenTransform(*transform);
+	}
+}
+
+void VfxSystem::UpdateFollowTargets()
+{
+	// 추종 대상이 지정된 풀 VFX의 transform을 매 프레임 대상 위치로 갱신한다.
+	// (EffectPass가 Render phase에서 tr->mWorldPosition을 읽어 SetLocation 하므로 Post phase인 여기서 갱신)
+	for (Entity entity : mPool)
+	{
+		VfxComponent* component = mWorld->GetComponent<VfxComponent>(entity);
+		if (component == nullptr || !component->mInUse || component->mFinished)
+			continue;
+		if (!component->mFollowTarget.IsValid())
+			continue;
+
+		TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(component->mFollowTarget);
+		if (targetTransform == nullptr)
+		{
+			// 대상이 사라지면 추종을 멈추고 마지막 위치에 그대로 둔다.
+			component->mFollowTarget = Entity{};
+			continue;
+		}
+
+		TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity);
+		if (transform == nullptr)
+			continue;
+
+		const Vec3 followPosition = targetTransform->mWorldPosition + component->mFollowOffset;
+		transform->mLocalPosition = followPosition;
+		transform->mWorldPosition = followPosition;
+		transform->mWorldMatrix = Matrix::CreateTranslation(followPosition);
 	}
 }
 
@@ -271,10 +318,10 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 			return VfxSpawnDesc{ L"VFX_Bongoman_Shield", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
 
 		if (skillType == SkillType::BrassSkill1)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(1.0f) };
+			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(1.0f), /*followCaster*/ true };
 
 		if (skillType == SkillType::BrassSkill3)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(30.0f) };
+			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(30.0f), /*followCaster*/ true };
 
 		return std::nullopt;
 

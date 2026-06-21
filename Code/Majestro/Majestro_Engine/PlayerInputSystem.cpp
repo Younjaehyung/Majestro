@@ -13,6 +13,7 @@
 #include "BeatComponent.h"
 #include "MovementComponent.h"
 #include "DeathCamComponent.h"
+#include "IntroSequenceComponent.h"
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
@@ -78,6 +79,8 @@ void PlayerInputSystem::Update(float dt)
 	if (!BuildPlayerContext(ctx))
 		return;
 
+	if (UpdateCinematicInput(ctx))
+		return;
 	if (UpdateFreeCameraInput(dt, ctx))
 		return;
 	if (UpdatePausedInput(ctx))
@@ -99,6 +102,16 @@ bool PlayerInputSystem::IsPaused() const
 
 	const PauseMenuController* pause = mWorld->GetComponent<PauseMenuController>(pauseEntities[0]);
 	return pause != nullptr && pause->mPaused;
+}
+
+bool PlayerInputSystem::IsCinematicPlaying() const
+{
+	if (!mWorld->HasComponentPool<IntroSequenceComponent>())
+		return false;
+
+	const IntroSequenceComponent* seq =
+		mWorld->GetComponent<IntroSequenceComponent>(mWorld->GetSingletonEntity());
+	return seq != nullptr && seq->mPlaying;
 }
 
 void PlayerInputSystem::ClearGameplayInput(PlayerInputContext& ctx)
@@ -424,6 +437,18 @@ bool PlayerInputSystem::UpdateFreeCameraInput(float, PlayerInputContext& ctx)
 		ctx.cameraType->mFreePitch = std::clamp(ctx.cameraType->mFreePitch, -85.0f, 85.0f);
 	}
 
+
+	ClearGameplayInput(ctx);
+	INPUT.MouseStateClear();
+	return true;
+}
+
+bool PlayerInputSystem::UpdateCinematicInput(PlayerInputContext& ctx)
+{
+	// 씬 진입 시네마틱 재생 중에는 게임플레이/카메라 입력을 완전히 잠근다.
+	// (플레이어는 idle 입력을 전송하므로 네트워크 동기화에 영향 없음)
+	if (!IsCinematicPlaying())
+		return false;
 
 	ClearGameplayInput(ctx);
 	INPUT.MouseStateClear();

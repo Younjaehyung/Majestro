@@ -781,6 +781,7 @@ struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 	float rotX{};
 	float rotY{};
 	float rotZ{};
+	uint64 casterNetId{};	// 0이면 시전자 없음(고정 VFX). 그 외면 추종 대상 NetworkID
 
 	S2C_EffectSpawnPacket()
 		: PacketTcpHeader{ sizeof(S2C_EffectSpawnPacket), PKT_Type::S2C_PKT_EFFECT_SPAWN, 0.0 } {

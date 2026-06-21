@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "Entity.h"
 #include "Vfx.h"
 
 class VfxComponent : public Component<VfxComponent>
@@ -33,6 +34,8 @@ public:
 		mUseWorldMatrix = false;
 		mWorldMatrix = Matrix::Identity;
 		mRootStopped = false;
+		mFollowTarget = Entity{};
+		mFollowOffset = Vec3::Zero;
 		SetPosition(0.f, 0.f, 0.f);
 	}
 
@@ -54,6 +57,8 @@ public:
 		mUseWorldMatrix = false;
 		mWorldMatrix = Matrix::Identity;
 		mRootStopped = false;
+		mFollowTarget = Entity{};
+		mFollowOffset = Vec3::Zero;
 	}
 
 	shared_ptr<Vfx> mVfx = nullptr;				// 재생할 이펙트 리소스(.efk 래퍼)
@@ -82,6 +87,10 @@ public:
 	bool	mInUse = false;					// 풀 Entity가 현재 사용 중인지 표시
 	bool	mAutoReturn = false;			// 재생이 끝났을 때 자동으로 풀에 반환할지 여부
 	
+	// 추종(Follow) — 유효한 대상이면 VfxSystem이 매 프레임 대상 위치로 transform을 갱신한다.
+	Entity	mFollowTarget;					// 추종할 엔티티 (유효하지 않으면 고정 월드 VFX)
+	Vec3	mFollowOffset = Vec3::Zero;		// 추종 대상 월드 위치 기준 오프셋
+
 	// 트랜스폼
 	Vec3	mScale     = Vec3(1.f, 1.f, 1.f);
 	Vec3	mAttachOffset = Vec3::Zero;		// 부착 대상 로컬 오프셋. (0 : 미적용)

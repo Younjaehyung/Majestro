@@ -9,6 +9,14 @@ struct CameraView
 };
 
 
+// 시간축을 가진 시네마틱 카메라 키프레임.
+struct CameraKeyframe
+{
+    CameraView view{};
+    float      seconds = 0.f;
+};
+
+
 
 void ConvertMainMenuSample(const json& s, CameraView& v);
 bool IsSameMainMenuStop(const CameraView& a, const CameraView& b);

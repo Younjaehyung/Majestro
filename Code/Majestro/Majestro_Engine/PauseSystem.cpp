@@ -15,6 +15,7 @@
 #include "TagComponent.h"    
 #include "ResourceManager.h"
 #include "Texture.h"
+#include "MathUtils.h"
 
 PauseSystem::PauseSystem(World* world) : System(world)
 {
@@ -102,6 +103,22 @@ void PauseSystem::Update(float dt)
 
     if (ctrl->mPaused)
     {
+        // 배경 등장 연출 : 알파 0 -> 목표, 스케일 mBgStartScale -> 1.0 (SmoothStep 보간)
+        if (ctrl->mBgFadeT < 1.f && ctrl->mBackgroundEntity != NULL_ENTITY)
+        {
+            ctrl->mBgFadeT = (std::min)(1.f, ctrl->mBgFadeT + dt / ctrl->mBgFadeDuration);
+            const float s = SmoothStep01(ctrl->mBgFadeT);
+
+            if (auto* sp = mWorld->GetComponent<UISpriteComponent>(ctrl->mBackgroundEntity))
+                sp->mColorTint.w = ctrl->mBgTargetAlpha * s;
+
+            if (auto* tr = mWorld->GetComponent<UITransformComponent>(ctrl->mBackgroundEntity))
+            {
+                const float scale = ctrl->mBgStartScale + (1.0f - ctrl->mBgStartScale) * s;
+                tr->mScale = Vec2(scale, scale);
+            }
+        }
+
         // 두 장을 한 세트로 왼쪽 이동시키고 첫 장이 화면 밖으로 나가면
         // 정확히 한 장 너비만큼 되돌려 끊김 없는 반복 띠를 유지한다.
         ctrl->mWordBandOffset -= ctrl->mWordBandScrollSpeed * dt;
@@ -248,4 +265,11 @@ void PauseSystem::ApplyBackgroundTexture(PauseMenuController* ctrl)
             lineSprite->mVisible = false;
         }
     }
+
+    // 배경 텍스처 교체 직후 등장 연출(페이드인 + 줌인)을 처음부터 재생한다.
+    // Pause 진입과 하위 화면 전환 모두 이 함수를 거치므로 메인메뉴처럼 매번 "촥" 등장한다.
+    ctrl->mBgFadeT       = 0.f;
+    sprite->mColorTint.w = 0.f;
+    if (auto* bgTr = mWorld->GetComponent<UITransformComponent>(ctrl->mBackgroundEntity))
+        bgTr->mScale = Vec2(ctrl->mBgStartScale, ctrl->mBgStartScale);
 }

@@ -29,6 +29,13 @@ public:
     // 캐릭터별 전체화면 배경 레이어 sprite
     Entity mBackgroundEntity = NULL_ENTITY;
 
+    // 배경 등장 연출(메인메뉴와 동일: 알파 페이드인 + 줌인).
+    // mBgFadeT 가 1 이면 연출 완료(비활성), Pause 진입/상태 전환 시 0 으로 리셋해 재생.
+    float mBgFadeT        = 1.0f;   // 진행도 0 -> 1
+    float mBgFadeDuration = 0.4f;   // 등장 시간(초)
+    float mBgTargetAlpha  = 1.0f;   // 목표 알파
+    float mBgStartScale   = 2.05f;  // 시작 스케일(줌인 시작점) -> 1.0 으로 수렴
+
     // Pause 루트 버튼과 각 버튼 위에 표시하는 호버 선 엔티티다.
     std::array<Entity, 4> mRootButtons{};
     std::array<Entity, 4> mRootHoverLines{};

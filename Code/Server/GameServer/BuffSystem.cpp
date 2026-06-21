@@ -100,7 +100,7 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
             return;
 
         const int32 beforeHp = health->mCurrentHp;
-        health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + 2);
+        health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + 5);
 
         if (beforeHp != health->mCurrentHp)
         {
@@ -115,7 +115,7 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
             return;
 
         const int32 beforeArmor = armor->mCurrentArmor;
-        armor->mCurrentArmor = (std::min)(armor->mMaxArmor, armor->mCurrentArmor + 5);
+        armor->mCurrentArmor = (std::min)(armor->mMaxArmor, armor->mCurrentArmor + 2);
 
         if (beforeArmor != armor->mCurrentArmor)
         {

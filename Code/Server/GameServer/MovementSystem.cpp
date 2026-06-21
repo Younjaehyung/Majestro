@@ -136,11 +136,12 @@ void MovementSystem::Update(float dt) {
 
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
-	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
+
 
 
 	UpdateGravity(dt);
 	UpdatePlayer(dt);
+	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;;
 	UpdateEnemy(dt);
 	UpdateFlyHeight(dt);
 	UpdateBullet(dt);
@@ -477,6 +478,7 @@ Vec3 MovementSystem::SweepSlideHorizontal(GravityComponent* grav, const Vec3& pr
 
 void MovementSystem::UpdateEnemy(float dt)
 {
+	
 	//enemy movement
 	constexpr float kTurnSpeedDegPerSec = 360.0f;
 	static constexpr float MIN_MOVE_SQ = 0.01f * 0.01f;

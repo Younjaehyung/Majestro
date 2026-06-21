@@ -260,6 +260,20 @@ void BeatSystem::ApplyPendingBuffRequests()
 
 			buffComponent->AddOrRefresh(buff);
 
+			TransformComponent* transformComponent = mWorld->GetComponent<TransformComponent>(request.target);
+			if (transformComponent != nullptr)
+			{
+				eventManager->Enqueue<EvEffectSpawn>(EvEffectSpawn{
+					static_cast<uint8>(request.skillType),
+					transformComponent->mWorldPosition.x,
+					transformComponent->mWorldPosition.y,
+					transformComponent->mWorldPosition.z,
+					EffectSpawnReason::Fire,
+					transformComponent->mLocalRotationE.x,
+					transformComponent->mLocalRotationE.y,
+					transformComponent->mLocalRotationE.z });
+			}
+
 		}
 		else if (request.skillType == SkillType::DrumSkill3)
 		{

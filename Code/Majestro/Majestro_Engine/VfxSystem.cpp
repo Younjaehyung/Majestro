@@ -252,6 +252,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::DrumSkill1)
 			return VfxSpawnDesc{ L"VFX_Rudwig_Skill_01", Vec3(0.f, 100.f, 80.f), Vec3(10.0f) };
 
+		if (skillType == SkillType::DrumSkill2)
+			return VfxSpawnDesc{ L"VFX_Rudwig_Skill_02", Vec3(0.f, 100.f, 80.f), Vec3(10.0f) };
+
 		if (skillType == SkillType::DrumSkill3)
 			return VfxSpawnDesc{ L"VFX_Rudwig_Reload", Vec3(0.f, 100.f, 80.f), Vec3(10.0f) };
 

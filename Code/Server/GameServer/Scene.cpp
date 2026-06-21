@@ -1021,7 +1021,7 @@ void ThirdScene::Initialize()
 		// 임시
 		const std::wstring gimmickPath = L"../Resources/Json/Map003_Gimmicks.json";
 		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
-		SpawnFixedEnemy(mWorld.get(), EnemyType::Brass, Vec3(-1600.0f, 0.0f, 5.0f));
+		SpawnFixedEnemy(mWorld.get(), EnemyType::Brass, Vec3(-3000.0f, 0.0f, 5.0f));
 	
 		gameMode->Initialize();
 

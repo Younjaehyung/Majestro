@@ -29,6 +29,7 @@ namespace
     constexpr uint8 kBrassSkill3ShotCount = 16;
     constexpr uint8 kBrassSkill3PatternShotCount = 8;
     constexpr float kBrassSkill3DurationBeats = 8.0f;
+    constexpr float kBrassSkill2FireDelayBeats = 1.5f;
 
     float FlatDistanceSquared(const Vec3& a, const Vec3& b)
     {
@@ -437,7 +438,7 @@ void EnemySystem::Update(float dt)
                 enemyComp->mPendingSkillType != 0 ||
                 now <= enemyComp->mAttackAnimEndTime))
                 ? EnemyAnimState::Attack
-                : EnemyAnimState::Idle;
+                : EnemyAnimState::Run;
         else if (nearestPlayerDistSq <= enemyComp->AttackRangeSq || bongomanCommittedAttack)
             currentState = EnemyAnimState::Attack;
 
@@ -488,10 +489,19 @@ void EnemySystem::Update(float dt)
             (currentState != EnemyAnimState::Attack || enemyComp->mNextAttackTime > now))
             enemyComp->mPianoRushVfxPlayed = false;
 
-        if (currentState == EnemyAnimState::Attack && HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
+        if (currentState == EnemyAnimState::Attack)
         {
-            ++entityIndex;
-            continue;
+            if (HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
+            {
+                ++entityIndex;
+                continue;
+            }
+
+            if (enemyComp->mEnemyType == EnemyType::Brass &&
+                !enemyComp->mBossEncounterActivated)
+            {
+                currentState = EnemyAnimState::Idle;
+            }
         }
 
         if (currentState != EnemyAnimState::Run)
@@ -705,7 +715,7 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            std::uniform_int_distribution<int> brassPick(0, 3);
+            std::uniform_int_distribution<int> brassPick(1, 1);
 	            const uint8 pattern = static_cast<uint8>(brassPick(RandomEngine()));
 	            enemyComp->mBrassAttackPattern = pattern;
 
@@ -724,7 +734,7 @@ bool EnemySystem::HandleAttackState(
 
             if (brassSkill == SkillType::BrassSkill2)
             {
-                enemyComp->mPendingAttackTime = nowSeconds + beatSeconds;
+                enemyComp->mPendingAttackTime = nowSeconds + beatSeconds * kBrassSkill2FireDelayBeats;
                 enemyComp->mPendingSkillType = static_cast<uint8>(brassSkill);
                 enemyComp->mAttackAnimEndTime = enemyComp->mPendingAttackTime + enemyComp->mAttackAnimTime;
             }
@@ -782,6 +792,8 @@ bool EnemySystem::HandleAttackState(
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(-500.0f, 0.0f, -150.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Slime, Vec3(500.0f, 0.0f, -150.0f));
 	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
 	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
 	                }

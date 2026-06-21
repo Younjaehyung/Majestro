@@ -106,13 +106,15 @@ namespace
 		case SkillType::GuitarAttack:
 			return { 25.0f, 3.0f, 500.0f, 150.0f, 0.0f };
 		case SkillType::GuitarSkill1:
-			return { 65.0f, 3.0f, 800.0f, 150.0f, 0.0f };
+			return { 75.0f, 3.0f, 800.0f, 150.0f, 0.0f };
 		case SkillType::PianoAttack:
-			return { 20.0f, 3.0f, 200.0f, 360.0f, 0.0f };
+			return { 30.0f, 3.0f, 200.0f, 360.0f, 0.0f };
 		case SkillType::SlimeAttack:
-			return { 10.0f, 3.0f, 500.0f, 360.0f, 0.0f };
+			return { 20.0f, 3.0f, 500.0f, 360.0f, 0.0f };
+		case SkillType::FlyAttack:
+			return { 20.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::BongoAttack:
-			return { 40.0f, 3.0f, 500.0f, 360.0f, 0.0f };
+			return { 60.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		default:
 			return {};
 		}
@@ -262,8 +264,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		damageEvent.instigator = request.shooter;
 		damageEvent.target = target;
 		damageEvent.skillType = request.bulletType;
-		const float baseDamage = attackerIsFly ? 10.0f : stat.damage;
-		damageEvent.amount = static_cast<int32>((std::max)(0.0f, baseDamage * attackMultiplier));
+		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage * attackMultiplier));
 		damageEvent.isCritical = request.isCritical;
 		if (damageEvent.isCritical)
 			damageEvent.amount *= 2;

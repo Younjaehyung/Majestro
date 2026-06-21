@@ -311,6 +311,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::SlimeAttack)
 			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 20.f, 0.f), Vec3(100.0f) };
 
+		if (skillType == SkillType::FlyAttack)
+			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 20.f, 0.f), Vec3(100.0f) };
+
 		if (skillType == SkillType::BongoAttack)
 			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 20.f, 0.f), Vec3(100.0f) };
 

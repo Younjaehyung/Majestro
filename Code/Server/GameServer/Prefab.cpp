@@ -107,15 +107,15 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
   switch (playerType) {
   case PlayerType::Rudwig:
-	  world->AddComponent<HealthComponent>(mEntityID, 150, 150);
+	  world->AddComponent<HealthComponent>(mEntityID, 200, 200);
 	  world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 	  break;
   case PlayerType::Ibanix:
-	  world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+	  world->AddComponent<HealthComponent>(mEntityID, 150, 150);
 	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
   case PlayerType::Fanthor:
-	  world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+	  world->AddComponent<HealthComponent>(mEntityID, 250, 250);
 	  world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 	  break;
   }
@@ -244,16 +244,16 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		center = Vec3(0, 50, 0);
 		half = Vec3(130, 250, 130);
 		world->AddComponent<EnemyComponent>(mEntityID, enemyType, 200);
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 200, 200);
 		break;
 	case EnemyType::Pianoman:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman, 300);
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 75, 75);
 		break;
 	case EnemyType::Bongoman:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman, 300);
 		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
-		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+		world->AddComponent<HealthComponent>(mEntityID, 250, 250);
 		center = Vec3(0,50,0);
 		half = Vec3(100,200,100);
 		break;
@@ -268,11 +268,11 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 			FlyComponent& fly = world->AddComponent<FlyComponent>(mEntityID);
 			fly.mGround = t.mLocalPosition.y;
 		}
-		world->AddComponent<HealthComponent>(mEntityID, 20, 20);
+		world->AddComponent<HealthComponent>(mEntityID, 50, 50);
 		break;
 	case EnemyType::Brass:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Brass, 150);
-		world->AddComponent<HealthComponent>(mEntityID, 1000, 1000);
+		world->AddComponent<HealthComponent>(mEntityID, 5000, 5000);
 		break;
 	}
 

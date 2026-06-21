@@ -234,7 +234,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	case PlayerType::Rudwig:
 	{
-		world->AddComponent<HealthComponent>(mEntityID, 150, 150);
+		world->AddComponent<HealthComponent>(mEntityID, 200, 200);
 		world->AddComponent<ArmorComponent>(mEntityID, 200, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Rudwig_Body");
@@ -287,7 +287,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case PlayerType::Ibanix:
 	{
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 150, 150);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Ibanix_Body");
@@ -322,7 +322,7 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case PlayerType::Fanthor:
 	{
-		world->AddComponent<HealthComponent>(mEntityID, 125, 125);
+		world->AddComponent<HealthComponent>(mEntityID, 250, 250);
 		world->AddComponent<ArmorComponent>(mEntityID, 50, 0);
 
 		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_Fanthor_Body");
@@ -640,7 +640,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Die"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Slime_Idle"));
 
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 200, 200);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Pianoman:
@@ -652,7 +652,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Die"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Pianoman_Idle"));
 
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 75, 75);
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Pianoman);
 		break;
 	case EnemyType::Bongoman:
@@ -665,7 +665,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Bongoman_Idle"));
 		hp.mWorldOffset = Vec3(0.f, 400.f, 0.f);
 		world->AddComponent<ArmorComponent>(mEntityID, 100, 0);
-		world->AddComponent<HealthComponent>(mEntityID, 100, 100);
+		world->AddComponent<HealthComponent>(mEntityID, 250, 250);
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Bongoman);
 
 		center = Vec3(0, 50, 0);
@@ -697,7 +697,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Mew_Attack_01"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Mew_Die"));
 
-		world->AddComponent<HealthComponent>(mEntityID, 20, 20);
+		world->AddComponent<HealthComponent>(mEntityID, 50, 50);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Brass:
@@ -714,7 +714,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_04"));
 
 		t.mLocalScale = { 1.3f, 1.3f, 1.3f };
-		world->AddComponent<HealthComponent>(mEntityID, 1000, 1000);
+		world->AddComponent<HealthComponent>(mEntityID, 5000, 5000);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	}

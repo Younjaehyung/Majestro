@@ -359,6 +359,12 @@ void EnemySystem::Update(float dt) {
 					return;
 				radius = kBongomanAttackRadius;
 			}
+			else if (e.skillType == SkillType::FlyAttack)
+			{
+				if (!RenderSystem::GetDrawEnemyAttackRanges())
+					return;
+				radius = kBongomanAttackRadius;
+			}
 			else if (e.skillType == SkillType::BongoAttack)
 			{
 				if (!RenderSystem::GetDrawEnemyAttackRanges())

@@ -22,7 +22,7 @@ inline BulletStat GetBulletStat(SkillType type)
 	//case SkillType::DrumSkill1: return BulletStat{ 75.0f, 90.0f, 0.42f, 2.7f, 36.0f, 2 };
 	//case SkillType::DrumSkill2: return BulletStat{ 0.0f, 70.0f, 0.60f, 3.2f, 55.0f, 1 };
 
-	case SkillType::BaseAttack: return BulletStat{ 30.0f, 5300.0f, 0.5f, 6.0f, 0.0f, false };
+	case SkillType::BaseAttack: return BulletStat{ 25.0f, 5300.0f, 0.5f, 6.0f, 0.0f, false };
 	case SkillType::BaseSkill1: return BulletStat{ 75.0f, 1000.0f, 0.5f, 6.6f, 50.0f, true };
 	//case SkillType::BaseSkill2: return BulletStat{ 0.0f, 80.0f, 0.50f, 3.0f, 40.0f, 1 };
 
@@ -31,10 +31,10 @@ inline BulletStat GetBulletStat(SkillType type)
 		case SkillType::GuitarAttack_3: return BulletStat{ 70.0f, 4000.0f, 50.0f, 0.5f, 32.0f, false };
 
 
-	case SkillType::HornAttack: return BulletStat{ 20.0f, 950.0f, 0.45f, 2.8f, 0.0f, false };
-	case SkillType::BrassSkill2: return BulletStat{ 75.0f, 500.0f, 1.45f, 5.0f, 0.0f, false };
+	case SkillType::HornAttack: return BulletStat{ 25.0f, 950.0f, 0.45f, 2.8f, 0.0f, false };
+	case SkillType::BrassSkill2: return BulletStat{ 100.0f, 500.0f, 50.00f, 5.0f, 0.0f, false };
 	case SkillType::BrassSkill3: return BulletStat{ 25.0f, 1100.0f, 0.40f, 2.2f, 0.0f, false };
-	case SkillType::BrassSkill4: return BulletStat{ 50.0f, 900.0f, 100.0f, 20.0f, 0.0f, true, true };
+	case SkillType::BrassSkill4: return BulletStat{ 75.0f, 900.0f, 100.0f, 20.0f, 0.0f, true, true };
 
 	case SkillType::Default:
 	default:

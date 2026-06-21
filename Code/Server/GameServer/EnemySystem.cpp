@@ -593,7 +593,7 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::SlimeAttack });
+            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::FlyAttack });
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }

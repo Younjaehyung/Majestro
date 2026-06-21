@@ -1,5 +1,5 @@
 {
-    "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm. ConquestZone: valueA=점령지 번호, valueB=점령 시간(초, 0이면 기본값).",
+  "_comment": "MapDesert(map002) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm. ConquestZone: valueA=점령지 번호, valueB=점령 시간(초, 0이면 기본값).",
 
   "playerSpawn": [ -8200, 103, -7346 ],
   "playerSpawns": {
@@ -89,43 +89,183 @@
   ],
 
   "spawnTables": {
-    "table1": {
+    "Horn_Intro": {
+      "_comment": "혼맨_입문",
+      "entries": [
+        {
+          "type": "HornMan",
+          "count": 1
+        }
+      ]
+    },
+    "Fly_Intro": {
+      "_comment": "플라이몹_입문",
+      "entries": [
+        {
+          "type": "Fly",
+          "count": 1
+        }
+      ]
+    },
+    "Piano_Intro": {
+      "_comment": "피아노맨_입문",
+      "entries": [
+        {
+          "type": "Pianoman",
+          "count": 1
+        }
+      ]
+    },
+    "Bongo_Intro": {
+      "_comment": "봉고맨_입문",
+      "entries": [
+        {
+          "type": "Bongoman",
+          "count": 1
+        }
+      ]
+    },
+    "Slime_Intro": {
+      "_comment": "슬라임_입문",
+      "entries": [
+        {
+          "type": "Slime",
+          "count": 1
+        }
+      ]
+    },
+    "Horn_Easy": {
+      "_comment": "혼맨_쉬움",
+      "entries": [
+        {
+          "type": "HornMan",
+          "count": 2
+        }
+      ]
+    },
+    "Fly_Easy": {
+      "_comment": "플라이몹_쉬움",
+      "entries": [
+        {
+          "type": "Fly",
+          "count": 2
+        }
+      ]
+    },
+    "Piano_Easy": {
+      "_comment": "피아노맨_쉬움",
+      "entries": [
+        {
+          "type": "Pianoman",
+          "count": 2
+        }
+      ]
+    },
+    "Bongo_Easy": {
+      "_comment": "봉고맨_쉬움",
       "entries": [
         {
           "type": "Bongoman",
           "count": 2
-        },
+        }
+      ]
+    },
+    "Slime_Easy": {
+      "_comment": "슬라임_쉬움",
+      "entries": [
         {
-          "type": "Pianoman",
-          "count": 1
-        },
+          "type": "Slime",
+          "count": 2
+        }
+      ]
+    },
+    "Horn_Normal": {
+      "_comment": "혼맨_보통",
+      "entries": [
         {
           "type": "HornMan",
           "count": 3
         }
       ]
     },
-    "table2": {
+    "Fly_Normal": {
+      "_comment": "플라이몹_보통",
       "entries": [
         {
-          "type": "Pianoman",
-          "count": 2
-        },
-        {
-          "type": "HornMan",
-          "count": 2
+          "type": "Fly",
+          "count": 3
         }
       ]
     },
-    "table3": {
+    "Piano_Normal": {
+      "_comment": "피아노맨_보통",
+      "entries": [
+        {
+          "type": "Pianoman",
+          "count": 3
+        }
+      ]
+    },
+    "Bongo_Normal": {
+      "_comment": "봉고맨_보통",
       "entries": [
         {
           "type": "Bongoman",
-          "count": 1
-        },
+          "count": 3
+        }
+      ]
+    },
+    "Slime_Normal": {
+      "_comment": "슬라임_보통",
+      "entries": [
+        {
+          "type": "Slime",
+          "count": 3
+        }
+      ]
+    },
+    "Horn_Hard": {
+      "_comment": "혼맨_어려움",
+      "entries": [
         {
           "type": "HornMan",
-          "count": 4
+          "count": 5
+        }
+      ]
+    },
+    "Fly_Hard": {
+      "_comment": "플라이몹_어려움",
+      "entries": [
+        {
+          "type": "Fly",
+          "count": 5
+        }
+      ]
+    },
+    "Piano_Hard": {
+      "_comment": "피아노맨_어려움",
+      "entries": [
+        {
+          "type": "Pianoman",
+          "count": 5
+        }
+      ]
+    },
+    "Bongo_Hard": {
+      "_comment": "봉고맨_어려움",
+      "entries": [
+        {
+          "type": "Bongoman",
+          "count": 5
+        }
+      ]
+    },
+    "Slime_Hard": {
+      "_comment": "슬라임_어려움",
+      "entries": [
+        {
+          "type": "Slime",
+          "count": 5
         }
       ]
     }
@@ -142,12 +282,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 4,
+      "maxTotal": 8,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table3" ]
+      "tablePool": [ "Horn_Intro", "Piano_Intro" ]
     },
     {
       "_src_ue": "Spawner UE(-4460,-3100,130)",
@@ -164,7 +304,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table2" ]
+      "tablePool": [ "Slime_Intro", "Fly_Easy" ]
     },
     {
       "_src_ue": "Spawner UE(-9920,1960,130)",
@@ -176,12 +316,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 3,
+      "maxTotal": 4,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table2", "table3" ]
+      "tablePool": [ "Bongo_Intro", "Piano_Intro", "Horn_Intro" ]
     },
     {
       "_src_ue": "Spawner UE(-10560,-3285,130)",
@@ -193,12 +333,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 4,
+      "maxTotal": 8,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table3" ]
+      "tablePool": [ "Horn_Easy", "Piano_Easy" ]
     },
     {
       "_src_ue": "Spawner UE(-4460,-3100,130)",
@@ -210,12 +350,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
+      "maxAlive": 3,
       "maxTotal": 6,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table2" ]
+      "tablePool": [ "Slime_Intro", "Fly_Easy" ]
     },
     {
       "_src_ue": "Spawner UE(-9920,1960,130)",
@@ -227,12 +367,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
+      "maxAlive": 3,
       "maxTotal": 6,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table2", "table3" ]
+      "tablePool": [ "Bongo_Intro", "Piano_Intro", "Horn_Intro" ]
     },
     {
       "_src_ue": "Spawner UE(-10560,-3285,130)",
@@ -244,12 +384,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 6,
+      "maxTotal": 12,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table3" ]
+      "tablePool": [ "Horn_Normal", "Piano_Normal" ]
     },
     {
       "_src_ue": "Spawner UE(-4460,-3100,130)",
@@ -261,12 +401,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 4,
+      "maxTotal": 8,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table2" ]
+      "tablePool": [ "Slime_Easy", "Fly_Easy" ]
     },
     {
       "_src_ue": "Spawner UE(-9920,1960,130)",
@@ -278,12 +418,12 @@
       "nextTableInterval": 8.0,
       "repeatPool": true,
       "randomTableFromPool": true,
-      "maxAlive": 2,
-      "maxTotal": 6,
+      "maxAlive": 5,
+      "maxTotal": 10,
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "table1", "table2", "table3" ]
+      "tablePool": [ "Bongo_Intro", "Piano_Easy", "Horn_Easy" ]
     }
   ],
 

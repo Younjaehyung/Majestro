@@ -270,7 +270,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "Horn_Intro, Piano_Intro" ]
+      "tablePool": [ "Horn_Intro","Piano_Intro" ]
     },
     {
       "id": "first_scene_spawner_b",
@@ -318,7 +318,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "Slime_Intro, Fly_Easy" ]
+      "tablePool": [ "Slime_Intro","Fly_Easy" ]
     },
     {
       "id": "first_scene_spawner_e",
@@ -382,7 +382,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "Fly_Easy, Horn_Normal" ]
+      "tablePool": [ "Fly_Easy", "Horn_Normal" ]
     },
     {
       "id": "first_scene_spawner_i",
@@ -398,7 +398,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "Bongo_Easy, Fly_Easy" ]
+      "tablePool": [ "Bongo_Easy", "Fly_Easy" ]
     },
     {
       "id": "first_scene_spawner_j",
@@ -414,7 +414,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "Piano_Normal, Slime_Intro" ]
+      "tablePool": [ "Piano_Normal", "Slime_Intro" ]
     },
     {
       "id": "first_scene_spawner_k",
@@ -478,7 +478,7 @@
       "spawnRadius": 150.0,
       "startActive": true,
       "randomSpawnFromTable": false,
-      "tablePool": [ "Horn_Normal, Piano_Normal" ]
+      "tablePool": [ "Horn_Normal", "Piano_Normal" ]
     }
   ],
 

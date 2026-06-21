@@ -1022,9 +1022,7 @@ void ThirdScene::Initialize()
 		const std::wstring gimmickPath = L"../Resources/Json/Map003_Gimmicks.json";
 		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
 		SpawnFixedEnemy(mWorld.get(), EnemyType::Brass, Vec3(-1600.0f, 0.0f, 5.0f));
-		SpawnFixedEnemy(mWorld.get(), EnemyType::Obelisk, Vec3(-1600.0f, 0.0f, 500.0f));
-		SpawnFixedEnemy(mWorld.get(), EnemyType::Obelisk, Vec3(-1600.0f, 0.0f, -470.0f));
-
+	
 		gameMode->Initialize();
 
 	mSceneId = SceneId::ThirdGame;

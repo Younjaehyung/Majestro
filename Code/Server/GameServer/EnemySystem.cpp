@@ -437,7 +437,7 @@ void EnemySystem::Update(float dt)
                 enemyComp->mPendingSkillType != 0 ||
                 now <= enemyComp->mAttackAnimEndTime))
                 ? EnemyAnimState::Attack
-                : EnemyAnimState::Run;
+                : EnemyAnimState::Idle;
         else if (nearestPlayerDistSq <= enemyComp->AttackRangeSq || bongomanCommittedAttack)
             currentState = EnemyAnimState::Attack;
 

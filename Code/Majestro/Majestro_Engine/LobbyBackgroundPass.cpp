@@ -16,11 +16,11 @@ namespace
 		switch (static_cast<PlayerType>(playerType))
 		{
 		case PlayerType::Rudwig:
-			return Vec4(1.00f, 0.45f, 0.12f, 0.48f);
+			return Vec4(1.00f, 0.45f, 0.12f, 0.68f);
 		case PlayerType::Ibanix:
-			return Vec4(0.15f, 1.00f, 0.35f, 0.48f);
+			return Vec4(0.15f, 1.00f, 0.35f, 0.68f);
 		case PlayerType::Fanthor:
-			return Vec4(0.72f, 0.25f, 1.00f, 0.48f);
+			return Vec4(0.72f, 0.25f, 1.00f, 0.68f);
 		default:
 			return Vec4(1.00f, 1.00f, 1.00f, 0.00f);
 		}

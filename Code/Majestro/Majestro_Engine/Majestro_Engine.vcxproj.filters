@@ -1567,6 +1567,9 @@
     <FxCompile Include="..\Resources\Shader\ocean_VS.hlsl">
       <Filter>World\Resource\Shader\80.Post\Style</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\lobby_background_PS.hlsl">
+      <Filter>World\Resource\Shader\60.ETC</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Majestro_Engine.rc" />

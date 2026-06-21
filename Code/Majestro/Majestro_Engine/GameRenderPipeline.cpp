@@ -85,9 +85,11 @@ void GameRenderPipeline::Initialize(World* world)
 
 
     mMotionBlurPass = make_shared<MotionBlurPass>();
+    mMotionBlurPass ->Initialize();
     mPostProcessPass->AddHDRPass(mMotionBlurPass);
 
     mFogPass = make_shared<FogPass>();
+    mFogPass->Initialize();
     mPostProcessPass->AddHDRPass(mFogPass);
 
     // mLuminancePass = make_shared<LuminancePass>();

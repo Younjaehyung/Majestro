@@ -1848,10 +1848,12 @@ void MainMenuScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
 	auto* renderSystemMM = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
 	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
+	shared_ptr<GameRenderPipeline> pipelineMM = std::dynamic_pointer_cast<GameRenderPipeline>(renderSystemMM->GetPipeline());
+	pipelineMM->SetMotionBlurEnabled(false);
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
-
+	
 
 	{
 		Entity roomListEntity = mWorld->CreateEntity();
@@ -2019,79 +2021,66 @@ void LobbyScene::Initialize()
 
 
 
-	//{
-	//	AUDIOMANAGER.InitSpectrumDSP(4096 * 4);
-
-	//	Entity visEntity = mWorld->CreateEntity();
-	//	AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
-
-	//	// 선택: 위치/크기 커스터마이징
-	//	vis.basePosition = Vec2(2560.f, 1240.f);  // 화면 하단 중앙
-	//	vis.barWidth = 7.f;
-	//	vis.barSpacing = 3.f;
-	//	vis.maxBarHeight = 250.f;
-	//	vis.gain = 8.f;
-	//}
-
-	{
-		AUDIOMANAGER.InitSpectrumDSP(2048);
-
-		Entity visEntity = mWorld->CreateEntity();
-		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
-
-		// 선택: 위치/크기 커스터마이징
-		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
-		vis.barWidth = 6.f;
-		vis.barSpacing = 0.5f;
-		vis.maxBarHeight = 25.f;
-		vis.gain = 8.f;
-		vis.isVisible = true;
-
-#ifdef _IMGUI
-
-		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
-		std::vector<EditorProperty> props;
-		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
-		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
-		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
-		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
-		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
-		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
-		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
-		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
-		visImgui.RegisterEditorProperties(props);
-		visImgui.SetName("Audio Visualizer");
-#endif
-	}
-
-	// 원형 오디오 비주얼라이저 — 화면 중앙, 흰색 방사형 막대 (미니멀 스타일)
-	{
-		Entity circEntity = mWorld->CreateEntity();
-		CircularVisualizerComponent& circ = mWorld->AddComponent<CircularVisualizerComponent>(circEntity);
-		circ.center       = Vec2(2560.f * 0.5f, 1440.f * 0.5f);  // 화면 정중앙
-		circ.baseRadius   = 160.f;  // 막대 안쪽 끝 고정 반지름 — 중앙 원은 비워짐
-		circ.minBarLength = 4.f;    // 무음 시 점선 링 형태 유지
-		circ.maxBarLength = 90.f;
-		circ.barWidth     = 3.f;    // 둘레 간격(2πr/128 ≈ 7.9px)보다 작아 막대끼리 분리됨
-		circ.gain         = 12.f;
-
-#ifdef _IMGUI
-		IMGUIComponent& circImgui = mWorld->AddComponent<IMGUIComponent>(circEntity);
-		std::vector<EditorProperty> circProps;
-		circProps.push_back({ "Center",          PropertyType::Vec2,  &circ.center,        0.f,    0.f });
-		circProps.push_back({ "Base Radius",     PropertyType::Float, &circ.baseRadius,   10.f,  600.f });
-		circProps.push_back({ "Min Bar Length",  PropertyType::Float, &circ.minBarLength,  0.f,   30.f });
-		circProps.push_back({ "Max Bar Length",  PropertyType::Float, &circ.maxBarLength,  5.f,  400.f });
-		circProps.push_back({ "Bar Width",       PropertyType::Float, &circ.barWidth,      1.f,   10.f });
-		circProps.push_back({ "Gain",            PropertyType::Float, &circ.gain,          0.1f,  30.f });
-		circProps.push_back({ "Rise Smooth",     PropertyType::Float, &circ.riseSmooth,    1.f,   80.f });
-		circProps.push_back({ "Fall Smooth",     PropertyType::Float, &circ.fallSmooth,    0.1f,  30.f });
-		circProps.push_back({ "Use Spikes",      PropertyType::Bool,  &circ.useSpikes,     0.f,    0.f });
-		circProps.push_back({ "Visible",         PropertyType::Bool,  &circ.isVisible,     0.f,    0.f });
-		circImgui.RegisterEditorProperties(circProps);
-		circImgui.SetName("Circular Visualizer");
-#endif
-	}
+//
+//	{
+//		AUDIOMANAGER.InitSpectrumDSP(2048);
+//
+//		Entity visEntity = mWorld->CreateEntity();
+//		AudioVisualizerComponent& vis = mWorld->AddComponent<AudioVisualizerComponent>(visEntity);
+//
+//		// 선택: 위치/크기 커스터마이징
+//		vis.basePosition = Vec2(2560.f / 2, 700.f);  // 화면 하단 중앙
+//		vis.barWidth = 6.f;
+//		vis.barSpacing = 0.5f;
+//		vis.maxBarHeight = 25.f;
+//		vis.gain = 8.f;
+//		vis.isVisible = true;
+//
+//#ifdef _IMGUI
+//
+//		IMGUIComponent& visImgui = mWorld->AddComponent<IMGUIComponent>(visEntity);
+//		std::vector<EditorProperty> props;
+//		props.push_back({ "Base Position",  PropertyType::Vec2,  &vis.basePosition,  0.f,    0.f });
+//		props.push_back({ "Bar Width",      PropertyType::Float, &vis.barWidth,       1.f,   50.f });
+//		props.push_back({ "Bar Spacing",    PropertyType::Float, &vis.barSpacing,     0.f,   20.f });
+//		props.push_back({ "Max Height",     PropertyType::Float, &vis.maxBarHeight,   10.f, 800.f });
+//		props.push_back({ "Gain",           PropertyType::Float, &vis.gain,           0.1f,  30.f });
+//		props.push_back({ "Rise Smooth",    PropertyType::Float, &vis.riseSmooth,     1.f,   50.f });
+//		props.push_back({ "Fall Smooth",    PropertyType::Float, &vis.fallSmooth,     0.1f,  20.f });
+//		props.push_back({ "Visible",        PropertyType::Bool,  &vis.isVisible,      0.f,    0.f });
+//		visImgui.RegisterEditorProperties(props);
+//		visImgui.SetName("Audio Visualizer");
+//#endif
+//	}
+//
+//	// 원형 오디오 비주얼라이저 — 화면 중앙, 흰색 방사형 막대 (미니멀 스타일)
+//	{
+//		Entity circEntity = mWorld->CreateEntity();
+//		CircularVisualizerComponent& circ = mWorld->AddComponent<CircularVisualizerComponent>(circEntity);
+//		circ.center       = Vec2(2560.f * 0.5f, 1440.f * 0.5f);  // 화면 정중앙
+//		circ.baseRadius   = 160.f;  // 막대 안쪽 끝 고정 반지름 — 중앙 원은 비워짐
+//		circ.minBarLength = 4.f;    // 무음 시 점선 링 형태 유지
+//		circ.maxBarLength = 90.f;
+//		circ.barWidth     = 3.f;    // 둘레 간격(2πr/128 ≈ 7.9px)보다 작아 막대끼리 분리됨
+//		circ.gain         = 12.f;
+//
+//#ifdef _IMGUI
+//		IMGUIComponent& circImgui = mWorld->AddComponent<IMGUIComponent>(circEntity);
+//		std::vector<EditorProperty> circProps;
+//		circProps.push_back({ "Center",          PropertyType::Vec2,  &circ.center,        0.f,    0.f });
+//		circProps.push_back({ "Base Radius",     PropertyType::Float, &circ.baseRadius,   10.f,  600.f });
+//		circProps.push_back({ "Min Bar Length",  PropertyType::Float, &circ.minBarLength,  0.f,   30.f });
+//		circProps.push_back({ "Max Bar Length",  PropertyType::Float, &circ.maxBarLength,  5.f,  400.f });
+//		circProps.push_back({ "Bar Width",       PropertyType::Float, &circ.barWidth,      1.f,   10.f });
+//		circProps.push_back({ "Gain",            PropertyType::Float, &circ.gain,          0.1f,  30.f });
+//		circProps.push_back({ "Rise Smooth",     PropertyType::Float, &circ.riseSmooth,    1.f,   80.f });
+//		circProps.push_back({ "Fall Smooth",     PropertyType::Float, &circ.fallSmooth,    0.1f,  30.f });
+//		circProps.push_back({ "Use Spikes",      PropertyType::Bool,  &circ.useSpikes,     0.f,    0.f });
+//		circProps.push_back({ "Visible",         PropertyType::Bool,  &circ.isVisible,     0.f,    0.f });
+//		circImgui.RegisterEditorProperties(circProps);
+//		circImgui.SetName("Circular Visualizer");
+//#endif
+//	}
 
 	// 로비 Room 엔티티
 	{
@@ -2368,7 +2357,6 @@ void SecondScene::Initialize()
 	AUDIOMANAGER.RequestBGM("event:/Escort", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
-	TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 	//EnemyPrefab	enemys {mWorld.get() };

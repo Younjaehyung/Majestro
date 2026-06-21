@@ -204,6 +204,12 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 			continue;
 		if (attackerIsEnemy && !targetIsPlayer)
 			continue;
+		if (targetIsEnemy)
+		{
+			HealthComponent* targetHealth = mWorld->GetComponent<HealthComponent>(target);
+			if (targetHealth && targetHealth->mCurrentHp <= 0)
+				continue;
+		}
 
 
 		TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);

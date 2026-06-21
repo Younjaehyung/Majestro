@@ -26,6 +26,10 @@
 
 namespace
 {
+    constexpr uint8 kBrassSkill3ShotCount = 16;
+    constexpr uint8 kBrassSkill3PatternShotCount = 8;
+    constexpr float kBrassSkill3DurationBeats = 8.0f;
+
     float FlatDistanceSquared(const Vec3& a, const Vec3& b)
     {
         const float dx = a.x - b.x;
@@ -636,10 +640,12 @@ bool EnemySystem::HandleAttackState(
             else
                 baseDir.Normalize();
 
-            const int shotsFired = 8 - static_cast<int>(enemyComp->mBrassSkill3ShotsRemaining);
+            const int shotsFired = static_cast<int>(kBrassSkill3ShotCount) -
+                static_cast<int>(enemyComp->mBrassSkill3ShotsRemaining);
+            const int patternShotIndex = shotsFired % static_cast<int>(kBrassSkill3PatternShotCount);
             const float startYawDeg = -70.0f;
             const float yawStepDeg = 45.0f;
-            const float shotYawDeg = startYawDeg + yawStepDeg * shotsFired;
+            const float shotYawDeg = startYawDeg + yawStepDeg * patternShotIndex;
             const float shotYawRad = DirectX::XMConvertToRadians(shotYawDeg);
             const float cosYaw = std::cos(shotYawRad);
             const float sinYaw = std::sin(shotYawRad);
@@ -726,9 +732,10 @@ bool EnemySystem::HandleAttackState(
             {
                 enemyComp->mPendingAttackTime = nowSeconds;
                 enemyComp->mPendingSkillType = static_cast<uint8>(brassSkill);
-                enemyComp->mAttackAnimEndTime = nowSeconds + beatSeconds * 4.0f;
-                enemyComp->mBrassSkill3ShotsRemaining = 8;
-                enemyComp->mBrassSkill3ShotInterval = beatSeconds * 4.0f / 8.0f;
+                enemyComp->mAttackAnimEndTime = nowSeconds + beatSeconds * kBrassSkill3DurationBeats;
+                enemyComp->mBrassSkill3ShotsRemaining = kBrassSkill3ShotCount;
+                enemyComp->mBrassSkill3ShotInterval =
+                    beatSeconds * kBrassSkill3DurationBeats / static_cast<float>(kBrassSkill3ShotCount);
                 enemyComp->mBrassSkill3NextShotTime = nowSeconds;
 
                 // 시전자(보스) NetworkID를 함께 보내 클라가 VFX를 보스에 추종시키도록 한다.

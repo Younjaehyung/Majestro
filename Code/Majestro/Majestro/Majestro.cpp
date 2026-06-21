@@ -138,8 +138,16 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     /*wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);*/
     wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
     wcex.lpszMenuName   = nullptr;
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+    wcex.lpszClassName = L"Majestro";/*szWindowClass;*/
+
+    wcex.hIcon = static_cast<HICON>(LoadImage(
+        hInstance, MAKEINTRESOURCE(IDI_MAJESTRO),
+        IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED));
+
+    wcex.hIconSm        = wcex.hIcon = static_cast<HICON>(LoadImage(
+        hInstance, MAKEINTRESOURCE(IDI_MAJESTRO),
+        IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED));/*LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));*/
+
 
     return RegisterClassExW(&wcex);
 }

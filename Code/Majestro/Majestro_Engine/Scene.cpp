@@ -1018,6 +1018,12 @@ bool LoadingScene::LoadScene(SceneId id)
 	mTotalTaskCount = (int32)mLoadTasks.size();
 
 
+	// 인게임 리듬 트랙(Elec/Bass/Drum)은 전역 BGM 슬롯이라 씬 전환만으로는 멈추지 않는다.
+	// 로딩 진입 시 명시적으로 정지해 로딩 음악 위에 이전 게임 BGM이 겹쳐 재생되는 것을 막는다.
+	// (다음 게임 씬 AudioSystem::Initialize가 fresh 인스턴스로 다시 요청·T0 정렬)
+	AUDIOMANAGER.StopBGM(SOUNDNAME::Elec);
+	AUDIOMANAGER.StopBGM(SOUNDNAME::Bass);
+	AUDIOMANAGER.StopBGM(SOUNDNAME::Drum);
 	AUDIOMANAGER.RequestBGM("event:/OST/Loading", SOUNDNAME::Ambient);
 	AUDIOMANAGER.Update(0.f);
 
@@ -2116,7 +2122,7 @@ void FirstScene::Initialize()
 	mWorld->SetSceneId(mSceneId);
 
 	
-	AUDIOMANAGER.RequestBGM("event:/OST/Escort", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/EscortMulti", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
@@ -2354,7 +2360,7 @@ void SecondScene::Initialize()
 	mWorld->SetSceneId(mSceneId);
 
 	
-	AUDIOMANAGER.RequestBGM("event:/Escort", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/EscortMulti", SOUNDNAME::Ambient);
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	SkyBoxPrefab skybox{ mWorld.get() };
@@ -2480,7 +2486,7 @@ void ThirdScene::Initialize()
 {
 	mWorld->SetSceneId(mSceneId);
 
-	AUDIOMANAGER.RequestBGM("event:/OST/Escort", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/EscortMulti", SOUNDNAME::Ambient);
 	PrefabFactory::RegisterAllPrefabs();
 
 

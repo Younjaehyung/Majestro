@@ -126,11 +126,11 @@ void AudioSystem::Update(float deltaTime)
             {
                 mPrevEscortStage = static_cast<int>(escort->mEscortStage);
 
-
-                float param = 0.5f * static_cast<float>(mPrevEscortStage);
-                if (param > 1.f) param = 1.f;
-                AUDIOMANAGER.SetBGMParam("NextEscort", SOUNDNAME::Ambient, param, true);
-                std::cout << "[BGM] NextEscort=" << param << " (escortStage=" << mPrevEscortStage << ")" << std::endl;
+                // EscortParam: 0 = Prepare 재생, 1 = 첫 중간거점까지, 2 = 중간거점 점령 후 재생
+                float param = static_cast<float>(mPrevEscortStage);
+                if (param > 2.f) param = 2.f;
+                AUDIOMANAGER.SetBGMParam("EscortParam", SOUNDNAME::Ambient, param, true);
+                std::cout << "[BGM] EscortParam=" << param << " (escortStage=" << mPrevEscortStage << ")" << std::endl;
             }
         }
     }

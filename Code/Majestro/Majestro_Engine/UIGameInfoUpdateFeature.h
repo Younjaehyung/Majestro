@@ -177,6 +177,7 @@ private:
 	void StartRevealStampAnimation(const RevealStampAnimationSpec& spec);
 	void StopRevealStampAnimation();
 	void TriggerAnimationCameraShake(const RevealStampAnimationSpec& spec);
+	void RequestGameSfx(const char* key);
 
 	// 시각 속성을 BannerVisual 한 번에 엔티티 컴포넌트로 적용.
 	void ApplyVisual(const BannerVisual& v);
@@ -224,4 +225,9 @@ private:
 
 	std::unordered_map<WavePhaseType, RevealStampAnimationSpec> mRevealStampAnimationTable;
 	RevealStampAnimationState mRevealStampAnimation;
+
+	// SFX state for prepare countdown and conquest completion.
+	int32 mLastReadyCountdown = -1;
+	int32 mTrackedConquestZoneId = 0;
+	bool mConquestSuccessPlayed = false;
 };

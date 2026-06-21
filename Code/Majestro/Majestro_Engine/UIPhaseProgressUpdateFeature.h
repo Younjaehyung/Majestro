@@ -51,9 +51,6 @@ private:
 	float mFocusAnimDuration = 0.45f; // 포커스 이동/플래시 지속 시간 (초)
 	int32 mCompletedRingIdx  = -1;    // 방금 완료된 링 인덱스(플래시 대상), -1=없음
 
-	// 점령 완료 SFX 키 (SfxTable.json)
-	std::string mConquestCaptureSfxKey = "notify/Game/Conquest_Clear";
-
 	// Escort UI.
 	Vec2  mEscortSizeRatio = Vec2(0.4f, 0.1185f);
 	Vec2  mEscortCursorSizeRatio = Vec2(0.0167f, 0.0296f);

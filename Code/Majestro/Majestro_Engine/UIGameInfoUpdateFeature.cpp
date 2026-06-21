@@ -157,9 +157,33 @@ void UIGameInfoUpdateFeature::Update(float dt)
 	const WavePhaseType newPhase = WavePhaseType(gameRuleComp->mGamePhase);
 	if (newPhase != mCurrentPhase)
 	{
+		const WavePhaseType previousPhase = mCurrentPhase;
+
+		// The Go cue marks the actual transition from prepare to gameplay.
+		if (previousPhase == WavePhaseType::Prepare &&
+			newPhase != WavePhaseType::Prepare)
+		{
+			RequestGameSfx("notify/Game/Ready_Go");
+		}
+
+		// Use the phase exit as a fallback when the last conquest packet
+		// arrives before the progress value reaches the exact target.
+		if (previousPhase == WavePhaseType::Conquest &&
+			newPhase != WavePhaseType::Conquest)
+		{
+			if (mTrackedConquestZoneId != 0 && !mConquestSuccessPlayed)
+				RequestGameSfx("notify/Game/Conquest_Success");
+
+			mTrackedConquestZoneId = 0;
+			mConquestSuccessPlayed = false;
+		}
+
 		mCurrentPhase = newPhase;
 		OnPhaseChanged(newPhase);
 	}
+
+	if (newPhase != WavePhaseType::Prepare)
+		mLastReadyCountdown = -1;
 
 	// 단일 상태머신 tick.
 	TickGoalBanner(dt);
@@ -242,16 +266,30 @@ void UIGameInfoUpdateFeature::UpdatePreparePhase(float dt, GameRuleComponent* ga
 		if (prepareComp->mAllPlayersReady)
 			stream << L"All Players Ready\n";
 
-		stream << L"Game Starts In: "
-			<< static_cast<int32>(std::ceil(prepareComp->mCountdownRemaining));
+		const int32 countdown =
+			static_cast<int32>(std::ceil(prepareComp->mCountdownRemaining));
+
+		stream << L"Game Starts In: " << countdown;
+
+		// Play each countdown cue once when the displayed number changes.
+		if (countdown >= 1 && countdown <= 3 &&
+			countdown != mLastReadyCountdown)
+		{
+			const std::string key =
+				"notify/Game/Ready_" + std::to_string(countdown);
+			RequestGameSfx(key.c_str());
+		}
+		mLastReadyCountdown = countdown;
 	}
 	else if (prepareComp->mReadyCheckRemaining > 0.0f)
 	{
+		mLastReadyCountdown = -1;
 		stream << L"Ready Check In: "
 			<< static_cast<int32>(std::ceil(prepareComp->mReadyCheckRemaining));
 	}
 	else
 	{
+		mLastReadyCountdown = -1;
 		stream << L"Force Start In: "
 			<< static_cast<int32>(std::ceil(prepareComp->mForcedStartRemaining));
 	}
@@ -261,7 +299,29 @@ void UIGameInfoUpdateFeature::UpdatePreparePhase(float dt, GameRuleComponent* ga
 
 void UIGameInfoUpdateFeature::UpdateConquestPhase(float dt, GameRuleComponent* gameRuleComp)
 {
+	GameConquestComponent* conquestComp =
+		mWorld->GetSingleton<GameConquestComponent>();
+	if (!conquestComp)
+		return;
 
+	const int32 zoneId = conquestComp->mActiveZoneId;
+	if (zoneId != 0 && zoneId != mTrackedConquestZoneId)
+	{
+		// A new active zone means the previous zone completed.
+		if (mTrackedConquestZoneId != 0 && !mConquestSuccessPlayed)
+			RequestGameSfx("notify/Game/Conquest_Success");
+
+		mTrackedConquestZoneId = zoneId;
+		mConquestSuccessPlayed = false;
+	}
+
+	if (!mConquestSuccessPlayed &&
+		conquestComp->mRequiredConquestTime > 0.0f &&
+		conquestComp->mWaveTime >= conquestComp->mRequiredConquestTime)
+	{
+		RequestGameSfx("notify/Game/Conquest_Success");
+		mConquestSuccessPlayed = true;
+	}
 }
 
 void UIGameInfoUpdateFeature::UpdateEscortPhase(float dt, GameRuleComponent* gameRuleComp)
@@ -359,12 +419,10 @@ void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 	// 새 모드 배너 연출이 끝날 때까지 이전 모드의 고정 배너는 숨긴다.
 	SetPinnedBannerVisible(false);
 
-	// 게임 클리어 진입 시 1회 효과음 (reveal-stamp early return 전에 발행해 항상 울리도록)
-	if (newPhase == WavePhaseType::Clear)
-	{
-		if (auto em = mWorld->GetEventManager())
-			em->Enqueue(EvSfxRequest{ "notify/Game/Clear", Vec3::Zero });
-	}
+	// Clear and Fail both open the result presentation first.
+	if (newPhase == WavePhaseType::Clear ||
+		newPhase == WavePhaseType::Fail)
+		RequestGameSfx("notify/Game/Result");
 
 	const auto revealStampIt = mRevealStampAnimationTable.find(newPhase);
 	if (revealStampIt != mRevealStampAnimationTable.end())
@@ -413,6 +471,15 @@ void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 	{
 		mStage = BannerStage::Intro;
 	}
+}
+
+void UIGameInfoUpdateFeature::RequestGameSfx(const char* key)
+{
+	if (key == nullptr || key[0] == '\0')
+		return;
+
+	if (auto eventManager = mWorld->GetEventManager())
+		eventManager->Enqueue(EvSfxRequest{ key, Vec3::Zero });
 }
 
 void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
@@ -465,6 +532,10 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 	{
 		mRevealStampAnimation.mStampTriggered = true;
 		TriggerAnimationCameraShake(spec);
+
+		// Game Over is synchronized with the game over stamp UI.
+		if (mCurrentPhase == WavePhaseType::Fail)
+			RequestGameSfx("notify/Game/Over");
 	}
 
 	stampSprite->mVisible = true;
@@ -491,6 +562,10 @@ void UIGameInfoUpdateFeature::TickRevealStampAnimation(float dt)
 			Vec2(spec.mFinalStampStartScale, spec.mFinalStampStartScale);
 		finalStampSprite->mColorTint.w = 0.0f;
 		TriggerAnimationCameraShake(spec);
+
+		// Game Clear is synchronized with the final clear image.
+		if (mCurrentPhase == WavePhaseType::Clear)
+			RequestGameSfx("notify/Game/Clear");
 	}
 
 	const float finalStampDuration = max(spec.mFinalStampDuration, 0.001f);

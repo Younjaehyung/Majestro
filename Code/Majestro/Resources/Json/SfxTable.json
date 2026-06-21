@@ -224,7 +224,42 @@
 
 
     "notify/Game/Clear": {
-      "event": "event:/SFX/Game/SFX_Game_Clear",
+      "event": "event:/SFX/Game/Game_Clear",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Over": {
+      "event": "event:/SFX/Game/Game_Over",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Ready_1": {
+      "event": "event:/SFX/Game/Game_Ready_1",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Ready_2": {
+      "event": "event:/SFX/Game/Game_Ready_2",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Ready_3": {
+      "event": "event:/SFX/Game/Game_Ready_3",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Ready_Go": {
+      "event": "event:/SFX/Game/Game_Ready_Go",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Conquest_Success": {
+      "event": "event:/SFX/Game/Game_Conquest_Success",
+      "is3d": false,
+      "cooldown": 0.05
+    },
+    "notify/Game/Result": {
+      "event": "event:/SFX/Game/Game_Result",
       "is3d": false,
       "cooldown": 0.05
     },
@@ -234,7 +269,7 @@
       "cooldown": 0.05
     },
     "notify/Game/Conquest_Clear": {
-      "event": "event:/SFX/Game/SFX_Game_Conquer_Clear",
+      "event": "event:/SFX/Game/Game_Conquest_Success",
       "is3d": false,
       "cooldown": 0.05
     }

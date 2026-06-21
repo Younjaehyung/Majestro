@@ -139,9 +139,6 @@ void UIPhaseProgressUpdateFeature::UpdateConquestProgress(float dt, GameConquest
 		mCompletedRingIdx = mPrevWave - 1; // 방금 채워진 링 (0-based)
 		mFocusAnimT       = 0.f;           // 포커스 이동/플래시 시작
 
-		// 완료 SFX (2D)
-		if (auto em = mWorld->GetEventManager())
-			em->Enqueue(EvSfxRequest{ mConquestCaptureSfxKey, Vec3::Zero });
 	}
 	mPrevWave = wave;
 

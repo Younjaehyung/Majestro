@@ -359,6 +359,11 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 	case EffectSpawnReason::CheckpointReached:
 		return VfxSpawnDesc{ L"VFX_Monster_Spawn", Vec3(0.f, 100.f, 0.f), Vec3(5.0f) };
 
+	case EffectSpawnReason::Death:
+		if (skillType == SkillType::BrassSkill1)
+			return VfxSpawnDesc{ L"VFX_BrassBoss_Die", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
+		return std::nullopt;
+
 	default:
 		return std::nullopt;
 	}

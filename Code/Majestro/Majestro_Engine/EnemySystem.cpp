@@ -274,6 +274,19 @@ void EnemySystem::Update(float dt) {
 
 		const bool isDead = (enemyComponent->mAnimState == static_cast<int>(EnemyAnimState::Dead));
 		if (isDead) {
+			if (enemyComponent->mEnemyType == kBrassType &&
+				enemyComponent->mDeadElapsedTime <= 0.0f &&
+				transformComponent != nullptr &&
+				mWorld->GetEventManager() != nullptr)
+			{
+				mWorld->GetEventManager()->Enqueue(EvVfxSpawnRequest{
+					SkillType::BrassSkill1,
+					static_cast<uint8>(EffectSpawnReason::Death),
+					transformComponent->mLocalPosition,
+					transformComponent->mLocalRotationE,
+					0 });
+			}
+
 			enemyComponent->mDeadElapsedTime += dt;
 
 			const uint32 deadClipIdx = static_cast<uint32>(EnemyAnimState::Dead);

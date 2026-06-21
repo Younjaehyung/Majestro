@@ -443,6 +443,7 @@ std::string SfxSystem::SpawnReasonName(uint8 reason)
 	case EffectSpawnReason::CollisionStatic: return "CollisionStatic";
 	case EffectSpawnReason::LifetimeExpired: return "LifetimeExpired";
 	case EffectSpawnReason::Respawn:         return "Respawn";
+	case EffectSpawnReason::Death:           return "Death";
 	default:                                 return std::to_string(static_cast<int>(reason));
 	}
 }

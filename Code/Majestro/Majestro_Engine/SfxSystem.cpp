@@ -7,6 +7,26 @@
 #include "JsonUtils.h"
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
+
+namespace
+{
+	constexpr float kBrassFootstepInterval = 0.45f;
+
+	std::string GetEnemyAttackSfxKey(uint8 enemyType)
+	{
+		switch (static_cast<EnemyType>(enemyType))
+		{
+		case EnemyType::HornMan:  return "monster/HornMan/Attack";
+		case EnemyType::Pianoman: return "monster/Pianoman/Attack";
+		case EnemyType::Bongoman: return "monster/Bongoman/Attack";
+		case EnemyType::Obelisk:  return "monster/Obelisk/Attack";
+		case EnemyType::Fly:      return "monster/Fly/Attack";
+		case EnemyType::Slime:    return "monster/Slime/Attack";
+		default:                  return "";
+		}
+	}
+}
 
 SfxSystem::SfxSystem(World* world) : System(world)
 {
@@ -24,6 +44,7 @@ void SfxSystem::Update(float deltaTime)
 
 	ConsumeEvents();
 	PollPlayerStates();
+	PollEnemyStates();
 }
 
 void SfxSystem::OnWorldEnd()
@@ -268,6 +289,96 @@ void SfxSystem::PollPlayerStates()
 	}
 }
 
+void SfxSystem::PollEnemyStates()
+{
+	if (!mWorld->HasComponentPool<EnemyComponent>())
+		return;
+
+	std::unordered_set<EntityID> aliveEntities;
+
+	for (Entity entity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
+	{
+		EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(entity);
+		if (enemy == nullptr)
+			continue;
+
+		aliveEntities.insert(entity.GetID());
+
+		TransformComponent* transform = mWorld->GetComponent<TransformComponent>(entity);
+		const Vec3* position = transform ? &transform->mWorldPosition : nullptr;
+		EnemySfxState& slot = mEnemyStates[entity.GetID()];
+		const int currentState = enemy->mAnimState;
+
+		if (slot.seen && slot.state != currentState)
+		{
+			// Monster death uses a shared event except for the Brass boss.
+			if (currentState == static_cast<int>(EnemyAnimState::Dead))
+			{
+				const std::string key =
+					enemy->mEnemyType == EnemyType::Brass
+					? "monster/Brass/Die"
+					: "monster/Die";
+				Play(key, position);
+			}
+			// Normal monster attacks are mapped by enemy type.
+			else if (currentState == static_cast<int>(EnemyAnimState::Attack))
+			{
+				const std::string key = GetEnemyAttackSfxKey(enemy->mEnemyType);
+				if (!key.empty())
+					Play(key, position);
+			}
+			// Bongoman has one supplied event, so shield activation reuses it.
+			else if (currentState == static_cast<int>(EnemyAnimState::Shield) &&
+				enemy->mEnemyType == EnemyType::Bongoman)
+			{
+				Play("monster/Bongoman/Attack", position);
+			}
+			// Brass boss skill states have separate FMOD events.
+			else if (enemy->mEnemyType == EnemyType::Brass)
+			{
+				switch (static_cast<EnemyAnimState>(currentState))
+				{
+				case EnemyAnimState::BrassAttack1:
+					Play("monster/Brass/Skill1", position);
+					break;
+				case EnemyAnimState::BrassAttack2:
+					Play("monster/Brass/Skill2", position);
+					break;
+				case EnemyAnimState::BrassAttack3:
+					Play("monster/Brass/Skill3", position);
+					break;
+				case EnemyAnimState::BrassAttack4:
+					Play("monster/Brass/Skill4", position);
+					break;
+				default:
+					break;
+				}
+			}
+		}
+
+		// BrassBoss_Foot has no animation notify data, so use a fixed run interval.
+		if (slot.seen &&
+			enemy->mEnemyType == EnemyType::Brass &&
+			currentState == static_cast<int>(EnemyAnimState::Run) &&
+			mTime >= slot.nextFootstepTime)
+		{
+			Play("monster/Brass/Foot", position);
+			slot.nextFootstepTime = mTime + kBrassFootstepInterval;
+		}
+
+		slot.state = currentState;
+		slot.seen = true;
+	}
+
+	for (auto it = mEnemyStates.begin(); it != mEnemyStates.end();)
+	{
+		if (aliveEntities.count(it->first) == 0)
+			it = mEnemyStates.erase(it);
+		else
+			++it;
+	}
+}
+
 void SfxSystem::StopAllOwnedLoops()
 {
 	for (auto& [entityId, slot] : mSlots)
@@ -276,6 +387,7 @@ void SfxSystem::StopAllOwnedLoops()
 		if (slot.lowerLoop != 0) AUDIOMANAGER.StopLoop(slot.lowerLoop);
 	}
 	mSlots.clear();
+	mEnemyStates.clear();
 }
 
 // 헬퍼

@@ -34,9 +34,18 @@ private:
 		SfxHandle lowerLoop = 0;
 	};
 
+
+	struct EnemySfxState
+	{
+		int state = -1;
+		bool seen = false;
+		float nextFootstepTime = 0.f;
+	};
+
 	void LoadTable(const std::string& path);
 	void ConsumeEvents();
 	void PollPlayerStates();
+	void PollEnemyStates();
 	void StopAllOwnedLoops();
 
 	// 미등록 키면 nullptr (최초 1회만 로그 찍게 둠)
@@ -56,6 +65,7 @@ private:
 	std::unordered_map<std::string, SfxDesc> mTable;
 	std::unordered_map<std::string, float>   mLastPlayTime;   // key : 마지막 재생 시각
 	std::unordered_map<EntityID, EntityLoopSlots> mSlots;
+	std::unordered_map<EntityID, EnemySfxState> mEnemyStates;
 	std::unordered_set<std::string> mWarnedKeys;              // 미등록/실패 키 1회 로그용
 	float mDefaultCooldown = 0.05f;
 	float mTime = 0.f;

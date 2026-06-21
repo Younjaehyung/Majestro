@@ -2888,21 +2888,21 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Noteboar\\SK_NoteBoar_Run.fbx", L"JHToon");
 
 	//mop
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Idle.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Hornman\\Anim_Hornman_Die.fbx", L"JHToon");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Idle.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Die.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Bongoman\\Anim_Bongoman_Shield.fbx", L"JHToon");
 
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Idle.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"Deferred");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"Deferred");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Attack_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\Pianoman\\Anim_Pianoman_Die.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Idle.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Attack_01.fbx", L"JHToon");
@@ -2929,11 +2929,11 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Obelisk\\SM_Obelisk.fbx", L"JHToon");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump\\VFX_Sector_Jump.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk");
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk");
-	//LoadEffect(L"..\\Resources\\Effect\\Area\\VFX_Sector_Jump.efk");
+
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
@@ -2945,7 +2945,6 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Bullet_Slash_1\\VFX_Fanthor_Bullet_Slash_1.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Bullet_Slash_2\\VFX_Fanthor_Bullet_Slash_2.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Bullet_Slash_3\\VFX_Fanthor_Bullet_Slash_3.efk");
-	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Slash_01\\VFX_Fanthor_Slash_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Skill_01\\VFX_Rudwig_Skill_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Reload\\VFX_Rudwig_Reload.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");

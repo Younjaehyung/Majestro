@@ -359,6 +359,13 @@ void UIGameInfoUpdateFeature::OnPhaseChanged(WavePhaseType newPhase)
 	// 새 모드 배너 연출이 끝날 때까지 이전 모드의 고정 배너는 숨긴다.
 	SetPinnedBannerVisible(false);
 
+	// 게임 클리어 진입 시 1회 효과음 (reveal-stamp early return 전에 발행해 항상 울리도록)
+	if (newPhase == WavePhaseType::Clear)
+	{
+		if (auto em = mWorld->GetEventManager())
+			em->Enqueue(EvSfxRequest{ "notify/Game/Clear", Vec3::Zero });
+	}
+
 	const auto revealStampIt = mRevealStampAnimationTable.find(newPhase);
 	if (revealStampIt != mRevealStampAnimationTable.end())
 	{

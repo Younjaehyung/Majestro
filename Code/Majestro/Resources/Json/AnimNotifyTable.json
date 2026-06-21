@@ -1,34 +1,14 @@
 {
   "_comment": "애니메이션 프레임 동기 Notify 테이블. VFX와 SFX는 frame에서 1회 실행한다. cameraShake는 startFrame에서 시작하고 endFrame까지 유지하며 preset으로 CameraShakeSetting.json 값을 조회한다. 카메라 흔들림 지속시간은 애니메이션 프레임 간격으로 계산한다.",
 
-  "Anim_Ibanix_Base": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "root",
-      "useUpper": false,
-      "sfx": "notify/Ibanix/Swing",
-      "is3d": true
-    }
-  ],
-  "Anim_Ibanix_Idle": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "root",
-      "useUpper": false,
-      "sfx": "notify/Ibanix/Swing",
-      "is3d": true
-    }
-  ],
+
   "Anim_Ibanix_Run": [
     {
       "frame": 8,
       "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
       "is3d": true
     }
   ],
@@ -36,19 +16,17 @@
     {
       "frame": 8,
       "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
       "is3d": true
     },
     {
       "frame": 19,
       "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
       "is3d": true
     }
 
@@ -57,19 +35,17 @@
     {
       "frame": 0,
       "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
       "is3d": true
     },
     {
       "frame": 16,
       "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
       "is3d": true
     }
   ],
@@ -77,70 +53,15 @@
     {
       "frame": 8,
       "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    }
-  ],
-  "Anim_Ibanix_Land": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    }
-  ],
-  "Anim_Ibanix_Jump": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    }
-  ],
-
-  "Anim_Ibanix_Fall": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    }
-  ],
-  "Anim_Ibanix_Die": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
       "is3d": true
     }
   ],
 
 
   "Anim_Ibanix_Attack_01": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    },
     {
       "startFrame": 3,
       "endFrame": 8,
@@ -152,32 +73,14 @@
 
   "Anim_Ibanix_Skill_01": [
     {
-      "frame": 20,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    },
-    {
       "startFrame": 11,
       "endFrame": 15,
       "kind": "cameraShake",
-      "useUpper": true,
+      "useUpper": false,
       "preset": "Ibanix_Skill01"
     }
   ],
   "Anim_Ibanix_Rhythm": [
-    {
-      "frame": 8,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Ibanix/Swing",
-      "socket": "rhand_tip",
-      "is3d": true
-    },
     {
       "startFrame": 4,
       "endFrame": 12,
@@ -199,27 +102,6 @@
   ],
 
   "Anim_Fanthor_Attack_01": [
-    {
-      "frame": 12,
-      "kind": "vfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "vfx": "VFX_Fanthor_Slash_01",
-      "socket": "weapon_tip",
-      "offset": [ 0, 0, 0 ],
-      "rotation": [ 0, 0, 0 ],
-      "scale": [ 12, 12, 12 ],
-      "follow": false
-    },
-    {
-      "frame": 11,
-      "kind": "sfx",
-      "anchor": "socket",
-      "useUpper": true,
-      "sfx": "notify/Fanthor/Swing",
-      "socket": "weapon_tip",
-      "is3d": true
-    },
     {
       "startFrame": 9,
       "endFrame": 14,
@@ -300,14 +182,14 @@
       "startFrame": 7,
       "endFrame": 12,
       "kind": "cameraShake",
-      "useUpper": false,
+      "useUpper": true,
       "preset": "Rudwig_Rhythm"
     },
     {
       "startFrame": 18,
       "endFrame": 22,
       "kind": "cameraShake",
-      "useUpper": false,
+      "useUpper": true,
       "preset": "Rudwig_Rhythm"
     }
   ],
@@ -336,7 +218,7 @@
       "startFrame": 5,
       "endFrame": 18,
       "kind": "cameraShake",
-      "useUpper": false,
+      "useUpper": true,
       "preset": "Rudwig_Reload"
     }
   ]

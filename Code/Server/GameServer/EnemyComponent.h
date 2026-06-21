@@ -59,7 +59,7 @@ public:
 			break;
 		case EnemyType::Fly:
 			mAttackCool = 16;
-			AttackRange = 1000.f;
+			AttackRange = 3000.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			mHoverHeight = 250.0f;

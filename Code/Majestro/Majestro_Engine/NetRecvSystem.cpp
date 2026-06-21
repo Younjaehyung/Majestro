@@ -519,7 +519,8 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
         skillType,
         pkt->reason,
         Vec3(pkt->x, pkt->y, pkt->z),
-        Vec3(pkt->rotX, pkt->rotY, pkt->rotZ) });
+        Vec3(pkt->rotX, pkt->rotY, pkt->rotZ),
+        pkt->casterNetId });
 
     const bool pianoAttackDebug = skillType == SkillType::PianoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired);

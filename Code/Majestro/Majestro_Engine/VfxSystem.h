@@ -9,6 +9,7 @@ struct VfxSpawnDesc
 	const wchar_t* effectName = nullptr;
 	Vec3 positionOffset = Vec3::Zero;
 	Vec3 scale = Vec3(1.0f);
+	bool followCaster = false;	// true면 시전자(casterNetId) 엔티티를 매 프레임 추종, false면 고정 월드 VFX
 };
 
 struct BulletVfxDesc
@@ -31,6 +32,7 @@ private:
 	void CreatePool();
 	void ConsumeSpawnEvents();
 	void ReturnFinishedEffects();
+	void UpdateFollowTargets();
 	void AttachBulletVfx(Entity bulletEntity, SkillType skillType, uint16 generation);
 	Entity AcquirePooledEntity();
 	void SetHiddenTransform(TransformComponent& transform);

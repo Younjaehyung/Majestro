@@ -853,6 +853,52 @@ std::vector<CameraView> ResourceManager::LoadCameraViews(const std::wstring& pat
 	return views;
 }
 
+std::vector<CameraKeyframe> ResourceManager::LoadCameraSequence(const std::wstring& path)
+{
+	std::vector<CameraKeyframe> keys;
+
+	std::ifstream ifs(ws2s(path));
+	if (!ifs.is_open())
+	{
+		// 골격 단계: JSON 미준비 시 빈 시퀀스 반환(재생 안 함) — 정상 동작.
+		std::cout << "[LoadCameraSequence] open failed: " << ws2s(path) << std::endl;
+		return keys;
+	}
+
+	json root;
+	try { ifs >> root; }
+	catch (const std::exception& e)
+	{
+		std::cout << "[LoadCameraSequence] parse error: " << e.what() << std::endl;
+		return keys;
+	}
+
+	if (!root.contains("cameras") || !root["cameras"].is_array() || root["cameras"].empty())
+		return keys;
+
+	const auto& cam0 = root["cameras"][0];
+	if (!cam0.contains("path") || !cam0["path"].contains("samples"))
+		return keys;
+
+	const auto& samples = cam0["path"]["samples"];
+	if (!samples.is_array())
+		return keys;
+
+	// LoadCameraViews와 달리 dedup하지 않고 전체 패스를 seconds와 함께 보존한다.
+	keys.reserve(samples.size());
+	for (const auto& s : samples)
+	{
+		CameraKeyframe kf{};
+		ConvertMainMenuSample(s, kf.view);                 // position/basis/fov 변환 재사용
+		kf.seconds = s.contains("seconds") ? GetFloat(s, "seconds") : 0.f;
+		keys.push_back(kf);
+	}
+
+	std::cout << "[LoadCameraSequence] loaded " << keys.size() << " keyframes, duration="
+		<< (keys.empty() ? 0.f : keys.back().seconds) << "s" << std::endl;
+	return keys;
+}
+
 
 shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FORMAT format, uint32 width, uint32 height,
 	const D3D12_HEAP_PROPERTIES& heapProperty, D3D12_HEAP_FLAGS heapFlags,

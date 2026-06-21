@@ -30,5 +30,8 @@ private:
 		TransformComponent* transform, TransformComponent* selfPlayer, float dt);
 
 	void CameraShake(CameraTypeComponent* camType, TransformComponent* transform, float dt);
+
+	// 스킬 줌아웃(dolly) 추가 거리 보간
+	void UpdateDolly(CameraTypeComponent* camType, float dt);
 };
 

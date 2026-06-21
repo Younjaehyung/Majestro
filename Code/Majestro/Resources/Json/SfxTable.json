@@ -207,17 +207,17 @@
     "notify/Ibanix/Run": {
       "event": "event:/SFX/Ibanix/SFX_Ibanix_Footstep",
       "is3d": true,
-      "cooldown": 0.25
+      "cooldown": 0.05
     },
     "notify/Rudwig/Run": {
       "event": "event:/SFX/Rudwig/SFX_Rudwig_Footstep",
       "is3d": true,
-      "cooldown": 0.25
+      "cooldown": 0.05
     },
     "notify/Fanthor/Run": {
       "event": "event:/SFX/Fanthor/SFX_Fanthor_Footstep",
       "is3d": true,
-      "cooldown": 0.25
+      "cooldown": 0.05
     },
 
 

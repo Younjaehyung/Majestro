@@ -1,10 +1,18 @@
 {
-  "_comment": "애니메이션 프레임 동기 Notify 테이블. VFX와 SFX는 frame에서 1회 실행한다. cameraShake는 startFrame에서 시작하고 endFrame까지 유지하며 preset으로 CameraShakeSetting.json 값을 조회한다. 카메라 흔들림 지속시간은 애니메이션 프레임 간격으로 계산한다.",
+  "_comment": "애니메이션 프레임 동기 Notify 테이블. VFX와 SFX는 frame에서 1회 실행한다. cameraShake는 startFrame에서 시작하고 endFrame까지 유지하며 preset으로 CameraShakeSetting.json 값을 조회한다. 카메라 흔들림 지속시간은 애니메이션 프레임 간격으로 계산한다. cameraDolly는 startFrame~endFrame 구간 동안 카메라를 플레이어 뒤로 잠깐 빼는 줌아웃 연출이며 preset으로 CameraDollySetting.json 값을 조회한다(빠질 땐 빠르게, 구간 종료 후 천천히 복귀).",
 
 
   "Anim_Ibanix_Run": [
     {
       "frame": 8,
+      "kind": "sfx",
+      "anchor": "root",
+      "useUpper": false,
+      "sfx": "notify/Ibanix/Run",
+      "is3d": true
+    },
+    {
+      "frame": 12,
       "kind": "sfx",
       "anchor": "root",
       "useUpper": false,
@@ -78,6 +86,13 @@
       "kind": "cameraShake",
       "useUpper": false,
       "preset": "Ibanix_Skill01"
+    },
+    {
+      "startFrame": 8,
+      "endFrame": 30,
+      "kind": "cameraDolly",
+      "useUpper": false,
+      "preset": "Ibanix_Skill1"
     }
   ],
   "Anim_Ibanix_Rhythm": [
@@ -138,6 +153,13 @@
       "kind": "cameraShake",
       "useUpper": false,
       "preset": "Fanthor_Skill1"
+    },
+    {
+      "startFrame": 10,
+      "endFrame": 40,
+      "kind": "cameraDolly",
+      "useUpper": false,
+      "preset": "Fanthor_Skill1"
     }
   ],
 
@@ -146,6 +168,13 @@
       "startFrame": 11,
       "endFrame": 15,
       "kind": "cameraShake",
+      "useUpper": false,
+      "preset": "Fanthor_Skill2"
+    },
+    {
+      "startFrame": 6,
+      "endFrame": 22,
+      "kind": "cameraDolly",
       "useUpper": false,
       "preset": "Fanthor_Skill2"
     }
@@ -201,6 +230,13 @@
       "kind": "cameraShake",
       "useUpper": false,
       "preset": "Rudwig_Skill1"
+    },
+    {
+      "startFrame": 10,
+      "endFrame": 35,
+      "kind": "cameraDolly",
+      "useUpper": false,
+      "preset": "Rudwig_Skill1"
     }
   ],
 
@@ -211,6 +247,13 @@
       "kind": "cameraShake",
       "useUpper": false,
       "preset": "Rudwig_Skill2"
+    },
+    {
+      "startFrame": 3,
+      "endFrame": 20,
+      "kind": "cameraDolly",
+      "useUpper": false,
+      "preset": "Rudwig_Skill2"
     }
   ],
   "Anim_Rudwig_Reload": [
@@ -218,6 +261,13 @@
       "startFrame": 5,
       "endFrame": 18,
       "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Rudwig_Reload"
+    },
+    {
+      "startFrame": 3,
+      "endFrame": 20,
+      "kind": "cameraDolly",
       "useUpper": true,
       "preset": "Rudwig_Reload"
     }

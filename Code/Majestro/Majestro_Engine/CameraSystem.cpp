@@ -198,8 +198,12 @@ void CameraSystem::UpdateOrbitCamera(CameraTypeComponent* camType, TransformComp
 		+ Vec3::Up * camType->mOffset.y
 		+ yawForward * camType->mOffset.z;
 
+	// 스킬 줌아웃 추가 거리 갱신 후 카메라 최대 거리에 반영
+	UpdateDolly(camType, dt);
+	const float maxLen = camType->mCameraMaxLenth + camType->mDollyOffset;
+
 	Vec3 pivot = playerPos + worldOffset;
-	Vec3 DestPos = pivot - camType->mCameraMaxLenth * look;
+	Vec3 DestPos = pivot - maxLen * look;
 
 	if (DestPos.y < playerPos.y)
 		DestPos.y = playerPos.y;
@@ -352,6 +356,32 @@ void CameraSystem::CameraShake(CameraTypeComponent* camType, TransformComponent*
 	transform->mLocalRotationE.x += sinf(t) * angles.x * decay;
 	transform->mLocalRotationE.y += sinf(t + 1.7f) * angles.y * decay;
 	transform->mLocalRotationE.z += sinf(t + 3.4f) * angles.z * decay;
+}
+
+void CameraSystem::UpdateDolly(CameraTypeComponent* camType, float dt)
+{
+	// hold 동안은 target(뒤로 빠진 거리)으로 빠르게, 끝나면 0으로 천천히 보간
+	float target;
+	float speed;
+	if (camType->mDollyRemaining > 0.f)
+	{
+		camType->mDollyRemaining -= dt;
+		target = camType->mDollyTarget;
+		speed  = camType->mDollyInSpeed;
+	}
+	else
+	{
+		target = 0.f;
+		speed  = camType->mDollyOutSpeed;
+	}
+
+	float k = speed * dt;
+	if (k > 1.f) k = 1.f;
+	camType->mDollyOffset += (target - camType->mDollyOffset) * k;
+
+	// 거의 복귀하면 0으로 스냅
+	if (camType->mDollyRemaining <= 0.f && camType->mDollyOffset < 0.05f)
+		camType->mDollyOffset = 0.f;
 }
 
 

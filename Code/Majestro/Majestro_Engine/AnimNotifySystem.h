@@ -23,6 +23,7 @@ private:
 
 	void Fire(Entity owner, const AnimNotifyEntry& entry, float frameDuration);
 	void FireCameraShake(Entity owner, const AnimNotifyEntry& entry, float frameDuration);
+	void FireCameraDolly(Entity owner, const AnimNotifyEntry& entry, float frameDuration);
 	bool ResolveAnchor(Entity owner, const AnimNotifyEntry& entry, Vec3& outPos) const;
 
 	void UpdateActiveFollows();

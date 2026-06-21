@@ -10,6 +10,7 @@
 #include "AnimationComponent.h"
 #include "CameraComponent.h"
 #include "CameraShakeTable.h"
+#include "CameraDollyTable.h"
 #include "TagComponent.h"
 #include "TransformComponent.h"
 #include "SocketComponent.h"
@@ -32,6 +33,7 @@ void AnimNotifySystem::Initialize()
 {
 	// Load shake presets here because animation notifies now own shake timing.
 	CameraShakeTable::Load("../Resources/Json/CameraShakeSetting.json");
+	CameraDollyTable::Load("../Resources/Json/CameraDollySetting.json");
 	LoadTable("../Resources/Json/AnimNotifyTable.json");
 }
 
@@ -95,8 +97,10 @@ void AnimNotifySystem::ProcessLayer(Entity owner, AnimationComponent& anim, bool
 			if (entry.useUpperLayer != useUpper)
 				continue;   // 다른 부위는 해당 레이어에서만 판정
 
-			const uint32 triggerFrame =
-				entry.kind == AnimNotifyKind::CameraShake ? entry.startFrame : entry.frame;
+			const bool useStartFrame =
+				entry.kind == AnimNotifyKind::CameraShake ||
+				entry.kind == AnimNotifyKind::CameraDolly;
+			const uint32 triggerFrame = useStartFrame ? entry.startFrame : entry.frame;
 			const float f = static_cast<float>(triggerFrame);
 			if (f > track.lastFrameF && f <= currF)   // 1회 재생
 				Fire(owner, entry, frameDuration);
@@ -133,6 +137,13 @@ void AnimNotifySystem::Fire(Entity owner, const AnimNotifyEntry& entry, float fr
 	if (entry.kind == AnimNotifyKind::CameraShake)
 	{
 		FireCameraShake(owner, entry, frameDuration);
+		return;
+	}
+
+	// 카메라 줌아웃(dolly)도 프레임 구간으로만 실행한다.
+	if (entry.kind == AnimNotifyKind::CameraDolly)
+	{
+		FireCameraDolly(owner, entry, frameDuration);
 		return;
 	}
 
@@ -193,6 +204,42 @@ void AnimNotifySystem::FireCameraShake(
 			const float shakeDuration =
 				static_cast<float>(entry.endFrame - entry.startFrame) * frameDuration;
 			camera->TriggerShake(preset->mAngles, shakeDuration, preset->mFrequency);
+			return;
+		}
+	}
+}
+
+void AnimNotifySystem::FireCameraDolly(
+	Entity owner, const AnimNotifyEntry& entry, float frameDuration)
+{
+	// 원격 캐릭터의 스킬은 현재 클라이언트 카메라를 움직이지 않는다.
+	if (mWorld->GetComponent<LocalPlayerComponent>(owner) == nullptr)
+		return;
+
+	if (entry.endFrame <= entry.startFrame)
+	{
+		std::cout << "[AnimNotify] invalid camera dolly frame range: "
+			<< entry.startFrame << " to " << entry.endFrame << std::endl;
+		return;
+	}
+
+	const DollyPreset* preset = CameraDollyTable::Find(entry.cameraShakePreset);
+	if (preset == nullptr)
+	{
+		std::cout << "[AnimNotify] camera dolly preset not found: "
+			<< entry.cameraShakePreset << std::endl;
+		return;
+	}
+
+	for (Entity cameraEntity : mWorld->GetEntitiesWithComponent<CameraTypeComponent>())
+	{
+		CameraTypeComponent* camera = mWorld->GetComponent<CameraTypeComponent>(cameraEntity);
+		if (camera != nullptr && camera->mTargetID == owner.GetID())
+		{
+			// startFrame~endFrame 구간 동안 뒤로 빠진 채 유지하고, 이후 천천히 복귀
+			const float holdTime =
+				static_cast<float>(entry.endFrame - entry.startFrame) * frameDuration;
+			camera->TriggerDolly(preset->mDistance, holdTime, preset->mInSpeed, preset->mOutSpeed);
 			return;
 		}
 	}
@@ -268,6 +315,8 @@ void AnimNotifySystem::LoadTable(const std::string& path)
 				entry.kind = AnimNotifyKind::Sfx;
 			else if (kind == "cameraShake")
 				entry.kind = AnimNotifyKind::CameraShake;
+			else if (kind == "cameraDolly")
+				entry.kind = AnimNotifyKind::CameraDolly;
 			else
 				entry.kind = AnimNotifyKind::Vfx;
 

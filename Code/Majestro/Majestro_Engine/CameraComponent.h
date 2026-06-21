@@ -174,6 +174,13 @@ public:
 	float mShakeFrequency = 20.f;       // 진동 주파수 (Hz)
 	float mShakeTimeAcc   = 0.f;        // sin 누적 시간
 
+	// 스킬 줌아웃(dolly): 카메라를 잠깐 뒤로 뺐다가 천천히 복귀시키는 연출
+	float mDollyOffset    = 0.f;        // 현재 추가 거리 (mCameraMaxLenth에 더해짐)
+	float mDollyTarget    = 0.f;        // 빠져있는 동안 목표 추가 거리
+	float mDollyRemaining = 0.f;        // 최대로 빠진 채 유지할 남은 시간 (hold)
+	float mDollyInSpeed   = 12.f;       // 빠질 때 보간 속도 (1/s)
+	float mDollyOutSpeed  = 3.f;        // 복귀할 때 보간 속도 (1/s)
+
 	void TriggerShake(const Vec3& angles, float duration, float frequency)
 	{
 		if (duration <= 0.f || frequency <= 0.f)
@@ -186,5 +193,17 @@ public:
 		mShakeRemaining = duration;
 		mShakeFrequency = frequency;
 		mShakeTimeAcc   = 0.f;
+	}
+
+	// distance 만큼 뒤로 빠진 뒤 holdTime 동안 유지하고 천천히 복귀한다.
+	void TriggerDolly(float distance, float holdTime, float inSpeed, float outSpeed)
+	{
+		if (distance <= 0.f || holdTime <= 0.f)
+			return;
+
+		mDollyTarget    = distance;
+		mDollyRemaining = holdTime;
+		mDollyInSpeed   = inSpeed;
+		mDollyOutSpeed  = outSpeed;
 	}
 };

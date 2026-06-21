@@ -1704,14 +1704,12 @@ HUDWeaponPrefab::HUDWeaponPrefab(World* world, uint8 playerType, Entity ownerEnt
 			switch (playerType) {
 			case Rudwig:
 			{
-				text.mText = L"∞";
+				text.mText = L"";/*∞*/
 				
 			}
 				break;
 			case Ibanix:
 			{
-
-
 				text.mText = L"10/10";
 				text.mOnTextChanged = [world, bullet, ownerEntity]() {
 					MainPlayerComponent* p = world->GetComponent<MainPlayerComponent>(ownerEntity);

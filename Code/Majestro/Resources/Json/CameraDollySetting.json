@@ -1,0 +1,45 @@
+{
+  "_comment": "스킬/공격 애니메이션 구간 동안 카메라를 플레이어 뒤로 잠깐 빼는 줌아웃(dolly) 프리셋. distance=추가 거리(클수록 더 멀리), inSpeed=빠질 때 속도(클수록 빠르게), outSpeed=복귀 속도(작을수록 천천히). AnimNotifyTable.json의 kind:cameraDolly 엔트리에서 preset 이름(캐릭터_상태)으로 참조한다. 빠질 땐 빠르고 복귀는 천천히 되도록 inSpeed > outSpeed 권장.",
+
+  "Rudwig": {
+    "Skill1": {
+      "distance": 300.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    },
+    "Skill2": {
+      "distance": 250.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    },
+    "Reload": {
+      "distance": 300.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    }
+  },
+  "Ibanix": {
+    "Skill1": {
+      "distance": 110.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    },
+    "Skill2": {
+      "distance": 200.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    }
+  },
+  "Fanthor": {
+    "Skill1": {
+      "distance": 300.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    },
+    "Skill2": {
+      "distance": 200.0,
+      "inSpeed": 12.0,
+      "outSpeed": 3.0
+    }
+  }
+}

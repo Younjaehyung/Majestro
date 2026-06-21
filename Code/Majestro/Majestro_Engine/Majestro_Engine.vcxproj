@@ -209,6 +209,7 @@
     <ClInclude Include="BulletComponent.h" />
     <ClInclude Include="CameraComponent.h" />
     <ClInclude Include="CameraShakeTable.h" />
+    <ClInclude Include="CameraDollyTable.h" />
     <ClInclude Include="CameraSystem.h" />
     <ClInclude Include="DeathCamComponent.h" />
     <ClInclude Include="ChromaticAberrationPass.h" />
@@ -404,6 +405,7 @@
     <ClCompile Include="BulletComponent.cpp" />
     <ClCompile Include="CameraComponent.cpp" />
     <ClCompile Include="CameraShakeTable.cpp" />
+    <ClCompile Include="CameraDollyTable.cpp" />
     <ClCompile Include="CameraSystem.cpp" />
     <ClCompile Include="ChromaticAberrationPass.cpp" />
     <ClCompile Include="DualKawaseBlurPass.cpp" />

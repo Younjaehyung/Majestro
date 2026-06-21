@@ -2,7 +2,7 @@
 #include "Component.h"
 #include "Entity.h"
 
-enum class AnimNotifyKind : uint8 { Vfx = 0, Sfx = 1, CameraShake = 2 };
+enum class AnimNotifyKind : uint8 { Vfx = 0, Sfx = 1, CameraShake = 2, CameraDolly = 3 };
 enum class AnimNotifyAnchor : uint8 { PlayerRoot = 0, Socket = 1 };
 
 struct AnimNotifyEntry

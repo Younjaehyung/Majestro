@@ -813,7 +813,7 @@ JumpPadPrefab::~JumpPadPrefab()
 
 Entity JumpPadPrefab::Build(World* world, const InputCommand& ctx)
 {
-	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Jump", Vec3(15.f, 10.f, 15.f));
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Jump", Vec3(5.f, 5.f, 5.f));
 }
 
 MonsterSpawnerMarkerPrefab::MonsterSpawnerMarkerPrefab(World* world)
@@ -1851,7 +1851,7 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 			auto& t = world->AddComponent<UITransformComponent>(sound);
 			t.mAnchor = Anchor::BottomLeft;
 			t.mPosition = Vec2(480.f, -88.f);
-			t.mSize = Vec2(256.f, 96.f);
+			t.mSize = Vec2(192.f, 192.f);
 			t.mUILayerIndex = 1;
 			t.mPivot = Vec2(0.5f, 0.5f);
 			world->AddComponent<UISpriteComponent>(sound, ingameAtlas);
@@ -1898,8 +1898,8 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 				7,
 				RECT{ 0, 2560, 256, 2816 });
 			const Entity centerText = createCenterRhythmSprite(
-				Vec2(0.0f, -80.0f),
-				Vec2(360.0f, 360.0f),
+				Vec2(0.0f, -140.0f),
+				Vec2(320.0f, 320.0f),
 				8,
 				RECT{ 0, 2816, 256, 3072 });
 

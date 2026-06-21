@@ -2,14 +2,7 @@
   "_comment": "효과음 매핑 테이블. 키 규칙: skill/<SkillType>/<EffectSpawnReason>, action/<PlayerType>/<ReplicatedActionState>, move/<PlayerType>/<ReplicatedMovementMode>, 그 외 자유 키는 EvSfxRequest로 발행. event 는 FMOD Studio 이벤트 경로. is3d=위치 기반 재생, loop=상태 연동(진입 시작/이탈 페이드아웃 정지), cooldown=동일 키 최소 재발행 간격(초). 미등록 키와 뱅크에 없는 이벤트는 콘솔 1회 로그 후 무시되므로 사운드가 준비된 항목부터 채우면 된다.",
   "defaultCooldown": 0.05,
   "sfx": {
-    "ui/hitmarker": {
-      "event": "event:/SFX/HitMarker",
-      "is3d": false
-    },
-    "ui/killmarker": {
-      "event": "event:/SFX/KillMarker",
-      "is3d": false
-    },
+
     "ui/select": {
       "event": "event:/SFX/UI/SFX_UI_Select",
       "is3d": false
@@ -29,7 +22,7 @@
       "is3d": false
     },
 
-    "player/Rebirth": {
+    "skill/Default/Respawn": {
       "event": "event:/SFX/Player/SFX_Player_Rebirth",
       "is3d": true
     },
@@ -54,49 +47,162 @@
       "is3d": true
     },
 
-    "skill/GuitarSkill1/Fire": {
-      "event": "event:/SFX/Guitar_Skill1_Fire",
+
+    "monster/Bongoman/Attack": {
+      "event": "event:/SFX/Monster/Bongoman",
       "is3d": true
     },
-    "skill/BaseAttack/CollisionEntity": {
-      "event": "event:/SFX/Hit_Impact",
+    "monster/Brass/Die": {
+      "event": "event:/SFX/Monster/BrassBoss_Die",
+      "is3d": true
+    },
+    "monster/Brass/Foot": {
+      "event": "event:/SFX/Monster/BrassBoss_Foot",
+      "is3d": true,
+      "cooldown": 0.3
+    },
+    "monster/Brass/Skill1": {
+      "event": "event:/SFX/Monster/BrassBoss_Skill_01",
+      "is3d": true
+    },
+    "monster/Brass/Skill2": {
+      "event": "event:/SFX/Monster/BrassBoss_Skill_02",
+      "is3d": true
+    },
+    "monster/Brass/Skill3": {
+      "event": "event:/SFX/Monster/BrassBoss_Skill_03",
+      "is3d": true
+    },
+    "monster/Brass/Skill4": {
+      "event": "event:/SFX/Monster/BrassBoss_Skill_04",
+      "is3d": true
+    },
+    "monster/Fly/Attack": {
+      "event": "event:/SFX/Monster/Fly",
+      "is3d": true
+    },
+    "monster/HornMan/Attack": {
+      "event": "event:/SFX/Monster/Hornman",
+      "is3d": true
+    },
+    "monster/Die": {
+      "event": "event:/SFX/Monster/Monster_Die",
+      "is3d": true
+    },
+    "monster/Obelisk/Attack": {
+      "event": "event:/SFX/Monster/Obelisk",
+      "is3d": true
+    },
+    "monster/Pianoman/Attack": {
+      "event": "event:/SFX/Monster/Pianoman",
+      "is3d": true
+    },
+    "monster/Slime/Attack": {
+      "event": "event:/SFX/Monster/Slime",
       "is3d": true
     },
 
-    "skill/Ibanix_Skill_01/ChargeShot": {
+
+
+
+
+    "action/Ibanix/Skill1": {
       "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_01",
       "is3d": true
     },
-    "skill/Ibanix_Skill_02/Dash": {
+    "action/Ibanix/Skill2": {
       "event": "event:/SFX/Ibanix/SFX_Ibanix_Skill_02",
       "is3d": true,
       "cooldown": 0.06
     },
-    "skill/Rudwig_Skill_01/Dash": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_01",
-      "is3d": true,
-      "cooldown": 0.06
-    },
-    "skill/Rudwig_Skill_02/Shield": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_02",
-      "is3d": true
-    },
-    "skill/Fanthor_Skill_01/Smash": {
+
+    "action/Fanthor/Skill1": {
       "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_01",
       "is3d": true
     },
-    "skill/Fanthor_Skill_02/Dash": {
+    "action/Fanthor/Skill2": {
       "event": "event:/SFX/Fanthor/SFX_Fanthor_Skill_02",
       "is3d": true,
       "cooldown": 0.06
     },
 
-    "action/Rudwig/RhythmChange": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_RhythmChange",
+
+    "skill/GuitarSkill1/Fire": {
+      "event": "event:/SFX/Guitar_Skill1_Fire",
+      "is3d": true
+    },
+
+    "skill/DrumSkill1/Fire": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_01",
+      "is3d": true
+    },
+    "skill/DrumSkill2/Fire": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_02",
+      "is3d": true
+    },
+
+    "skill/BaseAttack/CollisionEntity": {
+      "event": "event:/SFX/Hit_Impact",
+      "is3d": true
+    },
+
+
+
+
+
+
+
+    "action/Ibanix/Attack1": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Atk",
+      "is3d": true,
+      "loop": false
+    },
+    "move/Ibanix/Airborne": {
+      "event": "event:/SFX/Player/SFX_Player_Jump",
+      "cooldown": 0.05,
+      "is3d": true
+    },
+    "action/Ibanix/Reload": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Reload",
       "is3d": true
     },
     "action/Ibanix/RhythmChange": {
       "event": "event:/SFX/Ibanix/SFX_Ibanix_RhythmChange",
+      "is3d": true
+    },
+
+
+    "action/Rudwig/Attack1": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Atk",
+      "is3d": true,
+      "loop": false
+    },
+    "move/Rudwig/Airborne": {
+      "event": "event:/SFX/Player/SFX_Player_Jump",
+      "cooldown": 0.05,
+      "is3d": true
+    },
+    "action/Rudwig/Reload": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Reload",
+      "is3d": true
+    },
+    "action/Rudwig/RhythmChange": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_RhythmChange",
+      "is3d": true
+    },
+
+    "action/Fanthor/Attack1": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Atk",
+      "is3d": true,
+      "loop": false
+    },
+    "move/Fanthor/Airborne": {
+      "event": "event:/SFX/Player/SFX_Player_Jump",
+      "cooldown": 0.05,
+      "is3d": true
+    },
+    "action/Fanthor/Reload": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Reload",
       "is3d": true
     },
     "action/Fanthor/RhythmChange": {
@@ -104,61 +210,10 @@
       "is3d": true
     },
 
-    "action/Ibanix/Reload": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Reload",
-      "is3d": true
-    },
-    "action/Fanthor/Reload": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Reload",
-      "is3d": true
-    },
-    "action/Rudwig/Reload": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_Reload",
-      "is3d": true
-    },
 
-    "action/Ibanix/Attack1": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Atk",
-      "is3d": true,
-      "loop": false
-    },
-    "action/Rudwig/Attack1": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_Atk",
-      "is3d": true,
-      "loop": false
-    },
-    "action/Fanthor/Attack1": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Atk",
-      "is3d": true,
-      "loop": false
-    },
 
-    "move/Ibanix/Airborne": {
-      "event": "event:/SFX/Player/SFX_Player_Jump",
-      "is3d": true
-    },
-    "move/Ibanix/Landing": {
-      "event": "event:/SFX/Land",
-      "is3d": true
-    },
 
-    "move/Rudwig/Airborne": {
-      "event": "event:/SFX/Player/SFX_Player_Jump",
-      "is3d": true
-    },
-    "move/Rudwig/Landing": {
-      "event": "event:/SFX/Land",
-      "is3d": true
-    },
 
-    "move/Fanthor/Airborne": {
-      "event": "event:/SFX/Player/SFX_Player_Jump",
-      "is3d": true
-    },
-    "move/Fanthor/Landing": {
-      "event": "event:/SFX/Land",
-      "is3d": true
-    },
 
     "notify/Ibanix/Run": {
       "event": "event:/SFX/Ibanix/SFX_Ibanix_Footstep",
@@ -176,18 +231,8 @@
       "cooldown": 0.25
     },
 
-    "notify/Ibanix/Swing": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Swing",
-      "is3d": true
-    },
-    "notify/Rudwig/Swing": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_Swing",
-      "is3d": true
-    },
-    "notify/Fanthor/Swing": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Swing",
-      "is3d": true
-    },
+
+
 
     "notify/Game/Clear": {
       "event": "event:/SFX/Game/SFX_Game_Clear",

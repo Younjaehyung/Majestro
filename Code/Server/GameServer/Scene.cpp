@@ -923,9 +923,9 @@ void SecondScene::Initialize()
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
 		phases.push_back([] { return new PreparePhase(); });
-		phases.push_back([] { return new ConquestPhase(/*zoneId=*/1, /*requiredSeconds=*/30.f); });
-		phases.push_back([] { return new ConquestPhase(/*zoneId=*/2, /*requiredSeconds=*/30.f); });
-		phases.push_back([] { return new ConquestPhase(/*zoneId=*/2, /*requiredSeconds=*/30.f); });
+		phases.push_back([] { return new ConquestPhase(/*zoneId=*/1, /*requiredSeconds=*/30.f, /*waveIndex=*/1); });
+		phases.push_back([] { return new ConquestPhase(/*zoneId=*/2, /*requiredSeconds=*/30.f, /*waveIndex=*/2); });
+		phases.push_back([] { return new ConquestPhase(/*zoneId=*/2, /*requiredSeconds=*/30.f, /*waveIndex=*/3); });
 		phases.push_back([] { return new ClearPhase(3.0f); });
 		waveMode->SetInitialPhases(std::move(phases));
 	}

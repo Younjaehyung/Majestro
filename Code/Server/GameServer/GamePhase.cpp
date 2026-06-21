@@ -249,6 +249,9 @@ void ConquestPhase::Enter(WaveGameMode& mode)
 	conquestComp.mActiveZoneIndex = min(GameConquestComponent::mMaxWaves - 1, max(0, static_cast<int32>(mZoneId) - 1));
 	conquestComp.mRequiredConquestTime = max(0.1f, mRequiredSeconds);
 
+
+	conquestComp.mWave = min(GameConquestComponent::mMaxWaves, max(1, static_cast<int32>(mWaveIndex)));
+
 	// 씬에 배치된 ConquestZone 트리거를 mValueA(점령지 번호) 기준으로 wave 슬롯에 매핑
 	if (mWorld->HasComponentPool<InteractableComponent>())
 	{

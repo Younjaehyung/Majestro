@@ -169,6 +169,8 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 		
 		Vec3 vfxWorldPos = Vec3::Zero;
+		Quaternion attachRotation = Quaternion::Identity;	// 부착 대상(트럭 등)의 월드 회전
+		bool isAttached = false;							// 부착 오프셋이 지정된 VFX인지
 		if (tr != nullptr)
 		{
 			vfxWorldPos = tr->mWorldPosition;
@@ -177,9 +179,10 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			if (comp->mAttachOffset != Vec3::Zero)
 			{
 				// 대상 회전에 맞춰 월드 위치로 변환
-				Vec3 scale; Quaternion rotQ; Vec3 trans;
-				tr->mWorldMatrix.Decompose(scale, rotQ, trans); // 스케일 분리, 회전만 사용
-				vfxWorldPos = tr->mWorldPosition + Vec3::Transform(comp->mAttachOffset, rotQ);
+				Vec3 scale; Vec3 trans;
+				tr->mWorldMatrix.Decompose(scale, attachRotation, trans); // 스케일 분리, 회전만 사용
+				vfxWorldPos = tr->mWorldPosition + Vec3::Transform(comp->mAttachOffset, attachRotation);
+				isAttached = true;
 			}
 		}
 
@@ -266,6 +269,15 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		if (comp->mUseWorldMatrix)
 		{
 			const Matrix effectMatrix = Matrix::CreateScale(comp->mScale) * comp->mWorldMatrix;
+			mManager->SetMatrix(comp->efkHandle, ToEfkMatrix43(effectMatrix));
+		}
+		else if (isAttached)
+		{
+			// 부착 VFX는 트럭 등 대상의 월드 회전을 그대로 따라가도록 위치+회전을 행렬로 전달
+			const Matrix effectMatrix =
+				Matrix::CreateScale(comp->mScale) *
+				Matrix::CreateFromQuaternion(attachRotation) *
+				Matrix::CreateTranslation(vfxWorldPos);
 			mManager->SetMatrix(comp->efkHandle, ToEfkMatrix43(effectMatrix));
 		}
 		else

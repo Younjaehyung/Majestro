@@ -37,23 +37,38 @@ void GamePhaseSystem::Update(float deltaTime)
 	}
 	case WavePhaseType::Escort:
 	{
-		// 호위 단계 로직: 트럭 이동 상태(mMoveState)에 따라 VFX_Escort_Shockwave loop 토글
+		// 호위 단계 로직: 트럭 이동 상태(mMoveState)에 따라 VFX loop 토글
+		// (트럭의 VFX_Escort_Shockwave + 자식 엔티티로 부착된 VFX_Escort_Pulse 모두 동일하게 처리)
 		GameEscortComponent* escort = mWorld->GetComponent<GameEscortComponent>(e);
 		if (escort && escort->mEscortTarget.IsValid())
 		{
-			if (VfxComponent* vfx = mWorld->GetComponent<VfxComponent>(escort->mEscortTarget))
+			const bool moving = (escort->mMoveState == 1); // 이동 중 여부
+
+			// 트럭 이동 상태에 맞춰 VFX 재생 토글
+			auto toggleVfx = [moving](VfxComponent* vfx)
 			{
-				if (escort->mMoveState == 1) // 이동 중
+				if (vfx == nullptr) return;
+				if (moving)
 				{
 					// 무한 loop 재생(끝나면 자동 재시작)
 					vfx->mShouldPlay = true;
 					vfx->mRestartWhenFinished = true;
 				}
-				else // 정지
+				else
 				{
 					// 현재 사이클만 끝까지 재생 후 자연 종료
 					vfx->mRestartWhenFinished = false;
 				}
+			};
+
+			// 트럭 본체 VFX(Shockwave)
+			toggleVfx(mWorld->GetComponent<VfxComponent>(escort->mEscortTarget));
+
+			// 트럭에 부착된 자식 VFX(Pulse 등)
+			if (TransformComponent* truckTrans = mWorld->GetComponent<TransformComponent>(escort->mEscortTarget))
+			{
+				for (Entity& child : truckTrans->mChild)
+					toggleVfx(mWorld->GetComponent<VfxComponent>(child));
 			}
 		}
 		break;

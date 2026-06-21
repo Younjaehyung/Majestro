@@ -1103,25 +1103,26 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 				sp.mVisible = false;
 			}
 
-			// HP 텍스트
-			Entity hpText = world->CreateEntity();
-			{
-				auto& t = world->AddComponent<UITransformComponent>(hpText);
-				t.mAnchor = Anchor::BottomLeft;
-				t.mPosition = Vec2(hpPos.x + hpSize.x * 0.5f, hpPos.y + hpSize.y * 0.5f);
-				t.mSize = hpSize;
-				t.mPivot = Vec2(0.5f, 0.5f);
-				t.mScale = Vec2(hpScale, hpScale);
-				t.mUILayerIndex = 7;
-				auto& text = world->AddComponent<UITextComponent>(hpText);
-				text.mText = L"";
-				text.mVisible = false;
-			}
+			//// HP 텍스트
+			//Entity hpText = world->CreateEntity();
+			//{
+			//	auto& t = world->AddComponent<UITransformComponent>(hpText);
+			//	t.mAnchor = Anchor::BottomLeft;
+			//	t.mPosition = Vec2(hpPos.x + hpSize.x * 0.5f, hpPos.y + hpSize.y * 0.5f);
+			//	t.mSize = hpSize;
+			//	t.mPivot = Vec2(0.5f, 0.5f);
+			//	t.mScale = Vec2(hpScale, hpScale);
+			//	t.mUILayerIndex = 7;
+			//	auto& text = world->AddComponent<UITextComponent>(hpText);
+			//	text.mText = L"";
+			//	text.mVisible = false;
+			//}
+
 
 			slot.mHpBack = hpBack;
 			slot.mHpFill = hpFill;
 			slot.mHpShield = hpShield;
-			slot.mHpText = hpText;
+			//slot.mHpText = hpText;
 		}
 	}
 }
@@ -1471,8 +1472,8 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			Entity hp = world->CreateEntity();
 			auto& t = world->AddComponent<UITransformComponent>(hp);
 			t.mAnchor = Anchor::Center;
-			t.mPosition = Vec2(-256.f, 548.f);
-			t.mSize = Vec2(512.f, 96.f);
+			t.mPosition = Vec2(-256.f, 518.f);
+			t.mSize = Vec2(256.f, 96.f);
 			t.mPivot = Vec2(0.0f, 0.0f);
 			t.mUILayerIndex = 5;
 
@@ -1613,40 +1614,6 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 			};
 	}
 
-	{
-		Entity hpText = world->CreateEntity();
-		auto& transform = world->AddComponent<UITransformComponent>(hpText);
-		transform.mAnchor = Anchor::TopCenter;
-		transform.mPosition = Vec2(0.f, 92.f);
-		transform.mSize = Vec2(600.f, 40.f);
-		transform.mPivot = Vec2(0.5f, 0.5f);
-		transform.mUILayerIndex = 12;
-
-		auto& text = world->AddComponent<UITextComponent>(hpText);
-		text.mText = L"BOSS HP";
-		text.mOutlineThickness = 2.f;
-		text.mOnTextChanged = [world, hpText, bossEntity]()
-			{
-				UITextComponent* hpTextComponent = world->GetComponent<UITextComponent>(hpText);
-				HealthComponent* health = world->GetComponent<HealthComponent>(bossEntity);
-				if (hpTextComponent == nullptr)
-					return;
-
-				if (health == nullptr || health->mMaxHp <= 0)
-				{
-					hpTextComponent->mVisible = false;
-					return;
-				}
-
-				// 체력바와 함께 현재 체력과 최대 체력을 숫자로 표시한다.
-				hpTextComponent->mVisible = true;
-				hpTextComponent->mText =
-					L"BOSS HP " +
-					std::to_wstring((std::max)(0, health->mCurrentHp)) +
-					L" / " +
-					std::to_wstring(health->mMaxHp);
-			};
-	}
 }
 
 HUDBossHPBarPrefab::~HUDBossHPBarPrefab()
@@ -2469,6 +2436,32 @@ TruckEscortPrefab::~TruckEscortPrefab()
 {
 }
 
+// 트럭을 따라다니는 부착형 VFX를 트럭의 자식 엔티티로 생성
+static Entity AttachTruckVfx(World* world, Entity truck, const wstring& vfxName, const Vec3& offset, const Vec3& scale)
+{
+	Entity child = world->CreateEntity();
+	world->AddComponent<TransformComponent>(child);
+
+	// TransformComponent 풀이 재할당될 수 있으므로 추가 이후 다시 조회한다.
+	TransformComponent* childTrans = world->GetComponent<TransformComponent>(child);
+	TransformComponent* truckTrans = world->GetComponent<TransformComponent>(truck);
+	childTrans->mParent = truck;
+	childTrans->mIsStatic = true;            // 부모(트럭)가 transform을 구동
+	truckTrans->mChild.push_back(child);
+
+	VfxComponent& vfx = world->AddComponent<VfxComponent>(child);
+	vfx.mVfx = RESOURCEMANAGER.Get<Vfx>(vfxName);
+	vfx.mScale = scale;
+	vfx.mAttachOffset = offset;              // 위치는 호출부 테이블에서 조정
+	vfx.mIsLoop = true;
+	vfx.mRestartWhenFinished = false;
+	vfx.mShouldPlay = false;                 // 이동 중에만 재생 (GamePhaseSystem이 토글)
+	vfx.mIsPooled = false;
+	vfx.mInUse = false;
+	vfx.mAutoReturn = false;
+	return child;
+}
+
 Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 {
 	Entity truck = world->CreateEntity();
@@ -2492,17 +2485,19 @@ Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<NetTransformComponent>(truck);
 	world->AddComponent<RenderComponent>(truck, phereMesh, material2s);
 
-	
-	VfxComponent& vfx = world->AddComponent<VfxComponent>(truck);
-	vfx.mVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Escort_Shockwave");
-	vfx.mScale = Vec3(15.f, 15.f, 15.f);
-	vfx.mAttachOffset = Vec3(0.f, 230.f, 175.f);
-	vfx.mIsLoop = true;
-	vfx.mRestartWhenFinished = false;
-	vfx.mShouldPlay = false;         
-	vfx.mIsPooled = false;           
-	vfx.mInUse = false;
-	vfx.mAutoReturn = false;
+	// 트럭을 따라다니는 부착형 VFX 목록. { 이펙트 이름, 부착 오프셋, 스케일 }
+	struct TruckVfxDesc { const wchar_t* name; Vec3 offset; Vec3 scale; };
+	static const TruckVfxDesc truckVfxList[] =
+	{
+		{ L"VFX_Escort_Shockwave", Vec3(0.f, 230.f, 175.f), Vec3(15.f, 15.f, 15.f) },
+		// Pulse 4개 — 위치(offset)만 서로 다르게 조정하면 됨
+		{ L"VFX_Escort_Pulse",     Vec3(-130.f, 0.f, -110.f), Vec3(5.f, 5.f, 5.f) },
+		{ L"VFX_Escort_Pulse",     Vec3(130.f, 0.f, -110.f), Vec3(5.f, 5.f, 5.f) },
+		{ L"VFX_Escort_Pulse",     Vec3(-130.f, 0.f, 200.f), Vec3(5.f,5.f, 5.f) },
+		{ L"VFX_Escort_Pulse",     Vec3(130.f, 0.f, 200.f), Vec3(5.f, 5.f, 5.f) },
+	};
+	for (const TruckVfxDesc& desc : truckVfxList)
+		AttachTruckVfx(world, truck, desc.name, desc.offset, desc.scale);
 
 	return truck;
 }

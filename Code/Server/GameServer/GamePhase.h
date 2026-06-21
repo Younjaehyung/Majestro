@@ -56,7 +56,8 @@ private:
 class ConquestPhase : public GamePhase
 {
 public:
-    ConquestPhase(uint8 zoneId, float requiredSeconds = 30.f) : mZoneId(zoneId), mRequiredSeconds(requiredSeconds) {}
+    ConquestPhase(uint8 zoneId, float requiredSeconds = 30.f, uint8 waveIndex = 1)
+        : mZoneId(zoneId), mRequiredSeconds(requiredSeconds), mWaveIndex(waveIndex) {}
     virtual void Enter(WaveGameMode& mode) override;
     virtual void Exit(WaveGameMode& mode) override;
     virtual void PreUpdate(float dt, WaveGameMode& mode) override;
@@ -67,6 +68,7 @@ public:
 private:
 	uint8 mZoneId = 0;
 	float mRequiredSeconds = 30.f;
+	uint8 mWaveIndex = 1; // 이 ConquestPhase가 HUD에서 채울 점령 링 번호(1-based). SecondScene 3링 순차 진행용
 };
 
 class EscortPhase : public GamePhase

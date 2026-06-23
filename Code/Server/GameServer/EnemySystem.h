@@ -41,6 +41,13 @@ private:
         const std::shared_ptr<Navigation>& navSystem,
         Vec3& outTarget) const;
 
+    bool TryComputeHornManKitingTarget(
+        const Entity& entity,
+        const Vec3& myPos,
+        const Vec3& playerPos,
+        const std::shared_ptr<Navigation>& navSystem,
+        Vec3& outTarget) const;
+
     bool TryComputeOnnxModelTarget(
         const std::wstring& modelKey,
         const Entity& entity,
@@ -49,6 +56,17 @@ private:
         const std::shared_ptr<Navigation>& navSystem,
         Vec3& outTarget) const;
 
+    void MoveEnemyTowardTarget(
+        const Entity& entity,
+        EnemyComponent* enemyComp,
+        EnemyMovementComponent* movementComp,
+        const Vec3& myPos,
+        const Vec3& desiredTarget,
+        const std::shared_ptr<Navigation>& navSystem,
+        float nowSeconds,
+        float dt,
+        int entityIndex);
+
     bool HandleAttackState(
         const Entity& entity,
         EnemyComponent* enemyComp,
@@ -56,6 +74,8 @@ private:
         float nearestPlayerDistSq,
         float beatSeconds,
         float nowSeconds,
+        float dt,
+        int entityIndex,
         const std::shared_ptr<EventManager>& eventManager);
 
     void HandleRunState(

@@ -491,7 +491,7 @@ void EnemySystem::Update(float dt)
 
         if (currentState == EnemyAnimState::Attack)
         {
-            if (HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, eventManager))
+            if (HandleAttackState(entity, enemyComp, mc, nearestPlayerDistSq, Beat, now, dt, entityIndex, eventManager))
             {
                 ++entityIndex;
                 continue;
@@ -525,6 +525,8 @@ bool EnemySystem::HandleAttackState(
     float nearestPlayerDistSq,
     float beatSeconds,
     float nowSeconds,
+    float dt,
+    int entityIndex,
     const std::shared_ptr<EventManager>& eventManager)
 {
     if (!enemyComp || !movementComp)
@@ -574,17 +576,80 @@ bool EnemySystem::HandleAttackState(
     switch (enemyComp->mEnemyType)
     {
     case EnemyType::HornMan:
+    {
+        bool hornManKitingMoved = false;
+        constexpr float kHornManKitingMinTargetDist = ONNX_SENSE_RADIUS - 300.0f;
+        constexpr float kHornManKitingMinTargetDistSq =
+            kHornManKitingMinTargetDist * kHornManKitingMinTargetDist;
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+        {
+            movementComp->mMovingDirection = Vec3::Zero;
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+            eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+            break;
+        }
+
+        auto navSystem = mWorld->GetNavSystem();
+        Vec3 kitingTarget = myPos;
+        bool canMoveWithKiting = TryComputeHornManKitingTarget(entity, myPos, playerPos, navSystem, kitingTarget);
+        if (canMoveWithKiting)
+        {
+            Vec3 targetToPlayer = kitingTarget - playerPos;
+            targetToPlayer.y = 0.0f;
+            canMoveWithKiting = targetToPlayer.LengthSquared() >= kHornManKitingMinTargetDistSq;
+        }
+
+        if (canMoveWithKiting)
+        {
+            MoveEnemyTowardTarget(entity, enemyComp, movementComp, myPos, kitingTarget, navSystem, nowSeconds, dt, entityIndex);
+
+            Vec3 toPlayer = playerPos - myPos;
+            toPlayer.y = 0.0f;
+            Vec3 moveDir = movementComp->mMovingDirection;
+            moveDir.y = 0.0f;
+            if (toPlayer.LengthSquared() > 1e-8f && moveDir.LengthSquared() > 1e-8f)
+            {
+                toPlayer.Normalize();
+                moveDir.Normalize();
+                if (moveDir.Dot(toPlayer) > 0.0f)
+                {
+                    movementComp->mMovingDirection = Vec3::Zero;
+                    movementComp->mPathCount = 0;
+                    movementComp->mPathIndex = 0;
+                    movementComp->mDetourActive = false;
+                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
+                }
+                else if (movementComp->mMovingDirection.LengthSquared() > 1e-8f)
+                {
+                    hornManKitingMoved = true;
+                }
+            }
+            else if (movementComp->mMovingDirection.LengthSquared() > 1e-8f)
+            {
+                hornManKitingMoved = true;
+            }
+        }
+        else
+        {
+            movementComp->mMovingDirection = Vec3::Zero;
+            movementComp->mPathCount = 0;
+            movementComp->mPathIndex = 0;
+            movementComp->mDetourActive = false;
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
+        }
+
+        if (hornManKitingMoved)
+            return true;
+        break;
+    }
     case EnemyType::Obelisk:
         movementComp->mMovingDirection = Vec3::Zero;
         movementComp->mPathCount = 0;
         movementComp->mPathIndex = 0;
-
-        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
-        {
-            eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
-            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
-            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-        }
         break;
     case EnemyType::Slime:
         movementComp->mMovingDirection = Vec3::Zero;
@@ -1180,7 +1245,29 @@ void EnemySystem::HandleRunState(
             desiredTarget = onnxTarget;
     }
 
-    UpdateDetourState(movementComp, myPos, desiredTarget, dt);
+    MoveEnemyTowardTarget(entity, enemyComp, movementComp, myPos, desiredTarget, navSystem, nowSeconds, dt, entityIndex);
+}
+
+void EnemySystem::MoveEnemyTowardTarget(
+    const Entity& entity,
+    EnemyComponent* enemyComp,
+    EnemyMovementComponent* movementComp,
+    const Vec3& myPos,
+    const Vec3& desiredTarget,
+    const std::shared_ptr<Navigation>& navSystem,
+    float nowSeconds,
+    float dt,
+    int entityIndex)
+{
+    if (!enemyComp || !movementComp)
+        return;
+
+    FlyComponent* flyComp = enemyComp->mEnemyType == EnemyType::Fly
+        ? mWorld->GetComponent<FlyComponent>(entity)
+        : nullptr;
+    Vec3 currentTarget = desiredTarget;
+
+    UpdateDetourState(movementComp, myPos, currentTarget, dt);
 
     if (movementComp->mDetourActive)
     {
@@ -1196,7 +1283,7 @@ void EnemySystem::HandleRunState(
         }
     }
 
-    if (!movementComp->mDetourActive && ShouldEnterDetour(movementComp, myPos, desiredTarget))
+    if (!movementComp->mDetourActive && ShouldEnterDetour(movementComp, myPos, currentTarget))
     {
         movementComp->mDetourActive = true;
         movementComp->mDetourStartPos = myPos;
@@ -1205,21 +1292,21 @@ void EnemySystem::HandleRunState(
     }
 
     if (movementComp->mDetourActive)
-        desiredTarget = PathFinder(myPos, true);
+        currentTarget = PathFinder(myPos, true);
 
     // ---- 재탐색 판단 ----
     movementComp->mPathTimer -= dt;
 
-    const bool targetMoved = Vec3::DistanceSquared(desiredTarget, movementComp->mTarget) > RETARGET_THRESHOLD_SQ;
+    const bool targetMoved = Vec3::DistanceSquared(currentTarget, movementComp->mTarget) > RETARGET_THRESHOLD_SQ;
     const bool needRepath = (movementComp->mPathTimer <= 0.f) || targetMoved || (movementComp->mPathCount == 0);
 
     if (needRepath)
     {
-        movementComp->mTarget = desiredTarget;
+        movementComp->mTarget = currentTarget;
 
         bool ok = false;
         Vec3 rayStart = myPos;
-        Vec3 rayEnd = desiredTarget;
+        Vec3 rayEnd = currentTarget;
         rayStart.y += 60.0f;
         rayEnd.y += 60.0f;
         const bool directPath = enemyComp->mEnemyType == EnemyType::Fly &&
@@ -1234,27 +1321,25 @@ void EnemySystem::HandleRunState(
         }
         else if (navSystem && navSystem->IsInitialized())
         {
-            ok = navSystem->FindPath(myPos, desiredTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
+            ok = navSystem->FindPath(myPos, currentTarget, movementComp->mPath, movementComp->mPathCount, ENEMY_MAX_WAYPOINTS);
         }
 
         if (!ok)
         {
             // NavMesh 탐색 실패 시 직선 방향 (직진)
             movementComp->mPathCount = 1;
-            movementComp->mPath[0] = desiredTarget;
+            movementComp->mPath[0] = currentTarget;
         }
 
         movementComp->mPathIndex = 0;
 
         // 재탐색 쿨타임 — 엔티티 인덱스로 분산시켜 동일 프레임 스파이크 방지
         const float stagger = movementComp->mPathInterval / 20.f; // 최대 20개 분산
-        movementComp->mPathTimer = movementComp->mPathInterval + (entityIndex % 20) * stagger;
+            movementComp->mPathTimer = movementComp->mPathInterval + (entityIndex % 20) * stagger;
     }
 
-    // ---- 경로 추적 ----
     if (movementComp->mPathCount > 0 && movementComp->mPathIndex < movementComp->mPathCount)
     {
-        // 현재 웨이포인트에 도달했으면 다음으로
         while (movementComp->mPathIndex < movementComp->mPathCount - 1)
         {
             Vec3 toWp = movementComp->mPath[movementComp->mPathIndex] - myPos;
@@ -1278,6 +1363,11 @@ void EnemySystem::HandleRunState(
             movementComp->mMovingDirection = Vec3::Zero;
             enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
         }
+    }
+    else
+    {
+        movementComp->mMovingDirection = Vec3::Zero;
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
     }
 }
 
@@ -1345,6 +1435,16 @@ bool EnemySystem::TryComputeOnnxBaseMoveTarget(
     Vec3& outTarget) const
 {
     return TryComputeOnnxModelTarget(L"base_move", entity, myPos, playerPos, navSystem, outTarget);
+}
+
+bool EnemySystem::TryComputeHornManKitingTarget(
+    const Entity& entity,
+    const Vec3& myPos,
+    const Vec3& playerPos,
+    const std::shared_ptr<Navigation>& navSystem,
+    Vec3& outTarget) const
+{
+    return TryComputeOnnxModelTarget(L"kiting", entity, myPos, playerPos, navSystem, outTarget);
 }
 
 bool EnemySystem::TryComputeOnnxModelTarget(

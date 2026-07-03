@@ -9,11 +9,11 @@ public:
         m_buffer.resize(capacity);
     }
 
-    // µ¥ÀÌÅÍ¸¦ ¹öÆÛ¿¡ ¾²±â
+    // ë°ì´í„°ë¥¼ ë²„í¼ì— ì“°ê¸°
     bool Push(const uint8_t* data, size_t size);
 
-    // µ¥ÀÌÅÍ¸¦ ¹öÆÛ¿¡¼­ ÀĞ±â (send¿ë)
-    // ¸µ ¹öÆÛÀÇ Æ¯¼º»ó ¸Ş¸ğ¸®°¡ ÂÉ°³Á® ÀÖÀ» ¼ö ÀÖÀ¸¹Ç·Î µÎ ¹ø¿¡ ³ª´©¾î º¸³¾ ¼ö ÀÖ°Ô ¼³°è
+    // ë°ì´í„°ë¥¼ ë²„í¼ì—ì„œ ì½ê¸° (sendìš©)
+    // ë§ ë²„í¼ì˜ íŠ¹ì„±ìƒ ë©”ëª¨ë¦¬ê°€ ìª¼ê°œì ¸ ìˆì„ ìˆ˜ ìˆìœ¼ë¯€ë¡œ ë‘ ë²ˆì— ë‚˜ëˆ„ì–´ ë³´ë‚¼ ìˆ˜ ìˆê²Œ ì„¤ê³„
     void Peek(uint8_t** outPtr1, size_t& outSize1, uint8_t** outPtr2, size_t& outSize2);
 
     void Consume(size_t size) {
@@ -26,12 +26,12 @@ public:
     }
 
     size_t GetFreeSize() const {
-        return m_capacity - GetUsedSize() - 1; // 1¹ÙÀÌÆ®´Â Full/Empty ±¸ºĞÀ» À§ÇØ ºñ¿öµÒ
+        return m_capacity - GetUsedSize() - 1; // 1ë°”ì´íŠ¸ëŠ” Full/Empty êµ¬ë¶„ì„ ìœ„í•´ ë¹„ì›Œë‘ 
     }
 
 private:
     std::vector<uint8_t> m_buffer;
     size_t m_capacity;
-    size_t m_head; // ÀĞ±â ÁöÁ¡ (Consumer)
-    size_t m_tail; // ¾²±â ÁöÁ¡ (Producer)
+    size_t m_head; // ì½ê¸° ì§€ì  (Consumer)
+    size_t m_tail; // ì“°ê¸° ì§€ì  (Producer)
 };

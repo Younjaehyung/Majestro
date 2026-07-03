@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "StressTest.h"
 
 int main()
@@ -10,6 +10,9 @@ int main()
 	std::cout << "========================================" << std::endl;
 
 	while (true) {
+		const char* scenarioName =
+			(config.scenario == TestScenario::FullGame) ? "FullGame (Lobby->Room->InGame)" : "LobbyChurn (RoomList/Room churn)";
+
 		std::cout << std::endl;
 		std::cout << "  Current Settings:" << std::endl;
 		std::cout << "  [1] Server IP:Port   = " << config.serverIp << ":" << config.tcpPort << std::endl;
@@ -20,6 +23,9 @@ int main()
 		std::cout << "  [6] Test Duration    = "
 			<< (config.testDuration > 0 ? std::to_string((int)config.testDuration) + " sec" : std::string("Infinite"))
 			<< std::endl;
+		std::cout << "  [7] Scenario         = " << scenarioName << std::endl;
+		std::cout << "  [8] Players / Room   = " << config.playersPerRoom << " (max " << (int)ROOM_MAX_PLAYERS << ", FullGame)" << std::endl;
+		std::cout << "  [9] Churn Interval   = " << config.churnInterval << " sec (LobbyChurn)" << std::endl;
 		std::cout << std::endl;
 		std::cout << "  [S] Start Test" << std::endl;
 		std::cout << "  [Q] Quit" << std::endl;
@@ -89,6 +95,35 @@ int main()
 			std::string val;
 			std::getline(std::cin, val);
 			if (!val.empty()) config.testDuration = std::stof(val);
+			break;
+		}
+		case '7':
+		{
+			config.scenario = (config.scenario == TestScenario::FullGame)
+				? TestScenario::LobbyChurn : TestScenario::FullGame;
+			std::cout << "  Scenario -> "
+				<< ((config.scenario == TestScenario::FullGame) ? "FullGame" : "LobbyChurn") << std::endl;
+			break;
+		}
+		case '8':
+		{
+			std::cout << "  Players per Room (1~" << (int)ROOM_MAX_PLAYERS << "): ";
+			std::string val;
+			std::getline(std::cin, val);
+			if (!val.empty()) {
+				int v = std::stoi(val);
+				if (v < 1) v = 1;
+				if (v > ROOM_MAX_PLAYERS) v = ROOM_MAX_PLAYERS;
+				config.playersPerRoom = v;
+			}
+			break;
+		}
+		case '9':
+		{
+			std::cout << "  Churn Interval (sec): ";
+			std::string val;
+			std::getline(std::cin, val);
+			if (!val.empty()) config.churnInterval = std::stof(val);
 			break;
 		}
 		case 'S':

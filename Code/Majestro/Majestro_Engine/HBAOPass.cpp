@@ -8,8 +8,13 @@
 
 void HBAOPass::Initialize()
 {
-    uint32 sw = static_cast<uint32>(RENDERMANAGER.GetViewPort().Width);
-    uint32 sh = static_cast<uint32>(RENDERMANAGER.GetViewPort().Height);
+    uint32 sw = RENDERMANAGER.GetRenderWidth();
+    uint32 sh = RENDERMANAGER.GetRenderHeight();
+
+    if (sw == 0u || sh == 0u) { 
+        sw = static_cast<uint32>(RENDERMANAGER.GetViewPort().Width); 
+        sh = static_cast<uint32>(RENDERMANAGER.GetViewPort().Height); 
+    }
 
     // 절반 해상도 AO
     uint32 hw = max(sw / 2u, 1u);

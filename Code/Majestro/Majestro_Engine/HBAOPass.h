@@ -6,7 +6,7 @@
 //
 // 파이프라인 역할:
 //   GBufferPass 직후, LightsPass 직전에 실행
-//   -> Gbuffer[1](뷰 공간 위치), Gbuffer[2](뷰 공간 법선) 읽기
+//   -> Gbuffer[0](PRE_DEPTH, 뷰공간 위치 재구성), Gbuffer[2](뷰 공간 법선) 읽기
 //   -> AO 값(R8_UNORM) 계산 -> Cross-bilateral blur -> mAoRT 에 저장
 //   -> LightsPass 가 TextureMaps[GetAOImageIndex()] 로 IBL ambient 에 곱셈
 //
@@ -50,12 +50,12 @@ public:
 
     void Execute(std::vector<DrawBatch>& batches) override;
 
-    // 최종 AO 텍스처의 TextureMaps 인덱스 반환 (LightsPass SetData 에서 사용)
+    // 최종 AO 텍스처의 TextureMaps
     uint32 GetAOImageIndex() const { return mAoRT.tex->GetImageIndex(); }
 
     
     void  SetRadius(float r)       { mRadius = r; }        // 뷰 공간 AO 반경(월드 단위)
-    float GetRadius()       const  { return mRadius; }     //(1단위 = 1cm -> 50~200, 1단위 = 1m -> 0.5~2.0)
+    float GetRadius()       const  { return mRadius; }     //(1단위 = 1m -> 0.5~2.0)
 
     void  SetBias(float b)         { mBias = b; }          // 자기-차폐 방지 오프셋
     float GetBias()         const  { return mBias; }
@@ -78,8 +78,8 @@ public:
 private:
     
     void RunHBAO();
-    void RunBlurH(); // 가로 Cross-bilateral blur: mAoRT → mBlurRT
-    void RunBlurV(); // 세로 Cross-bilateral blur: mBlurRT → mAoRT
+    void RunBlurH(); // 가로 Cross-bilateral blur: mAoRT -> mBlurRT
+    void RunBlurV(); // 세로 Cross-bilateral blur: mBlurRT -> mAoRT
 
     
     HbaoRT CreateHbaoRT(const wstring& name, uint32 w, uint32 h, DXGI_FORMAT fmt);
@@ -93,7 +93,8 @@ private:
 
     void ClearAndBindRTV(const HbaoRT& rt, float clearVal = 1.0f);
 
- 
+private:
+
     float mRadius       = 0.5f;
     float mBias         = 0.03f;
     float mIntensity    = 1.5f;
@@ -102,7 +103,7 @@ private:
     int   mNumSteps      = 4;
     float mBlurRadius    = 3.0f;
 
-    // ── 렌더 타깃 ────────────────────────────────────────────────
+    // 렌더 타깃
     HbaoRT mAoRT;   // Raw HBAO 결과 + V-blur 최종 결과 (둘 다 이 RT 사용)
     HbaoRT mBlurRT; // H-blur 중간 결과
 

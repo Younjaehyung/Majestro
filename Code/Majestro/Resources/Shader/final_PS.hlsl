@@ -26,9 +26,9 @@ float4 PS_Final(VS_OUT input) : SV_Target
 {
     float4 output = (float4) 0;
 
-    // position RT로 배경/지오메트리 구분 (metallic=1이면 diffuse light가 0이 되어 lightPower로 판단 불가)
-    float3 posCheck = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
-    if (posCheck.x == 0.f && posCheck.y == 0.f && posCheck.z == 0.f)
+    // 깊이로 배경/지오메트리 구분
+    // Position RT — deviceDepth >= 1(클리어값) = 배경
+    if (Gbuffer[0].Sample(g_sam_0, input.uv).r >= 1.f)
         clip(-1);
 
     float4 lightPower = Gbuffer[5].Sample(g_sam_0, input.uv); // GBUFFER_DIFFUSE_INDEX = 5

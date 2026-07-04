@@ -42,7 +42,7 @@ enum class SHADOW_TARGET_TYPE : uint8	// CastShadow 맵 용도
 
 enum class G_BUFFER_TYPE : uint8
 {
-	POSITION,
+	// POSITION 제거 (PRE_DEPTH(Gbuffer[0])로 사용함)
 	NORMAL,
 	COLOR,
 	EMISSIVE,

@@ -6,7 +6,6 @@
 #include "math.hlsl"
 
 
-
 // Henyey-Greenstein Mie 산란 위상 함수
 float MiePhase(float cosTheta, float g)
 {
@@ -94,6 +93,7 @@ float2 ToUV(float2 ndc)
 {
     return ndc * 0.5f + 0.5f;
 }
+
 
 // 화면 중심에서의 거리에 따라 오프셋 방향 벡터를 계산
 // 중심에서 멀수록 색수차가 강해지는 방사형 효과

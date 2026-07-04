@@ -14,7 +14,7 @@ struct VS_OUT
 
 struct PS_OUT
 {
-    float4 position : SV_Target0; // view-space pos
+    float position : SV_Target0; // view-space z only
     float4 normal : SV_Target1; // xyz = view normal, w = metallic   [수정]
     float4 color : SV_Target2; // rgb = baseColor,   a = roughness  [수정]
 };
@@ -111,7 +111,7 @@ PS_OUT PS_Main(VS_OUT input)
     roughness = saturate(roughness);
 
 
-    output.position = float4(input.viewPos.xyz, 1.0f);
+    output.position = input.viewPos.z;
 
 
     output.normal = float4(viewNormal.xyz, metallic);

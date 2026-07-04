@@ -318,7 +318,8 @@ ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
 	LIGHTING, // DIFFUSE LIGHT, SPECULAR LIGHT*/
  ///////////////////////////G-BUFFER/////////////////////////////////
 // Gbuffer
-// [0]=PreDepth [1]=Position [2]=Normal [3]=Albedo
+// [0]=PreDepth [1]=PreDepth 복제(Position — 제거됨, ReconstructViewPos로 재구성)
+// [2]=Normal [3]=Albedo
 // [4]=Emissive [5]=DiffuseLight [6]=SpecularLight [7]=HDR
 // [8]=PostHDR_A [9]=PostHDR_B [10]=PostLDR_A [11]=PostLDR_B [12]=MotionVec [13]=Cascade
 Texture2D<float4> Gbuffer[13] : register(t0, space0);
@@ -336,6 +337,16 @@ StructuredBuffer<ANIMINSTANCE> AnimInstance : register(t4, space1);
 StructuredBuffer<Matrix> SFinalBone : register(t5, space1);
 StructuredBuffer<PASS_CUSTOM_DATA> PassCustomTable : register(t6, space1);
 RWStructuredBuffer<Matrix> RFinalBone : register(u0, space1);
+
+// 뷰공간 위치 재구성
+// PositionTarget(R32G32B32A32) 제거 대체 — Gbuffer[0](PRE_DEPTH, device depth)에서 역투영.
+// 배경 판별: deviceDepth >= 1.0 (깊이 클리어값) — 구 Position.z <= 0 검사를 대체.
+float3 ReconstructViewPos(float2 uv, float deviceDepth)
+{
+    float2 ndcXY   = uv * float2(2.f, -2.f) + float2(-1.f, 1.f);
+    float4 viewPos = mul(float4(ndcXY, deviceDepth, 1.f), PassParams.MatProjectionInv);
+    return viewPos.xyz / viewPos.w;
+}
 
  ///////////////////////////////////////////////////////////////////
 

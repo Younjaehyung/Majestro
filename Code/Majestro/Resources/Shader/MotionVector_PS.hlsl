@@ -7,16 +7,17 @@ struct VS_OUT
     float2 uv  : TEXCOORD;
 };
 
-float4 PS_Main(VS_OUT input) : SV_TARGET
+float2 PS_Main(VS_OUT input) : SV_TARGET
 {
     float2 uv = input.uv;
 
     // PRE_DEPTH에서 깊이값 읽기
-    float depth = Gbuffer[9].Sample(g_sam_0, uv).r;
+
+    float depth = Gbuffer[0].Sample(g_sam_0, uv).r;
 
     // 배경(sky)은 velocity 0
     if (depth >= 1.0f)
-        return float4(0.f, 0.f, 0.f, 1.f);
+        return float2(0.f, 0.f);
 
     // UV  -> NDC (DX 좌표계: Y 반전)
     float2 ndcXY = uv * float2(2.f, -2.f) + float2(-1.f, 1.f);
@@ -46,5 +47,6 @@ float4 PS_Main(VS_OUT input) : SV_TARGET
     //float radialStrength = 0.008f; // 이 값으로 중앙 blur 강도 조절
     //velocity += radialDir * radialStrength;
     
-    return float4(velocity, 0.f, 1.f);
+
+    return velocity;
 }

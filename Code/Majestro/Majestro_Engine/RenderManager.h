@@ -22,6 +22,7 @@ struct GraphicsSettings {
 	bool bHBAO         = true;
 	bool bFXAA         = true;
 	bool bShadow       = true;
+	float renderScale  = 1.0f;   // 3D 씬 내부 렌더 배율(0.25~1.0). 1.0=네이티브. UI·스왑체인은 항상 네이티브.
 };
 
 
@@ -50,7 +51,7 @@ class RenderManager
 {
 public:
 	void Initialize(const WindowInfo& info);
-	void InitEffekseer(int32_t instanceMax = 8000, int32_t squareMaxCount = 8000);
+	void InitEffekseer(int32_t instanceMax = 32000, int32_t squareMaxCount = 32000);
 
 	void Update();
 
@@ -67,6 +68,8 @@ public:
 	void SetTable();
 	void SetAnimationComputeFenceValue(uint64 fenceValue) { mAnimationComputeFenceValue = fenceValue; }
 	const WindowInfo& GetWindow() { return mWindow; }
+	uint32 GetRenderWidth()  const { return mRenderWidth; }   // 씬 RT 해상도(= mWindow * renderScale)
+	uint32 GetRenderHeight() const { return mRenderHeight; }
 	ID3D12DescriptorHeap*				GetLegacyGraphicsDescriptorHeap() { return mDescHeap->GetDescriptorHeap().Get(); }
 
 	uint32 GetMsaaSampleCount() const { return mMsaaSampleCount; }
@@ -92,6 +95,10 @@ public:
 	EffekseerRenderer::RendererRef            GetEfkRendererHDR() { return mEfkRendererHDR; }
 	EffekseerRenderer::RendererRef            GetEfkRendererUI()  { return mEfkRendererUI;  }
 	Effekseer::Backend::GraphicsDeviceRef     GetEfkGraphicsDevice() { return mEfkGraphicsDevice; }
+	Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> GetEfkMemoryPoolHDR() { return mEfkMemoryPoolHDR; }
+	Effekseer::RefPtr<EffekseerRenderer::SingleFrameMemoryPool> GetEfkMemoryPoolUI() { return mEfkMemoryPoolUI; }
+	Effekseer::RefPtr<EffekseerRenderer::CommandList> GetEfkCommandListHDR() { return mEfkCmdListHDR; }
+	Effekseer::RefPtr<EffekseerRenderer::CommandList> GetEfkCommandListUI() { return mEfkCmdListUI; }
 
 	D3D12_VIEWPORT&						GetViewPort() { return mViewport; }
 	D3D12_RECT&							GetScissorRect() { return mScissorRect; }
@@ -158,6 +165,8 @@ private:
 	uint32			mMsaaQuality{ 0 };
 
 	WindowInfo		mWindow;
+	uint32			mRenderWidth{};   // = mWindow.Width  * renderScale (씬 RT용)
+	uint32			mRenderHeight{};  // = mWindow.Height * renderScale
 	D3D12_VIEWPORT	mViewport{};
 	D3D12_RECT		mScissorRect{};
 private:

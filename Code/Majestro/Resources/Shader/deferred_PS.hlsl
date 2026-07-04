@@ -14,10 +14,10 @@ struct VS_OUT
 
 struct PS_OUT
 {
-    float4 position : SV_Target0; // view-space pos
-    float4 normal   : SV_Target1; // xyz = view normal, w = metallic
-    float4 color    : SV_Target2; // rgb = baseColor,   a = roughness
-    float4 emissive : SV_Target3; // rgb = emissive
+    // position RT 제거 — 뷰공간 위치는 PRE_DEPTH(Gbuffer[0]) 역투영으로 재구성
+    float4 normal   : SV_Target0; // xyz = view normal, w = metallic
+    float4 color    : SV_Target1; // rgb = baseColor,   a = roughness
+    float4 emissive : SV_Target2; // rgb = emissive
 };
 
 
@@ -144,7 +144,6 @@ PS_OUT PS_Main(VS_OUT input)
         materialAO = TextureMaps[materials.OcclusionMapIndex].Sample(g_sam_0, input.uv).r;
     }
 
-    output.position = float4(input.viewPos.xyz, 1.0f);
     output.normal   = float4(viewNormal.xyz, metallic);
     output.color    = float4(baseColor.rgb, roughness);
     output.emissive = float4(emissive, materialAO); // a채널 = material AO

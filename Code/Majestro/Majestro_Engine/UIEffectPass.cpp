@@ -145,6 +145,11 @@ void UIEffectPass::Execute(float dt)
 	mTotalTime += dt;
 
 	auto renderer = RENDERMANAGER.GetEfkRendererUI();
+	auto memoryPool = RENDERMANAGER.GetEfkMemoryPoolUI();
+	auto commandList = RENDERMANAGER.GetEfkCommandListUI();
+	if (renderer == nullptr || memoryPool == nullptr || commandList == nullptr)
+		return;
+
 	renderer->SetTime(mTotalTime);
 
 	// --- SwapChain RT에 렌더링 (ToneMap 이후, UI 위에 표시) ---
@@ -160,6 +165,10 @@ void UIEffectPass::Execute(float dt)
 	renderer->SetCameraMatrix(identity);
 	renderer->SetProjectionMatrix(BuildOrthoProjection());
 
+	memoryPool->NewFrame();
+	EffekseerRendererDX12::BeginCommandList(commandList, GRAPHICS_CMD_LIST.Get());
+	renderer->SetCommandList(commandList);
+
 	if (renderer->BeginRendering())
 	{
 		Effekseer::Manager::DrawParameter drawParam;
@@ -169,6 +178,7 @@ void UIEffectPass::Execute(float dt)
 		mManager->Draw(drawParam);
 		renderer->EndRendering();
 	}
+	EffekseerRendererDX12::EndCommandList(commandList);
 	// SwapChain은 RT 상태 유지 — 별도 barrier 불필요
 }
 

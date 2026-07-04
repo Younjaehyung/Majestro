@@ -8,7 +8,7 @@
 //  etc=1 : 세로 ExtValue[1] = (texelW, texelH, float(blurRtIdx), blurRadius)  
 //
 // GlobalParams.etc = 0(가로) / 1(세로)
-// 깊이 엣지: Gbuffer[1].z (뷰 공간 깊이, 양수 = 유효)
+// 깊이 엣지: Gbuffer[0](PRE_DEPTH) 재구성 뷰공간 Z (deviceDepth >= 1 = 배경)
 
 struct VS_OUT
 {
@@ -40,12 +40,14 @@ float PS_Main(VS_OUT input) : SV_Target
         : float2(0.0f, texelH);
 
     // 중심 픽셀
-    float centerAo    = TextureMaps[srcIdx].Sample(g_sam_0, input.uv).r;
-    float centerDepth = Gbuffer[1].Sample(g_sam_0, input.uv).z; // 뷰 공간 Z (LH: 양수=유효)
+    float centerAo          = TextureMaps[srcIdx].Sample(g_sam_0, input.uv).r;
+    float centerDeviceDepth = Gbuffer[0].Sample(g_sam_0, input.uv).r;
 
-    // 스카이박스: 블러 없이 통과 (z <= 0 = 배경)
-    if (centerDepth <= 0.0f)
+    // 스카이박스: 블러 없이 통과 (깊이 클리어값 = 배경)
+    if (centerDeviceDepth >= 1.0f)
         return 1.0f;
+
+    float centerDepth = ReconstructViewPos(input.uv, centerDeviceDepth).z; // 뷰 공간 Z
 
     float weightedSum = centerAo * 1.0f; // 중심 픽셀 가중치=1
     float totalWeight = 1.0f;
@@ -57,12 +59,13 @@ float PS_Main(VS_OUT input) : SV_Target
     {
         if (i == 0) continue; // 중심은 위에서 처리
 
-        float2 sUV    = saturate(input.uv + blurDir * (float)i);
-        float  sAo    = TextureMaps[srcIdx].Sample(g_sam_0, sUV).r;
-        float  sDepth = Gbuffer[1].Sample(g_sam_0, sUV).z;
+        float2 sUV          = saturate(input.uv + blurDir * (float)i);
+        float  sAo          = TextureMaps[srcIdx].Sample(g_sam_0, sUV).r;
+        float  sDeviceDepth = Gbuffer[0].Sample(g_sam_0, sUV).r;
 
-    
-        if (sDepth <= 0.0f) continue;
+        if (sDeviceDepth >= 1.0f) continue; // 배경
+
+        float sDepth = ReconstructViewPos(sUV, sDeviceDepth).z;
 
         // 공간 가우시안 (거리에 따른 가중치)
         float wSpatial = GaussianWeight((float)abs(i), blurRadius * 0.5f);

@@ -16,9 +16,9 @@ struct DS_OUT
 
 struct PS_OUT
 {
-    float4 position : SV_Target0;
-    float4 normal : SV_Target1;
-    float4 color : SV_Target2;
+    // position RT 제거 — 뷰공간 위치는 PRE_DEPTH(Gbuffer[0]) 역투영으로 재구성
+    float4 normal : SV_Target0;
+    float4 color : SV_Target1;
 };
 
 PS_OUT PS_Main(DS_OUT input)
@@ -130,7 +130,6 @@ PS_OUT PS_Main(DS_OUT input)
 
     output.color = float4(accumColor, 1.0f);
     output.normal = float4(accumNormal, 0.0f);
-    output.position = float4(input.viewPos.xyz, 1.0f);
     return output;
 }
 

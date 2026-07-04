@@ -97,7 +97,7 @@ void GameRenderPipeline::Initialize(World* world)
 
     mGodRayPass = make_shared<GodRayPass>();
     mGodRayPass->SetIntensity(1.75f);
-    mGodRayPass->SetNumSteps(8);
+    mGodRayPass->SetNumSteps(4);
     mGodRayPass->SetMaxRayLen(8000.0f);
     mGodRayPass->SetScatterCoeff(0.00008f);
     mGodRayPass->SetMieAsymmetry(0.76f);
@@ -194,6 +194,8 @@ void GameRenderPipeline::SetupPassTable(
         }
     }
 
+    // MotionBlur && MotionVector
+    UpdatePassStates();
     UpdateHealthVignetteState();
 
     mPostProcessPass->SetData(table);
@@ -215,8 +217,7 @@ void GameRenderPipeline::ExecuteIndependentGraphics(const RenderContext& ctx)
 {
     UpdatePassStates();
 
-    // These passes do not read Forward Plus compute output and can overlap with it.
-    // DepthPrePass는 항상 호출(FORWARD 깊이는 ForwardPass가 read-only라 필수). full/forward-only는 내부에서 분기.
+    // DepthPrePass
     RenderDepthPrePass(ctx);
     RenderShadow(ctx);
     RenderDeferred(ctx);
@@ -238,23 +239,27 @@ void GameRenderPipeline::ExecuteDependentGraphics(const RenderContext& ctx)
 
 void GameRenderPipeline::UpdatePassStates()
 {
-    if (!mMotionBlurPass)
-        return;
-    if (!mWorld->HasComponentPool<LocalPlayerComponent>())
+    if (!mMotionBlurPass && !mMotionVectorPass)
         return;
 
     bool enableBlur = false;
-    auto players = mWorld->GetEntitiesWithComponent<LocalPlayerComponent>();
-    for (auto e : players)
+    if (mWorld && mWorld->HasComponentPool<LocalPlayerComponent>())
     {
-        auto* player = mWorld->GetComponent<MainPlayerComponent>(e);
-        if (player)
+        auto players = mWorld->GetEntitiesWithComponent<LocalPlayerComponent>();
+        for (auto e : players)
         {
-            enableBlur = (player->mLowerState == static_cast<int>(ReplicatedMovementMode::Dashing));
+            auto* player = mWorld->GetComponent<MainPlayerComponent>(e);
+            if (player)
+            {
+                enableBlur = (player->mLowerState == static_cast<int>(ReplicatedMovementMode::Dashing));
+            }
+            break;
         }
-        break;
     }
-    mMotionBlurPass->SetEnabled(enableBlur);
+
+    // MotionBlur , MotionVector
+    if (mMotionBlurPass)   mMotionBlurPass->SetEnabled(enableBlur);
+    if (mMotionVectorPass) mMotionVectorPass->SetEnabled(enableBlur);
 }
 
 void GameRenderPipeline::UpdateHealthVignetteState()
@@ -505,15 +510,36 @@ void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
-    // DepthPrePass가 항상 깊이를 클리어하므로(full/forward-only 무관) 여기서 별도 클리어 불필요.
-    { GPU_MARKER(L"GBuffer"); mGBufferPass->Execute(*ctx.deferredBatchs); }
+    // DepthPrePass
+    { 
+        GPU_MARKER(L"GBuffer"); 
+        mGBufferPass->Execute(*ctx.deferredBatchs); 
+    }
 
-    // HBAO+: G-Buffer 완성 직후, 조명 계산 전에 AO 생성
-    // (Gbuffer[1]=Position, Gbuffer[2]=Normal 이 PSR 상태로 준비되어 있음)
-    { GPU_MARKER(L"HBAO"); mHBAOPass->Execute(*ctx.deferredBatchs); }
+    // Depth 상태 전환: DEPTH_WRITE -> DEPTH_READ | PIXEL_SHADER_RESOURCE
+    auto* deferredDepthResource = RENDERMANAGER.GetRenderTargetGroup(
+        static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).GetDSTexture()->GetTex2D().Get();
+    {
+        auto toDepthRead = CD3DX12_RESOURCE_BARRIER::Transition(
+            deferredDepthResource,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthRead);
+    }
 
-    { GPU_MARKER(L"DeferredLighting"); mLightPass->Execute(*ctx.lightBatchs); }
+    // HBAO+
+    { 
+        GPU_MARKER(L"HBAO"); 
+        mHBAOPass->Execute(*ctx.deferredBatchs); 
+    }
 
+	// Deferred Lighting
+    { 
+        GPU_MARKER(L"DeferredLighting"); 
+        mLightPass->Execute(*ctx.lightBatchs); 
+    }
+
+	// Deferred FinalComposite
     {
         GPU_MARKER(L"FinalComposite");
 
@@ -528,7 +554,8 @@ void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 
         auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(
             static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
-        hdrGroup.OMSetRenderTargets();
+        // final_PS가 Gbuffer[0]으로 배경 판별
+        hdrGroup.OMSetRenderTargetsReadOnlyDepth();
 
         RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
         RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
@@ -542,7 +569,20 @@ void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
         hdrGroup.WaitTargetToResource();
     }
 
-    { GPU_MARKER(L"MotionVector"); mMotionVectorPass->Execute(*ctx.deferredBatchs); }
+    // MotionVector_PS
+    { 
+        GPU_MARKER(L"MotionVector"); 
+        mMotionVectorPass->Execute(*ctx.deferredBatchs); 
+    }
+
+    // Depth 상태 복구: DEPTH_READ | PIXEL_SHADER_RESOURCE -> DEPTH_WRITE
+    {
+        auto toDepthWrite = CD3DX12_RESOURCE_BARRIER::Transition(
+            deferredDepthResource,
+            D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthWrite);
+    }
 }
 
 void GameRenderPipeline::RenderForward(const RenderContext& ctx)

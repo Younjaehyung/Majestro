@@ -306,6 +306,11 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 	mManager->Update(dt * 60.f);
 
 	auto renderer = RENDERMANAGER.GetEfkRendererHDR();
+	auto memoryPool = RENDERMANAGER.GetEfkMemoryPoolHDR();
+	auto commandList = RENDERMANAGER.GetEfkCommandListHDR();
+	if (renderer == nullptr || memoryPool == nullptr || commandList == nullptr)
+		return;
+
 	mTotalTime += dt;
 	renderer->SetTime(mTotalTime);
 	UpdateSceneTextures(renderer, projMat);
@@ -318,6 +323,10 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 	renderer->SetCameraMatrix(viewMat);
 	renderer->SetProjectionMatrix(projMat);
 
+	memoryPool->NewFrame();
+	EffekseerRendererDX12::BeginCommandList(commandList, GRAPHICS_CMD_LIST.Get());
+	renderer->SetCommandList(commandList);
+
 	if (renderer->BeginRendering())
 	{
 		Effekseer::Manager::DrawParameter drawParam;
@@ -328,6 +337,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		mManager->Draw(drawParam);
 		renderer->EndRendering();
 	}
+	EffekseerRendererDX12::EndCommandList(commandList);
 
 	// ToneMapPass가 HDR을 SRV로 읽으므로 RT→SRV 전환
 	hdrGroup.WaitTargetToResource();

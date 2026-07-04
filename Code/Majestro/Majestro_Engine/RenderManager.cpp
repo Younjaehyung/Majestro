@@ -25,8 +25,8 @@ void RenderManager::Initialize(const WindowInfo& info)
 
 
 
-	mViewport = { 0, 0, static_cast<FLOAT>(mWindow.Width), static_cast<FLOAT>(mWindow.Height), 0.0f, 1.0f };	//뷰포트창 세팅
-	mScissorRect = CD3DX12_RECT(0, 0, mWindow.Width, mWindow.Height);	//사각형 생성
+	mViewport = { 0, 0, static_cast<FLOAT>(mWindow.Width), static_cast<FLOAT>(mWindow.Height), 0.0f, 1.0f };	// 뷰포트 창 세팅
+	mScissorRect = CD3DX12_RECT(0, 0, mWindow.Width, mWindow.Height);	// 사각형 생성
 
 	mDevice->Initialize();
 
@@ -70,7 +70,7 @@ void RenderManager::InitEffekseer(int32_t instanceMax, int32_t squareMaxCount)
 		mGraphicsCommandQueue->GetCommandQueue().Get(),
 		SWAP_CHAIN_BUFFER_COUNT);
 
-	// 인게임 VFX용: HDR RT 포맷 (R16G16B16A16_FLOAT) — ToneMap 전 렌더링
+	// 인게임 VFX용: HDR RT 포맷(R16G16B16A16_FLOAT). ToneMap 전에 렌더링한다.
 	DXGI_FORMAT hdrFormats[1] = { DXGI_FORMAT_R16G16B16A16_FLOAT };
 	mEfkRendererHDR = EffekseerRendererDX12::Create(
 		mEfkGraphicsDevice,
@@ -82,7 +82,7 @@ void RenderManager::InitEffekseer(int32_t instanceMax, int32_t squareMaxCount)
 	mEfkMemoryPoolHDR = EffekseerRenderer::CreateSingleFrameMemoryPool(mEfkGraphicsDevice);
 	mEfkCmdListHDR    = EffekseerRenderer::CreateCommandList(mEfkGraphicsDevice, mEfkMemoryPoolHDR);
 
-	// UI VFX용: SwapChain 포맷 (R8G8B8A8_UNORM) — UI 위에 렌더링
+	// UI VFX용: SwapChain 포맷(R8G8B8A8_UNORM). UI 위에 렌더링한다.
 	DXGI_FORMAT uiFormats[1] = { DXGI_FORMAT_R8G8B8A8_UNORM };
 	mEfkRendererUI = EffekseerRendererDX12::Create(
 		mEfkGraphicsDevice,
@@ -102,7 +102,7 @@ void RenderManager::CreateGlobal()
 
 void RenderManager::CreateGroup()
 {
-	// 추후) 1000은 임의의 큰 고정number임. 게임의 scene을 모두 읽고 총 객체 size로 reset하게 할거임
+	// 추후) 1000은 임의의 큰 고정 number다. 게임 scene을 모두 읽고 총 객체 size로 reset하게 할 예정이다.
 
 	uint32 i = 0;
 	for (shared_ptr<GroupBuffer>& group : mGroupBuffer) {
@@ -144,7 +144,7 @@ void RenderManager::CreateGroup()
 		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
 		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
-		// pass별 커스텀 텍스처/파라미터 테이블: 각 pass가 자신의 행(PASS_CUSTOM_INDEX)을 사용
+		// pass별 커스텀 텍스처 및 파라미터 테이블이다. 각 pass가 자신의 행(PASS_CUSTOM_INDEX)을 사용한다.
 		group->PassCustomTableInfo = make_shared<StructuredBuffer>();
 		// 전체 화면 패스에서 픽셀마다 읽으므로 GPU 로컬 메모리를 사용한다.
 		group->PassCustomTableInfo->CreateDefaultBuffer(sizeof(PassCustomData),
@@ -212,21 +212,9 @@ void RenderManager::StartRender()
 	mGraphicsCommandQueue->WaitForFrame(mFrameResourceIndex);
 	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
-	// 인게임 VFX (HDR renderer) 프레임 시작
-	if (mEfkMemoryPoolHDR != nullptr)
-	{
-		mEfkMemoryPoolHDR->NewFrame();
-		EffekseerRendererDX12::BeginCommandList(mEfkCmdListHDR, GRAPHICS_CMD_LIST.Get());
-		mEfkRendererHDR->SetCommandList(mEfkCmdListHDR);
-	}
 
-	// UI VFX (SwapChain renderer) 프레임 시작
-	if (mEfkMemoryPoolUI != nullptr)
-	{
-		mEfkMemoryPoolUI->NewFrame();
-		EffekseerRendererDX12::BeginCommandList(mEfkCmdListUI, GRAPHICS_CMD_LIST.Get());
-		mEfkRendererUI->SetCommandList(mEfkCmdListUI);
-	}
+	// 수정: Effekseer command list는 각 pass의 draw 구간에서만 연다.
+	// 프레임 전체에서 BeginCommandList를 유지하면 SubmitIndependentWork의 GRAPHICS_CMD_LIST reset과 충돌할 수 있다.
 }
 
 void RenderManager::SubmitIndependentGraphics()
@@ -248,19 +236,13 @@ void RenderManager::EndRender()
 {
 	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
 
-	// 커맨드 리스트를 먼저 제출 (ExecuteCommandLists + Present)
+	// 커맨드 리스트를 먼저 제출한다. ExecuteCommandLists와 Present를 포함한다.
 	mGraphicsCommandQueue->RenderEnd();
 
 	mGraphicsMemory->Commit(mGraphicsCommandQueue->GetCommandQueue().Get());
 
-	// Effekseer 내부 fence 신호: ExecuteCommandLists 이후에 호출해야
-	// GPU에 커맨드가 제출된 뒤 fence가 발동되어 다음 프레임 NewFrame()이 안전하게 대기함
-	if (mEfkCmdListHDR != nullptr)
-		EffekseerRendererDX12::EndCommandList(mEfkCmdListHDR);
-
-	if (mEfkCmdListUI != nullptr)
-		EffekseerRendererDX12::EndCommandList(mEfkCmdListUI);
-
+	// Effekseer 내부 fence 신호는 각 pass의 EndCommandList에서 처리한다.
+	// 여기서는 엔진 frame fence만 진행한다.
 	mGraphicsCommandQueue->SignalFrame(mFrameResourceIndex, backIndex);
 
 	mFrameCurrIndex = mFrameResourceIndex;
@@ -299,7 +281,7 @@ void RenderManager::ResizeWindow(int32 width, int32 height)
 	mWindow.Width = width;
 	mWindow.Height = height;
 
-	//윈도우 창 사이즈 조절
+	// 윈도우 창 사이즈 조절
 	RECT rect = { 0, 0, width, height };
 	AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
 	SetWindowPos(mWindow.Hwnd, 0, 100, 100, width, height, 0);
@@ -314,14 +296,14 @@ void RenderManager::SetComputTable()
 	}
 
 
-	COMPUTE_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+	COMPUTE_CMD_LIST->SetComputeRootSignature(mRootSignature->GetRootSignature().Get());	// 루트 시그니처 set
 
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
 
 	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
-	COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
-	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	// 사용할 테이블 힙을 선택한다. 무거운 호출이므로 프레임당 1번 사용을 권장한다.
+	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	// 사용할 테이블 힙을 선택한다. 무거운 호출이므로 프레임당 1번 사용을 권장한다.
 
 	// Table 바인딩
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitComputeTable(mFrameCount, 1, GBUFFER_INDEX_START);
@@ -338,13 +320,12 @@ void RenderManager::SetGraphicsTable()
 		mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 	}
 
-	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트시그니쳐 set
+	GRAPHICS_CMD_LIST->SetGraphicsRootSignature(mRootSignature->GetRootSignature().Get());	// 루트 시그니처 set
 
 	uint32 mFrameCount = RENDERMANAGER.GetFrameResourceIndex();
 
 	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
-	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
-	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	// 사용할 테이블 힙을 선택한다. 무거운 호출이므로 프레임당 1번 사용을 권장한다.
 
 	// Table 바인딩
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 1, GBUFFER_INDEX_START);
@@ -366,8 +347,7 @@ void RenderManager::SetTable()
 	}
 
 	ID3D12DescriptorHeap* descHeap = mDescHeap->GetDescriptorHeap().Get();
-	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
-	//COMPUTE_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	//몇번째 테이블힙을 사용할건지 선택함 (매우 무거움으로 프레임당 1번만 사용할것을 권장함)
+	GRAPHICS_CMD_LIST->SetDescriptorHeaps(1, &descHeap);	// 사용할 테이블 힙을 선택한다. 무거운 호출이므로 프레임당 1번 사용을 권장한다.
 
 	// Table 바인딩
 	RENDERMANAGER.GetGraphicsDescHeap()->CommitGraphicsTable(mFrameCount, 1, GBUFFER_INDEX_START);
@@ -380,6 +360,18 @@ void RenderManager::SetTable()
 
 void RenderManager::CreateRenderTargetGroups()
 {
+	// RenderScale 적용
+	// 렌더 스케일은 씬 RT(Depth/G-buffer/Lighting/HDR)에만 적용. 
+	// 스왑체인, UI, post는 mWindow 크기를 유지
+	{
+		// (scale이 1.0이면 render 크기와 window 크기가 같아서 기존과 동일)
+		float s = mGraphicsSettings.renderScale;
+		if (s < 0.25f) s = 0.25f;
+		if (s > 1.0f)  s = 1.0f;
+		mRenderWidth  = max(1u, static_cast<uint32>(mWindow.Width  * s + 0.5f));
+		mRenderHeight = max(1u, static_cast<uint32>(mWindow.Height * s + 0.5f));
+	}
+
 	// DepthStencil
 	shared_ptr<Texture> dsTexture = gEngine->GetResourceManager().CreateTexture(L"DepthStencil",
 		DXGI_FORMAT_D32_FLOAT, mWindow.Width, mWindow.Height,
@@ -405,9 +397,9 @@ void RenderManager::CreateRenderTargetGroups()
 			wstring name = L"SwapChainTarget_" + std::to_wstring(i);
 
 			ComPtr<ID3D12Resource> resource;
-			mSwapChain->GetSwapChain()->GetBuffer(i, IID_PPV_ARGS(&resource));	//SwapChainBuffer를 가져옴
-			rtVec[i].Target = RESOURCEMANAGER.CreateTextureFromResource(name, resource, 0);	//SwapChainBuffer을 이용해서 Texutre 생성
-			//SwapChainBuffer을 이용해서 Texutre 생성
+			mSwapChain->GetSwapChain()->GetBuffer(i, IID_PPV_ARGS(&resource));	// SwapChainBuffer를 가져온다.
+			rtVec[i].Target = RESOURCEMANAGER.CreateTextureFromResource(name, resource, 0);	// SwapChainBuffer를 이용해서 Texture 생성
+			// SwapChainBuffer를 이용해서 Texture 생성
 		}
 
 
@@ -435,11 +427,10 @@ void RenderManager::CreateRenderTargetGroups()
 
 	//======공용=======
 	
-		// PRE_DEPTH는 별도 RT 없이 기존 dsTexture를 재사용
-		// 단, SRV 접근을 위해 R32_TYPELESS로 새로 생성
+		// PRE_DEPTH
 		shared_ptr<Texture> depthPreTexture = RESOURCEMANAGER.CreateTexture(
 			L"SceneDepth",
-			DXGI_FORMAT_R32_TYPELESS, mWindow.Width, mWindow.Height,
+			DXGI_FORMAT_R32_TYPELESS, mRenderWidth, mRenderHeight,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE,
 			D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, true);
@@ -456,7 +447,7 @@ void RenderManager::CreateRenderTargetGroups()
 		vector<RenderTarget> rtVec(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
 
 		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
-			DXGI_FORMAT_R32_TYPELESS, 2048, 2048,   // CSM 해상도 (RenderSystem.h shadowMapSize + utils.hlsl ×2 동기)
+			DXGI_FORMAT_R32_TYPELESS, 2048, 2048,   // CSM 해상도(RenderSystem.h shadowMapSize + utils.hlsl x2 동기)
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, true, 1, 0, Vec4(),
 			RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT, TextureType::TEXTURE_2D_ARRAY);
@@ -471,23 +462,19 @@ void RenderManager::CreateRenderTargetGroups()
 	{
 		vector<RenderTarget> rtVec(RENDER_TARGET_G_BUFFER_GROUP_MEMBER_COUNT);
 
-		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PositionTarget",
-			DXGI_FORMAT_R32G32B32A32_FLOAT, mWindow.Width, mWindow.Height,
+
+		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"NormalTarget",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mRenderWidth, mRenderHeight,  // 뷰노멀과 metallic을 저장한다.
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
-		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"NormalTarget",
-			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,  // 뷰노멀+metallic → R16F 무손실, 128→64bit
+		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM, mRenderWidth, mRenderHeight,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
-		rtVec[2].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseTarget",
-			DXGI_FORMAT_R8G8B8A8_UNORM, mWindow.Width, mWindow.Height,
-			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
-
-		rtVec[3].Target = RESOURCEMANAGER.CreateTexture(L"EmissiveTarget",
-			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,
+		rtVec[2].Target = RESOURCEMANAGER.CreateTexture(L"EmissiveTarget",
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mRenderWidth, mRenderHeight,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
@@ -500,12 +487,12 @@ void RenderManager::CreateRenderTargetGroups()
 		vector<RenderTarget> rtVec(RENDER_TARGET_LIGHTING_GROUP_MEMBER_COUNT);
 
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"DiffuseLightTarget",
-			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mRenderWidth, mRenderHeight,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
 		rtVec[1].Target = RESOURCEMANAGER.CreateTexture(L"SpecularLightTarget",
-			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mRenderWidth, mRenderHeight,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET,0);
 
@@ -517,7 +504,7 @@ void RenderManager::CreateRenderTargetGroups()
 		vector<RenderTarget> rtVec(1);
 
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"HDRSceneTarget",
-			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,
+			DXGI_FORMAT_R16G16B16A16_FLOAT, mRenderWidth, mRenderHeight,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 
@@ -525,7 +512,6 @@ void RenderManager::CreateRenderTargetGroups()
 	}
 
 	// PostProcess Group
-
 	{
 		vector<RenderTarget> rtVec(1);
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PostHDRTargetA",
@@ -534,6 +520,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_HDR_A)].Create(RENDER_TARGET_GROUP_TYPE::POST_HDR_A, rtVec, dsTexture);
 	}
+
 	{
 		vector<RenderTarget> rtVec(1);
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PostHDRTargetB",
@@ -542,6 +529,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_HDR_B)].Create(RENDER_TARGET_GROUP_TYPE::POST_HDR_B, rtVec, dsTexture);
 	}
+
 	{
 		vector<RenderTarget> rtVec(1);
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PostLDRTargetA",
@@ -550,6 +538,7 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_LDR_A)].Create(RENDER_TARGET_GROUP_TYPE::POST_LDR_A, rtVec, dsTexture);
 	}
+
 	{
 		vector<RenderTarget> rtVec(1);
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"PostLDRTargetB",
@@ -558,16 +547,18 @@ void RenderManager::CreateRenderTargetGroups()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::POST_LDR_B)].Create(RENDER_TARGET_GROUP_TYPE::POST_LDR_B, rtVec, dsTexture);
 	}
-	// Motion Vector Group (velocity.xy → R16G16B16A16_FLOAT 사용)
+
+	// Motion Vector Group
 	{
 		vector<RenderTarget> rtVec(1);
 		rtVec[0].Target = RESOURCEMANAGER.CreateTexture(L"MotionVectorTarget",
-			DXGI_FORMAT_R16G16B16A16_FLOAT, mWindow.Width, mWindow.Height,
+			DXGI_FORMAT_R16G16_FLOAT, mWindow.Width, mWindow.Height,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, 0);
 		mRenderTargetGroup[static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR)].Create(RENDER_TARGET_GROUP_TYPE::MOTION_VECTOR, rtVec, dsTexture);
 	}
-	// PRE_DEPTH SRV: rtVec가 비어있으므로 루프 밖에서 별도 생성
+
+	// PRE_DEPTH SRV: rtVec가 비어 있으므로 루프 밖에서 별도 생성
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = mDescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 		uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -581,6 +572,11 @@ void RenderManager::CreateRenderTargetGroups()
 		D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
 			cpuhandle, static_cast<uint32>(GBUFFER_INDEX::GBUFFER_PREDEPTH_INDEX) * srvSize);
 		DEVICE->CreateShaderResourceView(depthPreTexture->GetTex2D().Get(), &depthSrv, srvhandle);
+
+		// 슬롯(1)도 같은 depth SRV로 채움
+		D3D12_CPU_DESCRIPTOR_HANDLE posAliasHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(
+			cpuhandle, static_cast<uint32>(GBUFFER_INDEX::GBUFFER_POSITION_INDEX) * srvSize);
+		DEVICE->CreateShaderResourceView(depthPreTexture->GetTex2D().Get(), &depthSrv, posAliasHandle);
 	}
 
 	int i = 0;
@@ -614,12 +610,13 @@ void RenderManager::CreateRenderTargetGroups()
 				D3D12_CPU_DESCRIPTOR_HANDLE srvhandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, static_cast<uint32>(GBUFFER_INDEX::GBUFFER_CASCADE_INDEX) * srvSize);
 				DEVICE->CreateShaderResourceView(renderTarget.Target->GetTex2D().Get(), &cascadeSrv, srvhandle);
 
-				// SHADOW 그룹은 배열 하나를 공유하므로 SRV 1회만 생성
-				i = static_cast<uint32>(GBUFFER_INDEX::GBUFFER_POSITION_INDEX);
+				// SHADOW 그룹은 배열 하나를 공유하므로 SRV를 1회만 생성한다.
+				// G_BUFFER 첫 멤버는 Normal(slot 2) — slot 1은 depth 알리아스로 이미 채움
+				i = static_cast<uint32>(GBUFFER_INDEX::GBUFFER_NORMAL_INDEX);
 				break;
 			}
 
-			UINT mipLevels = 1;	// 임시 밈맵
+			UINT mipLevels = 1;	// 임시 밉맵
 
 			// Texture에 대한 SRV 서술자 설정
 			D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -636,7 +633,7 @@ void RenderManager::CreateRenderTargetGroups()
 			case D3D12_SRV_DIMENSION_TEXTURE2D:
 				srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
 				srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
-				srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
+				srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스
 				srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
 				break;
 			case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
@@ -655,7 +652,7 @@ void RenderManager::CreateRenderTargetGroups()
 			case D3D12_SRV_DIMENSION_TEXTURE2DMS:
 				srvDesc.Texture2D.MostDetailedMip = 0;       // 가장 높은 해상도의 밉맵부터 시작
 				srvDesc.Texture2D.MipLevels = mipLevels;     // 사용할 밉맵 레벨 수
-				srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스 (비디오 텍스처 등에서 사용)
+				srvDesc.Texture2D.PlaneSlice = 0;            // 플레인 슬라이스
 				srvDesc.Texture2D.ResourceMinLODClamp = 0.0f; // 최소 LOD 클램프
 				break;
 			default:

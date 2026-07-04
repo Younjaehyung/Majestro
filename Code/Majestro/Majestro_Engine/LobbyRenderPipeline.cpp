@@ -238,13 +238,23 @@ void LobbyRenderPipeline::DrawImGui()
 
 void LobbyRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
-   
+
     mGBufferPass->Execute(*ctx.deferredBatchs);
 
-   
+    // Depth 상태 전환: DEPTH_WRITE -> DEPTH_READ | PIXEL_SHADER_RESOURCE
+    auto* deferredDepthResource = RENDERMANAGER.GetRenderTargetGroup(
+        static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::G_BUFFER)).GetDSTexture()->GetTex2D().Get();
+    {
+        auto toDepthRead = CD3DX12_RESOURCE_BARRIER::Transition(
+            deferredDepthResource,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthRead);
+    }
+
     mLightPass->Execute(*ctx.lightBatchs);
 
-    
+
     int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 
     if (RENDERMANAGER.IsMsaaEnabled())
@@ -257,7 +267,8 @@ void LobbyRenderPipeline::RenderDeferred(const RenderContext& ctx)
 
     auto& hdrGroup = RENDERMANAGER.GetRenderTargetGroup(
         static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::HDR));
-    hdrGroup.OMSetRenderTargets();
+    // final_PS가 Gbuffer[0]으로 배경 판별
+    hdrGroup.OMSetRenderTargetsReadOnlyDepth();
 
     RESOURCEMANAGER.Get<Shader>(L"Final")->Update();
     RESOURCEMANAGER.Get<Mesh>(L"Rectangle")->Render();
@@ -269,4 +280,13 @@ void LobbyRenderPipeline::RenderDeferred(const RenderContext& ctx)
             .WaitTargetToResource();
     }
     hdrGroup.WaitTargetToResource();
+
+    // ─── Depth 상태 복구: DEPTH_READ | PIXEL_SHADER_RESOURCE -> DEPTH_WRITE ──────
+    {
+        auto toDepthWrite = CD3DX12_RESOURCE_BARRIER::Transition(
+            deferredDepthResource,
+            D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+            D3D12_RESOURCE_STATE_DEPTH_WRITE);
+        GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthWrite);
+    }
 }

@@ -15,10 +15,9 @@ struct PS_OUT
 };
 
 
-// Gbuffer[0] : Shadow depth
-// Gbuffer[1] : Position (view-space xyz)
-// Gbuffer[2] : Normal+Metallic (xyz = view normal, w = metallic)  
-// Gbuffer[3] : Albedo+Roughness (rgb = baseColor, a = roughness)  
+// Gbuffer[0] : PreDepth (device depth) — 뷰공간 위치는 ReconstructViewPos로 재구성
+// Gbuffer[2] : Normal+Metallic (xyz = view normal, w = metallic)
+// Gbuffer[3] : Albedo+Roughness (rgb = baseColor, a = roughness)
 
 PS_OUT PS_DirLight(VS_OUT input)
 {
@@ -30,10 +29,13 @@ PS_OUT PS_DirLight(VS_OUT input)
         return output;
     }
 
-    float3 viewPos = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
+    float deviceDepth = Gbuffer[0].Sample(g_sam_0, input.uv).r;
 
-    if (viewPos.z <= 0.f)
+    // 배경(스카이박스) = 깊이 클리어값
+    if (deviceDepth >= 1.f)
         clip(-1);
+
+    float3 viewPos = ReconstructViewPos(input.uv, deviceDepth);
 
     float4 n_m = Gbuffer[2].Sample(g_sam_0, input.uv);
     float3 viewNormal = normalize(n_m.xyz);

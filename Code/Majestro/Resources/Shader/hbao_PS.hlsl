@@ -41,10 +41,12 @@ float PS_Main(VS_OUT input) : SV_Target
     float texelH    = data.ExtValue[1].z;
     float falloff   = data.ExtValue[1].w;
 
-    float3 posVS    = Gbuffer[1].Sample(g_sam_0, input.uv).xyz;
-    float3 normalVS = normalize(Gbuffer[2].Sample(g_sam_0, input.uv).xyz);
+    // Gbuffer[0](PRE_DEPTH)에서 뷰공간 위치 재구성
+    float centerDepth = Gbuffer[0].Sample(g_sam_0, input.uv).r;
+    if (centerDepth >= 1.0f) return 1.0f; // 배경(스카이박스)
 
-    if (posVS.z <= 0.0f) return 1.0f;
+    float3 posVS    = ReconstructViewPos(input.uv, centerDepth);
+    float3 normalVS = normalize(Gbuffer[2].Sample(g_sam_0, input.uv).xyz);
 
     // ── 스크린 반경 (원근 보정 + 최대 픽셀 클램프) ──────────────
     static const float MAX_PX = 150.0f;
@@ -82,8 +84,10 @@ float PS_Main(VS_OUT input) : SV_Target
             float2 sUV = input.uv + dir2D * (float)j;
             if (any(sUV < 0.0f) || any(sUV > 1.0f)) continue;
 
-            float3 sPosVS = Gbuffer[1].Sample(g_sam_0, sUV).xyz;
-            if (sPosVS.z <= 0.0f) continue;
+            float sDepth = Gbuffer[0].Sample(g_sam_0, sUV).r;
+            if (sDepth >= 1.0f) continue; // 배경
+
+            float3 sPosVS = ReconstructViewPos(sUV, sDepth);
 
             float3 diff = sPosVS - posVS;
             float  dist = length(diff);

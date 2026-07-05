@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "RoomManager.h"
+#include "RoomNotifier.h"
 #include "ServerCore.h"
 
 // RoomState
@@ -150,39 +151,6 @@ bool RoomState::IsHost(uint64 sessionId) const
     return mHostSessionId == sessionId;
 }
 
-void RoomState::FillStatePacket(S2C_RoomStatePacket& outPacket) const
-{
-    outPacket.roomId = mRoomId;
-    outPacket.playerCount = static_cast<uint8>(mPlayers.size());
-    outPacket.maxPlayers = ROOM_MAX_PLAYERS;
-    outPacket.hostSlotIndex = 0xFF;
-    outPacket.reserved = 0;
-
-    for (uint8 slotIdx = 0; slotIdx < ROOM_MAX_PLAYERS; ++slotIdx)
-        outPacket.slots[slotIdx] = RoomPlayerSlot{};
-
-    for (size_t i = 0; i < mPlayers.size() && i < ROOM_MAX_PLAYERS; ++i)
-    {
-        const auto& src = mPlayers[i];
-        RoomPlayerSlot& dst = outPacket.slots[i];
-        dst.sessionId = static_cast<uint32>(src.sessionId);
-        dst.playerType = src.playerType;
-        dst.ready = src.ready ? 1 : 0;
-        dst.isHost = src.isHost ? 1 : 0;
-        if (src.isHost)
-            outPacket.hostSlotIndex = static_cast<uint8>(i);
-    }
-}
-
-void RoomState::FillListEntry(RoomListEntry& out) const
-{
-    out.roomId = mRoomId;
-    out.playerCount = static_cast<uint8>(mPlayers.size());
-    out.maxPlayers = ROOM_MAX_PLAYERS;
-    out.phase = static_cast<uint8>(mPhase);
-    out.reserved = 0;
-}
-
 std::vector<uint64> RoomState::GetSessionIds() const
 {
     std::vector<uint64> result;
@@ -209,7 +177,7 @@ void RoomManager::OnSessionEnterLobby(uint64 sessionId)
 
     // 아직 플레이라고 판단되는 플레이어를 제외한 사람들에게 방목록 전송
     if (mSessionToRoom.find(sessionId) == mSessionToRoom.end())
-        SendRoomList(sessionId);
+        if (mNotifier) mNotifier->SendRoomList(sessionId);
 }
 
 void RoomManager::OnSessionLeave(uint64 sessionId)
@@ -230,102 +198,30 @@ void RoomManager::OnSessionLeave(uint64 sessionId)
     if (room->mPlayers.empty())
         mRooms.erase(roomId);        // 빈 방 소멸
     else
-        BroadcastRoomState(roomId);
+        if (mNotifier) mNotifier->BroadcastRoomState(roomId);
 
-    BroadcastRoomListToHall();
+    if (mNotifier) mNotifier->BroadcastRoomListToHall();
 }
 
-bool RoomManager::HandleRoomPacket(const InputCommand& command)
+void RoomManager::OnGameStarted(uint64 sessionId)
 {
-    const uint64 sessionId = command.SessionId;
-
-    switch (command.Type)
-    {
-    case PKT_Type::C2S_ROOM_CREATE:
-        HandleCreate(sessionId);
-        return true;
-    case PKT_Type::C2S_ROOM_JOIN:
-    {
-        const C2S_RoomJoinPacket* pkt = command.ViewAs<C2S_RoomJoinPacket>();
-        if (pkt == nullptr) return false;
-        HandleJoin(sessionId, pkt->roomId);
-        return true;
-    }
-    case PKT_Type::C2S_ROOM_LIST:
-        HandleList(sessionId);
-        return true;
-    case PKT_Type::C2S_ROOM_LEAVE:
-        HandleLeave(sessionId);
-        return true;
-    case PKT_Type::C2S_ROOM_READY:
-    case PKT_Type::C2S_ROOM_CHARACTER_SELECT:
-        break;  // 아래에서 방 소속 검사 후 처리
-    default:
-        return false;
-    }
-
     RoomState* room = GetRoomByPlayer(sessionId);
-    if (room == nullptr)
-    {
-        SendError(sessionId, 0, RoomErrorCode::InvalidRoom);
-        return true;
-    }
+    if (room == nullptr) return;
 
-    if (command.Type == PKT_Type::C2S_ROOM_READY)
+    // 게임 중 상태로 전환
+    room->mPhase = RoomPhase::InGame;
+    if (mNotifier)
     {
-        const C2S_RoomReadyPacket* pkt = command.ViewAs<C2S_RoomReadyPacket>();
-        if (pkt == nullptr) return false;
-        if (pkt->roomId != room->mRoomId)
-        {
-            SendError(sessionId, pkt->roomId, RoomErrorCode::InvalidRoom);
-            return true;
-        }
-        if (!room->SetReady(sessionId, pkt->ready != 0))
-        {
-            // 이미 확정된 캐릭터로 Ready 시도시 거부 통지 + 상태 재동기화
-            SendError(sessionId, room->mRoomId, RoomErrorCode::CharacterTaken);
-            BroadcastRoomState(room->mRoomId);
-            return true;
-        }
-        // 확정 성공 시, 같은 캐릭터를 고르던 미확정 플레이어들을 빈 캐릭터로 밀어냄
-        if (pkt->ready != 0)
-        {
-            uint8 lockedType = 0;
-            if (room->GetPlayerType(sessionId, lockedType))
-                room->EvictConflictingSelections(sessionId, lockedType);
-        }
-        BroadcastRoomState(room->mRoomId);
-        return true;
+        mNotifier->BroadcastRoomState(room->mRoomId);
+        mNotifier->BroadcastRoomListToHall();   // 목록의 phase 갱신
     }
-
-    if (command.Type == PKT_Type::C2S_ROOM_CHARACTER_SELECT)
-    {
-        const C2S_RoomCharacterSelectPacket* pkt = command.ViewAs<C2S_RoomCharacterSelectPacket>();
-        if (pkt == nullptr) return false;
-        if (pkt->roomId != room->mRoomId)
-        {
-            SendError(sessionId, pkt->roomId, RoomErrorCode::InvalidRoom);
-            return true;
-        }
-        if (!room->SetPlayerCharacter(sessionId, pkt->playerType))
-        {
-            BroadcastRoomState(room->mRoomId);
-            return true;
-        }
-        BroadcastRoomState(room->mRoomId);
-        return true;
-    }
-
-    return false;
 }
 
-void RoomManager::HandleCreate(uint64 sessionId)
+RoomErrorCode RoomManager::CreateRoom(uint64 sessionId, uint32& outRoomId)
 {
+    outRoomId = 0;
     if (mSessionToRoom.find(sessionId) != mSessionToRoom.end())
-    {
-        SendJoinResult(sessionId, 0, false, RoomErrorCode::AlreadyInRoom);
-        return;
-    }
+        return RoomErrorCode::AlreadyInRoom;
 
     const uint32 roomId = mNextRoomId++;
     RoomState& room = mRooms[roomId];
@@ -336,76 +232,77 @@ void RoomManager::HandleCreate(uint64 sessionId)
     mSessionToRoom[sessionId] = roomId;
     mHallSessions.erase(sessionId);
 
-    SendJoinResult(sessionId, roomId, true, RoomErrorCode::None);
-    BroadcastRoomState(roomId);        // 본인에게 방 상태
-    BroadcastRoomListToHall();         // 홀 사람들 목록 갱신
+    outRoomId = roomId;
+    return RoomErrorCode::None;
 }
 
-void RoomManager::HandleJoin(uint64 sessionId, uint32 roomId)
+RoomErrorCode RoomManager::JoinRoom(uint64 sessionId, uint32 roomId)
 {
     if (mSessionToRoom.find(sessionId) != mSessionToRoom.end())
-    {
-        SendJoinResult(sessionId, 0, false, RoomErrorCode::AlreadyInRoom);
-        return;
-    }
+        return RoomErrorCode::AlreadyInRoom;
 
     RoomState* room = GetRoom(roomId);
     if (room == nullptr)
-    {
-        SendJoinResult(sessionId, 0, false, RoomErrorCode::InvalidRoom);
-        return;
-    }
+        return RoomErrorCode::InvalidRoom;
     if (room->mPhase == RoomPhase::InGame)
-    {
-        SendJoinResult(sessionId, 0, false, RoomErrorCode::RoomInGame);
-        return;
-    }
+        return RoomErrorCode::RoomInGame;
     if (room->mPlayers.size() >= ROOM_MAX_PLAYERS)
-    {
-        SendJoinResult(sessionId, 0, false, RoomErrorCode::RoomFull);
-        return;
-    }
+        return RoomErrorCode::RoomFull;
 
     room->AddPlayer(sessionId);
     mSessionToRoom[sessionId] = roomId;
     mHallSessions.erase(sessionId);
-
-    SendJoinResult(sessionId, roomId, true, RoomErrorCode::None);
-    BroadcastRoomState(roomId);        // 방원 전원 상태 갱신
-    BroadcastRoomListToHall();
+    return RoomErrorCode::None;
 }
 
-void RoomManager::HandleLeave(uint64 sessionId)
+bool RoomManager::LeaveRoom(uint64 sessionId, uint32& outRoomId)
 {
+    outRoomId = 0;
     auto findIt = mSessionToRoom.find(sessionId);
-    if (findIt == mSessionToRoom.end()) return;
+    if (findIt == mSessionToRoom.end()) return false;
 
-    const uint32 roomId = findIt->second;
+    outRoomId = findIt->second;
     mSessionToRoom.erase(findIt);
     mHallSessions.insert(sessionId);
 
-    RoomState* room = GetRoom(roomId);
+    RoomState* room = GetRoom(outRoomId);
     if (room != nullptr)
     {
         room->RemovePlayer(sessionId);   // Host 빠지면 승계
         if (room->mPlayers.empty())
-            mRooms.erase(roomId);        // 빈 방 소멸
-        else
-            BroadcastRoomState(roomId);
+            mRooms.erase(outRoomId);     // 빈 방 소멸
     }
-
-    BroadcastRoomListToHall();
-    SendRoomList(sessionId);             // 홀로 돌아온 본인에게 목록
+    return true;
 }
 
-void RoomManager::HandleList(uint64 sessionId)
+RoomErrorCode RoomManager::SetPlayerReady(uint64 sessionId, bool ready)
 {
-    SendRoomList(sessionId);
+    RoomState* room = GetRoomByPlayer(sessionId);
+    if (room == nullptr)
+        return RoomErrorCode::InvalidRoom;
 
-    // 요청자가 아직 게임에서 나가지 않고 방에 들어가 있는 상태였다면 복구시킴
-    const uint32 roomId = GetRoomIdByPlayer(sessionId);
-    if (roomId != 0)
-        BroadcastRoomState(roomId);
+    if (!room->SetReady(sessionId, ready))
+        return RoomErrorCode::CharacterTaken;
+
+    // 확정 성공 시, 같은 캐릭터를 고르던 미확정 플레이어들을 빈 캐릭터로 밀어냄
+    if (ready)
+    {
+        uint8 lockedType = 0;
+        if (room->GetPlayerType(sessionId, lockedType))
+            room->EvictConflictingSelections(sessionId, lockedType);
+    }
+    return RoomErrorCode::None;
+}
+
+RoomErrorCode RoomManager::SelectCharacter(uint64 sessionId, uint8 playerType)
+{
+    RoomState* room = GetRoomByPlayer(sessionId);
+    if (room == nullptr)
+        return RoomErrorCode::InvalidRoom;
+
+    if (!room->SetPlayerCharacter(sessionId, playerType))
+        return RoomErrorCode::CharacterTaken;
+    return RoomErrorCode::None;
 }
 
 bool RoomManager::CanStartGame(uint64 sessionId, RoomErrorCode& outError) const
@@ -448,17 +345,6 @@ bool RoomManager::CanStartGame(uint64 sessionId, RoomErrorCode& outError) const
     return true;
 }
 
-void RoomManager::OnGameStarted(uint64 sessionId)
-{
-    RoomState* room = GetRoomByPlayer(sessionId);
-    if (room == nullptr) return;
-
-    // 게임 중 상태로 전환
-    room->mPhase = RoomPhase::InGame;
-    BroadcastRoomState(room->mRoomId);
-    BroadcastRoomListToHall();          // 목록의 phase 갱신
-}
-
 RoomState* RoomManager::GetRoomByPlayer(uint64 sessionId)
 {
     auto findIt = mSessionToRoom.find(sessionId);
@@ -477,79 +363,4 @@ uint32 RoomManager::GetRoomIdByPlayer(uint64 sessionId) const
 {
     auto findIt = mSessionToRoom.find(sessionId);
     return findIt != mSessionToRoom.end() ? findIt->second : 0;
-}
-
-void RoomManager::BroadcastRoomState(uint32 roomId)
-{
-    RoomState* room = GetRoom(roomId);
-    if (room == nullptr) return;
-
-    S2C_RoomStatePacket statePkt;
-    room->FillStatePacket(statePkt);
-
-    // 브로드캐스트
-    for (uint64 sessionId : room->GetSessionIds())
-    {
-        SendRequest req{ static_cast<uint32>(sessionId), PKT_Type::S2C_ROOM_STATE, sizeof(S2C_RoomStatePacket) };
-        req.StoreAs<S2C_RoomStatePacket>(statePkt);
-        gSendQueue.Push(req);
-    }
-}
-
-void RoomManager::FillRoomListPacket(S2C_RoomListPacket& outPacket) const
-{
-    uint8 count = 0;
-    for (const auto& [roomId, room] : mRooms)
-    {
-        if (count >= ROOM_LIST_MAX_ENTRIES) break;
-        room.FillListEntry(outPacket.entries[count]);
-        ++count;
-    }
-    outPacket.count = count;
-}
-
-void RoomManager::BroadcastRoomListToHall()
-{
-    S2C_RoomListPacket listPkt;
-    FillRoomListPacket(listPkt);
-
-    for (uint64 sessionId : mHallSessions)
-    {
-        SendRequest req{ static_cast<uint32>(sessionId), PKT_Type::S2C_ROOM_LIST, sizeof(S2C_RoomListPacket) };
-        req.StoreAs<S2C_RoomListPacket>(listPkt);
-        gSendQueue.Push(req);
-    }
-}
-
-void RoomManager::SendRoomList(uint64 sessionId)
-{
-    S2C_RoomListPacket listPkt;
-    FillRoomListPacket(listPkt);
-
-    SendRequest req{ static_cast<uint32>(sessionId), PKT_Type::S2C_ROOM_LIST, sizeof(S2C_RoomListPacket) };
-    req.StoreAs<S2C_RoomListPacket>(listPkt);
-    gSendQueue.Push(req);
-}
-
-void RoomManager::SendJoinResult(uint64 sessionId, uint32 roomId, bool success, RoomErrorCode code)
-{
-    S2C_RoomJoinResultPacket resultPkt;
-    resultPkt.roomId = roomId;
-    resultPkt.success = success ? 1 : 0;
-    resultPkt.errorCode = static_cast<uint8>(code);
-
-    SendRequest req{ static_cast<uint32>(sessionId), PKT_Type::S2C_ROOM_JOIN_RESULT, sizeof(S2C_RoomJoinResultPacket) };
-    req.StoreAs<S2C_RoomJoinResultPacket>(resultPkt);
-    gSendQueue.Push(req);
-}
-
-void RoomManager::SendError(uint64 sessionId, uint32 roomId, RoomErrorCode code)
-{
-    S2C_RoomErrorPacket errPkt;
-    errPkt.roomId = roomId;
-    errPkt.errorCode = static_cast<uint8>(code);
-
-    SendRequest req{ static_cast<uint32>(sessionId), PKT_Type::S2C_ROOM_ERROR, sizeof(S2C_RoomErrorPacket) };
-    req.StoreAs<S2C_RoomErrorPacket>(errPkt);
-    gSendQueue.Push(req);
 }

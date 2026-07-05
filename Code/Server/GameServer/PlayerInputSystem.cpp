@@ -3,6 +3,7 @@
 
 #include "PlayerSystem.h"
 #include "PlayerComponent.h"
+#include "GravityComponent.h"
 #include "CameraComponent.h"
 #include "TagComponent.h"
 #include "InputManager.h"

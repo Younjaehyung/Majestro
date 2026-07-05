@@ -35,6 +35,10 @@
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
 #include "LobbyRoomSystem.h"
+#include "NpcComponent.h"
+#include "NpcInteractionSystem.h"
+#include "UIDialogueFeature.h"
+#include "JsonUtils.h"
 #include "LobbyRoomBrowserFeature.h"
 #include "MenuRoomBrowserSystem.h"
 
@@ -975,6 +979,10 @@ bool LoadingScene::LoadScene(SceneId id)
 
 	std::wstring mapPath;
 	switch ((uint8)id) {
+	case (uint8)SceneId::Plaza: {
+		mapPath = L"..\\Resources\\Json\\MapShip_Export.json";
+	}
+							  break;
 	case (uint8)SceneId::FirstGame: {
 		mapPath = L"..\\Resources\\Json\\Map001_Export.json";
 	}
@@ -2361,6 +2369,206 @@ void FirstScene::Initialize()
 	particleSystem->SpawnEffect(L"Particle_AuraRise", Vec3(-8002.9f, 1027.2f, -12519.6f));
 
 
+}
+
+
+namespace
+{
+	NpcRole ParseNpcRole(const std::string& name)
+	{
+		if (name == "levelSelect")  return NpcRole::LevelSelect;
+		if (name == "traitSelect")  return NpcRole::TraitSelect;
+		if (name == "rhythmSelect") return NpcRole::RhythmSelect;
+		return NpcRole::Dialogue;
+	}
+
+	// 광장 NPC 배치/대화 스크립트 로드.
+	void LoadPlazaNpcs(World* world, const std::wstring& path)
+	{
+		std::ifstream ifs(path);
+		if (!ifs.is_open())
+		{
+			std::cout << "[Plaza] NPC json 을 열 수 없어 NPC 스폰을 건너뜁니다" << std::endl;
+			return;
+		}
+
+		json root;
+		ifs >> root;
+		if (!root.contains("npcs"))
+			return;
+
+		for (const auto& it : root["npcs"])
+		{
+			Entity e = world->CreateEntity();
+
+			TransformComponent t{};
+			t.mLocalPosition = ParseVec3ArrayOrObject(RequireJson(it, "position"), 1.0f);
+			t.mLocalRotationE = Vec3(0.f, GetOptionalFloat(it, "rotationY", 0.f), 0.f);
+			const float scale = GetOptionalFloat(it, "scale", 1.f);
+			t.mLocalScale = Vec3(scale, scale, scale);
+			world->AddComponent<TransformComponent>(e, t);
+
+			NpcComponent& npc = world->AddComponent<NpcComponent>(e);
+			npc.mNpcId = utfs2ws(GetOptionalString(it, "id", "npc"));
+			npc.mName = utfs2ws(GetOptionalString(it, "name", "NPC"));
+			npc.mRole = ParseNpcRole(GetOptionalString(it, "role", "dialogue"));
+			npc.mPortraitKey = utfs2ws(GetOptionalString(it, "portrait", "UI_NoteMan_Portrait"));
+			npc.mInteractRadius = GetOptionalFloat(it, "interactRadius", 250.f);
+
+			if (it.contains("dialogue"))
+				for (const auto& lineJson : it["dialogue"])
+					npc.mDialogueLines.push_back(utfs2ws(GetOptionalString(lineJson, "line", "")));
+
+			// 표시용 메시. 지정 리소스가 없으면 Cube 폴백, 그래도 없으면 비표시로 스폰.
+			shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(utfs2ws(GetOptionalString(it, "mesh", "SM_Noteman")));
+			if (!mesh) mesh = RESOURCEMANAGER.Get<Mesh>(L"Cube");
+			shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(utfs2ws(GetOptionalString(it, "material", "Anim_NoteMan_Idle0")));
+			if (mesh && material)
+			{
+				std::vector<shared_ptr<Material>> materials{ material };
+				world->AddComponent<RenderComponent>(e, mesh, materials);
+
+				shared_ptr<Animator> idleAnim = RESOURCEMANAGER.Get<Animator>(utfs2ws(GetOptionalString(it, "anim", "Anim_NoteMan_Idle")));
+				if (idleAnim)
+				{
+					std::vector<shared_ptr<Animator>> animators{ idleAnim };
+					world->AddComponent<AnimationComponent>(e, animators);
+				}
+			}
+			else
+			{
+				std::cout << "[Plaza] NPC 표시 리소스(mesh/material) 없음 — 비표시로 스폰: "
+					<< GetOptionalString(it, "id", "npc") << std::endl;
+			}
+		}
+	}
+}
+
+void PlazaScene::Initialize()
+{
+	mWorld->SetSceneId(mSceneId);
+
+	AUDIOMANAGER.RequestBGM("event:/OST/EscortMulti", SOUNDNAME::Ambient);
+	PrefabFactory::RegisterAllPrefabs();
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+	OceanPrefab ocean{ mWorld.get() };
+
+
+	LoadJsonLevelData(L"..\\Resources\\Json\\MapShip_Export.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\MapShip_Export.json");
+
+#pragma region UI
+
+	CreatePauseMenu();
+
+	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
+	mUIFeatures.push_back(audioVisualizerModule);
+
+	auto actionModule = std::make_shared<UIActionUpdateFeature>();
+	mUIFeatures.push_back(actionModule);
+
+	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
+	mUIFeatures.push_back(hpBarModule);
+
+	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
+	mUIFeatures.push_back(damagePopupModule);
+
+	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
+	mUIFeatures.push_back(playerStatusModule);
+
+	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
+	mUIFeatures.push_back(gameProgressModule);
+
+	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
+	mUIFeatures.push_back(portraitModule);
+
+	auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
+	mUIFeatures.push_back(skillCooldownModule);
+
+	auto dialogueModule = std::make_shared<UIDialogueFeature>();	// NPC 대화 UI
+	mUIFeatures.push_back(dialogueModule);
+
+	for (const auto& feature : mUIFeatures)
+	{
+		if (feature != nullptr)
+			feature->Initialize(mWorld.get());
+	}
+
+#pragma endregion
+
+
+#pragma region Systems
+	mWorld->Initialize();
+
+	// INPUT
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NpcInteractionSystem>();	// NPC 근접/대화 (광장 전용)
+
+	// NETWORK
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<GamePhaseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PauseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimNotifySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
+
+
+	auto* renderSystemPZ = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemPZ->SetPipeline(make_shared<GameRenderPipeline>());
+	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemPZ->GetPipeline());
+	gp->SetWorldUIFeature(&mUIFeatures);
+	gp->SetColorLUT(L"ColorLUT", 33);
+
+	// 광장 컬러 그레이딩 (FirstScene 과 동일)
+	{
+		ColorGradingParams cg;
+		cg.Saturation = 1.3f;
+		cg.Contrast   = 1.0f;
+		cg.Brightness = 0.0f;
+		cg.Exposure   = 1.6f;
+		gp->SetColorGrading(cg);
+	}
+
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
+
+#pragma endregion
+
+	mWorld->AddSingleton<GameRuleComponent>();
+	mWorld->AddSingleton<DialogueStateComponent>();
+
+	// NPC 배치 + 대화 스크립트
+	LoadPlazaNpcs(mWorld.get(), L"..\\Resources\\Json\\Plaza_NPCs.json");
 }
 
 

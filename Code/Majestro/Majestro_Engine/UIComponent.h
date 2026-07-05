@@ -11,7 +11,8 @@ enum class UIRenderGroup : uint8
 	Gameplay = 0,
 	Pause,
 	Clear,
-	GameOver
+	GameOver,
+	Dialogue,
 };
 
 // 현재 화면 상태에 따라 렌더링할 UI를 구분한다.

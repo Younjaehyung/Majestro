@@ -26,6 +26,15 @@ string ws2s(const wstring& s)
 	return r;
 }
 
+std::wstring utfs2ws(const std::string& utf8)
+{
+	if (utf8.empty()) return L"";
+	const int wideLen = ::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), (int)utf8.size(), nullptr, 0);
+	std::wstring wide(wideLen, L'\0');
+	::MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), (int)utf8.size(), wide.data(), wideLen);
+	return wide;
+}
+
 // ANSI
 void LogDebug(const std::string& msg) {
 	std::string output = "[LOG] " + msg + "\n";

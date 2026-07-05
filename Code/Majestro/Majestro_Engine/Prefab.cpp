@@ -433,35 +433,35 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		HUDHPBarPrefab::HUDHPBarPrefab(world, ctx.ViewAs<S2C_SpawnPacekt>()->Type, mEntityID);
 		HUDCrosshairPrefab::HUDCrosshairPrefab(world);
 
-		//{
-		//	// ================ [디버깅] 플레이어 실시간 좌표 UI ================
-		//	Entity debugTextObj = world->CreateEntity();
-		//	auto& dbgTransform = world->AddComponent<UITransformComponent>(debugTextObj);
-		//	dbgTransform.mAnchor = Anchor::Center; // 화면 좌측 상단
-		//	dbgTransform.mPosition = Vec2(30.f, -30.f);
-		//	dbgTransform.mSize = Vec2(400.f, 50.f);
-		//	dbgTransform.mUILayerIndex = 15;
+		{
+			// ================ [디버깅] 플레이어 실시간 좌표 UI ================
+			Entity debugTextObj = world->CreateEntity();
+			auto& dbgTransform = world->AddComponent<UITransformComponent>(debugTextObj);
+			dbgTransform.mAnchor = Anchor::Center; // 화면 좌측 상단
+			dbgTransform.mPosition = Vec2(30.f, -30.f);
+			dbgTransform.mSize = Vec2(400.f, 50.f);
+			dbgTransform.mUILayerIndex = 15;
 
-		//	world->AddComponent<UITextComponent>(debugTextObj).mText = L"Pos: ";
-		//	world->AddComponent<UIScriptComponent>(debugTextObj).mOnUpdate =
-		//		[world, mEntityID, debugTextObj](float /*dt*/)
-		//		{
-		//			TransformComponent* playerTransform = world->GetComponent<TransformComponent>(mEntityID);
-		//			UITextComponent* textComp = world->GetComponent<UITextComponent>(debugTextObj);
+			world->AddComponent<UITextComponent>(debugTextObj).mText = L"Pos: ";
+			world->AddComponent<UIScriptComponent>(debugTextObj).mOnUpdate =
+				[world, mEntityID, debugTextObj](float /*dt*/)
+				{
+					TransformComponent* playerTransform = world->GetComponent<TransformComponent>(mEntityID);
+					UITextComponent* textComp = world->GetComponent<UITextComponent>(debugTextObj);
 
-		//			if (playerTransform && textComp)
-		//			{
-		//				// x, y, z 좌표를 읽어와 텍스트 갱신
-		//				std::wstring posText = L"Player Pos: (" +
-		//					std::to_wstring((int)playerTransform->mLocalPosition.x) + L", " +
-		//					std::to_wstring((int)playerTransform->mLocalPosition.y) + L", " +
-		//					std::to_wstring((int)playerTransform->mLocalPosition.z) + L")";
+					if (playerTransform && textComp)
+					{
+						// x, y, z 좌표를 읽어와 텍스트 갱신
+						std::wstring posText = L"Player Pos: (" +
+							std::to_wstring((int)playerTransform->mLocalPosition.x) + L", " +
+							std::to_wstring((int)playerTransform->mLocalPosition.y) + L", " +
+							std::to_wstring((int)playerTransform->mLocalPosition.z) + L")";
 
-		//				textComp->mText = posText;
-		//			}
-		//		};
+						textComp->mText = posText;
+					}
+				};
 
-		//}
+		}
 	}
 	else 
 	{

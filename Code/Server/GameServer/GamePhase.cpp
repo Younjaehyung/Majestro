@@ -23,10 +23,8 @@
 
 #include "Prefab.h"
 
-namespace
+void ApplyPlayerSpawnPosition(World* world, Entity playerEntity)
 {
-	void ApplyPrepareSpawnPosition(World* world, Entity playerEntity)
-	{
 		if (!world || !world->HasComponentPool<PlayerSpawnComponent>())
 			return;
 
@@ -82,7 +80,6 @@ namespace
 			gravity->mDropping = false;
 			gravity->mGroundGraceLeft = 0.0f;
 		}
-	}
 }
 
 void PreparePhase::Enter(WaveGameMode& mode)
@@ -141,7 +138,7 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 				continue;
 
 			if (mPositionedPlayers.insert(netComp->mNetEntityId).second)
-				ApplyPrepareSpawnPosition(mWorld.get(), entity);
+				ApplyPlayerSpawnPosition(mWorld.get(), entity);
 		}
 	}
 

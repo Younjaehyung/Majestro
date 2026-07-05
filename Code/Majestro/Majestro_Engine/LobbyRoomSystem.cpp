@@ -216,7 +216,7 @@ void LobbyRoomSystem::BuildUI()
             if (host && all)
             {
                 if (auto em = mWorld->GetEventManager())
-                    em->Enqueue(EvNetSceneChange{ SceneId::FirstGame });
+                    em->Enqueue(EvNetSceneChange{ SceneId::Plaza });	// 게임 시작 = 광장으로 출발
                 mStarting = true;
             }
         },

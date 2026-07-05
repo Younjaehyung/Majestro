@@ -30,7 +30,7 @@ namespace
 
 	Vec3 ResolvePlayerMoveAgainstEnemies(World* world, Entity playerEntity, const Vec3& startPos, const Vec3& desiredEnd)
 	{
-		if (!world || !playerEntity.IsValid())
+		if (!world || !world->HasComponentPool<EnemyMovementComponent>()|| !playerEntity.IsValid())
 			return desiredEnd;
 
 		const float moveX = desiredEnd.x - startPos.x;
@@ -136,15 +136,14 @@ void MovementSystem::Update(float dt) {
 
 	if (false == mWorld->HasComponentPool<MainCameraComponent>())return;
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
-	if (false == mWorld->HasComponentPool<EnemyMovementComponent>())return;
-
 
 	UpdateGravity(dt);
 	UpdatePlayer(dt);
-	
-	UpdateEnemy(dt);
-	UpdateFlyHeight(dt);
-	UpdateBullet(dt);
+
+	if (mWorld->HasComponentPool<EnemyMovementComponent>())
+		UpdateEnemy(dt);
+	UpdateFlyHeight(dt);	
+	UpdateBullet(dt);		
 
 }
 
@@ -326,7 +325,7 @@ void MovementSystem::UpdatePlayer(float dt)
 			//  벽 처리 : Jolt StaticCollision 구 sweep + 슬라이드
 			Vec3 resolved = ResolvePlayerMoveByJolt(entity, gravityComponent, prevPos, desiredEnd);
 
-			// 이동 가능 영역 가드: 지면에 있을 때만 NavMesh 밖이면 차단 
+			// 이동 가능 영역 가드: 지면에 있을 때만 NavMesh 밖이면 차단
 			const bool airborne = gravityComponent
 				&& (gravityComponent->mFalling || gravityComponent->mDropping);
 			shared_ptr<Navigation>& nav = mWorld->GetNavSystem();

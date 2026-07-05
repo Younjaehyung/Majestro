@@ -1,6 +1,7 @@
 #pragma once
 #include "PacketHelper.h"
 
+class RoomNotifier;
 
 // 방 진행 단계: 대기실(입장 허용) / 게임 중(난입 금지)
 enum class RoomPhase : uint8 { Waiting = 0, InGame = 1 };
@@ -20,6 +21,7 @@ public:
     RoomPhase mPhase = RoomPhase::Waiting;    // 대기실 / 게임 중
     std::vector<RoomPlayerEntry> mPlayers;
     uint64 mHostSessionId = 0;
+    uint8  mNextStageIndex = 0;               // kStageOrder 인덱스. 다음에 도전할 스테이지 (레벨 클리어 시 증가)
 
     // 같은 sessionId 가 이미 있으면 false. 빈 방이었으면 호스트로 등록.
     bool AddPlayer(uint64 sessionId);
@@ -45,51 +47,50 @@ public:
     bool IsAllReady() const;
     bool IsHost(uint64 sessionId) const;
 
-    void FillStatePacket(S2C_RoomStatePacket& outPacket) const;
-    void FillListEntry(RoomListEntry& out) const;   // 방 목록용 요약
     std::vector<uint64> GetSessionIds() const;
 };
 
+// 방 도메인 서비스. 패킷 파싱/송신은 RoomPacketHandler/RoomNotifier 담당이며,
+// 여기서는 상태 변경과 규칙 검사만 수행한다. (상태 변경에 따른 통지는 mNotifier 경유)
 class RoomManager
 {
     // 접속 직후 세션은 어떤 방에도 속하지 않는 mHallSessions 상태.
 public:
     void Initialize();
+    void SetNotifier(RoomNotifier* notifier) { mNotifier = notifier; }
 
-    // 세션 생명주기
+    // 세션 생명주기 (상태 변경 + 통지까지 수행)
     void OnSessionEnterLobby(uint64 sessionId);  // 자동입장 제거: 홀 등록 + 방 목록 송신
     void OnSessionLeave(uint64 sessionId);       // 접속 종료: 방에서 빼고 빈 방 소멸
 
-    bool HandleRoomPacket(const InputCommand& command);
+    // 게임 시작이 승인됐을 때 호출. phase=InGame + 목록 갱신
+    void OnGameStarted(uint64 sessionId);
+
+    // 도메인 조작 — 규칙 검사 후 상태만 변경. 응답/브로드캐스트는 호출자(핸들러) 책임.
+    RoomErrorCode CreateRoom(uint64 sessionId, uint32& outRoomId);
+    RoomErrorCode JoinRoom(uint64 sessionId, uint32 roomId);
+    bool LeaveRoom(uint64 sessionId, uint32& outRoomId);   // true = 방에 속해 있었고 나감
+    RoomErrorCode SetPlayerReady(uint64 sessionId, bool ready);        // 성공 시 충돌 캐릭터 자동 이동 포함
+    RoomErrorCode SelectCharacter(uint64 sessionId, uint8 playerType);
 
     // 실패 시 outError 에 거부 사유 반환
     bool CanStartGame(uint64 sessionId, RoomErrorCode& outError) const;
-
-    // 게임 시작이 승인됐을 때 호출. phase=InGame + 목록 갱신
-    void OnGameStarted(uint64 sessionId);
 
     RoomState* GetRoomByPlayer(uint64 sessionId);
     RoomState* GetRoom(uint32 roomId);
     uint32     GetRoomIdByPlayer(uint64 sessionId) const;  // 없으면 0
 
+    // Notifier 직렬화용 읽기 전용 접근
+    const std::unordered_map<uint32, RoomState>& GetRooms() const { return mRooms; }
+    const std::unordered_set<uint64>& GetHallSessions() const { return mHallSessions; }
+
 private:
-    // C2S_ROOM_* 핸들러
-    void HandleCreate(uint64 sessionId);
-    void HandleJoin(uint64 sessionId, uint32 roomId);
-    void HandleLeave(uint64 sessionId);
-    void HandleList(uint64 sessionId);
-
-    void BroadcastRoomState(uint32 roomId);
-    void BroadcastRoomListToHall();              // 홀 세션 전원에게 목록
-    void SendRoomList(uint64 sessionId);         // 단일 세션에 목록
-    void FillRoomListPacket(S2C_RoomListPacket& outPacket) const;
-    void SendJoinResult(uint64 sessionId, uint32 roomId, bool success, RoomErrorCode code);
-    void SendError(uint64 sessionId, uint32 roomId, RoomErrorCode code);
-
     std::unordered_map<uint32, RoomState> mRooms;          // roomId - RoomState
     std::unordered_map<uint64, uint32>    mSessionToRoom;  // sessionId - roomId (방에 속한 세션만)
     std::unordered_set<uint64>            mHallSessions;    // 접속시 방 리스트창 상태
     uint32 mNextRoomId = 1;                                // roomId 발급 카운터 (재사용 안 함)
+
+    RoomNotifier* mNotifier = nullptr;
 
     static constexpr uint8 mMinPlayersToStart = 1; // 혼자도 시작 허용
 };

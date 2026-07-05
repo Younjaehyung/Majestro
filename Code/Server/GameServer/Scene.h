@@ -86,6 +86,14 @@ public:
 
 };
 
+// 광장(허브) 씬
+class PlazaScene : public Scene
+{
+public:
+	virtual void Initialize() override;
+
+};
+
 // LOBBY SCENE
 
 class LobbyScene : public Scene

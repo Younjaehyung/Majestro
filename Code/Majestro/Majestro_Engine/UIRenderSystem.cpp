@@ -18,6 +18,7 @@
 #include "UIAudioVisualizerFeature.h"
 #include "GameRuleComponent.h"
 #include "PauseMenuController.h"
+#include "NpcComponent.h"
 #include "GameMode.h"
 #include "Timer.h"
 
@@ -490,6 +491,11 @@ UIRenderGroup UIRenderSystem::GetActiveRenderGroup() const
                 return UIRenderGroup::Pause;
         }
     }
+
+    // NPC 대화
+    const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();
+    if (dialogue != nullptr && dialogue->mActive)
+        return UIRenderGroup::Dialogue;
 
     return UIRenderGroup::Gameplay;
 }

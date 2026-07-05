@@ -68,6 +68,13 @@ public:
 
 };
 
+class PlazaGameMode : public GameMode
+{
+public:
+	virtual void Initialize() override;
+	virtual void PreUpdate(float deltaTime) override;
+};
+
 class ResultGameMode : public GameMode
 {
 public:

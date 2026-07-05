@@ -14,7 +14,7 @@ enum class eKeyCode {
 	A, S, D, F, G, H, J, K, L,
 	Z, X, C, V, B, N, M, LEFT, RIGHT, DOWN, UP, SPACE, SHIFT,
 	_0, _1, _2, _3, _4, _5, _6, _7, _8, _9,
-	F1, F2, F3, F4, F5,
+	F1, F2, F3, F4, F5, F6, F7,
 	ESC, TAB, GRAVE,
 	NUMPAD0, NUMPAD1, NUMPAD2, NUMPAD3, NUMPAD4,
 	NUMPAD5, NUMPAD6, NUMPAD7, NUMPAD8, NUMPAD9,

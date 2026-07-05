@@ -9,6 +9,7 @@
 #include "MovementComponent.h"
 #include "GameEvents.h"
 #include "EventManager.h"
+#include "GamePhase.h"
 #include "BeatSystem.h"
 #include "GameTimer.h"
 #include "TransformComponent.h"
@@ -377,7 +378,12 @@ Entity NetRecvSystem::SpawnPlayer(InputCommand& inputCommand)
 		cout << "charactor: " << (int)startPacket->playerType << endl;
 	}
 
-	return PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
+	Entity playerEntity = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);
+
+	// 페이즈가 없는 씬(광장)에서도 스폰 지점에 배치되도록 스폰 직후 즉시 적용.
+	ApplyPlayerSpawnPosition(mWorld, playerEntity);
+
+	return playerEntity;
 }
 
 // ─── 불릿 풀 스폰 ────────────────────────────────────────────

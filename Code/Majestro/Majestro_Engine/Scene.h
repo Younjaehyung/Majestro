@@ -126,6 +126,14 @@ public:
 
 };
 
+class PlazaScene : public Scene
+{
+public:
+	PlazaScene() { mSceneId = SceneId::Plaza; }
+	virtual void Initialize() override;
+
+};
+
 // RESULT SCENE
 
 class VictoryScene : public Scene

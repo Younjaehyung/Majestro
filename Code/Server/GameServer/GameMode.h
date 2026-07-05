@@ -10,6 +10,7 @@ enum class GameModeType : uint8
 	Lobby = 0,
 	Wave,
 	Result,
+	Plaza,
 };
 
 class GameMode
@@ -22,13 +23,17 @@ public:
 
 	virtual bool& IsSceneChanging() { return mIsSceneChanging; }
 	virtual SceneId GetTargetSceneId() const { return mTargetSceneId; }
+	virtual bool IsFailed() const { return mIsFailed; }
 
-	// [디버그] 게임 완료를 기다리지 않고 지정 씬으로 강제 전환
-	void DebugForceTransition(SceneId target)
+	// 외부(씬 전환 핸들러)에서 방 World 전환을 예약 (SceneManager::TransitionToScene 이 수거)
+	void RequestTransition(SceneId target)
 	{
 		mTargetSceneId = target;
 		mIsSceneChanging = true;
 	}
+
+	// [디버그] 게임 완료를 기다리지 않고 지정 씬으로 강제 전환
+	void DebugForceTransition(SceneId target) { RequestTransition(target); }
 	virtual GameModeType GetType() const = 0;
 
 	virtual void SetScene(shared_ptr<Scene> scene) { mScene = scene; }
@@ -93,6 +98,8 @@ public:
 		mHasCustomPhases = true;
 	}
 
+	virtual bool IsFailed() const override { return mFailed; }
+
 private:
 // 런타임
 	std::deque<PhaseFactory> mPhaseQueue;
@@ -111,10 +118,17 @@ private:
 
 class ResultGameMode : public GameMode
 {
-public: 
+public:
 	virtual void Initialize() override;
 	virtual void PreUpdate(float deltaTime) override;
 	virtual void PostUpdate(float deltaTime) override;
 	virtual GameModeType GetType() const override { return GameModeType::Result; }
 
+};
+
+class PlazaGameMode : public GameMode
+{
+public:
+	virtual void Initialize() override {}
+	virtual GameModeType GetType() const override { return GameModeType::Plaza; }
 };

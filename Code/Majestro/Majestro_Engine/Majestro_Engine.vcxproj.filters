@@ -752,6 +752,15 @@
     <ClInclude Include="GamePhaseSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="NpcComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="NpcInteractionSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="UIDialogueFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="JoltUtils.h">
       <Filter>Utils\Jolt</Filter>
     </ClInclude>
@@ -1255,6 +1264,12 @@
     </ClCompile>
     <ClCompile Include="GamePhaseSystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="NpcInteractionSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="UIDialogueFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="WorldUIPass.cpp">
       <Filter>World\System\Render\08.Post\LDR</Filter>

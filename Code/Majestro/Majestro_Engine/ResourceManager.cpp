@@ -2696,7 +2696,14 @@ void ResourceManager::CreateDefaultMaterial()
 
 		Load<Texture>(L"UI_Loading_Main_01", L"..\\Resources\\Image\\UI\\UI_Loading_Main_01.png");
 		Load<Texture>(L"UI_Loading_Circle", L"..\\Resources\\Image\\UI\\UI_Loading_Circle.png");
-		//Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
+
+		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");
+		Load<Texture>(L"UI_NoteMan_Talk_0", L"..\\Resources\\Image\\UI\\UI_NoteMan_Talk_0.png");
+		Load<Texture>(L"UI_NoteBoar_Portrait", L"..\\Resources\\Image\\UI\\UI_NoteBoar_Portrait.png");
+		Load<Texture>(L"UI_NoteMan_Portrait", L"..\\Resources\\Image\\UI\\UI_NoteMan_Portrait.png");
+
+     
+
 		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");
 
 
@@ -2944,6 +2951,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Idle.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Run.fbx", L"JHToon");
 
+	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_NoteMan_Idle.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 	LoadFBXModel(L"..\\Resources\\FBX\\Object\\Obelisk.fbx", L"Deferred");

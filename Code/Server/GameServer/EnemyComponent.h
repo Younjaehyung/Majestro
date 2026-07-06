@@ -10,7 +10,8 @@ enum EnemyType {
 	Obelisk,
 	Fly,
 	Brass,
-	Slime
+	Slime,
+	Dragon
 };
 
 enum class EnemyAnimState : uint8
@@ -89,11 +90,17 @@ public:
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			mNextShildTime = GetServerTotalTimeSeconds();
 			break;
+		case EnemyType::Dragon:
+			mAttackCool = 12;
+			AttackRange = 700.f;
+			AttackRangeSq = AttackRange * AttackRange;
+			mNextAttackTime = GetServerTotalTimeSeconds();
+			break;
 		default:
 			mAttackCool = 4;
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			break;
-		}
+			}
 
 	}
 

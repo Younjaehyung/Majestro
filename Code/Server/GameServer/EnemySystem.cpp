@@ -78,6 +78,18 @@ namespace
         }
     }
 
+    SkillType GetDragonSkillType(uint8 pattern)
+    {
+        switch (pattern)
+        {
+        case 0: return SkillType::DragonSkill1;
+        case 1: return SkillType::DragonSkill2;
+        case 2: return SkillType::DragonSkill3;
+        case 3: return SkillType::DragonSkill4;
+        default: return SkillType::DragonSkill1;
+        }
+    }
+
     EnemyAnimState GetBrassAnimState(uint8 pattern)
     {
         switch (pattern)
@@ -663,6 +675,35 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }
         break;
+    case EnemyType::Dragon:
+    {
+        movementComp->mMovingDirection = Vec3::Zero;
+        movementComp->mPathCount = 0;
+        movementComp->mPathIndex = 0;
+
+        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+        {
+            std::uniform_int_distribution<int> dragonPick(0, 3);
+            const SkillType dragonSkill = GetDragonSkillType(static_cast<uint8>(dragonPick(RandomEngine())));
+
+            if (dragonSkill == SkillType::DragonSkill2)
+            {
+                SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(-350.0f, 0.0f, 220.0f));
+                SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(350.0f, 0.0f, 220.0f));
+                SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(-500.0f, 0.0f, -150.0f));
+                SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(500.0f, 0.0f, -150.0f));
+                SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Slime, Vec3(0.0f, 0.0f, -380.0f));
+            }
+            else
+            {
+                eventManager->Enqueue<EvMeleeAttackRequest>({ entity, dragonSkill });
+            }
+
+            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
+            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+        }
+        break;
+    }
 	    case EnemyType::Brass:
 	    {
 	        auto getBrassRushEndDuration = [&]()

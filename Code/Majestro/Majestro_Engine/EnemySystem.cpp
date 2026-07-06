@@ -378,12 +378,30 @@ void EnemySystem::Update(float dt) {
 					return;
 				radius = kBongomanAttackRadius;
 			}
-			else if (e.skillType == SkillType::BongoAttack)
-			{
-				if (!RenderSystem::GetDrawEnemyAttackRanges())
-					return;
-				radius = kBongomanAttackRadius;
-			}
+				else if (e.skillType == SkillType::BongoAttack)
+				{
+					if (!RenderSystem::GetDrawEnemyAttackRanges())
+						return;
+					radius = kBongomanAttackRadius;
+				}
+				else if (e.skillType == SkillType::DragonSkill1)
+				{
+					if (!RenderSystem::GetDrawEnemyAttackRanges())
+						return;
+					radius = 320.0f;
+				}
+				else if (e.skillType == SkillType::DragonSkill3)
+				{
+					if (!RenderSystem::GetDrawEnemyAttackRanges())
+						return;
+					radius = 420.0f;
+				}
+				else if (e.skillType == SkillType::DragonSkill4)
+				{
+					if (!RenderSystem::GetDrawEnemyAttackRanges())
+						return;
+					radius = 550.0f;
+				}
 			else if (e.skillType == SkillType::DrumAttack ||
 				e.skillType == SkillType::DrumSkill1 ||
 				e.skillType == SkillType::GuitarAttack ||

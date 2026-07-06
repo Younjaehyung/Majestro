@@ -9,7 +9,8 @@ enum EnemyType {
 	Obelisk,
 	Fly,
 	Brass,
-	Slime
+	Slime,
+	Dragon
 };
 
 enum class EnemyAnimState : uint8

@@ -110,6 +110,10 @@ enum class SkillType : uint8
 	BrassSkill2,
 	BrassSkill3,
 	BrassSkill4,
+	DragonSkill1,
+	DragonSkill2,
+	DragonSkill3,
+	DragonSkill4,
 
 	Max
 };

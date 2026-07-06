@@ -19,13 +19,14 @@ namespace
 		{
 		case EnemyType::HornMan:  return "monster/HornMan/Attack";
 		case EnemyType::Pianoman: return "monster/Pianoman/Attack";
-		case EnemyType::Bongoman: return "monster/Bongoman/Attack";
-		case EnemyType::Obelisk:  return "monster/Obelisk/Attack";
-		case EnemyType::Fly:      return "monster/Fly/Attack";
-		case EnemyType::Slime:    return "monster/Slime/Attack";
-		default:                  return "";
+			case EnemyType::Bongoman: return "monster/Bongoman/Attack";
+			case EnemyType::Obelisk:  return "monster/Obelisk/Attack";
+			case EnemyType::Fly:      return "monster/Fly/Attack";
+			case EnemyType::Slime:    return "monster/Slime/Attack";
+			case EnemyType::Dragon:   return "monster/Dragon/Attack";
+			default:                  return "";
+			}
 		}
-	}
 }
 
 SfxSystem::SfxSystem(World* world) : System(world)
@@ -438,6 +439,10 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	case SkillType::BrassSkill2:    return "BrassSkill2";
 	case SkillType::BrassSkill3:    return "BrassSkill3";
 	case SkillType::BrassSkill4:    return "BrassSkill4";
+	case SkillType::DragonSkill1:   return "DragonSkill1";
+	case SkillType::DragonSkill2:   return "DragonSkill2";
+	case SkillType::DragonSkill3:   return "DragonSkill3";
+	case SkillType::DragonSkill4:   return "DragonSkill4";
 	default:                        return std::to_string(static_cast<int>(type));
 	}
 }

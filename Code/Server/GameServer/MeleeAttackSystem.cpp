@@ -115,6 +115,12 @@ namespace
 			return { 20.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::BongoAttack:
 			return { 60.0f, 3.0f, 500.0f, 360.0f, 0.0f };
+		case SkillType::DragonSkill1:
+			return { 70.0f, 4.0f, 320.0f, 140.0f, 20.0f };
+		case SkillType::DragonSkill3:
+			return { 95.0f, 4.5f, 420.0f, 180.0f, 35.0f };
+		case SkillType::DragonSkill4:
+			return { 130.0f, 5.0f, 550.0f, 360.0f, 60.0f };
 		default:
 			return {};
 		}

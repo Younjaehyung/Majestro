@@ -99,6 +99,14 @@ void SceneManager::FactoryScene()
 
 
 
+	{	// PLAZASCENE
+		shared_ptr<Scene> plazaScene = make_shared<PlazaScene>();
+		shared_ptr<GameMode> gameMode = make_shared<PlazaGameMode>();
+		plazaScene->SetGameMode(gameMode);
+		mGameScenes[(uint8)SceneId::Plaza] = plazaScene;
+	}
+
+
 	{	// GAMESCENE
 		shared_ptr<Scene> firstScene = make_shared<FirstScene>();
 		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();

@@ -87,8 +87,8 @@ private:
         gSendBuffer.Push(req);
     }
 
-    bool mHasSentGameStart = false;
-    bool mPendingGameStart = false;
+	bool mHasSentGameStart = false;     // 로컬 플레이어가 씬에 들어왔을 때 서버에 스폰 요청을 보냈는지 여부
+	bool mPendingGameStart = false;     // 로컬 플레이어가 씬에 들어왔을 때 서버에 스폰 요청을 보내기 위해 대기
 
     RateLimiter mMovementRate{ 30.f };  // 이동 입력 30Hz
     RateLimiter mSyncRate{ 4.f };       // 시간 동기 ping 4Hz

@@ -82,9 +82,9 @@ void WaveGameMode::AdvancePhase()
 	if (mPhaseQueue.empty())
 	{
 		// 현재 phase 까지 완료 + 큐 비었을 때 게임 종료/전환 (목적지는 씬이 지정)
-		// 단, 전원 사망(GameOver)으로 끝난 경우엔 다음 스테이지가 아니라 MainMenu 로 돌려보낸다.
+		// 전원 사망(GameOver)으로 끝난 경우엔 광장으로 복귀해 재도전한다. (진행도는 유지)
 		mIsComplete = true;
-		mTargetSceneId = mFailed ? SceneId::MainMenu : mCompletionSceneId;
+		mTargetSceneId = mFailed ? SceneId::Plaza : mCompletionSceneId;
 		mIsSceneChanging = true;
 		return;
 	}

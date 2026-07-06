@@ -281,6 +281,7 @@ struct WindowInfo {
 
 wstring s2ws(const string& s);
 string ws2s(const wstring& s);
+std::wstring utfs2ws(const std::string& utf8);
 void LogDebug(const std::string& msg);
 void LogDebugW(const std::wstring& msg);
 

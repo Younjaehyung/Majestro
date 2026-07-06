@@ -524,21 +524,27 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 
     const bool pianoAttackDebug = skillType == SkillType::PianoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired);
+
     const bool slimeAttackDebug = skillType == SkillType::SlimeAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+
     const bool flyAttackDebug = skillType == SkillType::FlyAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+
     const bool bongoAttackDebug = skillType == SkillType::BongoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+
     const bool playerMeleeDebug =
         (skillType == SkillType::DrumAttack ||
          skillType == SkillType::DrumSkill1 ||
          skillType == SkillType::GuitarAttack ||
          skillType == SkillType::GuitarSkill1) &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+
     const bool guitarAttack2ExplosionDebug =
         skillType == SkillType::GuitarAttack_2 &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity);
+
     if (pianoAttackDebug || slimeAttackDebug || flyAttackDebug || bongoAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug)
     {
         mWorld->GetEventManager()->Enqueue(EvEnemyAttackDebug{
@@ -565,7 +571,7 @@ void NetRecvSystem::HandleGameStart(const InputCommand& msg)
 {
     cout << "GameStart" << endl;
     mStopProcessing = true;
-	gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
+	gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Plaza, L"광장 로딩 중...");
 }
 
 void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
@@ -588,6 +594,11 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
     case SceneId::Lobby:
 		// 로비는 즉시 로드(RequestScene)로 전환
 		gEngine->GetSceneManager().RequestScene(SceneId::Lobby);
+        break;
+    case SceneId::Plaza: // 광장
+        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
+            sendSystem->RequestPendingGameStart();
+		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Plaza, L"광장 로딩 중...");
         break;
     case SceneId::FirstGame:
         if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())

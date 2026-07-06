@@ -6,6 +6,9 @@
 class World;
 class PayloadPathData;
 
+// 플레이어를 씬의 스폰 지점(PlayerSpawnComponent)으로 배치하고 NavMesh 보정/중력 초기화까지 수행.
+void ApplyPlayerSpawnPosition(World* world, Entity playerEntity);
+
 class GamePhase
 {
 public:

@@ -10,7 +10,7 @@ int ASCII[(UINT)eKeyCode::End] = {
 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
 'Z', 'X', 'C', 'V', 'B', 'N', 'M',VK_LEFT, VK_RIGHT, VK_DOWN, VK_UP, VK_SPACE, VK_SHIFT,
 '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-VK_F1, VK_F2, VK_F3, VK_F4, VK_F5,
+VK_F1, VK_F2, VK_F3, VK_F4, VK_F5, VK_F6, VK_F7,
 VK_ESCAPE, VK_TAB,
 VK_OEM_3,   // ` 백틱
 VK_NUMPAD0, VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, VK_NUMPAD4,

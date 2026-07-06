@@ -44,16 +44,11 @@ void SceneManager::FactoryScene()
 }
 
 
-bool SceneManager::IsGameScene(SceneId id) const
-{
-	return id >= SceneId::FirstGame && id < SceneId::VGame;
-}
-
-
 shared_ptr<Scene> SceneManager::CreateSceneById(SceneId id)
 {
 	switch (id)
 	{
+	case SceneId::Plaza:      return make_shared<PlazaScene>();
 	case SceneId::FirstGame:  return make_shared<FirstScene>();
 	case SceneId::SecondGame: return make_shared<SecondScene>();
 	case SceneId::ThirdGame:  return make_shared<ThirdScene>();
@@ -63,8 +58,9 @@ shared_ptr<Scene> SceneManager::CreateSceneById(SceneId id)
 
 void SceneManager::TransitionToScene()
 {
-	// 게임이 끝난(GameMode 가 씬 전환 요청한) 방들을 수집 (목적지 씬도 함께)
-	std::vector<std::pair<uint32, SceneId>> finished;
+	// 게임이 끝난(GameMode 가 씬 전환 요청한) 방들을 수집 (목적지/출발 씬, 실패 여부 포함)
+	struct FinishedEntry { uint32 roomId; SceneId target; SceneId from; bool failed; };
+	std::vector<FinishedEntry> finished;
 	for (auto& [roomId, scene] : mGameWorldsByRoom)
 	{
 		if (scene == nullptr) continue;
@@ -72,18 +68,30 @@ void SceneManager::TransitionToScene()
 		if (gm && gm->IsSceneChanging())
 		{
 			gm->IsSceneChanging() = false;
-			finished.push_back({ roomId, gm->GetTargetSceneId() });
+			finished.push_back({ roomId, gm->GetTargetSceneId(), scene->GetSceneId(), gm->IsFailed() });
 		}
 	}
 
-	// 다음 게임 씬으로 가는 방은 World 만 교체(방 유지), 그 외는 게임 종료 + 방 해체
+	// 광장/다음 레벨로 가는 방은 World 만 교체(방 유지), 그 외는 게임 종료 + 방 해체
 	std::vector<std::pair<uint32, SceneId>> closing;
-	for (auto& [roomId, target] : finished)
+	for (auto& f : finished)
 	{
-		if (IsGameScene(target))
-			SwapRoomWorldTo(roomId, target);
+		if (IsRoomScene(f.target))
+		{
+			// 레벨 클리어로 광장 복귀 시 다음 스테이지 해금 (실패 복귀는 진행도 유지)
+			if (f.target == SceneId::Plaza && IsLevelScene(f.from) && !f.failed && mRoomManager)
+			{
+				if (RoomState* room = mRoomManager->GetRoom(f.roomId))
+				{
+					const uint8 clearedIdx = StageIndexOf(f.from);
+					if (clearedIdx != INVALID_STAGE_INDEX && clearedIdx + 1 > room->mNextStageIndex)
+						room->mNextStageIndex = clearedIdx + 1;
+				}
+			}
+			SwapRoomWorldTo(f.roomId, f.target);
+		}
 		else
-			closing.push_back({ roomId, target });
+			closing.push_back({ f.roomId, f.target });
 	}
 
 	// 게임 종료
@@ -221,7 +229,7 @@ shared_ptr<Scene> SceneManager::GetScene(uint64 sessionId) const
 		sceneState = stateIt->second;
 	}
 
-	if (IsGameScene(sceneState))
+	if (IsRoomScene(sceneState))
 	{
 		uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(sessionId) : 0;
 		auto gIt = mGameWorldsByRoom.find(roomId);
@@ -252,28 +260,8 @@ SceneId SceneManager::GetOrCreateSceneState(uint64 sessionId)
 	return SceneId::Lobby;
 }
 
-bool SceneManager::EnqueueCommand(const InputCommand& command)
+bool SceneManager::EnqueueToWorld(const InputCommand& command)
 {
-	if (command.Type == PKT_Type::INTERNAL_SESSION_LEAVE)	// 네트워크 스레드가 보낸 세션 종료 통지
-	{
-		RemoveSession(command.SessionId);	// 방/씬/엔티티 정리
-		return true;
-	}
-
-	// Room 패킷은 World 가 아니라 RoomManager 가 직접 처리
-	if (command.Type == PKT_Type::C2S_ROOM_READY ||
-		command.Type == PKT_Type::C2S_ROOM_CHARACTER_SELECT ||
-		command.Type == PKT_Type::C2S_ROOM_CREATE ||
-		command.Type == PKT_Type::C2S_ROOM_JOIN  ||
-		command.Type == PKT_Type::C2S_ROOM_LIST  ||
-		command.Type == PKT_Type::C2S_ROOM_LEAVE)
-	{
-		return mRoomManager ? mRoomManager->HandleRoomPacket(command) : false;
-	}
-
-	if (command.Type == PKT_Type::C2S_SCENE_CHANGE)
-		return HandleSceneChange(command);
-
 	if (command.Type == PKT_Type::C2S_PKT_LOGIN)
 	{
 		GetOrCreateSceneState(command.SessionId);
@@ -296,45 +284,55 @@ bool SceneManager::EnqueueCommand(const InputCommand& command)
 	return world->EnqueueCommand(command);
 }
 
-bool SceneManager::HandleSceneChange(const InputCommand& command)
+SceneChangeOutcome SceneManager::TryChangeScene(uint64 sessionId, SceneId requestedScene)
 {
-	const C2S_SceneChangePacket* requestPacket = command.ViewAs<C2S_SceneChangePacket>();
-	if (!requestPacket)
-		return false;
+	SceneChangeOutcome outcome;
+	SceneId currentScene = GetOrCreateSceneState(sessionId);
 
-	SceneId currentScene = GetOrCreateSceneState(command.SessionId);
-	SceneId requestedScene = requestPacket->targetScene;
-
-	// Host/Ready 자격 검사
+	// Host/Ready 자격 검사 — 로비에서 광장으로 출발할 때
 	// (씬 전환 규칙 검사보다 먼저 — 거부 시 RoomErrorCode 와 함께 거절 응답)
-	if (currentScene == SceneId::Lobby && requestedScene == SceneId::FirstGame && mRoomManager)
+	if (currentScene == SceneId::Lobby && requestedScene == SceneId::Plaza && mRoomManager)
 	{
 		RoomErrorCode roomErr = RoomErrorCode::None;
-		if (!mRoomManager->CanStartGame(command.SessionId, roomErr))
+		if (!mRoomManager->CanStartGame(sessionId, roomErr))
 		{
-			// 씬 전환 거부 응답
-			S2C_SceneChangeResultPacket reject(currentScene, false);
-			SendRequest rejReq{ static_cast<uint32>(command.SessionId), PKT_Type::S2C_SCENE_CHANGE_RESULT, sizeof(reject) };
-			rejReq.StoreAs<S2C_SceneChangeResultPacket>(reject);
-			gSendQueue.Push(rejReq);
-
-			// Room 자격 오류 사유
-			S2C_RoomErrorPacket errPkt;
-			errPkt.roomId = mRoomManager->GetRoomIdByPlayer(command.SessionId);
-			errPkt.errorCode = static_cast<uint8>(roomErr);
-			SendRequest errReq{ static_cast<uint32>(command.SessionId), PKT_Type::S2C_ROOM_ERROR, sizeof(errPkt) };
-			errReq.StoreAs<S2C_RoomErrorPacket>(errPkt);
-			gSendQueue.Push(errReq);
-			return true;
+			outcome.sendResponse = true;
+			outcome.approved = false;
+			outcome.resultScene = currentScene;
+			outcome.roomError = roomErr;
+			outcome.errorRoomId = mRoomManager->GetRoomIdByPlayer(sessionId);
+			return outcome;
 		}
 		// 자격 통과: ready 일괄 리셋 + RoomState 브로드캐스트 (세션은 방에 남겨둠)
-		mRoomManager->OnGameStarted(command.SessionId);
+		mRoomManager->OnGameStarted(sessionId);
 	}
 
-	// [디버그] 게임 씬 강제 전환 요청
-	if (IsGameScene(currentScene) && IsGameScene(requestedScene) && currentScene != requestedScene)
+	// 광장 → 레벨 진입: Host 요청 + 해금 순서 검증 후 방 World 전환 예약.
+	// 전환·통지는 다음 Update 의 TransitionToScene → SwapRoomWorldTo 가 전원에게 일괄 수행한다.
+	if (currentScene == SceneId::Plaza && IsLevelScene(requestedScene) && mRoomManager)
 	{
-		uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(command.SessionId) : 0;
+		RoomState* room = mRoomManager->GetRoomByPlayer(sessionId);
+		const bool allowed = room && room->IsHost(sessionId) &&
+			room->mNextStageIndex < kStageCount &&
+			kStageOrder[room->mNextStageIndex] == requestedScene;
+		if (!allowed)
+		{
+			outcome.sendResponse = true;
+			outcome.approved = false;
+			outcome.resultScene = currentScene;
+			return outcome;
+		}
+
+		if (auto scene = GetGameWorld(room->mRoomId))
+			if (auto& gameMode = scene->GetGameMode())
+				gameMode->RequestTransition(requestedScene);
+		return outcome;	// 응답 없음 — SwapRoomWorldTo 브로드캐스트가 결과 통지
+	}
+
+	// [디버그] 레벨 씬 강제 전환 요청 — 응답 패킷 없음
+	if (IsLevelScene(currentScene) && IsLevelScene(requestedScene) && currentScene != requestedScene)
+	{
+		uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(sessionId) : 0;
 		auto gIt = mGameWorldsByRoom.find(roomId);
 		if (gIt != mGameWorldsByRoom.end() && gIt->second)
 		{
@@ -345,16 +343,16 @@ bool SceneManager::HandleSceneChange(const InputCommand& command)
 					<< " scene=" << (int)currentScene << " -> " << (int)requestedScene << endl;
 			}
 		}
-		return true;
+		return outcome;
 	}
 
 	const bool isApproved = IsSceneChangeAllowed(currentScene, requestedScene);
 	if (isApproved)
 	{
-		mSceneBySession[command.SessionId] = requestedScene;
-		if (requestedScene == SceneId::FirstGame)
+		mSceneBySession[sessionId] = requestedScene;
+		if (requestedScene == SceneId::Plaza)	// 로비 → 광장: 방 전용 World 생성
 		{
-			uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(command.SessionId) : 0;
+			uint32 roomId = mRoomManager ? mRoomManager->GetRoomIdByPlayer(sessionId) : 0;
 			if (mGameWorldsByRoom.find(roomId) == mGameWorldsByRoom.end())
 			{
 				auto scene = CreateSceneById(requestedScene);
@@ -368,43 +366,37 @@ bool SceneManager::HandleSceneChange(const InputCommand& command)
 		}
 		else if (requestedScene == SceneId::Lobby)
 		{
-			if (mLobbyScenesBySession.find(command.SessionId) == mLobbyScenesBySession.end())
+			if (mLobbyScenesBySession.find(sessionId) == mLobbyScenesBySession.end())
 			{
 				auto scene = make_shared<Scene>();
 				scene->Initialize();
-				mLobbyScenesBySession.emplace(command.SessionId, std::move(scene));
+				mLobbyScenesBySession.emplace(sessionId, std::move(scene));
 			}
 		}
 		currentScene = requestedScene;
 	}
 
-	S2C_SceneChangeResultPacket responsePacket(currentScene, isApproved);
-	SendRequest response{ command.SessionId, PKT_Type::S2C_SCENE_CHANGE_RESULT, sizeof(S2C_SceneChangeResultPacket) };
-	response.StoreAs<S2C_SceneChangeResultPacket>(responsePacket);
-	gSendQueue.Push(response);
+	outcome.sendResponse = true;
+	outcome.approved = isApproved;
+	outcome.resultScene = currentScene;
 
-	// 위에서 요청자(Host)에게만 결과를 보냈으므로 나머지 방원에게도 동일한 승인 패킷 전송
-	// mSceneBySession 매핑도 함께 갱신한다.
-	if (isApproved && requestedScene == SceneId::FirstGame && mRoomManager)
+	// 요청자(Host) 외 나머지 방원도 함께 광장으로 — mSceneBySession 갱신, 통지는 핸들러가 수행
+	if (isApproved && requestedScene == SceneId::Plaza && mRoomManager)
 	{
-		RoomState* room = mRoomManager->GetRoomByPlayer(command.SessionId);
+		RoomState* room = mRoomManager->GetRoomByPlayer(sessionId);
 		if (room)
 		{
 			for (uint64 otherSessionId : room->GetSessionIds())
 			{
-				if (otherSessionId == command.SessionId) continue; // Host 는 위에서 처리 완료
+				if (otherSessionId == sessionId) continue; // Host 는 응답으로 처리
 
-				mSceneBySession[otherSessionId] = SceneId::FirstGame;
-
-				S2C_SceneChangeResultPacket otherPkt(SceneId::FirstGame, true);
-				SendRequest otherReq{ static_cast<uint32>(otherSessionId), PKT_Type::S2C_SCENE_CHANGE_RESULT, sizeof(otherPkt) };
-				otherReq.StoreAs<S2C_SceneChangeResultPacket>(otherPkt);
-				gSendQueue.Push(otherReq);
+				mSceneBySession[otherSessionId] = SceneId::Plaza;
+				outcome.alsoNotifySessions.push_back(otherSessionId);
 			}
 		}
 	}
 
-	return true;
+	return outcome;
 }
 
 bool SceneManager::IsSceneChangeAllowed(SceneId currentScene, SceneId requestedScene) const
@@ -412,10 +404,11 @@ bool SceneManager::IsSceneChangeAllowed(SceneId currentScene, SceneId requestedS
 	if (currentScene == requestedScene)
 		return false;
 
-	
-	if (currentScene == SceneId::Lobby)	// 로비 -> 게임 시작 
-		return requestedScene == SceneId::FirstGame;
-	if (IsGameScene(currentScene))	// 게임 씬 -> 로비 복귀
+	if (currentScene == SceneId::Lobby)	// 로비 -> 광장 출발
+		return requestedScene == SceneId::Plaza;
+	if (currentScene == SceneId::Plaza)	// 광장 -> 로비 이탈 (레벨 진입은 TryChangeScene 에서 별도 처리)
+		return requestedScene == SceneId::Lobby;
+	if (IsLevelScene(currentScene))		// 레벨 -> 로비 포기
 		return requestedScene == SceneId::Lobby;
 	return false;
 }
@@ -480,7 +473,7 @@ void SceneManager::CleanupRoomWorldIfEmpty(uint32 roomId)
 		for (uint64 s : room->GetSessionIds())
 		{
 			auto it = mSceneBySession.find(s);
-			if (it != mSceneBySession.end() && IsGameScene(it->second))
+			if (it != mSceneBySession.end() && IsRoomScene(it->second))
 				++inGame;
 		}
 	}

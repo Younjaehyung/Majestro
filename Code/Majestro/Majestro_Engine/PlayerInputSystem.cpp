@@ -21,6 +21,7 @@
 #include "RhythmEmissiveComponent.h"
 #include "Network.h"
 #include "PauseMenuController.h"
+#include "NpcComponent.h"
 #include "RenderManager.h"
 
 namespace
@@ -83,6 +84,8 @@ void PlayerInputSystem::Update(float dt)
 		return;
 	if (UpdateFreeCameraInput(dt, ctx))
 		return;
+	if (UpdateDialogueInput(ctx))
+		return;
 	if (UpdatePausedInput(ctx))
 		return;
 	if (UpdateDeadInput(ctx))
@@ -112,6 +115,12 @@ bool PlayerInputSystem::IsCinematicPlaying() const
 	const IntroSequenceComponent* seq =
 		mWorld->GetComponent<IntroSequenceComponent>(mWorld->GetSingletonEntity());
 	return seq != nullptr && seq->mPlaying;
+}
+
+bool PlayerInputSystem::IsDialogueActive() const
+{
+	const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();
+	return dialogue != nullptr && dialogue->mActive;
 }
 
 void PlayerInputSystem::ClearGameplayInput(PlayerInputContext& ctx)
@@ -445,9 +454,19 @@ bool PlayerInputSystem::UpdateFreeCameraInput(float, PlayerInputContext& ctx)
 
 bool PlayerInputSystem::UpdateCinematicInput(PlayerInputContext& ctx)
 {
-	// 씬 진입 시네마틱 재생 중에는 게임플레이/카메라 입력을 완전히 잠근다.
-	// (플레이어는 idle 입력을 전송하므로 네트워크 동기화에 영향 없음)
+	// 씬 진입 시네마틱 재생 중에는 게임플레이/카메라 입력을 완전히 잠금
 	if (!IsCinematicPlaying())
+		return false;
+
+	ClearGameplayInput(ctx);
+	INPUT.MouseStateClear();
+	return true;
+}
+
+bool PlayerInputSystem::UpdateDialogueInput(PlayerInputContext& ctx)
+{
+	// 광장 NPC 대화 중에는 게임플레이 입력을 잠금
+	if (!IsDialogueActive())
 		return false;
 
 	ClearGameplayInput(ctx);

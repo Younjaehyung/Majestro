@@ -219,7 +219,7 @@ void NetSendSystem::TrySendScene()
 {
 	mWorld->GetEventManager()->Consume<EvNetSceneChange>([this](const EvNetSceneChange& e) {
 		mHasSentGameStart = false;
-		mPendingGameStart = (e.targetScene == SceneId::FirstGame);
+		mPendingGameStart = IsRoomScene(e.targetScene);
 		SendPacket(C2S_SceneChangePacket(e.targetScene));
 	});
 }

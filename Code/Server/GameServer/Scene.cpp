@@ -63,7 +63,7 @@ namespace
 		return std::filesystem::exists(meshPath);
 	}
 
-	std::wstring ResolveCollisionFbxPath(const std::string& jsonFbxPath)
+	std::wstring ResolveCollisionFbxPath(const std::string& jsonFbxPath, const std::string& levelName)
 	{
 		if (jsonFbxPath.empty())
 			return L"";
@@ -73,6 +73,12 @@ namespace
 
 		if (rawPath.is_absolute())
 			candidates.push_back(rawPath);
+
+	
+		if (!levelName.empty())
+		{
+			candidates.push_back(std::filesystem::path("..") / "Resources" / "FBX" / levelName / rawPath.filename());
+		}
 
 		candidates.push_back(std::filesystem::path("..") / "Resources" / rawPath);
 		candidates.push_back(std::filesystem::path("..") / "Resources" / "FBX" / rawPath.filename());
@@ -469,7 +475,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 					continue;
 				}
 
-				const std::wstring fbxPath = ResolveCollisionFbxPath(inst.fbx);
+				const std::wstring fbxPath = ResolveCollisionFbxPath(inst.fbx, level.levelName);
 				if (fbxPath.empty())
 				{
 					++skippedCount;
@@ -829,7 +835,7 @@ void FirstScene::Initialize()
 
 	
 	auto waveMode = make_shared<WaveGameMode>();
-	waveMode->SetCompletionScene(SceneId::SecondGame); // 마지막 Conquest 클리어 후 SecondGame 으로 전환
+	waveMode->SetCompletionScene(SceneId::Plaza); // 마지막 Conquest 클리어 후 광장으로 복귀 (다음 스테이지 해금)
 	shared_ptr<GameMode> gameMode = waveMode;
 	SetGameMode(gameMode);
 
@@ -921,7 +927,7 @@ void SecondScene::Initialize()
 
 	// Conquest 전용 게임 모드
 	auto waveMode = make_shared<WaveGameMode>();
-	waveMode->SetCompletionScene(SceneId::ThirdGame); // 모든 Conquest 클리어 후 보스전(ThirdGame)으로 전환
+	waveMode->SetCompletionScene(SceneId::Plaza); // 모든 Conquest 클리어 후 광장으로 복귀 (보스전 해금)
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
 		phases.push_back([] { return new PreparePhase(); });
@@ -1028,6 +1034,38 @@ void ThirdScene::Initialize()
 		gameMode->Initialize();
 
 	mSceneId = SceneId::ThirdGame;
+}
+
+void PlazaScene::Initialize()
+{
+	PrefabFactory::RegisterAllPrefabs();
+
+	auto plazaMode = make_shared<PlazaGameMode>();
+	shared_ptr<GameMode> gameMode = plazaMode;
+	SetGameMode(gameMode);
+
+	mWorld->Initialize();
+
+
+	LoadCollisionJson(L"..\\Resources\\Json\\MapShip_Export.json");
+
+
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 3. 비트 타이밍 (리듬 피드백 유지)
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 4. 입력 처리
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 5. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 6. mWorldMatrix 재계산
+	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 7. 충돌 판정
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 8. NavMesh 투영
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 9. 상태 송신 (가장 마지막)
+
+
+	LoadPlayerSpawnForScene(mWorld.get(), L"../Resources/Json/Plaza_Gimmicks.json");
+
+	gameMode->Initialize();
+
+	mSceneId = SceneId::Plaza;
 }
 
 void LobbyScene::Initialize()

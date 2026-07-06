@@ -32,6 +32,10 @@ void World::Clear() {
     mComponentPools.clear();
     mNextEntityID = 1;
     mSingletonEntity = Entity{};
+
+
+    if (mNetIdMap)
+        mNetIdMap->ClearScene(mSceneId);
 }
 
 void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)

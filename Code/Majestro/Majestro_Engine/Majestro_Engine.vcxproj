@@ -217,6 +217,9 @@
     <ClInclude Include="FXAAPass.h" />
     <ClInclude Include="GamePhaseSystem.h" />
     <ClInclude Include="GameRuleComponent.h" />
+    <ClInclude Include="NpcComponent.h" />
+    <ClInclude Include="NpcInteractionSystem.h" />
+    <ClInclude Include="UIDialogueFeature.h" />
     <ClInclude Include="HBAOPass.h" />
     <ClInclude Include="HealthVignettePass.h" />
     <ClInclude Include="EffectFlagComponent.h" />
@@ -414,6 +417,8 @@
     <ClCompile Include="FXAAPass.cpp" />
     <ClCompile Include="GamePhaseSystem.cpp" />
     <ClCompile Include="HBAOPass.cpp" />
+    <ClCompile Include="NpcInteractionSystem.cpp" />
+    <ClCompile Include="UIDialogueFeature.cpp" />
     <ClCompile Include="HealthVignettePass.cpp" />
     <ClCompile Include="FogPass.cpp" />
     <ClCompile Include="GodRayPass.cpp" />

@@ -10,6 +10,16 @@ void GameCore::Initialize()
 
 	mRoomManager = std::make_unique<RoomManager>();
 	mSceneManager->SetRoomManager(mRoomManager.get());
+
+
+	// 핸들러/노티파이어가 파싱·직렬화를 전담
+	mRoomNotifier = std::make_unique<RoomNotifier>();
+	mRoomNotifier->SetRoomManager(mRoomManager.get());
+	mRoomManager->SetNotifier(mRoomNotifier.get());
+
+	mRoomPacketHandler = std::make_unique<RoomPacketHandler>(mRoomManager.get(), mRoomNotifier.get());
+	mScenePacketHandler = std::make_unique<ScenePacketHandler>(mSceneManager.get());
+	mPacketRouter = std::make_unique<PacketRouter>(mSceneManager.get(), mRoomPacketHandler.get(), mScenePacketHandler.get());
 }
 
 void GameCore::Start()
@@ -25,7 +35,7 @@ void GameCore::Update(float deltaTime)
 	InputCommand command;
 	while (gRecvQueue.Pop(command))
 	{
-		mSceneManager->EnqueueCommand(command);
+		mPacketRouter->Dispatch(command);
 	}
 
 	mSceneManager->Update(deltaTime);

@@ -253,6 +253,8 @@ void VfxSystem::SetHiddenTransform(TransformComponent& transform)
 bool VfxSystem::IsBaseSkill(SkillType type)
 {
 	return type == SkillType::BaseAttack ||
+		type == SkillType::BaseAttack2 ||
+		type == SkillType::BaseAttack3 ||
 		type == SkillType::BaseSkill1 ||
 		type == SkillType::BaseSkill2;
 }
@@ -261,9 +263,11 @@ bool VfxSystem::IsRangedBulletSkill(SkillType type)
 {
 	switch (type)
 	{
-	case SkillType::BaseAttack:
-	case SkillType::BaseSkill1:
-	case SkillType::GuitarAttack_1:
+		case SkillType::BaseAttack:
+		case SkillType::BaseAttack2:
+		case SkillType::BaseAttack3:
+		case SkillType::BaseSkill1:
+		case SkillType::GuitarAttack_1:
 	case SkillType::GuitarAttack_2:
 	case SkillType::GuitarAttack_3:
 	case SkillType::HornAttack:
@@ -332,9 +336,10 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (IsBaseSkill(skillType))
 			return VfxSpawnDesc{ L"VFX_Ibanix_Attack_Hit_01", Vec3::Zero, Vec3(30.0f) };
 
-		if (skillType == SkillType::DrumAttack ||
-			skillType == SkillType::DrumSkill1)
-			return VfxSpawnDesc{ L"VFX_Rudwig_Attack_Hit", Vec3(0.f, 100.f, 0.f), Vec3(20.0f) };
+			if (skillType == SkillType::DrumAttack ||
+				skillType == SkillType::DrumAttack3 ||
+				skillType == SkillType::DrumSkill1)
+				return VfxSpawnDesc{ L"VFX_Rudwig_Attack_Hit", Vec3(0.f, 100.f, 0.f), Vec3(20.0f) };
 
 		if (skillType == SkillType::GuitarAttack ||
 			skillType == SkillType::GuitarSkill1)
@@ -382,9 +387,11 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 	case SkillType::GuitarAttack_3:
 		return BulletVfxDesc{ L"VFX_Fanthor_Bullet_Slash_3", Vec3(1.0f, 1.0f, 1.0f) };
 
-	case SkillType::BaseAttack:
-	case SkillType::BaseSkill1:
-		return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
+		case SkillType::BaseAttack:
+		case SkillType::BaseAttack2:
+		case SkillType::BaseAttack3:
+		case SkillType::BaseSkill1:
+			return BulletVfxDesc{ L"VFX_Ibanix_Bullet", Vec3(12.0f, 12.0f, 12.0f) };
 
 		case SkillType::HornAttack:
 			return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(12.0f, 12.0f, 12.0f) };

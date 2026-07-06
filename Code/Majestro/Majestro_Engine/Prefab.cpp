@@ -713,33 +713,30 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_03"));
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_04"));
 
-			t.mLocalScale = { 1.3f, 1.3f, 1.3f };
-			world->AddComponent<HealthComponent>(mEntityID, 5000, 5000);
-			world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
-			break;
-		case EnemyType::Dragon:
-			if (shared_ptr<FBXData> dragonData = RESOURCEMANAGER.Get<FBXData>(L"Anim_StringDragon_Idle"))
-			{
-				if (!dragonData->GetMeshs().empty())
-					phereMesh = dragonData->GetMeshs().front();
-				if (!dragonData->GetMeshMaterials().empty() && !dragonData->GetMeshMaterials().front().empty())
-					material2s = dragonData->GetMeshMaterials().front();
-				else if (!dragonData->GetMaterials().empty())
-					material2s.push_back(dragonData->GetMaterials().front());
-			}
-			anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Run"));
-			anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Skill_01"));
-			anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Die"));
-			anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Die"));
-			anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Idle"));
-			//t.mLocalScale = { 2.0f, 2.0f, 2.0f };
-			hp.mWorldOffset = Vec3(0.f, 420.f, 0.f);
-			center = Vec3(0, 120, 0);
-			half = Vec3(180, 220, 180);
-			world->AddComponent<HealthComponent>(mEntityID, 1200, 1200);
-			world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
-			break;
-		}
+		t.mLocalScale = { 1.3f, 1.3f, 1.3f };
+		world->AddComponent<HealthComponent>(mEntityID, 5000, 5000);
+		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
+		break;
+	case EnemyType::Dragon:
+		phereMesh = RESOURCEMANAGER.Get<Mesh>(L"SM_StringDragon_Body");
+		material2 = RESOURCEMANAGER.Get<Material>(L"Anim_StringDragon_Run0");
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Run"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Skill_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Die"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Idle"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Idle"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Skill_01"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Skill_02"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Skill_03"));
+		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_StringDragon_Skill_04"));
+		//t.mLocalScale = { 100.0f, 100.0f, 100.0f };
+		//hp.mWorldOffset = Vec3(0.f, 420.f, 0.f);
+		center = Vec3(0, 120, 0);
+		half = Vec3(180, 220, 180);
+		world->AddComponent<HealthComponent>(mEntityID, 1200, 1200);
+		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
+		break;
+	}
 
 	if (material2s.empty() && material2)
 		material2s.push_back(material2);
@@ -747,10 +744,10 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->AddComponent<NetTransformComponent>(mEntityID);
 	world->AddComponent<RenderComponent>(mEntityID, phereMesh, material2s);
 	const EnemyType enemyType = static_cast<EnemyType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type);
-	if (enemyType == EnemyType::Brass)
-		world->RemoveComponent<UIHpBarComponent>(mEntityID);
+		if (enemyType == EnemyType::Brass || enemyType == EnemyType::Dragon)
+			world->RemoveComponent<UIHpBarComponent>(mEntityID);
 
-	if (enemyType != EnemyType::Obelisk) {
+	if (enemyType != EnemyType::Obelisk && enemyType != EnemyType::Dragon) {
 		auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
 		enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
 	}
@@ -764,10 +761,10 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
 
 
-	if ( enemyType == EnemyType::Brass)
-	{
-		HUDBossHPBarPrefab bossHpBar{ world, mEntityID };
-	}
+		if ( enemyType == EnemyType::Brass || enemyType == EnemyType::Dragon)
+		{
+			HUDBossHPBarPrefab bossHpBar{ world, mEntityID };
+		}
 
 
 

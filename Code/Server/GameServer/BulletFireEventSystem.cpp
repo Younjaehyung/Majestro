@@ -49,10 +49,26 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 	if (!shooterIsPlayer && !shooterIsEnemy)
 		return;
 
-	auto activateSingleBullet = [&](const Vec3& spawnPosition, const Vec3& direction)
+	auto rotateYaw = [](const Vec3& baseDir, float degrees)
 	{
-		auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
-		for (auto bulletEntity : bulletEntities)
+		const float yawRad = DirectX::XMConvertToRadians(degrees);
+		const float cosYaw = std::cos(yawRad);
+		const float sinYaw = std::sin(yawRad);
+
+		Vec3 rotated;
+		rotated.x = baseDir.x * cosYaw - baseDir.z * sinYaw;
+		rotated.y = baseDir.y;
+		rotated.z = baseDir.x * sinYaw + baseDir.z * cosYaw;
+		if (rotated.LengthSquared() <= 0.0001f)
+			return baseDir;
+		rotated.Normalize();
+		return rotated;
+	};
+
+			auto activateSingleBullet = [&](const Vec3& spawnPosition, const Vec3& direction)
+		{
+			auto bulletEntities = mWorld->GetEntitiesWithComponents<BulletComponent, TransformComponent, NetEntityComponent>();
+			for (auto bulletEntity : bulletEntities)
 		{
 			BulletComponent* bulletComp = mWorld->GetComponent<BulletComponent>(bulletEntity);
 			if (bulletComp == nullptr || bulletComp->mIsActive)
@@ -63,11 +79,22 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			if (bulletTransform == nullptr || bulletNetComp == nullptr)
 				continue;
 
-			BulletStat bulletStat = GetBulletStat(bulletType);
-			const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
-			bulletStat.Damage *= attackMultiplier;
-			if (isCritical)
-				bulletStat.Damage *= 2.0f;
+				BulletStat bulletStat = GetBulletStat(bulletType);
+				const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
+				bulletStat.Damage *= attackMultiplier;
+				if (shooterIsPlayer)
+				{
+					if (MainPlayerComponent* shooterPlayer = mWorld->GetComponent<MainPlayerComponent>(playerEntity))
+					{
+						if (shooterPlayer->mPlayerType == Ibanix &&
+							(shooterPlayer->mNowBullet + 1) >= 11)
+						{
+							bulletStat.Damage *= 2.0f;
+						}
+					}
+				}
+				if (isCritical)
+					bulletStat.Damage *= 2.0f;
 
 			bulletTransform->mWorldPosition = spawnPosition;
 			bulletTransform->mLocalPosition = bulletTransform->mWorldPosition;
@@ -239,10 +266,19 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			direction.Normalize();
 			spawnPosition = shooterTransform->mWorldPosition + direction * 3.0f + Vec3(0.f, 90.f, 0.f);
 		}
-		activateSingleBullet(spawnPosition, direction);
-		return;
+			if (bulletType == SkillType::BaseAttack2)
+			{
+				activateSingleBullet(spawnPosition, rotateYaw(direction, -20.0f));
+				activateSingleBullet(spawnPosition, direction);
+				activateSingleBullet(spawnPosition, rotateYaw(direction, 20.0f));
+			}
+			else
+			{
+				activateSingleBullet(spawnPosition, direction);
+			}
+			return;
+		}
 	}
-}
 
 std::vector<uint32> BulletFireEventSystem::CollectPlayerSessions() const
 {

@@ -99,10 +99,12 @@ namespace
 	{
 		switch (type)
 		{
-		case SkillType::DrumAttack:
-			return { 25.0f, 3.0f, 500.0f, 150.0f, 0.0f };
-		case SkillType::DrumSkill1:
-			return { 55.0f, 3.0f, 500.0f, 360.0f, 0.0f };
+			case SkillType::DrumAttack:
+				return { 25.0f, 3.0f, 500.0f, 150.0f, 0.0f };
+			case SkillType::DrumAttack3:
+				return { 30.0f, 3.0f, 500.0f, 150.0f, 0.0f };
+			case SkillType::DrumSkill1:
+				return { 55.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::GuitarAttack:
 			return { 25.0f, 3.0f, 500.0f, 150.0f, 0.0f };
 		case SkillType::GuitarSkill1:

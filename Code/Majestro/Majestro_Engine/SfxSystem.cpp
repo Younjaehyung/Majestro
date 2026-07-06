@@ -415,6 +415,8 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	{
 	case SkillType::Default:        return "Default";
 	case SkillType::BaseAttack:     return "BaseAttack";
+	case SkillType::BaseAttack2:    return "BaseAttack2";
+	case SkillType::BaseAttack3:    return "BaseAttack3";
 	case SkillType::BaseSkill1:     return "BaseSkill1";
 	case SkillType::BaseSkill2:     return "BaseSkill2";
 	case SkillType::BaseSkill3:     return "BaseSkill3";
@@ -423,6 +425,7 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	case SkillType::GuitarSkill2:   return "GuitarSkill2";
 	case SkillType::GuitarSkill3:   return "GuitarSkill3";
 	case SkillType::DrumAttack:     return "DrumAttack";
+	case SkillType::DrumAttack3:    return "DrumAttack3";
 	case SkillType::DrumSkill1:     return "DrumSkill1";
 	case SkillType::DrumSkill2:     return "DrumSkill2";
 	case SkillType::DrumSkill3:     return "DrumSkill3";

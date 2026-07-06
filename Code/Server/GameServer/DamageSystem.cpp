@@ -144,10 +144,11 @@ void DamageSystem::Update(float deltaTime)
         {
             if (EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(e.target))
             {
-                if (e.instigator.IsValid() &&
-                    e.skillType == SkillType::DrumAttack &&
-                    e.isCritical)
-                {
+	                if (e.instigator.IsValid() &&
+	                    (e.skillType == SkillType::DrumAttack ||
+	                     e.skillType == SkillType::DrumAttack3) &&
+	                    e.isCritical)
+	                {
                     if (MainPlayerComponent* instigatorPlayer = mWorld->GetComponent<MainPlayerComponent>(e.instigator))
                     {
                         if (instigatorPlayer->mPlayerType == PlayerType::Rudwig)

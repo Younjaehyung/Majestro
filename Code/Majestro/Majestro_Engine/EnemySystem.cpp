@@ -131,6 +131,8 @@ namespace
 	bool IsPlayerRangedSkill(SkillType skillType)
 	{
 		return skillType == SkillType::BaseAttack ||
+			skillType == SkillType::BaseAttack2 ||
+			skillType == SkillType::BaseAttack3 ||
 			skillType == SkillType::BaseSkill1 ||
 			skillType == SkillType::GuitarAttack_1 ||
 			skillType == SkillType::GuitarAttack_2 ||
@@ -402,10 +404,11 @@ void EnemySystem::Update(float dt) {
 						return;
 					radius = 550.0f;
 				}
-			else if (e.skillType == SkillType::DrumAttack ||
-				e.skillType == SkillType::DrumSkill1 ||
-				e.skillType == SkillType::GuitarAttack ||
-				e.skillType == SkillType::GuitarSkill1)
+				else if (e.skillType == SkillType::DrumAttack ||
+					e.skillType == SkillType::DrumAttack3 ||
+					e.skillType == SkillType::DrumSkill1 ||
+					e.skillType == SkillType::GuitarAttack ||
+					e.skillType == SkillType::GuitarSkill1)
 			{
 				if (!RenderSystem::GetDrawPlayerAttackRanges())
 					return;

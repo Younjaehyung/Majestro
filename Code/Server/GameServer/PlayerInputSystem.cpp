@@ -245,17 +245,20 @@ bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager,
 {
 	switch (bulletType)
 	{
-	case SkillType::DrumAttack:
-	case SkillType::DrumSkill1:
-	case SkillType::GuitarAttack:
-	case SkillType::GuitarSkill1:
+		case SkillType::DrumAttack:
+		case SkillType::DrumAttack3:
+		case SkillType::DrumSkill1:
+		case SkillType::GuitarAttack:
+		case SkillType::GuitarSkill1:
 		eventManager.Enqueue<EvMeleeAttackRequest>({ shooter, bulletType, isCritical });
 		return true;
 
-	case SkillType::BaseAttack:
-	case SkillType::BaseSkill1:
-	case SkillType::GuitarAttack_1:
-	case SkillType::GuitarAttack_2:
+		case SkillType::BaseAttack:
+		case SkillType::BaseAttack2:
+		case SkillType::BaseAttack3:
+		case SkillType::BaseSkill1:
+		case SkillType::GuitarAttack_1:
+		case SkillType::GuitarAttack_2:
 	case SkillType::GuitarAttack_3:
 		eventManager.Enqueue<EvRangedAttackRequest>({ shooter, bulletType, isCritical });
 		return true;
@@ -433,18 +436,37 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 				rhythm = 0;
 		}
 
-	const int prevAmmo = mp->mNowBullet;
-	const SkillType bulletType = ResolveSkillType(mp->mPlayerType, button, rhythm);
-	EnqueueAttackEventByCategory(em, e, bulletType, isCritical);
-
-		switch (button)
+		const int prevAmmo = mp->mNowBullet;
+		const uint8 comboStepAtFire = (button == InputButtons::ATTACK) ? mp->mComboStep : 0;
+		const uint32 currentActionState = mp->GetState();
+		SkillType bulletType = ResolveSkillType(mp->mPlayerType, button, rhythm);
+		if (button == InputButtons::ATTACK &&
+			mp->mPlayerType == Rudwig &&
+			(comboStepAtFire >= 2 || currentActionState == S_ComboAttack1))
 		{
-		case InputButtons::ATTACK:
-			if (mp->mPlayerType == Ibanix)
-				mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
-			else if (mp->mPlayerType == Fanthor && bulletType != SkillType::GuitarAttack)
-				mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
-			break;
+			bulletType = SkillType::DrumAttack3;
+		}
+		if (button == InputButtons::ATTACK &&
+			mp->mPlayerType == Ibanix)
+		{
+			if (comboStepAtFire == 1)
+				bulletType = SkillType::BaseAttack2;
+			else if (comboStepAtFire >= 2)
+				bulletType = SkillType::BaseAttack3;
+		}
+		EnqueueAttackEventByCategory(em, e, bulletType, isCritical);
+
+			switch (button)
+			{
+			case InputButtons::ATTACK:
+				if (mp->mPlayerType == Ibanix)
+				{
+					const int ammoCost = (bulletType == SkillType::BaseAttack2) ? 3 : 1;
+					mp->mNowBullet = (std::max)(0, mp->mNowBullet - ammoCost);
+				}
+				else if (mp->mPlayerType == Fanthor && bulletType != SkillType::GuitarAttack)
+					mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);
+				break;
 	case InputButtons::SKILL1:
 		if (mp->mPlayerType == Ibanix)
 			mp->mNowBullet = (std::max)(0, mp->mNowBullet - 1);

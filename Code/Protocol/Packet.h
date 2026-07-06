@@ -82,6 +82,8 @@ enum class SkillType : uint8
 {
 	Default = 0,
 	BaseAttack,
+	BaseAttack2,
+	BaseAttack3,
 	BaseSkill1,
 	BaseSkill2,
 	BaseSkill3,
@@ -92,6 +94,7 @@ enum class SkillType : uint8
 	GuitarSkill3,
 
 	DrumAttack,
+	DrumAttack3,
 	DrumSkill1,
 	DrumSkill2,
 	DrumSkill3,

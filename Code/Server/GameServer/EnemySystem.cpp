@@ -451,6 +451,9 @@ void EnemySystem::Update(float dt)
                 now <= enemyComp->mAttackAnimEndTime))
                 ? EnemyAnimState::Attack
                 : EnemyAnimState::Run;
+        else if (enemyComp->mEnemyType == EnemyType::Dragon &&
+            !enemyComp->mBossEncounterActivated)
+            currentState = EnemyAnimState::Idle;
         else if (nearestPlayerDistSq <= enemyComp->AttackRangeSq || bongomanCommittedAttack)
             currentState = EnemyAnimState::Attack;
 
@@ -509,7 +512,8 @@ void EnemySystem::Update(float dt)
                 continue;
             }
 
-            if (enemyComp->mEnemyType == EnemyType::Brass &&
+            if ((enemyComp->mEnemyType == EnemyType::Brass ||
+                enemyComp->mEnemyType == EnemyType::Dragon) &&
                 !enemyComp->mBossEncounterActivated)
             {
                 currentState = EnemyAnimState::Idle;
@@ -548,6 +552,7 @@ bool EnemySystem::HandleAttackState(
         enemyComp->mEnemyType == EnemyType::Bongoman &&
         enemyComp->mPendingAttackTime >= 0.0f;
     if (enemyComp->mEnemyType != EnemyType::Brass &&
+        enemyComp->mEnemyType != EnemyType::Dragon &&
         nearestPlayerDistSq > enemyComp->AttackRangeSq &&
         !bongomanCommittedAttack)
     {
@@ -563,14 +568,15 @@ bool EnemySystem::HandleAttackState(
         playerPos = PathFinder(myPos, true);
     }
 
-    if (enemyComp->mEnemyType == EnemyType::Brass)
+    if (enemyComp->mEnemyType == EnemyType::Brass ||
+        enemyComp->mEnemyType == EnemyType::Dragon)
     {
-        constexpr float kBrassWakeRange = 3000.0f;
-        constexpr float kBrassWakeRangeSq = kBrassWakeRange * kBrassWakeRange;
+        constexpr float kBossWakeRange = 3000.0f;
+        constexpr float kBossWakeRangeSq = kBossWakeRange * kBossWakeRange;
 
         if (!enemyComp->mBossEncounterActivated)
         {
-            if (nearestPlayerDistSq <= kBrassWakeRangeSq)
+            if (nearestPlayerDistSq <= kBossWakeRangeSq)
             {
                 enemyComp->mBossEncounterActivated = true;
             }

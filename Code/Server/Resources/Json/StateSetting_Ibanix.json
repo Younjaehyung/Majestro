@@ -7,7 +7,7 @@
         "skill1Cool": 16,
         "skill2Cool": 2,
         "reloadCool": 1,
-        "maxBullet" : 10
+        "maxBullet" : 20
     },
 
     "stateProps": {

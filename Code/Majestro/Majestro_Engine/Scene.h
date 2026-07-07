@@ -74,8 +74,13 @@ public:
 	SceneId			mTargetSceneId;
 	std::vector< shared_ptr<UIFeature>> mUIFeatures;
 	bool mIsStarted = false;
+private:
+	// 로딩 대상 씬에 맞는 전용 배경 텍스처로 교체
+	void ApplyLoadingBackground(SceneId id);
 protected:
 	
+
+	Entity	mLoadingBackground;					// 배경 엔티티
 	Entity	mProgressBar;
 	float mProgressBarMaxWidth = 2500.f;
 	/*std::array<,(uint8)SceneId::End>			mLoadingSceneId;*/

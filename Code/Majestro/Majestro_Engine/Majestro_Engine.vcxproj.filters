@@ -761,6 +761,9 @@
     <ClInclude Include="UIDialogueFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
+    <ClInclude Include="UILevelSelectFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="JoltUtils.h">
       <Filter>Utils\Jolt</Filter>
     </ClInclude>
@@ -1269,6 +1272,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="UIDialogueFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UILevelSelectFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="WorldUIPass.cpp">

@@ -492,9 +492,9 @@ UIRenderGroup UIRenderSystem::GetActiveRenderGroup() const
         }
     }
 
-    // NPC 대화
+    // NPC 대화 / 레벨 선택 UI
     const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();
-    if (dialogue != nullptr && dialogue->mActive)
+    if (dialogue != nullptr && (dialogue->mActive || dialogue->mLevelSelectActive))
         return UIRenderGroup::Dialogue;
 
     return UIRenderGroup::Gameplay;

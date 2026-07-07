@@ -21,6 +21,7 @@ public:
 	std::wstring mPortraitKey = L"UI_NoteMan_Portrait";  // 대화창 초상화 텍스처 키
 	NpcRole mRole = NpcRole::Dialogue;
 	float mInteractRadius = 250.f;
+	float mHomeYaw = 0.f;                      // 배치 방향 (대화 종료 후 복귀할 yaw, 도 단위)
 	std::vector<std::wstring> mDialogueLines;  // 1단계: 선형 대사
 };
 
@@ -35,4 +36,8 @@ public:
 	int32 mLineIndex = 0;      // 현재 대사 인덱스
 
 	Entity mNearbyNpc{};       // 상호작용 반경 안의 NPC (프롬프트 표시용)
+
+	// 레벨 선택 UI (관문지기 — NpcRole::LevelSelect)
+	bool mLevelSelectActive = false;  // 레벨 선택 UI 열림
+	int32 mSelectedStage = 0;         // 선택된 스테이지 (0=First, 1=Second, 2=Third)
 };

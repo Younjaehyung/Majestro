@@ -6,11 +6,13 @@
 #include "MovementComponent.h"
 #include "InputManager.h"
 #include "Engine.h"
+#include "MathUtils.h"
 
 namespace
 {
 	constexpr float kDialogueEyeHeight = 150.f;   // 플레이어/NPC 시선 높이
 	constexpr float kDialogueAimSpeed = 8.f;      // 카메라 타겟팅 보간 속도 (1/s)
+	constexpr float kNpcTurnSpeed = 8.f;          // NPC 몸통 회전 보간 속도 (1/s)
 
 	// 대화 중 카메라(마우스 룩 yaw/pitch)를 NPC 방향으로 부드럽게 조준
 	void AimCameraAtNpc(PlayerMovementComponent* movement,
@@ -56,6 +58,21 @@ void NpcInteractionSystem::Update(float deltaTime)
 	if (!state)
 		return;
 
+	// 레벨 선택 UI 열림/닫힘 전환 시 커서 전환 (GO 버튼 등 외부에서 닫힌 경우 포함)
+	if (state->mLevelSelectActive != mPrevLevelSelectActive)
+	{
+		if (state->mLevelSelectActive)
+		{
+			mSavedMouseLook = INPUT.IsMouseLookActive(); // 진입 전 상태 저장
+			INPUT.SetForceMouseLook(false);              // 버튼 클릭 가능
+		}
+		else
+		{
+			INPUT.SetForceMouseLook(mSavedMouseLook);    // 복귀 시 원래 상태로
+		}
+		mPrevLevelSelectActive = state->mLevelSelectActive;
+	}
+
 	if (!mWorld->HasComponentPool<NpcComponent>())
 	{
 		state->mNearbyNpc = Entity{};
@@ -86,6 +103,7 @@ void NpcInteractionSystem::Update(float deltaTime)
 		state->mNearbyNpc = Entity{};
 		state->mActive = false;
 		state->mLineIndex = 0;
+		state->mLevelSelectActive = false;
 		return;
 	}
 
@@ -106,6 +124,40 @@ void NpcInteractionSystem::Update(float deltaTime)
 		}
 	}
 	state->mNearbyNpc = nearest;
+
+	// NPC 몸통 회전: 대화 상대는 플레이어를, 나머지는 배치 방향을 바라본다
+	{
+		const bool talking = state->mActive || state->mLevelSelectActive;
+		const float turnAlpha = std::clamp(deltaTime * kNpcTurnSpeed, 0.f, 1.f);
+		for (Entity e : mWorld->GetEntitiesWithComponent<NpcComponent>())
+		{
+			NpcComponent* npc = mWorld->GetComponent<NpcComponent>(e);
+			TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
+			if (!npc || !tr) continue;
+
+			float targetYaw = npc->mHomeYaw;
+			if (talking && e == state->mNpc)
+			{
+				const Vec3 toPlayer = playerPos - tr->mWorldPosition;
+				if (toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z > 1.f)
+					targetYaw = XMConvertToDegrees(atan2f(toPlayer.x, toPlayer.z));
+			}
+			tr->mLocalRotationE.y = LerpAngleDegrees(tr->mLocalRotationE.y, targetYaw, turnAlpha);
+		}
+	}
+
+	// 레벨 선택 UI 진행 중: 카메라는 NPC 고정, ESC/F 로 닫기 (선택 확정은 UI 버튼 클릭)
+	if (state->mLevelSelectActive)
+	{
+		PlayerMovementComponent* movement = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
+		TransformComponent* npcTr = mWorld->GetComponent<TransformComponent>(state->mNpc);
+		if (movement && npcTr)
+			AimCameraAtNpc(movement, playerPos, npcTr->mWorldPosition, deltaTime);
+
+		if (INPUT.GetKeyDown(eKeyCode::ESC) || INPUT.GetKeyDown(eKeyCode::F))
+			state->mLevelSelectActive = false;
+		return;
+	}
 
 	// 대화 진행 중: F 로 다음 대사, 마지막 대사 이후 종료
 	if (state->mActive)
@@ -136,11 +188,23 @@ void NpcInteractionSystem::Update(float deltaTime)
 		return;
 	}
 
-	// 대화 시작
+	// 상호작용 시작 (F)
 	if (nearest.IsValid() && INPUT.GetKeyDown(eKeyCode::F))
 	{
 		NpcComponent* npc = mWorld->GetComponent<NpcComponent>(nearest);
-		if (npc && !npc->mDialogueLines.empty())
+		if (!npc)
+			return;
+
+		// 관문지기: 대화 대신 레벨 선택 UI 오픈
+		if (npc->mRole == NpcRole::LevelSelect)
+		{
+			state->mNpc = nearest;
+			state->mSelectedStage = 0;
+			state->mLevelSelectActive = true;
+			return;
+		}
+
+		if (!npc->mDialogueLines.empty())
 		{
 			state->mActive = true;
 			state->mNpc = nearest;

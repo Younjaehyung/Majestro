@@ -38,6 +38,7 @@
 #include "NpcComponent.h"
 #include "NpcInteractionSystem.h"
 #include "UIDialogueFeature.h"
+#include "UILevelSelectFeature.h"
 #include "JsonUtils.h"
 #include "LobbyRoomBrowserFeature.h"
 #include "MenuRoomBrowserSystem.h"
@@ -119,6 +120,36 @@ namespace
 				return s2ws(subBase + ".fbx");   // 경로는 .fbx 로 넘기지만 로더가 parent\stem.mesh 를 읽음
 		}
 		return s2ws("..\\Resources\\Map\\" + stem + ".fbx");
+	}
+
+	struct LoadingSceneProfile
+	{
+		SceneId sceneId;
+		const wchar_t* mapJsonPath;
+		const wchar_t* backgroundTextureKey;
+	};
+
+	constexpr const wchar_t* kDefaultLoadingBackgroundKey = L"UI_Loading_Main_01";
+
+	const LoadingSceneProfile* FindLoadingSceneProfile(SceneId id)
+	{
+		// 씬별 로딩 설정을 한곳에서 관리한다.
+		// 새 씬의 로딩 배경이나 선로딩 맵을 추가할 때 이 테이블만 확장하면 된다.
+		static constexpr std::array<LoadingSceneProfile, 4> profiles =
+		{
+			LoadingSceneProfile{ SceneId::Plaza, L"..\\Resources\\Json\\MapShip_Export.json", L"UI_Loading_Plaza" },
+			LoadingSceneProfile{ SceneId::FirstGame, L"..\\Resources\\Json\\Map001_Export.json", L"UI_Loading_FirstGame" },
+			LoadingSceneProfile{ SceneId::SecondGame, L"..\\Resources\\Json\\MapDesert_Export.json", L"UI_Loading_SecondGame" },
+			LoadingSceneProfile{ SceneId::ThirdGame, L"..\\Resources\\Json\\Map003_Export.json", L"UI_Loading_ThirdGame" },
+		};
+
+		for (const LoadingSceneProfile& profile : profiles)
+		{
+			if (profile.sceneId == id)
+				return &profile;
+		}
+
+		return nullptr;
 	}
 }
 
@@ -887,8 +918,8 @@ void LoadingScene::Initialize()
 	}
 
 	{
-		Entity mLoadingImage = mWorld->CreateEntity();
-		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingImage);
+		mLoadingBackground = mWorld->CreateEntity();
+		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingBackground);
 		WindowInfo windowInfo = RENDERMANAGER.GetWindow();
 		tr.mAnchor = Anchor::TopLeft;
 		tr.mPosition = Vec2(0.f, 0.f);
@@ -898,7 +929,7 @@ void LoadingScene::Initialize()
 		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01");
 
 
-		mWorld->AddComponent<UISpriteComponent>(mLoadingImage, loadingMaterial);
+		mWorld->AddComponent<UISpriteComponent>(mLoadingBackground, loadingMaterial);
 	}
 
 	{
@@ -972,35 +1003,36 @@ void LoadingScene::Render()
 	mWorld->Render();
 }
 
+void LoadingScene::ApplyLoadingBackground(SceneId id)
+{
+	const LoadingSceneProfile* profile = FindLoadingSceneProfile(id);
+	const wchar_t* textureKey = profile ? profile->backgroundTextureKey : kDefaultLoadingBackgroundKey;
+
+	shared_ptr<Texture> texture = RESOURCEMANAGER.Get<Texture>(textureKey);
+	if (!texture)
+		texture = RESOURCEMANAGER.Get<Texture>(kDefaultLoadingBackgroundKey);
+
+	if (UISpriteComponent* sprite = mWorld->GetComponent<UISpriteComponent>(mLoadingBackground))
+	{
+				sprite->mTexture = texture;
+	}
+}
 
 bool LoadingScene::LoadScene(SceneId id)
 {
 	mTargetSceneId = id;
+	// 이전 로딩이 중단되거나 새 명령으로 덮인 경우를 대비해 작업 큐를 초기화한다.
+	while (!mLoadTasks.empty())
+		mLoadTasks.pop();
+	mTotalTaskCount = 0;
 
-	std::wstring mapPath;
-	switch ((uint8)id) {
-	case (uint8)SceneId::Plaza: {
-		mapPath = L"..\\Resources\\Json\\MapShip_Export.json";
-	}
-							  break;
-	case (uint8)SceneId::FirstGame: {
-		mapPath = L"..\\Resources\\Json\\Map001_Export.json";
-	}
-								  break;
-	case (uint8)SceneId::SecondGame: {
-		mapPath = L"..\\Resources\\Json\\MapDesert_Export.json";
-	}
-								   break;
-	case (uint8)SceneId::ThirdGame: {
-		mapPath = L"..\\Resources\\Json\\Map003_Export.json";
-	}
-								  break;
-	default:
+	ApplyLoadingBackground(id);
+
+	const LoadingSceneProfile* profile = FindLoadingSceneProfile(id);
+	if (!profile)
 		return false;
-		break;
-	}
 
-	LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(mapPath);
+	LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(profile->mapJsonPath);
 
 	std::unordered_set<std::string> uniqueFbxNames;
 
@@ -2403,7 +2435,8 @@ namespace
 
 			TransformComponent t{};
 			t.mLocalPosition = ParseVec3ArrayOrObject(RequireJson(it, "position"), 1.0f);
-			t.mLocalRotationE = Vec3(0.f, GetOptionalFloat(it, "rotationY", 0.f), 0.f);
+			const float homeYaw = GetOptionalFloat(it, "rotationY", 0.f);
+			t.mLocalRotationE = Vec3(0.f, homeYaw, 0.f);
 			const float scale = GetOptionalFloat(it, "scale", 1.f);
 			t.mLocalScale = Vec3(scale, scale, scale);
 			world->AddComponent<TransformComponent>(e, t);
@@ -2414,6 +2447,7 @@ namespace
 			npc.mRole = ParseNpcRole(GetOptionalString(it, "role", "dialogue"));
 			npc.mPortraitKey = utfs2ws(GetOptionalString(it, "portrait", "UI_NoteMan_Portrait"));
 			npc.mInteractRadius = GetOptionalFloat(it, "interactRadius", 250.f);
+			npc.mHomeYaw = homeYaw;
 
 			if (it.contains("dialogue"))
 				for (const auto& lineJson : it["dialogue"])
@@ -2489,6 +2523,9 @@ void PlazaScene::Initialize()
 
 	auto dialogueModule = std::make_shared<UIDialogueFeature>();	// NPC 대화 UI
 	mUIFeatures.push_back(dialogueModule);
+
+	auto levelSelectModule = std::make_shared<UILevelSelectFeature>();	// 관문지기 레벨 선택 UI
+	mUIFeatures.push_back(levelSelectModule);
 
 	for (const auto& feature : mUIFeatures)
 	{

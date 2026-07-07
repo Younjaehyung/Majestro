@@ -312,9 +312,8 @@ SceneChangeOutcome SceneManager::TryChangeScene(uint64 sessionId, SceneId reques
 	if (currentScene == SceneId::Plaza && IsLevelScene(requestedScene) && mRoomManager)
 	{
 		RoomState* room = mRoomManager->GetRoomByPlayer(sessionId);
-		const bool allowed = room && room->IsHost(sessionId) &&
-			room->mNextStageIndex < kStageCount &&
-			kStageOrder[room->mNextStageIndex] == requestedScene;
+		// 관문지기 레벨 선택 UI 로 스테이지 자유 선택 — Host 요청이면 어느 레벨이든 허용.
+		const bool allowed = room && room->IsHost(sessionId);
 		if (!allowed)
 		{
 			outcome.sendResponse = true;

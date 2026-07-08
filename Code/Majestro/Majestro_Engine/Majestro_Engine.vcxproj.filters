@@ -237,6 +237,9 @@
     <ClInclude Include="Engine.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="EngineLog.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
     <ClInclude Include="CommandQueue.h">
       <Filter>Engine\DirectX</Filter>
     </ClInclude>
@@ -606,6 +609,9 @@
     </ClInclude>
     <ClInclude Include="GBufferPass.h">
       <Filter>World\System\Render\06.Deferred</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuResourceBudget.h">
+      <Filter>Engine\DirectX</Filter>
     </ClInclude>
     <ClInclude Include="LightsPass.h">
       <Filter>World\System\Render\06.Deferred</Filter>

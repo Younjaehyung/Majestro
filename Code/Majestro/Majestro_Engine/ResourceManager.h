@@ -92,6 +92,12 @@ public:
 
 	shared_ptr<Texture> CreateTextureFromResource(const wstring& name, ComPtr<ID3D12Resource> tex2D, bool createSRVUAV = 1);
 
+	// 파일 내용 해시 기반 텍스처 로드 — 같은 내용이면 기존 텍스처 재사용
+	shared_ptr<Texture> LoadTextureDeduped(const wstring& key, const wstring& path);
+
+	// 지금까지 로드된 텍스처 예산 요약 + 상위 20개를 stdout으로 출력 
+	void DumpTextureBudget(const char* label);	// (label: 호출 시점 구분용)
+	void UnloadSceneResources(const std::vector<wstring>& prefixes);
 
 private:
 	// 같은 키에 다른 경로가 들어오는 silent collision 을 진단(_DEBUG 에서만 로그)
@@ -107,6 +113,15 @@ private:
 	array<KeyObjMap, OBJECT_TYPE_COUNT> mResources;
 
 	// =>  리소스타입(총 OBJECT_TYPE_COUNT만큼)의 map이 존재.
+
+	// 텍스처 콘텐츠 dedup + 예산 계측
+	std::unordered_map<uint64, shared_ptr<Texture>> mTextureContentCache; // 파일 내용 해시 : 텍스처
+	std::vector<std::pair<wstring, uint64>> mTextureLoadLog;              // (키, 디코드 바이트)
+
+
+	uint64 mTextureBytesTotal = 0;   // 실제 로드된 텍스처 디코드 총량
+	uint64 mTextureBytesSaved = 0;   // dedup으로 절약한 총량
+	uint32 mTextureDedupCount = 0;   // 재사용 처리된 로드 횟수
 };
 
 
@@ -114,24 +129,32 @@ private:
 template<typename T>
 inline shared_ptr<T> ResourceManager::Load(const wstring& key, const wstring& path)
 {
-	OBJECT_TYPE objectType = GetObjectType<T>();
-	KeyObjMap& keyObjMap = mResources[static_cast<uint8>(objectType)];
-
-	auto findIt = keyObjMap.find(key);
-	if (findIt != keyObjMap.end())
+	// 텍스처 — 내용이 같은 파일은 GPU에 1장만 업로드
+	if constexpr (std::is_same_v<T, Texture>)
 	{
-		DebugCheckKeyCollision(static_cast<uint8>(objectType), key, path);
-		return static_pointer_cast<T>(findIt->second);
+		return LoadTextureDeduped(key, path);
 	}
-	//찾으면 출력
+	else
+	{
+		OBJECT_TYPE objectType = GetObjectType<T>();
+		KeyObjMap& keyObjMap = mResources[static_cast<uint8>(objectType)];
 
-	shared_ptr<T> object = make_shared<T>();
-	object->Load(path);
-	object->SetName(key);
-	keyObjMap[key] = object;
-	//없으면 로딩
+		auto findIt = keyObjMap.find(key);
+		if (findIt != keyObjMap.end())
+		{
+			DebugCheckKeyCollision(static_cast<uint8>(objectType), key, path);
+			return static_pointer_cast<T>(findIt->second);
+		}
+		//찾으면 출력
 
-	return object;
+		shared_ptr<T> object = make_shared<T>();
+		object->Load(path);
+		object->SetName(key);
+		keyObjMap[key] = object;
+		//없으면 로딩
+
+		return object;
+	}
 }
 
 template<typename T>	//파일이 아닌 직접 만든 객체 저장

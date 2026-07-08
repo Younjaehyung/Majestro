@@ -32,6 +32,8 @@
 #include "CircularVisualizerComponent.h"
 #include "EffectFlagComponent.h"
 #include "Prefab.h"
+#include "GpuResourceBudget.h"
+#include "EngineLog.h"
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
 #include "LobbyRoomSystem.h"
@@ -163,6 +165,19 @@ void Scene::Initialize()
 
 }
 
+void Scene::Release()
+{
+	Shudown();
+	mWorld->Clear();
+	mUIFeatures.clear();
+
+	if (!mResourcePrefixes.empty())
+	{
+		RESOURCEMANAGER.UnloadSceneResources(mResourcePrefixes);
+		mResourcePrefixes.clear();
+	}
+}
+
 void Scene::Update(float deltaTime)
 {
 	//std::cerr << "Scene Update: " << (int32)mSceneId;
@@ -180,6 +195,15 @@ void Scene::Shudown()
 {
 	mWorld->Shutdown();
 
+}
+
+void Scene::TrackResourcePrefix(const wstring& prefix)
+{
+	if (prefix.empty())
+		return;
+
+	if (std::find(mResourcePrefixes.begin(), mResourcePrefixes.end(), prefix) == mResourcePrefixes.end())
+		mResourcePrefixes.push_back(prefix);
 }
 
 
@@ -202,6 +226,7 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 	}
 
 	const std::wstring prefix = s2ws(level.levelName);
+	TrackResourcePrefix(prefix);
 	for (const auto& fbxName : uniqueFbxNames)
 	{
 		RESOURCEMANAGER.LoadFBXModel(BuildMapFbxPath(level.levelName, fbxName), prefix);
@@ -216,6 +241,7 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 		const std::wstring prefix = s2ws(level.levelName);
+		TrackResourcePrefix(prefix);
 
 		RESOURCEMANAGER.ApplyMapSky(level);
 
@@ -272,6 +298,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 		const std::wstring prefix = s2ws(level.levelName);
+		TrackResourcePrefix(prefix);
 
 		RESOURCEMANAGER.ApplyMapSky(level);
 
@@ -327,6 +354,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 		const std::wstring prefix = s2ws(level.levelName);
+		TrackResourcePrefix(prefix);
 		auto physicsWorld = mWorld->GetPhysicsWorld();
 		if (!physicsWorld)
 			throw std::runtime_error("LoadCollisionJson requires PhysicsWorld");
@@ -995,7 +1023,6 @@ void LoadingScene::Initialize()
 
 void LoadingScene::Shudown()
 {
-	mWorld->Shutdown();
 }
 
 void LoadingScene::Render()
@@ -1024,6 +1051,8 @@ bool LoadingScene::LoadScene(SceneId id)
 	// 이전 로딩이 중단되거나 새 명령으로 덮인 경우를 대비해 작업 큐를 초기화한다.
 	while (!mLoadTasks.empty())
 		mLoadTasks.pop();
+	while (!mLoadTaskLabels.empty())
+		mLoadTaskLabels.pop();
 	mTotalTaskCount = 0;
 
 	ApplyLoadingBackground(id);
@@ -1051,6 +1080,7 @@ bool LoadingScene::LoadScene(SceneId id)
 	const std::string levelName = level.levelName;
 	for (const auto& fbxName : uniqueFbxNames)
 	{
+		mLoadTaskLabels.push(fbxName);
 		mLoadTasks.push([fbxName, levelName]() {
 			shared_ptr<FBXData> data = RESOURCEMANAGER.LoadFBXModel(BuildMapFbxPath(levelName, fbxName), s2ws(levelName));});
 	}
@@ -1074,9 +1104,36 @@ void LoadingScene::ProcessTask()
 {
 	if (!mLoadTasks.empty())
 	{
+		std::string label = "unknown";
+		if (!mLoadTaskLabels.empty())
+			label = mLoadTaskLabels.front();
+
+		if (EngineLog::Enabled(EngineLog::Domain::LoadingTask))
+			EngineLog::Prefix(EngineLog::Domain::LoadingTask, "begin")
+				<< "task=" << label << "\n";
+
+		std::string beforeLabel = "loading-before-" + label;
+		GpuResourceBudget::DumpDxgi(beforeLabel.c_str(),
+			RENDERMANAGER.GetDevice()->GetAdapter().Get(),
+			RENDERMANAGER.GetGraphicsMemory().get());
+
 		auto task = mLoadTasks.front();
 		task(); // 작업 실행
 		mLoadTasks.pop();
+
+
+		if (!mLoadTaskLabels.empty())
+			mLoadTaskLabels.pop();
+
+		std::string afterLabel = "loading-after-" + label;
+
+		GpuResourceBudget::DumpDxgi(afterLabel.c_str(),
+			RENDERMANAGER.GetDevice()->GetAdapter().Get(),
+			RENDERMANAGER.GetGraphicsMemory().get());
+
+		if (EngineLog::Enabled(EngineLog::Domain::LoadingTask))
+			EngineLog::Prefix(EngineLog::Domain::LoadingTask, "end")
+				<< "task=" << label << "\n";
 	}
 }
 
@@ -2489,8 +2546,9 @@ void PlazaScene::Initialize()
 
 	// OceanPrefab ocean{ mWorld.get() };
 
+
+	// Far cloud
 	{
-		// cloud
 		Entity cloudEntity = mWorld->CreateEntity();
 		TransformComponent cloudTransform{};
 		cloudTransform.mLocalPosition = Vec3(-2664.0f, 1371.0f, 20.0f);
@@ -2499,10 +2557,9 @@ void PlazaScene::Initialize()
 		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
 
 		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
-		cloudParticle.mEffectName = L"Particle_CloudDrift";
+		cloudParticle.mEffectName = L"Particle_CloudDriftFar";
 	}
 	{
-		// cloud
 		Entity cloudEntity = mWorld->CreateEntity();
 		TransformComponent cloudTransform{};
 		cloudTransform.mLocalPosition = Vec3(2664.0f, 1371.0f, 20.0f);
@@ -2511,7 +2568,32 @@ void PlazaScene::Initialize()
 		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
 
 		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
-		cloudParticle.mEffectName = L"Particle_CloudDrift";
+		cloudParticle.mEffectName = L"Particle_CloudDriftFar";
+	}
+
+	// Near cloud 
+	{
+
+		Entity cloudEntity = mWorld->CreateEntity();
+		TransformComponent cloudTransform{};
+		cloudTransform.mLocalPosition = Vec3(-1600.0f, 1280.0f, 20.0f);
+		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
+		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
+		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
+
+		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
+		cloudParticle.mEffectName = L"Particle_CloudDriftNear";
+	}
+	{
+		Entity cloudEntity = mWorld->CreateEntity();
+		TransformComponent cloudTransform{};
+		cloudTransform.mLocalPosition = Vec3(1600.0f, 1280.0f, 20.0f);
+		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
+		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
+		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
+
+		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
+		cloudParticle.mEffectName = L"Particle_CloudDriftNear";
 	}
 
 

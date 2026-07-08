@@ -94,6 +94,9 @@ private:
     int   mIterations = 4;
     float mThreshold  = 1.0f;
     float mIntensity  = 0.8f;
+    bool  mInitialized = false;
+    uint32 mAllocatedWidth = 0;
+    uint32 mAllocatedHeight = 0;
 
 
     KawaseRT         mExtractRT;

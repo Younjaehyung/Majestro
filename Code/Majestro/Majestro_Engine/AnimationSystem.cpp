@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "AnimationSystem.h"
+#include "EngineLog.h"
 #include "Engine.h"
 #include "ResourceManager.h"
 #include "RenderManager.h"
@@ -334,6 +335,16 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
 			c->mAnimInstanceID = static_cast<uint32_t>(i); // 필요시 필드 추가
 		}
 	}
+	if (mAnimationPass.size() > MAX_ANIMATION_INSTANCE_COUNT)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::AnimationBudget))
+		{
+			EngineLog::Prefix(EngineLog::Domain::AnimationBudget, "overflow", std::cerr)
+				<< "type=instance count=" << mAnimationPass.size()
+				<< " limit=" << MAX_ANIMATION_INSTANCE_COUNT << std::endl;
+		}
+		return;
+	}
 
 	uint32 resultIndex = 0;
 	for (uint32_t i = 0; i < (uint32_t)mAnimationPass.size(); )
@@ -368,6 +379,16 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
 		resultIndex += (j - i) * bones;
 
 		i = j;
+	}
+	if (resultIndex > MAX_ANIMATION_RESULT_MATRIX_COUNT)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::AnimationBudget))
+		{
+			EngineLog::Prefix(EngineLog::Domain::AnimationBudget, "overflow", std::cerr)
+				<< "type=final-bone count=" << resultIndex
+				<< " limit=" << MAX_ANIMATION_RESULT_MATRIX_COUNT << std::endl;
+		}
+		return;
 	}
 	RENDERMANAGER.GetGroupBuffer(RENDERMANAGER.GetFrameResourceIndex())->AnimInstanceInfo->PushGraphicsData(mAnimationPass.data(), static_cast<uint32>(sizeof(AnimationInstance) * mAnimationPass.size()));
 

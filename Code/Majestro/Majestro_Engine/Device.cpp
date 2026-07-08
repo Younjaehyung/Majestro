@@ -1,17 +1,45 @@
 #include "pch.h"
 #include "Device.h"
 
+#ifndef ENABLE_D3D12_DEBUG_LAYER
+#define ENABLE_D3D12_DEBUG_LAYER 0
+#endif
+
 void Device::Initialize()
 {
 
-#ifdef _DEBUG
-	D3D12GetDebugInterface(IID_PPV_ARGS(&mDXDebug));
-	mDXDebug->EnableDebugLayer();
-
-
+#if defined(_DEBUG) && ENABLE_D3D12_DEBUG_LAYER
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&mDXDebug))) && mDXDebug)
+		mDXDebug->EnableDebugLayer();
 #endif
-	CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&mDXGIFactory));
-	D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&mDXDevice));
+
+	UINT dxgiFactoryFlags = 0;
+#if defined(_DEBUG) && ENABLE_D3D12_DEBUG_LAYER
+	dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+#endif
+
+	CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&mDXGIFactory));
+
+	for (UINT adapterIndex = 0; ; ++adapterIndex)
+	{
+		ComPtr<IDXGIAdapter1> candidate;
+		if (FAILED(mDXGIFactory->EnumAdapters1(adapterIndex, &candidate)))
+			break;
+
+		DXGI_ADAPTER_DESC1 desc{};
+		candidate->GetDesc1(&desc);
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
+			continue;
+
+		if (SUCCEEDED(D3D12CreateDevice(candidate.Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&mDXDevice))))
+		{
+			candidate.As(&mAdapter);
+			break;
+		}
+	}
+
+	if (mDXDevice == nullptr)
+		D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&mDXDevice));
 
 
 	//// 원하는 샘플 수 (보통 4)

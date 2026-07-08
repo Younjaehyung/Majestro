@@ -253,6 +253,7 @@
     <ClInclude Include="EnemyComponent.h" />
     <ClInclude Include="EnemySystem.h" />
     <ClInclude Include="Engine.h" />
+    <ClInclude Include="EngineLog.h" />
     <ClInclude Include="EnginePch.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />
@@ -262,6 +263,7 @@
     <ClInclude Include="ForwardPass.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GBufferPass.h" />
+    <ClInclude Include="GpuResourceBudget.h" />
     <ClInclude Include="GravityComponent.h" />
     <ClInclude Include="DamagePopupComponent.h" />
     <ClInclude Include="DamagePopupUpdateFeature.h" />

@@ -3,6 +3,8 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "Texture.h"
+#include "GpuResourceBudget.h"
+#include "EngineLog.h"
 
 ConstantBuffer::ConstantBuffer()
 {
@@ -111,12 +113,27 @@ StructuredBuffer::~StructuredBuffer()
 
 void StructuredBuffer::PushGraphicsData(void* buffer, uint32 size)
 {
+	assert(size <= mBufferSize);
 
 	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
 void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 {
+	if (size == 0)
+		return;
+
+	if (buffer == nullptr || mBuffer == nullptr || size > mBufferSize)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
+		{
+			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "PushDefaultToData", std::cerr)
+				<< "invalid-input size=" << size
+				<< " bufferSize=" << mBufferSize << std::endl;
+		}
+		return;
+	}
+
 	ComPtr<ID3D12Resource> readBuffer = nullptr;
 	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(size, D3D12_RESOURCE_FLAG_NONE);
 	D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -128,6 +145,17 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&readBuffer));
+
+	if (FAILED(hr) || readBuffer == nullptr)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
+		{
+			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "PushDefaultToData", std::cerr)
+				<< "staging-allocation-failed size=" << size
+				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
+		}
+		return;
+	}
 
 	if(SUCCEEDED(hr))
 	{
@@ -141,7 +169,18 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 
 	uint8* dataBegin = nullptr;
 	D3D12_RANGE readRange{ 0, 0 };
-	readBuffer->Map(0, &readRange, reinterpret_cast<void**>(&dataBegin));
+	hr = readBuffer->Map(0, &readRange, reinterpret_cast<void**>(&dataBegin));
+
+	if (FAILED(hr) || dataBegin == nullptr)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
+		{
+			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "PushDefaultToData", std::cerr)
+				<< "map-failed size=" << size
+				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
+		}
+		return;
+	}
 	memcpy(dataBegin, buffer, size);
 
 	// Common -> Copy
@@ -169,15 +208,24 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 void StructuredBuffer::UpdateDefaultFromCpu(const void* data, uint32 size)
 {
 	// Default 버퍼 + Dummy 업로드 버퍼 조합 전용
-	assert(mDummyBuffer != nullptr);
 	if (size == 0)
 		return;
 
-	if (mDummyMappedBuffer == nullptr)
+
+	if (data == nullptr || mBuffer == nullptr || size > mBufferSize)
 	{
-		D3D12_RANGE readRange{ 0, 0 };
-		mDummyBuffer->Map(0, &readRange, reinterpret_cast<void**>(&mDummyMappedBuffer));
+		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
+		{
+			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "UpdateDefaultFromCpu", std::cerr)
+				<< "invalid-input size=" << size
+				<< " bufferSize=" << mBufferSize << std::endl;
+		}
+		return;
 	}
+
+
+	if (!EnsureDummyUploadBuffer(size))
+		return;
 
 	::memcpy(mDummyMappedBuffer, data, size);
 
@@ -210,8 +258,10 @@ void StructuredBuffer::PushComputeUAVData(void* buffer, uint32 size)
 	::memcpy(mMappedBuffer, buffer, size);	//버퍼에 데이터 전달(복사(즉시))
 }
 
-void StructuredBuffer::CreateUploadBuffer(uint32 elementSize, uint32 elementCount)
+void StructuredBuffer::CreateUploadBuffer(uint32 elementSize, uint32 elementCount, const wchar_t* debugName)
 {
+	mBufferSize = static_cast<uint64>(elementSize) * elementCount;
+	mDebugName = debugName;
 
 	mElementSize = elementSize;		// 구조체 크기
 	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
@@ -228,12 +278,20 @@ void StructuredBuffer::CreateUploadBuffer(uint32 elementSize, uint32 elementCoun
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
 			IID_PPV_ARGS(&mBuffer));
+
+		// GPU 리소스 추적
+		GpuResourceBudget::RecordResource(DEVICE.Get(), L"StructuredUpload",
+			mDebugName + L" " + std::to_wstring(elementSize) + L"x" + std::to_wstring(elementCount),
+			D3D12_HEAP_TYPE_UPLOAD, mBuffer.Get());
 	}
 	mBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mMappedBuffer));
 }
 
-void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCount)
+void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCount, const wchar_t* debugName)
 {
+	mBufferSize = static_cast<uint64>(elementSize) * elementCount;
+
+	mDebugName = debugName;
 
 	mElementSize = elementSize;		// 구조체 크기
 	mElementCount = elementCount;	// StructuredBuffer에 들어갈 객체 개수
@@ -252,10 +310,15 @@ void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCou
 			mResourceState,
 			nullptr,
 			IID_PPV_ARGS(&mBuffer));
-	
-	desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, D3D12_RESOURCE_FLAG_NONE);
+
+		// GPU 리소스 추적
+		GpuResourceBudget::RecordResource(DEVICE.Get(), L"StructuredDefault",
+			mDebugName + L" " + std::to_wstring(elementSize) + L"x" + std::to_wstring(elementCount),
+			D3D12_HEAP_TYPE_DEFAULT, mBuffer.Get());
+
 
 		// 2-1) Upload Heap 리소스 생성
+	/*
 	CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
 
 		DEVICE->CreateCommittedResource(
@@ -266,7 +329,79 @@ void StructuredBuffer::CreateDefaultBuffer(uint32 elementSize, uint32 elementCou
 			nullptr,
 			IID_PPV_ARGS(&mDummyBuffer));
 
+		// GPU 리소스 추적
+		GpuResourceBudget::RecordResource(DEVICE.Get(), L"StructuredDummyUpload",
+			name + L" dummy " + std::to_wstring(elementSize) + L"x" + std::to_wstring(elementCount),
+			D3D12_HEAP_TYPE_UPLOAD, mDummyBuffer.Get());
+	*/
 
+
+}
+
+
+bool StructuredBuffer::EnsureDummyUploadBuffer(uint64 size)
+{
+	if (size == 0)
+		return false;
+
+	if (mDummyBuffer && mDummyBufferSize >= size)
+		return true;
+
+	if (mDummyBuffer && mDummyMappedBuffer)
+	{
+		mDummyBuffer->Unmap(0, nullptr);
+		mDummyMappedBuffer = nullptr;
+	}
+
+	mDummyBuffer.Reset();
+	mDummyBufferSize = size;
+
+	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(mDummyBufferSize, D3D12_RESOURCE_FLAG_NONE);
+	CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+
+	HRESULT hr = DEVICE->CreateCommittedResource(
+		&uploadHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&mDummyBuffer));
+
+	if (FAILED(hr) || mDummyBuffer == nullptr)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
+		{
+			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "EnsureDummyUploadBuffer", std::cerr)
+				<< "lazy-allocation-failed name=" << EngineLog::Narrow(mDebugName)
+				<< " size=" << mDummyBufferSize
+				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
+		}
+		mDummyBufferSize = 0;
+		return false;
+	}
+
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"StructuredDummyUpload",
+		mDebugName + L" dummy lazy " + std::to_wstring(mDummyBufferSize),
+		D3D12_HEAP_TYPE_UPLOAD, mDummyBuffer.Get());
+
+	D3D12_RANGE readRange{ 0, 0 };
+	hr = mDummyBuffer->Map(0, &readRange, reinterpret_cast<void**>(&mDummyMappedBuffer));
+
+	if (FAILED(hr) || mDummyMappedBuffer == nullptr)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
+		{
+			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "EnsureDummyUploadBuffer", std::cerr)
+				<< "lazy-map-failed name=" << EngineLog::Narrow(mDebugName)
+				<< " size=" << mDummyBufferSize
+				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
+		}
+		mDummyBuffer.Reset();
+		mDummyBufferSize = 0;
+		return false;
+	}
+
+	return true;
 }
 
 

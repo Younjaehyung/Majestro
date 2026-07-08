@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "SceneManager.h"
 #include "RenderManager.h"
+#include "ResourceManager.h"
+#include "GpuResourceBudget.h"
 #include "Scene.h"
 #include "NetSendSystem.h"
 #include "Engine.h"
@@ -206,10 +208,26 @@ void SceneManager::Render()
 
 void SceneManager::LoadScene(SceneId id)
 {
+	GpuResourceBudget::DumpDxgi("scene-before-load",
+		RENDERMANAGER.GetDevice()->GetAdapter().Get(),
+		RENDERMANAGER.GetGraphicsMemory().get());
+
+	if (mActiveScene)
+	{
+		mActiveScene->Exit();
+		mActiveScene->Release();
+	}
+
 	mActiveScene = mGameScenes[(size_t)id];
 	mActiveScene->ClearWorld();
 	mActiveScene->Initialize();
 	mActiveScene->Enter();
+
+	// 씬 로드 후 텍스처 예산 덤프 (맵 텍스처 포함 누적치)
+	RESOURCEMANAGER.DumpTextureBudget("scene");
+	GpuResourceBudget::Dump("scene",
+		RENDERMANAGER.GetDevice()->GetAdapter().Get(),
+		RENDERMANAGER.GetGraphicsMemory().get());
 }
 
 void SceneManager::ReleaseScene()
@@ -217,6 +235,7 @@ void SceneManager::ReleaseScene()
 	if (mActiveScene) {
 		mActiveScene->Exit();
 		mActiveScene->Release();
+		mActiveScene = nullptr;
 	}
 }
 

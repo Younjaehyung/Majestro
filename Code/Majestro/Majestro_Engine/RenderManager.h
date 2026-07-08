@@ -51,7 +51,7 @@ class RenderManager
 {
 public:
 	void Initialize(const WindowInfo& info);
-	void InitEffekseer(int32_t instanceMax = 32000, int32_t squareMaxCount = 32000);
+	void InitEffekseer(int32_t instanceMax = 8192, int32_t squareMaxCount = 8192);
 
 	void Update();
 

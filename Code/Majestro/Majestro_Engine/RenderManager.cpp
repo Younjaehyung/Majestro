@@ -13,6 +13,7 @@
 #include "Animator.h"
 #include "UIRenderSystem.h"
 #include "Skeleton.h"
+#include "GpuResourceBudget.h"
 void RenderManager::Initialize(const WindowInfo& info)
 {
 	mWindow = info;
@@ -45,6 +46,9 @@ void RenderManager::Initialize(const WindowInfo& info)
 	mRenderTargetHeap->Initialize();
 
 	mGraphicsMemory = std::make_shared<DirectX::DX12::GraphicsMemory>(mDevice->GetDevice().Get());
+	GpuResourceBudget::DumpDxgi("render-init-after-heaps",
+		mDevice->GetAdapter().Get(),
+		mGraphicsMemory.get());
 
 
 	mParticleDescriptorAllocator.Initialize(
@@ -58,9 +62,19 @@ void RenderManager::Initialize(const WindowInfo& info)
 	CreateMaterial();
 	CreateAnimation();
 	CreateParticle();
+	GpuResourceBudget::DumpDxgi("render-init-after-global-buffers",
+		mDevice->GetAdapter().Get(),
+		mGraphicsMemory.get());
 
 	CreateRenderTargetGroups();
+	GpuResourceBudget::DumpDxgi("render-init-after-render-targets",
+		mDevice->GetAdapter().Get(),
+		mGraphicsMemory.get());
+
 	InitEffekseer();
+	GpuResourceBudget::DumpDxgi("render-init-after-effekseer",
+		mDevice->GetAdapter().Get(),
+		mGraphicsMemory.get());
 }
 
 void RenderManager::InitEffekseer(int32_t instanceMax, int32_t squareMaxCount)
@@ -115,32 +129,32 @@ void RenderManager::CreateGroup()
 		group->InstanceInfo = make_shared<StructuredBuffer>();
 		// 셰이더가 반복해서 읽는 데이터는 GPU 로컬 메모리에 배치한다.
 		// CPU 데이터는 프레임별 업로드 스테이징 버퍼를 거쳐 복사한다.
-		group->InstanceInfo->CreateDefaultBuffer(sizeof(RenderParams), 4096 * 40);
+		group->InstanceInfo->CreateDefaultBuffer(sizeof(RenderParams), 4096 * 40, L"GroupInstanceInfo");
 		group->InstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_INSTANCE_INDEX), GROUP_COUNT);
 
 
 		group->ObjectInfo = make_shared<StructuredBuffer>();
 		// 여러 셰이더 단계에서 사용하는 오브젝트 정보는 GPU 로컬 메모리에 둔다.
-		group->ObjectInfo->CreateDefaultBuffer(sizeof(ObjectParams), 4096 * 40);
+		group->ObjectInfo->CreateDefaultBuffer(sizeof(ObjectParams), 4096 * 40, L"GroupObjectInfo");
 		group->ObjectInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_OBJECTINFO_INDEX), GROUP_COUNT);
 
 
 		group->ParticleInfo = make_shared<StructuredBuffer>();
 
-		group->ParticleInfo->CreateDefaultBuffer(sizeof(ParticleSharedParams), PARTICLE_EMITTER_COUNT);
+		group->ParticleInfo->CreateDefaultBuffer(sizeof(ParticleSharedParams), PARTICLE_EMITTER_COUNT, L"GroupParticleInfo");
 		group->ParticleInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PARTICLE_INDEX), GROUP_COUNT);
 
 
 		group->UIInfo = make_shared<StructuredBuffer>();
-		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), UI_SRV_COUNT);
+		group->UIInfo->CreateUploadBuffer(sizeof(UIInstanceData), UI_SRV_COUNT, L"GroupUIInfo");
 		group->UIInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_UI_INDEX), GROUP_COUNT);
 
 		group->AnimInstanceInfo = make_shared<StructuredBuffer>();
-		group->AnimInstanceInfo->CreateUploadBuffer(sizeof(AnimationInstance), 512);
+		group->AnimInstanceInfo->CreateUploadBuffer(sizeof(AnimationInstance), MAX_ANIMATION_INSTANCE_COUNT, L"GroupAnimInstanceInfo");
 		group->AnimInstanceInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_ANIMINSTANCE_INDEX), GROUP_COUNT);
 
 		group->AnimResultInfo = make_shared<StructuredBuffer>();
-		group->AnimResultInfo->CreateDefaultBuffer(sizeof(Matrix), 1024*1000);
+		group->AnimResultInfo->CreateDefaultBuffer(sizeof(Matrix), MAX_ANIMATION_RESULT_MATRIX_COUNT, L"GroupAnimResultInfo");
 		group->AnimResultInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_FINALUBONE_INDEX), GROUP_COUNT);
 		group->AnimResultInfo->CreateUavView(i, GROUP_UAV_START, static_cast<uint32>(GROUP_UAV_INDEX::UAV_FINALUBONE_INDEX), GROUP_COUNT);
 
@@ -148,7 +162,7 @@ void RenderManager::CreateGroup()
 		group->PassCustomTableInfo = make_shared<StructuredBuffer>();
 		// 전체 화면 패스에서 픽셀마다 읽으므로 GPU 로컬 메모리를 사용한다.
 		group->PassCustomTableInfo->CreateDefaultBuffer(sizeof(PassCustomData),
-			static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT));
+			static_cast<uint32>(PASS_CUSTOM_INDEX::PASS_CUSTOM_COUNT), L"GroupPassCustomTableInfo");
 		group->PassCustomTableInfo->CreateSrvView(i, GROUP_SRV_START, static_cast<uint32>(GROUP_SRV_INDEX::SRV_PASS_CUSTOM_INDEX), GROUP_COUNT);
 
 		i++;
@@ -159,7 +173,7 @@ void RenderManager::CreateGroup()
 void RenderManager::CreateMaterial()
 {
 	mMaterialBuffer = make_shared<StructuredBuffer>();
-	mMaterialBuffer->CreateDefaultBuffer(sizeof(MaterialParams), 2048);
+	mMaterialBuffer->CreateDefaultBuffer(sizeof(MaterialParams), 2048, L"MaterialBuffer");
 	mMaterialBuffer->CreateSrvView(0, TEXTURE_MATERIALS_INDEX_START, static_cast<uint32>(TEXTURE_INDEX::TEXTURE_MATERIALS_INDEX));
 }
 
@@ -167,7 +181,7 @@ void RenderManager::CreateParticle()
 {	
 	for (uint32 i = 0; i < FRAMEGROUP_COUNT; i++) {
 		mParticleSpawnBuffer[i] = make_shared<StructuredBuffer>();
-		mParticleSpawnBuffer[i]->CreateDefaultBuffer(sizeof(ParticleComputeSharedParams), PARTICLE_EMITTER_COUNT);
+		mParticleSpawnBuffer[i]->CreateDefaultBuffer(sizeof(ParticleComputeSharedParams), PARTICLE_EMITTER_COUNT, L"ParticleSpawnBuffer");
 
 		std::vector<ParticleComputeSharedParams> initialCounters(PARTICLE_EMITTER_COUNT);
 		mParticleSpawnBuffer[i]->PushDefaultToData(
@@ -185,15 +199,15 @@ void RenderManager::CreateAnimation()
 	mAnimationBuffer = make_shared<AnimationBuffer>();
 
 	mAnimationBuffer->SkeletonBone = make_shared<StructuredBuffer>();
-	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(SkeletonBoneParams), 128 * 10 * 5);
+	mAnimationBuffer->SkeletonBone->CreateDefaultBuffer(sizeof(SkeletonBoneParams), 128 * 10 * 5, L"AnimationSkeletonBone");
 	mAnimationBuffer->SkeletonBone->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_SKELETONBONE_INDEX));
 
 	mAnimationBuffer->AnimationClip = make_shared<StructuredBuffer>();
-	mAnimationBuffer->AnimationClip->CreateDefaultBuffer(sizeof(KeyFrameInfo), 1);
+	mAnimationBuffer->AnimationClip->CreateDefaultBuffer(sizeof(KeyFrameInfo), 1, L"AnimationClip");
 	mAnimationBuffer->AnimationClip->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_ANIMATIONCLIP_INDEX));
 
 	mAnimationBuffer->AnimationMeta = make_shared<StructuredBuffer>();
-	mAnimationBuffer->AnimationMeta->CreateDefaultBuffer(sizeof(AnimationClipMeta), 128);
+	mAnimationBuffer->AnimationMeta->CreateDefaultBuffer(sizeof(AnimationClipMeta), 128, L"AnimationMeta");
 	mAnimationBuffer->AnimationMeta->CreateSrvView(0, ANIMATION_INDEX_START, static_cast<uint32>(ANIMATION_INDEX::SRV_ANIMATIONMETA_INDEX));
 
 }

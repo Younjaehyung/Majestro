@@ -4,6 +4,7 @@
 #include "RenderManager.h"
 #include "Material.h"
 #include "FBXData.h"
+#include "GpuResourceBudget.h"
 
 
 
@@ -41,6 +42,12 @@ void Mesh::CreateVertexBuffer(const vector<Vertex>& buffer)
 		nullptr,
 		IID_PPV_ARGS(&mVertexBuffer));
 
+	// GPU 리소스 추적
+	std::wstring meshName = GetName().empty() ? L"UnnamedMesh" : GetName();
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"MeshVertexUpload",
+		meshName + L" vertex " + std::to_wstring(mVertexCount),
+		D3D12_HEAP_TYPE_UPLOAD, mVertexBuffer.Get());
+
 	// Copy the triangle data to the vertex buffer.
 	void* vertexDataBuffer = nullptr;
 	CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
@@ -71,6 +78,12 @@ void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&indexBuffer));
+
+	// GPU 리소스 추적
+	std::wstring meshName = GetName().empty() ? L"UnnamedMesh" : GetName();
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"MeshIndexUpload",
+		meshName + L" index " + std::to_wstring(indexCount),
+		D3D12_HEAP_TYPE_UPLOAD, indexBuffer.Get());
 
 	void* indexDataBuffer = nullptr;
 	CD3DX12_RANGE readRange(0, 0);

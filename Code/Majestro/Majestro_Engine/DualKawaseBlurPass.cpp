@@ -9,20 +9,37 @@
 
 void DualKawaseBlurPass::Initialize(int iterations)
 {
-    mIterations = std::clamp(iterations, 1, 4);
+    const int requestedIterations = std::clamp(iterations, 1, 4);
 
     uint32 sw = static_cast<uint32>(RENDERMANAGER.GetViewPort().Width);
     uint32 sh = static_cast<uint32>(RENDERMANAGER.GetViewPort().Height);
 
+
+    uint32 bw = max(sw >> 1, 1u);
+    uint32 bh = max(sh >> 1, 1u);
+
+    if (mInitialized &&
+        mIterations == requestedIterations &&
+        mAllocatedWidth == bw &&
+        mAllocatedHeight == bh)
+    {
+        return;
+    }
+
+    mIterations = requestedIterations;
+    mAllocatedWidth = bw;
+    mAllocatedHeight = bh;
+    mInitialized = true;
+
     // 이미시브 추출 RT (원본 해상도)
-    mExtractRT = CreateKawaseRT(L"KawaseExtract", sw, sh);
+    mExtractRT = CreateKawaseRT(L"KawaseExtract", bw, bh);
 
     // 다운샘플 체인: [i] = W/2^(i+1)
     mDownChain.clear();
     for (int i = 0; i < mIterations; ++i)
     {
-        uint32 w = max(sw >> (i + 1), 1u);
-        uint32 h = max(sh >> (i + 1), 1u);
+        uint32 w = max(bw >> (i + 1), 1u);
+        uint32 h = max(bh >> (i + 1), 1u);
         mDownChain.push_back(
             CreateKawaseRT(L"KawaseDown_" + to_wstring(i), w, h));
     }
@@ -31,8 +48,8 @@ void DualKawaseBlurPass::Initialize(int iterations)
     mUpChain.clear();
     for (int i = 0; i < mIterations; ++i)
     {
-        uint32 w = max(sw >> (mIterations - 1 - i), 1u);
-        uint32 h = max(sh >> (mIterations - 1 - i), 1u);
+        uint32 w = max(bw >> (mIterations - 1 - i), 1u);
+        uint32 h = max(bh >> (mIterations - 1 - i), 1u);
         mUpChain.push_back(
             CreateKawaseRT(L"KawaseUp_" + to_wstring(i), w, h));
     }
@@ -47,8 +64,8 @@ void DualKawaseBlurPass::SetData(
     mBefore = before;
     mAfter  = after;
 
-    float sw = RENDERMANAGER.GetViewPort().Width;
-    float sh = RENDERMANAGER.GetViewPort().Height;
+    float sw = static_cast<float>(mExtractRT.width);
+    float sh = static_cast<float>(mExtractRT.height);
 
     // EXTRACT
     // PreviousStep 미사용 (Gbuffer[4] 직접 읽기)

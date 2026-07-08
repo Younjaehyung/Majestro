@@ -55,10 +55,11 @@ public:
 	void SetResourceState(D3D12_RESOURCE_STATES state) { mResourceState = state; }
 	D3D12_RESOURCE_STATES GetResourceState() { return mResourceState; }
 	ComPtr<ID3D12Resource> GetBuffer() { return mBuffer; }
+	uint64 GetBufferSize() const { return mBufferSize; }
+	uint32 GetElementCount() const { return mElementCount; }
 public:
-
-	void CreateUploadBuffer(uint32 elementSize, uint32 elementCount);
-	void CreateDefaultBuffer(uint32 elementSize, uint32 elementCount);
+	void CreateUploadBuffer(uint32 elementSize, uint32 elementCount, const wchar_t* debugName = L"StructuredUpload");
+	void CreateDefaultBuffer(uint32 elementSize, uint32 elementCount, const wchar_t* debugName = L"StructuredDefault");
 
 
 	void CreateSrvView(uint32 frameCount, uint32 startIndex ,uint32 type, uint32 groupCount=0);
@@ -67,6 +68,8 @@ public:
 	void CreateUavView(uint32 frameCount, uint32 startIndex, uint32 type, uint32 groupCount=0);
 	void CreateUavViewAtIndex(uint32 descriptorIndex);
 private:
+	bool EnsureDummyUploadBuffer(uint64 size);
+
 	ComPtr<ID3D12Resource>			mBuffer;		// upload / default buffer
 	ComPtr<ID3D12Resource>			mDummyBuffer;	// default to upload buffer (dummy);
 
@@ -75,6 +78,10 @@ private:
 
 	uint32						mElementSize = 0;	// 원소 하나 크기
 	uint32						mElementCount = 0;	// 전체 원소 개수
+
+	uint64						mBufferSize = 0;
+	uint64						mDummyBufferSize = 0;
+	std::wstring				mDebugName;
 
 	D3D12_RESOURCE_STATES		mResourceState = D3D12_RESOURCE_STATE_COMMON;
 

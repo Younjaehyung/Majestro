@@ -19,6 +19,14 @@ ParticleSystem::ParticleSystem(World* world)
 	mPhase = SysPhase::Post;
 }
 
+ParticleSystem::~ParticleSystem()
+{
+	// 씬 파괴 시엔 Update()에서 삭제 못하니 임의로 삭제
+	for (auto& [entityId, runtime] : mEmitterRuntime)
+		ReleaseEmitterRuntime(runtime);
+	mEmitterRuntime.clear();
+}
+
 void ParticleSystem::Initialize()
 {
 }

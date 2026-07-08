@@ -2,6 +2,7 @@
 #include "Texture.h"
 #include "Engine.h"
 #include "RenderManager.h"
+#include "GpuResourceBudget.h"
 
 uint32 Texture::mTextureCount = 0;
 uint32 Texture::mCubeMapCount = 0;
@@ -43,6 +44,10 @@ void Texture::Load(const wstring& inPath)
 	vector<D3D12_SUBRESOURCE_DATA> subResources;
 
 	mDescription = mImage->GetDesc();
+
+	// GPU 리소스 추적
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"TextureFile",
+		path, D3D12_HEAP_TYPE_DEFAULT, mImage.Get());
 
 	hr = ::PrepareUpload(DEVICE.Get(),
 		mOriginalImage.GetImages(),

@@ -5,6 +5,8 @@
 #include "RootSignature.h"
 #include "PayloadPathData.h"
 #include "JsonUtils.h"
+#include "GpuResourceBudget.h"
+#include "EngineLog.h"
 
 
 
@@ -23,6 +25,11 @@ void ResourceManager::Initialize()
 	LoadWireCubeMesh();
 	LoadLineMesh();
 
+	// 시작 시점 텍스처 예산 요약 출력
+	DumpTextureBudget("startup");
+	GpuResourceBudget::Dump("startup",
+		RENDERMANAGER.GetDevice()->GetAdapter().Get(),
+		RENDERMANAGER.GetGraphicsMemory().get());
 }
 
 
@@ -596,9 +603,216 @@ void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& ke
 	if (it == sKeyPath.end())
 		sKeyPath.emplace(pk, path);
 	else if (it->second != path)
-		std::cout << "[ResLoad][COLLISION] key=" << ws2s(key)
-		<< " old=" << ws2s(it->second) << " new=" << ws2s(path) << "\n";
+		if (EngineLog::Enabled(EngineLog::Domain::ResourceLoad))
+		{
+			EngineLog::Prefix(EngineLog::Domain::ResourceLoad, "collision")
+				<< "key=" << ws2s(key)
+				<< " old=" << ws2s(it->second)
+				<< " new=" << ws2s(path) << "\n";
+		}
 #endif
+}
+
+namespace
+{
+	// Texture::Load와 동일한 디스크 경로 규칙(.dds 시블링 우선) — 해시는 실제로 읽힐 파일 기준이어야 함
+	wstring ResolveTextureDiskPath(const wstring& path)
+	{
+		wstring ext = std::filesystem::path(path).extension();
+		if (ext != L".dds" && ext != L".DDS")
+		{
+			wstring ddsPath = std::filesystem::path(path).replace_extension(L".dds").wstring();
+			if (std::filesystem::exists(ddsPath))
+				return ddsPath;
+		}
+		return path;
+	}
+
+	// FNV-1a 64bit — 파일 전체 바이트의 내용 지문. 읽기 실패 시 0 반환(호출부가 dedup 건너뜀)
+	uint64 HashFileContent(const wstring& path)
+	{
+		std::ifstream file(std::filesystem::path(path), std::ios::binary);
+		if (!file)
+			return 0;
+
+		uint64 hash = 14695981039346656037ull;
+		char buffer[65536];
+		while (file.read(buffer, sizeof(buffer)) || file.gcount() > 0)
+		{
+			const std::streamsize n = file.gcount();
+			for (std::streamsize i = 0; i < n; ++i)
+			{
+				hash ^= static_cast<uint8>(buffer[i]);
+				hash *= 1099511628211ull;
+			}
+		}
+		return hash == 0 ? 1 : hash; // 0은 실패 코드로 예약
+	}
+}
+
+shared_ptr<Texture> ResourceManager::LoadTextureDeduped(const wstring& key, const wstring& path)
+{
+	OBJECT_TYPE objectType = GetObjectType<Texture>();
+	KeyObjMap& keyObjMap = mResources[static_cast<uint8>(objectType)];
+
+	auto findIt = keyObjMap.find(key);
+	if (findIt != keyObjMap.end())
+	{
+		DebugCheckKeyCollision(static_cast<uint8>(objectType), key, path);
+		return static_pointer_cast<Texture>(findIt->second);
+	}
+
+	const uint64 contentHash = HashFileContent(ResolveTextureDiskPath(path));
+
+	if (contentHash != 0)
+	{
+		auto cacheIt = mTextureContentCache.find(contentHash);
+		if (cacheIt != mTextureContentCache.end())
+		{
+			// 내용 동일
+			keyObjMap[key] = cacheIt->second;
+			mTextureDedupCount++;
+			mTextureBytesSaved += cacheIt->second->GetOriginalImage().GetPixelsSize();
+			return cacheIt->second;
+		}
+	}
+
+	shared_ptr<Texture> texture = make_shared<Texture>();
+	texture->Load(path);
+	texture->SetName(key);
+	keyObjMap[key] = texture;
+
+	if (contentHash != 0)
+		mTextureContentCache.emplace(contentHash, texture);
+
+	const uint64 bytes = texture->GetOriginalImage().GetPixelsSize();
+	mTextureBytesTotal += bytes;
+	mTextureLoadLog.emplace_back(key, bytes);
+
+	return texture;
+}
+
+void ResourceManager::DumpTextureBudget(const char* label)
+{
+	if (!EngineLog::Enabled(EngineLog::Domain::TextureBudget))
+		return;
+
+	auto sorted = mTextureLoadLog;
+	std::sort(sorted.begin(), sorted.end(),
+		[](const std::pair<wstring, uint64>& a, const std::pair<wstring, uint64>& b) { return a.second > b.second; });
+
+	const double mb = 1024.0 * 1024.0;
+	EngineLog::Prefix(EngineLog::Domain::TextureBudget, label)
+		<< "loaded=" << sorted.size()
+		<< " total=" << static_cast<uint32>(mTextureBytesTotal / mb) << "MB"
+		<< " | dedup=" << mTextureDedupCount
+		<< " saved=" << static_cast<uint32>(mTextureBytesSaved / mb) << "MB\n";
+
+	const size_t topN = (std::min)(static_cast<size_t>(20), sorted.size());
+	for (size_t i = 0; i < topN; ++i)
+	{
+		EngineLog::Prefix(EngineLog::Domain::TextureBudget, label)
+			<< "resource=" << ws2s(sorted[i].first)
+			<< " size=" << static_cast<uint32>(sorted[i].second / mb)
+			<< "MB\n";
+	}
+}
+
+void ResourceManager::UnloadSceneResources(const std::vector<wstring>& prefixes)
+{
+	if (prefixes.empty())
+		return;
+
+	auto isSceneKey = [&prefixes](const wstring& key)
+	{
+		for (const wstring& prefix : prefixes)
+		{
+			if (prefix.empty())
+				continue;
+
+			const wstring marker = prefix + L"/";
+			if (key.rfind(marker, 0) == 0)
+				return true;
+		}
+		return false;
+	};
+
+	uint32 removedObjects = 0;
+	const OBJECT_TYPE sceneTypes[] =
+	{
+		OBJECT_TYPE::FBXDATA,
+		OBJECT_TYPE::MESH,
+		OBJECT_TYPE::MATERIAL,
+		OBJECT_TYPE::TEXTURE,
+		OBJECT_TYPE::ANIMATION,
+		OBJECT_TYPE::SKELETON,
+		OBJECT_TYPE::COLLIDER,
+		OBJECT_TYPE::NAVMESH,
+	};
+
+	for (OBJECT_TYPE type : sceneTypes)
+	{
+		KeyObjMap& objects = mResources[static_cast<uint8>(type)];
+		for (auto it = objects.begin(); it != objects.end();)
+		{
+			if (isSceneKey(it->first))
+			{
+				it = objects.erase(it);
+				removedObjects++;
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+
+	KeyObjMap& textures = mResources[static_cast<uint8>(OBJECT_TYPE::TEXTURE)];
+	std::unordered_set<Texture*> liveTextures;
+	for (const auto& [key, object] : textures)
+	{
+		if (object)
+			liveTextures.insert(static_cast<Texture*>(object.get()));
+	}
+
+	for (auto it = mTextureContentCache.begin(); it != mTextureContentCache.end();)
+	{
+		Texture* texture = it->second.get();
+		if (texture == nullptr || liveTextures.find(texture) == liveTextures.end())
+			it = mTextureContentCache.erase(it);
+		else
+			++it;
+	}
+
+	uint64 removedTextureBytes = 0;
+	for (auto it = mTextureLoadLog.begin(); it != mTextureLoadLog.end();)
+	{
+		if (isSceneKey(it->first))
+		{
+			removedTextureBytes += it->second;
+			it = mTextureLoadLog.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	mTextureBytesTotal = (removedTextureBytes > mTextureBytesTotal)
+		? 0
+		: (mTextureBytesTotal - removedTextureBytes);
+
+	if (EngineLog::Enabled(EngineLog::Domain::SceneResource))
+	{
+		const double mb = 1024.0 * 1024.0;
+		EngineLog::Prefix(EngineLog::Domain::SceneResource, "unload")
+			<< "prefixes=";
+		for (const wstring& prefix : prefixes)
+			std::cout << ws2s(prefix) << " ";
+		std::cout << "removedObjects=" << removedObjects
+			<< " removedTextureMB=" << static_cast<uint32>(removedTextureBytes / mb)
+			<< "\n";
+	}
 }
 
 shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
@@ -906,7 +1120,21 @@ shared_ptr<Texture> ResourceManager::CreateTexture(const wstring& name, DXGI_FOR
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
 	texture->Create(format, width, height, heapProperty, heapFlags, resFlags, createSRVUAV, msaaCount, msaaQuilty, clearColor, arraySize, type);
-	Add(name, texture);
+
+	Replace(name, texture);
+
+	// GPU 리소스 예산 추적
+	std::wstring group = L"CreatedTexture";
+
+	if (resFlags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+		group = L"DepthStencilTexture";
+	else if (resFlags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+		group = L"RenderTargetTexture";
+	else if (resFlags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
+		group = L"UavTexture";
+
+	GpuResourceBudget::RecordResource(DEVICE.Get(), group, name,
+		heapProperty.Type, texture->GetTex2D().Get());
 
 	return texture;
 }
@@ -915,7 +1143,13 @@ shared_ptr<Texture> ResourceManager::CreateTextureFromResource(const wstring& na
 {
 	shared_ptr<Texture> texture = make_shared<Texture>();
 	texture->CreateFromResource(tex2D, createSRVUAV);
-	Add(name, texture);
+
+	Replace(name, texture);
+
+	// GPU 리소스 예산 추적 추가
+	// 스왑체인 백버퍼처럼 외부에서 받은 리소스도 예산표에 포함한다
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"ExternalTextureResource",
+		name, D3D12_HEAP_TYPE_DEFAULT, texture->GetTex2D().Get());
 
 	return texture;
 }
@@ -1361,6 +1595,48 @@ void ResourceManager::CreateDefaultShader()
 				shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
 				Add<Shader>(L"SmokeParticleInstanced", shader);
 			}
+		}
+	}
+
+	// PlazaCloudDrift
+	{
+		{
+			ShaderInfo info =
+			{
+				SHADER_TYPE::PARTICLE,
+				RASTERIZER_TYPE::CULL_BACK,
+				DEPTH_STENCIL_TYPE::LESS_NO_WRITE,
+				BLEND_TYPE::ALPHA_BLEND,
+				D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST
+			};
+			ShaderPath shaderPath{
+				.VS = L"..\\Resources\\Shader\\particle_cloud_drift_VS.hlsl",
+				.PS = L"..\\Resources\\Shader\\particle_cloud_drift_PS.hlsl"
+			};
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->SetTargetFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+			shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+			Add<Shader>(L"CloudParticleInstanced", shader);
+		}
+
+		{
+			ShaderPath shaderPath{
+				.CS = L"..\\Resources\\Shader\\particle_cloud_drift_CS.hlsl",
+			};
+
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateComputeShader(shaderPath, "CS_Main");
+			Add<Shader>(L"ComputeCloudParticle", shader);
+		}
+
+		{
+			ShaderPath shaderPath{
+				.CS = L"..\\Resources\\Shader\\particle_cloud_drift_near_CS.hlsl",
+			};
+
+			shared_ptr<Shader> shader = make_shared<Shader>();
+			shader->CreateComputeShader(shaderPath, "CS_Main");
+			Add<Shader>(L"ComputeCloudParticleNear", shader);
 		}
 	}
 
@@ -2384,6 +2660,14 @@ void ResourceManager::CreateDefaultMaterial()
 		}
 	}
 
+	// PlazaCloudDrift
+	{
+		shared_ptr<Material> material = make_shared<Material>();
+		material->SetShader(L"CloudParticleInstanced");
+		material->SetTexture(Load<Texture>(L"CloudParticleNoiseTex", L"..\\Resources\\Image\\Noise\\T_CloudsNoise_2.PNG"), DIFFUSEMAP0INDEX);
+		Add<Material>(L"CloudParticleInstanced", material);
+	}
+
 	// AuraRise
 	{
 		{
@@ -3104,6 +3388,45 @@ void ResourceManager::CreateDefaultParticleEffect()
 		effect->mDesc.loop = true;
 		effect->SetName(L"Particle_SmokeRise");
 		Add<ParticleEffect>(L"Particle_SmokeRise", effect);
+	}
+
+	{
+		// PlazaCloudFar
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"CloudParticleInstanced";
+		effect->mDesc.computeMaterialName = L"ComputeCloudParticle";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
+		effect->mDesc.maxParticle = 72;
+		effect->mDesc.createInterval = 0.18f;
+		effect->mDesc.minLifeTime = 38.0f;
+		effect->mDesc.maxLifeTime = 58.0f;
+		effect->mDesc.minSpeed = 110.0f;
+		effect->mDesc.maxSpeed = 190.0f;
+		effect->mDesc.startScale = 620.0f;
+		effect->mDesc.endScale = 980.0f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_CloudDriftFar");
+		Add<ParticleEffect>(L"Particle_CloudDriftFar", effect);
+		Add<ParticleEffect>(L"Particle_CloudDrift", effect);
+	}
+
+	{
+		// PlazaCloudNear
+		shared_ptr<ParticleEffect> effect = make_shared<ParticleEffect>();
+		effect->mDesc.materialName = L"CloudParticleInstanced";
+		effect->mDesc.computeMaterialName = L"ComputeCloudParticleNear";
+		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
+		effect->mDesc.maxParticle = 32;
+		effect->mDesc.createInterval = 0.42f;
+		effect->mDesc.minLifeTime = 20.0f;
+		effect->mDesc.maxLifeTime = 34.0f;
+		effect->mDesc.minSpeed = 85.0f;
+		effect->mDesc.maxSpeed = 150.0f;
+		effect->mDesc.startScale = 900.0f;
+		effect->mDesc.endScale = 1350.0f;
+		effect->mDesc.loop = true;
+		effect->SetName(L"Particle_CloudDriftNear");
+		Add<ParticleEffect>(L"Particle_CloudDriftNear", effect);
 	}
 
 	{

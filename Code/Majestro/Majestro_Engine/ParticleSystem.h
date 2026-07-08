@@ -36,6 +36,7 @@ class ParticleSystem : public System
 {
 public:
 	ParticleSystem(World* world);
+	~ParticleSystem();
 
 	void Initialize() override;
 	void Update(float deltaTime) override;

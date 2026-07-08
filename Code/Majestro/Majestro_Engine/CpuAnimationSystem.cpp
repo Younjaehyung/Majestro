@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CpuAnimationSystem.h"
+#include "EngineLog.h"
 #include "Engine.h"
 #include "ResourceManager.h"
 #include "RenderManager.h"
@@ -403,6 +404,16 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			c->mAnimInstanceID = static_cast<uint32_t>(i);
 		}
 	}
+	if (mAnimationPass.size() > MAX_ANIMATION_INSTANCE_COUNT)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::AnimationBudget))
+		{
+			EngineLog::Prefix(EngineLog::Domain::AnimationBudget, "overflow", std::cerr)
+				<< "type=instance count=" << mAnimationPass.size()
+				<< " limit=" << MAX_ANIMATION_INSTANCE_COUNT << std::endl;
+		}
+		return;
+	}
 
 	uint32 resultIndex = 0;
 	for (uint32_t i = 0; i < (uint32_t)mAnimationPass.size(); )
@@ -426,6 +437,16 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		}
 		resultIndex += (j - i) * bones;
 		i = j;
+	}
+	if (resultIndex > MAX_ANIMATION_RESULT_MATRIX_COUNT)
+	{
+		if (EngineLog::Enabled(EngineLog::Domain::AnimationBudget))
+		{
+			EngineLog::Prefix(EngineLog::Domain::AnimationBudget, "overflow", std::cerr)
+				<< "type=final-bone count=" << resultIndex
+				<< " limit=" << MAX_ANIMATION_RESULT_MATRIX_COUNT << std::endl;
+		}
+		return;
 	}
 
 	// AnimInstance 버퍼는 MotionVectorPass 등 다른 셰이더가 참조하므로 그대로 업로드

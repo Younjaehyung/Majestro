@@ -11,7 +11,7 @@ public:
 	virtual ~Scene() = default;
 
 	virtual void Initialize();
-	virtual void Release() { Shudown();  mWorld->Clear(); }
+	virtual void Release();
 	virtual void Update(float deltaTime);
 	virtual void Render();
 	virtual void Shudown();
@@ -41,10 +41,14 @@ public:
 	bool mIsStarted = false;
 	std::vector< shared_ptr<UIFeature>> mUIFeatures;
 protected:
+
 	wstring							mMapPath;			// 로딩할 맵 데이터 경로
 	shared_ptr<World>				mWorld = make_shared<World>();
 	shared_ptr<GameMode>			mGameMode;
+	void TrackResourcePrefix(const wstring& prefix);
+
 	SceneId							mSceneId = SceneId::MainMenu;
+	std::vector<wstring>				mResourcePrefixes;
 };
 
 class LoadingScene		// 로딩전용씬
@@ -70,6 +74,7 @@ public:
 
 public:
 	std::queue<std::function<void()>> mLoadTasks;
+	std::queue<std::string> mLoadTaskLabels;
 	int32			mTotalTaskCount = 0;       // 등록 시점에 기록
 	SceneId			mTargetSceneId;
 	std::vector< shared_ptr<UIFeature>> mUIFeatures;
@@ -78,6 +83,7 @@ private:
 	// 로딩 대상 씬에 맞는 전용 배경 텍스처로 교체
 	void ApplyLoadingBackground(SceneId id);
 protected:
+
 	
 
 	Entity	mLoadingBackground;					// 배경 엔티티

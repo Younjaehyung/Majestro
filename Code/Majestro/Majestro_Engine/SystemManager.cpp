@@ -83,8 +83,12 @@ void SystemManager::Render()
 
 void SystemManager::Shutdown()
 {
-    //for (auto& s : mSystems)
-    //    s->Shutdown();
+    for (auto& vec : mPhaseSystems)
+        vec.clear();
+
+    mSystemMap.clear();
+    mSystems.clear();
+    mDirtySchedule = true;
 }
 
 void SystemManager::WorldBegin()

@@ -2487,7 +2487,32 @@ void PlazaScene::Initialize()
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };
 
-	OceanPrefab ocean{ mWorld.get() };
+	// OceanPrefab ocean{ mWorld.get() };
+
+	{
+		// cloud
+		Entity cloudEntity = mWorld->CreateEntity();
+		TransformComponent cloudTransform{};
+		cloudTransform.mLocalPosition = Vec3(-2664.0f, 1371.0f, 20.0f);
+		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
+		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
+		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
+
+		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
+		cloudParticle.mEffectName = L"Particle_CloudDrift";
+	}
+	{
+		// cloud
+		Entity cloudEntity = mWorld->CreateEntity();
+		TransformComponent cloudTransform{};
+		cloudTransform.mLocalPosition = Vec3(2664.0f, 1371.0f, 20.0f);
+		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
+		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
+		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
+
+		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
+		cloudParticle.mEffectName = L"Particle_CloudDrift";
+	}
 
 
 	LoadJsonLevelData(L"..\\Resources\\Json\\MapShip_Export.json");

@@ -1411,6 +1411,9 @@
     <FxCompile Include="..\Resources\Shader\particle_instanced_VS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_cloud_drift_VS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
@@ -1418,6 +1421,9 @@
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_smoke_PS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_cloud_drift_PS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_aura_PS.hlsl">
@@ -1439,6 +1445,12 @@
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_smoke_CS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_cloud_drift_CS.hlsl">
+      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\particle_cloud_drift_near_CS.hlsl">
       <Filter>World\Resource\Shader\80.Post\particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_aura_CS.hlsl">

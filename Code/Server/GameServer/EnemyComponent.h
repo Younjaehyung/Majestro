@@ -24,7 +24,11 @@ enum class EnemyAnimState : uint8
 	BrassAttack1,
 	BrassAttack2,
 	BrassAttack3,
-	BrassAttack4
+	BrassAttack4,
+	DragonSkill1 = BrassAttack1,
+	DragonSkill2 = BrassAttack2,
+	DragonSkill3 = BrassAttack3,
+	DragonSkill4 = BrassAttack4
 };
 
 class EnemyComponent : public Component<EnemyComponent>
@@ -70,10 +74,10 @@ public:
 			AttackRange = 700.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
-			mBrassAttackCool[0] = 4.0f;
-			mBrassAttackCool[1] = 1.0f;
-			mBrassAttackCool[2] = 4.0f;
-			mBrassAttackCool[3] = 4.0f;
+			mBossAttackCool[0] = 4.0f;
+			mBossAttackCool[1] = 1.0f;
+			mBossAttackCool[2] = 4.0f;
+			mBossAttackCool[3] = 4.0f;
 			for (int i = 0; i < 4; ++i)
 				mBrassNextAttackTime[i] = GetServerTotalTimeSeconds();
 			break;
@@ -95,6 +99,10 @@ public:
 			AttackRange = 700.f;
 			AttackRangeSq = AttackRange * AttackRange;
 			mNextAttackTime = GetServerTotalTimeSeconds();
+			mBossAttackCool[0] = 12.0f;
+			mBossAttackCool[1] = 12.0f;
+			mBossAttackCool[2] = 12.0f;
+			mBossAttackCool[3] = 12.0f;
 			break;
 		default:
 			mAttackCool = 4;
@@ -131,7 +139,7 @@ public:
 	float mHoverHeight = 0.0f;
 	Entity mLinkedPlayer{};
 	uint8 mBrassAttackPattern = 0;
-	float mBrassAttackCool[4] = { 0.f, 0.f, 0.f, 0.f };
+	float mBossAttackCool[4] = { 0.f, 0.f, 0.f, 0.f };
 	float mBrassNextAttackTime[4] = { 0.f, 0.f, 0.f, 0.f };
 	uint8 mBrassSkill3ShotsRemaining = 0;
 	float mBrassSkill3NextShotTime = 0.0f;

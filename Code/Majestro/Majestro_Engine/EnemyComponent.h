@@ -24,6 +24,10 @@ enum class EnemyAnimState : uint8
 	BrassAttack2,
 	BrassAttack3,
 	BrassAttack4,
+	DragonSkill1 = BrassAttack1,
+	DragonSkill2 = BrassAttack2,
+	DragonSkill3 = BrassAttack3,
+	DragonSkill4 = BrassAttack4,
 };
 
 class EnemyComponent : public Component<EnemyComponent>

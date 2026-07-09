@@ -77,7 +77,7 @@ namespace GpuResourceBudget
 		if (!EngineLog::Enabled(EngineLog::Domain::GpuBudget))
 			return;
 
-		Entry entry{};
+		//Entry entry{};
 		entry.group = group;
 		entry.name = name;
 		entry.heapType = heapType;

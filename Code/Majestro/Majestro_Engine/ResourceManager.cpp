@@ -3234,12 +3234,12 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\BrassBoss\\Anim_BrassBoss_Skill_04.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Die.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Idle.ani.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Run.ani.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_01.ani.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_02.ani.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_03.ani.fbx", L"JHToon");
-	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_04.ani.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Run.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_01.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_02.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_03.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Monster\\StringDragon\\Anim_StringDragon_Skill_04.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Attack_01.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Mew\\Anim_Mew_Die.fbx", L"JHToon");

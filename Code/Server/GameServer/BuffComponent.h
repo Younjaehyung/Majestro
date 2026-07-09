@@ -38,7 +38,8 @@ enum class BuffType
     HealOverTime,
     //de buff
     ShieldDown,
-    Silence
+    Silence,
+    DragonSkill4Dot
 };
 struct BuffData
 {

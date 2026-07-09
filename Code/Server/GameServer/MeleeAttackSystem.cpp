@@ -16,6 +16,9 @@
 namespace
 {
 	constexpr float kDegToRad = 0.01745329251994329577f;
+	constexpr float kSilenceDurationMeasures = 2.0f;
+	constexpr float kBeatsPerMeasure = 4.0f;
+	constexpr float kDragonSkill4DotMeasures = 2.0f;
 
 	Vec3 GetCameraForwardFromInput(const InputComponent& input)
 	{
@@ -118,11 +121,11 @@ namespace
 		case SkillType::BongoAttack:
 			return { 60.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::DragonSkill1:
-			return { 70.0f, 4.0f, 320.0f, 140.0f, 20.0f };
+			return { 30.0f, 4.0f, 1000.0f, 360.0f, 0.0f };
 		case SkillType::DragonSkill3:
-			return { 95.0f, 4.5f, 420.0f, 180.0f, 35.0f };
+			return { 50.0f, 200.0f, 300.0f, 360.0f, 300.0f };
 		case SkillType::DragonSkill4:
-			return { 130.0f, 5.0f, 550.0f, 360.0f, 60.0f };
+			return { 0.0f, 5.0f, 550.0f, 120.0f, 0.0f };
 		default:
 			return {};
 		}
@@ -278,7 +281,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 			damageEvent.amount *= 2;
 		eventManager->Enqueue<EvDamage>(damageEvent);
 
-		if (attackerIsFly && targetIsPlayer)
+		if ((attackerIsFly || request.bulletType == SkillType::DragonSkill3) && targetIsPlayer)
 		{
 			BuffComponent* targetBuff = mWorld->GetComponent<BuffComponent>(target);
 			if (targetBuff)
@@ -296,8 +299,33 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 				silence.mDurationPolicy = DurationPolicy::Timed;
 				silence.mExecutionType = BuffExecutionType::Persistent;
 				silence.mSource = request.shooter;
-				silence.mEndTime = GetServerTotalTimeSeconds() + beatSeconds * 8.0f;
+				silence.mEndTime = GetServerTotalTimeSeconds() + beatSeconds * kSilenceDurationMeasures * kBeatsPerMeasure;
 				targetBuff->AddOrRefresh(silence);
+			}
+		}
+
+		if (request.bulletType == SkillType::DragonSkill4 && targetIsPlayer)
+		{
+			BuffComponent* targetBuff = mWorld->GetComponent<BuffComponent>(target);
+			if (targetBuff)
+			{
+				float beatSeconds = 0.0f;
+				if (auto systemManager = mWorld->GetSystemManager())
+				{
+					if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+						beatSeconds = beatSystem->mBpmSeconds;
+				}
+
+				BuffData dragonDot{};
+				dragonDot.mKind = EffectKind::Debuff;
+				dragonDot.mType = BuffType::DragonSkill4Dot;
+				dragonDot.mDurationPolicy = DurationPolicy::Timed;
+				dragonDot.mExecutionType = BuffExecutionType::Periodic;
+				dragonDot.mSource = request.shooter;
+				dragonDot.mTickInterval = beatSeconds;
+				dragonDot.mNextTriggerTime = GetServerTotalTimeSeconds() + beatSeconds;
+				dragonDot.mEndTime = GetServerTotalTimeSeconds() + beatSeconds * kDragonSkill4DotMeasures * kBeatsPerMeasure;
+				targetBuff->AddOrRefresh(dragonDot);
 			}
 		}
 

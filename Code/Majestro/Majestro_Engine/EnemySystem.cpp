@@ -390,13 +390,13 @@ void EnemySystem::Update(float dt) {
 				{
 					if (!RenderSystem::GetDrawEnemyAttackRanges())
 						return;
-					radius = 320.0f;
+					radius = 1000.0f;
 				}
 				else if (e.skillType == SkillType::DragonSkill3)
 				{
 					if (!RenderSystem::GetDrawEnemyAttackRanges())
 						return;
-					radius = 420.0f;
+					radius = 300.0f;
 				}
 				else if (e.skillType == SkillType::DragonSkill4)
 				{
@@ -433,12 +433,17 @@ void EnemySystem::Update(float dt) {
 			indicator.forward = forward;
 			indicator.radius = radius;
 			indicator.angleDegrees =
-				(e.skillType == SkillType::DrumSkill1) ? 360.0f :
+				(e.skillType == SkillType::DrumSkill1 ||
+				 e.skillType == SkillType::DragonSkill1 ||
+				 e.skillType == SkillType::DragonSkill3) ? 360.0f :
+				(e.skillType == SkillType::DragonSkill4) ? 120.0f :
 				(isPlayerAttack ? kPlayerMeleeAttackAngleDegrees : 360.0f);
 			indicator.remainingTime = kAttackDebugDuration;
 			indicator.color = color;
 			indicator.isPlayerAttack = isPlayerAttack;
-			indicator.isSector = isPlayerAttack && e.skillType != SkillType::DrumSkill1;
+			indicator.isSector =
+				(isPlayerAttack && e.skillType != SkillType::DrumSkill1) ||
+				e.skillType == SkillType::DragonSkill4;
 			indicator.isSphere = (e.skillType == SkillType::GuitarAttack_2);
 			mAttackDebugIndicators.push_back(indicator);
 		});

@@ -747,7 +747,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		if (enemyType == EnemyType::Brass || enemyType == EnemyType::Dragon)
 			world->RemoveComponent<UIHpBarComponent>(mEntityID);
 
-	if (enemyType != EnemyType::Obelisk && enemyType != EnemyType::Dragon) {
+	if (enemyType != EnemyType::Obelisk ) {
 		auto& enemyAnim = world->AddComponent<AnimationComponent>(mEntityID, anmators);
 		enemyAnim.mEnableAimOffset = true; // 피격 움찔(HitReaction) 활성
 	}

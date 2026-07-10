@@ -22,6 +22,8 @@
 #include "GameMode.h"
 #include "Timer.h"
 
+static_assert(FONT_INDEX_COUNT >= static_cast<uint32>(UIFontType::Count), "FONT_INDEX_COUNT is smaller than UIFontType::Count");
+
 UIRenderSystem::UIRenderSystem(World* world) : System::System(world)
 {
     mPhase = SysPhase::Render;
@@ -47,10 +49,9 @@ void UIRenderSystem::Initialize()
 
 void UIRenderSystem::InitializeFont()
 {
-    D3D12_CPU_DESCRIPTOR_HANDLE cpuhandle = Graphics_DescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = Graphics_DescHeap->GetDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
+    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = Graphics_DescHeap->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart();
     uint32 srvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    D3D12_CPU_DESCRIPTOR_HANDLE cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuhandle, (static_cast<uint32>(UI_INDEX_START))*srvSize);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuDescriptor = CD3DX12_GPU_DESCRIPTOR_HANDLE(Graphics_DescHeap->GetDescriptorHeap()->GetGPUDescriptorHandleForHeapStart(), (static_cast<uint32>(UI_INDEX_START)) * srvSize);
     
     DirectX::ResourceUploadBatch resourceUpload(DEVICE.Get());
     resourceUpload.Begin();
@@ -61,20 +62,47 @@ void UIRenderSystem::InitializeFont()
     SpriteBatchPipelineStateDescription pd(rtState, &CommonStates::NonPremultiplied);
     mSpriteBatch = std::make_shared<SpriteBatch>(DEVICE.Get(), resourceUpload, pd);
 
-    mDefaultFont = std::make_shared<SpriteFont>(DEVICE.Get(), resourceUpload, L"..\\Resources\\Font\\myfile.spritefont", cpuDescriptor, gpuDescriptor);
-    mDefaultFont->SetDefaultCharacter(L'?');
+    auto makeCpuDescriptor = [cpuHandle, srvSize](UIFontType type)
+    {
+        const uint32 descriptorIndex = FONT_INDEX_START + static_cast<uint32>(type);
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuHandle, static_cast<INT>(descriptorIndex), srvSize);
+    };
+
+    auto makeGpuDescriptor = [gpuHandle, srvSize](UIFontType type)
+    {
+        const uint32 descriptorIndex = FONT_INDEX_START + static_cast<uint32>(type);
+        return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpuHandle, static_cast<INT>(descriptorIndex), srvSize);
+    };
+
+    auto loadFont = [this, &resourceUpload, &makeCpuDescriptor, &makeGpuDescriptor](UIFontType type, const wchar_t* path)
+    {
+        const size_t index = static_cast<size_t>(type);
+        if (index >= mFonts.size())
+            return;
+.
+        mFonts[index] = std::make_shared<SpriteFont>(
+            DEVICE.Get(), resourceUpload, path, makeCpuDescriptor(type), makeGpuDescriptor(type));
+        mFonts[index]->SetDefaultCharacter(L'?');
+    };
+
+    loadFont(UIFontType::Arial, L"..\\Resources\\Font\\myfile.spritefont");
+    loadFont(UIFontType::Esamanru, L"..\\Resources\\Font\\OSWFont.spritefont");
+    loadFont(UIFontType::Rivera, L"..\\Resources\\Font\\Rivera.spritefont");
 
     for (Entity a : mWorld->View<UITextComponent>()) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
         if (textComp == nullptr)
             continue;
 
-        textComp->mFont = mDefaultFont;
-        //textComp->m_font.reset();
+        textComp->mFont = GetFont(textComp->mFontType);
 
-        auto size = RENDERMANAGER.GetWindow();
-        textComp->mFontPos.x = float(size.Width) / 2.f;
-        textComp->mFontPos.y = float(size.Height) / 2.f;
+
+        if (mWorld->GetComponent<UITransformComponent>(a) == nullptr)
+        {
+            auto size = RENDERMANAGER.GetWindow();
+            textComp->mFontPos.x = float(size.Width) / 2.f;
+            textComp->mFontPos.y = float(size.Height) / 2.f;
+        }
     }
 
     for (Entity a : mWorld->View<UISpriteComponent>()) {
@@ -184,7 +212,7 @@ void UIRenderSystem::PostSpriteRender()
 
 void UIRenderSystem::TextUpdate()
 {
-    if (mSpriteBatch == nullptr || mDefaultFont == nullptr)
+    if (mSpriteBatch == nullptr || GetFont(UIFontType::Arial) == nullptr)
 		return;
     
     if (false == mWorld->HasComponentPool<UITextComponent>())
@@ -194,6 +222,9 @@ void UIRenderSystem::TextUpdate()
 
     mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
     mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
+    const WindowInfo window = RENDERMANAGER.GetWindow();
+    const Vec2 screenSize = { static_cast<float>(window.Width), static_cast<float>(window.Height) };
 
     std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<UITextComponent>() };
 
@@ -209,9 +240,14 @@ void UIRenderSystem::TextUpdate()
         if (!CanRenderEntity(a))
             continue;
 
-        // InitializeFont() 이후에 생성된 엔티티(런타임 스폰)도 폰트를 할당
-        if (textComp->mFont == nullptr)
-            textComp->mFont = mDefaultFont;
+
+        // text마다 지정된 mFontType으로 폰트를 선택
+        std::shared_ptr<DirectX::SpriteFont> font = GetFont(textComp->mFontType);
+        if (font == nullptr)
+            font = GetFont(UIFontType::Arial);
+        if (font == nullptr)
+            continue;
+        textComp->mFont = font;
         
 		auto posComp = mWorld->GetComponent<UITransformComponent>(a);
         if(posComp) {
@@ -223,8 +259,20 @@ void UIRenderSystem::TextUpdate()
         // mPivot 기반 origin 계산 — mFinalPixelPos가 pivot 기준점이 되도록.
         // posComp가 없으면 좌상단(원점) 기준으로 그린다.
         const DirectX::SimpleMath::Vector2 pivot = posComp ? posComp->mPivot : Vec2(0.f, 0.f);
-        const float scale = posComp ? posComp->mScale.x : 1.f;
-        XMVECTOR textSizeVec = mDefaultFont->MeasureString(output.c_str());
+
+        // 해상도 보정
+        float resolutionScale = 1.f;
+        if (posComp == nullptr || posComp->mLayoutMode != UILayoutMode::Pixel)
+        {
+            const Vec2 reference = (posComp != nullptr && posComp->mLayoutMode == UILayoutMode::ReferenceResolution)
+                ? posComp->mReferenceResolution: Vec2(2560.f, 1440.f);
+
+            if (reference.x > 0.f && reference.y > 0.f)
+                resolutionScale = std::min(screenSize.x / reference.x, screenSize.y / reference.y);
+        }
+
+        const float scale = (posComp ? posComp->mScale.x : 1.f) * resolutionScale;
+        XMVECTOR textSizeVec = font->MeasureString(output.c_str());
         XMFLOAT2 textSize;
         XMStoreFloat2(&textSize, textSizeVec);
         XMFLOAT2 origin = { textSize.x * pivot.x,
@@ -233,7 +281,7 @@ void UIRenderSystem::TextUpdate()
         // 외곽선(아웃라인) - 사실상 글자들 여러번 쓰기임
         if (textComp->mOutlineThickness > 0.f)
         {
-            const float th = textComp->mOutlineThickness;
+            const float th = textComp->mOutlineThickness * resolutionScale;
             static const DirectX::SimpleMath::Vector2 kDirs[8] = {
                 { -1.f, -1.f }, { 0.f, -1.f }, { 1.f, -1.f },
                 { -1.f,  0.f },                { 1.f,  0.f },
@@ -247,12 +295,12 @@ void UIRenderSystem::TextUpdate()
             for (const auto& d : kDirs)
             {
                 const DirectX::SimpleMath::Vector2 offsetPos = textComp->mFontPos + d * th;
-                mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
+                font->DrawString(mSpriteBatch.get(), output.c_str(),
                     offsetPos, outlineColor, textComp->mRotation, origin, scale);
             }
         }
 
-        mDefaultFont->DrawString(mSpriteBatch.get(), output.c_str(),
+        font->DrawString(mSpriteBatch.get(), output.c_str(),
             textComp->mFontPos, textComp->mColor, textComp->mRotation, origin, scale);
     }
 
@@ -520,6 +568,15 @@ bool UIRenderSystem::CanRenderEntity(Entity entity) const
         : UIRenderGroup::Gameplay;
 
     return entityGroup == mActiveRenderGroup;
+}
+
+std::shared_ptr<DirectX::SpriteFont> UIRenderSystem::GetFont(UIFontType type) const
+{
+    const size_t index = static_cast<size_t>(type);
+    if (index >= mFonts.size())
+        return nullptr;
+
+    return mFonts[index];
 }
 
 void UIRenderSystem::SortSpriteLayer(std::vector<Entity>& entitys)

@@ -4,6 +4,7 @@
 #include "ComponentPool.h"
 #include "Mesh.h"
 #include "UIComponent.h"
+#include "UITextComponent.h"
 
 class UISpriteComponent;
 
@@ -43,6 +44,7 @@ private:
 	UIRenderGroup GetActiveRenderGroup() const;
 	bool IsGameplayGroupActive() const;
 	bool CanRenderEntity(Entity entity) const;
+	std::shared_ptr<DirectX::SpriteFont> GetFont(UIFontType type) const;
 	// void RenderText();
 	
 	
@@ -55,7 +57,7 @@ private:
 
 	shared_ptr<Mesh> mQuadMesh;
 	std::shared_ptr<DirectX::SpriteBatch> mSpriteBatch;
-	std::shared_ptr<DirectX::SpriteFont> mDefaultFont;
+	std::array<std::shared_ptr<DirectX::SpriteFont>, static_cast<size_t>(UIFontType::Count)> mFonts;
 	std::vector<UIInstanceData> mInstances;
 	std::vector<std::shared_ptr<UIFeature>>* mFeatures;
 	std::shared_ptr<UIEffectPass> mUIEffectPass;

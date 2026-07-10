@@ -232,6 +232,8 @@
     <ClInclude Include="GameRenderPipeline.h" />
     <ClInclude Include="HUDSkillCooldownFeature.h" />
     <ClInclude Include="UIScoreBoardFeature.h" />
+    <ClInclude Include="UIResultBoardFeature.h" />
+    <ClInclude Include="UIComboHudFeature.h" />
     <ClInclude Include="HUDSkillSlotComponent.h" />
     <ClInclude Include="JoltUtils.h" />
     <ClInclude Include="JsonUtils.h" />
@@ -430,6 +432,8 @@
     <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="HUDSkillCooldownFeature.cpp" />
     <ClCompile Include="UIScoreBoardFeature.cpp" />
+    <ClCompile Include="UIResultBoardFeature.cpp" />
+    <ClCompile Include="UIComboHudFeature.cpp" />
     <ClCompile Include="JsonUtils.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MathUtils.cpp" />

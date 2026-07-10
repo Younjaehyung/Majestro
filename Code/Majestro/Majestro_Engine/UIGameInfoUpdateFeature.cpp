@@ -354,14 +354,14 @@ void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* game
 
 void UIGameInfoUpdateFeature::UpdateFailPhase(float dt, GameRuleComponent* gameRuleComp)
 {
-	// Result 이미지가 등장하고 3초 뒤 클라이언트가 스스로 메인메뉴로 복귀하며 게임을 종료한다.
+	// Result 이미지가 등장하고 5초 뒤 클라이언트가 스스로 메인메뉴로 복귀하며 게임을 종료
 	const RevealStampAnimationSpec& spec = mRevealStampAnimation.mSpec;
-	if (!mGameOverReturnTriggered &&
-		mRevealStampAnimation.mResultTriggered &&
-		mRevealStampAnimation.mElapsed >= spec.mResultStartTime + 3.0f)
+
+	if (!mGameOverReturnTriggered && mRevealStampAnimation.mResultTriggered &&
+		mRevealStampAnimation.mElapsed >= spec.mResultStartTime + 5.0f)
 	{
 		mGameOverReturnTriggered = true;
-		// 게임 중 숨겨둔 커서를 메인메뉴에서 복원하고, 접속을 끊은 뒤 메인메뉴로 복귀한다.
+		// 메인메뉴로 복귀
 		INPUT.SetForceMouseLook(false);
 		Network::GetInstance().Shutdown();
 		gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
@@ -576,6 +576,10 @@ void UIGameInfoUpdateFeature::TickResultStamp(const RevealStampAnimationSpec& sp
 
 		// 점수판/Result 가 실제로 등장하는 시점에 결과음을 재생한다.
 		RequestGameSfx("notify/Game/Result");
+
+		// 결과판 점수 연출 시작
+		if (auto eventManager = mWorld->GetEventManager())
+			eventManager->Enqueue(EvResultBoardShow{ static_cast<uint8>(mCurrentPhase) });
 	}
 
 	// Stamp 와 동일한 가속 곡선으로 큰 스케일에서 1.0 으로 수렴한다.

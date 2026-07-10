@@ -827,6 +827,12 @@
     <ClInclude Include="UIScoreBoardFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
+    <ClInclude Include="UIResultBoardFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="UIComboHudFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="HUDSkillSlotComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
@@ -1323,6 +1329,12 @@
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="UIScoreBoardFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UIResultBoardFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UIComboHudFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="LobbyBackgroundPass.cpp">

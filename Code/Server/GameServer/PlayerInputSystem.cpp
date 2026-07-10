@@ -20,6 +20,7 @@
 #include "BeatSystem.h"
 #include "GameTimer.h"
 #include "BuffComponent.h"
+#include "EnemyComponent.h"
 
 
 PlayerInputSystem::PlayerInputSystem(World* world) : System(world)
@@ -35,6 +36,9 @@ void PlayerInputSystem::Update(float dt)
 	if (false == mWorld->HasComponentPool<PlayerMovementComponent>())return;
 	auto eventManager = mWorld->GetEventManager();
 	if (not eventManager) return;
+
+
+	ConsumeComboHitConfirms();
 
 	std::vector<Entity> entitys{ mWorld->GetEntitiesWithComponent<PlayerMovementComponent>() };
 
@@ -268,9 +272,19 @@ void PlayerInputSystem::ApplyComboJudgement(Entity e, MainPlayerComponent* mp, I
 
 	const float now = GetServerTotalTimeSeconds();
 
+	// 후속타 Miss 는 콤보 리셋 면제
+	const uint32 state = mp->GetState();
+	const bool isComboFollowup = (state == S_ComboAttack1 || state == S_ComboAttack2);
+
 	if (judgement == static_cast<uint8>(BeatJudgement::Miss))
 	{
-		// Miss → 콤보 끊김. 이미 0이면 통지 불필요.
+		// 후속타 Miss 는 리셋 면제
+		if (isComboFollowup)
+			return;
+
+		// 첫 타/스킬의 Miss시 콤보 끊김
+		mp->mComboHitEligibleUntil = 0.0f;
+		mp->mComboHitTargetCount = 0;
 		if (mp->mRhythmCombo != 0)
 		{
 			mp->mRhythmCombo = 0;
@@ -279,12 +293,52 @@ void PlayerInputSystem::ApplyComboJudgement(Entity e, MainPlayerComponent* mp, I
 	}
 	else
 	{
-		// Good/Perfect → 콤보 +1, 만료 시각 갱신.
+		mp->mComboHitEligibleUntil = now + MainPlayerComponent::kComboHitWindow;
+		mp->mComboHitTargetCount = 0;
+	}
+}
+
+void PlayerInputSystem::ConsumeComboHitConfirms()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	const float now = GetServerTotalTimeSeconds();
+
+	eventManager->Consume<EvHitConfirm>([&](const EvHitConfirm& e)
+	{
+		if (!e.instigator.IsValid() || !e.target.IsValid())
+			return;
+
+		// 적 피격만 콤보 대상
+		if (mWorld->GetComponent<EnemyComponent>(e.target) == nullptr)
+			return;
+
+		MainPlayerComponent* mp = mWorld->GetComponent<MainPlayerComponent>(e.instigator);
+		if (mp == nullptr)
+			return;
+
+		// 박자 적중 공격의 피격 시간내에만 콤보 증가
+		if (now > mp->mComboHitEligibleUntil)
+			return;
+
+		// 같은 적은 한 공격당 1회만 인정
+		const uint32 targetId = e.target.GetID();
+		for (uint8 index = 0; index < mp->mComboHitTargetCount; ++index)
+		{
+			if (mp->mComboHitTargets[index] == targetId)
+				return;
+		}
+		if (mp->mComboHitTargetCount >= MainPlayerComponent::kComboHitTargetsMax)
+			return; // 한 공격당 최대 8명까지 인정
+		mp->mComboHitTargets[mp->mComboHitTargetCount++] = targetId;
+
 		mp->mRhythmCombo += 1;
 		mp->mRhythmComboExpireTime = now + MainPlayerComponent::kRhythmComboTimeout;
-		SendComboChanged(e, mp->mRhythmCombo, /*reason=Increment*/ 0);
-		// 최대 콤보는 ScoreSystem이 mRhythmCombo를 매 틱 샘플링해 집계한다(여기서는 관여하지 않음).
-	}
+		SendComboChanged(e.instigator, mp->mRhythmCombo, /*reason=Increment*/ 0);
+
+	});
 }
 
 void PlayerInputSystem::TickComboTimeout(Entity e, MainPlayerComponent* mp, float now)

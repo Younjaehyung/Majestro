@@ -62,6 +62,11 @@ void UIDialogueFeature::Initialize(World* world)
 	// 톡박스 배경: 풀스크린 오버레이 (상단 딤 + 하단 잉크 밴드가 텍스트 영역)
 	mTalkBg = CreateDialogueSprite(world, Anchor::Center, Vec2(0.f, 0.f), Vec2(2560.f, 1440.f),
 		4, L"UI_NoteMan_Talk_0");
+	if (UITransformComponent* talkBgTransform = world->GetComponent<UITransformComponent>(mTalkBg))
+	{
+		// 전체화면
+		talkBgTransform->UseScreenRatioLayout(Vec2(0.f, 0.f), Vec2(1.f, 1.f));
+	}
 
 	// 캐릭터 초상화: 좌측 하단 (NPC별 텍스처는 대화 시작 시 교체)
 	mPortrait = CreateDialogueSprite(world, Anchor::BottomLeft, Vec2(280.f, -280.f), Vec2(480.f, 480.f),

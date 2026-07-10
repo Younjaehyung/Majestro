@@ -166,6 +166,12 @@ struct EvSfxRequest
     Vec3 position{};            // Zero 면 2D 재생
 };
 
+// 결과판(Result)
+struct EvResultBoardShow
+{
+    uint8 phase{}; // WavePhaseType (Clear 또는 Fail)
+};
+
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged,
     EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged,

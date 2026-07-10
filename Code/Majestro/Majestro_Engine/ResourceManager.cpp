@@ -3086,6 +3086,9 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_StageClear_Result", L"..\\Resources\\Image\\UI\\UI_StageClear_Result.png");
 			Load<Texture>(L"UI_GameClear", L"..\\Resources\\Image\\UI\\UI_GameClear.png");
 
+			// 점수판
+			Load<Texture>(L"UI_Result_Combo_Sheet", L"..\\Resources\\Image\\UI\\UI_Result_Combo_Sheet.png");
+
 			// GameOver
 			Load<Texture>(L"UI_GameOver_1", L"..\\Resources\\Image\\UI\\UI_GameOver_1.png");
 			Load<Texture>(L"UI_GameOver_2", L"..\\Resources\\Image\\UI\\UI_GameOver_2.png");

@@ -92,6 +92,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_GIMMICK_STATE:
 	case PKT_Type::S2C_PKT_RHYTHM_CHANGED:
 	case PKT_Type::S2C_PKT_BEAT_JUDGEMENT:
+	case PKT_Type::S2C_PKT_COMBO_CHANGED:
 	case PKT_Type::S2C_PKT_HIT_CONFIRM:
 	case PKT_Type::S2C_PKT_SCENE_STATE:
 	case PKT_Type::S2C_PKT_SCENE_PREPARE:

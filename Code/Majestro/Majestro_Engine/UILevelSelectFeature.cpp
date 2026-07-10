@@ -67,8 +67,13 @@ void UILevelSelectFeature::Initialize(World* world)
 	UIFeature::Initialize(world);
 
 	// 풀스크린 오버레이 (반투명 딤 + LEVEL 타이틀)
-	mBackground = CreateSheetSprite(world, Vec2(0.f, 0.f), Vec2(2560.f, 1440.f),
-		4, L"UI_LevelMan_Talk_0", nullptr);
+	mBackground = CreateSheetSprite(world, Vec2(0.f, 0.f), Vec2(2560.f, 1440.f), 4, L"UI_LevelMan_Talk_0", nullptr);
+	
+	if (UITransformComponent* backgroundTransform = world->GetComponent<UITransformComponent>(mBackground))
+	{
+		// 전체화면
+		backgroundTransform->UseScreenRatioLayout(Vec2(0.f, 0.f), Vec2(1.f, 1.f));
+	}
 
 	// 선택된 스테이지 정보 카드 (좌측)
 	mStageCard = CreateSheetSprite(world, Vec2(-620.f, 20.f), Vec2(1010.f, 780.f),

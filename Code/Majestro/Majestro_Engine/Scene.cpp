@@ -94,6 +94,8 @@
 #include "UIHpBarUpdateFeature.h"
 #include "UIGameInfoUpdateFeature.h"
 #include "UIScoreBoardFeature.h"
+#include "UIResultBoardFeature.h"
+#include "UIComboHudFeature.h"
 #include "PlayerStatusUIFeature.h"
 #include "UIPhaseProgressUpdateFeature.h"
 
@@ -443,9 +445,8 @@ void Scene::CreatePauseMenu()
 		{
 			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseBg);
 			tr.mAnchor = Anchor::Center;        // 중앙 기준 줌인 연출을 위해 중앙 정렬
-			tr.mPosition = Vec2(0.f, 0.f);
-			tr.mSize = Vec2(2560.f, 1440.f);
 			tr.mPivot = Vec2(0.5f, 0.5f);       // 중앙 기준 줌
+			tr.UseScreenRatioLayout(Vec2(0.f, 0.f), Vec2(1.f, 1.f));
 			tr.mUILayerIndex = 101;
 			// 초기 텍스처는 placeholder. 실제 캐릭터별 텍스처는 pause 진입 시 교체.
 			auto& bgSp = mWorld->AddComponent<UISpriteComponent>(pauseBg,
@@ -458,9 +459,8 @@ void Scene::CreatePauseMenu()
 		{
 			auto& tr = mWorld->AddComponent<UITransformComponent>(pauseDim);
 			tr.mAnchor = Anchor::TopLeft;
-			tr.mPosition = Vec2(0.f, 0.f);
-			tr.mSize = Vec2(2560.f, 1440.f);
 			tr.mPivot = Vec2(0.f, 0.f);
+			tr.UseScreenRatioLayout(Vec2(0.f, 0.f), Vec2(1.f, 1.f));
 			tr.mUILayerIndex = 100;            // 버튼(5)보다 뒤
 			//auto& sp = mWorld->AddComponent<UISpriteComponent>(pauseDim,
 			//	RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01"));
@@ -948,11 +948,9 @@ void LoadingScene::Initialize()
 	{
 		mLoadingBackground = mWorld->CreateEntity();
 		auto& tr = mWorld->AddComponent<UITransformComponent>(mLoadingBackground);
-		WindowInfo windowInfo = RENDERMANAGER.GetWindow();
 		tr.mAnchor = Anchor::TopLeft;
-		tr.mPosition = Vec2(0.f, 0.f);
-		tr.mSize = Vec2(2560.f, 1440.f);
 		tr.mPivot = Vec2(0.f, 0.f);
+		tr.UseScreenRatioLayout(Vec2(0.f, 0.f), Vec2(1.f, 1.f));
 
 		shared_ptr<Texture> loadingMaterial = RESOURCEMANAGER.Get<Texture>(L"UI_Loading_Main_01");
 
@@ -2334,8 +2332,13 @@ void FirstScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
-	auto scoreBoardModule = std::make_shared<UIScoreBoardFeature>();
-	mUIFeatures.push_back(scoreBoardModule);
+	// 점수판
+	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
+	mUIFeatures.push_back(resultBoardModule);
+
+	// 콤보 랭크
+	auto comboHudModule = std::make_shared<UIComboHudFeature>();
+	mUIFeatures.push_back(comboHudModule);
 
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);
@@ -2768,9 +2771,11 @@ void SecondScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
-	// Register the Tab score board separately from phase UI.
-	auto scoreBoardModule = std::make_shared<UIScoreBoardFeature>();
-	mUIFeatures.push_back(scoreBoardModule);
+	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
+	mUIFeatures.push_back(resultBoardModule);
+
+	auto comboHudModule = std::make_shared<UIComboHudFeature>();
+	mUIFeatures.push_back(comboHudModule);
 
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);
@@ -2888,9 +2893,11 @@ void ThirdScene::Initialize()
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
-	// Register the Tab score board separately from phase UI.
-	auto scoreBoardModule = std::make_shared<UIScoreBoardFeature>();
-	mUIFeatures.push_back(scoreBoardModule);
+	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
+	mUIFeatures.push_back(resultBoardModule);
+
+	auto comboHudModule = std::make_shared<UIComboHudFeature>();
+	mUIFeatures.push_back(comboHudModule);
 
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);

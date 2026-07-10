@@ -79,7 +79,7 @@ void UIRenderSystem::InitializeFont()
         const size_t index = static_cast<size_t>(type);
         if (index >= mFonts.size())
             return;
-.
+
         mFonts[index] = std::make_shared<SpriteFont>(
             DEVICE.Get(), resourceUpload, path, makeCpuDescriptor(type), makeGpuDescriptor(type));
         mFonts[index]->SetDefaultCharacter(L'?');

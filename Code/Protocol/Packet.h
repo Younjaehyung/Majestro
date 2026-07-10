@@ -64,6 +64,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_GIMMICK_STATE,
 	S2C_PKT_RHYTHM_CHANGED,
 	S2C_PKT_BEAT_JUDGEMENT,
+	S2C_PKT_COMBO_CHANGED,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -488,13 +489,16 @@ struct S2C_ClearPacket : public PacketTcpHeader {
 struct ScoreBoardPlayerInfo {
 	uint32 SessionId = 0;
 	uint8 PlayerType = 0;
-	int32 Score = 0;
-	int32 TotalKills = 0;
+	int32 Score = 0;       // 최종 합산 점수(Result). 정렬 기준.
+	int32 TotalKills = 0;  // 막타로 처치한 적 수
+	int32 Assists = 0;     // 처치에 기여(Deal/Heal/Buff)했지만 막타는 아닌 수
+	int32 MaxCombo = 0;    // 씬 내 최대 콤보
 };
 
-// Server owned score snapshot used by the client result screen.
+
 struct S2C_ScoreBoardPacket : public PacketTcpHeader {
 	uint8 PlayerCount = 0;
+	float GameTime = 0.0f; // 현재 씬 진행 시간(초).
 	ScoreBoardPlayerInfo Players[ROOM_MAX_PLAYERS]{};
 
 	S2C_ScoreBoardPacket()
@@ -966,6 +970,16 @@ struct S2C_BeatJudgementPacket : public PacketTcpHeader {
 	uint8  actionButton{}; // InputButtons (어떤 입력에 대한 판정인지)
 	uint16 reserved{};
 	S2C_BeatJudgementPacket() : PacketTcpHeader{ sizeof(S2C_BeatJudgementPacket), PKT_Type::S2C_PKT_BEAT_JUDGEMENT, 0.0 } {}
+};
+
+
+// 콤보 카운트.
+struct S2C_ComboChangedPacket : public PacketTcpHeader {
+	uint64 netEntityId{};
+	int32  comboCount{};  // 갱신된 콤보 수 (0 이면 끊김)
+	uint8  reason{};      // 0=Increment, 1=Miss, 2=Timeout
+	uint8  reserved[3]{};
+	S2C_ComboChangedPacket() : PacketTcpHeader{ sizeof(S2C_ComboChangedPacket), PKT_Type::S2C_PKT_COMBO_CHANGED, 0.0 } {}
 };
 
 

@@ -38,6 +38,7 @@
 #include "MeleeAttackSystem.h"
 #include "CollisionSystem.h"
 #include "DamageSystem.h"
+#include "ScoreSystem.h"
 #include "PlayerNavValidationSystem.h"
 #include "BuffSystem.h"
 #include "InteractionSystem.h"
@@ -863,6 +864,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
 	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();			// 사망/리스폰 처리
+	mWorld->GetSystemManager()->RegisterSystem<ScoreSystem>();        // 12-1. 점수 집계(처치/어시스트/최대콤보)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Jolt 위치를 NavMesh 표면에 투영(적 AI 길찾기 목표용), Transform 비파괴
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);      // 13-1. 게임 룰 적용 (예: 점령지 점유 상태 업데이트)

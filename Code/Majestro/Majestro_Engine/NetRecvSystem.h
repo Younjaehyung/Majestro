@@ -29,6 +29,7 @@ private:
 	void HandleRhythmChanged(const InputCommand& msg);
 	void HandleSync(const InputCommand& msg);
 	void HandleBeatJudgement(const InputCommand& msg);
+	void HandleComboChanged(const InputCommand& msg);
 	void HandleMove(const InputCommand& msg);
 	void HandleState(const InputCommand& msg);
 	void HandleHealth(const InputCommand& msg);

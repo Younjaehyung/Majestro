@@ -57,6 +57,9 @@ void PlayerInputSystem::Update(float dt)
 		const float Beat = beatSystem->mBpmSeconds;
 		const float now  = GetServerTotalTimeSeconds();
 
+		// 리듬 콤보: 무공격 타임아웃 검사(서버 권위)
+		TickComboTimeout(e, mainPlayerComponent, now);
+
 		constexpr float MoveInputTimeout = 0.25f;
 		if (inputComp->mLastMoveInputTime >= 0.0f &&
 			now - inputComp->mLastMoveInputTime > MoveInputTimeout)
@@ -227,6 +230,9 @@ void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputC
 	if (netComp == nullptr || netComp->mSessionId == 0)
 		return;
 
+	// 리듬 콤보 갱신(서버 권위). 판정 결과에 따라 누적/초기화 후 변화 시 클라에 통지.
+	ApplyComboJudgement(e, mp, button, judgement);
+
 	S2C_BeatJudgementPacket pkt{};
 	pkt.netEntityId  = netComp->mNetEntityId;
 	pkt.judgement    = judgement;
@@ -239,6 +245,74 @@ void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputC
 	cout << "[BeatJudge] session " << netComp->mSessionId
 	     << " btn " << static_cast<int>(button) << " => " << static_cast<int>(judgement)
 	     << " (inputPos " << inputSongPos << ")" << endl;
+}
+
+bool PlayerInputSystem::IsComboAttackButton(InputButtons button)
+{
+	// 일반/스킬 공격만 콤보 대상. RELOAD 는 제외. (SPECIAL 은 서버에서 리듬 변경이라 판정 자체가 없음)
+	switch (button)
+	{
+	case InputButtons::ATTACK:
+	case InputButtons::SKILL1:
+	case InputButtons::SKILL2:
+		return true;
+	default:
+		return false;
+	}
+}
+
+void PlayerInputSystem::ApplyComboJudgement(Entity e, MainPlayerComponent* mp, InputButtons button, uint8 judgement)
+{
+	if (mp == nullptr || !IsComboAttackButton(button))
+		return;
+
+	const float now = GetServerTotalTimeSeconds();
+
+	if (judgement == static_cast<uint8>(BeatJudgement::Miss))
+	{
+		// Miss → 콤보 끊김. 이미 0이면 통지 불필요.
+		if (mp->mRhythmCombo != 0)
+		{
+			mp->mRhythmCombo = 0;
+			SendComboChanged(e, 0, /*reason=Miss*/ 1);
+		}
+	}
+	else
+	{
+		// Good/Perfect → 콤보 +1, 만료 시각 갱신.
+		mp->mRhythmCombo += 1;
+		mp->mRhythmComboExpireTime = now + MainPlayerComponent::kRhythmComboTimeout;
+		SendComboChanged(e, mp->mRhythmCombo, /*reason=Increment*/ 0);
+		// 최대 콤보는 ScoreSystem이 mRhythmCombo를 매 틱 샘플링해 집계한다(여기서는 관여하지 않음).
+	}
+}
+
+void PlayerInputSystem::TickComboTimeout(Entity e, MainPlayerComponent* mp, float now)
+{
+	if (mp == nullptr || mp->mRhythmCombo <= 0)
+		return;
+
+	if (now > mp->mRhythmComboExpireTime)
+	{
+		mp->mRhythmCombo = 0;
+		SendComboChanged(e, 0, /*reason=Timeout*/ 2);
+	}
+}
+
+void PlayerInputSystem::SendComboChanged(Entity e, int32 combo, uint8 reason)
+{
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(e);
+	if (netComp == nullptr || netComp->mSessionId == 0)
+		return;
+
+	S2C_ComboChangedPacket pkt{};
+	pkt.netEntityId = netComp->mNetEntityId;
+	pkt.comboCount  = combo;
+	pkt.reason      = reason;
+
+	SendRequest req{ netComp->mSessionId, PKT_Type::S2C_PKT_COMBO_CHANGED, sizeof(S2C_ComboChangedPacket) };
+	req.StoreAs<S2C_ComboChangedPacket>(pkt);
+	gSendQueue.Push(req);
 }
 
 bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType, bool isCritical)
@@ -267,6 +341,8 @@ bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager,
 	case SkillType::DrumSkill2:
 	case SkillType::DrumSkill3:
 		eventManager.Enqueue<EvBuffRequest>({ shooter, bulletType });
+		// 버프 시전을 지원 행동으로 발행 → ScoreSystem이 어시스트 창 판정에 사용한다.
+		eventManager.Enqueue<EvSupportAction>(EvSupportAction{ shooter });
 		return true;
 
 	case SkillType::Default:

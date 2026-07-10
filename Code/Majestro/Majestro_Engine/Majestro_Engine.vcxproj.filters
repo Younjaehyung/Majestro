@@ -412,6 +412,9 @@
     <ClInclude Include="BeatComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="ComboComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="EnemyComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>

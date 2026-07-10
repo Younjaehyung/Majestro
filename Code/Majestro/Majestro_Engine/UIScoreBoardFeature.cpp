@@ -87,14 +87,24 @@ void UIScoreBoardFeature::UpdateText()
 
 	std::wstringstream stream;
 	stream << L"SCORE BOARD\n";
-	stream << L"RANK  PLAYER  SCORE  KILLS\n";
 
 	if (!scoreBoard || scoreBoard->mPlayerCount == 0)
 	{
+		stream << L"RANK  PLAYER  KILLS  ASSIST  COMBO  RESULT\n";
 		stream << L"NO SCORE DATA";
 		text->mText = stream.str();
 		return;
 	}
+
+	// 씬 진행 시간 mm:ss 표기.
+	const int32 totalSeconds = static_cast<int32>(scoreBoard->mGameTime);
+	stream << L"TIME " << (totalSeconds / 60) << L":";
+	const int32 seconds = totalSeconds % 60;
+	if (seconds < 10)
+		stream << L"0";
+	stream << seconds << L"\n";
+
+	stream << L"RANK  PLAYER  KILLS  ASSIST  COMBO  RESULT\n";
 
 	for (uint8 index = 0;
 		index < scoreBoard->mPlayerCount && index < ROOM_MAX_PLAYERS;
@@ -103,8 +113,10 @@ void UIScoreBoardFeature::UpdateText()
 		const ClientPlayerScore& player = scoreBoard->mPlayers[index];
 		stream << static_cast<int32>(index + 1) << L".  "
 			<< GetScoreBoardPlayerName(player.mPlayerType) << L"  "
-			<< player.mScore << L"  "
-			<< player.mTotalKills << L"\n";
+			<< player.mTotalKills << L"  "
+			<< player.mAssists << L"  "
+			<< player.mMaxCombo << L"  "
+			<< player.mScore << L"\n";
 	}
 
 	text->mText = stream.str();

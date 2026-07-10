@@ -153,6 +153,22 @@ struct EvHitConfirm
     bool isKill;
 };
 
+
+struct EvEnemyKilled
+{
+    uint32 killerSession = 0;   // 막타 플레이어 sessionId. 0이면 환경 처치.
+    uint8  killerType = 0;      // 막타 플레이어 타입(PlayerType)
+    uint8  enemyType = 0;
+    uint8  contributorCount = 0;
+    uint32 contributors[ROOM_MAX_PLAYERS]{}; // 데미지를 준 플레이어 sessionId 목록(막타 포함 가능)
+};
+
+// 플레이어가 아군을 돕는 지원 행동(힐/버프)을 했다는 사실. ScoreSystem이 어시스트 창 판정에 사용.
+struct EvSupportAction
+{
+    Entity player; // 지원 행동을 한 플레이어
+};
+
 struct EvImpulse
 {
     Entity target;

@@ -195,6 +195,16 @@ void GameNetRuleSystem::SendScoreBoard()
 		return;
 
 	const ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
+
+	// Result = Kills*100 + Assist*20 + MaxCombo*50 + 1000/Time(s) 에 쓸 씬 진행 시간.
+	float gameTime = 0.0f;
+	if (const GameRuleComponent* rule = mWorld->GetSingleton<GameRuleComponent>())
+		gameTime = rule->mGameTime;
+
+	// Time 항목: 0 근처에서 점수가 폭발하지 않도록 최소 1초로 클램프.
+	const float safeTime = (std::max)(gameTime, 1.0f);
+	const int32 timeBonus = static_cast<int32>(1000.0f / safeTime);
+
 	std::vector<ScoreBoardPlayerInfo> players;
 	players.reserve(ROOM_MAX_PLAYERS);
 
@@ -213,10 +223,14 @@ void GameNetRuleSystem::SendScoreBoard()
 		{
 			if (const PlayerScoreStat* stat = scoreBoard->Find(netComp->mSessionId))
 			{
-				info.Score = stat->mScore;
 				info.TotalKills = stat->mTotalKills;
+				info.Assists = stat->mAssists;
+				info.MaxCombo = stat->mMaxCombo;
 			}
 		}
+
+		// Score 필드는 최종 합산 점수(Result)로 사용한다.
+		info.Score = info.TotalKills * 100 + info.Assists * 20 + info.MaxCombo * 50 + timeBonus;
 
 		players.push_back(info);
 	}
@@ -232,6 +246,7 @@ void GameNetRuleSystem::SendScoreBoard()
 	});
 
 	S2C_ScoreBoardPacket pkt{};
+	pkt.GameTime = gameTime;
 	pkt.PlayerCount = static_cast<uint8>((std::min)(players.size(), static_cast<size_t>(ROOM_MAX_PLAYERS)));
 	for (uint8 index = 0; index < pkt.PlayerCount; ++index)
 		pkt.Players[index] = players[index];

@@ -25,6 +25,7 @@
 #include "VfxSystem.h"
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
+#include "ComboComponent.h"
 #include "VfxComponent.h"
 #include "GameRuleComponent.h"
 #include "PlayerStatusComponent.h"
@@ -96,6 +97,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_RHYTHM_CHANGED, [this](auto& m) { HandleRhythmChanged(m); });
 	reg(PKT_Type::S2C_PKT_SYNC, [this](auto& m) { HandleSync(m); });
 	reg(PKT_Type::S2C_PKT_BEAT_JUDGEMENT, [this](auto& m) { HandleBeatJudgement(m); });
+	reg(PKT_Type::S2C_PKT_COMBO_CHANGED, [this](auto& m) { HandleComboChanged(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -275,6 +277,23 @@ void NetRecvSystem::HandleBeatJudgement(const InputCommand& msg)
 
     std::cout << "[BeatJudge/server] btn " << static_cast<int>(pkt->actionButton)
               << " => " << static_cast<int>(pkt->judgement) << std::endl;
+}
+
+
+void NetRecvSystem::HandleComboChanged(const InputCommand& msg)
+{
+    const S2C_ComboChangedPacket* pkt = msg.ViewAs<S2C_ComboChangedPacket>();
+    if (!pkt) return;
+
+    Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
+    if (e == NULL_ENTITY) return;
+
+
+    ComboComponent* combo = mWorld->GetComponent<ComboComponent>(e);
+    if (combo == nullptr)
+        combo = &mWorld->AddComponent<ComboComponent>(e);
+
+    combo->mCount = pkt->comboCount;
 }
 
 void NetRecvSystem::HandleHealth(const InputCommand& msg)
@@ -751,6 +770,7 @@ void NetRecvSystem::HandleScoreBoard(const InputCommand& msg)
 	// Replace the local snapshot so disconnected players do not remain on the board.
 	*scoreBoard = ScoreBoardComponent{};
 	scoreBoard->mPlayerCount = (std::min)(pkt->PlayerCount, static_cast<uint8>(ROOM_MAX_PLAYERS));
+	scoreBoard->mGameTime = pkt->GameTime;
 
 	for (uint8 index = 0; index < scoreBoard->mPlayerCount; ++index)
 	{
@@ -760,6 +780,8 @@ void NetRecvSystem::HandleScoreBoard(const InputCommand& msg)
 		target.mPlayerType = source.PlayerType;
 		target.mScore = source.Score;
 		target.mTotalKills = source.TotalKills;
+		target.mAssists = source.Assists;
+		target.mMaxCombo = source.MaxCombo;
 	}
 }
 

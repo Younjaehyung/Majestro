@@ -167,6 +167,11 @@ public:
 	float mComboInputWindow = 0.75f;
 	uint8 mComboStep = 0;
 
+	// 리듬 콤보 Count (공격 Cobmo와는 별개로, 박자 맞춘 공격 시 증가하는 콤보)
+	int32 mRhythmCombo = 0;                  // 현재 콤보 수
+	float mRhythmComboExpireTime = 0.0f;     // 이 서버 시각(초)을 넘기면 콤보 만료
+	static constexpr float kRhythmComboTimeout = 3.0f; // 무공격 허용 시간(초)
+
 
 	float mSpeed = 0.0f;
 

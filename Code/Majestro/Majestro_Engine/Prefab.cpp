@@ -15,6 +15,7 @@
 #include "AnimationComponent.h"
 #include "SocketComponent.h"
 #include "SocketFollowComponent.h"
+#include "ComboComponent.h"
 #include "RhythmEmissiveComponent.h"
 #include "WeaponTrailComponent.h"
 #include "AnimNotifyComponent.h"
@@ -2350,6 +2351,76 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 					active = false;
 					spr->mVisible = false;
 				}
+			};
+	}
+
+	// 콤보 카운터. 로컬 플레이어의 ComboComponent 값을 읽어 표시하고,
+   // 콤보가 0이면 숨긴다. 값이 증가할 때 살짝 커졌다 돌아오는 팝 연출을 준다.
+	{
+		Entity comboText = world->CreateEntity();
+
+		auto& t = world->AddComponent<UITransformComponent>(comboText);
+		t.mAnchor = Anchor::Center;
+		t.mPosition = Vec2(0.f, 160.f); // 크로스헤어 위쪽 (필요 시 조정)
+		t.mSize = Vec2(256.f, 80.f);
+		t.mUILayerIndex = 6;
+		t.mPivot = Vec2(0.5f, 0.5f);
+
+		auto& text = world->AddComponent<UITextComponent>(comboText);
+		text.mText = L"";
+		text.mVisible = false;
+		text.mColor = DirectX::XMVECTORF32{ { { 1.f, 0.85f, 0.2f, 1.f } } };
+		text.mOutlineThickness = 3.f;
+
+		world->AddComponent<UIScriptComponent>(comboText).mOnUpdate =
+			[world,
+			comboText,
+			lastCount = -1,
+			popTimer = 0.f](float dt) mutable
+			{
+				UITransformComponent* ui = world->GetComponent<UITransformComponent>(comboText);
+				UITextComponent* txt = world->GetComponent<UITextComponent>(comboText);
+				if (!ui || !txt) return;
+
+				// 로컬 플레이어의 콤보 값 조회
+				int count = 0;
+				if (world->HasComponentPool<LocalPlayerComponent>())
+				{
+					const std::vector<Entity> players =
+						world->GetEntitiesWithComponent<LocalPlayerComponent>();
+					if (!players.empty())
+					{
+						if (ComboComponent* combo =
+							world->GetComponent<ComboComponent>(players.front()))
+							count = combo->mCount;
+					}
+				}
+
+				if (count <= 0)
+				{
+					txt->mVisible = false;
+					lastCount = 0;
+					ui->mScale = Vec2(1.f, 1.f);
+					return;
+				}
+
+				if (count != lastCount)
+				{
+					txt->mText = std::to_wstring(count) + L" COMBO";
+					if (count > lastCount)
+						popTimer = 0.15f; // 증가 시 팝 연출 시작
+					lastCount = count;
+				}
+
+				// 팝 연출: popTimer 동안 1.3배 → 1.0배로 축소
+				float scale = 1.f;
+				if (popTimer > 0.f)
+				{
+					popTimer = (std::max)(0.f, popTimer - dt);
+					scale = std::lerp(1.f, 1.3f, popTimer / 0.15f);
+				}
+				ui->mScale = Vec2(scale, scale);
+				txt->mVisible = true;
 			};
 	}
 }

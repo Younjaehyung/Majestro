@@ -204,6 +204,7 @@
     <ClInclude Include="CircularVisualizerPass.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
+    <ClInclude Include="ComboComponent.h" />
     <ClInclude Include="BoxColliderComponent.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="BulletComponent.h" />

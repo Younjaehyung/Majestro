@@ -228,6 +228,9 @@
     <ClCompile Include="DamageSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="ScoreSystem.cpp">
+      <Filter>System\Logic</Filter>
+    </ClCompile>
     <ClCompile Include="DeathSystem.cpp">
       <Filter>System\Logic</Filter>
     </ClCompile>
@@ -459,6 +462,9 @@
       <Filter>Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="DamageSystem.h">
+      <Filter>System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="ScoreSystem.h">
       <Filter>System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="DeathSystem.h">

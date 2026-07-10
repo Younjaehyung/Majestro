@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "GameTimer.h"
 
+
 enum EnemyType {
 	HornMan,
 	Pianoman,
@@ -146,4 +147,7 @@ public:
 	float mBrassSkill3ShotInterval = 0.0f;
 	float mBrassRushEndHoldUntilTime = 0.0f;
 	bool mBossEncounterActivated = false;
+
+	// 이 적에게 데미지를 준 플레이어들의 sessionId. 사망 시 막타를 제외한 기여자는 어시스트
+	std::unordered_set<uint32> mDamageContributors;
 };

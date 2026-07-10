@@ -43,8 +43,10 @@ struct ClientPlayerScore
 {
 	uint32 mSessionId = 0;
 	uint8 mPlayerType = 0;
-	int32 mScore = 0;
-	int32 mTotalKills = 0;
+	int32 mScore = 0;       // 최종 합산 점수(Result)
+	int32 mTotalKills = 0;  // KILLS
+	int32 mAssists = 0;     // ASSIST
+	int32 mMaxCombo = 0;    // MaxCombo
 };
 
 // Stores the latest server score snapshot without recalculating score on the client.
@@ -54,6 +56,7 @@ public:
 	ScoreBoardComponent() = default;
 
 	uint8 mPlayerCount = 0;
+	float mGameTime = 0.0f; // 현재 씬 진행 시간(초). 결과판 Time 표시용.
 	std::array<ClientPlayerScore, ROOM_MAX_PLAYERS> mPlayers{};
 };
 

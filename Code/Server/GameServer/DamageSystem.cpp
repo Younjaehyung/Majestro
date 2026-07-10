@@ -8,8 +8,6 @@
 #include "ArmorComponent.h"
 #include "EnemyComponent.h"
 #include "PlayerComponent.h"
-#include "ScoreBoardComponent.h"
-#include "GameRuleComponent.h"
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "BeatSystem.h"
@@ -17,8 +15,6 @@
 
 DamageSystem::DamageSystem(World* world) : System(world)
 {
-    if (mWorld && mWorld->GetSingleton<ScoreBoardComponent>() == nullptr)
-        mWorld->AddSingleton<ScoreBoardComponent>();
 }
 
 void DamageSystem::Update(float deltaTime)
@@ -92,6 +88,20 @@ void DamageSystem::Update(float deltaTime)
 
         const bool armorAbsorbed = (beforeArmor != afterArmor);
         const bool hpDamaged = (beforeHp != afterHp);
+
+        // 적에게 데미지를 준 플레이어를 기여자로 기록 → 사망 시 막타를 제외한 기여자가 어시스트를 받는다.
+        if ((armorAbsorbed || hpDamaged) && e.instigator.IsValid())
+        {
+            if (EnemyComponent* damagedEnemy = mWorld->GetComponent<EnemyComponent>(e.target))
+            {
+                if (mWorld->GetComponent<MainPlayerComponent>(e.instigator))
+                {
+                    const uint32 attackerSession = mWorld->GetSessionIDByEntity(e.instigator);
+                    if (attackerSession != 0)
+                        damagedEnemy->mDamageContributors.insert(attackerSession);
+                }
+            }
+        }
 
         if (player && (armorAbsorbed || hpDamaged) &&
             player->mFsm.GetState() == S_Dance1)
@@ -266,23 +276,28 @@ void DamageSystem::Update(float deltaTime)
             if (enemy->mEnemyType == EnemyType::Obelisk)
                 return;
 
+            // 처치 사실만 발행한다. 점수/어시스트 집계는 ScoreSystem이 전담.
+            EvEnemyKilled killed{};
+            killed.enemyType = enemy->mEnemyType;
+
             if (e.instigator.IsValid())
             {
                 if (MainPlayerComponent* instigatorPlayer = mWorld->GetComponent<MainPlayerComponent>(e.instigator))
                 {
-                    if (ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>())
-                    {
-                        const int32 awardedScore = scoreBoard->RecordKill(
-                            mWorld->GetSessionIDByEntity(e.instigator),
-                            static_cast<uint8>(instigatorPlayer->mPlayerType),
-                            enemy->mEnemyType);
-
-                        // The legacy team score is the sum of all server awarded player scores.
-                        if (GameRuleComponent* rule = mWorld->GetSingleton<GameRuleComponent>())
-                            rule->mPlayerScore += awardedScore;
-                    }
+                    killed.killerSession = mWorld->GetSessionIDByEntity(e.instigator);
+                    killed.killerType = static_cast<uint8>(instigatorPlayer->mPlayerType);
                 }
             }
+
+            // 데미지 기여자 목록을 값으로 복사(적 엔티티는 곧 파괴될 수 있음).
+            for (uint32 session : enemy->mDamageContributors)
+            {
+                if (killed.contributorCount >= ROOM_MAX_PLAYERS)
+                    break;
+                killed.contributors[killed.contributorCount++] = session;
+            }
+
+            eventManager->Enqueue<EvEnemyKilled>(killed);
         }
 
         if (player)
@@ -337,6 +352,13 @@ void DamageSystem::Update(float deltaTime)
             healthChanged.currentHp = afterHp;
             healthChanged.maxHp = health->mMaxHp;
             eventManager->Enqueue<EvHealthChanged>(healthChanged);
+
+            // 플레이어가 아군을 실제로 회복시켰다면 지원 행동으로 발행 → ScoreSystem이 어시스트 창에 반영.
+            if (e.instigator.IsValid() && e.instigator != e.target &&
+                mWorld->GetComponent<MainPlayerComponent>(e.instigator))
+            {
+                eventManager->Enqueue<EvSupportAction>(EvSupportAction{ e.instigator });
+            }
         }
     });
 }

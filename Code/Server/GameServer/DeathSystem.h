@@ -1,6 +1,7 @@
 #pragma once
 #include "System.h"
 #include "Entity.h"
+#include "PlayerComponent.h"
 
 class World;
 

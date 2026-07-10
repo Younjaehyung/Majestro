@@ -56,7 +56,7 @@ void ScoreSystem::SampleMaxCombo()
 
 void ScoreSystem::ConsumeSupportActions(float now)
 {
-    EventManager* em = mWorld->GetEventManager();
+    EventManager* em = mWorld->GetEventManager().get();
     ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
     if (!em || !scoreBoard)
         return;
@@ -80,7 +80,7 @@ void ScoreSystem::ConsumeSupportActions(float now)
 
 void ScoreSystem::ConsumeEnemyKills(float now)
 {
-    EventManager* em = mWorld->GetEventManager();
+    EventManager* em = mWorld->GetEventManager().get();
     ScoreBoardComponent* scoreBoard = mWorld->GetSingleton<ScoreBoardComponent>();
     if (!em || !scoreBoard)
         return;

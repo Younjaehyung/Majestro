@@ -147,6 +147,9 @@ public:
 	float mSkill2Cool= 2.f;
 	float mReloadCool= 2.f;
 
+
+	float mRhythmBuffRadius = 1500.f;		// 리듬 버프 제공 반경 (0 이하이면 전범위)
+
 public:
 	float mNextAttackTime = 1.f;
 	float mNextSkill1Time = 1.f;

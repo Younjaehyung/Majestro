@@ -468,6 +468,9 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         if (p.contains("reloadCool"))
             mReloadCool = p["reloadCool"].get<float>();
 
+        if (p.contains("rhythmBuffRadius"))
+            mRhythmBuffRadius = p["rhythmBuffRadius"].get<float>();
+
         if (p.contains("maxBullet"))
             mMaxBullet = p["maxBullet"].get<int>();
 
@@ -483,6 +486,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         std::cout << "  Skill1Cool : " << mSkill1Cool << "\n";
         std::cout << "  Skill2Cool : " << mSkill2Cool << "\n";
         std::cout << "  ReloadCool : " << mReloadCool << "\n";
+        std::cout << "  RhythmBuffRadius : " << mRhythmBuffRadius << "\n";
     }
     // 2) STATE PROPERTY 로딩
     if (!j.contains("stateProps"))

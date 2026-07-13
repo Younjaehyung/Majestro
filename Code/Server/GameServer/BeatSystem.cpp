@@ -88,6 +88,11 @@ namespace
 			def.type != BuffType::None &&
 			ludwigWindowActive;
 
+		// 리듬 버프 범위
+		const TransformComponent* providerTransform = world->GetComponent<TransformComponent>(provider);
+		const float buffRadius = providerPlayer->mRhythmBuffRadius;
+		const float buffRadiusSq = buffRadius * buffRadius;
+
 		std::vector<Entity> players = world->GetEntitiesWithComponent<MainPlayerComponent>();
 		for (Entity player : players)
 		{
@@ -95,14 +100,32 @@ namespace
 			if (!buffComp)
 				continue;
 
+			// 거리 검사
+			bool withinRange = true;
+			if (player != provider && buffRadius > 0.0f && providerTransform)
+			{
+				const TransformComponent* playerTransform = world->GetComponent<TransformComponent>(player);
+				if (!playerTransform)
+				{
+					withinRange = false;
+				}
+				else
+				{
+					const Vec3 diff = playerTransform->mWorldPosition - providerTransform->mWorldPosition;
+					withinRange = diff.LengthSquared() <= buffRadiusSq;
+				}
+			}
+
+			const bool enableForThisPlayer = shouldEnable && withinRange;
+
 			BuffData* current = buffComp->FindRhythmBuffFromSource(provider);
 			const bool needsRemoval =
-				current &&
-				(!shouldEnable || current->mType != def.type || current->mExecutionType != def.exec);
+				current && (!enableForThisPlayer || current->mType != def.type || current->mExecutionType != def.exec);
+
 			if (needsRemoval)
 				buffComp->RemoveBuff(current->mType, provider, true);
 
-			if (!shouldEnable)
+			if (!enableForThisPlayer)
 				continue;
 
 			current = buffComp->FindRhythmBuffFromSource(provider);

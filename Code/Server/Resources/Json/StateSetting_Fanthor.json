@@ -7,7 +7,8 @@
         "skill1Cool": 8,
         "skill2Cool": 2,
         "reloadCool": 1,
-        "maxBullet" : 5
+        "maxBullet" : 5,
+        "rhythmBuffRadius": 1500.0
     },
 
     "stateProps": {

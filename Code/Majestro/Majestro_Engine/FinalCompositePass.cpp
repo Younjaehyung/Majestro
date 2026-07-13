@@ -13,7 +13,7 @@ void FinalCompositePass::Initialize()
 
 }
 
-void FinalCompositePass::SetBlur(bool on)
+void FinalCompositePass::SetBlurEnabled(bool on)
 {
 	mBlurEnabled = on;
 }

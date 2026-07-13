@@ -157,7 +157,7 @@ void PauseSystem::SetPauseBlur(bool on)
     auto pipeline = std::static_pointer_cast<GameRenderPipeline>(rs->GetPipeline());
     if (!pipeline) return;
 
-    pipeline->SetBlur(on);
+    pipeline->SetBlurEnabled(on);
 }
 
 void PauseSystem::ApplyBackgroundTexture(PauseMenuController* ctrl)

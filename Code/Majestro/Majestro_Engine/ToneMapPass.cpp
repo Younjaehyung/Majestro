@@ -62,6 +62,11 @@ void ToneMapPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 	entry.ExtTex[0] = lut ? static_cast<int32>(lut->GetImageIndex()) : -1;
 	entry.ExtTex[1] = mLutSize;
 	entry.ExtTex[2] = (int)(std::clamp(mLutStrength, 0.f, 1.f) * 100); // 강도 0~100
+	// LUT 텍스처 크기 전달
+	entry.ExtTex[3] = lut ? static_cast<int32>(lut->GetWidth()) : 0;
+	entry.ExtTex[4] = lut ? static_cast<int32>(lut->GetHeight()) : 0;
+	entry.ExtTex[5] = mColorGradingEnabled ? 1 : 0;
+	
 }
 
 void ToneMapPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)

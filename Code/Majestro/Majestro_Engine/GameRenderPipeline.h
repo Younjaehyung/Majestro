@@ -53,13 +53,24 @@ public:
     void SetOutlineEnabled(bool on);
     void SetGodRayEnabled(bool on);
     void SetEmissiveBloomEnabled(bool on);
+    void SetBlurEnabled(bool on);
     void SetFXAAEnabled(bool on);
     void SetFXAAParams(float edgeThreshold, float edgeThresholdMin, float subpixQuality);
+
+
+    void SetColorLUTEnabled(bool enabled);
+    void SetColorGradingEnabled(bool enabled);
+	void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);    // LUT 이름, 3D LUT 크기, 강도(0~1)
+	void SetColorGrading(const ColorGradingParams& params);         // ColorGradingParams 구조체로 색보정 파라미터 설정
+    
+   
+	void DiscoverColorLUTs();       // LUT 리소스 폴더를 스캔하여 목록 갱신
+	void ApplyCurrentColorLUT();    // 현재 선택된 LUT를 PostProcessPass에 적용
+	void SelectColorLUT(int index); // LUT 목록에서 인덱스 선택, ApplyCurrentColorLUT() 호출
+	void ReloadCurrentColorLUT();   // 현재 선택된 LUT를 다시 로드, ApplyCurrentColorLUT() 호출
+
     void SetHealthVignetteNoiseTexture(const std::wstring& textureName);
-	void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
-    void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);
-    void SetColorGrading(const ColorGradingParams& params);
-    void SetBlur(bool on);
+    void SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* features);
 
     GodRayPass*          GetGodRayPass()    const { return mGodRayPass.get(); }
     DualKawaseBlurPass*  GetEmissiveBloom() const { return mEmissiveBloomPass.get(); }
@@ -75,6 +86,8 @@ public:
     bool IsOutlineEnabled() const;
     bool IsHBAOEnabled()    const;
     bool IsFXAAEnabled()    const;
+    bool IsColorLUTEnabled() const;
+    bool IsColorGradingEnabled() const;
 
     // RenderManager::GetGraphicsSettings() 값을 일괄 반영.
     void ApplyGraphicsSettings();
@@ -84,6 +97,13 @@ public:
     void RemoveHDREffect(shared_ptr<class RenderPass> pass);
 
 private:
+
+    struct ColorLUTEntry
+    {
+        wstring DisplayName;
+        wstring ResourceKey;
+        wstring Path;
+    };
 
     shared_ptr<DepthPrePass>     mDepthPrePass;
     shared_ptr<ShadowPass>       mShadowPass;
@@ -117,6 +137,10 @@ private:
     float mHealthVignetteLowThreshold = 0.55f;
     float mHealthVignetteHealDuration = 0.75f;
     Vec4 mBuffIconStrengths = Vec4::Zero;
+    std::vector<ColorLUTEntry> mColorLUTEntries;
+    int mColorLUTIndex = -1;
+    float mColorLUTStrength = 1.0f;
+    bool mColorLUTEnabled = true;
 private:
 
     void UpdatePassStates();

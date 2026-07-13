@@ -41,6 +41,46 @@
 #include "TagComponent.h"
 #include "InputManager.h"
 
+namespace
+{
+    constexpr wchar_t kColorLUTDirectory[] = L"..\\Resources\\Texture\\LUTs";
+
+    bool IsColorLUTExtension(const std::filesystem::path& path)
+    {
+        const wstring extension = path.extension().wstring();
+        return extension == L".png" || extension == L".PNG" ||
+               extension == L".dds" || extension == L".DDS";
+    }
+
+    bool IsDDS(const std::filesystem::path& path)
+    {
+        const wstring extension = path.extension().wstring();
+        return extension == L".dds" || extension == L".DDS";
+    }
+
+    int GetColorLUTOrder(const wstring& name)
+    {
+        size_t firstDigit = name.find_first_of(L"0123456789");
+        if (firstDigit == wstring::npos)
+            return 2147483647;
+
+        return _wtoi(name.c_str() + firstDigit);
+    }
+
+    int GetLogicalColorLUTSize(int width, int height)
+    {
+        if (width <= 0 || height <= 0 || width % height != 0)
+            return 0;
+
+        const int logicalSize = width / height;
+        if (logicalSize < 2 || height % logicalSize != 0)
+            return 0;
+
+        return logicalSize;
+    }
+
+}
+
 void GameRenderPipeline::Initialize(World* world)
 {
     mWorld = world;
@@ -81,6 +121,7 @@ void GameRenderPipeline::Initialize(World* world)
     mParticlePass->Initialize(world);
     mPostProcessPass->Initialize();
     mWorldUIPass->Initialize(world);
+    DiscoverColorLUTs();
 
 
 
@@ -430,6 +471,9 @@ bool GameRenderPipeline::IsBloomEnabled()   const { return mEmissiveBloomPass &&
 bool GameRenderPipeline::IsOutlineEnabled() const { return mOutlinePass && mOutlinePass->IsEnabled(); }
 bool GameRenderPipeline::IsHBAOEnabled()    const { return mHBAOPass && mHBAOPass->IsEnabled(); }
 bool GameRenderPipeline::IsFXAAEnabled()    const { return mFXAAPass && mFXAAPass->IsEnabled(); }
+bool GameRenderPipeline::IsColorLUTEnabled() const { return mColorLUTEnabled; }
+bool GameRenderPipeline::IsColorGradingEnabled() const { return mPostProcessPass ? mPostProcessPass->IsColorGradingEnabled() : false; }
+
 
 void GameRenderPipeline::ApplyGraphicsSettings()
 {
@@ -462,7 +506,165 @@ void GameRenderPipeline::SetWorldUIFeature(std::vector<shared_ptr<UIFeature>>* f
 
 void GameRenderPipeline::SetColorLUT(const std::wstring& name, int size, float strength)
 {
-    if (mPostProcessPass) mPostProcessPass->SetColorLUT(name, size, strength);
+    if (!mPostProcessPass)
+        return;
+
+    if (name.empty())
+    {
+        mColorLUTEnabled = false;
+        mPostProcessPass->SetColorLUT(L"", 0, 0.0f);
+        return;
+    }
+
+    for (int index = 0; index < static_cast<int>(mColorLUTEntries.size()); ++index)
+    {
+        if (mColorLUTEntries[index].ResourceKey == name)
+        {
+            mColorLUTIndex = index;
+            mColorLUTStrength = strength;
+            mColorLUTEnabled = true;
+            ApplyCurrentColorLUT();
+            return;
+        }
+    }
+
+   
+    if (name == L"ColorLUT" && !mColorLUTEntries.empty())
+    {
+        mColorLUTStrength = strength;
+        mColorLUTEnabled = true;
+        SelectColorLUT(0);
+        return;
+    }
+
+    mPostProcessPass->SetColorLUT(name, size, strength);
+}
+
+void GameRenderPipeline::SetColorLUTEnabled(bool enabled)
+{
+  
+    mColorLUTEnabled = enabled;
+    ApplyCurrentColorLUT();
+}
+
+void GameRenderPipeline::DiscoverColorLUTs()
+{
+    const std::filesystem::path directory(kColorLUTDirectory);
+    std::map<wstring, std::filesystem::path> lutPaths;
+
+    if (!std::filesystem::exists(directory))
+        return;
+
+    
+    for (const auto& file : std::filesystem::recursive_directory_iterator(directory))
+    {
+        if (!file.is_regular_file() || !IsColorLUTExtension(file.path()))
+            continue;
+
+        std::filesystem::path relativePath = file.path().lexically_relative(directory);
+        if (relativePath.empty())
+            continue;
+
+        const wstring rootDirectory = (*relativePath.begin()).wstring();
+
+        if (rootDirectory == L"Game" || rootDirectory == L"HaldCLUT")
+            continue;
+
+        relativePath.replace_extension();
+        const wstring name = relativePath.generic_wstring();
+        auto existing = lutPaths.find(name);
+        if (existing == lutPaths.end() || IsDDS(file.path()))
+            lutPaths[name] = file.path();
+    }
+
+    wstring selectedKey;
+    if (mColorLUTIndex >= 0 && mColorLUTIndex < static_cast<int>(mColorLUTEntries.size()))
+        selectedKey = mColorLUTEntries[mColorLUTIndex].ResourceKey;
+
+    mColorLUTEntries.clear();
+    for (const auto& [name, path] : lutPaths)
+    {
+        ColorLUTEntry entry;
+        entry.DisplayName = name;
+        entry.ResourceKey = L"ColorLUT/" + name;
+        entry.Path = path.wstring();
+        mColorLUTEntries.push_back(std::move(entry));
+    }
+
+    std::sort(mColorLUTEntries.begin(), mColorLUTEntries.end(),
+        [](const ColorLUTEntry& left, const ColorLUTEntry& right)
+        {
+            const int leftOrder = GetColorLUTOrder(left.DisplayName);
+            const int rightOrder = GetColorLUTOrder(right.DisplayName);
+            if (leftOrder != rightOrder)
+                return leftOrder < rightOrder;
+            return left.DisplayName < right.DisplayName;
+        });
+
+    mColorLUTIndex = -1;
+    for (int index = 0; index < static_cast<int>(mColorLUTEntries.size()); ++index)
+    {
+        if (mColorLUTEntries[index].ResourceKey == selectedKey)
+        {
+            mColorLUTIndex = index;
+            break;
+        }
+    }
+
+    if (mColorLUTIndex < 0 && !mColorLUTEntries.empty())
+        mColorLUTIndex = 0;
+
+    if (mColorLUTIndex >= 0 && mColorLUTEnabled)
+        ApplyCurrentColorLUT();
+}
+
+void GameRenderPipeline::ApplyCurrentColorLUT()
+{
+    if (!mPostProcessPass || !mColorLUTEnabled ||
+        mColorLUTIndex < 0 || mColorLUTIndex >= static_cast<int>(mColorLUTEntries.size()))
+    {
+        if (mPostProcessPass)
+            mPostProcessPass->SetColorLUT(L"", 0, 0.0f);
+        return;
+    }
+
+    const ColorLUTEntry& entry = mColorLUTEntries[mColorLUTIndex];
+    shared_ptr<Texture> texture = RESOURCEMANAGER.Load<Texture>(entry.ResourceKey, entry.Path);
+    if (!texture)
+        return;
+
+    const int width = static_cast<int>(texture->GetWidth());
+    const int height = static_cast<int>(texture->GetHeight());
+    const int size = GetLogicalColorLUTSize(width, height);
+    if (size <= 1)
+    {
+        mPostProcessPass->SetColorLUT(L"", 0, 0.0f);
+        return;
+    }
+
+  
+    mPostProcessPass->SetColorLUT(entry.ResourceKey, size, mColorLUTStrength);
+}
+
+void GameRenderPipeline::SelectColorLUT(int index)
+{
+    if (mColorLUTEntries.empty())
+        return;
+
+    const int count = static_cast<int>(mColorLUTEntries.size());
+    mColorLUTIndex = (index % count + count) % count;
+    mColorLUTEnabled = true;
+    ApplyCurrentColorLUT();
+}
+
+void GameRenderPipeline::ReloadCurrentColorLUT()
+{
+    if (mColorLUTIndex < 0 || mColorLUTIndex >= static_cast<int>(mColorLUTEntries.size()))
+        return;
+
+    const ColorLUTEntry& entry = mColorLUTEntries[mColorLUTIndex];
+    RESOURCEMANAGER.ReloadTexture(entry.ResourceKey, entry.Path);
+    ApplyCurrentColorLUT();
 }
 
 void GameRenderPipeline::SetColorGrading(const ColorGradingParams& params)
@@ -470,10 +672,16 @@ void GameRenderPipeline::SetColorGrading(const ColorGradingParams& params)
     if (mPostProcessPass) mPostProcessPass->SetColorGrading(params);
 }
 
-void GameRenderPipeline::SetBlur(bool on)
+void GameRenderPipeline::SetColorGradingEnabled(bool enabled)
+{
+    if (mPostProcessPass) mPostProcessPass->SetColorGradingEnabled(enabled);
+}
+
+
+void GameRenderPipeline::SetBlurEnabled(bool on)
 {
     mIsBlured = on;
-    if (mPostProcessPass) mPostProcessPass->SetBlur(mIsBlured);
+    if (mPostProcessPass) mPostProcessPass->SetBlurEnabled(mIsBlured);
 }
 
 
@@ -799,7 +1007,11 @@ void GameRenderPipeline::DrawImGui()
     if (mPostProcessPass && ImGui::CollapsingHeader("ColorGrading"))
     {
         ColorGradingParams p = mPostProcessPass->GetColorGrading();
+        bool colorGradingEnabled = mPostProcessPass->IsColorGradingEnabled();
         bool changed = false;
+
+        if (ImGui::Checkbox("Custom ColorGrading##CG", &colorGradingEnabled))
+            SetColorGradingEnabled(colorGradingEnabled);
 
         changed |= ImGui::SliderFloat("Saturation##CG", &p.Saturation, 0.0f, 3.0f);
         changed |= ImGui::SliderFloat("Contrast##CG", &p.Contrast, 0.0f, 3.0f);
@@ -833,6 +1045,63 @@ void GameRenderPipeline::DrawImGui()
 
         if (changed)
             mPostProcessPass->SetColorGrading(p);
+
+        ImGui::Separator();
+        if (ImGui::CollapsingHeader("Color LUT", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            if (mColorLUTEntries.empty())
+            {
+                ImGui::TextUnformatted("No LUT files found in Resources/Texture/LUTs");
+            }
+            else
+            {
+                if (ImGui::Checkbox("Enabled##LUT", &mColorLUTEnabled))
+                    SetColorLUTEnabled(mColorLUTEnabled);
+
+                if (ImGui::Button("Previous##LUT"))
+                    SelectColorLUT(mColorLUTIndex - 1);
+                ImGui::SameLine();
+                if (ImGui::Button("Next##LUT"))
+                    SelectColorLUT(mColorLUTIndex + 1);
+                ImGui::SameLine();
+                if (ImGui::Button("Reload current##LUT"))
+                    ReloadCurrentColorLUT();
+                ImGui::SameLine();
+                if (ImGui::Button("Rescan files##LUT"))
+                    DiscoverColorLUTs();
+
+                if (mColorLUTEntries.empty())
+                {
+                    ImGui::TextUnformatted("No LUT files found in Resources/Texture/LUTs");
+                }
+                else
+                {
+                    const string preview = ws2s(mColorLUTEntries[mColorLUTIndex].DisplayName);
+                    if (ImGui::BeginCombo("Current LUT##LUT", preview.c_str()))
+                    {
+                        
+                        static ImGuiTextFilter lutFilter;
+                        lutFilter.Draw("Filter##LUT", 260.0f);
+                        for (int index = 0; index < static_cast<int>(mColorLUTEntries.size()); ++index)
+                        {
+                            const bool selected = index == mColorLUTIndex;
+                            const string name = ws2s(mColorLUTEntries[index].DisplayName);
+                            if (!lutFilter.PassFilter(name.c_str()))
+                                continue;
+                            if (ImGui::Selectable(name.c_str(), selected))
+                                SelectColorLUT(index);
+                            if (selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    if (ImGui::SliderFloat("Strength##LUT", &mColorLUTStrength, 0.0f, 1.0f))
+                        ApplyCurrentColorLUT();
+                    ImGui::Text("LUT %d of %d", mColorLUTIndex + 1, static_cast<int>(mColorLUTEntries.size()));
+                }
+            }
+        }
     }
 
     ImGui::End();

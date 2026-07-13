@@ -692,6 +692,56 @@ shared_ptr<Texture> ResourceManager::LoadTextureDeduped(const wstring& key, cons
 	return texture;
 }
 
+shared_ptr<Texture> ResourceManager::ReloadTexture(const wstring& key, const wstring& path)
+{
+	OBJECT_TYPE objectType = GetObjectType<Texture>();
+	KeyObjMap& keyObjMap = mResources[static_cast<uint8>(objectType)];
+	shared_ptr<Texture> previousTexture;
+
+	auto previous = keyObjMap.find(key);
+	if (previous != keyObjMap.end())
+	{
+		previousTexture = static_pointer_cast<Texture>(previous->second);
+		keyObjMap.erase(previous);
+	}
+
+	shared_ptr<Texture> reloadedTexture = LoadTextureDeduped(key, path);
+
+	// 이전 텍스처가 없거나, 새로 로드된 텍스처가 이전 텍스처와 동일한 경우 캐시에서 제거할 필요 없음
+	if (!previousTexture || reloadedTexture == previousTexture)
+		return reloadedTexture;
+
+	bool previousTextureIsStillUsed = false;
+
+	// 이전 텍스처가 아직도 다른 키에서 사용 중인지 확인
+	for (const auto& [resourceKey, resource] : keyObjMap)
+	{
+		if (resource.get() == previousTexture.get())
+		{
+			previousTextureIsStillUsed = true;
+			break;
+		}
+	}
+	
+	// 이전 텍스처가 더 이상 사용되지 않는다면 캐시에서 제거
+	if (!previousTextureIsStillUsed)
+	{
+
+		for (auto cache = mTextureContentCache.begin(); cache != mTextureContentCache.end();)
+		{
+			if (cache->second.get() == previousTexture.get())
+				cache = mTextureContentCache.erase(cache);
+			else
+				++cache;
+		}
+	}
+	
+
+	return reloadedTexture;
+}
+
+
+
 void ResourceManager::DumpTextureBudget(const char* label)
 {
 	if (!EngineLog::Enabled(EngineLog::Domain::TextureBudget))

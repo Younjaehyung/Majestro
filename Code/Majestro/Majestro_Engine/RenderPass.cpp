@@ -119,9 +119,14 @@ void PostProcessPass::SetColorGrading(const ColorGradingParams& params)
     if (mToneMapPass) mToneMapPass->SetColorGrading(params);
 }
 
-void PostProcessPass::SetBlur(const bool on)
+void PostProcessPass::SetColorGradingEnabled(bool enabled)
 {
-    if (mFinalCompositePass) mFinalCompositePass->SetBlur(on);
+    if (mToneMapPass) mToneMapPass->SetColorGradingEnabled(enabled);
+}
+
+void PostProcessPass::SetBlurEnabled(const bool on)
+{
+    if (mFinalCompositePass) mFinalCompositePass->SetBlurEnabled(on);
 }
 
 const ColorGradingParams& PostProcessPass::GetColorGrading() const
@@ -129,6 +134,11 @@ const ColorGradingParams& PostProcessPass::GetColorGrading() const
 	static const ColorGradingParams sDefault{};
 	if (!mToneMapPass) return sDefault;
 	return mToneMapPass->GetColorGrading();
+}
+
+bool PostProcessPass::IsColorGradingEnabled() const
+{
+    return mToneMapPass ? mToneMapPass->IsColorGradingEnabled() : false;
 }
 
 void PostProcessPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs)

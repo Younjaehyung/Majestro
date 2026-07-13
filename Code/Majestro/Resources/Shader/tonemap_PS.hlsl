@@ -98,25 +98,27 @@ float3 ApplyColorGrading(float3 color, PASS_CUSTOM_DATA data)
 
 // ──────────────────────────────────────────────────────────────
 // 컬러 LUT (언랩 스트립)
-float3 ApplyColorLUT(int lutIdx, float N, float3 color)
+
+// LUT 텍스처가 512x32와 같이 여러 행으로 나뉘어 있을 경우, 각 행을 logicalSize로 나누어 사용
+float3 ApplyScaledColorLUT(int lutIdx, float logicalSize, float textureWidth, float textureHeight, float3 color)
 {
     color = saturate(color);
 
-    float texU   = 1.0f / (N * N); // 가로 텍셀 폭
-    float texV   = 1.0f / N;       // 세로 텍셀 폭
-    float sliceU = 1.0f / N;       // blue 슬라이스 1개의 U 폭
+    float tileWidth = textureWidth / logicalSize;
+    float scaleX = tileWidth / logicalSize;
+    float scaleY = textureHeight / logicalSize;
 
-    float bluePos = color.b * (N - 1.0f);
-    float slice0  = floor(bluePos);
-    float slice1  = min(slice0 + 1.0f, N - 1.0f);
-    float fBlue   = bluePos - slice0;
+    float bluePos = color.b * (logicalSize - 1.0f);
+    float slice0 = floor(bluePos);
+    float slice1 = min(slice0 + 1.0f, logicalSize - 1.0f);
+    float fBlue = bluePos - slice0;
 
-    float uLocal = (color.r * (N - 1.0f) + 0.5f) * texU; // 슬라이스 내부 red 오프셋
-    float v      = (color.g * (N - 1.0f) + 0.5f) * texV; // green
+    float uLocal = (color.r * (logicalSize - 1.0f) + 0.5f) * scaleX;
+    float v = (color.g * (logicalSize - 1.0f) + 0.5f) * scaleY / textureHeight;
 
-    float3 c0 = TextureMaps[lutIdx].SampleLevel(g_sam_Terrain, float2(slice0 * sliceU + uLocal, v), 0).rgb;
-    float3 c1 = TextureMaps[lutIdx].SampleLevel(g_sam_Terrain, float2(slice1 * sliceU + uLocal, v), 0).rgb;
-    return lerp(c0, c1, fBlue); // blue 축 수동 보간(하드웨어가 red/green 보간)
+    float3 c0 = TextureMaps[lutIdx].SampleLevel(g_sam_Terrain, float2((slice0 * tileWidth + uLocal) / textureWidth, v), 0).rgb;
+    float3 c1 = TextureMaps[lutIdx].SampleLevel(g_sam_Terrain, float2((slice1 * tileWidth + uLocal) / textureWidth, v), 0).rgb;
+    return lerp(c0, c1, fBlue);
 }
 
 float4 PS_Main(VS_OUT input) : SV_Target
@@ -124,20 +126,23 @@ float4 PS_Main(VS_OUT input) : SV_Target
     PASS_CUSTOM_DATA data = PassCustomTable[2];
 
     float3 hdrColor = Gbuffer[data.PreviousStep].Sample(g_sam_0, input.uv).rgb;
+    bool customColorGradingEnabled = data.ExtTex[5] != 0;
 
     // 노출 보정 (톤매핑 전 HDR 공간에서 적용)
     float exposure = data.ExtValue[0].w; // 1.0 = 기본
+    if (!customColorGradingEnabled)
+        exposure = 1.0f;
     hdrColor *= exposure;
 
-    // 톤매핑 (HDR → LDR)
+    // 톤매핑 (HDR -. LDR)
     float3 mapped = Tonemap_Uchimura(hdrColor);
 
-    // 컬러 그레이딩 (톤매핑 후, 감마 보정 전)
-    mapped = ApplyColorGrading(mapped, data);
+    // 감마 보정 (선형 -. > sRGB)
+    float3 gammaCorrected = LinearToSRGB(saturate(mapped));
 
-    // 감마 보정
-  //  float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 2.2f);
-   float3 gammaCorrected = pow(max(mapped, 0.0f), 1.0f / 1.8f);
+    // 컬러 그레이딩 (커스텀)
+    if (customColorGradingEnabled)
+        gammaCorrected = ApplyColorGrading(gammaCorrected, data);
 
     // 컬러 LUT
     int lutIdx = data.ExtTex[0];
@@ -145,8 +150,13 @@ float4 PS_Main(VS_OUT input) : SV_Target
     {
         float N = (float) data.ExtTex[1];
         float strength = data.ExtTex[2] / 100.0f;
-        float3 graded = ApplyColorLUT(lutIdx, N, gammaCorrected);
-        gammaCorrected = lerp(gammaCorrected, graded, strength);
+        float textureWidth = (float) data.ExtTex[3];
+        float textureHeight = (float) data.ExtTex[4];
+        if (N > 1.0f && textureWidth > 0.0f && textureHeight > 0.0f)
+        {
+            float3 graded = ApplyScaledColorLUT(lutIdx, N, textureWidth, textureHeight, gammaCorrected);
+            gammaCorrected = lerp(gammaCorrected, graded, strength);
+        }
     }
     // 비네트
     //float2 d = input.uv - float2(0.5f, 0.5f);

@@ -16,13 +16,16 @@ public:
 	virtual void Execute(std::vector<DrawBatch>& deferredDrawBatchs);
 
 	void SetColorGrading(const ColorGradingParams& params) { mColorGrading = params; }
+	void SetColorGradingEnabled(bool enabled) { mColorGradingEnabled = enabled; }
 	void SetColorLUT(const std::wstring& name, int size, float strength = 1.0f);
 	const ColorGradingParams& GetColorGrading() const { return mColorGrading; }
+	bool IsColorGradingEnabled() const { return mColorGradingEnabled; }
 
 private:
 	ColorGradingParams mColorGrading;
+	bool mColorGradingEnabled = true;
 	wstring mLutName;
-	int mLutSize;
-	float mLutStrength;
+	int mLutSize = 0;
+	float mLutStrength = 0.0f;
 };
 

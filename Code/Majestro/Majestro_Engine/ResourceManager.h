@@ -94,6 +94,8 @@ public:
 
 	// 파일 내용 해시 기반 텍스처 로드 — 같은 내용이면 기존 텍스처 재사용
 	shared_ptr<Texture> LoadTextureDeduped(const wstring& key, const wstring& path);
+	// 텍스쳐 재로드 — 기존 텍스처를 제거하고 새로 로드
+	shared_ptr<Texture> ReloadTexture(const wstring& key, const wstring& path);
 
 	// 지금까지 로드된 텍스처 예산 요약 + 상위 20개를 stdout으로 출력 
 	void DumpTextureBudget(const char* label);	// (label: 호출 시점 구분용)

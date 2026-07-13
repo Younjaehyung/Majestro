@@ -145,6 +145,7 @@ public:
 	uint8 mBrassSkill3ShotsRemaining = 0;
 	float mBrassSkill3NextShotTime = 0.0f;
 	float mBrassSkill3ShotInterval = 0.0f;
+	float mDragonSkill4NextAttackTime = -1.0f;
 	float mBrassRushEndHoldUntilTime = 0.0f;
 	bool mBossEncounterActivated = false;
 

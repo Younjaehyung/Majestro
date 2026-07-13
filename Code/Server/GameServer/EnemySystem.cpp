@@ -26,11 +26,12 @@
 
 namespace
 {
-    constexpr uint8 kBrassSkill3ShotCount = 16;
-    constexpr uint8 kBrassSkill3PatternShotCount = 8;
-    constexpr float kBrassSkill3DurationBeats = 8.0f;
-    constexpr float kBrassSkill2FireDelayBeats = 1.5f;
-    constexpr float kDragonSkill1FireDelayBeats = 1.0f;
+	constexpr uint8 kBrassSkill3ShotCount = 16;
+	constexpr uint8 kBrassSkill3PatternShotCount = 8;
+	constexpr float kBrassSkill3DurationBeats = 8.0f;
+	constexpr float kBrassSkill2FireDelayBeats = 1.5f;
+	constexpr float kDragonSkill1FireDelayBeats = 1.0f;
+	constexpr float kDragonSkill123AnimDurationSeconds = 3.0f;
 
     float FlatDistanceSquared(const Vec3& a, const Vec3& b)
     {
@@ -735,42 +736,54 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
         }
         break;
-    case EnemyType::Dragon:
-    {
-        movementComp->mMovingDirection = Vec3::Zero;
-        movementComp->mPathCount = 0;
-        movementComp->mPathIndex = 0;
+	    case EnemyType::Dragon:
+	    {
+	        movementComp->mMovingDirection = Vec3::Zero;
+	        movementComp->mPathCount = 0;
+	        movementComp->mPathIndex = 0;
 
-        if (eventManager &&
-            enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::DragonSkill1) &&
-            enemyComp->mPendingAttackTime >= 0.0f &&
-            nowSeconds >= enemyComp->mPendingAttackTime)
-        {
-            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::DragonSkill1 });
-            enemyComp->mPendingAttackTime = -1.0f;
-            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-            break;
-        }
+	        if (eventManager &&
+	            enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::DragonSkill4) &&
+	            enemyComp->mDragonSkill4NextAttackTime >= 0.0f &&
+	            nowSeconds <= enemyComp->mAttackAnimEndTime &&
+	            nowSeconds >= enemyComp->mDragonSkill4NextAttackTime)
+	        {
+	            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::DragonSkill4 });
+	            enemyComp->mDragonSkill4NextAttackTime = nowSeconds + beatSeconds;
+	        }
 
-        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
-        {
-            std::uniform_int_distribution<int> dragonPick(0, 3);
-            const uint8 dragonPattern = static_cast<uint8>(dragonPick(RandomEngine()));
-            const SkillType dragonSkill = GetDragonSkillType(dragonPattern);
-            enemyComp->mPendingSkillType = static_cast<uint8>(dragonSkill);
-            enemyComp->mPendingAttackTime = -1.0f;
+	        if (eventManager &&
+	            enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::DragonSkill1) &&
+	            enemyComp->mPendingAttackTime >= 0.0f &&
+	            nowSeconds >= enemyComp->mPendingAttackTime)
+	        {
+	            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::DragonSkill1 });
+	            enemyComp->mPendingAttackTime = -1.0f;
+	            break;
+	        }
 
-            if (dragonSkill == SkillType::DragonSkill1)
-            {
-                enemyComp->mPendingAttackTime = nowSeconds + beatSeconds * kDragonSkill1FireDelayBeats;
-                enemyComp->mAttackAnimEndTime = enemyComp->mPendingAttackTime + enemyComp->mAttackAnimTime;
-            }
-            else if (dragonSkill == SkillType::DragonSkill2)
-            {
-                if (HealthComponent* dragonHealth = mWorld->GetComponent<HealthComponent>(entity))
-                {
-                    const int32 prevHp = dragonHealth->mCurrentHp;
-                    dragonHealth->mCurrentHp = (std::min)(dragonHealth->mMaxHp, dragonHealth->mCurrentHp + 100);
+	        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
+	        {
+	            std::uniform_int_distribution<int> dragonPick(0, 3);
+	            const uint8 dragonPattern = static_cast<uint8>(dragonPick(RandomEngine()));
+	            const SkillType dragonSkill = GetDragonSkillType(dragonPattern);
+	            enemyComp->mPendingSkillType = static_cast<uint8>(dragonSkill);
+	            enemyComp->mPendingAttackTime = -1.0f;
+	            enemyComp->mDragonSkill4NextAttackTime = -1.0f;
+
+	            if (dragonSkill == SkillType::DragonSkill1)
+	            {
+	                enemyComp->mPendingAttackTime = nowSeconds + beatSeconds * kDragonSkill1FireDelayBeats;
+	                enemyComp->mAttackAnimEndTime = nowSeconds + kDragonSkill123AnimDurationSeconds;
+	            }
+	            else if (dragonSkill == SkillType::DragonSkill2)
+	            {
+	                enemyComp->mAttackAnimEndTime = nowSeconds + kDragonSkill123AnimDurationSeconds;
+
+	                if (HealthComponent* dragonHealth = mWorld->GetComponent<HealthComponent>(entity))
+	                {
+	                    const int32 prevHp = dragonHealth->mCurrentHp;
+	                    dragonHealth->mCurrentHp = (std::min)(dragonHealth->mMaxHp, dragonHealth->mCurrentHp + 100);
 
                     if (dragonHealth->mCurrentHp != prevHp)
                     {
@@ -798,20 +811,25 @@ bool EnemySystem::HandleAttackState(
                 } };
 
                 std::uniform_int_distribution<size_t> summonPick(0, summonOptions.size() - 1);
-                const DragonSummonOption& summon = summonOptions[summonPick(RandomEngine())];
-                SpawnEnemyGroupAroundAndBroadcast(mWorld, entity, summon.type, summon.count, summon.radius);
-            }
-            else
-            {
-                eventManager->Enqueue<EvMeleeAttackRequest>({ entity, dragonSkill });
-            }
+	                const DragonSummonOption& summon = summonOptions[summonPick(RandomEngine())];
+	                SpawnEnemyGroupAroundAndBroadcast(mWorld, entity, summon.type, summon.count, summon.radius);
+	            }
+	            else
+	            {
+	                enemyComp->mAttackAnimEndTime =
+	                    dragonSkill == SkillType::DragonSkill4
+	                    ? nowSeconds + enemyComp->mAttackAnimTime
+	                    : nowSeconds + kDragonSkill123AnimDurationSeconds;
 
-            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mBossAttackCool[dragonPattern];
-            if (dragonSkill != SkillType::DragonSkill1)
-                enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-        }
-        break;
-    }
+	                eventManager->Enqueue<EvMeleeAttackRequest>({ entity, dragonSkill });
+	                if (dragonSkill == SkillType::DragonSkill4)
+	                    enemyComp->mDragonSkill4NextAttackTime = nowSeconds + beatSeconds;
+	            }
+
+	            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mBossAttackCool[dragonPattern];
+	        }
+	        break;
+	    }
 	    case EnemyType::Brass:
 	    {
 	        auto getBrassRushEndDuration = [&]()
@@ -1347,12 +1365,13 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mAnimState = static_cast<uint8>(
                 GetDragonAnimState(static_cast<SkillType>(enemyComp->mPendingSkillType)));
         }
-        else
-        {
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
-            enemyComp->mPendingSkillType = 0;
-        }
-    }
+	        else
+	        {
+	            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
+	            enemyComp->mPendingSkillType = 0;
+	            enemyComp->mDragonSkill4NextAttackTime = -1.0f;
+	        }
+	    }
     else if (nowSeconds <= enemyComp->mAttackAnimEndTime)
     {
         enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);

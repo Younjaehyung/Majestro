@@ -3062,6 +3062,7 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_LevelMan_Talk_Level", L"..\\Resources\\Image\\UI\\UI_LevelMan_Talk_Level.png");
 		Load<Texture>(L"UI_NoteBoar_Portrait", L"..\\Resources\\Image\\UI\\UI_NoteBoar_Portrait.png");
 		Load<Texture>(L"UI_NoteMan_Portrait", L"..\\Resources\\Image\\UI\\UI_NoteMan_Portrait.png");
+		Load<Texture>(L"UI_NPC_Portrait_Sheet", L"..\\Resources\\Image\\UI\\UI_NPC_Portrait_Sheet.png");
 
      
 
@@ -3328,6 +3329,8 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Slime\\Anim_Slime_Run.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_NoteMan_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_LevelMan_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_RhythmMan_Idle.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");
 	LoadFBXModel(L"..\\Resources\\FBX\\Object\\Obelisk.fbx", L"Deferred");
@@ -3408,7 +3411,9 @@ void ResourceManager::CreateDefaultMaterial()
 
 	Load<Texture>(L"DecalMagicCircle", L"..\\Resources\\Effect\\texture\\MagicCircle1.png");
 	Load<Texture>(L"DecalNote", L"..\\Resources\\Effect\\texture\\magiccircle_remilia.png");
-	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_NoteBoar_Portrait.png");
+	Load<Texture>(L"DecalGroundCrack", L"..\\Resources\\Effect\\texture\\magiccircle_remilia.png");
+	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_Emote_Sheet.png");
+
 }
 
 void ResourceManager::CreateDefaultParticleEffect()

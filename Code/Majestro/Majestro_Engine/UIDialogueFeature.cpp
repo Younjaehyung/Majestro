@@ -123,6 +123,12 @@ void UIDialogueFeature::Update(float dt)
 			{
 				if (shared_ptr<Texture> tex = RESOURCEMANAGER.Get<Texture>(npc->mPortraitKey))
 					portrait->mTexture = tex;
+
+				if (npc->mPortraitRect.z > 0.f)   // width>0 이면 아틀라스 셀 사용
+					portrait->SetSourceRect(npc->mPortraitRect.x, npc->mPortraitRect.y,
+						npc->mPortraitRect.z, npc->mPortraitRect.w);
+				else
+					portrait->ClearSourceRect();
 			}
 
 			name->mText = npc->mName;

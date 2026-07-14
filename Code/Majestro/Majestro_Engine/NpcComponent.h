@@ -19,6 +19,7 @@ public:
 	std::wstring mNpcId;
 	std::wstring mName;                        // 대화창 표시 이름
 	std::wstring mPortraitKey = L"UI_NoteMan_Portrait";  // 대화창 초상화 텍스처 키
+	Vec4 mPortraitRect = Vec4(0.f, 0.f, 0.f, 0.f);       // 아틀라스 소스 렉트(x,y,w,h 픽셀). w<=0이면 전체 텍스처 사용
 	NpcRole mRole = NpcRole::Dialogue;
 	float mInteractRadius = 250.f;
 	float mHomeYaw = 0.f;                      // 배치 방향 (대화 종료 후 복귀할 yaw, 도 단위)

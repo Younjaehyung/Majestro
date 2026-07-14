@@ -2512,6 +2512,12 @@ namespace
 			npc.mName = utfs2ws(GetOptionalString(it, "name", "NPC"));
 			npc.mRole = ParseNpcRole(GetOptionalString(it, "role", "dialogue"));
 			npc.mPortraitKey = utfs2ws(GetOptionalString(it, "portrait", "UI_NoteMan_Portrait"));
+			// 아틀라스 초상화 셀(없으면 전체 텍스처 사용)
+			if (it.contains("portraitRect") && it["portraitRect"].is_array() && it["portraitRect"].size() >= 4)
+			{
+				const auto& r = it["portraitRect"];
+				npc.mPortraitRect = Vec4(r[0].get<float>(), r[1].get<float>(), r[2].get<float>(), r[3].get<float>());
+			}
 			npc.mInteractRadius = GetOptionalFloat(it, "interactRadius", 250.f);
 			npc.mHomeYaw = homeYaw;
 

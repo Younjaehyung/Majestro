@@ -650,10 +650,11 @@ bool EnemySystem::HandleAttackState(
     {
     case EnemyType::HornMan:
     {
-        bool hornManKitingMoved = false;
         constexpr float kHornManKitingMinTargetDist = ONNX_SENSE_RADIUS - 300.0f;
         constexpr float kHornManKitingMinTargetDistSq =
             kHornManKitingMinTargetDist * kHornManKitingMinTargetDist;
+        constexpr float kHornManRunAnimHoldSeconds = 0.18f;
+        constexpr float kHornManMoveEpsilonSq = 1e-6f;
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
@@ -663,7 +664,8 @@ bool EnemySystem::HandleAttackState(
             eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::HornAttack });
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
-            break;
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Attack);
+            return true;
         }
 
         auto navSystem = mWorld->GetNavSystem();
@@ -678,7 +680,7 @@ bool EnemySystem::HandleAttackState(
 
         if (canMoveWithKiting)
         {
-            MoveEnemyTowardTarget(entity, enemyComp, movementComp, myPos, kitingTarget, navSystem, nowSeconds, dt, entityIndex);
+            MoveEnemyTowardTarget(entity, enemyComp, movementComp, myPos, kitingTarget, navSystem, nowSeconds, dt, entityIndex, false);
 
             Vec3 toPlayer = playerPos - myPos;
             toPlayer.y = 0.0f;
@@ -694,16 +696,17 @@ bool EnemySystem::HandleAttackState(
                     movementComp->mPathCount = 0;
                     movementComp->mPathIndex = 0;
                     movementComp->mDetourActive = false;
-                    enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
                 }
-                else if (movementComp->mMovingDirection.LengthSquared() > 1e-8f)
+                else if (movementComp->mMovingDirection.LengthSquared() > kHornManMoveEpsilonSq)
                 {
-                    hornManKitingMoved = true;
+                    enemyComp->mLocomotionAnimHoldUntilTime = nowSeconds + kHornManRunAnimHoldSeconds;
+                    return true;
                 }
             }
-            else if (movementComp->mMovingDirection.LengthSquared() > 1e-8f)
+            else if (movementComp->mMovingDirection.LengthSquared() > kHornManMoveEpsilonSq)
             {
-                hornManKitingMoved = true;
+                enemyComp->mLocomotionAnimHoldUntilTime = nowSeconds + kHornManRunAnimHoldSeconds;
+                return true;
             }
         }
         else
@@ -712,12 +715,16 @@ bool EnemySystem::HandleAttackState(
             movementComp->mPathCount = 0;
             movementComp->mPathIndex = 0;
             movementComp->mDetourActive = false;
-            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
         }
 
-        if (hornManKitingMoved)
+        if (nowSeconds <= enemyComp->mLocomotionAnimHoldUntilTime)
+        {
+            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
             return true;
-        break;
+        }
+
+        enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
+        return true;
     }
     case EnemyType::Obelisk:
         movementComp->mMovingDirection = Vec3::Zero;
@@ -1419,7 +1426,10 @@ void EnemySystem::HandleRunState(
     }
 
     Vec3 desiredTarget = playerPos;
-    const bool allowOnnxBaseMove = mUseOnnxBaseMove && enemyComp->mEnemyType != EnemyType::Brass;
+    const bool allowOnnxBaseMove =
+        mUseOnnxBaseMove &&
+        enemyComp->mEnemyType != EnemyType::Brass &&
+        enemyComp->mEnemyType != EnemyType::Dragon;
     if (allowOnnxBaseMove)
     {
         Vec3 onnxTarget = playerPos;
@@ -1439,7 +1449,8 @@ void EnemySystem::MoveEnemyTowardTarget(
     const std::shared_ptr<Navigation>& navSystem,
     float nowSeconds,
     float dt,
-    int entityIndex)
+    int entityIndex,
+    bool allowDetour)
 {
     if (!enemyComp || !movementComp)
         return;
@@ -1449,32 +1460,42 @@ void EnemySystem::MoveEnemyTowardTarget(
         : nullptr;
     Vec3 currentTarget = desiredTarget;
 
-    UpdateDetourState(movementComp, myPos, currentTarget, dt);
-
-    if (movementComp->mDetourActive)
+    if (!allowDetour)
     {
-        const bool movedFarEnough = FlatDistanceSquared(myPos, movementComp->mDetourStartPos) >= DETOUR_EXIT_DISTANCE * DETOUR_EXIT_DISTANCE;
-        const bool timedOut = nowSeconds >= movementComp->mDetourEndTime;
-
-        if (movedFarEnough || timedOut)
-        {
-            movementComp->mDetourActive = false;
-            movementComp->mStuckElapsed = 0.0f;
-            movementComp->mProgressSampleElapsed = 0.0f;
-            movementComp->mProgressSamplePos = myPos;
-        }
-    }
-
-    if (!movementComp->mDetourActive && ShouldEnterDetour(movementComp, myPos, currentTarget))
-    {
-        movementComp->mDetourActive = true;
-        movementComp->mDetourStartPos = myPos;
-        movementComp->mDetourEndTime = nowSeconds + DETOUR_TIMEOUT_SECONDS;
+        movementComp->mDetourActive = false;
         movementComp->mStuckElapsed = 0.0f;
+        movementComp->mProgressSampleElapsed = 0.0f;
+        movementComp->mProgressSamplePos = myPos;
     }
+    else
+    {
+        UpdateDetourState(movementComp, myPos, currentTarget, dt);
 
-    if (movementComp->mDetourActive)
-        currentTarget = PathFinder(myPos, true);
+        if (movementComp->mDetourActive)
+        {
+            const bool movedFarEnough = FlatDistanceSquared(myPos, movementComp->mDetourStartPos) >= DETOUR_EXIT_DISTANCE * DETOUR_EXIT_DISTANCE;
+            const bool timedOut = nowSeconds >= movementComp->mDetourEndTime;
+
+            if (movedFarEnough || timedOut)
+            {
+                movementComp->mDetourActive = false;
+                movementComp->mStuckElapsed = 0.0f;
+                movementComp->mProgressSampleElapsed = 0.0f;
+                movementComp->mProgressSamplePos = myPos;
+            }
+        }
+
+        if (!movementComp->mDetourActive && ShouldEnterDetour(movementComp, myPos, currentTarget))
+        {
+            movementComp->mDetourActive = true;
+            movementComp->mDetourStartPos = myPos;
+            movementComp->mDetourEndTime = nowSeconds + DETOUR_TIMEOUT_SECONDS;
+            movementComp->mStuckElapsed = 0.0f;
+        }
+
+        if (movementComp->mDetourActive)
+            currentTarget = PathFinder(myPos, true);
+    }
 
     // ---- 재탐색 판단 ----
     movementComp->mPathTimer -= dt;

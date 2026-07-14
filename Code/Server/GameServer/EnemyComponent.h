@@ -95,16 +95,16 @@ public:
 			mNextAttackTime = GetServerTotalTimeSeconds();
 			mNextShildTime = GetServerTotalTimeSeconds();
 			break;
-		case EnemyType::Dragon:
-			mAttackCool = 12;
-			AttackRange = 700.f;
-			AttackRangeSq = AttackRange * AttackRange;
-			mNextAttackTime = GetServerTotalTimeSeconds();
-			mBossAttackCool[0] = 12.0f;
-			mBossAttackCool[1] = 12.0f;
-			mBossAttackCool[2] = 12.0f;
-			mBossAttackCool[3] = 12.0f;
-			break;
+			case EnemyType::Dragon:
+				mAttackCool = 12;
+				AttackRange = 700.f;
+				AttackRangeSq = AttackRange * AttackRange;
+				mNextAttackTime = GetServerTotalTimeSeconds();
+				mBossAttackCool[0] = 16.0f;
+				mBossAttackCool[1] = 16.0f;
+				mBossAttackCool[2] = 16.0f;
+				mBossAttackCool[3] = 16.0f;
+				break;
 		default:
 			mAttackCool = 4;
 			mNextAttackTime = GetServerTotalTimeSeconds();
@@ -138,6 +138,7 @@ public:
 	float mUtilityIntervalBeats = 0.0f;
 	int32 mUtilityAmount = 0;
 	float mHoverHeight = 0.0f;
+	float mLocomotionAnimHoldUntilTime = 0.0f;
 	Entity mLinkedPlayer{};
 	uint8 mBrassAttackPattern = 0;
 	float mBossAttackCool[4] = { 0.f, 0.f, 0.f, 0.f };

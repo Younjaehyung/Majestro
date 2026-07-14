@@ -65,7 +65,8 @@ private:
         const std::shared_ptr<Navigation>& navSystem,
         float nowSeconds,
         float dt,
-        int entityIndex);
+        int entityIndex,
+        bool allowDetour = true);
 
     bool HandleAttackState(
         const Entity& entity,

@@ -75,7 +75,7 @@ void UIHpBarUpdateFeature::DrawUI(CameraComponent* camera, WorldUIPassMode mode)
     // 후속 패스에 영향 가지 않게 GlobalParams 일부 원복
     const uint32 zero = 0;
     GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);  // BaseInstanceID
-    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);  // casdcae (역할 플래그)
+    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);  // PassScalar1 (역할 플래그)
 }
 
 void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
@@ -146,8 +146,8 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     // per-bar GlobalParams 구성
     GlobalParamsLayout gp{};
     gp.BaseInstanceID = 0;
-    gp.etc = hpBar->mIsScreenSpace ? 1u : 0u; // bit0: 1=HUD(screen-space, no occlusion)
-    gp.casdcae = 0;            // 0 = 배경 (DrawHpBar 시작 단계)
+    gp.PassScalar0 = hpBar->mIsScreenSpace ? 1u : 0u; // bit0: 1=HUD(screen-space, no occlusion)
+    gp.PassScalar1 = 0;        // 0 = 배경 (DrawHpBar 시작 단계)
     gp.PassCustomIndex = 0;
 
     gp.HpBarAnchorWorldX = anchorXYZ.x;

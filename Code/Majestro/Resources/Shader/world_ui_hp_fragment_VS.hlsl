@@ -1,5 +1,5 @@
 
-#include "params.hlsl"
+#include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
 
@@ -50,7 +50,7 @@ VS_OUT VS_Main(VS_IN input)
     // NDC 계산 (World vs HUD)
     // NDC.z = 앵커 깊이 (PS occlusion 비교용)
    
-    const bool isHud = (GlobalParams.etc & 1u) != 0u;
+    const bool isHud = (GlobalParams.PassScalar0 & 1u) != 0u;
     float2 anchorNDC;
     float anchorZNDC;
     float anchorW;

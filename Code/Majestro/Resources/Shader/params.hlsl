@@ -277,24 +277,28 @@ struct PASSINFO
 //////////////
 
 //////////////BaseGLOBAL
+// MJ_OVERRIDE_GLOBAL_PARAMS : 각 패스가 자기 레이아웃으로 재해석
+//
+// 슬롯별 의미 (패스 의존):
+//   BaseInstanceID  : 인스턴스 버퍼 base offset (전 패스 공통)
+//   PassScalar0     : 패스별 범용 스칼라 #1
+//                     - particle: emitterIndex / animation·MotionVector: boneCount 임계값
+//                     - hbao_blur: 블러 방향(0/1) / kawase: step 인덱스
+//                     - WorldUI: HUD 플래그 bit0
+//   PassScalar1     : 패스별 범용 스칼라 #2
+//                     - shadow: cascadeIndex / WorldUIHpSprite: bg(0)/fill(1) role
+//                     - ConquestRing: innerRadius * 1000 인코딩
+//   PassCustomIndex : PASS_CUSTOM_DATA 테이블 행 인덱스 (전 패스 공통)
+
+#define MJ_GLOBAL_PARAMS_HEADER \
+    uint BaseInstanceID;        \
+    uint PassScalar0;           \
+    uint PassScalar1;           \
+    uint PassCustomIndex;
+
 struct GLOBAL_PARAMS
 {
-    uint BaseInstanceID;
-    uint etc; // WorldUIPass 한정 플래그 — bit0: 1=HUD(screen-space, no depth occlusion), 0=World
-    uint casdcae;
-    uint PassCustomIndex; // PASS_CUSTOM_DATA 테이블 행 인덱스 (PASS_CUSTOM_INDEX 열거형)
-
-    //HP 바 (WorldUIPass) per-bar 데이터
-    float3 HpBarAnchorWorld;  // 월드 공간 앵커 위치
-    float  HpBarFollowRatio;  // 현재 HP 비율 (0~1) — fill 크롭용 (r1.w 빈 lane 활용)
-
-    float2 HpBarSizePx;       // 화면 픽셀 단위 바 크기
-    float2 HpBarPivotPx;      // 앵커 기준 바 좌상단 픽셀 오프셋 (보통 -size/2)
-
-    uint   HpBarBgTexIdx;     // TextureMaps 배열 인덱스 (배경)
-    uint   HpBarFillTexIdx;   // TextureMaps 배열 인덱스 (채움)
-    uint   HpBarHitTexIdx;    // TextureMaps 배열 인덱스 (hit effect 시트, 0이면 비활성)
-    uint   HpBarHitConfig;    // packed: cols (bits 0-7) | rows (bits 8-15) | frameCount (bits 16-31)
+    MJ_GLOBAL_PARAMS_HEADER
 };
 //////////////
 

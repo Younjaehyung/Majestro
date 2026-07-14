@@ -21,7 +21,7 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT) 0.f;
 
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     float3 worldPos = mul(float4(input.pos, 1.f), ParticleShared[emitterIndex].MatWorld).xyz;
     worldPos += Particle[input.id].worldPos;
 

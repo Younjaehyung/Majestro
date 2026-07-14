@@ -6,11 +6,12 @@ class World;
 class CameraComponent;
 class UIHpBarComponent;
 
+// HLSL WORLD_UI_PARAMS
 struct GlobalParamsLayout
 {
     uint32 BaseInstanceID = 0;
-    uint32 etc = 0;
-    uint32 casdcae = 0;          // WorldUIHpSprite 셰이더에서 0=배경, 1=채움 역할 플래그
+    uint32 PassScalar0 = 0;      // WorldUIPass: HUD 플래그 bit0 (1=screen-space)
+    uint32 PassScalar1 = 0;      // WorldUIHpSprite: 0=배경/1=채움, ConquestRing: innerRadius*1000
     uint32 PassCustomIndex = 0;
 
     float HpBarAnchorWorldX = 0.f;

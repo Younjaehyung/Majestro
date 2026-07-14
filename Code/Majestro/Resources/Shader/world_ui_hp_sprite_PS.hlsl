@@ -1,4 +1,4 @@
-#include "params.hlsl"
+#include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
 
@@ -12,7 +12,7 @@ struct VS_OUT
 // HP 바 배경/채움 전용 PS.
 float4 PS_Main(VS_OUT input) : SV_Target
 {
-    const uint role = GlobalParams.casdcae; // 0=배경, 1=채움
+    const uint role = GlobalParams.PassScalar1; // 0=배경, 1=채움
     //     0 = 배경 (HpBarBgTexIdx 사용, 풀 폭)
     //     1 = 채움 (HpBarFillTexIdx 사용, uv.x > followRatio면 discard)
     
@@ -28,7 +28,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         discard;
 
     // Depth occlusion (HUD 모드는 스킵)
-    if ((GlobalParams.etc & 1) == 0)
+    if ((GlobalParams.PassScalar0 & 1) == 0)
     {
         float2 screenUV = input.pos.xy / PassParams.ScreenSize;
         float sceneDepth = Gbuffer[0].SampleLevel(g_sam_0, screenUV, 0).r;

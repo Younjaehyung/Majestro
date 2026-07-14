@@ -10,6 +10,6 @@ struct GS_OUT
 
 float4 PS_Main(GS_OUT input) : SV_Target
 {
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     return TextureMaps[ParticleShared[emitterIndex].TextureIndex].Sample(g_sam_0, input.uv);
 }

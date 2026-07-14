@@ -133,10 +133,10 @@ void DualKawaseBlurPass::Execute(std::vector<DrawBatch>& /*batches*/)
     RunUpsample();
     RunComposite();
 
-    // GlobalParams.etc, casdcae 원복 (다른 패스에 영향 없도록)
+    // GlobalParams.PassScalar0, PassScalar1 원복
     uint32 zero = 0;
     GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 1); // etc
-    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2); // casdcae
+    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2); // PassScalar1
 }
 
 
@@ -182,7 +182,7 @@ void DualKawaseBlurPass::RunDownsample()
         ClearAndBindRTV(dst);
         SetViewportAndScissor(dst.width, dst.height);
 
-        // GlobalParams.etc = step 인덱스 (HLSL이 ExtValue[etc]에서 texelSize, srcIdx 조회)
+        // GlobalParams.PassScalar0 = step 인덱스 (HLSL이 ExtValue[etc]에서 texelSize, srcIdx 조회)
         uint32 step = static_cast<uint32>(i);
         GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &step, 1);
 

@@ -1,4 +1,4 @@
-#include "params.hlsl"
+#include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
 // 점령 진행률 원형 게이지 전용 PS.
@@ -19,7 +19,7 @@ struct VS_OUT
 float4 PS_Main(VS_OUT input) : SV_Target
 {
     const float progress = saturate(GlobalParams.HpBarFollowRatio);
-    const float innerRadius = saturate(float(GlobalParams.casdcae) * 0.001f);
+    const float innerRadius = saturate(float(GlobalParams.PassScalar1) * 0.001f);
 
     // (0,0) ~ (1,1) → 중심 기준 (-1..1)
     float2 d = input.uv - 0.5f;
@@ -52,7 +52,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
         discard;
 
     // World 모드는 depth occlusion (HUD 모드는 스킵)
-    if ((GlobalParams.etc & 1) == 0)
+    if ((GlobalParams.PassScalar0 & 1) == 0)
     {
         float2 screenUV = input.pos.xy / PassParams.ScreenSize;
         float sceneDepth = Gbuffer[0].SampleLevel(g_sam_0, screenUV, 0).r;

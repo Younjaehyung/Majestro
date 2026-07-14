@@ -888,6 +888,8 @@
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VS_Main</EntryPointName>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <None Include="..\Resources\Shader\decal_PS.hlsl" />
+    <None Include="..\Resources\Shader\decal_VS.hlsl" />
     <None Include="SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>

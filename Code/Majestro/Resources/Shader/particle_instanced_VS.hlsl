@@ -22,7 +22,7 @@ GS_OUT VS_Main(VS_IN input)
     GS_OUT output = (GS_OUT)0.0f;
 
     const uint id = input.id;
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
 
     float ratio = saturate(Particle[id].curTime / max(Particle[id].lifeTime, 0.0001f));
     float scale = lerp(ParticleShared[emitterIndex].StartScale, ParticleShared[emitterIndex].EndScale, ratio);

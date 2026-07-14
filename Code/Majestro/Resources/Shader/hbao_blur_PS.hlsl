@@ -7,7 +7,7 @@
 //  etc=0 : 가로 ExtValue[0] = (texelW, texelH, float(rawAoIdx),  blurRadius)  
 //  etc=1 : 세로 ExtValue[1] = (texelW, texelH, float(blurRtIdx), blurRadius)  
 //
-// GlobalParams.etc = 0(가로) / 1(세로)
+// GlobalParams.PassScalar0 = 0(가로) / 1(세로)
 // 깊이 엣지: Gbuffer[0](PRE_DEPTH) 재구성 뷰공간 Z (deviceDepth >= 1 = 배경)
 
 struct VS_OUT
@@ -27,7 +27,7 @@ float GaussianWeight(float x, float sigma)
 float PS_Main(VS_OUT input) : SV_Target
 {
     PASS_CUSTOM_DATA data = PassCustomTable[GlobalParams.PassCustomIndex];
-    uint             dir  = GlobalParams.etc; // 0=가로, 1=세로
+    uint             dir  = GlobalParams.PassScalar0; // 0=가로, 1=세로
 
     float  texelW     = data.ExtValue[dir].x;
     float  texelH     = data.ExtValue[dir].y;

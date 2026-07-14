@@ -28,7 +28,7 @@ void GS_Main(point VS_OUT input[1], inout TriangleStream<GS_OUT> outputStream)
     if (Particle[id].alive == 0)
         return;
 
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     const float ratio = saturate(Particle[id].curTime / max(Particle[id].lifeTime, 0.0001f));
     const float scale = lerp(ParticleShared[emitterIndex].StartScale, ParticleShared[emitterIndex].EndScale, ratio) * 0.5f;
 

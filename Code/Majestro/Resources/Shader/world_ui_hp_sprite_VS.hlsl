@@ -1,5 +1,5 @@
 
-#include "params.hlsl"
+#include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
 
@@ -30,7 +30,7 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output;
 
-    const bool isHud = (GlobalParams.etc & 1) != 0;
+    const bool isHud = (GlobalParams.PassScalar0 & 1) != 0;
 
     float2 anchorNDC;
     float anchorZNDC;

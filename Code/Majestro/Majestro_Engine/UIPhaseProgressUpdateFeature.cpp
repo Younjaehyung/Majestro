@@ -212,9 +212,9 @@ void UIPhaseProgressUpdateFeature::DrawConquestRing()
 
 	GlobalParamsLayout gp{};
 	gp.BaseInstanceID = 0;
-	gp.etc            = 1; // HUD 모드
-	// casdcae 에 innerRadius * 1000 을 정수로 인코딩 (PS 에서 / 1000.0 으로 복원)
-	gp.casdcae        = static_cast<uint32>(std::clamp(mConquestInnerRadius, 0.f, 1.f) * 1000.f);
+	gp.PassScalar0            = 1; // HUD 모드
+	// PassScalar1 에 innerRadius * 1000 을 정수로 인코딩 (PS 에서 / 1000.0 으로 복원)
+	gp.PassScalar1        = static_cast<uint32>(std::clamp(mConquestInnerRadius, 0.f, 1.f) * 1000.f);
 	gp.PassCustomIndex = 0;
 
 	// 앵커 = 화면 픽셀, 피벗으로 좌상단을 (-w/2, -h/2) 만큼 옮겨 앵커가 정사각형 중심
@@ -282,8 +282,8 @@ void UIPhaseProgressUpdateFeature::DrawConquestRingMulti()
 	{
 		GlobalParamsLayout gp{};
 		gp.BaseInstanceID  = 0;
-		gp.etc             = 1; // HUD 모드
-		gp.casdcae         = innerEnc;
+		gp.PassScalar0             = 1; // HUD 모드
+		gp.PassScalar1         = innerEnc;
 		// PassCustomIndex: 0=기본(불투명). 1..1000 = 완료 플래시 알파*1000 (PS 에서 복원)
 		gp.PassCustomIndex = (flash01 >= 0.999f) ? 0u
 		                   : static_cast<uint32>(std::clamp(flash01, 0.f, 1.f) * 1000.f);
@@ -339,7 +339,7 @@ void UIPhaseProgressUpdateFeature::DrawConquestRingMulti()
 		drawRing(centerX, baseSizePx * flashScale, 1.f, flashAlpha);
 	}
 
-	// 후속 패스 보호 — BaseInstanceID / casdcae / PassCustomIndex 원복
+	// 후속 패스 보호 — BaseInstanceID / PassScalar1 / PassCustomIndex 원복
 	const uint32 zero = 0;
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);
@@ -464,7 +464,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	// 공통 GlobalParams (HUD 모드, 앵커는 바 정중앙)
 	GlobalParamsLayout gp{};
 	gp.BaseInstanceID    = 0;
-	gp.etc               = 1; // HUD 모드 (스크린 스페이스, depth occlusion 스킵)
+	gp.PassScalar0               = 1; // HUD 모드 (스크린 스페이스, depth occlusion 스킵)
 	gp.PassCustomIndex   = 0;
 	const Vec2 anchorPx = GetProgressAnchorPx();
 	
@@ -482,7 +482,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	// 1) BG (가장 뒤, 풀 출력) — role=0 → BgTexIdx 사용
 	if (bgTex != nullptr)
 	{
-		gp.casdcae         = 0;
+		gp.PassScalar1         = 0;
 		gp.HpBarBgTexIdx   = bgTex->GetImageIndex();
 		gp.HpBarFillTexIdx = bgTex->GetImageIndex();
 		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
@@ -491,7 +491,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	}
 
 	// 2) Line (빈 트랙) + 3) Check (채움) — 한 번의 GlobalParams 셋업으로 두 패스
-	gp.casdcae         = 0;
+	gp.PassScalar1         = 0;
 	gp.HpBarBgTexIdx   = lineTex->GetImageIndex();
 	gp.HpBarFillTexIdx = checkTex->GetImageIndex();
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
@@ -505,7 +505,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	// 4) Cursor — 같은 앵커, Pivot 만 진행도 위치로 평행 이동
 	if (cursorTex != nullptr)
 	{
-		gp.casdcae         = 0;
+		gp.PassScalar1         = 0;
 		gp.HpBarSizePxX    = escortCursorSizePx.x;
 		gp.HpBarSizePxY    = escortCursorSizePx.y;
 		gp.HpBarPivotPxX   = -escortSizePx.x * 0.5f
@@ -520,7 +520,7 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 		quadMesh->Render(1, 0, 0, 0);
 	}
 
-	// 후속 패스 보호 — DrawConquestRing 과 동일하게 BaseInstanceID / casdcae 원복
+	// 후속 패스 보호 — DrawConquestRing 과 동일하게 BaseInstanceID / PassScalar1 원복
 	const uint32 zero = 0;
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);

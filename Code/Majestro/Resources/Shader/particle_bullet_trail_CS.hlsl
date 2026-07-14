@@ -10,14 +10,14 @@ float3 BulletTrailSafeNormalize(float3 value, float3 fallback)
 
 float3 BulletTrailForward()
 {
-    float3 forward = -float3(ParticleShared[GlobalParams.etc].MatWorld._31, ParticleShared[GlobalParams.etc].MatWorld._32, ParticleShared[GlobalParams.etc].MatWorld._33);
+    float3 forward = -float3(ParticleShared[GlobalParams.PassScalar0].MatWorld._31, ParticleShared[GlobalParams.PassScalar0].MatWorld._32, ParticleShared[GlobalParams.PassScalar0].MatWorld._33);
     return BulletTrailSafeNormalize(forward, float3(0.0f, 0.0f, -1.0f));
 }
 
 [numthreads(1024, 1, 1)]
 void CS_Main(int3 threadIndex : SV_DispatchThreadID)
 {
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     const PARTICLESHARED shareds = ParticleShared[emitterIndex];
 
     if (threadIndex.x >= shareds.maxCount)

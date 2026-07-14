@@ -8,7 +8,7 @@
 //     texelW/H   : 소스 텍스처의 텍셀 크기 (1 / srcWidth, 1 / srcHeight)
 //     srcImageIdx: 소스 텍스처의 TextureMaps[] 인덱스 (GetImageIndex() 값)
 //
-// GlobalParams.etc = 현재 step 인덱스 (0~N-1)
+// GlobalParams.PassScalar0 = 현재 step 인덱스 (0~N-1)
 //   -> ExtValue[etc]에서 해당 step의 params 조회
 //
 // Dual Kawase Downsample 커널 (5-tap):
@@ -25,7 +25,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 {
     PASS_CUSTOM_DATA data = PassCustomTable[GlobalParams.PassCustomIndex];
 
-    uint step = GlobalParams.etc;
+    uint step = GlobalParams.PassScalar0;
 
     float texelW    = data.ExtValue[step].x;
     float texelH    = data.ExtValue[step].y;

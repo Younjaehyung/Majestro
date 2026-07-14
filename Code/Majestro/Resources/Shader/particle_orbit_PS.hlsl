@@ -10,7 +10,7 @@ struct GS_OUT
 
 float4 PS_Main(GS_OUT input) : SV_Target
 {
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     const PARTICLE particle = Particle[input.id];
     const float ratio = saturate(particle.curTime / max(particle.lifeTime, 0.0001f));
 

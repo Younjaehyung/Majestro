@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Engine">
@@ -13,7 +13,7 @@
     <Filter Include="Engine\Manager">
       <UniqueIdentifier>{e25be560-227f-4c1a-8f97-0c430f065a4b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Engine\Manager\Iinput">
+    <Filter Include="Engine\Manager\Input">
       <UniqueIdentifier>{bc1eefe5-0ee2-4cf9-b26a-fbc8ace41920}</UniqueIdentifier>
     </Filter>
     <Filter Include="World">
@@ -34,41 +34,38 @@
     <Filter Include="World\Resource\Shader">
       <UniqueIdentifier>{a87ffd82-97ab-44cf-a036-614ab1754d04}</UniqueIdentifier>
     </Filter>
+    <Filter Include="World\Resource\Shader\08.Post">
+      <UniqueIdentifier>{98b591c7-1cf5-4dd8-8f93-40100fa7dd5c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="World\Component\UI">
       <UniqueIdentifier>{1fa1ef34-c658-498c-8e55-651acb2a8764}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils\ImGUI">
+    <Filter Include="Utils\ImGui">
       <UniqueIdentifier>{1eabffd8-9ecb-476b-97df-1f2f68729020}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\IMGUI">
+    <Filter Include="World\System\ImGui">
       <UniqueIdentifier>{88e35f1c-78bf-4dfe-b50e-1e4ac6da1b50}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Component\IMGUI">
+    <Filter Include="World\Component\ImGui">
       <UniqueIdentifier>{f3b43cef-1202-4e65-b9db-d67496978c23}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\Component\Effect">
       <UniqueIdentifier>{5aee3f13-e97c-4a03-a84d-eca79442a635}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Component\Server">
+    <Filter Include="World\Component\Network">
       <UniqueIdentifier>{70399b08-2e12-41c1-9269-e9053c6e3642}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\Network">
       <UniqueIdentifier>{95dc7531-d7fa-4b28-a68a-80c62c6387c7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils\Network">
-      <UniqueIdentifier>{49c6bfae-9fac-42d7-b4cf-bb0ae9da8c8a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Network">
       <UniqueIdentifier>{48d0e12c-073e-4a25-befe-8975c5546535}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Client">
+    <Filter Include="World\System\Animation">
       <UniqueIdentifier>{8e2a4bcd-147c-4e76-88cc-0ad200931b8c}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\Logic">
       <UniqueIdentifier>{0dc690ba-ae13-4b4e-b717-5c86ab60e6f0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Component\Client">
-      <UniqueIdentifier>{fdbcb73d-ddc1-4937-84ca-e09f2d1ccffd}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\Component\Logic">
       <UniqueIdentifier>{138d84d6-6d11-4508-99a8-4ebbdb49ee81}</UniqueIdentifier>
@@ -79,7 +76,7 @@
     <Filter Include="Utils\Math">
       <UniqueIdentifier>{ffad11d8-31ac-4a24-b3c0-365bc9e152e8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils\Pch">
+    <Filter Include="Utils\PCH">
       <UniqueIdentifier>{b28412a9-d981-4b9d-8508-31d302ff01c6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Network\Buffer">
@@ -106,14 +103,11 @@
     <Filter Include="World\Base\Entity">
       <UniqueIdentifier>{9ed7b76a-a24c-4b47-9856-c3bea6ef160f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Component\Utils">
+    <Filter Include="World\Component\Common">
       <UniqueIdentifier>{b287906e-89e5-450f-bf36-b048bd0b75a5}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\UI">
       <UniqueIdentifier>{0c6b4f72-e8cd-463c-8928-5ee2d19bad7d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\Debug">
-      <UniqueIdentifier>{6f895306-537a-47c4-b743-d6ec121572a8}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\Event">
       <UniqueIdentifier>{470ed48e-45b5-4435-9d62-8ac4ed014633}</UniqueIdentifier>
@@ -145,37 +139,37 @@
     <Filter Include="World\System\Render\04.Shadow">
       <UniqueIdentifier>{a88b9c28-584b-4fa4-acb5-08a2f169c7a1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Render\03.Pre-pass">
+    <Filter Include="World\System\Render\03.PrePass">
       <UniqueIdentifier>{0298a83f-589a-4841-a414-bfb0e36dc61b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\98.Terrain">
+    <Filter Include="World\Resource\Shader\10.Terrain">
       <UniqueIdentifier>{3d125a3a-65f0-4fc2-880e-902c962f85b0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\00.Utils">
+    <Filter Include="World\Resource\Shader\00.Common">
       <UniqueIdentifier>{06defce9-15b0-49a7-8794-682af45355e5}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\Resource\Shader\01.Shadow">
       <UniqueIdentifier>{0edf9506-908b-4443-a394-a320e664f31b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\80.Post">
-      <UniqueIdentifier>{041f38b3-62c6-49d0-bcc3-60abc1d8a57b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\80.Post\particle">
+    <Filter Include="World\Resource\Shader\07.Effect\Particle">
       <UniqueIdentifier>{902396bf-bfe0-497f-b466-8d4c6bfdcdf0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\80.Post\Style">
+    <Filter Include="World\Resource\Shader\07.Effect\Trail">
       <UniqueIdentifier>{2479dc8e-8b80-4959-9582-5b1b0bb176ef}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\50.Forward">
+    <Filter Include="World\Resource\Shader\05.Forward">
       <UniqueIdentifier>{3b49f856-69bf-46ec-ad1b-9d94e8c31bb2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\40.Deferred">
+    <Filter Include="World\Resource\Shader\06.Deferred">
       <UniqueIdentifier>{9ff8d14e-9792-4fb6-a3c3-3635c6b5f956}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\99.animation">
+    <Filter Include="World\Resource\Shader\06.Deferred\Decal">
+      <UniqueIdentifier>{ba2b4f20-7e94-4d5b-a952-c22e2db7ce06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\11.Animation">
       <UniqueIdentifier>{38130558-6394-44be-a0f6-beb19ba95322}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\60.ETC">
+    <Filter Include="World\Resource\Shader\09.UI\Lobby">
       <UniqueIdentifier>{7db13a96-b1ba-4100-8369-d528be1fe851}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\Render\00.Pipeline">
@@ -187,19 +181,16 @@
     <Filter Include="World\System\Render\08.Post\LDR">
       <UniqueIdentifier>{66d96ce9-e9ff-4971-81ff-e0abd2cbf329}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\System\Render\08.Post\ETC">
+    <Filter Include="World\System\Render\08.Post\Motion">
       <UniqueIdentifier>{9a36c340-8aed-44fb-af15-ee033162ffd0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\80.Post\bloom">
+    <Filter Include="World\Resource\Shader\08.Post\Bloom">
       <UniqueIdentifier>{9ac568dc-5abb-48bd-a667-bb49df0a764f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\50.Forward\Foilage">
+    <Filter Include="World\Resource\Shader\05.Forward\Foliage">
       <UniqueIdentifier>{42fee3c2-4f5d-40ae-9e4a-53fca045e946}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\50.Forward\NewFilter1">
-      <UniqueIdentifier>{d888b5a5-9e32-48ab-ae4a-03b48d77e7d2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="World\Resource\Shader\50.Forward\Cartoon">
+    <Filter Include="World\Resource\Shader\05.Forward\Cartoon">
       <UniqueIdentifier>{8e4100cc-b05d-40de-aa01-bac40fd182ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="World\System\UI\Feature">
@@ -211,7 +202,7 @@
     <Filter Include="World\System\UI\Common">
       <UniqueIdentifier>{84e20beb-7094-48a0-a397-0b603f26e283}</UniqueIdentifier>
     </Filter>
-    <Filter Include="World\Resource\Shader\90. UI">
+    <Filter Include="World\Resource\Shader\09.UI">
       <UniqueIdentifier>{9fc7c677-aa45-40be-8195-6e4c1c0ea9a0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Utils\Json">
@@ -222,6 +213,66 @@
     </Filter>
     <Filter Include="World\System\UI\Menu">
       <UniqueIdentifier>{b04d8e3a-386e-4ead-b017-0c4d02c0452f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\99.Utility">
+      <UniqueIdentifier>{c52c995c-b941-4fb1-81f9-8a84d013d7ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\Presentation">
+      <UniqueIdentifier>{a481d87e-ab6a-4f24-98b7-a58735157747}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\UI\HUD">
+      <UniqueIdentifier>{5cc81223-c24a-46d6-8bea-87a9f051addb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\UI\Lobby">
+      <UniqueIdentifier>{ebae78a3-2399-40d7-812f-6440dcfc15ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\UI\Menu">
+      <UniqueIdentifier>{a04de431-9e5e-4031-b80f-3cca0e520957}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Component\UI\Visualizer">
+      <UniqueIdentifier>{3609e1b6-2948-44fc-baad-ad46558ee4de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Audio">
+      <UniqueIdentifier>{323e5ae8-0212-4507-97db-0bad595f8578}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Input">
+      <UniqueIdentifier>{914aa7d6-dcbd-43ff-bad2-0d51bf87a70c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Effect">
+      <UniqueIdentifier>{be5ebabf-d859-458d-91c1-616e30b5ab82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\06.Deferred\Decal">
+      <UniqueIdentifier>{b0f5ad79-77e8-483c-a8ea-25caabb67833}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\08.Post\AO">
+      <UniqueIdentifier>{e4625ec6-455a-4e71-a5ed-bc4329f9a079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\08.Post\Bloom">
+      <UniqueIdentifier>{2c8be1f3-f630-431e-b0b0-730c59ab2c57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\System\Render\09.UI">
+      <UniqueIdentifier>{d0ec9d0c-3cec-44b5-8de5-068f2c43b3a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\03.PrePass">
+      <UniqueIdentifier>{de25cffe-4cb7-48b7-8f37-7427ffa3d413}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\07.Effect">
+      <UniqueIdentifier>{502569d1-29da-4012-953e-2498da858f6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\08.Post\AO">
+      <UniqueIdentifier>{d43f861c-7b2a-4f11-a8f6-9781a509cdc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\08.Post\HDR">
+      <UniqueIdentifier>{ea0908e1-a73f-456e-a45c-72dd20cf3318}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\08.Post\LDR">
+      <UniqueIdentifier>{da968837-c577-4be7-ab5e-d812c0b0832a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\08.Post\Motion">
+      <UniqueIdentifier>{50f4e643-c932-433f-b8f0-f55b363ba07a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\Resource\Shader\09.UI\Visualizer">
+      <UniqueIdentifier>{f7442648-f54a-4b05-89c2-92a02d0ab550}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -280,7 +331,7 @@
       <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
-      <Filter>Engine\Manager\Iinput</Filter>
+      <Filter>Engine\Manager\Input</Filter>
     </ClInclude>
     <ClInclude Include="RootSignature.h">
       <Filter>Engine\DirectX</Filter>
@@ -291,7 +342,9 @@
     <ClInclude Include="Object.h">
       <Filter>World\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h" />
+    <ClInclude Include="resource.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
     <ClInclude Include="Skeleton.h">
       <Filter>World\Resource\Graphics</Filter>
     </ClInclude>
@@ -320,10 +373,10 @@
       <Filter>World\Base\System</Filter>
     </ClInclude>
     <ClInclude Include="Imgui.h">
-      <Filter>Utils\ImGUI</Filter>
+      <Filter>Utils\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="IMGUISystem.h">
-      <Filter>World\System\IMGUI</Filter>
+      <Filter>World\System\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Vfx.h">
       <Filter>World\Resource\Graphics</Filter>
@@ -332,10 +385,10 @@
       <Filter>World\Component\Effect</Filter>
     </ClInclude>
     <ClInclude Include="NetEntityComponent.h">
-      <Filter>World\Component\Server</Filter>
+      <Filter>World\Component\Network</Filter>
     </ClInclude>
     <ClInclude Include="IMGUIComponent.h">
-      <Filter>World\Component\IMGUI</Filter>
+      <Filter>World\Component\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Prefab.h">
       <Filter>World\Script\Prefab</Filter>
@@ -353,16 +406,16 @@
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
     <ClInclude Include="AudioSystem.h">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Audio</Filter>
     </ClInclude>
     <ClInclude Include="AnimationSystem.h">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Animation</Filter>
     </ClInclude>
     <ClInclude Include="CpuAnimationSystem.h">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Animation</Filter>
     </ClInclude>
     <ClInclude Include="AnimationEvaluator.h">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Animation</Filter>
     </ClInclude>
     <ClInclude Include="BeatSystem.h">
       <Filter>World\System\Logic</Filter>
@@ -383,16 +436,16 @@
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="AnimationComponent.h">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Presentation</Filter>
     </ClInclude>
     <ClInclude Include="AudioComponent.h">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Presentation</Filter>
     </ClInclude>
     <ClInclude Include="RenderComponent.h">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Presentation</Filter>
     </ClInclude>
     <ClInclude Include="ParticleComponent.h">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Effect</Filter>
     </ClInclude>
     <ClInclude Include="ParticleEffect.h">
       <Filter>World\Resource\Graphics</Filter>
@@ -446,13 +499,13 @@
       <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="EnginePch.h">
-      <Filter>Utils\Pch</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>Utils\Pch</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="d3dx12.h">
-      <Filter>Utils\Pch</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="RecvBuffer.h">
       <Filter>Network\Buffer</Filter>
@@ -476,7 +529,7 @@
       <Filter>Network\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PlayerInputSystem.h">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Input</Filter>
     </ClInclude>
     <ClInclude Include="Component.h">
       <Filter>World\Base\Component</Filter>
@@ -488,16 +541,16 @@
       <Filter>World\Base\World</Filter>
     </ClInclude>
     <ClInclude Include="TagComponent.h">
-      <Filter>World\Component\Utils</Filter>
+      <Filter>World\Component\Common</Filter>
     </ClInclude>
     <ClInclude Include="LobbyRoomStateComponent.h">
-      <Filter>World\Component\Utils</Filter>
+      <Filter>World\Component\UI\Lobby</Filter>
     </ClInclude>
     <ClInclude Include="HUDPortraitSlotComponent.h">
-      <Filter>World\Component\Utils</Filter>
+      <Filter>World\Component\UI\HUD</Filter>
     </ClInclude>
     <ClInclude Include="LobbyRoomListComponent.h">
-      <Filter>World\Component\Utils</Filter>
+      <Filter>World\Component\UI\Lobby</Filter>
     </ClInclude>
     <ClInclude Include="EnemySystem.h">
       <Filter>World\System\Logic</Filter>
@@ -521,7 +574,7 @@
       <Filter>World\System\Logic\Move</Filter>
     </ClInclude>
     <ClInclude Include="NetTransformComponent.h">
-      <Filter>World\Component\Server</Filter>
+      <Filter>World\Component\Network</Filter>
     </ClInclude>
     <ClInclude Include="UITextComponent.h">
       <Filter>World\Component\UI</Filter>
@@ -554,9 +607,6 @@
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="TrailRenderPass.h">
-      <Filter>World\System\Render\07.Effect</Filter>
-    </ClInclude>
-    <ClInclude Include="TrailRenderTypes.h">
       <Filter>World\System\Render\07.Effect</Filter>
     </ClInclude>
     <ClInclude Include="WeaponTrailComponent.h">
@@ -602,7 +652,7 @@
       <Filter>World\Resource\Map\NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="UIEffectPass.h">
-      <Filter>World\System\UI</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClInclude>
     <ClInclude Include="UIVfxComponent.h">
       <Filter>World\Component\UI</Filter>
@@ -629,7 +679,7 @@
       <Filter>World\System\Render\04.Shadow</Filter>
     </ClInclude>
     <ClInclude Include="DepthPrePass.h">
-      <Filter>World\System\Render\03.Pre-pass</Filter>
+      <Filter>World\System\Render\03.PrePass</Filter>
     </ClInclude>
     <ClInclude Include="ArmorComponent.h">
       <Filter>World\Component\Logic</Filter>
@@ -640,7 +690,9 @@
     <ClInclude Include="OutlinePass.h">
       <Filter>World\System\Render\05.Forward</Filter>
     </ClInclude>
-    <ClInclude Include="CircularVisualizerComponent.h" />
+    <ClInclude Include="CircularVisualizerComponent.h">
+      <Filter>World\Component\UI\Visualizer</Filter>
+    </ClInclude>
     <ClInclude Include="GameMode.h">
       <Filter>World\Script</Filter>
     </ClInclude>
@@ -656,12 +708,6 @@
     <ClInclude Include="LobbyRenderPipeline.h">
       <Filter>World\System\Render\00.Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="EffectFlagComponent.h">
-      <Filter>World\System\Render\00.Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="EffectFlagSystem.h">
-      <Filter>World\System\Render\00.Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="GodRayPass.h">
       <Filter>World\System\Render\08.Post\HDR</Filter>
     </ClInclude>
@@ -672,19 +718,19 @@
       <Filter>World\System\Render\08.Post\HDR</Filter>
     </ClInclude>
     <ClInclude Include="MotionBlurPass.h">
-      <Filter>World\System\Render\08.Post\HDR</Filter>
+      <Filter>World\System\Render\08.Post\Motion</Filter>
     </ClInclude>
     <ClInclude Include="ChromaticAberrationPass.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClInclude>
     <ClInclude Include="AudioVisualizerSystem.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Audio</Filter>
     </ClInclude>
     <ClInclude Include="AudioVisualizerComponent.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\Component\UI\Visualizer</Filter>
     </ClInclude>
     <ClInclude Include="CircularVisualizerPass.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClInclude>
     <ClInclude Include="FinalCompositePass.h">
       <Filter>World\System\Render\08.Post\LDR</Filter>
@@ -693,31 +739,31 @@
       <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClInclude>
     <ClInclude Include="MotionVectorPass.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\Motion</Filter>
     </ClInclude>
     <ClInclude Include="DualKawaseBlurPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
+      <Filter>World\System\Render\08.Post\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="HBAOPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
+      <Filter>World\System\Render\08.Post\AO</Filter>
     </ClInclude>
     <ClInclude Include="FXAAPass.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClInclude>
     <ClInclude Include="HealthVignettePass.h">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClInclude>
     <ClInclude Include="MathUtils.h">
       <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="ParticleSystem.h">
-      <Filter>World\System\Logic</Filter>
+      <Filter>World\System\Effect</Filter>
     </ClInclude>
     <ClInclude Include="VfxSystem.h">
-      <Filter>World\System\Logic</Filter>
+      <Filter>World\System\Effect</Filter>
     </ClInclude>
     <ClInclude Include="SfxSystem.h">
-      <Filter>World\System\Logic</Filter>
+      <Filter>World\System\Audio</Filter>
     </ClInclude>
     <ClInclude Include="UIRenderSystem.h">
       <Filter>World\System\UI\System</Filter>
@@ -780,7 +826,7 @@
       <Filter>World\Script</Filter>
     </ClInclude>
     <ClInclude Include="WorldUIPass.h">
-      <Filter>World\System\Render\08.Post\LDR</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClInclude>
     <ClInclude Include="UIPhaseProgressUpdateFeature.h">
       <Filter>World\System\UI\Common</Filter>
@@ -795,10 +841,10 @@
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
     <ClInclude Include="MainMenuController.h">
-      <Filter>World\Component\Logic</Filter>
+      <Filter>World\Component\UI\Menu</Filter>
     </ClInclude>
     <ClInclude Include="PauseMenuController.h">
-      <Filter>World\Component\Logic</Filter>
+      <Filter>World\Component\UI\Menu</Filter>
     </ClInclude>
     <ClInclude Include="PauseSystem.h">
       <Filter>World\System\UI\Menu</Filter>
@@ -837,10 +883,34 @@
       <Filter>World\Component\UI</Filter>
     </ClInclude>
     <ClInclude Include="LobbyBackgroundPass.h">
-      <Filter>World\System\Render\08.Post</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClInclude>
     <ClInclude Include="RhythmSystem.h">
       <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="DecalComponent.h">
+      <Filter>World\Component\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="DecalSystem.h">
+      <Filter>World\System\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="DecalPass.h">
+      <Filter>World\System\Render\06.Deferred\Decal</Filter>
+    </ClInclude>
+    <ClInclude Include="BuffAuraSystem.h">
+      <Filter>World\System\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="DecalFactory.h">
+      <Filter>World\Script\Prefab</Filter>
+    </ClInclude>
+    <ClInclude Include="TrailRenderTypes.h">
+      <Filter>World\System\Render\99.Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectFlagComponent.h">
+      <Filter>World\Component\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectFlagSystem.h">
+      <Filter>World\System\Effect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -896,7 +966,7 @@
       <Filter>World\Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
-      <Filter>Engine\Manager\Iinput</Filter>
+      <Filter>Engine\Manager\Input</Filter>
     </ClCompile>
     <ClCompile Include="RootSignature.cpp">
       <Filter>Engine\DirectX</Filter>
@@ -929,10 +999,10 @@
       <Filter>World\Base\System</Filter>
     </ClCompile>
     <ClCompile Include="Imgui.cpp">
-      <Filter>Utils\ImGUI</Filter>
+      <Filter>Utils\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="IMGUISystem.cpp">
-      <Filter>World\System\IMGUI</Filter>
+      <Filter>World\System\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Vfx.cpp">
       <Filter>World\Resource\Graphics</Filter>
@@ -941,10 +1011,10 @@
       <Filter>World\Component\Effect</Filter>
     </ClCompile>
     <ClCompile Include="NetEntityComponent.cpp">
-      <Filter>World\Component\Server</Filter>
+      <Filter>World\Component\Network</Filter>
     </ClCompile>
     <ClCompile Include="IMGUIComponent.cpp">
-      <Filter>World\Component\IMGUI</Filter>
+      <Filter>World\Component\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Prefab.cpp">
       <Filter>World\Script\Prefab</Filter>
@@ -980,16 +1050,16 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="AudioSystem.cpp">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Audio</Filter>
     </ClCompile>
     <ClCompile Include="AnimationSystem.cpp">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Animation</Filter>
     </ClCompile>
     <ClCompile Include="CpuAnimationSystem.cpp">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Animation</Filter>
     </ClCompile>
     <ClCompile Include="AnimationEvaluator.cpp">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Animation</Filter>
     </ClCompile>
     <ClCompile Include="BeatSystem.cpp">
       <Filter>World\System\Logic</Filter>
@@ -1016,16 +1086,16 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="AnimationComponent.cpp">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Presentation</Filter>
     </ClCompile>
     <ClCompile Include="AudioComponent.cpp">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Presentation</Filter>
     </ClCompile>
     <ClCompile Include="RenderComponent.cpp">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Presentation</Filter>
     </ClCompile>
     <ClCompile Include="ParticleComponent.cpp">
-      <Filter>World\Component\Client</Filter>
+      <Filter>World\Component\Effect</Filter>
     </ClCompile>
     <ClCompile Include="ParticleEffect.cpp">
       <Filter>World\Resource\Graphics</Filter>
@@ -1067,10 +1137,10 @@
       <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="EnginePch.cpp">
-      <Filter>Utils\Pch</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Utils\Pch</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
       <Filter>Network\Buffer</Filter>
@@ -1091,7 +1161,7 @@
       <Filter>Network\Packet</Filter>
     </ClCompile>
     <ClCompile Include="PlayerInputSystem.cpp">
-      <Filter>World\System\Client</Filter>
+      <Filter>World\System\Input</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
       <Filter>World\Base\Component</Filter>
@@ -1103,7 +1173,7 @@
       <Filter>World\Base\World</Filter>
     </ClCompile>
     <ClCompile Include="TagComponent.cpp">
-      <Filter>World\Component\Utils</Filter>
+      <Filter>World\Component\Common</Filter>
     </ClCompile>
     <ClCompile Include="EnemySystem.cpp">
       <Filter>World\System\Logic</Filter>
@@ -1133,7 +1203,7 @@
       <Filter>World\System\Logic\Move</Filter>
     </ClCompile>
     <ClCompile Include="NetTransformComponent.cpp">
-      <Filter>World\Component\Server</Filter>
+      <Filter>World\Component\Network</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsWorld.cpp">
       <Filter>World\Base\World</Filter>
@@ -1154,7 +1224,7 @@
       <Filter>World\Resource\Map\NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="UIEffectPass.cpp">
-      <Filter>World\System\UI</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClCompile>
     <ClCompile Include="EffectPass.cpp">
       <Filter>World\System\Render\07.Effect</Filter>
@@ -1175,7 +1245,7 @@
       <Filter>World\System\Render\04.Shadow</Filter>
     </ClCompile>
     <ClCompile Include="DepthPrePass.cpp">
-      <Filter>World\System\Render\03.Pre-pass</Filter>
+      <Filter>World\System\Render\03.PrePass</Filter>
     </ClCompile>
     <ClCompile Include="RenderPass.cpp">
       <Filter>World\System\Render</Filter>
@@ -1183,7 +1253,9 @@
     <ClCompile Include="OutlinePass.cpp">
       <Filter>World\System\Render\05.Forward</Filter>
     </ClCompile>
-    <ClCompile Include="CircularVisualizerComponent.cpp" />
+    <ClCompile Include="CircularVisualizerComponent.cpp">
+      <Filter>World\Component\UI\Visualizer</Filter>
+    </ClCompile>
     <ClCompile Include="GameMode.cpp">
       <Filter>World\Script</Filter>
     </ClCompile>
@@ -1203,19 +1275,19 @@
       <Filter>World\System\Render\08.Post\HDR</Filter>
     </ClCompile>
     <ClCompile Include="MotionBlurPass.cpp">
-      <Filter>World\System\Render\08.Post\HDR</Filter>
+      <Filter>World\System\Render\08.Post\Motion</Filter>
     </ClCompile>
     <ClCompile Include="ChromaticAberrationPass.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClCompile>
     <ClCompile Include="AudioVisualizerSystem.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Audio</Filter>
     </ClCompile>
     <ClCompile Include="AudioVisualizerComponent.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\Component\UI\Visualizer</Filter>
     </ClCompile>
     <ClCompile Include="CircularVisualizerPass.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClCompile>
     <ClCompile Include="FinalCompositePass.cpp">
       <Filter>World\System\Render\08.Post\LDR</Filter>
@@ -1224,31 +1296,31 @@
       <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClCompile>
     <ClCompile Include="MotionVectorPass.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\Motion</Filter>
     </ClCompile>
     <ClCompile Include="DualKawaseBlurPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
+      <Filter>World\System\Render\08.Post\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="HBAOPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
+      <Filter>World\System\Render\08.Post\AO</Filter>
     </ClCompile>
     <ClCompile Include="FXAAPass.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClCompile>
     <ClCompile Include="HealthVignettePass.cpp">
-      <Filter>World\System\Render\08.Post\ETC</Filter>
+      <Filter>World\System\Render\08.Post\LDR</Filter>
     </ClCompile>
     <ClCompile Include="MathUtils.cpp">
       <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="ParticleSystem.cpp">
-      <Filter>World\System\Logic</Filter>
+      <Filter>World\System\Effect</Filter>
     </ClCompile>
     <ClCompile Include="VfxSystem.cpp">
-      <Filter>World\System\Logic</Filter>
+      <Filter>World\System\Effect</Filter>
     </ClCompile>
     <ClCompile Include="SfxSystem.cpp">
-      <Filter>World\System\Logic</Filter>
+      <Filter>World\System\Audio</Filter>
     </ClCompile>
     <ClCompile Include="UIRenderSystem.cpp">
       <Filter>World\System\UI\System</Filter>
@@ -1293,7 +1365,7 @@
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="WorldUIPass.cpp">
-      <Filter>World\System\Render\08.Post\LDR</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClCompile>
     <ClCompile Include="UIPhaseProgressUpdateFeature.cpp">
       <Filter>World\System\UI\Common</Filter>
@@ -1338,75 +1410,87 @@
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="LobbyBackgroundPass.cpp">
-      <Filter>World\System\Render\08.Post</Filter>
+      <Filter>World\System\Render\09.UI</Filter>
     </ClCompile>
     <ClCompile Include="RhythmSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
+    <ClCompile Include="DecalSystem.cpp">
+      <Filter>World\System\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="DecalPass.cpp">
+      <Filter>World\System\Render\06.Deferred\Decal</Filter>
+    </ClCompile>
+    <ClCompile Include="BuffAuraSystem.cpp">
+      <Filter>World\System\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="DecalFactory.cpp">
+      <Filter>World\Script\Prefab</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\Resources\Shader\utils.hlsl">
-      <Filter>World\Resource\Shader\00.Utils</Filter>
+      <Filter>World\Resource\Shader\00.Common</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\params.hlsl">
-      <Filter>World\Resource\Shader\00.Utils</Filter>
+      <Filter>World\Resource\Shader\00.Common</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\deferred_PS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
+      <Filter>World\Resource\Shader\06.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_VS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\deferred_VS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
+      <Filter>World\Resource\Shader\06.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\skybox_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\skybox_VS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lighting_dir_PS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
+      <Filter>World\Resource\Shader\06.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lighting_dir_VS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
+      <Filter>World\Resource\Shader\06.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\final_PS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
+      <Filter>World\Resource\Shader\06.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\final_VS.hlsl">
-      <Filter>World\Resource\Shader\40.Deferred</Filter>
+      <Filter>World\Resource\Shader\06.Deferred</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\texture_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\texture_VS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\animation_CS.hlsl">
-      <Filter>World\Resource\Shader\99.animation</Filter>
+      <Filter>World\Resource\Shader\11.Animation</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\math.hlsl">
-      <Filter>World\Resource\Shader\00.Utils</Filter>
+      <Filter>World\Resource\Shader\00.Common</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_DS.hlsl">
-      <Filter>World\Resource\Shader\98.Terrain</Filter>
+      <Filter>World\Resource\Shader\10.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_HS.hlsl">
-      <Filter>World\Resource\Shader\98.Terrain</Filter>
+      <Filter>World\Resource\Shader\10.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_PS.hlsl">
-      <Filter>World\Resource\Shader\98.Terrain</Filter>
+      <Filter>World\Resource\Shader\10.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\UI_VS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\UI_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\shadow_PS.hlsl">
       <Filter>World\Resource\Shader\01.Shadow</Filter>
@@ -1427,202 +1511,210 @@
       <Filter>World\Resource\Shader\01.Shadow</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_instanced_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_cloud_drift_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_GS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_smoke_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_cloud_drift_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_aura_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_orbit_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_bullet_trail_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\trail_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Trail</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\trail_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Trail</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_smoke_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_cloud_drift_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_cloud_drift_near_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_aura_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_orbit_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\particle_bullet_trail_CS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\particle</Filter>
+      <Filter>World\Resource\Shader\07.Effect\Particle</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\tonemap_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\JHToon_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\FianlComposite_PS.hlsl">
-      <Filter>World\Resource\Shader\60.ETC</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\FianlComposite_VS.hlsl">
-      <Filter>World\Resource\Shader\60.ETC</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\depth_prepass_PS.hlsl">
-      <Filter>World\Resource\Shader\01.Shadow</Filter>
+      <Filter>World\Resource\Shader\03.PrePass</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\depth_prepass_alpha_PS.hlsl">
-      <Filter>World\Resource\Shader\01.Shadow</Filter>
+      <Filter>World\Resource\Shader\03.PrePass</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\depth_prepass_VS.hlsl">
-      <Filter>World\Resource\Shader\01.Shadow</Filter>
+      <Filter>World\Resource\Shader\03.PrePass</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
+      <Filter>World\Resource\Shader\05.Forward\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\outline_VS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward\Cartoon</Filter>
+      <Filter>World\Resource\Shader\05.Forward\Cartoon</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Fog_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\HDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\visualizer_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\09.UI\Visualizer</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\solid_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\09.UI\Visualizer</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Luminance_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\08.Post\HDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Luminance_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\08.Post\HDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ChromaticAberration_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ChromaticAberration_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_alpha_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_alpha_VS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionBlur_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Motion</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionVector_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Motion</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\MotionVector_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Motion</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\emissive_composite_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Bloom</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\emissive_extract_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Bloom</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\kawase_down_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Bloom</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\kawase_up_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\bloom</Filter>
+      <Filter>World\Resource\Shader\08.Post\Bloom</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Terrain_VS.hlsl">
-      <Filter>World\Resource\Shader\98.Terrain</Filter>
+      <Filter>World\Resource\Shader\10.Terrain</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\hbao_blur_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\AO</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\hbao_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\AO</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\fxaa_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\HealthBuffVignette_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\LDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\godray_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post</Filter>
+      <Filter>World\Resource\Shader\08.Post\HDR</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\forward_foliage_PS.hlsl">
-      <Filter>World\Resource\Shader\50.Forward\Foilage</Filter>
+      <Filter>World\Resource\Shader\05.Forward\Foliage</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ui_hp_fragment_PS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ui_hp_fragment_VS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_fragment_PS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_fragment_VS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_hit_PS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_hit_VS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_sprite_PS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_hp_sprite_VS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_PS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\world_ui_conquest_ring_VS.hlsl">
-      <Filter>World\Resource\Shader\90. UI</Filter>
+      <Filter>World\Resource\Shader\09.UI</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ocean_PS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\ocean_VS.hlsl">
-      <Filter>World\Resource\Shader\80.Post\Style</Filter>
+      <Filter>World\Resource\Shader\05.Forward</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\lobby_background_PS.hlsl">
-      <Filter>World\Resource\Shader\60.ETC</Filter>
+      <Filter>World\Resource\Shader\09.UI\Lobby</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Majestro_Engine.rc" />
+    <ResourceCompile Include="Majestro_Engine.rc">
+      <Filter>Engine</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Resources\Shader\decal_PS.hlsl">
+      <Filter>World\Resource\Shader\06.Deferred\Decal</Filter>
+    </None>
+    <None Include="..\Resources\Shader\decal_VS.hlsl">
+      <Filter>World\Resource\Shader\06.Deferred\Decal</Filter>
+    </None>
     <None Include="SimpleMath.inl">
       <Filter>Utils\Math</Filter>
     </None>

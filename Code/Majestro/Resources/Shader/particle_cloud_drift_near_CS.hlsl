@@ -4,7 +4,7 @@
 [numthreads(1024, 1, 1)]
 void CS_Main(int3 threadIndex : SV_DispatchThreadID)
 {
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     const PARTICLESHARED shareds = ParticleShared[emitterIndex];
 
     if (threadIndex.x >= shareds.maxCount)

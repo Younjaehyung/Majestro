@@ -14,7 +14,7 @@ void CS_Main(int3 threadIdx : SV_DispatchThreadID)
     uint inst = GlobalParams.BaseInstanceID + rel;
     
     
-    if (rel >= GlobalParams.etc)
+    if (rel >= GlobalParams.PassScalar0)
         return;
     ANIMINSTANCE animationInst = AnimInstance[inst];
     ANIMATIONMETA animationclipmeta = AnimationMeta[animationInst.AnimClipIdx];

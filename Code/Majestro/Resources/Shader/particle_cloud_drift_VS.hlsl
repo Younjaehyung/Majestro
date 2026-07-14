@@ -22,7 +22,7 @@ GS_OUT VS_Main(VS_IN input)
     GS_OUT output = (GS_OUT)0.0f;
 
     const uint id = input.id;
-    const uint emitterIndex = GlobalParams.etc;
+    const uint emitterIndex = GlobalParams.PassScalar0;
     const PARTICLE particle = Particle[id];
 
     float ratio = saturate(particle.curTime / max(particle.lifeTime, 0.0001f));

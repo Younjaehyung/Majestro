@@ -6,7 +6,7 @@
 // PassCustomTable[POST_KAWASE_UP_PASS = 14]:
 //   ExtValue[step] = (texelW, texelH, float(srcImageIdx), 0)
 //
-// GlobalParams.etc = 현재 step 인덱스 (0~N-1)
+// GlobalParams.PassScalar0 = 현재 step 인덱스 (0~N-1)
 //
 // Dual Kawase Upsample 커널 (8-tap):
 //   +─────────────────────────────────────────────+
@@ -27,7 +27,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
 {
     PASS_CUSTOM_DATA data = PassCustomTable[GlobalParams.PassCustomIndex];
 
-    uint step = GlobalParams.etc;
+    uint step = GlobalParams.PassScalar0;
 
     float texelW   = data.ExtValue[step].x;
     float texelH   = data.ExtValue[step].y;

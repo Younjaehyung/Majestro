@@ -336,6 +336,9 @@
     <ClCompile Include="SpatialGrid2D.cpp">
       <Filter>Utils\Math</Filter>
     </ClCompile>
+    <ClCompile Include="MathUtils.cpp">
+      <Filter>Utils\Math</Filter>
+    </ClCompile>
     <ClCompile Include="GameRuleSystem.cpp">
       <Filter>System\Gameplay\Rule</Filter>
     </ClCompile>
@@ -576,6 +579,9 @@
       <Filter>Utils\AI</Filter>
     </ClInclude>
     <ClInclude Include="SpatialGrid2D.h">
+      <Filter>Utils\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtils.h">
       <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="GameRuleSystem.h">

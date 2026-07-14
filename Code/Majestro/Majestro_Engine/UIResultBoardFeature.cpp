@@ -610,8 +610,7 @@ int32 UIResultBoardFeature::MakeSpinValue(int32 finalValue)
 		high = low * 10 - 1;    // 10^digits - 1
 	}
 
-	std::uniform_int_distribution<int32> dist(low, high);
-	return dist(mRng);
+	return RandomInt(low, high);
 }
 
 std::wstring UIResultBoardFeature::FormatRowValue(ResultBoardRow row, int32 value) const

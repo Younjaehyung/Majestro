@@ -17,6 +17,7 @@
 #include "UIComponent.h"
 #include "UIRenderSystem.h" // UIInstanceData
 #include "UITransformComponent.h"
+#include "MathUtils.h"
 
 void UIHpBarUpdateFeature::Update(float dt)
 {

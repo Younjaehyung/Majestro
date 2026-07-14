@@ -218,8 +218,7 @@ namespace
         if (!world || !owner.IsValid() || count <= 0)
             return;
 
-        std::uniform_real_distribution<float> angleOffsetPick(0.0f, DirectX::XM_2PI);
-        const float angleOffset = angleOffsetPick(RandomEngine());
+        const float angleOffset = RandomRange(0.0f, DirectX::XM_2PI);
 
         for (int i = 0; i < count; ++i)
         {
@@ -771,8 +770,7 @@ bool EnemySystem::HandleAttackState(
 
 	        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
 	        {
-	            std::uniform_int_distribution<int> dragonPick(0, 3);
-	            const uint8 dragonPattern = static_cast<uint8>(dragonPick(RandomEngine()));
+	            const uint8 dragonPattern = static_cast<uint8>(RandomInt(0, 3));
 	            const SkillType dragonSkill = GetDragonSkillType(dragonPattern);
 	            enemyComp->mPendingSkillType = static_cast<uint8>(dragonSkill);
 	            enemyComp->mPendingAttackTime = -1.0f;
@@ -817,8 +815,7 @@ bool EnemySystem::HandleAttackState(
                     { EnemyType::Fly, 5, 480.0f },
                 } };
 
-                std::uniform_int_distribution<size_t> summonPick(0, summonOptions.size() - 1);
-	                const DragonSummonOption& summon = summonOptions[summonPick(RandomEngine())];
+	                const DragonSummonOption& summon = summonOptions[RandomIndex(summonOptions.size())];
 	                SpawnEnemyGroupAroundAndBroadcast(mWorld, entity, summon.type, summon.count, summon.radius);
 	            }
 	            else
@@ -954,8 +951,7 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            std::uniform_int_distribution<int> brassPick(0, 3);
-	            const uint8 pattern = static_cast<uint8>(brassPick(RandomEngine()));
+            const uint8 pattern = static_cast<uint8>(RandomInt(0, 3));
 	            enemyComp->mBrassAttackPattern = pattern;
 
 	            const SkillType brassSkill = GetBrassSkillType(pattern);

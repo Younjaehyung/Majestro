@@ -25,6 +25,9 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{af9dd7dc-6441-4345-a075-c453df12be9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\Math">
+      <UniqueIdentifier>{6575f6e4-8667-46b5-b7df-0058c6cb94fd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DummyClient.cpp">
@@ -38,6 +41,9 @@
     </ClCompile>
     <ClCompile Include="StressTest.cpp">
       <Filter>Network\Stress</Filter>
+    </ClCompile>
+    <ClCompile Include="MathUtils.cpp">
+      <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
       <Filter>Network\Buffer</Filter>
@@ -61,6 +67,9 @@
     </ClInclude>
     <ClInclude Include="StressTest.h">
       <Filter>Network\Stress</Filter>
+    </ClInclude>
+    <ClInclude Include="MathUtils.h">
+      <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="RecvBuffer.h">
       <Filter>Network\Buffer</Filter>

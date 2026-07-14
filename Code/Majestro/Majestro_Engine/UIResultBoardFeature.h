@@ -102,5 +102,4 @@ private:
 	bool mQuickActive = false;
 	float mQuickElapsed = 0.0f;
 
-	std::mt19937 mRng{ std::random_device{}() };
 };

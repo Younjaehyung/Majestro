@@ -10,6 +10,7 @@
 #include "World.h"
 #include "CircularVisualizerComponent.h"
 #include "CircularVisualizerPass.h"
+#include "MathUtils.h"
 
 void UIAudioVisualizerFeature::Initialize(World* world)
 {
@@ -132,10 +133,6 @@ void UIAudioVisualizerFeature::UpdateAudioVisualizer(float dt)
         mCachedSpectrumSize = spectrumSize;
     }
 
-    static std::mt19937 rng{ std::random_device{}() };
-    std::uniform_int_distribution<int> countDist(2, 4);
-    std::uniform_int_distribution<int> indexDist(0, CIRC_VIS_POINTS - 1);
-
     for (Entity entity : entities)
     {
         CircularVisualizerComponent* visualizer = mWorld->GetComponent<CircularVisualizerComponent>(entity);
@@ -205,14 +202,14 @@ void UIAudioVisualizerFeature::UpdateAudioVisualizer(float dt)
         {
             visualizer->cooldownTimer = visualizer->spikeCooldown;
 
-            const int count = countDist(rng);
+            const int count = RandomInt(2, 4);
             int slot = 0;
             for (auto& spike : visualizer->spikes)
             {
                 if (slot >= count)
                     break;
 
-                spike.pointIdx = indexDist(rng);
+                spike.pointIdx = RandomInt(0, CIRC_VIS_POINTS - 1);
                 spike.strength = 1.f;
                 spike.timer = visualizer->spikeDuration;
                 ++slot;

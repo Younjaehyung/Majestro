@@ -31,7 +31,6 @@
 #include <string>
 #include <memory>
 #include <chrono>
-#include <random>
 #include <cstdio>
 
 #include "SimpleMath.h"
@@ -65,6 +64,7 @@ using Matrix = DirectX::SimpleMath::Matrix;
 
 #include "../../Protocol/Packet.h"
 #include "PacketHelper.h"
+#include "MathUtils.h"
 using namespace std;
 
 // ANSI

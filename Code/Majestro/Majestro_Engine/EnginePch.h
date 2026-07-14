@@ -31,7 +31,6 @@
 #include <fstream>
 #include <functional>
 #include <typeindex>
-#include <random>
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
@@ -284,8 +283,6 @@ string ws2s(const wstring& s);
 std::wstring utfs2ws(const std::string& utf8);
 void LogDebug(const std::string& msg);
 void LogDebugW(const std::wstring& msg);
-
-float RandomRange(float minValue, float maxValue);
 
 // network
 void err_quit(const char* msg);

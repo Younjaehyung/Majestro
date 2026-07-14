@@ -1,6 +1,38 @@
 #include "pch.h"
 #include "MathUtils.h"
 
+std::mt19937& RandomEngine()
+{
+	static thread_local std::mt19937 engine{ std::random_device{}() };
+	return engine;
+}
+
+float RandomRange(float minValue, float maxValue)
+{
+	if (maxValue < minValue)
+		std::swap(minValue, maxValue);
+
+	std::uniform_real_distribution<float> dist(minValue, maxValue);
+	return dist(RandomEngine());
+}
+
+int RandomInt(int minValue, int maxValue)
+{
+	if (maxValue < minValue)
+		std::swap(minValue, maxValue);
+
+	std::uniform_int_distribution<int> dist(minValue, maxValue);
+	return dist(RandomEngine());
+}
+
+std::size_t RandomIndex(std::size_t count)
+{
+	if (count == 0)
+		return 0;
+
+	std::uniform_int_distribution<std::size_t> dist(0, count - 1);
+	return dist(RandomEngine());
+}
 
 Vec4 HlslQuatMul(const Vec4& q1, const Vec4& q2)
 {

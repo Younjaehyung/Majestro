@@ -25,3 +25,9 @@ float EaseOutCubic(float t);
 float EaseOutBack(float t);
 float EaseInCubic(float t);
 float DampedSine(float t, float freq, float damp);
+
+// 난수 API
+std::mt19937& RandomEngine();
+float RandomRange(float minValue, float maxValue);
+int RandomInt(int minValue, int maxValue);
+std::size_t RandomIndex(std::size_t count);

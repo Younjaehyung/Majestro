@@ -27,6 +27,7 @@ NetSendSystem::NetSendSystem(World* world) : System::System(world)
 void NetSendSystem::Update(float deltaTime)
 {
 	TrySendGameStart();
+	TrySendEmoteEvents();                        // 감정표현 선택 요청(TCP)
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
 	TrySendStickerEvents();                      // 벽 스티커 배치 요청 (TCP)
@@ -238,6 +239,23 @@ void NetSendSystem::TrySendStickerEvents()
 		pkt.textureId = e.textureId;
 		SendPacket(pkt);
 	});
+}
+
+void NetSendSystem::TrySendEmoteEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	eventManager->Consume<EvEmoteSelected>([this](const EvEmoteSelected& event)
+		{
+			if (event.emoteId >= EMOTE_COUNT)
+				return;
+
+			C2S_EmotePacket packet;
+			packet.emoteId = event.emoteId;
+			SendPacket(packet);
+		});
 }
 
 void NetSendSystem::TrySendRoomEvents()

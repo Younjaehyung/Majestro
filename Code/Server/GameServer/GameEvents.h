@@ -128,6 +128,13 @@ struct EvStickerBroadcast
     uint32 textureId = 0;
 };
 
+// 감정표현
+struct EvEmoteBroadcast
+{
+	Entity caster = NULL_ENTITY;
+	uint8 emoteId = 0;
+};
+
 struct EvBuffRequest
 {
     Entity target;

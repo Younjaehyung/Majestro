@@ -4,6 +4,7 @@
 #include "ServerCore.h"
 #include "NetEntityComponent.h"
 #include "InputComponent.h"
+#include "EmoteComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
 #include "MovementComponent.h"
@@ -107,6 +108,12 @@ void NetRecvSystem::Update(float dt)
 					mWorld->GetEventManager()->Enqueue<EvStickerBroadcast>(EvStickerBroadcast{
 						pkt->casterNetId, pkt->camX, pkt->camY, pkt->camZ,
 						pkt->dirX, pkt->dirY, pkt->dirZ, pkt->size, pkt->textureId });
+				break;
+			}
+			case PKT_Type::C2S_PKT_EMOTE:
+			{
+				const C2S_EmotePacket* pkt = mInputCommand.ViewAs<C2S_EmotePacket>();
+				if (pkt) RecvEmote(mInputCommand.SessionId, *pkt);
 				break;
 			}
 			case PKT_Type::C2S_PKT_SYNC:
@@ -256,6 +263,37 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 		ev.playerType = playerComp->mPlayerType;
 		ev.applyAtBeatIndex = applyAtBeatIndex;
 		eventManager->Enqueue<EvRhythmChanged>(ev);
+	}
+}
+
+void NetRecvSystem::RecvEmote(uint32 sessionId, const C2S_EmotePacket& pkt)
+{
+	Entity playerEntity = FindEntityBySession(sessionId);
+	if (!playerEntity.IsValid())
+		return;
+
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(playerEntity);
+	EmoteComponent* emoteComp = mWorld->GetComponent<EmoteComponent>(playerEntity);
+	if (netComp == nullptr || playerComp == nullptr || emoteComp == nullptr ||
+		netComp->mSessionId != sessionId)
+		return;
+
+	if (playerComp->IsDeathActive() || pkt.emoteId >= EMOTE_COUNT)
+		return;
+
+	constexpr float EmoteCooldownSeconds = 1.5f;
+	const float now = GetServerTotalTimeSeconds();
+	if (now - emoteComp->mLastRequestTime < EmoteCooldownSeconds)
+	{
+		return;
+	}
+
+	emoteComp->mLastRequestTime = now;
+
+	if (auto eventManager = mWorld->GetEventManager())
+	{
+		eventManager->Enqueue(EvEmoteBroadcast{ playerEntity, pkt.emoteId });
 	}
 }
 

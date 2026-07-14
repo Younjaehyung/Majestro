@@ -106,6 +106,19 @@ struct EvStickerRequest
     uint32 textureId = 0;     // 스티커 종류
 };
 
+// 감정표현 선택
+struct EvEmoteSelected
+{
+	uint8 emoteId = 0;
+};
+
+// 감정표현 표시
+struct EvEmoteTriggered
+{
+	Entity caster = NULL_ENTITY;
+	uint8 emoteId = 0;
+};
+
 struct EvVfxSpawnRequest
 {
     SkillType skillType = SkillType::Default;

@@ -53,5 +53,8 @@ private:
 	bool UpdatePausedInput(PlayerInputContext& ctx);
 	bool UpdateDeadInput(PlayerInputContext& ctx);
 	void UpdateAliveInput(float dt, PlayerInputContext& ctx);
+	bool UpdateEmoteWheelInput(float dt);
+	void ResetEmoteWheelState();
+	void ClearActionInput(PlayerInputContext& ctx);
 	void ClearGameplayInput(PlayerInputContext& ctx);
 };

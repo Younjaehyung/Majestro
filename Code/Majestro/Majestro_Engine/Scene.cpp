@@ -77,6 +77,7 @@
 #include "DamageFeedbackSystem.h"
 #include "RhythmSystem.h"
 #include "DamagePopupUpdateFeature.h"
+#include "UIEmoteFeature.h"
 
 #include "NetRecvSystem.h"
 #include "GameRuleComponent.h"
@@ -2333,6 +2334,9 @@ void FirstScene::Initialize()
 	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
 	mUIFeatures.push_back(damagePopupModule);
 
+	auto emoteModule = std::make_shared<UIEmoteFeature>();
+	mUIFeatures.push_back(emoteModule);
+
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
@@ -2631,6 +2635,9 @@ void PlazaScene::Initialize()
 	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
 	mUIFeatures.push_back(damagePopupModule);
 
+	auto emoteModule = std::make_shared<UIEmoteFeature>();
+	mUIFeatures.push_back(emoteModule);
+
 	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
 	mUIFeatures.push_back(playerStatusModule);
 
@@ -2782,6 +2789,9 @@ void SecondScene::Initialize()
 	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
 	mUIFeatures.push_back(damagePopupModule);
 
+	auto emoteModule = std::make_shared<UIEmoteFeature>();
+	mUIFeatures.push_back(emoteModule);
+
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);
 
@@ -2905,6 +2915,9 @@ void ThirdScene::Initialize()
 
 	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
 	mUIFeatures.push_back(damagePopupModule);
+
+	auto emoteModule = std::make_shared<UIEmoteFeature>();
+	mUIFeatures.push_back(emoteModule);
 
 	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
 	mUIFeatures.push_back(gameInfoModule);

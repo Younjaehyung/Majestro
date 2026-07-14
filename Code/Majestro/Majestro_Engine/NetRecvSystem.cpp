@@ -100,6 +100,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_BEAT_JUDGEMENT, [this](auto& m) { HandleBeatJudgement(m); });
 	reg(PKT_Type::S2C_PKT_COMBO_CHANGED, [this](auto& m) { HandleComboChanged(m); });
 	reg(PKT_Type::S2C_PKT_STICKER, [this](auto& m) { HandleSticker(m); });
+	reg(PKT_Type::S2C_PKT_EMOTE, [this](auto& m) { HandleEmote(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -541,6 +542,22 @@ void NetRecvSystem::HandleSticker(const InputCommand& msg)
     const std::wstring texName = L"DecalSticker";
     DecalFactory::StampSurfaceSticker(mWorld, camPos, forward, texName, pkt->size, -1.0f,
                                       EmoteSticker::kAtlasCols, EmoteSticker::kAtlasRows, emoteIndex);
+}
+
+void NetRecvSystem::HandleEmote(const InputCommand& msg)
+{
+	const S2C_EmotePacket* packet = msg.ViewAs<S2C_EmotePacket>();
+	if (packet == nullptr || packet->emoteId >= EMOTE_COUNT)
+		return;
+
+	Entity caster = mWorld->GetEntityByNetId(packet->casterNetId);
+	if (!caster.IsValid())
+		return;
+
+	if (auto eventManager = mWorld->GetEventManager())
+	{
+		eventManager->Enqueue(EvEmoteTriggered{ caster, packet->emoteId });
+	}
 }
 
 void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)

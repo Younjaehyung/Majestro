@@ -494,6 +494,9 @@
     <ClInclude Include="InputComponent.h">
       <Filter>Component\Gameplay</Filter>
     </ClInclude>
+    <ClInclude Include="EmoteComponent.h">
+      <Filter>Component\Gameplay</Filter>
+    </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>Component\Gameplay</Filter>
     </ClInclude>

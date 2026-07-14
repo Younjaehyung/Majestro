@@ -66,6 +66,7 @@ void NetSendSystem::Update(float dt)
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
 	SendStickerEvents();
+	SendEmoteEvents();
 	SendHitConfirmEvents();
 	SendGimmickStateEvents();
 	SendRhythmChangedEvents();
@@ -558,6 +559,33 @@ void NetSendSystem::SendStickerEvents()
 			pkt.textureId = e.textureId;
 
 			Broadcast(recipients, S2C_PKT_STICKER, pkt);
+		});
+}
+
+void NetSendSystem::SendEmoteEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvEmoteBroadcast>([&](const EvEmoteBroadcast& event)
+		{
+			if (!event.caster.IsValid() || event.emoteId >= EMOTE_COUNT)
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(event.caster);
+			if (netComp == nullptr)
+				return;
+
+			S2C_EmotePacket packet;
+			packet.casterNetId = netComp->mNetEntityId;
+			packet.emoteId = event.emoteId;
+
+			Broadcast(recipients, S2C_PKT_EMOTE, packet);
 		});
 }
 

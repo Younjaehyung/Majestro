@@ -879,6 +879,15 @@
     <ClInclude Include="UIComboHudFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
+    <ClInclude Include="UIEmoteFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="EmoteDisplayComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="EmoteWheelStateComponent.h">
+      <Filter>World\Component\UI</Filter>
+    </ClInclude>
     <ClInclude Include="HUDSkillSlotComponent.h">
       <Filter>World\Component\UI</Filter>
     </ClInclude>
@@ -1407,6 +1416,9 @@
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="UIComboHudFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UIEmoteFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="LobbyBackgroundPass.cpp">

@@ -33,6 +33,7 @@ enum PKT_Type : uint32 {
 
 
 	C2S_PKT_STICKER,
+	C2S_PKT_EMOTE,
 
 	// Server -> Client
 	S2C_PKT_LOGIN,
@@ -68,6 +69,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_BEAT_JUDGEMENT,
 	S2C_PKT_COMBO_CHANGED,
 	S2C_PKT_STICKER,
+	S2C_PKT_EMOTE,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -77,6 +79,7 @@ enum PKT_Type : uint32 {
 
 	// 서버 내부 신호. 네트워크 스레드에서 로직 스레드 세션에 종료 통지.
 	INTERNAL_SESSION_LEAVE,
+
 
 	KMSG,
 };
@@ -159,6 +162,7 @@ struct PacketUdpHeader {
 
 static constexpr uint32 kHeaderSize = sizeof(PacketTcpHeader);
 constexpr uint32 MAX_PACKET_SIZE = 128;
+constexpr uint8 EMOTE_COUNT = 10;
 
 ////////////////////////////////////////////
 enum class PrefabType : uint8 {
@@ -818,6 +822,17 @@ struct S2C_StickerPacket : public PacketTcpHeader {
 		: PacketTcpHeader{ sizeof(S2C_StickerPacket), PKT_Type::S2C_PKT_STICKER, 0.0 } {}
 };
 
+struct S2C_EmotePacket : public PacketTcpHeader {
+	uint64 casterNetId{};
+	uint8 emoteId{};
+
+	S2C_EmotePacket()
+		: PacketTcpHeader{ sizeof(S2C_EmotePacket), PKT_Type::S2C_PKT_EMOTE, 0.0 } {}
+};
+
+static_assert(sizeof(S2C_EmotePacket) <= MAX_PACKET_SIZE,
+	"S2C_EmotePacket exceeds MAX_PACKET_SIZE");
+
 struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 	uint8 effectType{};
 	float x{};
@@ -1083,6 +1098,17 @@ struct C2S_StickerPacket : public PacketTcpHeader {
 		: PacketTcpHeader{ sizeof(C2S_StickerPacket), PKT_Type::C2S_PKT_STICKER, 0.0 } {
 	}
 };
+
+struct C2S_EmotePacket : public PacketTcpHeader {
+	uint8 emoteId{};
+
+	C2S_EmotePacket()
+		: PacketTcpHeader{ sizeof(C2S_EmotePacket), PKT_Type::C2S_PKT_EMOTE, 0.0 } {
+	}
+};
+
+static_assert(sizeof(C2S_EmotePacket) <= MAX_PACKET_SIZE,
+	"C2S_EmotePacket exceeds MAX_PACKET_SIZE");
 
 
 

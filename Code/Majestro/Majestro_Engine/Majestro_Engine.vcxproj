@@ -239,6 +239,9 @@
     <ClInclude Include="UIScoreBoardFeature.h" />
     <ClInclude Include="UIResultBoardFeature.h" />
     <ClInclude Include="UIComboHudFeature.h" />
+    <ClInclude Include="UIEmoteFeature.h" />
+    <ClInclude Include="EmoteDisplayComponent.h" />
+    <ClInclude Include="EmoteWheelStateComponent.h" />
     <ClInclude Include="HUDSkillSlotComponent.h" />
     <ClInclude Include="JoltUtils.h" />
     <ClInclude Include="JsonUtils.h" />
@@ -443,6 +446,7 @@
     <ClCompile Include="UIScoreBoardFeature.cpp" />
     <ClCompile Include="UIResultBoardFeature.cpp" />
     <ClCompile Include="UIComboHudFeature.cpp" />
+    <ClCompile Include="UIEmoteFeature.cpp" />
     <ClCompile Include="JsonUtils.cpp" />
     <ClCompile Include="LuminancePass.cpp" />
     <ClCompile Include="MathUtils.cpp" />

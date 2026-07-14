@@ -25,6 +25,7 @@
 #include "PauseMenuController.h"
 #include "NpcComponent.h"
 #include "RenderManager.h"
+#include "EmoteWheelStateComponent.h"
 
 namespace
 {
@@ -133,12 +134,22 @@ void PlayerInputSystem::ClearGameplayInput(PlayerInputContext& ctx)
 	ctx.movement->mMovingDirection = { 0, 0, 0 };
 	ctx.movement->mJump = false;
 	ctx.movement->mDash = false;
+	ClearActionInput(ctx);
+	ctx.player->mSpeed = 0.0f;
+}
+
+void PlayerInputSystem::ClearActionInput(PlayerInputContext& ctx)
+{
+	if (ctx.movement == nullptr)
+		return;
+
+	// 이동 상태는 유지하고 공격과 스킬 행동 입력만 해제
 	ctx.movement->mAttack = false;
 	ctx.movement->mSkill1 = false;
 	ctx.movement->mSkill2 = false;
 	ctx.movement->mReload = false;
 	ctx.movement->mSpecial = false;
-	ctx.player->mSpeed = 0.0f;
+	ctx.movement->mDance1 = false;
 }
 
 bool PlayerInputSystem::BuildCameraContext(PlayerInputContext& ctx)
@@ -428,6 +439,8 @@ bool PlayerInputSystem::UpdateFreeCameraInput(float, PlayerInputContext& ctx)
 	if (ctx.cameraType == nullptr || ctx.cameraType->mPlayMode != MAIN_CAMERA)
 		return false;
 
+	ResetEmoteWheelState();
+
 	TransformComponent* camTransform = mWorld->GetComponent<TransformComponent>(ctx.mainCameraEntity);
 
 	if (!ctx.cameraType->mFreeCamInit && camTransform != nullptr)
@@ -460,6 +473,7 @@ bool PlayerInputSystem::UpdateCinematicInput(PlayerInputContext& ctx)
 	if (!IsCinematicPlaying())
 		return false;
 
+	ResetEmoteWheelState();
 	ClearGameplayInput(ctx);
 	INPUT.MouseStateClear();
 	return true;
@@ -471,6 +485,7 @@ bool PlayerInputSystem::UpdateDialogueInput(PlayerInputContext& ctx)
 	if (!IsDialogueActive())
 		return false;
 
+	ResetEmoteWheelState();
 	ClearGameplayInput(ctx);
 	INPUT.MouseStateClear();
 	return true;
@@ -481,7 +496,7 @@ bool PlayerInputSystem::UpdatePausedInput(PlayerInputContext& ctx)
 	if (!ctx.paused)
 		return false;
 
-
+	ResetEmoteWheelState();
 	ClearGameplayInput(ctx);
 	INPUT.MouseStateClear();
 	return true;
@@ -492,6 +507,7 @@ bool PlayerInputSystem::UpdateDeadInput(PlayerInputContext& ctx)
 	if (!IsPlayerDead(ctx.player))
 		return false;
 
+	ResetEmoteWheelState();
 	
 	if (DeathCamComponent* death = mWorld->GetComponent<DeathCamComponent>(ctx.mainCameraEntity))
 	{
@@ -506,9 +522,92 @@ bool PlayerInputSystem::UpdateDeadInput(PlayerInputContext& ctx)
 	return true;
 }
 
+bool PlayerInputSystem::UpdateEmoteWheelInput(float dt)
+{
+	constexpr float EmoteWheelDeadZone = 45.0f;
+	constexpr int EmoteCount = static_cast<int>(EMOTE_COUNT);
+
+	EmoteWheelStateComponent* state = mWorld->GetSingleton<EmoteWheelStateComponent>();
+	if (state == nullptr)
+		state = &mWorld->AddSingleton<EmoteWheelStateComponent>();
+
+	if (INPUT.GetKeyDown(eKeyCode::C))
+	{
+		state->mIsOpen = true;
+		state->mSelectedEmoteId = -1;
+		state->mSelectionOffset = Vec2::Zero;
+		state->mOpenElapsed = 0.0f;
+	}
+
+	if (!state->mIsOpen)
+		return false;
+
+	state->mOpenElapsed += dt;
+	const POINT mouseDelta = INPUT.GetMouseState().Delta;
+	state->mSelectionOffset.x += static_cast<float>(mouseDelta.x);
+	state->mSelectionOffset.y += static_cast<float>(mouseDelta.y);
+
+	const float distanceSquared =
+		state->mSelectionOffset.x * state->mSelectionOffset.x +
+		state->mSelectionOffset.y * state->mSelectionOffset.y;
+	const float deadZoneSquared = EmoteWheelDeadZone * EmoteWheelDeadZone;
+
+	if (distanceSquared < deadZoneSquared)
+	{
+		state->mSelectedEmoteId = -1;
+	}
+	else
+	{
+		constexpr float Pi = 3.14159265358979323846f;
+		constexpr float TwoPi = Pi * 2.0f;
+		const float sectorAngle = TwoPi / static_cast<float>(EmoteCount);
+
+		// 화면 위쪽을 0번으로 삼고 시계 방향으로 감정표현 번호를 배치
+		float angle = std::atan2(state->mSelectionOffset.y, state->mSelectionOffset.x) + Pi * 0.5f;
+		if (angle < 0.0f)
+			angle += TwoPi;
+
+		state->mSelectedEmoteId =
+			static_cast<int>(std::floor((angle + sectorAngle * 0.5f) / sectorAngle)) % EmoteCount;
+	}
+
+	if (INPUT.GetKeyUp(eKeyCode::C))
+	{
+		const int selectedEmoteId = state->mSelectedEmoteId;
+		ResetEmoteWheelState();
+
+		if (selectedEmoteId >= 0 && selectedEmoteId < EmoteCount)
+		{
+			if (auto eventManager = mWorld->GetEventManager())
+				eventManager->Enqueue(EvEmoteSelected{ static_cast<uint8>(selectedEmoteId) });
+		}
+		return true;
+	}
+
+	if (!INPUT.GetKey(eKeyCode::C) && !INPUT.GetKeyDown(eKeyCode::C))
+	{
+		ResetEmoteWheelState();
+		return false;
+	}
+
+	return true;
+}
+
+void PlayerInputSystem::ResetEmoteWheelState()
+{
+	EmoteWheelStateComponent* state = mWorld->GetSingleton<EmoteWheelStateComponent>();
+	if (state == nullptr)
+		return;
+
+	state->mIsOpen = false;
+	state->mSelectedEmoteId = -1;
+	state->mSelectionOffset = Vec2::Zero;
+	state->mOpenElapsed = 0.0f;
+}
+
 void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 {
-
+	const bool emoteWheelActive = UpdateEmoteWheelInput(dt);
 
 	if (!INPUT.GetKey(eKeyCode::W) && !INPUT.GetKey(eKeyCode::A) &&
 		!INPUT.GetKey(eKeyCode::S) && !INPUT.GetKey(eKeyCode::D))
@@ -519,6 +618,29 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	ctx.movement->mMovingDirection = { 0, 0, 0 };
 	ctx.movement->mJump = INPUT.GetKey(eKeyCode::SPACE);
 	ctx.movement->mDash = INPUT.GetKey(eKeyCode::SHIFT);
+
+	if (INPUT.GetKey(eKeyCode::A))
+		ctx.movement->mMovingDirection.x -= 1;
+	if (INPUT.GetKey(eKeyCode::W))
+		ctx.movement->mMovingDirection.z += 1;
+	if (INPUT.GetKey(eKeyCode::S))
+		ctx.movement->mMovingDirection.z -= 1;
+	if (INPUT.GetKey(eKeyCode::D))
+		ctx.movement->mMovingDirection.x += 1;
+
+	if (INPUT.GetKey(eKeyCode::Q))
+		ctx.movement->mMovingDirection.y -= 1;
+	if (INPUT.GetKey(eKeyCode::E))
+		ctx.movement->mMovingDirection.y += 1;
+
+	if (emoteWheelActive)
+	{
+		// 휠이 열려 있으면 이동만 유지
+		ClearActionInput(ctx);
+		INPUT.MouseStateClear();
+		ctx.player->Update(dt);
+		return;
+	}
 
 	const bool mouseLook = INPUT.IsMouseLookActive();
 	ctx.movement->mAttack = mouseLook && INPUT.GetMouseState().LeftDown;
@@ -557,20 +679,6 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 		auto* rhythmEmissive = mWorld->GetComponent<RhythmEmissiveComponent>(ctx.playerEntity);
 		rhythmEmissive->mTimer = rhythmEmissive->mDuration;
 	}
-
-	if (INPUT.GetKey(eKeyCode::A))
-		ctx.movement->mMovingDirection.x -= 1;
-	if (INPUT.GetKey(eKeyCode::W))
-		ctx.movement->mMovingDirection.z += 1;
-	if (INPUT.GetKey(eKeyCode::S))
-		ctx.movement->mMovingDirection.z -= 1;
-	if (INPUT.GetKey(eKeyCode::D))
-		ctx.movement->mMovingDirection.x += 1;
-
-	if (INPUT.GetKey(eKeyCode::Q))
-		ctx.movement->mMovingDirection.y -= 1;
-	if (INPUT.GetKey(eKeyCode::E))
-		ctx.movement->mMovingDirection.y += 1;
 
 	if (INPUT.IsMouseLookActive())
 	{

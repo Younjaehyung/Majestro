@@ -3410,6 +3410,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 
 	Load<Texture>(L"UI_VFXDecal_Sheet", L"..\\Resources\\Image\\UI\\UI_VFXDecal_Sheet.png");
+	Load<Texture>(L"UI_Emote_Sheet", L"..\\Resources\\Image\\UI\\UI_Emote_Sheet.png");
 	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_Spray_Sheet.png");
 
 }

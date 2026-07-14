@@ -9,6 +9,7 @@
 #include "GravityComponent.h"
 #include "HeightField.h"
 #include "InputComponent.h"
+#include "EmoteComponent.h"
 #include "LightComponent.h"
 #include "MovementComponent.h"
 #include "NetEntityComponent.h"
@@ -51,6 +52,7 @@ PlayerPrefab::PlayerPrefab(World *world) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<InputComponent>(mEntityID);
+  world->AddComponent<EmoteComponent>(mEntityID);
   world->AddComponent<MainPlayerComponent>(mEntityID, "../Resources/Json/TestJson.json", PlayerType::Ibanix);
   world->AddComponent<TransformComponent>(mEntityID, t);
   world->AddComponent<BeatComponent>(mEntityID);
@@ -132,6 +134,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   grav.mGround = t.mLocalPosition.y; // 스폰 직후 낙하 방지
   world->AddComponent<PlayerMovementComponent>(mEntityID);
   world->AddComponent<InputComponent>(mEntityID);
+  world->AddComponent<EmoteComponent>(mEntityID);
   auto &w =
       world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
   w.mSessionId = ctx.SessionId;

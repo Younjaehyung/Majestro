@@ -70,6 +70,7 @@ private:
     void TrySendSync();           // 시간 동기 ping (TCP, 공유 Song Clock)
     void TrySendActionEvents();   // 이벤트성 입력(점프/공격 등) 즉시 전송 (TCP)
     void TrySendStickerEvents();  // 벽 스티커 배치 요청(EvStickerRequest)을 C2S로 전송
+    void TrySendEmoteEvents();    // 감정표현 휠에서 확정한 항목을 전송
     void TrySendRoomEvents();          // 로비 Room : Ready/Character 변경 이벤트를 서버 패킷으로
     void TrySendRoomBrowserEvents();   // 로비 Room : 방 생성/입장/목록/나가기 이벤트
     uint32 GetCurrentRoomId() const;   // LobbyRoomListComponent.mCurrentRoomId (없으면 0)

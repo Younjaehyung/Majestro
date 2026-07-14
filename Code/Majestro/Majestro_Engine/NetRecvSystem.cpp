@@ -540,7 +540,7 @@ void NetRecvSystem::HandleSticker(const InputCommand& msg)
 
     const std::wstring texName = L"DecalSticker";
     DecalFactory::StampSurfaceSticker(mWorld, camPos, forward, texName, pkt->size, -1.0f,
-                                      EmoteSticker::kAtlasGrid, emoteIndex);
+                                      EmoteSticker::kAtlasCols, EmoteSticker::kAtlasRows, emoteIndex);
 }
 
 void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)

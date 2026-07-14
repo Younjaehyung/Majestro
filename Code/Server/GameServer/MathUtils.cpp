@@ -3,6 +3,21 @@
 
 #include <cmath>
 
+Vec3 EulerDegreesFromForward(const Vec3& forward)
+{
+	Vec3 dir = forward;
+	if (dir.LengthSquared() <= 1e-6f)
+		dir = Vec3::Forward;
+	dir.Normalize();
+
+	float ny = -dir.y;
+	ny = (ny < -1.0f) ? -1.0f : (ny > 1.0f ? 1.0f : ny);
+
+	const float yawDeg   = std::atan2(dir.x, dir.z) * kRadToDeg;
+	const float pitchDeg = std::asin(ny) * kRadToDeg;
+	return Vec3(pitchDeg, yawDeg, 0.0f);
+}
+
 std::mt19937& RandomEngine()
 {
 	// 서버 로직에서 공용으로 사용하는 스레드별 난수 엔진이다.

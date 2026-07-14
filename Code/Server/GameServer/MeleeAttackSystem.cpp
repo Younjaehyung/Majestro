@@ -12,10 +12,11 @@
 #include "EnemyComponent.h"
 #include "MovementComponent.h"
 #include "BeatSystem.h"
+#include "PhysicsWorld.h"
+#include "MathUtils.h"
 
 namespace
 {
-	constexpr float kDegToRad = 0.01745329251994329577f;
 	constexpr float kSilenceDurationMeasures = 2.0f;
 	constexpr float kBeatsPerMeasure = 4.0f;
 	constexpr float kDragonSkill4DotMeasures = 2.0f;
@@ -36,6 +37,75 @@ namespace
 
 		forward.Normalize();
 		return forward;
+	}
+
+	// 크로스헤어 조준 상수들
+	constexpr float kMaxAimDistance     = 5000.0f;
+	constexpr float kCameraRightOffset  = 80.0f;
+	constexpr float kCameraUpOffset     = 160.0f;
+	constexpr float kCameraBackDistance = 250.0f;
+	constexpr float kMuzzleRightOffset  = 35.0f;
+	constexpr float kMuzzleUpOffset     = 110.0f;
+	constexpr float kMuzzleForwardOffset = 5.0f;
+
+	Vec3 SafeHorizontalForward(Vec3 f)
+	{
+		f.y = 0.0f;
+		if (f.LengthSquared() <= 0.0001f)
+			return Vec3::Forward;
+		f.Normalize();
+		return f;
+	}
+
+	Vec3 SafeRightFromForward(const Vec3& f)
+	{
+		Vec3 right = Vec3::Up.Cross(SafeHorizontalForward(f));
+		if (right.LengthSquared() <= 0.0001f)
+			return Vec3::Right;
+		right.Normalize();
+		return right;
+	}
+
+	Vec3 TpsCameraPos(const TransformComponent& t, const Vec3& camF)
+	{
+		const Vec3 right = SafeRightFromForward(camF);
+		const Vec3 pivot = t.mWorldPosition + right * kCameraRightOffset + Vec3::Up * kCameraUpOffset;
+		return pivot - camF * kCameraBackDistance;
+	}
+
+	Vec3 MuzzlePos(const TransformComponent& t, const Vec3& camF)
+	{
+		const Vec3 yawForward = SafeHorizontalForward(camF);
+		const Vec3 right      = SafeRightFromForward(camF);
+		return t.mWorldPosition + right * kMuzzleRightOffset + Vec3::Up * kMuzzleUpOffset + yawForward * kMuzzleForwardOffset;
+	}
+
+	// 총구에서 크로스헤어가 가리키는 월드 지점(aimPoint)까지의 방향. 3인칭 시차를 보정한다.
+	Vec3 ComputeCrosshairForward(World* world, Entity shooter, const TransformComponent& t, const InputComponent& input)
+	{
+		Vec3 camF = GetCameraForwardFromInput(input);
+		Vec3 camP = TpsCameraPos(t, camF);
+		if (input.HasAimCameraRay)
+		{
+			camP = input.AimCameraPosition;
+			Vec3 d = input.AimCameraDirection;
+			if (d.LengthSquared() > 0.0001f)
+			{
+				d.Normalize();
+				camF = d;
+			}
+		}
+
+		const Vec3 muzzle = MuzzlePos(t, camF);
+		Vec3 aimPoint = camP + camF * kMaxAimDistance;
+		if (auto physicsWorld = world->GetPhysicsWorld())
+			physicsWorld->QueryAimPoint(shooter, camP, camF, kMaxAimDistance, aimPoint);
+
+		Vec3 dir = aimPoint - muzzle;
+		if (dir.LengthSquared() <= 0.0001f)
+			return camF;
+		dir.Normalize();
+		return dir;
 	}
 
 	Vec3 GetEnemyAttackForward(World* world, Entity attacker, TransformComponent& attackerTransform)
@@ -189,7 +259,18 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 
 	const Vec3 attackCenter = attackerTransform->mWorldPosition + forward * stat.forwardDistance;
 	const float radiusSq = stat.radius * stat.radius;
-	const Vec3 attackerRotation = attackerTransform->mLocalRotationE;
+
+
+	Vec3 effectForward = forward;
+	if (attackerIsPlayer)
+	{
+		if (const InputComponent* effectInput = mWorld->GetComponent<InputComponent>(request.shooter))
+			effectForward = ComputeCrosshairForward(mWorld, request.shooter, *attackerTransform, *effectInput);
+	}
+
+
+
+	const Vec3 attackerRotation = EulerDegreesFromForward(effectForward);
 
 		if (request.bulletType != SkillType::PianoAttack)
 		{

@@ -7,6 +7,11 @@ Vec4 HlslQuatMul(const Vec4& q1, const Vec4& q2);
 Vec4 HlslQuatConj(const Vec4& q);
 Vec4 QuatFromAxisAngle(const Vec3& axis, float rad);
 
+// euler 각 변환
+Vec3 EulerDegreesToRadians(const Vec3& eulerDegrees);              // 도 -> 라디안(성분별)
+Quaternion QuatFromEulerDegrees(const Vec3& eulerDegrees);         // 도 -> 쿼터니언
+Vec3 ForwardFromEulerDegrees(const Vec3& eulerDegrees);            // 도 -> 로컬 +Z
+
 Vec4 HlslQuatSlerp(const Vec4& a, const Vec4& b, float t);
 Vec4 LerpV4(const Vec4& a, const Vec4& b, float t);
 

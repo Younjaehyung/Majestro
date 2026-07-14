@@ -34,6 +34,26 @@ std::size_t RandomIndex(std::size_t count)
 	return dist(RandomEngine());
 }
 
+Vec3 EulerDegreesToRadians(const Vec3& eulerDegrees)
+{
+	return eulerDegrees * kDegToRad;
+}
+
+Quaternion QuatFromEulerDegrees(const Vec3& eulerDegrees)
+{
+	// euler(x=pitch, y=yaw, z=roll) 도 -> 쿼터니언
+	return Quaternion::CreateFromYawPitchRoll(
+		eulerDegrees.y * kDegToRad,
+		eulerDegrees.x * kDegToRad,
+		eulerDegrees.z * kDegToRad);
+}
+
+Vec3 ForwardFromEulerDegrees(const Vec3& eulerDegrees)
+{
+	// 로컬 +Z
+	return Vec3::Transform(Vec3::Backward, QuatFromEulerDegrees(eulerDegrees));
+}
+
 Vec4 HlslQuatMul(const Vec4& q1, const Vec4& q2)
 {
 	XMVECTOR r = XMQuaternionMultiply(q2, q1);

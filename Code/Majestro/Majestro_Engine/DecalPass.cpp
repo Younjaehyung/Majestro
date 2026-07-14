@@ -104,9 +104,10 @@ void DecalPass::Execute(CameraComponent* camera)
         cb[12] = draw.fadeAlpha; cb[13] = d->NormalThreshold;
 
         if (d->TexIndex >= 0)
-        {   // 텍스처 O : 아틀라스 팩킹값
-            const int grid = std::clamp(d->AtlasGrid, 1, 63);
-            cb[14] = static_cast<float>(d->AtlasIndex * 64 + grid);
+        {   // 텍스처 O : 아틀라스 팩킹값 (열 6비트 | 행 6비트 | 셀 인덱스)
+            const int cols = std::clamp(d->AtlasGrid, 1, 63);
+            const int rows = std::clamp(d->AtlasRows > 0 ? d->AtlasRows : d->AtlasGrid, 1, 63);
+            cb[14] = static_cast<float>(d->AtlasIndex * 4096 + rows * 64 + cols);
         }
         else
         {   // 텍스처 X : 링 두께(Thickness)

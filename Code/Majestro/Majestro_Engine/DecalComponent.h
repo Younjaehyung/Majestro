@@ -16,8 +16,9 @@ public:
     int   TexIndex        = -1;
 
     // 텍스처 아틀라스 슬라이싱
-    int   AtlasGrid       = 1;    // 한 변의 셀 수 (예: 4 → 4x4=16셀)
-    int   AtlasIndex      = 0;    // 그릴 셀 인덱스 (AtlasGrid<=1 이면 전체 텍스처)
+    int   AtlasGrid       = 1;    // 열 수
+    int   AtlasRows       = 0;    // 행 수( 0 이면 정사각)
+    int   AtlasIndex      = 0;    // 그릴 셀 인덱스 (행 우선)
 
     // 수명 / 페이드 (초)
     float FadeIn   = 0.15f;   // 등장 페이드 인

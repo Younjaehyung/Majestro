@@ -69,12 +69,12 @@ float4 PS_Main(VS_OUT input) : SV_Target
 
         // 아틀라스 슬라이싱
         int packed = (int) (Decal.Thickness + 0.5f);
-        int grid   = max(packed & 63, 1);   // 하위 6비트 = 한 변 셀 수
-        int cell   = packed >> 6;           // 나머지 = 셀 인덱스
-        float inv  = 1.0f / grid;
-        int col    = cell % grid;
-        int row    = cell / grid;
-        float2 tuv = (float2(col, row) + local) * inv;
+        int cols   = max(packed & 63, 1);          // 하위 6비트 = 열 수
+        int rows   = max((packed >> 6) & 63, 1);   // 다음 6비트 = 행 수
+        int cell   = packed >> 12;                 // 나머지 = 셀 인덱스
+        int col    = cell % cols;
+        int row    = cell / cols;
+        float2 tuv = (float2(col, row) + local) * float2(1.0f / cols, 1.0f / rows);
 
         float4 texel = TextureMaps[texIdx].Sample(g_sam_0, tuv);
         rgb   = Decal.Color.rgb * texel.rgb;

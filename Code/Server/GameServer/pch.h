@@ -158,5 +158,6 @@ extern unique_ptr<class ServerCore> gServerCore;
 
 static constexpr float kPI = 3.1415926535f;
 static constexpr float kDegToRad = 0.01745329251994329577f;
+static constexpr float kRadToDeg = 57.2957795130823088f;
 
 #include "MathUtils.h"

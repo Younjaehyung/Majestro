@@ -12,6 +12,58 @@
 #include "Vfx.h"
 #include "GameEvents.h"
 #include "DecalFactory.h"
+#include "MathUtils.h"
+
+namespace
+{
+	constexpr int kVfxDecalCols            = 4;   // 열 수
+	constexpr int kVfxDecalRows            = 1;   // 행 수
+	constexpr int kCellGroundCrack         = 0;   // 지면 균열
+	constexpr int kCellBulletHoleDefault   = 1;   // 총알 흔적
+	constexpr int kCellBulletHoleGuitar    = 2;   // 기타 평타 흔적
+	constexpr int kCellBulletHoleDrum      = 3;   // 드럼 평타 흔적
+
+	int PickBulletHoleCell(SkillType type)
+	{
+		switch (type)
+		{
+		case SkillType::GuitarAttack:
+		case SkillType::GuitarAttack_1:
+		case SkillType::GuitarAttack_2:
+		case SkillType::GuitarAttack_3:
+			return kCellBulletHoleGuitar;
+
+		case SkillType::DrumAttack:
+		case SkillType::DrumAttack3:
+			return kCellBulletHoleDrum;
+
+		default:
+			return kCellBulletHoleDefault;
+		}
+	}
+
+	// 근접 평타(투사체 없음)
+	bool IsMeleeWallMarkAttack(SkillType type)
+	{
+		switch (type)
+		{
+		case SkillType::GuitarAttack:
+		case SkillType::DrumAttack:
+		case SkillType::DrumAttack3:
+		case SkillType::BongoAttack:
+		case SkillType::SlimeAttack:
+		case SkillType::FlyAttack:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	constexpr float kMeleeWeaponHeight = 90.0f;  // 무기 높이
+	constexpr float kMeleeReachBack    = 50.0f;  // 뒤 여유
+	constexpr float kMeleeReachForward = 500.0f; // 앞(사거리)
+	constexpr float kMeleeMarkSize     = 90.0f;  // 흔적 크기
+}
 
 VfxSystem::VfxSystem(World* world)
 	: System(world)
@@ -106,7 +158,30 @@ void VfxSystem::ConsumeSpawnEvents()
 		{
 			const Vec3 center = event.position + decal->positionOffset;
 			DecalFactory::StampGroundCrack(mWorld, center, decal->radius,
-				decal->texName ? decal->texName : L"", decal->color, decal->lifetime);
+				decal->texName ? decal->texName : L"", decal->color, decal->lifetime,
+				decal->atlasCols, decal->atlasRows, decal->atlasIndex);
+		}
+
+		// event.rotation(오일러 degree) → 로컬 +Z 방향(총알 진행 방향 / 캐릭터 전방).
+		const Vec3 eventForward = ForwardFromEulerDegrees(event.rotation);
+
+		// 벽 총알 흔적 데칼 (투사체 벽 충돌 = CollisionStatic).
+		if (const std::optional<BulletHoleDesc> hole = ResolveBulletHole(event.skillType, event.reason))
+		{
+			DecalFactory::StampBulletHole(mWorld, event.position, eventForward,
+				hole->texName ? hole->texName : L"", hole->size, hole->color, hole->lifetime,
+				hole->atlasCols, hole->atlasRows, hole->atlasIndex);
+		}
+
+		// 근접 평타 전방 흔적 (Fire). event.position(≈발밑)을 무기 높이로 올리고,
+		// aim forward(피치 포함)로 전방 슬래브를 뻗어 사거리 내 벽 표면에 투영.
+		if (const std::optional<BulletHoleDesc> melee = ResolveMeleeWallMark(event.skillType, event.reason))
+		{
+			const Vec3 origin = event.position + Vec3::Up * kMeleeWeaponHeight;
+			DecalFactory::StampForwardWallMark(mWorld, origin, eventForward,
+				kMeleeReachBack, kMeleeReachForward, melee->size,
+				melee->texName ? melee->texName : L"", melee->color, melee->lifetime,
+				melee->atlasCols, melee->atlasRows, melee->atlasIndex);
 		}
 
 		const std::optional<VfxSpawnDesc> desc = ResolveVfxSpawn(event.skillType, event.reason);
@@ -304,10 +379,13 @@ std::optional<GroundDecalDesc> VfxSystem::ResolveGroundDecal(SkillType skillType
 		if (skillType == SkillType::GuitarSkill1)
 		{
 			GroundDecalDesc d;
-			d.texName  = L"DecalMagicCircle"; // 임시 텍스처
-			d.radius   = 300.0f;
-			d.color    = Vec4(2.0f, 1.2f, 0.6f, 1.0f); // 착지 순간 발광(주황)
-			d.lifetime = 1.5f;
+			d.texName    = L"UI_VFXDecal_Sheet";
+			d.atlasCols  = kVfxDecalCols;
+			d.atlasRows  = kVfxDecalRows;
+			d.atlasIndex = kCellGroundCrack;
+			d.radius     = 300.0f;
+			d.color      = Vec4(1.0f, 1.0f, 1.0f, 1.0f);   // 원화 그대로(>1 이면 Bloom 발광)
+			d.lifetime   = 1.5f;
 			return d;
 		}
 		return std::nullopt;
@@ -315,6 +393,43 @@ std::optional<GroundDecalDesc> VfxSystem::ResolveGroundDecal(SkillType skillType
 	default:
 		return std::nullopt;
 	}
+}
+
+std::optional<BulletHoleDesc> VfxSystem::ResolveBulletHole(SkillType skillType, uint8 reason)
+{
+	// 이벤트 : 벽에 맞은 발사체
+	if (static_cast<EffectSpawnReason>(reason) != EffectSpawnReason::CollisionStatic)
+		return std::nullopt;
+
+	BulletHoleDesc d;
+	d.texName    = L"UI_VFXDecal_Sheet";
+	d.atlasCols  = kVfxDecalCols;
+	d.atlasRows  = kVfxDecalRows;
+	d.atlasIndex = PickBulletHoleCell(skillType);  // 기타=2, 드럼=3, 그 외=1
+	d.size       = 40.0f;
+	d.color      = Vec4(1.0f, 1.0f, 1.0f, 1.0f);   // 원화 그대로
+	d.lifetime   = 12.0f;
+	return d;
+}
+
+std::optional<BulletHoleDesc> VfxSystem::ResolveMeleeWallMark(SkillType skillType, uint8 reason)
+{
+	// 근접 평타 발동(Fire) 시, 전방 사거리 내 벽에 흔적.
+	if (static_cast<EffectSpawnReason>(reason) != EffectSpawnReason::Fire)
+		return std::nullopt;
+
+	if (!IsMeleeWallMarkAttack(skillType))
+		return std::nullopt;
+
+	BulletHoleDesc d;
+	d.texName    = L"UI_VFXDecal_Sheet";
+	d.atlasCols  = kVfxDecalCols;
+	d.atlasRows  = kVfxDecalRows;
+	d.atlasIndex = PickBulletHoleCell(skillType);  // 기타=2, 드럼=3, 그 외=1
+	d.size       = kMeleeMarkSize;
+	d.color      = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+	d.lifetime   = 12.0f;
+	return d;
 }
 
 std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint8 reason)

@@ -26,6 +26,21 @@ struct GroundDecalDesc
 	Vec4  color = Vec4(2.0f, 1.2f, 0.6f, 1.0f);       // >1 이면 Bloom 발광
 	float lifetime = 1.5f;                            // 수명(초)
 	Vec3  positionOffset = Vec3::Zero;                // 임팩트 위치 보정
+	int   atlasCols = 1;                              // 아틀라스 열 수(1=전체)
+	int   atlasRows = 1;                              // 아틀라스 행 수(1=전체)
+	int   atlasIndex = 0;                             // 그릴 셀 인덱스(행 우선)
+};
+
+// 총알 데칼
+struct BulletHoleDesc
+{
+	const wchar_t* texName = nullptr;                 // 등록된 텍스처 키(없으면 링)
+	float size = 40.0f;                               // 구멍 half-size(월드 단위)
+	Vec4  color = Vec4(0.1f, 0.1f, 0.1f, 0.9f);       // 그을음(어두운 색)
+	float lifetime = 12.0f;                           // 수명(초). 누적 방지용 유한값 권장
+	int   atlasCols = 1;                              // 아틀라스 열 수(1=전체)
+	int   atlasRows = 1;                              // 아틀라스 행 수(1=전체)
+	int   atlasIndex = 0;                             // 그릴 셀 인덱스(행 우선)
 };
 
 class VfxSystem : public System
@@ -56,6 +71,12 @@ private:
 	BulletVfxDesc ResolveBulletVfx(SkillType skillType);
 
 	std::optional<GroundDecalDesc> ResolveGroundDecal(SkillType skillType, uint8 reason);
+
+	// 총알 흔적
+	std::optional<BulletHoleDesc> ResolveBulletHole(SkillType skillType, uint8 reason);
+
+	// 근접 흔적
+	std::optional<BulletHoleDesc> ResolveMeleeWallMark(SkillType skillType, uint8 reason);
 
 private:
 	static constexpr uint32 kPoolSize = 128;

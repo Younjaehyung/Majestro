@@ -3409,10 +3409,8 @@ void ResourceManager::CreateDefaultMaterial()
 	Get<Material>(L"Anim_Bongoman_Idle0")->GetParams().ExtTex[2] = -1;
 
 
-	Load<Texture>(L"DecalMagicCircle", L"..\\Resources\\Effect\\texture\\MagicCircle1.png");
-	Load<Texture>(L"DecalNote", L"..\\Resources\\Effect\\texture\\magiccircle_remilia.png");
-	Load<Texture>(L"DecalGroundCrack", L"..\\Resources\\Effect\\texture\\magiccircle_remilia.png");
-	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_Emote_Sheet.png");
+	Load<Texture>(L"UI_VFXDecal_Sheet", L"..\\Resources\\Image\\UI\\UI_VFXDecal_Sheet.png");
+	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_Spray_Sheet.png");
 
 }
 

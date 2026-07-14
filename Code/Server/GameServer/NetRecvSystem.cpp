@@ -71,6 +71,45 @@ namespace
 NetRecvSystem::NetRecvSystem(World* world) : System(world)
 {
 	mPhase = SysPhase::Pre;
+	RegisterHandlers();
+}
+
+void NetRecvSystem::RegisterHandlers()
+{
+	auto reg = [&](PKT_Type type, Handler h) {
+		mHandlers[static_cast<size_t>(type)] = std::move(h);
+	};
+
+	reg(PKT_Type::C2S_PKT_MOVE, [this](InputCommand& c) {
+		if (const C2S_MovePacket* pkt = c.ViewAs<C2S_MovePacket>())
+			RecvInput(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_PKT_ACTION, [this](InputCommand& c) {
+		if (const C2S_ActionPacket* pkt = c.ViewAs<C2S_ActionPacket>())
+			RecvAction(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_PKT_RHYTHM_CHANGED, [this](InputCommand& c) {
+		if (const C2S_RhythmChangedPacket* pkt = c.ViewAs<C2S_RhythmChangedPacket>())
+			RecvRhythmChanged(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_PKT_STICKER, [this](InputCommand& c) {
+		// 이벤트로 전체 브로드캐스트
+		if (const C2S_StickerPacket* pkt = c.ViewAs<C2S_StickerPacket>())
+			mWorld->GetEventManager()->Enqueue<EvStickerBroadcast>(EvStickerBroadcast{
+				pkt->casterNetId, pkt->camX, pkt->camY, pkt->camZ,
+				pkt->dirX, pkt->dirY, pkt->dirZ, pkt->size, pkt->textureId });
+	});
+	reg(PKT_Type::C2S_PKT_EMOTE, [this](InputCommand& c) {
+		if (const C2S_EmotePacket* pkt = c.ViewAs<C2S_EmotePacket>())
+			RecvEmote(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_PKT_SYNC, [this](InputCommand& c) {
+		if (const C2S_SyncPacket* pkt = c.ViewAs<C2S_SyncPacket>())
+			RecvSync(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_GAME_START, [this](InputCommand& c) {
+		HandleGameStart(c);
+	});
 }
 
 void NetRecvSystem::Update(float dt)
@@ -80,56 +119,16 @@ void NetRecvSystem::Update(float dt)
 
 	while (processed < kMaxMsgsPerTick && mWorld->DequeueCommand(mInputCommand))
 	{
-		switch (mInputCommand.Type)
-		{
-			case PKT_Type::C2S_PKT_MOVE:
-			{
-				const C2S_MovePacket* pkt = mInputCommand.ViewAs<C2S_MovePacket>();
-				if (pkt) RecvInput(mInputCommand.SessionId, *pkt);
-				break;
-			}
-			case PKT_Type::C2S_PKT_ACTION:
-			{
-				const C2S_ActionPacket* pkt = mInputCommand.ViewAs<C2S_ActionPacket>();
-				if (pkt) RecvAction(mInputCommand.SessionId, *pkt);
-				break;
-			}
-			case PKT_Type::C2S_PKT_RHYTHM_CHANGED:
-			{
-				const C2S_RhythmChangedPacket* pkt = mInputCommand.ViewAs<C2S_RhythmChangedPacket>();
-				if (pkt) RecvRhythmChanged(mInputCommand.SessionId, *pkt);
-				break;
-			}
-			case PKT_Type::C2S_PKT_STICKER:
-			{
-				// 이벤트로 전체 브로드캐스트
-				const C2S_StickerPacket* pkt = mInputCommand.ViewAs<C2S_StickerPacket>();
-				if (pkt)
-					mWorld->GetEventManager()->Enqueue<EvStickerBroadcast>(EvStickerBroadcast{
-						pkt->casterNetId, pkt->camX, pkt->camY, pkt->camZ,
-						pkt->dirX, pkt->dirY, pkt->dirZ, pkt->size, pkt->textureId });
-				break;
-			}
-			case PKT_Type::C2S_PKT_EMOTE:
-			{
-				const C2S_EmotePacket* pkt = mInputCommand.ViewAs<C2S_EmotePacket>();
-				if (pkt) RecvEmote(mInputCommand.SessionId, *pkt);
-				break;
-			}
-			case PKT_Type::C2S_PKT_SYNC:
-			{
-				const C2S_SyncPacket* pkt = mInputCommand.ViewAs<C2S_SyncPacket>();
-				if (pkt) RecvSync(mInputCommand.SessionId, *pkt);
-				break;
-			}
-			case PKT_Type::C2S_GAME_START:
-			{
-				HandleGameStart(mInputCommand);
-				break;
-			}
-		}
+		ProcessOne(mInputCommand);
 		++processed;
 	}
+}
+
+void NetRecvSystem::ProcessOne(InputCommand& cmd)
+{
+	const size_t idx = static_cast<size_t>(cmd.Type);
+	if (idx < mHandlers.size() && mHandlers[idx])
+		mHandlers[idx](cmd);
 }
 
 // ─── 입력 수신 ────────────────────────────────────────────────

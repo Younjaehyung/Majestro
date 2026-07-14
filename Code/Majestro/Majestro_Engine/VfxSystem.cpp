@@ -324,6 +324,14 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::BongoShild)
 			return VfxSpawnDesc{ L"VFX_Bongoman_Shield", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
 
+		if (skillType == SkillType::DragonSkill1 ||
+			skillType == SkillType::DragonSkill3 ||
+			skillType == SkillType::DragonSkill4)
+			return VfxSpawnDesc{ L"VFX_Bongoman_Attack_01", Vec3(0.f, 20.f, 0.f), Vec3(100.0f) };
+
+		if (skillType == SkillType::DragonSkill2)
+			return VfxSpawnDesc{ L"VFX_Bongoman_Shield", Vec3(0.f, 100.f, 0.f), Vec3(100.0f) };
+
 		if (skillType == SkillType::BrassSkill1)
 			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_01", Vec3(0.f, 100.f, 0.f), Vec3(1.0f), /*followCaster*/ true };
 

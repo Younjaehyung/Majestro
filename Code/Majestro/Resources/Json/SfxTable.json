@@ -52,6 +52,10 @@
       "event": "event:/SFX/Monster/Bongoman",
       "is3d": true
     },
+    "monster/Dragon/Attack": {
+      "event": "event:/SFX/Monster/Bongoman",
+      "is3d": true
+    },
     "monster/Brass/Die": {
       "event": "event:/SFX/Monster/BrassBoss_Die",
       "is3d": true
@@ -115,6 +119,22 @@
     },
     "skill/DrumSkill2/Fire": {
       "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_02",
+      "is3d": true
+    },
+    "skill/DragonSkill1/Fire": {
+      "event": "event:/SFX/Monster/Bongoman",
+      "is3d": true
+    },
+    "skill/DragonSkill2/Fire": {
+      "event": "event:/SFX/Monster/Bongoman",
+      "is3d": true
+    },
+    "skill/DragonSkill3/Fire": {
+      "event": "event:/SFX/Monster/Bongoman",
+      "is3d": true
+    },
+    "skill/DragonSkill4/Fire": {
+      "event": "event:/SFX/Monster/Bongoman",
       "is3d": true
     },
 

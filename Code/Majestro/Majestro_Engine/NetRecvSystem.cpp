@@ -535,9 +535,12 @@ void NetRecvSystem::HandleSticker(const InputCommand& msg)
     const Vec3 camPos(pkt->camX, pkt->camY, pkt->camZ);
     const Vec3 forward(pkt->dirX, pkt->dirY, pkt->dirZ);
 
+    // textureId  : 셀 인덱스
+    const int emoteIndex = static_cast<int>(pkt->textureId % EmoteSticker::kAtlasCount);
 
     const std::wstring texName = L"DecalSticker";
-    DecalFactory::StampSurfaceSticker(mWorld, camPos, forward, texName, pkt->size, -1.0f);
+    DecalFactory::StampSurfaceSticker(mWorld, camPos, forward, texName, pkt->size, -1.0f,
+                                      EmoteSticker::kAtlasGrid, emoteIndex);
 }
 
 void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)

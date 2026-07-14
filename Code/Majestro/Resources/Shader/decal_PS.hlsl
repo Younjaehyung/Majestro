@@ -64,7 +64,18 @@ float4 PS_Main(VS_OUT input) : SV_Target
     int texIdx = (int) Decal.TexIndex;
     if (texIdx >= 0)
     {
-        float2 tuv  = float2(0.5f - lx * 0.5f, 0.5f - ly * 0.5f);
+        // 데칼 로컬 UV [0,1]
+        float2 local = float2(0.5f - lx * 0.5f, 0.5f - ly * 0.5f);
+
+        // 아틀라스 슬라이싱
+        int packed = (int) (Decal.Thickness + 0.5f);
+        int grid   = max(packed & 63, 1);   // 하위 6비트 = 한 변 셀 수
+        int cell   = packed >> 6;           // 나머지 = 셀 인덱스
+        float inv  = 1.0f / grid;
+        int col    = cell % grid;
+        int row    = cell / grid;
+        float2 tuv = (float2(col, row) + local) * inv;
+
         float4 texel = TextureMaps[texIdx].Sample(g_sam_0, tuv);
         rgb   = Decal.Color.rgb * texel.rgb;
         alpha = texel.a * Decal.Color.a * Decal.FadeAlpha;

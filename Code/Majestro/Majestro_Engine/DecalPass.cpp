@@ -101,7 +101,17 @@ void DecalPass::Execute(CameraComponent* camera)
         cb[0]  = d->Center.x; cb[1]  = d->Center.y; cb[2]  = d->Center.z; cb[3]  = d->Radius;
         cb[4]  = d->Normal.x; cb[5]  = d->Normal.y; cb[6]  = d->Normal.z; cb[7]  = d->Height;
         cb[8]  = d->Color.x;  cb[9]  = d->Color.y;  cb[10] = d->Color.z;  cb[11] = d->Color.w;
-        cb[12] = draw.fadeAlpha; cb[13] = d->NormalThreshold; cb[14] = d->Thickness;
+        cb[12] = draw.fadeAlpha; cb[13] = d->NormalThreshold;
+
+        if (d->TexIndex >= 0)
+        {   // 텍스처 O : 아틀라스 팩킹값
+            const int grid = std::clamp(d->AtlasGrid, 1, 63);
+            cb[14] = static_cast<float>(d->AtlasIndex * 64 + grid);
+        }
+        else
+        {   // 텍스처 X : 링 두께(Thickness)
+            cb[14] = d->Thickness;
+        }
         cb[15] = static_cast<float>(d->TexIndex);
 
         GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, cb, 0);

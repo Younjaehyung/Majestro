@@ -103,7 +103,7 @@ struct EvStickerRequest
     Vec3   pos{};             // 카메라 원점
     Vec3   dir{};             // 시선 방향
     float  size = 100.f;
-    uint32 textureId = 0;     // 스티커 종류(0 = 기본)
+    uint32 textureId = 0;     // 스티커 종류
 };
 
 struct EvVfxSpawnRequest

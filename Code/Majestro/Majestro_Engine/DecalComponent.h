@@ -13,7 +13,11 @@ public:
     float Thickness       = 0.3f;                    // 링 두께 (월드 단위)
     Vec4  Color           = Vec4(1.0f, 1.0f, 1.0f, 1.0f); // HDR 색/틴트 (>1이면 Bloom)
     float NormalThreshold = 0.4f;                    // 투영축 정렬 하한 (abs(dot(surfaceN, Normal)))
-    int   TexIndex        = -1;   
+    int   TexIndex        = -1;
+
+    // 텍스처 아틀라스 슬라이싱
+    int   AtlasGrid       = 1;    // 한 변의 셀 수 (예: 4 → 4x4=16셀)
+    int   AtlasIndex      = 0;    // 그릴 셀 인덱스 (AtlasGrid<=1 이면 전체 텍스처)
 
     // 수명 / 페이드 (초)
     float FadeIn   = 0.15f;   // 등장 페이드 인

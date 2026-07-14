@@ -18,6 +18,8 @@
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
 #include "GameEvents.h"
+#include "DecalFactory.h"
+#include "MathUtils.h"
 #include "RhythmEmissiveComponent.h"
 #include "Network.h"
 #include "PauseMenuController.h"
@@ -535,7 +537,9 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 			Vec3 camPos = Vec3::Transform(Vec3::Zero, invView);
 			Vec3 forward = Vec3::Transform(Vec3(0.0f, 0.0f, 1.0f), invView) - camPos;
 			forward.Normalize();
-			mWorld->GetEventManager()->Enqueue(EvStickerRequest{ camPos, forward, 100.0f, 0u });
+			// 이모트 랜덤
+			const uint32 emoteId = static_cast<uint32>(RandomInt(0, static_cast<int>(EmoteSticker::kAtlasCount) - 1));
+			mWorld->GetEventManager()->Enqueue(EvStickerRequest{ camPos, forward, 100.0f, emoteId });
 		}
 	}
 

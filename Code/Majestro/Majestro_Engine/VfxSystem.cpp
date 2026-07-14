@@ -11,6 +11,7 @@
 #include "World.h"
 #include "Vfx.h"
 #include "GameEvents.h"
+#include "DecalFactory.h"
 
 VfxSystem::VfxSystem(World* world)
 	: System(world)
@@ -100,6 +101,14 @@ void VfxSystem::ConsumeSpawnEvents()
 
 	eventManager->Consume<EvVfxSpawnRequest>([this](const EvVfxSpawnRequest& event)
 	{
+		// 지면 균열 데칼
+		if (const std::optional<GroundDecalDesc> decal = ResolveGroundDecal(event.skillType, event.reason))
+		{
+			const Vec3 center = event.position + decal->positionOffset;
+			DecalFactory::StampGroundCrack(mWorld, center, decal->radius,
+				decal->texName ? decal->texName : L"", decal->color, decal->lifetime);
+		}
+
 		const std::optional<VfxSpawnDesc> desc = ResolveVfxSpawn(event.skillType, event.reason);
 		if (!desc || desc->effectName == nullptr)
 			return;
@@ -284,6 +293,28 @@ bool VfxSystem::IsStaticImpactSkill(SkillType type)
 		type == SkillType::GuitarAttack_2 ||
 		type == SkillType::GuitarAttack_3 ||
 		type == SkillType::HornAttack;
+}
+
+std::optional<GroundDecalDesc> VfxSystem::ResolveGroundDecal(SkillType skillType, uint8 reason)
+{
+	switch (static_cast<EffectSpawnReason>(reason))
+	{
+	case EffectSpawnReason::Fire:
+		// GuitarSkill1 = 지면 강타 스킬.
+		if (skillType == SkillType::GuitarSkill1)
+		{
+			GroundDecalDesc d;
+			d.texName  = L"DecalMagicCircle"; // 임시 텍스처
+			d.radius   = 300.0f;
+			d.color    = Vec4(2.0f, 1.2f, 0.6f, 1.0f); // 착지 순간 발광(주황)
+			d.lifetime = 1.5f;
+			return d;
+		}
+		return std::nullopt;
+
+	default:
+		return std::nullopt;
+	}
 }
 
 std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint8 reason)

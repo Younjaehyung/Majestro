@@ -1,72 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Main">
+    <Filter Include="Application">
       <UniqueIdentifier>{7ce01a19-38b3-498c-9275-d574830917cc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils">
+    <Filter Include="Utils\PCH">
       <UniqueIdentifier>{a5cbd172-9aef-4030-945e-7110f2ea7d51}</UniqueIdentifier>
     </Filter>
     <Filter Include="Network">
       <UniqueIdentifier>{43d7ae0a-f4d8-4ea1-9376-a77021dcb46c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Buffer">
+    <Filter Include="Network\Buffer">
       <UniqueIdentifier>{03861826-f5e2-415c-87b4-262d33539e57}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Buffer\Packet">
+    <Filter Include="Network\Packet">
       <UniqueIdentifier>{c3f43d01-631b-4980-b240-d852c3fe7f02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\Client">
+      <UniqueIdentifier>{2f55466c-0645-4f20-a10e-a8b1356fe360}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\Stress">
+      <UniqueIdentifier>{a2534ed7-8c09-4361-975d-06589e8c737c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{af9dd7dc-6441-4345-a075-c453df12be9b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DummyClient.cpp">
-      <Filter>Main</Filter>
+      <Filter>Application</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClCompile>
     <ClCompile Include="VirtualClient.cpp">
-      <Filter>Network</Filter>
+      <Filter>Network\Client</Filter>
     </ClCompile>
     <ClCompile Include="StressTest.cpp">
-      <Filter>Network</Filter>
+      <Filter>Network\Stress</Filter>
     </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClCompile>
     <ClCompile Include="RingBuffer.cpp">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClCompile>
     <ClCompile Include="SendBuffer.cpp">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Network\Packet</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="VirtualClient.h">
-      <Filter>Network</Filter>
+      <Filter>Network\Client</Filter>
     </ClInclude>
     <ClInclude Include="StressTest.h">
-      <Filter>Network</Filter>
+      <Filter>Network\Stress</Filter>
     </ClInclude>
     <ClInclude Include="RecvBuffer.h">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="RingBuffer.h">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="SendBuffer.h">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Protocol\Packet.h">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Network\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>Buffer\Packet</Filter>
+      <Filter>Network\Packet</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

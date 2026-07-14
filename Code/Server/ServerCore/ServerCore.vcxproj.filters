@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Network">
@@ -7,102 +7,117 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{1c94faf8-d38f-44b3-b3f3-39ba3c6951e1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Packet">
+    <Filter Include="Network\Packet">
       <UniqueIdentifier>{53aaf3f5-9416-4572-8867-a1830fda7f16}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Buffer">
+    <Filter Include="Network\Buffer">
       <UniqueIdentifier>{1b874653-352a-4bc5-b40c-87d0b7b8ddde}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Assistance">
+    <Filter Include="Network\Socket">
       <UniqueIdentifier>{822845c6-354f-4d00-8796-127936fd930d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils\Lib">
-      <UniqueIdentifier>{4998b08e-95bf-41f4-b7e1-032caf7d4509}</UniqueIdentifier>
+    <Filter Include="Core">
+      <UniqueIdentifier>{50ec745a-e735-4cb8-aab3-53a74cf8774e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\Session">
+      <UniqueIdentifier>{d06f8bc4-5756-45bc-858e-b5f12907c74a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network\Thread">
+      <UniqueIdentifier>{4886b143-c742-44be-9f46-3597e97c682a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\PCH">
+      <UniqueIdentifier>{b4340bac-13b5-4748-93e5-765b526d4c0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Common">
+      <UniqueIdentifier>{50b035cf-da32-461b-83e4-ea806f49957f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Time">
+      <UniqueIdentifier>{a518117d-f9c7-46b0-addb-d0a3070ec2d9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Session.h">
-      <Filter>Network</Filter>
+      <Filter>Network\Session</Filter>
     </ClInclude>
     <ClInclude Include="ServerCore.h">
-      <Filter>Network</Filter>
+      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Time</Filter>
     </ClInclude>
     <ClInclude Include="NetworkThread.h">
-      <Filter>Network</Filter>
+      <Filter>Network\Thread</Filter>
     </ClInclude>
     <ClInclude Include="RecvBuffer.h">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="SendBuffer.h">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClInclude>
     <ClInclude Include="SessionManager.h">
-      <Filter>Network</Filter>
+      <Filter>Network\Session</Filter>
     </ClInclude>
     <ClInclude Include="CoreMacro.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Common</Filter>
     </ClInclude>
     <ClInclude Include="CorePch.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="Types.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Common</Filter>
     </ClInclude>
     <ClInclude Include="SocketUtils.h">
-      <Filter>Assistance</Filter>
+      <Filter>Network\Socket</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="NetAddress.h">
-      <Filter>Assistance</Filter>
+      <Filter>Network\Socket</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Protocol\Packet.h">
-      <Filter>Packet</Filter>
+      <Filter>Network\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PacketHelper.h">
-      <Filter>Packet</Filter>
+      <Filter>Network\Packet</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Session.cpp">
-      <Filter>Network</Filter>
+      <Filter>Network\Session</Filter>
     </ClCompile>
     <ClCompile Include="ServerCore.cpp">
-      <Filter>Network</Filter>
+      <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Time</Filter>
     </ClCompile>
     <ClCompile Include="NetworkThread.cpp">
-      <Filter>Network</Filter>
+      <Filter>Network\Thread</Filter>
     </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClCompile>
     <ClCompile Include="SendBuffer.cpp">
-      <Filter>Buffer</Filter>
+      <Filter>Network\Buffer</Filter>
     </ClCompile>
     <ClCompile Include="SessionManager.cpp">
-      <Filter>Network</Filter>
+      <Filter>Network\Session</Filter>
     </ClCompile>
     <ClCompile Include="CorePch.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClCompile>
     <ClCompile Include="SocketUtils.cpp">
-      <Filter>Assistance</Filter>
+      <Filter>Network\Socket</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClCompile>
     <ClCompile Include="NetAddress.cpp">
-      <Filter>Assistance</Filter>
+      <Filter>Network\Socket</Filter>
     </ClCompile>
     <ClCompile Include="PacketHelper.cpp">
-      <Filter>Packet</Filter>
+      <Filter>Network\Packet</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

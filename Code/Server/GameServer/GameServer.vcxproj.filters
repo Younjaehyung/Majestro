@@ -1,7 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Main">
+    <Filter Include="Application">
       <UniqueIdentifier>{e8dccf15-3bdd-4854-8dd2-f0ba5d770abc}</UniqueIdentifier>
     </Filter>
     <Filter Include="Utils">
@@ -37,49 +37,130 @@
     <Filter Include="Resource">
       <UniqueIdentifier>{cf7a9df3-8932-4e46-87e7-57a5cd41075a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="System\Logic">
-      <UniqueIdentifier>{7e0aca65-3a27-4699-8480-8b40d86383d9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="System\Input">
       <UniqueIdentifier>{3593629e-5ded-49a1-b375-b6f43053a1fb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Component\Logic">
-      <UniqueIdentifier>{b899b734-dcb2-49c1-b5b1-94536e826491}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Component\Server">
+    <Filter Include="Component\Network">
       <UniqueIdentifier>{006d4b30-e4b1-44fa-a795-7e4dbc12098f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Component\Utils">
+    <Filter Include="Component\Common">
       <UniqueIdentifier>{a916b56b-9b0d-49f6-8a12-9b17b084c818}</UniqueIdentifier>
     </Filter>
     <Filter Include="Base\Event">
       <UniqueIdentifier>{166ddb8d-195f-421c-92c6-845c6271abdb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Manager\AI">
+      <UniqueIdentifier>{540d55da-bfb5-4dfc-ab72-523af256dd37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Input">
+      <UniqueIdentifier>{8639eb59-34a5-4ffc-bb96-2937e10ddb37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Packet">
+      <UniqueIdentifier>{04d9bc1a-da2f-4a31-9cf3-c694123778a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Resource">
+      <UniqueIdentifier>{80d76b52-3a7c-4ce9-a039-3549b8dde956}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Room">
+      <UniqueIdentifier>{0850534a-0329-4930-ba74-2a4ab8dfead6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Scene">
+      <UniqueIdentifier>{633284ca-a418-4856-ae30-4fe374d2f1e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Script\Prefab">
+      <UniqueIdentifier>{dc374e58-529d-40dc-aba5-5ba0bbfc9808}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Script\Scene">
+      <UniqueIdentifier>{367c49bd-5045-498f-9515-4701d8380a6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Script\State">
+      <UniqueIdentifier>{9f0770b2-fe6c-49b5-a1ac-6be6193453a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\PCH">
+      <UniqueIdentifier>{8e4b7f09-d1dc-44b7-909a-24d66e44f303}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Math">
+      <UniqueIdentifier>{580bfb77-5892-48f4-85dc-c5383840b1c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Json">
+      <UniqueIdentifier>{8f284997-a905-4da0-9a80-bdda0b657a9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\AI">
+      <UniqueIdentifier>{3ba9683a-8dd7-4710-bdef-799706513e21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Time">
+      <UniqueIdentifier>{1b755274-8c2d-45a8-9c26-fb8235d15132}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource\Graphics">
+      <UniqueIdentifier>{b068f4f8-b85d-4401-86e7-b3cb7836e802}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource\Map">
+      <UniqueIdentifier>{81fb3233-1a31-4466-afad-05b016720d22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource\Map\NavMesh">
+      <UniqueIdentifier>{a5109d68-2160-473b-b5c5-461f731521b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Gameplay">
+      <UniqueIdentifier>{b1461514-b07a-4ff7-b86c-1be5d9a8f1fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Gameplay\Combat">
+      <UniqueIdentifier>{04633d90-20a8-4dac-b513-7775a065eab2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Gameplay\Movement">
+      <UniqueIdentifier>{5e422334-11e2-4059-8b6d-2abf5fb9df0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Gameplay\Rule">
+      <UniqueIdentifier>{dd2f3291-5012-40b7-ac74-ab68a5c7ebf0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Gameplay\Spawn">
+      <UniqueIdentifier>{9b1b8532-129b-4d0e-985d-c0cb51b15667}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System\Gameplay\Interaction">
+      <UniqueIdentifier>{9c57b1d5-16c8-4bc3-8de2-b1c37e45f6ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Gameplay">
+      <UniqueIdentifier>{ee6ae1fc-ede7-4f0f-b0eb-039798f83133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Gameplay\Combat">
+      <UniqueIdentifier>{c26aae07-8ac7-4925-bb70-51e9b0939ead}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Gameplay\Movement">
+      <UniqueIdentifier>{92b96e27-9bec-4b42-9482-c95f8fb14a71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Gameplay\Rule">
+      <UniqueIdentifier>{e2f4243f-15ca-494a-9be8-f0288681a5ef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Gameplay\Spawn">
+      <UniqueIdentifier>{a5fb40d7-b31e-454c-b07f-a242706abe10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Component\Gameplay\Interaction">
+      <UniqueIdentifier>{1ba6d07a-6067-47c7-a7e6-3a1ad1eae680}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AIManager.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\AI</Filter>
     </ClCompile>
     <ClCompile Include="GameServer.cpp">
-      <Filter>Main</Filter>
+      <Filter>Application</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClCompile>
     <ClCompile Include="SimpleMath.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="GameCore.cpp">
-      <Filter>Main</Filter>
+      <Filter>Application</Filter>
     </ClCompile>
     <ClCompile Include="Prefab.cpp">
-      <Filter>Script</Filter>
+      <Filter>Script\Prefab</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
-      <Filter>Script</Filter>
+      <Filter>Script\Scene</Filter>
     </ClCompile>
     <ClCompile Include="StateMachine.cpp">
-      <Filter>Script</Filter>
+      <Filter>Script\State</Filter>
     </ClCompile>
     <ClCompile Include="SystemManager.cpp">
       <Filter>Base\System</Filter>
@@ -100,37 +181,37 @@
       <Filter>Base\World</Filter>
     </ClCompile>
     <ClCompile Include="SceneManager.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Scene</Filter>
     </ClCompile>
     <ClCompile Include="RoomManager.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Room</Filter>
     </ClCompile>
     <ClCompile Include="RoomNotifier.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Room</Filter>
     </ClCompile>
     <ClCompile Include="RoomPacketHandler.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Packet</Filter>
     </ClCompile>
     <ClCompile Include="ScenePacketHandler.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Packet</Filter>
     </ClCompile>
     <ClCompile Include="PacketRouter.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Packet</Filter>
     </ClCompile>
     <ClCompile Include="InputManager.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Input</Filter>
     </ClCompile>
     <ClCompile Include="ResourceManager.cpp">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Resource</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Texture.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="HeightField.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="NetRecvSystem.cpp">
       <Filter>System\Network</Filter>
@@ -142,55 +223,55 @@
       <Filter>Base\World</Filter>
     </ClCompile>
     <ClCompile Include="BeatSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="CameraSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="PlayerSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="TransformSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="MovementSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Movement</Filter>
     </ClCompile>
     <ClCompile Include="PlayerInputSystem.cpp">
       <Filter>System\Input</Filter>
     </ClCompile>
     <ClCompile Include="NetEntityComponent.cpp">
-      <Filter>Component\Server</Filter>
+      <Filter>Component\Network</Filter>
     </ClCompile>
     <ClCompile Include="BeatComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="CameraComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="EnemyComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="GravityComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="InputComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="LightComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="PlayerComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="TerrainComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="TransformComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClCompile>
     <ClCompile Include="TagComponent.cpp">
-      <Filter>Component\Utils</Filter>
+      <Filter>Component\Common</Filter>
     </ClCompile>
     <ClCompile Include="EventManager.cpp">
       <Filter>Base\Event</Filter>
@@ -199,114 +280,114 @@
       <Filter>Base\Event</Filter>
     </ClCompile>
     <ClCompile Include="EnemySystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClCompile>
     <ClCompile Include="CollisionSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="PhysicsWorld.cpp">
       <Filter>Base\World</Filter>
     </ClCompile>
     <ClCompile Include="LevelImport.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Map</Filter>
     </ClCompile>
     <ClCompile Include="PayloadPathData.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Map</Filter>
     </ClCompile>
     <ClCompile Include="FBX.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="ColliderComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="BulletComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="DamageSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="ScoreSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="DeathSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="BulletFireEventSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="MeleeAttackSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="BuffComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClCompile>
     <ClCompile Include="NavMeshLoader.cpp">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Map\NavMesh</Filter>
     </ClCompile>
     <ClCompile Include="GameMode.cpp">
-      <Filter>Script</Filter>
+      <Filter>Script\Scene</Filter>
     </ClCompile>
     <ClCompile Include="OnnxModelRunner.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\AI</Filter>
     </ClCompile>
     <ClCompile Include="SpatialGrid2D.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Math</Filter>
     </ClCompile>
     <ClCompile Include="GameRuleSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Rule</Filter>
     </ClCompile>
     <ClCompile Include="GamePhase.cpp">
-      <Filter>Script</Filter>
+      <Filter>Script\Scene</Filter>
     </ClCompile>
     <ClCompile Include="JsonUtils.cpp">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Json</Filter>
     </ClCompile>
     <ClCompile Include="PathLoadComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClCompile>
     <ClCompile Include="PathFollowSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Movement</Filter>
     </ClCompile>
     <ClCompile Include="InteractionSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Interaction</Filter>
     </ClCompile>
     <ClCompile Include="TruckComponent.cpp">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClCompile>
     <ClCompile Include="PlayerNavValidationSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Movement</Filter>
     </ClCompile>
     <ClCompile Include="SpawnerSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Spawn</Filter>
     </ClCompile>
     <ClCompile Include="BuffSystem.cpp">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AIManager.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\AI</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\PCH</Filter>
     </ClInclude>
     <ClInclude Include="SimpleMath.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="GameCore.h">
-      <Filter>Main</Filter>
+      <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="Prefab.h">
-      <Filter>Script</Filter>
+      <Filter>Script\Prefab</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
-      <Filter>Script</Filter>
+      <Filter>Script\Scene</Filter>
     </ClInclude>
     <ClInclude Include="StateMachine.h">
-      <Filter>Script</Filter>
+      <Filter>Script\State</Filter>
     </ClInclude>
     <ClInclude Include="SystemManager.h">
       <Filter>Base\System</Filter>
@@ -327,43 +408,43 @@
       <Filter>Base\World</Filter>
     </ClInclude>
     <ClInclude Include="SceneManager.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Scene</Filter>
     </ClInclude>
     <ClInclude Include="RoomManager.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Room</Filter>
     </ClInclude>
     <ClInclude Include="RoomNotifier.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Room</Filter>
     </ClInclude>
     <ClInclude Include="RoomPacketHandler.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Packet</Filter>
     </ClInclude>
     <ClInclude Include="ScenePacketHandler.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PacketRouter.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Packet</Filter>
     </ClInclude>
     <ClInclude Include="InputManager.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Input</Filter>
     </ClInclude>
     <ClInclude Include="ResourceManager.h">
-      <Filter>Manager</Filter>
+      <Filter>Manager\Resource</Filter>
     </ClInclude>
     <ClInclude Include="ScoreBoardComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Rule</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Texture.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="HeightField.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\ServerCore\json.hpp">
-      <Filter>Script</Filter>
+      <Filter>Utils\Json</Filter>
     </ClInclude>
     <ClInclude Include="NetRecvSystem.h">
       <Filter>System\Network</Filter>
@@ -375,58 +456,58 @@
       <Filter>Base\World</Filter>
     </ClInclude>
     <ClInclude Include="BeatSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="CameraSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="MovementSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="PlayerSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="TransformSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="PlayerInputSystem.h">
       <Filter>System\Input</Filter>
     </ClInclude>
     <ClInclude Include="NetEntityComponent.h">
-      <Filter>Component\Server</Filter>
+      <Filter>Component\Network</Filter>
     </ClInclude>
     <ClInclude Include="BeatComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="CameraComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="EnemyComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="GravityComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="InputComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="LightComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="MovementComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="PlayerComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="TerrainComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="TransformComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="TagComponent.h">
-      <Filter>Component\Utils</Filter>
+      <Filter>Component\Common</Filter>
     </ClInclude>
     <ClInclude Include="EventManager.h">
       <Filter>Base\Event</Filter>
@@ -435,114 +516,114 @@
       <Filter>Base\Event</Filter>
     </ClInclude>
     <ClInclude Include="EnemySystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="CollisionSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="PhysicsWorld.h">
       <Filter>Base\World</Filter>
     </ClInclude>
     <ClInclude Include="LevelImport.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Map</Filter>
     </ClInclude>
     <ClInclude Include="PayloadPathData.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Map</Filter>
     </ClInclude>
     <ClInclude Include="FBX.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="ColliderComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="BulletComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="DamageSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="ScoreSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="DeathSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="HealthComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="ArmorComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="BulletFireEventSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="MeleeAttackSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="NavMeshLoader.h">
-      <Filter>Resource</Filter>
+      <Filter>Resource\Map\NavMesh</Filter>
     </ClInclude>
     <ClInclude Include="GameTimer.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Time</Filter>
     </ClInclude>
     <ClInclude Include="GameMode.h">
-      <Filter>Script</Filter>
+      <Filter>Script\Scene</Filter>
     </ClInclude>
     <ClInclude Include="OnnxModelRunner.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\AI</Filter>
     </ClInclude>
     <ClInclude Include="SpatialGrid2D.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="GameRuleSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Rule</Filter>
     </ClInclude>
     <ClInclude Include="GameRuleComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Rule</Filter>
     </ClInclude>
     <ClInclude Include="GamePhase.h">
-      <Filter>Script</Filter>
+      <Filter>Script\Scene</Filter>
     </ClInclude>
     <ClInclude Include="JsonUtils.h">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Json</Filter>
     </ClInclude>
     <ClInclude Include="PathLoadComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="PathFollowSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="BuffComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Combat</Filter>
     </ClInclude>
     <ClInclude Include="InteractionSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Interaction</Filter>
     </ClInclude>
     <ClInclude Include="TruckComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="InteractableComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Interaction</Filter>
     </ClInclude>
     <ClInclude Include="SpawnerComponent.h">
-      <Filter>Component\Logic</Filter>
+      <Filter>Component\Gameplay\Spawn</Filter>
     </ClInclude>
     <ClInclude Include="SpawnerSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Spawn</Filter>
     </ClInclude>
     <ClInclude Include="PlayerNavValidationSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay\Movement</Filter>
     </ClInclude>
     <ClInclude Include="BuffSystem.h">
-      <Filter>System\Logic</Filter>
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">
-      <Filter>Utils</Filter>
+      <Filter>Utils\Math</Filter>
     </None>
   </ItemGroup>
 </Project>

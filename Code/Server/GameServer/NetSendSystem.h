@@ -29,6 +29,7 @@ private:
 	void SendCooldownEvents();
 	void SendBulletDeactivateEvents();
 	void SendEffectSpawnEvents();
+	void SendStickerEvents();
 	void SendHitConfirmEvents();
 	void SendGimmickStateEvents();
 	void SendRhythmChangedEvents();

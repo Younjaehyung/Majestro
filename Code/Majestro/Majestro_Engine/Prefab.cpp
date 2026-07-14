@@ -3,7 +3,9 @@
 #include "RenderManager.h"
 #include "ResourceManager.h"
 #include "World.h"
+#include "Texture.h"
 #include "Component.h"
+#include "DecalFactory.h"
 #include "TransformComponent.h"
 #include "RenderComponent.h"
 #include "CameraComponent.h"
@@ -34,6 +36,7 @@
 #include "NetEntityComponent.h"
 #include "NetTransformComponent.h"
 #include "BoxColliderComponent.h"
+#include "DecalComponent.h"
 #include "UITextComponent.h"
 #include "BulletComponent.h"
 #include "HealthComponent.h"
@@ -2429,6 +2432,21 @@ Entity TruckEscortPrefab::Build(World* world, const InputCommand& ctx)
 	};
 	for (const TruckVfxDesc& desc : truckVfxList)
 		AttachTruckVfx(world, truck, desc.name, desc.offset, desc.scale);
+
+	// 호위 범위 링
+	{
+		constexpr float kEscortRange = 1000.f;
+		Entity ring = DecalFactory::SpawnRing(world, trans.mLocalPosition, kEscortRange,
+			Vec4(0.2f, 1.6f, 2.4f, 0.8f), 25.f, -1.f);
+		DecalComponent& rd = *world->GetComponent<DecalComponent>(ring);
+		rd.FollowTarget      = truck;
+		rd.DestroyWithTarget = true;
+		rd.Height            = 150.f;
+		rd.NormalThreshold   = 0.35f;
+
+		auto noteTex = RESOURCEMANAGER.Get<Texture>(L"DecalNote");
+		rd.TexIndex = noteTex ? static_cast<int>(noteTex->GetImageIndex()) : -1;
+	}
 
 	return truck;
 }

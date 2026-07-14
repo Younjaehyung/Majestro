@@ -21,6 +21,7 @@ void ResourceManager::Initialize()
 	LoadRectangleMesh();
 	LoadPlaneMesh();
 	LoadSphereMesh();
+	LoadCubeMesh();
 
 	LoadWireCubeMesh();
 	LoadLineMesh();
@@ -1963,6 +1964,24 @@ void ResourceManager::CreateDefaultShader()
 		Add<Shader>(L"CircularVisualizer", shader);
 	}
 
+	// Decal
+	{
+		ShaderInfo info =
+		{
+			SHADER_TYPE::FORWARD,
+			RASTERIZER_TYPE::CULL_FRONT,
+			DEPTH_STENCIL_TYPE::NO_DEPTH_TEST_NO_WRITE,
+			BLEND_TYPE::ALPHA_BLEND,
+		};
+		ShaderPath shaderPath{
+			.VS = L"..\\Resources\\Shader\\decal_VS.hlsl",
+			.PS = L"..\\Resources\\Shader\\decal_PS.hlsl"
+		};
+		shared_ptr<Shader> shader = make_shared<Shader>();
+		shader->CreateGraphicsShader(shaderPath, info, 1, "VS_Main", "PS_Main");
+		Add<Shader>(L"Decal", shader);
+	}
+
 	// UIHpFragment — HP 손실 파편(삼각형) 전용
 	// UIInstanceData를 삼각형 정점 컨테이너로 재해석, UITriangle 메시(3정점)를 인스턴싱
 	{
@@ -3385,8 +3404,11 @@ void ResourceManager::CreateDefaultMaterial()
 	Get<Material>(L"Anim_Hornman_Idle0")->GetParams().ExtTex[2]  = -1;
 	Get<Material>(L"Anim_Pianoman_Idle0")->GetParams().ExtTex[2] = -1;
 	Get<Material>(L"Anim_Bongoman_Idle0")->GetParams().ExtTex[2] = -1;
-	//	LoadEffect(L"..\\Resources\\Effect\\VFX_UI_StartMenu.efk");
-	//	LoadEffect(L"..\\Resources\\Effect\\vfx_o.efk");
+
+
+	Load<Texture>(L"DecalMagicCircle", L"..\\Resources\\Effect\\texture\\MagicCircle1.png");
+	Load<Texture>(L"DecalNote", L"..\\Resources\\Effect\\texture\\magiccircle_remilia.png");
+	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_NoteBoar_Portrait.png");
 }
 
 void ResourceManager::CreateDefaultParticleEffect()

@@ -506,6 +506,8 @@ bool PlayerInputSystem::UpdateDeadInput(PlayerInputContext& ctx)
 
 void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 {
+
+
 	if (!INPUT.GetKey(eKeyCode::W) && !INPUT.GetKey(eKeyCode::A) &&
 		!INPUT.GetKey(eKeyCode::S) && !INPUT.GetKey(eKeyCode::D))
 	{
@@ -523,6 +525,19 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	ctx.movement->mReload = INPUT.GetKey(eKeyCode::R);
 	ctx.movement->mSpecial = mouseLook && INPUT.GetMouseRightDown();
 	ctx.movement->mDance1 = INPUT.GetKeyDown(eKeyCode::_1);
+
+	// 벽 스티커
+	if (INPUT.GetKeyDown(eKeyCode::T))
+	{
+		if (CameraComponent* cam = mWorld->GetComponent<CameraComponent>(ctx.mainCameraEntity))
+		{
+			Matrix invView = cam->GetViewMatrix().Invert();
+			Vec3 camPos = Vec3::Transform(Vec3::Zero, invView);
+			Vec3 forward = Vec3::Transform(Vec3(0.0f, 0.0f, 1.0f), invView) - camPos;
+			forward.Normalize();
+			mWorld->GetEventManager()->Enqueue(EvStickerRequest{ camPos, forward, 100.0f, 0u });
+		}
+	}
 
 	if (INPUT.GetMouseRightDown() && !IsPlayerAirborneForRhythmChange(ctx.player))
 	{

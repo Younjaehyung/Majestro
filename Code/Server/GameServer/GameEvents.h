@@ -118,6 +118,16 @@ struct EvEffectSpawn
     uint64 casterNetId = 0;     // 0이면 시전자 없음(고정 VFX). 그 외면 추종 대상 NetworkID
 };
 
+// 벽 스티커
+struct EvStickerBroadcast
+{
+    uint64 casterNetId = 0;
+    float camX = 0.f, camY = 0.f, camZ = 0.f;
+    float dirX = 0.f, dirY = 0.f, dirZ = 0.f;
+    float size = 100.f;
+    uint32 textureId = 0;
+};
+
 struct EvBuffRequest
 {
     Entity target;

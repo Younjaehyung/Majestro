@@ -7,6 +7,7 @@ class GBufferPass;
 class LightsPass;
 class ForwardPass;
 class OutlinePass;
+class DecalPass;
 class EffectPass;
 class ParticlePass;
 class TrailRenderPass;
@@ -111,6 +112,7 @@ private:
     shared_ptr<LightsPass>       mLightPass;
     shared_ptr<ForwardPass>      mForwardPass;
     shared_ptr<OutlinePass>      mOutlinePass;
+    shared_ptr<DecalPass>        mDecalPass;
     shared_ptr<EffectPass>       mEffectPass;
     shared_ptr<TrailRenderPass>  mTrailRenderPass;
     shared_ptr<ParticlePass>     mParticlePass;
@@ -150,6 +152,7 @@ private:
     void RenderDeferred(const RenderContext& ctx);
     void RenderForward(const RenderContext& ctx);
     void RenderOutline(const RenderContext& ctx);
+    void RenderDecal(const RenderContext& ctx);
     void RenderEffect(const RenderContext& ctx);
     void RenderPost(const RenderContext& ctx);
     void RenderWorldUI(const RenderContext& ctx);

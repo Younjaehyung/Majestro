@@ -47,6 +47,8 @@
 
 #include "RenderSystem.h"
 #include "GameRenderPipeline.h"
+#include "DecalSystem.h"
+#include "BuffAuraSystem.h"
 #include "LobbyRenderPipeline.h"
 #include "CameraSystem.h"
 #include "AudioSystem.h"
@@ -2103,6 +2105,8 @@ void LobbyScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<LobbyRoomSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
@@ -2388,6 +2392,8 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();  // Sim: 관전 대상 선정(입력=PlayerInputSystem, 프레이밍=CameraSystem)
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
@@ -2671,6 +2677,8 @@ void PlazaScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
@@ -2819,6 +2827,8 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
@@ -2942,6 +2952,8 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();

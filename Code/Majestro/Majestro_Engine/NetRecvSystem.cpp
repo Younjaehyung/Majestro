@@ -20,6 +20,7 @@
 #include "RhythmEmissiveComponent.h"
 #include "TagComponent.h"
 #include "BoxColliderComponent.h"
+#include "DecalFactory.h"
 #include "NetSendSystem.h"
 #include "MovementSystem.h"
 #include "VfxSystem.h"
@@ -98,6 +99,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_SYNC, [this](auto& m) { HandleSync(m); });
 	reg(PKT_Type::S2C_PKT_BEAT_JUDGEMENT, [this](auto& m) { HandleBeatJudgement(m); });
 	reg(PKT_Type::S2C_PKT_COMBO_CHANGED, [this](auto& m) { HandleComboChanged(m); });
+	reg(PKT_Type::S2C_PKT_STICKER, [this](auto& m) { HandleSticker(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -523,6 +525,19 @@ void NetRecvSystem::HandleBulletDeactivate(const InputCommand& msg)
 
     if (auto movementSystem = mWorld->GetSystemManager()->GetSystem<MovementSystem>())
         movementSystem->UnregisterActiveBullet(bulletEntity);
+}
+
+void NetRecvSystem::HandleSticker(const InputCommand& msg)
+{
+    const S2C_StickerPacket* pkt = msg.ViewAs<S2C_StickerPacket>();
+    if (!pkt) return;
+
+    const Vec3 camPos(pkt->camX, pkt->camY, pkt->camZ);
+    const Vec3 forward(pkt->dirX, pkt->dirY, pkt->dirZ);
+
+
+    const std::wstring texName = L"DecalSticker";
+    DecalFactory::StampSurfaceSticker(mWorld, camPos, forward, texName, pkt->size, -1.0f);
 }
 
 void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)

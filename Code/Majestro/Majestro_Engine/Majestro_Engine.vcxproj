@@ -202,6 +202,11 @@
     <ClInclude Include="AudioVisualizerSystem.h" />
     <ClInclude Include="CircularVisualizerComponent.h" />
     <ClInclude Include="CircularVisualizerPass.h" />
+    <ClInclude Include="DecalComponent.h" />
+    <ClInclude Include="DecalSystem.h" />
+    <ClInclude Include="DecalFactory.h" />
+    <ClInclude Include="DecalPass.h" />
+    <ClInclude Include="BuffAuraSystem.h" />
     <ClInclude Include="BeatComponent.h" />
     <ClInclude Include="BeatSystem.h" />
     <ClInclude Include="ComboComponent.h" />
@@ -409,6 +414,10 @@
     <ClCompile Include="AudioVisualizerSystem.cpp" />
     <ClCompile Include="CircularVisualizerComponent.cpp" />
     <ClCompile Include="CircularVisualizerPass.cpp" />
+    <ClCompile Include="DecalSystem.cpp" />
+    <ClCompile Include="DecalFactory.cpp" />
+    <ClCompile Include="DecalPass.cpp" />
+    <ClCompile Include="BuffAuraSystem.cpp" />
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
     <ClCompile Include="BoxColliderComponent.cpp" />

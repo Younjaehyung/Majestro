@@ -41,6 +41,7 @@ private:
 	void HandleBulletActivate(const InputCommand& msg);
 	void HandleBulletDeactivate(const InputCommand& msg);
 	void HandleEffectSpawn(const InputCommand& msg);
+	void HandleSticker(const InputCommand& msg);
 	void HandleHitConfirm(const InputCommand& msg);
 	void HandleGameStart(const InputCommand& msg);
 	void HandleSceneChangeResult(const InputCommand& msg);

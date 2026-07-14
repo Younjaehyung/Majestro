@@ -310,7 +310,10 @@ struct PASS_CUSTOM_DATA
 
 	
  ///////////////////////////GLOBAL_PARAMS/////////////////////////////
+// MJ_OVERRIDE_GLOBAL_PARAMS : 자체 레이아웃으로 재해석하려는 셰이더
+#ifndef MJ_OVERRIDE_GLOBAL_PARAMS
 ConstantBuffer<GLOBAL_PARAMS> GlobalParams : register(b0, space0);
+#endif
 ///////////////////////////////////////////////////////////////////
 /*
 	    SHADOW, // SHADOW [ 기존 0] 

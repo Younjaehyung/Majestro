@@ -32,6 +32,8 @@ enum PKT_Type : uint32 {
 	C2S_ROOM_LEAVE,
 
 
+	C2S_PKT_STICKER,
+
 	// Server -> Client
 	S2C_PKT_LOGIN,
 	S2C_PKT_LOGOUT,			// 아직 안함
@@ -65,6 +67,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_RHYTHM_CHANGED,
 	S2C_PKT_BEAT_JUDGEMENT,
 	S2C_PKT_COMBO_CHANGED,
+	S2C_PKT_STICKER,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -804,6 +807,17 @@ struct S2C_BulletDeactivatePacket : public PacketTcpHeader {
 	}
 };
 
+struct S2C_StickerPacket : public PacketTcpHeader {
+	uint64 casterNetId{};
+	float  camX{}, camY{}, camZ{};
+	float  dirX{}, dirY{}, dirZ{};
+	float  size{};
+	uint32 textureId{};
+
+	S2C_StickerPacket()
+		: PacketTcpHeader{ sizeof(S2C_StickerPacket), PKT_Type::S2C_PKT_STICKER, 0.0 } {}
+};
+
 struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 	uint8 effectType{};
 	float x{};
@@ -1055,6 +1069,19 @@ struct C2S_RoomLeavePacket : public PacketTcpHeader {
 	uint32 roomId{};	// 나갈래 패킷
 	C2S_RoomLeavePacket()
 		: PacketTcpHeader{ sizeof(C2S_RoomLeavePacket), PKT_Type::C2S_ROOM_LEAVE, 0.0 } {}
+};
+
+
+struct C2S_StickerPacket : public PacketTcpHeader {
+	uint64 casterNetId{};   // 시전자(선택, 0 가능)
+	float  camX{}, camY{}, camZ{};
+	float  dirX{}, dirY{}, dirZ{};
+	float  size{};
+	uint32 textureId{};     // 스티커 종류(클라가 이름으로 매핑). 0 = 기본
+
+	C2S_StickerPacket()
+		: PacketTcpHeader{ sizeof(C2S_StickerPacket), PKT_Type::C2S_PKT_STICKER, 0.0 } {
+	}
 };
 
 

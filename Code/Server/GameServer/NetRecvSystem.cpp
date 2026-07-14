@@ -99,6 +99,16 @@ void NetRecvSystem::Update(float dt)
 				if (pkt) RecvRhythmChanged(mInputCommand.SessionId, *pkt);
 				break;
 			}
+			case PKT_Type::C2S_PKT_STICKER:
+			{
+				// 이벤트로 전체 브로드캐스트
+				const C2S_StickerPacket* pkt = mInputCommand.ViewAs<C2S_StickerPacket>();
+				if (pkt)
+					mWorld->GetEventManager()->Enqueue<EvStickerBroadcast>(EvStickerBroadcast{
+						pkt->casterNetId, pkt->camX, pkt->camY, pkt->camZ,
+						pkt->dirX, pkt->dirY, pkt->dirZ, pkt->size, pkt->textureId });
+				break;
+			}
 			case PKT_Type::C2S_PKT_SYNC:
 			{
 				const C2S_SyncPacket* pkt = mInputCommand.ViewAs<C2S_SyncPacket>();

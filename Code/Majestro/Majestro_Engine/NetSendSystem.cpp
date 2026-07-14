@@ -29,6 +29,7 @@ void NetSendSystem::Update(float deltaTime)
 	TrySendGameStart();
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
+	TrySendStickerEvents();                      // 벽 스티커 배치 요청 (TCP)
 	TrySendRoomEvents();                         // Ready/Character 변경 (TCP)
 	TrySendRoomBrowserEvents();                  // 방 생성/입장/목록/나가기 (TCP)
 
@@ -221,6 +222,21 @@ void NetSendSystem::TrySendScene()
 		mHasSentGameStart = false;
 		mPendingGameStart = IsRoomScene(e.targetScene);
 		SendPacket(C2S_SceneChangePacket(e.targetScene));
+	});
+}
+
+void NetSendSystem::TrySendStickerEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager) return;
+
+	eventManager->Consume<EvStickerRequest>([this](const EvStickerRequest& e) {
+		C2S_StickerPacket pkt;
+		pkt.camX = e.pos.x; pkt.camY = e.pos.y; pkt.camZ = e.pos.z;
+		pkt.dirX = e.dir.x; pkt.dirY = e.dir.y; pkt.dirZ = e.dir.z;
+		pkt.size = e.size;
+		pkt.textureId = e.textureId;
+		SendPacket(pkt);
 	});
 }
 

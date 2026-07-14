@@ -65,6 +65,7 @@ void NetSendSystem::Update(float dt)
 	SendCooldownEvents();
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
+	SendStickerEvents();
 	SendHitConfirmEvents();
 	SendGimmickStateEvents();
 	SendRhythmChangedEvents();
@@ -534,6 +535,29 @@ void NetSendSystem::SendEffectSpawnEvents()
 			//cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
 
 			Broadcast(recipients, S2C_PKT_EFFECT_SPAWN, effectPkt);
+		});
+}
+
+void NetSendSystem::SendStickerEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvStickerBroadcast>([&](const EvStickerBroadcast& e)
+		{
+			S2C_StickerPacket pkt;
+			pkt.casterNetId = e.casterNetId;
+			pkt.camX = e.camX; pkt.camY = e.camY; pkt.camZ = e.camZ;
+			pkt.dirX = e.dirX; pkt.dirY = e.dirY; pkt.dirZ = e.dirZ;
+			pkt.size = e.size;
+			pkt.textureId = e.textureId;
+
+			Broadcast(recipients, S2C_PKT_STICKER, pkt);
 		});
 }
 

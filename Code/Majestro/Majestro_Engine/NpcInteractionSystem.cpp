@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "NpcInteractionSystem.h"
+#include "World.h"
 #include "NpcComponent.h"
 #include "TagComponent.h"
 #include "TransformComponent.h"

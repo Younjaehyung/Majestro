@@ -8,6 +8,7 @@
 #include "LightsPass.h"
 #include "ForwardPass.h"
 #include "OutlinePass.h"
+#include "DecalPass.h"
 #include "EffectPass.h"
 #include "TrailRenderPass.h"
 #include "ParticlePass.h"
@@ -93,6 +94,7 @@ void GameRenderPipeline::Initialize(World* world)
     mMotionVectorPass = make_shared<MotionVectorPass>();
     mForwardPass = make_shared<ForwardPass>();
     mOutlinePass = make_shared<OutlinePass>();
+    mDecalPass = make_shared<DecalPass>();
     mEffectPass = make_shared<EffectPass>();
     mTrailRenderPass = make_shared<TrailRenderPass>();
     mParticlePass = make_shared<ParticlePass>();
@@ -116,6 +118,7 @@ void GameRenderPipeline::Initialize(World* world)
     mMotionVectorPass->Initialize();
     mForwardPass->Initialize();
     mOutlinePass->Initialize();
+    mDecalPass->Initialize(world);
     mEffectPass->Initialize(world);
     mTrailRenderPass->Initialize(world);
     mParticlePass->Initialize(world);
@@ -266,7 +269,7 @@ void GameRenderPipeline::ExecuteIndependentGraphics(const RenderContext& ctx)
 
 void GameRenderPipeline::ExecuteDependentGraphics(const RenderContext& ctx)
 {
-    // Forward rendering is the first pass that consumes Forward Plus compute output.
+    RenderDecal(ctx);
     RenderForward(ctx);
     RenderOutline(ctx);
     RenderEffect(ctx);
@@ -803,6 +806,12 @@ void GameRenderPipeline::RenderOutline(const RenderContext& ctx)
 {
     GPU_MARKER(L"Outline");
     mOutlinePass->Execute(*ctx.deferredBatchs);
+}
+
+void GameRenderPipeline::RenderDecal(const RenderContext& ctx)
+{
+    GPU_MARKER(L"Decal");
+    mDecalPass->Execute(ctx.camera);
 }
 
 void GameRenderPipeline::RenderEffect(const RenderContext& ctx)

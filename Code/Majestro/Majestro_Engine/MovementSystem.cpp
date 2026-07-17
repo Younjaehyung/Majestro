@@ -99,10 +99,10 @@ void MovementSystem::Update(float dt) {
 			if (moving)
 			{
 				constexpr float kTurnSpeed = 12.f;
-				const float targetYaw = DirectX::XMConvertToDegrees(atan2f(desired.x, desired.z));
+				const float targetYaw = MathUtils::YawDegreesFromDir(desired);
 				const float alpha = std::clamp(dt * kTurnSpeed, 0.f, 1.f);
 				transformComponent->mLocalRotationE.y =
-					LerpAngleDegrees(transformComponent->mLocalRotationE.y, targetYaw, alpha);
+					MathUtils::LerpAngleDegrees(transformComponent->mLocalRotationE.y, targetYaw, alpha);
 			}
 
 			transformComponent->mLocalPosition += desired * dt * mainPlayerComponent->mSpeed;
@@ -238,7 +238,7 @@ void MovementSystem::UpdateBodyYawForAim(PlayerMovementComponent* movementCompon
 
 	constexpr float kTurnStartDeg = 75.f;
 
-	const float deltaYaw = Wrap180Degrees(cameraYaw - transformComponent->mLocalRotationE.y);
+	const float deltaYaw = MathUtils::Wrap180Degrees(cameraYaw - transformComponent->mLocalRotationE.y);
 	const float absDeltaYaw = fabsf(deltaYaw);
 
 	if (!movementComponent->mIsTurnInPlace && absDeltaYaw > kTurnStartDeg)
@@ -259,10 +259,10 @@ void MovementSystem::UpdateBodyYawForAim(PlayerMovementComponent* movementCompon
 
 	const float duration = max(movementComponent->mTurnDuration, 0.0001f);
 	const float alpha = std::clamp(movementComponent->mTurnElapsed / duration, 0.f, 1.f);
-	const float blend = SmoothStep01(alpha);
+	const float blend = MathUtils::SmoothStep01(alpha);
 
 	transformComponent->mLocalRotationE.y =
-		LerpAngleDegrees(movementComponent->mTurnStartYaw, movementComponent->mTurnTargetYaw, blend);
+		MathUtils::LerpAngleDegrees(movementComponent->mTurnStartYaw, movementComponent->mTurnTargetYaw, blend);
 
 	if (alpha >= 1.f)
 	{

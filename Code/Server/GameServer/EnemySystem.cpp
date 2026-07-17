@@ -218,7 +218,7 @@ namespace
         if (!world || !owner.IsValid() || count <= 0)
             return;
 
-        const float angleOffset = RandomRange(0.0f, DirectX::XM_2PI);
+        const float angleOffset = MathUtils::RandomRange(0.0f, DirectX::XM_2PI);
 
         for (int i = 0; i < count; ++i)
         {
@@ -531,7 +531,7 @@ void EnemySystem::Update(float dt)
                     shieldForward = Vec3::Forward;
 
                 const Vec3 shieldEffectPos = myPos + shieldForward * 300.0f;
-                const float shieldYawDeg = DirectX::XMConvertToDegrees(std::atan2(shieldForward.x, shieldForward.z));
+                const float shieldYawDeg = MathUtils::YawDegreesFromDir(shieldForward);
                 eventManager->Enqueue<EvArmorChanged>({ entity, armorComp->mCurrentArmor, armorComp->mMaxArmor });
                 eventManager->Enqueue<EvEffectSpawn>({
                     static_cast<uint8>(SkillType::BongoShild),
@@ -770,7 +770,7 @@ bool EnemySystem::HandleAttackState(
 
 	        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
 	        {
-	            const uint8 dragonPattern = static_cast<uint8>(RandomInt(0, 3));
+	            const uint8 dragonPattern = static_cast<uint8>(MathUtils::RandomInt(0, 3));
 	            const SkillType dragonSkill = GetDragonSkillType(dragonPattern);
 	            enemyComp->mPendingSkillType = static_cast<uint8>(dragonSkill);
 	            enemyComp->mPendingAttackTime = -1.0f;
@@ -815,7 +815,7 @@ bool EnemySystem::HandleAttackState(
                     { EnemyType::Fly, 5, 480.0f },
                 } };
 
-	                const DragonSummonOption& summon = summonOptions[RandomIndex(summonOptions.size())];
+	                const DragonSummonOption& summon = summonOptions[MathUtils::RandomIndex(summonOptions.size())];
 	                SpawnEnemyGroupAroundAndBroadcast(mWorld, entity, summon.type, summon.count, summon.radius);
 	            }
 	            else
@@ -938,7 +938,7 @@ bool EnemySystem::HandleAttackState(
             const Vec3 attackDir = playerPos - myPos;
             float attackYawDeg = 0.0f;
             if (attackDir.x * attackDir.x + attackDir.z * attackDir.z > 1e-8f)
-                attackYawDeg = DirectX::XMConvertToDegrees(std::atan2(attackDir.x, attackDir.z));
+                attackYawDeg = MathUtils::YawDegreesFromDir(attackDir);
 
 	            eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill2 });
 	            enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
@@ -951,7 +951,7 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            const uint8 pattern = static_cast<uint8>(RandomInt(0, 3));
+            const uint8 pattern = static_cast<uint8>(MathUtils::RandomInt(0, 3));
 	            enemyComp->mBrassAttackPattern = pattern;
 
 	            const SkillType brassSkill = GetBrassSkillType(pattern);
@@ -965,7 +965,7 @@ bool EnemySystem::HandleAttackState(
             const Vec3 attackDir = playerPos - myPos;
             float attackYawDeg = 0.0f;
             if (attackDir.x * attackDir.x + attackDir.z * attackDir.z > 1e-8f)
-                attackYawDeg = DirectX::XMConvertToDegrees(std::atan2(attackDir.x, attackDir.z));
+                attackYawDeg = MathUtils::YawDegreesFromDir(attackDir);
 
             if (brassSkill == SkillType::BrassSkill2)
             {
@@ -1259,7 +1259,7 @@ bool EnemySystem::HandleAttackState(
 
                 if (eventManager && !enemyComp->mPianoRushVfxPlayed && canTriggerRushVfx)
                 {
-                    const float rushYawDeg = DirectX::XMConvertToDegrees(std::atan2(rushDir.x, rushDir.z));
+                    const float rushYawDeg = MathUtils::YawDegreesFromDir(rushDir);
                     eventManager->Enqueue<EvEffectSpawn>({
                         static_cast<uint8>(SkillType::PianoAttack),
                         myPos.x,
@@ -1289,7 +1289,7 @@ bool EnemySystem::HandleAttackState(
             if (attackDir.LengthSquared() > 1e-8f)
             {
                 attackDir.Normalize();
-                attackYawDeg = DirectX::XMConvertToDegrees(std::atan2(attackDir.x, attackDir.z));
+                attackYawDeg = MathUtils::YawDegreesFromDir(attackDir);
             }
 
             eventManager->Enqueue<EvEffectSpawn>({

@@ -77,7 +77,7 @@ void PlayerSystem::Update(float dt)
 
 			const float pitchDeg = std::clamp(moveCom->mCameraRotationX, -kAimPitchLimitDeg, kAimPitchLimitDeg);
 			// AimYaw는 절대 카메라 yaw가 아니라 현재 몸 yaw 기준의 카메라 방향 차이.
-			const float yawDelta = Wrap180Degrees(moveCom->mCameraRotationY - tfCom->mLocalRotationE.y);
+			const float yawDelta = MathUtils::Wrap180Degrees(moveCom->mCameraRotationY - tfCom->mLocalRotationE.y);
 			const float clampedYaw = std::clamp(yawDelta, -kAimYawLimitDeg, kAimYawLimitDeg);
 
 			animCom->mEnableAimOffset = aimActive;
@@ -87,5 +87,4 @@ void PlayerSystem::Update(float dt)
 
 	}
 }
-
 

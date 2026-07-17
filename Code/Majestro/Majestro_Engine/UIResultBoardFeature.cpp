@@ -306,7 +306,7 @@ void UIResultBoardFeature::UpdateRow(size_t index, float dt, bool spinTick)
 
 	// 페이드인 + 좌측 슬라이드.
 	const float fadeT = std::clamp(local / kFadeDuration, 0.0f, 1.0f);
-	const float eased = EaseOutCubic(fadeT);
+	const float eased = MathUtils::EaseOutCubic(fadeT);
 	barTransform->mPosition.x = kBarRightX + kSlideOffsetX * (1.0f - eased);
 	sprite->mVisible = true;
 	sprite->mColorTint.w = fadeT;
@@ -340,7 +340,7 @@ void UIResultBoardFeature::UpdateRow(size_t index, float dt, bool spinTick)
 	{
 		row.mPopElapsed += dt;
 		const float popT = std::clamp(row.mPopElapsed / kPopDuration, 0.0f, 1.0f);
-		const float scale = kPopStartScale + (1.0f - kPopStartScale) * EaseOutCubic(popT);
+		const float scale = kPopStartScale + (1.0f - kPopStartScale) * MathUtils::EaseOutCubic(popT);
 		textTransform->mScale = Vec2(scale, scale);
 		if (popT >= 1.0f)
 		{
@@ -388,7 +388,7 @@ void UIResultBoardFeature::UpdateRowRank(size_t index, float rankLocal)
 
 	const float duration = (std::max)(kRankStampDuration, 0.001f);
 	const float progress = std::clamp(rankLocal / duration, 0.0f, 1.0f);
-	const float eased = EaseOutCubic(progress);
+	const float eased = MathUtils::EaseOutCubic(progress);
 	const float scale = kRankStartScale + (1.0f - kRankStartScale) * eased;
 
 	transform->mScale = Vec2(scale, scale);
@@ -555,7 +555,7 @@ void UIResultBoardFeature::UpdateQuickView(float dt)
 
 		// 빠른 페이드인 + 짧은 슬라이드
 		const float fadeT = std::clamp(local / kQuickFadeDuration, 0.0f, 1.0f);
-		const float eased = EaseOutCubic(fadeT);
+		const float eased = MathUtils::EaseOutCubic(fadeT);
 
 		barTransform->mPosition = Vec2(
 			kBarRightX + kQuickSlideOffsetX * (1.0f - eased), kRowSpecs[index].mPosY);
@@ -610,7 +610,7 @@ int32 UIResultBoardFeature::MakeSpinValue(int32 finalValue)
 		high = low * 10 - 1;    // 10^digits - 1
 	}
 
-	return RandomInt(low, high);
+	return MathUtils::RandomInt(low, high);
 }
 
 std::wstring UIResultBoardFeature::FormatRowValue(ResultBoardRow row, int32 value) const

@@ -286,11 +286,8 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			if (tr != nullptr)
 			{
 				mManager->SetLocation(comp->efkHandle, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
-				mManager->SetRotation(
-					comp->efkHandle,
-					tr->mLocalRotationE.x * kDegToRad,
-					tr->mLocalRotationE.y * kDegToRad,
-					tr->mLocalRotationE.z * kDegToRad);
+				const Vec3 rotRad = MathUtils::EulerDegreesToRadians(tr->mLocalRotationE);
+				mManager->SetRotation(comp->efkHandle, rotRad.x, rotRad.y, rotRad.z);
 			}
 		}
 

@@ -121,7 +121,7 @@ void UIMainMenuSystem::Update(float dt)
                     bgSp->mVisible = true;
                     ctrl->mBgFadeT = (std::min)(1.f, ctrl->mBgFadeT + dt / ctrl->mBgFadeDuration);
                     const float t = ctrl->mBgFadeT;
-                    const float s = SmoothStep01(t);
+                    const float s = MathUtils::SmoothStep01(t);
                     bgSp->mColorTint.w = ctrl->mBgTargetAlpha * s;    // 알파 0 -> 목표 알파값
                     const float scale = 2.05f + (1.0f - 2.05f) * s;   // 1.05 -> 1.0 줌인
                     bgTr->mScale = Vec2(scale, scale);

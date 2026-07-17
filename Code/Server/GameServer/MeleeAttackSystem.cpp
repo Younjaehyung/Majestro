@@ -23,20 +23,7 @@ namespace
 
 	Vec3 GetCameraForwardFromInput(const InputComponent& input)
 	{
-		const float yawRad = input.Yaw * kDegToRad;
-		const float pitchRad = -input.Pitch * kDegToRad;
-
-		const float cosPitch = std::cos(pitchRad);
-		Vec3 forward;
-		forward.x = std::sin(yawRad) * cosPitch;
-		forward.y = std::sin(pitchRad);
-		forward.z = std::cos(yawRad) * cosPitch;
-
-		if (forward.LengthSquared() <= 0.0001f)
-			return Vec3::Forward;
-
-		forward.Normalize();
-		return forward;
+		return MathUtils::ForwardFromYawPitchDegrees(input.Yaw, input.Pitch);
 	}
 
 	// 크로스헤어 조준 상수들
@@ -48,35 +35,18 @@ namespace
 	constexpr float kMuzzleUpOffset     = 110.0f;
 	constexpr float kMuzzleForwardOffset = 5.0f;
 
-	Vec3 SafeHorizontalForward(Vec3 f)
-	{
-		f.y = 0.0f;
-		if (f.LengthSquared() <= 0.0001f)
-			return Vec3::Forward;
-		f.Normalize();
-		return f;
-	}
-
-	Vec3 SafeRightFromForward(const Vec3& f)
-	{
-		Vec3 right = Vec3::Up.Cross(SafeHorizontalForward(f));
-		if (right.LengthSquared() <= 0.0001f)
-			return Vec3::Right;
-		right.Normalize();
-		return right;
-	}
 
 	Vec3 TpsCameraPos(const TransformComponent& t, const Vec3& camF)
 	{
-		const Vec3 right = SafeRightFromForward(camF);
+		const Vec3 right = MathUtils::SafeRightFromForward(camF);
 		const Vec3 pivot = t.mWorldPosition + right * kCameraRightOffset + Vec3::Up * kCameraUpOffset;
 		return pivot - camF * kCameraBackDistance;
 	}
 
 	Vec3 MuzzlePos(const TransformComponent& t, const Vec3& camF)
 	{
-		const Vec3 yawForward = SafeHorizontalForward(camF);
-		const Vec3 right      = SafeRightFromForward(camF);
+		const Vec3 yawForward = MathUtils::SafeHorizontalForward(camF);
+		const Vec3 right      = MathUtils::SafeRightFromForward(camF);
 		return t.mWorldPosition + right * kMuzzleRightOffset + Vec3::Up * kMuzzleUpOffset + yawForward * kMuzzleForwardOffset;
 	}
 
@@ -270,7 +240,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 
 
 
-	const Vec3 attackerRotation = EulerDegreesFromForward(effectForward);
+	const Vec3 attackerRotation = MathUtils::EulerDegreesFromForward(effectForward);
 
 		if (request.bulletType != SkillType::PianoAttack)
 		{

@@ -3,20 +3,8 @@
 
 #include <cmath>
 
-Vec3 EulerDegreesFromForward(const Vec3& forward)
+namespace MathUtils
 {
-	Vec3 dir = forward;
-	if (dir.LengthSquared() <= 1e-6f)
-		dir = Vec3::Forward;
-	dir.Normalize();
-
-	float ny = -dir.y;
-	ny = (ny < -1.0f) ? -1.0f : (ny > 1.0f ? 1.0f : ny);
-
-	const float yawDeg   = std::atan2(dir.x, dir.z) * kRadToDeg;
-	const float pitchDeg = std::asin(ny) * kRadToDeg;
-	return Vec3(pitchDeg, yawDeg, 0.0f);
-}
 
 std::mt19937& RandomEngine()
 {
@@ -61,3 +49,59 @@ Vec3 SampleDiskXZ(float radius)
 	const float r = radius * std::sqrt(RandomRange(0.0f, 1.0f));
 	return Vec3(std::cos(angle) * r, 0.0f, std::sin(angle) * r);
 }
+
+float YawDegreesFromDir(const Vec3& dir)
+{
+	return DirectX::XMConvertToDegrees(std::atan2(dir.x, dir.z));
+}
+
+float PitchDegreesFromDir(const Vec3& dir)
+{
+	return DirectX::XMConvertToDegrees(-std::asin(std::clamp(dir.y, -1.0f, 1.0f)));
+}
+
+Vec3 EulerDegreesFromForward(const Vec3& forward)
+{
+	Vec3 dir = forward;
+	if (dir.LengthSquared() <= 1e-6f)
+		dir = Vec3::Forward;
+	dir.Normalize();
+	return Vec3(PitchDegreesFromDir(dir), YawDegreesFromDir(dir), 0.0f);
+}
+
+Vec3 ForwardFromYawPitchDegrees(float yawDeg, float pitchDeg)
+{
+	const float yawRad = yawDeg * kDegToRad;
+	const float pitchRad = -pitchDeg * kDegToRad; // 위를 볼 때 +Y
+
+	const float cosPitch = std::cos(pitchRad);
+	Vec3 forward(std::sin(yawRad) * cosPitch, std::sin(pitchRad), std::cos(yawRad) * cosPitch);
+
+	if (forward.LengthSquared() <= 0.0001f)
+		return Vec3::Forward;
+
+	forward.Normalize();
+	return forward;
+}
+
+Vec3 SafeHorizontalForward(Vec3 forward)
+{
+	forward.y = 0.0f;
+	if (forward.LengthSquared() <= 0.0001f)
+		return Vec3::Forward;
+
+	forward.Normalize();
+	return forward;
+}
+
+Vec3 SafeRightFromForward(const Vec3& forward)
+{
+	Vec3 right = Vec3::Up.Cross(SafeHorizontalForward(forward));
+	if (right.LengthSquared() <= 0.0001f)
+		return Vec3::Right;
+
+	right.Normalize();
+	return right;
+}
+
+} 

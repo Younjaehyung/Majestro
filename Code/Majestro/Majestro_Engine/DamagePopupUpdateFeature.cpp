@@ -141,10 +141,10 @@ void DamagePopupUpdateFeature::UpdatePopups(float dt)
 
         // 페이드 / 스케일 애니메이션
         const float t = dmg->mAge / dmg->mLifetime;
-        const float alpha = 1.f - SmoothStep(SMOOTHSTEP_LO, SMOOTHSTEP_HI, t);
+        const float alpha = 1.f - MathUtils::SmoothStep(SMOOTHSTEP_LO, SMOOTHSTEP_HI, t);
         float scale = BASE_SCALE
-                            + POP_IN_SCALE * SmoothStep(POP_IN_LO, POP_IN_HI, t)
-                            - FADE_OUT_SCALE * SmoothStep(SMOOTHSTEP_LO, SMOOTHSTEP_HI, t);
+                            + POP_IN_SCALE * MathUtils::SmoothStep(POP_IN_LO, POP_IN_HI, t)
+                            - FADE_OUT_SCALE * MathUtils::SmoothStep(SMOOTHSTEP_LO, SMOOTHSTEP_HI, t);
 
         // 크리티컬은 글자 크기 강조
         if (dmg->mIsCritical)

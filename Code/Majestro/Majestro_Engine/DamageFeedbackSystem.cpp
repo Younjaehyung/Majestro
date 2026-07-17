@@ -78,7 +78,7 @@ void DamageFeedbackSystem::Update(float deltaTime)
 
            
             const float t = 1.f - (r->mTimer / r->mDuration);
-            const float curve = std::sin(t * kPI);
+            const float curve = std::sin(t * MathUtils::kPI);
             r->mCurrentPitch = r->mPeakPitch * curve;
             r->mCurrentYaw   = r->mPeakYaw   * curve;
         }
@@ -105,7 +105,7 @@ void DamageFeedbackSystem::DecomposeHitDirection(const Vec3& hitDirWorld,
     dir.Normalize();
 
     // 타깃의 yaw만 사용
-    const float yawRad = targetTr->mLocalRotationE.y * (kPI / 180.f);
+    const float yawRad = targetTr->mLocalRotationE.y * (MathUtils::kPI / 180.f);
     const float c = std::cos(yawRad);
     const float s = std::sin(yawRad);
 

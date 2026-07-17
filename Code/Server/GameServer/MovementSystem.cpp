@@ -571,8 +571,7 @@ void MovementSystem::UpdateEnemy(float dt)
 		dir.x *= invLen;
 		dir.z *= invLen;
 
-		constexpr float kRadToDeg = 57.295779513082320876f;
-		const float targetYawDeg = atan2f(dir.x, dir.z) * kRadToDeg;
+		const float targetYawDeg = MathUtils::YawDegreesFromDir(dir);
 
 		const float maxDeltaDeg = kTurnSpeedDegPerSec * dt;
 		transformComponent->mLocalRotationE.y =

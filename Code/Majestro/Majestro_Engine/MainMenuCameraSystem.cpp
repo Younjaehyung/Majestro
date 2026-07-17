@@ -32,7 +32,7 @@ void MainMenuCameraSystem::Update(float dt)
         const float step = (mm->mBlendDuration > 0.f) ? (dt / mm->mBlendDuration) : 1.f;
         mm->mBlendT = (std::min)(1.f, mm->mBlendT + step);
 
-        const float s = SmoothStep01(mm->mBlendT);
+        const float s = MathUtils::SmoothStep01(mm->mBlendT);
         
 
         const auto& tgt = mm->View(mm->mTarget);

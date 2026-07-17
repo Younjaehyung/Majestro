@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "MathUtils.h"
 
+namespace MathUtils
+{
+
 std::mt19937& RandomEngine()
 {
 	static thread_local std::mt19937 engine{ std::random_device{}() };
@@ -52,6 +55,16 @@ Vec3 ForwardFromEulerDegrees(const Vec3& eulerDegrees)
 {
 	// 로컬 +Z
 	return Vec3::Transform(Vec3::Backward, QuatFromEulerDegrees(eulerDegrees));
+}
+
+float YawDegreesFromDir(const Vec3& dir)
+{
+	return DirectX::XMConvertToDegrees(atan2f(dir.x, dir.z));
+}
+
+float PitchDegreesFromDir(const Vec3& dir)
+{
+	return DirectX::XMConvertToDegrees(-asinf(std::clamp(dir.y, -1.f, 1.f)));
 }
 
 Vec4 HlslQuatMul(const Vec4& q1, const Vec4& q2)
@@ -174,6 +187,8 @@ float EaseInCubic(float t)
 float DampedSine(float t, float freq, float damp)
 {
 	// 바운스/Shake 의 진동
-	// 감쇠 사인 
+	// 감쇠 사인
 	return std::sin(t * freq) * std::exp(-damp * t);
 }
+
+} // namespace MathUtils

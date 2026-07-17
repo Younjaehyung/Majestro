@@ -86,8 +86,8 @@ void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
         if (uiAction->mState == UIActionState::Vibration)
         {
             uiTransform->mFinalPixelPos += Vec2(
-                std::sin(uiAction->mElapsedTime * uiAction->mVibrationFrequency * 2.f * kPI) * uiAction->mVibrationAmplitude,
-                std::cos(uiAction->mElapsedTime * uiAction->mVibrationFrequency * 2.f * kPI) * uiAction->mVibrationAmplitude);
+                std::sin(uiAction->mElapsedTime * uiAction->mVibrationFrequency * 2.f * MathUtils::kPI) * uiAction->mVibrationAmplitude,
+                std::cos(uiAction->mElapsedTime * uiAction->mVibrationFrequency * 2.f * MathUtils::kPI) * uiAction->mVibrationAmplitude);
         }
         else if (uiAction->mState == UIActionState::Hovered)
         {

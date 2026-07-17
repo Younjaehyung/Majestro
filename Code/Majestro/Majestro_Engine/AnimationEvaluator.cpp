@@ -76,18 +76,18 @@ void AnimationEvaluator::Evaluate(
 						blendMeta.AnimOffset, clipBuffer,
 						bs, br, bt);
 
-					const float w = Saturate(inst.BlendWeight);
+					const float w = MathUtils::Saturate(inst.BlendWeight);
 
 					if (inst.BlendMode == 1)
 					{
 						const Vec4 idQ(0, 0, 0, 1);
 						const Vec4 idS(1, 1, 1, 1);
 
-						Vec4 addS = LerpV4(idS, bs, w);
+						Vec4 addS = MathUtils::LerpV4(idS, bs, w);
 						lowerScale.x *= addS.x; lowerScale.y *= addS.y; lowerScale.z *= addS.z;
 
-						Vec4 addR = HlslQuatSlerp(idQ, br, w);
-						lowerRotation = HlslQuatMul(lowerRotation, addR);
+						Vec4 addR = MathUtils::HlslQuatSlerp(idQ, br, w);
+						lowerRotation = MathUtils::HlslQuatMul(lowerRotation, addR);
 
 						lowerTranslation.x += bt.x * w;
 						lowerTranslation.y += bt.y * w;
@@ -95,9 +95,9 @@ void AnimationEvaluator::Evaluate(
 					}
 					else
 					{
-						lowerScale = LerpV4(lowerScale, bs, w);
-						lowerRotation = HlslQuatSlerp(lowerRotation, br, w);
-						lowerTranslation = LerpV4(lowerTranslation, bt, w);
+						lowerScale = MathUtils::LerpV4(lowerScale, bs, w);
+						lowerRotation = MathUtils::HlslQuatSlerp(lowerRotation, br, w);
+						lowerTranslation = MathUtils::LerpV4(lowerTranslation, bt, w);
 					}
 				}
 			}
@@ -142,10 +142,10 @@ void AnimationEvaluator::Evaluate(
 								upperBlendMeta.AnimOffset, clipBuffer,
 								ubs, ubr, ubt);
 
-							const float w = Saturate(inst.UpperBlendWeight);
-							us = LerpV4(us, ubs, w);
-							ur = HlslQuatSlerp(ur, ubr, w);
-							ut = LerpV4(ut, ubt, w);
+							const float w = MathUtils::Saturate(inst.UpperBlendWeight);
+							us = MathUtils::LerpV4(us, ubs, w);
+							ur = MathUtils::HlslQuatSlerp(ur, ubr, w);
+							ut = MathUtils::LerpV4(ut, ubt, w);
 						}
 					}
 
@@ -157,7 +157,7 @@ void AnimationEvaluator::Evaluate(
 					}
 
 					const float boneW = boneBuffer[nowbone + boneIdxBase].blendWeight;
-					finalUpperW = Saturate(inst.UpperLayerWeight) * Saturate(boneW) * upperBlendW;
+					finalUpperW = MathUtils::Saturate(inst.UpperLayerWeight) * MathUtils::Saturate(boneW) * upperBlendW;
 				}
 			}
 		}
@@ -187,17 +187,17 @@ void AnimationEvaluator::Evaluate(
 			const Vec4 idS(1, 1, 1, 1);
 			const Vec4 eps(0.0001f, 0.0001f, 0.0001f, 0.0001f);
 
-			Vec4 deltaS = DivCompV4(us, MaxV4(lowerScale, eps));
-			Vec4 addS = LerpV4(idS, deltaS, finalUpperW);
-			finalScale = MulCompV4(lowerScale, addS);
+			Vec4 deltaS = MathUtils::DivCompV4(us, MathUtils::MaxV4(lowerScale, eps));
+			Vec4 addS = MathUtils::LerpV4(idS, deltaS, finalUpperW);
+			finalScale = MathUtils::MulCompV4(lowerScale, addS);
 
 			Vec4 deltaT = ut - lowerTranslation;
 			finalTranslation = lowerTranslation + deltaT * finalUpperW;
 		}
 		else
 		{
-			finalScale = LerpV4(lowerScale, us, finalUpperW);
-			finalTranslation = LerpV4(lowerTranslation, ut, finalUpperW);
+			finalScale = MathUtils::LerpV4(lowerScale, us, finalUpperW);
+			finalTranslation = MathUtils::LerpV4(lowerTranslation, ut, finalUpperW);
 		}
 
 		// 회전 블렌드
@@ -207,8 +207,8 @@ void AnimationEvaluator::Evaluate(
 			const bool hasParent = (pIdx >= 0 && static_cast<uint32>(pIdx) < boneCount);
 
 			// 두 레이어의 모델공간 회전 누적 (parent < nowbone 보장)
-			const Vec4 baseMesh = hasParent ? HlslQuatMul(baseMeshRot[pIdx], baseLocalQ) : baseLocalQ;
-			Vec4 upperMesh = hasParent ? HlslQuatMul(upperMeshRot[pIdx], upperLocalQ) : upperLocalQ;
+			const Vec4 baseMesh = hasParent ? MathUtils::HlslQuatMul(baseMeshRot[pIdx], baseLocalQ) : baseLocalQ;
+			Vec4 upperMesh = hasParent ? MathUtils::HlslQuatMul(upperMeshRot[pIdx], upperLocalQ) : upperLocalQ;
 			baseMeshRot[nowbone] = baseMesh;
 			upperMeshRot[nowbone] = upperMesh;
 
@@ -216,13 +216,13 @@ void AnimationEvaluator::Evaluate(
 			{
 				// Additive
 				const Vec4 idQ(0, 0, 0, 1);
-				Vec4 deltaR = HlslQuatMul(ur, HlslQuatConj(lowerRotation));
-				Vec4 addR = HlslQuatSlerp(idQ, deltaR, finalUpperW);
-				finalRotation = HlslQuatMul(lowerRotation, addR);
+				Vec4 deltaR = MathUtils::HlslQuatMul(ur, MathUtils::HlslQuatConj(lowerRotation));
+				Vec4 addR = MathUtils::HlslQuatSlerp(idQ, deltaR, finalUpperW);
+				finalRotation = MathUtils::HlslQuatMul(lowerRotation, addR);
 
 				// 자식 체인 일관성: 최종 로컬 회전(aim 적용 전)을 누적
 				blendMeshRot[nowbone] = hasParent
-					? HlslQuatMul(blendMeshRot[pIdx], finalRotation)
+					? MathUtils::HlslQuatMul(blendMeshRot[pIdx], finalRotation)
 					: finalRotation;
 			}
 			else
@@ -233,12 +233,12 @@ void AnimationEvaluator::Evaluate(
 				if (dot < 0.f)
 					upperMesh = Vec4(-upperMesh.x, -upperMesh.y, -upperMesh.z, -upperMesh.w);
 
-				const Vec4 Rm = HlslQuatSlerp(baseMesh, upperMesh, Saturate(finalUpperW));
+				const Vec4 Rm = MathUtils::HlslQuatSlerp(baseMesh, upperMesh, MathUtils::Saturate(finalUpperW));
 				blendMeshRot[nowbone] = Rm; // aim 적용 전 모델공간 회전(자식 변환 기준)
 
 				// 모델공간 회전을 (블렌드된)부모 기준 로컬 회전으로 환산.
 				finalRotation = hasParent
-					? HlslQuatMul(HlslQuatConj(blendMeshRot[pIdx]), Rm)
+					? MathUtils::HlslQuatMul(MathUtils::HlslQuatConj(blendMeshRot[pIdx]), Rm)
 					: Rm;
 			}
 		}
@@ -247,13 +247,13 @@ void AnimationEvaluator::Evaluate(
 			if (additive && finalUpperW > 0.0001f)
 			{
 				const Vec4 idQ(0, 0, 0, 1);
-				Vec4 deltaR = HlslQuatMul(ur, HlslQuatConj(lowerRotation));
-				Vec4 addR = HlslQuatSlerp(idQ, deltaR, finalUpperW);
-				finalRotation = HlslQuatMul(lowerRotation, addR);
+				Vec4 deltaR = MathUtils::HlslQuatMul(ur, MathUtils::HlslQuatConj(lowerRotation));
+				Vec4 addR = MathUtils::HlslQuatSlerp(idQ, deltaR, finalUpperW);
+				finalRotation = MathUtils::HlslQuatMul(lowerRotation, addR);
 			}
 			else
 			{
-				finalRotation = HlslQuatSlerp(lowerRotation, ur, finalUpperW);
+				finalRotation = MathUtils::HlslQuatSlerp(lowerRotation, ur, finalUpperW);
 			}
 		}
 
@@ -267,10 +267,10 @@ void AnimationEvaluator::Evaluate(
 			if (fabsf(pitch) > 1e-5f || fabsf(yaw) > 1e-5f)
 			{
 				// 본 로컬 축: Y = pitch(앞뒤), Z = yaw(좌우).
-				const Vec4 pitchQ = QuatFromAxisAngle(Vec3::UnitY, -pitch);
-				const Vec4 yawQ = QuatFromAxisAngle(Vec3::UnitZ, yaw);
-				const Vec4 aimQ = HlslQuatMul(pitchQ, yawQ);
-				finalRotation = HlslQuatMul(finalRotation, aimQ);
+				const Vec4 pitchQ = MathUtils::QuatFromAxisAngle(Vec3::UnitY, -pitch);
+				const Vec4 yawQ = MathUtils::QuatFromAxisAngle(Vec3::UnitZ, yaw);
+				const Vec4 aimQ = MathUtils::HlslQuatMul(pitchQ, yawQ);
+				finalRotation = MathUtils::HlslQuatMul(finalRotation, aimQ);
 			}
 		}
 
@@ -345,7 +345,7 @@ void AnimationEvaluator::SampleAnimation(
 	const KeyFrameInfo& a = clipBuffer[idx];
 	const KeyFrameInfo& b = clipBuffer[nextIdx];
 
-	outScale = LerpV4(a.scale, b.scale, ratio);
-	outRotation = HlslQuatSlerp(a.rotation, b.rotation, ratio);
-	outTranslation = LerpV4(a.translate, b.translate, ratio);
+	outScale = MathUtils::LerpV4(a.scale, b.scale, ratio);
+	outRotation = MathUtils::HlslQuatSlerp(a.rotation, b.rotation, ratio);
+	outTranslation = MathUtils::LerpV4(a.translate, b.translate, ratio);
 }

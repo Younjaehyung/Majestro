@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "CameraSystem.h"
+#include "MathUtils.h"
 #include "Engine.h"
 #include "RenderManager.h"
 #include "CameraComponent.h"
@@ -332,8 +333,8 @@ void CameraSystem::UpdateDeathCamera(CameraTypeComponent* camType, DeathCamCompo
 	if (dir.LengthSquared() > 1e-4f)
 	{
 		dir.Normalize();
-		const float yawDeg   =  DirectX::XMConvertToDegrees(atan2f(dir.x, dir.z));
-		const float pitchDeg = -DirectX::XMConvertToDegrees(asinf(std::clamp(dir.y, -1.f, 1.f)));
+		const float yawDeg   = MathUtils::YawDegreesFromDir(dir);
+		const float pitchDeg = MathUtils::PitchDegreesFromDir(dir);
 		transform->mLocalRotationE.x = pitchDeg;
 		transform->mLocalRotationE.y = yawDeg;
 		transform->mLocalRotationE.z = 0.f;

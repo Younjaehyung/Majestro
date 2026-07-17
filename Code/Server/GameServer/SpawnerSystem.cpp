@@ -163,7 +163,7 @@ bool SpawnerSystem::SelectNextSpawnTable(SpawnerComponent* sp)
     int32 remainingIndex = 0;
     if (sp->mRandomTableFromPool)
     {
-        remainingIndex = RandomInt(0, static_cast<int32>(sp->mRemainingTableIndices.size()) - 1);
+        remainingIndex = MathUtils::RandomInt(0, static_cast<int32>(sp->mRemainingTableIndices.size()) - 1);
     }
 
     sp->mSelectedTableIndex = sp->mRemainingTableIndices[remainingIndex];
@@ -199,7 +199,7 @@ bool SpawnerSystem::PrepareNextSpawnEntry(SpawnerComponent* sp)
                 continue;
             }
 
-            int32 choice = RandomInt(0, totalRemaining - 1);
+            int32 choice = MathUtils::RandomInt(0, totalRemaining - 1);
             for (size_t i = 0; i < sp->mCurrentSpawnPlan.size(); ++i)
             {
                 const int32 remaining = (std::max)(0, sp->mCurrentSpawnPlan[i].count);
@@ -258,7 +258,7 @@ Entity SpawnerSystem::SpawnOne(Entity spawnerEntity, SpawnerComponent* sp)
     Entity spawned = PrefabFactory::Spawn(mWorld, sp->mPrefabType, dummy);
     if (!spawned.IsValid()) return Entity{};
 
-    const Vec3 offset = SampleDiskXZ(sp->mSpawnRadius);
+    const Vec3 offset = MathUtils::SampleDiskXZ(sp->mSpawnRadius);
     Vec3 placePos = base + offset;
 
     // 스폰 XZ 지점의 실제 지형 높이를 질의해 Y를 보정

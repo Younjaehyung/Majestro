@@ -163,7 +163,7 @@ void VfxSystem::ConsumeSpawnEvents()
 		}
 
 		// event.rotation(오일러 degree) → 로컬 +Z 방향(총알 진행 방향 / 캐릭터 전방).
-		const Vec3 eventForward = ForwardFromEulerDegrees(event.rotation);
+		const Vec3 eventForward = MathUtils::ForwardFromEulerDegrees(event.rotation);
 
 		// 벽 총알 흔적 데칼 (투사체 벽 충돌 = CollisionStatic).
 		if (const std::optional<BulletHoleDesc> hole = ResolveBulletHole(event.skillType, event.reason))

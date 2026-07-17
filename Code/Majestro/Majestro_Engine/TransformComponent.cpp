@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "TransformComponent.h"
 #include "Entity.h"
+#include "MathUtils.h"
 
 void TransformComponent::LookAt(const Vec3 dir)
 {
@@ -78,24 +79,14 @@ Vec3 TransformComponent::DecomposeRotationMatrix(const Matrix& rotation)
 
 void TransformComponent::UpdateRotationQuaternionFromEuler(Vec3 rotation)
 {
-
-	mLocalRotationR.x = DirectX::XMConvertToRadians(rotation.x);
-	mLocalRotationR.y = DirectX::XMConvertToRadians(rotation.y);
-	mLocalRotationR.z = DirectX::XMConvertToRadians(rotation.z);
-
-	mLocalRotationQ = Quaternion::CreateFromYawPitchRoll(rotation.y, rotation.x, rotation.z);
-
+	mLocalRotationR = MathUtils::EulerDegreesToRadians(rotation);
+	mLocalRotationQ = MathUtils::QuatFromEulerDegrees(rotation);
 }
 
 void TransformComponent::UpdateRotationQuaternionFromEuler()
 {
-	mLocalRotationR.x = DirectX::XMConvertToRadians(mLocalRotationE.x);
-	mLocalRotationR.y = DirectX::XMConvertToRadians(mLocalRotationE.y);
-	mLocalRotationR.z = DirectX::XMConvertToRadians(mLocalRotationE.z);
-
-
-	mLocalRotationQ = Quaternion::CreateFromYawPitchRoll(mLocalRotationR.y, mLocalRotationR.x, mLocalRotationR.z);
-
+	mLocalRotationR = MathUtils::EulerDegreesToRadians(mLocalRotationE);
+	mLocalRotationQ = MathUtils::QuatFromEulerDegrees(mLocalRotationE);
 }
 
 void TransformComponent::UpdateRotationEulerFromQuaternion()

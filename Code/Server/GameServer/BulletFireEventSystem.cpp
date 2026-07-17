@@ -304,46 +304,15 @@ std::vector<uint32> BulletFireEventSystem::CollectPlayerSessions() const
 
 Vec3 BulletFireEventSystem::GetCameraForwardFromInput(const InputComponent& input)
 {
-	const float yawRad = input.Yaw * kDegToRad;
-	const float pitchRad = -input.Pitch * kDegToRad;
-
-	const float cosPitch = std::cos(pitchRad);
-	Vec3 forward;
-	forward.x = std::sin(yawRad) * cosPitch;
-	forward.y = std::sin(pitchRad);
-	forward.z = std::cos(yawRad) * cosPitch;
-
-	if (forward.LengthSquared() <= 0.0001f)
-		return Vec3::Forward;
-
-	forward.Normalize();
-	return forward;
+	return MathUtils::ForwardFromYawPitchDegrees(input.Yaw, input.Pitch);
 }
 
-Vec3 BulletFireEventSystem::SafeHorizontalForward(Vec3 forward)
-{
-	forward.y = 0.0f;
-	if (forward.LengthSquared() <= 0.0001f)
-		return Vec3::Forward;
-
-	forward.Normalize();
-	return forward;
-}
-
-Vec3 BulletFireEventSystem::SafeRightFromForward(const Vec3& forward)
-{
-	Vec3 right = Vec3::Up.Cross(SafeHorizontalForward(forward));
-	if (right.LengthSquared() <= 0.0001f)
-		return Vec3::Right;
-
-	right.Normalize();
-	return right;
-}
+// SafeHorizontalForward / SafeRightFromForward 는 MathUtils 로 이동(공용).
 
 Vec3 BulletFireEventSystem::CalculateServerTpsCameraPosition(const TransformComponent& shooterTransform, const Vec3& cameraForward)
 {
 
-	const Vec3 yawRight = SafeRightFromForward(cameraForward);
+	const Vec3 yawRight = MathUtils::SafeRightFromForward(cameraForward);
 	const Vec3 pivot = shooterTransform.mWorldPosition
 		+ yawRight * kCameraRightOffset
 		+ Vec3::Up * kCameraUpOffset;
@@ -355,8 +324,8 @@ Vec3 BulletFireEventSystem::CalculateServerTpsCameraPosition(const TransformComp
 Vec3 BulletFireEventSystem::CalculateServerMuzzlePosition(const TransformComponent& shooterTransform, const Vec3& cameraForward)
 {
 
-	const Vec3 yawForward = SafeHorizontalForward(cameraForward);
-	const Vec3 yawRight = SafeRightFromForward(cameraForward);
+	const Vec3 yawForward = MathUtils::SafeHorizontalForward(cameraForward);
+	const Vec3 yawRight = MathUtils::SafeRightFromForward(cameraForward);
 
 	
 	return shooterTransform.mWorldPosition + yawRight * kMuzzleRightOffset

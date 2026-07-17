@@ -111,7 +111,7 @@ void PauseSystem::Update(float dt)
         if (ctrl->mBgFadeT < 1.f && ctrl->mBackgroundEntity != NULL_ENTITY)
         {
             ctrl->mBgFadeT = (std::min)(1.f, ctrl->mBgFadeT + dt / ctrl->mBgFadeDuration);
-            const float s = SmoothStep01(ctrl->mBgFadeT);
+            const float s = MathUtils::SmoothStep01(ctrl->mBgFadeT);
 
             if (auto* sp = mWorld->GetComponent<UISpriteComponent>(ctrl->mBackgroundEntity))
                 sp->mColorTint.w = ctrl->mBgTargetAlpha * s;

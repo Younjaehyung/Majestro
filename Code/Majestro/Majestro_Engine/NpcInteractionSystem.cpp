@@ -26,9 +26,8 @@ namespace
 			return;
 		dir /= sqrtf(lenSq);
 
-		const float targetYaw = XMConvertToDegrees(atan2f(dir.x, dir.z));
-		const float targetPitch = std::clamp(
-			XMConvertToDegrees(-asinf(std::clamp(dir.y, -1.f, 1.f))), -60.f, 60.f);
+		const float targetYaw = MathUtils::YawDegreesFromDir(dir);
+		const float targetPitch = std::clamp(MathUtils::PitchDegreesFromDir(dir), -60.f, 60.f);
 
 		// yaw는 최단 각도로 wrap해서 보간
 		float yawDiff = targetYaw - movement->mCurrentRotation.y;
@@ -141,9 +140,9 @@ void NpcInteractionSystem::Update(float deltaTime)
 			{
 				const Vec3 toPlayer = playerPos - tr->mWorldPosition;
 				if (toPlayer.x * toPlayer.x + toPlayer.z * toPlayer.z > 1.f)
-					targetYaw = XMConvertToDegrees(atan2f(toPlayer.x, toPlayer.z));
+					targetYaw = MathUtils::YawDegreesFromDir(toPlayer);
 			}
-			tr->mLocalRotationE.y = LerpAngleDegrees(tr->mLocalRotationE.y, targetYaw, turnAlpha);
+			tr->mLocalRotationE.y = MathUtils::LerpAngleDegrees(tr->mLocalRotationE.y, targetYaw, turnAlpha);
 		}
 	}
 

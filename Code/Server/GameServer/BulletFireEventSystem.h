@@ -16,8 +16,6 @@ private:
 	std::vector<uint32> CollectPlayerSessions() const;
 
 	Vec3 GetCameraForwardFromInput(const InputComponent& input);
-	Vec3 SafeHorizontalForward(Vec3 forward);
-	Vec3 SafeRightFromForward(const Vec3& forward);
 	Vec3 CalculateServerTpsCameraPosition(const TransformComponent& shooterTransform, const Vec3& cameraForward);
 	Vec3 CalculateServerMuzzlePosition(const TransformComponent& shooterTransform, const Vec3& cameraForward);
 

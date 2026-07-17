@@ -202,14 +202,14 @@ void UIAudioVisualizerFeature::UpdateAudioVisualizer(float dt)
         {
             visualizer->cooldownTimer = visualizer->spikeCooldown;
 
-            const int count = RandomInt(2, 4);
+            const int count = MathUtils::RandomInt(2, 4);
             int slot = 0;
             for (auto& spike : visualizer->spikes)
             {
                 if (slot >= count)
                     break;
 
-                spike.pointIdx = RandomInt(0, CIRC_VIS_POINTS - 1);
+                spike.pointIdx = MathUtils::RandomInt(0, CIRC_VIS_POINTS - 1);
                 spike.strength = 1.f;
                 spike.timer = visualizer->spikeDuration;
                 ++slot;

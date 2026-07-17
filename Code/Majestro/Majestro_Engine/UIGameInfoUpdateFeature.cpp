@@ -717,7 +717,7 @@ void UIGameInfoUpdateFeature::ComputeIntroVisual(IntroAnim type, const UiAnimPar
 		case IntroAnim::PopScale:
 		{
 			// 0.5  오버슈트  1.0. EaseOutBack 으로 자연스러운 오버슈트.
-			const float k = EaseOutBack(t);
+			const float k = MathUtils::EaseOutBack(t);
 			const float scale = 0.5f + (1.f - 0.5f) * k;
 			// 끝 부분에서 mOvershootScale 까지 살짝 더 부풀어 오르도록 보정.
 			const float bump = (k > 1.f) ? (k - 1.f) * (p.mOvershootScale - 1.f) : 0.f;
@@ -730,7 +730,7 @@ void UIGameInfoUpdateFeature::ComputeIntroVisual(IntroAnim type, const UiAnimPar
 		case IntroAnim::ZoomBurst:
 		{
 			// 큰 스케일에서 1.0 으로 수렴. EaseOutCubic 으로 후반 감속.
-			const float k = EaseOutCubic(t);
+			const float k = MathUtils::EaseOutCubic(t);
 			const float s = p.mZoomBurstStart + (1.f - p.mZoomBurstStart) * k;
 			out.mScale = Vec2(s, s);
 			// 초반 1프레임은 풀 알파, 이후 그대로.
@@ -740,7 +740,7 @@ void UIGameInfoUpdateFeature::ComputeIntroVisual(IntroAnim type, const UiAnimPar
 
 		case IntroAnim::SlideInLeft:
 		{
-			const float k = EaseOutCubic(t);
+			const float k = MathUtils::EaseOutCubic(t);
 			const Vec2 from = base.mPosition - p.mSlideOffset;
 			out.mPosition = Vec2::Lerp(from, base.mPosition, k);
 			out.mAlpha = 1.f;
@@ -749,7 +749,7 @@ void UIGameInfoUpdateFeature::ComputeIntroVisual(IntroAnim type, const UiAnimPar
 
 		case IntroAnim::SlideInRight:
 		{
-			const float k = EaseOutCubic(t);
+			const float k = MathUtils::EaseOutCubic(t);
 			const Vec2 from = base.mPosition + p.mSlideOffset;
 			out.mPosition = Vec2::Lerp(from, base.mPosition, k);
 			out.mAlpha = 1.f;
@@ -759,14 +759,14 @@ void UIGameInfoUpdateFeature::ComputeIntroVisual(IntroAnim type, const UiAnimPar
 		case IntroAnim::DropFromTop:
 		{
 			// 위에서 떨어져 바운스 — 도착 위치 근처에서 흔들림.
-			const float k = EaseOutCubic(t);
+			const float k = MathUtils::EaseOutCubic(t);
 			const Vec2 from = base.mPosition + p.mDropFromOffset;
 			Vec2 pos = Vec2::Lerp(from, base.mPosition, k);
 			// t 후반(0.6 이후) 부터 바운스 추가.
 			if (t > 0.6f)
 			{
 				const float bt = (t - 0.6f) / 0.4f; // 0~1
-				const float bounce = DampedSine(bt, p.mDropBounceFreq, p.mDropBounceDamp) * 30.f;
+				const float bounce = MathUtils::DampedSine(bt, p.mDropBounceFreq, p.mDropBounceDamp) * 30.f;
 				pos.y += bounce;
 			}
 			out.mPosition = pos;
@@ -787,7 +787,7 @@ void UIGameInfoUpdateFeature::ComputeIntroVisual(IntroAnim type, const UiAnimPar
 			else
 			{
 				const float k = (t - flashRatio) / std::max(1.f - flashRatio, 0.0001f);
-				const float s = p.mFlashScale + (1.f - p.mFlashScale) * EaseOutCubic(k);
+				const float s = p.mFlashScale + (1.f - p.mFlashScale) * MathUtils::EaseOutCubic(k);
 				out.mScale = Vec2(s, s);
 				out.mAlpha = 1.f;
 			}
@@ -804,7 +804,7 @@ void UIGameInfoUpdateFeature::ComputeSettleVisual(SettledAnim type, const UiAnim
 	{
 	case SettledAnim::MoveToTop:
 	{
-		const float k = EaseOutCubic(t);
+		const float k = MathUtils::EaseOutCubic(t);
 		out.mPosition = Vec2::Lerp(base.mPosition, p.mTopAnchorPos, k);
 		break;
 	}
@@ -859,7 +859,7 @@ void UIGameInfoUpdateFeature::ComputeOutroVisual(OutroAnim type, const UiAnimPar
 
 	case OutroAnim::SlideOutLeft:
 	{
-		const float k = EaseInCubic(t);
+		const float k = MathUtils::EaseInCubic(t);
 		const Vec2 to = base.mPosition - p.mSlideOffset;
 		out.mPosition = Vec2::Lerp(base.mPosition, to, k);
 		break;
@@ -867,7 +867,7 @@ void UIGameInfoUpdateFeature::ComputeOutroVisual(OutroAnim type, const UiAnimPar
 
 	case OutroAnim::SlideOutRight:
 	{
-		const float k = EaseInCubic(t);
+		const float k = MathUtils::EaseInCubic(t);
 		const Vec2 to = base.mPosition + p.mSlideOffset;
 		out.mPosition = Vec2::Lerp(base.mPosition, to, k);
 		break;
@@ -875,7 +875,7 @@ void UIGameInfoUpdateFeature::ComputeOutroVisual(OutroAnim type, const UiAnimPar
 
 	case OutroAnim::ScaleOut:
 	{
-		const float s = (1.f - EaseInCubic(t));
+		const float s = (1.f - MathUtils::EaseInCubic(t));
 		out.mScale = Vec2(base.mScale.x * s, base.mScale.y * s);
 		out.mAlpha = base.mAlpha * (1.f - t);
 		break;

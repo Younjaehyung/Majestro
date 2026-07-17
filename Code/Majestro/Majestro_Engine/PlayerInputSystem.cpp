@@ -660,7 +660,7 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 			Vec3 forward = Vec3::Transform(Vec3(0.0f, 0.0f, 1.0f), invView) - camPos;
 			forward.Normalize();
 			// 이모트 랜덤
-			const uint32 emoteId = static_cast<uint32>(RandomInt(0, static_cast<int>(EmoteSticker::kAtlasCount) - 1));
+			const uint32 emoteId = static_cast<uint32>(MathUtils::RandomInt(0, static_cast<int>(EmoteSticker::kAtlasCount) - 1));
 			mWorld->GetEventManager()->Enqueue(EvStickerRequest{ camPos, forward, 100.0f, emoteId });
 		}
 	}
@@ -704,7 +704,6 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	INPUT.MouseStateClear();
 	ctx.player->Update(dt);
 }
-
 
 
 

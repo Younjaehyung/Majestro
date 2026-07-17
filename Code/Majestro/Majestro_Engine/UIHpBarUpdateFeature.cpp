@@ -392,8 +392,8 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
             const float baseY = y0 + static_cast<float>(j) * cellH;
             const bool edgeX = (i == 0 || i == cols);
             const bool edgeY = (j == 0 || j == rows);
-            const float jx = edgeX ? 0.f : RandomRange(-jitterScaleX, jitterScaleX);
-            const float jy = edgeY ? 0.f : RandomRange(-jitterScaleY, jitterScaleY);
+            const float jx = edgeX ? 0.f : MathUtils::RandomRange(-jitterScaleX, jitterScaleX);
+            const float jy = edgeY ? 0.f : MathUtils::RandomRange(-jitterScaleY, jitterScaleY);
             gridAt(i, j) = Vec2(baseX + jx, baseY + jy);
         }
     }
@@ -415,7 +415,7 @@ void UIHpBarUpdateFeature::SpawnHpLossFragments(UIHpBarComponent* hpBar, float o
             const Vec2 br = gridAt(i + 1, j + 1);
             const Vec2 bl = gridAt(i, j + 1);
 
-            if (RandomRange(0.f, 1.f) < 0.5f)
+            if (MathUtils::RandomRange(0.f, 1.f) < 0.5f)
             {
                 mFragment.Triangles.push_back({ tl, tr, br });
                 mFragment.Triangles.push_back({ tl, br, bl });

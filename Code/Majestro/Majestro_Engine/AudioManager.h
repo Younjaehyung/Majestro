@@ -40,6 +40,14 @@ enum class AudioCategory : uint8 {
 // 상태 연동 루프 사운드용 불투명 핸들. 0 = invalid.
 using SfxHandle = uint32;
 
+
+struct BGMInitialParameter
+{
+    const char* name = nullptr;
+    float value = 0.0f;
+    bool ignoreSeekSpeed = true;
+};
+
 class FmodBackend {
 public:
     void Initialize(const std::string& bankRoot, bool rightHanded3D);
@@ -80,11 +88,16 @@ public:
     void PlayOneShot3D(const char* eventPath, const FMOD_3D_ATTRIBUTES& attr);
 
     // 배경음
-    void PlayBGM(const char* eventPath, SOUNDNAME soundEnum);
+    bool PlayBGM(const char* eventPath, SOUNDNAME soundEnum);
     void StopBGM(SOUNDNAME soundEnum);
 
     // 같은 슬롯에 같은 곡이 이미 재생 중이면 아무것도 하지 않는다(씬 전환 시 끊김 없이 이어짐).  다른 곡이면 교체한다
-    void RequestBGM(const char* eventPath, SOUNDNAME soundEnum);
+    bool RequestBGM(const char* eventPath, SOUNDNAME soundEnum);
+    bool RequestBGM(
+        const char* eventPath,
+        SOUNDNAME soundEnum,
+        std::initializer_list<BGMInitialParameter> initialParameters,
+        bool startPaused);
 
     // 루프 효과음
     SfxHandle StartLoop(const char* eventPath);
@@ -107,7 +120,7 @@ public:
     void SetListener(const FMOD_3D_ATTRIBUTES& attr, int index = 0);
 
     // ... 기존
-    void SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed = false);
+    bool SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed = false);
     void SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed = false);
 
     // FMOD 점프 검증
@@ -159,6 +172,11 @@ private:
 
     SeekProbe mSeekProbe;
     void PollSeekProbe();
+    bool PlayBGMWithInitialParameters(
+        const char* eventPath,
+        SOUNDNAME soundEnum,
+        std::initializer_list<BGMInitialParameter> initialParameters,
+        bool startPaused);
     void ReleaseBGMInstance(FMOD::Studio::EventInstance*& instance, SOUNDNAME soundEnum);
     void SyncBGMToListener(const FMOD_3D_ATTRIBUTES& listenerAttr);
 
@@ -172,7 +190,6 @@ private:
     std::unordered_map<SfxHandle, FMOD::Studio::EventInstance*> mLoopInstances;
     SfxHandle mNextLoopHandle = 1;
 
-    FMOD::Studio::EventInstance* mBGM = nullptr;
 	std::vector<FMOD::Studio::EventInstance*> mAllBGM;
     std::vector<std::string> mCurrentBGMMarkers;
     mutable std::mutex mMarkerMutex;

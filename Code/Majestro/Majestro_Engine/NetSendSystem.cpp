@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "NetSendSystem.h"
 #include "Engine.h"
+#include "MajestroGameInstance.h"
 #include "Entity.h"
 #include "World.h"
 #include "Timer.h"
@@ -269,6 +270,9 @@ void NetSendSystem::TrySendRoomEvents()
 		C2S_RoomReadyPacket pkt;
 		pkt.roomId = roomId;
 		pkt.ready = e.ready ? 1 : 0;
+
+		pkt.rhythmMusicSubVariant = static_cast<uint8>(
+			MajestroGameInstance::GetInstance().GetLocalRhythmMusicSelection());
 		SendPacket(pkt);
 	});
 

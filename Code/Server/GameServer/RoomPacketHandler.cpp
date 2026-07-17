@@ -104,6 +104,16 @@ bool RoomPacketHandler::HandleReady(const InputCommand& command)
         return true;
     }
 
+ 
+    const RoomErrorCode selectionError = mRoomManager->SelectRhythmMusic(
+        sessionId,
+        SanitizeRhythmMusicVariant(pkt->rhythmMusicSubVariant));
+    if (selectionError != RoomErrorCode::None)
+    {
+        mNotifier->SendError(sessionId, room->mRoomId, selectionError);
+        return true;
+    }
+
     const RoomErrorCode err = mRoomManager->SetPlayerReady(sessionId, pkt->ready != 0);
     if (err != RoomErrorCode::None)
     {

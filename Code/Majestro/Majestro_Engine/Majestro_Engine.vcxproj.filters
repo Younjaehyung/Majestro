@@ -4,6 +4,9 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{0d5ad3e0-e80b-40bd-bd92-2c925fa7c1ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{f53e8986-a6ba-4482-ac98-15537566e468}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{9bb31ba1-1294-41a6-89e1-2709670d00df}</UniqueIdentifier>
     </Filter>
@@ -288,6 +291,9 @@
     <ClInclude Include="Engine.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="MajestroGameInstance.h">
+      <Filter>Game</Filter>
+    </ClInclude>
     <ClInclude Include="EngineLog.h">
       <Filter>Engine</Filter>
     </ClInclude>
@@ -526,6 +532,9 @@
       <Filter>Network\Packet</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Protocol\Packet.h">
+      <Filter>Network\Packet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Protocol\RhythmMusicDefinitions.h">
       <Filter>Network\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PlayerInputSystem.h">

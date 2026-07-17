@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Engine.h"
+#include "MajestroGameInstance.h"
 #include "Timer.h"
 #include "AudioManager.h"
 #include "AudioSystem.h"
@@ -15,6 +16,39 @@
 namespace
 {
     constexpr float kRhythmCompareEpsilon = 0.001f;
+
+    struct RhythmStemConfig
+    {
+        uint8 playerType;
+        SOUNDNAME stem;
+        const char* eventPath;
+        const char* parentParam;
+        const char* subParam;
+    };
+
+    constexpr std::array<RhythmStemConfig, kRhythmMusicPlayerTypeCount> kRhythmStemConfigs = {
+        RhythmStemConfig{ static_cast<uint8>(PlayerType::Rudwig), SOUNDNAME::Drum,
+            "event:/OST/DrumMulti", "DrumParams", "DrumSubParams" },
+        RhythmStemConfig{ static_cast<uint8>(PlayerType::Ibanix), SOUNDNAME::Bass,
+            "event:/OST/BassMulti", "BassParams", "BassSubParams" },
+        RhythmStemConfig{ static_cast<uint8>(PlayerType::Fanthor), SOUNDNAME::Elec,
+            "event:/OST/ElecMulti", "ElecParams", "ElecSubParams" }
+    };
+
+    static_assert(
+        kRhythmMusicPlayerTypeCount == static_cast<uint8>(PlayerType::Count),
+        "Rhythm stem config must cover every player type.");
+
+    const RhythmStemConfig* FindRhythmStemConfig(uint8 playerType)
+    {
+        for (const RhythmStemConfig& config : kRhythmStemConfigs)
+        {
+            if (config.playerType == playerType)
+                return &config;
+        }
+
+        return nullptr;
+    }
 
     void SendRhythmChangedPacket(World* world, Entity playerEntity, uint8 prevRhythm, uint8 changedRhythm, uint8 playerType)
     {
@@ -42,6 +76,9 @@ AudioSystem::AudioSystem(World* world) : System::System(world)
 
 void AudioSystem::Initialize()
 {
+    mBgmStartAligned = false;
+    mBgmInitializationFailed = false;
+    mAlignSeekFrame = -1;
    
     AUDIOMANAGER.PreloadBanks({"MajestroBank.bank"});
 
@@ -51,17 +88,37 @@ void AudioSystem::Initialize()
 
     if (inGame)
     {
-        AUDIOMANAGER.RequestBGM("event:/OST/ElecMulti", SOUNDNAME::Elec);
-        AUDIOMANAGER.RequestBGM("event:/OST/BassMulti", SOUNDNAME::Bass);
-        AUDIOMANAGER.RequestBGM("event:/OST/DrumMulti", SOUNDNAME::Drum);
+        MajestroGameInstance& gameInstance = MajestroGameInstance::GetInstance();
+        bool allRhythmStemsPrepared = true;
+
+        for (const RhythmStemConfig& config : kRhythmStemConfigs)
+        {
+            const float subVariant = static_cast<float>(static_cast<uint8>(
+                gameInstance.GetConfirmedRhythmMusicSelectionForPlayerType(
+                    config.playerType)));
+
+            const bool prepared = AUDIOMANAGER.RequestBGM(
+                config.eventPath,
+                config.stem,
+                { { config.subParam, subVariant }, { config.parentParam, 0.0f } },
+                true);
+            allRhythmStemsPrepared = allRhythmStemsPrepared && prepared;
+        }
+
+        if (!allRhythmStemsPrepared)
+        {
+
+            for (const RhythmStemConfig& config : kRhythmStemConfigs)
+                AUDIOMANAGER.StopBGM(config.stem);
+
+            mBgmInitializationFailed = true;
+            std::cout << "[BGM] rhythm stem initialization failed" << std::endl;
+        }
 
         // Brass 보스 음악: BrassParam=0 으로 시작, 보스 스킬 사용 시 파라미터로 연출 전환
         AUDIOMANAGER.RequestBGM("event:/OST/BrassBossMulti", SOUNDNAME::BrassBoss);
 
-        // T0 정렬 전까지 무음(일시정지)
-        AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Elec, true);
-        AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Bass, true);
-        AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Drum, true);
+
     }
     else
     {
@@ -198,7 +255,7 @@ void AudioSystem::Update(float deltaTime)
 
 
             std::cout << "[RhythmApply] curBeat=" << currentBeat
-                      << " beatInBar=" << (currentBeat % 16)
+                      << " beatInBar=" << (currentBeat % kBeatsPerBar)
                       << " fmodPos=" << (fmodMs / 1000.f) << "s"
                       << " -> rhythm=" << (int)playerComponent->mNextRhythm << std::endl;
             // 마디 정렬이 맞으면 beatInBar = 0, fmodPos = 0(또는 mLoopLen 배수 근처)
@@ -219,7 +276,7 @@ void AudioSystem::Update(float deltaTime)
 // 곡 시작 T0 정렬 
 void AudioSystem::AlignBgmToServerSongClock()
 {
-    if (mBgmStartAligned)
+    if (mBgmStartAligned || mBgmInitializationFailed)
         return;
 
     // 곡 인스턴스가 생성 성공 여부 확인
@@ -330,17 +387,16 @@ void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
     if (rhythm >= static_cast<uint8>(Rhythm::Count))
         return;
 
-    SOUNDNAME stem;
-    const char* paramName;
-    switch (playerType)
-    {
-    case 0: stem = SOUNDNAME::Drum; paramName = "DrumParam"; break; // Drum player — DrumMulti
-    case 1: stem = SOUNDNAME::Bass; paramName = "BassParam"; break; // Bass player — BassMulti
-    case 2: stem = SOUNDNAME::Elec; paramName = "ElecParam"; break; // Elec player — ElecMulti
-    default: return;
-    }
+    const RhythmStemConfig* config = FindRhythmStemConfig(playerType);
+    if (config == nullptr)
+        return;
 
-    AUDIOMANAGER.SetBGMParam(paramName, stem, static_cast<float>(rhythm), true);
+
+    AUDIOMANAGER.SetBGMParam(
+        config->parentParam,
+        config->stem,
+        static_cast<float>(rhythm),
+        true);
 }
 
 void AudioSystem::UpdateSilenceMusicState()
@@ -372,21 +428,12 @@ void AudioSystem::UpdateSilenceMusicState()
     if (player == nullptr)
         return;
 
-    SOUNDNAME playerMusic = SOUNDNAME::End;
-    switch (player->mPlayerType)
-    {
-    case PlayerType::Rudwig:
-        playerMusic = SOUNDNAME::Drum;
-        break;
-    case PlayerType::Ibanix:
-        playerMusic = SOUNDNAME::Bass;
-        break;
-    case PlayerType::Fanthor:
-        playerMusic = SOUNDNAME::Elec;
-        break;
-    default:
+    const RhythmStemConfig* config =
+        FindRhythmStemConfig(static_cast<uint8>(player->mPlayerType));
+    if (config == nullptr)
         return;
-    }
+
+    const SOUNDNAME playerMusic = config->stem;
 
     if (mSilenceMusicStem != playerMusic)
     {

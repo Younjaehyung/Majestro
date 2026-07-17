@@ -13,6 +13,7 @@
 #include "GamePhase.h"
 #include "BeatSystem.h"
 #include "GameTimer.h"
+#include "Protocol/RhythmMusicDefinitions.h"
 #include "TransformComponent.h"
 #include "GravityComponent.h"
 #include "FlyComponent.h"

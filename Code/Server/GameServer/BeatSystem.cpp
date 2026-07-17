@@ -152,8 +152,6 @@ namespace
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
-	mBpmSeconds = 60.f / (float)mBpm;
-	
 }
 
 void BeatSystem::Initialize()
@@ -183,8 +181,8 @@ void BeatSystem::Update(float dt)
 
 	mSeconds += dt;
 	//cout << "time :" << mSeconds << endl;
-	mBeat = (int)(mSeconds / mBpmSeconds);
-	mBeat %= mBpm;
+
+	mBeat = static_cast<int>(GetAbsoluteBeatIndex() % kBeatsPerBar);
 	//cout << "Beat :" << mBeat << endl;
 
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "World.h"
 #include "System.h"
+#include "Protocol/RhythmMusicDefinitions.h"
 
 class ControllerComponent;
 class MainPlayerComponent;
@@ -31,11 +32,10 @@ public:
 private:
 	bool mHasSynced = false; // SyncSongPosition 최초 수신 여부
 
-	int mBpm = 160; 
 	int mBeat = 0;
 	int mLastFiredBeat = -1; // 마지막으로 이벤트를 발행한 박자 번호
 
-	float mBpmSeconds = 60.f / mBpm;	// 한 박자 길이
+	const float mBpmSeconds = kMusicBeatSeconds;	// 128 BPM 기준 한 박자 길이
 	float mSeconds = 0.0f;	// 곡 시작부터의 경과 시간(서버랑 동기화)
 	float mBonusTime = 0.2f;
 

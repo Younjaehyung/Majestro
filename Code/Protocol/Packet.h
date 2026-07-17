@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RhythmMusicDefinitions.h"
+
 static uint32 ServerTick = 0;
 
 #pragma pack(push, 1)
@@ -333,7 +335,7 @@ struct RoomPlayerSlot {
 	uint8  playerType{};
 	uint8  ready{};     // 0/1
 	uint8  isHost{};    // 0/1
-	uint8  reserved{};
+	uint8  rhythmMusicSubVariant{}; // 0=원본, 1=파생 음악 1, 2=파생 음악 2
 };
 
 // 방 목록
@@ -356,7 +358,6 @@ constexpr float kMaxInputSongPosDrift = 0.5f; // 서버 songPos 와 이보다 �
 
 // 리듬 전환 look-ahead 박자 수
 constexpr int64 kRhythmLookAheadBeats = 2;	// 서버가 (현재 절대박자 + 이 값)에 전환을 스케줄해 오차를 흡수.
-constexpr int64 kBeatsPerBar = 16;	// 한 마디의 박자 수
 
 // 리듬(노래 변주) 인덱스
 enum class Rhythm : uint8 { Neutral = 0, R1, R2, R3, Count };
@@ -1034,11 +1035,11 @@ struct C2S_MovePacket : public PacketUdpHeader {
 	C2S_MovePacket() : PacketUdpHeader{ sizeof(C2S_MovePacket), PKT_Type::C2S_PKT_MOVE, 0, 0 } {}
 };
 
-// Ready 토글값 (서버는 그대로 적용 후 브로드캐스트)
+
 struct C2S_RoomReadyPacket : public PacketTcpHeader {
 	uint32 roomId{};
 	uint8  ready{};       // 0/1
-	uint8  reserved0{};
+	uint8  rhythmMusicSubVariant{}; // 게임 시작 전에 확정할 파생 음악 선택값
 	uint16 reserved1{};
 
 	C2S_RoomReadyPacket()

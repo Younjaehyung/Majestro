@@ -2,6 +2,7 @@
 #include "NetRecvSystem.h"
 #include "EnginePch.h"
 #include "Engine.h"
+#include "MajestroGameInstance.h"
 #include "SceneManager.h"
 #include "Scene.h"
 #include "World.h"
@@ -871,12 +872,26 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
     state->mHostSlotIndex = pkt->hostSlotIndex;
 
     const uint8 copyCount = (pkt->maxPlayers < ROOM_MAX_PLAYERS) ? pkt->maxPlayers : ROOM_MAX_PLAYERS;
+    state->mSlots.fill(LobbyRoomPlayerSlot{});
+
+    MajestroGameInstance& gameInstance = MajestroGameInstance::GetInstance();
+    gameInstance.ClearConfirmedRhythmMusicSelections();
+
     for (uint8 i = 0; i < copyCount; ++i)
     {
         state->mSlots[i].sessionId = pkt->slots[i].sessionId;
         state->mSlots[i].playerType = pkt->slots[i].playerType;
+        state->mSlots[i].rhythmMusicSubVariant =
+            SanitizeRhythmMusicVariant(pkt->slots[i].rhythmMusicSubVariant);
         state->mSlots[i].ready = (pkt->slots[i].ready != 0);
         state->mSlots[i].isHost = (pkt->slots[i].isHost != 0);
+
+        if (pkt->slots[i].sessionId != 0)
+        {
+            gameInstance.SetConfirmedRhythmMusicSelectionForPlayerType(
+                pkt->slots[i].playerType,
+                state->mSlots[i].rhythmMusicSubVariant);
+        }
     }
     state->mHasSnapshot = true;
 

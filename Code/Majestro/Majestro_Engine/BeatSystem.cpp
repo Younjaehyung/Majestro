@@ -5,7 +5,6 @@
 
 BeatSystem::BeatSystem(World* world) : System(world)
 {
-	mBpmSeconds = 60.f / (float)mBpm;
 }
 
 void BeatSystem::Initialize()
@@ -18,7 +17,8 @@ void BeatSystem::Update(float dt)
 	mSeconds += dt;
 
 	const int64 absBeat = static_cast<int64>(mSeconds / mBpmSeconds);
-	mBeat = static_cast<int>(absBeat % mBpm);
+
+	mBeat = static_cast<int>(absBeat % kBeatsPerBar);
 	const float s = mSeconds - static_cast<float>(absBeat) * mBpmSeconds;
 
 	if (false == mWorld->HasComponentPool<BeatComponent>()) return;

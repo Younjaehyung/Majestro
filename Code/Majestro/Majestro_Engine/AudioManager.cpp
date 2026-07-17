@@ -288,7 +288,15 @@ void AudioManager::StopAllLoops() {
     mLoopInstances.clear();
 }
 
-void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
+bool AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
+    return PlayBGMWithInitialParameters(eventPath, soundEnum, {}, false);
+}
+
+bool AudioManager::PlayBGMWithInitialParameters(
+    const char* eventPath,
+    SOUNDNAME soundEnum,
+    std::initializer_list<BGMInitialParameter> initialParameters,
+    bool startPaused) {
     // ���� BGM ����
     //if (mAllBGM[soundEnum]) {
     //    mAllBGM[soundEnum]->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
@@ -296,29 +304,54 @@ void AudioManager::PlayBGM(const char* eventPath, SOUNDNAME soundEnum) {
     //    mAllBGM[soundEnum] = nullptr;
     //} // to-do
 	uint32 idx = static_cast<uint32>(soundEnum);
-    if (idx >= mAllBGM.size()) return;
+    if (idx >= mAllBGM.size()) return false;
 
     // 씬 전환 등으로 동일 BGM 슬롯이 재생될 경우 기존 인스턴스를 정리해 중첩 재생을 막는다.
     if (mAllBGM[idx]) {
         ReleaseBGMInstance(mAllBGM[idx], soundEnum);
     }
 
-    mBGM = mFMOD.CreateInstance(eventPath);
-	mAllBGM[idx] = mBGM;
-    auto* callbackData = new BGMCallbackData{ this, soundEnum };
-    FMOD_CHECK(mBGM->setUserData(callbackData));
-    FMOD_CHECK(mBGM->setCallback(&AudioManager::OnBGMEventCallback, FMOD_STUDIO_EVENT_CALLBACK_TIMELINE_MARKER));
-    {
-        std::lock_guard<std::mutex> lock(mMarkerMutex);
-        mCurrentBGMMarkers[idx].clear();
+    FMOD::Studio::EventInstance* instance = mFMOD.CreateInstance(eventPath);
+	mAllBGM[idx] = instance;
+    try {
+
+        auto callbackData = std::make_unique<BGMCallbackData>(BGMCallbackData{ this, soundEnum });
+
+        FMOD_CHECK(instance->setUserData(callbackData.get()));
+        callbackData.release();
+        FMOD_CHECK(instance->setCallback(
+            &AudioManager::OnBGMEventCallback,
+            FMOD_STUDIO_EVENT_CALLBACK_TIMELINE_MARKER));
+        {
+            std::lock_guard<std::mutex> lock(mMarkerMutex);
+            mCurrentBGMMarkers[idx].clear();
+        }
+
+        if (mHasListenerAttr)
+            SyncBGMToListener(mListenerAttr);
+
+        for (const BGMInitialParameter& parameter : initialParameters) {
+            if (parameter.name == nullptr)
+                continue;
+
+            FMOD_CHECK(instance->setParameterByName(
+                parameter.name,
+                parameter.value,
+                parameter.ignoreSeekSpeed));
+        }
+
+
+        if (startPaused)
+            FMOD_CHECK(instance->setPaused(true));
+
+        FMOD_CHECK(instance->start());
+        return true;
     }
-    // �ʿ� �� �Ķ����/���� ����� ����
-    // BGM 이벤트가 3D여도 리스너 위치에서 재생해 거리 감쇠 없이 2D처럼 들리게 한다.
-    if (mHasListenerAttr) {
-        SyncBGMToListener(mListenerAttr);
+    catch (...) {
+
+        ReleaseBGMInstance(mAllBGM[idx], soundEnum);
+        throw;
     }
-    FMOD_CHECK(mBGM->start());
-    // �����ϸ� ������ ���̹Ƿ� release�� ���⼭ ���� ����(Shutdown/StopBGM����)
 }
 
 void AudioManager::StopBGM(SOUNDNAME soundEnum) {
@@ -329,7 +362,15 @@ void AudioManager::StopBGM(SOUNDNAME soundEnum) {
     ReleaseBGMInstance(mAllBGM[idx], soundEnum);
 }
 
-void AudioManager::RequestBGM(const char* eventPath, SOUNDNAME soundEnum) {
+bool AudioManager::RequestBGM(const char* eventPath, SOUNDNAME soundEnum) {
+    return RequestBGM(eventPath, soundEnum, {}, false);
+}
+
+bool AudioManager::RequestBGM(
+    const char* eventPath,
+    SOUNDNAME soundEnum,
+    std::initializer_list<BGMInitialParameter> initialParameters,
+    bool startPaused) {
     // 씬 전환 시 같은 곡이면 재시작하지 않고 그대로 이어간다.
 
     std::string currentPath;
@@ -337,15 +378,27 @@ void AudioManager::RequestBGM(const char* eventPath, SOUNDNAME soundEnum) {
         GetBGMEventPath(soundEnum, currentPath) &&
         currentPath == eventPath)
     {
-        return;
+
+        if (startPaused)
+            SetBGMPaused(soundEnum, true);
+
+        bool allParametersApplied = true;
+        for (const BGMInitialParameter& parameter : initialParameters) {
+            if (parameter.name != nullptr)
+                allParametersApplied =
+                    SetBGMParam(parameter.name, soundEnum, parameter.value, parameter.ignoreSeekSpeed) &&
+                    allParametersApplied;
+        }
+        return allParametersApplied;
     }
 
     try {
-        PlayBGM(eventPath, soundEnum);
+        return PlayBGMWithInitialParameters(eventPath, soundEnum, initialParameters, startPaused);
     }
     catch (const std::exception& e) {
         // 이벤트가 뱅크에 아직 없으면 throw 
         std::cout << "[BGM] request failed (" << eventPath << "): " << e.what() << std::endl;
+        return false;
     }
 }
 
@@ -404,14 +457,15 @@ void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {
     }
 }
 
-void AudioManager::SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed) {
+bool AudioManager::SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed) {
     uint32 idx = static_cast<uint32>(soundEnum);
-    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return; // BGM이 시작되지 않았다면 무시
+    if (idx >= mAllBGM.size() || !mAllBGM[idx]) return false; // BGM이 시작되지 않았다면 실패
     // 파라미터 이름이 이벤트에 없을시 로그
     FMOD_RESULT r = mAllBGM[idx]->setParameterByName(name, value, ignoreSeekSpeed);
     if (r != FMOD_OK) {
         std::cout << "[BGM] SetBGMParam('" << name << "') failed: " << FMOD_ErrorString(r) << std::endl;
     }
+    return r == FMOD_OK;
 }
 
 void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed) {

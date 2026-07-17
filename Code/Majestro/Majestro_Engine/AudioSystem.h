@@ -3,6 +3,7 @@
 #include "World.h"
 #include "ComponentPool.h"
 #include "AudioManager.h"
+#include "Protocol/RhythmMusicDefinitions.h"
 
 class AudioSystem : public System
 {
@@ -19,10 +20,11 @@ private:
 	bool mBgmStartAligned = false;	// 시킹 완료 후 재생까지 대기 중인지
 	int  mAlignSeekFrame = -1;   // -1=시킹 전, 0~=시킹 후 경과 프레임
 	void AlignBgmToServerSongClock();
+	bool mBgmInitializationFailed = false; // 세 리듬 스템 중 하나라도 준비하지 못했는지
 
 	// 드리프트 보정(피치 너지): FMOD 재생 위상이 박자 위상에서 벌어지면 재생 속도를 미세 조정해 끊김 없이 수렴.
 	void CorrectBgmDrift();
-	float mLoopLen = 6.0f;         // BGM 루프 길이(초)
+	const float mLoopLen = kMusicLoopSeconds; // 128 BPM에서 16박자 루프는 7.5초다.
 	float mDriftLogTimer = 0.f;    // 드리프트 로그 저빈도 출력용 누적기
 	float mDriftSmoothed = 0.f;    // EMA 평활화된 drift(초) — 측정 노이즈 제거 후 이 값으로 보정
 	float mDriftEmaAlpha = 0.15f;  // EMA 계수(작을수록 더 부드럽고 느림)

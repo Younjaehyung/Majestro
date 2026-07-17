@@ -10,6 +10,7 @@ struct RoomPlayerEntry
 {
     uint64 sessionId = 0;
     uint8  playerType = 0;
+    RhythmMusicVariant rhythmMusicSubVariant = RhythmMusicVariant::Original;
     bool   ready = false;
     bool   isHost = false;  // 첫 입장자가 Host.
 };
@@ -30,6 +31,7 @@ public:
     bool RemovePlayer(uint64 sessionId);
 
     bool SetReady(uint64 sessionId, bool ready);
+    bool SetRhythmMusicSelection(uint64 sessionId, RhythmMusicVariant selection);
 
     // 캐릭터 변경 시 변경한 본인의 ready 를 false 로 자동 해제
     bool SetPlayerCharacter(uint64 sessionId, uint8 playerType);
@@ -70,7 +72,8 @@ public:
     RoomErrorCode CreateRoom(uint64 sessionId, uint32& outRoomId);
     RoomErrorCode JoinRoom(uint64 sessionId, uint32 roomId);
     bool LeaveRoom(uint64 sessionId, uint32& outRoomId);   // true = 방에 속해 있었고 나감
-    RoomErrorCode SetPlayerReady(uint64 sessionId, bool ready);        // 성공 시 충돌 캐릭터 자동 이동 포함
+    RoomErrorCode SetPlayerReady(uint64 sessionId, bool ready);
+    RoomErrorCode SelectRhythmMusic(uint64 sessionId, RhythmMusicVariant selection);
     RoomErrorCode SelectCharacter(uint64 sessionId, uint8 playerType);
 
     // 실패 시 outError 에 거부 사유 반환

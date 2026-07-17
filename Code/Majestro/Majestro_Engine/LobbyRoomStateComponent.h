@@ -1,11 +1,13 @@
 #pragma once
 #include "Component.h"
+#include "Protocol/RhythmMusicDefinitions.h"
 
 
 struct LobbyRoomPlayerSlot
 {
     uint32 sessionId = 0;
     uint8  playerType = 0;
+    RhythmMusicVariant rhythmMusicSubVariant = RhythmMusicVariant::Original;
     bool   ready = false;
     bool   isHost = false;
 };

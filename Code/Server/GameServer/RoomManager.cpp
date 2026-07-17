@@ -63,6 +63,21 @@ bool RoomState::SetReady(uint64 sessionId, bool ready)
     return false;
 }
 
+bool RoomState::SetRhythmMusicSelection(uint64 sessionId, RhythmMusicVariant selection)
+{
+    for (auto& player : mPlayers)
+    {
+        if (player.sessionId != sessionId)
+            continue;
+
+        player.rhythmMusicSubVariant = SanitizeRhythmMusicVariant(
+            static_cast<uint8>(selection));
+        return true;
+    }
+
+    return false;
+}
+
 bool RoomState::SetPlayerCharacter(uint64 sessionId, uint8 playerType)
 {
     if (IsCharacterLockedByOtherReadyPlayer(sessionId, playerType))
@@ -291,6 +306,20 @@ RoomErrorCode RoomManager::SetPlayerReady(uint64 sessionId, bool ready)
         if (room->GetPlayerType(sessionId, lockedType))
             room->EvictConflictingSelections(sessionId, lockedType);
     }
+    return RoomErrorCode::None;
+}
+
+RoomErrorCode RoomManager::SelectRhythmMusic(
+    uint64 sessionId,
+    RhythmMusicVariant selection)
+{
+    RoomState* room = GetRoomByPlayer(sessionId);
+    if (room == nullptr)
+        return RoomErrorCode::InvalidRoom;
+
+    if (!room->SetRhythmMusicSelection(sessionId, selection))
+        return RoomErrorCode::InvalidRoom;
+
     return RoomErrorCode::None;
 }
 

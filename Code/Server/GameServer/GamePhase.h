@@ -9,6 +9,9 @@ class PayloadPathData;
 // 플레이어를 씬의 스폰 지점(PlayerSpawnComponent)으로 배치하고 NavMesh 보정/중력 초기화까지 수행.
 void ApplyPlayerSpawnPosition(World* world, Entity playerEntity);
 
+// Clear/Fail 결과 화면 유지 시간(초).
+constexpr float kResultDecisionHoldSeconds = 15.0f;
+
 class GamePhase
 {
 public:
@@ -119,7 +122,7 @@ private:
 class FailPhase : public GamePhase
 {
 public:
-    FailPhase(float holdSeconds = 3.f) : mHoldSeconds(holdSeconds) {}
+    FailPhase(float holdSeconds = kResultDecisionHoldSeconds) : mHoldSeconds(holdSeconds) {}
     virtual void Enter(WaveGameMode& mode) override;
     virtual void Exit(WaveGameMode& mode) override;
     virtual void PostUpdate(float dt, WaveGameMode& mode) override;

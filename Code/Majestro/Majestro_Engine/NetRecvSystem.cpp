@@ -681,7 +681,8 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
     if (!resultPacket->approved)
         return;
 
-    if (mCurrentScene == resultPacket->currentScene)
+	// 이미 같은 씬에 있다면 씬 전환 무시 (단, 레벨 씬은 예외)
+    if (mCurrentScene == resultPacket->currentScene && !IsLevelScene(resultPacket->currentScene))
         return;
 
     mCurrentScene = resultPacket->currentScene;
@@ -862,6 +863,22 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
 {
     const S2C_RoomStatePacket* pkt = msg.ViewAs<S2C_RoomStatePacket>();
     if (!pkt) return;
+
+	// 호스트 여부를 MajestroGameInstance 에 반영
+    {
+        const uint32 me = Network::GetInstance().mClientId;
+        if (me != 0)
+        {
+            for (uint8 i = 0; i < pkt->maxPlayers && i < ROOM_MAX_PLAYERS; ++i)
+            {
+                if (pkt->slots[i].sessionId != 0 && pkt->slots[i].sessionId == me)
+                {
+                    MajestroGameInstance::GetInstance().SetRoomHost(pkt->slots[i].isHost != 0);
+                    break;
+                }
+            }
+        }
+    }
 
     // 로비 씬에서만
     if (!mWorld->HasComponentPool<LobbyRoomStateComponent>())

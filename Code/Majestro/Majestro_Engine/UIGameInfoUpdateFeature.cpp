@@ -348,24 +348,12 @@ void UIGameInfoUpdateFeature::UpdateEscortPhase(float dt, GameRuleComponent* gam
 
 void UIGameInfoUpdateFeature::UpdateClearPhase(float dt, GameRuleComponent* gameRuleComp)
 {
-	// 점수판 텍스트는 제거됨 — Clear 연출(Reveal/Stamp/Result/GameClear 이미지)은
-	// TickRevealStampAnimation 이 전담한다.
+
 }
 
 void UIGameInfoUpdateFeature::UpdateFailPhase(float dt, GameRuleComponent* gameRuleComp)
 {
-	// Result 이미지가 등장하고 5초 뒤 클라이언트가 스스로 메인메뉴로 복귀하며 게임을 종료
-	const RevealStampAnimationSpec& spec = mRevealStampAnimation.mSpec;
 
-	if (!mGameOverReturnTriggered && mRevealStampAnimation.mResultTriggered &&
-		mRevealStampAnimation.mElapsed >= spec.mResultStartTime + 5.0f)
-	{
-		mGameOverReturnTriggered = true;
-		// 메인메뉴로 복귀
-		INPUT.SetForceMouseLook(false);
-		Network::GetInstance().Shutdown();
-		gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
-	}
 }
 
 // 게임 정보 렌더링 함수 구현
@@ -1088,7 +1076,6 @@ void UIGameInfoUpdateFeature::StartRevealStampAnimation(const RevealStampAnimati
 	mRevealStampAnimation.mStampTriggered = false;
 	mRevealStampAnimation.mResultTriggered = false;
 	mRevealStampAnimation.mFinalStampTriggered = false;
-	mGameOverReturnTriggered = false;
 	EnsureRevealStampEntities();
 
 	if (UISpriteComponent* revealSprite =

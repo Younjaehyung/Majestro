@@ -14,8 +14,12 @@
 #include "UITransformComponent.h"
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
+#include "UIButtonComponent.h"
 #include "CameraComponent.h"
 #include "MathUtils.h"
+#include "MajestroGameInstance.h"
+#include "SceneManager.h"
+#include "Scene.h"
 
 namespace
 {
@@ -89,6 +93,17 @@ namespace
 	static_assert(
 		sizeof(kRankThresholds) / sizeof(kRankThresholds[0]) == static_cast<size_t>(ResultBoardRow::Count),
 		"kRankThresholds must cover every ResultBoardRow");
+
+	// Host 전용 결정 버튼
+	constexpr float kDecisionTextRightX = -70.0f;
+	constexpr float kDecisionRestartY = 1185.0f;
+	constexpr float kDecisionLeaveY = 1270.0f;
+	const Vec2 kDecisionHitSize = Vec2(430.0f, 72.0f);
+	constexpr uint8 kDecisionLayer = 253;
+
+	const DirectX::XMVECTORF32 kDecisionNormalColor{ { { 1.0f, 1.0f, 1.0f, 1.0f } } };
+	const DirectX::XMVECTORF32 kDecisionHoverColor{ { { 1.0f, 0.83f, 0.25f, 1.0f } } };
+	const DirectX::XMVECTORF32 kDecisionDisabledColor{ { { 0.6f, 0.6f, 0.6f, 1.0f } } };
 }
 
 void UIResultBoardFeature::Initialize(World* world)
@@ -118,6 +133,7 @@ void UIResultBoardFeature::Update(float dt)
 		if (phase != WavePhaseType::Clear && phase != WavePhaseType::Fail)
 		{
 			HideAll();
+			HideDecisionButtons();
 			mActive = false;
 			return;
 		}
@@ -281,6 +297,9 @@ void UIResultBoardFeature::StartPresentation(uint8 phaseRaw)
 			textTransform->mScale = Vec2(1.0f, 1.0f);
 	}
 
+	// Host 는 결과 화면 동안 다시 시작/비행정 복귀를 선택할 수 있다.
+	ShowDecisionButtons(renderGroup);
+
 	mActive = true;
 	mElapsed = 0.0f;
 	mSpinTickAccum = 0.0f;
@@ -406,6 +425,156 @@ void UIResultBoardFeature::HideAll()
 		if (auto* rankSprite = mWorld->GetComponent<UISpriteComponent>(row.mRankEntity))
 			rankSprite->mVisible = false;
 	}
+}
+
+void UIResultBoardFeature::EnsureDecisionButtons()
+{
+	if (mRestartButton != NULL_ENTITY)
+		return;
+
+	auto createButton = [this](const wchar_t* label, float posY, bool restart) -> Entity
+	{
+		Entity entity = mWorld->CreateEntity();
+
+		auto& transform = mWorld->AddComponent<UITransformComponent>(entity);
+		transform.mAnchor = Anchor::TopRight;
+		transform.mPivot = Vec2(1.0f, 0.5f);
+		transform.mSize = kDecisionHitSize;
+		transform.mPosition = Vec2(kDecisionTextRightX, posY);
+		transform.mUILayerIndex = kDecisionLayer;
+
+		auto& text = mWorld->AddComponent<UITextComponent>(entity);
+		text.mFontType = UIFontType::Esamanru;
+		text.mText = label;
+		text.mVisible = false;
+		text.mOutlineThickness = 2.0f;
+		text.mColor = kDecisionNormalColor;
+
+		auto& button = mWorld->AddComponent<UIButtonComponent>(entity);
+		button.mBaseSize = kDecisionHitSize;
+		button.mEnabled = false;
+		button.mOnClick = [this, restart]() { OnDecisionClicked(restart); };
+		button.mOnHoverEnter = [this, entity]()
+		{
+			if (mDecisionSent)
+				return;
+			if (auto* hoverText = mWorld->GetComponent<UITextComponent>(entity))
+				hoverText->mColor = kDecisionHoverColor;
+		};
+		button.mOnHoverExit = [this, entity]()
+		{
+			if (mDecisionSent)
+				return;
+			if (auto* hoverText = mWorld->GetComponent<UITextComponent>(entity))
+				hoverText->mColor = kDecisionNormalColor;
+		};
+
+		mWorld->AddComponent<UIRenderGroupComponent>(entity, UIRenderGroup::Clear);
+		return entity;
+	};
+
+	mRestartButton = createButton(L"다시 시작", kDecisionRestartY, /*restart=*/true);
+	mLeaveButton = createButton(L"비행정으로", kDecisionLeaveY, /*restart=*/false);
+}
+
+void UIResultBoardFeature::ShowDecisionButtons(UIRenderGroup group)
+{
+	// Host 만 스테이지 재시작/복귀를 결정
+	if (!MajestroGameInstance::GetInstance().IsRoomHost())
+		return;
+
+	EnsureDecisionButtons();
+	mDecisionSent = false;
+
+	auto show = [this, group](Entity entity)
+	{
+		if (auto* renderGroup = mWorld->GetComponent<UIRenderGroupComponent>(entity))
+			renderGroup->mGroup = group;
+		if (auto* text = mWorld->GetComponent<UITextComponent>(entity))
+		{
+			text->mColor = kDecisionNormalColor;
+			text->mVisible = true;
+		}
+		if (auto* button = mWorld->GetComponent<UIButtonComponent>(entity))
+			button->mEnabled = true;
+	};
+	show(mRestartButton);
+	show(mLeaveButton);
+
+	// 마우스 잠금 해제
+	if (!mCursorReleased)
+	{
+		mSavedMouseLook = INPUT.IsMouseLookActive();
+		INPUT.SetForceMouseLook(false);
+		mCursorReleased = true;
+	}
+	mDecisionShown = true;
+}
+
+void UIResultBoardFeature::HideDecisionButtons()
+{
+	if (mCursorReleased)
+	{
+		INPUT.SetForceMouseLook(mSavedMouseLook);
+		mCursorReleased = false;
+	}
+
+	if (!mDecisionShown)
+		return;
+	mDecisionShown = false;
+
+	auto hide = [this](Entity entity)
+	{
+		if (entity == NULL_ENTITY)
+			return;
+		if (auto* text = mWorld->GetComponent<UITextComponent>(entity))
+			text->mVisible = false;
+		if (auto* button = mWorld->GetComponent<UIButtonComponent>(entity))
+			button->mEnabled = false;
+	};
+	hide(mRestartButton);
+	hide(mLeaveButton);
+}
+
+
+void UIResultBoardFeature::OnDecisionClicked(bool restart)
+{
+	if (mDecisionSent || !mWorld)
+		return;
+
+	SceneId target = SceneId::Plaza;
+	if (restart)
+	{
+		auto activeScene = gEngine->GetSceneManager().GetActiveScene();
+		if (!activeScene)
+			return;
+
+		// 재시작
+		target = activeScene->GetSceneId();
+		if (!IsLevelScene(target))
+			return;
+	}
+
+	mDecisionSent = true;
+	mWorld->GetEventManager()->Enqueue(EvNetSceneChange{ target });
+
+	// 마우스 잠금 상태를 원래대로 복원
+	if (mCursorReleased)
+	{
+		INPUT.SetForceMouseLook(mSavedMouseLook);
+		mCursorReleased = false;
+	}
+
+
+	auto disable = [this](Entity entity)
+	{
+		if (auto* button = mWorld->GetComponent<UIButtonComponent>(entity))
+			button->mEnabled = false;
+		if (auto* text = mWorld->GetComponent<UITextComponent>(entity))
+			text->mColor = kDecisionDisabledColor;
+	};
+	disable(mRestartButton);
+	disable(mLeaveButton);
 }
 
 ResultRank UIResultBoardFeature::ComputeRankFor(ResultBoardRow row, int32 value, bool isFail)

@@ -51,6 +51,12 @@ private:
 	void HideAll();
 	void UpdateRow(size_t index, float dt, bool spinTick);
 
+	// Host 전용 결정 버튼 (다시 시작 / 비행정으로)
+	void EnsureDecisionButtons();
+	void ShowDecisionButtons(UIRenderGroup group);
+	void HideDecisionButtons();
+	void OnDecisionClicked(bool restart);
+
 	// 항목별 랭크 도장 — 행 락 후 딜레이를 두고 등급 문자를 행 옆에 찍는다.
 	// rankLocal: 도장 시작 시각 기준 로컬 시간(음수면 아직).
 	void UpdateRowRank(size_t index, float rankLocal);
@@ -97,6 +103,14 @@ private:
 	float mSpinTickAccum = 0.0f;
 
 	bool mIsFail = false; // Fail 페이즈 여부 (true면 RESULT 항목 랭크 F 고정)
+
+	// Host 전용 결정 버튼 상태
+	Entity mRestartButton = NULL_ENTITY;
+	Entity mLeaveButton = NULL_ENTITY;
+	bool mDecisionShown = false;
+	bool mDecisionSent = false;   // 중복 요청 방지
+	bool mSavedMouseLook = false; // 결과 화면 진입 전 마우스 룩 상태 (복귀 시 복원)
+	bool mCursorReleased = false;
 
 	// tab 상태
 	bool mQuickActive = false;

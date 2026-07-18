@@ -60,10 +60,15 @@ public:
         return mConfirmedRhythmVariantSelections[playerType];
     }
 
+
+    void SetRoomHost(bool isHost) { mIsRoomHost = isHost; }
+    bool IsRoomHost() const { return mIsRoomHost; }
+
 private:
     MajestroGameInstance() = default;
 
     RhythmVariantSelection mLocalRhythmVariantSelection{};
     std::array<RhythmVariantSelection, ROOM_CHARACTER_COUNT>
         mConfirmedRhythmVariantSelections{};
+    bool mIsRoomHost = false;
 };

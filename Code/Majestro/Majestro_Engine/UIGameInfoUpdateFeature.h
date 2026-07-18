@@ -243,7 +243,4 @@ private:
 	int32 mLastReadyCountdown = -1;
 	int32 mTrackedConquestZoneId = 0;
 	bool mConquestSuccessPlayed = false;
-
-	// GameOver Result/점수판 등장 후 메인메뉴 복귀를 1회만 트리거하기 위한 플래그.
-	bool mGameOverReturnTriggered = false;
 };

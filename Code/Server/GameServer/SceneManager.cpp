@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "ServerCore.h"
 #include "GameMode.h"
+#include "GameRuleComponent.h"
 #include "RoomManager.h"
 #include "World.h"
 #include "NetSendSystem.h"
@@ -78,8 +79,8 @@ void SceneManager::TransitionToScene()
 	{
 		if (IsRoomScene(f.target))
 		{
-			// 레벨 클리어로 광장 복귀 시 다음 스테이지 해금 (실패 복귀는 진행도 유지)
-			if (f.target == SceneId::Plaza && IsLevelScene(f.from) && !f.failed && mRoomManager)
+			// 레벨 클리어 시 다음 스테이지 해금 
+			if (IsLevelScene(f.from) && !f.failed && mRoomManager)
 			{
 				if (RoomState* room = mRoomManager->GetRoom(f.roomId))
 				{
@@ -326,6 +327,30 @@ SceneChangeOutcome SceneManager::TryChangeScene(uint64 sessionId, SceneId reques
 			if (auto& gameMode = scene->GetGameMode())
 				gameMode->RequestTransition(requestedScene);
 		return outcome;	// 응답 없음 — SwapRoomWorldTo 브로드캐스트가 결과 통지
+	}
+
+	// 결과 화면(Clear/Fail)에서 Host 의 결정
+	if (IsLevelScene(currentScene) &&
+		(requestedScene == currentScene || requestedScene == SceneId::Plaza) &&
+		mRoomManager)
+	{
+		RoomState* room = mRoomManager->GetRoomByPlayer(sessionId);
+		if (room && room->IsHost(sessionId))
+		{
+			if (auto scene = GetGameWorld(room->mRoomId))
+			{
+				// 전투 중 재시작을 막기 위해 Clear/Fail 결과 화면에서만 허용
+				WavePhaseType phase = WavePhaseType::None;
+				if (auto world = scene->GetWorld())
+					if (auto* rule = world->GetSingleton<GameRuleComponent>())
+						phase = static_cast<WavePhaseType>(rule->mGamePhase);
+
+				if (phase == WavePhaseType::Clear || phase == WavePhaseType::Fail)
+					if (auto& gameMode = scene->GetGameMode())
+						gameMode->RequestTransition(requestedScene);
+			}
+		}
+		return outcome;	// 응답 없음
 	}
 
 	// [디버그] 레벨 씬 강제 전환 요청 — 응답 패킷 없음

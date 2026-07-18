@@ -616,7 +616,7 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 				if (isLastStop)
 				{
 					mode.InsertNextPhase([] {
-						return new ClearPhase(3.0f);
+						return new ClearPhase(kResultDecisionHoldSeconds);
 					});
 				}
 				else

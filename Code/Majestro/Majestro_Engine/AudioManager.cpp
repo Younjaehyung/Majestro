@@ -334,10 +334,7 @@ bool AudioManager::PlayBGMWithInitialParameters(
             if (parameter.name == nullptr)
                 continue;
 
-            FMOD_CHECK(instance->setParameterByName(
-                parameter.name,
-                parameter.value,
-                parameter.ignoreSeekSpeed));
+            ApplyEventParameter(instance, parameter.name, parameter.value, parameter.ignoreSeekSpeed);
         }
 
 
@@ -457,15 +454,33 @@ void AudioManager::SetListener(const FMOD_3D_ATTRIBUTES& attr, int index) {
     }
 }
 
+
+bool AudioManager::ApplyEventParameter(
+    FMOD::Studio::EventInstance* instance, const char* name, float value, bool ignoreSeekSpeed)
+{
+    if (instance == nullptr || name == nullptr)
+        return false;
+
+    FMOD_RESULT localResult = instance->setParameterByName(name, value, ignoreSeekSpeed);
+    if (localResult == FMOD_OK)
+        return true;
+
+    FMOD_RESULT globalResult = FMOD_ERR_UNINITIALIZED;
+    if (mFMOD.GetStudio())
+        globalResult = mFMOD.GetStudio()->setParameterByName(name, value, ignoreSeekSpeed);
+    if (globalResult == FMOD_OK)
+        return true;
+
+    std::cout << "[BGM] SetParam('" << name << "') failed: local="
+              << FMOD_ErrorString(localResult) << " global="
+              << FMOD_ErrorString(globalResult) << std::endl;
+    return false;
+}
+
 bool AudioManager::SetBGMParam(const char* name, SOUNDNAME soundEnum, float value, bool ignoreSeekSpeed) {
     uint32 idx = static_cast<uint32>(soundEnum);
     if (idx >= mAllBGM.size() || !mAllBGM[idx]) return false; // BGM이 시작되지 않았다면 실패
-    // 파라미터 이름이 이벤트에 없을시 로그
-    FMOD_RESULT r = mAllBGM[idx]->setParameterByName(name, value, ignoreSeekSpeed);
-    if (r != FMOD_OK) {
-        std::cout << "[BGM] SetBGMParam('" << name << "') failed: " << FMOD_ErrorString(r) << std::endl;
-    }
-    return r == FMOD_OK;
+    return ApplyEventParameter(mAllBGM[idx], name, value, ignoreSeekSpeed);
 }
 
 void AudioManager::SetBGMParamLabel(const char* name, SOUNDNAME soundEnum, const char* label, bool ignoreSeekSpeed) {

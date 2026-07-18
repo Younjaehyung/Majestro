@@ -172,6 +172,9 @@ private:
 
     SeekProbe mSeekProbe;
     void PollSeekProbe();
+
+    bool ApplyEventParameter(FMOD::Studio::EventInstance* instance, const char* name, float value, bool ignoreSeekSpeed);
+
     bool PlayBGMWithInitialParameters(
         const char* eventPath,
         SOUNDNAME soundEnum,

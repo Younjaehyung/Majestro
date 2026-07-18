@@ -35,6 +35,9 @@ public:
     //            feature가 뒤에 append 후 UIInfo 버퍼에 재업로드하여 추가 인스턴스로 활용 가능.
     virtual void PostSpriteRender(std::vector<UIInstanceData>& instances) {};
 
+    // true : Dialogue 그룹 활성 중에도 PostSpriteRender 를 호출
+    virtual bool ShouldPostRenderInDialogue() const { return false; }
+
 protected:
     World* mWorld = nullptr;
 };

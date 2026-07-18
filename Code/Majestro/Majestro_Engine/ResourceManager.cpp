@@ -3064,6 +3064,19 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_NoteMan_Portrait", L"..\\Resources\\Image\\UI\\UI_NoteMan_Portrait.png");
 		Load<Texture>(L"UI_NPC_Portrait_Sheet", L"..\\Resources\\Image\\UI\\UI_NPC_Portrait_Sheet.png");
 
+		// 음향사 파생음악 선택 UI
+		Load<Texture>(L"UI_RhythmMan_Background", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Background.png");
+		Load<Texture>(L"UI_RhythmMan_Text_Shee", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Text_Shee.png");
+		Load<Texture>(L"UI_RhythmMan_Rudwig_Sheet", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Rudwig_Sheet.png");
+		Load<Texture>(L"UI_RhythmMan_Rudwig_Line", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Rudwig_Line.png");
+		Load<Texture>(L"UI_RhythmMan_Rudwig_Portrait", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Rudwig_Portrait.png");
+		Load<Texture>(L"UI_RhythmMan_Ibanix_Sheet", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Ibanix_Sheet.png");
+		Load<Texture>(L"UI_RhythmMan_Ibanix_Line", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Ibanix_Line.png");
+		Load<Texture>(L"UI_RhythmMan_Ibanix_Portrait", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Ibanix_Portrait.png");
+		Load<Texture>(L"UI_RhythmMan_Fanthor_Sheet", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Fanthor_Sheet.png");
+		Load<Texture>(L"UI_RhythmMan_Fanthor_Line", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Fanthor_Line.png");
+		Load<Texture>(L"UI_RhythmMan_Fanthor_Portrait", L"..\\Resources\\Image\\UI\\UI_RhythmMan_Fanthor_Portrait.png");
+
      
 
 		Load<Texture>(L"UI_Logo", L"..\\Resources\\Image\\UI\\UI_Logo.png");

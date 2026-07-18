@@ -135,8 +135,7 @@ void UIRenderSystem::Update()
     CustomSpriteRender();
     TextUpdate();
     SpriteUpdate();
-    if (isGameplayGroupActive)
-        PostSpriteRender();
+    PostSpriteRender();
 
     if (isGameplayGroupActive)
         mUIEffectPass->Execute(DELTA_TIME);
@@ -194,19 +193,34 @@ void UIRenderSystem::SpriteUpdate()
     mSpriteBatch->End();
 }
 
+
+
 void UIRenderSystem::PostSpriteRender()
 {
     if (mFeatures == nullptr)
         return;
 
+    const bool gameplayActive = IsGameplayGroupActive();
+    const bool dialogueActive = (mActiveRenderGroup == UIRenderGroup::Dialogue);
+    if (!gameplayActive && !dialogueActive)
+        return;
+
+    //   Gameplay: 모든 feature (인게임 HUD)
+    //   Dialogue: ShouldPostRenderInDialogue() 를 켠 feature 만 ( 원형 비주얼라이저 링)
+    //   그 외(Pause/Clear/GameOver): 호출 안 함
+
     RENDERMANAGER.SetGraphicsTable();
 
-    if (mFeatures != nullptr) {
-        for (const auto& feature : *mFeatures)
-        {
-            if (feature != nullptr)
-                feature->PostSpriteRender(mInstances);
-        }
+
+
+    for (const auto& feature : *mFeatures)
+    {
+        if (feature == nullptr)
+            continue;
+        if (!gameplayActive && !feature->ShouldPostRenderInDialogue())
+            continue;
+
+        feature->PostSpriteRender(mInstances);
     }
 }
 
@@ -540,9 +554,9 @@ UIRenderGroup UIRenderSystem::GetActiveRenderGroup() const
         }
     }
 
-    // NPC 대화 / 레벨 선택 UI
+    // NPC 대화 / 레벨 선택 / 파생음악 선택 UI
     const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();
-    if (dialogue != nullptr && (dialogue->mActive || dialogue->mLevelSelectActive))
+    if (dialogue != nullptr && dialogue->IsBlockingUiActive())
         return UIRenderGroup::Dialogue;
 
     return UIRenderGroup::Gameplay;

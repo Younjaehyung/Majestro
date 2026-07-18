@@ -123,7 +123,7 @@ bool PlayerInputSystem::IsCinematicPlaying() const
 bool PlayerInputSystem::IsDialogueActive() const
 {
 	const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();
-	return dialogue != nullptr && (dialogue->mActive || dialogue->mLevelSelectActive);
+	return dialogue != nullptr && dialogue->IsBlockingUiActive();
 }
 
 void PlayerInputSystem::ClearGameplayInput(PlayerInputContext& ctx)

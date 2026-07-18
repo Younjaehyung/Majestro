@@ -58,10 +58,11 @@ void NpcInteractionSystem::Update(float deltaTime)
 	if (!state)
 		return;
 
-	// 레벨 선택 UI 열림/닫힘 전환 시 커서 전환 (GO 버튼 등 외부에서 닫힌 경우 포함)
-	if (state->mLevelSelectActive != mPrevLevelSelectActive)
+	// 선택 UI
+	const bool selectUiActive = state->mLevelSelectActive || state->mRhythmSelectActive;
+	if (selectUiActive != mPrevSelectUiActive)
 	{
-		if (state->mLevelSelectActive)
+		if (selectUiActive)
 		{
 			mSavedMouseLook = INPUT.IsMouseLookActive(); // 진입 전 상태 저장
 			INPUT.SetForceMouseLook(false);              // 버튼 클릭 가능
@@ -70,7 +71,7 @@ void NpcInteractionSystem::Update(float deltaTime)
 		{
 			INPUT.SetForceMouseLook(mSavedMouseLook);    // 복귀 시 원래 상태로
 		}
-		mPrevLevelSelectActive = state->mLevelSelectActive;
+		mPrevSelectUiActive = selectUiActive;
 	}
 
 	if (!mWorld->HasComponentPool<NpcComponent>())
@@ -104,6 +105,7 @@ void NpcInteractionSystem::Update(float deltaTime)
 		state->mActive = false;
 		state->mLineIndex = 0;
 		state->mLevelSelectActive = false;
+		state->mRhythmSelectActive = false;
 		return;
 	}
 
@@ -127,7 +129,7 @@ void NpcInteractionSystem::Update(float deltaTime)
 
 	// NPC 몸통 회전: 대화 상대는 플레이어를, 나머지는 배치 방향을 바라본다
 	{
-		const bool talking = state->mActive || state->mLevelSelectActive;
+		const bool talking = state->IsBlockingUiActive();
 		const float turnAlpha = std::clamp(deltaTime * kNpcTurnSpeed, 0.f, 1.f);
 		for (Entity e : mWorld->GetEntitiesWithComponent<NpcComponent>())
 		{
@@ -146,8 +148,8 @@ void NpcInteractionSystem::Update(float deltaTime)
 		}
 	}
 
-	// 레벨 선택 UI 진행 중: 카메라는 NPC 고정, ESC/F 로 닫기 (선택 확정은 UI 버튼 클릭)
-	if (state->mLevelSelectActive)
+	// 선택 UI
+	if (state->mLevelSelectActive || state->mRhythmSelectActive)
 	{
 		PlayerMovementComponent* movement = mWorld->GetComponent<PlayerMovementComponent>(playerEntity);
 		TransformComponent* npcTr = mWorld->GetComponent<TransformComponent>(state->mNpc);
@@ -155,7 +157,10 @@ void NpcInteractionSystem::Update(float deltaTime)
 			AimCameraAtNpc(movement, playerPos, npcTr->mWorldPosition, deltaTime);
 
 		if (INPUT.GetKeyDown(eKeyCode::ESC) || INPUT.GetKeyDown(eKeyCode::F))
+		{
 			state->mLevelSelectActive = false;
+			state->mRhythmSelectActive = false;
+		}
 		return;
 	}
 
@@ -195,12 +200,20 @@ void NpcInteractionSystem::Update(float deltaTime)
 		if (!npc)
 			return;
 
-		// 관문지기: 대화 대신 레벨 선택 UI 오픈
+		// 관문지기: 레벨 선택 UI 오픈
 		if (npc->mRole == NpcRole::LevelSelect)
 		{
 			state->mNpc = nearest;
 			state->mSelectedStage = 0;
 			state->mLevelSelectActive = true;
+			return;
+		}
+
+		// 음향사: 파생음악 선택 UI 오픈
+		if (npc->mRole == NpcRole::RhythmSelect)
+		{
+			state->mNpc = nearest;
+			state->mRhythmSelectActive = true;
 			return;
 		}
 

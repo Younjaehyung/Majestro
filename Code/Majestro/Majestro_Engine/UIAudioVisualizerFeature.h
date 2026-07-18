@@ -35,8 +35,10 @@ public:
     // 바 인스턴스를 벡터 뒤에 추가
     void CustomSpriteRender(std::vector<UIInstanceData>& instances) override;
 
-    
+
     void PostSpriteRender(std::vector<UIInstanceData>& instances) override;
+
+    bool ShouldPostRenderInDialogue() const override { return true; }
 
     // startInstance: UIInfo 버퍼에서 바 데이터가 시작되는 인덱스
     void Execute(uint32 startInstance, uint32 barCount);

@@ -10,7 +10,7 @@ public:
 	virtual void Update(float deltaTime) override;
 
 private:
-	// 레벨 선택 UI 열림/닫힘에 따른 마우스룩(커서) 전환 추적
-	bool mPrevLevelSelectActive = false;
+	// 선택 UI 열림/닫힘
+	bool mPrevSelectUiActive = false;
 	bool mSavedMouseLook = true;
 };

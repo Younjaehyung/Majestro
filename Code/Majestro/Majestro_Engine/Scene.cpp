@@ -41,6 +41,7 @@
 #include "NpcInteractionSystem.h"
 #include "UIDialogueFeature.h"
 #include "UILevelSelectFeature.h"
+#include "UIRhythmSelectFeature.h"
 #include "JsonUtils.h"
 #include "LobbyRoomBrowserFeature.h"
 #include "MenuRoomBrowserSystem.h"
@@ -2655,6 +2656,10 @@ void PlazaScene::Initialize()
 
 	auto levelSelectModule = std::make_shared<UILevelSelectFeature>();	// 관문지기 레벨 선택 UI
 	mUIFeatures.push_back(levelSelectModule);
+
+
+	auto rhythmSelectModule = std::make_shared<UIRhythmSelectFeature>();		// 음향사 파생음악 선택 UI
+	mUIFeatures.push_back(rhythmSelectModule);
 
 	for (const auto& feature : mUIFeatures)
 	{

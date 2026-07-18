@@ -38,7 +38,13 @@ public:
 
 	Entity mNearbyNpc{};       // 상호작용 반경 안의 NPC (프롬프트 표시용)
 
-	// 레벨 선택 UI (관문지기 — NpcRole::LevelSelect)
+	// 레벨 선택 UI
 	bool mLevelSelectActive = false;  // 레벨 선택 UI 열림
 	int32 mSelectedStage = 0;         // 선택된 스테이지 (0=First, 1=Second, 2=Third)
+
+	// 파생음악 선택 UI
+	bool mRhythmSelectActive = false; // 파생음악 선택 UI 열림
+
+
+	bool IsBlockingUiActive() const { return mActive || mLevelSelectActive || mRhythmSelectActive; }
 };

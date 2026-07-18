@@ -21,7 +21,7 @@
     },
     {
       "id": "conductor",
-      "name": "지휘자",
+      "name": "음향사",
       "role": "rhythmSelect",
       "portrait": "UI_NPC_Portrait_Sheet",
       "portraitRect": [ 512.0, 512.0, 512.0, 512.0 ],

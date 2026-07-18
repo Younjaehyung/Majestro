@@ -64,7 +64,7 @@ void PauseSystem::Update(float dt)
     // ESC 키: 일시정지 토글. 어느 서브 상태에 있든 닫으면 바로 게임으로 복귀.
     // 단, NPC 대화/레벨 선택 UI가 열려 있으면 해당 UI의 닫기가 우선 (NpcInteractionSystem 처리)
     const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();
-    const bool dialogueBlocking = dialogue != nullptr && (dialogue->mActive || dialogue->mLevelSelectActive);
+    const bool dialogueBlocking = dialogue != nullptr && dialogue->IsBlockingUiActive();
     if (INPUT.GetKeyDown(eKeyCode::ESC) && !dialogueBlocking)
     {
         ctrl->mPaused = !ctrl->mPaused;

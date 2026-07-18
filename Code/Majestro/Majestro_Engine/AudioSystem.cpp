@@ -29,11 +29,11 @@ namespace
     constexpr std::array<RhythmStemConfig, static_cast<size_t>(PlayerType::Count)>
         kRhythmStemConfigs = {
         RhythmStemConfig{ PlayerType::Rudwig, SOUNDNAME::Drum,
-            "event:/OST/DrumMulti", "DrumParams", "DrumSubParams" },
+            "event:/OST/DrumMulti", "DrumParam", "DrumSubParam" },
         RhythmStemConfig{ PlayerType::Ibanix, SOUNDNAME::Bass,
-            "event:/OST/BassMulti", "BassParams", "BassSubParams" },
+            "event:/OST/BassMulti", "BassParam", "BassSubParam" },
         RhythmStemConfig{ PlayerType::Fanthor, SOUNDNAME::Elec,
-            "event:/OST/ElecMulti", "ElecParams", "ElecSubParams" }
+            "event:/OST/ElecMulti", "ElecParam", "ElecSubParam" }
     };
 
     static_assert(

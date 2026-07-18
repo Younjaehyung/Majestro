@@ -5,7 +5,7 @@
 #include <atomic>
 #include <cstddef>
 #include <type_traits>
-#include "../../Protocol/Packet.h"
+#include "Protocol/Packet.h"
 //////////////////*
 // Single Producer Single Consumer Ring Queue
 // LOGIC THREAD <-> NETWORK THREAD

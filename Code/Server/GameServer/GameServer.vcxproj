@@ -208,6 +208,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClCompile Include="AIManager.cpp" />
     <ClCompile Include="BeatComponent.cpp" />
     <ClCompile Include="BeatSystem.cpp" />
+    <ClCompile Include="RhythmEffectSystem.cpp" />
     <ClCompile Include="BuffComponent.cpp" />
     <ClCompile Include="BuffSystem.cpp" />
     <ClCompile Include="BulletComponent.cpp" />
@@ -348,6 +349,8 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhysicsWorld.h" />
     <ClInclude Include="PlayerComponent.h" />
+    <ClInclude Include="RhythmComponents.h" />
+    <ClInclude Include="RhythmEffectSystem.h" />
     <ClInclude Include="PlayerInputSystem.h" />
     <ClInclude Include="PlayerNavValidationSystem.h" />
     <ClInclude Include="PlayerSystem.h" />

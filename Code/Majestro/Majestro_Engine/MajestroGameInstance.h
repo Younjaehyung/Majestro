@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "Protocol/RhythmMusicDefinitions.h"
+#include "Protocol/Packet.h"
 
 // 장면 전환을 넘어 유지되는 Majestro 게임 전용 상태
 class MajestroGameInstance
@@ -13,51 +13,57 @@ public:
         return instance;
     }
 
-    void SetLocalRhythmMusicSelection(RhythmMusicVariant selection)
+    void SetLocalRhythmVariantSelection(const RhythmVariantSelection& selection)
     {
-        mLocalRhythmMusicSelection = SanitizeRhythmMusicVariant(
-            static_cast<std::uint8_t>(selection));
+        mLocalRhythmVariantSelection = SanitizeRhythmVariantSelection(
+            static_cast<std::uint8_t>(selection.r1),
+            static_cast<std::uint8_t>(selection.r2),
+            static_cast<std::uint8_t>(selection.r3));
     }
 
-    void SetLocalRhythmMusicSelection(std::uint8_t value)
+    void SetLocalRhythmSubVariant(Rhythm rhythm, RhythmSubVariant selection)
     {
-        SetLocalRhythmMusicSelection(SanitizeRhythmMusicVariant(value));
+        mLocalRhythmVariantSelection.SetForRhythm(rhythm, selection);
     }
 
-    RhythmMusicVariant GetLocalRhythmMusicSelection() const
+    const RhythmVariantSelection& GetLocalRhythmVariantSelection() const
     {
-        return mLocalRhythmMusicSelection;
+        return mLocalRhythmVariantSelection;
     }
 
-    void ClearConfirmedRhythmMusicSelections()
+    void ClearConfirmedRhythmVariantSelections()
     {
-        mConfirmedRhythmMusicSelections.fill(RhythmMusicVariant::Original);
+        mConfirmedRhythmVariantSelections.fill(RhythmVariantSelection{});
     }
 
-    void SetConfirmedRhythmMusicSelectionForPlayerType(
+    void SetConfirmedRhythmVariantSelectionForPlayerType(
         std::uint8_t playerType,
-        RhythmMusicVariant selection)
+        const RhythmVariantSelection& selection)
     {
-        if (playerType >= mConfirmedRhythmMusicSelections.size())
+        if (playerType >= mConfirmedRhythmVariantSelections.size())
             return;
 
-        mConfirmedRhythmMusicSelections[playerType] = SanitizeRhythmMusicVariant(
-            static_cast<std::uint8_t>(selection));
+        mConfirmedRhythmVariantSelections[playerType] =
+            SanitizeRhythmVariantSelection(
+                static_cast<std::uint8_t>(selection.r1),
+                static_cast<std::uint8_t>(selection.r2),
+                static_cast<std::uint8_t>(selection.r3));
     }
 
-    RhythmMusicVariant GetConfirmedRhythmMusicSelectionForPlayerType(
+    const RhythmVariantSelection& GetConfirmedRhythmVariantSelectionForPlayerType(
         std::uint8_t playerType) const
     {
-        if (playerType >= mConfirmedRhythmMusicSelections.size())
-            return RhythmMusicVariant::Original;
+        static const RhythmVariantSelection kDefaultSelection{};
+        if (playerType >= mConfirmedRhythmVariantSelections.size())
+            return kDefaultSelection;
 
-        return mConfirmedRhythmMusicSelections[playerType];
+        return mConfirmedRhythmVariantSelections[playerType];
     }
 
 private:
     MajestroGameInstance() = default;
 
-    RhythmMusicVariant mLocalRhythmMusicSelection = RhythmMusicVariant::Original;
-    std::array<RhythmMusicVariant, kRhythmMusicPlayerTypeCount>
-        mConfirmedRhythmMusicSelections{};
+    RhythmVariantSelection mLocalRhythmVariantSelection{};
+    std::array<RhythmVariantSelection, ROOM_CHARACTER_COUNT>
+        mConfirmedRhythmVariantSelections{};
 };

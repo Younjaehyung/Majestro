@@ -27,6 +27,7 @@
 #include "HealthComponent.h"
 #include "ArmorComponent.h"
 #include "BuffComponent.h"
+#include "RhythmComponents.h"
 #include "PathLoadComponent.h"
 #include "TruckComponent.h"
 #include "InteractableComponent.h"
@@ -67,6 +68,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   Entity mEntityID = world->CreateEntity();
 
   uint8 playerType = 1;
+  RhythmVariantSelection rhythmVariantSelection{};
 
   // 로비에서 보낸 RoomState 슬롯의 값
   bool resolved = false;
@@ -76,6 +78,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 		  playerType = roomType;
 		  resolved = true;
 	  }
+	  room->GetRhythmVariantSelection(ctx.SessionId, rhythmVariantSelection);
   }
   //  방 정보가 없는 경우(예: 방 없이 접속하는 테스트 더미)에는 패킷 값을 사용
   if (!resolved && ctx.Type == PKT_Type::C2S_GAME_START) {
@@ -124,8 +127,14 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
 
   world->AddComponent<ControllerComponent>(mEntityID, t);
   world->AddComponent<BuffComponent>(mEntityID);
-  MainPlayerComponent& mainPlayer = world->AddComponent<MainPlayerComponent>(mEntityID,"../Resources/Json/TestJson.json", static_cast<PlayerType>(playerType));
+  MainPlayerComponent& mainPlayer = world->AddComponent<MainPlayerComponent>(
+      mEntityID, "../Resources/Json/TestJson.json", static_cast<PlayerType>(playerType));
   mainPlayer.mSpawnPosition = t.mLocalPosition;
+  RhythmStateComponent& rhythmState = world->AddComponent<RhythmStateComponent>(mEntityID);
+
+  // 방에서 확정한 부모 리듬별 파생 선택을 전용 상태 컴포넌트에 복사한다.
+  rhythmState.SetVariantSelection(rhythmVariantSelection);
+  world->AddComponent<RhythmEffectComponent>(mEntityID);
   world->AddComponent<TransformComponent>(mEntityID, t);
 
   world->AddComponent<BeatComponent>(mEntityID);

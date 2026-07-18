@@ -13,7 +13,8 @@
 #include "GamePhase.h"
 #include "BeatSystem.h"
 #include "GameTimer.h"
-#include "Protocol/RhythmMusicDefinitions.h"
+#include "Protocol/RhythmDefinitions.h"
+#include "RhythmComponents.h"
 #include "TransformComponent.h"
 #include "GravityComponent.h"
 #include "FlyComponent.h"
@@ -205,16 +206,10 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 		return;
 
 	MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
-	if (playerComp == nullptr)
-		return;
+	RhythmStateComponent* rhythmState = mWorld->GetComponent<RhythmStateComponent>(e);
 
-	const uint8 movementMode = playerComp->GetReplicatedMovementMode();
-	if (movementMode == static_cast<uint8>(ReplicatedMovementMode::Airborne) ||
-		movementMode == static_cast<uint8>(ReplicatedMovementMode::Falling) ||
-		movementMode == static_cast<uint8>(ReplicatedMovementMode::Landing))
-	{
+	if (playerComp == nullptr || rhythmState == nullptr)
 		return;
-	}
 
 	if (pkt.netEntityId != 0)
 	{
@@ -223,47 +218,94 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 			return;
 	}
 
-	const uint8 previousRhythm = NormalizeRhythm(pkt.previousRhythm);
-	const uint8 changedRhythm = NormalizeRhythm(pkt.changedRhythm);
-	if (previousRhythm != playerComp->mRhythm)
-		return;
+	const Rhythm previousRhythm = SanitizeRhythm(pkt.previousRhythm);
+	const Rhythm changedRhythm = SanitizeRhythm(pkt.changedRhythm);
 
-	if (changedRhythm == playerComp->mRhythm)
+	// 예약을 서버에 요청한 클라이언트에게 회신하는 람다
+	auto enqueueRhythmReservation = [&](Rhythm targetRhythm, int64 applyAtBeatIndex)
+	{
+		if (std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager())
+		{
+			EvRhythmChanged ev{};
+			ev.player = e;
+			ev.previousRhythm = ToRhythmValue(rhythmState->GetCurrentRhythm());
+			ev.changedRhythm = ToRhythmValue(targetRhythm);
+			ev.playerType = playerComp->mPlayerType;
+			ev.applyAtBeatIndex = applyAtBeatIndex;
+			eventManager->Enqueue<EvRhythmChanged>(ev);
+		}
+	};
+
+	// 현재 예약을 회신하는 람다
+	auto enqueueCurrentReservation = [&]()
+	{
+		const Rhythm targetRhythm = rhythmState->HasPendingChange()
+			? rhythmState->GetPendingRhythm()
+			: rhythmState->GetCurrentRhythm();
+		const int64 applyAtBeatIndex = rhythmState->HasPendingChange()
+			? rhythmState->GetPendingApplyBeat()
+			: kNoRhythmApplyBeat;
+		enqueueRhythmReservation(targetRhythm, applyAtBeatIndex);
+	};
+
+	const uint8 movementMode = playerComp->GetReplicatedMovementMode();
+	if (movementMode == static_cast<uint8>(ReplicatedMovementMode::Airborne) ||
+		movementMode == static_cast<uint8>(ReplicatedMovementMode::Falling) ||
+		movementMode == static_cast<uint8>(ReplicatedMovementMode::Landing))
+	{
+		// 요청이 거절되어도 현재 예약을 회신해 클라이언트의 응답 대기 끝냄
+		enqueueCurrentReservation();
 		return;
+	}
+
+	if (previousRhythm != rhythmState->GetCurrentRhythm())
+	{
+		// 적용 경계와 요청이 겹치면 서버의 현재 상태로 클라이언트를 다시 맞춤
+		enqueueCurrentReservation();
+		return;
+	}
+
+	if (changedRhythm == rhythmState->GetCurrentRhythm())
+	{
+		// 최종 선택이 현재 음악으로 돌아오면 기존 예약을 취소
+		rhythmState->CancelPendingChange();
+		enqueueRhythmReservation(changedRhythm, kNoRhythmApplyBeat);
+		return;
+	}
+
+	if (rhythmState->HasPendingChange())
+	{
+		// 연타로 바뀐 최종 음악만 교체
+		const int64 applyAtBeatIndex = rhythmState->GetPendingApplyBeat();
+		rhythmState->ReplacePendingRhythm(changedRhythm);
+		enqueueRhythmReservation(changedRhythm, applyAtBeatIndex);
+		return;
+	}
 
 	BeatSystem* beatSystem = nullptr;
+
 	if (auto systemManager = mWorld->GetSystemManager())
 		beatSystem = systemManager->GetSystem<BeatSystem>();
 
-	// 전환은 다음 마디(16박=6초) 경계에 스케줄
-	int64 applyAtBeatIndex = kBeatsPerBar;
+	// 전환은 다음 음악 루프 경계에 예약
+	int64 applyAtBeatIndex = kMusicLoopBeatCount;
+
 	if (beatSystem)
 	{
 		const int64 cur = beatSystem->GetAbsoluteBeatIndex();
-		int64 nextBar = (cur / kBeatsPerBar + 1) * kBeatsPerBar;
-		if (nextBar - cur < kRhythmLookAheadBeats)
-			nextBar += kBeatsPerBar;
-		applyAtBeatIndex = nextBar;
+
+		int64 nextLoopBoundary =
+			(cur / kMusicLoopBeatCount + 1) * kMusicLoopBeatCount;
+
+		if (nextLoopBoundary - cur < kRhythmLookAheadBeats)
+			nextLoopBoundary += kMusicLoopBeatCount;
+
+		applyAtBeatIndex = nextLoopBoundary;
 	}
 
 
-	playerComp->mNextRhythm = changedRhythm;
-	playerComp->mHasQueuedRhythmChange = true;
-	playerComp->mRhythmApplyBeat = applyAtBeatIndex;
-	if (beatSystem)
-		beatSystem->SyncAllRhythmBuffsNow();
-
-
-	if (std::shared_ptr<EventManager>& eventManager = mWorld->GetEventManager())
-	{
-		EvRhythmChanged ev{};
-		ev.player = e;
-		ev.previousRhythm = previousRhythm;
-		ev.changedRhythm = changedRhythm;
-		ev.playerType = playerComp->mPlayerType;
-		ev.applyAtBeatIndex = applyAtBeatIndex;
-		eventManager->Enqueue<EvRhythmChanged>(ev);
-	}
+	rhythmState->ScheduleRhythmChange(changedRhythm, applyAtBeatIndex);
+	enqueueRhythmReservation(changedRhythm, applyAtBeatIndex);
 }
 
 void NetRecvSystem::RecvEmote(uint32 sessionId, const C2S_EmotePacket& pkt)

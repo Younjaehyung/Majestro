@@ -19,27 +19,28 @@ namespace
 
     struct RhythmStemConfig
     {
-        uint8 playerType;
+        PlayerType playerType;
         SOUNDNAME stem;
         const char* eventPath;
         const char* parentParam;
         const char* subParam;
     };
 
-    constexpr std::array<RhythmStemConfig, kRhythmMusicPlayerTypeCount> kRhythmStemConfigs = {
-        RhythmStemConfig{ static_cast<uint8>(PlayerType::Rudwig), SOUNDNAME::Drum,
+    constexpr std::array<RhythmStemConfig, static_cast<size_t>(PlayerType::Count)>
+        kRhythmStemConfigs = {
+        RhythmStemConfig{ PlayerType::Rudwig, SOUNDNAME::Drum,
             "event:/OST/DrumMulti", "DrumParams", "DrumSubParams" },
-        RhythmStemConfig{ static_cast<uint8>(PlayerType::Ibanix), SOUNDNAME::Bass,
+        RhythmStemConfig{ PlayerType::Ibanix, SOUNDNAME::Bass,
             "event:/OST/BassMulti", "BassParams", "BassSubParams" },
-        RhythmStemConfig{ static_cast<uint8>(PlayerType::Fanthor), SOUNDNAME::Elec,
+        RhythmStemConfig{ PlayerType::Fanthor, SOUNDNAME::Elec,
             "event:/OST/ElecMulti", "ElecParams", "ElecSubParams" }
     };
 
     static_assert(
-        kRhythmMusicPlayerTypeCount == static_cast<uint8>(PlayerType::Count),
+        kRhythmStemConfigs.size() == static_cast<size_t>(PlayerType::Count),
         "Rhythm stem config must cover every player type.");
 
-    const RhythmStemConfig* FindRhythmStemConfig(uint8 playerType)
+    const RhythmStemConfig* FindRhythmStemConfig(PlayerType playerType)
     {
         for (const RhythmStemConfig& config : kRhythmStemConfigs)
         {
@@ -50,7 +51,12 @@ namespace
         return nullptr;
     }
 
-    void SendRhythmChangedPacket(World* world, Entity playerEntity, uint8 prevRhythm, uint8 changedRhythm, uint8 playerType)
+    void SendRhythmChangedPacket(
+        World* world,
+        Entity playerEntity,
+        Rhythm previousRhythm,
+        Rhythm changedRhythm,
+        PlayerType playerType)
     {
         NetEntityComponent* netEntityComponent = world->GetComponent<NetEntityComponent>(playerEntity);
         if (netEntityComponent == nullptr)
@@ -58,9 +64,9 @@ namespace
 
         C2S_RhythmChangedPacket pkt{};
         pkt.netEntityId = netEntityComponent->mNetEntityId;
-        pkt.previousRhythm = prevRhythm;
-        pkt.changedRhythm = changedRhythm;
-        pkt.playerType = playerType;
+        pkt.previousRhythm = ToRhythmValue(previousRhythm);
+        pkt.changedRhythm = ToRhythmValue(changedRhythm);
+        pkt.playerType = static_cast<uint8>(playerType);
 
         SendRequest req{};
         req.Type = PKT_Type::C2S_PKT_RHYTHM_CHANGED;
@@ -88,19 +94,14 @@ void AudioSystem::Initialize()
 
     if (inGame)
     {
-        MajestroGameInstance& gameInstance = MajestroGameInstance::GetInstance();
         bool allRhythmStemsPrepared = true;
 
         for (const RhythmStemConfig& config : kRhythmStemConfigs)
         {
-            const float subVariant = static_cast<float>(static_cast<uint8>(
-                gameInstance.GetConfirmedRhythmMusicSelectionForPlayerType(
-                    config.playerType)));
-
-            const bool prepared = AUDIOMANAGER.RequestBGM(
+         const bool prepared = AUDIOMANAGER.RequestBGM(
                 config.eventPath,
                 config.stem,
-                { { config.subParam, subVariant }, { config.parentParam, 0.0f } },
+                { { config.subParam, 0.0f }, { config.parentParam, 0.0f } },
                 true);
             allRhythmStemsPrepared = allRhythmStemsPrepared && prepared;
         }
@@ -232,21 +233,47 @@ void AudioSystem::Update(float deltaTime)
                     playerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Falling) ||
                     playerComponent->mLowerState == static_cast<int>(ReplicatedMovementMode::Landing);
 
-                if (!airborneForRhythmChange &&
-                    !playerComponent->mRhythmChangeInFlight &&
-                    playerComponent->mDesiredRhythm != playerComponent->mRhythm)
+                const uint8 serverTarget = playerComponent->mHasQueuedRhythmChange
+                    ? playerComponent->mNextRhythm
+                    : playerComponent->mRhythm;
+                const bool reservationNeedsUpdate =
+                    playerComponent->mDesiredRhythm != serverTarget;
+
+                if (!playerComponent->mRhythmChangeInFlight &&
+                    reservationNeedsUpdate)
                 {
-                    SendRhythmChangedPacket(mWorld, playerEntity, playerComponent->mRhythm, playerComponent->mDesiredRhythm, playerComponent->mPlayerType);
-                    playerComponent->mRhythmChangeInFlight = true;   // 적용될 때까지 추가 송신 차단
+                    if (airborneForRhythmChange)
+                    {
+                        // 공중 상태가 끝난 뒤 최신 예약을 다시 전송하도록 대기
+                        playerComponent->mRhythmSettleTimer =
+                            MainPlayerComponent::kRhythmSettleTime;
+                    }
+                    else
+                    {
+                        SendRhythmChangedPacket(
+                            mWorld,
+                            playerEntity,
+                            SanitizeRhythm(playerComponent->mRhythm),
+                            SanitizeRhythm(playerComponent->mDesiredRhythm),
+                            playerComponent->mPlayerType);
+                        // 응답을 받기 전까지만 추가 요청을 막고 이후에는 예약 교체를 허용
+                        playerComponent->mRhythmChangeInFlight = true;
+                    }
                 }
             }
         }
 
-        // 전환 적용: 논리 리듬/UI는 이미 반영되어 있고, 오디오만 지정 박자에 맞춰 바꾼다.
-        if (playerComponent->mHasQueuedRhythmChange &&
-            currentBeat >= playerComponent->mRhythmApplyBeat)
+        // 서버가 지정한 박자에서 현재 리듬과 FMOD 음악을 함께 적용
+        if (playerComponent->IsPendingRhythmReady(currentBeat))
         {
-            ApplyRhythmLayerByPlayerType(playerComponent->mPlayerType, playerComponent->mNextRhythm);
+            const Rhythm appliedRhythm = SanitizeRhythm(playerComponent->mNextRhythm);
+
+            ApplyRhythmToStem(
+                playerComponent->mPlayerType,
+                appliedRhythm);
+
+            // 서버가 지정한 박자에서 현재 리듬과 음악을 함께 확정
+            playerComponent->ApplyPendingRhythmChange();
 
             // 디버그 : 전환이 곡의 어느 위치에서 일어나는지. 
             int fmodMs = 0;
@@ -255,16 +282,11 @@ void AudioSystem::Update(float deltaTime)
 
 
             std::cout << "[RhythmApply] curBeat=" << currentBeat
-                      << " beatInBar=" << (currentBeat % kBeatsPerBar)
+                      << " beatInLoop=" << (currentBeat % kMusicLoopBeatCount)
                       << " fmodPos=" << (fmodMs / 1000.f) << "s"
-                      << " -> rhythm=" << (int)playerComponent->mNextRhythm << std::endl;
-            // 마디 정렬이 맞으면 beatInBar = 0, fmodPos = 0(또는 mLoopLen 배수 근처)
-            playerComponent->mHasQueuedRhythmChange = false;
-            playerComponent->mRhythmApplyBeat = -1;
-            playerComponent->mRhythmChangeInFlight = false;      // 전환 완료 (다음 요청 허용)
+                      << " -> rhythm=" << static_cast<int>(ToRhythmValue(appliedRhythm)) << std::endl;
 
-            
-            // 최신 desired 로 한 번에 전환
+
             if (localPlayer && playerComponent->mDesiredRhythm != playerComponent->mRhythm)
                 playerComponent->mRhythmSettleTimer = MainPlayerComponent::kRhythmSettleTime;
         }
@@ -382,20 +404,26 @@ void AudioSystem::CorrectBgmDrift()
     }
 }
 
-void AudioSystem::ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm)
+void AudioSystem::ApplyRhythmToStem(PlayerType playerType, Rhythm rhythm)
 {
-    if (rhythm >= static_cast<uint8>(Rhythm::Count))
-        return;
-
     const RhythmStemConfig* config = FindRhythmStemConfig(playerType);
     if (config == nullptr)
         return;
 
+    const RhythmVariantSelection& selection = MajestroGameInstance::GetInstance()
+            .GetConfirmedRhythmVariantSelectionForPlayerType(static_cast<uint8>(playerType));
+    const RhythmSubVariant subVariant = selection.GetForRhythm(rhythm);
 
+    // 리듬 변경
+    AUDIOMANAGER.SetBGMParam(
+        config->subParam,
+        config->stem,
+        static_cast<float>(static_cast<uint8>(subVariant)),
+        true);
     AUDIOMANAGER.SetBGMParam(
         config->parentParam,
         config->stem,
-        static_cast<float>(rhythm),
+        static_cast<float>(ToRhythmValue(rhythm)),
         true);
 }
 
@@ -428,8 +456,7 @@ void AudioSystem::UpdateSilenceMusicState()
     if (player == nullptr)
         return;
 
-    const RhythmStemConfig* config =
-        FindRhythmStemConfig(static_cast<uint8>(player->mPlayerType));
+    const RhythmStemConfig* config = FindRhythmStemConfig(player->mPlayerType);
     if (config == nullptr)
         return;
 

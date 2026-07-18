@@ -127,9 +127,34 @@ public:
 	bool mHasQueuedRhythmChange = false;     // 서버가 스케줄한 전환 대기
 	int64 mRhythmApplyBeat = -1;             // 이 절대 박자 인덱스에 mNextRhythm 적용
 
+	void SetPendingRhythmChange(uint8 nextRhythm, int64 applyBeat)
+	{
+		mNextRhythm = nextRhythm;
+		mRhythmApplyBeat = applyBeat;
+		mHasQueuedRhythmChange = true;
+	}
+
+	void CancelPendingRhythmChange()
+	{
+		mNextRhythm = mRhythm;
+		mRhythmApplyBeat = -1;
+		mHasQueuedRhythmChange = false;
+	}
+
+	bool IsPendingRhythmReady(int64 currentBeat) const
+	{
+		return mHasQueuedRhythmChange && currentBeat >= mRhythmApplyBeat;
+	}
+
+	uint8 ApplyPendingRhythmChange()
+	{
+		mRhythm = mNextRhythm;
+		CancelPendingRhythmChange();
+		return mRhythm;
+	}
 
 	uint8 mDesiredRhythm = 0;                // 최종 리듬
-	bool mRhythmChangeInFlight = false;      // 송신 후 적용 전까지 true
+	bool mRhythmChangeInFlight = false;      // 요청을 보낸 뒤 서버 응답을 받기 전까지 true
 	float mRhythmSettleTimer = 0.f;          // 클릭이 멎길 기다리는 중. 만료 시 송신 시도
 	static constexpr float kRhythmSettleTime = 0.15f; // 연타 합치기 윈도우(초)
 };

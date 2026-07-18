@@ -1,5 +1,6 @@
 #pragma once
 #include "PacketHelper.h"
+#include "Protocol/RhythmDefinitions.h"
 
 class RoomNotifier;
 
@@ -10,7 +11,7 @@ struct RoomPlayerEntry
 {
     uint64 sessionId = 0;
     uint8  playerType = 0;
-    RhythmMusicVariant rhythmMusicSubVariant = RhythmMusicVariant::Original;
+    RhythmVariantSelection rhythmVariantSelection{};
     bool   ready = false;
     bool   isHost = false;  // 첫 입장자가 Host.
 };
@@ -31,7 +32,9 @@ public:
     bool RemovePlayer(uint64 sessionId);
 
     bool SetReady(uint64 sessionId, bool ready);
-    bool SetRhythmMusicSelection(uint64 sessionId, RhythmMusicVariant selection);
+    bool SetRhythmVariantSelection(
+        uint64 sessionId,
+        const RhythmVariantSelection& selection);
 
     // 캐릭터 변경 시 변경한 본인의 ready 를 false 로 자동 해제
     bool SetPlayerCharacter(uint64 sessionId, uint8 playerType);
@@ -39,6 +42,9 @@ public:
 
     // 세션의 선택 캐릭터 조회
     bool GetPlayerType(uint64 sessionId, uint8& outType) const;
+    bool GetRhythmVariantSelection(
+        uint64 sessionId,
+        RhythmVariantSelection& outSelection) const;
 
     // 한 캐릭터를 확정한 직후, 같은 캐릭터를 고르던 미확정 플레이어들을 자동 이동
     void EvictConflictingSelections(uint64 lockerSessionId, uint8 lockedType);
@@ -73,7 +79,9 @@ public:
     RoomErrorCode JoinRoom(uint64 sessionId, uint32 roomId);
     bool LeaveRoom(uint64 sessionId, uint32& outRoomId);   // true = 방에 속해 있었고 나감
     RoomErrorCode SetPlayerReady(uint64 sessionId, bool ready);
-    RoomErrorCode SelectRhythmMusic(uint64 sessionId, RhythmMusicVariant selection);
+    RoomErrorCode SelectRhythmVariantSelection(
+        uint64 sessionId,
+        const RhythmVariantSelection& selection);
     RoomErrorCode SelectCharacter(uint64 sessionId, uint8 playerType);
 
     // 실패 시 outError 에 거부 사유 반환

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RhythmMusicDefinitions.h"
+#include "RhythmDefinitions.h"
 
 static uint32 ServerTick = 0;
 
@@ -335,7 +335,10 @@ struct RoomPlayerSlot {
 	uint8  playerType{};
 	uint8  ready{};     // 0/1
 	uint8  isHost{};    // 0/1
-	uint8  rhythmMusicSubVariant{}; // 0=원본, 1=파생 음악 1, 2=파생 음악 2
+	uint8  rhythmR1SubVariant{};
+	uint8  rhythmR2SubVariant{};
+	uint8  rhythmR3SubVariant{};
+
 };
 
 // 방 목록
@@ -358,15 +361,6 @@ constexpr float kMaxInputSongPosDrift = 0.5f; // 서버 songPos 와 이보다 �
 
 // 리듬 전환 look-ahead 박자 수
 constexpr int64 kRhythmLookAheadBeats = 2;	// 서버가 (현재 절대박자 + 이 값)에 전환을 스케줄해 오차를 흡수.
-
-// 리듬(노래 변주) 인덱스
-enum class Rhythm : uint8 { Neutral = 0, R1, R2, R3, Count };
-
-// 다음 리듬으로 순환(우클릭 입력).
-inline uint8 NextRhythm(uint8 cur) { return static_cast<uint8>((cur + 1) % static_cast<uint8>(Rhythm::Count)); }
-
-// 리듬 값 정규화
-inline uint8 NormalizeRhythm(uint8 v) { return static_cast<uint8>(v % static_cast<uint8>(Rhythm::Count)); }
 
 // 박자 판정
 inline uint8 ClassifyBeatJudgement(float songPos, float beatSec)
@@ -974,8 +968,8 @@ struct C2S_ActionPacket : public PacketTcpHeader {
 
 struct C2S_RhythmChangedPacket : public PacketTcpHeader {
 	uint64 netEntityId{};
-	uint8 previousRhythm{};
-	uint8 changedRhythm{};
+	uint8 previousRhythm{}; // 현재 실제로 적용된 부모 리듬
+	uint8 changedRhythm{};  // 새로 예약하거나 예약을 교체할 최종 부모 리듬
 	uint8 playerType{};
 	uint8 reserved{};
 	C2S_RhythmChangedPacket() : PacketTcpHeader{ sizeof(C2S_RhythmChangedPacket), PKT_Type::C2S_PKT_RHYTHM_CHANGED, 0.0 } {}
@@ -984,7 +978,7 @@ struct C2S_RhythmChangedPacket : public PacketTcpHeader {
 // 서버가 특정 플레이어의 리듬 변경을 전체 클라에 브로드캐스트 — 원격 플레이어 담당 음악 동기화.
 struct S2C_RhythmChangedPacket : public PacketTcpHeader {
 	uint64 netEntityId{};
-	int64  applyAtBeatIndex{};	// 공유 Song Clock 의 절대 박자 인덱스. 서버, 전 클라가 이 박자에 도달할 때 동시에 전환 적용.
+	int64  applyAtBeatIndex{};	// 절대 박자에 적용하며 -1이면 현재 리듬 유지와 예약 취소를 의미한다.
 	uint8 previousRhythm{};
 	uint8 changedRhythm{};
 	uint8 playerType{};
@@ -1039,8 +1033,9 @@ struct C2S_MovePacket : public PacketUdpHeader {
 struct C2S_RoomReadyPacket : public PacketTcpHeader {
 	uint32 roomId{};
 	uint8  ready{};       // 0/1
-	uint8  rhythmMusicSubVariant{}; // 게임 시작 전에 확정할 파생 음악 선택값
-	uint16 reserved1{};
+	uint8  rhythmR1SubVariant{};
+	uint8  rhythmR2SubVariant{};
+	uint8  rhythmR3SubVariant{};
 
 	C2S_RoomReadyPacket()
 		: PacketTcpHeader{ sizeof(C2S_RoomReadyPacket), PKT_Type::C2S_ROOM_READY, 0.0 } {

@@ -1790,7 +1790,7 @@ HUDMusicPrefab::HUDMusicPrefab(World* world, uint8 playerType, Entity ownerEntit
 	const float displaySourceX =
 		playerType == PlayerType::Ibanix ? 768.0f :
 		playerType == PlayerType::Rudwig ? 1024.0f : 1280.0f;
-	// 리듬 텍스트와 아이콘은 Fanthor, Ibanix, Ludwig 순서로 각 네 칸씩 배치되어 있다.
+	// 리듬 텍스트와 아이콘은 Fanthor, Ibanix, Rudwig 순서로 각 네 칸씩 배치되어 있다.
 	const int32 rhythmAtlasBaseIndex =
 		playerType == PlayerType::Fanthor ? 0 :
 		playerType == PlayerType::Ibanix ? 4 : 8;

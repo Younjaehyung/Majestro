@@ -668,7 +668,8 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	if (INPUT.GetMouseRightDown() && !IsPlayerAirborneForRhythmChange(ctx.player))
 	{
 		// 즉시 송신하지 않고 원하는 최종 리듬만 누적
-		ctx.player->mDesiredRhythm = NextRhythm(ctx.player->mDesiredRhythm);
+		ctx.player->mDesiredRhythm = ToRhythmValue(
+			GetNextRhythm(SanitizeRhythm(ctx.player->mDesiredRhythm)));
 		ctx.player->mRhythmSettleTimer = MainPlayerComponent::kRhythmSettleTime;
 
 		cout << "desired rythm:" << static_cast<int>(ctx.player->mDesiredRhythm) << endl;
@@ -704,6 +705,5 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	INPUT.MouseStateClear();
 	ctx.player->Update(dt);
 }
-
 
 

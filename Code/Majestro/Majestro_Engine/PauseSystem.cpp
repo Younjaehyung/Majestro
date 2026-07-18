@@ -231,7 +231,7 @@ void PauseSystem::ApplyBackgroundTexture(PauseMenuController* ctrl)
     else if (localPlayerType == PlayerType::Ibanix)
         hoverSource = RECT{ 0, 526, 768, 565 };
 
-    // 아틀라스의 첫 행은 Ibanix, 둘째 행은 Ludwig, 셋째 행은 Fanthor 색상이다.
+    // 아틀라스의 첫 행은 Ibanix, 둘째 행은 Rudwig, 셋째 행은 Fanthor 색상이다.
     RECT wordBandSource = { 0, 0, 2048, 128 };
     if (localPlayerType == PlayerType::Rudwig)
         wordBandSource = RECT{ 0, 128, 2048, 256 };

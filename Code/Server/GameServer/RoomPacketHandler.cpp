@@ -105,9 +105,12 @@ bool RoomPacketHandler::HandleReady(const InputCommand& command)
     }
 
  
-    const RoomErrorCode selectionError = mRoomManager->SelectRhythmMusic(
-        sessionId,
-        SanitizeRhythmMusicVariant(pkt->rhythmMusicSubVariant));
+    const RhythmVariantSelection selection = SanitizeRhythmVariantSelection(
+        pkt->rhythmR1SubVariant,
+        pkt->rhythmR2SubVariant,
+        pkt->rhythmR3SubVariant);
+    const RoomErrorCode selectionError =
+        mRoomManager->SelectRhythmVariantSelection(sessionId, selection);
     if (selectionError != RoomErrorCode::None)
     {
         mNotifier->SendError(sessionId, room->mRoomId, selectionError);

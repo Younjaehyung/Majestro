@@ -9,6 +9,7 @@
 #include "EnemyComponent.h"
 #include "MovementComponent.h"
 #include "BuffComponent.h"
+#include "RhythmComponents.h"
 #include "PhysicsWorld.h"
 #include "ServerCore.h"
 #include "GameEvents.h"
@@ -41,8 +42,16 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 	NetEntityComponent* shooterNetComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
 	InputComponent* inputComp = mWorld->GetComponent<InputComponent>(playerEntity);
 	BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(playerEntity);
+
 	const bool shooterIsPlayer = mWorld->HasComponent<MainPlayerComponent>(playerEntity);
 	const bool shooterIsEnemy = mWorld->HasComponent<EnemyComponent>(playerEntity);
+
+	MainPlayerComponent* shooterPlayer = shooterIsPlayer
+		? mWorld->GetComponent<MainPlayerComponent>(playerEntity)
+		: nullptr;
+	const RhythmEffectComponent* shooterRhythmEffect = shooterIsPlayer
+		? mWorld->GetComponent<RhythmEffectComponent>(playerEntity)
+		: nullptr;
 
 	if (shooterTransform == nullptr || shooterNetComp == nullptr)
 		return;
@@ -81,10 +90,24 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 
 				BulletStat bulletStat = GetBulletStat(bulletType);
 				const float attackMultiplier = buffComp ? buffComp->mAttackMultiplier : 1.0f;
+				if (shooterPlayer && shooterRhythmEffect)
+				{
+					const RhythmVariantEffectModifiers& modifiers =
+						shooterRhythmEffect->GetVariantModifiers();
+					bulletStat.Damage += static_cast<float>(modifiers.attackPowerBonus);
+					bulletStat.Size *= modifiers.rhythmEffectRangeMultiplier;
+
+					
+					if (shooterPlayer->mPlayerType == Fanthor)
+					{
+						bulletStat.Damage *= modifiers.outgoingRhythmEffectMultiplier;
+						bulletStat.KnockbackDistance *= modifiers.outgoingRhythmEffectMultiplier;
+					}
+				}
 				bulletStat.Damage *= attackMultiplier;
 				if (shooterIsPlayer)
 				{
-					if (MainPlayerComponent* shooterPlayer = mWorld->GetComponent<MainPlayerComponent>(playerEntity))
+					if (shooterPlayer)
 					{
 						if (shooterPlayer->mPlayerType == Ibanix &&
 							(shooterPlayer->mNowBullet + 1) >= 11)

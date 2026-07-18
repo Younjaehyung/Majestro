@@ -12,8 +12,10 @@
 #include "PhysicsWorld.h"
 
 #include "PlayerComponent.h"
+#include "RhythmComponents.h"
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
+
 
 InteractionSystem::InteractionSystem(World* world) : System(world)
 {
@@ -171,7 +173,12 @@ void InteractionSystem::ApplyHealPack(Entity user, Entity trigger, const Interac
 {
     EvHeal heal{};
     heal.target     = user;
-    heal.amount     = static_cast<int32>(i.mValueA);
+    float healPackMultiplier = 1.0f;
+    if (const RhythmEffectComponent* rhythmEffect = mWorld->GetComponent<RhythmEffectComponent>(user))
+    {
+		healPackMultiplier = rhythmEffect->GetVariantModifiers().healPackHealingMultiplier;
+    }
+    heal.amount     = static_cast<int32>(std::lround(i.mValueA * healPackMultiplier));
     heal.instigator = trigger;
     mWorld->GetEventManager()->Enqueue<EvHeal>(heal);
 }

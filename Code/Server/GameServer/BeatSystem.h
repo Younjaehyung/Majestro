@@ -4,7 +4,7 @@
 #include "World.h"
 #include "System.h"
 #include "GameEvents.h"
-#include "Protocol/RhythmMusicDefinitions.h"
+#include "Protocol/RhythmDefinitions.h"
 
 
 class ControllerComponent;
@@ -17,7 +17,6 @@ public:
 
 	void Initialize();
 	void Update(float dt);
-	void SyncAllRhythmBuffsNow();
 
 private:
 	void CollectPendingBuffRequests();

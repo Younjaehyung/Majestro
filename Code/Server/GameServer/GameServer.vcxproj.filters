@@ -225,6 +225,9 @@
     <ClCompile Include="BeatSystem.cpp">
       <Filter>System\Gameplay</Filter>
     </ClCompile>
+    <ClCompile Include="RhythmEffectSystem.cpp">
+      <Filter>System\Gameplay</Filter>
+    </ClCompile>
     <ClCompile Include="CameraSystem.cpp">
       <Filter>System\Gameplay</Filter>
     </ClCompile>
@@ -505,6 +508,12 @@
     </ClInclude>
     <ClInclude Include="PlayerComponent.h">
       <Filter>Component\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="RhythmComponents.h">
+      <Filter>Component\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="RhythmEffectSystem.h">
+      <Filter>System\Gameplay</Filter>
     </ClInclude>
     <ClInclude Include="TerrainComponent.h">
       <Filter>Component\Gameplay</Filter>

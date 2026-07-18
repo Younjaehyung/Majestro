@@ -3,7 +3,9 @@
 #include "World.h"
 #include "ComponentPool.h"
 #include "AudioManager.h"
-#include "Protocol/RhythmMusicDefinitions.h"
+#include "Protocol/RhythmDefinitions.h"
+
+enum PlayerType : uint8;
 
 class AudioSystem : public System
 {
@@ -32,7 +34,7 @@ private:
 	float mDriftMaxNudge = 0.008f; // 최대 속도 변화
 	float mDriftGain = 0.1f;       // drift 대비 너지 비례 계수
 
-	void ApplyRhythmLayerByPlayerType(uint8 playerType, uint8 rhythm);
+    void ApplyRhythmToStem(PlayerType playerType, Rhythm rhythm);
 	void UpdateSilenceMusicState();
 
 	// 수정사항: Silence 상태가 바뀔 때만 로컬 플레이어 음악의 출력 배율을 변경한다.

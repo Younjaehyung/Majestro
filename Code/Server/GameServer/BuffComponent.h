@@ -52,6 +52,7 @@ struct BuffData
 
     float mTickInterval = 0.0f;
     float mNextTriggerTime = 0.0f;
+    float mFractionalRemainder = 0.0f;
     Entity mSource{};
     bool mIsRhythmEffect = false;
 

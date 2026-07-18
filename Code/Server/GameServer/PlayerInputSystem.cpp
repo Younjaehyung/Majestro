@@ -20,6 +20,7 @@
 #include "BeatSystem.h"
 #include "GameTimer.h"
 #include "BuffComponent.h"
+#include "RhythmComponents.h"
 #include "EnemyComponent.h"
 
 
@@ -107,7 +108,17 @@ void PlayerInputSystem::Update(float dt)
 		}
 		else {
 			if (mainPlayerComponent->mDash) mainPlayerComponent->mSpeed = mainPlayerComponent->mDashSpeed;
-			else if (canUseHorizontalInput) mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed * buffComp->mMoveSpeedMultiplier;
+			else if (canUseHorizontalInput)
+			{
+				float variantMoveMultiplier = 1.0f;
+				if (const RhythmEffectComponent* rhythmEffect =
+					mWorld->GetComponent<RhythmEffectComponent>(e))
+				{
+					variantMoveMultiplier = rhythmEffect->GetVariantModifiers().moveSpeedMultiplier;
+				}
+				mainPlayerComponent->mSpeed = mainPlayerComponent->mRunSpeed *
+					buffComp->mMoveSpeedMultiplier * variantMoveMultiplier;
+			}
 			else mainPlayerComponent->mSpeed = 0.f;
 		}
 		
@@ -406,11 +417,14 @@ bool PlayerInputSystem::EnqueueAttackEventByCategory(EventManager& eventManager,
 	}
 }
 
-SkillType PlayerInputSystem::ResolveSkillType(uint8 playerType, InputButtons actionButton, uint8 rhythm)
+SkillType PlayerInputSystem::ResolveSkillType(
+	uint8 playerType,
+	InputButtons actionButton,
+	Rhythm rhythm)
 {
 	switch (playerType)
 	{
-	case 0:
+	case PlayerType::Rudwig:
 		switch (actionButton)
 		{
 		case InputButtons::ATTACK: return SkillType::DrumAttack;
@@ -419,7 +433,7 @@ SkillType PlayerInputSystem::ResolveSkillType(uint8 playerType, InputButtons act
 		case InputButtons::RELOAD: return SkillType::DrumSkill3;
 		default: return SkillType::Default;
 		}
-	case 1:
+	case PlayerType::Ibanix:
 		switch (actionButton)
 		{
 		case InputButtons::ATTACK: return SkillType::BaseAttack;
@@ -428,14 +442,14 @@ SkillType PlayerInputSystem::ResolveSkillType(uint8 playerType, InputButtons act
 		case InputButtons::RELOAD: return SkillType::BaseSkill3;
 		default: return SkillType::Default;
 		}
-	default:
+	case PlayerType::Fanthor:
 		switch (actionButton)
 		{
 		case InputButtons::ATTACK:
 			switch (rhythm) {
-			case 1:  return SkillType::GuitarAttack_1;
-			case 2:  return SkillType::GuitarAttack_2;
-			case 3:  return SkillType::GuitarAttack_3;
+			case Rhythm::R1: return SkillType::GuitarAttack_1;
+			case Rhythm::R2: return SkillType::GuitarAttack_2;
+			case Rhythm::R3: return SkillType::GuitarAttack_3;
 			default: return SkillType::GuitarAttack;
 			}
 
@@ -444,6 +458,8 @@ SkillType PlayerInputSystem::ResolveSkillType(uint8 playerType, InputButtons act
 		case InputButtons::RELOAD: return SkillType::GuitarSkill3;
 		default: return SkillType::Default;
 		}
+	default:
+		return SkillType::Default;
 	}
 }
 
@@ -464,7 +480,7 @@ void PlayerInputSystem::EnqueueAmmoChangedIfNeeded(World* world, EventManager& e
 }
 
 bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
-                                      InputButtons button, float now, float Beat, bool isCritical)
+	                                  InputButtons button, float now, float Beat, bool isCritical)
 {
 	if (mp == nullptr) return false;
 	if (GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(e))
@@ -556,14 +572,18 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 		// Fanthor 기본공격:
 		// silence 상태면 항상 근접 GuitarAttack만 사용한다.
 		// 그 외에는 rhythm 0 은 근접, rhythm 1~3 은 탄이 있으면 해당 원거리 공격을 사용한다.
-		uint8 rhythm = 0;
+		Rhythm rhythm = Rhythm::Neutral;
 		if (button == InputButtons::ATTACK && mp->mPlayerType == Fanthor)
 		{
 			const BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(e);
 			const bool isSilenced = buffComp && buffComp->FindBuff(BuffType::Silence) != nullptr;
-			rhythm = isSilenced ? 0 : mp->mRhythm;
-			if (rhythm != 0 && mp->mNowBullet <= 0)
-				rhythm = 0;
+			const RhythmStateComponent* rhythmState =
+				mWorld->GetComponent<RhythmStateComponent>(e);
+			rhythm = isSilenced || !rhythmState
+				? Rhythm::Neutral
+				: rhythmState->GetCurrentRhythm();
+			if (rhythm != Rhythm::Neutral && mp->mNowBullet <= 0)
+				rhythm = Rhythm::Neutral;
 		}
 
 		const int prevAmmo = mp->mNowBullet;

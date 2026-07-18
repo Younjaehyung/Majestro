@@ -8,11 +8,12 @@
 #include "GameTimer.h"
 #include "HealthComponent.h"
 #include "PlayerComponent.h"
+#include "RhythmComponents.h"
 #include "TransformComponent.h"
 #include "World.h"
 
-BuffSystem::BuffSystem(World* world)
-    : System(world)
+
+BuffSystem::BuffSystem(World* world) : System(world)
 {
     mPhase = SysPhase::Sim;
 }
@@ -77,6 +78,24 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
         }
     }
 
+    float sourceEffectMultiplier = 1.0f;
+    if (buff.mSource.IsValid())
+    {
+        if (const RhythmEffectComponent* sourceEffect =
+			mWorld->GetComponent<RhythmEffectComponent>(buff.mSource))
+        {
+			sourceEffectMultiplier = sourceEffect->GetVariantModifiers().outgoingRhythmEffectMultiplier;
+        }
+    }
+
+    auto consumeScaledPeriodicAmount = [&buff, sourceEffectMultiplier](float baseAmount)
+    {
+        const float accumulated = baseAmount * sourceEffectMultiplier + buff.mFractionalRemainder;
+        const int32 amount = static_cast<int32>(std::floor(accumulated));
+        buff.mFractionalRemainder = accumulated - static_cast<float>(amount);
+        return amount;
+    };
+
     switch (buff.mType)
     {
     case BuffType::ShieldDown:
@@ -87,6 +106,12 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
 
         const int32 beforeArmor = armor->mCurrentArmor;
         armor->mCurrentArmor = (std::max)(0, armor->mCurrentArmor - 10);
+		if (RhythmEffectComponent* rhythmEffect =
+			mWorld->GetComponent<RhythmEffectComponent>(target))
+		{
+			const int32 removedShield = beforeArmor - armor->mCurrentArmor;
+			rhythmEffect->ConsumeTemporaryShield(removedShield);
+		}
 
         if (beforeArmor != armor->mCurrentArmor)
         {
@@ -101,7 +126,16 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
             return;
 
         const int32 beforeHp = health->mCurrentHp;
-        health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + 5);
+        float receivedHealingMultiplier = 1.0f;
+        if (const RhythmEffectComponent* targetEffect =
+			mWorld->GetComponent<RhythmEffectComponent>(target))
+        {
+			receivedHealingMultiplier =
+				targetEffect->GetVariantModifiers().incomingHealingMultiplier;
+        }
+        const int32 healAmount = consumeScaledPeriodicAmount(
+            5.0f * receivedHealingMultiplier);
+        health->mCurrentHp = (std::min)(health->mMaxHp, health->mCurrentHp + healAmount);
 
         if (beforeHp != health->mCurrentHp)
         {
@@ -116,7 +150,8 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
             return;
 
         const int32 beforeArmor = armor->mCurrentArmor;
-        armor->mCurrentArmor = (std::min)(armor->mMaxArmor, armor->mCurrentArmor + 2);
+        const int32 shieldAmount = consumeScaledPeriodicAmount(2.0f);
+        armor->mCurrentArmor = (std::min)(armor->mMaxArmor, armor->mCurrentArmor + shieldAmount);
 
         if (beforeArmor != armor->mCurrentArmor)
         {

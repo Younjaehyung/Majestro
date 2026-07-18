@@ -1,7 +1,7 @@
 #pragma once
 #include "World.h"
 #include "System.h"
-#include "Protocol/RhythmMusicDefinitions.h"
+#include "Protocol/RhythmDefinitions.h"
 
 class ControllerComponent;
 class MainPlayerComponent;

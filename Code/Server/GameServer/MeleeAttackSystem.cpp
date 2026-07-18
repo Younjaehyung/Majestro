@@ -8,6 +8,7 @@
 #include "HealthComponent.h"
 #include "BulletComponent.h"
 #include "BuffComponent.h"
+#include "RhythmComponents.h"
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
 #include "MovementComponent.h"
@@ -209,7 +210,28 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 	if (!eventManager)
 		return;
 
-	const MeleeAttackStat stat = GetMeleeAttackStat(request.bulletType);
+	MeleeAttackStat stat = GetMeleeAttackStat(request.bulletType);
+
+	MainPlayerComponent* attackerPlayer = attackerIsPlayer
+		? mWorld->GetComponent<MainPlayerComponent>(request.shooter) : nullptr;
+
+	const RhythmEffectComponent* attackerRhythmEffect = attackerIsPlayer
+		? mWorld->GetComponent<RhythmEffectComponent>(request.shooter) : nullptr;
+
+
+	if (attackerPlayer && attackerRhythmEffect)
+	{
+		const RhythmVariantEffectModifiers& modifiers = attackerRhythmEffect->GetVariantModifiers();
+		stat.damage += static_cast<float>(modifiers.attackPowerBonus);
+		stat.radius *= modifiers.rhythmEffectRangeMultiplier;
+		if (attackerPlayer->mPlayerType == Fanthor)
+		{
+			stat.damage *= modifiers.outgoingRhythmEffectMultiplier;
+			stat.knockbackDistance *= modifiers.outgoingRhythmEffectMultiplier;
+		}
+	}
+
+
 	Vec3 forward = Vec3::Forward;
 	const EnemyComponent* attackerEnemy = attackerIsEnemy ? mWorld->GetComponent<EnemyComponent>(request.shooter) : nullptr;
 	const bool attackerIsFly = attackerEnemy && attackerEnemy->mEnemyType == EnemyType::Fly;

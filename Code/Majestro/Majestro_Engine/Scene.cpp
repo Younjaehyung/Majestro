@@ -75,7 +75,7 @@
 #include "MovementSystem.h"
 #include "GamePhaseSystem.h"
 #include "DamageFeedbackSystem.h"
-#include "RhythmSystem.h"
+#include "RhythmEmissiveSystem.h"
 #include "DamagePopupUpdateFeature.h"
 #include "UIEmoteFeature.h"
 
@@ -2399,7 +2399,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -2693,7 +2693,7 @@ void PlazaScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -2846,7 +2846,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -2974,7 +2974,7 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
-	mWorld->GetSystemManager()->RegisterSystem<RhythmSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();

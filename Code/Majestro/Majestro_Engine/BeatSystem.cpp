@@ -18,7 +18,7 @@ void BeatSystem::Update(float dt)
 
 	const int64 absBeat = static_cast<int64>(mSeconds / mBpmSeconds);
 
-	mBeat = static_cast<int>(absBeat % kBeatsPerBar);
+	mBeat = static_cast<int>(absBeat % kMusicLoopBeatCount);
 	const float s = mSeconds - static_cast<float>(absBeat) * mBpmSeconds;
 
 	if (false == mWorld->HasComponentPool<BeatComponent>()) return;

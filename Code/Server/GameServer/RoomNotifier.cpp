@@ -22,7 +22,9 @@ void RoomNotifier::FillStatePacket(const RoomState& room, S2C_RoomStatePacket& o
         dst.playerType = src.playerType;
         dst.ready = src.ready ? 1 : 0;
         dst.isHost = src.isHost ? 1 : 0;
-        dst.rhythmMusicSubVariant = static_cast<uint8>(src.rhythmMusicSubVariant);
+        dst.rhythmR1SubVariant = static_cast<uint8>(src.rhythmVariantSelection.r1);
+        dst.rhythmR2SubVariant = static_cast<uint8>(src.rhythmVariantSelection.r2);
+        dst.rhythmR3SubVariant = static_cast<uint8>(src.rhythmVariantSelection.r3);
         if (src.isHost)
             outPacket.hostSlotIndex = static_cast<uint8>(i);
     }

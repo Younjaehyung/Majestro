@@ -7,7 +7,7 @@
 enum PlayerType : uint8
 {
 	Rudwig,
-	Ibanix ,
+	Ibanix,
 	Fanthor,
 	Count,
 };
@@ -148,7 +148,7 @@ public:
 	float mReloadCool= 2.f;
 
 
-	float mRhythmBuffRadius = 1500.f;		// 리듬 버프 제공 반경 (0 이하이면 전범위)
+	float mRhythmEffectRadius = 1500.f;	// 기본 리듬 효과 제공 반경( 0 이하 전범위)
 
 public:
 	float mNextAttackTime = 1.f;
@@ -157,11 +157,6 @@ public:
 	float mNextReloadTime = 1.f;
 	float mNextRythmChangeTime = 1.f;
 
-	uint8 mRhythm = 0;
-	uint8 mNextRhythm = 0;
-	bool mHasQueuedRhythmChange = false;
-	int64 mRhythmApplyBeat = -1; // 이 절대 박자 인덱스 도달 시 mNextRhythm 확정
-	float mRhythmBuffProvideUntil = 0.0f; // 리듬 버프 제공 종료 시각. 루드윅은 박자 맞춘 공격 시 1마디 활성
 	uint8 mLastBeatJudgement = 0; // 마지막 행동의 박자 판정(BeatJudgement)
 	float mLastJudgedInputSongPos = -1.f; // 동일 입력 중복 판정 방지
 

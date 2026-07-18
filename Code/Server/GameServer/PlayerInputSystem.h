@@ -2,6 +2,7 @@
 #include "World.h"
 #include "System.h"
 #include "BulletComponent.h"
+#include "Protocol/RhythmDefinitions.h"
 
 class MainPlayerComponent;
 class InputComponent;
@@ -19,7 +20,10 @@ public:
 private:
 	bool EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType, bool isCritical);
 
-	SkillType ResolveSkillType(uint8 playerType, InputButtons actionButton, uint8 rhythm = 0);
+	SkillType ResolveSkillType(
+		uint8 playerType,
+		InputButtons actionButton,
+		Rhythm rhythm = Rhythm::Neutral);
 	uint8 EvaluateBeatJudgement(const MainPlayerComponent* mp, const InputComponent* inputComp, const BeatSystem* beatSystem) const;
 
 	void EnqueueAmmoChangedIfNeeded(World* world, EventManager& eventManager, Entity playerEntity, int prevAmmo);

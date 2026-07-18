@@ -271,8 +271,11 @@ void NetSendSystem::TrySendRoomEvents()
 		pkt.roomId = roomId;
 		pkt.ready = e.ready ? 1 : 0;
 
-		pkt.rhythmMusicSubVariant = static_cast<uint8>(
-			MajestroGameInstance::GetInstance().GetLocalRhythmMusicSelection());
+		const RhythmVariantSelection& selection =
+			MajestroGameInstance::GetInstance().GetLocalRhythmVariantSelection();
+		pkt.rhythmR1SubVariant = static_cast<uint8>(selection.r1);
+		pkt.rhythmR2SubVariant = static_cast<uint8>(selection.r2);
+		pkt.rhythmR3SubVariant = static_cast<uint8>(selection.r3);
 		SendPacket(pkt);
 	});
 

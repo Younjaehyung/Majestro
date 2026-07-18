@@ -12,9 +12,83 @@
 #include "MovementComponent.h"
 #include "BeatSystem.h"
 #include "GameTimer.h"
+#include "RhythmComponents.h"
+#include "RhythmEffectSystem.h"
+
 
 DamageSystem::DamageSystem(World* world) : System(world)
 {
+}
+
+void DamageSystem::ApplyRudwigCriticalRhythmEffect(
+    Entity instigator,
+    EventManager& eventManager)
+{
+    const MainPlayerComponent* instigatorPlayer =
+        mWorld->GetComponent<MainPlayerComponent>(instigator);
+    const RhythmStateComponent* rhythmState =
+        mWorld->GetComponent<RhythmStateComponent>(instigator);
+    const RhythmEffectComponent* rhythmEffect =
+        mWorld->GetComponent<RhythmEffectComponent>(instigator);
+
+    if (!instigatorPlayer || instigatorPlayer->mPlayerType != PlayerType::Rudwig ||
+        !rhythmState || !rhythmEffect)
+    {
+        return;
+    }
+
+    float beatSeconds = 0.0f;
+    if (auto systemManager = mWorld->GetSystemManager())
+    {
+        if (const BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+            beatSeconds = beatSystem->mBpmSeconds;
+    }
+
+    if (rhythmState->GetCurrentRhythm() == Rhythm::R2)
+    {
+        for (Entity playerEntity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
+        {
+            ArmorComponent* armor = mWorld->GetComponent<ArmorComponent>(playerEntity);
+            if (!armor)
+                continue;
+
+            const int32 beforeArmor = armor->mCurrentArmor;
+            const int32 shieldAmount = static_cast<int32>(std::lround(
+                10.0f * rhythmEffect->GetVariantModifiers()
+                    .outgoingRhythmEffectMultiplier));
+            armor->mCurrentArmor = (std::min)(
+                armor->mMaxArmor, armor->mCurrentArmor + shieldAmount);
+
+            if (beforeArmor != armor->mCurrentArmor)
+            {
+                eventManager.Enqueue<EvArmorChanged>({
+                    playerEntity, armor->mCurrentArmor, armor->mMaxArmor });
+            }
+        }
+        return;
+    }
+
+    const float now = GetServerTotalTimeSeconds();
+    const BuffType critBuffType =
+        rhythmState->GetCurrentRhythm() == Rhythm::R3
+        ? BuffType::CritMoveSpeedUp
+        : BuffType::CritAttackUp;
+
+    for (Entity playerEntity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
+    {
+        BuffComponent* buffComponent = mWorld->GetComponent<BuffComponent>(playerEntity);
+        if (!buffComponent)
+            continue;
+
+        BuffData buff{};
+        buff.mKind = EffectKind::Buff;
+        buff.mType = critBuffType;
+        buff.mDurationPolicy = DurationPolicy::Timed;
+        buff.mExecutionType = BuffExecutionType::Persistent;
+        buff.mEndTime = now + 4.0f * beatSeconds;
+        buff.mSource = instigator;
+        buffComponent->AddOrRefresh(buff);
+    }
 }
 
 void DamageSystem::Update(float deltaTime)
@@ -59,6 +133,15 @@ void DamageSystem::Update(float deltaTime)
             armor->mCurrentArmor = (std::max)(0, armor->mCurrentArmor - remainDamage);
             afterArmor = armor->mCurrentArmor;
             remainDamage = (std::max)(0, remainDamage - beforeArmor);
+
+			if (beforeArmor > afterArmor)
+			{
+				const int32 absorbedDamage = beforeArmor - afterArmor;
+				if (RhythmEffectComponent* rhythmEffect = mWorld->GetComponent<RhythmEffectComponent>(e.target))
+				{
+					rhythmEffect->ConsumeTemporaryShield(absorbedDamage);
+				}
+			}
 
             if (beforeArmor != afterArmor)
             {
@@ -111,41 +194,50 @@ void DamageSystem::Update(float deltaTime)
 
         if (player && (armorAbsorbed || hpDamaged) && e.instigator.IsValid())
         {
-            if (EnemyComponent* instigatorEnemy = mWorld->GetComponent<EnemyComponent>(e.instigator))
+            const EnemyComponent* instigatorEnemy =
+                mWorld->GetComponent<EnemyComponent>(e.instigator);
+            RhythmStateComponent* rhythmState =
+                mWorld->GetComponent<RhythmStateComponent>(e.target);
+            const bool wasHitBySlime =
+                instigatorEnemy && instigatorEnemy->mEnemyType == EnemyType::Slime;
+
+            if (wasHitBySlime && rhythmState)
             {
-                if (instigatorEnemy->mEnemyType == EnemyType::Slime)
+                const Rhythm previousRhythm = rhythmState->GetCurrentRhythm();
+                const bool needsForceNeutral =
+                    previousRhythm != Rhythm::Neutral || rhythmState->HasPendingChange();
+                if (needsForceNeutral)
                 {
-                    const uint8 previousRhythm = player->mRhythm;
-                    const bool hadQueuedRhythmChange = player->mHasQueuedRhythmChange;
-                    const bool needForceRhythmZero = (previousRhythm != 0) || hadQueuedRhythmChange || (player->mNextRhythm != 0);
-
-                    if (needForceRhythmZero)
+                    int64 applyAtBeatIndex = 0;
+                    if (auto systemManager = mWorld->GetSystemManager())
                     {
-                        int64 applyAtBeatIndex = 0;
-                        BeatSystem* beatSystem = nullptr;
-                        if (auto systemManager = mWorld->GetSystemManager())
-                            beatSystem = systemManager->GetSystem<BeatSystem>();
-
-                        if (beatSystem)
+                        if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
                             applyAtBeatIndex = beatSystem->GetAbsoluteBeatIndex();
-
-                        player->mRhythm = 0;
-                        player->mNextRhythm = 0;
-                        player->mHasQueuedRhythmChange = false;
-                        player->mRhythmApplyBeat = -1;
-                        player->mRhythmBuffProvideUntil = 0.0f;
-
-                        if (beatSystem)
-                            beatSystem->SyncAllRhythmBuffsNow();
-
-                        EvRhythmChanged rhythmChanged{};
-                        rhythmChanged.player = e.target;
-                        rhythmChanged.previousRhythm = previousRhythm;
-                        rhythmChanged.changedRhythm = 0;
-                        rhythmChanged.playerType = player->mPlayerType;
-                        rhythmChanged.applyAtBeatIndex = applyAtBeatIndex;
-                        eventManager->Enqueue<EvRhythmChanged>(rhythmChanged);
                     }
+
+                    rhythmState->ForceNeutral();
+                    if (RhythmEffectComponent* rhythmEffect =
+                        mWorld->GetComponent<RhythmEffectComponent>(e.target))
+                    {
+                        rhythmEffect->StopBaseEffectProvision();
+                    }
+
+                    if (auto systemManager = mWorld->GetSystemManager())
+                    {
+                        if (RhythmEffectSystem* effectSystem =
+                            systemManager->GetSystem<RhythmEffectSystem>())
+                        {
+                            effectSystem->ApplyCurrentRhythmEffects(e.target);
+                        }
+                    }
+
+                    EvRhythmChanged rhythmChanged{};
+                    rhythmChanged.player = e.target;
+                    rhythmChanged.previousRhythm = ToRhythmValue(previousRhythm);
+                    rhythmChanged.changedRhythm = ToRhythmValue(Rhythm::Neutral);
+                    rhythmChanged.playerType = player->mPlayerType;
+                    rhythmChanged.applyAtBeatIndex = applyAtBeatIndex;
+                    eventManager->Enqueue<EvRhythmChanged>(rhythmChanged);
                 }
             }
         }
@@ -154,74 +246,12 @@ void DamageSystem::Update(float deltaTime)
         {
             if (EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(e.target))
             {
-	                if (e.instigator.IsValid() &&
-	                    (e.skillType == SkillType::DrumAttack ||
-	                     e.skillType == SkillType::DrumAttack3) &&
-	                    e.isCritical)
-	                {
-                    if (MainPlayerComponent* instigatorPlayer = mWorld->GetComponent<MainPlayerComponent>(e.instigator))
-                    {
-                        if (instigatorPlayer->mPlayerType == PlayerType::Rudwig)
-                        {
-                            float beatSeconds = 0.0f;
-                            if (auto systemManager = mWorld->GetSystemManager())
-                            {
-                                if (auto* beatSystem = systemManager->GetSystem<BeatSystem>())
-                                    beatSeconds = beatSystem->mBpmSeconds;
-                            }
-
-                            if (instigatorPlayer->mRhythm == static_cast<uint8>(Rhythm::R2))
-                            {
-                                if (mWorld->HasComponentPool<MainPlayerComponent>())
-                                {
-                                    for (Entity playerEntity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
-                                    {
-                                        ArmorComponent* armor = mWorld->GetComponent<ArmorComponent>(playerEntity);
-                                        if (!armor)
-                                            continue;
-
-                                        const int32 beforeArmor = armor->mCurrentArmor;
-                                        armor->mCurrentArmor = (std::min)(armor->mMaxArmor, armor->mCurrentArmor + 10);
-
-                                        if (beforeArmor != armor->mCurrentArmor)
-                                        {
-                                            EvArmorChanged armorChanged{};
-                                            armorChanged.target = playerEntity;
-                                            armorChanged.currentArmor = armor->mCurrentArmor;
-                                            armorChanged.maxArmor = armor->mMaxArmor;
-                                            eventManager->Enqueue<EvArmorChanged>(armorChanged);
-                                        }
-                                    }
-                                }
-                            }
-                            else if (mWorld->HasComponentPool<MainPlayerComponent>())
-                            {
-                                const float now = GetServerTotalTimeSeconds();
-                                const BuffType critBuffType =
-                                    (instigatorPlayer->mRhythm == static_cast<uint8>(Rhythm::R3))
-                                    ? BuffType::CritMoveSpeedUp
-                                    : BuffType::CritAttackUp;
-
-                                for (Entity playerEntity : mWorld->GetEntitiesWithComponent<MainPlayerComponent>())
-                                {
-                                    BuffComponent* buffComp = mWorld->GetComponent<BuffComponent>(playerEntity);
-                                    if (!buffComp)
-                                        continue;
-
-                                    BuffData buff{};
-                                    buff.mKind = EffectKind::Buff;
-                                    buff.mType = critBuffType;
-                                    buff.mDurationPolicy = DurationPolicy::Timed;
-                                    buff.mExecutionType = BuffExecutionType::Persistent;
-                                    buff.mEndTime = now + 4.0f * beatSeconds;
-                                    buff.mSource = e.instigator;
-
-                                    buffComp->AddOrRefresh(buff);
-                                }
-                            }
-                        }
-                    }
-                }
+                const bool isRudwigCriticalAttack =
+                    e.instigator.IsValid() && e.isCritical &&
+                    (e.skillType == SkillType::DrumAttack ||
+                     e.skillType == SkillType::DrumAttack3);
+                if (isRudwigCriticalAttack)
+                    ApplyRudwigCriticalRhythmEffect(e.instigator, *eventManager);
 
                 if (enemy->mEnemyType == EnemyType::Pianoman)
                 {
@@ -337,7 +367,16 @@ void DamageSystem::Update(float deltaTime)
         if (health->mCurrentHp <= 0)
             return;
 
-        const int32 appliedHeal = (std::max)(0, e.amount);
+        float healingMultiplier = 1.0f;
+
+        if (const RhythmEffectComponent* rhythmEffect = mWorld->GetComponent<RhythmEffectComponent>(e.target))
+        {
+            // 회복량 증가는 효과를 선택한 플레이어가 받는 모든 체력 회복에 적용
+			healingMultiplier = rhythmEffect->GetVariantModifiers().incomingHealingMultiplier;
+        }
+
+        const int32 appliedHeal = (std::max)(0, static_cast<int32>(std::lround(
+            static_cast<float>(e.amount) * healingMultiplier)));
         if (appliedHeal == 0)
             return;
 

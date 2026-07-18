@@ -239,13 +239,49 @@ void NetRecvSystem::HandleRhythmChanged(const InputCommand& msg)
     MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(e);
     if (!playerComp) return;
 
-    playerComp->mNextRhythm = NormalizeRhythm(pkt->changedRhythm);
-    playerComp->mRhythm = playerComp->mNextRhythm;
-    playerComp->mRhythmApplyBeat = pkt->applyAtBeatIndex;
-    playerComp->mHasQueuedRhythmChange = true;
-    playerComp->mDesiredRhythm = playerComp->mNextRhythm;
-    playerComp->mRhythmSettleTimer = 0.f;
+    const bool isLocalPlayer = mWorld->GetComponent<LocalPlayerComponent>(e) != nullptr;
+    const uint8 changedRhythm = ToRhythmValue(SanitizeRhythm(pkt->changedRhythm));
+
+    if (pkt->applyAtBeatIndex == kNoRhythmApplyBeat)
+    {
+        if (changedRhythm == playerComp->mRhythm)
+        {
+            // 현재 음악을 선택한 취소 응답이면 예약 상태만 제거
+            playerComp->CancelPendingRhythmChange();
+        }
+        else
+        {
+            // 서버가 이미 예약을 적용했다면 현재 박자에 즉시 따라가도록 예약
+            int64 currentBeat = 0;
+            if (auto systemManager = mWorld->GetSystemManager())
+            {
+                if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+                    currentBeat = beatSystem->GetAbsoluteBeatIndex();
+            }
+            playerComp->SetPendingRhythmChange(changedRhythm, currentBeat);
+        }
+
+        if (!isLocalPlayer)
+            playerComp->mDesiredRhythm = changedRhythm;
+    }
+    else
+    {
+        // 서버 응답 시점에는 예약만 저장하고 현재 리듬은 적용 박자까지 유지
+        playerComp->SetPendingRhythmChange(changedRhythm, pkt->applyAtBeatIndex);
+        if (!isLocalPlayer)
+            playerComp->mDesiredRhythm = changedRhythm;
+    }
+
     playerComp->mRhythmChangeInFlight = false;
+
+    // 요청 전송 중 추가 클릭이 있었다면 최신 목표를 다시 서버에 전달
+    const uint8 serverTarget = playerComp->mHasQueuedRhythmChange
+        ? playerComp->mNextRhythm  : playerComp->mRhythm;
+
+    if (isLocalPlayer && playerComp->mDesiredRhythm != serverTarget)
+        playerComp->mRhythmSettleTimer = MainPlayerComponent::kRhythmSettleTime;
+    else
+        playerComp->mRhythmSettleTimer = 0.f;
 }
 
 // 공유 Song Clock: 서버와 클라 간 시간 동기화. 서버가 보낸 곡 위치 + 편도 지연으로 클라 곡 위치 보정
@@ -875,22 +911,24 @@ void NetRecvSystem::HandleRoomState(const InputCommand& msg)
     state->mSlots.fill(LobbyRoomPlayerSlot{});
 
     MajestroGameInstance& gameInstance = MajestroGameInstance::GetInstance();
-    gameInstance.ClearConfirmedRhythmMusicSelections();
+    gameInstance.ClearConfirmedRhythmVariantSelections();
 
     for (uint8 i = 0; i < copyCount; ++i)
     {
         state->mSlots[i].sessionId = pkt->slots[i].sessionId;
         state->mSlots[i].playerType = pkt->slots[i].playerType;
-        state->mSlots[i].rhythmMusicSubVariant =
-            SanitizeRhythmMusicVariant(pkt->slots[i].rhythmMusicSubVariant);
+        state->mSlots[i].rhythmVariantSelection = SanitizeRhythmVariantSelection(
+            pkt->slots[i].rhythmR1SubVariant,
+            pkt->slots[i].rhythmR2SubVariant,
+            pkt->slots[i].rhythmR3SubVariant);
         state->mSlots[i].ready = (pkt->slots[i].ready != 0);
         state->mSlots[i].isHost = (pkt->slots[i].isHost != 0);
 
         if (pkt->slots[i].sessionId != 0)
         {
-            gameInstance.SetConfirmedRhythmMusicSelectionForPlayerType(
+            gameInstance.SetConfirmedRhythmVariantSelectionForPlayerType(
                 pkt->slots[i].playerType,
-                state->mSlots[i].rhythmMusicSubVariant);
+                state->mSlots[i].rhythmVariantSelection);
         }
     }
     state->mHasSnapshot = true;

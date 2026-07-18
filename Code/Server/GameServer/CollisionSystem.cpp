@@ -13,6 +13,7 @@
 #include "GameEvents.h"
 
 #include "PlayerComponent.h"
+#include "RhythmComponents.h"
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
 
@@ -596,9 +597,18 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                 if (!eventManager)
                     return;
 
-                const float radiusSq = kGuitarAttack2ExplosionRadius * kGuitarAttack2ExplosionRadius;
+                float explosionRadius = kGuitarAttack2ExplosionRadius;
+
+				if (const RhythmEffectComponent* ownerEffect =	mWorld->GetComponent<RhythmEffectComponent>(instigator))
+				{
+					explosionRadius *= ownerEffect->GetVariantModifiers().rhythmEffectRangeMultiplier;
+                }
+
+                const float radiusSq = explosionRadius * explosionRadius;
+
                 const int32 explosionDamage = static_cast<int32>(
                     (std::max)(0.0f, bullet->mDamage * kGuitarAttack2ExplosionDamageScale));
+
                 if (explosionDamage <= 0)
                     return;
 

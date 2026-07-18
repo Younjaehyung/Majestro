@@ -29,6 +29,7 @@
 #include "PlayerSystem.h"
 #include "EnemySystem.h"
 #include "BeatSystem.h"
+#include "RhythmEffectSystem.h"
 #include "MovementSystem.h"
 #include "DeathSystem.h"
 #include "NetRecvSystem.h"
@@ -851,6 +852,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 5. 버프 틱/만료 처리// 2. 플레이어 입력 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEffectSystem>();  // 확정 리듬의 게임플레이 효과 적용
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
 	
@@ -952,6 +954,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 2-1. 버프 틱/만료 처리
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEffectSystem>();  // 확정 리듬의 게임플레이 효과 적용
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
 	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
@@ -1012,6 +1015,7 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 2-1. 버프 틱/만료 처리
 	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEffectSystem>();  // 확정 리듬의 게임플레이 효과 적용
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
 	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
@@ -1055,6 +1059,7 @@ void PlazaScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
 	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
 	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 3. 비트 타이밍 (리듬 피드백 유지)
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEffectSystem>();  // 확정 리듬의 게임플레이 효과 적용
 	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 4. 입력 처리
 	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 5. mLocalPosition += v*dt
 	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 6. mWorldMatrix 재계산

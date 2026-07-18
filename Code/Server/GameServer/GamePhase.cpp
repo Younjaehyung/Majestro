@@ -5,6 +5,7 @@
 
 #include "GameRuleComponent.h"
 #include "PlayerComponent.h"
+#include "RhythmComponents.h"
 #include "ColliderComponent.h"
 #include "TransformComponent.h"
 #include "EnemyComponent.h"
@@ -287,6 +288,7 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 {
 	int playerNum = 0;
 	int enemyNum = 0;
+	float conquestSpeedMultiplier = 1.0f;
 
 	GameConquestComponent* ruleComp = mWorld->GetSingleton<GameConquestComponent>();
 	if (!ruleComp) return;
@@ -312,7 +314,16 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 					}
 					auto* userCol = mWorld->GetComponent<BoxColliderComponent>(e);
 					if (!userCol) return;
-					if (zoneOBB.Intersects(userCol->mWorldOBB)) counter++;
+					if (!zoneOBB.Intersects(userCol->mWorldOBB))
+						return;
+
+					counter++;
+					if (const RhythmEffectComponent* rhythmEffect = mWorld->GetComponent<RhythmEffectComponent>(e))
+					{
+						// 특수 효과 진행 시간 가속
+						conquestSpeedMultiplier = (std::max)(
+							conquestSpeedMultiplier, rhythmEffect->GetVariantModifiers().conquestProgressMultiplier);
+					}
 				};
 
 				if (mWorld->HasComponentPool<MainPlayerComponent>())
@@ -332,7 +343,7 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 	if (playerNum >= enemyNum) {
 
 		if (playerNum > enemyNum) {
-			ruleComp->mWaveTime += dt;
+			ruleComp->mWaveTime += dt * conquestSpeedMultiplier;
 		}
 		ruleComp->mWaveInterval = 0.f;
 		std::cout << "[ConquestZone] :  PlayerNum: " << playerNum << ", EnemyNum: " << enemyNum << ", WaveTime: " << ruleComp->mWaveTime << std::endl;

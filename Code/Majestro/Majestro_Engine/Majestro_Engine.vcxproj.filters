@@ -534,7 +534,7 @@
     <ClInclude Include="..\..\Protocol\Packet.h">
       <Filter>Network\Packet</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Protocol\RhythmMusicDefinitions.h">
+    <ClInclude Include="..\..\Protocol\RhythmDefinitions.h">
       <Filter>Network\Packet</Filter>
     </ClInclude>
     <ClInclude Include="PlayerInputSystem.h">
@@ -903,7 +903,7 @@
     <ClInclude Include="LobbyBackgroundPass.h">
       <Filter>World\System\Render\09.UI</Filter>
     </ClInclude>
-    <ClInclude Include="RhythmSystem.h">
+    <ClInclude Include="RhythmEmissiveSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
     <ClInclude Include="DecalComponent.h">
@@ -1433,7 +1433,7 @@
     <ClCompile Include="LobbyBackgroundPass.cpp">
       <Filter>World\System\Render\09.UI</Filter>
     </ClCompile>
-    <ClCompile Include="RhythmSystem.cpp">
+    <ClCompile Include="RhythmEmissiveSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="DecalSystem.cpp">

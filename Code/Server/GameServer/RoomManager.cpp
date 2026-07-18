@@ -63,15 +63,19 @@ bool RoomState::SetReady(uint64 sessionId, bool ready)
     return false;
 }
 
-bool RoomState::SetRhythmMusicSelection(uint64 sessionId, RhythmMusicVariant selection)
+bool RoomState::SetRhythmVariantSelection(
+    uint64 sessionId,
+    const RhythmVariantSelection& selection)
 {
     for (auto& player : mPlayers)
     {
         if (player.sessionId != sessionId)
             continue;
 
-        player.rhythmMusicSubVariant = SanitizeRhythmMusicVariant(
-            static_cast<uint8>(selection));
+        player.rhythmVariantSelection = SanitizeRhythmVariantSelection(
+            static_cast<uint8>(selection.r1),
+            static_cast<uint8>(selection.r2),
+            static_cast<uint8>(selection.r3));
         return true;
     }
 
@@ -136,6 +140,22 @@ bool RoomState::GetPlayerType(uint64 sessionId, uint8& outType) const
             return true;
         }
     }
+    return false;
+}
+
+bool RoomState::GetRhythmVariantSelection(
+    uint64 sessionId,
+    RhythmVariantSelection& outSelection) const
+{
+    for (const auto& player : mPlayers)
+    {
+        if (player.sessionId != sessionId)
+            continue;
+
+        outSelection = player.rhythmVariantSelection;
+        return true;
+    }
+
     return false;
 }
 
@@ -309,15 +329,15 @@ RoomErrorCode RoomManager::SetPlayerReady(uint64 sessionId, bool ready)
     return RoomErrorCode::None;
 }
 
-RoomErrorCode RoomManager::SelectRhythmMusic(
+RoomErrorCode RoomManager::SelectRhythmVariantSelection(
     uint64 sessionId,
-    RhythmMusicVariant selection)
+    const RhythmVariantSelection& selection)
 {
     RoomState* room = GetRoomByPlayer(sessionId);
     if (room == nullptr)
         return RoomErrorCode::InvalidRoom;
 
-    if (!room->SetRhythmMusicSelection(sessionId, selection))
+    if (!room->SetRhythmVariantSelection(sessionId, selection))
         return RoomErrorCode::InvalidRoom;
 
     return RoomErrorCode::None;

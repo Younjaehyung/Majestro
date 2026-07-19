@@ -143,12 +143,13 @@ namespace
 	{
 		// 씬별 로딩 설정을 한곳에서 관리한다.
 		// 새 씬의 로딩 배경이나 선로딩 맵을 추가할 때 이 테이블만 확장하면 된다.
-		static constexpr std::array<LoadingSceneProfile, 4> profiles =
+		static constexpr std::array<LoadingSceneProfile, 5> profiles =
 		{
 			LoadingSceneProfile{ SceneId::Plaza, L"..\\Resources\\Json\\MapShip_Export.json", L"UI_Loading_Plaza" },
 			LoadingSceneProfile{ SceneId::FirstGame, L"..\\Resources\\Json\\Map001_Export.json", L"UI_Loading_FirstGame" },
 			LoadingSceneProfile{ SceneId::SecondGame, L"..\\Resources\\Json\\MapDesert_Export.json", L"UI_Loading_SecondGame" },
 			LoadingSceneProfile{ SceneId::ThirdGame, L"..\\Resources\\Json\\Map003_Export.json", L"UI_Loading_ThirdGame" },
+			LoadingSceneProfile{ SceneId::FourthGame, L"..\\Resources\\Json\\MapDragon_Export.json", L"UI_Loading_ThirdGame" },
 		};
 
 		for (const LoadingSceneProfile& profile : profiles)
@@ -3022,6 +3023,142 @@ void ThirdScene::Initialize()
 
 	// 시퀀스 데이터 로드(골격: JSON 미준비 시 빈 시퀀스 → 재생 안 함).
 	// 추후 언리얼 시퀀서 export(JSON) 경로를 여기에 연결한다.
+	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
+	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\Map003Camera.json");
+}
+
+
+void FourthScene::Initialize()
+{
+	mWorld->SetSceneId(mSceneId);
+
+	AUDIOMANAGER.RequestBGM("event:/OST/EscortMulti", SOUNDNAME::Ambient);
+	PrefabFactory::RegisterAllPrefabs();
+
+
+	SkyBoxPrefab skybox{ mWorld.get() };
+	DirLightPrefab light{ mWorld.get() };
+
+#pragma region UI
+
+	CreatePauseMenu();
+
+
+	LoadJsonLevelFBX(L"..\\Resources\\Json\\MapDragon_Export.json");
+	LoadJsonLevelData(L"..\\Resources\\Json\\MapDragon_Export.json");
+
+
+	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
+	mUIFeatures.push_back(audioVisualizerModule);
+
+	auto actionModule = std::make_shared<UIActionUpdateFeature>();
+	mUIFeatures.push_back(actionModule);
+
+	auto hpBarModule = std::make_shared<UIHpBarUpdateFeature>();
+	mUIFeatures.push_back(hpBarModule);
+
+	auto damagePopupModule = std::make_shared<DamagePopupUpdateFeature>();
+	mUIFeatures.push_back(damagePopupModule);
+
+	auto emoteModule = std::make_shared<UIEmoteFeature>();
+	mUIFeatures.push_back(emoteModule);
+
+	auto gameInfoModule = std::make_shared<UIGameInfoUpdateFeature>();
+	mUIFeatures.push_back(gameInfoModule);
+
+	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
+	mUIFeatures.push_back(resultBoardModule);
+
+	auto comboHudModule = std::make_shared<UIComboHudFeature>();
+	mUIFeatures.push_back(comboHudModule);
+
+	auto playerStatusModule = std::make_shared<PlayerStatusUIFeature>();
+	mUIFeatures.push_back(playerStatusModule);
+
+	auto gameProgressModule = std::make_shared<UIPhaseProgressUpdateFeature>();
+	mUIFeatures.push_back(gameProgressModule);
+
+	auto portraitModule = std::make_shared<HUDPortraitUpdateFeature>();
+	mUIFeatures.push_back(portraitModule);
+
+	auto skillCooldownModule = std::make_shared<HUDSkillCooldownFeature>();
+	mUIFeatures.push_back(skillCooldownModule);
+
+	for (const auto& feature : mUIFeatures)
+	{
+		if (feature != nullptr)
+			feature->Initialize(mWorld.get());
+	}
+
+#pragma endregion
+
+	mWorld->Initialize();
+
+	// INPUT
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();
+
+	// NETWORK
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>(mWorld->GetNetIdMap());
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<GamePhaseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PauseSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UIButtonSystem>();
+#if USE_CPU_ANIMATION
+	mWorld->GetSystemManager()->RegisterSystem<CpuAnimationSystem>();
+#else
+	mWorld->GetSystemManager()->RegisterSystem<AnimationSystem>();
+#endif
+	mWorld->GetSystemManager()->RegisterSystem<CameraSystem>();
+
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SpectateSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DecalSystem>();  // 데칼 수명 관리 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
+	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
+	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
+	uiUpdateSystem->SetFeatures(&mUIFeatures);
+	mWorld->GetSystemManager()->RegisterSystem<AudioSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<NetInterpolationSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<SocketFollowSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<WeaponTrailSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<AnimNotifySystem>();
+	mWorld->GetSystemManager()->RegisterSystem<DashSpeedLineSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<VfxSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<ParticleSystem>();
+
+	auto* renderSystemTS = mWorld->GetSystemManager()->RegisterSystem<RenderSystem>();
+	renderSystemTS->SetPipeline(make_shared<GameRenderPipeline>());
+	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemTS->GetPipeline());
+	gp->SetWorldUIFeature(&mUIFeatures);
+
+	// FourthScene 컬러 그레이딩 (ThirdScene 값 재사용)
+	{
+		ColorGradingParams cg;
+		cg.Saturation     = 1.3f;
+		cg.Contrast       = 1.1f;
+		cg.Brightness     = 0.04f;
+		cg.Exposure       = 0.7f;
+		gp->SetColorGrading(cg);
+	}
+
+	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
+	uiRenderSystem->SetFeatures(&mUIFeatures);
+
+	mWorld->AddSingleton<GameRuleComponent>();
+
+	// 씬 진입(PreparePhase 대기) 시네마틱 카메라.
+	mWorld->GetSystemManager()->RegisterSystem<IntroSequenceSystem>();
+
 	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
 	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\Map003Camera.json");

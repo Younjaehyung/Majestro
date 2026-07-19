@@ -78,8 +78,16 @@ public:
 
 };
 
-// 보스전 씬
+
 class ThirdScene : public Scene
+{
+public:
+	virtual void Initialize() override;
+
+};
+
+
+class FourthScene : public Scene
 {
 public:
 	virtual void Initialize() override;

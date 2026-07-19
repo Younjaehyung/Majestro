@@ -126,11 +126,17 @@ void SceneManager::FactoryScene()
 		mGameScenes[(uint8)SceneId::SecondGame] = secondScene;
 
 	}
-	{	
+	{
 		shared_ptr<Scene> thirdScene = make_shared<ThirdScene>();
 		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
 		thirdScene->SetGameMode(gameMode);
 		mGameScenes[(uint8)SceneId::ThirdGame] = thirdScene;
+	}
+	{
+		shared_ptr<Scene> fourthScene = make_shared<FourthScene>();
+		shared_ptr<GameMode> gameMode = make_shared<WaveGameMode>();
+		fourthScene->SetGameMode(gameMode);
+		mGameScenes[(uint8)SceneId::FourthGame] = fourthScene;
 	}
 
 

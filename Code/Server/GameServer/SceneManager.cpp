@@ -53,6 +53,7 @@ shared_ptr<Scene> SceneManager::CreateSceneById(SceneId id)
 	case SceneId::FirstGame:  return make_shared<FirstScene>();
 	case SceneId::SecondGame: return make_shared<SecondScene>();
 	case SceneId::ThirdGame:  return make_shared<ThirdScene>();
+	case SceneId::FourthGame: return make_shared<FourthScene>();
 	default:                  return nullptr;
 	}
 }

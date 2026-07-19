@@ -991,12 +991,13 @@ void ThirdScene::Initialize()
 
 
 	auto waveMode = make_shared<WaveGameMode>();
-	waveMode->SetCompletionScene(SceneId::MainMenu);
+
+	waveMode->SetCompletionScene(SceneId::Plaza);
 	{
 		std::deque<WaveGameMode::PhaseFactory> phases;
 		phases.push_back([] { return new PreparePhase(); });
 		phases.push_back([] { return new BossPhase(/*zoneId=*/0); });
-		// GameClear 도장 연출이 완료된 뒤 약 15초 동안 유지하고 MainMenu로 전환한다.
+		// GameClear 도장 연출이 완료된 뒤 약 15초 동안 유지하고 광장으로 전환한다.
 		phases.push_back([] { return new ClearPhase(17.0f); });
 		waveMode->SetInitialPhases(std::move(phases));
 	}
@@ -1040,6 +1041,64 @@ void ThirdScene::Initialize()
 		gameMode->Initialize();
 
 	mSceneId = SceneId::ThirdGame;
+}
+
+
+void FourthScene::Initialize()
+{
+	PrefabFactory::RegisterAllPrefabs();
+
+
+	auto waveMode = make_shared<WaveGameMode>();
+	waveMode->SetCompletionScene(SceneId::MainMenu);
+	{
+		std::deque<WaveGameMode::PhaseFactory> phases;
+		phases.push_back([] { return new PreparePhase(); });
+		phases.push_back([] { return new BossPhase(/*zoneId=*/0); });
+		// GameClear 도장 연출이 완료된 뒤 약 15초 동안 유지하고 MainMenu로 전환한다.
+		phases.push_back([] { return new ClearPhase(17.0f); });
+		waveMode->SetInitialPhases(std::move(phases));
+	}
+	shared_ptr<GameMode> gameMode = waveMode;
+	SetGameMode(gameMode);
+
+	mWorld->Initialize();
+
+
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDragon_Nav_Export.json");
+	LoadNavMesh(L"NavMesh_FourthGame");
+
+	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신
+	mWorld->GetSystemManager()->RegisterSystem<GamePreRuleSystem>(mGameMode);     // 1-1. 게임 룰 PreUpdate
+	mWorld->GetSystemManager()->RegisterSystem<PlayerSystem>();        // 2. 플레이어 입력 → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BuffSystem>();          // 2-1. 버프 틱/만료 처리
+	mWorld->GetSystemManager()->RegisterSystem<EnemySystem>();         // 3. 적 AI → 이동 상태 반영
+	mWorld->GetSystemManager()->RegisterSystem<BeatSystem>();          // 4. 비트 타이밍
+	mWorld->GetSystemManager()->RegisterSystem<RhythmEffectSystem>();  // 확정 리듬의 게임플레이 효과 적용
+	mWorld->GetSystemManager()->RegisterSystem<PlayerInputSystem>();   // 5. 입력 처리
+	mWorld->GetSystemManager()->RegisterSystem<MovementSystem>();      // 6. mLocalPosition += v*dt
+	mWorld->GetSystemManager()->RegisterSystem<PathFollowSystem>();    // 6-1. PayloadPathData 추종
+	mWorld->GetSystemManager()->RegisterSystem<TransformSystem>();     // 7. mWorldMatrix = f(mLocalPosition)
+	mWorld->GetSystemManager()->RegisterSystem<MeleeAttackSystem>();   // 9. 근접 공격
+	mWorld->GetSystemManager()->RegisterSystem<BulletFireEventSystem>(); // 10. 투사체 발사
+	mWorld->GetSystemManager()->RegisterSystem<CollisionSystem>();     // 11. 충돌 판정
+	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 맵 상호작용
+	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 몬스터 스폰
+	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복
+	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();         // 사망/리스폰
+	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. NavMesh 투영
+	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate
+	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송
+	mWorld->GetSystemManager()->RegisterSystem<NetSendSystem>();       // 14. 상태 송신 (가장 마지막)
+
+
+		const std::wstring gimmickPath = L"../Resources/Json/Map004_Gimmicks.json";
+		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
+		SpawnFixedEnemy(mWorld.get(), EnemyType::Dragon, Vec3(-3000.0f, 0.0f, 5.0f));
+
+		gameMode->Initialize();
+
+	mSceneId = SceneId::FourthGame;
 }
 
 void PlazaScene::Initialize()

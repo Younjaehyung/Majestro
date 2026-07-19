@@ -132,8 +132,8 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		clearSpec.mResultStartScale = 1.5f;
 		clearSpec.mResultLayer = 250;
 
-		// 마지막 씬에서는 점수판(Result) 등장 5초 뒤에 최종 GameClear 이미지를 찍는다.
-		if (mWorld->GetSceneId() == SceneId::ThirdGame)
+		// FourthGame에서는 점수판(Result) 등장 5초 뒤에 최종 GameClear 이미지를 찍는다.
+		if (mWorld->GetSceneId() == SceneId::FourthGame)
 		{
 			clearSpec.mFinalStampTextureName = L"UI_GameClear";
 			clearSpec.mFinalStampStartTime = clearSpec.mResultStartTime + 5.0f;

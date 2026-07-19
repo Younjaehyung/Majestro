@@ -77,6 +77,8 @@ void PlazaGameMode::PreUpdate(float deltaTime)
 		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::SecondGame });
 	if (INPUT.GetKeyDown(eKeyCode::F7))
 		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::ThirdGame });
+	if (INPUT.GetKeyDown(eKeyCode::F8))
+		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::FourthGame });
 }
 
 
@@ -107,6 +109,11 @@ void WaveGameMode::PreUpdate(float deltaTime)
 	if (mScene->GetSceneId() == SceneId::SecondGame && INPUT.GetKeyDown(eKeyCode::F5))
 	{
 		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::ThirdGame });
+	}
+	// [디버그]
+	if (mScene->GetSceneId() == SceneId::ThirdGame && INPUT.GetKeyDown(eKeyCode::F5))
+	{
+		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::FourthGame });
 	}
 }
 

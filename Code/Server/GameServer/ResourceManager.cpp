@@ -176,6 +176,12 @@ void ResourceManager::LoadResources()
 		navMesh->Load("../Resources/NavMesh/Map003_navmesh.bin");
 		Add<NavMesh>(L"NavMesh_ThirdGame", navMesh);
 	}
+	{
+		// NavMesh - FourthGame
+		std::shared_ptr<NavMesh> navMesh = std::make_shared<NavMesh>();
+		navMesh->Load("../Resources/NavMesh/MapDragon_navmesh.bin");
+		Add<NavMesh>(L"NavMesh_FourthGame", navMesh);
+	}
 }
 
 shared_ptr<FBX> ResourceManager::LoadFBXMeshes(const wstring& path, const wstring& prefix)

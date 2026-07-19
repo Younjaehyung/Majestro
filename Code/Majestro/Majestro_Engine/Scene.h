@@ -137,6 +137,15 @@ public:
 
 };
 
+
+class FourthScene : public Scene
+{
+public:
+	FourthScene() { mSceneId = SceneId::FourthGame; }
+	virtual void Initialize() override;
+
+};
+
 class PlazaScene : public Scene
 {
 public:

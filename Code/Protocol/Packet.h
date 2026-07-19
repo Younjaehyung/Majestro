@@ -197,6 +197,7 @@ enum class SceneId : uint8
 	FirstGame ,
 	SecondGame ,
 	ThirdGame ,
+	FourthGame ,
 	VGame,
 	LGame,
 	Plaza,
@@ -205,13 +206,13 @@ enum class SceneId : uint8
 };
 
 // 레벨(웨이브 전투) 씬 여부
-inline bool IsLevelScene(SceneId id) { return id >= SceneId::FirstGame && id <= SceneId::ThirdGame; }
+inline bool IsLevelScene(SceneId id) { return id >= SceneId::FirstGame && id <= SceneId::FourthGame; }
 
 // 방(Room) 단위로 하나의 World 를 공유하는 씬 (광장 + 레벨)
 inline bool IsRoomScene(SceneId id) { return IsLevelScene(id) || id == SceneId::Plaza; }
 
 // 스테이지 진행 순서. 광장에서 이 순서대로만 다음 레벨이 해금된다.
-static constexpr SceneId kStageOrder[] = { SceneId::FirstGame, SceneId::SecondGame, SceneId::ThirdGame };
+static constexpr SceneId kStageOrder[] = { SceneId::FirstGame, SceneId::SecondGame, SceneId::ThirdGame, SceneId::FourthGame };
 static constexpr uint8 kStageCount = static_cast<uint8>(sizeof(kStageOrder) / sizeof(kStageOrder[0]));
 static constexpr uint8 INVALID_STAGE_INDEX = 0xFF;
 

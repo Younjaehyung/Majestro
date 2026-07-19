@@ -1,9 +1,9 @@
 #pragma once
 #include <functional>
 #include <memory>
-#include "UITextComponent.h"	// UIFontType
-
-namespace DirectX { class SpriteBatch; class SpriteFont; }
+#include <DirectXTK12/SpriteBatch.h>
+#include <DirectXTK12/SpriteFont.h>	
+#include "UITextComponent.h"		
 
 struct UITextOverlayContext
 {

@@ -20,6 +20,11 @@ public:
         std::array<float, kOutputSize>& output,
         std::wstring* errorMessage = nullptr) const;
 
+    bool RunMulti(
+        const std::vector<float>& input,
+        std::vector<std::vector<float>>& outputs,
+        std::wstring* errorMessage = nullptr) const;
+
 private:
     static std::wstring ToWide(const std::string& text);
 
@@ -28,5 +33,5 @@ private:
     Ort::SessionOptions mSessionOptions;
     std::unique_ptr<Ort::Session> mSession;
     std::string mInputName;
-    std::string mOutputName;
+    std::vector<std::string> mOutputNames;
 };

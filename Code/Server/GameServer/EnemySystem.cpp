@@ -296,7 +296,7 @@ void EnemySystem::Update(float dt)
         if (!tf || !mc) { ++entityIndex; continue; }
 
         const Vec3 myPos      = tf->mLocalPosition;
-        const Vec3 playerPos  = PathFinder(myPos, true);
+        Vec3 playerPos = PathFinder(myPos, true);
         const std::vector<Entity> nearbyEnemies = mWorld->GetPhysicsWorld()
             ? mWorld->GetPhysicsWorld()->FindNearbyEnemies(entity, NEARBY_ENEMY_RADIUS, MAX_NEARBY_ENEMIES)
             : std::vector<Entity>{};
@@ -304,6 +304,7 @@ void EnemySystem::Update(float dt)
         EnemyComponent* enemyComp = mWorld->GetComponent<EnemyComponent>(entity);
         HealthComponent* enemyHealthComp = mWorld->GetComponent<HealthComponent>(entity);
         if (enemyComp == nullptr) { ++entityIndex; continue; }
+        TryGetBossPolicyTargetPosition(enemyComp, playerPos);
         mc->mMovingSpeed = enemyComp->mSpeed;
 
 
@@ -621,6 +622,7 @@ bool EnemySystem::HandleAttackState(
         myPos = tf->mLocalPosition;
         playerPos = PathFinder(myPos, true);
     }
+    TryGetBossPolicyTargetPosition(enemyComp, playerPos);
 
     if (enemyComp->mEnemyType == EnemyType::Brass ||
         enemyComp->mEnemyType == EnemyType::Dragon)
@@ -770,7 +772,30 @@ bool EnemySystem::HandleAttackState(
 
 	        if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
 	        {
-	            const uint8 dragonPattern = static_cast<uint8>(MathUtils::RandomInt(0, 3));
+	            uint8 targetIndex = 0;
+	            uint8 choice = 0;
+	            Entity targetEntity{};
+	            const bool usedOnnx = TrySelectBossOnnxAction(
+	                entity, enemyComp, targetIndex, choice, targetEntity);
+	            if (!usedOnnx)
+	                choice = static_cast<uint8>(MathUtils::RandomInt(1, 4));
+	            else
+	                TryGetBossPolicyTargetPosition(enemyComp, playerPos);
+
+	            if (usedOnnx && choice == 0)
+	            {
+	                enemyComp->mPendingSkillType = 0;
+	                enemyComp->mPendingAttackTime = -1.0f;
+	                enemyComp->mDragonSkill4NextAttackTime = -1.0f;
+	                enemyComp->mNextAttackTime = nowSeconds + beatSeconds;
+	                MoveEnemyTowardTarget(
+	                    entity, enemyComp, movementComp, myPos, playerPos,
+	                    mWorld->GetNavSystem(), nowSeconds, dt, entityIndex, false);
+	                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+	                return true;
+	            }
+
+	            const uint8 dragonPattern = static_cast<uint8>(choice - 1);
 	            const SkillType dragonSkill = GetDragonSkillType(dragonPattern);
 	            enemyComp->mPendingSkillType = static_cast<uint8>(dragonSkill);
 	            enemyComp->mPendingAttackTime = -1.0f;
@@ -798,6 +823,7 @@ bool EnemySystem::HandleAttackState(
                             dragonHealth->mMaxHp
                         });
                     }
+	                    enemyComp->mBossPolicyLastHp = dragonHealth->mCurrentHp;
                 }
 
                 struct DragonSummonOption
@@ -951,7 +977,30 @@ bool EnemySystem::HandleAttackState(
 
         if (eventManager && enemyComp->mNextAttackTime <= nowSeconds)
         {
-            const uint8 pattern = static_cast<uint8>(MathUtils::RandomInt(0, 3));
+	            uint8 targetIndex = 0;
+	            uint8 choice = 0;
+	            Entity targetEntity{};
+	            const bool usedOnnx = TrySelectBossOnnxAction(
+	                entity, enemyComp, targetIndex, choice, targetEntity);
+	            if (!usedOnnx)
+	                choice = static_cast<uint8>(MathUtils::RandomInt(1, 4));
+	            else
+	                TryGetBossPolicyTargetPosition(enemyComp, playerPos);
+
+	            if (usedOnnx && choice == 0)
+	            {
+	                enemyComp->mPendingSkillType = 0;
+	                enemyComp->mPendingAttackTime = -1.0f;
+	                enemyComp->mBrassSkill3ShotsRemaining = 0;
+	                enemyComp->mNextAttackTime = nowSeconds + beatSeconds;
+	                MoveEnemyTowardTarget(
+	                    entity, enemyComp, movementComp, myPos, playerPos,
+	                    mWorld->GetNavSystem(), nowSeconds, dt, entityIndex, false);
+	                enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Run);
+	                return true;
+	            }
+
+	            const uint8 pattern = static_cast<uint8>(choice - 1);
 	            enemyComp->mBrassAttackPattern = pattern;
 
 	            const SkillType brassSkill = GetBrassSkillType(pattern);
@@ -1624,6 +1673,168 @@ void EnemySystem::UpdateOnnxToggle()
     }
 
     mOnnxToggleKeyHeld = pressed;
+}
+
+bool EnemySystem::TrySelectBossOnnxAction(
+    const Entity& entity,
+    EnemyComponent* enemyComp,
+    uint8& outTargetIndex,
+    uint8& outChoice,
+    Entity& outTargetEntity)
+{
+    if (!enemyComp ||
+        (enemyComp->mEnemyType != EnemyType::Brass && enemyComp->mEnemyType != EnemyType::Dragon))
+        return false;
+
+    const std::wstring modelKey = enemyComp->mEnemyType == EnemyType::Brass
+        ? L"brass_boss" : L"dragon_boss";
+    if (!AIMANAGER.HasModel(modelKey))
+        return false;
+
+    TransformComponent* bossTransform = mWorld->GetComponent<TransformComponent>(entity);
+    HealthComponent* bossHealth = mWorld->GetComponent<HealthComponent>(entity);
+    if (!bossTransform || !bossHealth || bossHealth->mMaxHp <= 0)
+        return false;
+
+    std::array<Entity, 3> players{};
+    for (const Entity& player : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+    {
+        MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(player);
+        if (!playerComp)
+            continue;
+
+        size_t policyIndex = 3;
+        switch (playerComp->mPlayerType)
+        {
+        case PlayerType::Ibanix: policyIndex = 0; break;
+        case PlayerType::Rudwig: policyIndex = 1; break;
+        case PlayerType::Fanthor: policyIndex = 2; break;
+        default: break;
+        }
+        if (policyIndex < players.size())
+            players[policyIndex] = player;
+    }
+
+    bool hasAlivePlayer = false;
+    for (const Entity& player : players)
+        hasAlivePlayer = hasAlivePlayer || (player.IsValid() && !IsPlayerDead(mWorld, player));
+    if (!hasAlivePlayer)
+        return false;
+
+    constexpr float kMaxMapDistance = 3000.0f * 1.41421356237f;
+    AIManager::DynamicInput input(20, 0.0f);
+    const float recentDamage = enemyComp->mBossPolicyLastHp < 0
+        ? 0.0f
+        : static_cast<float>((std::max)(0, enemyComp->mBossPolicyLastHp - bossHealth->mCurrentHp));
+    input[0] = (std::clamp)(
+        static_cast<float>(bossHealth->mCurrentHp) / static_cast<float>(bossHealth->mMaxHp), 0.0f, 1.0f);
+    input[1] = (std::min)(static_cast<float>(enemyComp->mBossPolicyStepCount) / 80.0f, 1.0f);
+    input[2] = (std::min)(recentDamage / 180.0f, 1.0f);
+    input[3] = static_cast<float>(enemyComp->mBossPolicyLastChoice) / 4.0f;
+    input[4] = static_cast<float>(enemyComp->mBossPolicyLastTarget) / 2.0f;
+
+    for (size_t i = 0; i < players.size(); ++i)
+    {
+        const size_t base = 5 + i * 5;
+        const Entity player = players[i];
+        if (!player.IsValid())
+            continue;
+
+        TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(player);
+        HealthComponent* playerHealth = mWorld->GetComponent<HealthComponent>(player);
+        if (!playerTransform)
+            continue;
+
+        Vec3 relative = playerTransform->mLocalPosition - bossTransform->mLocalPosition;
+        relative.y = 0.0f;
+        const float distance = std::sqrt(relative.LengthSquared());
+        if (distance > 1e-6f)
+        {
+            input[base] = relative.x / distance;
+            input[base + 1] = relative.z / distance;
+        }
+        input[base + 2] = (std::clamp)(distance / kMaxMapDistance, 0.0f, 1.0f);
+        if (playerHealth && playerHealth->mMaxHp > 0)
+        {
+            input[base + 3] = (std::clamp)(
+                static_cast<float>(playerHealth->mCurrentHp) / static_cast<float>(playerHealth->mMaxHp),
+                0.0f, 1.0f);
+        }
+        input[base + 4] = IsPlayerDead(mWorld, player) ? 0.0f : 1.0f;
+    }
+
+    AIManager::DynamicOutputs outputs;
+    std::wstring errorMessage;
+    if (!AIMANAGER.RunModelMulti(modelKey, input, outputs, &errorMessage) ||
+        outputs.size() < 2 || outputs[0].size() < 3 || outputs[1].size() < 5)
+    {
+        if (!enemyComp->mBossPolicyErrorLogged)
+        {
+            std::wcerr << L"[BossONNX] " << modelKey << L" inference failed: "
+                << (errorMessage.empty() ? L"invalid output shape" : errorMessage) << std::endl;
+            enemyComp->mBossPolicyErrorLogged = true;
+        }
+        return false;
+    }
+
+    const auto argmax = [](const std::vector<float>& values, size_t count)
+    {
+        return static_cast<uint8>(std::distance(
+            values.begin(), std::max_element(values.begin(), values.begin() + count)));
+    };
+    outTargetIndex = argmax(outputs[0], 3);
+    outChoice = argmax(outputs[1], 5);
+    outTargetEntity = players[outTargetIndex];
+
+    if (!outTargetEntity.IsValid() || IsPlayerDead(mWorld, outTargetEntity))
+    {
+        float nearestDistanceSq = (std::numeric_limits<float>::max)();
+        for (size_t i = 0; i < players.size(); ++i)
+        {
+            const Entity player = players[i];
+            TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(player);
+            if (!player.IsValid() || !playerTransform || IsPlayerDead(mWorld, player))
+                continue;
+            const float distanceSq = FlatDistanceSquared(
+                bossTransform->mLocalPosition, playerTransform->mLocalPosition);
+            if (distanceSq < nearestDistanceSq)
+            {
+                nearestDistanceSq = distanceSq;
+                outTargetIndex = static_cast<uint8>(i);
+                outTargetEntity = player;
+            }
+        }
+    }
+
+    enemyComp->mBossPolicyTarget = outTargetEntity;
+    enemyComp->mBossPolicyLastTarget = outTargetIndex;
+    enemyComp->mBossPolicyLastChoice = outChoice;
+    enemyComp->mBossPolicyLastHp = bossHealth->mCurrentHp;
+    ++enemyComp->mBossPolicyStepCount;
+    enemyComp->mBossPolicyErrorLogged = false;
+
+    std::wcout << L"[BossONNX] " << modelKey
+        << L" entity=" << entity.GetID()
+        << L" target=" << static_cast<int>(outTargetIndex)
+        << L" choice=" << static_cast<int>(outChoice) << std::endl;
+    return true;
+}
+
+bool EnemySystem::TryGetBossPolicyTargetPosition(
+    const EnemyComponent* enemyComp,
+    Vec3& outPosition) const
+{
+    if (!enemyComp || !enemyComp->mBossPolicyTarget.IsValid() ||
+        IsPlayerDead(mWorld, enemyComp->mBossPolicyTarget))
+        return false;
+
+    const TransformComponent* targetTransform =
+        mWorld->GetComponent<TransformComponent>(enemyComp->mBossPolicyTarget);
+    if (!targetTransform)
+        return false;
+
+    outPosition = targetTransform->mLocalPosition;
+    return true;
 }
 
 bool EnemySystem::TryComputeOnnxBaseMoveTarget(

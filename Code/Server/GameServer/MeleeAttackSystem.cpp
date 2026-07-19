@@ -92,6 +92,25 @@ namespace
 			return fallback;
 		}
 
+		const EnemyComponent* enemy = world->GetComponent<EnemyComponent>(attacker);
+		if (enemy && enemy->mBossPolicyTarget.IsValid())
+		{
+			const Entity target = enemy->mBossPolicyTarget;
+			const MainPlayerComponent* player = world->GetComponent<MainPlayerComponent>(target);
+			const HealthComponent* health = world->GetComponent<HealthComponent>(target);
+			const TransformComponent* targetTransform = world->GetComponent<TransformComponent>(target);
+			if (player && !player->IsDeathActive() && (!health || health->mCurrentHp > 0) && targetTransform)
+			{
+				Vec3 direction = targetTransform->mWorldPosition - attackerTransform.mWorldPosition;
+				direction.y = 0.0f;
+				if (direction.LengthSquared() > 0.0001f)
+				{
+					direction.Normalize();
+					return direction;
+				}
+			}
+		}
+
 		Vec3 nearestDirection = Vec3::Zero;
 		float nearestDistanceSq = (std::numeric_limits<float>::max)();
 

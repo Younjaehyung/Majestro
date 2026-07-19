@@ -17,10 +17,15 @@ bool OnnxModelRunner::Load(const std::wstring& modelPath, std::wstring* errorMes
         Ort::AllocatorWithDefaultOptions allocator;
 
         auto inputName = mSession->GetInputNameAllocated(0, allocator);
-        auto outputName = mSession->GetOutputNameAllocated(0, allocator);
-
         mInputName = inputName.get();
-        mOutputName = outputName.get();
+        mOutputNames.clear();
+        const size_t outputCount = mSession->GetOutputCount();
+        mOutputNames.reserve(outputCount);
+        for (size_t i = 0; i < outputCount; ++i)
+        {
+            auto outputName = mSession->GetOutputNameAllocated(i, allocator);
+            mOutputNames.emplace_back(outputName.get());
+        }
 
         return true;
     }
@@ -28,7 +33,7 @@ bool OnnxModelRunner::Load(const std::wstring& modelPath, std::wstring* errorMes
     {
         mSession.reset();
         mInputName.clear();
-        mOutputName.clear();
+        mOutputNames.clear();
 
         if (errorMessage)
             *errorMessage = ToWide(ex.what());
@@ -46,16 +51,44 @@ bool OnnxModelRunner::Run(
     std::array<float, kOutputSize>& output,
     std::wstring* errorMessage) const
 {
+    std::vector<std::vector<float>> outputs;
+    if (!RunMulti(std::vector<float>(input.begin(), input.end()), outputs, errorMessage))
+        return false;
+
+    if (outputs.empty() || outputs[0].size() < kOutputSize)
+    {
+        if (errorMessage)
+            *errorMessage = L"ONNX output tensor has fewer elements than expected.";
+        return false;
+    }
+
+    for (size_t i = 0; i < kOutputSize; ++i)
+        output[i] = outputs[0][i];
+    return true;
+}
+
+bool OnnxModelRunner::RunMulti(
+    const std::vector<float>& input,
+    std::vector<std::vector<float>>& outputs,
+    std::wstring* errorMessage) const
+{
+    outputs.clear();
     if (!mSession)
     {
         if (errorMessage)
             *errorMessage = L"ONNX session is not loaded.";
         return false;
     }
+    if (input.empty() || mOutputNames.empty())
+    {
+        if (errorMessage)
+            *errorMessage = L"ONNX input or output metadata is empty.";
+        return false;
+    }
 
     try
     {
-        std::array<int64_t, 2> inputShape = { 1, static_cast<int64_t>(kInputSize) };
+        std::array<int64_t, 2> inputShape = { 1, static_cast<int64_t>(input.size()) };
 
         Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
         Ort::Value inputTensor = Ort::Value::CreateTensor<float>(
@@ -66,35 +99,40 @@ bool OnnxModelRunner::Run(
             inputShape.size());
 
         const char* inputNames[] = { mInputName.c_str() };
-        const char* outputNames[] = { mOutputName.c_str() };
+        std::vector<const char*> outputNames;
+        outputNames.reserve(mOutputNames.size());
+        for (const std::string& outputName : mOutputNames)
+            outputNames.push_back(outputName.c_str());
 
-        auto outputs = mSession->Run(
+        auto ortOutputs = mSession->Run(
             Ort::RunOptions{ nullptr },
             inputNames,
             &inputTensor,
             1,
-            outputNames,
-            1);
+            outputNames.data(),
+            outputNames.size());
 
-        if (outputs.empty() || !outputs[0].IsTensor())
+        if (ortOutputs.size() != mOutputNames.size())
         {
             if (errorMessage)
-                *errorMessage = L"ONNX output is empty or not a tensor.";
+                *errorMessage = L"ONNX returned an unexpected number of outputs.";
             return false;
         }
 
-        const Ort::TensorTypeAndShapeInfo outputInfo = outputs[0].GetTensorTypeAndShapeInfo();
-        const size_t outputCount = outputInfo.GetElementCount();
-        if (outputCount < kOutputSize)
+        outputs.reserve(ortOutputs.size());
+        for (const Ort::Value& ortOutput : ortOutputs)
         {
-            if (errorMessage)
-                *errorMessage = L"ONNX output tensor has fewer elements than expected.";
-            return false;
-        }
+            if (!ortOutput.IsTensor())
+            {
+                if (errorMessage)
+                    *errorMessage = L"ONNX output is not a tensor.";
+                return false;
+            }
 
-        const float* outputData = outputs[0].GetTensorData<float>();
-        for (size_t i = 0; i < kOutputSize; ++i)
-            output[i] = outputData[i];
+            const size_t count = ortOutput.GetTensorTypeAndShapeInfo().GetElementCount();
+            const float* data = ortOutput.GetTensorData<float>();
+            outputs.emplace_back(data, data + count);
+        }
 
         return true;
     }

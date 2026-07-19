@@ -7,6 +7,7 @@
 #include "ColliderComponent.h"
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
+#include "HealthComponent.h"
 #include "MovementComponent.h"
 #include "BuffComponent.h"
 #include "RhythmComponents.h"
@@ -264,23 +265,43 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			}
 			else
 			{
-				float nearestDistSq = (std::numeric_limits<float>::max)();
-				Vec3 nearestPlayerPosition = shooterTransform->mWorldPosition;
-				for (auto playerTarget : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+				Vec3 targetPosition = shooterTransform->mWorldPosition;
+				bool hasPolicyTarget = false;
+				const EnemyComponent* shooterEnemy = mWorld->GetComponent<EnemyComponent>(playerEntity);
+				if (shooterEnemy && shooterEnemy->mBossPolicyTarget.IsValid())
 				{
-					TransformComponent* playerTargetTransform = mWorld->GetComponent<TransformComponent>(playerTarget);
-					if (!playerTargetTransform)
-						continue;
-
-					const float distSq = Vec3::DistanceSquared(shooterTransform->mWorldPosition, playerTargetTransform->mWorldPosition);
-					if (distSq < nearestDistSq)
+					const Entity policyTarget = shooterEnemy->mBossPolicyTarget;
+					const MainPlayerComponent* targetPlayer = mWorld->GetComponent<MainPlayerComponent>(policyTarget);
+					const HealthComponent* targetHealth = mWorld->GetComponent<HealthComponent>(policyTarget);
+					const TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(policyTarget);
+					if (targetPlayer && !targetPlayer->IsDeathActive() &&
+						(!targetHealth || targetHealth->mCurrentHp > 0) && targetTransform)
 					{
-						nearestDistSq = distSq;
-						nearestPlayerPosition = playerTargetTransform->mWorldPosition;
+						targetPosition = targetTransform->mWorldPosition;
+						hasPolicyTarget = true;
 					}
 				}
 
-				direction = nearestPlayerPosition - shooterTransform->mWorldPosition;
+				if (!hasPolicyTarget)
+				{
+					float nearestDistSq = (std::numeric_limits<float>::max)();
+					for (auto playerTarget : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent>())
+					{
+						TransformComponent* playerTargetTransform = mWorld->GetComponent<TransformComponent>(playerTarget);
+						if (!playerTargetTransform)
+							continue;
+
+						const float distSq = Vec3::DistanceSquared(
+							shooterTransform->mWorldPosition, playerTargetTransform->mWorldPosition);
+						if (distSq < nearestDistSq)
+						{
+							nearestDistSq = distSq;
+							targetPosition = playerTargetTransform->mWorldPosition;
+						}
+					}
+				}
+
+				direction = targetPosition - shooterTransform->mWorldPosition;
 			}
 			if (direction.LengthSquared() <= 0.0001f)
 				direction = shooterTransform->GetLook();

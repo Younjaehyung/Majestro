@@ -56,6 +56,17 @@ private:
         const std::shared_ptr<Navigation>& navSystem,
         Vec3& outTarget) const;
 
+    bool TrySelectBossOnnxAction(
+        const Entity& entity,
+        EnemyComponent* enemyComp,
+        uint8& outTargetIndex,
+        uint8& outChoice,
+        Entity& outTargetEntity);
+
+    bool TryGetBossPolicyTargetPosition(
+        const EnemyComponent* enemyComp,
+        Vec3& outPosition) const;
+
     void MoveEnemyTowardTarget(
         const Entity& entity,
         EnemyComponent* enemyComp,

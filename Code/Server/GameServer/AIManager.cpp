@@ -38,16 +38,35 @@ bool AIManager::RunModel(
     return findIt->second.Run(input, output, errorMessage);
 }
 
+bool AIManager::RunModelMulti(
+    const std::wstring& modelKey,
+    const DynamicInput& input,
+    DynamicOutputs& outputs,
+    std::wstring* errorMessage) const
+{
+    const auto findIt = mModels.find(modelKey);
+    if (findIt == mModels.end())
+    {
+        if (errorMessage)
+            *errorMessage = L"Requested model key is not registered: " + modelKey;
+        return false;
+    }
+
+    return findIt->second.RunMulti(input, outputs, errorMessage);
+}
+
 void AIManager::LoadDefaultModels()
 {
     std::wstring errorMessage;
 
-    const std::array<std::pair<std::wstring, std::wstring>, 5> defaultModels = {
+    const std::array<std::pair<std::wstring, std::wstring>, 7> defaultModels = {
         std::make_pair(L"front", L"../Resources/AI/front.onnx"),
         std::make_pair(L"cover", L"../Resources/AI/cover.onnx"),
         std::make_pair(L"base_move", L"../Resources/AI/base_move.onnx"),
         std::make_pair(L"surround", L"../Resources/AI/surround.onnx"),
         std::make_pair(L"kiting", L"../Resources/AI/kiting.onnx"),
+        std::make_pair(L"brass_boss", L"../Resources/AI/brass_boss.onnx"),
+        std::make_pair(L"dragon_boss", L"../Resources/AI/dragon_boss.onnx"),
     };
 
     for (const auto& [modelKey, modelPath] : defaultModels)

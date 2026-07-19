@@ -9,6 +9,8 @@ class AIManager
 public:
     using InputArray = std::array<float, OnnxModelRunner::kInputSize>;
     using OutputArray = std::array<float, OnnxModelRunner::kOutputSize>;
+    using DynamicInput = std::vector<float>;
+    using DynamicOutputs = std::vector<std::vector<float>>;
 
 public:
     void Initialize();
@@ -20,6 +22,12 @@ public:
         const std::wstring& modelKey,
         const InputArray& input,
         OutputArray& output,
+        std::wstring* errorMessage = nullptr) const;
+
+    bool RunModelMulti(
+        const std::wstring& modelKey,
+        const DynamicInput& input,
+        DynamicOutputs& outputs,
         std::wstring* errorMessage = nullptr) const;
 
 private:

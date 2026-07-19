@@ -21,6 +21,7 @@
 #include "NpcComponent.h"
 #include "GameMode.h"
 #include "Timer.h"
+#include "ChatOverlay.h"
 
 static_assert(FONT_INDEX_COUNT >= static_cast<uint32>(UIFontType::Count), "FONT_INDEX_COUNT is smaller than UIFontType::Count");
 
@@ -45,6 +46,8 @@ void UIRenderSystem::Initialize()
     mUIEffectPass = make_shared<UIEffectPass>();
     mUIEffectPass->Initialize(mWorld);
 
+    // 내장 텍스트 오버레이 등록
+    RegisterTextOverlay(&DrawChatOverlay);
 }
 
 void UIRenderSystem::InitializeFont()
@@ -316,6 +319,18 @@ void UIRenderSystem::TextUpdate()
 
         font->DrawString(mSpriteBatch.get(), output.c_str(),
             textComp->mFontPos, textComp->mColor, textComp->mRotation, origin, scale);
+    }
+
+    // 등록된 즉시 텍스트 오버레이
+    if (!mTextOverlays.empty())
+    {
+        UITextOverlayContext octx;
+        octx.batch = mSpriteBatch.get();
+        octx.screenSize = screenSize;
+        octx.getFont = [this](UIFontType type) { return GetFont(type); };
+
+        for (const UITextOverlay& overlay : mTextOverlays)
+            overlay(octx);
     }
 
     mSpriteBatch->End();

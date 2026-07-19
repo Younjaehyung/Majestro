@@ -15,6 +15,7 @@
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "BeatSystem.h"
+#include "Chat.h"
 
 #include "SceneManager.h"
 
@@ -29,6 +30,7 @@ void NetSendSystem::Update(float deltaTime)
 {
 	TrySendGameStart();
 	TrySendEmoteEvents();                        // 감정표현 선택 요청(TCP)
+	TrySendChatEvents();                         // 채팅 전송 (TCP)
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
 	TrySendStickerEvents();                      // 벽 스티커 배치 요청 (TCP)
@@ -256,6 +258,27 @@ void NetSendSystem::TrySendEmoteEvents()
 			C2S_EmotePacket packet;
 			packet.emoteId = event.emoteId;
 			SendPacket(packet);
+		});
+}
+
+void NetSendSystem::TrySendChatEvents()
+{
+	// 로컬 플레이어가 없으면 채팅 전송을 무시
+	if (!mWorld->HasComponentPool<LocalPlayerComponent>())
+	{
+		Chat::Get().ConsumePendingSends([](const std::wstring&) {});
+		return;
+	}
+
+	Chat::Get().ConsumePendingSends([this](const std::wstring& text)
+		{
+			C2S_ChatPacket pkt;
+			size_t len = text.size();
+			if (len > CHAT_TEXT_CAPACITY - 1)
+				len = CHAT_TEXT_CAPACITY - 1;
+			std::memcpy(pkt.text, text.c_str(), len * sizeof(wchar_t));
+			pkt.text[len] = L'\0';
+			SendPacket(pkt);
 		});
 }
 

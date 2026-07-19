@@ -21,6 +21,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::C2S_PKT_SYNC:
 	case PKT_Type::C2S_PKT_STICKER:
 	case PKT_Type::C2S_PKT_EMOTE:
+	case PKT_Type::C2S_PKT_CHAT:
 	case PKT_Type::C2S_SCENE_CHANGE:
 	case PKT_Type::C2S_ROOM_READY:
 	case PKT_Type::C2S_ROOM_CHARACTER_SELECT:
@@ -71,6 +72,9 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	inputCommand.Type = header.PacketType;
 	inputCommand.Size = header.Size;
 
+	if (header.Size < sizeof(PacketHeader) || header.Size > MAX_PACKET_SIZE)
+		return false;
+
 	switch (header.PacketType) {
 	// TCP
 	case PKT_Type::PKT_TCP:
@@ -97,6 +101,7 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 	case PKT_Type::S2C_PKT_COMBO_CHANGED:
 	case PKT_Type::S2C_PKT_STICKER:
 	case PKT_Type::S2C_PKT_EMOTE:
+	case PKT_Type::S2C_PKT_CHAT:
 	case PKT_Type::S2C_PKT_HIT_CONFIRM:
 	case PKT_Type::S2C_PKT_SCENE_STATE:
 	case PKT_Type::S2C_PKT_SCENE_PREPARE:

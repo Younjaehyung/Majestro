@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "Timer.h"
 #include "Imgui.h"
+#include "Chat.h"
 
 Engine::Engine()
 {
@@ -29,6 +30,8 @@ void Engine::Initialize(const WindowInfo& info)
 	mAudioManager->Initialize("..\\Resources\\Sound");
 
 	mInputManager->Initialize(info.Hwnd);
+	mInputManager->AddKeyInputSuppressor([] { return Chat::Get().ShouldBlockGameInput(); });
+
 	mTimer = make_unique<Timer>();
 	mTimer->Start();
 

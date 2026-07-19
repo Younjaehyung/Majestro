@@ -67,6 +67,7 @@ void NetSendSystem::Update(float dt)
 	SendEffectSpawnEvents();
 	SendStickerEvents();
 	SendEmoteEvents();
+	SendChatEvents();
 	SendHitConfirmEvents();
 	SendGimmickStateEvents();
 	SendRhythmChangedEvents();
@@ -586,6 +587,38 @@ void NetSendSystem::SendEmoteEvents()
 			packet.emoteId = event.emoteId;
 
 			Broadcast(recipients, S2C_PKT_EMOTE, packet);
+		});
+}
+
+void NetSendSystem::SendChatEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvChatBroadcast>([&](const EvChatBroadcast& event)
+		{
+			if (!event.caster.IsValid())
+				return;
+
+			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(event.caster);
+			if (netComp == nullptr)
+				return;
+
+			MainPlayerComponent* playerComp = mWorld->GetComponent<MainPlayerComponent>(event.caster);
+
+			S2C_ChatPacket packet;
+			packet.casterNetId = netComp->mNetEntityId;
+			packet.casterPlayerType = playerComp
+				? static_cast<uint8>(playerComp->mPlayerType) : 0xFF;
+			std::memcpy(packet.text, event.text, sizeof(packet.text));
+			packet.text[CHAT_TEXT_CAPACITY - 1] = L'\0';
+
+			Broadcast(recipients, S2C_PKT_CHAT, packet);
 		});
 }
 

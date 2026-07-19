@@ -36,6 +36,7 @@ enum PKT_Type : uint32 {
 
 	C2S_PKT_STICKER,
 	C2S_PKT_EMOTE,
+	C2S_PKT_CHAT,
 
 	// Server -> Client
 	S2C_PKT_LOGIN,
@@ -72,6 +73,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_COMBO_CHANGED,
 	S2C_PKT_STICKER,
 	S2C_PKT_EMOTE,
+	S2C_PKT_CHAT,
 
 	// 로비 Room 시스템 : 방 상태 브로드캐스트 / 자격 오류 응답
 	S2C_ROOM_STATE,
@@ -165,6 +167,10 @@ struct PacketUdpHeader {
 static constexpr uint32 kHeaderSize = sizeof(PacketTcpHeader);
 constexpr uint32 MAX_PACKET_SIZE = 128;
 constexpr uint8 EMOTE_COUNT = 10;
+
+// 채팅 텍스트 용량
+constexpr uint32 CHAT_TEXT_CAPACITY = 45;
+static_assert(sizeof(wchar_t) == 2, "wchar_t must be 2 bytes (UTF-16) for chat packets");
 
 ////////////////////////////////////////////
 enum class PrefabType : uint8 {
@@ -828,6 +834,19 @@ struct S2C_EmotePacket : public PacketTcpHeader {
 static_assert(sizeof(S2C_EmotePacket) <= MAX_PACKET_SIZE,
 	"S2C_EmotePacket exceeds MAX_PACKET_SIZE");
 
+
+struct S2C_ChatPacket : public PacketTcpHeader {
+	uint64 casterNetId{};
+	uint8  casterPlayerType{ 0xFF };			// PlayerType (0xFF = 알 수 없음)
+	wchar_t text[CHAT_TEXT_CAPACITY]{};
+
+	S2C_ChatPacket()
+		: PacketTcpHeader{ sizeof(S2C_ChatPacket), PKT_Type::S2C_PKT_CHAT, 0.0 } {}
+};
+
+static_assert(sizeof(S2C_ChatPacket) <= MAX_PACKET_SIZE,
+	"S2C_ChatPacket exceeds MAX_PACKET_SIZE");
+
 struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 	uint8 effectType{};
 	float x{};
@@ -1105,6 +1124,17 @@ struct C2S_EmotePacket : public PacketTcpHeader {
 
 static_assert(sizeof(C2S_EmotePacket) <= MAX_PACKET_SIZE,
 	"C2S_EmotePacket exceeds MAX_PACKET_SIZE");
+
+struct C2S_ChatPacket : public PacketTcpHeader {
+	wchar_t text[CHAT_TEXT_CAPACITY]{};	// 널 종료 UTF-16
+
+	C2S_ChatPacket()
+		: PacketTcpHeader{ sizeof(C2S_ChatPacket), PKT_Type::C2S_PKT_CHAT, 0.0 } {
+	}
+};
+
+static_assert(sizeof(C2S_ChatPacket) <= MAX_PACKET_SIZE,
+	"C2S_ChatPacket exceeds MAX_PACKET_SIZE");
 
 
 

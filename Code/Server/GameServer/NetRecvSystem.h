@@ -16,6 +16,7 @@ private:
 	void RecvAction(uint32 sessionId, const C2S_ActionPacket& inputFrame);
 	void RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedPacket& inputFrame);
 	void RecvEmote(uint32 sessionId, const C2S_EmotePacket& packet);
+	void RecvChat(uint32 sessionId, const C2S_ChatPacket& packet);
 	void RecvSync(uint32 sessionId, const C2S_SyncPacket& inputFrame);
 
 	void HandleGameStart(InputCommand& inputCommand);

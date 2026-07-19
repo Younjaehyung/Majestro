@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 
 //숫자를 문자로 변환해주는 클래스임
 enum class eKeyState {
@@ -58,6 +57,9 @@ public:
 	};
 	void Initialize(HWND _hWnd);
 	void Update();
+
+	// 게임 키 입력 억제자 등록 (하나라도 true 반환 시 이번 프레임 키 입력을 무시)
+	void AddKeyInputSuppressor(std::function<bool()> fn) { mKeyInputSuppressors.push_back(std::move(fn)); }
 
 	bool GetKeyDown(eKeyCode code) {
 		return mKeys[(UINT)code].state == eKeyState::Down;
@@ -139,5 +141,6 @@ private:
 	bool mMouseUpEvent[static_cast<size_t>(eMouseButton::End)] = { false, false, false };
 
 	std::vector<Key> mKeys;
+	std::vector<std::function<bool()>> mKeyInputSuppressors;	// 게임 키 억제자
 };
 

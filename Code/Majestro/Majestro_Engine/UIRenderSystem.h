@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "UIComponent.h"
 #include "UITextComponent.h"
+#include "UITextOverlay.h"
 
 class UISpriteComponent;
 
@@ -26,8 +27,10 @@ public:
 	UIRenderSystem(World* world);
 	virtual ~UIRenderSystem();
 	void SetFeatures(std::vector<shared_ptr<UIFeature>>* features) { mFeatures = features; }
-	
-	
+
+	void RegisterTextOverlay(UITextOverlay overlay) { mTextOverlays.push_back(std::move(overlay)); }
+
+
 	void Initialize();
 	void InitializeFont();
 
@@ -62,4 +65,5 @@ private:
 	std::vector<std::shared_ptr<UIFeature>>* mFeatures;
 	std::shared_ptr<UIEffectPass> mUIEffectPass;
 	UIRenderGroup mActiveRenderGroup = UIRenderGroup::Gameplay;
+	std::vector<UITextOverlay> mTextOverlays;
 };

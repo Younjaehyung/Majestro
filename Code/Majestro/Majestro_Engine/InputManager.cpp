@@ -41,9 +41,14 @@ void InputManager::Update() {
 	
 	RefreshCursorLock();
 
+
+	bool suppressKeys = false;
+	for (const auto& suppress : mKeyInputSuppressors)
+		if (suppress()) { suppressKeys = true; break; }	// 프레임 키 입력을 무시
+
 	for (size_t i = 0; i < mKeys.size(); i++) {
 		//눌렀는지
-		if (GetAsyncKeyState(ASCII[i]) & 0x8000) {
+		if (!suppressKeys && (GetAsyncKeyState(ASCII[i]) & 0x8000)) {
 			if (mKeys[i].bPressed == true) {
 				mKeys[i].state = eKeyState::Pressed;
 			}

@@ -135,6 +135,13 @@ struct EvEmoteBroadcast
 	uint8 emoteId = 0;
 };
 
+// 채팅
+struct EvChatBroadcast
+{
+	Entity caster = NULL_ENTITY;
+	wchar_t text[CHAT_TEXT_CAPACITY]{};
+};
+
 struct EvBuffRequest
 {
     Entity target;

@@ -36,6 +36,7 @@
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "BeatSystem.h"
+#include "Chat.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
 	: System::System(world)
@@ -102,6 +103,7 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::S2C_PKT_COMBO_CHANGED, [this](auto& m) { HandleComboChanged(m); });
 	reg(PKT_Type::S2C_PKT_STICKER, [this](auto& m) { HandleSticker(m); });
 	reg(PKT_Type::S2C_PKT_EMOTE, [this](auto& m) { HandleEmote(m); });
+	reg(PKT_Type::S2C_PKT_CHAT, [this](auto& m) { HandleChat(m); });
 }
 
 void NetRecvSystem::Update(float deltaTime)
@@ -595,6 +597,22 @@ void NetRecvSystem::HandleEmote(const InputCommand& msg)
 	{
 		eventManager->Enqueue(EvEmoteTriggered{ caster, packet->emoteId });
 	}
+}
+
+void NetRecvSystem::HandleChat(const InputCommand& msg)
+{
+	const S2C_ChatPacket* packet = msg.ViewAs<S2C_ChatPacket>();
+	if (packet == nullptr)
+		return;
+
+
+	wchar_t safeText[CHAT_TEXT_CAPACITY];
+	std::memcpy(safeText, packet->text, sizeof(safeText));
+	safeText[CHAT_TEXT_CAPACITY - 1] = L'\0';
+	if (safeText[0] == L'\0')
+		return;
+
+	Chat::Get().AddMessage(packet->casterPlayerType, safeText);
 }
 
 void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)

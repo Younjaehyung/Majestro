@@ -31,6 +31,7 @@ private:
 	void SendEffectSpawnEvents();
 	void SendStickerEvents();
 	void SendEmoteEvents();
+	void SendChatEvents();
 	void SendHitConfirmEvents();
 	void SendGimmickStateEvents();
 	void SendRhythmChangedEvents();

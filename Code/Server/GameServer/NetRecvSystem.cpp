@@ -3,6 +3,7 @@
 #include "World.h"
 #include "ServerCore.h"
 #include "NetEntityComponent.h"
+#include "ChatComponent.h"
 #include "InputComponent.h"
 #include "EmoteComponent.h"
 #include "Prefab.h"
@@ -104,6 +105,10 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::C2S_PKT_EMOTE, [this](InputCommand& c) {
 		if (const C2S_EmotePacket* pkt = c.ViewAs<C2S_EmotePacket>())
 			RecvEmote(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_PKT_CHAT, [this](InputCommand& c) {
+		if (const C2S_ChatPacket* pkt = c.ViewAs<C2S_ChatPacket>())
+			RecvChat(c.SessionId, *pkt);
 	});
 	reg(PKT_Type::C2S_PKT_SYNC, [this](InputCommand& c) {
 		if (const C2S_SyncPacket* pkt = c.ViewAs<C2S_SyncPacket>())
@@ -336,6 +341,41 @@ void NetRecvSystem::RecvEmote(uint32 sessionId, const C2S_EmotePacket& pkt)
 	if (auto eventManager = mWorld->GetEventManager())
 	{
 		eventManager->Enqueue(EvEmoteBroadcast{ playerEntity, pkt.emoteId });
+	}
+}
+
+void NetRecvSystem::RecvChat(uint32 sessionId, const C2S_ChatPacket& pkt)
+{
+	Entity playerEntity = FindEntityBySession(sessionId);
+	if (!playerEntity.IsValid())
+		return;
+
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	if (netComp == nullptr || netComp->mSessionId != sessionId)
+		return;
+
+
+	constexpr float ChatCooldownSeconds = 0.5f;		// 도배 방지
+	const float now = GetServerTotalTimeSeconds();
+	ChatComponent* chatComp = mWorld->GetComponent<ChatComponent>(playerEntity);
+	if (chatComp)
+	{
+		if (now < chatComp->mNextChatTime)
+			return;
+		chatComp->mNextChatTime = now + ChatCooldownSeconds;
+	}
+
+	EvChatBroadcast ev{};
+	ev.caster = playerEntity;
+	std::memcpy(ev.text, pkt.text, sizeof(ev.text));
+	ev.text[CHAT_TEXT_CAPACITY - 1] = L'\0';
+
+	if (ev.text[0] == L'\0')
+		return;
+
+	if (auto eventManager = mWorld->GetEventManager())
+	{
+		eventManager->Enqueue(ev);
 	}
 }
 

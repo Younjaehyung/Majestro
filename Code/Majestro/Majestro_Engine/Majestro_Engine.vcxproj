@@ -389,6 +389,9 @@
     <ClInclude Include="PlayerStatusUIFeature.h" />
     <ClInclude Include="UIHpBarUpdateFeature.h" />
     <ClInclude Include="UIPhaseProgressUpdateFeature.h" />
+    <ClInclude Include="Chat.h" />
+    <ClInclude Include="ChatOverlay.h" />
+    <ClInclude Include="UITextOverlay.h" />
     <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="UISpriteComponent.h" />
     <ClInclude Include="UITextComponent.h" />
@@ -574,6 +577,7 @@
     <ClCompile Include="HUDPortraitUpdateFeature.cpp" />
     <ClCompile Include="LobbyRoomBrowserFeature.cpp" />
     <ClCompile Include="MenuRoomBrowserSystem.cpp" />
+    <ClCompile Include="ChatOverlay.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UIButtonSystem.cpp" />

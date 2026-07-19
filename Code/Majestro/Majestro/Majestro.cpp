@@ -7,8 +7,14 @@
 #include "Game.h"
 #include "Scene.h"
 #include "SceneManager.h"
+#include "Chat.h"
+
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
+
+#include <imm.h>
+#pragma comment(lib, "imm32.lib")
+
 
 #define MAX_LOADSTRING 100
 
@@ -19,6 +25,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 WindowInfo gWindowInfo;
 bool gIsInitializing = true;
 ULONG_PTR gGdiplusToken = 0;
+HIMC gGameImc = nullptr;                        // 게임 중 떼어놓은 IME 컨텍스트
 
 // 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -186,6 +193,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
       return FALSE;
    }
 
+   // 게임 플레이 중 한/영 전환·IME 조합이 키 입력에 끼어들지 않도록 IME 를 떼어둔다.
+   // 채팅(Enter)을 열 때만 EnableChatIme(true) 로 복원.
+   gGameImc = ImmAssociateContext(hWnd, nullptr);
+
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -258,6 +269,22 @@ void DrawStartupLoadingFrame(HWND hWnd)
 
 
 
+// 채팅 IME on/off.
+static void EnableChatIme(HWND hWnd, bool enable)
+{
+    if (enable)
+    {
+        if (gGameImc)
+            ImmAssociateContext(hWnd, gGameImc);
+    }
+    else
+    {
+        HIMC prev = ImmAssociateContext(hWnd, nullptr);
+        if (prev)
+            gGameImc = prev;
+    }
+}
+
 //
 //  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
 //
@@ -304,6 +331,95 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (wParam == VK_F12)
         {
             DestroyWindow(hWnd);
+            return 0;
+        }
+        // Enter
+        if (wParam == VK_RETURN && !gIsInitializing && (HIWORD(lParam) & KF_REPEAT) == 0)
+        {
+            Chat& chat = Chat::Get();
+            if (!chat.IsFocused())  // 채팅 열기
+            {
+                chat.Open();
+                EnableChatIme(hWnd, true);
+            }
+            else // 전송 후 닫기
+            {
+                chat.CommitInput();
+                EnableChatIme(hWnd, false);
+            }
+            return 0;
+        }
+        // ESC
+        if (wParam == VK_ESCAPE && Chat::Get().IsFocused())
+        {
+            Chat::Get().CancelInput();
+            EnableChatIme(hWnd, false);
+            return 0;
+        }
+        break;
+
+    case WM_CHAR:
+        // 영문/숫자/기호 및 백스페이스
+        if (Chat::Get().IsFocused())
+        {
+            const wchar_t ch = static_cast<wchar_t>(wParam);
+            if (ch == 0x08)             // Backspace
+                Chat::Get().Backspace();
+            else if (ch >= 0x20 && ch != 0x7F)
+                Chat::Get().AppendChar(ch);
+            return 0;
+        }
+        break;
+
+    // IME 기본 조합 창은 숨기고, 조합 문자열은 채팅 입력줄에 직접 그린다
+    case WM_IME_SETCONTEXT:
+        lParam &= ~ISC_SHOWUICOMPOSITIONWINDOW;
+        return DefWindowProc(hWnd, message, wParam, lParam);
+
+    case WM_IME_STARTCOMPOSITION:
+        if (Chat::Get().IsFocused())
+            return 0;
+        break;
+
+    case WM_IME_COMPOSITION:
+        if (Chat::Get().IsFocused())
+        {
+            HIMC himc = ImmGetContext(hWnd);
+            if (himc)
+            {
+                if (lParam & GCS_RESULTSTR)     // 조합이 끝나 확정된 글자
+                {
+                    const LONG bytes = ImmGetCompositionStringW(himc, GCS_RESULTSTR, nullptr, 0);
+                    if (bytes > 0)
+                    {
+                        std::wstring result(bytes / sizeof(wchar_t), L'\0');
+                        ImmGetCompositionStringW(himc, GCS_RESULTSTR, &result[0], bytes);
+                        for (wchar_t ch : result)
+                            Chat::Get().AppendChar(ch);
+                    }
+                    Chat::Get().ClearComposition();
+                }
+                if (lParam & GCS_COMPSTR)       // 조합 중인 글자
+                {
+                    const LONG bytes = ImmGetCompositionStringW(himc, GCS_COMPSTR, nullptr, 0);
+                    std::wstring comp;
+                    if (bytes > 0)
+                    {
+                        comp.resize(bytes / sizeof(wchar_t));
+                        ImmGetCompositionStringW(himc, GCS_COMPSTR, &comp[0], bytes);
+                    }
+                    Chat::Get().SetComposition(comp);
+                }
+                ImmReleaseContext(hWnd, himc);
+            }
+            return 0;
+        }
+        break;
+
+    case WM_IME_ENDCOMPOSITION:
+        if (Chat::Get().IsFocused())
+        {
+            Chat::Get().ClearComposition();
             return 0;
         }
         break;

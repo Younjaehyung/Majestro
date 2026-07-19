@@ -13,6 +13,7 @@
 #include "LightComponent.h"
 #include "MovementComponent.h"
 #include "NetEntityComponent.h"
+#include "ChatComponent.h"
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
 #include "ResourceManager.h"
@@ -147,6 +148,7 @@ Entity PlayerPrefab::Build(World *world, const InputCommand &ctx) {
   auto &w =
       world->AddComponent<NetEntityComponent>(mEntityID, world, mEntityID);
   w.mSessionId = ctx.SessionId;
+  world->AddComponent<ChatComponent>(mEntityID);
 
   Vec3 half{ 30,100,30 };
   Vec3 center{ 0,50,0 };

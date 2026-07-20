@@ -97,6 +97,8 @@ void NetSendSystem::SendPlayerStatus()
 
 		S2C_PlayerStatusPacket packet{};
 		packet.netEntityId = net->mNetEntityId;
+		packet.rhythmPoints = static_cast<uint16>(player->mRhythmPoints);
+		packet.maxRhythmPoints = static_cast<uint16>(MainPlayerComponent::kMaxRhythmPoints);
 
 		if (player->IsDeathActive())
 		{

@@ -28,6 +28,7 @@ struct EvDamage
     Entity instigator; // 0이면 환경
     SkillType skillType = SkillType::Default;
     bool isCritical = false;
+    bool isOnBeat = false;
 };
 
 struct EvDespawn
@@ -153,6 +154,7 @@ struct EvRangedAttackRequest
     Entity shooter;
     SkillType bulletType;
     bool isCritical = false;
+    bool isOnBeat = false;
 };
 
 struct EvMeleeAttackRequest
@@ -160,6 +162,7 @@ struct EvMeleeAttackRequest
     Entity shooter;
     SkillType bulletType;
     bool isCritical = false;
+    bool isOnBeat = false;
 };
 
 struct EvHeal

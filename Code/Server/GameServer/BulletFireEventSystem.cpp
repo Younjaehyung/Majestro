@@ -29,12 +29,13 @@ void BulletFireEventSystem::Update(float dt)
 
 		eventManager->Consume<EvRangedAttackRequest>([&](const EvRangedAttackRequest& e)
 			{
-				ActivateBulletAndNotify(e.shooter, e.bulletType, e.isCritical);
+				ActivateBulletAndNotify(e.shooter, e.bulletType, e.isCritical, e.isOnBeat);
 			});
 	}
 }
 
-void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillType bulletType, bool isCritical)
+void BulletFireEventSystem::ActivateBulletAndNotify(
+	Entity playerEntity, SkillType bulletType, bool isCritical, bool isOnBeat)
 {
 	if (false == mWorld->HasComponentPool<BulletComponent>())
 		return;
@@ -135,7 +136,11 @@ void BulletFireEventSystem::ActivateBulletAndNotify(Entity playerEntity, SkillTy
 			const uint16 generation = static_cast<uint16>(bulletComp->mGeneration + 1);
 			bulletComp->mPenetrates = bulletStat.Penetrates;
 			bulletComp->mPenetratesStatic = bulletStat.PenetratesStatic;
-			bulletComp->Activate(bulletType, shooterNetComp->mNetEntityId, static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction, bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage, bulletStat.KnockbackDistance, isCritical);
+			bulletComp->Activate(
+				bulletType, shooterNetComp->mNetEntityId,
+				static_cast<uint32>(bulletNetComp->mNetEntityId), generation, direction,
+				bulletStat.Speed, bulletStat.LifeTime, bulletStat.Damage,
+				bulletStat.KnockbackDistance, isCritical, isOnBeat);
 			mWorld->RegisterActiveBullet(bulletEntity);
 
 				if (bulletType != SkillType::BrassSkill3)

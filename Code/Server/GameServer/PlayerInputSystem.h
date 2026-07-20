@@ -18,7 +18,12 @@ public:
 	void Update(float dt);
 
 private:
-	bool EnqueueAttackEventByCategory(EventManager& eventManager, Entity shooter, SkillType bulletType, bool isCritical);
+	bool EnqueueAttackEventByCategory(
+		EventManager& eventManager,
+		Entity shooter,
+		SkillType bulletType,
+		bool isCritical,
+		bool isOnBeat);
 
 	SkillType ResolveSkillType(
 		uint8 playerType,
@@ -27,9 +32,18 @@ private:
 	uint8 EvaluateBeatJudgement(const MainPlayerComponent* mp, const InputComponent* inputComp, const BeatSystem* beatSystem) const;
 
 	void EnqueueAmmoChangedIfNeeded(World* world, EventManager& eventManager, Entity playerEntity, int prevAmmo);
+	void StartBaseUltimate(Entity player, MainPlayerComponent* playerComponent,
+	                       InputComponent* input, EventManager& eventManager,
+	                       float now, float beatSeconds);
+	bool TickBaseUltimate(Entity player, MainPlayerComponent* playerComponent,
+	                      InputComponent* input, EventManager& eventManager,
+	                      float now, float beatSeconds, float dt);
+	void ApplyBaseUltimateDamage(Entity player, const InputComponent& input,
+	                             EventManager& eventManager);
 
 	bool TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
-	                   InputButtons button, float now, float Beat, bool isCritical = false);
+	                   InputButtons button, float now, float Beat,
+	                   bool isCritical = false, bool isOnBeat = false);
 
 	// 입력 순간 곡 위치로 박자 판정
 	void JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputComponent* inputComp,

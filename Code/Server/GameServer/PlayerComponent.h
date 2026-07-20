@@ -160,6 +160,16 @@ public:
 	uint8 mLastBeatJudgement = 0; // 마지막 행동의 박자 판정(BeatJudgement)
 	float mLastJudgedInputSongPos = -1.f; // 동일 입력 중복 판정 방지
 
+	static constexpr int32 kMaxRhythmPoints = 200;
+	int32 mRhythmPoints = 0;
+
+	bool mBaseUltimateActive = false;
+	float mBaseUltimateEndTime = 0.0f;
+	float mBaseUltimateRemainingTime = 0.0f;
+	float mBaseUltimateNextTickTime = 0.0f;
+	int32 mBaseUltimateTicksRemaining = 0;
+	bool mSpecialButtonWasDown = false;
+
 
 	float mComboExpireTime = 0.0f;
 	float mComboInputWindow = 0.75f;

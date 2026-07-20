@@ -647,7 +647,7 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	ctx.movement->mSkill1 = INPUT.GetKey(eKeyCode::Q);
 	ctx.movement->mSkill2 = INPUT.GetKey(eKeyCode::E);
 	ctx.movement->mReload = INPUT.GetKey(eKeyCode::R);
-	ctx.movement->mSpecial = mouseLook && INPUT.GetMouseRightDown();
+	ctx.movement->mSpecial = INPUT.GetKey(eKeyCode::G);
 	ctx.movement->mDance1 = INPUT.GetKeyDown(eKeyCode::_1);
 
 	// 벽 스티커

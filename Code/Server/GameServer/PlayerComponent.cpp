@@ -290,6 +290,8 @@ bool MainPlayerComponent::CanUseHorizontalInput()
 {
 	if (IsDeathActive())
 		return false;
+	if (mBaseUltimateActive)
+		return false;
 
 	const StateId state = mFsm.GetState();
 	if (state == S_Dead || state == S_Stun || state == S_Hit)
@@ -304,6 +306,8 @@ bool MainPlayerComponent::CanUseHorizontalInput()
 bool MainPlayerComponent::CanUseVerticalInput()
 {
 	if (IsDeathActive())
+		return false;
+	if (mBaseUltimateActive)
 		return false;
 
 	const StateId state = mFsm.GetState();

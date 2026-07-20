@@ -6,6 +6,10 @@
 #include "ResourceManager.h"
 
 #include "TransformComponent.h"
+#include "MovementComponent.h"
+#include "TagComponent.h"
+#include "RenderSystem.h"
+#include "PlayerComponent.h"
 #include "BulletComponent.h"
 #include "VfxComponent.h"
 #include "World.h"
@@ -16,6 +20,52 @@
 
 namespace
 {
+	constexpr float kBaseUltimateCollisionLength = 5000.0f;
+	constexpr float kBaseUltimateCollisionRadius = 100.0f;
+
+	void SubmitDebugOrientedCylinder(
+		const Vec3& start,
+		const Vec3& direction,
+		float length,
+		float radius,
+		const Vec4& color)
+	{
+		if (length <= 0.0f || radius <= 0.0f || direction.LengthSquared() <= 1e-6f)
+			return;
+
+		Vec3 axis = direction;
+		axis.Normalize();
+		Vec3 reference = std::abs(axis.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+		Vec3 right = reference.Cross(axis);
+		right.Normalize();
+		Vec3 up = axis.Cross(right);
+		up.Normalize();
+
+		constexpr int kSegments = 16;
+		constexpr int kRings = 5;
+		for (int ring = 0; ring < kRings; ++ring)
+		{
+			const float distance = length * static_cast<float>(ring) / static_cast<float>(kRings - 1);
+			const Vec3 center = start + axis * distance;
+			for (int segment = 0; segment < kSegments; ++segment)
+			{
+				const float angle0 = DirectX::XM_2PI * static_cast<float>(segment) / static_cast<float>(kSegments);
+				const float angle1 = DirectX::XM_2PI * static_cast<float>(segment + 1) / static_cast<float>(kSegments);
+				const Vec3 point0 = center + (right * std::cos(angle0) + up * std::sin(angle0)) * radius;
+				const Vec3 point1 = center + (right * std::cos(angle1) + up * std::sin(angle1)) * radius;
+				RenderSystem::SubmitDebugLine(point0, point1, color);
+			}
+		}
+
+		const Vec3 end = start + axis * length;
+		for (int segment = 0; segment < kSegments; ++segment)
+		{
+			const float angle = DirectX::XM_2PI * static_cast<float>(segment) / static_cast<float>(kSegments);
+			const Vec3 offset = (right * std::cos(angle) + up * std::sin(angle)) * radius;
+			RenderSystem::SubmitDebugLine(start + offset, end + offset, color);
+		}
+	}
+
 	constexpr int kVfxDecalCols            = 4;   // 열 수
 	constexpr int kVfxDecalRows            = 1;   // 행 수
 	constexpr int kCellGroundCrack         = 0;   // 지면 균열
@@ -188,7 +238,8 @@ void VfxSystem::ConsumeSpawnEvents()
 		if (!desc || desc->effectName == nullptr)
 			return;
 
-		const Entity vfxEntity = PlayOneShot(desc->effectName, event.position + desc->positionOffset, event.rotation, desc->scale);
+		const Vec3 spawnPosition = event.position + desc->positionOffset + eventForward * desc->forwardOffset;
+		const Entity vfxEntity = PlayOneShot(desc->effectName, spawnPosition, event.rotation, desc->scale);
 
 		// 시전자 추종 VFX는 패킷의 casterNetId로 시전자 엔티티를 찾아 부착한다.
 		// (NetIdMap 조회라 적/플레이어/보스 다수 무관하게 정확히 매핑됨)
@@ -201,6 +252,20 @@ void VfxSystem::ConsumeSpawnEvents()
 				{
 					component->mFollowTarget = target;
 					component->mFollowOffset = desc->positionOffset;	// 스폰 오프셋을 추종 중에도 유지
+					component->mFollowRotation = desc->followCasterRotation;
+					component->mFollowInitialRotation = event.rotation;
+					component->mStopWhenCasterLeavesSpecial = desc->loopUntilSpecialEnds;
+					component->mFollowForwardOffset = desc->forwardOffset;
+					if (desc->loopUntilSpecialEnds)
+					{
+						component->mIsLoop = true;
+						component->mRestartWhenFinished = true;
+					}
+					if (event.skillType == SkillType::BaseUltimate)
+					{
+						component->mDebugCylinderLength = kBaseUltimateCollisionLength;
+						component->mDebugCylinderRadius = kBaseUltimateCollisionRadius;
+					}
 				}
 			}
 		}
@@ -241,6 +306,11 @@ void VfxSystem::UpdateFollowTargets()
 		VfxComponent* component = mWorld->GetComponent<VfxComponent>(entity);
 		if (component == nullptr || !component->mInUse || component->mFinished)
 			continue;
+		if (!component->mShouldPlay && component->efkHandle == -1)
+		{
+			component->mFinished = true;
+			continue;
+		}
 		if (!component->mFollowTarget.IsValid())
 			continue;
 
@@ -256,10 +326,70 @@ void VfxSystem::UpdateFollowTargets()
 		if (transform == nullptr)
 			continue;
 
-		const Vec3 followPosition = targetTransform->mWorldPosition + component->mFollowOffset;
+		if (component->mStopWhenCasterLeavesSpecial)
+		{
+			const MainPlayerComponent* caster =
+				mWorld->GetComponent<MainPlayerComponent>(component->mFollowTarget);
+			if (caster == nullptr ||
+				caster->mUpperState != static_cast<int>(ReplicatedActionState::Special))
+			{
+				component->mRestartWhenFinished = false;
+				component->mIsLoop = false;
+				component->mShouldPlay = false;
+				component->mStopWhenCasterLeavesSpecial = false;
+				continue;
+			}
+		}
+
+		Vec3 followRotation = component->mFollowInitialRotation;
+		if (component->mFollowRotation)
+		{
+			// 로컬 플레이어는 카메라 조준을 그대로 사용한다. 원격 플레이어는
+			// 동기화된 몸 yaw를 따라가되 스폰 패킷의 pitch를 유지한다.
+			PlayerMovementComponent* movement =
+				mWorld->GetComponent<LocalPlayerComponent>(component->mFollowTarget)
+				? mWorld->GetComponent<PlayerMovementComponent>(component->mFollowTarget)
+				: nullptr;
+			if (movement != nullptr)
+			{
+				followRotation.x = movement->mCameraRotationX;
+				followRotation.y = movement->mCameraRotationY;
+			}
+			else
+			{
+				followRotation.y = targetTransform->mLocalRotationE.y;
+			}
+		}
+
+		const Vec3 followDirection = MathUtils::ForwardFromEulerDegrees(followRotation);
+		const Vec3 followPosition = targetTransform->mWorldPosition + component->mFollowOffset +
+			followDirection * component->mFollowForwardOffset;
+		if (component->mFollowRotation)
+		{
+			transform->mLocalRotationE = followRotation;
+			transform->mWorldMatrix =
+				Matrix::CreateFromQuaternion(MathUtils::QuatFromEulerDegrees(followRotation)) *
+				Matrix::CreateTranslation(followPosition);
+		}
+		else
+		{
+			transform->mWorldMatrix = Matrix::CreateTranslation(followPosition);
+		}
 		transform->mLocalPosition = followPosition;
 		transform->mWorldPosition = followPosition;
-		transform->mWorldMatrix = Matrix::CreateTranslation(followPosition);
+
+		if (RenderSystem::GetDrawPlayerAttackRanges() &&
+			component->mDebugCylinderLength > 0.0f && component->mDebugCylinderRadius > 0.0f)
+		{
+			const Vec3 direction = MathUtils::ForwardFromEulerDegrees(transform->mLocalRotationE);
+			const Vec3 collisionStart = followPosition - direction * component->mFollowForwardOffset;
+			SubmitDebugOrientedCylinder(
+				collisionStart,
+				direction,
+				component->mDebugCylinderLength,
+				component->mDebugCylinderRadius,
+				Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+		}
 	}
 }
 
@@ -437,6 +567,11 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 	switch (static_cast<EffectSpawnReason>(reason))
 	{
 	case EffectSpawnReason::Fire:
+		if (skillType == SkillType::BaseUltimate)
+			return VfxSpawnDesc{ L"VFX_Ibanix_Ultimate", Vec3(0.f, 110.f, 0.f), Vec3(1.0f),
+				/*followCaster*/ true, /*followCasterRotation*/ true, /*loopUntilSpecialEnds*/ true,
+				/*forwardOffset*/ 0.0f };
+
 		if (IsRangedBulletSkill(skillType))
 			return std::nullopt;
 

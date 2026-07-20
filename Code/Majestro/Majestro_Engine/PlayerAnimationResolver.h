@@ -238,7 +238,8 @@ inline PlayerAnimationResolveResult ResolvePlayerAnimationState(
 		movement,
 		netTransform);
 	const ClientAnimState actionState = ToClientActionState(player.mUpperState);
-	const bool fullBodyAction = IsFullBodyState(actionState);
+	const bool fullBodyAction = IsFullBodyState(actionState) ||
+		(actionState == ClientAnimState::Special && player.mPlayerType == Ibanix);
 	const ClientAnimState upperState = fullBodyAction ? actionState : actionState;
 
 	result.LowerClipIndex = ResolveClipIndex(animCom, fullBodyAction ? actionState : lowerState, 0);

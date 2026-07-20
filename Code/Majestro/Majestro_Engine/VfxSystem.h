@@ -10,6 +10,9 @@ struct VfxSpawnDesc
 	Vec3 positionOffset = Vec3::Zero;
 	Vec3 scale = Vec3(1.0f);
 	bool followCaster = false;	// true면 시전자(casterNetId) 엔티티를 매 프레임 추종, false면 고정 월드 VFX
+	bool followCasterRotation = false;	// true면 추종 중 시전자의 최신 조준 방향도 반영
+	bool loopUntilSpecialEnds = false;
+	float forwardOffset = 0.0f;	// 중앙 피벗 이펙트를 시전자 전방으로 이동
 };
 
 struct BulletVfxDesc

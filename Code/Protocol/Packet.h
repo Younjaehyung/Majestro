@@ -128,6 +128,7 @@ enum class SkillType : uint8
 	DragonSkill2,
 	DragonSkill3,
 	DragonSkill4,
+	BaseUltimate,
 
 	Max
 };
@@ -622,6 +623,8 @@ struct S2C_PlayerStatusPacket : public PacketTcpHeader {
 	uint8_t statusFlags = PlayerStatus_None;
 	float stunRemaining = 0.0f;
 	float respawnRemaining = 0.0f;
+	uint16 rhythmPoints = 0;
+	uint16 maxRhythmPoints = 200;
 	uint8 buffCount = 0;
 	ReplicatedBuffState buffs[MAX_REPLICATED_BUFFS]{};
 

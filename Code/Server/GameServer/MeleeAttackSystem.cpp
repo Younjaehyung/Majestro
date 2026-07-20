@@ -369,6 +369,7 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		damageEvent.skillType = request.bulletType;
 		damageEvent.amount = static_cast<int32>((std::max)(0.0f, stat.damage * attackMultiplier));
 		damageEvent.isCritical = request.isCritical;
+		damageEvent.isOnBeat = request.isOnBeat;
 		if (damageEvent.isCritical)
 			damageEvent.amount *= 2;
 		eventManager->Enqueue<EvDamage>(damageEvent);

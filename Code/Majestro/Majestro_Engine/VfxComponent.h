@@ -36,6 +36,12 @@ public:
 		mRootStopped = false;
 		mFollowTarget = Entity{};
 		mFollowOffset = Vec3::Zero;
+		mFollowRotation = false;
+		mFollowInitialRotation = Vec3::Zero;
+		mDebugCylinderLength = 0.0f;
+		mDebugCylinderRadius = 0.0f;
+		mStopWhenCasterLeavesSpecial = false;
+		mFollowForwardOffset = 0.0f;
 		SetPosition(0.f, 0.f, 0.f);
 	}
 
@@ -59,6 +65,12 @@ public:
 		mRootStopped = false;
 		mFollowTarget = Entity{};
 		mFollowOffset = Vec3::Zero;
+		mFollowRotation = false;
+		mFollowInitialRotation = Vec3::Zero;
+		mDebugCylinderLength = 0.0f;
+		mDebugCylinderRadius = 0.0f;
+		mStopWhenCasterLeavesSpecial = false;
+		mFollowForwardOffset = 0.0f;
 	}
 
 	shared_ptr<Vfx> mVfx = nullptr;				// 재생할 이펙트 리소스(.efk 래퍼)
@@ -90,6 +102,12 @@ public:
 	// 추종(Follow) — 유효한 대상이면 VfxSystem이 매 프레임 대상 위치로 transform을 갱신한다.
 	Entity	mFollowTarget;					// 추종할 엔티티 (유효하지 않으면 고정 월드 VFX)
 	Vec3	mFollowOffset = Vec3::Zero;		// 추종 대상 월드 위치 기준 오프셋
+	bool	mFollowRotation = false;			// 시전자의 조준 회전도 매 프레임 추종
+	Vec3	mFollowInitialRotation = Vec3::Zero;	// 원격 플레이어의 피치 보존용 최초 회전
+	float	mDebugCylinderLength = 0.0f;		// Player Attack Ranges에서 표시할 직선 판정 길이
+	float	mDebugCylinderRadius = 0.0f;		// Player Attack Ranges에서 표시할 원통 반경
+	bool	mStopWhenCasterLeavesSpecial = false;
+	float	mFollowForwardOffset = 0.0f;
 
 	// 트랜스폼
 	Vec3	mScale     = Vec3(1.f, 1.f, 1.f);

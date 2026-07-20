@@ -1,0 +1,165 @@
+{
+  "exporter": "UE5_Python_LevelExporter_To_DX12_NoFBXExport",
+  "timestamp": "2026-07-05T01:30:02.548396",
+  "level_name": "MapShip",
+  "units": "cm",
+  "axis_convention": {
+    "ue": "X forward, Y right, Z up",
+    "dx_target": "X right, Y up, Z forward",
+    "component_mapping": "dx = (ue.y, ue.z, ue.x)"
+  },
+  "preferred_export_root": "C:\\DX12_Assets\\FromUE",
+  "actual_export_root": "C:\\DX12_Assets\\FromUE",
+  "fbx_naming_rule": "Meshes/<StaticMeshName>.fbx",
+  "meshes": [
+    {
+      "static_mesh_asset": "/Game/My/SHip/SM_Ship.SM_Ship",
+      "name": "SM_Ship",
+      "fbx": "Meshes/SM_Ship.fbx"
+    }
+  ],
+  "actors": [
+    {
+      "name": "StaticMeshActor_16",
+      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_16",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": 0.0,
+            "roll": -0.0
+          },
+          "scale": {
+            "x": 100.0,
+            "y": 100.0,
+            "z": 100.0
+          },
+          "basis": {
+            "forward": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "right": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            },
+            "up": {
+              "x": -0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 100.0,
+            "y": 100.0,
+            "z": 100.0
+          },
+          "basis": {
+            "forward": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 1.0
+            },
+            "right": {
+              "x": 1.0,
+              "y": -0.0,
+              "z": 0.0
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/My/SHip/SM_Ship.SM_Ship",
+          "fbx": "Meshes/SM_Ship.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": 0.0,
+                "roll": -0.0
+              },
+              "scale": {
+                "x": 100.0,
+                "y": 100.0,
+                "z": 100.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "scale": {
+                "x": 100.0,
+                "y": 100.0,
+                "z": 100.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "right": {
+                  "x": 1.0,
+                  "y": -0.0,
+                  "z": 0.0
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

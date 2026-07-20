@@ -45,7 +45,7 @@
         "Attack1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1
+            "animEndTime": 0.5
         },
         "Attack2State": {
             "time": 0.35,
@@ -55,12 +55,12 @@
         "ComboAttack1State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1
+            "animEndTime": 0.5
         },
         "ComboAttack2State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.26667
+            "animEndTime": 0.433333
         },
         "Skill1State": {
             "time": 0.35,

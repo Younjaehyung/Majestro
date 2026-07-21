@@ -38,6 +38,7 @@ struct PlayerAnimationResolveResult
 	uint32 UpperClipIndex = 0;
 	bool EnableUpperLayer = false;
 	bool HoldLastFrame = false;	// 마지막 프레임 고정 (원샷)
+	bool HoldUpperLastFrame = false;
 };
 
 // 한 번만 재생하고  마지막 프레임 고정 (원샷) 종착 상태인지 판정.
@@ -249,6 +250,8 @@ inline PlayerAnimationResolveResult ResolvePlayerAnimationState(
 	result.EnableUpperLayer = hasUpperAction && result.UpperClipIndex != result.LowerClipIndex;
 
 	result.HoldLastFrame = IsHoldLastFrameState(lowerState);
+	result.HoldUpperLastFrame =
+		actionState == ClientAnimState::Special && player.mPlayerType == PlayerType::Fanthor;
 
 	return result;
 }

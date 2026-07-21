@@ -448,6 +448,7 @@ std::string SfxSystem::SkillTypeName(SkillType type)
 	case SkillType::DragonSkill4:   return "DragonSkill4";
 	case SkillType::BaseUltimate:   return "BaseUltimate";
 	case SkillType::GuitarUltimate: return "GuitarUltimate";
+	case SkillType::DrumUltimate:   return "DrumUltimate";
 	default:                        return std::to_string(static_cast<int>(type));
 	}
 }

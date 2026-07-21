@@ -176,6 +176,10 @@ public:
 	float mGuitarUltimateNextTickTime = 0.0f;
 	int32 mGuitarUltimateTicksRemaining = 0;
 	Vec3 mGuitarUltimateCenter = Vec3::Zero;
+	bool mDrumUltimateActive = false;
+	float mDrumUltimateEndTime = 0.0f;
+	float mDrumUltimateRemainingTime = 0.0f;
+	int32 mDrumUltimateHitCount = 0;
 	bool mSpecialButtonWasDown = false;
 
 

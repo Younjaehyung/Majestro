@@ -40,6 +40,8 @@ namespace
 	constexpr int32 kGuitarUltimateTotalTicks = 8;
 	constexpr int32 kGuitarUltimateDamage = 30;
 	constexpr float kGuitarUltimateRadius = 500.0f;
+	constexpr float kDrumUltimateDurationBeats = 8.0f;
+	constexpr float kDrumUltimateRadius = 1000.0f;
 }
 
 
@@ -77,6 +79,9 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mGuitarUltimateActive = false;
 			mainPlayerComponent->mGuitarUltimateRemainingTime = 0.0f;
 			mainPlayerComponent->mGuitarUltimateTicksRemaining = 0;
+			mainPlayerComponent->mDrumUltimateActive = false;
+			mainPlayerComponent->mDrumUltimateRemainingTime = 0.0f;
+			mainPlayerComponent->mDrumUltimateHitCount = 0;
 			mainPlayerComponent->mSpeed = 0.f;
 			mainPlayerComponent->mHasMoveInput = false;
 			continue;
@@ -97,6 +102,11 @@ void PlayerInputSystem::Update(float dt)
 			continue;
 		}
 		if (TickGuitarUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat, dt))
+		{
+			mainPlayerComponent->Update(dt);
+			continue;
+		}
+		if (TickDrumUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, dt))
 		{
 			mainPlayerComponent->Update(dt);
 			continue;
@@ -226,7 +236,13 @@ void PlayerInputSystem::Update(float dt)
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::RELOAD);
 		}
 		if (specialButtonPressed) {
-			if (mainPlayerComponent->mPlayerType == Fanthor &&
+			if (mainPlayerComponent->mPlayerType == Rudwig &&
+				!mainPlayerComponent->mDrumUltimateActive)
+			{
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
+				StartDrumUltimate(e, mainPlayerComponent, *eventManager, now, Beat);
+			}
+			else if (mainPlayerComponent->mPlayerType == Fanthor &&
 				!mainPlayerComponent->mGuitarUltimateActive)
 			{
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
@@ -806,6 +822,151 @@ void PlayerInputSystem::ApplyGuitarUltimateDamage(
 		damage.amount = kGuitarUltimateDamage;
 		damage.instigator = player;
 		damage.skillType = SkillType::GuitarUltimate;
+		eventManager.Enqueue<EvDamage>(damage);
+	}
+}
+
+void PlayerInputSystem::StartDrumUltimate(
+	Entity player,
+	MainPlayerComponent* playerComponent,
+	EventManager& eventManager,
+	float now,
+	float beatSeconds)
+{
+	if (!playerComponent)
+		return;
+
+	const float duration = (std::max)(0.01f, beatSeconds) * kDrumUltimateDurationBeats;
+	playerComponent->mDrumUltimateActive = true;
+	playerComponent->mDrumUltimateEndTime = now + duration;
+	playerComponent->mDrumUltimateRemainingTime = duration;
+	playerComponent->mDrumUltimateHitCount = 0;
+
+	const TransformComponent* transform = mWorld->GetComponent<TransformComponent>(player);
+	const NetEntityComponent* netEntity = mWorld->GetComponent<NetEntityComponent>(player);
+	if (transform)
+	{
+		eventManager.Enqueue<EvEffectSpawn>({
+			static_cast<uint8>(SkillType::DrumUltimate),
+			transform->mWorldPosition.x,
+			transform->mWorldPosition.y,
+			transform->mWorldPosition.z,
+			EffectSpawnReason::Fire,
+			transform->mLocalRotationE.x,
+			transform->mLocalRotationE.y,
+			transform->mLocalRotationE.z,
+			netEntity ? netEntity->mNetEntityId : 0 });
+	}
+#ifdef _DEBUG
+	std::cout << "[DrumUltimate] started duration=" << duration << std::endl;
+#endif
+}
+
+bool PlayerInputSystem::TickDrumUltimate(
+	Entity player,
+	MainPlayerComponent* playerComponent,
+	InputComponent* input,
+	EventManager& eventManager,
+	float now,
+	float dt)
+{
+	if (!playerComponent || !input || !playerComponent->mDrumUltimateActive)
+		return false;
+
+	playerComponent->mHasMoveInput =
+		std::abs(input->MoveX) > 0.01f || std::abs(input->MoveZ) > 0.01f;
+	playerComponent->mPlayerMovingDir.x = input->MoveZ;
+	playerComponent->mPlayerMovingDir.y = input->MoveX;
+	if (playerComponent->mHasMoveInput)
+	{
+		float moveSpeedMultiplier = 1.0f;
+		if (const BuffComponent* buff = mWorld->GetComponent<BuffComponent>(player))
+			moveSpeedMultiplier *= buff->mMoveSpeedMultiplier;
+		if (const RhythmEffectComponent* rhythmEffect =
+			mWorld->GetComponent<RhythmEffectComponent>(player))
+		{
+			moveSpeedMultiplier *= rhythmEffect->GetVariantModifiers().moveSpeedMultiplier;
+		}
+		playerComponent->mSpeed = playerComponent->mRunSpeed * moveSpeedMultiplier;
+	}
+	else
+	{
+		playerComponent->mSpeed = 0.0f;
+	}
+
+	playerComponent->mDrumUltimateRemainingTime -= (std::max)(0.0f, dt);
+	if (now < playerComponent->mDrumUltimateEndTime &&
+		playerComponent->mDrumUltimateRemainingTime > 0.0f)
+	{
+		return playerComponent->mFsm.GetState() == S_Special;
+	}
+
+	const int32 hitCount = playerComponent->mDrumUltimateHitCount;
+	ApplyDrumUltimateExplosion(player, hitCount, eventManager);
+	playerComponent->mDrumUltimateActive = false;
+	playerComponent->mDrumUltimateRemainingTime = 0.0f;
+	playerComponent->mDrumUltimateHitCount = 0;
+	if (playerComponent->mFsm.GetState() == S_Special)
+		playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
+#ifdef _DEBUG
+	std::cout << "[DrumUltimate] exploded hits=" << hitCount << std::endl;
+#endif
+	return false;
+}
+
+void PlayerInputSystem::ApplyDrumUltimateExplosion(
+	Entity player,
+	int32 hitCount,
+	EventManager& eventManager)
+{
+	int32 explosionDamage = 0;
+	if (hitCount >= 10)
+		explosionDamage = 400;
+	else if (hitCount >= 7)
+		explosionDamage = 200;
+	else if (hitCount >= 4)
+		explosionDamage = 125;
+	else if (hitCount >= 1)
+		explosionDamage = 75;
+
+	const TransformComponent* playerTransform = mWorld->GetComponent<TransformComponent>(player);
+	if (!playerTransform)
+		return;
+
+	const Vec3 center = playerTransform->mWorldPosition;
+	const NetEntityComponent* netEntity = mWorld->GetComponent<NetEntityComponent>(player);
+	eventManager.Enqueue<EvEffectSpawn>({
+		static_cast<uint8>(SkillType::DrumUltimate),
+		center.x, center.y, center.z,
+		EffectSpawnReason::LifetimeExpired,
+		0.0f, 0.0f, 0.0f,
+		netEntity ? netEntity->mNetEntityId : 0 });
+	eventManager.Enqueue<EvEffectSpawn>({
+		static_cast<uint8>(SkillType::DrumUltimate),
+		center.x, center.y, center.z,
+		EffectSpawnReason::CollisionEntity });
+
+	if (explosionDamage <= 0)
+		return;
+
+	const float radiusSq = kDrumUltimateRadius * kDrumUltimateRadius;
+	for (Entity target : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent, HealthComponent>())
+	{
+		const HealthComponent* health = mWorld->GetComponent<HealthComponent>(target);
+		const TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
+		if (!health || health->mCurrentHp <= 0 || !targetTransform)
+			continue;
+
+		Vec3 delta = targetTransform->mWorldPosition - center;
+		delta.y = 0.0f;
+		if (delta.LengthSquared() > radiusSq)
+			continue;
+
+		EvDamage damage{};
+		damage.target = target;
+		damage.amount = explosionDamage;
+		damage.instigator = player;
+		damage.skillType = SkillType::DrumUltimate;
 		eventManager.Enqueue<EvDamage>(damage);
 	}
 }

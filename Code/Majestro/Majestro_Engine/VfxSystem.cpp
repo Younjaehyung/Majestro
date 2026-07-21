@@ -203,6 +203,27 @@ void VfxSystem::ConsumeSpawnEvents()
 
 	eventManager->Consume<EvVfxSpawnRequest>([this](const EvVfxSpawnRequest& event)
 	{
+		if (event.skillType == SkillType::DrumUltimate &&
+			event.reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired))
+		{
+			const Entity caster = mWorld->GetEntityByNetId(event.casterNetId);
+			for (Entity entity : mPool)
+			{
+				VfxComponent* component = mWorld->GetComponent<VfxComponent>(entity);
+				if (!component || !component->mInUse ||
+					component->mSourceSkillType != static_cast<uint8>(SkillType::DrumUltimate) ||
+					component->mFollowTarget != caster)
+				{
+					continue;
+				}
+
+				component->mRestartWhenFinished = false;
+				component->mIsLoop = false;
+				component->mShouldPlay = false;
+			}
+			return;
+		}
+
 		// 지면 균열 데칼
 		if (const std::optional<GroundDecalDesc> decal = ResolveGroundDecal(event.skillType, event.reason))
 		{
@@ -240,6 +261,11 @@ void VfxSystem::ConsumeSpawnEvents()
 
 		const Vec3 spawnPosition = event.position + desc->positionOffset + eventForward * desc->forwardOffset;
 		const Entity vfxEntity = PlayOneShot(desc->effectName, spawnPosition, event.rotation, desc->scale);
+		if (vfxEntity.IsValid())
+		{
+			if (VfxComponent* component = mWorld->GetComponent<VfxComponent>(vfxEntity))
+				component->mSourceSkillType = static_cast<uint8>(event.skillType);
+		}
 
 		// 시전자 추종 VFX는 패킷의 casterNetId로 시전자 엔티티를 찾아 부착한다.
 		// (NetIdMap 조회라 적/플레이어/보스 다수 무관하게 정확히 매핑됨)
@@ -256,7 +282,7 @@ void VfxSystem::ConsumeSpawnEvents()
 					component->mFollowInitialRotation = event.rotation;
 					component->mStopWhenCasterLeavesSpecial = desc->loopUntilSpecialEnds;
 					component->mFollowForwardOffset = desc->forwardOffset;
-					if (desc->loopUntilSpecialEnds)
+					if (desc->loopUntilSpecialEnds || desc->loopUntilStopped)
 					{
 						component->mIsLoop = true;
 						component->mRestartWhenFinished = true;
@@ -567,6 +593,11 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 	switch (static_cast<EffectSpawnReason>(reason))
 	{
 	case EffectSpawnReason::Fire:
+		if (skillType == SkillType::DrumUltimate)
+			return VfxSpawnDesc{ L"VFX_Rudwig_Ultimate", Vec3::Zero, Vec3(10.0f),
+				/*followCaster*/ true, /*followCasterRotation*/ false, /*loopUntilSpecialEnds*/ false,
+				/*forwardOffset*/ 0.0f, /*loopUntilStopped*/ true };
+
 		if (skillType == SkillType::GuitarUltimate)
 			return VfxSpawnDesc{ L"VFX_Fanthor_Ultimate", Vec3::Zero, Vec3(10.0f) };
 
@@ -625,6 +656,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		return std::nullopt;
 
 	case EffectSpawnReason::CollisionEntity:
+		if (skillType == SkillType::DrumUltimate)
+			return VfxSpawnDesc{ L"VFX_Rudwig_Skill_01", Vec3(0.f, 100.f, 80.f), Vec3(10.0f) };
+
 		if (IsBaseSkill(skillType))
 			return VfxSpawnDesc{ L"VFX_Ibanix_Attack_Hit_01", Vec3::Zero, Vec3(30.0f) };
 

@@ -45,6 +45,12 @@ private:
 	                        InputComponent* input, EventManager& eventManager,
 	                        float now, float beatSeconds, float dt);
 	void ApplyGuitarUltimateDamage(Entity player, const Vec3& center, EventManager& eventManager);
+	void StartDrumUltimate(Entity player, MainPlayerComponent* playerComponent,
+	                       EventManager& eventManager, float now, float beatSeconds);
+	bool TickDrumUltimate(Entity player, MainPlayerComponent* playerComponent,
+	                     InputComponent* input, EventManager& eventManager,
+	                     float now, float dt);
+	void ApplyDrumUltimateExplosion(Entity player, int32 hitCount, EventManager& eventManager);
 
 	bool TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
 	                   InputButtons button, float now, float Beat,

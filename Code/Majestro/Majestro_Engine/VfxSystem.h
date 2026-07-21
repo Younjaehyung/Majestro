@@ -13,6 +13,7 @@ struct VfxSpawnDesc
 	bool followCasterRotation = false;	// true면 추종 중 시전자의 최신 조준 방향도 반영
 	bool loopUntilSpecialEnds = false;
 	float forwardOffset = 0.0f;	// 중앙 피벗 이펙트를 시전자 전방으로 이동
+	bool loopUntilStopped = false;
 };
 
 struct BulletVfxDesc

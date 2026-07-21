@@ -42,6 +42,7 @@ public:
 		mDebugCylinderRadius = 0.0f;
 		mStopWhenCasterLeavesSpecial = false;
 		mFollowForwardOffset = 0.0f;
+		mSourceSkillType = 0;
 		SetPosition(0.f, 0.f, 0.f);
 	}
 
@@ -71,6 +72,7 @@ public:
 		mDebugCylinderRadius = 0.0f;
 		mStopWhenCasterLeavesSpecial = false;
 		mFollowForwardOffset = 0.0f;
+		mSourceSkillType = 0;
 	}
 
 	shared_ptr<Vfx> mVfx = nullptr;				// 재생할 이펙트 리소스(.efk 래퍼)
@@ -108,6 +110,7 @@ public:
 	float	mDebugCylinderRadius = 0.0f;		// Player Attack Ranges에서 표시할 원통 반경
 	bool	mStopWhenCasterLeavesSpecial = false;
 	float	mFollowForwardOffset = 0.0f;
+	uint8	mSourceSkillType = 0;
 
 	// 트랜스폼
 	Vec3	mScale     = Vec3(1.f, 1.f, 1.f);

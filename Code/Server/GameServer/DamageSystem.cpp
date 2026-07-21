@@ -131,6 +131,12 @@ void DamageSystem::Update(float deltaTime)
             return;
         if (player && player->mDash)
             return;
+		if (player && player->mDrumUltimateActive)
+		{
+			if (e.amount > 0)
+				++player->mDrumUltimateHitCount;
+			return;
+		}
 
         const int32 appliedDamage = (std::max)(0, e.amount);
         const int32 beforeHp = health->mCurrentHp;

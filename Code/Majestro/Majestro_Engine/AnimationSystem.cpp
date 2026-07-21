@@ -112,14 +112,16 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
 
 
         const uint32 previousClip = animCom->mLowerAnimClipIdx;
-        const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
+		const uint32 previousUpperClip = animCom->mUpperAnimClipIdx;
+		bool holdUpperLastFrame = false;
 
         if (mainPlayerComponent) {
             const PlayerAnimationResolveResult resolvedAnim = ResolvePlayerAnimationState(
                 *mainPlayerComponent, *animCom, transformComponent, movementComponent, netTransformComponent);
  
             animCom->mLowerAnimClipIdx = resolvedAnim.LowerClipIndex;
-            animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
+			animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
+			holdUpperLastFrame = resolvedAnim.HoldUpperLastFrame;
 
             // 수정: 참고 코드처럼 상하체가 다를 때만 Upper 레이어 활성화
             if (resolvedAnim.EnableUpperLayer) {
@@ -199,8 +201,19 @@ void GpuAnimationSystem::AnimationPush(float deltaTime)
         // 루핑 처리
         if (animCom->mUpdateTime >= animClip->mDuration)
             animCom->mUpdateTime = 0.f;
-        if (animCom->mUpperUpdateTime >= upperAnimClip->mDuration)
-            animCom->mUpperUpdateTime = 0.f;
+		if (animCom->mUpperUpdateTime >= upperAnimClip->mDuration)
+		{
+			if (holdUpperLastFrame)
+			{
+				const uint32 numFrame = max(upperAnimClip->mClipMeta.NumFrame, 1u);
+				const float frameDuration = upperAnimClip->mDuration / static_cast<float>(numFrame);
+				animCom->mUpperUpdateTime = static_cast<float>(numFrame - 1) * frameDuration;
+			}
+			else
+			{
+				animCom->mUpperUpdateTime = 0.f;
+			}
+		}
 
         // Lower 프레임 계산
         uint32 currentFrame = 0;

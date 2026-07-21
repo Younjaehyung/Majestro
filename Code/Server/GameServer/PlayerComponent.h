@@ -168,6 +168,14 @@ public:
 	float mBaseUltimateRemainingTime = 0.0f;
 	float mBaseUltimateNextTickTime = 0.0f;
 	int32 mBaseUltimateTicksRemaining = 0;
+	bool mGuitarUltimateActive = false;
+	bool mGuitarUltimateSummoned = false;
+	float mGuitarUltimateSummonTime = 0.0f;
+	float mGuitarUltimateEndTime = 0.0f;
+	float mGuitarUltimateRemainingTime = 0.0f;
+	float mGuitarUltimateNextTickTime = 0.0f;
+	int32 mGuitarUltimateTicksRemaining = 0;
+	Vec3 mGuitarUltimateCenter = Vec3::Zero;
 	bool mSpecialButtonWasDown = false;
 
 

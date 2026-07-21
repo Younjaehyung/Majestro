@@ -23,6 +23,8 @@ namespace
 	constexpr float kBongomanAttackRadius = 500.0f;
 	constexpr float kPlayerMeleeAttackRadius = 500.0f;
 	constexpr float kGuitarAttack2ExplosionRadius = 300.0f;
+	constexpr float kGuitarUltimateRadius = 500.0f;
+	constexpr float kGuitarUltimateDebugDuration = 3.75f;
 	constexpr float kPlayerMeleeAttackAngleDegrees = 150.0f;
 	constexpr float kMeleeAttackForwardDistance = 3.0f;
 	constexpr float kAttackDebugDuration = 1.0f;
@@ -423,6 +425,13 @@ void EnemySystem::Update(float dt) {
 				isPlayerAttack = true;
 				radius = kGuitarAttack2ExplosionRadius;
 			}
+			else if (e.skillType == SkillType::GuitarUltimate)
+			{
+				if (!RenderSystem::GetDrawPlayerAttackRanges())
+					return;
+				isPlayerAttack = true;
+				radius = kGuitarUltimateRadius;
+			}
 
 			if (radius <= 0.0f)
 				return;
@@ -438,11 +447,14 @@ void EnemySystem::Update(float dt) {
 				 e.skillType == SkillType::DragonSkill3) ? 360.0f :
 				(e.skillType == SkillType::DragonSkill4) ? 120.0f :
 				(isPlayerAttack ? kPlayerMeleeAttackAngleDegrees : 360.0f);
-			indicator.remainingTime = kAttackDebugDuration;
+			indicator.remainingTime = e.skillType == SkillType::GuitarUltimate
+				? kGuitarUltimateDebugDuration
+				: kAttackDebugDuration;
 			indicator.color = color;
 			indicator.isPlayerAttack = isPlayerAttack;
 			indicator.isSector =
-				(isPlayerAttack && e.skillType != SkillType::DrumSkill1) ||
+				(isPlayerAttack && e.skillType != SkillType::DrumSkill1 &&
+					e.skillType != SkillType::GuitarUltimate) ||
 				e.skillType == SkillType::DragonSkill4;
 			indicator.isSphere = (e.skillType == SkillType::GuitarAttack_2);
 			mAttackDebugIndicators.push_back(indicator);

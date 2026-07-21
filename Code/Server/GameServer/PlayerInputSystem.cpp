@@ -35,6 +35,11 @@ namespace
 	constexpr float kBaseUltimateRange = 5000.0f;
 	constexpr float kBaseUltimateRadius = 100.0f;
 	constexpr float kBaseUltimateOriginHeight = 110.0f;
+	constexpr float kGuitarUltimateWindupSeconds = 0.5f;
+	constexpr float kGuitarUltimateDurationBeats = 8.0f;
+	constexpr int32 kGuitarUltimateTotalTicks = 8;
+	constexpr int32 kGuitarUltimateDamage = 30;
+	constexpr float kGuitarUltimateRadius = 500.0f;
 }
 
 
@@ -69,6 +74,9 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mBaseUltimateActive = false;
 			mainPlayerComponent->mBaseUltimateRemainingTime = 0.0f;
 			mainPlayerComponent->mBaseUltimateTicksRemaining = 0;
+			mainPlayerComponent->mGuitarUltimateActive = false;
+			mainPlayerComponent->mGuitarUltimateRemainingTime = 0.0f;
+			mainPlayerComponent->mGuitarUltimateTicksRemaining = 0;
 			mainPlayerComponent->mSpeed = 0.f;
 			mainPlayerComponent->mHasMoveInput = false;
 			continue;
@@ -84,6 +92,11 @@ void PlayerInputSystem::Update(float dt)
 		mainPlayerComponent->mSpecialButtonWasDown = specialButtonDown;
 
 		if (TickBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat, dt))
+		{
+			mainPlayerComponent->Update(dt);
+			continue;
+		}
+		if (TickGuitarUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat, dt))
 		{
 			mainPlayerComponent->Update(dt);
 			continue;
@@ -213,11 +226,17 @@ void PlayerInputSystem::Update(float dt)
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::RELOAD);
 		}
 		if (specialButtonPressed) {
-			if (mainPlayerComponent->mFsm.GetState() != S_Special)
+			if (mainPlayerComponent->mPlayerType == Fanthor &&
+				!mainPlayerComponent->mGuitarUltimateActive)
 			{
 				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
-				if (mainPlayerComponent->mPlayerType == Ibanix)
-					StartBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat);
+				StartGuitarUltimate(mainPlayerComponent, now, Beat);
+			}
+			else if (mainPlayerComponent->mPlayerType == Ibanix &&
+				mainPlayerComponent->mFsm.GetState() != S_Special)
+			{
+				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
+				StartBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat);
 			}
 		}
 		if (inputComp->IsButtonPressed(InputButtons::DANCE1)) {
@@ -637,6 +656,156 @@ void PlayerInputSystem::ApplyBaseUltimateDamage(
 		damage.amount = kBaseUltimateDamage;
 		damage.instigator = player;
 		damage.skillType = SkillType::BaseUltimate;
+		eventManager.Enqueue<EvDamage>(damage);
+	}
+}
+
+void PlayerInputSystem::StartGuitarUltimate(
+	MainPlayerComponent* playerComponent,
+	float now,
+	float beatSeconds)
+{
+	if (!playerComponent)
+		return;
+
+	const float activeDuration = (std::max)(0.01f, beatSeconds) * kGuitarUltimateDurationBeats;
+	const float totalDuration = kGuitarUltimateWindupSeconds + activeDuration;
+	playerComponent->mGuitarUltimateActive = true;
+	playerComponent->mGuitarUltimateSummoned = false;
+	playerComponent->mGuitarUltimateSummonTime = now + kGuitarUltimateWindupSeconds;
+	playerComponent->mGuitarUltimateEndTime = now + totalDuration;
+	playerComponent->mGuitarUltimateRemainingTime = totalDuration;
+	playerComponent->mGuitarUltimateNextTickTime = playerComponent->mGuitarUltimateSummonTime;
+	playerComponent->mGuitarUltimateTicksRemaining = kGuitarUltimateTotalTicks;
+	// 시전 애니메이션은 소환 시점까지만 1회 재생한다. 장판 피해는 이후 독립적으로 진행된다.
+	playerComponent->mStateEnd = playerComponent->mGuitarUltimateSummonTime;
+#ifdef _DEBUG
+	std::cout << "[GuitarUltimate] reserved summonIn=" << kGuitarUltimateWindupSeconds
+		<< " duration=" << activeDuration << std::endl;
+#endif
+}
+
+bool PlayerInputSystem::TickGuitarUltimate(
+	Entity player,
+	MainPlayerComponent* playerComponent,
+	InputComponent* input,
+	EventManager& eventManager,
+	float now,
+	float beatSeconds,
+	float dt)
+{
+	if (!playerComponent || !input || !playerComponent->mGuitarUltimateActive)
+		return false;
+
+	playerComponent->mHasMoveInput =
+		std::abs(input->MoveX) > 0.01f || std::abs(input->MoveZ) > 0.01f;
+	playerComponent->mPlayerMovingDir.x = input->MoveZ;
+	playerComponent->mPlayerMovingDir.y = input->MoveX;
+	if (playerComponent->mHasMoveInput)
+	{
+		float moveSpeedMultiplier = 1.0f;
+		if (const BuffComponent* buff = mWorld->GetComponent<BuffComponent>(player))
+			moveSpeedMultiplier *= buff->mMoveSpeedMultiplier;
+		if (const RhythmEffectComponent* rhythmEffect =
+			mWorld->GetComponent<RhythmEffectComponent>(player))
+		{
+			moveSpeedMultiplier *= rhythmEffect->GetVariantModifiers().moveSpeedMultiplier;
+		}
+		playerComponent->mSpeed = playerComponent->mRunSpeed * moveSpeedMultiplier;
+	}
+	else
+	{
+		playerComponent->mSpeed = 0.0f;
+	}
+	playerComponent->mGuitarUltimateRemainingTime -= (std::max)(0.0f, dt);
+	if (now >= playerComponent->mGuitarUltimateEndTime ||
+		playerComponent->mGuitarUltimateRemainingTime <= 0.0f)
+	{
+		if (playerComponent->mGuitarUltimateSummoned)
+		{
+			HealthComponent* health = mWorld->GetComponent<HealthComponent>(player);
+			if (health && health->mCurrentHp > 0 && health->mCurrentHp < health->mMaxHp)
+			{
+				health->mCurrentHp = health->mMaxHp;
+				eventManager.Enqueue<EvHealthChanged>({
+					player,
+					health->mCurrentHp,
+					health->mMaxHp });
+			}
+		}
+		playerComponent->mGuitarUltimateActive = false;
+		playerComponent->mGuitarUltimateSummoned = false;
+		playerComponent->mGuitarUltimateRemainingTime = 0.0f;
+		playerComponent->mGuitarUltimateTicksRemaining = 0;
+		if (playerComponent->mFsm.GetState() == S_Special)
+			playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
+		return false;
+	}
+
+	if (!playerComponent->mGuitarUltimateSummoned && now >= playerComponent->mGuitarUltimateSummonTime)
+	{
+		const TransformComponent* transform = mWorld->GetComponent<TransformComponent>(player);
+		if (!transform)
+			return true;
+
+		playerComponent->mGuitarUltimateSummoned = true;
+		playerComponent->mGuitarUltimateCenter = transform->mWorldPosition;
+		if (playerComponent->mFsm.GetState() == S_Special)
+			playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
+		const NetEntityComponent* netEntity = mWorld->GetComponent<NetEntityComponent>(player);
+		eventManager.Enqueue<EvEffectSpawn>({
+			static_cast<uint8>(SkillType::GuitarUltimate),
+			playerComponent->mGuitarUltimateCenter.x,
+			playerComponent->mGuitarUltimateCenter.y,
+			playerComponent->mGuitarUltimateCenter.z,
+			EffectSpawnReason::Fire,
+			0.0f, 0.0f, 0.0f,
+			netEntity ? netEntity->mNetEntityId : 0 });
+#ifdef _DEBUG
+		std::cout << "[GuitarUltimate] summoned center=("
+			<< playerComponent->mGuitarUltimateCenter.x << ", "
+			<< playerComponent->mGuitarUltimateCenter.y << ", "
+			<< playerComponent->mGuitarUltimateCenter.z << ")" << std::endl;
+#endif
+	}
+
+	const float tickInterval = (std::max)(0.01f, beatSeconds);
+	while (playerComponent->mGuitarUltimateSummoned &&
+		playerComponent->mGuitarUltimateTicksRemaining > 0 &&
+		now >= playerComponent->mGuitarUltimateNextTickTime)
+	{
+		ApplyGuitarUltimateDamage(player, playerComponent->mGuitarUltimateCenter, eventManager);
+		--playerComponent->mGuitarUltimateTicksRemaining;
+		playerComponent->mGuitarUltimateNextTickTime += tickInterval;
+	}
+
+	// 소환 전까지만 시전 행동을 점유한다. 소환 후 장판은 플레이어 행동과 독립적으로 동작한다.
+	return !playerComponent->mGuitarUltimateSummoned;
+}
+
+void PlayerInputSystem::ApplyGuitarUltimateDamage(
+	Entity player,
+	const Vec3& center,
+	EventManager& eventManager)
+{
+	const float radiusSq = kGuitarUltimateRadius * kGuitarUltimateRadius;
+	for (Entity target : mWorld->GetEntitiesWithComponents<EnemyComponent, TransformComponent, HealthComponent>())
+	{
+		const HealthComponent* health = mWorld->GetComponent<HealthComponent>(target);
+		const TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
+		if (!health || health->mCurrentHp <= 0 || !targetTransform)
+			continue;
+
+		const float dx = targetTransform->mWorldPosition.x - center.x;
+		const float dz = targetTransform->mWorldPosition.z - center.z;
+		if (dx * dx + dz * dz > radiusSq)
+			continue;
+
+		EvDamage damage{};
+		damage.target = target;
+		damage.amount = kGuitarUltimateDamage;
+		damage.instigator = player;
+		damage.skillType = SkillType::GuitarUltimate;
 		eventManager.Enqueue<EvDamage>(damage);
 	}
 }

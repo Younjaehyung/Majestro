@@ -129,6 +129,7 @@ enum class SkillType : uint8
 	DragonSkill3,
 	DragonSkill4,
 	BaseUltimate,
+	GuitarUltimate,
 
 	Max
 };

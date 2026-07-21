@@ -40,6 +40,11 @@ private:
 	                      float now, float beatSeconds, float dt);
 	void ApplyBaseUltimateDamage(Entity player, const InputComponent& input,
 	                             EventManager& eventManager);
+	void StartGuitarUltimate(MainPlayerComponent* playerComponent, float now, float beatSeconds);
+	bool TickGuitarUltimate(Entity player, MainPlayerComponent* playerComponent,
+	                        InputComponent* input, EventManager& eventManager,
+	                        float now, float beatSeconds, float dt);
+	void ApplyGuitarUltimateDamage(Entity player, const Vec3& center, EventManager& eventManager);
 
 	bool TryFireAction(Entity e, MainPlayerComponent* mp, EventManager& em,
 	                   InputButtons button, float now, float Beat,

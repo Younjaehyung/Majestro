@@ -118,6 +118,7 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 		bool desiredUpperLayer = false;
 		// 사망 등 종착 상태: 클립 끝에서 루프하지 않고 마지막 프레임에 고정.
 		bool holdLastFrame = false;
+		bool holdUpperLastFrame = false;
 
 		if (mainPlayerCom) {
 			const PlayerAnimationResolveResult resolvedAnim = ResolvePlayerAnimationState(
@@ -131,6 +132,7 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 				animCom->mUpperAnimClipIdx = resolvedAnim.UpperClipIndex;
 
 			holdLastFrame = resolvedAnim.HoldLastFrame;
+			holdUpperLastFrame = resolvedAnim.HoldUpperLastFrame;
 		}
 
 		if (enemyCom) {
@@ -228,7 +230,18 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 				}
 			}
 			if (animCom->mUpperUpdateTime >= upperAnimClip->mDuration)
-				animCom->mUpperUpdateTime = 0.f;
+			{
+				if (holdUpperLastFrame)
+				{
+					const uint32 numFrame = max(upperAnimClip->mClipMeta.NumFrame, 1u);
+					const float frameDuration = upperAnimClip->mDuration / static_cast<float>(numFrame);
+					animCom->mUpperUpdateTime = static_cast<float>(numFrame - 1) * frameDuration;
+				}
+				else
+				{
+					animCom->mUpperUpdateTime = 0.f;
+				}
+			}
 		}
 
 		uint32 currentFrame = 0;

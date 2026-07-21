@@ -567,6 +567,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 	switch (static_cast<EffectSpawnReason>(reason))
 	{
 	case EffectSpawnReason::Fire:
+		if (skillType == SkillType::GuitarUltimate)
+			return VfxSpawnDesc{ L"VFX_Fanthor_Ultimate", Vec3::Zero, Vec3(10.0f) };
+
 		if (skillType == SkillType::BaseUltimate)
 			return VfxSpawnDesc{ L"VFX_Ibanix_Ultimate", Vec3(0.f, 110.f, 0.f), Vec3(1.0f),
 				/*followCaster*/ true, /*followCasterRotation*/ true, /*loopUntilSpecialEnds*/ true,

@@ -3374,6 +3374,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Skill_02\\VFX_Rudwig_Skill_02.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Reload\\VFX_Rudwig_Reload.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Skill_01\\VFX_Fanthor_Skill_01.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Ultimate\\VFX_Fanthor_Ultimate.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Ultimate\\VFX_Ibanix_Ultimate.efk");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Bongoman_Attack\\VFX_Bongoman_Attack_01.efk");

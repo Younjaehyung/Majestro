@@ -39,7 +39,7 @@ namespace
 	constexpr float kGuitarUltimateDurationBeats = 8.0f;
 	constexpr int32 kGuitarUltimateTotalTicks = 8;
 	constexpr int32 kGuitarUltimateDamage = 30;
-	constexpr float kGuitarUltimateRadius = 500.0f;
+	constexpr float kGuitarUltimateRadius = 1000.0f;
 	constexpr float kDrumUltimateDurationBeats = 8.0f;
 	constexpr float kDrumUltimateRadius = 1000.0f;
 }
@@ -75,6 +75,7 @@ void PlayerInputSystem::Update(float dt)
 		{
 			mainPlayerComponent->mBaseUltimateActive = false;
 			mainPlayerComponent->mBaseUltimateRemainingTime = 0.0f;
+			mainPlayerComponent->mBaseUltimateInitialDuration = 0.0f;
 			mainPlayerComponent->mBaseUltimateTicksRemaining = 0;
 			mainPlayerComponent->mGuitarUltimateActive = false;
 			mainPlayerComponent->mGuitarUltimateRemainingTime = 0.0f;
@@ -96,7 +97,8 @@ void PlayerInputSystem::Update(float dt)
 			!mainPlayerComponent->mSpecialButtonWasDown;
 		mainPlayerComponent->mSpecialButtonWasDown = specialButtonDown;
 
-		if (TickBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat, dt))
+		if (TickBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat, dt,
+			specialButtonPressed))
 		{
 			mainPlayerComponent->Update(dt);
 			continue;
@@ -570,8 +572,10 @@ void PlayerInputSystem::StartBaseUltimate(
 	playerComponent->mBaseUltimateActive = true;
 	playerComponent->mBaseUltimateEndTime = now + duration;
 	playerComponent->mBaseUltimateRemainingTime = duration;
+	playerComponent->mBaseUltimateInitialDuration = duration;
 	playerComponent->mBaseUltimateNextTickTime = now;
 	playerComponent->mBaseUltimateTicksRemaining = kBaseUltimateTotalTicks;
+	playerComponent->mRhythmPoints = 0;
 	playerComponent->mStateEnd = playerComponent->mBaseUltimateEndTime;
 	playerComponent->mSpeed = 0.0f;
 	playerComponent->mHasMoveInput = false;
@@ -587,10 +591,59 @@ bool PlayerInputSystem::TickBaseUltimate(
 	EventManager& eventManager,
 	float now,
 	float beatSeconds,
-	float dt)
+	float dt,
+	bool cancelRequested)
 {
 	if (!playerComponent || !input || !playerComponent->mBaseUltimateActive)
 		return false;
+
+	if (cancelRequested)
+	{
+		const float remaining = (std::max)(0.0f, (std::min)(
+			playerComponent->mBaseUltimateEndTime - now,
+			playerComponent->mBaseUltimateRemainingTime));
+		const float duration = (std::max)(0.01f, playerComponent->mBaseUltimateInitialDuration);
+		const float remainingRatio = std::clamp(remaining / duration, 0.0f, 1.0f);
+		constexpr int32 kRefundStep = 25;
+		const float rawRefund =
+			static_cast<float>(MainPlayerComponent::kMaxRhythmPoints) * remainingRatio;
+		const int32 refund = std::clamp(
+			static_cast<int32>(std::lround(rawRefund / static_cast<float>(kRefundStep))) * kRefundStep,
+			kRefundStep,
+			MainPlayerComponent::kMaxRhythmPoints);
+		playerComponent->mRhythmPoints = (std::min)(
+			MainPlayerComponent::kMaxRhythmPoints,
+			playerComponent->mRhythmPoints + refund);
+		playerComponent->mBaseUltimateActive = false;
+		playerComponent->mBaseUltimateRemainingTime = 0.0f;
+		playerComponent->mBaseUltimateInitialDuration = 0.0f;
+		playerComponent->mBaseUltimateTicksRemaining = 0;
+		playerComponent->mSpeed = 0.0f;
+		playerComponent->mHasMoveInput = false;
+		ClearFlag(playerComponent->mFlags, FLAG_ANIM);
+		ClearFlag(playerComponent->mFlags, FLAG_MOVE);
+		if (playerComponent->mFsm.GetState() == S_Special)
+			playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
+		const TransformComponent* transform = mWorld->GetComponent<TransformComponent>(player);
+		const NetEntityComponent* netEntity = mWorld->GetComponent<NetEntityComponent>(player);
+		if (transform)
+		{
+			eventManager.Enqueue<EvEffectSpawn>({
+				static_cast<uint8>(SkillType::BaseUltimate),
+				transform->mWorldPosition.x,
+				transform->mWorldPosition.y,
+				transform->mWorldPosition.z,
+				EffectSpawnReason::LifetimeExpired,
+				0.0f, 0.0f, 0.0f,
+				netEntity ? netEntity->mNetEntityId : 0 });
+		}
+#ifdef _DEBUG
+		std::cout << "[BaseUltimate] cancelled remainingRatio=" << remainingRatio
+			<< " refund=" << refund << std::endl;
+#endif
+		// 취소에 사용한 G 입력이 같은 프레임에 신규 궁극기 발동으로 다시 처리되지 않게 소비한다.
+		return true;
+	}
 
 	playerComponent->mBaseUltimateRemainingTime -= (std::max)(0.0f, dt);
 
@@ -600,6 +653,7 @@ bool PlayerInputSystem::TickBaseUltimate(
 	{
 		playerComponent->mBaseUltimateActive = false;
 		playerComponent->mBaseUltimateRemainingTime = 0.0f;
+		playerComponent->mBaseUltimateInitialDuration = 0.0f;
 		playerComponent->mBaseUltimateTicksRemaining = 0;
 		if (playerComponent->mFsm.GetState() == S_Special)
 			playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
@@ -693,6 +747,7 @@ void PlayerInputSystem::StartGuitarUltimate(
 	playerComponent->mGuitarUltimateRemainingTime = totalDuration;
 	playerComponent->mGuitarUltimateNextTickTime = playerComponent->mGuitarUltimateSummonTime;
 	playerComponent->mGuitarUltimateTicksRemaining = kGuitarUltimateTotalTicks;
+	playerComponent->mRhythmPoints = 0;
 	// 시전 애니메이션은 소환 시점까지만 1회 재생한다. 장판 피해는 이후 독립적으로 진행된다.
 	playerComponent->mStateEnd = playerComponent->mGuitarUltimateSummonTime;
 #ifdef _DEBUG
@@ -841,6 +896,7 @@ void PlayerInputSystem::StartDrumUltimate(
 	playerComponent->mDrumUltimateEndTime = now + duration;
 	playerComponent->mDrumUltimateRemainingTime = duration;
 	playerComponent->mDrumUltimateHitCount = 0;
+	playerComponent->mRhythmPoints = 0;
 
 	const TransformComponent* transform = mWorld->GetComponent<TransformComponent>(player);
 	const NetEntityComponent* netEntity = mWorld->GetComponent<NetEntityComponent>(player);

@@ -37,7 +37,7 @@ private:
 	                       float now, float beatSeconds);
 	bool TickBaseUltimate(Entity player, MainPlayerComponent* playerComponent,
 	                      InputComponent* input, EventManager& eventManager,
-	                      float now, float beatSeconds, float dt);
+	                      float now, float beatSeconds, float dt, bool cancelRequested);
 	void ApplyBaseUltimateDamage(Entity player, const InputComponent& input,
 	                             EventManager& eventManager);
 	void StartGuitarUltimate(MainPlayerComponent* playerComponent, float now, float beatSeconds);

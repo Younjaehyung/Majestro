@@ -23,7 +23,7 @@ namespace
 	constexpr float kBongomanAttackRadius = 500.0f;
 	constexpr float kPlayerMeleeAttackRadius = 500.0f;
 	constexpr float kGuitarAttack2ExplosionRadius = 300.0f;
-	constexpr float kGuitarUltimateRadius = 500.0f;
+	constexpr float kGuitarUltimateRadius = 1000.0f;
 	constexpr float kGuitarUltimateDebugDuration = 3.75f;
 	constexpr float kDrumUltimateRadius = 1000.0f;
 	constexpr float kPlayerMeleeAttackAngleDegrees = 150.0f;

@@ -166,6 +166,7 @@ public:
 	bool mBaseUltimateActive = false;
 	float mBaseUltimateEndTime = 0.0f;
 	float mBaseUltimateRemainingTime = 0.0f;
+	float mBaseUltimateInitialDuration = 0.0f;
 	float mBaseUltimateNextTickTime = 0.0f;
 	int32 mBaseUltimateTicksRemaining = 0;
 	bool mGuitarUltimateActive = false;

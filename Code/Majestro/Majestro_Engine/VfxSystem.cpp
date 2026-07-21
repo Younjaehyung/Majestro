@@ -203,7 +203,8 @@ void VfxSystem::ConsumeSpawnEvents()
 
 	eventManager->Consume<EvVfxSpawnRequest>([this](const EvVfxSpawnRequest& event)
 	{
-		if (event.skillType == SkillType::DrumUltimate &&
+		if ((event.skillType == SkillType::DrumUltimate ||
+			event.skillType == SkillType::BaseUltimate) &&
 			event.reason == static_cast<uint8>(EffectSpawnReason::LifetimeExpired))
 		{
 			const Entity caster = mWorld->GetEntityByNetId(event.casterNetId);
@@ -211,7 +212,7 @@ void VfxSystem::ConsumeSpawnEvents()
 			{
 				VfxComponent* component = mWorld->GetComponent<VfxComponent>(entity);
 				if (!component || !component->mInUse ||
-					component->mSourceSkillType != static_cast<uint8>(SkillType::DrumUltimate) ||
+					component->mSourceSkillType != static_cast<uint8>(event.skillType) ||
 					component->mFollowTarget != caster)
 				{
 					continue;

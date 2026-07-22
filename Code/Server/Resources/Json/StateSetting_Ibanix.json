@@ -3,7 +3,7 @@
         "runSpeed": 500.0,
         "dashSpeed": 1000.0,
         "dashTime": 1.0,
-        "attackCool": 2,
+        "attackCool": 1,
         "skill1Cool": 16,
         "skill2Cool": 2,
         "reloadCool": 1,

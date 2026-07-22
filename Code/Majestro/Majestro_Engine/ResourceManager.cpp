@@ -3389,6 +3389,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_02\\VFX_BrassBoss_Skill_02.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_03\\VFX_BrassBoss_Skill_03.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_BrassBoss_Skill_04\\VFX_BrassBoss_Skill_04.efk");
+	LoadEffect(L"..\\Resources\\Effect\\VFX_Dragon_Skill_04\\VFX_Dragon_Skill_04.efk");
 
 
 	LoadEffect(L"..\\Resources\\Effect\\UI_TItle.efk");

@@ -32,6 +32,11 @@ namespace
 	constexpr float kBrassSkill2FireDelayBeats = 1.5f;
 	constexpr float kDragonSkill1FireDelayBeats = 1.0f;
 	constexpr float kDragonSkill123AnimDurationSeconds = 3.0f;
+	constexpr uint8 kDragonSkill4ExplosionCount = 5;
+	constexpr float kDragonSkill4SpawnRadius = 2000.0f;
+	constexpr float kDragonSkill4ExplosionDelayBeats = 4.0f;
+	constexpr float kDragonSkill4ExplosionRadius = 700.0f;
+	constexpr int32 kDragonSkill4ExplosionDamage = 50;
 
     float FlatDistanceSquared(const Vec3& a, const Vec3& b)
     {
@@ -750,15 +755,48 @@ bool EnemySystem::HandleAttackState(
 	        movementComp->mPathCount = 0;
 	        movementComp->mPathIndex = 0;
 
-	        if (eventManager &&
-	            enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::DragonSkill4) &&
-	            enemyComp->mDragonSkill4NextAttackTime >= 0.0f &&
-	            nowSeconds <= enemyComp->mAttackAnimEndTime &&
-	            nowSeconds >= enemyComp->mDragonSkill4NextAttackTime)
-	        {
-	            eventManager->Enqueue<EvMeleeAttackRequest>({ entity, SkillType::DragonSkill4 });
-	            enemyComp->mDragonSkill4NextAttackTime = nowSeconds + beatSeconds;
-	        }
+		        if (eventManager &&
+		            enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::DragonSkill4) &&
+		            enemyComp->mDragonSkill4ExplosionTime >= 0.0f &&
+		            nowSeconds >= enemyComp->mDragonSkill4ExplosionTime)
+		        {
+		            const float radiusSq = kDragonSkill4ExplosionRadius * kDragonSkill4ExplosionRadius;
+		            for (uint8 i = 0; i < enemyComp->mDragonSkill4CenterCount; ++i)
+		            {
+		                const Vec3 center = enemyComp->mDragonSkill4Centers[i];
+		                eventManager->Enqueue<EvEffectSpawn>({
+		                    static_cast<uint8>(SkillType::DragonSkill4),
+		                    center.x, center.y, center.z,
+		                    EffectSpawnReason::CollisionEntity
+		                });
+
+		                for (Entity target : mWorld->GetEntitiesWithComponents<MainPlayerComponent, TransformComponent, HealthComponent>())
+		                {
+		                    if (IsPlayerDead(mWorld, target))
+		                        continue;
+
+		                    const TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
+		                    if (!targetTransform)
+		                        continue;
+
+		                    Vec3 delta = targetTransform->mWorldPosition - center;
+		                    delta.y = 0.0f;
+		                    if (delta.LengthSquared() <= radiusSq)
+		                    {
+		                        eventManager->Enqueue<EvDamage>({
+		                            target,
+		                            kDragonSkill4ExplosionDamage,
+		                            entity,
+		                            SkillType::DragonSkill4
+		                        });
+		                    }
+		                }
+		            }
+
+		            enemyComp->mDragonSkill4ExplosionTime = -1.0f;
+		            enemyComp->mDragonSkill4CenterCount = 0;
+		            enemyComp->mPendingSkillType = 0;
+		        }
 
 	        if (eventManager &&
 	            enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::DragonSkill1) &&
@@ -786,7 +824,8 @@ bool EnemySystem::HandleAttackState(
 	            {
 	                enemyComp->mPendingSkillType = 0;
 	                enemyComp->mPendingAttackTime = -1.0f;
-	                enemyComp->mDragonSkill4NextAttackTime = -1.0f;
+		                enemyComp->mDragonSkill4ExplosionTime = -1.0f;
+		                enemyComp->mDragonSkill4CenterCount = 0;
 	                enemyComp->mNextAttackTime = nowSeconds + beatSeconds;
 	                MoveEnemyTowardTarget(
 	                    entity, enemyComp, movementComp, myPos, playerPos,
@@ -799,7 +838,8 @@ bool EnemySystem::HandleAttackState(
 	            const SkillType dragonSkill = GetDragonSkillType(dragonPattern);
 	            enemyComp->mPendingSkillType = static_cast<uint8>(dragonSkill);
 	            enemyComp->mPendingAttackTime = -1.0f;
-	            enemyComp->mDragonSkill4NextAttackTime = -1.0f;
+		            enemyComp->mDragonSkill4ExplosionTime = -1.0f;
+		            enemyComp->mDragonSkill4CenterCount = 0;
 
 	            if (dragonSkill == SkillType::DragonSkill1)
 	            {
@@ -844,17 +884,34 @@ bool EnemySystem::HandleAttackState(
 	                const DragonSummonOption& summon = summonOptions[MathUtils::RandomIndex(summonOptions.size())];
 	                SpawnEnemyGroupAroundAndBroadcast(mWorld, entity, summon.type, summon.count, summon.radius);
 	            }
-	            else
-	            {
-	                enemyComp->mAttackAnimEndTime =
-	                    dragonSkill == SkillType::DragonSkill4
-	                    ? nowSeconds + enemyComp->mAttackAnimTime
-	                    : nowSeconds + kDragonSkill123AnimDurationSeconds;
+		            else if (dragonSkill == SkillType::DragonSkill4)
+		            {
+		                enemyComp->mDragonSkill4CenterCount = kDragonSkill4ExplosionCount;
+		                enemyComp->mDragonSkill4ExplosionTime =
+		                    nowSeconds + beatSeconds * kDragonSkill4ExplosionDelayBeats;
+		                enemyComp->mAttackAnimEndTime =
+		                    enemyComp->mDragonSkill4ExplosionTime + enemyComp->mAttackAnimTime;
 
-	                eventManager->Enqueue<EvMeleeAttackRequest>({ entity, dragonSkill });
-	                if (dragonSkill == SkillType::DragonSkill4)
-	                    enemyComp->mDragonSkill4NextAttackTime = nowSeconds + beatSeconds;
-	            }
+		                const std::shared_ptr<Navigation>& navSystem = mWorld->GetNavSystem();
+		                for (uint8 i = 0; i < kDragonSkill4ExplosionCount; ++i)
+		                {
+		                    Vec3 center = myPos + MathUtils::SampleDiskXZ(kDragonSkill4SpawnRadius);
+		                    if (navSystem && navSystem->IsInitialized())
+		                        center = navSystem->GetNearestPointOnNavMesh(center, kDragonSkill4SpawnRadius);
+
+		                    enemyComp->mDragonSkill4Centers[i] = center;
+		                    eventManager->Enqueue<EvEffectSpawn>({
+		                        static_cast<uint8>(SkillType::DragonSkill4),
+		                        center.x, center.y, center.z,
+		                        EffectSpawnReason::Fire
+		                    });
+		                }
+		            }
+		            else
+		            {
+		                enemyComp->mAttackAnimEndTime = nowSeconds + kDragonSkill123AnimDurationSeconds;
+		                eventManager->Enqueue<EvMeleeAttackRequest>({ entity, dragonSkill });
+		            }
 
 	            enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mBossAttackCool[dragonPattern];
 	        }
@@ -1421,7 +1478,8 @@ bool EnemySystem::HandleAttackState(
 	        {
 	            enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::Idle);
 	            enemyComp->mPendingSkillType = 0;
-	            enemyComp->mDragonSkill4NextAttackTime = -1.0f;
+		            enemyComp->mDragonSkill4ExplosionTime = -1.0f;
+		            enemyComp->mDragonSkill4CenterCount = 0;
 	        }
 	    }
     else if (nowSeconds <= enemyComp->mAttackAnimEndTime)

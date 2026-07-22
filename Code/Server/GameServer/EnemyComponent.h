@@ -146,7 +146,9 @@ public:
 	uint8 mBrassSkill3ShotsRemaining = 0;
 	float mBrassSkill3NextShotTime = 0.0f;
 	float mBrassSkill3ShotInterval = 0.0f;
-	float mDragonSkill4NextAttackTime = -1.0f;
+	Vec3 mDragonSkill4Centers[5]{};
+	float mDragonSkill4ExplosionTime = -1.0f;
+	uint8 mDragonSkill4CenterCount = 0;
 	float mBrassRushEndHoldUntilTime = 0.0f;
 	bool mBossEncounterActivated = false;
 	Entity mBossPolicyTarget{};

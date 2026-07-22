@@ -39,7 +39,6 @@ enum class BuffType
     //de buff
     ShieldDown,
     Silence,
-    DragonSkill4Dot
 };
 struct BuffData
 {

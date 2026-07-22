@@ -677,11 +677,12 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
     const bool bongoAttackDebug = skillType == SkillType::BongoAttack &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
 
-    const bool dragonAttackDebug =
-        (skillType == SkillType::DragonSkill1 ||
-         skillType == SkillType::DragonSkill3 ||
-         skillType == SkillType::DragonSkill4) &&
-        pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+	const bool dragonAttackDebug =
+		((skillType == SkillType::DragonSkill1 ||
+		  skillType == SkillType::DragonSkill3) &&
+		 pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire)) ||
+		(skillType == SkillType::DragonSkill4 &&
+		 pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity));
 
 	    const bool playerMeleeDebug =
 	        (skillType == SkillType::DrumAttack ||

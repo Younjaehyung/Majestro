@@ -159,45 +159,6 @@ void BuffSystem::ExecutePeriodicBuff(Entity target, BuffData& buff)
         }
         break;
     }
-    case BuffType::DragonSkill4Dot:
-    {
-        TransformComponent* sourceTransform = mWorld->GetComponent<TransformComponent>(buff.mSource);
-        TransformComponent* targetTransform = mWorld->GetComponent<TransformComponent>(target);
-        if (!sourceTransform || !targetTransform)
-            return;
-
-        Vec3 forward = sourceTransform->GetLook();
-        forward.y = 0.0f;
-        if (forward.LengthSquared() <= 1e-6f)
-            forward = Vec3::Forward;
-        else
-            forward.Normalize();
-
-        const Vec3 attackCenter = sourceTransform->mWorldPosition + forward * 5.0f;
-        Vec3 toTarget = targetTransform->mWorldPosition - attackCenter;
-        toTarget.y = 0.0f;
-
-        const float radius = 550.0f;
-        const float radiusSq = radius * radius;
-        if (toTarget.LengthSquared() > radiusSq)
-            return;
-
-        if (toTarget.LengthSquared() > 1e-6f)
-        {
-            toTarget.Normalize();
-            const float minDot = std::cos(DirectX::XMConvertToRadians(60.0f));
-            if (forward.Dot(toTarget) < minDot)
-                return;
-        }
-
-        EvDamage damage{};
-        damage.target = target;
-        damage.instigator = buff.mSource;
-        damage.skillType = SkillType::DragonSkill4;
-        damage.amount = 10;
-        eventManager->Enqueue<EvDamage>(damage);
-        break;
-    }
     case BuffType::MoveSpeedUp10:
     default:
         break;

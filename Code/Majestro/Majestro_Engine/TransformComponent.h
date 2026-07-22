@@ -2,14 +2,6 @@
 #include "Entity.h"
 #include "Component.h"
 
-struct ObjectParams {
-	Matrix MatWorld;
-	// x = ObjectAlpha (1=불투명, 0=완전 디더 컬)
-	// y = HitFlashStrength (0~1, JHToon_PS에서 red lerp 가중치)
-	// z/w = 예비
-	Vec4 Extra{ 1.f, 0.f, 0.f, 0.f };
-};
-
 class TransformComponent : public Component<TransformComponent>
 {
 public:

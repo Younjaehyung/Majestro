@@ -22,6 +22,7 @@
 #include "GameRenderPipeline.h"
 #include "DamageFeedbackComponent.h"
 #include "RhythmEmissiveComponent.h"
+#include "HighlightComponent.h"
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 bool RenderSystem::sDrawColliders = false;
@@ -527,7 +528,8 @@ void RenderSystem::PushObjectData() {
 
       // shadow-only 오브젝트: 트랜스폼 및 드로우 아이템 등록
       objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
-      objectParams.Extra = Vec4(renderComponent->mOpacity, 0.f, 0.f, 0.f);
+      objectParams.Extra1 = Vec4(renderComponent->mOpacity, 0.f, 0.f, 0.f);
+      objectParams.Extra2 = Vec4::Zero;
       mObjectVector.push_back(objectParams);
       renderComponent->mObjectIndex = index++;
       const int32 animIdx = animationComponent ? animationComponent->mAnimInstanceID : -1;
@@ -553,7 +555,7 @@ void RenderSystem::PushObjectData() {
       continue;
 
     // Hit Flash: 피격 시 JHToon_PS에서 빨강으로 lerp되는 강도(0~1)
-    // Extra.x = ObjectAlpha, Extra.y = HitFlashStrength, Extra.z = EmissiveGate
+    // Extra1.x = ObjectAlpha, Extra1.y = HitFlashStrength, Extra1.z = EmissiveGate
     float hitFlash = 0.f;
     if (auto* f = mWorld->GetComponent<HitFlashComponent>(gameObject))
       hitFlash = f->mCurrentStrength;
@@ -563,8 +565,14 @@ void RenderSystem::PushObjectData() {
     if (auto* re = mWorld->GetComponent<RhythmEmissiveComponent>(gameObject))
       emissiveGate = re->mCurrentGate;
 
+    // 대상 강조(나노강화) : rgb = 색, w = 강도(0=미강조)
+    Vec4 highlight = Vec4::Zero;
+    if (auto* hl = mWorld->GetComponent<HighlightComponent>(gameObject))
+      highlight = Vec4(hl->mColor.x, hl->mColor.y, hl->mColor.z, hl->mCurrentIntensity);
+
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
-    objectParams.Extra = Vec4(renderComponent->mOpacity, hitFlash, emissiveGate, renderComponent->mDissolve);
+    objectParams.Extra1 = Vec4(renderComponent->mOpacity, hitFlash, emissiveGate, renderComponent->mDissolve);
+    objectParams.Extra2 = highlight;
     mObjectVector.push_back(objectParams); // 트랜스폼 갱신
 
     renderComponent->mObjectIndex = index++; // objectParams의 index 지정
@@ -653,7 +661,7 @@ void RenderSystem::PushObjectData() {
       Matrix boxWorld = colliderLocal * tr->mWorldMatrix;
 
       objectParams.MatWorld = boxWorld.Transpose();
-      objectParams.Extra = Vec4(1.f, 0.f, 0.f, 0.f);
+      objectParams.Extra1 = Vec4(1.f, 0.f, 0.f, 0.f);
       mObjectVector.push_back(objectParams);
 
       const uint32 objIndex = index++;
@@ -700,7 +708,7 @@ void RenderSystem::PushObjectData() {
           Matrix::CreateTranslation(Vec3(obb.Center.x, obb.Center.y, obb.Center.z));
 
       objectParams.MatWorld = boxWorld.Transpose();
-      objectParams.Extra = Vec4(1.f, 0.f, 0.f, 0.f);
+      objectParams.Extra1 = Vec4(1.f, 0.f, 0.f, 0.f);
       mObjectVector.push_back(objectParams);
       const uint32 objIndex = index++;
 
@@ -731,7 +739,7 @@ void RenderSystem::PushObjectData() {
       );
 
       objectParams.MatWorld = world.Transpose();
-      objectParams.Extra = Vec4(1.f, 0.f, 0.f, 0.f);
+      objectParams.Extra1 = Vec4(1.f, 0.f, 0.f, 0.f);
       mObjectVector.push_back(objectParams);
       const uint32 objIdx = index++;
 

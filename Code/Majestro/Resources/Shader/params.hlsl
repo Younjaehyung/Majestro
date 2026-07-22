@@ -24,12 +24,15 @@ struct LIGHTINFO
 struct OBJECTINFO
 {
     matrix MatWorld;
-    
-    // x = ObjectAlpha
-    // y = HitFlashStrength (0~1, JHToon_PS에서 red lerp 가중치)
-    // z = EmissiveGate (0~1, JHToon_PS 발광 블렌드 가중치, 기본 1)
-    // w = DissolveAmount (0~1, 적 사망 소멸 연출. 0=정상, 1=완전 소멸.
-    float4 Extra;
+
+    // Extra1.x = ObjectAlpha
+    // Extra1.y = HitFlashStrength (0~1, JHToon_PS에서 red lerp 가중치)
+    // Extra1.z = EmissiveGate (0~1, JHToon_PS 발광 블렌드 가중치, 기본 1)
+    // Extra1.w = DissolveAmount (0~1, 적 사망 소멸 연출. 0=정상, 1=완전 소멸.
+    float4 Extra1;
+
+    // Extra2 = 대상 강조(나노강화) : rgb = 강조 색(HDR 가산), w = 강도(0=미강조)
+    float4 Extra2;
 };
 //////////////
 

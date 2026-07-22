@@ -36,9 +36,9 @@ VS_OUT VS_Main(VS_IN input)
         Skinning(input.pos, input.normal, input.tangent, input.weight, input.indices, AnimInstance[instance.LightIndex].ReulstIndex);
 
     output.pos = mul(float4(input.pos, 1.f), WVP);
-    output.objectAlpha = Objects[instance.ObjectIndex].Extra.x;
+    output.objectAlpha = Objects[instance.ObjectIndex].Extra1.x;
     output.uv = input.uv;
-    output.dissolve = Objects[instance.ObjectIndex].Extra.w;
+    output.dissolve = Objects[instance.ObjectIndex].Extra1.w;
     output.noiseTexIdx = Materials[instance.MaterialInfoIndex].ExtTex[2];
 
     return output;

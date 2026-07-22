@@ -17,6 +17,7 @@ struct VS_OUT
     float3 viewBinormal : BINORMAL;
     nointerpolation uint materialIndex : MaterialIndex;
     nointerpolation float4 objectExtra : ObjectExtra;
+    nointerpolation float4 objectHighlight : ObjectHighlight;
 };
 
 // ============================================================
@@ -234,6 +235,26 @@ float4 PS_Main(VS_OUT input) : SV_Target
     // Hit Flash: 피격 시 그림자 속에서도 보이도록 라이팅 결과 위에 빨강으로 lerp
     color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
     color.rgb += kDissolveGlowColor * dissolveEdge;
+
+    // 궁극기
+    float hlIntensity = input.objectHighlight.a;
+    if (hlIntensity > 0.001f)
+    {
+        float3 hlColor = input.objectHighlight.rgb;
+        float f = 1.0f - saturate(dot(N, V)); // 실루엣 (가장자리일수록 1.0, 정면일수록 0.0)
+
+
+        float softHalo = pow(f, 1.5f);
+        float hotRim   = pow(f, 5.0f);
+
+        float4 wp = mul(float4(input.viewPos, 1.0f), PassParams.MatViewInv);
+        float worldY = wp.y / wp.w;
+        float band = sin(worldY * 0.045f - PassParams.TotalTime * 3.5f) * 0.5f + 0.5f;
+        band *= band; 
+        
+        float aura = softHalo * (0.35f + 0.65f * band) + hotRim * 1.5f;
+        color.rgb += hlColor * hlIntensity * aura;
+    }
 
     return color;
 }

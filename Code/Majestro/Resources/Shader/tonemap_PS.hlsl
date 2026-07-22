@@ -172,7 +172,7 @@ float4 PS_Main(VS_OUT input) : SV_Target
     float mask = smoothstep(0.9f, 1.0f, input.uv.y);
     float3 overlayColor = float3(0.0f, 0.0f, 0.0f);
 
-    gammaCorrected.rgb = lerp(gammaCorrected.rgb, overlayColor, mask * 0.6f);
+    gammaCorrected.rgb = lerp(gammaCorrected.rgb, overlayColor, mask * 0.8f);
     
     return float4(gammaCorrected, 1.0f);
 }

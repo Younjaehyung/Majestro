@@ -77,6 +77,7 @@
 #include "GamePhaseSystem.h"
 #include "DamageFeedbackSystem.h"
 #include "RhythmEmissiveSystem.h"
+#include "HighlightSystem.h"
 #include "DamagePopupUpdateFeature.h"
 #include "UIEmoteFeature.h"
 
@@ -2244,7 +2245,7 @@ void FirstScene::Initialize()
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
-	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Export.json");
 
 
 	/////////////////////////////////////////////////////////////////////
@@ -2402,6 +2403,7 @@ void FirstScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<HighlightSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -2700,6 +2702,7 @@ void PlazaScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<HighlightSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -2853,6 +2856,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<HighlightSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -2981,6 +2985,7 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<HighlightSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();
@@ -3120,6 +3125,7 @@ void FourthScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<BuffAuraSystem>();  // 버프 오라 데칼 (Sim)
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<HighlightSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();

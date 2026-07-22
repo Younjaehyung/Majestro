@@ -28,6 +28,18 @@ struct RenderParams {
   uint32 object3{};
 };
 
+struct ObjectParams {
+  Matrix MatWorld;
+
+  // Extra1.x = ObjectAlpha (1=불투명, 0=완전 디더 컬)
+  // Extra1.y = HitFlashStrength (0~1, JHToon_PS에서 red lerp 가중치)
+  // Extra1.z = EmissiveGate, Extra1.w = DissolveAmount
+  Vec4 Extra1{ 1.f, 0.f, 0.f, 0.f };
+
+  // Extra2 = 대상 강조(나노강화) : rgb = 강조 색(HDR 가산), w = 강도(0=미강조)
+  Vec4 Extra2{ 0.f, 0.f, 0.f, 0.f };
+};
+
 struct PassParams {
 
   Matrix MatPrevView;

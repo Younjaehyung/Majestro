@@ -19,6 +19,7 @@
 #include "SocketFollowComponent.h"
 #include "ComboComponent.h"
 #include "RhythmEmissiveComponent.h"
+#include "HighlightComponent.h"
 #include "WeaponTrailComponent.h"
 #include "AnimNotifyComponent.h"
 #include "DashSpeedLineComponent.h"
@@ -169,8 +170,9 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 
 	auto& socket = world->AddComponent<SocketComponent>(mEntityID);
 
-	// 리듬 변경 시 이미시브
+	// 리듬 변경 시 이미시브 / 궁극기 이미시브
 	world->AddComponent<RhythmEmissiveComponent>(mEntityID);
+	world->AddComponent<HighlightComponent>(mEntityID);
 
 	// 캐릭터별 트레일 룩(검기 모양 + 색)
 	struct TrailLook

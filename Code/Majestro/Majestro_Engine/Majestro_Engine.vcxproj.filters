@@ -951,6 +951,9 @@
     <ClInclude Include="ChatOverlay.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
+    <ClInclude Include="UltimateCutInFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="Chat.h">
       <Filter>World\System\UI\Chat</Filter>
     </ClInclude>
@@ -1479,6 +1482,9 @@
       <Filter>World\Script\Prefab</Filter>
     </ClCompile>
     <ClCompile Include="ChatOverlay.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="UltimateCutInFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
   </ItemGroup>

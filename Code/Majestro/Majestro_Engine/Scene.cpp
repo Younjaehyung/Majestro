@@ -101,6 +101,7 @@
 #include "UIScoreBoardFeature.h"
 #include "UIResultBoardFeature.h"
 #include "UIComboHudFeature.h"
+#include "UltimateCutInFeature.h"
 #include "PlayerStatusUIFeature.h"
 #include "UIPhaseProgressUpdateFeature.h"
 
@@ -2347,6 +2348,10 @@ void FirstScene::Initialize()
 	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
 	mUIFeatures.push_back(resultBoardModule);
 
+
+	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
+	mUIFeatures.push_back(ultimateCutInModule);
+
 	// 콤보 랭크
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -2807,6 +2812,10 @@ void SecondScene::Initialize()
 	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
 	mUIFeatures.push_back(resultBoardModule);
 
+
+	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
+	mUIFeatures.push_back(ultimateCutInModule);
+
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
 
@@ -2934,6 +2943,10 @@ void ThirdScene::Initialize()
 
 	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
 	mUIFeatures.push_back(resultBoardModule);
+
+	
+	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
+	mUIFeatures.push_back(ultimateCutInModule);
 
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -3074,6 +3087,10 @@ void FourthScene::Initialize()
 
 	auto resultBoardModule = std::make_shared<UIResultBoardFeature>();
 	mUIFeatures.push_back(resultBoardModule);
+
+
+	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
+	mUIFeatures.push_back(ultimateCutInModule);
 
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);

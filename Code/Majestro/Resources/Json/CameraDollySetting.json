@@ -1,5 +1,5 @@
 {
-  "_comment": "스킬/공격 애니메이션 구간 동안 카메라를 플레이어 뒤로 잠깐 빼는 줌아웃(dolly) 프리셋. distance=추가 거리(클수록 더 멀리), inSpeed=빠질 때 속도(클수록 빠르게), outSpeed=복귀 속도(작을수록 천천히). AnimNotifyTable.json의 kind:cameraDolly 엔트리에서 preset 이름(캐릭터_상태)으로 참조한다. 빠질 땐 빠르고 복귀는 천천히 되도록 inSpeed > outSpeed 권장.",
+  "_comment": "스킬/공격 애니메이션 구간 동안 카메라를 플레이어 뒤로 잠깐 빼는 줌아웃(dolly) 프리셋. distance=추가 거리(클수록 더 멀리), inSpeed=빠질 때 속도(클수록 빠르게), outSpeed=복귀 속도(작을수록 천천히). AnimNotifyTable.json의 kind:cameraDolly 엔트리에서 preset 이름(캐릭터_상태)으로 참조한다. 빠질 땐 빠르고 복귀는 천천히 되도록 inSpeed > outSpeed 권장. Special=궁극기 지속 풀백: HighlightSystem이 궁 강조가 유지되는 동안 매 프레임 재장전해 뒤로 뺀 채 유지한다.",
 
   "Rudwig": {
     "Skill1": {
@@ -16,6 +16,11 @@
       "distance": 300.0,
       "inSpeed": 12.0,
       "outSpeed": 3.0
+    },
+    "Special": {
+      "distance": 220.0,
+      "inSpeed": 5.0,
+      "outSpeed": 3.0
     }
   },
   "Ibanix": {
@@ -28,6 +33,11 @@
       "distance": 200.0,
       "inSpeed": 12.0,
       "outSpeed": 3.0
+    },
+    "Special": {
+      "distance": 70.0,
+      "inSpeed": 5.0,
+      "outSpeed": 3.0
     }
   },
   "Fanthor": {
@@ -39,6 +49,11 @@
     "Skill2": {
       "distance": 200.0,
       "inSpeed": 12.0,
+      "outSpeed": 3.0
+    },
+    "Special": {
+      "distance": 220.0,
+      "inSpeed": 5.0,
       "outSpeed": 3.0
     }
   }

@@ -2,19 +2,26 @@
 #include "HighlightSystem.h"
 
 #include "HighlightComponent.h"
+#include "PlayerComponent.h"
 #include "TransformComponent.h"
 #include "VfxComponent.h"
 #include "VfxSystem.h"
 #include "SystemManager.h"
 #include "World.h"
 
-#include "DecalFactory.h"   
-#include "CameraComponent.h"
-#include "TagComponent.h"   
-#include "Engine.h"         
-#include "AudioManager.h"
+#include "DecalFactory.h"
+#include "TagComponent.h"
+#include "Engine.h"
 
-#include <cmath>
+
+namespace
+{
+    bool IsUltimateState(int upperState)
+    {
+        return upperState == static_cast<int>(ReplicatedActionState::UltimateIntro)
+            || upperState == static_cast<int>(ReplicatedActionState::Special);
+    }
+}
 
 
 HighlightSystem::HighlightSystem(World* world) : System(world)
@@ -29,30 +36,37 @@ void HighlightSystem::Update(float deltaTime)
 
 void HighlightSystem::UpdateHighlights(float deltaTime)
 {
+
     for (Entity entity : mWorld->View<HighlightComponent>())
     {
         HighlightComponent* hl = mWorld->GetComponent<HighlightComponent>(entity);
         if (!hl)
             continue;
 
+        bool ultimateActive = false;
+        if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity))
+            ultimateActive = IsUltimateState(player->mUpperState);
+
         hl->mElapsed += deltaTime;
 
-        // 남은 지속시간 감쇠
-        if (hl->mRemainSec > 0.0f)
+        // 번쩍임 + 스파크
+        if (ultimateActive)
         {
-            hl->mRemainSec -= deltaTime;
-            hl->mRemainSec = (std::max)(0.0f, hl->mRemainSec);
+            if (!hl->mSparkFired)
+            {
+                hl->mFadeGate   = hl->mBurstGate;
+                FireBurst(entity, *hl);
+                hl->mSparkFired = true;
+            }
+        }
+        else
+        {
+            hl->mSparkFired = false;
         }
 
+        // 페이드 게이트 목표
+        const float targetGate = ultimateActive ? 1.0f : 0.0f;
 
-        if (hl->mRemainSec > 0.0f && !hl->mSparkFired)
-        {
-            FireBurst(entity, *hl);
-            hl->mSparkFired = true;
-        }
-
-
-        const float targetGate = hl->mRemainSec > 0.0f ? 1.0f : 0.0f;
         if (hl->mFadeGate < targetGate)
         {
             const float rate = hl->mFadeIn > 0.0f ? deltaTime / hl->mFadeIn : 1.0f;
@@ -78,13 +92,6 @@ void HighlightSystem::FireBurst(Entity target, const HighlightComponent& hl)
     SpawnSpark(target, hl);        // 상승 오라/기둥
     SpawnGroundShock(target, hl);  // 지면 충격파 데칼
 
-    // 로컬 적용
-    if (IsLocalCaster(target))
-    {
-        CameraPunch(hl);
-        if (hl.mBurstAudioEvent != nullptr)
-            AUDIOMANAGER.PlayOneShot(hl.mBurstAudioEvent);
-    }
 }
 
 void HighlightSystem::SpawnSpark(Entity target, const HighlightComponent& hl)
@@ -134,23 +141,4 @@ void HighlightSystem::SpawnGroundShock(Entity target, const HighlightComponent& 
         hl.mGroundDecalCols,
         hl.mGroundDecalRows,
         hl.mGroundDecalIndex);
-}
-
-void HighlightSystem::CameraPunch(const HighlightComponent& hl)
-{
-    // 카메라 연출
-    for (Entity cameraEntity : mWorld->GetEntitiesWithComponent<CameraTypeComponent>())
-    {
-        CameraTypeComponent* camera = mWorld->GetComponent<CameraTypeComponent>(cameraEntity);
-        if (camera == nullptr)
-            continue;
-
-        camera->TriggerShake(hl.mCamShakeAngles, hl.mCamShakeDuration, hl.mCamShakeFrequency);
-        camera->TriggerDolly(hl.mCamDollyDistance, hl.mCamDollyHold, hl.mCamDollyInSpeed, hl.mCamDollyOutSpeed);
-    }
-}
-
-bool HighlightSystem::IsLocalCaster(Entity target) const
-{
-    return mWorld->GetComponent<LocalPlayerComponent>(target) != nullptr;
 }

@@ -21,9 +21,9 @@
 #include "RhythmEmissiveComponent.h"
 #include "TagComponent.h"
 #include "BoxColliderComponent.h"
+#include "MovementComponent.h"
 #include "DecalFactory.h"
 #include "NetSendSystem.h"
-#include "MovementComponent.h"
 #include "MovementSystem.h"
 #include "VfxSystem.h"
 #include "HealthComponent.h"
@@ -39,8 +39,7 @@
 #include "BeatSystem.h"
 #include "Chat.h"
 
-NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap)
-	: System::System(world)
+NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap) : System::System(world)
 {
 	mNetIdMap = netIdMap;
     mPhase = SysPhase::Pre;

@@ -1164,18 +1164,29 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 
 HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 {
-	const std::array<Vec2, 2> kSkillPos = { Vec2(-452.f, -200.f), Vec2(-250.f, -200.f) };
+	const std::array<Vec2, 3> kSkillPos = {
+		Vec2(-654.f, -200.f),   // Skill1 (E)
+		Vec2(-452.f, -200.f),   // Skill2 (Shift)
+		Vec2(-250.f, -200.f),   // 궁극기 (Q)
+	};
 
 	const Vec2  kSkillSize = Vec2(128.f, 128.f);
-	const uint8 kSkillSlotId[2] = { 1, 2 };  // Skill1, Skill2
+	constexpr uint8 kUltimateSlot = 255;                    // 쿨타임 미추적 슬롯(오버레이 비활성)
+	const uint8 kSkillSlotId[3] = { 1, 2, kUltimateSlot };  // Skill1, Skill2, 궁극기
 
 #ifdef _IMGUI
 	std::vector<EditorProperty> props;
 	Entity imguiOwner = NULL_ENTITY;
 #endif
 
-	// 아이콘 아틀라스: 균일 격자 256X256. 열 0=Q(Skill1), 1=E(Skill2).
+	// 아이콘 아틀라스
 	constexpr float kCell = 256.f;
+	const float kIconCol[3] = { 0.f, 1.f, 5.f };
+	const Vec2  kKeyCell[3] = {
+		Vec2(1024.f, 1024.f),   // E    (Skill1)
+		Vec2(1280.f, 1024.f),   // Shift(Skill2)
+		Vec2( 768.f, 1024.f),   // Q    (궁극기)
+	};
 	int atlasRow = 3;  // 기본 Rudwig
 	switch (playerType)
 	{
@@ -1190,13 +1201,13 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 	shared_ptr<Texture> skiilTex = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
 	shared_ptr<Texture> overlayTex = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
 
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
-		const float cellX = static_cast<float>(i) * kCell;   // 열: i =0 (Q), i=1 (E)
+		const float cellX = kIconCol[i] * kCell;             // 아이콘 열 (Skill1/Skill2/궁극기)
 		const float cellY = static_cast<float>(atlasRow) * kCell;
-		const Vec2 skillKey = Vec2(768.f + static_cast<float>(i) * kCell, 1024.f);
+		const Vec2 skillKey = kKeyCell[i];                   // 키 텍스트 셀 (E/Shift/Q)
 #ifdef _IMGUI
-		const std::string imguiSlotName = (i == 0) ? "Skill1" : "Skill2";
+		const std::string imguiSlotName = (i == 0) ? "Skill1" : (i == 1) ? "Skill2" : "Ultimate";
 #endif
 
 		// 배경 패널 (아이콘 아래)

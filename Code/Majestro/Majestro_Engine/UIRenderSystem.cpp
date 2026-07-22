@@ -46,7 +46,7 @@ void UIRenderSystem::Initialize()
     mUIEffectPass = make_shared<UIEffectPass>();
     mUIEffectPass->Initialize(mWorld);
 
-    // 내장 텍스트 오버레이 등록
+
     RegisterTextOverlay(&DrawChatOverlay);
 }
 

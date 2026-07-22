@@ -582,6 +582,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                     damageEvent.amount = static_cast<int32>((std::max)(0.0f, bullet->mDamage));
                     damageEvent.skillType = bullet->mType;
                     damageEvent.isCritical = bullet->mIsCritical;
+					damageEvent.isOnBeat = bullet->mIsOnBeat;
                     eventManager->Enqueue<EvDamage>(damageEvent);
                 }
             };
@@ -635,6 +636,7 @@ void CollisionSystem::Bullet2MovableCCD(float deltaTime)
                     splashDamage.amount = explosionDamage;
                     splashDamage.skillType = bullet->mType;
                     splashDamage.isCritical = bullet->mIsCritical;
+					splashDamage.isOnBeat = bullet->mIsOnBeat;
                     eventManager->Enqueue<EvDamage>(splashDamage);
                 }
             };

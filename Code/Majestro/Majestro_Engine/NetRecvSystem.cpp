@@ -211,9 +211,36 @@ void NetRecvSystem::HandleState(const InputCommand& msg)
         playerComp->mLowerState = pkt->lowerStateId;
         playerComp->mControlFlags = pkt->controlFlags;
         playerComp->mExternalMoveMode = pkt->externalMoveMode;
-        playerComp->mStateSequence = pkt->stateSequence;
+		playerComp->mStateSequence = pkt->stateSequence;
 
-        // 리듬 변경 이미시브
+		const int special = static_cast<int>(ReplicatedActionState::Special);
+		if (playerComp->mPlayerType == PlayerType::Ibanix &&
+			playerComp->mUpperState == special && playerComp->mPrevStatePacket != special)
+		{
+			TransformComponent* transform = mWorld->GetComponent<TransformComponent>(e);
+			if (transform != nullptr)
+			{
+				Vec3 rotation = transform->mLocalRotationE;
+				if (mWorld->GetComponent<LocalPlayerComponent>(e) != nullptr)
+				{
+					if (PlayerMovementComponent* movement =
+						mWorld->GetComponent<PlayerMovementComponent>(e))
+					{
+						rotation.x = movement->mCameraRotationX;
+						rotation.y = movement->mCameraRotationY;
+					}
+				}
+
+				mWorld->GetEventManager()->Enqueue(EvVfxSpawnRequest{
+					SkillType::BaseUltimate,
+					static_cast<uint8>(EffectSpawnReason::Fire),
+					transform->mWorldPosition,
+					rotation,
+					pkt->netEntityId });
+			}
+		}
+
+		// 리듬 변경 이미시브
         const int rhythmChange = static_cast<int>(ReplicatedActionState::RhythmChange);
         if (playerComp->mUpperState == rhythmChange && playerComp->mPrevStatePacket != rhythmChange)
         {
@@ -433,6 +460,13 @@ void NetRecvSystem::HandlePlayerStatus(const InputCommand& msg)
 	status->mStunRemaining = pkt->stunRemaining;
 	status->mRespawnRemaining = pkt->respawnRemaining;
 	status->mBuffCount = std::min<uint8>(pkt->buffCount, MAX_REPLICATED_BUFFS);
+
+	if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity))
+	{
+		player->mRhythmPoints = (std::clamp)(
+			static_cast<int>(pkt->rhythmPoints), 0,
+			static_cast<int>(pkt->maxRhythmPoints));
+	}
 
 	for (uint8 index = 0; index < MAX_REPLICATED_BUFFS; ++index)
 	{
@@ -657,11 +691,20 @@ void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)
 	         skillType == SkillType::GuitarSkill1) &&
         pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
 
-    const bool guitarAttack2ExplosionDebug =
-        skillType == SkillType::GuitarAttack_2 &&
-        pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity);
+	const bool guitarAttack2ExplosionDebug =
+		skillType == SkillType::GuitarAttack_2 &&
+		pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity);
 
-    if (pianoAttackDebug || slimeAttackDebug || flyAttackDebug || bongoAttackDebug || dragonAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug)
+	const bool guitarUltimateDebug =
+		skillType == SkillType::GuitarUltimate &&
+		pkt->reason == static_cast<uint8>(EffectSpawnReason::Fire);
+	const bool drumUltimateDebug =
+		skillType == SkillType::DrumUltimate &&
+		pkt->reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity);
+
+	if (pianoAttackDebug || slimeAttackDebug || flyAttackDebug || bongoAttackDebug ||
+		dragonAttackDebug || playerMeleeDebug || guitarAttack2ExplosionDebug || guitarUltimateDebug ||
+		drumUltimateDebug)
     {
         mWorld->GetEventManager()->Enqueue(EvEnemyAttackDebug{
             skillType,

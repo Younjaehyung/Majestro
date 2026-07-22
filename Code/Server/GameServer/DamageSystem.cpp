@@ -20,6 +20,18 @@ DamageSystem::DamageSystem(World* world) : System(world)
 {
 }
 
+void DamageSystem::AddRhythmPoints(Entity player, int32 amount)
+{
+    MainPlayerComponent* playerComponent =
+        mWorld->GetComponent<MainPlayerComponent>(player);
+    if (!playerComponent || amount <= 0)
+        return;
+
+    playerComponent->mRhythmPoints = (std::min)(
+        MainPlayerComponent::kMaxRhythmPoints,
+        playerComponent->mRhythmPoints + amount);
+}
+
 void DamageSystem::ApplyRudwigCriticalRhythmEffect(
     Entity instigator,
     EventManager& eventManager)
@@ -119,6 +131,12 @@ void DamageSystem::Update(float deltaTime)
             return;
         if (player && player->mDash)
             return;
+		if (player && player->mDrumUltimateActive)
+		{
+			if (e.amount > 0)
+				++player->mDrumUltimateHitCount;
+			return;
+		}
 
         const int32 appliedDamage = (std::max)(0, e.amount);
         const int32 beforeHp = health->mCurrentHp;
@@ -171,6 +189,21 @@ void DamageSystem::Update(float deltaTime)
 
         const bool armorAbsorbed = (beforeArmor != afterArmor);
         const bool hpDamaged = (beforeHp != afterHp);
+		const bool damageApplied = armorAbsorbed || hpDamaged;
+
+		if (damageApplied)
+		{
+			if (mWorld->GetComponent<EnemyComponent>(e.target))
+			{
+				if (e.instigator.IsValid() &&
+					mWorld->GetComponent<MainPlayerComponent>(e.instigator))
+					AddRhythmPoints(e.instigator, 1 + (e.isOnBeat ? 2 : 0));
+			}
+			else if (player)
+			{
+				AddRhythmPoints(e.target, 1);
+			}
+		}
 
         // 적에게 데미지를 준 플레이어를 기여자로 기록 → 사망 시 막타를 제외한 기여자가 어시스트를 받는다.
         if ((armorAbsorbed || hpDamaged) && e.instigator.IsValid())

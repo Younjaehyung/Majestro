@@ -270,6 +270,9 @@ void NetRecvSystem::RecvRhythmChanged(uint32 sessionId, const C2S_RhythmChangedP
 		return;
 	}
 
+	// 검증된 우클릭 리듬 변경 요청은 서버 상태로 재생해 모든 클라이언트에 복제한다.
+	playerComp->mFsm.ChangeState(playerComp, RhythmChangeState::Instance());
+
 	if (changedRhythm == rhythmState->GetCurrentRhythm())
 	{
 		// 최종 선택이 현재 음악으로 돌아오면 기존 예약을 취소

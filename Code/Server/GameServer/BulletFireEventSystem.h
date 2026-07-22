@@ -12,7 +12,8 @@ public:
 	void Update(float dt) override;
 
 private:
-	void ActivateBulletAndNotify(Entity playerEntity, SkillType bulletType, bool isCritical);
+	void ActivateBulletAndNotify(
+		Entity playerEntity, SkillType bulletType, bool isCritical, bool isOnBeat);
 	std::vector<uint32> CollectPlayerSessions() const;
 
 	Vec3 GetCameraForwardFromInput(const InputComponent& input);

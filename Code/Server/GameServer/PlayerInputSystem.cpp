@@ -42,6 +42,7 @@ namespace
 	constexpr float kGuitarUltimateRadius = 1000.0f;
 	constexpr float kDrumUltimateDurationBeats = 8.0f;
 	constexpr float kDrumUltimateRadius = 1000.0f;
+	constexpr float kUltimateIntroDurationSeconds = 1.0f;
 }
 
 
@@ -83,6 +84,8 @@ void PlayerInputSystem::Update(float dt)
 			mainPlayerComponent->mDrumUltimateActive = false;
 			mainPlayerComponent->mDrumUltimateRemainingTime = 0.0f;
 			mainPlayerComponent->mDrumUltimateHitCount = 0;
+			mainPlayerComponent->mUltimateIntroActive = false;
+			mainPlayerComponent->mUltimateIntroEndTime = 0.0f;
 			mainPlayerComponent->mSpeed = 0.f;
 			mainPlayerComponent->mHasMoveInput = false;
 			continue;
@@ -96,6 +99,12 @@ void PlayerInputSystem::Update(float dt)
 		const bool specialButtonPressed = specialButtonDown &&
 			!mainPlayerComponent->mSpecialButtonWasDown;
 		mainPlayerComponent->mSpecialButtonWasDown = specialButtonDown;
+
+		if (TickUltimateIntro(e, mainPlayerComponent, inputComp, *eventManager, now, Beat))
+		{
+			mainPlayerComponent->Update(dt);
+			continue;
+		}
 
 		if (TickBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat, dt,
 			specialButtonPressed))
@@ -238,24 +247,13 @@ void PlayerInputSystem::Update(float dt)
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::RELOAD);
 		}
 		if (specialButtonPressed) {
-			if (mainPlayerComponent->mPlayerType == Rudwig &&
-				!mainPlayerComponent->mDrumUltimateActive)
-			{
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
-				StartDrumUltimate(e, mainPlayerComponent, *eventManager, now, Beat);
-			}
-			else if (mainPlayerComponent->mPlayerType == Fanthor &&
-				!mainPlayerComponent->mGuitarUltimateActive)
-			{
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
-				StartGuitarUltimate(mainPlayerComponent, now, Beat);
-			}
-			else if (mainPlayerComponent->mPlayerType == Ibanix &&
-				mainPlayerComponent->mFsm.GetState() != S_Special)
-			{
-				mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, SpecialState::Instance());
-				StartBaseUltimate(e, mainPlayerComponent, inputComp, *eventManager, now, Beat);
-			}
+			const bool ultimateInactive =
+				!mainPlayerComponent->mBaseUltimateActive &&
+				!mainPlayerComponent->mGuitarUltimateActive &&
+				!mainPlayerComponent->mDrumUltimateActive &&
+				!mainPlayerComponent->mUltimateIntroActive;
+			if (ultimateInactive)
+				StartUltimateIntro(mainPlayerComponent, now);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::DANCE1)) {
 			mainPlayerComponent->mFsm.ChangeState(mainPlayerComponent, Dance1State::Instance());
@@ -555,6 +553,60 @@ void PlayerInputSystem::EnqueueAmmoChangedIfNeeded(World* world, EventManager& e
 		static_cast<int32>(playerComp->mNowBullet),
 		static_cast<int32>(playerComp->mMaxBullet)
 		});
+}
+
+void PlayerInputSystem::StartUltimateIntro(
+	MainPlayerComponent* playerComponent,
+	float now)
+{
+	if (!playerComponent)
+		return;
+
+	playerComponent->mUltimateIntroActive = true;
+	playerComponent->mUltimateIntroEndTime = now + kUltimateIntroDurationSeconds;
+	playerComponent->mRhythmPoints = 0;
+	playerComponent->mSpeed = 0.0f;
+	playerComponent->mHasMoveInput = false;
+	playerComponent->mFsm.ChangeState(playerComponent, UltimateIntroState::Instance());
+}
+
+bool PlayerInputSystem::TickUltimateIntro(
+	Entity player,
+	MainPlayerComponent* playerComponent,
+	InputComponent* input,
+	EventManager& eventManager,
+	float now,
+	float beatSeconds)
+{
+	if (!playerComponent || !input || !playerComponent->mUltimateIntroActive)
+		return false;
+
+	playerComponent->mSpeed = 0.0f;
+	playerComponent->mHasMoveInput = false;
+	if (now < playerComponent->mUltimateIntroEndTime)
+		return true;
+
+	playerComponent->mUltimateIntroActive = false;
+	playerComponent->mUltimateIntroEndTime = 0.0f;
+	playerComponent->mFsm.ChangeState(playerComponent, SpecialState::Instance());
+
+	switch (playerComponent->mPlayerType)
+	{
+	case Rudwig:
+		StartDrumUltimate(player, playerComponent, eventManager, now, beatSeconds);
+		break;
+	case Fanthor:
+		StartGuitarUltimate(playerComponent, now, beatSeconds);
+		break;
+	case Ibanix:
+		StartBaseUltimate(player, playerComponent, input, eventManager, now, beatSeconds);
+		break;
+	default:
+		playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
+		break;
+	}
+
+	return true;
 }
 
 void PlayerInputSystem::StartBaseUltimate(

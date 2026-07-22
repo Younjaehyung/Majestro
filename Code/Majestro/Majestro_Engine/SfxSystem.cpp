@@ -497,6 +497,7 @@ std::string SfxSystem::ActionStateName(int state)
 	case ReplicatedActionState::Hit:          return "Hit";
 	case ReplicatedActionState::Stun:         return "Stun";
 	case ReplicatedActionState::Dead:         return "Dead";
+	case ReplicatedActionState::UltimateIntro:return "UltimateIntro";
 	default:                                  return std::to_string(state);
 	}
 }

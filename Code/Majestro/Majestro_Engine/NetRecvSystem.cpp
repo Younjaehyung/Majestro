@@ -23,6 +23,7 @@
 #include "BoxColliderComponent.h"
 #include "DecalFactory.h"
 #include "NetSendSystem.h"
+#include "MovementComponent.h"
 #include "MovementSystem.h"
 #include "VfxSystem.h"
 #include "HealthComponent.h"

@@ -126,10 +126,12 @@ void DamageSystem::Update(float deltaTime)
                 return;
         }
 
-        MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(e.target);
-        if (player && player->IsDeathActive())
-            return;
-        if (player && player->mDash)
+		MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(e.target);
+		if (player && player->IsDeathActive())
+			return;
+		if (player && player->mUltimateIntroActive)
+			return;
+		if (player && player->mDash)
             return;
 		if (player && player->mDrumUltimateActive)
 		{

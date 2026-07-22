@@ -30,6 +30,7 @@ enum class ClientAnimState : uint16
 	Dead,
 	Hit,
 	Stun,
+	UltimateIntro,
 };
 
 struct PlayerAnimationResolveResult
@@ -65,6 +66,7 @@ inline ClientAnimState ToClientActionState(int actionState)
 	case ReplicatedActionState::Hit: return ClientAnimState::Hit;
 	case ReplicatedActionState::Stun: return ClientAnimState::Stun;
 	case ReplicatedActionState::Dead: return ClientAnimState::Dead;
+	case ReplicatedActionState::UltimateIntro: return ClientAnimState::UltimateIntro;
 	case ReplicatedActionState::None:
 	default:
 		return ClientAnimState::Idle;
@@ -163,6 +165,7 @@ inline uint32 GetDefaultClipIndex(ClientAnimState state)
 	case ClientAnimState::Aim: return 18;
 	case ClientAnimState::Dead: return 19;
 	case ClientAnimState::Dance1: return 20;
+	case ClientAnimState::UltimateIntro: return 21;
 	case ClientAnimState::Idle:
 	case ClientAnimState::Hit:
 	case ClientAnimState::Stun:
@@ -203,6 +206,7 @@ inline bool IsFullBodyState(ClientAnimState state)
 	case ClientAnimState::Skill1:
 	case ClientAnimState::Skill2:
 	case ClientAnimState::Dance1:
+	case ClientAnimState::UltimateIntro:
 		return true;
 	default:
 		return false;

@@ -272,6 +272,7 @@ enum class ReplicatedActionState : uint8
 	Hit,
 	Stun,
 	Dead,
+	UltimateIntro,
 	Count
 };
 

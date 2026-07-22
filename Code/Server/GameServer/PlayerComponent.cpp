@@ -35,7 +35,8 @@ static StateId NameToId(const std::string& n) {
     if (n == "Aim")  return S_Aim;
     if (n == "Reload")  return S_Reload;
     if (n == "RhythmChange")  return S_RhythmChange;
-    if (n == "Dance1")  return S_Dance1;
+	if (n == "Dance1")  return S_Dance1;
+	if (n == "UltimateIntro") return S_UltimateIntro;
 
     if (n == "Hit")  return S_Hit;
     if (n == "Stun")  return S_Stun;
@@ -67,7 +68,8 @@ static StateId ResolveTimingStateId(State<MainPlayerComponent>* s)
     if (s == AimState::Instance()) return S_Aim;
     if (s == ReloadState::Instance()) return S_Reload;
     if (s == RhythmChangeState::Instance()) return S_RhythmChange;
-    if (s == Dance1State::Instance()) return S_Dance1;
+	if (s == Dance1State::Instance()) return S_Dance1;
+	if (s == UltimateIntroState::Instance()) return S_UltimateIntro;
     if (s == HitState::Instance()) return S_Hit;
     if (s == StunState::Instance()) return S_Stun;
     if (s == DeadState::Instance()) return S_Dead;
@@ -154,9 +156,10 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType pla
     DeadState::Instance(),
     ComboAttack1State::Instance(),
     ComboAttack2State::Instance(),
-    HitState::Instance(),
-    StunState::Instance()
-    };
+	HitState::Instance(),
+	StunState::Instance(),
+	UltimateIntroState::Instance()
+	};
     InitFSMFromJson(path);
 
     cout << "playertype:" << (int)mPlayerType << endl;
@@ -220,6 +223,7 @@ uint8 MainPlayerComponent::GetReplicatedActionState()
 	case S_Reload: return static_cast<uint8>(ReplicatedActionState::Reload);
 	case S_RhythmChange: return static_cast<uint8>(ReplicatedActionState::RhythmChange);
 	case S_Dance1: return static_cast<uint8>(ReplicatedActionState::Dance1);
+	case S_UltimateIntro: return static_cast<uint8>(ReplicatedActionState::UltimateIntro);
 	case S_Aim: return static_cast<uint8>(ReplicatedActionState::Aim);
 	case S_Hit: return static_cast<uint8>(ReplicatedActionState::Hit);
 	case S_Stun: return static_cast<uint8>(ReplicatedActionState::Stun);
@@ -292,6 +296,8 @@ bool MainPlayerComponent::CanUseHorizontalInput()
 		return false;
 	if (mBaseUltimateActive)
 		return false;
+	if (mUltimateIntroActive)
+		return false;
 
 	const StateId state = mFsm.GetState();
 	if (state == S_Dead || state == S_Stun || state == S_Hit)
@@ -308,6 +314,8 @@ bool MainPlayerComponent::CanUseVerticalInput()
 	if (IsDeathActive())
 		return false;
 	if (mBaseUltimateActive)
+		return false;
+	if (mUltimateIntroActive)
 		return false;
 
 	const StateId state = mFsm.GetState();
@@ -351,7 +359,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 
         if (s == ReloadState::Instance()) return S_Reload;
         if (s == RhythmChangeState::Instance()) return S_RhythmChange;
-        if (s == Dance1State::Instance()) return S_Dance1;
+		if (s == Dance1State::Instance()) return S_Dance1;
+		if (s == UltimateIntroState::Instance()) return S_UltimateIntro;
         if (s == DeadState::Instance()) return S_Dead;
         return 255;
         };
@@ -829,7 +838,28 @@ void Dance1State::Update(MainPlayerComponent* owner)
 }
 void Dance1State::Exit(MainPlayerComponent* owner)
 {
-    StateExit(this, owner);
+	StateExit(this, owner);
+}
+
+UltimateIntroState* UltimateIntroState::Instance()
+{
+	static UltimateIntroState inst;
+	return &inst;
+}
+
+void UltimateIntroState::Enter(MainPlayerComponent* owner)
+{
+	StateEnter(this, owner);
+}
+
+void UltimateIntroState::Update(MainPlayerComponent* owner)
+{
+	(void)owner;
+}
+
+void UltimateIntroState::Exit(MainPlayerComponent* owner)
+{
+	StateExit(this, owner);
 }
 
 //damage-------------------------------------------------------------

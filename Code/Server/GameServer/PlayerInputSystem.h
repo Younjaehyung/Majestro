@@ -30,6 +30,10 @@ private:
 		InputButtons actionButton,
 		Rhythm rhythm = Rhythm::Neutral);
 	uint8 EvaluateBeatJudgement(const MainPlayerComponent* mp, const InputComponent* inputComp, const BeatSystem* beatSystem) const;
+	void StartUltimateIntro(MainPlayerComponent* playerComponent, float now);
+	bool TickUltimateIntro(Entity player, MainPlayerComponent* playerComponent,
+	                       InputComponent* input, EventManager& eventManager,
+	                       float now, float beatSeconds);
 
 	void EnqueueAmmoChangedIfNeeded(World* world, EventManager& eventManager, Entity playerEntity, int prevAmmo);
 	void StartBaseUltimate(Entity player, MainPlayerComponent* playerComponent,

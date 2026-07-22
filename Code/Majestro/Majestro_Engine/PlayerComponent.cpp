@@ -134,8 +134,12 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
     //InitFSMFromJson(path);
     //LoadStateSettingFromJson("../Resources/Json/StateSetting.json");
 
-    for (int i = 0; i < (int)anim.size(); i++)
+    const size_t timingCount = std::min(mStateList.size(), anim.size());
+    for (size_t i = 0; i < timingCount; ++i)
     {
+        if (mStateList[i] == nullptr || anim[i] == nullptr)
+            continue;
+
         mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
         cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime) << " : " << mStateList[i]->mAnimEndTime << endl;
     }

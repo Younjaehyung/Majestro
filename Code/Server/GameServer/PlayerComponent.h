@@ -46,6 +46,7 @@ enum : StateId {
 	S_Attack1, S_Attack2, S_Skill1, S_Skill2, S_Special,
 	S_Reload, S_RhythmChange, S_Aim,
 	S_Dead, S_ComboAttack1, S_ComboAttack2, S_Hit, S_Stun, S_Dance1,
+	S_UltimateIntro,
 
 };
 
@@ -181,6 +182,8 @@ public:
 	float mDrumUltimateEndTime = 0.0f;
 	float mDrumUltimateRemainingTime = 0.0f;
 	int32 mDrumUltimateHitCount = 0;
+	bool mUltimateIntroActive = false;
+	float mUltimateIntroEndTime = 0.0f;
 	bool mSpecialButtonWasDown = false;
 
 
@@ -346,6 +349,15 @@ public:
 
 	virtual const char* GetName() const override { return "Dance1State"; }
 
+	void Enter(MainPlayerComponent* owner) override;
+	void Update(MainPlayerComponent* owner) override;
+	void Exit(MainPlayerComponent* owner) override;
+};
+
+class UltimateIntroState : public State<MainPlayerComponent> {
+public:
+	static UltimateIntroState* Instance();
+	virtual const char* GetName() const override { return "UltimateIntroState"; }
 	void Enter(MainPlayerComponent* owner) override;
 	void Update(MainPlayerComponent* owner) override;
 	void Exit(MainPlayerComponent* owner) override;

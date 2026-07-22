@@ -286,6 +286,8 @@
     <ClInclude Include="DamageFeedbackSystem.h" />
     <ClInclude Include="RhythmEmissiveComponent.h" />
     <ClInclude Include="RhythmEmissiveSystem.h" />
+    <ClInclude Include="HighlightComponent.h" />
+    <ClInclude Include="HighlightSystem.h" />
     <ClInclude Include="DashTrailComponent.h" />
     <ClInclude Include="DashSpeedLineComponent.h" />
     <ClInclude Include="DashSpeedLineSystem.h" />
@@ -500,6 +502,7 @@
     <ClCompile Include="DamagePopupUpdateFeature.cpp" />
     <ClCompile Include="DamageFeedbackSystem.cpp" />
     <ClCompile Include="RhythmEmissiveSystem.cpp" />
+    <ClCompile Include="HighlightSystem.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="NavMeshLoader.cpp" />
     <ClCompile Include="NetEntityComponent.cpp" />

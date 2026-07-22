@@ -21,6 +21,7 @@
 #include "DecalFactory.h"
 #include "MathUtils.h"
 #include "RhythmEmissiveComponent.h"
+#include "HighlightComponent.h"
 #include "Network.h"
 #include "PauseMenuController.h"
 #include "NpcComponent.h"
@@ -679,6 +680,13 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 		// 리듬 변경 이미시브
 		auto* rhythmEmissive = mWorld->GetComponent<RhythmEmissiveComponent>(ctx.playerEntity);
 		rhythmEmissive->mTimer = rhythmEmissive->mDuration;
+	}
+
+	// [임시] B키: 내 캐릭터에 대상 강조(나노강화) 8초 발동
+	if (INPUT.GetKeyDown(eKeyCode::B))
+	{
+		if (auto* hl = mWorld->GetComponent<HighlightComponent>(ctx.playerEntity))
+			hl->Trigger(8.0f);
 	}
 
 	if (INPUT.IsMouseLookActive())

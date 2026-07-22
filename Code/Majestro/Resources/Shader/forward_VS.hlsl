@@ -25,6 +25,7 @@ struct VS_OUT
     
     nointerpolation uint materialIndex : MaterialIndex;
     nointerpolation float4 objectExtra : ObjectExtra;
+    nointerpolation float4 objectHighlight : ObjectHighlight;
 };
 
 VS_OUT VS_Main(VS_IN input)
@@ -35,7 +36,8 @@ VS_OUT VS_Main(VS_IN input)
     RENDERPARAMS Instance = InstanceParams[idx];
     output.materialIndex = Instance.MaterialInfoIndex;
     // 오브젝트 부가 정보는 정점 단계에서 한 번 읽고 픽셀 단계에 전달한다.
-    output.objectExtra = Objects[Instance.ObjectIndex].Extra;
+    output.objectExtra = Objects[Instance.ObjectIndex].Extra1;
+    output.objectHighlight = Objects[Instance.ObjectIndex].Extra2;
     
     
     uint objectIndex = Instance.ObjectIndex;

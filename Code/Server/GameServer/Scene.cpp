@@ -1094,7 +1094,7 @@ void FourthScene::Initialize()
 
 		const std::wstring gimmickPath = L"../Resources/Json/Map004_Gimmicks.json";
 		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
-		SpawnFixedEnemy(mWorld.get(), EnemyType::Dragon, Vec3(-3000.0f, 0.0f, 5.0f));
+			SpawnFixedEnemy(mWorld.get(), EnemyType::Dragon, Vec3(-1424.134257f, 54.203403f, -6484.771553f));
 
 		gameMode->Initialize();
 

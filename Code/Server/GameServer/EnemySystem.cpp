@@ -815,12 +815,12 @@ bool EnemySystem::HandleAttackState(
 	            Entity targetEntity{};
 	            const bool usedOnnx = TrySelectBossOnnxAction(
 	                entity, enemyComp, targetIndex, choice, targetEntity);
-	            if (!usedOnnx)
-	                choice = static_cast<uint8>(MathUtils::RandomInt(1, 4));
-	            else
-	                TryGetBossPolicyTargetPosition(enemyComp, playerPos);
+		            if (!usedOnnx)
+		                choice = static_cast<uint8>(MathUtils::RandomInt(1, 4));
+		            else
+		                TryGetBossPolicyTargetPosition(enemyComp, playerPos);
 
-	            if (usedOnnx && choice == 0)
+		            if (usedOnnx && choice == 0)
 	            {
 	                enemyComp->mPendingSkillType = 0;
 	                enemyComp->mPendingAttackTime = -1.0f;
@@ -1514,11 +1514,15 @@ void EnemySystem::HandleRunState(
     if (flyComp)
         flyComp->mDirectFlight = false;
 
-    if (enemyComp->mEnemyType == EnemyType::Brass)
+    if (enemyComp->mEnemyType == EnemyType::Brass ||
+        enemyComp->mEnemyType == EnemyType::Dragon)
     {
         Vec3 toPlayer = playerPos - myPos;
         toPlayer.y = 0.0f;
-        if (toPlayer.LengthSquared() <= enemyComp->AttackRangeSq)
+        const float stopDistance = enemyComp->mEnemyType == EnemyType::Dragon
+            ? 200.0f
+            : enemyComp->AttackRange;
+        if (toPlayer.LengthSquared() <= stopDistance * stopDistance)
         {
             movementComp->mMovingDirection = Vec3::Zero;
             movementComp->mPathCount = 0;

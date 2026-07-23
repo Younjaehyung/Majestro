@@ -181,8 +181,8 @@ namespace
 			return { 60.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::DragonSkill1:
 			return { 30.0f, 4.0f, 1000.0f, 360.0f, 0.0f };
-		case SkillType::DragonSkill3:
-			return { 50.0f, 200.0f, 300.0f, 360.0f, 300.0f };
+			case SkillType::DragonSkill3:
+				return { 50.0f, 200.0f, 300.0f, 360.0f, 600.0f };
 		default:
 			return {};
 		}

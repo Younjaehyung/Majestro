@@ -1065,7 +1065,7 @@ void FourthScene::Initialize()
 	mWorld->Initialize();
 
 
-	LoadCollisionJson(L"..\\Resources\\Json\\MapDragon_Nav_Export.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDragon_Export.json");
 	LoadNavMesh(L"NavMesh_FourthGame");
 
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신

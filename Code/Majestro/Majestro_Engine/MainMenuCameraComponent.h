@@ -17,7 +17,7 @@ enum class MainMenuView : int
 class MainMenuCameraComponent : public Component<MainMenuCameraComponent>
 {
 public:
-    std::array<CameraView, (size_t)MainMenuView::Count> mViews{};
+    std::array<Cinematic::CameraView, (size_t)MainMenuView::Count> mViews{};
     bool mLoaded = false;
 
     MainMenuView mCurrent       = MainMenuView::Title;
@@ -30,7 +30,7 @@ public:
     Quaternion mFromRot{};
     float      mFromFovDeg = 0.f;
 
-    const CameraView& View(MainMenuView v) const { return mViews[(size_t)v]; }
+    const Cinematic::CameraView& View(MainMenuView v) const { return mViews[(size_t)v]; }
 
     void RequestView(MainMenuView v, Vec3 curPos, Quaternion curRot, float curFovDeg)
     {

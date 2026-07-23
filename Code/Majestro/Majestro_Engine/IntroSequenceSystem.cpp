@@ -70,34 +70,8 @@ void IntroSequenceSystem::Apply(IntroSequenceComponent* seq, float dt)
     if (!cam || !tr)
         return;
 
-    const auto& keys = seq->mKeys;
-    const float t = seq->mElapsed;
-
-    // 키프레임 구간 보간 (작은 시퀀스라 선형 탐색으로 충분)
-    CameraView view;
-    if (t <= keys.front().seconds)
-    {
-        view = keys.front().view;
-    }
-    else if (t >= keys.back().seconds)
-    {
-        view = keys.back().view;
-    }
-    else
-    {
-        size_t i = 0;
-        while (i + 1 < keys.size() && keys[i + 1].seconds <= t)
-            ++i;
-
-        const CameraKeyframe& a = keys[i];
-        const CameraKeyframe& b = keys[i + 1];
-        const float span = b.seconds - a.seconds;
-        const float u = (span > 1e-5f) ? (t - a.seconds) / span : 0.f;
-
-        view.position = Vec3::Lerp(a.view.position, b.view.position, u);
-        view.rotation = Quaternion::Slerp(a.view.rotation, b.view.rotation, u);
-        view.fovDeg   = a.view.fovDeg + (b.view.fovDeg - a.view.fovDeg) * u;
-    }
+    // 키프레임 구간 보간
+    const Cinematic::CameraView view = Cinematic::SampleCameraSequence(seq->mKeys, seq->mElapsed);
 
     // Transform 적용
     tr->mLocalPosition = view.position;

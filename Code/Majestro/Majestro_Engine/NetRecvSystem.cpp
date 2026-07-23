@@ -25,6 +25,7 @@
 #include "MovementComponent.h"
 #include "DecalFactory.h"
 #include "NetSendSystem.h"
+#include "AirshipDepartureComponent.h"
 #include "MovementSystem.h"
 #include "VfxSystem.h"
 #include "HealthComponent.h"
@@ -762,24 +763,16 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
 		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Plaza, L"광장 로딩 중...");
         break;
     case SceneId::FirstGame:
-        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
-            sendSystem->RequestPendingGameStart();
-		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FirstGame, L"게임 씬 로딩 중...");
+        EnterLevelScene(SceneId::FirstGame, L"게임 씬 로딩 중...");
         break;
     case SceneId::SecondGame: // SecondScene 으로 교체
-        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
-            sendSystem->RequestPendingGameStart();
-		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::SecondGame, L"다음 스테이지 로딩 중...");
+        EnterLevelScene(SceneId::SecondGame, L"다음 스테이지 로딩 중...");
         break;
     case SceneId::ThirdGame: // ThirdScene 으로 교체
-        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
-            sendSystem->RequestPendingGameStart();
-		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::ThirdGame, L"보스전 로딩 중...");
+        EnterLevelScene(SceneId::ThirdGame, L"보스전 로딩 중...");
         break;
     case SceneId::FourthGame: // FourthScene 으로 교체
-        if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
-            sendSystem->RequestPendingGameStart();
-		gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::FourthGame, L"보스전 로딩 중...");
+        EnterLevelScene(SceneId::FourthGame, L"보스전 로딩 중...");
         break;
     case SceneId::VGame: // 승리 화면
         Network::GetInstance().Shutdown();
@@ -795,6 +788,24 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
     default:
         break;
     }
+}
+
+void NetRecvSystem::EnterLevelScene(SceneId target, const std::wstring& loadingMessage)
+{
+    if (mWorld->HasComponentPool<AirshipDepartureComponent>())
+    {
+        AirshipDepartureComponent* dep = mWorld->GetComponent<AirshipDepartureComponent>(mWorld->GetSingletonEntity());
+        if (dep != nullptr && dep->HasSequence() && !dep->mPlaying)
+        {
+            dep->Arm(target, loadingMessage, /*needsGameStart=*/true);
+            return;
+        }
+    }
+
+    // 기존과 동일하게 즉시 전환
+    if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
+        sendSystem->RequestPendingGameStart();
+    gEngine->GetSceneManager().RequestSceneWithLoading(target, loadingMessage);
 }
 
 void NetRecvSystem::HandleSceneState(const InputCommand& msg)

@@ -28,15 +28,15 @@ void Mesh::Init(const vector<Vertex>& vec, const vector<uint32>& indexbuffer)
 void Mesh::CreateVertexBuffer(const vector<Vertex>& buffer)
 {
 	mVertexCount = static_cast<uint32>(buffer.size());
-	const uint64 bufferSize = static_cast<uint64>(mVertexCount) * sizeof(Vertex);
-	if (buffer.empty() || bufferSize > UINT_MAX)
+	const uint64 bufferSize64 = static_cast<uint64>(mVertexCount) * sizeof(Vertex);
+	if (buffer.empty() || bufferSize64 > UINT_MAX)
 	{
 		mVertexBuffer.Reset();
 		mVertexBufferView = {};
 		assert(false);
 		return;
 	}
-	const uint32 bufferSize = static_cast<uint32>(bufferSize);
+	const uint32 bufferSize = static_cast<uint32>(bufferSize64);
 
 	std::wstring meshName = GetName().empty() ? L"UnnamedMesh" : GetName();
 	const std::wstring resourceName = meshName + L" Vertex";

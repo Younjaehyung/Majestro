@@ -14,6 +14,7 @@
 #include "MovementComponent.h"
 #include "DeathCamComponent.h"
 #include "IntroSequenceComponent.h"
+#include "AirshipDepartureComponent.h"
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
 #include "EventManager.h"
@@ -112,12 +113,27 @@ bool PlayerInputSystem::IsPaused() const
 
 bool PlayerInputSystem::IsCinematicPlaying() const
 {
-	if (!mWorld->HasComponentPool<IntroSequenceComponent>())
-		return false;
+	const Entity singleton = mWorld->GetSingletonEntity();
 
-	const IntroSequenceComponent* seq =
-		mWorld->GetComponent<IntroSequenceComponent>(mWorld->GetSingletonEntity());
-	return seq != nullptr && seq->mPlaying;
+	// 씬 진입 시네마틱
+	if (mWorld->HasComponentPool<IntroSequenceComponent>())
+	{
+		const IntroSequenceComponent* seq =
+			mWorld->GetComponent<IntroSequenceComponent>(singleton);
+		if (seq != nullptr && seq->mPlaying)
+			return true;
+	}
+
+	// 비행정 출발 시네마틱 (레벨 선택 → 로딩 전 연출)
+	if (mWorld->HasComponentPool<AirshipDepartureComponent>())
+	{
+		const AirshipDepartureComponent* dep =
+			mWorld->GetComponent<AirshipDepartureComponent>(singleton);
+		if (dep != nullptr && dep->mPlaying)
+			return true;
+	}
+
+	return false;
 }
 
 bool PlayerInputSystem::IsDialogueActive() const

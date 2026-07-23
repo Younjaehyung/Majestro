@@ -79,8 +79,8 @@ public:
 	// 맵별 스카이박스/IBL 적용
 	void ApplyMapSky(const LevelImportData& level);
 	shared_ptr<PayloadPathData>  LoadPayloadPathJson(const wstring& path);
-	std::vector<CameraView> LoadCameraViews(const wstring& path);
-	std::vector<CameraKeyframe> LoadCameraSequence(const wstring& path);
+	std::vector<Cinematic::CameraView> LoadCameraViews(const wstring& path);
+	std::vector<Cinematic::CameraKeyframe> LoadCameraSequence(const wstring& path);
 
 
 	//texture를 키로 매핑하기 위한 함수

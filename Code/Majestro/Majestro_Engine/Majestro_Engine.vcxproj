@@ -311,6 +311,10 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="IntroSequenceComponent.h" />
     <ClInclude Include="IntroSequenceSystem.h" />
+    <ClInclude Include="AirshipDepartureComponent.h" />
+    <ClInclude Include="AirshipDepartureSystem.h" />
+    <ClInclude Include="CloudDriftComponent.h" />
+    <ClInclude Include="CloudDriftSystem.h" />
     <ClInclude Include="MainMenuCameraComponent.h" />
     <ClInclude Include="MainMenuCameraSystem.h" />
     <ClInclude Include="MainMenuController.h" />
@@ -496,6 +500,8 @@
     <ClCompile Include="LightsPass.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="IntroSequenceSystem.cpp" />
+    <ClCompile Include="AirshipDepartureSystem.cpp" />
+    <ClCompile Include="CloudDriftSystem.cpp" />
     <ClCompile Include="MainMenuCameraSystem.cpp" />
     <ClCompile Include="MainMenuSystem.cpp" />
     <ClCompile Include="PauseSystem.cpp" />

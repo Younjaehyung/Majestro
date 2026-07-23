@@ -16,7 +16,7 @@ class IntroSequenceComponent : public Component<IntroSequenceComponent>
 {
 public:
     // 로드된 시퀀스 키프레임. 비어 있으면 재생하지 않는다(골격 단계 기본값).
-    std::vector<CameraKeyframe> mKeys;
+    std::vector<Cinematic::CameraKeyframe> mKeys;
 
     // 재생 상태
     bool  mPlaying = false;   // 재생 중 — 입력 잠금 / 카메라 오버라이드 게이트

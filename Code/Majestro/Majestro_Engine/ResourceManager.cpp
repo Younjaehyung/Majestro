@@ -1073,8 +1073,9 @@ shared_ptr<PayloadPathData> ResourceManager::LoadPayloadPathJson(const std::wstr
 }
 
 
-std::vector<CameraView> ResourceManager::LoadCameraViews(const std::wstring& path)
+std::vector<Cinematic::CameraView> ResourceManager::LoadCameraViews(const std::wstring& path)
 {
+	using namespace Cinematic;
 	std::vector<CameraView> views;
 
 	std::ifstream ifs(ws2s(path));
@@ -1123,8 +1124,9 @@ std::vector<CameraView> ResourceManager::LoadCameraViews(const std::wstring& pat
 	return views;
 }
 
-std::vector<CameraKeyframe> ResourceManager::LoadCameraSequence(const std::wstring& path)
+std::vector<Cinematic::CameraKeyframe> ResourceManager::LoadCameraSequence(const std::wstring& path)
 {
+	using namespace Cinematic;
 	std::vector<CameraKeyframe> keys;
 
 	std::ifstream ifs(ws2s(path));

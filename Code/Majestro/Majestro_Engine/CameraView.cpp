@@ -2,6 +2,9 @@
 #include "CameraView.h"
 #include "JsonUtils.h"
 
+namespace Cinematic
+{
+
 void ConvertMainMenuSample(const json& s, CameraView& v)
 {
 	v.position = ConvertUeVectorToDx(ParseVec3ArrayOrObject(RequireJson(s, "position"), 1.f));
@@ -21,6 +24,32 @@ void ConvertMainMenuSample(const json& s, CameraView& v)
 	v.fovDeg = GetFloat(s, "fov");
 }
 
+CameraView SampleCameraSequence(const std::vector<CameraKeyframe>& keys, float t)
+{
+	CameraView view;
+	if (keys.empty())
+		return view;
+
+	if (t <= keys.front().seconds)
+		return keys.front().view;
+	if (t >= keys.back().seconds)
+		return keys.back().view;
+
+	size_t i = 0;
+	while (i + 1 < keys.size() && keys[i + 1].seconds <= t)
+		++i;
+
+	const CameraKeyframe& a = keys[i];
+	const CameraKeyframe& b = keys[i + 1];
+	const float span = b.seconds - a.seconds;
+	const float u = (span > 1e-5f) ? (t - a.seconds) / span : 0.f;
+
+	view.position = Vec3::Lerp(a.view.position, b.view.position, u);
+	view.rotation = Quaternion::Slerp(a.view.rotation, b.view.rotation, u);
+	view.fovDeg   = a.view.fovDeg + (b.view.fovDeg - a.view.fovDeg) * u;
+	return view;
+}
+
 bool IsSameMainMenuStop(const CameraView& a, const CameraView& b)
 {
 	if (Vec3::Distance(a.position, b.position) >= 0.5f) return false;
@@ -28,4 +57,6 @@ bool IsSameMainMenuStop(const CameraView& a, const CameraView& b)
 	if (std::abs(a.rotation.Dot(b.rotation)) < 0.9999f) return false;
 	if (std::abs(a.fovDeg - b.fovDeg) >= 0.01f) return false;
 	return true;
+}
+
 }

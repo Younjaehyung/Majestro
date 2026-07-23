@@ -443,7 +443,7 @@ void VfxSystem::AttachBulletVfx(Entity bulletEntity, SkillType skillType, uint16
 	{
 		EngineLog::WriteWideOnce(
 			EngineLog::Domain::VfxDiagnostic,
-			L"missing-bullet-resource:" + desc.effectName,
+			std::wstring(L"missing-bullet-resource:") + desc.effectName,
 			L"[VfxSystem] missing bullet vfx resource: ",
 			desc.effectName);
 		return;

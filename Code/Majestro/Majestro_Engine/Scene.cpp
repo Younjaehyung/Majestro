@@ -111,6 +111,10 @@
 #include "MainMenuCameraSystem.h"
 #include "IntroSequenceComponent.h"
 #include "IntroSequenceSystem.h"
+#include "AirshipDepartureComponent.h"
+#include "AirshipDepartureSystem.h"
+#include "CloudDriftComponent.h"
+#include "CloudDriftSystem.h"
 #include "UIButtonFactory.h"
 
 #include "PauseMenuController.h"
@@ -244,7 +248,8 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 	RESOURCEMANAGER.ApplyMapSky(level);
 }
 
-void Scene::LoadJsonLevelData(const wstring& path) {
+void Scene::LoadJsonLevelData(const wstring& path,
+	const std::function<bool(const std::string& fbxStem)>& skipMeshStem) {
 	int i = 0;
 	try
 	{
@@ -258,6 +263,10 @@ void Scene::LoadJsonLevelData(const wstring& path) {
 		{
 			// 파일명만 추출
 			std::string name = filesystem::path(inst.fbx).filename().stem().string();
+
+			// 제외 대상은 정적 임포트에서 건너뛴다.
+			if (skipMeshStem && skipMeshStem(name))
+				continue;
 
 			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, s2ws(name)));
 		
@@ -1223,7 +1232,7 @@ void MainMenuScene::Initialize()
 
 		// 메인메뉴 카메라 6 view 로드
 		auto& mm = mWorld->AddComponent<MainMenuCameraComponent>(mainMenuCamera);
-		std::vector<CameraView> views = RESOURCEMANAGER.LoadCameraViews(
+		std::vector<Cinematic::CameraView> views = RESOURCEMANAGER.LoadCameraViews(
 			L"..\\Resources\\Json\\MainMenuCameraViews.json");
 
 		mm.mLoaded = (views.size() == (size_t)MainMenuView::Count);
@@ -2561,6 +2570,90 @@ namespace
 			}
 		}
 	}
+
+	
+	bool IsPlazaCloudMesh(const std::string& fbxStem)
+	{
+		return fbxStem.rfind("SM_SM_Cloud", 0) == 0;
+	}
+
+	void SpawnPlazaClouds(World* world, const std::wstring& path)
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
+		const std::wstring prefix = s2ws(level.levelName);
+
+		constexpr float kCloudDistanceScale = 0.3f;
+
+		int spawned = 0;
+		for (const auto& inst : level.instances)
+		{
+			const std::string stem = filesystem::path(inst.fbx).filename().stem().string();
+			if (!IsPlazaCloudMesh(stem))
+				continue;
+			
+			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, s2ws(stem)));
+			if (!data || data->GetMeshs().empty())
+				continue;
+
+
+			const Matrix& M = inst.worldMtx;
+			Vec3 row0(M._11, M._12, M._13);
+			Vec3 row1(M._21, M._22, M._23);
+			Vec3 row2(M._31, M._32, M._33);
+			float sx = row0.Length(); if (sx < 1e-5f) sx = 1.f;
+			float sy = row1.Length(); if (sy < 1e-5f) sy = 1.f;
+			float sz = row2.Length(); if (sz < 1e-5f) sz = 1.f;
+
+
+			Matrix R = Matrix::Identity;
+			R._11 = row0.x / sx;  R._12 = row0.y / sx;  R._13 = row0.z / sx;
+			R._21 = row1.x / sy;  R._22 = row1.y / sy;  R._23 = row1.z / sy;
+			R._31 = -row2.x / sz; R._32 = -row2.y / sz; R._33 = -row2.z / sz;
+			const Quaternion q = Quaternion::CreateFromRotationMatrix(R);
+			const Vec3 er = q.ToEuler();
+			const Vec3 rotDeg(XMConvertToDegrees(er.x),
+							  XMConvertToDegrees(er.y),
+							  XMConvertToDegrees(er.z));
+			const Vec3 scale(sx, sy, sz); 
+
+
+			const Vec3 translation = M.Translation() * kCloudDistanceScale;
+
+
+			const float r01a = rand() / static_cast<float>(RAND_MAX);
+			const float r01c = rand() / static_cast<float>(RAND_MAX);
+			const float speedScale = 0.8f + r01a * 0.4f;                          // 0.8~1.2
+			const float travelled  = r01c * CloudDriftSystem::kRecycleDist;       
+
+			const auto& meshes   = data->GetMeshs();
+			const auto& meshMats = data->GetMeshMaterials();
+			for (size_t mi = 0; mi < meshes.size(); ++mi)
+			{
+				if (!meshes[mi]) continue;
+
+				Entity e = world->CreateEntity();
+
+				TransformComponent transform{};
+				transform.mLocalPosition  = translation;
+				transform.mLocalRotationE = rotDeg;
+				transform.mLocalScale     = scale;
+				transform.mIsStatic       = false;   // 움직여야 하므로 정적 아님
+				world->AddComponent<TransformComponent>(e, transform);
+
+				RenderComponent& render = world->AddComponent<RenderComponent>(e);
+				if (mi < meshMats.size())
+					render.mMaterials = meshMats[mi];
+				render.SetMesh(meshes[mi]);
+
+				CloudDriftComponent& cloud = world->AddComponent<CloudDriftComponent>(e);
+				cloud.mBasePos    = translation;
+				cloud.mSpeedScale = speedScale;
+				cloud.mTravelled  = travelled;
+			}
+			spawned++;
+		}
+		std::cout << "[Plaza] 떠다니는 구름 메시 스폰: " << spawned << " 개" << std::endl;
+	}
 }
 
 void PlazaScene::Initialize()
@@ -2625,8 +2718,12 @@ void PlazaScene::Initialize()
 	}
 
 
-	LoadJsonLevelData(L"..\\Resources\\Json\\MapShip_Export.json");
+	// 구름 메시 제외
+	LoadJsonLevelData(L"..\\Resources\\Json\\MapShip_Export.json", &IsPlazaCloudMesh);
 	LoadCollisionJson(L"..\\Resources\\Json\\MapShip_Export.json");
+
+	// 구름
+	SpawnPlazaClouds(mWorld.get(), L"..\\Resources\\Json\\MapShip_Export.json");
 
 #pragma region UI
 
@@ -2748,6 +2845,14 @@ void PlazaScene::Initialize()
 
 	mWorld->AddSingleton<GameRuleComponent>();
 	mWorld->AddSingleton<DialogueStateComponent>();
+
+
+	mWorld->GetSystemManager()->RegisterSystem<AirshipDepartureSystem>();		// 비행정 출발 시네마틱
+	mWorld->GetSystemManager()->RegisterSystem<CloudDriftSystem>();	// 구름
+
+
+	auto& departure = mWorld->AddSingleton<AirshipDepartureComponent>();
+	departure.mKeys = RESOURCEMANAGER.LoadCameraSequence(L"..\\Resources\\Json\\ShipDepartureCamera.json");
 
 	// NPC 배치 + 대화 스크립트
 	LoadPlazaNpcs(mWorld.get(), L"..\\Resources\\Json\\Plaza_NPCs.json");

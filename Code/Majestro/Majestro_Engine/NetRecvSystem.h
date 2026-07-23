@@ -61,6 +61,9 @@ private:
 
 	Entity CreateEntityFromArchetype(uint32_t archetypeId, const InputCommand& spawnCommand);
 
+	// 레벨 씬 진입
+	void EnterLevelScene(SceneId target, const std::wstring& loadingMessage);
+
 private:
 	using Handler = std::function<void(const InputCommand&)>;
 	std::array<Handler, static_cast<size_t>(KMSG) + 1> mHandlers{};

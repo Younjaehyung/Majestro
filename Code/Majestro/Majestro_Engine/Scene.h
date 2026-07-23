@@ -22,7 +22,8 @@ public:
 
 	// 맵 데이터 fbx로드, 맵 데이터 json로드
 	void LoadJsonLevelFBX(const wstring& path);
-	void LoadJsonLevelData(const wstring& path);
+	void LoadJsonLevelData(const wstring& path,
+		const std::function<bool(const std::string& fbxStem)>& skipMeshStem = {});
 
 	// 맵 데이터 전체 로드
 	void LoadJsonLevel(const wstring& path);

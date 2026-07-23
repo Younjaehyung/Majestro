@@ -29,6 +29,12 @@
       "yaw": 0.0,
       "roll": 0.0,
       "frequency": 20.0
+    },
+    "Special": {
+      "pitch": 2.6,
+      "yaw": 1.8,
+      "roll": 0.0,
+      "frequency": 26.0
     }
   },
   "Ibanix": {
@@ -49,6 +55,12 @@
       "yaw": 0.0,
       "roll": 0.0,
       "frequency": 20.0
+    },
+    "Special": {
+      "pitch": 3.0,
+      "yaw": 2.0,
+      "roll": 0.0,
+      "frequency": 26.0
     }
   },
   "Fanthor": {
@@ -81,6 +93,12 @@
       "yaw": 0.0,
       "roll": 0.0,
       "frequency": 20.0
+    },
+    "Special": {
+      "pitch": 3.0,
+      "yaw": 2.0,
+      "roll": 0.0,
+      "frequency": 26.0
     }
   }
 }

@@ -170,6 +170,20 @@
       "is3d": true
     },
 
+    "_comment_special": "궁극기(Special) 진입 사운드. SfxSystem 이 상태 전환 시 action/<Char>/Special 로 자동 재생한다(3D, 전 플레이어). 아래 event 경로는 컨벤션 기준 자리표시자이니 실제 FMOD 이벤트로 교체할 것(뱅크에 없으면 1회 로그 후 무시). 인트로 컷인용 사운드가 따로 필요하면 action/<Char>/UltimateIntro 를 추가하면 된다.",
+    "action/Ibanix/Special": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Special",
+      "is3d": true
+    },
+    "action/Rudwig/Special": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Special",
+      "is3d": true
+    },
+    "action/Fanthor/Special": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Special",
+      "is3d": true
+    },
+
 
     "action/Rudwig/Attack1": {
       "event": "event:/SFX/Rudwig/SFX_Rudwig_Atk",

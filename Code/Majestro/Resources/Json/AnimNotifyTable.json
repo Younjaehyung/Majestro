@@ -264,5 +264,58 @@
       "useUpper": true,
       "preset": "Rudwig_Reload"
     }
+  ],
+
+  "_comment_ultimate": "궁극기(Special) 카메라 연출. Special 은 상체 액션이므로 useUpper:true. startFrame~endFrame 은 궁 애니 프레임 기준 임시값이니 실제 클립 길이에 맞춰 튜닝할 것. preset 은 CameraShake/DollySetting.json 의 <Char>_Special.",
+
+  "Anim_Rudwig_Ultimate": [
+    {
+      "startFrame": 0,
+      "endFrame": 40,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Rudwig_Special"
+    },
+    {
+      "startFrame": 0,
+      "endFrame": 40,
+      "kind": "cameraDolly",
+      "useUpper": true,
+      "preset": "Rudwig_Special"
+    }
+  ],
+
+  "Anim_Ibanix_Ultimate": [
+    {
+      "startFrame": 0,
+      "endFrame": 40,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Ibanix_Special"
+    },
+    {
+      "startFrame": 0,
+      "endFrame": 40,
+      "kind": "cameraDolly",
+      "useUpper": true,
+      "preset": "Ibanix_Special"
+    }
+  ],
+
+  "Anim_Fanthor_Ultimate": [
+    {
+      "startFrame": 0,
+      "endFrame": 40,
+      "kind": "cameraShake",
+      "useUpper": true,
+      "preset": "Fanthor_Special"
+    },
+    {
+      "startFrame": 0,
+      "endFrame": 40,
+      "kind": "cameraDolly",
+      "useUpper": true,
+      "preset": "Fanthor_Special"
+    }
   ]
 }

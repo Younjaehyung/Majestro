@@ -393,6 +393,7 @@
     <ClInclude Include="UIPhaseProgressUpdateFeature.h" />
     <ClInclude Include="Chat.h" />
     <ClInclude Include="ChatOverlay.h" />
+    <ClInclude Include="UltimateCutInFeature.h" />
     <ClInclude Include="UITextOverlay.h" />
     <ClInclude Include="UIRenderSystem.h" />
     <ClInclude Include="UISpriteComponent.h" />
@@ -581,6 +582,7 @@
     <ClCompile Include="LobbyRoomBrowserFeature.cpp" />
     <ClCompile Include="MenuRoomBrowserSystem.cpp" />
     <ClCompile Include="ChatOverlay.cpp" />
+    <ClCompile Include="UltimateCutInFeature.cpp" />
     <ClCompile Include="UIRenderSystem.cpp" />
     <ClCompile Include="UISpriteComponent.cpp" />
     <ClCompile Include="UIButtonSystem.cpp" />

@@ -30,33 +30,12 @@ public:
     Vec4  mGroundDecalColor{ 0.5f, 1.4f, 2.4f, 1.f }; 
     float mGroundDecalLifetime{ 0.9f };
 
-    // 카메라 (로컬만)
-    Vec3  mCamShakeAngles{ 2.6f, 1.8f, 0.0f };         // 흔들림 강화 (pitch/yaw)
-	float mCamShakeDuration{ 0.45f };                  // 흔들림 지속시간
-	float mCamShakeFrequency{ 26.f };                  // 흔들림 주파수
-	float mCamDollyDistance{ 130.f };                  // 카메라 돌리기 거리
-	float mCamDollyHold{ 0.30f };                      // 카메라 돌리기 유지시간
-	float mCamDollyInSpeed{ 22.f };                    // 카메라 돌리기 속도 (초당 거리)
-	float mCamDollyOutSpeed{ 2.5f };                   // 카메라 복귀 속도 (초당 거리)
 
-    // 오디오 (현재 로컬임)
-    const char* mBurstAudioEvent{ nullptr };           // "event:/SFX/Ultimate"
-
-    // 런타임
-    float mRemainSec{ 0.f };            // 남은 지속시간 (0 이하면 페이드아웃)
+    // 런타임종한다.
     float mFadeGate{ 0.f };             // 페이드 게이트 (0~1)
     float mElapsed{ 0.f };              // 맥동 위상용 누적 시간
-    bool  mSparkFired{ false };         // 이번 발동에서 스파크를 이미 터뜨렸는지 (중복 방지)
-
+    bool  mSparkFired{ false };         // 활성 구간당 스파크 1회 래치 (상태 벗어나면 재장전)
 
     float mCurrentIntensity{ 0.f };     // 최종 강도
     float mBurstGate{ 1.8f };           // 번쩍임 세기
-
-    // 지정한 시간만큼 강조
-    void Trigger(float durationSec)
-    {
-        mRemainSec = durationSec;
-        mFadeGate  = mBurstGate;
-        mSparkFired = false;   // 새 발동
-    }
 };

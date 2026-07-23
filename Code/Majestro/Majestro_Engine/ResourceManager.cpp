@@ -2863,6 +2863,18 @@ void ResourceManager::CreateDefaultMaterial()
 		Add<Material>(L"jAims", material);
 	}
 
+	//궁극기 컷인
+	{
+		Load<Texture>(L"UI_White", L"..\\Resources\\Image\\UI\\UI_White.png");
+
+		Load<Texture>(L"UI_Rudwig_Cutin",       L"..\\Resources\\Image\\UI\\UI_Rudwig_Cutin.png");
+		Load<Texture>(L"UI_Rudwig_Cutin_Back",  L"..\\Resources\\Image\\UI\\UI_Rudwig_Cutin_Back.png");
+		Load<Texture>(L"UI_Ibanix_Cutin",       L"..\\Resources\\Image\\UI\\UI_Ibanix_Cutin.png");
+		Load<Texture>(L"UI_Ibanix_Cutin_Back",  L"..\\Resources\\Image\\UI\\UI_Ibanix_Cutin_Back.png");
+		Load<Texture>(L"UI_Fanthor_Cutin",      L"..\\Resources\\Image\\UI\\UI_Fanthor_Cutin.png");
+		Load<Texture>(L"UI_Fanthor_Cutin_Back", L"..\\Resources\\Image\\UI\\UI_Fanthor_Cutin_Back.png");
+	}
+
 	//Ibanix_Ammo
 	{
 		shared_ptr<Texture> texture = Load<Texture>(L"Ibanix_Ammo", L"..\\Resources\\Image\\UI\\UI_Ibanix_Ammo_01.dds");

@@ -1206,6 +1206,9 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 		const float cellX = kIconCol[i] * kCell;             // 아이콘 열 (Skill1/Skill2/궁극기)
 		const float cellY = static_cast<float>(atlasRow) * kCell;
 		const Vec2 skillKey = kKeyCell[i];                   // 키 텍스트 셀 (E/Shift/Q)
+
+		const bool isUlt = (kSkillSlotId[i] == kUltimateSlot);
+		const Vec2 slotSize = isUlt ? kSkillSize * 1.28f : kSkillSize;  // 궁극기는 더 크게(강조)
 #ifdef _IMGUI
 		const std::string imguiSlotName = (i == 0) ? "Skill1" : (i == 1) ? "Skill2" : "Ultimate";
 #endif
@@ -1216,7 +1219,7 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 			auto& t = world->AddComponent<UITransformComponent>(back);
 			t.mAnchor = Anchor::BottomRight;
 			t.mPosition = kSkillPos[i];
-			t.mSize = kSkillSize;
+			t.mSize = slotSize;
 			t.mUILayerIndex = 5;
 			auto& sp = world->AddComponent<UISpriteComponent>(back, backTex);
 			sp.SetSourceRect(0, 1024, 512, 512);
@@ -1237,7 +1240,7 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 			auto& t = world->AddComponent<UITransformComponent>(icon);
 			t.mAnchor = Anchor::BottomRight;
 			t.mPosition = kSkillPos[i];
-			t.mSize = kSkillSize;
+			t.mSize = slotSize;
 			t.mUILayerIndex = 6;
 			auto& sp = world->AddComponent<UISpriteComponent>(icon, skiilTex);
 #ifdef _IMGUI
@@ -1254,7 +1257,7 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 			auto& t = world->AddComponent<UITransformComponent>(overlay);
 			t.mAnchor = Anchor::BottomRight;
 			t.mPosition = kSkillPos[i];
-			t.mSize = kSkillSize;
+			t.mSize = slotSize;
 			t.mPivot = Vec2(0.f, 0.f);
 			t.mUILayerIndex = 7;
 			auto& sp = world->AddComponent<UISpriteComponent>(overlay, overlayTex);
@@ -1285,6 +1288,28 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 #endif
 		}
 
+		// 쿨타임 남은 초 숫자 (스킬 슬롯만. 궁극기는 충전 게이지라 숫자 없음)
+		Entity countText = NULL_ENTITY;
+		if (!isUlt)
+		{
+			countText = world->CreateEntity();
+			auto& t = world->AddComponent<UITransformComponent>(countText);
+			t.mAnchor = Anchor::BottomRight;
+			t.mPosition = kSkillPos[i] + Vec2(slotSize.x * 0.5f - 22.f, slotSize.y * 0.5f - 30.f); // 대략 중앙(ImGui로 미세조정)
+			t.mSize = slotSize;
+			t.mPivot = Vec2(0.5f, 0.5f);
+			t.mUILayerIndex = 9;   // 오버레이(7)/키(8) 위
+			auto& txt = world->AddComponent<UITextComponent>(countText);
+			txt.mFontType = UIFontType::Esamanru;
+			txt.mColor = DirectX::XMVECTORF32{ { { 1.f, 1.f, 1.f, 1.f } } };
+			txt.mOutlineThickness = 3.f;
+			txt.mOutlineColor = DirectX::XMVECTORF32{ { { 0.f, 0.f, 0.f, 1.f } } };
+			txt.mText = L"";
+			txt.mVisible = false;  // 쿨 중에만 표시
+#ifdef _IMGUI
+			props.push_back({ imguiSlotName + " Count Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
+#endif
+		}
 
 		auto& slot = world->AddComponent<HUDSkillSlotComponent>(icon);
 		slot.mSkillSlot = kSkillSlotId[i];
@@ -1292,6 +1317,8 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 		slot.mBack = back;
 		slot.mIcon = icon;
 		slot.mOverlay = overlay;
+		slot.mCountText = countText;
+		slot.mIsUltimate = isUlt;
 	}
 
 #ifdef _IMGUI

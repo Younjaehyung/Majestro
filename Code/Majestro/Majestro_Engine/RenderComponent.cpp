@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "TransformComponent.h"
+#include <cstring>
 
 
 RenderComponent::RenderComponent()
@@ -31,6 +32,7 @@ uint64 RenderComponent::GetInstanceID()
 void RenderComponent::SetMesh(shared_ptr<Mesh> mesh)
 {
 	mMesh = mesh;
+	mWorldObbInitialized = false;
 
 	if (mMesh == nullptr)
 	{
@@ -51,11 +53,20 @@ void RenderComponent::SetLocalOBB(const Vec3& center, const Vec3& halfExtents)
 	mLocalOBB.Center = XMFLOAT3(center.x, center.y, center.z);
 	mLocalOBB.Extents = XMFLOAT3(halfExtents.x, halfExtents.y, halfExtents.z);
 	mLocalOBB.Orientation = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
+	mWorldObbInitialized = false;
 }
 
-void RenderComponent::UpdateWorldOBB(TransformComponent* transComp)
+bool RenderComponent::UpdateWorldOBB(TransformComponent* transComp)
 {
+	if (transComp == nullptr)
+		return false;
+
 	const Matrix& world = transComp->GetWorldMatrix();
+	if (mWorldObbInitialized &&
+		std::memcmp(&mCachedObbWorldMatrix, &world, sizeof(Matrix)) == 0)
+	{
+		return false;
+	}
 
 	XMFLOAT3 corners[BoundingOrientedBox::CORNER_COUNT];
 	mLocalOBB.GetCorners(corners);
@@ -74,4 +85,41 @@ void RenderComponent::UpdateWorldOBB(TransformComponent* transComp)
 	XMStoreFloat3(&mWorldOBB.Center, center);
 	XMStoreFloat3(&mWorldOBB.Extents, extents);
 	mWorldOBB.Orientation = XMFLOAT4(0.f, 0.f, 0.f, 1.f);
+
+	mCachedObbWorldMatrix = world;
+	mWorldObbInitialized = true;
+	return true;
+}
+
+StaticCasterChangeType RenderComponent::UpdateStaticCasterState(bool isStatic)
+{
+	const Mesh* currentMesh = mMesh.get();
+	StaticCasterChangeType changeType = StaticCasterChangeType::None;
+
+	if (mStaticCasterStateInitialized)
+	{
+		const bool wasStaticCaster =
+			mCachedStaticCasterFlag && mCachedStaticCasterMesh != nullptr;
+		const bool isStaticCaster = isStatic && currentMesh != nullptr;
+
+		// 동적 오브젝트의 visibility와 mesh 변경은 고정 그림자 캐시에 영향을 주지 않는다.
+		if (wasStaticCaster || isStaticCaster)
+		{
+			const bool membershipChanged = wasStaticCaster != isStaticCaster;
+			const bool meshChanged = mCachedStaticCasterMesh != currentMesh;
+			const bool visibilityChanged =
+				mCachedStaticCasterVisibility != mVisibility;
+
+			if (membershipChanged || meshChanged)
+				changeType = StaticCasterChangeType::Bounds;
+			else if (visibilityChanged)
+				changeType = StaticCasterChangeType::Content;
+		}
+	}
+
+	mCachedStaticCasterMesh = currentMesh;
+	mCachedStaticCasterVisibility = mVisibility;
+	mCachedStaticCasterFlag = isStatic;
+	mStaticCasterStateInitialized = true;
+	return changeType;
 }

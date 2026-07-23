@@ -1,6 +1,7 @@
 #pragma once
 #include "System.h"
 #include "EventManager.h"
+#include "EngineLog.h"
 
 
 class SystemManager
@@ -43,6 +44,10 @@ private:
 
     // phase별 실행 리스트(포인터)
     std::vector<System*> mPhaseSystems[(size_t)SysPhase::Count];
+
+    // 전투 중 Update 증가 원인을 찾기 위해 시스템별 CPU 누적 시간을 기록한다.
+    std::unordered_map<System*, EngineLog::CpuProfileSample> mCpuProfileSamples;
+    uint32 mCpuProfileFrames = 0;
 
     bool mDirtySchedule = true;
 };

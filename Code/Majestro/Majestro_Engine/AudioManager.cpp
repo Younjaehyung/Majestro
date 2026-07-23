@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "AudioManager.h"
+#include "EngineLog.h"
 
 
 namespace
@@ -82,37 +83,43 @@ void FmodBackend::LoadBank(const std::string& bank, bool preloadSampleData) {
         FMOD_CHECK(b->loadSampleData());
     }
 
-    // SfxTable.json/RequestBGM에 쓸 이름 확인용.
+    // 진단 로그가 꺼져 있으면 이벤트 목록 조회와 문자열 조립도 생략한다.
+    if (EngineLog::Enabled(EngineLog::Domain::AudioDiagnostic))
+    {
+        int eventCount = 0;
+        if (b->getEventCount(&eventCount) == FMOD_OK && eventCount > 0) {
+            std::ostringstream eventLog;
+            eventLog << "[FMOD] bank " << bank
+                << " events " << eventCount << '\n';
+            std::vector<FMOD::Studio::EventDescription*> events(eventCount);
+            if (b->getEventList(events.data(), eventCount, &eventCount) == FMOD_OK) {
+                for (int i = 0; i < eventCount; ++i) {
+                    if (events[i] == nullptr)
+                        continue;
 
-    int eventCount = 0;
-    if (b->getEventCount(&eventCount) == FMOD_OK && eventCount > 0) {
-        std::vector<FMOD::Studio::EventDescription*> events(eventCount);
-        if (b->getEventList(events.data(), eventCount, &eventCount) == FMOD_OK) {
-            std::cout << "[FMOD] bank '" << bank << "' events (" << eventCount << "):" << std::endl;
-            for (int i = 0; i < eventCount; ++i) {
-                if (events[i] == nullptr)
-                    continue;
-
-                char path[256] = {};
-                int retrieved = 0;
-                if (events[i]->getPath(path, sizeof(path), &retrieved) == FMOD_OK)
-                {
-                    std::cout << "    " << path << std::endl;
-                }
-                else
-                {
-                    // 경로 문자열 없음 
-                    FMOD_GUID id{};
-                    if (events[i]->getID(&id) == FMOD_OK) {
-                        char guid[64] = {};
-                        snprintf(guid, sizeof(guid),
-                            "{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
-                            id.Data1, id.Data2, id.Data3,
-                            id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3],
-                            id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
-                        std::cout << "    (이름 없음 — strings 뱅크 갱신 필요) GUID " << guid << std::endl;
+                    char path[256] = {};
+                    int retrieved = 0;
+                    if (events[i]->getPath(path, sizeof(path), &retrieved) == FMOD_OK)
+                    {
+                        eventLog << "    " << path << '\n';
+                    }
+                    else
+                    {
+                        FMOD_GUID id{};
+                        if (events[i]->getID(&id) == FMOD_OK) {
+                            char guid[64] = {};
+                            snprintf(guid, sizeof(guid),
+                                "{%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}",
+                                id.Data1, id.Data2, id.Data3,
+                                id.Data4[0], id.Data4[1], id.Data4[2], id.Data4[3],
+                                id.Data4[4], id.Data4[5], id.Data4[6], id.Data4[7]);
+                            eventLog << "    missing path GUID " << guid << '\n';
+                        }
                     }
                 }
+                EngineLog::Write(
+                    EngineLog::Domain::AudioDiagnostic,
+                    eventLog.str());
             }
         }
     }
@@ -394,7 +401,15 @@ bool AudioManager::RequestBGM(
     }
     catch (const std::exception& e) {
         // 이벤트가 뱅크에 아직 없으면 throw 
-        std::cout << "[BGM] request failed (" << eventPath << "): " << e.what() << std::endl;
+        const std::string diagnosticKey =
+            eventPath ? eventPath : "null-event";
+        EngineLog::WriteOnce(
+            EngineLog::Domain::AudioDiagnostic,
+            diagnosticKey,
+            "[BGM] request failed ",
+            diagnosticKey,
+            ": ",
+            e.what());
         return false;
     }
 }
@@ -471,9 +486,17 @@ bool AudioManager::ApplyEventParameter(
     if (globalResult == FMOD_OK)
         return true;
 
-    std::cout << "[BGM] SetParam('" << name << "') failed: local="
-              << FMOD_ErrorString(localResult) << " global="
-              << FMOD_ErrorString(globalResult) << std::endl;
+    const std::string diagnosticKey =
+        std::string("parameter:") + (name ? name : "null");
+    EngineLog::WriteOnce(
+        EngineLog::Domain::AudioDiagnostic,
+        diagnosticKey,
+        "[BGM] SetParam ",
+        name ? name : "null",
+        " failed: local=",
+        FMOD_ErrorString(localResult),
+        " global=",
+        FMOD_ErrorString(globalResult));
     return false;
 }
 
@@ -526,11 +549,22 @@ void AudioManager::SetBGMVolume(SOUNDNAME soundEnum, float volume) {
 }
 
 void AudioManager::DebugStartSeekProbe(float targetSeconds) {
+    if (!EngineLog::Enabled(EngineLog::Domain::AudioRuntime))
+    {
+        mSeekProbe.active = false;
+        return;
+    }
+
     const SOUNDNAME stems[] = { SOUNDNAME::Drum, SOUNDNAME::Bass, SOUNDNAME::Elec };
     const int reqMs = static_cast<int>(targetSeconds * 1000.f);
 
-    std::cout << "[SeekProbe] ==== setTimelinePosition(" << targetSeconds
-              << "s = " << reqMs << "ms) on Drum/Bass/Elec ====" << std::endl;
+    EngineLog::Write(
+        EngineLog::Domain::AudioRuntime,
+        "[SeekProbe] setTimelinePosition ",
+        targetSeconds,
+        "s ",
+        reqMs,
+        "ms");
 
     for (SOUNDNAME s : stems) {
         const size_t i = static_cast<size_t>(s);
@@ -540,15 +574,27 @@ void AudioManager::DebugStartSeekProbe(float targetSeconds) {
             SeekBGM(s, targetSeconds);
         }
         catch (const std::exception& e) {
-            std::cout << "[SeekProbe] stem " << static_cast<int>(s)
-                      << " seek FAILED: " << e.what() << std::endl;
+            EngineLog::Write(
+                EngineLog::Domain::AudioRuntime,
+                "[SeekProbe] stem ",
+                static_cast<int>(s),
+                " seek failed: ",
+                e.what());
             continue;
         }
         int immediate = -1;
         GetBGMTimelinePositionMs(s, immediate);
-        std::cout << "[SeekProbe] stem " << static_cast<int>(s)
-                  << " before=" << before << "ms requested=" << reqMs
-                  << "ms immediateReadback=" << immediate << "ms" << std::endl;
+        EngineLog::Write(
+            EngineLog::Domain::AudioRuntime,
+            "[SeekProbe] stem ",
+            static_cast<int>(s),
+            " before=",
+            before,
+            "ms requested=",
+            reqMs,
+            "ms immediateReadback=",
+            immediate,
+            "ms");
         mSeekProbe.lastMs[i] = immediate;
     }
 
@@ -559,6 +605,11 @@ void AudioManager::DebugStartSeekProbe(float targetSeconds) {
 
 void AudioManager::PollSeekProbe() {
     if (!mSeekProbe.active) return;
+    if (!EngineLog::Enabled(EngineLog::Domain::AudioRuntime))
+    {
+        mSeekProbe.active = false;
+        return;
+    }
 
     const SOUNDNAME stems[] = { SOUNDNAME::Drum, SOUNDNAME::Bass, SOUNDNAME::Elec };
 
@@ -567,20 +618,26 @@ void AudioManager::PollSeekProbe() {
         int now = -1;
         if (!GetBGMTimelinePositionMs(s, now)) continue;
         const int delta = now - mSeekProbe.lastMs[i];
-        std::cout << "[SeekProbe] f" << mSeekProbe.framesLeft
-                  << " stem " << static_cast<int>(s)
-                  << " pos=" << now << "ms (delta " << (delta >= 0 ? "+" : "") << delta << ")"
-                  << std::endl;
+        EngineLog::Write(
+            EngineLog::Domain::AudioRuntime,
+            "[SeekProbe] frame=",
+            mSeekProbe.framesLeft,
+            " stem=",
+            static_cast<int>(s),
+            " pos=",
+            now,
+            "ms delta=",
+            delta);
         mSeekProbe.lastMs[i] = now;
     }
 
-   /* if (--mSeekProbe.framesLeft <= 0) {
+    // 디버그 프로브가 영구적으로 매 프레임 출력되지 않도록 정해진 프레임 뒤 종료한다.
+    if (--mSeekProbe.framesLeft <= 0) {
         mSeekProbe.active = false;
-        std::cout << "[SeekProbe] ==== done. 판정 가이드: "
-                     "pos 가 요청값 근처에서 시작해 매 프레임 +dt(약 +16ms) 단조 증가하면 시킹 정상. "
-                     "요청과 동떨어진 값으로 스냅/역행/고정이면 트랜지션 리전·퀀타이즈 간섭(오디오 위상 보정 불가)."
-                  << std::endl;
-    }*/
+        EngineLog::Write(
+            EngineLog::Domain::AudioRuntime,
+            "[SeekProbe] completed");
+    }
 }
 
 bool AudioManager::GetBGMParam(const char* name, SOUNDNAME soundEnum, float& outValue, float* outFinalValue) const {

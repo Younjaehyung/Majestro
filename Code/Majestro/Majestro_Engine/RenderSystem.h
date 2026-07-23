@@ -194,6 +194,8 @@ private: // Push&Clear Data
 
   void UpdateCascadeShadowMatrices(LightComponent* lightComponent);
   void UpdateMapCascade(const Vec3& lightDir);  // 맵 전체 고정 cascade (마지막 슬라이스)
+  void InvalidateMapCascadeBounds();
+  void InvalidateMapCascadeContent();
   // 오브젝트 구체가 교차하는 cascade 비트마스크 — 4-cascade는 정적 캐스터 + dirty 프레임 한정
   uint8 ComputeCascadeMask(const Vec3& objCenter, float objRadius, bool isStatic) const;
 
@@ -238,7 +240,7 @@ public:
   // ImGui 디버그 — 맵 고정 cascade 상태
   bool IsMapCascadeDirty() const { return mMapCascadeDirty; }
   uint32 GetStaticCasterCount() const { return mPrevStaticCasterCount; }
-  void ForceMapCascadeDirty() { mMapCascadeDirty = true; }
+  void ForceMapCascadeDirty() { InvalidateMapCascadeBounds(); }
 
 private:
   std::vector<Entity> mDummyVector;
@@ -264,11 +266,15 @@ private:
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeLightUp{};
   bool mHasDirectionalShadow = false;
 
-  // 맵 전체 고정 4-cascade — dirty일 때만 그림자 캐시
-  bool   mMapCascadeDirty = true;              // 첫 프레임 강제 렌더
-  Matrix mMapCascadeVP = Matrix::Identity;     // 고정 VP (transpose 전)
-  Vec3   mPrevLightDir = Vec3::Zero;           // dirty 검출: 라이트 방향 변화
-  uint32 mPrevStaticCasterCount = 0;           // dirty 검출: 정적 캐스터 수 변화
+  // 맵 전체 고정 4-cascade의 공간 경계 갱신과 그림자 내용 갱신을 분리한다.
+  bool   mMapCascadeDirty = true;                // 현재 프레임에 고정 그림자 슬라이스를 다시 그릴지 여부
+  Matrix mMapCascadeVP = Matrix::Identity;       // 고정 VP (transpose 전)
+  Vec3   mPrevLightDir = Vec3::Zero;             // bounds dirty 검출: 라이트 방향 변화
+  uint32 mPrevStaticCasterCount = 0;             // bounds dirty 검출: 잠재 정적 캐스터 수 변화
+  uint64 mStaticCasterBoundsRevision = 1;        // mesh, static 상태, transform 경계 변경 세대
+  uint64 mAppliedStaticCasterBoundsRevision = 0; // 맵 cascade VP에 반영된 bounds 세대
+  uint64 mStaticCasterContentRevision = 1;       // visibility 등 그림자 내용 변경 세대
+  uint64 mAppliedStaticCasterContentRevision = 0;// 고정 그림자 슬라이스에 반영된 내용 세대
 
 private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms

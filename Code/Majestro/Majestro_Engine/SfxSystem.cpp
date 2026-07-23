@@ -8,6 +8,7 @@
 #include "TransformComponent.h"
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
+#include "EngineLog.h"
 
 namespace
 {
@@ -64,7 +65,11 @@ void SfxSystem::LoadTable(const std::string& path)
 	std::ifstream ifs(path);
 	if (!ifs)
 	{
-		std::cout << "[Sfx] SfxTable.json not found: " << path << std::endl;
+		EngineLog::WriteOnce(
+			EngineLog::Domain::AudioDiagnostic,
+			"sfx-table:" + path,
+			"[Sfx] table not found: ",
+			path);
 		return;
 	}
 
@@ -99,8 +104,11 @@ const SfxDesc* SfxSystem::Find(const std::string& key)
 	auto it = mTable.find(key);
 	if (it == mTable.end())
 	{
-		if (mWarnedKeys.insert(key).second)
-			std::cout << "[Sfx] unmapped key: " << key << std::endl;
+		EngineLog::WriteOnce(
+			EngineLog::Domain::AudioDiagnostic,
+			"sfx-unmapped:" + key,
+			"[Sfx] unmapped key: ",
+			key);
 		return nullptr;
 	}
 	return &it->second;
@@ -128,8 +136,13 @@ void SfxSystem::Play(const std::string& key, const Vec3* worldPos)
 	}
 	catch (const std::exception& e)
 	{
-		if (mWarnedKeys.insert(desc->eventPath).second)
-			std::cout << "[Sfx] play failed (" << desc->eventPath << "): " << e.what() << std::endl;
+		EngineLog::WriteOnce(
+			EngineLog::Domain::AudioDiagnostic,
+			"sfx-play:" + desc->eventPath,
+			"[Sfx] play failed ",
+			desc->eventPath,
+			": ",
+			e.what());
 	}
 }
 
@@ -160,8 +173,13 @@ void SfxSystem::HandleStateChange(SfxHandle& loopSlot, const std::string& key, c
 	}
 	catch (const std::exception& e)
 	{
-		if (mWarnedKeys.insert(desc->eventPath).second)
-			std::cout << "[Sfx] loop start failed (" << desc->eventPath << "): " << e.what() << std::endl;
+		EngineLog::WriteOnce(
+			EngineLog::Domain::AudioDiagnostic,
+			"sfx-loop:" + desc->eventPath,
+			"[Sfx] loop start failed ",
+			desc->eventPath,
+			": ",
+			e.what());
 	}
 }
 

@@ -2,6 +2,7 @@
 #include "NetRecvSystem.h"
 #include "EnginePch.h"
 #include "Engine.h"
+#include "EngineLog.h"
 #include "MajestroGameInstance.h"
 #include "SceneManager.h"
 #include "Scene.h"
@@ -134,9 +135,13 @@ void NetRecvSystem::ProcessOne(const InputCommand& msg)
         mHandlers[idx](msg);
         return;
     }
-#ifdef _DEBUG
-    std::cout << "[NetRecvSystem] 미등록 패킷 타입: " << static_cast<int>(msg.Type) << std::endl;
-#endif
+    const std::string diagnosticKey =
+        "unregistered-packet:" + std::to_string(static_cast<int>(msg.Type));
+    EngineLog::WriteOnce(
+        EngineLog::Domain::NetworkDiagnostic,
+        diagnosticKey,
+        "[NetRecvSystem] unregistered packet type ",
+        static_cast<int>(msg.Type));
 }
 
 void NetRecvSystem::HandleMove(const InputCommand& msg)
@@ -178,14 +183,6 @@ void NetRecvSystem::HandleMove(const InputCommand& msg)
         snapshot.vel        = { pkt->vx, pkt->vy, pkt->vz };
         snapshot.rotQ       = { pkt->rx, pkt->ry, pkt->rz, pkt->rw };
         netTransform->OnSnapshot(snapshot, static_cast<double>(TIMER.GetTotalTime()));
-#ifdef _DEBUG
-        static double sLastRecvTime = 0.0;
-        const double now = static_cast<double>(TIMER.GetTotalTime());
-       /* std::cout << "[MOVE] interval=" << (now - sLastRecvTime) * 1000.0 << "ms"
-                  << " bufSize=" << netTransform->mBuffer.size()
-                  << " interpDelayTicks=" << netTransform->mInterpDelayTicksF << std::endl;*/
-        sLastRecvTime = now;
-#endif
     }
 }
 
@@ -344,8 +341,12 @@ void NetRecvSystem::HandleBeatJudgement(const InputCommand& msg)
     // 클라 즉시 예측(predicted=true)을 서버 결과(predicted=false)로 보정
     mWorld->GetEventManager()->Enqueue(EvBeatJudgement{ pkt->judgement, pkt->actionButton, false });
 
-    std::cout << "[BeatJudge/server] btn " << static_cast<int>(pkt->actionButton)
-              << " => " << static_cast<int>(pkt->judgement) << std::endl;
+    EngineLog::Write(
+        EngineLog::Domain::NetworkRuntime,
+        "[BeatJudge/server] btn ",
+        static_cast<int>(pkt->actionButton),
+        " result ",
+        static_cast<int>(pkt->judgement));
 }
 
 
@@ -373,11 +374,6 @@ void NetRecvSystem::HandleHealth(const InputCommand& msg)
     Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
     HealthComponent* healthComp = mWorld->GetComponent<HealthComponent>(e);
     if (!healthComp) return;
-
-    //std::cout << "[Client][S2C_PKT_HEALTH] netEntityId=" << pkt->netEntityId
-    //    << " hp=" << healthComp->mCurrentHp << "/" << healthComp->mMaxHp
-    //    << " -> " << pkt->currentHp << "/" << pkt->maxHp << std::endl;
-
 
     const int32 previousHp = healthComp->mCurrentHp;
     healthComp->mCurrentHp = pkt->currentHp;
@@ -518,7 +514,11 @@ void NetRecvSystem::HandleBulletActivate(const InputCommand& msg)
     Entity bulletEntity = mWorld->GetEntityByNetId(pkt->bulletNetEntityId);
     if (bulletEntity == NULL_ENTITY)
     {
-        std::cout << "Bullet Activate: 엔티티 없음 - bullet: " << pkt->bulletNetEntityId << std::endl;
+        EngineLog::WriteOnce(
+            EngineLog::Domain::NetworkDiagnostic,
+            "missing-bullet-entity",
+            "[BulletActivate] missing entity netId=",
+            pkt->bulletNetEntityId);
         return;
     }
 
@@ -1049,8 +1049,12 @@ void NetRecvSystem::HandleRoomError(const InputCommand& msg)
     const S2C_RoomErrorPacket* pkt = msg.ViewAs<S2C_RoomErrorPacket>();
     if (!pkt) return;
 
-    std::cout << "[RoomError] roomId=" << pkt->roomId
-              << " code=" << static_cast<int>(pkt->errorCode) << std::endl;
+    EngineLog::Write(
+        EngineLog::Domain::NetworkDiagnostic,
+        "[RoomError] roomId=",
+        pkt->roomId,
+        " code=",
+        static_cast<int>(pkt->errorCode));
 
     if (auto eventMgr = mWorld->GetEventManager())
         eventMgr->Enqueue(EvRoomError{ pkt->errorCode });
@@ -1188,14 +1192,24 @@ void NetRecvSystem::HandleSpawn(const InputCommand& msg)
         }
     }
     else {
-        if (TransformComponent* transform = mWorld->GetComponent<TransformComponent>(existing))
+        if (EngineLog::Enabled(EngineLog::Domain::NetworkRuntime))
         {
-            std::cout << "[SpawnSkipPos] netId=" << netId
-                << " entityId=" << existing.GetID()
-                << " pos=(" << transform->mLocalPosition.x
-                << ", " << transform->mLocalPosition.y
-                << ", " << transform->mLocalPosition.z << ")"
-                << std::endl;
+            if (TransformComponent* transform =
+                mWorld->GetComponent<TransformComponent>(existing))
+            {
+                EngineLog::Write(
+                    EngineLog::Domain::NetworkRuntime,
+                    "[SpawnSkipPos] netId=",
+                    netId,
+                    " entityId=",
+                    existing.GetID(),
+                    " pos=",
+                    transform->mLocalPosition.x,
+                    ",",
+                    transform->mLocalPosition.y,
+                    ",",
+                    transform->mLocalPosition.z);
+            }
         }
     }
        
@@ -1229,9 +1243,13 @@ void NetRecvSystem::HandleGimmickState(const InputCommand& msg)
     if (!pkt) return;
 
     Entity e = mWorld->GetEntityByNetId(pkt->netEntityId);
-    std::cout << "[Gimmick] state recv netId=" << pkt->netEntityId
-        << " active=" << static_cast<int>(pkt->active)
-        << (e == NULL_ENTITY ? " (엔티티 없음)" : "") << std::endl;
+    EngineLog::Write(
+        EngineLog::Domain::NetworkRuntime,
+        "[Gimmick] state netId=",
+        pkt->netEntityId,
+        " active=",
+        static_cast<int>(pkt->active),
+        e == NULL_ENTITY ? " missing-entity" : "");
 
     if (e == NULL_ENTITY) return;
 

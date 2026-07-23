@@ -23,6 +23,65 @@
 #include "DamageFeedbackComponent.h"
 #include "RhythmEmissiveComponent.h"
 #include "HighlightComponent.h"
+#include "VfxComponent.h"
+#include "EngineLog.h"
+
+namespace
+{
+  // 전투 중 CPU 렌더 구간과 실제 렌더 작업량을 같은 주기로 비교하기 위한 계측 데이터다.
+  struct RenderCpuProfile
+  {
+    uint32 frameCount = 0;
+
+    EngineLog::CpuProfileSample total;
+    EngineLog::CpuProfileSample clearRenderTargets;
+    EngineLog::CpuProfileSample staticData;
+    EngineLog::CpuProfileSample cascadeSetup;
+    EngineLog::CpuProfileSample objectBuild;
+    EngineLog::CpuProfileSample lightAndFrameData;
+    EngineLog::CpuProfileSample instanceUpload;
+    EngineLog::CpuProfileSample preCompute;
+    EngineLog::CpuProfileSample independentRecord;
+    EngineLog::CpuProfileSample submitIndependent;
+    EngineLog::CpuProfileSample dependentRecord;
+
+    uint64 renderComponentCount = 0;
+    uint64 visibleRenderCount = 0;
+    uint64 shadowOnlyCount = 0;
+    uint64 instanceCount = 0;
+    uint64 deferredItemCount = 0;
+    uint64 deferredBatchCount = 0;
+    uint64 worldObbUpdateCount = 0;
+    uint64 mapCascadeRebuildCount = 0;
+    uint64 mapCascadeRedrawCount = 0;
+    array<uint64, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> cascadeItemCount{};
+    array<uint64, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> cascadeBatchCount{};
+
+    uint32 currentVisibleRenderCount = 0;
+    uint32 currentShadowOnlyCount = 0;
+    uint32 currentWorldObbUpdateCount = 0;
+    uint32 currentMapCascadeRebuildCount = 0;
+    uint32 currentMapCascadeRedrawCount = 0;
+
+    void Reset()
+    {
+      *this = {};
+    }
+  };
+
+  RenderCpuProfile sRenderCpuProfile;
+
+  template<typename ComponentType>
+  uint32 CountComponents(World* world)
+  {
+    if (world == nullptr || !world->HasComponentPool<ComponentType>())
+      return 0;
+
+    return static_cast<uint32>(
+      world->GetComponentPool<ComponentType>().GetEntities().size());
+  }
+}
+
 // 정적 멤버 정의
 std::vector<DebugLineRequest> RenderSystem::sDebugLineQueue;
 bool RenderSystem::sDrawColliders = false;
@@ -93,6 +152,15 @@ RenderSystem::RenderSystem(World *world) : System::System(world) {
 }
 
 void RenderSystem::Initialize() {
+  sRenderCpuProfile.Reset();
+  mMapCascadeDirty = true;
+  mPrevLightDir = Vec3::Zero;
+  mPrevStaticCasterCount = 0;
+  mStaticCasterBoundsRevision = 1;
+  mAppliedStaticCasterBoundsRevision = 0;
+  mStaticCasterContentRevision = 1;
+  mAppliedStaticCasterContentRevision = 0;
+
   mRenderComponentPool = &(mWorld->GetComponentPool<RenderComponent>());
   mRootSignature = RESOURCEMANAGER.Get<RootSignature>(L"MainRootSignature");
 
@@ -128,7 +196,20 @@ void RenderSystem::Update() {
 
   if (!mActivePipeline) return;
 
-  ClearRTV();
+  sRenderCpuProfile.currentWorldObbUpdateCount = 0;
+  sRenderCpuProfile.currentMapCascadeRebuildCount = 0;
+  sRenderCpuProfile.currentMapCascadeRedrawCount = 0;
+
+  EngineLog::ScopedCpuProfile totalProfile(
+    EngineLog::Domain::RenderPerformance,
+    sRenderCpuProfile.total);
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.clearRenderTargets);
+    ClearRTV();
+  }
+
   PushData();
 
   // 컨텍스트 구성 — 파이프라인에 렌더 데이터 전달
@@ -142,33 +223,200 @@ void RenderSystem::Update() {
   ctx.deltaTime      = DELTA_TIME;
   ctx.frameIndex     = mFrameCount;
 
-  mActivePipeline->PreCompute(ctx);
-  mActivePipeline->ExecuteIndependentGraphics(ctx);
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.preCompute);
+    mActivePipeline->PreCompute(ctx);
+  }
+
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.independentRecord);
+    mActivePipeline->ExecuteIndependentGraphics(ctx);
+  }
 
   // Submit graphics passes that do not consume compute output before the queue wait.
-  RENDERMANAGER.SubmitIndependentGraphics();
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.submitIndependent);
+    RENDERMANAGER.SubmitIndependentGraphics();
+  }
 
-  mActivePipeline->ExecuteDependentGraphics(ctx);
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.dependentRecord);
+    mActivePipeline->ExecuteDependentGraphics(ctx);
+  }
+  totalProfile.Stop();
+
+  sRenderCpuProfile.frameCount++;
+  sRenderCpuProfile.renderComponentCount +=
+    static_cast<uint64>(mRenderComponentPool->GetEntities().size());
+  sRenderCpuProfile.visibleRenderCount += sRenderCpuProfile.currentVisibleRenderCount;
+  sRenderCpuProfile.shadowOnlyCount += sRenderCpuProfile.currentShadowOnlyCount;
+  sRenderCpuProfile.instanceCount += static_cast<uint64>(mInstanceVector.size());
+  sRenderCpuProfile.deferredItemCount +=
+    static_cast<uint64>(mDeferredDrawItems.size());
+  sRenderCpuProfile.deferredBatchCount +=
+    static_cast<uint64>(mDeferredDrawBatchs.size());
+  sRenderCpuProfile.worldObbUpdateCount +=
+    sRenderCpuProfile.currentWorldObbUpdateCount;
+  sRenderCpuProfile.mapCascadeRebuildCount +=
+    sRenderCpuProfile.currentMapCascadeRebuildCount;
+  sRenderCpuProfile.mapCascadeRedrawCount +=
+    sRenderCpuProfile.currentMapCascadeRedrawCount;
+
+  for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci)
+  {
+    sRenderCpuProfile.cascadeItemCount[ci] +=
+      static_cast<uint64>(mCascadeDrawItems[ci].size());
+    sRenderCpuProfile.cascadeBatchCount[ci] +=
+      static_cast<uint64>(mCascadeDrawBatchs[ci].size());
+  }
+
+  if (EngineLog::Enabled(EngineLog::Domain::RenderPerformance) &&
+      sRenderCpuProfile.frameCount >= 60)
+  {
+    // 순간값의 노이즈를 줄이기 위해 60프레임 평균을 디버그 출력으로 기록한다.
+    const double divisor = static_cast<double>(sRenderCpuProfile.frameCount);
+    wchar_t cpuBuffer[1024]{};
+    swprintf_s(
+      cpuBuffer,
+      L"[RENDER_CPU] Total %.2f ms | ClearRT %.2f | StaticData %.2f | "
+      L"CascadeSetup %.2f | Objects %.2f | LightFrame %.2f | InstanceUpload %.2f | "
+      L"PreCompute %.2f | IndependentRecord %.2f | Submit %.2f | DependentRecord %.2f\n",
+      sRenderCpuProfile.total.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.clearRenderTargets.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.staticData.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.cascadeSetup.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.objectBuild.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.lightAndFrameData.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.instanceUpload.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.preCompute.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.independentRecord.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.submitIndependent.Average(sRenderCpuProfile.frameCount),
+      sRenderCpuProfile.dependentRecord.Average(sRenderCpuProfile.frameCount));
+    EngineLog::OutputPerformance(
+      EngineLog::Domain::RenderPerformance,
+      cpuBuffer);
+
+    wchar_t maxBuffer[1024]{};
+    swprintf_s(
+      maxBuffer,
+      L"[RENDER_MAX] Total %.2f ms | ClearRT %.2f | StaticData %.2f | "
+      L"CascadeSetup %.2f | Objects %.2f | LightFrame %.2f | InstanceUpload %.2f | "
+      L"PreCompute %.2f | IndependentRecord %.2f | Submit %.2f | DependentRecord %.2f\n",
+      sRenderCpuProfile.total.maxMs,
+      sRenderCpuProfile.clearRenderTargets.maxMs,
+      sRenderCpuProfile.staticData.maxMs,
+      sRenderCpuProfile.cascadeSetup.maxMs,
+      sRenderCpuProfile.objectBuild.maxMs,
+      sRenderCpuProfile.lightAndFrameData.maxMs,
+      sRenderCpuProfile.instanceUpload.maxMs,
+      sRenderCpuProfile.preCompute.maxMs,
+      sRenderCpuProfile.independentRecord.maxMs,
+      sRenderCpuProfile.submitIndependent.maxMs,
+      sRenderCpuProfile.dependentRecord.maxMs);
+    EngineLog::OutputPerformance(
+      EngineLog::Domain::RenderPerformance,
+      maxBuffer);
+
+    uint32 activeParticleCount = 0;
+    for (Entity entity : mWorld->View<ParticleComponent>())
+    {
+      ParticleComponent* particle = mWorld->GetComponent<ParticleComponent>(entity);
+      if (particle && particle->mIsActive && particle->mIsPlaying)
+        activeParticleCount++;
+    }
+
+    uint32 activeVfxCount = 0;
+    for (Entity entity : mWorld->View<VfxComponent>())
+    {
+      VfxComponent* vfx = mWorld->GetComponent<VfxComponent>(entity);
+      if (vfx && (vfx->mInUse || vfx->mIsPlaying))
+        activeVfxCount++;
+    }
+
+    wchar_t countBuffer[1024]{};
+    swprintf_s(
+      countBuffer,
+      L"[RENDER_COUNT] Render %.0f | Visible %.0f | ShadowOnly %.0f | "
+      L"DeferredItems %.0f | DeferredBatches %.0f | Instances %.0f | "
+      L"OBBUpdates %.0f | MapBounds %.2f | MapRedraws %.2f | "
+      L"CascadeItems %.0f/%.0f/%.0f | CascadeBatches %.0f/%.0f/%.0f | "
+      L"Animations %u | Particles %u active %u | VFX %u active %u\n",
+      static_cast<double>(sRenderCpuProfile.renderComponentCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.visibleRenderCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.shadowOnlyCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.deferredItemCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.deferredBatchCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.instanceCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.worldObbUpdateCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.mapCascadeRebuildCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.mapCascadeRedrawCount) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeItemCount[0]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeItemCount[1]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeItemCount[2]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeBatchCount[0]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeBatchCount[1]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeBatchCount[2]) / divisor,
+      CountComponents<AnimationComponent>(mWorld),
+      CountComponents<ParticleComponent>(mWorld),
+      activeParticleCount,
+      CountComponents<VfxComponent>(mWorld),
+      activeVfxCount);
+    EngineLog::OutputPerformance(
+      EngineLog::Domain::RenderPerformance,
+      countBuffer);
+
+    sRenderCpuProfile.Reset();
+  }
 }
 
 void RenderSystem::PushData() {
-  RENDERMANAGER.SetGraphicsTable();
-  // PushDebugging();
-  PushLandData();
-  PushCubeData();
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.staticData);
+    RENDERMANAGER.SetGraphicsTable();
+    // PushDebugging();
+    PushLandData();
+    PushCubeData();
+  }
 
-  PushShadowCascades(); // 라이트 구체 사전 계산 
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.cascadeSetup);
+    PushShadowCascades();
+  }
 
-   PushObjectData();
-   PushLightData();
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.objectBuild);
+    PushObjectData();
+  }
 
-  
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.lightAndFrameData);
+    PushLightData();
+    PushPassData();
+    PushFrameData();
+  }
 
-
-  PushPassData();
-  PushFrameData();
-
-  PushInstanceData();
+  {
+    EngineLog::ScopedCpuProfile profile(
+      EngineLog::Domain::RenderPerformance,
+      sRenderCpuProfile.instanceUpload);
+    PushInstanceData();
+  }
 }
 
 void RenderSystem::SetPipeline(shared_ptr<IRenderPipeline> pipeline)
@@ -463,6 +711,10 @@ void RenderSystem::PushLightData() {
 void RenderSystem::PushObjectData() {
   const vector<EntityID> &gameObjects = mRenderComponentPool->GetEntities();
   auto View = mWorld->View<RenderComponent>();
+  sRenderCpuProfile.currentVisibleRenderCount = 0;
+  sRenderCpuProfile.currentShadowOnlyCount = 0;
+  uint32 observedStaticCasterCount = 0;
+
   TransformComponent *transformComponent;
   AnimationComponent *animationComponent;
   RenderComponent *renderComponent;
@@ -507,6 +759,20 @@ void RenderSystem::PushObjectData() {
     transformComponent = mWorld->GetComponent<TransformComponent>(gameObject);
 	animationComponent = mWorld->GetComponent<AnimationComponent>(gameObject);
 
+    // visibility는 그림자 내용만 갱신하고 mesh와 static 상태는 공간 경계까지 갱신한다.
+    const StaticCasterChangeType staticCasterChange =
+      renderComponent->UpdateStaticCasterState(transformComponent->mIsStatic);
+    if (staticCasterChange == StaticCasterChangeType::Bounds)
+      InvalidateMapCascadeBounds();
+    else if (staticCasterChange == StaticCasterChangeType::Content)
+      InvalidateMapCascadeContent();
+
+    if (transformComponent->mIsStatic &&
+        renderComponent->mMesh)
+    {
+      observedStaticCasterCount++;
+    }
+
     if (BulletComponent* bulletComponent = mWorld->GetComponent<BulletComponent>(gameObject)) {
         if (!bulletComponent->mIsActive)
             continue;
@@ -525,6 +791,7 @@ void RenderSystem::PushObjectData() {
       const uint8 shadowCascadeMask =
           ComputeCascadeMask(objCenter, objRadius, transformComponent->mIsStatic);
       if (!shadowCascadeMask) continue;  // 어떤 cascade에도 속하지 않으면 생략
+      sRenderCpuProfile.currentShadowOnlyCount++;
 
       // shadow-only 오브젝트: 트랜스폼 및 드로우 아이템 등록
       objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
@@ -553,6 +820,7 @@ void RenderSystem::PushObjectData() {
     }
     if (false == renderComponent->mVisibility)
       continue;
+    sRenderCpuProfile.currentVisibleRenderCount++;
 
     // Hit Flash: 피격 시 JHToon_PS에서 빨강으로 lerp되는 강도(0~1)
     // Extra1.x = ObjectAlpha, Extra1.y = HitFlashStrength, Extra1.z = EmissiveGate
@@ -638,6 +906,10 @@ void RenderSystem::PushObjectData() {
       );*/
     }
   }
+
+  // visibility와 무관한 잠재 정적 캐스터 수로 bounds 변경만 검출한다.
+  if (observedStaticCasterCount != mPrevStaticCasterCount)
+    InvalidateMapCascadeBounds();
 
   // collison box
   if (sDrawColliders && mWireCube) {
@@ -1050,30 +1322,100 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
 }
 
+void RenderSystem::InvalidateMapCascadeBounds()
+{
+  mStaticCasterBoundsRevision++;
+  if (mStaticCasterBoundsRevision == 0)
+  {
+    mStaticCasterBoundsRevision = 1;
+    mAppliedStaticCasterBoundsRevision = 0;
+  }
+
+  // 공간 경계가 바뀌면 고정 그림자 내용도 반드시 다시 그려야 한다.
+  InvalidateMapCascadeContent();
+}
+
+void RenderSystem::InvalidateMapCascadeContent()
+{
+  mStaticCasterContentRevision++;
+  if (mStaticCasterContentRevision == 0)
+  {
+    mStaticCasterContentRevision = 1;
+    mAppliedStaticCasterContentRevision = 0;
+  }
+}
+
 void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
 {
   constexpr uint32 mapIdx = SHADOW_MAP_CASCADE_INDEX;
 
-  // 정적 캐스터 수 집계 — dirty 검출용 (AABB 계산은 dirty 프레임에만)
-  uint32 staticCount = 0;
-  auto entities = mWorld->GetEntitiesWithComponents<TransformComponent, RenderComponent>();
+  // 라이트 방향이 바뀌면 고정 cascade의 light space 경계도 다시 계산해야 한다.
+  if ((lightDir - mPrevLightDir).LengthSquared() > 1e-6f)
+    InvalidateMapCascadeBounds();
+  mPrevLightDir = lightDir;
 
-  for (Entity e : entities) {
-    TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
-    RenderComponent* rc = mWorld->GetComponent<RenderComponent>(e);
+  const bool boundsDirty =
+    mAppliedStaticCasterBoundsRevision != mStaticCasterBoundsRevision;
+  const bool contentDirty =
+    mAppliedStaticCasterContentRevision != mStaticCasterContentRevision;
 
-    if (!tr->mIsStatic || !rc->mVisibility || !rc->mMesh) continue;
-    ++staticCount;
+  // 경계가 그대로면 기존 VP를 재사용하고 내용 변경 시에만 고정 슬라이스를 다시 그린다.
+  if (!boundsDirty)
+  {
+    mCascadeActive[mapIdx] = mPrevStaticCasterCount > 0;
+    passParams.CascadeShadowVP[mapIdx] =
+      mCascadeActive[mapIdx]
+      ? mMapCascadeVP.Transpose()
+      : Matrix::Identity.Transpose();
+
+    if (contentDirty)
+    {
+      mAppliedStaticCasterContentRevision =
+        mStaticCasterContentRevision;
+      mMapCascadeDirty = mCascadeActive[mapIdx];
+      if (mMapCascadeDirty)
+        sRenderCpuProfile.currentMapCascadeRedrawCount++;
+    }
+    return;
   }
 
-  // dirty 트리거: 라이트 방향 변화 / 정적 캐스터 수 변화 / 첫 프레임(초기값 true)
-  if ((lightDir - mPrevLightDir).LengthSquared() > 1e-6f || staticCount != mPrevStaticCasterCount)
-    mMapCascadeDirty = true;
+  uint32 staticCount = 0;
+  Vec3 aabbMin(FLT_MAX, FLT_MAX, FLT_MAX);
+  Vec3 aabbMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+  auto entities =
+    mWorld->GetEntitiesWithComponents<TransformComponent, RenderComponent>();
 
-  mPrevLightDir = lightDir;
+  // bounds revision이 바뀐 프레임에만 정적 캐스터 전체 경계를 다시 계산한다.
+  sRenderCpuProfile.currentMapCascadeRebuildCount++;
+  for (Entity e : entities)
+  {
+    TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
+    RenderComponent* rc = mWorld->GetComponent<RenderComponent>(e);
+    // visibility가 꺼진 정적 오브젝트도 잠재 경계에 포함해 토글 시 bounds 재계산을 막는다.
+    if (!tr->mIsStatic || !rc->mMesh)
+      continue;
+
+    staticCount++;
+    rc->UpdateWorldOBB(tr);
+
+    XMFLOAT3 corners[BoundingOrientedBox::CORNER_COUNT];
+    rc->mWorldOBB.GetCorners(corners);
+    for (const XMFLOAT3& corner : corners)
+    {
+      aabbMin = Vec3::Min(aabbMin, Vec3(corner.x, corner.y, corner.z));
+      aabbMax = Vec3::Max(aabbMax, Vec3(corner.x, corner.y, corner.z));
+    }
+  }
+
   mPrevStaticCasterCount = staticCount;
+  mAppliedStaticCasterBoundsRevision = mStaticCasterBoundsRevision;
+  mAppliedStaticCasterContentRevision = mStaticCasterContentRevision;
+  mMapCascadeDirty = staticCount > 0;
+  if (mMapCascadeDirty)
+    sRenderCpuProfile.currentMapCascadeRedrawCount++;
 
-  if (staticCount == 0) {
+  if (staticCount == 0)
+  {
     mCascadeActive[mapIdx] = false;
     passParams.CascadeShadowVP[mapIdx] = Matrix::Identity.Transpose();
     return;
@@ -1081,70 +1423,50 @@ void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
 
   mCascadeActive[mapIdx] = true;
 
-  if (mMapCascadeDirty) {
-    // 정적 캐스터 전체의 월드 AABB
-    Vec3 aabbMin(FLT_MAX, FLT_MAX, FLT_MAX);
-    Vec3 aabbMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+  const Vec3 center = (aabbMin + aabbMax) * 0.5f;
+  const float radius = ((aabbMax - aabbMin) * 0.5f).Length();
+  const Vec3 up =
+    abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+  const Vec3 eye = center - lightDir * (radius * 2.f);
+  const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
 
+  // AABB 8코너를 light space로 변환해 정확한 ortho 범위를 계산한다.
+  Vec3 minLS(FLT_MAX, FLT_MAX, FLT_MAX);
+  Vec3 maxLS(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+  const Vec3 cornersW[8] = {
+    {aabbMin.x, aabbMin.y, aabbMin.z},
+    {aabbMax.x, aabbMin.y, aabbMin.z},
+    {aabbMin.x, aabbMax.y, aabbMin.z},
+    {aabbMax.x, aabbMax.y, aabbMin.z},
+    {aabbMin.x, aabbMin.y, aabbMax.z},
+    {aabbMax.x, aabbMin.y, aabbMax.z},
+    {aabbMin.x, aabbMax.y, aabbMax.z},
+    {aabbMax.x, aabbMax.y, aabbMax.z},
+  };
 
-    for (Entity e : entities) {
-      TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
-      RenderComponent* rc = mWorld->GetComponent<RenderComponent>(e);
-      if (!tr->mIsStatic || !rc->mVisibility || !rc->mMesh) continue;
-
-      rc->UpdateWorldOBB(tr);  // 첫 프레임 등 OBB 미갱신 상태 대비
-      XMFLOAT3 corners[BoundingOrientedBox::CORNER_COUNT];
-      rc->mWorldOBB.GetCorners(corners);
-
-      for (const XMFLOAT3& c : corners) {
-        aabbMin = Vec3::Min(aabbMin, Vec3(c.x, c.y, c.z));
-        aabbMax = Vec3::Max(aabbMax, Vec3(c.x, c.y, c.z));
-      }
-    }
-
-    const Vec3 center = (aabbMin + aabbMax) * 0.5f;
-    const float radius = ((aabbMax - aabbMin) * 0.5f).Length();
-
-    const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
-    const Vec3 eye = center - lightDir * (radius * 2.f);
-    const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
-
-    // AABB 8코너를 light space로 변환해 정확한 ortho 범위 산출
-    Vec3 minLS(FLT_MAX, FLT_MAX, FLT_MAX);
-    Vec3 maxLS(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-
-
-    const Vec3 cornersW[8] = {
-        {aabbMin.x, aabbMin.y, aabbMin.z}, {aabbMax.x, aabbMin.y, aabbMin.z},
-        {aabbMin.x, aabbMax.y, aabbMin.z}, {aabbMax.x, aabbMax.y, aabbMin.z},
-        {aabbMin.x, aabbMin.y, aabbMax.z}, {aabbMax.x, aabbMin.y, aabbMax.z},
-        {aabbMin.x, aabbMax.y, aabbMax.z}, {aabbMax.x, aabbMax.y, aabbMax.z},
-    };
-
-
-    for (const Vec3& cw : cornersW) {
-      const Vec3 ls = Vec3::Transform(cw, lightView);
-      minLS = Vec3::Min(minLS, ls);
-      maxLS = Vec3::Max(maxLS, ls);
-    }
-
-    // 고정 VP라 texel snapping 불필요. 경계 여유만 소량 부여
-    const Vec3 margin = (maxLS - minLS) * 0.05f;
-    const Matrix lightProj = Matrix::CreateOrthographicOffCenter(
-        minLS.x - margin.x, maxLS.x + margin.x,
-        minLS.y - margin.y, maxLS.y + margin.y,
-        minLS.z - margin.z, maxLS.z + margin.z);
-
-    mMapCascadeVP = lightView * lightProj;
-
-    // 캐스터 컬링 데이터 (ComputeCascadeMask 공용)
-    mCascadeFrustumCenter[mapIdx] = center;
-    mCascadeFrustumRadius[mapIdx] = radius * 1.05f;
-    mCascadeLightRight[mapIdx] = Vec3(lightView._11, lightView._12, lightView._13);
-    mCascadeLightUp[mapIdx]    = Vec3(lightView._21, lightView._22, lightView._23);
+  for (const Vec3& corner : cornersW)
+  {
+    const Vec3 lightSpaceCorner = Vec3::Transform(corner, lightView);
+    minLS = Vec3::Min(minLS, lightSpaceCorner);
+    maxLS = Vec3::Max(maxLS, lightSpaceCorner);
   }
 
-  // VP는 고정값이므로 dirty 여부와 무관하게 매 프레임 동일 값 업로드
+  const Vec3 margin = (maxLS - minLS) * 0.05f;
+  const Matrix lightProj = Matrix::CreateOrthographicOffCenter(
+    minLS.x - margin.x,
+    maxLS.x + margin.x,
+    minLS.y - margin.y,
+    maxLS.y + margin.y,
+    minLS.z - margin.z,
+    maxLS.z + margin.z);
+
+  mMapCascadeVP = lightView * lightProj;
+  mCascadeFrustumCenter[mapIdx] = center;
+  mCascadeFrustumRadius[mapIdx] = radius * 1.05f;
+  mCascadeLightRight[mapIdx] =
+    Vec3(lightView._11, lightView._12, lightView._13);
+  mCascadeLightUp[mapIdx] =
+    Vec3(lightView._21, lightView._22, lightView._23);
   passParams.CascadeShadowVP[mapIdx] = mMapCascadeVP.Transpose();
 }
 
@@ -1176,10 +1498,17 @@ uint8 RenderSystem::ComputeCascadeMask(const Vec3& objCenter, float objRadius, b
 
 bool RenderSystem::IsVisibleInFrustum(TransformComponent *trans, RenderComponent *renderComponent)
 {
-  if (renderComponent->mCheckFrustum && mCamera) {
-    // if (trans->mIsDirty)
-    renderComponent->UpdateWorldOBB(trans);
+  // 월드 행렬이 바뀐 경우에만 OBB를 다시 만들며 정적 캐스터 변화는 다음 map cascade 갱신에 반영한다.
+  if (renderComponent->mCheckFrustum || trans->mIsStatic)
+  {
+    const bool worldObbChanged = renderComponent->UpdateWorldOBB(trans);
+    if (worldObbChanged)
+      sRenderCpuProfile.currentWorldObbUpdateCount++;
+    if (worldObbChanged && trans->mIsStatic)
+      InvalidateMapCascadeBounds();
+  }
 
+  if (renderComponent->mCheckFrustum && mCamera) {
     if (!mCamera->IntersectsOBB(renderComponent->mWorldOBB)) {
       return false;
     }

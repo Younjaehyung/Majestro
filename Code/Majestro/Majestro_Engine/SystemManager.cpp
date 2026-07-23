@@ -74,6 +74,43 @@ void SystemManager::Update(float deltaTime)
     RunPhase(SysPhase::Sim, deltaTime);
     RunPhase(SysPhase::Post, deltaTime);
 
+    if (EngineLog::Enabled(EngineLog::Domain::SystemPerformance) &&
+        ++mCpuProfileFrames >= 60)
+    {
+        std::vector<std::pair<System*, EngineLog::CpuProfileSample>> sortedSystems;
+        sortedSystems.reserve(mCpuProfileSamples.size());
+        for (const auto& profile : mCpuProfileSamples)
+            sortedSystems.push_back(profile);
+
+        std::sort(
+            sortedSystems.begin(),
+            sortedSystems.end(),
+            [](const auto& lhs, const auto& rhs)
+            {
+                return lhs.second.totalMs > rhs.second.totalMs;
+            });
+
+        std::string profileText = "[SYSTEM_CPU] Top";
+        const size_t outputCount = std::min<size_t>(sortedSystems.size(), 8);
+        for (size_t i = 0; i < outputCount; ++i)
+        {
+            char itemBuffer[256]{};
+            sprintf_s(
+                itemBuffer,
+                " | %s avg %.2f max %.2f ms",
+                sortedSystems[i].first->GetName(),
+                sortedSystems[i].second.Average(mCpuProfileFrames),
+                sortedSystems[i].second.maxMs);
+            profileText += itemBuffer;
+        }
+        profileText += "\n";
+        EngineLog::OutputPerformance(
+            EngineLog::Domain::SystemPerformance,
+            profileText.c_str());
+
+        mCpuProfileSamples.clear();
+        mCpuProfileFrames = 0;
+    }
 }
 
 void SystemManager::Render()
@@ -88,6 +125,8 @@ void SystemManager::Shutdown()
 
     mSystemMap.clear();
     mSystems.clear();
+    mCpuProfileSamples.clear();
+    mCpuProfileFrames = 0;
     mDirtySchedule = true;
 }
 
@@ -101,7 +140,20 @@ void SystemManager::RunPhase(SysPhase phase, float deltaTime)
 {
     auto& vec = mPhaseSystems[(size_t)phase];
     for (auto& s : vec)
+    {
+        if (!EngineLog::Enabled(EngineLog::Domain::SystemPerformance))
+        {
+            s->Update(deltaTime);
+            continue;
+        }
+
+        // 시스템 실행 코드와 계측 구현을 분리하고 공통 성능 타이머로 수집한다.
+        EngineLog::CpuProfileSample& sample = mCpuProfileSamples[s];
+        EngineLog::ScopedCpuProfile profile(
+            EngineLog::Domain::SystemPerformance,
+            sample);
         s->Update(deltaTime);
+    }
 }
 
 void SystemManager::RenderPhase(SysPhase phase)
@@ -205,6 +257,7 @@ void SystemManager::RebuildScheduleIfDirty()
 { 
     if (!mDirtySchedule) return;
     mDirtySchedule = false;
+    mCpuProfileSamples.reserve(mSystems.size());
 
     for (size_t i = 0; i < (size_t)SysPhase::Count; ++i)
     {

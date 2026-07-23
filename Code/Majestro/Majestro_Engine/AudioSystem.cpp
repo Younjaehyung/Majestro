@@ -12,6 +12,7 @@
 #include "TagComponent.h"
 #include "GameRuleComponent.h"
 #include "PlayerStatusComponent.h"
+#include "EngineLog.h"
 
 namespace
 {
@@ -113,7 +114,10 @@ void AudioSystem::Initialize()
                 AUDIOMANAGER.StopBGM(config.stem);
 
             mBgmInitializationFailed = true;
-            std::cout << "[BGM] rhythm stem initialization failed" << std::endl;
+            EngineLog::WriteOnce(
+                EngineLog::Domain::AudioDiagnostic,
+                "rhythm-stem-initialization",
+                "[BGM] rhythm stem initialization failed");
         }
 
         // Brass 보스 음악: BrassParam=0 으로 시작, 보스 스킬 사용 시 파라미터로 연출 전환
@@ -161,11 +165,14 @@ void AudioSystem::Update(float deltaTime)
     }
     AUDIOMANAGER.SetListener(listener);
 
-    // FMOD 시킹 검증(디버그)
-    if (INPUT.GetKeyDown(eKeyCode::NUMPAD1))    // 2초 위치 시킹
-        AUDIOMANAGER.DebugStartSeekProbe(2.0f); 
-    if (INPUT.GetKeyDown(eKeyCode::NUMPAD2))    // 20초 위치 시킹
-        AUDIOMANAGER.DebugStartSeekProbe(20.0f);
+    // 오디오 런타임 추적이 켜진 경우에만 시킹 검증 입력도 확인한다.
+    if (EngineLog::Enabled(EngineLog::Domain::AudioRuntime))
+    {
+        if (INPUT.GetKeyDown(eKeyCode::NUMPAD1))
+            AUDIOMANAGER.DebugStartSeekProbe(2.0f);
+        if (INPUT.GetKeyDown(eKeyCode::NUMPAD2))
+            AUDIOMANAGER.DebugStartSeekProbe(20.0f);
+    }
 
     // 곡 시작 T0 정렬
     AlignBgmToServerSongClock();
@@ -192,7 +199,12 @@ void AudioSystem::Update(float deltaTime)
                 float param = static_cast<float>(mPrevEscortStage);
                 if (param > 2.f) param = 2.f;
                 AUDIOMANAGER.SetBGMParam("EscortParam", SOUNDNAME::Ambient, param, true);
-                std::cout << "[BGM] EscortParam=" << param << " (escortStage=" << mPrevEscortStage << ")" << std::endl;
+                EngineLog::Write(
+                    EngineLog::Domain::AudioRuntime,
+                    "[BGM] EscortParam=",
+                    param,
+                    " escortStage=",
+                    mPrevEscortStage);
             }
         }
     }
@@ -275,16 +287,22 @@ void AudioSystem::Update(float deltaTime)
             // 서버가 지정한 박자에서 현재 리듬과 음악을 함께 확정
             playerComponent->ApplyPendingRhythmChange();
 
-            // 디버그 : 전환이 곡의 어느 위치에서 일어나는지. 
-            int fmodMs = 0;
-
-            AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, fmodMs);
-
-
-            std::cout << "[RhythmApply] curBeat=" << currentBeat
-                      << " beatInLoop=" << (currentBeat % kMusicLoopBeatCount)
-                      << " fmodPos=" << (fmodMs / 1000.f) << "s"
-                      << " -> rhythm=" << static_cast<int>(ToRhythmValue(appliedRhythm)) << std::endl;
+            // 로그가 꺼져 있으면 진단용 FMOD 조회 자체를 수행하지 않는다.
+            if (EngineLog::Enabled(EngineLog::Domain::AudioRuntime))
+            {
+                int fmodMs = 0;
+                AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, fmodMs);
+                EngineLog::Write(
+                    EngineLog::Domain::AudioRuntime,
+                    "[RhythmApply] curBeat=",
+                    currentBeat,
+                    " beatInLoop=",
+                    currentBeat % kMusicLoopBeatCount,
+                    " fmodPos=",
+                    fmodMs / 1000.f,
+                    "s rhythm=",
+                    static_cast<int>(ToRhythmValue(appliedRhythm)));
+            }
 
 
             if (localPlayer && playerComponent->mDesiredRhythm != playerComponent->mRhythm)
@@ -330,7 +348,11 @@ void AudioSystem::AlignBgmToServerSongClock()
         AUDIOMANAGER.SeekBGM(SOUNDNAME::Elec, targetPhase);
 
         mAlignSeekFrame = 0;
-        std::cout << "[T0] seek to beat phase = " << targetPhase << "s (paused)" << std::endl;
+        EngineLog::Write(
+            EngineLog::Domain::AudioRuntime,
+            "[T0] seek to beat phase=",
+            targetPhase,
+            "s paused");
         return;
     }
 
@@ -343,7 +365,9 @@ void AudioSystem::AlignBgmToServerSongClock()
     AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Elec, false);
 
     mBgmStartAligned = true;
-    std::cout << "[T0] BGM aligned & resumed" << std::endl;
+    EngineLog::Write(
+        EngineLog::Domain::AudioRuntime,
+        "[T0] BGM aligned and resumed");
 }
 
 // 드리프트 보정(피치 너지)
@@ -393,14 +417,22 @@ void AudioSystem::CorrectBgmDrift()
     AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Bass, pitch);
     AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Elec, pitch);
 
-    // 검증 로그(1초마다):   
-    mDriftLogTimer += DELTA_TIME;
-    if (mDriftLogTimer >= 1.0f)
+    // 런타임 오디오 추적이 활성화된 경우에만 로그 타이머도 갱신한다.
+    if (EngineLog::Enabled(EngineLog::Domain::AudioRuntime))
     {
-        mDriftLogTimer = 0.f;
-        std::cout << "[Drift] raw=" << (driftRaw * 1000.f)          // 드리프트 raw
-                  << "ms smooth=" << (mDriftSmoothed * 1000.f)      // 평활(ms)
-                  << "ms pitch=" << pitch << std::endl;             // 적용 피치
+        mDriftLogTimer += DELTA_TIME;
+        if (mDriftLogTimer >= 1.0f)
+        {
+            mDriftLogTimer = 0.f;
+            EngineLog::Write(
+                EngineLog::Domain::AudioRuntime,
+                "[Drift] raw=",
+                driftRaw * 1000.f,
+                "ms smooth=",
+                mDriftSmoothed * 1000.f,
+                "ms pitch=",
+                pitch);
+        }
     }
 }
 

@@ -17,6 +17,7 @@
 #include "GameEvents.h"
 #include "DecalFactory.h"
 #include "MathUtils.h"
+#include "EngineLog.h"
 
 namespace
 {
@@ -140,18 +141,22 @@ Entity VfxSystem::PlayOneShot(const wstring& effectName, const Vec3& position, c
 	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(effectName);
 	if (vfx == nullptr)
 	{
-#ifdef _DEBUG
-		std::wcout << L"[VfxSystem] missing vfx resource: " << effectName << std::endl;
-#endif
+		EngineLog::WriteWideOnce(
+			EngineLog::Domain::VfxDiagnostic,
+			L"missing-resource:" + effectName,
+			L"[VfxSystem] missing vfx resource: ",
+			effectName);
 		return Entity{};
 	}
 
 	Entity entity = AcquirePooledEntity();
 	if (!entity.IsValid())
 	{
-#ifdef _DEBUG
-		std::wcout << L"[VfxSystem] vfx pool exhausted: " << effectName << std::endl;
-#endif
+		EngineLog::WriteWideOnce(
+			EngineLog::Domain::VfxDiagnostic,
+			L"pool-exhausted:" + effectName,
+			L"[VfxSystem] vfx pool exhausted: ",
+			effectName);
 		return Entity{};
 	}
 
@@ -436,9 +441,11 @@ void VfxSystem::AttachBulletVfx(Entity bulletEntity, SkillType skillType, uint16
 	shared_ptr<Vfx> vfx = RESOURCEMANAGER.Get<Vfx>(desc.effectName);
 	if (vfx == nullptr)
 	{
-#ifdef _DEBUG
-		std::wcout << L"[VfxSystem] missing bullet vfx resource: " << desc.effectName << std::endl;
-#endif
+		EngineLog::WriteWideOnce(
+			EngineLog::Domain::VfxDiagnostic,
+			L"missing-bullet-resource:" + desc.effectName,
+			L"[VfxSystem] missing bullet vfx resource: ",
+			desc.effectName);
 		return;
 	}
 

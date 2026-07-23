@@ -66,7 +66,6 @@ private:
 	std::unordered_map<std::string, float>   mLastPlayTime;   // key : 마지막 재생 시각
 	std::unordered_map<EntityID, EntityLoopSlots> mSlots;
 	std::unordered_map<EntityID, EnemySfxState> mEnemyStates;
-	std::unordered_set<std::string> mWarnedKeys;              // 미등록/실패 키 1회 로그용
 	float mDefaultCooldown = 0.05f;
 	float mTime = 0.f;
 };

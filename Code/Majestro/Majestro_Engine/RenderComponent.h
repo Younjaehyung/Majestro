@@ -6,6 +6,13 @@ class Mesh;
 class Material;
 class TransformComponent;
 
+enum class StaticCasterChangeType : uint8
+{
+	None = 0,
+	Content,
+	Bounds
+};
+
 union InstanceID
 {
 	struct
@@ -27,7 +34,8 @@ public:
 	uint64 GetInstanceID();
 	void SetMesh(shared_ptr<Mesh> mesh);
 	void SetLocalOBB(const Vec3& center, const Vec3& halfExtents);
-	void UpdateWorldOBB(TransformComponent* transformComponent);
+	bool UpdateWorldOBB(TransformComponent* transformComponent);
+	StaticCasterChangeType UpdateStaticCasterState(bool isStatic);
 public:
 	bool mCheckFrustum = true;
 	bool mCheckVisibilty = true;
@@ -52,5 +60,14 @@ public:
 
 	BoundingOrientedBox mLocalOBB{};
 	BoundingOrientedBox mWorldOBB{};
+
+private:
+	// 월드 행렬이 같은 정적 오브젝트의 OBB 8코너 변환을 매 프레임 반복하지 않도록 캐시한다.
+	Matrix mCachedObbWorldMatrix{};
+	bool mWorldObbInitialized = false;
+	const Mesh* mCachedStaticCasterMesh = nullptr;
+	bool mCachedStaticCasterVisibility = false;
+	bool mCachedStaticCasterFlag = false;
+	bool mStaticCasterStateInitialized = false;
 };
 

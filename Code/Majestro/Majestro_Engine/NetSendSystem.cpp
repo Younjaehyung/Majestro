@@ -16,6 +16,7 @@
 #include "GameEvents.h"
 #include "BeatSystem.h"
 #include "Chat.h"
+#include "EngineLog.h"
 
 #include "SceneManager.h"
 
@@ -115,9 +116,6 @@ void NetSendSystem::TrySendActionEvents()
 	if (comp->mSpecial) pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::SPECIAL));
 	if (comp->mDance1)  pkt.Buttons |= (1 << static_cast<uint8>(InputButtons::DANCE1));
 
-	//std::cout << "Buttons bitmask: " << std::bitset<8>(pkt.Buttons) << std::endl;
-	
-
 	// 이전 프레임 대비 변화된 버튼(press/release 모두)이 있을 때만 전송
 	const uint32 changed = pkt.Buttons ^ mPrevButtons;
 	mPrevButtons = pkt.Buttons;
@@ -160,8 +158,12 @@ void NetSendSystem::TrySendActionEvents()
 
 		const uint8 judgement = ClassifyBeatJudgement(songPos, beatSec);
 		mWorld->GetEventManager()->Enqueue(EvBeatJudgement{ judgement, actionButton, true });
-		std::cout << "[BeatJudge/predict] btn " << static_cast<int>(actionButton)
-		          << " => " << static_cast<int>(judgement) << std::endl;
+		EngineLog::Write(
+			EngineLog::Domain::NetworkRuntime,
+			"[BeatJudge/predict] btn ",
+			static_cast<int>(actionButton),
+			" result ",
+			static_cast<int>(judgement));
 	}
 }
 

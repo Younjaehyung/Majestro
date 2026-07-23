@@ -70,13 +70,6 @@ using json = nlohmann::json;
 #pragma comment(lib, "dxguid")
 #pragma comment(lib, "d3dcompiler")
 
-// DEBUG
-#ifdef _DEBUG
-#pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
-#else
-#pragma comment(linker,"/entry:wWinMainCRTStartup /subsystem:console")
-#endif
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

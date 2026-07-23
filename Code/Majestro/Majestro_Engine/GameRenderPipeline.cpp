@@ -41,10 +41,86 @@
 #include "RenderSystem.h"
 #include "TagComponent.h"
 #include "InputManager.h"
+#include "EngineLog.h"
 
 namespace
 {
     constexpr wchar_t kColorLUTDirectory[] = L"..\\Resources\\Texture\\LUTs";
+
+    enum class PipelineProfilePass : uint32
+    {
+        Depth = 0,
+        Shadow,
+        Deferred,
+        Decal,
+        Forward,
+        Outline,
+        Effect,
+        Post,
+        WorldUI,
+        Count
+    };
+
+    struct PipelineCpuProfile
+    {
+        uint32 frameCount = 0;
+        array<
+            EngineLog::CpuProfileSample,
+            static_cast<uint32>(PipelineProfilePass::Count)> samples{};
+
+        void Reset()
+        {
+            *this = {};
+        }
+
+        EngineLog::CpuProfileSample& Get(PipelineProfilePass pass)
+        {
+            return samples[static_cast<uint32>(pass)];
+        }
+    };
+
+    PipelineCpuProfile sPipelineCpuProfile;
+
+    // 각 렌더 패스의 CPU 명령 기록 시간을 평균과 최대값으로 함께 수집한다.
+    void OutputPipelineCpuProfile()
+    {
+        if (!EngineLog::Enabled(EngineLog::Domain::RenderPassPerformance))
+            return;
+
+        if (++sPipelineCpuProfile.frameCount < 60)
+            return;
+
+        const uint32 frameCount = sPipelineCpuProfile.frameCount;
+        wchar_t buffer[1024]{};
+        swprintf_s(
+            buffer,
+            L"[PASS_CPU] avg/max ms | Depth %.2f/%.2f | Shadow %.2f/%.2f | "
+            L"Deferred %.2f/%.2f | Decal %.2f/%.2f | Forward %.2f/%.2f | "
+            L"Outline %.2f/%.2f | Effect %.2f/%.2f | Post %.2f/%.2f | "
+            L"WorldUI %.2f/%.2f\n",
+            sPipelineCpuProfile.samples[0].Average(frameCount),
+            sPipelineCpuProfile.samples[0].maxMs,
+            sPipelineCpuProfile.samples[1].Average(frameCount),
+            sPipelineCpuProfile.samples[1].maxMs,
+            sPipelineCpuProfile.samples[2].Average(frameCount),
+            sPipelineCpuProfile.samples[2].maxMs,
+            sPipelineCpuProfile.samples[3].Average(frameCount),
+            sPipelineCpuProfile.samples[3].maxMs,
+            sPipelineCpuProfile.samples[4].Average(frameCount),
+            sPipelineCpuProfile.samples[4].maxMs,
+            sPipelineCpuProfile.samples[5].Average(frameCount),
+            sPipelineCpuProfile.samples[5].maxMs,
+            sPipelineCpuProfile.samples[6].Average(frameCount),
+            sPipelineCpuProfile.samples[6].maxMs,
+            sPipelineCpuProfile.samples[7].Average(frameCount),
+            sPipelineCpuProfile.samples[7].maxMs,
+            sPipelineCpuProfile.samples[8].Average(frameCount),
+            sPipelineCpuProfile.samples[8].maxMs);
+        EngineLog::OutputPerformance(
+            EngineLog::Domain::RenderPassPerformance,
+            buffer);
+        sPipelineCpuProfile.Reset();
+    }
 
     bool IsColorLUTExtension(const std::filesystem::path& path)
     {
@@ -85,6 +161,7 @@ namespace
 void GameRenderPipeline::Initialize(World* world)
 {
     mWorld = world;
+    sPipelineCpuProfile.Reset();
 
 
     mDepthPrePass = make_shared<DepthPrePass>();
@@ -261,7 +338,6 @@ void GameRenderPipeline::ExecuteIndependentGraphics(const RenderContext& ctx)
 {
     UpdatePassStates();
 
-    // DepthPrePass
     RenderDepthPrePass(ctx);
     RenderShadow(ctx);
     RenderDeferred(ctx);
@@ -276,6 +352,8 @@ void GameRenderPipeline::ExecuteDependentGraphics(const RenderContext& ctx)
     RenderPost(ctx);
     RenderWorldUI(ctx);
 
+    // 파이프라인 실행 인터페이스를 오염시키지 않고 패스 계측 주기를 여기서 마감한다.
+    OutputPipelineCpuProfile();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -704,6 +782,10 @@ void GameRenderPipeline::RemoveHDREffect(shared_ptr<RenderPass> pass)
 
 void GameRenderPipeline::RenderDepthPrePass(const RenderContext& ctx)
 {
+    // 패스 함수 자체에 계측 범위를 두어 상위 실행 순서를 단순하게 유지한다.
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Depth));
     GPU_MARKER(L"DepthPrePass");
     // mUseDepthPrePass=false면 forwardOnly=true → FORWARD만 깊이 기록(DEFERRED는 GBuffer가 LESS_EQUAL로 자체 처리)
     mDepthPrePass->Execute(*ctx.deferredBatchs, !mUseDepthPrePass);
@@ -711,6 +793,9 @@ void GameRenderPipeline::RenderDepthPrePass(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Shadow));
     GPU_MARKER(L"ShadowPass");
     static bool sDummyDirty = false;  // ctx 미연결 파이프라인 폴백
     mShadowPass->Execute(
@@ -721,6 +806,9 @@ void GameRenderPipeline::RenderShadow(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Deferred));
     // DepthPrePass
     { 
         GPU_MARKER(L"GBuffer"); 
@@ -798,24 +886,36 @@ void GameRenderPipeline::RenderDeferred(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderForward(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Forward));
     GPU_MARKER(L"ForwardPlus");
     mForwardPass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderOutline(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Outline));
     GPU_MARKER(L"Outline");
     mOutlinePass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderDecal(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Decal));
     GPU_MARKER(L"Decal");
     mDecalPass->Execute(ctx.camera);
 }
 
 void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Effect));
     if (!ctx.camera) return;
     GPU_MARKER(L"Effects");
 
@@ -834,12 +934,18 @@ void GameRenderPipeline::RenderEffect(const RenderContext& ctx)
 
 void GameRenderPipeline::RenderPost(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::Post));
     GPU_MARKER(L"PostProcess");
     mPostProcessPass->Execute(*ctx.deferredBatchs);
 }
 
 void GameRenderPipeline::RenderWorldUI(const RenderContext& ctx)
 {
+    EngineLog::ScopedCpuProfile profile(
+        EngineLog::Domain::RenderPassPerformance,
+        sPipelineCpuProfile.Get(PipelineProfilePass::WorldUI));
     GPU_MARKER(L"WorldUI");
     if (mWorldUIPass)
         mWorldUIPass->Execute(ctx.camera);

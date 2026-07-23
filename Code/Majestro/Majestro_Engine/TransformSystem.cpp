@@ -20,13 +20,15 @@ void TransformSystem::Update(float dt) {
 		if(transformComponent -> mIsStatic)
 			continue;
 		Matrix result = transformComponent->FinalUpdate();
+		const uint64 parentWorldRevision = transformComponent->GetWorldRevision();
 
 
 		if (!transformComponent->mChild.empty()) {
 			for (Entity& e : transformComponent->mChild) {
 				TransformComponent* childComp = mWorld->GetComponent<TransformComponent>(e);
 				if (childComp) {
-					childComp->FinalUpdate(result);
+
+					childComp->FinalUpdate(result, parentWorldRevision);
 				}
 			}
 		}

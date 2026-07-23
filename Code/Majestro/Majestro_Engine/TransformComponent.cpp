@@ -3,6 +3,23 @@
 #include "Entity.h"
 #include "MathUtils.h"
 
+namespace
+{
+	bool IsSameVec3(const Vec3& lhs, const Vec3& rhs)
+	{
+		return lhs.x == rhs.x &&
+				lhs.y == rhs.y &&
+				lhs.z == rhs.z;
+	}
+
+	void AdvanceTransformRevision(uint64& revision)
+	{
+		revision++;
+		if (revision == 0)
+			revision = 1;
+	}
+}
+
 void TransformComponent::LookAt(const Vec3 dir)
 {
 	Vec3 front = dir;
@@ -97,24 +114,48 @@ void TransformComponent::UpdateRotationEulerFromQuaternion()
 	mLocalRotationE.z = DirectX::XMConvertToDegrees(mLocalRotationR.z);
 }
 
-Matrix TransformComponent::FinalUpdate(Matrix parentMatrix)
+Matrix TransformComponent::FinalUpdate(const Matrix& parentMatrix, uint64 parentWorldRevision)
 {
+	const bool localChanged =!mLocalStateInitialized ||
+		!IsSameVec3(mLocalPosition, mCachedLocalPosition) ||
+		!IsSameVec3(mLocalRotationE, mCachedLocalRotationE) ||
+		!IsSameVec3(mLocalScale, mCachedLocalScale);
+
+	if (localChanged)
+	{
 		UpdateRotationQuaternionFromEuler();
 
 		mLocalMatScale = Matrix::CreateScale(mLocalScale);
 		mLocalMatRotation = Matrix::CreateFromQuaternion(mLocalRotationQ);
 		mLocalMatTranslation = Matrix::CreateTranslation(mLocalPosition);
 
-		/*Matrix matRotation = Matrix::CreateRotationX(mLocalRotationE.x);
-		matRotation *= Matrix::CreateRotationY(mLocalRotationE.y);
-		matRotation *= Matrix::CreateRotationZ(mLocalRotationE.z);*/
-		
-
 		mLocalMatrix = mLocalMatScale * mLocalMatRotation * mLocalMatTranslation;
-		mWorldMatrix = mLocalMatrix * parentMatrix;
-		mWorldPosition = mWorldMatrix.Translation();
-		
-		mIsDirty = true;
-	
+
+		mCachedLocalPosition = mLocalPosition;
+		mCachedLocalRotationE = mLocalRotationE;
+		mCachedLocalScale = mLocalScale;
+		mLocalStateInitialized = true;
+		AdvanceTransformRevision(mLocalRevision);
+	}
+
+	const bool parentChanged =!mWorldStateInitialized ||
+					mCachedParent != mParent ||
+					mCachedParentWorldRevision != parentWorldRevision;
+
+	if (!localChanged && !parentChanged)
+	{
+		mIsDirty = false;
 		return mWorldMatrix;
+	}
+
+	mWorldMatrix = mLocalMatrix * parentMatrix;
+	mWorldPosition = mWorldMatrix.Translation();
+
+	mCachedParent = mParent;
+	mCachedParentWorldRevision = parentWorldRevision;
+	mWorldStateInitialized = true;
+	AdvanceTransformRevision(mWorldRevision);
+	mIsDirty = true;
+
+	return mWorldMatrix;
 }

@@ -13,6 +13,8 @@ public:
 	Vec3 GetWorldPosition() { return mWorldPosition; }
 	float GetBoundingSphereRadius() { return mBoundingSphere.Radius; }
 	const Matrix& GetWorldMatrix() { return mWorldMatrix; }
+	uint64 GetLocalRevision() const { return mLocalRevision; }
+	uint64 GetWorldRevision() const { return mWorldRevision; }
 
 	Vec3 GetRight() { return mWorldMatrix.Right(); }
 	Vec3 GetUp() { return mWorldMatrix.Up(); }
@@ -42,7 +44,7 @@ public:
 	Vec3 DecomposeRotationMatrix(const Matrix& rotation);
 
 	// Update
-	Matrix FinalUpdate(Matrix parentMatrix = Matrix());
+	Matrix FinalUpdate(const Matrix& parentMatrix = Matrix(),uint64 parentWorldRevision = 0);
 public:
 
 	Vec3 mLocalPosition = {};
@@ -68,7 +70,19 @@ public:
 	Entity mParent;
 	vector<Entity> mChild;
 	bool mIsStatic = false;
+
+private:
+	// public local 값을 직접 대입하는 기존 코드도 안전하게 감지하기 위한 마지막 계산 상태
+	Vec3 mCachedLocalPosition{};
+	Vec3 mCachedLocalRotationE{};
+	Vec3 mCachedLocalScale{ 1.f, 1.f, 1.f };
+	Entity mCachedParent;
+	uint64 mCachedParentWorldRevision = 0;
+	uint64 mLocalRevision = 0;
+	uint64 mWorldRevision = 0;
+	bool mLocalStateInitialized = false;
+	bool mWorldStateInitialized = false;
+
 public:
 	uint8 mBufferIndex = 0;
 };
-	

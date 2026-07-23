@@ -38,6 +38,9 @@ public:
     // true : Dialogue 그룹 활성 중에도 PostSpriteRender 를 호출
     virtual bool ShouldPostRenderInDialogue() const { return false; }
 
+
+    virtual bool HidesHud() const { return false; }
+
 protected:
     World* mWorld = nullptr;
 };

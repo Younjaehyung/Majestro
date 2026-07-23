@@ -438,6 +438,15 @@
     <ClInclude Include="IntroSequenceSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="BossCinematicComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BossCinematicSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BossCutInFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="AirshipDepartureSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -1126,6 +1135,12 @@
     </ClCompile>
     <ClCompile Include="IntroSequenceSystem.cpp">
       <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BossCinematicSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BossCutInFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="AirshipDepartureSystem.cpp">
       <Filter>World\System\Logic</Filter>

@@ -59,38 +59,7 @@ void IntroSequenceSystem::Apply(IntroSequenceComponent* seq, float dt)
 {
     seq->mElapsed += dt;
 
-    // 활성 카메라 엔티티(로컬 전용) 조회
-    auto cams = mWorld->GetEntitiesWithComponents<MainCameraComponent, CameraComponent, TransformComponent>();
-    if (cams.empty())
-        return;
-
-    const Entity camE = cams.front();
-    CameraComponent*    cam = mWorld->GetComponent<CameraComponent>(camE);
-    TransformComponent* tr  = mWorld->GetComponent<TransformComponent>(camE);
-    if (!cam || !tr)
-        return;
-
-    // 키프레임 구간 보간
-    const Cinematic::CameraView view = Cinematic::SampleCameraSequence(seq->mKeys, seq->mElapsed);
-
-    // Transform 적용
-    tr->mLocalPosition = view.position;
-    const Vec3 e = view.rotation.ToEuler();
-    tr->mLocalRotationE = Vec3(XMConvertToDegrees(e.x),
-                               XMConvertToDegrees(e.y),
-                               XMConvertToDegrees(e.z));
-
-    // FOV: UE 가로 화각(도) → 종횡비 기반 세로 화각(라디안) (MainMenuCameraSystem와 동일 변환)
-    const float aspect  = cam->mWidth / cam->mHeight;
-    const float hFovRad = XMConvertToRadians(view.fovDeg);
-    const float vFovRad = 2.f * atanf(tanf(hFovRad * 0.5f) / aspect);
-    cam->SetFOV(vFovRad);
-
-    // CameraSystem이 이미 뷰/투영 행렬을 만든 뒤(After)이므로,
-    // 우리가 덮어쓴 Transform/FOV로 월드 행렬과 뷰·투영 행렬을 다시 빌드한다.
-    // (CameraSystem.cpp의 transform->FinalUpdate() + camera->FinalUpdate(...) 와 동일)
-    tr->FinalUpdate();
-    cam->FinalUpdate(tr->GetWorldMatrix().Invert());
+    Cinematic::ApplyCameraSequence(mWorld, seq->mKeys, seq->mElapsed);
 }
 
 void IntroSequenceSystem::Stop(IntroSequenceComponent* seq)

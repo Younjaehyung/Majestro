@@ -111,6 +111,9 @@
 #include "MainMenuCameraSystem.h"
 #include "IntroSequenceComponent.h"
 #include "IntroSequenceSystem.h"
+#include "BossCinematicComponent.h"
+#include "BossCinematicSystem.h"
+#include "BossCutInFeature.h"
 #include "AirshipDepartureComponent.h"
 #include "AirshipDepartureSystem.h"
 #include "CloudDriftComponent.h"
@@ -2362,6 +2365,10 @@ void FirstScene::Initialize()
 	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
 	mUIFeatures.push_back(ultimateCutInModule);
 
+	// 보스 전시 시네마틱 완료 후 재생되는 컷인
+	auto bossCutInModule = std::make_shared<BossCutInFeature>();
+	mUIFeatures.push_back(bossCutInModule);
+
 	// 콤보 랭크
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -2487,6 +2494,12 @@ void FirstScene::Initialize()
 
 	mWorld->AddSingleton<GameRuleComponent>();
 
+
+	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();
+	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
+	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\BossCinematicCamera.json");
+
 	particleSystem->SpawnEffect(L"Particle_AuraRise", Vec3(-8002.9f, 1027.2f, -12519.6f));
 
 
@@ -2580,51 +2593,49 @@ namespace
 
 	void SpawnPlazaClouds(World* world, const std::wstring& path)
 	{
+		// ── 튜닝값 ─────────────────────────────────────────────────────────
+		// 카드의 가장 큰 변을 이 절반크기(월드 유닛)에 맞춘다. 메시 원본 크기와 무관하게 일정 크기.
+		constexpr float kCloudTargetHalfSize = 700.f;
+
+		// 구름을 놓을 위치(배의 양옆 ±X, 배 고도 근처 Y, 전후 Z 레인 중심). 회전/크기는 코드가 정한다.
+		static const Vec3 kSpots[] = {
+			{ -2600.f, 1100.f, -3000.f }, { -2400.f, 1600.f,   600.f },
+			{ -2800.f, 1300.f,  3600.f }, { -2500.f,  850.f,  -900.f },
+			{  2600.f, 1200.f, -3600.f }, {  2400.f, 1550.f,  1300.f },
+			{  2800.f, 1000.f,  3000.f }, {  2500.f, 1400.f,  -300.f },
+		};
+
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
 		const std::wstring prefix = s2ws(level.levelName);
 
-		constexpr float kCloudDistanceScale = 0.3f;
-
-		int spawned = 0;
+		// 레벨에 등장하는 구름 FBX 를 중복 없이 모은다(메시/머티리얼 재료로만 사용, 배치는 무시).
+		std::vector<shared_ptr<FBXData>> cloudAssets;
+		std::unordered_set<std::string> seen;
 		for (const auto& inst : level.instances)
 		{
 			const std::string stem = filesystem::path(inst.fbx).filename().stem().string();
-			if (!IsPlazaCloudMesh(stem))
+			if (!IsPlazaCloudMesh(stem) || !seen.insert(stem).second)
 				continue;
-			
 			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, s2ws(stem)));
-			if (!data || data->GetMeshs().empty())
-				continue;
+			if (data && !data->GetMeshs().empty())
+				cloudAssets.push_back(data);
+		}
+		if (cloudAssets.empty())
+		{
+			std::cout << "[Plaza] 구름 FBX 를 찾지 못해 스폰을 건너뜁니다" << std::endl;
+			return;
+		}
 
+		constexpr size_t kSpotCount = sizeof(kSpots) / sizeof(kSpots[0]);
+		int spawned = 0;
+		for (size_t i = 0; i < kSpotCount; ++i)
+		{
+			const shared_ptr<FBXData>& data = cloudAssets[i % cloudAssets.size()];
+			const Vec3& basePos = kSpots[i];
 
-			const Matrix& M = inst.worldMtx;
-			Vec3 row0(M._11, M._12, M._13);
-			Vec3 row1(M._21, M._22, M._23);
-			Vec3 row2(M._31, M._32, M._33);
-			float sx = row0.Length(); if (sx < 1e-5f) sx = 1.f;
-			float sy = row1.Length(); if (sy < 1e-5f) sy = 1.f;
-			float sz = row2.Length(); if (sz < 1e-5f) sz = 1.f;
-
-
-			Matrix R = Matrix::Identity;
-			R._11 = row0.x / sx;  R._12 = row0.y / sx;  R._13 = row0.z / sx;
-			R._21 = row1.x / sy;  R._22 = row1.y / sy;  R._23 = row1.z / sy;
-			R._31 = -row2.x / sz; R._32 = -row2.y / sz; R._33 = -row2.z / sz;
-			const Quaternion q = Quaternion::CreateFromRotationMatrix(R);
-			const Vec3 er = q.ToEuler();
-			const Vec3 rotDeg(XMConvertToDegrees(er.x),
-							  XMConvertToDegrees(er.y),
-							  XMConvertToDegrees(er.z));
-			const Vec3 scale(sx, sy, sz); 
-
-
-			const Vec3 translation = M.Translation() * kCloudDistanceScale;
-
-
-			const float r01a = rand() / static_cast<float>(RAND_MAX);
-			const float r01c = rand() / static_cast<float>(RAND_MAX);
-			const float speedScale = 0.8f + r01a * 0.4f;                          // 0.8~1.2
-			const float travelled  = r01c * CloudDriftSystem::kRecycleDist;       
+			// 개체별 드리프트 변주(같은 spot 의 모든 서브메시가 공유 → 함께 움직인다).
+			const float speedScale = 0.8f + (rand() / static_cast<float>(RAND_MAX)) * 0.4f;   // 0.8~1.2
+			const float travelled  = (rand() / static_cast<float>(RAND_MAX)) * CloudDriftSystem::kRecycleDist;
 
 			const auto& meshes   = data->GetMeshs();
 			const auto& meshMats = data->GetMeshMaterials();
@@ -2632,28 +2643,35 @@ namespace
 			{
 				if (!meshes[mi]) continue;
 
+				// 메시 원본 크기(OBB) 로부터 목표 크기에 맞춘 균일 스케일 산출.
+				const auto& ext = meshes[mi]->GetLocalOBB().Extents;
+				float maxExt = ext.x;
+				if (ext.y > maxExt) maxExt = ext.y;
+				if (ext.z > maxExt) maxExt = ext.z;
+				const float s = (maxExt > 1e-3f) ? (kCloudTargetHalfSize / maxExt) : 1.f;
+
 				Entity e = world->CreateEntity();
 
 				TransformComponent transform{};
-				transform.mLocalPosition  = translation;
-				transform.mLocalRotationE = rotDeg;
-				transform.mLocalScale     = scale;
-				transform.mIsStatic       = false;   // 움직여야 하므로 정적 아님
+				transform.mLocalPosition = basePos;
+				transform.mLocalScale    = Vec3(s, s, s);
+				transform.mIsStatic      = false;   // 움직여야 하므로 정적 아님(회전은 CloudDriftSystem 이 매 프레임 세움)
 				world->AddComponent<TransformComponent>(e, transform);
 
 				RenderComponent& render = world->AddComponent<RenderComponent>(e);
 				if (mi < meshMats.size())
 					render.mMaterials = meshMats[mi];
+				render.mCheckFrustum = false;   // 카드가 얇아 프러스텀 판정이 불안정 → 항상 렌더
 				render.SetMesh(meshes[mi]);
 
 				CloudDriftComponent& cloud = world->AddComponent<CloudDriftComponent>(e);
-				cloud.mBasePos    = translation;
+				cloud.mBasePos    = basePos;
 				cloud.mSpeedScale = speedScale;
 				cloud.mTravelled  = travelled;
 			}
 			spawned++;
 		}
-		std::cout << "[Plaza] 떠다니는 구름 메시 스폰: " << spawned << " 개" << std::endl;
+		std::cout << "[Plaza] 떠다니는 구름 빌보드 스폰: " << spawned << " 개" << std::endl;
 	}
 }
 
@@ -2922,6 +2940,10 @@ void SecondScene::Initialize()
 	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
 	mUIFeatures.push_back(ultimateCutInModule);
 
+	// 보스 전시 시네마틱 완료 후 재생되는 컷인
+	auto bossCutInModule = std::make_shared<BossCutInFeature>();
+	mUIFeatures.push_back(bossCutInModule);
+
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
 
@@ -3008,6 +3030,11 @@ void SecondScene::Initialize()
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 
 	mWorld->AddSingleton<GameRuleComponent>();
+
+	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();
+	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
+	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\BossCinematicCamera.json");
 }
 
 void ThirdScene::Initialize()
@@ -3053,6 +3080,10 @@ void ThirdScene::Initialize()
 	
 	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
 	mUIFeatures.push_back(ultimateCutInModule);
+
+	// 보스 전시 시네마틱 완료 후 재생되는 컷인
+	auto bossCutInModule = std::make_shared<BossCutInFeature>();
+	mUIFeatures.push_back(bossCutInModule);
 
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -3151,6 +3182,12 @@ void ThirdScene::Initialize()
 	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
 	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\Map003Camera.json");
+
+
+	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();
+	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
+	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\BossCinematicCamera.json");
 }
 
 
@@ -3198,6 +3235,10 @@ void FourthScene::Initialize()
 
 	auto ultimateCutInModule = std::make_shared<UltimateCutInFeature>();
 	mUIFeatures.push_back(ultimateCutInModule);
+
+	// 보스 전시 시네마틱 완료 후 재생되는 컷인
+	auto bossCutInModule = std::make_shared<BossCutInFeature>();
+	mUIFeatures.push_back(bossCutInModule);
 
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -3293,6 +3334,12 @@ void FourthScene::Initialize()
 	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
 	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\Map003Camera.json");
+
+
+	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();
+	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
+	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\BossCinematicCamera.json");
 }
 #pragma endregion
 

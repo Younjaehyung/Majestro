@@ -134,6 +134,13 @@ void UIRenderSystem::Update()
    
     RENDERMANAGER.SetGraphicsTable();
 
+
+    if (IsHudHiddenByFeature())
+    {
+        RenderFullscreenFeatureOnly();
+        return;
+    }
+
     // 모달 UI가 활성화되어도 해당 그룹의 일반 UI는 렌더링한다.
     CustomSpriteRender();
     TextUpdate();
@@ -191,6 +198,38 @@ void UIRenderSystem::SpriteUpdate()
             if (spritePass != nullptr)
                 spritePass->SpriteRender(mSpriteBatch.get());
         }
+    }
+
+    mSpriteBatch->End();
+}
+
+
+bool UIRenderSystem::IsHudHiddenByFeature() const
+{
+    if (mFeatures == nullptr)
+        return false;
+
+    for (const auto& feature : *mFeatures)
+    {
+        if (feature != nullptr && feature->HidesHud())
+            return true;
+    }
+    return false;
+}
+
+
+void UIRenderSystem::RenderFullscreenFeatureOnly()
+{
+    if (mFeatures == nullptr)
+        return;
+
+    mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
+    mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
+
+    for (const auto& feature : *mFeatures)
+    {
+        if (feature != nullptr)
+            feature->SpriteRender(mSpriteBatch.get());
     }
 
     mSpriteBatch->End();

@@ -113,27 +113,7 @@ bool PlayerInputSystem::IsPaused() const
 
 bool PlayerInputSystem::IsCinematicPlaying() const
 {
-	const Entity singleton = mWorld->GetSingletonEntity();
-
-	// 씬 진입 시네마틱
-	if (mWorld->HasComponentPool<IntroSequenceComponent>())
-	{
-		const IntroSequenceComponent* seq =
-			mWorld->GetComponent<IntroSequenceComponent>(singleton);
-		if (seq != nullptr && seq->mPlaying)
-			return true;
-	}
-
-	// 비행정 출발 시네마틱 (레벨 선택 → 로딩 전 연출)
-	if (mWorld->HasComponentPool<AirshipDepartureComponent>())
-	{
-		const AirshipDepartureComponent* dep =
-			mWorld->GetComponent<AirshipDepartureComponent>(singleton);
-		if (dep != nullptr && dep->mPlaying)
-			return true;
-	}
-
-	return false;
+	return Cinematic::IsAnyCinematicPlaying(mWorld);
 }
 
 bool PlayerInputSystem::IsDialogueActive() const

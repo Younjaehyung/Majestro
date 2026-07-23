@@ -2880,6 +2880,11 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Ibanix_Cutin_Back",  L"..\\Resources\\Image\\UI\\UI_Ibanix_Cutin_Back.png");
 		Load<Texture>(L"UI_Fanthor_Cutin",      L"..\\Resources\\Image\\UI\\UI_Fanthor_Cutin.png");
 		Load<Texture>(L"UI_Fanthor_Cutin_Back", L"..\\Resources\\Image\\UI\\UI_Fanthor_Cutin_Back.png");
+		Load<Texture>(L"UI_Boss_Cutin_Back",         L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Back.png");
+		Load<Texture>(L"UI_Boss_Cutin_Tubaitan",     L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Tubaitan.png");
+		Load<Texture>(L"UI_Boss_Cutin_Tubaitan_Img", L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Tubaitan_Img.png");
+		Load<Texture>(L"UI_Boss_Cutin_Violagon",     L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Violagon.png");
+		Load<Texture>(L"UI_Boss_Cutin_Violagon_Img", L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Violagon_Img.png");
 	}
 
 	//Ibanix_Ammo

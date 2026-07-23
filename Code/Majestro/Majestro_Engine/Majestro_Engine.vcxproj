@@ -311,6 +311,9 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="IntroSequenceComponent.h" />
     <ClInclude Include="IntroSequenceSystem.h" />
+    <ClInclude Include="BossCinematicComponent.h" />
+    <ClInclude Include="BossCinematicSystem.h" />
+    <ClInclude Include="BossCutInFeature.h" />
     <ClInclude Include="AirshipDepartureComponent.h" />
     <ClInclude Include="AirshipDepartureSystem.h" />
     <ClInclude Include="CloudDriftComponent.h" />
@@ -500,6 +503,8 @@
     <ClCompile Include="LightsPass.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="IntroSequenceSystem.cpp" />
+    <ClCompile Include="BossCinematicSystem.cpp" />
+    <ClCompile Include="BossCutInFeature.cpp" />
     <ClCompile Include="AirshipDepartureSystem.cpp" />
     <ClCompile Include="CloudDriftSystem.cpp" />
     <ClCompile Include="MainMenuCameraSystem.cpp" />

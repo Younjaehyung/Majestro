@@ -1,5 +1,6 @@
 #pragma once
 
+class World;
 
 namespace Cinematic
 {
@@ -23,4 +24,10 @@ namespace Cinematic
     void ConvertMainMenuSample(const json& s, CameraView& v);
     bool IsSameMainMenuStop(const CameraView& a, const CameraView& b);
     CameraView SampleCameraSequence(const std::vector<CameraKeyframe>& keys, float t);
+
+
+    void ApplyCameraSequence(World* world, const std::vector<CameraKeyframe>& keys, float elapsed);     // 시퀀스 재생
+
+
+    bool IsAnyCinematicPlaying(World* world);    // 어느 시네마틱이라도 재생 중인지
 }

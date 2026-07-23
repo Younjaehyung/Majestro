@@ -35,35 +35,7 @@ void AirshipDepartureSystem::Apply(AirshipDepartureComponent* dep, float dt)
 {
     dep->mElapsed += dt;
 
-
-    auto cams = mWorld->GetEntitiesWithComponents<MainCameraComponent, CameraComponent, TransformComponent>();
-    if (cams.empty())
-        return;
-
-    const Entity camE = cams.front();
-    CameraComponent*    cam = mWorld->GetComponent<CameraComponent>(camE);
-    TransformComponent* tr  = mWorld->GetComponent<TransformComponent>(camE);
-    if (!cam || !tr)
-        return;
-
-    // 키프레임 구간 보간
-    const Cinematic::CameraView view = Cinematic::SampleCameraSequence(dep->mKeys, dep->mElapsed);
-
-    // Transform 적용
-    tr->mLocalPosition = view.position;
-    const Vec3 e = view.rotation.ToEuler();
-    tr->mLocalRotationE = Vec3(XMConvertToDegrees(e.x),
-                               XMConvertToDegrees(e.y),
-                               XMConvertToDegrees(e.z));
-
-    // FOV
-    const float aspect  = cam->mWidth / cam->mHeight;
-    const float hFovRad = XMConvertToRadians(view.fovDeg);
-    const float vFovRad = 2.f * atanf(tanf(hFovRad * 0.5f) / aspect);
-    cam->SetFOV(vFovRad);
-
-    tr->FinalUpdate();
-    cam->FinalUpdate(tr->GetWorldMatrix().Invert());
+    Cinematic::ApplyCameraSequence(mWorld, dep->mKeys, dep->mElapsed);
 }
 
 void AirshipDepartureSystem::Finish(AirshipDepartureComponent* dep)

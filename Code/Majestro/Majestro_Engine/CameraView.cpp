@@ -1,6 +1,13 @@
 #include "pch.h"
 #include "CameraView.h"
 #include "JsonUtils.h"
+#include "World.h"
+#include "TagComponent.h"
+#include "CameraComponent.h"
+#include "TransformComponent.h"
+#include "IntroSequenceComponent.h"
+#include "AirshipDepartureComponent.h"
+#include "BossCinematicComponent.h"
 
 namespace Cinematic
 {
@@ -57,6 +64,77 @@ bool IsSameMainMenuStop(const CameraView& a, const CameraView& b)
 	if (std::abs(a.rotation.Dot(b.rotation)) < 0.9999f) return false;
 	if (std::abs(a.fovDeg - b.fovDeg) >= 0.01f) return false;
 	return true;
+}
+
+void ApplyCameraSequence(World* world, const std::vector<CameraKeyframe>& keys, float elapsed)
+{
+	if (world == nullptr)
+		return;
+
+	// 활성 카메라 엔티티(로컬 전용) 조회
+	auto cams = world->GetEntitiesWithComponents<MainCameraComponent, CameraComponent, TransformComponent>();
+	if (cams.empty())
+		return;
+
+	const Entity camE = cams.front();
+	CameraComponent*    cam = world->GetComponent<CameraComponent>(camE);
+	TransformComponent* tr  = world->GetComponent<TransformComponent>(camE);
+	if (!cam || !tr)
+		return;
+
+	// 키프레임 구간 보간
+	const CameraView view = SampleCameraSequence(keys, elapsed);
+
+	// Transform 적용
+	tr->mLocalPosition = view.position;
+	const Vec3 e = view.rotation.ToEuler();
+	tr->mLocalRotationE = Vec3(XMConvertToDegrees(e.x),
+	                           XMConvertToDegrees(e.y),
+	                           XMConvertToDegrees(e.z));
+
+	// FOV
+	const float aspect  = cam->mWidth / cam->mHeight;
+	const float hFovRad = XMConvertToRadians(view.fovDeg);
+	const float vFovRad = 2.f * atanf(tanf(hFovRad * 0.5f) / aspect);
+	cam->SetFOV(vFovRad);
+
+
+	tr->FinalUpdate();
+	cam->FinalUpdate(tr->GetWorldMatrix().Invert());
+}
+
+bool IsAnyCinematicPlaying(World* world)
+{
+	if (world == nullptr)
+		return false;
+
+	const Entity singleton = world->GetSingletonEntity();
+
+	// 씬 진입
+	if (world->HasComponentPool<IntroSequenceComponent>())
+	{
+		const IntroSequenceComponent* seq = world->GetComponent<IntroSequenceComponent>(singleton);
+		if (seq != nullptr && seq->mPlaying)
+			return true;
+	}
+
+	// 비행정
+	if (world->HasComponentPool<AirshipDepartureComponent>())
+	{
+		const AirshipDepartureComponent* dep = world->GetComponent<AirshipDepartureComponent>(singleton);
+		if (dep != nullptr && dep->mPlaying)
+			return true;
+	}
+
+	// 보스
+	if (world->HasComponentPool<BossCinematicComponent>())
+	{
+		const BossCinematicComponent* boss = world->GetComponent<BossCinematicComponent>(singleton);
+		if (boss != nullptr && boss->mPlaying)
+			return true;
+	}
+
+	return false;
 }
 
 }

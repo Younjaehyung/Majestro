@@ -1967,6 +1967,7 @@ void MainMenuScene::Initialize()
 	renderSystemMM->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> pipelineMM = std::dynamic_pointer_cast<GameRenderPipeline>(renderSystemMM->GetPipeline());
 	pipelineMM->SetMotionBlurEnabled(false);
+	pipelineMM->SetColorLUT(L"ColorLUT/Scene/Clouseau 54_strip", 33);  // MAP Title LUT
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
@@ -2439,7 +2440,7 @@ void FirstScene::Initialize()
 	renderSystemFS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemFS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
-	gp->SetColorLUT(L"ColorLUT", 33);
+	gp->SetColorLUT(L"ColorLUT/Scene/Milo 5_strip", 33);
 
 	// FirstScene 컬러 그레이딩
 	{
@@ -2826,7 +2827,7 @@ void PlazaScene::Initialize()
 	renderSystemPZ->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemPZ->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
-	gp->SetColorLUT(L"ColorLUT", 33);
+	gp->SetColorLUT(L"ColorLUT/Scene/Cobi 3_strip", 33);
 
 	// 광장 컬러 그레이딩 (FirstScene 과 동일)
 	{
@@ -2991,7 +2992,7 @@ void SecondScene::Initialize()
 	renderSystemSS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemSS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
-	gp->SetColorLUT(L"ColorLUT", 33);
+	gp->SetColorLUT(L"ColorLUT/Scene/T_P6", 16);
 
 	// SecondScene 컬러 그레이딩
 	{
@@ -3124,6 +3125,7 @@ void ThirdScene::Initialize()
 	renderSystemTS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemTS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
+	gp->SetColorLUT(L"ColorLUT/Scene/Remy 24_strip", 33);
 
 	// ThirdScene 컬러 그레이딩
 	{
@@ -3268,6 +3270,7 @@ void FourthScene::Initialize()
 	renderSystemTS->SetPipeline(make_shared<GameRenderPipeline>());
 	shared_ptr<GameRenderPipeline> gp = static_pointer_cast<GameRenderPipeline>(renderSystemTS->GetPipeline());
 	gp->SetWorldUIFeature(&mUIFeatures);
+	gp->SetColorLUT(L"ColorLUT/Scene/Remy 24_strip", 33);
 
 	// FourthScene 컬러 그레이딩 (ThirdScene 값 재사용)
 	{

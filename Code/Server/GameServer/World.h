@@ -217,6 +217,10 @@ bool World::HasComponentPool() const
 
 template<typename T>
 std::vector<Entity> World::GetEntitiesWithComponent() const {
+    if (!HasComponentPool<T>()) {
+        return {};
+    }
+
     const auto& pool = GetComponentPool<T>();
     const auto& entityIDs = pool.GetEntities();
 

@@ -243,8 +243,10 @@ inline PlayerAnimationResolveResult ResolvePlayerAnimationState(
 		movement,
 		netTransform);
 	const ClientAnimState actionState = ToClientActionState(player.mUpperState);
+	const bool fullBodySpecial = actionState == ClientAnimState::Special &&
+		(player.mPlayerType == PlayerType::Ibanix || player.mPlayerType == PlayerType::Fanthor);
 	const bool fullBodyAction = IsFullBodyState(actionState) ||
-		(actionState == ClientAnimState::Special && player.mPlayerType == Ibanix);
+		fullBodySpecial;
 	const ClientAnimState upperState = fullBodyAction ? actionState : actionState;
 
 	result.LowerClipIndex = ResolveClipIndex(animCom, fullBodyAction ? actionState : lowerState, 0);
@@ -254,8 +256,5 @@ inline PlayerAnimationResolveResult ResolvePlayerAnimationState(
 	result.EnableUpperLayer = hasUpperAction && result.UpperClipIndex != result.LowerClipIndex;
 
 	result.HoldLastFrame = IsHoldLastFrameState(lowerState);
-	result.HoldUpperLastFrame =
-		actionState == ClientAnimState::Special && player.mPlayerType == PlayerType::Fanthor;
-
 	return result;
 }

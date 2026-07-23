@@ -1036,7 +1036,7 @@ void ThirdScene::Initialize()
 		// 임시
 		const std::wstring gimmickPath = L"../Resources/Json/Map003_Gimmicks.json";
 		LoadPlayerSpawnForScene(mWorld.get(), gimmickPath);
-		SpawnFixedEnemy(mWorld.get(), EnemyType::Dragon, Vec3(-3000.0f, 0.0f, 5.0f));
+			SpawnFixedEnemy(mWorld.get(), EnemyType::Brass, Vec3(-3000.0f, 0.0f, 5.0f));
 	
 		gameMode->Initialize();
 
@@ -1065,7 +1065,7 @@ void FourthScene::Initialize()
 	mWorld->Initialize();
 
 
-	LoadCollisionJson(L"..\\Resources\\Json\\MapDragon_Nav_Export.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDragon_Export.json");
 	LoadNavMesh(L"NavMesh_FourthGame");
 
 	mWorld->GetSystemManager()->RegisterSystem<NetRecvSystem>();       // 1. 입력 수신

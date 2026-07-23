@@ -822,18 +822,19 @@ void BossPhase::PostUpdate(float dt, WaveGameMode& mode)
 		!mWorld->HasComponentPool<HealthComponent>())
 		return;
 
-	bool dragonBossExists = false;
+	bool bossExists = false;
 	for (Entity entity : mWorld->GetEntitiesWithComponents<EnemyComponent, HealthComponent>())
 	{
 		EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(entity);
 		HealthComponent* health = mWorld->GetComponent<HealthComponent>(entity);
-		if (!enemy || !health || enemy->mEnemyType != EnemyType::Dragon)
+		if (!enemy || !health ||
+			(enemy->mEnemyType != EnemyType::Brass && enemy->mEnemyType != EnemyType::Dragon))
 			continue;
 
-		dragonBossExists = true;
+		bossExists = true;
 		mBossDetected = true;
 
-		// Dragon 보스 체력이 0 이하가 되면 BossPhase를 완료한다.
+		// 현재 보스 체력이 0 이하가 되면 BossPhase를 완료한다.
 		// 다음 서버 틱에서 기존 Phase 큐의 ClearPhase가 시작되고 클라이언트에 Clear 상태가 전송된다.
 		if (health->IsDead())
 		{
@@ -843,7 +844,7 @@ void BossPhase::PostUpdate(float dt, WaveGameMode& mode)
 	}
 
 	// 보스를 확인한 뒤 사망 처리로 엔티티가 제거된 경우도 처치 완료로 판정한다.
-	if (mBossDetected && !dragonBossExists)
+	if (mBossDetected && !bossExists)
 		mIsCompleted = true;
 
 }

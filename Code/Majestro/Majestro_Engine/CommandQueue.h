@@ -11,6 +11,13 @@ public:
 	void Initialize (ComPtr<ID3D12Device> device, shared_ptr<SwapChain> swapChain);
 	void WaitForGpuComplete();	//fence 기다림 용도 함수
 	void FlushResourceCommandQueue();	//리소스 로딩용 CMD실행 함수
+	bool CreateStaticBuffer(
+		const void* sourceData,
+		uint64 byteSize,
+		D3D12_RESOURCE_STATES finalState,
+		ComPtr<ID3D12Resource>& destination,
+		const wchar_t* debugName);
+	bool HasPendingStaticBufferUploads() const { return !mPendingStaticBufferUploads.empty(); }
 
 
 
@@ -45,6 +52,9 @@ private:
 	//그 이전에 데이터를 로딩할 때 사용하기 위한 추가 CMD리스트.
 	ComPtr<ID3D12CommandAllocator>		mResourceCommandAlloc;
 	ComPtr<ID3D12GraphicsCommandList>	mResourceCommandList;
+
+	// 정적 버퍼 복사용 업로드 힙
+	vector<ComPtr<ID3D12Resource>>		mPendingStaticBufferUploads;
 
 	// Fence : 울타리(?)
 	// 큐의 순서부여 후 어디까지 할지 정함

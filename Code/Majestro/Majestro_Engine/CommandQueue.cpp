@@ -234,6 +234,82 @@ void GraphicsCommandQueue::CreateCommandQueue()
 	mFenceEvent = ::CreateEvent(nullptr, FALSE, FALSE, nullptr);
 }
 
+bool GraphicsCommandQueue::CreateStaticBuffer(
+	const void* sourceData,
+	uint64 byteSize,
+	D3D12_RESOURCE_STATES finalState,
+	ComPtr<ID3D12Resource>& destination,
+	const wchar_t* debugName)
+{
+	if (sourceData == nullptr || byteSize == 0 || mDevice == nullptr || mResourceCommandList == nullptr)
+		return false;
+
+	destination.Reset();
+
+	const D3D12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(byteSize);
+	const D3D12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+	HRESULT hr = mDevice->CreateCommittedResource(
+		&defaultHeap,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&destination));
+
+	if (FAILED(hr) || destination == nullptr)
+		return false;
+
+	const D3D12_HEAP_PROPERTIES uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	ComPtr<ID3D12Resource> uploadBuffer;
+
+	hr = mDevice->CreateCommittedResource(
+		&uploadHeap,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&uploadBuffer));
+
+	if (FAILED(hr) || uploadBuffer == nullptr)
+	{
+		destination.Reset();
+		return false;
+	}
+
+	void* mappedData = nullptr;
+	D3D12_RANGE readRange{ 0, 0 };
+	hr = uploadBuffer->Map(0, &readRange, &mappedData);
+	if (FAILED(hr) || mappedData == nullptr)
+	{
+		destination.Reset();
+		return false;
+	}
+
+	memcpy(mappedData, sourceData, static_cast<size_t>(byteSize));
+	uploadBuffer->Unmap(0, nullptr);
+
+	if (debugName != nullptr && debugName[0] != L'\0')
+	{
+		destination->SetName(debugName);
+		const wstring uploadName = wstring(debugName) + L" Upload";
+		uploadBuffer->SetName(uploadName.c_str());
+	}
+
+	// 정적 메시 데이터 업로드 힙에서 기본 힙으로 복사
+	mResourceCommandList->CopyBufferRegion(destination.Get(), 0, uploadBuffer.Get(), 0, byteSize);
+
+	const D3D12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		destination.Get(),
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		finalState);
+	mResourceCommandList->ResourceBarrier(1, &barrier);
+
+	// 명령 목록이 제출되고 펜스가 완료되기 전까지 업로드 버퍼를 유지
+	mPendingStaticBufferUploads.push_back(uploadBuffer);
+	return true;
+}
+
 void GraphicsCommandQueue::FlushResourceCommandQueue()
 {
 	mResourceCommandList->Close();
@@ -242,6 +318,7 @@ void GraphicsCommandQueue::FlushResourceCommandQueue()
 	mCommandQueue->ExecuteCommandLists(_countof(cmdListArr), cmdListArr);
 
 	WaitForGpuComplete();
+	mPendingStaticBufferUploads.clear();
 
 	mResourceCommandAlloc->Reset();
 	mResourceCommandList->Reset(mResourceCommandAlloc.Get(), nullptr);

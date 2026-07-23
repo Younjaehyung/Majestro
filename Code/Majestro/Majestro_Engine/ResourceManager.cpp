@@ -26,6 +26,11 @@ void ResourceManager::Initialize()
 	LoadWireCubeMesh();
 	LoadLineMesh();
 
+
+	auto commandQueue = RENDERMANAGER.GetGraphicsCmdQueue();
+	if (commandQueue && commandQueue->HasPendingStaticBufferUploads())
+		commandQueue->FlushResourceCommandQueue();
+
 	// 시작 시점 텍스처 예산 요약 출력
 	DumpTextureBudget("startup");
 	GpuResourceBudget::Dump("startup",

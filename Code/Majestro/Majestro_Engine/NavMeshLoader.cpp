@@ -2,6 +2,7 @@
 #include "NavMeshLoader.h"
 
 #include "Engine.h"
+#include "RenderManager.h"
 #include "ResourceManager.h"
 #include "Mesh.h"
 #include "RenderSystem.h"
@@ -590,6 +591,11 @@ void NavMeshDebugRenderer::BuildDebugMesh(dtNavMesh* navMesh)
 
     mNavMeshSurfaceMesh = make_shared<Mesh>();
     mNavMeshSurfaceMesh->Init(vertices, indices);
+
+    
+    auto commandQueue = gEngine->GetRenderManager().GetGraphicsCmdQueue();
+    if (commandQueue && commandQueue->HasPendingStaticBufferUploads())
+        commandQueue->FlushResourceCommandQueue();
 }
 
 

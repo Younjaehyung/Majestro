@@ -28,32 +28,38 @@ void Mesh::Init(const vector<Vertex>& vec, const vector<uint32>& indexbuffer)
 void Mesh::CreateVertexBuffer(const vector<Vertex>& buffer)
 {
 	mVertexCount = static_cast<uint32>(buffer.size());
-	uint32 bufferSize = mVertexCount * sizeof(Vertex);
+	const uint64 bufferSize = static_cast<uint64>(mVertexCount) * sizeof(Vertex);
+	if (buffer.empty() || bufferSize > UINT_MAX)
+	{
+		mVertexBuffer.Reset();
+		mVertexBufferView = {};
+		assert(false);
+		return;
+	}
+	const uint32 bufferSize = static_cast<uint32>(bufferSize);
 
-	D3D12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);	//버퍼타입 : UPLOAD
-	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-
-	//VRAM(Upload)에 버텍스버퍼 생성
-	DEVICE->CreateCommittedResource(
-		&heapProperty,
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&mVertexBuffer));
-
-	// GPU 리소스 추적
 	std::wstring meshName = GetName().empty() ? L"UnnamedMesh" : GetName();
-	GpuResourceBudget::RecordResource(DEVICE.Get(), L"MeshVertexUpload",
-		meshName + L" vertex " + std::to_wstring(mVertexCount),
-		D3D12_HEAP_TYPE_UPLOAD, mVertexBuffer.Get());
+	const std::wstring resourceName = meshName + L" Vertex";
 
-	// Copy the triangle data to the vertex buffer.
-	void* vertexDataBuffer = nullptr;
-	CD3DX12_RANGE readRange(0, 0); // We do not intend to read from this resource on the CPU.
-	mVertexBuffer->Map(0, &readRange, &vertexDataBuffer);	//메모리 연결
-	::memcpy(vertexDataBuffer, &buffer[0], bufferSize);	//gpu로 메모리 복사
-	//_vertexBuffer->Unmap(0, nullptr);	//메모리 연결 해제
+	// 정적 정점 데이터 기본 힙 복사
+	const bool created = RENDERMANAGER.GetGraphicsCmdQueue()->CreateStaticBuffer(
+		buffer.data(),
+		bufferSize,
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+		mVertexBuffer,
+		resourceName.c_str());
+
+	if (!created)
+	{
+		mVertexBuffer.Reset();
+		mVertexBufferView = {};
+		assert(false);
+		return;
+	}
+
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"MeshVertexDefault",
+		resourceName + L" " + std::to_wstring(mVertexCount),
+		D3D12_HEAP_TYPE_DEFAULT, mVertexBuffer.Get());
 
 	// 리소스(데이터) 정보(속성) 설정
 	// Initialize the vertex buffer view.
@@ -65,31 +71,36 @@ void Mesh::CreateVertexBuffer(const vector<Vertex>& buffer)
 void Mesh::CreateIndexBuffer(const vector<uint32>& buffer)
 {
 	uint32 indexCount = static_cast<uint32>(buffer.size());
-	uint32 bufferSize = indexCount * sizeof(uint32);
-
-	D3D12_HEAP_PROPERTIES heapProperty = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+	const uint64 bufferSize64 = static_cast<uint64>(indexCount) * sizeof(uint32);
+	if (buffer.empty() || bufferSize64 > UINT_MAX)
+	{
+		assert(false);
+		return;
+	}
+	const uint32 bufferSize = static_cast<uint32>(bufferSize64);
 
 	ComPtr<ID3D12Resource> indexBuffer;
-	DEVICE->CreateCommittedResource(
-		&heapProperty,
-		D3D12_HEAP_FLAG_NONE,
-		&desc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&indexBuffer));
-
-	// GPU 리소스 추적
 	std::wstring meshName = GetName().empty() ? L"UnnamedMesh" : GetName();
-	GpuResourceBudget::RecordResource(DEVICE.Get(), L"MeshIndexUpload",
-		meshName + L" index " + std::to_wstring(indexCount),
-		D3D12_HEAP_TYPE_UPLOAD, indexBuffer.Get());
+	const std::wstring resourceName =
+		meshName + L" Index " + std::to_wstring(mVecIndexInfo.size());
 
-	void* indexDataBuffer = nullptr;
-	CD3DX12_RANGE readRange(0, 0);
-	indexBuffer->Map(0, &readRange, &indexDataBuffer);
-	::memcpy(indexDataBuffer, &buffer[0], bufferSize);
-	indexBuffer->Unmap(0, nullptr);
+	// 정적 인덱스 데이터 기본 힙으로 복사
+	const bool created = RENDERMANAGER.GetGraphicsCmdQueue()->CreateStaticBuffer(
+		buffer.data(),
+		bufferSize64,
+		D3D12_RESOURCE_STATE_INDEX_BUFFER,
+		indexBuffer,
+		resourceName.c_str());
+
+	if (!created)
+	{
+		assert(false);
+		return;
+	}
+
+	GpuResourceBudget::RecordResource(DEVICE.Get(), L"MeshIndexDefault",
+		resourceName + L" " + std::to_wstring(indexCount),
+		D3D12_HEAP_TYPE_DEFAULT, indexBuffer.Get());
 
 	D3D12_INDEX_BUFFER_VIEW	indexBufferView;
 	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();

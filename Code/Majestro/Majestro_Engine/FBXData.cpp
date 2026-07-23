@@ -2,6 +2,7 @@
 #include "FBXData.h"
 #include <fstream>
 #include "Engine.h"
+#include "RenderManager.h"
 #include "ResourceManager.h"
 #include "Mesh.h"
 #include "Animator.h"
@@ -187,6 +188,16 @@ FBXData::~FBXData()
 {
 }
 
+namespace
+{
+	void FlushStaticMeshUploads()
+	{
+		auto commandQueue = gEngine->GetRenderManager().GetGraphicsCmdQueue();
+		if (commandQueue && commandQueue->HasPendingStaticBufferUploads())
+			commandQueue->FlushResourceCommandQueue();
+	}
+}
+
 void FBXData::Load(const wstring& path, const wstring& shader)
 {
 	mPath = ws2s(path);
@@ -203,7 +214,9 @@ void FBXData::Load(const wstring& path, const wstring& shader)
 	if (std::ifstream f(filePath + ".ani", std::ios::binary); f) {
 		CreateAnimatorFromFBX(f);
 	}
-	
+
+	// FBX에 있는 모든 정점과 인덱스 복사를 한 번에 제출
+	FlushStaticMeshUploads();
 
 }
 
@@ -218,6 +231,9 @@ void FBXData::LoadMeshOnly(const wstring& path)
 		CreateMeshFromFBX(f,false);
 	}
 
+
+	FlushStaticMeshUploads();
+
 }
 
 void FBXData::LoadModelOnly(const wstring& path)
@@ -230,6 +246,9 @@ void FBXData::LoadModelOnly(const wstring& path)
 		f.read(reinterpret_cast<char*>(&mHeader), sizeof(mHeader));
 		CreateMeshFromFBX(f);
 	}
+
+
+	FlushStaticMeshUploads();
 
 }
 

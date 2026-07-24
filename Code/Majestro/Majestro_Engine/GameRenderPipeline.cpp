@@ -217,8 +217,8 @@ void GameRenderPipeline::Initialize(World* world)
     // mPostProcessPass->AddLDRPass(mLuminancePass);
 
     mGodRayPass = make_shared<GodRayPass>();
-    mGodRayPass->SetIntensity(1.75f);
-    mGodRayPass->SetNumSteps(4);
+    mGodRayPass->SetIntensity(2.1f);
+    mGodRayPass->SetNumSteps(12);   // 레이마칭 스텝 상향 — 밴딩 감소 / 부드러운 산란
     mGodRayPass->SetMaxRayLen(8000.0f);
     mGodRayPass->SetScatterCoeff(0.00008f);
     mGodRayPass->SetMieAsymmetry(0.76f);
@@ -230,7 +230,7 @@ void GameRenderPipeline::Initialize(World* world)
     mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
     mEmissiveBloomPass->Initialize(2);      // 4단계 (W/2 ->W/4 -> W/8 -> W/16)
     mEmissiveBloomPass->SetThreshold(1.0f); // LDR 범위 초과 밝기부터 추출
-    mEmissiveBloomPass->SetIntensity(0.8f); // 최종 합성 강도
+    mEmissiveBloomPass->SetIntensity(1.15f); // 최종 합성 강도
     mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
 
     // 체력 회복과 빈사 상태의 화면 외곽 비네팅

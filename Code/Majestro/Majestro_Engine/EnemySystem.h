@@ -22,6 +22,7 @@ private:
 		bool isPlayerAttack = false;
 		bool isSector = false;
 		bool isSphere = false;
+		bool isCross = false;
 	};
 
 	void UpdateAttackDebugIndicators(float dt);

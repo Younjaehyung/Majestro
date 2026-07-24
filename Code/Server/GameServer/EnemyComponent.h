@@ -146,6 +146,9 @@ public:
 	uint8 mBrassSkill3ShotsRemaining = 0;
 	float mBrassSkill3NextShotTime = 0.0f;
 	float mBrassSkill3ShotInterval = 0.0f;
+	float mBrassSkill4NextExplosionTime = -1.0f;
+	uint8 mBrassSkill4ExplosionsRemaining = 0;
+	bool mBrassSkill4ActiveParity = false;
 	Vec3 mDragonSkill4Centers[5]{};
 	float mDragonSkill4ExplosionTime = -1.0f;
 	uint8 mDragonSkill4CenterCount = 0;

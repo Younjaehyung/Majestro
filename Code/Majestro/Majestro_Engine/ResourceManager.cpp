@@ -3077,7 +3077,7 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Loading_FirstGame", L"..\\Resources\\Image\\UI\\UI_Loading_FirstGame.png");
 		Load<Texture>(L"UI_Loading_SecondGame", L"..\\Resources\\Image\\UI\\UI_Loading_SecondGame.png");
 		Load<Texture>(L"UI_Loading_ThirdGame", L"..\\Resources\\Image\\UI\\UI_Loading_ThirdGame.png");
-		Load<Texture>(L"UI_Loading_Circle", L"..\\Resources\\Image\\UI\\UI_Loading_Circle.png");
+		Load<Texture>(L"UI_Loading_DragonMap", L"..\\Resources\\Image\\UI\\UI_Loading_DragonMap.png");
 
 
 		Load<Texture>(L"UI_Ingame_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Back_01.png");

@@ -15,27 +15,39 @@ namespace
 {
 	constexpr const wchar_t* kSheetKey = L"UI_LevelMan_Talk_Level";
 
-	// UI_LevelMan_Talk_Level.png (2048x2048) 소스 렉트 — 알파 바운딩 기준.
-	// 주의: 시트 우측 x>=1536 에는 작업용 메타데이터(가로선/색 견본)가 있어 렉트에 포함하면 안 됨.
-	constexpr RECT kCardRects[3] =
+	constexpr int32 kStageCount = UILevelSelectFeature::kStageCount;
+
+	constexpr RECT kCardRects[kStageCount] =
 	{
 		{ 0,    108,  1005, 888 },   // STAGE 01 INTRO 카드
 		{ 1030, 108,  2044, 888 },   // STAGE 02 CHROUS 카드
-		{ 0,    1132, 1005, 1912 },  // STAGE 03 OUTRO 카드
+		{ 0,    1132, 1005, 1912 },  // STAGE 03 BRIDGE 카드
+		{ 0,    2156, 1020, 2936 },  // STAGE 04 OUTRO 카드
 	};
-	constexpr RECT kStageBtnRects[3] =	// 슬래시 원 포함 192px 균일 밴드
+	constexpr RECT kStageBtnRects[kStageCount] =	// 슬래시 원 포함 192px 균일 밴드
 	{
 		{ 1005, 1056, 1536, 1248 },
 		{ 1005, 1312, 1536, 1504 },
 		{ 1005, 1568, 1536, 1760 },
+		{ 1005, 2080, 1536, 2272 },	// 시트상 GO! 아래에 배치된 밴드
 	};
 	constexpr RECT kGoBtnRect = { 1120, 1830, 1540, 2048 };
+
+	// 스테이지 버튼 세로 배치
+	constexpr float kStageBtnWidth   = 576.f;	// 소스 531x192 비율 유지
+	constexpr float kStageBtnHeight  = 208.f;
+	constexpr float kStageBtnSpacing = 260.f;
+	constexpr float kStageBtnCenterY = -30.f;	// 버튼 스택의 세로 중심
+	constexpr float kStageBtnX       = 560.f;
 
 	// 선택/비선택 스테이지 버튼 틴트
 	const Vec4 kSelectedTint   = { 1.f, 1.f, 1.f, 1.f };
 	const Vec4 kUnselectedTint = { 0.5f, 0.5f, 0.5f, 0.9f };
 
-	const SceneId kStageScenes[3] = { SceneId::FirstGame, SceneId::SecondGame, SceneId::ThirdGame };
+	const SceneId kStageScenes[kStageCount] =
+	{
+		SceneId::FirstGame, SceneId::SecondGame, SceneId::ThirdGame, SceneId::FourthGame
+	};
 
 	Entity CreateSheetSprite(World* world, const Vec2& pos, const Vec2& size, uint8 layer,
 		const std::wstring& texKey, const RECT* srcRect)
@@ -79,13 +91,15 @@ void UILevelSelectFeature::Initialize(World* world)
 	mStageCard = CreateSheetSprite(world, Vec2(-620.f, 20.f), Vec2(1010.f, 780.f),
 		5, kSheetKey, &kCardRects[0]);
 
-	// STAGE 01~03 버튼 (우측 세로 배치)
-	for (int32 i = 0; i < 3; ++i)
+	// STAGE 01~04 버튼 (우측 세로 배치)
+	for (int32 i = 0; i < kStageCount; ++i)
 	{
+		const float offsetY = (static_cast<float>(i) - (kStageCount - 1) * 0.5f) * kStageBtnSpacing;
+
 		UIButtonDesc desc;
 		desc.anchor   = Anchor::Center;
-		desc.position = Vec2(560.f, -270.f + 270.f * static_cast<float>(i));
-		desc.size     = Vec2(640.f, 232.f);	// 소스 531x192 비율 유지
+		desc.position = Vec2(kStageBtnX, kStageBtnCenterY + offsetY);
+		desc.size     = Vec2(kStageBtnWidth, kStageBtnHeight);
 		desc.layer    = 6;
 		desc.visual   = UIButtonVisual::Texture;
 		desc.resKey   = kSheetKey;
@@ -104,7 +118,7 @@ void UILevelSelectFeature::Initialize(World* world)
 	{
 		UIButtonDesc desc;
 		desc.anchor   = Anchor::Center;
-		desc.position = Vec2(620.f, 480.f);
+		desc.position = Vec2(620.f, 580.f);	// 스테이지 버튼 4개 스택 아래
 		desc.size     = Vec2(300.f, 156.f);	// 소스 420x218 비율 유지
 		desc.layer    = 6;
 		desc.visual   = UIButtonVisual::Texture;
@@ -117,7 +131,7 @@ void UILevelSelectFeature::Initialize(World* world)
 			if (!state)
 				return;
 
-			const int32 stage = std::clamp(state->mSelectedStage, 0, 2);
+			const int32 stage = std::clamp(state->mSelectedStage, 0, kStageCount - 1);
 			world->GetEventManager()->Enqueue(EvNetSceneChange{ kStageScenes[stage] });
 			state->mLevelSelectActive = false; // 커서 복원은 NpcInteractionSystem이 처리
 		};
@@ -150,7 +164,7 @@ void UILevelSelectFeature::Update(float dt)
 
 	if (active && state->mSelectedStage != mAppliedStage)
 	{
-		ApplySelection(std::clamp(state->mSelectedStage, 0, 2));
+		ApplySelection(std::clamp(state->mSelectedStage, 0, kStageCount - 1));
 		mAppliedStage = state->mSelectedStage;
 	}
 }
@@ -191,7 +205,7 @@ void UILevelSelectFeature::ApplySelection(int32 stage)
 	}
 
 	// 선택된 버튼만 밝게 표시
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < kStageCount; ++i)
 	{
 		UIButtonComponent* btn = mWorld->GetComponent<UIButtonComponent>(mStageButtons[i]);
 		UISpriteComponent* sp = mWorld->GetComponent<UISpriteComponent>(mStageButtons[i]);

@@ -158,7 +158,7 @@ namespace
 			LoadingSceneProfile{ SceneId::FirstGame, L"..\\Resources\\Json\\Map001_Export.json", L"UI_Loading_FirstGame" },
 			LoadingSceneProfile{ SceneId::SecondGame, L"..\\Resources\\Json\\MapDesert_Export.json", L"UI_Loading_SecondGame" },
 			LoadingSceneProfile{ SceneId::ThirdGame, L"..\\Resources\\Json\\Map003_Export.json", L"UI_Loading_ThirdGame" },
-			LoadingSceneProfile{ SceneId::FourthGame, L"..\\Resources\\Json\\MapDragon_Export.json", L"UI_Loading_ThirdGame" },
+			LoadingSceneProfile{ SceneId::FourthGame, L"..\\Resources\\Json\\MapDragon_Export.json", L"UI_Loading_DragonMap" },
 		};
 
 		for (const LoadingSceneProfile& profile : profiles)

@@ -40,7 +40,7 @@ public:
 
 	// 레벨 선택 UI
 	bool mLevelSelectActive = false;  // 레벨 선택 UI 열림
-	int32 mSelectedStage = 0;         // 선택된 스테이지 (0=First, 1=Second, 2=Third)
+	int32 mSelectedStage = 0;         // 선택된 스테이지 (0=First, 1=Second, 2=Third, 3=Fourth)
 
 	// 파생음악 선택 UI
 	bool mRhythmSelectActive = false; // 파생음악 선택 UI 열림

@@ -8,6 +8,7 @@
 #include"MovementComponent.h"
 #include"SimpleMath.h"
 #include "RenderSystem.h"
+#include "Protocol/RhythmDefinitions.h"
 
 namespace
 {
@@ -29,6 +30,8 @@ namespace
 	constexpr float kPlayerMeleeAttackAngleDegrees = 150.0f;
 	constexpr float kMeleeAttackForwardDistance = 3.0f;
 	constexpr float kAttackDebugDuration = 1.0f;
+	constexpr float kBrassSkill4TileSize = 250.0f;
+	constexpr float kBrassSkill4WarningDuration = kMusicBeatSeconds * 4.0f;
 	constexpr float kAttackDebugHeight = 220.0f;
 	constexpr int kAttackDebugCylinderRings = 5;
 	constexpr float kCircleHeightOffset = 5.0f;
@@ -122,6 +125,34 @@ namespace
 		SubmitDebugCircleXZ(center, radius, color, 28);
 		SubmitDebugCircleXY(center, radius, color, 28);
 		SubmitDebugCircleYZ(center, radius, color, 28);
+	}
+
+	void SubmitDebugCross(
+		const Vec3& center,
+		float halfExtent,
+		const Vec4& color)
+	{
+		if (halfExtent <= 0.0f)
+			return;
+
+		const Vec3 corners[4] = {
+			Vec3(center.x - halfExtent, center.y, center.z - halfExtent),
+			Vec3(center.x + halfExtent, center.y, center.z - halfExtent),
+			Vec3(center.x + halfExtent, center.y, center.z + halfExtent),
+			Vec3(center.x - halfExtent, center.y, center.z + halfExtent)
+		};
+
+		for (int i = 0; i < 4; ++i)
+			RenderSystem::SubmitDebugLine(corners[i], corners[(i + 1) % 4], color);
+
+		RenderSystem::SubmitDebugLine(
+			corners[0],
+			corners[2],
+			color);
+		RenderSystem::SubmitDebugLine(
+			corners[3],
+			corners[1],
+			color);
 	}
 
 	bool IsEnemyRangedSkill(SkillType skillType)
@@ -363,7 +394,10 @@ void EnemySystem::Update(float dt) {
 				forward = Vec3::Forward;
 
 			float radius = 0.0f;
-			const Vec4 color = Vec4(1.0f, 1.0f, 0.f, 1.0f);
+			const Vec4 color =
+				e.reason == static_cast<uint8>(EffectSpawnReason::CollisionEntity)
+				? Vec4(1.0f, 0.0f, 0.0f, 1.0f)
+				: Vec4(1.0f, 1.0f, 0.0f, 1.0f);
 			bool isPlayerAttack = false;
 			if (e.skillType == SkillType::PianoAttack)
 			{
@@ -406,6 +440,12 @@ void EnemySystem::Update(float dt) {
 					if (!RenderSystem::GetDrawEnemyAttackRanges())
 						return;
 					radius = 700.0f;
+				}
+				else if (e.skillType == SkillType::BrassSkill4)
+				{
+					if (!RenderSystem::GetDrawEnemyAttackRanges())
+						return;
+					radius = kBrassSkill4TileSize * 0.5f;
 				}
 				else if (e.skillType == SkillType::DrumAttack ||
 					e.skillType == SkillType::DrumAttack3 ||
@@ -455,9 +495,13 @@ void EnemySystem::Update(float dt) {
 				 e.skillType == SkillType::DragonSkill3 ||
 				 e.skillType == SkillType::DragonSkill4) ? 360.0f :
 				(isPlayerAttack ? kPlayerMeleeAttackAngleDegrees : 360.0f);
-			indicator.remainingTime = e.skillType == SkillType::GuitarUltimate
-				? kGuitarUltimateDebugDuration
-				: kAttackDebugDuration;
+			indicator.remainingTime =
+				e.skillType == SkillType::GuitarUltimate
+					? kGuitarUltimateDebugDuration
+					: (e.skillType == SkillType::BrassSkill4 &&
+						e.reason == static_cast<uint8>(EffectSpawnReason::Fire)
+						? kBrassSkill4WarningDuration
+						: kAttackDebugDuration);
 			indicator.color = color;
 			indicator.isPlayerAttack = isPlayerAttack;
 			indicator.isSector =
@@ -465,6 +509,7 @@ void EnemySystem::Update(float dt) {
 					e.skillType != SkillType::GuitarUltimate &&
 					e.skillType != SkillType::DrumUltimate);
 			indicator.isSphere = (e.skillType == SkillType::GuitarAttack_2);
+			indicator.isCross = (e.skillType == SkillType::BrassSkill4);
 			mAttackDebugIndicators.push_back(indicator);
 		});
 	}
@@ -523,7 +568,9 @@ void EnemySystem::UpdateAttackDebugIndicators(float dt)
 				continue;
 		}
 
-		if (indicator.isSphere)
+		if (indicator.isCross)
+			SubmitDebugCross(indicator.center, indicator.radius, indicator.color);
+		else if (indicator.isSphere)
 			SubmitDebugSphere(indicator.center, indicator.radius, indicator.color);
 		else if (indicator.isSector)
 			SubmitDebugSectorCylinder(

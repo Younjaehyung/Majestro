@@ -663,6 +663,9 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::BrassSkill3)
 			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(30.0f), /*followCaster*/ true };
 
+		if (skillType == SkillType::BrassSkill4)
+			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_04", Vec3::Zero, Vec3(1.0f) };
+
 		return std::nullopt;
 
 	case EffectSpawnReason::CollisionEntity:

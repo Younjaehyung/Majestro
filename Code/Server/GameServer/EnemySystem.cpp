@@ -30,6 +30,19 @@ namespace
 	constexpr uint8 kBrassSkill3PatternShotCount = 8;
 	constexpr float kBrassSkill3DurationBeats = 8.0f;
 	constexpr float kBrassSkill2FireDelayBeats = 1.5f;
+	constexpr float kBrassSkill4MinX = -3752.0f;
+	constexpr float kBrassSkill4MaxX = 1498.0f;
+	constexpr float kBrassSkill4MinZ = -1245.0f;
+	constexpr float kBrassSkill4MaxZ = 1255.0f;
+	constexpr float kBrassSkill4TileSize = 250.0f;
+	constexpr float kBrassSkill4EffectY = 5.0f;
+	constexpr float kBrassSkill4ExplosionDelayBeats = 4.0f;
+	constexpr uint8 kBrassSkill4ExplosionCount = 3;
+	constexpr int32 kBrassSkill4ExplosionDamage = 50;
+	constexpr int kBrassSkill4ColumnCount =
+		static_cast<int>((kBrassSkill4MaxX - kBrassSkill4MinX) / kBrassSkill4TileSize);
+	constexpr int kBrassSkill4RowCount =
+		static_cast<int>((kBrassSkill4MaxZ - kBrassSkill4MinZ) / kBrassSkill4TileSize);
 	constexpr float kDragonSkill1FireDelayBeats = 1.0f;
 	constexpr float kDragonSkill123AnimDurationSeconds = 3.0f;
 	constexpr uint8 kDragonSkill4ExplosionCount = 5;
@@ -72,6 +85,51 @@ namespace
         }
         return false;
     }
+
+	void BroadcastBrassSkill4Tiles(
+		const std::shared_ptr<EventManager>& eventManager,
+		bool activeParity,
+		EffectSpawnReason reason = EffectSpawnReason::Fire)
+	{
+		if (!eventManager)
+			return;
+
+		for (int zIndex = 0; zIndex < kBrassSkill4RowCount; ++zIndex)
+		{
+			for (int xIndex = 0; xIndex < kBrassSkill4ColumnCount; ++xIndex)
+			{
+				if (((xIndex + zIndex) & 1) != static_cast<int>(activeParity))
+					continue;
+
+				const float centerX =
+					kBrassSkill4MinX + (static_cast<float>(xIndex) + 0.5f) * kBrassSkill4TileSize;
+				const float centerZ =
+					kBrassSkill4MinZ + (static_cast<float>(zIndex) + 0.5f) * kBrassSkill4TileSize;
+				eventManager->Enqueue<EvEffectSpawn>({
+					static_cast<uint8>(SkillType::BrassSkill4),
+					centerX,
+					kBrassSkill4EffectY,
+					centerZ,
+					reason
+				});
+			}
+		}
+	}
+
+	bool IsInsideBrassSkill4ActiveTile(const Vec3& position, bool activeParity)
+	{
+		if (position.x < kBrassSkill4MinX || position.x >= kBrassSkill4MaxX ||
+			position.z < kBrassSkill4MinZ || position.z >= kBrassSkill4MaxZ)
+		{
+			return false;
+		}
+
+		const int xIndex =
+			static_cast<int>((position.x - kBrassSkill4MinX) / kBrassSkill4TileSize);
+		const int zIndex =
+			static_cast<int>((position.z - kBrassSkill4MinZ) / kBrassSkill4TileSize);
+		return ((xIndex + zIndex) & 1) == static_cast<int>(activeParity);
+	}
 
     SkillType GetBrassSkillType(uint8 pattern)
     {
@@ -922,8 +980,73 @@ bool EnemySystem::HandleAttackState(
 	        auto getBrassRushEndDuration = [&]()
 	        {
 	            return beatSeconds * enemyComp->mBossAttackCool[enemyComp->mBrassAttackPattern];
-	        };
+            };
             const bool brassHoldKeepsAttackAnim = enemyComp->mBrassAttackPattern != 2;
+
+			const bool brassSkill4Active =
+				enemyComp->mPendingSkillType == static_cast<uint8>(SkillType::BrassSkill4) &&
+				enemyComp->mBrassSkill4ExplosionsRemaining > 0;
+			if (brassSkill4Active)
+			{
+				movementComp->mMovingDirection = Vec3::Zero;
+				movementComp->mPathCount = 0;
+				movementComp->mPathIndex = 0;
+				enemyComp->mAnimState = static_cast<uint8>(EnemyAnimState::BrassAttack4);
+
+				if (eventManager &&
+					enemyComp->mBrassSkill4NextExplosionTime >= 0.0f &&
+					nowSeconds >= enemyComp->mBrassSkill4NextExplosionTime)
+				{
+					BroadcastBrassSkill4Tiles(
+						eventManager,
+						enemyComp->mBrassSkill4ActiveParity,
+						EffectSpawnReason::CollisionEntity);
+
+					for (Entity target : mWorld->GetEntitiesWithComponents<
+						MainPlayerComponent, TransformComponent, HealthComponent>())
+					{
+						if (IsPlayerDead(mWorld, target))
+							continue;
+
+						const TransformComponent* targetTransform =
+							mWorld->GetComponent<TransformComponent>(target);
+						if (!targetTransform ||
+							!IsInsideBrassSkill4ActiveTile(
+								targetTransform->mWorldPosition,
+								enemyComp->mBrassSkill4ActiveParity))
+						{
+							continue;
+						}
+
+						eventManager->Enqueue<EvDamage>({
+							target,
+							kBrassSkill4ExplosionDamage,
+							entity,
+							SkillType::BrassSkill4
+						});
+					}
+
+					--enemyComp->mBrassSkill4ExplosionsRemaining;
+					if (enemyComp->mBrassSkill4ExplosionsRemaining > 0)
+					{
+						enemyComp->mBrassSkill4ActiveParity =
+							!enemyComp->mBrassSkill4ActiveParity;
+						enemyComp->mBrassSkill4NextExplosionTime =
+							nowSeconds + beatSeconds * kBrassSkill4ExplosionDelayBeats;
+						BroadcastBrassSkill4Tiles(
+							eventManager,
+							enemyComp->mBrassSkill4ActiveParity);
+					}
+					else
+					{
+						enemyComp->mBrassSkill4NextExplosionTime = -1.0f;
+						enemyComp->mPendingSkillType = 0;
+						enemyComp->mBrassRushEndHoldUntilTime = 0.0f;
+						enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+					}
+				}
+				break;
+			}
 
 	        if (enemyComp->mBrassRushEndHoldUntilTime > nowSeconds)
 	        {
@@ -943,21 +1066,9 @@ bool EnemySystem::HandleAttackState(
 
         if (brassSkill3Active)
         {
-            movementComp->mMovingSpeed = enemyComp->mSpeed * 1.2f;
+            movementComp->mMovingDirection = Vec3::Zero;
             movementComp->mPathCount = 0;
             movementComp->mPathIndex = 0;
-
-            Vec3 chaseDir = playerPos - myPos;
-            chaseDir.y = 0.0f;
-            if (chaseDir.LengthSquared() > 1e-8f)
-            {
-                chaseDir.Normalize();
-                movementComp->mMovingDirection = chaseDir;
-            }
-            else
-            {
-                movementComp->mMovingDirection = Vec3::Zero;
-            }
 
             if (eventManager && nowSeconds >= enemyComp->mBrassSkill3NextShotTime)
             {
@@ -1044,11 +1155,16 @@ bool EnemySystem::HandleAttackState(
 	            else
 	                TryGetBossPolicyTargetPosition(enemyComp, playerPos);
 
+				// Temporary skill test: force Brass Boss to use skill 4 only.
+				choice = 4;
+
 	            if (usedOnnx && choice == 0)
 	            {
 	                enemyComp->mPendingSkillType = 0;
 	                enemyComp->mPendingAttackTime = -1.0f;
 	                enemyComp->mBrassSkill3ShotsRemaining = 0;
+					enemyComp->mBrassSkill4NextExplosionTime = -1.0f;
+					enemyComp->mBrassSkill4ExplosionsRemaining = 0;
 	                enemyComp->mNextAttackTime = nowSeconds + beatSeconds;
 	                MoveEnemyTowardTarget(
 	                    entity, enemyComp, movementComp, myPos, playerPos,
@@ -1067,6 +1183,8 @@ bool EnemySystem::HandleAttackState(
 	            enemyComp->mBrassSkill3ShotsRemaining = 0;
 	            enemyComp->mBrassSkill3NextShotTime = 0.0f;
             enemyComp->mBrassSkill3ShotInterval = 0.0f;
+			enemyComp->mBrassSkill4NextExplosionTime = -1.0f;
+			enemyComp->mBrassSkill4ExplosionsRemaining = 0;
 
             const Vec3 attackDir = playerPos - myPos;
             float attackYawDeg = 0.0f;
@@ -1143,8 +1261,25 @@ bool EnemySystem::HandleAttackState(
 	                }
 	                else if (brassSkill == SkillType::BrassSkill4)
 	                {
-	                    eventManager->Enqueue<EvRangedAttackRequest>({ entity, SkillType::BrassSkill4 });
-	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
+						enemyComp->mPendingSkillType = static_cast<uint8>(SkillType::BrassSkill4);
+						enemyComp->mBrassSkill4ActiveParity =
+							MathUtils::RandomInt(0, 1) != 0;
+						enemyComp->mBrassSkill4ExplosionsRemaining =
+							kBrassSkill4ExplosionCount;
+						enemyComp->mBrassSkill4NextExplosionTime =
+							nowSeconds + beatSeconds * kBrassSkill4ExplosionDelayBeats;
+						const float patternEndTime =
+							nowSeconds +
+							beatSeconds *
+								kBrassSkill4ExplosionDelayBeats *
+								static_cast<float>(kBrassSkill4ExplosionCount);
+						enemyComp->mBrassRushEndHoldUntilTime = patternEndTime;
+						enemyComp->mNextAttackTime = patternEndTime;
+						enemyComp->mAttackAnimEndTime =
+							patternEndTime + enemyComp->mAttackAnimTime;
+						BroadcastBrassSkill4Tiles(
+							eventManager,
+							enemyComp->mBrassSkill4ActiveParity);
 	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
 	                }
 	            }

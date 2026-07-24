@@ -2591,6 +2591,85 @@ namespace
 		return fbxStem.rfind("SM_SM_Cloud", 0) == 0;
 	}
 
+	bool IsPlazaShipMesh(const std::string& fbxStem)
+	{
+		return fbxStem == "SM_Ship";
+	}
+
+
+	void SpawnPlazaShip(World* world, const std::wstring& jsonPath)
+	{
+		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(jsonPath);
+		const std::wstring prefix = s2ws(level.levelName);
+
+
+		const MeshInstance* shipInst = nullptr;
+		for (const auto& inst : level.instances)
+		{
+			if (IsPlazaShipMesh(filesystem::path(inst.fbx).filename().stem().string()))
+			{
+				shipInst = &inst;
+				break;
+			}
+		}
+		if (!shipInst)
+		{
+			std::cout << "[Plaza] SM_Ship 인스턴스를 찾지 못해 배 애니메이션 스폰을 건너뜁니다" << std::endl;
+			return;
+		}
+
+		shared_ptr<FBXData> animData = RESOURCEMANAGER.LoadFBX(L"..\\Resources\\Map\\MapShip\\Anim_Ship_Idle.fbx");
+		if (!animData || animData->GetMeshs().empty())
+		{
+			std::cout << "[Plaza] Anim_Ship_Idle 메시 로드 실패 — 배 애니메이션 스폰을 건너뜁니다" << std::endl;
+			return;
+		}
+
+		shared_ptr<Animator> idleAnim;
+		if (!animData->GetAnimators().empty())
+			idleAnim = animData->GetAnimators().front();
+		if (!idleAnim)
+			std::cout << "[Plaza] Anim_Ship_Idle 애니메이터 없음 — 배를 정적으로만 스폰합니다" << std::endl;
+
+		
+		shared_ptr<FBXData> fallbackMatData = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, L"SM_Ship"));
+
+		const auto& meshes   = animData->GetMeshs();
+		const auto& meshMats = animData->GetMeshMaterials();
+		for (size_t mi = 0; mi < meshes.size(); ++mi)
+		{
+			if (!meshes[mi]) continue;
+
+			Entity e = world->CreateEntity();
+
+			
+			constexpr float kShipScale = 0.01f;
+			TransformComponent transform{};
+
+			transform.mWorldMatrix = Matrix::CreateScale(kShipScale) * shipInst->worldMtx;
+
+			TransformComponent& trans = world->AddComponent<TransformComponent>(e, transform);
+			trans.mIsStatic = true; 
+
+			RenderComponent& render = world->AddComponent<RenderComponent>(e);
+			if (mi < meshMats.size() && !meshMats[mi].empty())
+				render.mMaterials = meshMats[mi];
+			else if (fallbackMatData && mi < fallbackMatData->GetMeshMaterials().size())
+				render.mMaterials = fallbackMatData->GetMeshMaterials()[mi];
+			render.SetMesh(meshes[mi]);
+
+			
+			render.mCheckFrustum = false;
+
+			if (idleAnim)
+			{
+				std::vector<shared_ptr<Animator>> animators{ idleAnim };
+				world->AddComponent<AnimationComponent>(e, animators);
+			}
+		}
+		std::cout << "[Plaza] 배(SM_Ship) 스키닝 애니메이션 스폰 완료" << std::endl;
+	}
+
 	void SpawnPlazaClouds(World* world, const std::wstring& path)
 	{
 		// ── 튜닝값 ─────────────────────────────────────────────────────────
@@ -2655,7 +2734,7 @@ namespace
 				TransformComponent transform{};
 				transform.mLocalPosition = basePos;
 				transform.mLocalScale    = Vec3(s, s, s);
-				transform.mIsStatic      = false;   // 움직여야 하므로 정적 아님(회전은 CloudDriftSystem 이 매 프레임 세움)
+				transform.mIsStatic      = false;   // 움직여야 하므로 정적 아님(위치는 CloudDriftSystem 이 매 프레임 갱신)
 				world->AddComponent<TransformComponent>(e, transform);
 
 				RenderComponent& render = world->AddComponent<RenderComponent>(e);
@@ -2737,12 +2816,15 @@ void PlazaScene::Initialize()
 	}
 
 
-	// 구름 메시 제외
-	LoadJsonLevelData(L"..\\Resources\\Json\\MapShip_Export.json", &IsPlazaCloudMesh);
+
+	LoadJsonLevelData(L"..\\Resources\\Json\\MapShip_Export.json",
+		[](const std::string& stem) { return IsPlazaCloudMesh(stem) || IsPlazaShipMesh(stem); });
 	LoadCollisionJson(L"..\\Resources\\Json\\MapShip_Export.json");
 
 	// 구름
 	SpawnPlazaClouds(mWorld.get(), L"..\\Resources\\Json\\MapShip_Export.json");
+
+	SpawnPlazaShip(mWorld.get(), L"..\\Resources\\Json\\MapShip_Export.json");
 
 #pragma region UI
 

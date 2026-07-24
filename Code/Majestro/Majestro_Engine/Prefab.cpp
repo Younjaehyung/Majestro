@@ -2136,9 +2136,9 @@ HUDMusicPrefab::~HUDMusicPrefab()
 HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 {
 	// 리듬바 전체를 중앙으로 당기고 기존 크기의 절반으로 축소한다.
-	constexpr float rhythmTargetDistance = 115.f;
+	constexpr float rhythmTargetDistance = 70.f;
 	constexpr float rhythmSpawnDistance = 460.f;
-	constexpr float rhythmTargetSize = 88.f;
+	constexpr float rhythmTargetSize = 59.f;
 	constexpr float rhythmNoteSize = 56.f;
 
 	const shared_ptr<Texture> leftRhythmTexture =
@@ -2285,7 +2285,7 @@ HUDCrosshairPrefab::HUDCrosshairPrefab(World* world)
 			// 박자 경계에서 고정 판정선을 짧게 확대해 표식 도착 시점을 명확하게 보여 준다.
 			const float distanceFromBeat = (std::min)(beatProgress, 1.f - beatProgress);
 			const float pulseRatio = std::clamp(1.f - distanceFromBeat / 0.16f, 0.f, 1.f);
-			const float targetScale = 1.f + pulseRatio * 0.12f;
+			const float targetScale = 1.f + pulseRatio * 0.22f;
 
 			if (UITransformComponent* transform =
 				world->GetComponent<UITransformComponent>(leftTarget))

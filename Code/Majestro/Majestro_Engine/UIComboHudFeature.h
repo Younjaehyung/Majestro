@@ -36,8 +36,8 @@ private:
 
 private:
 	// 판정 피드 파라미터.
-	static constexpr int kFeedMaxVisible = 3;         // 유지되는 최대 판정 수
-	static constexpr float kFeedTimeout = 3.0f;       // 판정별 유지 시간(초)
+	static constexpr int kFeedMaxVisible = 2;         // 유지되는 최대 판정 수 (최신 + 이전 1개)
+	static constexpr float kFeedTimeout = 1.5f;       // 판정별 유지 시간(초)
 	static constexpr float kFeedFadeDuration = 0.4f;  // 페이드 아웃 길이
 	static constexpr size_t kFeedPoolSize = 6;        // 페이드 중인 항목 포함 동시 표시 상한
 

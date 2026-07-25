@@ -59,6 +59,11 @@ public:
     void Initialize();
     void Update(float dt);
     void SetFeatures(std::vector<shared_ptr<UIFeature>>* features);
+
+    std::vector<std::type_index> After() const override
+    {
+        return { std::type_index(typeid(UITransformSystem)) };
+    }
 private:
 	std::vector<std::shared_ptr<UIFeature>>* mFeatures;
 	std::shared_ptr<UICommonUpdateFeature> mCommonModule;

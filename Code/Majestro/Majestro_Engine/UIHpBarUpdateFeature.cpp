@@ -465,6 +465,15 @@ void UIHpBarUpdateFeature::UpdateHpBarUI(float dt)
         if (hpBar->mTargetEntity == NULL_ENTITY)
             hpBar->mTargetEntity = owner;
 
+        if (hpBar->mIsScreenSpace)
+        {
+            if (UITransformComponent* uiTransform = mWorld->GetComponent<UITransformComponent>(owner))
+            {
+                hpBar->mMaxWidth = uiTransform->mFinalSize.x;
+                hpBar->mHeight = uiTransform->mFinalSize.y;
+            }
+        }
+
         HealthComponent* followHealth = mWorld->GetComponent<HealthComponent>(hpBar->mTargetEntity);
         if (followHealth == nullptr)
             continue;

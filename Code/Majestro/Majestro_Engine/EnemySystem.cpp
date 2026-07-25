@@ -427,7 +427,7 @@ void EnemySystem::Update(float dt) {
 				{
 					if (!RenderSystem::GetDrawEnemyAttackRanges())
 						return;
-					radius = 1000.0f;
+					radius = 2000.0f;
 				}
 				else if (e.skillType == SkillType::DragonSkill3)
 				{

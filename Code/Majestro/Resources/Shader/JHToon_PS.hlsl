@@ -21,10 +21,24 @@ struct VS_OUT
 };
 
 // ============================================================
+//  PS_OUT
+//  SV_Target0 = HDR 씬 컬러
+//  SV_Target1 = 이미시브 블룸 소스
+// ============================================================
+struct PS_OUT
+{
+    float4 color    : SV_Target0;
+    float4 emissive : SV_Target1;
+};
+
+// ============================================================
 //  PS_Main
 // ============================================================
-float4 PS_Main(VS_OUT input) : SV_Target
+PS_OUT PS_Main(VS_OUT input)
 {
+    PS_OUT output;
+    output.emissive = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
     // Forward+ Tile 인덱스 계산
 
     // 인스턴스와 오브젝트 정보를 픽셀마다 다시 조회하지 않는다.
@@ -99,20 +113,20 @@ float4 PS_Main(VS_OUT input) : SV_Target
         viewNormal = normalize(mul(n, tbn));
     }
 
-
-    float3 emissive = mtl.Emission;
+    
+    // Emissive
+    float3 emissiveColor = mtl.Emission;
+    float emissiveMask = any(mtl.Emission) ? 1.0f : 0.0f;
     if (mtl.EmissiveMapIndex >= 0)
     {
-        emissive = TextureMaps[mtl.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
-        if (any(emissive.rgb))
+        float3 e = TextureMaps[mtl.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
+        if (any(e))
         {
-            color.rgb *= emissive * max(1.0f, abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2) * 10.f * emissiveGate);
-            // color.rgb *= emissive * abs((frac(PassParams.TotalTime * 0.5) - 0.5) * 2);
-            color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
-            color.rgb += kDissolveGlowColor * dissolveEdge;
-            return color;
+            emissiveColor = e;
+            emissiveMask  = 1.0f;
         }
     }
+    float emissiveWeight = saturate(emissiveMask * emissiveGate);
 
     ////////////////////////////////////////////////////////////////////////
     // ILM/LightMap 샘플링
@@ -232,9 +246,17 @@ float4 PS_Main(VS_OUT input) : SV_Target
               + (ibl.specular * npr.IBLScale * /*matIBLSpecScale **/ ao)
               + rim;
 
+    // Emissive
+    color.rgb = lerp(color.rgb, emissiveColor, emissiveWeight);
+    output.emissive.rgb += emissiveColor * emissiveWeight;
+
     // Hit Flash: 피격 시 그림자 속에서도 보이도록 라이팅 결과 위에 빨강으로 lerp
     color.rgb = lerp(color.rgb, float3(1.0f, 0.0f, 0.0f), hitFlash);
-    color.rgb += kDissolveGlowColor * dissolveEdge;
+
+    // 디졸브
+    float3 dissolveGlow = kDissolveGlowColor * dissolveEdge;
+    color.rgb += dissolveGlow;
+    output.emissive.rgb += dissolveGlow;
 
     // 궁극기
     float hlIntensity = input.objectHighlight.a;
@@ -253,8 +275,12 @@ float4 PS_Main(VS_OUT input) : SV_Target
         band *= band; 
         
         float aura = softHalo * (0.35f + 0.65f * band) + hotRim * 1.5f;
-        color.rgb += hlColor * hlIntensity * aura;
+
+        float3 auraColor = hlColor * hlIntensity * aura;
+        color.rgb += auraColor;
+        output.emissive.rgb += auraColor;
     }
 
-    return color;
+    output.color = color;
+    return output;
 }

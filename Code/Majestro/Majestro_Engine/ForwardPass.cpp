@@ -16,6 +16,13 @@ void ForwardPass::SetData(std::array<PassCustomData, static_cast<uint32>(PASS_CU
 
 }
 
+void ForwardPass::SetEmissiveTarget(RENDER_TARGET_GROUP_TYPE group, uint32 index)
+{
+    mEmissiveGroup     = group;
+    mEmissiveIndex     = index;
+    mHasEmissiveTarget = true;
+}
+
 void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
 	mDum = { 0, 0, 0 };
     mCurrPSOID = 0;
@@ -34,8 +41,30 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
         D3D12_RESOURCE_STATE_DEPTH_READ | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
     GRAPHICS_CMD_LIST->ResourceBarrier(1, &toDepthRead);
 
+    // 이미시브 블룸 소스 RT 준비
+    ID3D12Resource*             emissiveResource = nullptr;
+    D3D12_CPU_DESCRIPTOR_HANDLE emissiveRTV{};
+
+    if (mHasEmissiveTarget)
+    {
+        auto& emissiveGroup = RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(mEmissiveGroup));
+        emissiveResource = emissiveGroup.GetRTTexture(static_cast<uint8>(mEmissiveIndex))->GetTex2D().Get();
+        emissiveRTV      = emissiveGroup.GetRTVHandle(mEmissiveIndex);
+
+
+        auto toRenderTarget = CD3DX12_RESOURCE_BARRIER::Transition(
+            emissiveResource,
+            D3D12_RESOURCE_STATE_COMMON,
+            D3D12_RESOURCE_STATE_RENDER_TARGET);
+        GRAPHICS_CMD_LIST->ResourceBarrier(1, &toRenderTarget);
+    }
+
     hdrGroup.WaitResourceToTarget();
-    hdrGroup.OMSetRenderTargetsReadOnlyDepth(); // read-only DSV로 depth test 유지
+    // read-only DSV로 depth test 유지 + 이미시브 RT를 SV_Target1로 이어 붙임
+    if (emissiveResource)
+        hdrGroup.OMSetRenderTargetsReadOnlyDepth(&emissiveRTV, 1);
+    else
+        hdrGroup.OMSetRenderTargetsReadOnlyDepth();
 
     // ForwardPass 전용 PassCustomTable 행 인덱스 설정 (DWORD[3] 단독 업데이트)
     const uint32 passCustomIdx = static_cast<uint32>(PASS_CUSTOM_INDEX::FORWARD_PASS);
@@ -55,6 +84,17 @@ void ForwardPass::Execute(std::vector<DrawBatch>& deferredDrawBatchs) {
         GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 3, &(mDum), 0);
         InstancingRender(drawBatch);
     }
+
+
+    if (emissiveResource)
+    {
+        auto toCommon = CD3DX12_RESOURCE_BARRIER::Transition(
+            emissiveResource,
+            D3D12_RESOURCE_STATE_RENDER_TARGET,
+            D3D12_RESOURCE_STATE_COMMON);
+        GRAPHICS_CMD_LIST->ResourceBarrier(1, &toCommon);
+    }
+
     hdrGroup.WaitTargetToResource();
 
     // ─── Depth 상태 복구: DEPTH_READ | PIXEL_SHADER_RESOURCE → DEPTH_WRITE ──────

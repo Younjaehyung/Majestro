@@ -74,8 +74,10 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // EMISSIVE
 		break;
 	case SHADER_TYPE::FORWARD:
-		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		mGraphicsPipelineDesc.NumRenderTargets = info.writeEmissive ? 2 : 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // HDR Scene
+		if (info.writeEmissive)
+			mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // EMISSIVE
 		break;
 	case SHADER_TYPE::LIGHTING:
 		mGraphicsPipelineDesc.NumRenderTargets = 2;
@@ -287,8 +289,10 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 		mGraphicsPipelineDesc.RTVFormats[2] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // EMISSIVE
 		break;
 	case SHADER_TYPE::FORWARD:
-		mGraphicsPipelineDesc.NumRenderTargets = 1;
-		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		mGraphicsPipelineDesc.NumRenderTargets = info.writeEmissive ? 2 : 1;
+		mGraphicsPipelineDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // HDR Scene
+		if (info.writeEmissive)
+			mGraphicsPipelineDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;  // EMISSIVE
 		break;
 	case SHADER_TYPE::LIGHTING:
 		mGraphicsPipelineDesc.NumRenderTargets = 2;

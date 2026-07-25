@@ -2,14 +2,14 @@
   "npcs": [
     {
       "id": "gatekeeper",
-      "name": "관문지기",
+      "name": "Hatsune Miku",
       "role": "levelSelect",
       "portrait": "UI_NPC_Portrait_Sheet",
       "portraitRect": [ 512.0, 0.0, 512.0, 512.0 ],
       "mesh": "SM_LevelMan",
       "material": "Anim_LevelMan_Idle0",
       "anim": "Anim_LevelMan_Idle",
-      "position": [ 400.0, 1420.0, 520.0 ],
+      "position": [ 0.0, 1735.0, -1890.0 ],
       "rotationY": -135.0,
       "scale": 1.5,
       "interactRadius": 300.0,

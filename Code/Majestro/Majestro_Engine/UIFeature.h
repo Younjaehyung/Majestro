@@ -1,6 +1,7 @@
 #pragma once
 #include "World.h"
 #include "UIRenderSystem.h"
+#include "UIComponent.h"
 
 class CameraComponent;
 
@@ -30,16 +31,11 @@ public:
 
     virtual void CustomSpriteRender(std::vector<UIInstanceData>& instances) {};
 
-    // SpriteUpdate() 이후 SpriteBatch가 그린 결과 위에 커스텀 드로우 콜 가능.
-    // instances: UIRenderSystem이 관리하는 인스턴스 벡터(정규 UI 데이터가 이미 들어있음).
-    //            feature가 뒤에 append 후 UIInfo 버퍼에 재업로드하여 추가 인스턴스로 활용 가능.
     virtual void PostSpriteRender(std::vector<UIInstanceData>& instances) {};
 
-    // true : Dialogue 그룹 활성 중에도 PostSpriteRender 를 호출
-    virtual bool ShouldPostRenderInDialogue() const { return false; }
+    virtual bool RendersInGroup(UIRenderGroup group) const { return group == UIRenderGroup::Gameplay; }
 
-
-    virtual bool HidesHud() const { return false; }
+    virtual bool PostRendersInGroup(UIRenderGroup group) const { return RendersInGroup(group); }
 
 protected:
     World* mWorld = nullptr;

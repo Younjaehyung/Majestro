@@ -5,9 +5,8 @@
 #include "TagComponent.h"
 #include "TransformComponent.h"
 #include "CameraSystem.h"
-#include "NetSendSystem.h"
-#include "Engine.h"
-#include "SceneManager.h"
+#include "EventManager.h"
+#include "GameEvents.h"
 
 std::vector<std::type_index> AirshipDepartureSystem::After() const
 {
@@ -26,7 +25,7 @@ void AirshipDepartureSystem::Update(float dt)
 
     Apply(dep, dt);
 
-    // 마지막 키프레임 도달 시 종료 + 예약된 씬 전환 발화
+    // 마지막 키프레임 도달 시 종료 + 예약된 씬 전환 요청
     if (dep->mElapsed >= dep->Duration())
         Finish(dep);
 }
@@ -42,12 +41,5 @@ void AirshipDepartureSystem::Finish(AirshipDepartureComponent* dep)
 {
     dep->mPlaying = false;
 
-    // 로딩 완료 후 스폰 요청
-    if (dep->mNeedsGameStart)
-    {
-        if (auto* send = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
-            send->RequestPendingGameStart();
-    }
-
-    gEngine->GetSceneManager().RequestSceneWithLoading(dep->mTargetScene, dep->mLoadingMessage);
+    mWorld->GetEventManager()->Enqueue(EvNetSceneChange{ dep->mTargetScene });
 }

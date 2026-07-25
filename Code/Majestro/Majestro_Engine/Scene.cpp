@@ -114,6 +114,7 @@
 #include "IntroSequenceComponent.h"
 #include "IntroSequenceSystem.h"
 #include "BossCinematicComponent.h"
+#include "BossCutInComponent.h"
 #include "BossCinematicSystem.h"
 #include "BossCutInFeature.h"
 #include "AirshipDepartureComponent.h"
@@ -2505,6 +2506,7 @@ void FirstScene::Initialize()
 	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
 	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\BossCinematicCamera.json");
+	mWorld->AddSingleton<BossCutInComponent>();
 
 	particleSystem->SpawnEffect(L"Particle_AuraRise", Vec3(-8002.9f, 1027.2f, -12519.6f));
 
@@ -2965,7 +2967,7 @@ void PlazaScene::Initialize()
 
 
 	auto& departure = mWorld->AddSingleton<AirshipDepartureComponent>();
-	departure.mKeys = RESOURCEMANAGER.LoadCameraSequence(L"..\\Resources\\Json\\ShipDepartureCamera.json");
+	departure.mKeys = RESOURCEMANAGER.LoadCameraSequence(L"..\\Resources\\Json\\MapShipCamera.json");
 
 	// NPC 배치 + 대화 스크립트
 	LoadPlazaNpcs(mWorld.get(), L"..\\Resources\\Json\\Plaza_NPCs.json");
@@ -3129,6 +3131,7 @@ void SecondScene::Initialize()
 	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
 	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\BossCinematicCamera.json");
+	mWorld->AddSingleton<BossCutInComponent>();
 }
 
 void ThirdScene::Initialize()
@@ -3288,6 +3291,7 @@ void ThirdScene::Initialize()
 	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
 	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\BossCinematicCamera.json");
+	mWorld->AddSingleton<BossCutInComponent>();
 }
 
 
@@ -3440,6 +3444,7 @@ void FourthScene::Initialize()
 	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
 	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
 		L"..\\Resources\\Json\\BossCinematicCamera.json");
+	mWorld->AddSingleton<BossCutInComponent>();
 }
 #pragma endregion
 

@@ -441,6 +441,9 @@
     <ClInclude Include="BossCinematicComponent.h">
       <Filter>World\Component\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="BossCutInComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="BossCinematicSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>

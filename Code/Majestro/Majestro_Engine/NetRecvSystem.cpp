@@ -25,7 +25,6 @@
 #include "MovementComponent.h"
 #include "DecalFactory.h"
 #include "NetSendSystem.h"
-#include "AirshipDepartureComponent.h"
 #include "MovementSystem.h"
 #include "VfxSystem.h"
 #include "HealthComponent.h"
@@ -819,17 +818,6 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
 
 void NetRecvSystem::EnterLevelScene(SceneId target, const std::wstring& loadingMessage)
 {
-    if (mWorld->HasComponentPool<AirshipDepartureComponent>())
-    {
-        AirshipDepartureComponent* dep = mWorld->GetComponent<AirshipDepartureComponent>(mWorld->GetSingletonEntity());
-        if (dep != nullptr && dep->HasSequence() && !dep->mPlaying)
-        {
-            dep->Arm(target, loadingMessage, /*needsGameStart=*/true);
-            return;
-        }
-    }
-
-    // 기존과 동일하게 즉시 전환
     if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
         sendSystem->RequestPendingGameStart();
     gEngine->GetSceneManager().RequestSceneWithLoading(target, loadingMessage);

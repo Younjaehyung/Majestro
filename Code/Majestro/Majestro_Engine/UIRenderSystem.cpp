@@ -18,6 +18,7 @@
 #include "UIAudioVisualizerFeature.h"
 #include "GameRuleComponent.h"
 #include "PauseMenuController.h"
+#include "CameraView.h"
 #include "NpcComponent.h"
 #include "GameMode.h"
 #include "Timer.h"
@@ -134,13 +135,6 @@ void UIRenderSystem::Update()
    
     RENDERMANAGER.SetGraphicsTable();
 
-
-    if (IsHudHiddenByFeature())
-    {
-        RenderFullscreenFeatureOnly();
-        return;
-    }
-
     // 모달 UI가 활성화되어도 해당 그룹의 일반 UI는 렌더링한다.
     CustomSpriteRender();
     TextUpdate();
@@ -166,12 +160,11 @@ void UIRenderSystem::CustomSpriteRender()
 
     const uint32 regularCount = static_cast<uint32>(mInstances.size());
 
-    // Feature가 직접 생성하는 인게임 HUD는 Gameplay 화면에서만 추가한다.
-    if (IsGameplayGroupActive() && mFeatures != nullptr)
+    if (mFeatures != nullptr)
     {
         for (const auto& spritePass : *mFeatures)
         {
-            if (spritePass != nullptr)
+            if (spritePass != nullptr && spritePass->RendersInGroup(mActiveRenderGroup))
                 spritePass->CustomSpriteRender(mInstances);
         }
     }
@@ -192,10 +185,10 @@ void UIRenderSystem::SpriteUpdate()
 
     RenderSpirte();
 
-    if (IsGameplayGroupActive() && mFeatures != nullptr){
+    if (mFeatures != nullptr){
         for (const auto& spritePass : *mFeatures)
         {
-            if (spritePass != nullptr)
+            if (spritePass != nullptr && spritePass->RendersInGroup(mActiveRenderGroup))
                 spritePass->SpriteRender(mSpriteBatch.get());
         }
     }
@@ -204,62 +197,16 @@ void UIRenderSystem::SpriteUpdate()
 }
 
 
-bool UIRenderSystem::IsHudHiddenByFeature() const
-{
-    if (mFeatures == nullptr)
-        return false;
-
-    for (const auto& feature : *mFeatures)
-    {
-        if (feature != nullptr && feature->HidesHud())
-            return true;
-    }
-    return false;
-}
-
-
-void UIRenderSystem::RenderFullscreenFeatureOnly()
-{
-    if (mFeatures == nullptr)
-        return;
-
-    mSpriteBatch->SetViewport(RENDERMANAGER.GetViewPort());
-    mSpriteBatch->Begin(GRAPHICS_CMD_LIST.Get());
-
-    for (const auto& feature : *mFeatures)
-    {
-        if (feature != nullptr)
-            feature->SpriteRender(mSpriteBatch.get());
-    }
-
-    mSpriteBatch->End();
-}
-
-
-
 void UIRenderSystem::PostSpriteRender()
 {
     if (mFeatures == nullptr)
         return;
 
-    const bool gameplayActive = IsGameplayGroupActive();
-    const bool dialogueActive = (mActiveRenderGroup == UIRenderGroup::Dialogue);
-    if (!gameplayActive && !dialogueActive)
-        return;
-
-    //   Gameplay: 모든 feature (인게임 HUD)
-    //   Dialogue: ShouldPostRenderInDialogue() 를 켠 feature 만 ( 원형 비주얼라이저 링)
-    //   그 외(Pause/Clear/GameOver): 호출 안 함
-
     RENDERMANAGER.SetGraphicsTable();
-
-
 
     for (const auto& feature : *mFeatures)
     {
-        if (feature == nullptr)
-            continue;
-        if (!gameplayActive && !feature->ShouldPostRenderInDialogue())
+        if (feature == nullptr || !feature->PostRendersInGroup(mActiveRenderGroup))
             continue;
 
         feature->PostSpriteRender(mInstances);
@@ -607,6 +554,9 @@ UIRenderGroup UIRenderSystem::GetActiveRenderGroup() const
                 return UIRenderGroup::Pause;
         }
     }
+
+    if (Cinematic::IsAnyCinematicPlaying(mWorld))
+        return UIRenderGroup::Cinematic;
 
     // NPC 대화 / 레벨 선택 / 파생음악 선택 UI
     const DialogueStateComponent* dialogue = mWorld->GetSingleton<DialogueStateComponent>();

@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Engine.h"
 #include "GameEvents.h"
+#include "CameraView.h"
 
 namespace
 {
@@ -132,7 +133,7 @@ void UILevelSelectFeature::Initialize(World* world)
 				return;
 
 			const int32 stage = std::clamp(state->mSelectedStage, 0, kStageCount - 1);
-			world->GetEventManager()->Enqueue(EvNetSceneChange{ kStageScenes[stage] });
+			Cinematic::RequestPlazaLevelEnter(world, kStageScenes[stage]);
 			state->mLevelSelectActive = false; // 커서 복원은 NpcInteractionSystem이 처리
 		};
 		mGoButton = CreateUIButton(world, desc);

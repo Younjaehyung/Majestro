@@ -13,6 +13,7 @@ enum class UIRenderGroup : uint8
 	Clear,
 	GameOver,
 	Dialogue,
+	Cinematic,
 };
 
 // 현재 화면 상태에 따라 렌더링할 UI를 구분한다.

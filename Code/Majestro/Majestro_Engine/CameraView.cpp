@@ -8,6 +8,9 @@
 #include "IntroSequenceComponent.h"
 #include "AirshipDepartureComponent.h"
 #include "BossCinematicComponent.h"
+#include "BossCutInComponent.h"
+#include "EventManager.h"
+#include "GameEvents.h"
 
 namespace Cinematic
 {
@@ -134,7 +137,33 @@ bool IsAnyCinematicPlaying(World* world)
 			return true;
 	}
 
+	// 보스 컷인
+	if (world->HasComponentPool<BossCutInComponent>())
+	{
+		const BossCutInComponent* cutIn = world->GetComponent<BossCutInComponent>(singleton);
+		if (cutIn != nullptr && cutIn->mActive)
+			return true;
+	}
+
 	return false;
+}
+
+void RequestPlazaLevelEnter(World* world, SceneId target)
+{
+	if (world == nullptr)
+		return;
+
+	if (world->HasComponentPool<AirshipDepartureComponent>())
+	{
+		AirshipDepartureComponent* departure = world->GetSingleton<AirshipDepartureComponent>();
+		if (departure != nullptr && departure->HasSequence() && !departure->mPlaying)
+		{
+			departure->Arm(target);
+			return;
+		}
+	}
+
+	world->GetEventManager()->Enqueue(EvNetSceneChange{ target });
 }
 
 }

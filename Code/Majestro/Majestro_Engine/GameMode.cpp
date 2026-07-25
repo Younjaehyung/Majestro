@@ -7,6 +7,7 @@
 #include "GameRuleComponent.h"
 #include "LobbyRoomStateComponent.h"
 #include "LobbyRoomListComponent.h"
+#include "CameraView.h"
 
 void LobbyGameMode::Initialize()
 {
@@ -70,15 +71,17 @@ void PlazaGameMode::Initialize()
 
 void PlazaGameMode::PreUpdate(float deltaTime)
 {
-	// 레벨 진입 요청 (임시)
+	// 레벨 진입 요청
+	World* world = mScene->GetWorld().get();
+
 	if (INPUT.GetKeyDown(eKeyCode::F5))
-		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::FirstGame });
+		Cinematic::RequestPlazaLevelEnter(world, SceneId::FirstGame);
 	if (INPUT.GetKeyDown(eKeyCode::F6))
-		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::SecondGame });
+		Cinematic::RequestPlazaLevelEnter(world, SceneId::SecondGame);
 	if (INPUT.GetKeyDown(eKeyCode::F7))
-		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::ThirdGame });
+		Cinematic::RequestPlazaLevelEnter(world, SceneId::ThirdGame);
 	if (INPUT.GetKeyDown(eKeyCode::F8))
-		mScene->GetWorld()->GetEventManager()->Enqueue(EvNetSceneChange{ SceneId::FourthGame });
+		Cinematic::RequestPlazaLevelEnter(world, SceneId::FourthGame);
 }
 
 

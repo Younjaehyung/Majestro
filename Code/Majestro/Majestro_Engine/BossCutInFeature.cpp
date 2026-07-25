@@ -44,9 +44,9 @@ namespace
     }
 }
 
-void BossCutInFeature::ResolveBossType()
+void BossCutInFeature::ResolveBossType(BossCutInComponent* cutIn)
 {
-    if (mBossType >= 0 || mWorld == nullptr)
+    if (cutIn->mBossType >= 0 || mWorld == nullptr)
         return;
     if (!mWorld->HasComponentPool<EnemyComponent>())
         return;
@@ -59,7 +59,7 @@ void BossCutInFeature::ResolveBossType()
             continue;
         if (en->mEnemyType == EnemyType::Brass || en->mEnemyType == EnemyType::Dragon)
         {
-            mBossType = static_cast<int>(en->mEnemyType);
+            cutIn->mBossType = static_cast<int>(en->mEnemyType);
             break;
         }
     }
@@ -67,8 +67,14 @@ void BossCutInFeature::ResolveBossType()
 
 void BossCutInFeature::Update(float dt)
 {
+    if (mWorld == nullptr || !mWorld->HasComponentPool<BossCutInComponent>())
+        return;
 
-    if (mWorld != nullptr && mWorld->HasComponentPool<BossCinematicComponent>())
+    BossCutInComponent* cutIn = mWorld->GetSingleton<BossCutInComponent>();
+    if (cutIn == nullptr)
+        return;
+
+    if (mWorld->HasComponentPool<BossCinematicComponent>())
     {
         const Entity singleton = mWorld->GetSingletonEntity();
         const BossCinematicComponent* seq = mWorld->GetComponent<BossCinematicComponent>(singleton);
@@ -76,33 +82,37 @@ void BossCutInFeature::Update(float dt)
 
         if (done && !mPrevDone)
         {
-            mActive   = true;
-            mElapsed  = 0.f;
-            mBossType = -1;   // 새 컷인마다 보스 재해석
+            cutIn->mActive   = true;
+            cutIn->mElapsed  = 0.f;
+            cutIn->mBossType = -1;   // 새 컷인마다 보스 재해석
         }
         mPrevDone = done;
     }
 
-    if (!mActive)
+    if (!cutIn->mActive)
         return;
 
-  
-    ResolveBossType();
 
-    mElapsed += dt;
-    if (mElapsed >= kTotal)
+    ResolveBossType(cutIn);
+
+    cutIn->mElapsed += dt;
+    if (cutIn->mElapsed >= kTotal)
     {
-        mActive  = false;
-        mElapsed = 0.f;
+        cutIn->mActive  = false;
+        cutIn->mElapsed = 0.f;
     }
 }
 
 void BossCutInFeature::SpriteRender(DirectX::SpriteBatch* spriteBatch)
 {
-    if (!mActive)
+    if (mWorld == nullptr || !mWorld->HasComponentPool<BossCutInComponent>())
         return;
 
-    const float t = mElapsed; // 컷인 시작 후 경과
+    const BossCutInComponent* cutIn = mWorld->GetSingleton<BossCutInComponent>();
+    if (cutIn == nullptr || !cutIn->mActive)
+        return;
+
+    const float t = cutIn->mElapsed; // 컷인 시작 후 경과
 
     // 전체 페이드 envelope (빠른 인 + 아웃)
     const float fadeIn  = MathUtils::Saturate(t / 0.12f);
@@ -117,7 +127,7 @@ void BossCutInFeature::SpriteRender(DirectX::SpriteBatch* spriteBatch)
     if (W <= 0.f || H <= 0.f)
         return;
 
-    const std::wstring name = BossName(mBossType);
+    const std::wstring name = BossName(cutIn->mBossType);
     Texture* white = RESOURCEMANAGER.Get<Texture>(L"UI_White").get();
     Texture* back  = RESOURCEMANAGER.Get<Texture>(L"UI_Boss_Cutin_Back").get();
     Texture* band  = RESOURCEMANAGER.Get<Texture>((L"UI_Boss_Cutin_" + name).c_str()).get();

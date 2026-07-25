@@ -38,7 +38,10 @@ public:
 
     void PostSpriteRender(std::vector<UIInstanceData>& instances) override;
 
-    bool ShouldPostRenderInDialogue() const override { return true; }
+    bool PostRendersInGroup(UIRenderGroup group) const override
+    {
+        return group == UIRenderGroup::Gameplay || group == UIRenderGroup::Dialogue;
+    }
 
     // startInstance: UIInfo 버퍼에서 바 데이터가 시작되는 인덱스
     void Execute(uint32 startInstance, uint32 barCount);

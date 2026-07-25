@@ -44,8 +44,6 @@ private:
     
 	void RenderCustomSprite();
 	void RenderSpirte();
-	bool IsHudHiddenByFeature() const;
-	void RenderFullscreenFeatureOnly();	
 	UIRenderGroup GetActiveRenderGroup() const;
 	bool IsGameplayGroupActive() const;
 	bool CanRenderEntity(Entity entity) const;

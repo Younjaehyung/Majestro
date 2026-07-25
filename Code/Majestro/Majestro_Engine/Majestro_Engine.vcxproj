@@ -315,6 +315,7 @@
     <ClInclude Include="IntroSequenceSystem.h" />
     <ClInclude Include="BossCinematicComponent.h" />
     <ClInclude Include="BossCinematicSystem.h" />
+    <ClInclude Include="BossCutInComponent.h" />
     <ClInclude Include="BossCutInFeature.h" />
     <ClInclude Include="AirshipDepartureComponent.h" />
     <ClInclude Include="AirshipDepartureSystem.h" />

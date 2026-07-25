@@ -37,14 +37,11 @@ float4 PS_Final(VS_OUT input) : SV_Target
     float4 specular = Gbuffer[6].Sample(g_sam_0, input.uv); // GBUFFER_SPECULAR_INDEX = 6
 
     
-    if (any(Gbuffer[4].Sample(g_sam_0, input.uv).rgb)) // GBUFFER_EMISSIVE_INDEX = 4
-    {
-        output = Gbuffer[4].Sample(g_sam_0, input.uv) * 10;
-        return output;
-    }
-        output = (color * lightPower) + specular;
-    
-    
+    float3 emissive = Gbuffer[4].Sample(g_sam_0, input.uv).rgb; // GBUFFER_EMISSIVE_INDEX = 4
+
+    output = (color * lightPower) + specular;
+    output.rgb += emissive;
+
     return output;
    
 }

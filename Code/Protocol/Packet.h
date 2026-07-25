@@ -71,6 +71,7 @@ enum PKT_Type : uint32 {
 	S2C_PKT_RHYTHM_CHANGED,
 	S2C_PKT_BEAT_JUDGEMENT,
 	S2C_PKT_COMBO_CHANGED,
+	S2C_PKT_BOSS_TILE,
 	S2C_PKT_STICKER,
 	S2C_PKT_EMOTE,
 	S2C_PKT_CHAT,
@@ -83,6 +84,7 @@ enum PKT_Type : uint32 {
 
 	// 서버 내부 신호. 네트워크 스레드에서 로직 스레드 세션에 종료 통지.
 	INTERNAL_SESSION_LEAVE,
+
 
 
 	KMSG,
@@ -314,6 +316,14 @@ enum class EffectSpawnReason : uint8
 	Respawn = 4,
 	CheckpointReached = 5, // 화물이 거점(stopPoint)에 도착한 순간
 	Death = 6,
+};
+
+// 보스 장판 타일 상태
+enum class BossTilePhase : uint8
+{
+	Warn = 0,    // 폭발 예고(durationSec 뒤에 터진다)
+	Explode = 1, // 폭발 발생 순간
+	Clear = 2,   // 패턴 종료, 전 타일 소등
 };
 
 // 로비 Room 시스템: 한 방의 최대 인원
@@ -867,6 +877,25 @@ struct S2C_EffectSpawnPacket : public PacketTcpHeader {
 
 	S2C_EffectSpawnPacket()
 		: PacketTcpHeader{ sizeof(S2C_EffectSpawnPacket), PKT_Type::S2C_PKT_EFFECT_SPAWN, 0.0 } {
+	}
+};
+
+
+struct S2C_BossTilePacket : public PacketTcpHeader {
+	uint8 skillType{};      // SkillType (BrassSkill4 등)
+	uint8 phase{};          // BossTilePhase
+	uint8 parity{};         // 0 또는 1
+	uint8 columnCount{};
+	uint8 rowCount{};
+	uint8 reserved[3]{};
+	float originX{};        // (0,0) 타일 중심 X
+	float originY{};        // 장판이 깔리는 바닥 높이 (다층 맵에서 위층 타일 제외용)
+	float originZ{};        // (0,0) 타일 중심 Z
+	float tileSize{};
+	float durationSec{};    // Warn: 폭발까지 남은 시간. 그 외 0
+
+	S2C_BossTilePacket()
+		: PacketTcpHeader{ sizeof(S2C_BossTilePacket), PKT_Type::S2C_PKT_BOSS_TILE, 0.0 } {
 	}
 };
 

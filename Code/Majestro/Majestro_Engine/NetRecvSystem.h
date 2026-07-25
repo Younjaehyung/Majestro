@@ -41,6 +41,7 @@ private:
 	void HandleBulletActivate(const InputCommand& msg);
 	void HandleBulletDeactivate(const InputCommand& msg);
 	void HandleEffectSpawn(const InputCommand& msg);
+	void HandleBossTile(const InputCommand& msg);
 	void HandleSticker(const InputCommand& msg);
 	void HandleEmote(const InputCommand& msg);
 	void HandleChat(const InputCommand& msg);

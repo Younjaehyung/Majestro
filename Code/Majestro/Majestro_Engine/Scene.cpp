@@ -78,6 +78,8 @@
 #include "DamageFeedbackSystem.h"
 #include "RhythmEmissiveSystem.h"
 #include "HighlightSystem.h"
+#include "BossTileGlowComponent.h"
+#include "BossTileGlowSystem.h"
 #include "DamagePopupUpdateFeature.h"
 #include "UIEmoteFeature.h"
 
@@ -252,7 +254,8 @@ void Scene::LoadJsonLevelFBX(const wstring& path) {
 }
 
 void Scene::LoadJsonLevelData(const wstring& path,
-	const std::function<bool(const std::string& fbxStem)>& skipMeshStem) {
+	const std::function<bool(const std::string& fbxStem)>& skipMeshStem,
+	const std::function<void(Entity entity, const std::string& fbxStem)>& onMeshEntity) {
 	int i = 0;
 	try
 	{
@@ -299,6 +302,9 @@ void Scene::LoadJsonLevelData(const wstring& path,
 				if (mi < meshMats.size())
 					render.mMaterials = meshMats[mi];
 				render.SetMesh(meshes[mi]);
+
+				if (onMeshEntity)
+					onMeshEntity(entity, name);
 			}
 			i++;
 		}
@@ -2678,10 +2684,18 @@ namespace
 
 		// 구름을 놓을 위치(배의 양옆 ±X, 배 고도 근처 Y, 전후 Z 레인 중심). 회전/크기는 코드가 정한다.
 		static const Vec3 kSpots[] = {
+			// 갑판 고도 좌우
 			{ -2600.f, 1100.f, -3000.f }, { -2400.f, 1600.f,   600.f },
 			{ -2800.f, 1300.f,  3600.f }, { -2500.f,  850.f,  -900.f },
 			{  2600.f, 1200.f, -3600.f }, {  2400.f, 1550.f,  1300.f },
 			{  2800.f, 1000.f,  3000.f }, {  2500.f, 1400.f,  -300.f },
+			// 바깥쪽 X 레인
+			{ -5000.f, 1450.f, -1800.f }, { -5400.f, 1050.f,  2400.f },
+			{  5000.f, 1500.f,  -600.f }, {  5400.f, 1150.f,  3000.f },
+			// 하단 -Y 레인
+			{ -3000.f,  -200.f, -2400.f }, { -3400.f,  200.f,  1800.f },
+			{  3000.f,  -150.f,  2700.f }, {  3400.f,  250.f, -1200.f },
+			{ -2600.f,  -900.f,   900.f }, {  2600.f,  -850.f, -2100.f },
 		};
 
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
@@ -2766,53 +2780,51 @@ void PlazaScene::Initialize()
 	// OceanPrefab ocean{ mWorld.get() };
 
 
-	// Far cloud
+	// 구름 파티클 에미터 배치
 	{
-		Entity cloudEntity = mWorld->CreateEntity();
-		TransformComponent cloudTransform{};
-		cloudTransform.mLocalPosition = Vec3(-2664.0f, 1371.0f, 20.0f);
-		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
-		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
-		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
+		struct PlazaCloudEmitter { Vec3 pos; const wchar_t* effect; };
+		static const PlazaCloudEmitter kCloudEmitters[] = {
+			// 원거리
+			{ Vec3(-4100.0f, 1371.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3( 4100.0f, 1371.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3(-7300.0f, 1520.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3( 7300.0f, 1520.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			// 원거리 — 하단
+			{ Vec3(-4100.0f, -260.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3( 4100.0f, -260.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3(-30.0f, -520.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3(30.0f,  -520.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3(-1270.0f, -520.0f, 20.0f), L"Particle_CloudDriftFar"  },
+			{ Vec3(1270.0f,  -520.0f, 20.0f), L"Particle_CloudDriftFar"  },
 
-		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
-		cloudParticle.mEffectName = L"Particle_CloudDriftFar";
-	}
-	{
-		Entity cloudEntity = mWorld->CreateEntity();
-		TransformComponent cloudTransform{};
-		cloudTransform.mLocalPosition = Vec3(2664.0f, 1371.0f, 20.0f);
-		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
-		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
-		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
 
-		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
-		cloudParticle.mEffectName = L"Particle_CloudDriftFar";
-	}
+			// 근거리
+			{ Vec3(-3900.0f, 1280.0f, 20.0f), L"Particle_CloudDriftNear" },
+			{ Vec3( 3900.0f, 1280.0f, 20.0f), L"Particle_CloudDriftNear" },
+			{ Vec3(-6400.0f, 1180.0f, 20.0f), L"Particle_CloudDriftNear" },
+			{ Vec3( 6400.0f, 1180.0f, 20.0f), L"Particle_CloudDriftNear" },
+			// 근거리 — 하단
+			{ Vec3(-3900.0f,  240.0f, 20.0f), L"Particle_CloudDriftNear" },
+			{ Vec3( 3900.0f,  240.0f, 20.0f), L"Particle_CloudDriftNear" },
+			{ Vec3(-30.0f, -520.0f, 20.0f), L"Particle_CloudDriftNear"  },
+			{ Vec3(30.0f,  -520.0f, 20.0f), L"Particle_CloudDriftNear"  },
+			{ Vec3(-1270.0f, -520.0f, 20.0f), L"Particle_CloudDriftNear"  },
+			{ Vec3(1270.0f,  -520.0f, 20.0f), L"Particle_CloudDriftNear"  },
+		};
 
-	// Near cloud 
-	{
+		for (const PlazaCloudEmitter& spot : kCloudEmitters)
+		{
+			Entity cloudEntity = mWorld->CreateEntity();
 
-		Entity cloudEntity = mWorld->CreateEntity();
-		TransformComponent cloudTransform{};
-		cloudTransform.mLocalPosition = Vec3(-1600.0f, 1280.0f, 20.0f);
-		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
-		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
-		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
+			TransformComponent cloudTransform{};
+			cloudTransform.mLocalPosition = spot.pos;
+			cloudTransform.mWorldPosition = spot.pos;
+			cloudTransform.mWorldMatrix = Matrix::CreateTranslation(spot.pos);
+			mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
 
-		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
-		cloudParticle.mEffectName = L"Particle_CloudDriftNear";
-	}
-	{
-		Entity cloudEntity = mWorld->CreateEntity();
-		TransformComponent cloudTransform{};
-		cloudTransform.mLocalPosition = Vec3(1600.0f, 1280.0f, 20.0f);
-		cloudTransform.mWorldPosition = cloudTransform.mLocalPosition;
-		cloudTransform.mWorldMatrix = Matrix::CreateTranslation(cloudTransform.mLocalPosition);
-		mWorld->AddComponent<TransformComponent>(cloudEntity, cloudTransform);
-
-		ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
-		cloudParticle.mEffectName = L"Particle_CloudDriftNear";
+			ParticleComponent& cloudParticle = mWorld->AddComponent<ParticleComponent>(cloudEntity);
+			cloudParticle.mEffectName = spot.effect;
+		}
 	}
 
 
@@ -2822,7 +2834,7 @@ void PlazaScene::Initialize()
 	LoadCollisionJson(L"..\\Resources\\Json\\MapShip_Export.json");
 
 	// 구름
-	SpawnPlazaClouds(mWorld.get(), L"..\\Resources\\Json\\MapShip_Export.json");
+	//SpawnPlazaClouds(mWorld.get(), L"..\\Resources\\Json\\MapShip_Export.json");
 
 	SpawnPlazaShip(mWorld.get(), L"..\\Resources\\Json\\MapShip_Export.json");
 
@@ -3135,7 +3147,12 @@ void ThirdScene::Initialize()
 	CreatePauseMenu();
 
 	LoadJsonLevelFBX(L"..\\Resources\\Json\\Map003_Export.json");
-	LoadJsonLevelData(L"..\\Resources\\Json\\Map003_Export.json");
+	LoadJsonLevelData(L"..\\Resources\\Json\\Map003_Export.json", {},
+		[this](Entity entity, const std::string& fbxStem)
+		{
+			if (fbxStem == "SM_CastlePlane")
+				mWorld->AddComponent<BossTileGlowComponent>(entity);
+		});
 
 
 	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
@@ -3218,6 +3235,7 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<DamageFeedbackSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<RhythmEmissiveSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<HighlightSystem>();
+	mWorld->GetSystemManager()->RegisterSystem<BossTileGlowSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<AudioVisualizerSystem>();
 	mWorld->GetSystemManager()->RegisterSystem<UITransformSystem>();
 	auto* uiUpdateSystem = mWorld->GetSystemManager()->RegisterSystem<UIUpdateSystem>();

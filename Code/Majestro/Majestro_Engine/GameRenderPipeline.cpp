@@ -228,9 +228,9 @@ void GameRenderPipeline::Initialize(World* world)
     mPostProcessPass->AddHDRPass(mGodRayPass);
 
     mEmissiveBloomPass = make_shared<DualKawaseBlurPass>();
-    mEmissiveBloomPass->Initialize(2);      // 4단계 (W/2 ->W/4 -> W/8 -> W/16)
-    mEmissiveBloomPass->SetThreshold(1.0f); // LDR 범위 초과 밝기부터 추출
-    mEmissiveBloomPass->SetIntensity(1.15f); // 최종 합성 강도
+    mEmissiveBloomPass->Initialize(4);
+    mEmissiveBloomPass->SetThreshold(3.0f);
+    mEmissiveBloomPass->SetIntensity(0.7f);
     mPostProcessPass->AddHDRPass(mEmissiveBloomPass);
 
     // 체력 회복과 빈사 상태의 화면 외곽 비네팅

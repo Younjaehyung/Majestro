@@ -24,6 +24,7 @@ struct VS_OUT
     
     // 인스턴스마다 고정된 머티리얼 인덱스를 픽셀 셰이더에 직접 전달한다.
     nointerpolation uint materialIndex : MaterialIndex;
+    nointerpolation float4 objectGlow : ObjectGlow;
 };
 
 
@@ -40,7 +41,8 @@ VS_OUT VS_Main(VS_IN input)
     uint idx = GlobalParams.BaseInstanceID + input.instanceID;;
     RENDERPARAMS instance = InstanceParams[idx];
     output.materialIndex = instance.MaterialInfoIndex;
-    
+    output.objectGlow = Objects[instance.ObjectIndex].Extra2;
+
     matrix WV = mul(Objects[instance.ObjectIndex].MatWorld, PassParams.MatView);
     matrix WVP = mul(WV, PassParams.MatProjection);
     

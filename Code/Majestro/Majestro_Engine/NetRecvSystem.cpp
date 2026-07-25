@@ -84,6 +84,7 @@ void NetRecvSystem::RegisterHandlers()
     reg(PKT_Type::S2C_PKT_BULLET_ACTIVATE,   [this](auto& m){ HandleBulletActivate(m); });
     reg(PKT_Type::S2C_PKT_BULLET_DEACTIVATE, [this](auto& m){ HandleBulletDeactivate(m); });
     reg(PKT_Type::S2C_PKT_EFFECT_SPAWN,      [this](auto& m){ HandleEffectSpawn(m); });
+    reg(PKT_Type::S2C_PKT_BOSS_TILE,         [this](auto& m){ HandleBossTile(m); });
     reg(PKT_Type::S2C_PKT_HIT_CONFIRM,       [this](auto& m){ HandleHitConfirm(m); });
     reg(PKT_Type::S2C_GAME_START,            [this](auto& m){ HandleGameStart(m); });
 	reg(PKT_Type::S2C_SCENE_CHANGE_RESULT,   [this](auto& m){ HandleSceneChangeResult(m); });
@@ -648,6 +649,28 @@ void NetRecvSystem::HandleChat(const InputCommand& msg)
 		return;
 
 	Chat::Get().AddMessage(packet->casterPlayerType, safeText);
+}
+
+void NetRecvSystem::HandleBossTile(const InputCommand& msg)
+{
+    const S2C_BossTilePacket* pkt = msg.ViewAs<S2C_BossTilePacket>();
+    if (!pkt) return;
+
+    SkillType skillType = static_cast<SkillType>(pkt->skillType);
+    if (skillType >= SkillType::Max)
+        skillType = SkillType::Default;
+
+    mWorld->GetEventManager()->Enqueue(EvBossTileUpdate{
+        skillType,
+        pkt->phase,
+        pkt->parity,
+        pkt->columnCount,
+        pkt->rowCount,
+        pkt->originX,
+        pkt->originY,
+        pkt->originZ,
+        pkt->tileSize,
+        pkt->durationSec });
 }
 
 void NetRecvSystem::HandleEffectSpawn(const InputCommand& msg)

@@ -24,6 +24,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::S2C_PKT_BULLET_ACTIVATE:
 	case PKT_Type::S2C_PKT_BULLET_DEACTIVATE:
 	case PKT_Type::S2C_PKT_EFFECT_SPAWN:
+	case PKT_Type::S2C_PKT_BOSS_TILE:
 	case PKT_Type::S2C_PKT_HEALTH:
 	case PKT_Type::S2C_PKT_ARMOR:
 	case PKT_Type::S2C_PKT_AMMO:

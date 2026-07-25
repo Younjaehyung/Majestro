@@ -65,6 +65,7 @@ void NetSendSystem::Update(float dt)
 	SendCooldownEvents();
 	SendBulletDeactivateEvents();
 	SendEffectSpawnEvents();
+	SendBossTileEvents();
 	SendStickerEvents();
 	SendEmoteEvents();
 	SendChatEvents();
@@ -539,6 +540,34 @@ void NetSendSystem::SendEffectSpawnEvents()
 			//cout << "eff:" << (int)e.effectType << "   " << (int)effectPkt.reason << endl;
 
 			Broadcast(recipients, S2C_PKT_EFFECT_SPAWN, effectPkt);
+		});
+}
+
+void NetSendSystem::SendBossTileEvents()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	auto recipients = CollectPlayerSessions();
+	if (recipients.empty())
+		return;
+
+	eventManager->Consume<EvBossTileBroadcast>([&](const EvBossTileBroadcast& e)
+		{
+			S2C_BossTilePacket tilePkt;
+			tilePkt.skillType = e.skillType;
+			tilePkt.phase = e.phase;
+			tilePkt.parity = e.parity;
+			tilePkt.columnCount = e.columnCount;
+			tilePkt.rowCount = e.rowCount;
+			tilePkt.originX = e.originX;
+			tilePkt.originY = e.originY;
+			tilePkt.originZ = e.originZ;
+			tilePkt.tileSize = e.tileSize;
+			tilePkt.durationSec = e.durationSec;
+
+			Broadcast(recipients, S2C_PKT_BOSS_TILE, tilePkt);
 		});
 }
 

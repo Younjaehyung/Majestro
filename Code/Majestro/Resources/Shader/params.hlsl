@@ -31,7 +31,9 @@ struct OBJECTINFO
     // Extra1.w = DissolveAmount (0~1, 적 사망 소멸 연출. 0=정상, 1=완전 소멸.
     float4 Extra1;
 
-    // Extra2 = 대상 강조(나노강화) : rgb = 강조 색(HDR 가산), w = 강도(0=미강조)
+    // Extra2 = 오브젝트 가산 발광 : rgb = 색(HDR 가산), w = 강도(0=미적용)
+    //  - JHToon_PS(Forward)  : 림 라이트
+    //  - deferred_PS         : emissive G-Buffer
     float4 Extra2;
 };
 //////////////

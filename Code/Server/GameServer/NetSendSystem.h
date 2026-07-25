@@ -29,6 +29,7 @@ private:
 	void SendCooldownEvents();
 	void SendBulletDeactivateEvents();
 	void SendEffectSpawnEvents();
+	void SendBossTileEvents();
 	void SendStickerEvents();
 	void SendEmoteEvents();
 	void SendChatEvents();

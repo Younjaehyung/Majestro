@@ -119,6 +119,21 @@ struct EvEmoteTriggered
 	uint8 emoteId = 0;
 };
 
+// 보스 장판(체크무늬 타일) 갱신
+struct EvBossTileUpdate
+{
+    SkillType skillType = SkillType::Default;
+    uint8 phase = 0;        // BossTilePhase
+    uint8 parity = 0;
+    uint8 columnCount = 0;
+    uint8 rowCount = 0;
+    float originX = 0.0f;
+    float originY = 0.0f;   // 장판이 깔리는 바닥 높이 (위층 타일 제외용)
+    float originZ = 0.0f;
+    float tileSize = 0.0f;
+    float durationSec = 0.0f;
+};
+
 struct EvVfxSpawnRequest
 {
     SkillType skillType = SkillType::Default;

@@ -23,6 +23,7 @@
 #include "DamageFeedbackComponent.h"
 #include "RhythmEmissiveComponent.h"
 #include "HighlightComponent.h"
+#include "BossTileGlowComponent.h"
 #include "VfxComponent.h"
 #include "EngineLog.h"
 
@@ -837,6 +838,10 @@ void RenderSystem::PushObjectData() {
     Vec4 highlight = Vec4::Zero;
     if (auto* hl = mWorld->GetComponent<HighlightComponent>(gameObject))
       highlight = Vec4(hl->mColor.x, hl->mColor.y, hl->mColor.z, hl->mCurrentIntensity);
+
+
+    if (auto* tg = mWorld->GetComponent<BossTileGlowComponent>(gameObject))
+      highlight = Vec4(tg->mColor.x, tg->mColor.y, tg->mColor.z, tg->mRenderIntensity);
 
     objectParams.MatWorld = transformComponent->mWorldMatrix.Transpose();
     objectParams.Extra1 = Vec4(renderComponent->mOpacity, hitFlash, emissiveGate, renderComponent->mDissolve);

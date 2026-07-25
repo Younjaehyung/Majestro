@@ -945,6 +945,12 @@
     <ClInclude Include="HighlightSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
+    <ClInclude Include="BossTileGlowSystem.h">
+      <Filter>World\System\Logic</Filter>
+    </ClInclude>
+    <ClInclude Include="BossTileGlowComponent.h">
+      <Filter>World\Component\Logic</Filter>
+    </ClInclude>
     <ClInclude Include="DecalComponent.h">
       <Filter>World\Component\Effect</Filter>
     </ClInclude>
@@ -1500,6 +1506,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="HighlightSystem.cpp">
+      <Filter>World\System\Logic</Filter>
+    </ClCompile>
+    <ClCompile Include="BossTileGlowSystem.cpp">
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="DecalSystem.cpp">

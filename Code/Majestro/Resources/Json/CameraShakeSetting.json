@@ -31,10 +31,10 @@
       "frequency": 20.0
     },
     "Special": {
-      "pitch": 2.6,
-      "yaw": 1.8,
+      "pitch": 0.6,
+      "yaw": 0.8,
       "roll": 0.0,
-      "frequency": 26.0
+      "frequency": 12.0
     }
   },
   "Ibanix": {
@@ -57,10 +57,10 @@
       "frequency": 20.0
     },
     "Special": {
-      "pitch": 3.0,
-      "yaw": 2.0,
+      "pitch": 0.6,
+      "yaw": 0.8,
       "roll": 0.0,
-      "frequency": 26.0
+      "frequency": 12.0
     }
   },
   "Fanthor": {
@@ -95,10 +95,10 @@
       "frequency": 20.0
     },
     "Special": {
-      "pitch": 3.0,
-      "yaw": 2.0,
+      "pitch": 0.6,
+      "yaw": 0.8,
       "roll": 0.0,
-      "frequency": 26.0
+      "frequency": 12.0
     }
   }
 }

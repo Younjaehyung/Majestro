@@ -266,7 +266,7 @@
     }
   ],
 
-  "_comment_ultimate": "궁극기(Special) 카메라 연출. Special 은 상체 액션이므로 useUpper:true. startFrame~endFrame 은 궁 애니 프레임 기준 임시값이니 실제 클립 길이에 맞춰 튜닝할 것. preset 은 CameraShake/DollySetting.json 의 <Char>_Special.",
+  "_comment_ultimate": "궁극기(Special) 카메라 연출. useUpper 는 캐릭터마다 다르다: Rudwig 는 Special 이 상체 액션이라 useUpper:true, Ibanix/Fanthor 는 PlayerAnimationResolver 의 fullBodySpecial 로 전신 액션이 되어 상체 레이어가 꺼지므로 반드시 useUpper:false 로 둬야 하체 레이어에서 발동한다. startFrame~endFrame 은 궁 애니 프레임 기준 임시값이니 실제 클립 길이에 맞춰 튜닝할 것. preset 은 CameraShake/DollySetting.json 의 <Char>_Special.",
 
   "Anim_Rudwig_Ultimate": [
     {
@@ -290,14 +290,14 @@
       "startFrame": 0,
       "endFrame": 40,
       "kind": "cameraShake",
-      "useUpper": true,
+      "useUpper": false,
       "preset": "Ibanix_Special"
     },
     {
       "startFrame": 0,
       "endFrame": 40,
       "kind": "cameraDolly",
-      "useUpper": true,
+      "useUpper": false,
       "preset": "Ibanix_Special"
     }
   ],
@@ -307,14 +307,14 @@
       "startFrame": 0,
       "endFrame": 40,
       "kind": "cameraShake",
-      "useUpper": true,
+      "useUpper": false,
       "preset": "Fanthor_Special"
     },
     {
       "startFrame": 0,
       "endFrame": 40,
       "kind": "cameraDolly",
-      "useUpper": true,
+      "useUpper": false,
       "preset": "Fanthor_Special"
     }
   ]

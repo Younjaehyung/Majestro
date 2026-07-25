@@ -17,25 +17,39 @@ namespace
 {
     constexpr float kBaseRhythmEffectRadius = 1500.f;
 
+    constexpr const wchar_t* kAuraSheet     = L"UI_Effect_Circle_Sheet";
+    constexpr int            kAuraAtlasCols = 2;
+    constexpr int            kAuraAtlasRows = 2;
+
+    enum AuraCell : int
+    {
+        Cell_MoveSpeed = 0,  // 좌상 - 시안
+        Cell_Shield    = 1,  // 우상 - 노랑
+        Cell_Heal      = 2,  // 좌하 - 초록
+        Cell_Attack    = 3,  // 우하 - 빨강
+    };
+
     struct AuraStyle
     {
-        Vec4           Color   = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        const wchar_t* Texture = nullptr;
+        Vec4           Color      = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        const wchar_t* Texture    = nullptr;
+        int            AtlasIndex = 0;
     };
 
     bool ResolveProviderAura(PlayerType type, Rhythm rhythm, AuraStyle& out)
     {
+        const Vec4 tint(1.0f, 1.0f, 1.0f, 0.55f);
+
         if (type == PlayerType::Rudwig)
         {
-            if (rhythm == Rhythm::R1) { out = { Vec4(3.0f, 0.5f, 0.1f, 0.8f), nullptr }; return true; }
-            if (rhythm == Rhythm::R3) { out = { Vec4(0.2f, 2.2f, 2.6f, 0.8f), nullptr }; return true; }
+            if (rhythm == Rhythm::R1) { out = { tint, kAuraSheet, Cell_Attack    }; return true; }  // AttackUp
+            if (rhythm == Rhythm::R3) { out = { tint, kAuraSheet, Cell_MoveSpeed }; return true; }  // MoveSpeedUp
         }
         else if (type == PlayerType::Ibanix)
         {
-            if (rhythm == Rhythm::R1) { out = { Vec4(0.2f, 2.2f, 2.6f, 0.8f), nullptr }; return true; }
-            if (rhythm == Rhythm::R2) { out = { Vec4(0.3f, 0.9f, 3.0f, 0.8f), nullptr }; return true; }
-            // 초록 링 텍스처. 무채색 부스트로 원색 유지 + Bloom.
-            if (rhythm == Rhythm::R3) { out = { Vec4(1.6f, 1.6f, 1.6f, 0.55f), L"UI_Ibanix_Effect_Circle" }; return true; }
+            if (rhythm == Rhythm::R1) { out = { tint, kAuraSheet, Cell_MoveSpeed }; return true; }  // MoveSpeedUp10
+            if (rhythm == Rhythm::R2) { out = { tint, kAuraSheet, Cell_Shield    }; return true; }  // ShieldOverTime
+            if (rhythm == Rhythm::R3) { out = { tint, kAuraSheet, Cell_Heal      }; return true; }  // HealOverTime
         }
         return false;
     }
@@ -107,12 +121,18 @@ void BuffAuraSystem::Update(float /*deltaTime*/)
             d->Thickness = thickness;
 
 
+            // 텍스처 미지정 능력은 TexIndex = -1 로 두어 절차적 링을 유지한다.
             d->TexIndex = -1;
             if (style.Texture != nullptr)
             {
                 auto tex = RESOURCEMANAGER.Get<Texture>(style.Texture);
                 if (tex)
-                    d->TexIndex = static_cast<int>(tex->GetImageIndex());
+                {
+                    d->TexIndex   = static_cast<int>(tex->GetImageIndex());
+                    d->AtlasGrid  = kAuraAtlasCols;
+                    d->AtlasRows  = kAuraAtlasRows;
+                    d->AtlasIndex = style.AtlasIndex;
+                }
             }
         }
     }

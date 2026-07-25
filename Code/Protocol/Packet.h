@@ -376,8 +376,8 @@ struct RoomListEntry {
 enum class BeatJudgement : uint8 { Miss = 0, Good = 1, Perfect = 2 };
 
 
-constexpr float kBeatPerfectWindow = 0.06f; // 가장 가까운 박자와 60ms 이내면 Perfect
-constexpr float kBeatGoodWindow = 0.12f; // Perfect 범위 밖이고 120ms 이내면 Good
+constexpr float kBeatPerfectWindow = 0.08f; // 가장 가까운 박자와 80ms 이내면 Perfect
+constexpr float kBeatGoodWindow = 0.15f; // Perfect 범위 밖이고 150ms 이내면 Good
 constexpr float kMaxInputSongPosDrift = 0.5f; // 서버 songPos 와 이보다 벌어지면 치팅/지연 : Miss
 
 // 리듬 전환 look-ahead 박자 수

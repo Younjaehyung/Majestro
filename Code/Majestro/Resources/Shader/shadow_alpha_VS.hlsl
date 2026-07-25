@@ -29,7 +29,7 @@ VS_OUT VS_Main(VS_IN input)
     uint idx = GlobalParams.BaseInstanceID + input.instanceID;
     RENDERPARAMS instance = InstanceParams[idx];
 
-    uint cascadeIndex = min(GlobalParams.PassScalar1, 2);
+    uint cascadeIndex = min(GlobalParams.PassScalar1, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1);
     matrix shadowVP = PassParams.CascadeShadowVP[cascadeIndex];
 
     if (instance.LightIndex >= 0)

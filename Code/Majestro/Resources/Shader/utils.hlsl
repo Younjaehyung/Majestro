@@ -1294,7 +1294,7 @@ uint SelectCascadeIndex(float viewDepth)
 
 float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWorld, uint cascadeIndex, out float cascadeCoverage)
 {
-    const float shadowMapSize = 2048.0f;
+    const float shadowMapSize = SHADOW_MAP_SIZE;
 
     float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));
@@ -1393,13 +1393,10 @@ float SampleCascadeShadow(float4 worldPos, float3 worldNormal, float3 lightDirWo
 
 float ApplyFarCascadeVisibilityFade(float visibility, float viewDepth, float4 splits)
 {
-    // Fix: use the same far cascade fade for direct selection and boundary blending.
-    float farRange = max(splits.w - splits.z, 1.0f);
-    float farFadeInEnd = splits.z + farRange * 0.35f;
-    float farFadeIn = smoothstep(splits.z, farFadeInEnd, viewDepth);
+    float farRange = max(splits.w - splits.z, 1.0f); // splits.z = mShadowFar, splits.w = 카메라 far.
     float farFadeOut = 1.0f - smoothstep(splits.w - farRange * 0.15f, splits.w, viewDepth);
-    float farShadowStrength = farFadeIn * farFadeOut * 0.45f;
-    return lerp(1.0f, visibility, farShadowStrength);
+    const float kFarShadowStrength = 0.8f; // far cascade 그림자 강도 감소
+    return lerp(1.0f, visibility, farFadeOut * kFarShadowStrength);
 }
 
 float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld)
@@ -1464,7 +1461,7 @@ float CalculateCSMShadow(float3 viewPos, float3 viewNormal, float3 lightDirWorld
 
 float SampleCascadeShadowVLS(float4 worldPos, uint cascadeIndex, out float cascadeCoverage)
 {
-    const float shadowMapSize = 2048.0f;
+    const float shadowMapSize = SHADOW_MAP_SIZE;
 
     float4 shadowClipPos = mul(worldPos, PassParams.CascadeShadowVP[cascadeIndex]);
     float invW = rcp(max(abs(shadowClipPos.w), 1e-5f));

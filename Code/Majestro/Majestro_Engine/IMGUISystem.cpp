@@ -52,7 +52,6 @@ void IMGUIRenderSystem::Update()
 
     ImGui::End();
 
-    // 현재 활성 파이프라인의 Pass on/off 및 파라미터 조절 창
     if (auto* renderSys = mWorld->GetSystemManager()->GetSystem<RenderSystem>())
     {
         if (auto pipeline = renderSys->GetPipeline())
@@ -61,9 +60,22 @@ void IMGUIRenderSystem::Update()
         // CSM 스플릿 분포 lambda
         ImGui::SliderFloat("CSM Split Lambda", renderSys->GetCascadeSplitLambdaPtr(), 0.0f, 1.0f);
 
-        // 맵 고정 (4-cascade) — 정적 그림자 캐시 상태
-        ImGui::Text("Map Cascade  dirty: %d  staticCasters: %u",
-            renderSys->IsMapCascadeDirty() ? 1 : 0, renderSys->GetStaticCasterCount());
+        // cascade별 split 거리 / 텍셀 크기
+        // 텍셀이 클수록 그림자가 번짐
+        const auto& splits = renderSys->GetCascadeSplits();
+        for (uint32 ci = 0; ci < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT; ++ci)
+        {
+            const bool isMap = (ci == SHADOW_MAP_CASCADE_INDEX);
+            ImGui::Text("Cascade %u %-5s split %8.1f  texel %6.2f  %s",
+                ci, isMap ? "(map)" : "", splits[ci],
+                renderSys->GetCascadeTexelWorldSize(ci),
+                renderSys->IsCascadeActive(ci) ? "" : "(off)");
+        }
+
+        // 맵 고정 cascade
+        ImGui::Text("Map Cascade  redraws: %llu  staticCasters: %u",
+            static_cast<unsigned long long>(renderSys->GetMapCascadeRedrawTotal()),
+            renderSys->GetStaticCasterCount());
         ImGui::SameLine();
         if (ImGui::Button("Rebuild##MapCascade"))
             renderSys->ForceMapCascadeDirty();

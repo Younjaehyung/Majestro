@@ -30,7 +30,7 @@ DS_OUT DS_Main(const OutputPatch<HS_OUT, 3> input, float3 location : SV_DomainLo
     RENDERPARAMS instance = InstanceParams[idx];
     MATERIALINFO material = Materials[instance.MaterialInfoIndex];
 
-    uint cascadeIndex = min(GlobalParams.PassScalar1, 2);
+    uint cascadeIndex = min(GlobalParams.PassScalar1, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT - 1);
     matrix shadowVP = PassParams.CascadeShadowVP[cascadeIndex];
     matrix WVP = mul(Objects[instance.ObjectIndex].MatWorld, shadowVP);
 

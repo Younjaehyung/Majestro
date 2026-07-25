@@ -34,9 +34,10 @@ enum class Deferrd_TARGET_GROUP_TYPE : uint8
 
 enum class SHADOW_TARGET_TYPE : uint8	// CastShadow 맵 용도
 {
-	SHADOW_CASCADE0,	// 이동(카메라 추종) cascade
-	SHADOW_CASCADE1,	// 이동(카메라 추종) cascade
-	SHADOW_CASCADE2,	// 맵 전체 고정 cascade (정적 캐시) — 마지막 슬라이스
+	SHADOW_CASCADE0,	// 이동 cascade 0
+	SHADOW_CASCADE1,	// 이동 cascade 1
+	SHADOW_CASCADE2,	// 이동 cascade 2
+	SHADOW_CASCADE3,	// 맵 전체 고정 cascade (정적 캐시)
 	END,
 };
 
@@ -64,6 +65,8 @@ enum
 	RENDER_TARGET_LIGHTING_GROUP_MEMBER_COUNT = static_cast<uint8>(LIGHTING_TARGET_TYPE::END),
 	RENDER_TARGET_GROUP_COUNT = static_cast<uint8>(RENDER_TARGET_GROUP_TYPE::END)
 };
+
+constexpr uint32 SHADOW_MAP_RESOLUTION = 2048;
 
 struct RenderTarget
 {

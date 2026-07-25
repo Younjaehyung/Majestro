@@ -348,7 +348,7 @@ void RenderSystem::Update() {
       L"[RENDER_COUNT] Render %.0f | Visible %.0f | ShadowOnly %.0f | "
       L"DeferredItems %.0f | DeferredBatches %.0f | Instances %.0f | "
       L"OBBUpdates %.0f | MapBounds %.2f | MapRedraws %.2f | "
-      L"CascadeItems %.0f/%.0f/%.0f | CascadeBatches %.0f/%.0f/%.0f | "
+      L"CascadeItems %.0f/%.0f/%.0f/%.0f | CascadeBatches %.0f/%.0f/%.0f/%.0f | "
       L"Animations %u | Particles %u active %u | VFX %u active %u\n",
       static_cast<double>(sRenderCpuProfile.renderComponentCount) / divisor,
       static_cast<double>(sRenderCpuProfile.visibleRenderCount) / divisor,
@@ -362,9 +362,11 @@ void RenderSystem::Update() {
       static_cast<double>(sRenderCpuProfile.cascadeItemCount[0]) / divisor,
       static_cast<double>(sRenderCpuProfile.cascadeItemCount[1]) / divisor,
       static_cast<double>(sRenderCpuProfile.cascadeItemCount[2]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeItemCount[3]) / divisor,
       static_cast<double>(sRenderCpuProfile.cascadeBatchCount[0]) / divisor,
       static_cast<double>(sRenderCpuProfile.cascadeBatchCount[1]) / divisor,
       static_cast<double>(sRenderCpuProfile.cascadeBatchCount[2]) / divisor,
+      static_cast<double>(sRenderCpuProfile.cascadeBatchCount[3]) / divisor,
       CountComponents<AnimationComponent>(mWorld),
       CountComponents<ParticleComponent>(mWorld),
       activeParticleCount,
@@ -504,10 +506,9 @@ void RenderSystem::PushFrameData() {
       static_cast<float>(RENDERMANAGER.GetWindow().Width),
       static_cast<float>(RENDERMANAGER.GetWindow().Height)};
   passParams.TotalTime = TIMER.GetTotalTime();
-  // .z(=마지막 split)와 .w(하드 컷 거리)는 카메라 far — 맵 고정 cascade가 그 너머까지 커버
+  // .x/.y/.z = 이동 cascade 3장의 split(.z = mShadowFar), .w = 카메라 far
   if (mHasDirectionalShadow && mCamera)
-      passParams.CascadeSplitDistances =
-      Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mFar);
+      passParams.CascadeSplitDistances = Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mFar);
   else
       passParams.CascadeSplitDistances = Vec4(0.f, 0.f, 0.f, 0.f);
 
@@ -1226,8 +1227,25 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     lightDir = Vec3(0.f, -1.f, 0.f);
   lightDir.Normalize();
 
+  const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
+  const Matrix lightView = Matrix::CreateLookAt(Vec3::Zero, lightDir, up);
 
+  float staticCasterMaxZ = -FLT_MAX;
 
+  if (mHasStaticCasterBounds) {
+    const Vec3 aabbCorners[8] = {
+      {mStaticCasterAabbMin.x, mStaticCasterAabbMin.y, mStaticCasterAabbMin.z},
+      {mStaticCasterAabbMax.x, mStaticCasterAabbMin.y, mStaticCasterAabbMin.z},
+      {mStaticCasterAabbMin.x, mStaticCasterAabbMax.y, mStaticCasterAabbMin.z},
+      {mStaticCasterAabbMax.x, mStaticCasterAabbMax.y, mStaticCasterAabbMin.z},
+      {mStaticCasterAabbMin.x, mStaticCasterAabbMin.y, mStaticCasterAabbMax.z},
+      {mStaticCasterAabbMax.x, mStaticCasterAabbMin.y, mStaticCasterAabbMax.z},
+      {mStaticCasterAabbMin.x, mStaticCasterAabbMax.y, mStaticCasterAabbMax.z},
+      {mStaticCasterAabbMax.x, mStaticCasterAabbMax.y, mStaticCasterAabbMax.z},
+    };
+    for (const Vec3& corner : aabbCorners)
+      staticCasterMaxZ = max(staticCasterMaxZ, Vec3::Transform(corner, lightView).z);
+  }
 
   for (uint32 cascadeIndex = 0; cascadeIndex < SHADOW_MAP_CASCADE_INDEX; ++cascadeIndex) {
 
@@ -1277,14 +1295,6 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     mCascadeFrustumCenter[cascadeIndex] = frustumCenter;
     mCascadeFrustumRadius[cascadeIndex] = radius;
 
-    const Vec3 up = abs(lightDir.Dot(Vec3::Up)) > 0.99f ? Vec3::Right : Vec3::Up;
-
-    // [흔들림 수정] 월드 원점 기준 고정 라이트 뷰(방향만). 프러스텀 중심으로 재센터링하면
-    // 중심이 항상 라이트공간 (0,0)에 투영돼 텍셀 스냅이 무력화된다(=기존 버그, 이동 시 crawl 원인).
-    // 원점 고정이면 중심의 X/Y가 카메라 따라 변하고, 스냅이 실제로 작동해 그림자가
-    // 텍셀 그리드에 고정된다 → 이동 시 흔들림 제거. (lightView 재생성 안 함이 핵심)
-    Matrix lightView = Matrix::CreateLookAt(Vec3::Zero, lightDir, up);
-
     // Light 공간 XY 축 저장 — AABB 컬링에 사용 (행렬 Row 0/1 = Right/Up)
     mCascadeLightRight[cascadeIndex] = Vec3(lightView._11, lightView._12, lightView._13);
     mCascadeLightUp[cascadeIndex]    = Vec3(lightView._21, lightView._22, lightView._23);
@@ -1312,8 +1322,12 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
 
     const float terrainHeightRange = 0.0f;
     const float zPadding = max(max(radius * 4.f, 50.f), terrainHeightRange);
-    const float nearPlane = minExtents.z - zPadding;
-    const float farPlane = maxExtents.z + zPadding;
+
+    const float lightSideBound =
+        max(maxExtents.z + zPadding,
+            (staticCasterMaxZ > -FLT_MAX) ? staticCasterMaxZ + 1.f : -FLT_MAX);
+    const float nearPlane = -lightSideBound;
+    const float farPlane  = -(minExtents.z - zPadding);
     Matrix lightProj = Matrix::CreateOrthographicOffCenter(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, nearPlane, farPlane);
     passParams.CascadeShadowVP[cascadeIndex] = (lightView * lightProj).Transpose();
   }
@@ -1325,6 +1339,11 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
   passParams.CascadeSplitDistances =
       Vec4(CascadeSplit[0], CascadeSplit[1], CascadeSplit[2], mCamera->mFar);
 
+}
+
+uint64 RenderSystem::GetMapCascadeRedrawTotal() const
+{
+  return mMapCascadeRedrawTotal;
 }
 
 void RenderSystem::InvalidateMapCascadeBounds()
@@ -1378,8 +1397,10 @@ void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
       mAppliedStaticCasterContentRevision =
         mStaticCasterContentRevision;
       mMapCascadeDirty = mCascadeActive[mapIdx];
-      if (mMapCascadeDirty)
+      if (mMapCascadeDirty) {
         sRenderCpuProfile.currentMapCascadeRedrawCount++;
+        mMapCascadeRedrawTotal++;
+      }
     }
     return;
   }
@@ -1416,15 +1437,23 @@ void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
   mAppliedStaticCasterBoundsRevision = mStaticCasterBoundsRevision;
   mAppliedStaticCasterContentRevision = mStaticCasterContentRevision;
   mMapCascadeDirty = staticCount > 0;
-  if (mMapCascadeDirty)
+  if (mMapCascadeDirty) {
     sRenderCpuProfile.currentMapCascadeRedrawCount++;
+    mMapCascadeRedrawTotal++;
+  }
 
   if (staticCount == 0)
   {
+    mHasStaticCasterBounds = false;
     mCascadeActive[mapIdx] = false;
     passParams.CascadeShadowVP[mapIdx] = Matrix::Identity.Transpose();
     return;
   }
+
+
+  mStaticCasterAabbMin = aabbMin;
+  mStaticCasterAabbMax = aabbMax;
+  mHasStaticCasterBounds = true;
 
   mCascadeActive[mapIdx] = true;
 
@@ -1435,7 +1464,7 @@ void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
   const Vec3 eye = center - lightDir * (radius * 2.f);
   const Matrix lightView = Matrix::CreateLookAt(eye, center, up);
 
-  // AABB 8코너를 light space로 변환해 정확한 ortho 범위를 계산한다.
+  // AABB 8코너를 light space로 변환해 정확한 ortho 범위를 계산
   Vec3 minLS(FLT_MAX, FLT_MAX, FLT_MAX);
   Vec3 maxLS(-FLT_MAX, -FLT_MAX, -FLT_MAX);
   const Vec3 cornersW[8] = {
@@ -1457,13 +1486,14 @@ void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
   }
 
   const Vec3 margin = (maxLS - minLS) * 0.05f;
+
   const Matrix lightProj = Matrix::CreateOrthographicOffCenter(
     minLS.x - margin.x,
     maxLS.x + margin.x,
     minLS.y - margin.y,
     maxLS.y + margin.y,
-    minLS.z - margin.z,
-    maxLS.z + margin.z);
+    -(maxLS.z + margin.z),
+    -(minLS.z - margin.z));
 
   mMapCascadeVP = lightView * lightProj;
   mCascadeFrustumCenter[mapIdx] = center;

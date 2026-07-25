@@ -461,7 +461,7 @@ void RenderManager::CreateRenderTargetGroups()
 		vector<RenderTarget> rtVec(RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT);
 
 		shared_ptr<Texture> shadowDepthTexture = RESOURCEMANAGER.CreateTexture(L"ShadowDepthStencil",
-			DXGI_FORMAT_R32_TYPELESS, 2048, 2048,   // CSM 해상도(RenderSystem.h shadowMapSize + utils.hlsl x2 동기)
+			DXGI_FORMAT_R32_TYPELESS, SHADOW_MAP_RESOLUTION, SHADOW_MAP_RESOLUTION,
 			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL, true, 1, 0, Vec4(),
 			RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT, TextureType::TEXTURE_2D_ARRAY);

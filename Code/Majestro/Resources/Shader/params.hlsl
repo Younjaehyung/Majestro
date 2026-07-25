@@ -2,8 +2,8 @@
 #define _PARAMS_HLSL_
 
 
-// SHADOW_TARGET_TYPE 개수 — C++ SHADOW_TARGET_TYPE::END 와 반드시 일치 (PassParams CB 레이아웃 동기화)
-#define RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT 3
+#define RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT 4
+#define SHADOW_MAP_SIZE 2048.0f
 
 //////////////Light
 struct LightColor

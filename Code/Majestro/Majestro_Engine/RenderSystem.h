@@ -168,6 +168,27 @@ public:
   void SetPipeline(shared_ptr<IRenderPipeline> pipeline);
   shared_ptr<IRenderPipeline> GetPipeline() const { return mActivePipeline; }
 
+public:
+    // ImGui 튜닝용 — CSM 스플릿 분포 lambda (0=균등, 1=로그)
+    float* GetCascadeSplitLambdaPtr() { return &mCascadeSplitLambda; }
+
+    // ImGui 디버그 — 맵 고정 cascade 상태
+    bool IsMapCascadeDirty() const { return mMapCascadeDirty; }
+    uint64 GetMapCascadeRedrawTotal() const;
+    uint32 GetStaticCasterCount() const { return mPrevStaticCasterCount; }
+    void ForceMapCascadeDirty() { InvalidateMapCascadeBounds(); }
+
+    // ImGui 디버그 — cascade별 split 거리와 텍셀 크기
+    const array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>& GetCascadeSplits() const { return CascadeSplit; }
+    float GetCascadeTexelWorldSize(uint32 cascadeIndex) const {
+        if (cascadeIndex >= RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT || shadowMapSize <= 0.f) return 0.f;
+        return (mCascadeFrustumRadius[cascadeIndex] * 2.f) / shadowMapSize;
+    }
+    bool IsCascadeActive(uint32 cascadeIndex) const {
+        return cascadeIndex < RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT && mCascadeActive[cascadeIndex];
+    }
+
+
 private:           // RenderPass
   void ClearRTV(); // clear
   void ClearBuffer();
@@ -233,14 +254,6 @@ private: // 배치 버퍼
     uint32 InstanceCount;
     uint32 Cascade;
   } dum;
-public:
-  // ImGui 튜닝용 — CSM 스플릿 분포 lambda (0=균등, 1=로그)
-  float* GetCascadeSplitLambdaPtr() { return &mCascadeSplitLambda; }
-
-  // ImGui 디버그 — 맵 고정 cascade 상태
-  bool IsMapCascadeDirty() const { return mMapCascadeDirty; }
-  uint32 GetStaticCasterCount() const { return mPrevStaticCasterCount; }
-  void ForceMapCascadeDirty() { InvalidateMapCascadeBounds(); }
 
 private:
   std::vector<Entity> mDummyVector;
@@ -251,12 +264,13 @@ private:
   std::vector<MaterialParams> mMaterialVector;
   std::vector<ParticleSharedParams> mPatricleVector;
 
-  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true };
-  array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f };
-  float mCascadeSplitLambda = 0.303f;
+  array<bool, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeActive = { true, true, true, true };
+  array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> CascadeSplit = { 0.f, 0.f, 0.f, 0.f };
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeView{};
   array<Matrix, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeProjection{};
-  float shadowMapSize = 2048.f;   // CSM 해상도 (RenderManager 텍스처 + utils.hlsl ×2 동기)
+  float shadowMapSize = static_cast<float>(SHADOW_MAP_RESOLUTION);
+  float mCascadeSplitLambda = 0.6f;
+
   // 라이트 프러스텀 구체 (shadow 컬링용)
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT>  mCascadeFrustumCenter{};
   array<float, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeFrustumRadius{};
@@ -266,7 +280,7 @@ private:
   array<Vec3, RENDER_TARGET_SHADOW_GROUP_MEMBER_COUNT> mCascadeLightUp{};
   bool mHasDirectionalShadow = false;
 
-  // 맵 전체 고정 4-cascade의 공간 경계 갱신과 그림자 내용 갱신을 분리한다.
+
   bool   mMapCascadeDirty = true;                // 현재 프레임에 고정 그림자 슬라이스를 다시 그릴지 여부
   Matrix mMapCascadeVP = Matrix::Identity;       // 고정 VP (transpose 전)
   Vec3   mPrevLightDir = Vec3::Zero;             // bounds dirty 검출: 라이트 방향 변화
@@ -275,6 +289,12 @@ private:
   uint64 mAppliedStaticCasterBoundsRevision = 0; // 맵 cascade VP에 반영된 bounds 세대
   uint64 mStaticCasterContentRevision = 1;       // visibility 등 그림자 내용 변경 세대
   uint64 mAppliedStaticCasterContentRevision = 0;// 고정 그림자 슬라이스에 반영된 내용 세대
+  uint64 mMapCascadeRedrawTotal = 0;             // ImGui 진단용 누적 재렌더 횟수 (리셋 없음)
+
+  // 정적 캐스터 전체 월드 AABB
+  Vec3 mStaticCasterAabbMin = Vec3::Zero;
+  Vec3 mStaticCasterAabbMax = Vec3::Zero;
+  bool mHasStaticCasterBounds = false;
 
 private:
   // 변수 재사용을 막기 위해 둔 Dummy Parms

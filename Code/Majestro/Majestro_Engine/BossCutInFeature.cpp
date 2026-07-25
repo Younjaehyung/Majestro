@@ -12,17 +12,6 @@ namespace
 {
     inline float EaseOut(float x) { x = MathUtils::Saturate(x); return 1.f - (1.f - x) * (1.f - x); }
 
-    // EnemyType
-    const wchar_t* BossName(int enemyType)
-    {
-        switch (enemyType)
-        {
-        case EnemyType::Brass:  return L"Tubaitan";
-        case EnemyType::Dragon: return L"Violagon";
-        default:                return L"Tubaitan";
-        }
-    }
-
     void FillRect(DirectX::SpriteBatch* batch, Texture* white,
         const RECT& rect, float r, float g, float b, float a)
     {
@@ -127,7 +116,7 @@ void BossCutInFeature::SpriteRender(DirectX::SpriteBatch* spriteBatch)
     if (W <= 0.f || H <= 0.f)
         return;
 
-    const std::wstring name = BossName(cutIn->mBossType);
+    const std::wstring name = BossAssetName(cutIn->mBossType);
     Texture* white = RESOURCEMANAGER.Get<Texture>(L"UI_White").get();
     Texture* back  = RESOURCEMANAGER.Get<Texture>(L"UI_Boss_Cutin_Back").get();
     Texture* band  = RESOURCEMANAGER.Get<Texture>((L"UI_Boss_Cutin_" + name).c_str()).get();

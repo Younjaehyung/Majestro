@@ -13,6 +13,17 @@ enum EnemyType {
 	Dragon
 };
 
+
+inline const wchar_t* BossAssetName(int enemyType)
+{
+	switch (enemyType)
+	{
+	case EnemyType::Brass:  return L"Tubaitan";
+	case EnemyType::Dragon: return L"Violagon";
+	default:                return L"Tubaitan";
+	}
+}
+
 enum class EnemyAnimState : uint8
 {
 	Run,

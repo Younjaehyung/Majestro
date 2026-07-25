@@ -3172,8 +3172,10 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_Monster_Hp_1", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_1.png");
 			Load<Texture>(L"UI_Monster_Hp_2", L"..\\Resources\\Image\\UI\\UI_Monster_Hp_2.png");
 
-			Load<Texture>(L"UI_Boss_HP_0", L"..\\Resources\\Image\\UI\\UI_Boss_HP_0.png");
-			Load<Texture>(L"UI_Boss_HP_1", L"..\\Resources\\Image\\UI\\UI_Boss_HP_1.png");
+			Load<Texture>(L"UI_Boss_Tubaitan_HP_0", L"..\\Resources\\Image\\UI\\UI_Boss_Tubaitan_HP_0.png");
+			Load<Texture>(L"UI_Boss_Tubaitan_HP_1", L"..\\Resources\\Image\\UI\\UI_Boss_Tubaitan_HP_1.png");
+			Load<Texture>(L"UI_Boss_Violagon_HP_0", L"..\\Resources\\Image\\UI\\UI_Boss_Violagon_HP_0.png");
+			Load<Texture>(L"UI_Boss_Violagon_HP_1", L"..\\Resources\\Image\\UI\\UI_Boss_Violagon_HP_1.png");
 		}
 #pragma endregion
 

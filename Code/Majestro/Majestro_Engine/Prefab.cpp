@@ -775,7 +775,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 
 		if ( enemyType == EnemyType::Brass || enemyType == EnemyType::Dragon)
 		{
-			HUDBossHPBarPrefab bossHpBar{ world, mEntityID };
+			HUDBossHPBarPrefab bossHpBar{ world, mEntityID, static_cast<int>(enemyType) };
 		}
 
 
@@ -1588,12 +1588,17 @@ HUDHPBarPrefab::~HUDHPBarPrefab()
 
 }
 
-HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
+HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity, int bossType)
 {
-	const Vec2 bossBarSize = Vec2(1024.f, 128.f);
+
+	const std::wstring bossName = BossAssetName(bossType);
+	const std::wstring backgroundTextureName = L"UI_Boss_" + bossName + L"_HP_0";
+	const std::wstring fillTextureName = L"UI_Boss_" + bossName + L"_HP_1";
+
+	const Vec2 bossBarSize = Vec2(1024.f, 160.f);
 	const Vec2 bossBarPosition = Vec2(0.f, 32.f);
-	const float fillStartX = 25.f / 1024.f;
-	const float fillEndX = 999.f / 1024.f;
+	const float fillStartX = 8.f / 1024.f;
+	const float fillEndX = 1024.f / 1024.f;
 
 	{
 		Entity background = world->CreateEntity();
@@ -1606,7 +1611,7 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 
 		auto& sprite = world->AddComponent<UISpriteComponent>(
 			background,
-			RESOURCEMANAGER.Get<Texture>(L"UI_Boss_HP_0"));
+			RESOURCEMANAGER.Get<Texture>(backgroundTextureName));
 
 		// 보스 엔티티가 제거되면 남아 있는 배경 HUD도 표시하지 않는다.
 		world->AddComponent<UIScriptComponent>(background).mOnUpdate =
@@ -1631,7 +1636,7 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 
 		auto& sprite = world->AddComponent<UISpriteComponent>(
 			fill,
-			RESOURCEMANAGER.Get<Texture>(L"UI_Boss_HP_1"));
+			RESOURCEMANAGER.Get<Texture>(fillTextureName));
 		sprite.SetVisibleRangeKeepDestinationSize(false);
 		sprite.SetVisibleRangeNormalizedX(0.f, fillEndX);
 
@@ -1642,17 +1647,17 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 			bossEntity,
 			Vec3::Zero,
 			bossBarSize.y,
-			L"UI_Boss_HP_0",
-			L"UI_Boss_HP_1");
+			backgroundTextureName,
+			fillTextureName);
 		hpBar.mIsScreenSpace = true;
 		hpBar.mRenderBgFill = false;
 		hpBar.mFillUvRangeX = Vec2(fillStartX, fillEndX);
-		hpBar.mFillUvRangeY = Vec2(63.f / 128.f, 75.f / 128.f);
+		hpBar.mFillUvRangeY = Vec2(79.f / 160.f, 116.f / 160.f);
 		hpBar.mHitEffectTextureName = L"UI_Player_HP_3";
 		hpBar.mHitEffectCols = 4;
 		hpBar.mHitEffectRows = 1;
 		hpBar.mHitEffectFrameCount = 4;
-		hpBar.mHitEffectHeightScale = 2.0f;
+		hpBar.mHitEffectHeightScale = 1.0f;
 		hpBar.mHitEffectOffsetPx = Vec2::Zero;
 
 		world->AddComponent<UIScriptComponent>(fill).mOnUpdate =
@@ -1669,7 +1674,7 @@ HUDBossHPBarPrefab::HUDBossHPBarPrefab(World* world, Entity bossEntity)
 					return;
 				}
 
-				// UI_Boss_HP_1에서 실제 붉은 체력 영역인 X 25부터 998까지만 체력 비율로 자른다.
+			
 				const float hpRatio = std::clamp(
 					static_cast<float>((std::max)(0, health->mCurrentHp)) /
 					static_cast<float>(health->mMaxHp),

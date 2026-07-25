@@ -200,7 +200,7 @@ public:
 class HUDBossHPBarPrefab : public Prefab
 {
 public:
-	HUDBossHPBarPrefab(World* world, Entity bossEntity);
+	HUDBossHPBarPrefab(World* world, Entity bossEntity, int bossType);
 	~HUDBossHPBarPrefab();
 };
 

@@ -3,6 +3,7 @@
 
 #include "HighlightComponent.h"
 #include "PlayerComponent.h"
+#include "PlayerAnimationResolver.h"
 #include "TransformComponent.h"
 #include "VfxComponent.h"
 #include "VfxSystem.h"
@@ -12,16 +13,6 @@
 #include "DecalFactory.h"
 #include "TagComponent.h"
 #include "Engine.h"
-
-
-namespace
-{
-    bool IsUltimateState(int upperState)
-    {
-        return upperState == static_cast<int>(ReplicatedActionState::UltimateIntro)
-            || upperState == static_cast<int>(ReplicatedActionState::Special);
-    }
-}
 
 
 HighlightSystem::HighlightSystem(World* world) : System(world)
@@ -45,7 +36,7 @@ void HighlightSystem::UpdateHighlights(float deltaTime)
 
         bool ultimateActive = false;
         if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity))
-            ultimateActive = IsUltimateState(player->mUpperState);
+            ultimateActive = IsUltimateActionState(player->mUpperState);
 
         hl->mElapsed += deltaTime;
 

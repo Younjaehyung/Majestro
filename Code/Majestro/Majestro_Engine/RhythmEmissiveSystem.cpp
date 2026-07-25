@@ -2,6 +2,8 @@
 #include "RhythmEmissiveSystem.h"
 
 #include "RhythmEmissiveComponent.h"
+#include "PlayerComponent.h"
+#include "PlayerAnimationResolver.h"
 #include "World.h"
 
 
@@ -30,7 +32,12 @@ void RhythmEmissiveSystem::UpdateEmissives(float deltaTime)
             emissive->mTimer = (std::max)(0.0f, emissive->mTimer);
         }
 
-        const float targetGate = emissive->mTimer > 0.0f ? 1.0f : 0.0f;
+     
+        bool ultimateActive = false;
+        if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity))
+            ultimateActive = IsUltimateActionState(player->mUpperState);
+
+        const float targetGate = (emissive->mTimer > 0.0f || ultimateActive) ? 1.0f : 0.0f;
         if (emissive->mCurrentGate < targetGate)
         {
             const float rate = emissive->mFadeIn > 0.0f

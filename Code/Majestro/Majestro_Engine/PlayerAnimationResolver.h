@@ -48,6 +48,13 @@ inline bool IsHoldLastFrameState(ClientAnimState state)
 	return state == ClientAnimState::Dead;
 }
 
+// 궁극기 연출중인지
+inline bool IsUltimateActionState(int upperState)
+{
+	return upperState == static_cast<int>(ReplicatedActionState::UltimateIntro)
+		|| upperState == static_cast<int>(ReplicatedActionState::Special);
+}
+
 inline ClientAnimState ToClientActionState(int actionState)
 {
 	switch (static_cast<ReplicatedActionState>(actionState))

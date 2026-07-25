@@ -1085,7 +1085,7 @@ void FourthScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<InteractionSystem>();   // 11-1. 맵 상호작용
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복
-	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();         // 사망/리스폰
+	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>(-740.0f);  // 사망/리스폰 (map004 낙사선 -740)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. NavMesh 투영
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송

@@ -16,7 +16,7 @@
 #include "GameRuleComponent.h"
 #include "GameTimer.h"
 
-DeathSystem::DeathSystem(World* world)  : System(world)
+DeathSystem::DeathSystem(World* world, float killY)  : System(world), mKillY(killY)
 {
     mPhase = SysPhase::Sim;
 }
@@ -85,7 +85,7 @@ void DeathSystem::BeginFallDeath()
         if (!transform)
             continue;
 
-        if (transform->mLocalPosition.y >= KILL_Y)
+        if (transform->mLocalPosition.y >= mKillY)
             continue;
 
         if (MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(entity))

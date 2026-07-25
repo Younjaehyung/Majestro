@@ -8,7 +8,7 @@ class World;
 class DeathSystem : public System
 {
 public:
-    DeathSystem(World* world);
+    DeathSystem(World* world, float killY = DEFAULT_KILL_Y);
 
     void Update(float deltaTime) override;
 
@@ -29,14 +29,19 @@ private:
     bool BeginPlayerDeath(World* world, Entity entity, PlayerDeathCause cause, float holdSeconds, bool sendHealthZeroEvent);
 
 private:
-    // 낙사 높이
-    static constexpr float KILL_Y = -800.0f;
+    // 낙사 높이 (씬별 설정값)
+    float mKillY = DEFAULT_KILL_Y;
+
+    // 기본 낙사 높이
+    static constexpr float DEFAULT_KILL_Y = -800.0f;
 
     // 낙사시 스폰까지 시간
     static constexpr float RESPAWN_DELAY = 2.0f;
 
     // 리스폰 쿨타임이 끝난 뒤, 스폰 위치 VFX를 먼저 재생하고 실제 부활까지 기다리는 시간
     static constexpr float RESPAWN_VFX_LEAD = 1.0f;
+
+
 
     shared_ptr<EventManager> mEventManager;
 };

@@ -1157,9 +1157,6 @@ bool EnemySystem::HandleAttackState(
 	            else
 	                TryGetBossPolicyTargetPosition(enemyComp, playerPos);
 
-				// Temporary skill test: force Brass Boss to use skill 4 only.
-				choice = 4;
-
 	            if (usedOnnx && choice == 0)
 	            {
 	                enemyComp->mPendingSkillType = 0;

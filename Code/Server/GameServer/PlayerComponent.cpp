@@ -239,6 +239,7 @@ uint8 MainPlayerComponent::GetReplicatedMovementMode()
 		mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::None);
 		mExternalVelocity = Vec3::Zero;
 		mExternalMoveEndTime = 0.0f;
+		mCanControlHorizontal = true;
 	}
 
 	if (IsDeathActive())
@@ -285,6 +286,7 @@ uint8 MainPlayerComponent::GetReplicatedExternalMoveMode()
 		mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::None);
 		mExternalVelocity = Vec3::Zero;
 		mExternalMoveEndTime = 0.0f;
+		mCanControlHorizontal = true;
 	}
 
 	return mExternalMoveMode;

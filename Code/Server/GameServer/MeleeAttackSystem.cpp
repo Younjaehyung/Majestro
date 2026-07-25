@@ -352,8 +352,21 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 			{
 				knockbackDirection.Normalize();
 				const Vec3 knockbackVector = knockbackDirection * stat.knockbackDistance;
-				targetTransform->mLocalPosition += knockbackVector;
-				targetTransform->mMovingVector += knockbackVector;
+				if (request.bulletType == SkillType::DragonSkill3 && targetIsPlayer)
+				{
+					eventManager->Enqueue<EvImpulse>({
+						target,
+						knockbackVector.x,
+						0.0f,
+						knockbackVector.z,
+						ImpulseSource::Knockback
+					});
+				}
+				else
+				{
+					targetTransform->mLocalPosition += knockbackVector;
+					targetTransform->mMovingVector += knockbackVector;
+				}
 			}
 		}
 

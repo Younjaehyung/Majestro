@@ -169,7 +169,6 @@ void MovementSystem::UpdateEvent(float dt)
 
 					case ImpulseSource::Knockback:
 						player->mExternalMoveMode = static_cast<uint8>(ReplicatedExternalMoveMode::OverrideXZ);
-						player->mCanControlHorizontal = false;
 						break;
 
 					case ImpulseSource::Wind:

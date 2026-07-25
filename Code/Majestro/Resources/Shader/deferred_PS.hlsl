@@ -10,15 +10,19 @@ struct VS_OUT
     float3 viewBinormal : BINORMAL;
     
     nointerpolation uint materialIndex : MaterialIndex;
+    nointerpolation float4 objectGlow : ObjectGlow;
 };
 
 struct PS_OUT
 {
     // position RT 제거 — 뷰공간 위치는 PRE_DEPTH(Gbuffer[0]) 역투영으로 재구성
     float4 normal   : SV_Target0; // xyz = view normal, w = metallic
-    float4 color    : SV_Target1; // rgb = baseColor,   a = roughness
-    float4 emissive : SV_Target2; // rgb = emissive
+    float4 color    : SV_Target1; // rgb = baseColor,  a = roughness
+    float4 emissive : SV_Target2; // rgb = emissive, a = material AO
 };
+
+// 이미시브 HDR 스케일
+static const float EMISSIVE_HDR_SCALE = 1.0f;
 
 
 
@@ -137,6 +141,9 @@ PS_OUT PS_Main(VS_OUT input)
         emissive = TextureMaps[materials.EmissiveMapIndex].Sample(g_sam_0, input.uv).rgb;
     }
 
+
+    emissive += input.objectGlow.rgb * max(0.0f, input.objectGlow.a);
+
     // OcclusionMap(AO) → emissive.a에 패킹해 G-Buffer로 전달
     float materialAO = 1.0f;
     if (materials.OcclusionMapIndex != -1)
@@ -146,7 +153,7 @@ PS_OUT PS_Main(VS_OUT input)
 
     output.normal   = float4(viewNormal.xyz, metallic);
     output.color    = float4(baseColor.rgb, roughness);
-    output.emissive = float4(emissive, materialAO); // a채널 = material AO
+    output.emissive = float4(emissive * EMISSIVE_HDR_SCALE, materialAO); // a채널 = material AO
 
     return output;
 }

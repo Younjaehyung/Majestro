@@ -30,19 +30,16 @@ namespace
 	constexpr uint8 kBrassSkill3PatternShotCount = 8;
 	constexpr float kBrassSkill3DurationBeats = 8.0f;
 	constexpr float kBrassSkill2FireDelayBeats = 1.5f;
-	constexpr float kBrassSkill4MinX = -3752.0f;
-	constexpr float kBrassSkill4MaxX = 1498.0f;
-	constexpr float kBrassSkill4MinZ = -1245.0f;
-	constexpr float kBrassSkill4MaxZ = 1255.0f;
+
+	constexpr float kBrassSkill4OriginX = -3752.0f;
+	constexpr float kBrassSkill4OriginZ = -1245.0f;
+	constexpr float kBrassSkill4FloorY = 0.0f;
 	constexpr float kBrassSkill4TileSize = 250.0f;
-	constexpr float kBrassSkill4EffectY = 5.0f;
+	constexpr uint8 kBrassSkill4ColumnCount = 22;   // x: -3752 ~ 1498
+	constexpr uint8 kBrassSkill4RowCount = 11;      // z: -1245 ~ 1255
 	constexpr float kBrassSkill4ExplosionDelayBeats = 4.0f;
 	constexpr uint8 kBrassSkill4ExplosionCount = 3;
 	constexpr int32 kBrassSkill4ExplosionDamage = 50;
-	constexpr int kBrassSkill4ColumnCount =
-		static_cast<int>((kBrassSkill4MaxX - kBrassSkill4MinX) / kBrassSkill4TileSize);
-	constexpr int kBrassSkill4RowCount =
-		static_cast<int>((kBrassSkill4MaxZ - kBrassSkill4MinZ) / kBrassSkill4TileSize);
 	constexpr float kDragonSkill1FireDelayBeats = 1.0f;
 	constexpr float kDragonSkill123AnimDurationSeconds = 3.0f;
 	constexpr uint8 kDragonSkill4ExplosionCount = 5;
@@ -86,49 +83,45 @@ namespace
         return false;
     }
 
+	// 격자 규격 한 벌만 보낸다. 어느 타일이 켜지는지는 클라가 패리티로 복원한다.
 	void BroadcastBrassSkill4Tiles(
 		const std::shared_ptr<EventManager>& eventManager,
 		bool activeParity,
-		EffectSpawnReason reason = EffectSpawnReason::Fire)
+		BossTilePhase phase,
+		float durationSec)
 	{
 		if (!eventManager)
 			return;
 
-		for (int zIndex = 0; zIndex < kBrassSkill4RowCount; ++zIndex)
-		{
-			for (int xIndex = 0; xIndex < kBrassSkill4ColumnCount; ++xIndex)
-			{
-				if (((xIndex + zIndex) & 1) != static_cast<int>(activeParity))
-					continue;
-
-				const float centerX =
-					kBrassSkill4MinX + (static_cast<float>(xIndex) + 0.5f) * kBrassSkill4TileSize;
-				const float centerZ =
-					kBrassSkill4MinZ + (static_cast<float>(zIndex) + 0.5f) * kBrassSkill4TileSize;
-				eventManager->Enqueue<EvEffectSpawn>({
-					static_cast<uint8>(SkillType::BrassSkill4),
-					centerX,
-					kBrassSkill4EffectY,
-					centerZ,
-					reason
-				});
-			}
-		}
+		eventManager->Enqueue<EvBossTileBroadcast>({
+			static_cast<uint8>(SkillType::BrassSkill4),
+			static_cast<uint8>(phase),
+			static_cast<uint8>(activeParity ? 1 : 0),
+			kBrassSkill4ColumnCount,
+			kBrassSkill4RowCount,
+			kBrassSkill4OriginX,
+			kBrassSkill4FloorY,
+			kBrassSkill4OriginZ,
+			kBrassSkill4TileSize,
+			durationSec
+		});
 	}
 
+	// 브로드캐스트와 동일한 격자 정의로 판정한다(셀 중심 = 원점 + 간격 * 인덱스).
 	bool IsInsideBrassSkill4ActiveTile(const Vec3& position, bool activeParity)
 	{
-		if (position.x < kBrassSkill4MinX || position.x >= kBrassSkill4MaxX ||
-			position.z < kBrassSkill4MinZ || position.z >= kBrassSkill4MaxZ)
+		const float columnF = (position.x - kBrassSkill4OriginX) / kBrassSkill4TileSize;
+		const float rowF = (position.z - kBrassSkill4OriginZ) / kBrassSkill4TileSize;
+
+		const int column = static_cast<int>(std::lround(columnF));
+		const int row = static_cast<int>(std::lround(rowF));
+		if (column < 0 || column >= static_cast<int>(kBrassSkill4ColumnCount) ||
+			row < 0 || row >= static_cast<int>(kBrassSkill4RowCount))
 		{
 			return false;
 		}
 
-		const int xIndex =
-			static_cast<int>((position.x - kBrassSkill4MinX) / kBrassSkill4TileSize);
-		const int zIndex =
-			static_cast<int>((position.z - kBrassSkill4MinZ) / kBrassSkill4TileSize);
-		return ((xIndex + zIndex) & 1) == static_cast<int>(activeParity);
+		return ((column + row) & 1) == static_cast<int>(activeParity);
 	}
 
     SkillType GetBrassSkillType(uint8 pattern)
@@ -1000,7 +993,8 @@ bool EnemySystem::HandleAttackState(
 					BroadcastBrassSkill4Tiles(
 						eventManager,
 						enemyComp->mBrassSkill4ActiveParity,
-						EffectSpawnReason::CollisionEntity);
+						BossTilePhase::Explode,
+						0.0f);
 
 					for (Entity target : mWorld->GetEntitiesWithComponents<
 						MainPlayerComponent, TransformComponent, HealthComponent>())
@@ -1035,7 +1029,9 @@ bool EnemySystem::HandleAttackState(
 							nowSeconds + beatSeconds * kBrassSkill4ExplosionDelayBeats;
 						BroadcastBrassSkill4Tiles(
 							eventManager,
-							enemyComp->mBrassSkill4ActiveParity);
+							enemyComp->mBrassSkill4ActiveParity,
+							BossTilePhase::Warn,
+							beatSeconds * kBrassSkill4ExplosionDelayBeats);
 					}
 					else
 					{
@@ -1043,6 +1039,12 @@ bool EnemySystem::HandleAttackState(
 						enemyComp->mPendingSkillType = 0;
 						enemyComp->mBrassRushEndHoldUntilTime = 0.0f;
 						enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
+						// 마지막 폭발까지 끝났으면 전 타일 소등
+						BroadcastBrassSkill4Tiles(
+							eventManager,
+							enemyComp->mBrassSkill4ActiveParity,
+							BossTilePhase::Clear,
+							0.0f);
 					}
 				}
 				break;
@@ -1183,6 +1185,15 @@ bool EnemySystem::HandleAttackState(
 	            enemyComp->mBrassSkill3ShotsRemaining = 0;
 	            enemyComp->mBrassSkill3NextShotTime = 0.0f;
             enemyComp->mBrassSkill3ShotInterval = 0.0f;
+			// 장판이 켜진 채로 다른 패턴이 시작되면 남은 타일 발광을 확실히 끈다.
+			if (enemyComp->mBrassSkill4ExplosionsRemaining > 0)
+			{
+				BroadcastBrassSkill4Tiles(
+					eventManager,
+					enemyComp->mBrassSkill4ActiveParity,
+					BossTilePhase::Clear,
+					0.0f);
+			}
 			enemyComp->mBrassSkill4NextExplosionTime = -1.0f;
 			enemyComp->mBrassSkill4ExplosionsRemaining = 0;
 
@@ -1279,7 +1290,9 @@ bool EnemySystem::HandleAttackState(
 							patternEndTime + enemyComp->mAttackAnimTime;
 						BroadcastBrassSkill4Tiles(
 							eventManager,
-							enemyComp->mBrassSkill4ActiveParity);
+							enemyComp->mBrassSkill4ActiveParity,
+							BossTilePhase::Warn,
+							beatSeconds * kBrassSkill4ExplosionDelayBeats);
 	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
 	                }
 	            }

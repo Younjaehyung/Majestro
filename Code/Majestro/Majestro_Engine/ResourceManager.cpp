@@ -3460,6 +3460,10 @@ void ResourceManager::CreateDefaultMaterial()
 	Load<Texture>(L"UI_Emote_Sheet", L"..\\Resources\\Image\\UI\\UI_Emote_Sheet.png");
 	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_Spray_Sheet.png");
 
+	Load<Texture>(L"UI_Ibanix_Effect_Circle", L"..\\Resources\\Image\\UI\\UI_Ibanix_Effect_Circle.png");
+
+
+
 }
 
 void ResourceManager::CreateDefaultParticleEffect()
@@ -3526,8 +3530,9 @@ void ResourceManager::CreateDefaultParticleEffect()
 		effect->mDesc.materialName = L"CloudParticleInstanced";
 		effect->mDesc.computeMaterialName = L"ComputeCloudParticle";
 		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
-		effect->mDesc.maxParticle = 72;
-		effect->mDesc.createInterval = 0.18f;
+	
+		effect->mDesc.maxParticle = 96;
+		effect->mDesc.createInterval = 0.09f;
 		effect->mDesc.minLifeTime = 38.0f;
 		effect->mDesc.maxLifeTime = 58.0f;
 		effect->mDesc.minSpeed = 110.0f;
@@ -3546,8 +3551,8 @@ void ResourceManager::CreateDefaultParticleEffect()
 		effect->mDesc.materialName = L"CloudParticleInstanced";
 		effect->mDesc.computeMaterialName = L"ComputeCloudParticleNear";
 		effect->mDesc.renderMode = ParticleComponent::RenderMode::InstancedQuadBillboard;
-		effect->mDesc.maxParticle = 32;
-		effect->mDesc.createInterval = 0.42f;
+		effect->mDesc.maxParticle = 44;
+		effect->mDesc.createInterval = 0.22f;
 		effect->mDesc.minLifeTime = 20.0f;
 		effect->mDesc.maxLifeTime = 34.0f;
 		effect->mDesc.minSpeed = 85.0f;

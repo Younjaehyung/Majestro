@@ -17,18 +17,25 @@ namespace
 {
     constexpr float kBaseRhythmEffectRadius = 1500.f;
 
-    bool ResolveProviderAura(PlayerType type, Rhythm rhythm, Vec4& color)
+    struct AuraStyle
+    {
+        Vec4           Color   = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        const wchar_t* Texture = nullptr;
+    };
+
+    bool ResolveProviderAura(PlayerType type, Rhythm rhythm, AuraStyle& out)
     {
         if (type == PlayerType::Rudwig)
         {
-            if (rhythm == Rhythm::R1) { color = Vec4(3.0f, 0.5f, 0.1f, 0.8f); return true; }
-            if (rhythm == Rhythm::R3) { color = Vec4(0.2f, 2.2f, 2.6f, 0.8f); return true; }
+            if (rhythm == Rhythm::R1) { out = { Vec4(3.0f, 0.5f, 0.1f, 0.8f), nullptr }; return true; }
+            if (rhythm == Rhythm::R3) { out = { Vec4(0.2f, 2.2f, 2.6f, 0.8f), nullptr }; return true; }
         }
         else if (type == PlayerType::Ibanix)
         {
-            if (rhythm == Rhythm::R1) { color = Vec4(0.2f, 2.2f, 2.6f, 0.8f); return true; }
-            if (rhythm == Rhythm::R2) { color = Vec4(0.3f, 0.9f, 3.0f, 0.8f); return true; }
-            if (rhythm == Rhythm::R3) { color = Vec4(0.1f, 2.2f, 0.4f, 0.8f); return true; }
+            if (rhythm == Rhythm::R1) { out = { Vec4(0.2f, 2.2f, 2.6f, 0.8f), nullptr }; return true; }
+            if (rhythm == Rhythm::R2) { out = { Vec4(0.3f, 0.9f, 3.0f, 0.8f), nullptr }; return true; }
+            // 초록 링 텍스처. 무채색 부스트로 원색 유지 + Bloom.
+            if (rhythm == Rhythm::R3) { out = { Vec4(1.6f, 1.6f, 1.6f, 0.55f), L"UI_Ibanix_Effect_Circle" }; return true; }
         }
         return false;
     }
@@ -70,8 +77,8 @@ void BuffAuraSystem::Update(float /*deltaTime*/)
         // 예약 리듬은 적용 박자 전까지 실제 오라에 반영하지 않는다.
         const Rhythm rhythm = SanitizeRhythm(mp->mRhythm);
 
-        Vec4 color;
-        bool provides = ResolveProviderAura(mp->mPlayerType, rhythm, color);
+        AuraStyle style;
+        bool provides = ResolveProviderAura(mp->mPlayerType, rhythm, style);
 
         if (provides && IsSilenced(mWorld, player))
             provides = false;
@@ -86,7 +93,7 @@ void BuffAuraSystem::Update(float /*deltaTime*/)
                                (mWorld->HasComponent<DecalComponent>(aura) == false);
         if (needSpawn)
         {
-            aura = DecalFactory::SpawnRing(mWorld, tf->GetWorldPosition(), radius, color, thickness, -1.0f);
+            aura = DecalFactory::SpawnRing(mWorld, tf->GetWorldPosition(), radius, style.Color, thickness, -1.0f);
             DecalComponent& d = *mWorld->GetComponent<DecalComponent>(aura);
             d.FollowTarget    = player;
             d.NormalThreshold = 0.35f;
@@ -94,13 +101,19 @@ void BuffAuraSystem::Update(float /*deltaTime*/)
 
         if (auto* d = mWorld->GetComponent<DecalComponent>(aura))
         {
-            d->Color     = color;
+            d->Color     = style.Color;
             d->Radius    = radius;
             d->Height    = height;
             d->Thickness = thickness;
 
-            auto tex = RESOURCEMANAGER.Get<Texture>(L"DecalMagicCircle");
-            d->TexIndex = tex ? static_cast<int>(tex->GetImageIndex()) : -1;
+
+            d->TexIndex = -1;
+            if (style.Texture != nullptr)
+            {
+                auto tex = RESOURCEMANAGER.Get<Texture>(style.Texture);
+                if (tex)
+                    d->TexIndex = static_cast<int>(tex->GetImageIndex());
+            }
         }
     }
 

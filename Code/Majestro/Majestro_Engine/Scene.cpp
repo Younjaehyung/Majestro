@@ -373,7 +373,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 	}
 }
 
-void Scene::LoadCollisionJson(const wstring& path)
+void Scene::LoadCollisionJson(const wstring& path, const std::string& assetLevelName)
 {
 	int loadedInstanceCount = 0;
 	int loadedMeshCount = 0;
@@ -381,7 +381,8 @@ void Scene::LoadCollisionJson(const wstring& path)
 	try
 	{
 		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
-		const std::wstring prefix = s2ws(level.levelName);
+		const std::string assetLevel = assetLevelName.empty() ? level.levelName : assetLevelName;
+		const std::wstring prefix = s2ws(assetLevel);
 		TrackResourcePrefix(prefix);
 		auto physicsWorld = mWorld->GetPhysicsWorld();
 		if (!physicsWorld)
@@ -402,7 +403,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 				continue;
 			}
 
-			std::wstring fbxPath = BuildMapFbxPath(level.levelName, stem);
+			std::wstring fbxPath = BuildMapFbxPath(assetLevel, stem);
 			shared_ptr<FBXData> collisionFbx = RESOURCEMANAGER.LoadFBXMesh(fbxPath, prefix);
 			if (!collisionFbx || collisionFbx->GetColliders().empty())
 			{
@@ -2266,7 +2267,7 @@ void FirstScene::Initialize()
 	//LoadJsonLevel(L"..\\Resources\\Json\\M_StylizedStudyLogCabin_A1_Export.json");
 	// LoadJsonLevel(L"..\\Resources\\Json\\ThirdPersonMap_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\Map001_Export.json");
-	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Export.json");
+	LoadCollisionJson(L"..\\Resources\\Json\\Map001_Nav_Export.json", "Map001");
 
 
 	/////////////////////////////////////////////////////////////////////

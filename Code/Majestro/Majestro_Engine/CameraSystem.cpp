@@ -240,11 +240,7 @@ void CameraSystem::UpdateOrbitCamera(CameraTypeComponent* camType, TransformComp
 	float cameraDistance = maxDist;
 	if (hit)
 	{
-		cameraDistance = hitDist - camType->mCameraMargin;
-		if (cameraDistance < camType->mCameraMinLenth)
-			cameraDistance = camType->mCameraMinLenth;
-		if (cameraDistance > maxDist)
-			cameraDistance = maxDist;
+		cameraDistance = std::clamp(hitDist - camType->mCameraMargin, 0.f, maxDist);
 	}
 
 

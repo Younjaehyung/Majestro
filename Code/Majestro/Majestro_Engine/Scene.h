@@ -30,7 +30,7 @@ public:
 
 	// 맵 데이터 전체 로드
 	void LoadJsonLevel(const wstring& path);
-	void LoadCollisionJson(const wstring& path);
+	void LoadCollisionJson(const wstring& path, const std::string& assetLevelName = "");
 	
 	void CreatePauseMenu();
 

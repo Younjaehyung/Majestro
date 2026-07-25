@@ -68,6 +68,9 @@ enum class UIActionState
 	Bounce,
 };
 
+
+inline constexpr float kUIBeatBounceAmplitude = 0.05f;	// HUD 박자 바운스 기본 세기
+
 class UIActionComponent : public Component<UIActionComponent>
 {
 public:
@@ -85,7 +88,7 @@ public:
 	bool mIsLoop = false; // 애니메이션 무한 반복 여부
 	float mDuration = 0.2f; // 애니메이션 지속 시간
 	float mElapsedTime = 0.f; // 애니메이션 경과 시간
-	float mBounceAmplitude = 0.05f; // Bounce 크기 변화 정도
+	float mBounceAmplitude = kUIBeatBounceAmplitude; // Bounce 크기 변화 정도
 	float mBounceFrequency = 5.f; // Bounce 빈도
 	float mBounceDamping = 5.f; // Bounce 감쇠 정도
 

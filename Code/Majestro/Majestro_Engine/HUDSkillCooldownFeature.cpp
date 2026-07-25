@@ -7,6 +7,9 @@
 #include "PlayerComponent.h"
 #include "UISpriteComponent.h"
 #include "UITextComponent.h"
+#include "UITransformComponent.h"
+#include "BeatSystem.h"
+#include "MathUtils.h"
 #include "GameEvents.h"
 
 namespace
@@ -33,6 +36,17 @@ void HUDSkillCooldownFeature::Update(float dt)
 		return;
 
 	const float now = TIMER.GetTotalTime();
+
+
+	float beatBounce = 1.f;
+	if (auto systemManager = mWorld->GetSystemManager())
+	{
+		if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
+		{
+			if (beatSystem->GetBeatSeconds() > 0.f)
+				beatBounce = MathUtils::BeatBounceScale(beatSystem->GetBeatProgress(), kUIBeatBounceAmplitude);
+		}
+	}
 
 	for (Entity e : mWorld->GetEntitiesWithComponent<HUDSkillSlotComponent>())
 	{
@@ -126,6 +140,9 @@ void HUDSkillCooldownFeature::Update(float dt)
 				{
 					tx->mVisible = true;
 					tx->mText = std::to_wstring((std::max)(0, number));
+
+					if (auto* tr = mWorld->GetComponent<UITransformComponent>(slot->mCountText))
+						tr->mScale = Vec2(beatBounce, beatBounce);
 				}
 				else
 				{

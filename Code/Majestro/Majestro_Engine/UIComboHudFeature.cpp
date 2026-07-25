@@ -5,6 +5,8 @@
 #include "ResourceManager.h"
 #include "Texture.h"
 #include "World.h"
+#include "BeatSystem.h"
+#include "MathUtils.h"
 #include "EventManager.h"
 #include "GameEvents.h"
 #include "ComboComponent.h"
@@ -72,9 +74,20 @@ namespace
 	// 예시의 콤보 숫자 색상
 	constexpr float kComboR = 1.0f, kComboG = 1.0f, kComboB = 1.0f;
 
-	constexpr float kHudPopDuration = 0.15f; // 증가/랭크 변경 팝 길이
+	constexpr float kHudPopDuration = 0.15f; // 콤보 숫자 증가 팝 길이
 	constexpr float kCountPopScale = 1.45f;
-	constexpr float kHudRankPopScale = 1.35f;
+
+	// 랭크 팝
+	constexpr uint8 kJudgeMiss = 0;                  // EvBeatJudgement (0=Miss, 1=Good, 2=Perfect)
+	constexpr float kRankHitPopScale = 1.22f;        // 박자 성공(Good/Perfect)
+	constexpr float kRankHitPopDuration = 0.14f;
+	constexpr float kRankUpPopScale = 1.60f;         // 랭크 상승
+	constexpr float kRankUpPopDuration = 0.28f;
+	constexpr float kRankDownPopScale = 1.12f;       // 랭크 하강
+	constexpr float kRankDownPopDuration = 0.18f;
+
+	// 콤보 HUD 박자 바운스
+	constexpr float kHudBounceAmplitude = kUIBeatBounceAmplitude;
 
 	// 판정 피드
 	constexpr float kFeedBaseY = -60.0f;   // 최신 판정(가장 아래) 중심 Y
@@ -109,6 +122,9 @@ void UIComboHudFeature::Initialize(World* world)
 	mCurrentRankIndex = kRankIndexF; // 기본 랭크 F에서 시작
 	mAppliedRankIndex = -1;
 	mRankDecayTimer = 0.0f;
+	mRankPopTimer = 0.0f;
+	mRankPopScale = 1.0f;
+	mRankPopDuration = 0.0f;
 }
 
 void UIComboHudFeature::Update(float dt)
@@ -119,8 +135,14 @@ void UIComboHudFeature::Update(float dt)
 	EnsureEntities();
 
 	mWorld->GetEventManager()->Consume<EvBeatJudgement>([this](const EvBeatJudgement& ev) {
-		if (ev.predicted)
-			PushJudgement(ev.judgement);
+		if (!ev.predicted)
+			return;
+
+		PushJudgement(ev.judgement);
+
+		// 박자를 맞춘 순간 랭크 반응
+		if (ev.judgement != kJudgeMiss)
+			TriggerRankPop(kRankHitPopScale, kRankHitPopDuration);
 	});
 
 	UpdateComboCorner(dt);
@@ -165,6 +187,13 @@ void UIComboHudFeature::EnsureEntities()
 		sprite.mTexture = RESOURCEMANAGER.Get<Texture>(L"UI_Result_Combo_Sheet");
 		sprite.mVisible = false;
 
+		// 박자에 맞춰 바운스
+		auto& action = mWorld->AddComponent<UIActionComponent>(mRankEntity);
+		action.mState = UIActionState::Bounce;
+		action.mActor = UIActor::GamePlay;
+		action.mIsLoop = true;
+		action.mBounceAmplitude = kHudBounceAmplitude;
+
 		mWorld->AddComponent<UIRenderGroupComponent>(mRankEntity, UIRenderGroup::Gameplay);
 	}
 
@@ -207,6 +236,13 @@ void UIComboHudFeature::EnsureEntities()
 		sprite.SetSourceRect(kComboWordCell.mSrcX, kComboWordCell.mSrcY, kComboWordCellW, kComboWordCellH);
 		sprite.mVisible = false;
 
+		// 랭크 문자와 같은 박자 바운스
+		auto& action = mWorld->AddComponent<UIActionComponent>(mComboWordEntity);
+		action.mState = UIActionState::Bounce;
+		action.mActor = UIActor::GamePlay;
+		action.mIsLoop = true;
+		action.mBounceAmplitude = kHudBounceAmplitude;
+
 		mWorld->AddComponent<UIRenderGroupComponent>(mComboWordEntity, UIRenderGroup::Gameplay);
 	}
 
@@ -248,6 +284,19 @@ int UIComboHudFeature::ReadLocalCombo() const
 	return 0;
 }
 
+float UIComboHudFeature::ReadBeatBounce() const
+{
+	auto systemManager = mWorld->GetSystemManager();
+	if (!systemManager)
+		return 1.0f;
+
+	BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>();
+	if (!beatSystem || beatSystem->GetBeatSeconds() <= 0.0f)
+		return 1.0f;
+
+	return MathUtils::BeatBounceScale(beatSystem->GetBeatProgress(), kHudBounceAmplitude);
+}
+
 int UIComboHudFeature::RankIndexForCombo(int combo)
 {
 	// 콤보 구간별 도달 랭크 (kHudRankCells 인덱스)
@@ -268,7 +317,7 @@ void UIComboHudFeature::UpdateRankState(int combo, float dt)
 		if (candidate < mCurrentRankIndex)
 		{
 			mCurrentRankIndex = candidate;
-			mRankPopTimer = kHudPopDuration;
+			TriggerRankPop(kRankUpPopScale, kRankUpPopDuration);   // 랭크 상승
 		}
 		return;
 	}
@@ -284,7 +333,7 @@ void UIComboHudFeature::UpdateRankState(int combo, float dt)
 	if (mLastCombo > 0)
 	{
 		++mCurrentRankIndex;
-		mRankPopTimer = kHudPopDuration;
+		TriggerRankPop(kRankDownPopScale, kRankDownPopDuration);
 		mRankDecayTimer = 0.0f;
 		return;
 	}
@@ -295,8 +344,22 @@ void UIComboHudFeature::UpdateRankState(int combo, float dt)
 	{
 		mRankDecayTimer = 0.0f;
 		++mCurrentRankIndex;
-		mRankPopTimer = kHudPopDuration;
+		TriggerRankPop(kRankDownPopScale, kRankDownPopDuration);
 	}
+}
+
+void UIComboHudFeature::TriggerRankPop(float scale, float duration)
+{
+
+	const float currentScale = (mRankPopDuration > 0.0f)
+		? std::lerp(1.0f, mRankPopScale, mRankPopTimer / mRankPopDuration): 1.0f;
+
+	if (scale <= currentScale)
+		return;
+
+	mRankPopScale = scale;
+	mRankPopDuration = duration;
+	mRankPopTimer = duration;
 }
 
 void UIComboHudFeature::UpdateComboCorner(float dt)
@@ -325,7 +388,8 @@ void UIComboHudFeature::UpdateComboCorner(float dt)
 	}
 
 	mRankPopTimer = (std::max)(0.0f, mRankPopTimer - dt);
-	const float rankScale = std::lerp(1.0f, kHudRankPopScale, mRankPopTimer / kHudPopDuration);
+	const float rankPopT = (mRankPopDuration > 0.0f) ? (mRankPopTimer / mRankPopDuration) : 0.0f;
+	const float rankScale = std::lerp(1.0f, mRankPopScale, rankPopT);
 	rankTransform->mScale = Vec2(rankScale, rankScale);
 
 	backSprite->mVisible = true;
@@ -352,7 +416,7 @@ void UIComboHudFeature::UpdateComboCorner(float dt)
 	mCountPopTimer = (std::max)(0.0f, mCountPopTimer - dt);
 
 	const float countScale =
-		kCountScale * std::lerp(1.0f, kCountPopScale, mCountPopTimer / kHudPopDuration);
+		kCountScale * std::lerp(1.0f, kCountPopScale, mCountPopTimer / kHudPopDuration) * ReadBeatBounce();
 
 	countTransform->mScale = Vec2(countScale, countScale);
 

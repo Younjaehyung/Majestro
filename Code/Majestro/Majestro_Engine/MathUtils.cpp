@@ -191,4 +191,11 @@ float DampedSine(float t, float freq, float damp)
 	return std::sin(t * freq) * std::exp(-damp * t);
 }
 
+float BeatBounceScale(float beatProgress, float amplitude)
+{
+
+	const float decay = 1.f - std::clamp(beatProgress, 0.f, 1.f);
+	return 1.f + decay * decay * amplitude;
+}
+
 } // namespace MathUtils

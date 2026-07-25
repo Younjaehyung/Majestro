@@ -37,6 +37,9 @@ namespace MathUtils
 	float EaseInCubic(float t);
 	float DampedSine(float t, float freq, float damp);
 
+
+	float BeatBounceScale(float beatProgress, float amplitude);		// 박자 바운스 배율
+
 	// 난수 API
 	std::mt19937& RandomEngine();
 	float RandomRange(float minValue, float maxValue);

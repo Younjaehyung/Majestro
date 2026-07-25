@@ -2,6 +2,7 @@
 #include "World.h"
 #include "System.h"
 #include "Protocol/RhythmDefinitions.h"
+#include <cmath>
 
 class ControllerComponent;
 class MainPlayerComponent;
@@ -25,6 +26,10 @@ public:
 
 	// 한 박자 길이(박자 입력 판정 계산용)
 	float GetBeatSeconds() const { return mBpmSeconds; }
+
+	
+	float GetBeatProgress() const;
+
 
 	// 서버 곡위치 sync 를 한 번이라도 받았는지 (곡 시작 T0 정렬 타이밍 판정)
 	bool HasSynced() const { return mHasSynced; }

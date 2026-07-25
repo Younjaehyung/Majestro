@@ -26,10 +26,9 @@ void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
     {
         if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
         {
-            const float beatSec = beatSystem->GetBeatSeconds();
-            if (beatSec > 0.f)
+            if (beatSystem->GetBeatSeconds() > 0.f)
             {
-                beatProgress = std::fmod(beatSystem->GetSongPosition(), beatSec) / beatSec;
+                beatProgress = beatSystem->GetBeatProgress();
                 hasBeat = true;
             }
         }
@@ -65,9 +64,10 @@ void UIActionUpdateFeature::UpdateActiveUIEntities(float dt)
         {
             if (hasBeat)
             {
-                const float decay = 1.f - beatProgress;
-                const float bounce = decay * decay * uiAction->mBounceAmplitude;
-                uiTransform->mFinalSize = baseSize * (1.f + bounce);
+                const float bounce = MathUtils::BeatBounceScale(beatProgress, uiAction->mBounceAmplitude);
+                const Vec2 scaledSize = Vec2(baseSize.x * uiTransform->mScale.x,
+                                             baseSize.y * uiTransform->mScale.y);
+                uiTransform->mFinalSize = scaledSize * bounce;
             }
             continue;
         }

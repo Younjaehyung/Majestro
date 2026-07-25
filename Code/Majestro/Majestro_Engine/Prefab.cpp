@@ -1201,6 +1201,16 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 	shared_ptr<Texture> skiilTex = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
 	shared_ptr<Texture> overlayTex = RESOURCEMANAGER.Get<Texture>(L"UI_SkillIcon_Sheet");
 
+	// 박자 바운스
+	auto addBeatBounce = [&](Entity e)
+	{
+		auto& action = world->AddComponent<UIActionComponent>(e);
+		action.mState = UIActionState::Bounce;
+		action.mActor = UIActor::Player;
+		action.mIsLoop = true;
+		action.mBounceAmplitude = kUIBeatBounceAmplitude;
+	};
+
 	for (int i = 0; i < 3; ++i)
 	{
 		const float cellX = kIconCol[i] * kCell;             // 아이콘 열 (Skill1/Skill2/궁극기)
@@ -1208,7 +1218,7 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 		const Vec2 skillKey = kKeyCell[i];                   // 키 텍스트 셀 (E/Shift/Q)
 
 		const bool isUlt = (kSkillSlotId[i] == kUltimateSlot);
-		const Vec2 slotSize = isUlt ? kSkillSize * 1.28f : kSkillSize;  // 궁극기는 더 크게(강조)
+		const Vec2 slotSize = isUlt ? kSkillSize * 1.25f : kSkillSize;
 #ifdef _IMGUI
 		const std::string imguiSlotName = (i == 0) ? "Skill1" : (i == 1) ? "Skill2" : "Ultimate";
 #endif
@@ -1310,6 +1320,12 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 			props.push_back({ imguiSlotName + " Count Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
 #endif
 		}
+
+
+		addBeatBounce(back);
+		addBeatBounce(icon);
+		addBeatBounce(overlay);
+		addBeatBounce(key);
 
 		auto& slot = world->AddComponent<HUDSkillSlotComponent>(icon);
 		slot.mSkillSlot = kSkillSlotId[i];

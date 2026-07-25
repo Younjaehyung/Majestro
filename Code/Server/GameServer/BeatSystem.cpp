@@ -1,3 +1,4 @@
+#include "BeatSystem.h"
 #include "pch.h"
 #include "BeatSystem.h"
 #include "BeatComponent.h"
@@ -15,6 +16,7 @@
 BeatSystem::BeatSystem(World* world) : System(world)
 {
 }
+
 
 void BeatSystem::Initialize()
 {
@@ -54,6 +56,16 @@ void BeatSystem::Update(float dt)
 
 	
 	ApplyPendingBuffRequests();
+}
+
+
+float BeatSystem::GetBeatProgress() const
+{
+	// 현재 박자 안에서의 위치 (0=박자 시작, 1에 근접=다음 박자 직전)
+	if (mBpmSeconds <= 0.f)
+		return 0.f;
+	const float progress = std::fmod(mSeconds, mBpmSeconds) / mBpmSeconds;
+	return progress < 0.f ? progress + 1.f : progress;  // 곡 시작 전(음수 곡위치) 대비
 }
 
 void BeatSystem::CollectPendingBuffRequests()

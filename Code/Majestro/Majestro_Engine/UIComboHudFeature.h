@@ -25,10 +25,13 @@ private:
 
 	void EnsureEntities();
 	int ReadLocalCombo() const;
+
+	float ReadBeatBounce() const;
 	void UpdateComboCorner(float dt);
 
 	// 랭크 상태 갱신
 	void UpdateRankState(int combo, float dt);
+	void TriggerRankPop(float scale, float duration);
 	void UpdateJudgementFeed(float dt);
 	void PushJudgement(uint8 judgement);
 
@@ -57,7 +60,11 @@ private:
 	int mAppliedRankIndex = -1;            // 소스렉트가 반영된 랭크 (변경 감지용)
 	float mRankDecayTimer = 0.0f;          // 콤보 부재 시 하강 누적 시간
 	float mCountPopTimer = 0.0f; // 콤보 증가 팝
-	float mRankPopTimer = 0.0f;  // 랭크 변경 팝
+
+	// 랭크 팝
+	float mRankPopTimer = 0.0f;
+	float mRankPopScale = 1.0f;
+	float mRankPopDuration = 0.0f;
 
 	// 판정 피드.
 	std::array<Entity, kFeedPoolSize> mFeedPool{};

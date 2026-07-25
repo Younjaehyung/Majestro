@@ -258,7 +258,7 @@
   "spawners": [
     {
       "id": "first_scene_spawner_a",
-      "position": [ -6030.0, 230.0, -5605.0 ],
+      "position": [ -6030.0, 180.0, -5605.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 4.0,
@@ -274,7 +274,7 @@
     },
     {
       "id": "first_scene_spawner_b",
-      "position": [ -2205.0, 840.0, -4225.0 ],
+      "position": [ -2205.0, 790.0, -4225.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 4.0,
@@ -290,7 +290,7 @@
     },
     {
       "id": "first_scene_spawner_c",
-      "position": [ -4995.0, 190.0, -7175.0 ],
+      "position": [ -4995.0, 140.0, -7175.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 4.0,
@@ -306,7 +306,7 @@
     },
     {
       "id": "first_scene_spawner_d",
-      "position": [ -4500.0, 190.0, -790.0 ],
+      "position": [ -4500.0, 140.0, -790.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 2.0,
@@ -322,7 +322,7 @@
     },
     {
       "id": "first_scene_spawner_e",
-      "position": [ -4500.0, 190.0, 695.0 ],
+      "position": [ -4500.0, 140.0, 695.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -338,7 +338,7 @@
     },
     {
       "id": "first_scene_spawner_f",
-      "position": [ -755.0, -65.0, -560.0 ],
+      "position": [ -755.0, -115.0, -560.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -354,7 +354,7 @@
     },
     {
       "id": "first_scene_spawner_g",
-      "position": [ -1005.0, -65.0, 815.0 ],
+      "position": [ -1005.0, -115.0, 815.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 8.0,
@@ -370,7 +370,7 @@
     },
     {
       "id": "first_scene_spawner_h",
-      "position": [ -2370.0, 330.0, 3745.0 ],
+      "position": [ -2370.0, 280.0, 3745.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -386,7 +386,7 @@
     },
     {
       "id": "first_scene_spawner_i",
-      "position": [ 1160.0, -70.0, 3855.0 ],
+      "position": [ 1160.0, -120.0, 3855.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -402,7 +402,7 @@
     },
     {
       "id": "first_scene_spawner_j",
-      "position": [ 2235.0, 170.0, 5845.0 ],
+      "position": [ 2235.0, 120.0, 5845.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -418,7 +418,7 @@
     },
     {
       "id": "first_scene_spawner_k",
-      "position": [ 1395.0, 170.0, 10330.0 ],
+      "position": [ 1395.0, 120.0, 10330.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -434,7 +434,7 @@
     },
     {
       "id": "first_scene_spawner_l",
-      "position": [ 4495.0, -85.0, 18455.0 ],
+      "position": [ 4495.0, -135.0, 18455.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 3.0,
@@ -450,7 +450,7 @@
     },
     {
       "id": "first_scene_spawner_n",
-      "position": [ 7890.0, -85.0, 15740.0 ],
+      "position": [ 7890.0, -135.0, 15740.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 8.0,
@@ -466,7 +466,7 @@
     },
     {
       "id": "first_scene_spawner_m",
-      "position": [ 7535.0, -85.0, 15350.0 ],
+      "position": [ 7535.0, -135.0, 15350.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 8.0,

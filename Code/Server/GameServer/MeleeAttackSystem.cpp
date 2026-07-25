@@ -12,6 +12,7 @@
 #include "PlayerComponent.h"
 #include "EnemyComponent.h"
 #include "MovementComponent.h"
+#include "GravityComponent.h"
 #include "BeatSystem.h"
 #include "PhysicsWorld.h"
 #include "MathUtils.h"
@@ -179,10 +180,10 @@ namespace
 			return { 20.0f, 3.0f, 500.0f, 360.0f, 0.0f };
 		case SkillType::BongoAttack:
 			return { 60.0f, 3.0f, 500.0f, 360.0f, 0.0f };
-		case SkillType::DragonSkill1:
-			return { 30.0f, 4.0f, 1000.0f, 360.0f, 0.0f };
+			case SkillType::DragonSkill1:
+				return { 30.0f, 4.0f, 2000.0f, 360.0f, 0.0f };
 			case SkillType::DragonSkill3:
-				return { 50.0f, 200.0f, 300.0f, 360.0f, 600.0f };
+				return { 50.0f, 200.0f, 300.0f, 360.0f, 1200.0f };
 		default:
 			return {};
 		}
@@ -304,10 +305,17 @@ void MeleeAttackSystem::ProcessMeleeAttack(const EvMeleeAttackRequest& request)
 		const bool targetIsEnemy = mWorld->HasComponent<EnemyComponent>(target);
 		if (attackerIsPlayer && !targetIsEnemy)
 			continue;
-		if (attackerIsEnemy && !targetIsPlayer)
-			continue;
-		if (targetIsEnemy)
-		{
+			if (attackerIsEnemy && !targetIsPlayer)
+				continue;
+			if (request.bulletType == SkillType::DragonSkill1 && targetIsPlayer)
+			{
+				const GravityComponent* targetGravity =
+					mWorld->GetComponent<GravityComponent>(target);
+				if (targetGravity && targetGravity->mFalling)
+					continue;
+			}
+			if (targetIsEnemy)
+			{
 			HealthComponent* targetHealth = mWorld->GetComponent<HealthComponent>(target);
 			if (targetHealth && targetHealth->mCurrentHp <= 0)
 				continue;

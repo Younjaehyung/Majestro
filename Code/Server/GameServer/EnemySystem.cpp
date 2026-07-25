@@ -1256,14 +1256,14 @@ bool EnemySystem::HandleAttackState(
                         0.0f,
                         casterNetId
 	                    });
-	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-350.0f, 0.0f, 250.0f));
-	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Pianoman, Vec3(-650.0f, 0.0f, 250.0f));
-	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Bongoman, Vec3(350.0f, 0.0f, 250.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(-350.0f, 0.0f, 250.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(-650.0f, 0.0f, 250.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(350.0f, 0.0f, 250.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -350.0f));
 	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(0.0f, 0.0f, -650.0f));
-	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(-500.0f, 0.0f, -150.0f));
-	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Fly, Vec3(-800.0f, 0.0f, -150.0f));
-	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::Slime, Vec3(500.0f, 0.0f, -150.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(-500.0f, 0.0f, -150.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(-800.0f, 0.0f, -150.0f));
+	                    SpawnEnemyAroundAndBroadcast(mWorld, entity, EnemyType::HornMan, Vec3(500.0f, 0.0f, -150.0f));
 	                    enemyComp->mBrassRushEndHoldUntilTime = nowSeconds + getBrassRushEndDuration();
 	                    enemyComp->mAnimState = static_cast<uint8>(GetBrassAnimState(enemyComp->mBrassAttackPattern));
 	                }
@@ -1984,13 +1984,89 @@ bool EnemySystem::TrySelectBossOnnxAction(
         return false;
     }
 
-    const auto argmax = [](const std::vector<float>& values, size_t count)
+    float bestTargetLogit = -(std::numeric_limits<float>::max)();
+    outTargetIndex = 0;
+    for (size_t i = 0; i < players.size(); ++i)
     {
-        return static_cast<uint8>(std::distance(
-            values.begin(), std::max_element(values.begin(), values.begin() + count)));
-    };
-    outTargetIndex = argmax(outputs[0], 3);
-    outChoice = argmax(outputs[1], 5);
+        if (!players[i].IsValid() || IsPlayerDead(mWorld, players[i]))
+            continue;
+        if (outputs[0][i] > bestTargetLogit)
+        {
+            bestTargetLogit = outputs[0][i];
+            outTargetIndex = static_cast<uint8>(i);
+        }
+    }
+
+    constexpr float kMinSkillProbability = 0.15f;
+    constexpr float kMaxSkillProbability = 0.40f;
+    constexpr float kUniformSkillProbability = 0.25f;
+    constexpr float kRepeatLogitPenalty = 0.75f;
+
+    // Choice 0 is movement; boss attack selection samples only skills 1~4.
+    // A soft repeat penalty preserves variety without ever forcing a skill to 0%.
+    std::array<float, 4> skillLogits{};
+    for (size_t i = 0; i < skillLogits.size(); ++i)
+    {
+        const uint8 choice = static_cast<uint8>(i + 1);
+        skillLogits[i] = outputs[1][choice];
+        if (enemyComp->mBossPolicyLastChoice == choice)
+            skillLogits[i] -= kRepeatLogitPenalty;
+    }
+
+    const float maxSkillLogit =
+        *std::max_element(skillLogits.begin(), skillLogits.end());
+    std::array<float, 4> rawSkillProbabilities{};
+    float probabilitySum = 0.0f;
+    for (size_t i = 0; i < skillLogits.size(); ++i)
+    {
+        rawSkillProbabilities[i] = std::exp(skillLogits[i] - maxSkillLogit);
+        probabilitySum += rawSkillProbabilities[i];
+    }
+    for (float& probability : rawSkillProbabilities)
+        probability /= probabilitySum;
+
+    // Mix toward uniform just enough to project every skill into [15%, 40%].
+    // The probabilities still sum to 1 and retain the policy's preference order.
+    float policyWeight = 1.0f;
+    for (const float probability : rawSkillProbabilities)
+    {
+        if (probability > kUniformSkillProbability)
+        {
+            policyWeight = (std::min)(
+                policyWeight,
+                (kMaxSkillProbability - kUniformSkillProbability) /
+                    (probability - kUniformSkillProbability));
+        }
+        else if (probability < kUniformSkillProbability)
+        {
+            policyWeight = (std::min)(
+                policyWeight,
+                (kUniformSkillProbability - kMinSkillProbability) /
+                    (kUniformSkillProbability - probability));
+        }
+    }
+
+    std::array<float, 4> boundedSkillProbabilities{};
+    for (size_t i = 0; i < boundedSkillProbabilities.size(); ++i)
+    {
+        boundedSkillProbabilities[i] =
+            policyWeight * rawSkillProbabilities[i] +
+            (1.0f - policyWeight) * kUniformSkillProbability;
+    }
+
+    const float roll =
+        (static_cast<float>(MathUtils::RandomInt(0, 9999)) + 0.5f) / 10000.0f;
+    float cumulativeProbability = 0.0f;
+    outChoice = 4;
+    for (size_t i = 0; i < boundedSkillProbabilities.size(); ++i)
+    {
+        cumulativeProbability += boundedSkillProbabilities[i];
+        if (roll <= cumulativeProbability)
+        {
+            outChoice = static_cast<uint8>(i + 1);
+            break;
+        }
+    }
     outTargetEntity = players[outTargetIndex];
 
     if (!outTargetEntity.IsValid() || IsPlayerDead(mWorld, outTargetEntity))

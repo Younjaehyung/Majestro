@@ -323,7 +323,16 @@ void RenderTargetGroup::ClearRenderTargetView()
 	}
 }
 
-void RenderTargetGroup::OMSetRenderTargetsReadOnlyDepth()
+D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetGroup::GetRTVHandle(uint32 index) const
+{
+	if (!mSliceRTVHandles.empty() && index < mSliceRTVHandles.size())
+		return mSliceRTVHandles[index];
+
+	uint32 rtvSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(mRTHeapBegin, index * rtvSize);
+}
+
+void RenderTargetGroup::OMSetRenderTargetsReadOnlyDepth(const D3D12_CPU_DESCRIPTOR_HANDLE* extraRTVs, uint32 extraCount)
 {
 	float width  = 0.f;
 	float height = 0.f;
@@ -346,10 +355,24 @@ void RenderTargetGroup::OMSetRenderTargetsReadOnlyDepth()
 	GRAPHICS_CMD_LIST->RSSetScissorRects(1, &rect);
 
 	// read-only DSV 사용: DEPTH_READ 상태에서 depth test 가능, depth write 불가
-	if (mDSHeapBeginReadOnly.ptr != 0)
-		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE, &mDSHeapBeginReadOnly);
-	else
-		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE, nullptr);
+	D3D12_CPU_DESCRIPTOR_HANDLE* dsv = (mDSHeapBeginReadOnly.ptr != 0) ? &mDSHeapBeginReadOnly : nullptr;
+
+	if (extraRTVs == nullptr || extraCount == 0)
+	{
+		GRAPHICS_CMD_LIST->OMSetRenderTargets(mRenderTargetCount, &mRTHeapBegin, TRUE/*연속*/, dsv);
+		return;
+	}
+
+	// 다른 그룹의 RT를 이어 붙이는 경우: RTV 힙에서 연속이 아니므로 핸들 배열로 바인딩
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> handles;
+	handles.reserve(mRenderTargetCount + extraCount);
+	for (uint32 i = 0; i < mRenderTargetCount; ++i)
+		handles.push_back(GetRTVHandle(i));
+	for (uint32 i = 0; i < extraCount; ++i)
+		handles.push_back(extraRTVs[i]);
+
+	GRAPHICS_CMD_LIST->OMSetRenderTargets(
+		static_cast<UINT>(handles.size()), handles.data(), FALSE/*개별 핸들*/, dsv);
 }
 
 void RenderTargetGroup::WaitTargetToResource()

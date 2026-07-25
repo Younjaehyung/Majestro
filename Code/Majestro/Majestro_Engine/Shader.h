@@ -63,6 +63,9 @@ struct ShaderInfo
 	BLEND_TYPE blendType = BLEND_TYPE::DEFAULT;
 	D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	//D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+
+	bool writeEmissive = false;		// SV_Target1 사용 이미시브 블룸 소스(G-Buffer EMISSIVE RT)에 기록
 };
 
 struct ShaderPath {

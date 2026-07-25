@@ -90,15 +90,18 @@ public:
 
 	void OMSetRenderTargets(uint32 count, uint32 offset);
 	void OMSetRenderTargets();
-	// ForwardPass Rim Light용: DEPTH_READ | PIXEL_SHADER_RESOURCE 상태에서 depth test 수행
-	void OMSetRenderTargetsReadOnlyDepth();
+
+	void OMSetRenderTargetsReadOnlyDepth(const D3D12_CPU_DESCRIPTOR_HANDLE* extraRTVs = nullptr, uint32 extraCount = 0);
+
+
+
 
 	void WaitTargetToResource();
 	void WaitResourceToTarget();
 
 	void TransitionToTarget();
 
-
+	D3D12_CPU_DESCRIPTOR_HANDLE GetRTVHandle(uint32 index) const;		// 그룹 내 index번째 RT의 RTV CPU 핸들
 	vector<RenderTarget>& GetRTG() { return mRenderTargets;}
 
 	shared_ptr<Texture> GetRTTexture(uint8 type) { return mRenderTargets[type].Target; }

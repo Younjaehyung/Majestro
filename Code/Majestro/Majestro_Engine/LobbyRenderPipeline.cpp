@@ -50,6 +50,9 @@ void LobbyRenderPipeline::Initialize(World* world)
     mGBufferPass->Initialize();
     mLightPass->Initialize();
     mForwardPass->Initialize();
+    mForwardPass->SetEmissiveTarget(
+        RENDER_TARGET_GROUP_TYPE::G_BUFFER,
+        static_cast<uint32>(G_BUFFER_TYPE::EMISSIVE));
     mOutlinePass->Initialize();
     mLobbyBackgroundPass->Initialize(world);
 

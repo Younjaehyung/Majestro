@@ -2143,6 +2143,8 @@ void ResourceManager::CreateDefaultShader()
 			DEPTH_STENCIL_TYPE::EQUAL_NO_WRITE
 
 		};
+		info.writeEmissive = true;
+
 		ShaderPath shaderPath{
 			.VS = L"..\\Resources\\Shader\\forward_VS.hlsl",
 			.PS = L"..\\Resources\\Shader\\JHToon_PS.hlsl"
@@ -3461,7 +3463,7 @@ void ResourceManager::CreateDefaultMaterial()
 	Load<Texture>(L"UI_Emote_Sheet", L"..\\Resources\\Image\\UI\\UI_Emote_Sheet.png");
 	Load<Texture>(L"DecalSticker", L"..\\Resources\\Image\\UI\\UI_Spray_Sheet.png");
 
-	Load<Texture>(L"UI_Ibanix_Effect_Circle", L"..\\Resources\\Image\\UI\\UI_Ibanix_Effect_Circle.png");
+	Load<Texture>(L"UI_Effect_Circle_Sheet", L"..\\Resources\\Image\\UI\\UI_Effect_Circle_Sheet.png");
 
 
 

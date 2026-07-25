@@ -42,6 +42,7 @@ namespace
 		auto& txt = world->AddComponent<UITextComponent>(e);
 		txt.mText = L"";
 		txt.mVisible = false;
+		txt.mFontType = UIFontType::Esamanru;
 		txt.mOutlineThickness = outline;
 		txt.mColor.f[0] = color.x;
 		txt.mColor.f[1] = color.y;

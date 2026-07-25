@@ -51,8 +51,14 @@
       "scale": 3.0,
       "interactRadius": 300.0,
       "dialogue": [
-        { "line": "몸은 좀 풀었나?" },
-        { "line": "특성 훈련장은 공사 중이다. 완공되면 제일 먼저 알려주지." }
+        { "line": "캐릭터 디자인들은 각 캐릭터가 들고 다니는 악기들을 바탕으로 만들었습니다." },
+        { "line": "Fanthor: 브랜드 Fender가 원형이며 모티브는 펜더 스탠다드 스트라토캐스터 HSS입니다." },
+        { "line": "Ibanix: 브렌드 Ibanez에서 따왔으며, 모티브는 아이바네즈 GSR205 베이스기타입니다." },
+        { "line": "Rudwig: 브렌드 Ludwig에서 따왔으며, 모티브는 Ludwig 브라스 세트입니다." },
+        { "line": "리소스\n캐릭터 모델링 : 자체제작\nMap001 : Paladins, 브라이트마쉬 맵 리소스\nMap003: Paldanis, 왕자 맵 리소스" },
+        { "line": "음악\nBandlab 샘플링 음악\nSuno 생성 음악" },
+        { "line": "역할\n오승원 : 기획, 리소스 제작\n윤재형 : 클라이언트/서버 프레임워크 제작, 그래픽스, 연출, 리듬 판정\n이동주 : 보스, 캐릭터 패턴 및 AI 작업" },
+        { "line": "참고한 게임\n\nBPM:Bullet Per Minutes\nIncredibox\nPersona 3\nPersona 5\nMetapho:Refantazio\nMarvel Rivals\nHi-fi Rush\nZenless Zone Zero\nOverwatch\nMetal: Hellsinger\nPaladins" }
       ]
     }
   ]

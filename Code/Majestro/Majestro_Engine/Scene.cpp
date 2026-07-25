@@ -2775,7 +2775,7 @@ void PlazaScene::Initialize()
 {
 	mWorld->SetSceneId(mSceneId);
 
-	AUDIOMANAGER.RequestBGM("event:/OST/EscortMulti", SOUNDNAME::Ambient);
+	AUDIOMANAGER.RequestBGM("event:/OST/Skyship", SOUNDNAME::Ambient);
 	PrefabFactory::RegisterAllPrefabs();
 	SkyBoxPrefab skybox{ mWorld.get() };
 	DirLightPrefab light{ mWorld.get() };

@@ -31,14 +31,12 @@ float4 PS_Main(GS_OUT input) : SV_Target
     float lobeMask = saturate(max(max(lobeA, lobeB), lobeC));
     lobeMask = smoothstep(0.0f, 0.86f, lobeMask);
 
-    // Three noise layers and lobe masks make one particle read as a stacked cloud chunk.
-    // This keeps the implementation cheap while reducing the single billboard look.
     float cloudMask = smoothstep(0.34f, 0.84f, density) * lobeMask;
     float lifeFadeIn = smoothstep(0.0f, 0.16f, ratio);
     float lifeFadeOut = 1.0f - smoothstep(0.72f, 1.0f, ratio);
 
     float alpha = cloudMask * edgeFade * lifeFadeIn * lifeFadeOut * 0.46f;
-    float heightTint = saturate((particle.worldPos.y + 180.0f) / 560.0f);
+    float heightTint = saturate((particle.worldPos.y + 1700.0f) / 3400.0f);
     float verticalLight = saturate(uv.y * 0.65f + heightTint * 0.35f);
     float3 shadowColor = float3(0.55f, 0.62f, 0.70f);
     float3 lightColor = float3(0.88f, 0.93f, 0.98f);

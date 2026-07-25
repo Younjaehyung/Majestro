@@ -1,6 +1,6 @@
 {
   "exporter": "UE5_Python_LevelExporter_To_DX12_NoFBXExport",
-  "timestamp": "2026-07-20T20:27:34.019799",
+  "timestamp": "2026-07-25T01:46:06.856700",
   "level_name": "MapShip",
   "units": "cm",
   "axis_convention": {
@@ -13,14 +13,14 @@
   "fbx_naming_rule": "Meshes/<StaticMeshName>.fbx",
   "meshes": [
     {
-      "static_mesh_asset": "/Game/My/SHip/SM_Ship.SM_Ship",
-      "name": "SM_Ship",
-      "fbx": "Meshes/SM_Ship.fbx"
-    },
-    {
       "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_props_barrel_mo_001.sm_bm_props_barrel_mo_001",
       "name": "sm_bm_props_barrel_mo_001",
       "fbx": "Meshes/sm_bm_props_barrel_mo_001.fbx"
+    },
+    {
+      "static_mesh_asset": "/Game/StylizedWeather/Mesh/SM_SkySphere00.SM_SkySphere00",
+      "name": "SM_SkySphere00",
+      "fbx": "Meshes/SM_SkySphere00.fbx"
     },
     {
       "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_props_ladder_a_mo.sm_bm_props_ladder_a_mo",
@@ -58,174 +58,57 @@
       "fbx": "Meshes/sm_bm_distillery_int_taps_piipes_mo.fbx"
     },
     {
-      "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_props_fountain_mo.sm_bm_props_fountain_mo",
-      "name": "sm_bm_props_fountain_mo",
-      "fbx": "Meshes/sm_bm_props_fountain_mo.fbx"
-    },
-    {
       "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_props_furnace_mo.sm_bm_props_furnace_mo",
       "name": "sm_bm_props_furnace_mo",
       "fbx": "Meshes/sm_bm_props_furnace_mo.fbx"
     },
     {
-      "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_ground_capture_doormat_a_mo.sm_bm_ground_capture_doormat_a_mo",
-      "name": "sm_bm_ground_capture_doormat_a_mo",
-      "fbx": "Meshes/sm_bm_ground_capture_doormat_a_mo.fbx"
+      "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Big_01.SM_SM_Cloud_Big_01",
+      "name": "SM_SM_Cloud_Big_01",
+      "fbx": "Meshes/SM_SM_Cloud_Big_01.fbx"
+    },
+    {
+      "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Big_02.SM_SM_Cloud_Big_02",
+      "name": "SM_SM_Cloud_Big_02",
+      "fbx": "Meshes/SM_SM_Cloud_Big_02.fbx"
+    },
+    {
+      "static_mesh_asset": "/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam",
+      "name": "SM_CineCam",
+      "fbx": "Meshes/SM_CineCam.fbx"
+    },
+    {
+      "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_04.SM_SM_Cloud_Medium_04",
+      "name": "SM_SM_Cloud_Medium_04",
+      "fbx": "Meshes/SM_SM_Cloud_Medium_04.fbx"
+    },
+    {
+      "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_01.SM_SM_Cloud_Medium_01",
+      "name": "SM_SM_Cloud_Medium_01",
+      "fbx": "Meshes/SM_SM_Cloud_Medium_01.fbx"
+    },
+    {
+      "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_06.SM_SM_Cloud_Medium_06",
+      "name": "SM_SM_Cloud_Medium_06",
+      "fbx": "Meshes/SM_SM_Cloud_Medium_06.fbx"
+    },
+    {
+      "static_mesh_asset": "/Game/My/NewShip/SM_Ship.SM_Ship",
+      "name": "SM_Ship",
+      "fbx": "Meshes/SM_Ship.fbx"
     }
   ],
   "actors": [
     {
-      "name": "StaticMeshActor_16",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_16",
-      "class": "StaticMeshActor",
-      "world_transform": {
-        "ue": {
-          "location_cm": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "rotation_deg": {
-            "pitch": 0.0,
-            "yaw": 0.0,
-            "roll": -0.0
-          },
-          "scale": {
-            "x": 30.0,
-            "y": 30.0,
-            "z": 30.0
-          },
-          "basis": {
-            "forward": {
-              "x": 1.0,
-              "y": 0.0,
-              "z": 0.0
-            },
-            "right": {
-              "x": 0.0,
-              "y": 1.0,
-              "z": -0.0
-            },
-            "up": {
-              "x": -0.0,
-              "y": 0.0,
-              "z": 1.0
-            }
-          }
-        },
-        "dx": {
-          "location": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "scale": {
-            "x": 30.0,
-            "y": 30.0,
-            "z": 30.0
-          },
-          "basis": {
-            "forward": {
-              "x": 0.0,
-              "y": 0.0,
-              "z": 1.0
-            },
-            "right": {
-              "x": 1.0,
-              "y": -0.0,
-              "z": 0.0
-            },
-            "up": {
-              "x": 0.0,
-              "y": 1.0,
-              "z": -0.0
-            }
-          }
-        }
-      },
-      "static_mesh_components": [
-        {
-          "component_name": "StaticMeshComponent0",
-          "static_mesh_asset": "/Game/My/SHip/SM_Ship.SM_Ship",
-          "fbx": "Meshes/SM_Ship.fbx",
-          "component_world_transform": {
-            "ue": {
-              "location_cm": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "rotation_deg": {
-                "pitch": 0.0,
-                "yaw": 0.0,
-                "roll": -0.0
-              },
-              "scale": {
-                "x": 30.0,
-                "y": 30.0,
-                "z": 30.0
-              },
-              "basis": {
-                "forward": {
-                  "x": 1.0,
-                  "y": 0.0,
-                  "z": 0.0
-                },
-                "right": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": -0.0
-                },
-                "up": {
-                  "x": -0.0,
-                  "y": 0.0,
-                  "z": 1.0
-                }
-              }
-            },
-            "dx": {
-              "location": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "scale": {
-                "x": 30.0,
-                "y": 30.0,
-                "z": 30.0
-              },
-              "basis": {
-                "forward": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 1.0
-                },
-                "right": {
-                  "x": 1.0,
-                  "y": -0.0,
-                  "z": 0.0
-                },
-                "up": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": -0.0
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "StaticMeshActor_1",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_1",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_1",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -620.0,
-            "y": -210.0,
-            "z": 1470.0
+            "x": -985.0,
+            "y": 505.0,
+            "z": 1445.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -257,9 +140,9 @@
         },
         "dx": {
           "location": {
-            "x": -210.0,
-            "y": 1470.0,
-            "z": -620.0
+            "x": 505.0,
+            "y": 1445.0,
+            "z": -985.0
           },
           "scale": {
             "x": 1.0,
@@ -293,9 +176,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -620.0,
-                "y": -210.0,
-                "z": 1470.0
+                "x": -985.0,
+                "y": 505.0,
+                "z": 1445.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -327,9 +210,9 @@
             },
             "dx": {
               "location": {
-                "x": -210.0,
-                "y": 1470.0,
-                "z": -620.0
+                "x": 505.0,
+                "y": 1445.0,
+                "z": -985.0
               },
               "scale": {
                 "x": 1.0,
@@ -359,8 +242,150 @@
       ]
     },
     {
+      "name": "StaticMeshActor_5",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_5",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": -1590.0,
+            "y": -1080.0,
+            "z": 1670.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": 0.0,
+            "roll": -0.0
+          },
+          "scale": {
+            "x": 1100.0,
+            "y": 1100.0,
+            "z": 1100.0
+          },
+          "basis": {
+            "forward": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "right": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            },
+            "up": {
+              "x": -0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": -1080.0,
+            "y": 1670.0,
+            "z": -1590.0
+          },
+          "scale": {
+            "x": 1100.0,
+            "y": 1100.0,
+            "z": 1100.0
+          },
+          "basis": {
+            "forward": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 1.0
+            },
+            "right": {
+              "x": 1.0,
+              "y": -0.0,
+              "z": 0.0
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/StylizedWeather/Mesh/SM_SkySphere00.SM_SkySphere00",
+          "fbx": "Meshes/SM_SkySphere00.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": -1590.0,
+                "y": -1080.0,
+                "z": 1670.0
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": 0.0,
+                "roll": -0.0
+              },
+              "scale": {
+                "x": 1100.0,
+                "y": 1100.0,
+                "z": 1100.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": -1080.0,
+                "y": 1670.0,
+                "z": -1590.0
+              },
+              "scale": {
+                "x": 1100.0,
+                "y": 1100.0,
+                "z": 1100.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "right": {
+                  "x": 1.0,
+                  "y": -0.0,
+                  "z": 0.0
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "StaticMeshActor_15",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_15",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_15",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -502,7 +527,7 @@
     },
     {
       "name": "StaticMeshActor_18",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_18",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_18",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -644,7 +669,7 @@
     },
     {
       "name": "StaticMeshActor_22",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_22",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_22",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -786,7 +811,7 @@
     },
     {
       "name": "StaticMeshActor_24",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_24",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_24",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -928,18 +953,18 @@
     },
     {
       "name": "StaticMeshActor_28",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_28",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_28",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -1280.0,
-            "y": 240.0,
-            "z": 1560.0
+            "x": 1245.0,
+            "y": -10.0,
+            "z": 1535.0
           },
           "rotation_deg": {
             "pitch": 0.0,
-            "yaw": 84.99999934155925,
+            "yaw": -94.99999926409481,
             "roll": 0.0
           },
           "scale": {
@@ -949,17 +974,17 @@
           },
           "basis": {
             "forward": {
-              "x": 0.0871557541958872,
-              "y": 0.9961946970901552,
+              "x": -0.08715572995256457,
+              "y": -0.996194699211171,
               "z": 0.0
             },
             "right": {
-              "x": -0.996194696088564,
-              "y": 0.08715576564412277,
+              "x": 0.9961947003305958,
+              "y": -0.08715571715747765,
               "z": -0.0
             },
             "up": {
-              "x": -0.0,
+              "x": 0.0,
               "y": 0.0,
               "z": 1.0
             }
@@ -967,9 +992,9 @@
         },
         "dx": {
           "location": {
-            "x": 240.0,
-            "y": 1560.0,
-            "z": -1280.0
+            "x": -10.0,
+            "y": 1535.0,
+            "z": 1245.0
           },
           "scale": {
             "x": 0.5625,
@@ -978,19 +1003,19 @@
           },
           "basis": {
             "forward": {
-              "x": 0.9961946970901552,
+              "x": -0.996194699211171,
               "y": 0.0,
-              "z": 0.0871557541958872
+              "z": -0.08715572995256457
             },
             "right": {
-              "x": 0.08715576564412277,
+              "x": -0.08715571715747765,
               "y": -0.0,
-              "z": -0.996194696088564
+              "z": 0.9961947003305958
             },
             "up": {
               "x": 0.0,
               "y": 1.0,
-              "z": -0.0
+              "z": 0.0
             }
           }
         }
@@ -1003,13 +1028,13 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -1280.0,
-                "y": 240.0,
-                "z": 1560.0
+                "x": 1245.0,
+                "y": -10.0,
+                "z": 1535.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
-                "yaw": 84.99999934155925,
+                "yaw": -94.99999926409481,
                 "roll": 0.0
               },
               "scale": {
@@ -1019,17 +1044,17 @@
               },
               "basis": {
                 "forward": {
-                  "x": 0.0871557541958872,
-                  "y": 0.9961946970901552,
+                  "x": -0.08715572995256457,
+                  "y": -0.996194699211171,
                   "z": 0.0
                 },
                 "right": {
-                  "x": -0.996194696088564,
-                  "y": 0.08715576564412277,
+                  "x": 0.9961947003305958,
+                  "y": -0.08715571715747765,
                   "z": -0.0
                 },
                 "up": {
-                  "x": -0.0,
+                  "x": 0.0,
                   "y": 0.0,
                   "z": 1.0
                 }
@@ -1037,9 +1062,9 @@
             },
             "dx": {
               "location": {
-                "x": 240.0,
-                "y": 1560.0,
-                "z": -1280.0
+                "x": -10.0,
+                "y": 1535.0,
+                "z": 1245.0
               },
               "scale": {
                 "x": 0.5625,
@@ -1048,19 +1073,19 @@
               },
               "basis": {
                 "forward": {
-                  "x": 0.9961946970901552,
+                  "x": -0.996194699211171,
                   "y": 0.0,
-                  "z": 0.0871557541958872
+                  "z": -0.08715572995256457
                 },
                 "right": {
-                  "x": 0.08715576564412277,
+                  "x": -0.08715571715747765,
                   "y": -0.0,
-                  "z": -0.996194696088564
+                  "z": 0.9961947003305958
                 },
                 "up": {
                   "x": 0.0,
                   "y": 1.0,
-                  "z": -0.0
+                  "z": 0.0
                 }
               }
             }
@@ -1070,19 +1095,19 @@
     },
     {
       "name": "StaticMeshActor_30",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_30",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_30",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -1420.0,
-            "y": -240.0,
-            "z": 1570.0
+            "x": 1379.6258018942412,
+            "y": 75.02845665171537,
+            "z": 1545.0
           },
           "rotation_deg": {
             "pitch": 0.0,
-            "yaw": 0.0,
-            "roll": -0.0
+            "yaw": 99.99999922536414,
+            "roll": 0.0
           },
           "scale": {
             "x": 0.5,
@@ -1091,27 +1116,27 @@
           },
           "basis": {
             "forward": {
-              "x": 1.0,
-              "y": 0.0,
+              "x": -0.17364816435238234,
+              "y": 0.984807755359922,
               "z": 0.0
             },
             "right": {
-              "x": 0.0,
-              "y": 1.0,
+              "x": -0.9848077577076382,
+              "y": -0.17364815103782044,
               "z": -0.0
             },
             "up": {
               "x": -0.0,
-              "y": 0.0,
+              "y": -0.0,
               "z": 1.0
             }
           }
         },
         "dx": {
           "location": {
-            "x": -240.0,
-            "y": 1570.0,
-            "z": -1420.0
+            "x": 75.02845665171537,
+            "y": 1545.0,
+            "z": 1379.6258018942412
           },
           "scale": {
             "x": 0.5,
@@ -1120,17 +1145,17 @@
           },
           "basis": {
             "forward": {
-              "x": 0.0,
+              "x": 0.984807755359922,
               "y": 0.0,
-              "z": 1.0
+              "z": -0.17364816435238234
             },
             "right": {
-              "x": 1.0,
+              "x": -0.17364815103782044,
               "y": -0.0,
-              "z": 0.0
+              "z": -0.9848077577076382
             },
             "up": {
-              "x": 0.0,
+              "x": -0.0,
               "y": 1.0,
               "z": -0.0
             }
@@ -1145,14 +1170,14 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -1420.0,
-                "y": -240.0,
-                "z": 1570.0
+                "x": 1379.6258018942412,
+                "y": 75.02845665171537,
+                "z": 1545.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
-                "yaw": 0.0,
-                "roll": -0.0
+                "yaw": 99.99999922536414,
+                "roll": 0.0
               },
               "scale": {
                 "x": 0.5,
@@ -1161,27 +1186,27 @@
               },
               "basis": {
                 "forward": {
-                  "x": 1.0,
-                  "y": 0.0,
+                  "x": -0.17364816435238234,
+                  "y": 0.984807755359922,
                   "z": 0.0
                 },
                 "right": {
-                  "x": 0.0,
-                  "y": 1.0,
+                  "x": -0.9848077577076382,
+                  "y": -0.17364815103782044,
                   "z": -0.0
                 },
                 "up": {
                   "x": -0.0,
-                  "y": 0.0,
+                  "y": -0.0,
                   "z": 1.0
                 }
               }
             },
             "dx": {
               "location": {
-                "x": -240.0,
-                "y": 1570.0,
-                "z": -1420.0
+                "x": 75.02845665171537,
+                "y": 1545.0,
+                "z": 1379.6258018942412
               },
               "scale": {
                 "x": 0.5,
@@ -1190,17 +1215,17 @@
               },
               "basis": {
                 "forward": {
-                  "x": 0.0,
+                  "x": 0.984807755359922,
                   "y": 0.0,
-                  "z": 1.0
+                  "z": -0.17364816435238234
                 },
                 "right": {
-                  "x": 1.0,
+                  "x": -0.17364815103782044,
                   "y": -0.0,
-                  "z": 0.0
+                  "z": -0.9848077577076382
                 },
                 "up": {
-                  "x": 0.0,
+                  "x": -0.0,
                   "y": 1.0,
                   "z": -0.0
                 }
@@ -1212,67 +1237,67 @@
     },
     {
       "name": "StaticMeshActor_31",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_31",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_31",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -1560.0,
-            "y": -170.0,
-            "z": 1630.0
+            "x": 1385.0,
+            "y": -80.0,
+            "z": 1550.0
           },
           "rotation_deg": {
             "pitch": 0.0,
-            "yaw": 0.0,
-            "roll": -0.0
+            "yaw": 99.99999922536414,
+            "roll": 0.0
           },
           "scale": {
-            "x": 0.75,
-            "y": 0.75,
-            "z": 0.75
+            "x": 0.5240679532289505,
+            "y": 0.5240679532289505,
+            "z": 0.5240679532289505
           },
           "basis": {
             "forward": {
-              "x": 1.0,
-              "y": 0.0,
+              "x": -0.17364816435238234,
+              "y": 0.984807755359922,
               "z": 0.0
             },
             "right": {
-              "x": 0.0,
-              "y": 1.0,
+              "x": -0.9848077577076382,
+              "y": -0.17364815103782044,
               "z": -0.0
             },
             "up": {
               "x": -0.0,
-              "y": 0.0,
+              "y": -0.0,
               "z": 1.0
             }
           }
         },
         "dx": {
           "location": {
-            "x": -170.0,
-            "y": 1630.0,
-            "z": -1560.0
+            "x": -80.0,
+            "y": 1550.0,
+            "z": 1385.0
           },
           "scale": {
-            "x": 0.75,
-            "y": 0.75,
-            "z": 0.75
+            "x": 0.5240679532289505,
+            "y": 0.5240679532289505,
+            "z": 0.5240679532289505
           },
           "basis": {
             "forward": {
-              "x": 0.0,
+              "x": 0.984807755359922,
               "y": 0.0,
-              "z": 1.0
+              "z": -0.17364816435238234
             },
             "right": {
-              "x": 1.0,
+              "x": -0.17364815103782044,
               "y": -0.0,
-              "z": 0.0
+              "z": -0.9848077577076382
             },
             "up": {
-              "x": 0.0,
+              "x": -0.0,
               "y": 1.0,
               "z": -0.0
             }
@@ -1287,62 +1312,62 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -1560.0,
-                "y": -170.0,
-                "z": 1630.0
+                "x": 1385.0,
+                "y": -80.0,
+                "z": 1550.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
-                "yaw": 0.0,
-                "roll": -0.0
+                "yaw": 99.99999922536414,
+                "roll": 0.0
               },
               "scale": {
-                "x": 0.75,
-                "y": 0.75,
-                "z": 0.75
+                "x": 0.5240679532289505,
+                "y": 0.5240679532289505,
+                "z": 0.5240679532289505
               },
               "basis": {
                 "forward": {
-                  "x": 1.0,
-                  "y": 0.0,
+                  "x": -0.17364816435238234,
+                  "y": 0.984807755359922,
                   "z": 0.0
                 },
                 "right": {
-                  "x": 0.0,
-                  "y": 1.0,
+                  "x": -0.9848077577076382,
+                  "y": -0.17364815103782044,
                   "z": -0.0
                 },
                 "up": {
                   "x": -0.0,
-                  "y": 0.0,
+                  "y": -0.0,
                   "z": 1.0
                 }
               }
             },
             "dx": {
               "location": {
-                "x": -170.0,
-                "y": 1630.0,
-                "z": -1560.0
+                "x": -80.0,
+                "y": 1550.0,
+                "z": 1385.0
               },
               "scale": {
-                "x": 0.75,
-                "y": 0.75,
-                "z": 0.75
+                "x": 0.5240679532289505,
+                "y": 0.5240679532289505,
+                "z": 0.5240679532289505
               },
               "basis": {
                 "forward": {
-                  "x": 0.0,
+                  "x": 0.984807755359922,
                   "y": 0.0,
-                  "z": 1.0
+                  "z": -0.17364816435238234
                 },
                 "right": {
-                  "x": 1.0,
+                  "x": -0.17364815103782044,
                   "y": -0.0,
-                  "z": 0.0
+                  "z": -0.9848077577076382
                 },
                 "up": {
-                  "x": 0.0,
+                  "x": -0.0,
                   "y": 1.0,
                   "z": -0.0
                 }
@@ -1354,7 +1379,7 @@
     },
     {
       "name": "StaticMeshActor_33",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_33",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_33",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -1496,14 +1521,14 @@
     },
     {
       "name": "StaticMeshActor_40",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_40",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_40",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2262.7310934907027,
-            "y": 270.95696959170095,
-            "z": 1530.0
+            "x": -992.7310934907027,
+            "y": -809.043030408299,
+            "z": 1490.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -1535,9 +1560,9 @@
         },
         "dx": {
           "location": {
-            "x": 270.95696959170095,
-            "y": 1530.0,
-            "z": -2262.7310934907027
+            "x": -809.043030408299,
+            "y": 1490.0,
+            "z": -992.7310934907027
           },
           "scale": {
             "x": 2.1875,
@@ -1571,9 +1596,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2262.7310934907027,
-                "y": 270.95696959170095,
-                "z": 1530.0
+                "x": -992.7310934907027,
+                "y": -809.043030408299,
+                "z": 1490.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -1605,9 +1630,9 @@
             },
             "dx": {
               "location": {
-                "x": 270.95696959170095,
-                "y": 1530.0,
-                "z": -2262.7310934907027
+                "x": -809.043030408299,
+                "y": 1490.0,
+                "z": -992.7310934907027
               },
               "scale": {
                 "x": 2.1875,
@@ -1638,14 +1663,14 @@
     },
     {
       "name": "StaticMeshActor_41",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_41",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_41",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2290.0,
-            "y": 450.0,
-            "z": 1550.0
+            "x": -955.0,
+            "y": 665.0,
+            "z": 1485.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -1677,9 +1702,9 @@
         },
         "dx": {
           "location": {
-            "x": 450.0,
-            "y": 1550.0,
-            "z": -2290.0
+            "x": 665.0,
+            "y": 1485.0,
+            "z": -955.0
           },
           "scale": {
             "x": 0.625,
@@ -1713,9 +1738,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2290.0,
-                "y": 450.0,
-                "z": 1550.0
+                "x": -955.0,
+                "y": 665.0,
+                "z": 1485.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -1747,9 +1772,9 @@
             },
             "dx": {
               "location": {
-                "x": 450.0,
-                "y": 1550.0,
-                "z": -2290.0
+                "x": 665.0,
+                "y": 1485.0,
+                "z": -955.0
               },
               "scale": {
                 "x": 0.625,
@@ -1780,14 +1805,14 @@
     },
     {
       "name": "StaticMeshActor_42",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_42",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_42",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2222.731093,
-            "y": 610.95697,
-            "z": 1530.0
+            "x": -972.7310929999999,
+            "y": 810.95697,
+            "z": 1490.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -1819,9 +1844,9 @@
         },
         "dx": {
           "location": {
-            "x": 610.95697,
-            "y": 1530.0,
-            "z": -2222.731093
+            "x": 810.95697,
+            "y": 1490.0,
+            "z": -972.7310929999999
           },
           "scale": {
             "x": 2.1875,
@@ -1855,9 +1880,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2222.731093,
-                "y": 610.95697,
-                "z": 1530.0
+                "x": -972.7310929999999,
+                "y": 810.95697,
+                "z": 1490.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -1889,9 +1914,9 @@
             },
             "dx": {
               "location": {
-                "x": 610.95697,
-                "y": 1530.0,
-                "z": -2222.731093
+                "x": 810.95697,
+                "y": 1490.0,
+                "z": -972.7310929999999
               },
               "scale": {
                 "x": 2.1875,
@@ -1922,14 +1947,14 @@
     },
     {
       "name": "StaticMeshActor_43",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_43",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_43",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2290.0,
-            "y": 450.0,
-            "z": 1660.0
+            "x": -875.0,
+            "y": 780.0,
+            "z": 1470.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -1961,9 +1986,9 @@
         },
         "dx": {
           "location": {
-            "x": 450.0,
-            "y": 1660.0,
-            "z": -2290.0
+            "x": 780.0,
+            "y": 1470.0,
+            "z": -875.0
           },
           "scale": {
             "x": 0.5625,
@@ -1997,9 +2022,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2290.0,
-                "y": 450.0,
-                "z": 1660.0
+                "x": -875.0,
+                "y": 780.0,
+                "z": 1470.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -2031,9 +2056,9 @@
             },
             "dx": {
               "location": {
-                "x": 450.0,
-                "y": 1660.0,
-                "z": -2290.0
+                "x": 780.0,
+                "y": 1470.0,
+                "z": -875.0
               },
               "scale": {
                 "x": 0.5625,
@@ -2064,7 +2089,7 @@
     },
     {
       "name": "StaticMeshActor_44",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_44",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_44",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -2205,299 +2230,15 @@
       ]
     },
     {
-      "name": "StaticMeshActor_45",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_45",
-      "class": "StaticMeshActor",
-      "world_transform": {
-        "ue": {
-          "location_cm": {
-            "x": -2310.0,
-            "y": 120.0,
-            "z": 1550.0
-          },
-          "rotation_deg": {
-            "pitch": 0.0,
-            "yaw": 84.99999915492742,
-            "roll": 0.0
-          },
-          "scale": {
-            "x": 0.625,
-            "y": 0.625,
-            "z": 0.625
-          },
-          "basis": {
-            "forward": {
-              "x": 0.08715575744083133,
-              "y": 0.9961946968062592,
-              "z": 0.0
-            },
-            "right": {
-              "x": -0.9961946958046681,
-              "y": 0.08715576888906733,
-              "z": -0.0
-            },
-            "up": {
-              "x": -0.0,
-              "y": 0.0,
-              "z": 1.0
-            }
-          }
-        },
-        "dx": {
-          "location": {
-            "x": 120.0,
-            "y": 1550.0,
-            "z": -2310.0
-          },
-          "scale": {
-            "x": 0.625,
-            "y": 0.625,
-            "z": 0.625
-          },
-          "basis": {
-            "forward": {
-              "x": 0.9961946968062592,
-              "y": 0.0,
-              "z": 0.08715575744083133
-            },
-            "right": {
-              "x": 0.08715576888906733,
-              "y": -0.0,
-              "z": -0.9961946958046681
-            },
-            "up": {
-              "x": 0.0,
-              "y": 1.0,
-              "z": -0.0
-            }
-          }
-        }
-      },
-      "static_mesh_components": [
-        {
-          "component_name": "StaticMeshComponent0",
-          "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_midlane_shelves_01_mo.sm_bm_midlane_shelves_01_mo",
-          "fbx": "Meshes/sm_bm_midlane_shelves_01_mo.fbx",
-          "component_world_transform": {
-            "ue": {
-              "location_cm": {
-                "x": -2310.0,
-                "y": 120.0,
-                "z": 1550.0
-              },
-              "rotation_deg": {
-                "pitch": 0.0,
-                "yaw": 84.99999915492742,
-                "roll": 0.0
-              },
-              "scale": {
-                "x": 0.625,
-                "y": 0.625,
-                "z": 0.625
-              },
-              "basis": {
-                "forward": {
-                  "x": 0.08715575744083133,
-                  "y": 0.9961946968062592,
-                  "z": 0.0
-                },
-                "right": {
-                  "x": -0.9961946958046681,
-                  "y": 0.08715576888906733,
-                  "z": -0.0
-                },
-                "up": {
-                  "x": -0.0,
-                  "y": 0.0,
-                  "z": 1.0
-                }
-              }
-            },
-            "dx": {
-              "location": {
-                "x": 120.0,
-                "y": 1550.0,
-                "z": -2310.0
-              },
-              "scale": {
-                "x": 0.625,
-                "y": 0.625,
-                "z": 0.625
-              },
-              "basis": {
-                "forward": {
-                  "x": 0.9961946968062592,
-                  "y": 0.0,
-                  "z": 0.08715575744083133
-                },
-                "right": {
-                  "x": 0.08715576888906733,
-                  "y": -0.0,
-                  "z": -0.9961946958046681
-                },
-                "up": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": -0.0
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "StaticMeshActor_46",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_46",
-      "class": "StaticMeshActor",
-      "world_transform": {
-        "ue": {
-          "location_cm": {
-            "x": -2352.731093,
-            "y": -59.04302999999999,
-            "z": 1530.0
-          },
-          "rotation_deg": {
-            "pitch": 0.0,
-            "yaw": 104.99999900000002,
-            "roll": 0.0
-          },
-          "scale": {
-            "x": 2.1875,
-            "y": 2.1875,
-            "z": 2.1875
-          },
-          "basis": {
-            "forward": {
-              "x": -0.2588190282439347,
-              "y": 0.9659258308063128,
-              "z": 0.0
-            },
-            "right": {
-              "x": -0.9659258344804968,
-              "y": -0.25881901453169204,
-              "z": -0.0
-            },
-            "up": {
-              "x": -0.0,
-              "y": -0.0,
-              "z": 1.0
-            }
-          }
-        },
-        "dx": {
-          "location": {
-            "x": -59.04302999999999,
-            "y": 1530.0,
-            "z": -2352.731093
-          },
-          "scale": {
-            "x": 2.1875,
-            "y": 2.1875,
-            "z": 2.1875
-          },
-          "basis": {
-            "forward": {
-              "x": 0.9659258308063128,
-              "y": 0.0,
-              "z": -0.2588190282439347
-            },
-            "right": {
-              "x": -0.25881901453169204,
-              "y": -0.0,
-              "z": -0.9659258344804968
-            },
-            "up": {
-              "x": -0.0,
-              "y": 1.0,
-              "z": -0.0
-            }
-          }
-        }
-      },
-      "static_mesh_components": [
-        {
-          "component_name": "StaticMeshComponent0",
-          "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_props_barrel_mo_001.sm_bm_props_barrel_mo_001",
-          "fbx": "Meshes/sm_bm_props_barrel_mo_001.fbx",
-          "component_world_transform": {
-            "ue": {
-              "location_cm": {
-                "x": -2352.731093,
-                "y": -59.04302999999999,
-                "z": 1530.0
-              },
-              "rotation_deg": {
-                "pitch": 0.0,
-                "yaw": 104.99999900000002,
-                "roll": 0.0
-              },
-              "scale": {
-                "x": 2.1875,
-                "y": 2.1875,
-                "z": 2.1875
-              },
-              "basis": {
-                "forward": {
-                  "x": -0.2588190282439347,
-                  "y": 0.9659258308063128,
-                  "z": 0.0
-                },
-                "right": {
-                  "x": -0.9659258344804968,
-                  "y": -0.25881901453169204,
-                  "z": -0.0
-                },
-                "up": {
-                  "x": -0.0,
-                  "y": -0.0,
-                  "z": 1.0
-                }
-              }
-            },
-            "dx": {
-              "location": {
-                "x": -59.04302999999999,
-                "y": 1530.0,
-                "z": -2352.731093
-              },
-              "scale": {
-                "x": 2.1875,
-                "y": 2.1875,
-                "z": 2.1875
-              },
-              "basis": {
-                "forward": {
-                  "x": 0.9659258308063128,
-                  "y": 0.0,
-                  "z": -0.2588190282439347
-                },
-                "right": {
-                  "x": -0.25881901453169204,
-                  "y": -0.0,
-                  "z": -0.9659258344804968
-                },
-                "up": {
-                  "x": -0.0,
-                  "y": 1.0,
-                  "z": -0.0
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "StaticMeshActor_47",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_47",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_47",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2300.0,
-            "y": -210.0,
-            "z": 1660.0
+            "x": -900.0,
+            "y": -785.0,
+            "z": 1538.0841820935411
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -2505,9 +2246,9 @@
             "roll": 0.0
           },
           "scale": {
-            "x": 0.5625,
-            "y": 0.5625,
-            "z": 0.5625
+            "x": 0.37372593116015196,
+            "y": 0.37372593116015196,
+            "z": 0.37372593116015196
           },
           "basis": {
             "forward": {
@@ -2529,14 +2270,14 @@
         },
         "dx": {
           "location": {
-            "x": -210.0,
-            "y": 1660.0,
-            "z": -2300.0
+            "x": -785.0,
+            "y": 1538.0841820935411,
+            "z": -900.0
           },
           "scale": {
-            "x": 0.5625,
-            "y": 0.5625,
-            "z": 0.5625
+            "x": 0.37372593116015196,
+            "y": 0.37372593116015196,
+            "z": 0.37372593116015196
           },
           "basis": {
             "forward": {
@@ -2565,9 +2306,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2300.0,
-                "y": -210.0,
-                "z": 1660.0
+                "x": -900.0,
+                "y": -785.0,
+                "z": 1538.0841820935411
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -2575,9 +2316,9 @@
                 "roll": 0.0
               },
               "scale": {
-                "x": 0.5625,
-                "y": 0.5625,
-                "z": 0.5625
+                "x": 0.37372593116015196,
+                "y": 0.37372593116015196,
+                "z": 0.37372593116015196
               },
               "basis": {
                 "forward": {
@@ -2599,14 +2340,14 @@
             },
             "dx": {
               "location": {
-                "x": -210.0,
-                "y": 1660.0,
-                "z": -2300.0
+                "x": -785.0,
+                "y": 1538.0841820935411,
+                "z": -900.0
               },
               "scale": {
-                "x": 0.5625,
-                "y": 0.5625,
-                "z": 0.5625
+                "x": 0.37372593116015196,
+                "y": 0.37372593116015196,
+                "z": 0.37372593116015196
               },
               "basis": {
                 "forward": {
@@ -2632,14 +2373,14 @@
     },
     {
       "name": "StaticMeshActor_48",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_48",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_48",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2300.0,
-            "y": -210.0,
-            "z": 1550.0
+            "x": -900.0,
+            "y": -785.0,
+            "z": 1465.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -2647,9 +2388,9 @@
             "roll": 0.0
           },
           "scale": {
-            "x": 0.625,
-            "y": 0.625,
-            "z": 0.625
+            "x": 0.43622593116015196,
+            "y": 0.43622593116015196,
+            "z": 0.43622593116015196
           },
           "basis": {
             "forward": {
@@ -2671,14 +2412,14 @@
         },
         "dx": {
           "location": {
-            "x": -210.0,
-            "y": 1550.0,
-            "z": -2300.0
+            "x": -785.0,
+            "y": 1465.0,
+            "z": -900.0
           },
           "scale": {
-            "x": 0.625,
-            "y": 0.625,
-            "z": 0.625
+            "x": 0.43622593116015196,
+            "y": 0.43622593116015196,
+            "z": 0.43622593116015196
           },
           "basis": {
             "forward": {
@@ -2707,9 +2448,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2300.0,
-                "y": -210.0,
-                "z": 1550.0
+                "x": -900.0,
+                "y": -785.0,
+                "z": 1465.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -2717,9 +2458,9 @@
                 "roll": 0.0
               },
               "scale": {
-                "x": 0.625,
-                "y": 0.625,
-                "z": 0.625
+                "x": 0.43622593116015196,
+                "y": 0.43622593116015196,
+                "z": 0.43622593116015196
               },
               "basis": {
                 "forward": {
@@ -2741,14 +2482,14 @@
             },
             "dx": {
               "location": {
-                "x": -210.0,
-                "y": 1550.0,
-                "z": -2300.0
+                "x": -785.0,
+                "y": 1465.0,
+                "z": -900.0
               },
               "scale": {
-                "x": 0.625,
-                "y": 0.625,
-                "z": 0.625
+                "x": 0.43622593116015196,
+                "y": 0.43622593116015196,
+                "z": 0.43622593116015196
               },
               "basis": {
                 "forward": {
@@ -2774,14 +2515,14 @@
     },
     {
       "name": "StaticMeshActor_49",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_49",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_49",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -2310.0,
-            "y": -410.0,
-            "z": 1550.0
+            "x": -935.0,
+            "y": -610.0,
+            "z": 1490.0
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -2813,9 +2554,9 @@
         },
         "dx": {
           "location": {
-            "x": -410.0,
-            "y": 1550.0,
-            "z": -2310.0
+            "x": -610.0,
+            "y": 1490.0,
+            "z": -935.0
           },
           "scale": {
             "x": 0.625,
@@ -2849,9 +2590,9 @@
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -2310.0,
-                "y": -410.0,
-                "z": 1550.0
+                "x": -935.0,
+                "y": -610.0,
+                "z": 1490.0
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -2883,9 +2624,9 @@
             },
             "dx": {
               "location": {
-                "x": -410.0,
-                "y": 1550.0,
-                "z": -2310.0
+                "x": -610.0,
+                "y": 1490.0,
+                "z": -935.0
               },
               "scale": {
                 "x": 0.625,
@@ -2916,7 +2657,7 @@
     },
     {
       "name": "StaticMeshActor_57",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_57",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_57",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -3057,150 +2798,8 @@
       ]
     },
     {
-      "name": "StaticMeshActor_65",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_65",
-      "class": "StaticMeshActor",
-      "world_transform": {
-        "ue": {
-          "location_cm": {
-            "x": -1480.0,
-            "y": 0.0,
-            "z": 2020.0
-          },
-          "rotation_deg": {
-            "pitch": 0.0,
-            "yaw": 0.0,
-            "roll": -0.0
-          },
-          "scale": {
-            "x": 3.9375,
-            "y": 4.4375,
-            "z": 3.25
-          },
-          "basis": {
-            "forward": {
-              "x": 1.0,
-              "y": 0.0,
-              "z": 0.0
-            },
-            "right": {
-              "x": 0.0,
-              "y": 1.0,
-              "z": -0.0
-            },
-            "up": {
-              "x": -0.0,
-              "y": 0.0,
-              "z": 1.0
-            }
-          }
-        },
-        "dx": {
-          "location": {
-            "x": 0.0,
-            "y": 2020.0,
-            "z": -1480.0
-          },
-          "scale": {
-            "x": 4.4375,
-            "y": 3.25,
-            "z": 3.9375
-          },
-          "basis": {
-            "forward": {
-              "x": 0.0,
-              "y": 0.0,
-              "z": 1.0
-            },
-            "right": {
-              "x": 1.0,
-              "y": -0.0,
-              "z": 0.0
-            },
-            "up": {
-              "x": 0.0,
-              "y": 1.0,
-              "z": -0.0
-            }
-          }
-        }
-      },
-      "static_mesh_components": [
-        {
-          "component_name": "StaticMeshComponent0",
-          "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_props_fountain_mo.sm_bm_props_fountain_mo",
-          "fbx": "Meshes/sm_bm_props_fountain_mo.fbx",
-          "component_world_transform": {
-            "ue": {
-              "location_cm": {
-                "x": -1480.0,
-                "y": 0.0,
-                "z": 2020.0
-              },
-              "rotation_deg": {
-                "pitch": 0.0,
-                "yaw": 0.0,
-                "roll": -0.0
-              },
-              "scale": {
-                "x": 3.9375,
-                "y": 4.4375,
-                "z": 3.25
-              },
-              "basis": {
-                "forward": {
-                  "x": 1.0,
-                  "y": 0.0,
-                  "z": 0.0
-                },
-                "right": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": -0.0
-                },
-                "up": {
-                  "x": -0.0,
-                  "y": 0.0,
-                  "z": 1.0
-                }
-              }
-            },
-            "dx": {
-              "location": {
-                "x": 0.0,
-                "y": 2020.0,
-                "z": -1480.0
-              },
-              "scale": {
-                "x": 4.4375,
-                "y": 3.25,
-                "z": 3.9375
-              },
-              "basis": {
-                "forward": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 1.0
-                },
-                "right": {
-                  "x": 1.0,
-                  "y": -0.0,
-                  "z": 0.0
-                },
-                "up": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": -0.0
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "StaticMeshActor_67",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_67",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_67",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -3342,7 +2941,7 @@
     },
     {
       "name": "StaticMeshActor_69",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_69",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_69",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -3484,7 +3083,7 @@
     },
     {
       "name": "StaticMeshActor_70",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_70",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_70",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -3626,7 +3225,7 @@
     },
     {
       "name": "StaticMeshActor_71",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_71",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_71",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -3768,7 +3367,7 @@
     },
     {
       "name": "StaticMeshActor_72",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_72",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_72",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -3910,7 +3509,7 @@
     },
     {
       "name": "StaticMeshActor_73",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_73",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_73",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -4052,7 +3651,7 @@
     },
     {
       "name": "StaticMeshActor_80",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_80",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_80",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
@@ -4193,15 +3792,15 @@
       ]
     },
     {
-      "name": "StaticMeshActor_84",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_84",
+      "name": "StaticMeshActor_2",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_2",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": 1231.6439867710822,
-            "y": -12.643679190564406,
-            "z": 1377.5215606736244
+            "x": -6618.988142226299,
+            "y": -15032.507711061804,
+            "z": 3030.739240669888
           },
           "rotation_deg": {
             "pitch": 0.0,
@@ -4209,9 +3808,9 @@
             "roll": -0.0
           },
           "scale": {
-            "x": 4.875,
-            "y": 2.5625,
-            "z": 1.0
+            "x": 0.32753688655793667,
+            "y": 1.0,
+            "z": 0.32753688655793667
           },
           "basis": {
             "forward": {
@@ -4233,14 +3832,14 @@
         },
         "dx": {
           "location": {
-            "x": -12.643679190564406,
-            "y": 1377.5215606736244,
-            "z": 1231.6439867710822
+            "x": -15032.507711061804,
+            "y": 3030.739240669888,
+            "z": -6618.988142226299
           },
           "scale": {
-            "x": 2.5625,
-            "y": 1.0,
-            "z": 4.875
+            "x": 1.0,
+            "y": 0.32753688655793667,
+            "z": 0.32753688655793667
           },
           "basis": {
             "forward": {
@@ -4264,14 +3863,14 @@
       "static_mesh_components": [
         {
           "component_name": "StaticMeshComponent0",
-          "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_ground_capture_doormat_a_mo.sm_bm_ground_capture_doormat_a_mo",
-          "fbx": "Meshes/sm_bm_ground_capture_doormat_a_mo.fbx",
+          "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Big_01.SM_SM_Cloud_Big_01",
+          "fbx": "Meshes/SM_SM_Cloud_Big_01.fbx",
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": 1231.6439867710822,
-                "y": -12.643679190564406,
-                "z": 1377.5215606736244
+                "x": -6618.988142226299,
+                "y": -15032.507711061804,
+                "z": 3030.739240669888
               },
               "rotation_deg": {
                 "pitch": 0.0,
@@ -4279,9 +3878,9 @@
                 "roll": -0.0
               },
               "scale": {
-                "x": 4.875,
-                "y": 2.5625,
-                "z": 1.0
+                "x": 0.32753688655793667,
+                "y": 1.0,
+                "z": 0.32753688655793667
               },
               "basis": {
                 "forward": {
@@ -4303,14 +3902,14 @@
             },
             "dx": {
               "location": {
-                "x": -12.643679190564406,
-                "y": 1377.5215606736244,
-                "z": 1231.6439867710822
+                "x": -15032.507711061804,
+                "y": 3030.739240669888,
+                "z": -6618.988142226299
               },
               "scale": {
-                "x": 2.5625,
-                "y": 1.0,
-                "z": 4.875
+                "x": 1.0,
+                "y": 0.32753688655793667,
+                "z": 0.32753688655793667
               },
               "basis": {
                 "forward": {
@@ -4335,31 +3934,173 @@
       ]
     },
     {
-      "name": "StaticMeshActor_85",
-      "path": "/Game/Map/MapShip.MapShip:PersistentLevel.StaticMeshActor_85",
+      "name": "StaticMeshActor_4",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_4",
       "class": "StaticMeshActor",
       "world_transform": {
         "ue": {
           "location_cm": {
-            "x": -583.8007678445952,
-            "y": -12.643680674900404,
-            "z": 1378.321526804986
+            "x": 12818.32703458872,
+            "y": -16460.662076878398,
+            "z": 5999.605196243334
           },
           "rotation_deg": {
-            "pitch": -3.4395653343191275,
+            "pitch": 0.0,
+            "yaw": 0.0,
+            "roll": -0.0
+          },
+          "scale": {
+            "x": 0.41327580995857716,
+            "y": 1.0,
+            "z": 0.41327580995857716
+          },
+          "basis": {
+            "forward": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "right": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            },
+            "up": {
+              "x": -0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": -16460.662076878398,
+            "y": 5999.605196243334,
+            "z": 12818.32703458872
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 0.41327580995857716,
+            "z": 0.41327580995857716
+          },
+          "basis": {
+            "forward": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 1.0
+            },
+            "right": {
+              "x": 1.0,
+              "y": -0.0,
+              "z": 0.0
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Big_02.SM_SM_Cloud_Big_02",
+          "fbx": "Meshes/SM_SM_Cloud_Big_02.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": 12818.32703458872,
+                "y": -16460.662076878398,
+                "z": 5999.605196243334
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": 0.0,
+                "roll": -0.0
+              },
+              "scale": {
+                "x": 0.41327580995857716,
+                "y": 1.0,
+                "z": 0.41327580995857716
+              },
+              "basis": {
+                "forward": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": -16460.662076878398,
+                "y": 5999.605196243334,
+                "z": 12818.32703458872
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 0.41327580995857716,
+                "z": 0.41327580995857716
+              },
+              "basis": {
+                "forward": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "right": {
+                  "x": 1.0,
+                  "y": -0.0,
+                  "z": 0.0
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CineCameraActor_1",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.CineCameraActor_1",
+      "class": "CineCameraActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": -4325.0,
+            "y": 30.0,
+            "z": 2960.0
+          },
+          "rotation_deg": {
+            "pitch": -10.810423615537559,
             "yaw": 0.0,
             "roll": 0.0
           },
           "scale": {
-            "x": 4.875,
-            "y": 2.5625,
+            "x": 1.0,
+            "y": 1.0,
             "z": 1.0
           },
           "basis": {
             "forward": {
-              "x": 0.9981986361795515,
+              "x": 0.9822531448633203,
               "y": 0.0,
-              "z": -0.05999568925584213
+              "z": -0.18756001547802562
             },
             "right": {
               "x": -0.0,
@@ -4367,28 +4108,28 @@
               "z": -0.0
             },
             "up": {
-              "x": 0.059995688791651944,
+              "x": 0.1875600140423988,
               "y": 0.0,
-              "z": 0.9981986362074511
+              "z": 0.9822531451374514
             }
           }
         },
         "dx": {
           "location": {
-            "x": -12.643680674900404,
-            "y": 1378.321526804986,
-            "z": -583.8007678445952
+            "x": 30.0,
+            "y": 2960.0,
+            "z": -4325.0
           },
           "scale": {
-            "x": 2.5625,
+            "x": 1.0,
             "y": 1.0,
-            "z": 4.875
+            "z": 1.0
           },
           "basis": {
             "forward": {
               "x": 0.0,
-              "y": -0.05999568925584213,
-              "z": 0.9981986361795515
+              "y": -0.18756001547802562,
+              "z": 0.9822531448633203
             },
             "right": {
               "x": 1.0,
@@ -4397,8 +4138,150 @@
             },
             "up": {
               "x": 0.0,
-              "y": 0.9981986362074511,
-              "z": 0.059995688791651944
+              "y": 0.9822531451374514,
+              "z": 0.1875600140423988
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "CameraProxyMeshComponent_0",
+          "static_mesh_asset": "/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam",
+          "fbx": "Meshes/SM_CineCam.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": -4374.685085035186,
+                "y": 30.0,
+                "z": 2945.0536852352693
+              },
+              "rotation_deg": {
+                "pitch": -2.3854160110976376e-15,
+                "yaw": 89.99999999999994,
+                "roll": -10.810423615537555
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 1.0106430996148606e-15,
+                  "y": 0.9999999999999999,
+                  "z": -4.163336342344337e-17
+                },
+                "right": {
+                  "x": -0.9822531451374512,
+                  "y": 1.1952022255779433e-08,
+                  "z": 0.18756001404239872
+                },
+                "up": {
+                  "x": 0.1875600140423987,
+                  "y": -2.282223713503096e-09,
+                  "z": 0.9822531451374513
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": 30.0,
+                "y": 2945.0536852352693,
+                "z": -4374.685085035186
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 0.9999999999999999,
+                  "y": -4.163336342344337e-17,
+                  "z": 1.0106430996148606e-15
+                },
+                "right": {
+                  "x": 1.1952022255779433e-08,
+                  "y": 0.18756001404239872,
+                  "z": -0.9822531451374512
+                },
+                "up": {
+                  "x": -2.282223713503096e-09,
+                  "y": 0.9822531451374513,
+                  "z": 0.1875600140423987
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "StaticMeshActor_3",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_3",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": 2495.0,
+            "y": 8325.0,
+            "z": 2855.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": -179.99999860565467,
+            "roll": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": -0.9999999999999996,
+              "y": -2.4335916959723895e-08,
+              "z": 0.0
+            },
+            "right": {
+              "x": 4.8671845787391764e-08,
+              "y": -0.9999999999999988,
+              "z": -0.0
+            },
+            "up": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": 8325.0,
+            "y": 2855.0,
+            "z": 2495.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": -2.4335916959723895e-08,
+              "y": 0.0,
+              "z": -0.9999999999999996
+            },
+            "right": {
+              "x": -0.9999999999999988,
+              "y": -0.0,
+              "z": 4.8671845787391764e-08
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
             }
           }
         }
@@ -4406,69 +4289,637 @@
       "static_mesh_components": [
         {
           "component_name": "StaticMeshComponent0",
-          "static_mesh_asset": "/Game/Map/text/linktest/StaticMeshes/sm_bm_ground_capture_doormat_a_mo.sm_bm_ground_capture_doormat_a_mo",
-          "fbx": "Meshes/sm_bm_ground_capture_doormat_a_mo.fbx",
+          "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_04.SM_SM_Cloud_Medium_04",
+          "fbx": "Meshes/SM_SM_Cloud_Medium_04.fbx",
           "component_world_transform": {
             "ue": {
               "location_cm": {
-                "x": -583.8007678445952,
-                "y": -12.643680674900404,
-                "z": 1378.321526804986
+                "x": 2495.0,
+                "y": 8325.0,
+                "z": 2855.0
               },
               "rotation_deg": {
-                "pitch": -3.4395653343191275,
-                "yaw": 0.0,
+                "pitch": 0.0,
+                "yaw": -179.99999860565467,
                 "roll": 0.0
               },
               "scale": {
-                "x": 4.875,
-                "y": 2.5625,
+                "x": 1.0,
+                "y": 1.0,
                 "z": 1.0
               },
               "basis": {
                 "forward": {
-                  "x": 0.9981986361795515,
-                  "y": 0.0,
-                  "z": -0.05999568925584213
+                  "x": -0.9999999999999996,
+                  "y": -2.4335916959723895e-08,
+                  "z": 0.0
                 },
                 "right": {
-                  "x": -0.0,
-                  "y": 1.0,
+                  "x": 4.8671845787391764e-08,
+                  "y": -0.9999999999999988,
                   "z": -0.0
                 },
                 "up": {
-                  "x": 0.059995688791651944,
+                  "x": 0.0,
                   "y": 0.0,
-                  "z": 0.9981986362074511
+                  "z": 1.0
                 }
               }
             },
             "dx": {
               "location": {
-                "x": -12.643680674900404,
-                "y": 1378.321526804986,
-                "z": -583.8007678445952
+                "x": 8325.0,
+                "y": 2855.0,
+                "z": 2495.0
               },
               "scale": {
-                "x": 2.5625,
+                "x": 1.0,
                 "y": 1.0,
-                "z": 4.875
+                "z": 1.0
               },
               "basis": {
                 "forward": {
-                  "x": 0.0,
-                  "y": -0.05999568925584213,
-                  "z": 0.9981986361795515
+                  "x": -2.4335916959723895e-08,
+                  "y": 0.0,
+                  "z": -0.9999999999999996
                 },
                 "right": {
-                  "x": 1.0,
+                  "x": -0.9999999999999988,
                   "y": -0.0,
+                  "z": 4.8671845787391764e-08
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "StaticMeshActor_7",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_7",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": 3515.0,
+            "y": 6280.0,
+            "z": -15.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": 175.00000143307716,
+            "roll": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": -0.9961947002716771,
+              "y": 0.0871557178309213,
+              "z": 0.0
+            },
+            "right": {
+              "x": -0.08715574140081905,
+              "y": -0.9961946982095786,
+              "z": -0.0
+            },
+            "up": {
+              "x": -0.0,
+              "y": -0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": 6280.0,
+            "y": -15.0,
+            "z": 3515.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": 0.0871557178309213,
+              "y": 0.0,
+              "z": -0.9961947002716771
+            },
+            "right": {
+              "x": -0.9961946982095786,
+              "y": -0.0,
+              "z": -0.08715574140081905
+            },
+            "up": {
+              "x": -0.0,
+              "y": 1.0,
+              "z": -0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_01.SM_SM_Cloud_Medium_01",
+          "fbx": "Meshes/SM_SM_Cloud_Medium_01.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": 3515.0,
+                "y": 6280.0,
+                "z": -15.0
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": 175.00000143307716,
+                "roll": 0.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": -0.9961947002716771,
+                  "y": 0.0871557178309213,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": -0.08715574140081905,
+                  "y": -0.9961946982095786,
+                  "z": -0.0
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": -0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": 6280.0,
+                "y": -15.0,
+                "z": 3515.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 0.0871557178309213,
+                  "y": 0.0,
+                  "z": -0.9961947002716771
+                },
+                "right": {
+                  "x": -0.9961946982095786,
+                  "y": -0.0,
+                  "z": -0.08715574140081905
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "StaticMeshActor_9",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_9",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": -10345.0,
+            "y": 14715.0,
+            "z": -5520.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": -154.99999879931391,
+            "roll": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": -0.9063077781802928,
+              "y": -0.4226182807332178,
+              "z": 0.0
+            },
+            "right": {
+              "x": 0.422618299725748,
+              "y": -0.9063077693239298,
+              "z": -0.0
+            },
+            "up": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": 14715.0,
+            "y": -5520.0,
+            "z": -10345.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": -0.4226182807332178,
+              "y": 0.0,
+              "z": -0.9063077781802928
+            },
+            "right": {
+              "x": -0.9063077693239298,
+              "y": -0.0,
+              "z": 0.422618299725748
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": 0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_04.SM_SM_Cloud_Medium_04",
+          "fbx": "Meshes/SM_SM_Cloud_Medium_04.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": -10345.0,
+                "y": 14715.0,
+                "z": -5520.0
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": -154.99999879931391,
+                "roll": 0.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": -0.9063077781802928,
+                  "y": -0.4226182807332178,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": 0.422618299725748,
+                  "y": -0.9063077693239298,
                   "z": -0.0
                 },
                 "up": {
                   "x": 0.0,
-                  "y": 0.9981986362074511,
-                  "z": 0.059995688791651944
+                  "y": 0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": 14715.0,
+                "y": -5520.0,
+                "z": -10345.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": -0.4226182807332178,
+                  "y": 0.0,
+                  "z": -0.9063077781802928
+                },
+                "right": {
+                  "x": -0.9063077693239298,
+                  "y": -0.0,
+                  "z": 0.422618299725748
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "StaticMeshActor_11",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_11",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": 1365.0,
+            "y": -16820.0,
+            "z": 1470.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": 0.0,
+            "roll": -0.0
+          },
+          "scale": {
+            "x": 1.2482509780675173,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "basis": {
+            "forward": {
+              "x": 1.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "right": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            },
+            "up": {
+              "x": -0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": -16820.0,
+            "y": 1470.0,
+            "z": 1365.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.2482509780675173
+          },
+          "basis": {
+            "forward": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 1.0
+            },
+            "right": {
+              "x": 1.0,
+              "y": -0.0,
+              "z": 0.0
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/NewMy/SM_SM_Cloud_Medium_06.SM_SM_Cloud_Medium_06",
+          "fbx": "Meshes/SM_SM_Cloud_Medium_06.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": 1365.0,
+                "y": -16820.0,
+                "z": 1470.0
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": 0.0,
+                "roll": -0.0
+              },
+              "scale": {
+                "x": 1.2482509780675173,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 1.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": -16820.0,
+                "y": 1470.0,
+                "z": 1365.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.2482509780675173
+              },
+              "basis": {
+                "forward": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                },
+                "right": {
+                  "x": 1.0,
+                  "y": -0.0,
+                  "z": 0.0
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "StaticMeshActor_12",
+      "path": "/Game/NewMy/MapShip.MapShip:PersistentLevel.StaticMeshActor_12",
+      "class": "StaticMeshActor",
+      "world_transform": {
+        "ue": {
+          "location_cm": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1330.0
+          },
+          "rotation_deg": {
+            "pitch": 0.0,
+            "yaw": -89.99999930282758,
+            "roll": 0.0
+          },
+          "scale": {
+            "x": 80.0,
+            "y": 80.0,
+            "z": 80.0
+          },
+          "basis": {
+            "forward": {
+              "x": 1.2167954322246796e-08,
+              "y": -0.9999999999999998,
+              "z": 0.0
+            },
+            "right": {
+              "x": 0.9999999999999997,
+              "y": 2.4335918674848395e-08,
+              "z": -0.0
+            },
+            "up": {
+              "x": -0.0,
+              "y": 0.0,
+              "z": 1.0
+            }
+          }
+        },
+        "dx": {
+          "location": {
+            "x": 0.0,
+            "y": 1330.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 80.0,
+            "y": 80.0,
+            "z": 80.0
+          },
+          "basis": {
+            "forward": {
+              "x": -0.9999999999999998,
+              "y": 0.0,
+              "z": 1.2167954322246796e-08
+            },
+            "right": {
+              "x": 2.4335918674848395e-08,
+              "y": -0.0,
+              "z": 0.9999999999999997
+            },
+            "up": {
+              "x": 0.0,
+              "y": 1.0,
+              "z": -0.0
+            }
+          }
+        }
+      },
+      "static_mesh_components": [
+        {
+          "component_name": "StaticMeshComponent0",
+          "static_mesh_asset": "/Game/My/NewShip/SM_Ship.SM_Ship",
+          "fbx": "Meshes/SM_Ship.fbx",
+          "component_world_transform": {
+            "ue": {
+              "location_cm": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 1330.0
+              },
+              "rotation_deg": {
+                "pitch": 0.0,
+                "yaw": -89.99999930282758,
+                "roll": 0.0
+              },
+              "scale": {
+                "x": 80.0,
+                "y": 80.0,
+                "z": 80.0
+              },
+              "basis": {
+                "forward": {
+                  "x": 1.2167954322246796e-08,
+                  "y": -0.9999999999999998,
+                  "z": 0.0
+                },
+                "right": {
+                  "x": 0.9999999999999997,
+                  "y": 2.4335918674848395e-08,
+                  "z": -0.0
+                },
+                "up": {
+                  "x": -0.0,
+                  "y": 0.0,
+                  "z": 1.0
+                }
+              }
+            },
+            "dx": {
+              "location": {
+                "x": 0.0,
+                "y": 1330.0,
+                "z": 0.0
+              },
+              "scale": {
+                "x": 80.0,
+                "y": 80.0,
+                "z": 80.0
+              },
+              "basis": {
+                "forward": {
+                  "x": -0.9999999999999998,
+                  "y": 0.0,
+                  "z": 1.2167954322246796e-08
+                },
+                "right": {
+                  "x": 2.4335918674848395e-08,
+                  "y": -0.0,
+                  "z": 0.9999999999999997
+                },
+                "up": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": -0.0
                 }
               }
             }

@@ -43,6 +43,7 @@ namespace
 	constexpr float kDrumUltimateDurationBeats = 8.0f;
 	constexpr float kDrumUltimateRadius = 1000.0f;
 	constexpr float kUltimateIntroDurationSeconds = 1.0f;
+	constexpr int32 kUltimateRequiredRhythmPoints = 200;
 }
 
 
@@ -252,7 +253,8 @@ void PlayerInputSystem::Update(float dt)
 				!mainPlayerComponent->mGuitarUltimateActive &&
 				!mainPlayerComponent->mDrumUltimateActive &&
 				!mainPlayerComponent->mUltimateIntroActive;
-			if (ultimateInactive)
+			if (ultimateInactive &&
+				mainPlayerComponent->mRhythmPoints >= kUltimateRequiredRhythmPoints)
 				StartUltimateIntro(mainPlayerComponent, now);
 		}
 		if (inputComp->IsButtonPressed(InputButtons::DANCE1)) {
@@ -559,7 +561,8 @@ void PlayerInputSystem::StartUltimateIntro(
 	MainPlayerComponent* playerComponent,
 	float now)
 {
-	if (!playerComponent)
+	if (!playerComponent ||
+		playerComponent->mRhythmPoints < kUltimateRequiredRhythmPoints)
 		return;
 
 	playerComponent->mUltimateIntroActive = true;

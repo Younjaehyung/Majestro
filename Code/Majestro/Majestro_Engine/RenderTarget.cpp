@@ -9,7 +9,7 @@ void RenderTargetHeap::Initialize()
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc1{};
 	heapDesc1.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	heapDesc1.NumDescriptors = 100;
+	heapDesc1.NumDescriptors = 1000;
 	heapDesc1.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	heapDesc1.NodeMask = 0;
 	DEVICE->CreateDescriptorHeap(&heapDesc1, IID_PPV_ARGS(&mRenderTargetHeap));

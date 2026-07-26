@@ -29,6 +29,7 @@ private:
 	Vec2 GetProgressSizePx(const Vec2& sizeRatio) const;
 
 	Vec2 GetConquestBackAnchorPx() const;
+	Vec2 GetConquestBackSizePx() const;
 	void GetConquestArcGeometry(Vec2& outCenterPx, Vec2& outRadiusPx) const;
 
 
@@ -52,7 +53,7 @@ private:
 	// --- 배경 레이어 ---
 	std::wstring mConquestBackTextureName = L"UI_Ingame_Conquest_Back";
 	Vec2  mConquestBackAnchorRatio = Vec2(0.5f, 0.0889f);
-	Vec2  mConquestBackSizeRatio   = Vec2(0.30f, 0.17775f);
+	float mConquestBackHeightRatio = 0.17775f;  // 배너 높이 / 화면 높이
 
 	// --- 룰렛 ---
 	float mConquestArcStepDegrees = 33.f;		// 슬롯 간격 각도

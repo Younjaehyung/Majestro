@@ -1163,13 +1163,27 @@ HUDPortraitPrefab::~HUDPortraitPrefab()
 
 HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 {
+
+	const Vec2  kSkillSize = Vec2(156.f, 156.f);
+	const Vec2  kUltimateSize = kSkillSize * 1.25f;
+	constexpr float kRightMargin = 72.f;
+	constexpr float kBottomMargin = 64.f;
+	constexpr float kSlotGap = 24.f;
+	constexpr float kBackPadding = 10.f;
+
+	const float normalY = -(kBottomMargin + kSkillSize.y);
+	const float ultimateY = -(kBottomMargin + kUltimateSize.y);
+	const float ultimateX = -(kRightMargin + kUltimateSize.x);
+	const float skill2X = ultimateX - kSlotGap - kSkillSize.x;
+	const float skill1X = skill2X - kSlotGap - kSkillSize.x;
+
+
 	const std::array<Vec2, 3> kSkillPos = {
-		Vec2(-654.f, -200.f),   // Skill1 (E)
-		Vec2(-452.f, -200.f),   // Skill2 (Shift)
-		Vec2(-250.f, -200.f),   // 궁극기 (Q)
+		Vec2(skill1X, normalY),       // Skill1 (E)
+		Vec2(skill2X, normalY),       // Skill2 (Shift)
+		Vec2(ultimateX, ultimateY),   // 궁극기 (Q)
 	};
 
-	const Vec2  kSkillSize = Vec2(128.f, 128.f);
 	constexpr uint8 kUltimateSlot = 255;                    // 쿨타임 미추적 슬롯(오버레이 비활성)
 	const uint8 kSkillSlotId[3] = { 1, 2, kUltimateSlot };  // Skill1, Skill2, 궁극기
 
@@ -1217,18 +1231,22 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 		const Vec2 skillKey = kKeyCell[i];                   // 키 텍스트 셀 (E/Shift/Q)
 
 		const bool isUlt = (kSkillSlotId[i] == kUltimateSlot);
-		const Vec2 slotSize = isUlt ? kSkillSize * 1.25f : kSkillSize;
+		const Vec2 slotSize = isUlt ? kUltimateSize : kSkillSize;
+		const Vec2 backPadding = Vec2(kBackPadding, kBackPadding);
+		const Vec2 backPosition = kSkillPos[i] - backPadding;
+		const Vec2 backSize = slotSize + backPadding * 2.f;
 #ifdef _IMGUI
 		const std::string imguiSlotName = (i == 0) ? "Skill1" : (i == 1) ? "Skill2" : "Ultimate";
 #endif
 
-		// 배경 패널 (아이콘 아래)
+
 		Entity back = world->CreateEntity();
 		{
 			auto& t = world->AddComponent<UITransformComponent>(back);
 			t.mAnchor = Anchor::BottomRight;
-			t.mPosition = kSkillPos[i];
-			t.mSize = slotSize;
+			t.mPosition = backPosition;
+			t.mSize = backSize;
+			t.mPivot = Vec2(0.f, 0.f);
 			t.mUILayerIndex = 5;
 			auto& sp = world->AddComponent<UISpriteComponent>(back, backTex);
 			sp.SetSourceRect(0, 1024, 512, 512);
@@ -1286,7 +1304,7 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 			auto& t = world->AddComponent<UITransformComponent>(key);
 			t.mAnchor = Anchor::BottomRight;
 			t.mPosition = kSkillPos[i] + Vec2(0.f, 0.f);
-			t.mSize = Vec2(48.f, 48.f);
+			t.mSize = Vec2(72.f, 72.f);
 			t.mUILayerIndex = 8;
 			auto& sp = world->AddComponent<UISpriteComponent>(key, keyTex);
 			sp.SetSourceRect(skillKey.x, skillKey.y, kCell, kCell);
@@ -1294,29 +1312,6 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 #ifdef _IMGUI
 			props.push_back({ imguiSlotName + " Key Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
 			props.push_back({ imguiSlotName + " Key Size", PropertyType::Vec2, &(t.mSize), 0.f, 0.f });
-#endif
-		}
-
-		// 쿨타임 남은 초 숫자 (스킬 슬롯만. 궁극기는 충전 게이지라 숫자 없음)
-		Entity countText = NULL_ENTITY;
-		if (!isUlt)
-		{
-			countText = world->CreateEntity();
-			auto& t = world->AddComponent<UITransformComponent>(countText);
-			t.mAnchor = Anchor::BottomRight;
-			t.mPosition = kSkillPos[i] + Vec2(slotSize.x * 0.5f - 22.f, slotSize.y * 0.5f - 30.f); // 대략 중앙(ImGui로 미세조정)
-			t.mSize = slotSize;
-			t.mPivot = Vec2(0.5f, 0.5f);
-			t.mUILayerIndex = 9;   // 오버레이(7)/키(8) 위
-			auto& txt = world->AddComponent<UITextComponent>(countText);
-			txt.mFontType = UIFontType::Esamanru;
-			txt.mColor = DirectX::XMVECTORF32{ { { 1.f, 1.f, 1.f, 1.f } } };
-			txt.mOutlineThickness = 3.f;
-			txt.mOutlineColor = DirectX::XMVECTORF32{ { { 0.f, 0.f, 0.f, 1.f } } };
-			txt.mText = L"";
-			txt.mVisible = false;  // 쿨 중에만 표시
-#ifdef _IMGUI
-			props.push_back({ imguiSlotName + " Count Pos", PropertyType::Vec2, &(t.mPosition), 0.f, 0.f });
 #endif
 		}
 
@@ -1332,7 +1327,6 @@ HUDSkillBarPrefab::HUDSkillBarPrefab(World* world, uint8 playerType)
 		slot.mBack = back;
 		slot.mIcon = icon;
 		slot.mOverlay = overlay;
-		slot.mCountText = countText;
 		slot.mIsUltimate = isUlt;
 	}
 

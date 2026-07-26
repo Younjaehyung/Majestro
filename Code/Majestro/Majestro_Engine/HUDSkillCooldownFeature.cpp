@@ -6,10 +6,6 @@
 #include "HUDSkillSlotComponent.h"
 #include "PlayerComponent.h"
 #include "UISpriteComponent.h"
-#include "UITextComponent.h"
-#include "UITransformComponent.h"
-#include "BeatSystem.h"
-#include "MathUtils.h"
 #include "GameEvents.h"
 
 namespace
@@ -38,15 +34,6 @@ void HUDSkillCooldownFeature::Update(float dt)
 	const float now = TIMER.GetTotalTime();
 
 
-	float beatBounce = 1.f;
-	if (auto systemManager = mWorld->GetSystemManager())
-	{
-		if (BeatSystem* beatSystem = systemManager->GetSystem<BeatSystem>())
-		{
-			if (beatSystem->GetBeatSeconds() > 0.f)
-				beatBounce = MathUtils::BeatBounceScale(beatSystem->GetBeatProgress(), kUIBeatBounceAmplitude);
-		}
-	}
 
 	for (Entity e : mWorld->GetEntitiesWithComponent<HUDSkillSlotComponent>())
 	{
@@ -57,14 +44,13 @@ void HUDSkillCooldownFeature::Update(float dt)
 		// --- 슬롯 진행도 계산 ---
 		bool  ready      = true;   // 사용 가능(쿨 완료 / 충전 만땅)
 		float coverTop   = 0.f;    // 덮개가 위에서부터 차지하는 비율 (0=없음, 1=꽉 덮음)
-		bool  showNumber = false;
-		int   number     = 0;
 
 		if (slot->mIsUltimate)
 		{
-			const float maxPts = static_cast<float>(MainPlayerComponent::kMaxRhythmPoints);
-			const float charge = maxPts > 0.f
-				? std::clamp(static_cast<float>(mp->mRhythmPoints) / maxPts, 0.f, 1.f)
+			constexpr int kMaxPts = MainPlayerComponent::kMaxRhythmPoints;
+			const int   points = std::clamp(mp->mRhythmPoints, 0, kMaxPts);
+			const float charge = kMaxPts > 0
+				? static_cast<float>(points) / static_cast<float>(kMaxPts)
 				: 0.f;
 			ready    = (charge >= 0.999f);
 			coverTop = 1.f - charge;   // 충전될수록 덮개가 아래로 줄어 바텀업 필
@@ -79,10 +65,8 @@ void HUDSkillCooldownFeature::Update(float dt)
 			const float remain = end - now;
 			const bool  cooling = (dur > 0.f && remain > 0.f);
 
-			ready      = !cooling;
-			coverTop   = cooling ? std::clamp(remain / dur, 0.f, 1.f) : 0.f;
-			showNumber = cooling;
-			number     = static_cast<int>(std::ceil(remain));
+			ready    = !cooling;
+			coverTop = cooling ? std::clamp(remain / dur, 0.f, 1.f) : 0.f;
 		}
 
 		// --- 준비 완료 에지: 플래시 + 사운드 ---
@@ -128,26 +112,6 @@ void HUDSkillCooldownFeature::Update(float dt)
 			else
 			{
 				ic->mColorTint = Vec4(1.f, 1.f, 1.f, 1.f);              // 풀컬러(궁 충전중 포함)
-			}
-		}
-
-		// --- 남은 초 숫자 (스킬만) ---
-		if (slot->mCountText != NULL_ENTITY)
-		{
-			if (auto* tx = mWorld->GetComponent<UITextComponent>(slot->mCountText))
-			{
-				if (showNumber)
-				{
-					tx->mVisible = true;
-					tx->mText = std::to_wstring((std::max)(0, number));
-
-					if (auto* tr = mWorld->GetComponent<UITransformComponent>(slot->mCountText))
-						tr->mScale = Vec2(beatBounce, beatBounce);
-				}
-				else
-				{
-					tx->mVisible = false;
-				}
 			}
 		}
 

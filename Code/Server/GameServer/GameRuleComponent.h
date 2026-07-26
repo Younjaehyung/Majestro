@@ -54,6 +54,7 @@ public:
 
 	static constexpr float mMaxWaveInterval = 3.f; // 웨이브 점령 감소 간격 시작 (초)
 	static constexpr float mMaxWaveTime = 30.f; // 최대 웨이브 수
+	static constexpr float mConquestProgressSpeedMultiplier = 2.0f; // 점령 진행 속도 배율
 
 	std::array<std::vector<Entity>, mMaxWaves> mEnemeySpawners; // 웨이브별 적 스포너 엔티티 리스트
 	std::array<Entity, mMaxWaves> mPlayerSpawners;				// 웨이브별 플레이어 스포너 엔티티 리스트
@@ -96,7 +97,7 @@ public:
 	float mStageProgress = 0.f; // 현재 구간 내 진행도 (0~1)
 	uint8 mStageCount = 0; // 전체 호위 구간 수 (stopPoints 개수)
 	float mEscortTime = 0.f; // 호위 진행 시간
-	float mTruckSpeed = 200.f; // 호위 대상 기본 이동 속도 (반경 내 1명 기준)
+	float mTruckSpeed = 300.0f; // 호위 대상 기본 이동 속도
 
 	// 인원 비례 속도
 	int32 mFullSpeedPlayerCount = 3;    // 이 인원 이상이면 최대 배율 도달

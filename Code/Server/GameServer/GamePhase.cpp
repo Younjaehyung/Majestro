@@ -343,7 +343,9 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 	if (playerNum >= enemyNum) {
 
 		if (playerNum > enemyNum) {
-			ruleComp->mWaveTime += dt * conquestSpeedMultiplier;
+
+			ruleComp->mWaveTime += dt
+				* GameConquestComponent::mConquestProgressSpeedMultiplier * conquestSpeedMultiplier;
 		}
 		ruleComp->mWaveInterval = 0.f;
 		std::cout << "[ConquestZone] :  PlayerNum: " << playerNum << ", EnemyNum: " << enemyNum << ", WaveTime: " << ruleComp->mWaveTime << std::endl;

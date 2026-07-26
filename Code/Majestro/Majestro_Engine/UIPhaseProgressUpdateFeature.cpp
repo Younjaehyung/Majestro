@@ -75,6 +75,8 @@ namespace
 	constexpr float kBackRingCenterV  = -60.59f / 256.f;  // -0.2367 (원 중심이 텍스처 위쪽 바깥)
 	constexpr float kBackRingRadiusU  = 148.46f / 768.f;  //  0.1933
 	constexpr float kBackRingRadiusV  = 148.46f / 256.f;  //  0.5799
+
+	constexpr float kBackAspect = 768.f / 256.f;
 }
 
 void UIPhaseProgressUpdateFeature::Initialize(World* world)
@@ -250,7 +252,7 @@ void UIPhaseProgressUpdateFeature::DrawConquestBackground()
 	RENDERMANAGER.SetGraphicsTable();
 
 	const Vec2 anchorPx = GetConquestBackAnchorPx();
-	const Vec2 sizePx   = GetProgressSizePx(mConquestBackSizeRatio);
+	const Vec2 sizePx   = GetConquestBackSizePx();
 
 	UIPhaseSpriteParamsLayout gp{};
 	gp.BaseInstanceID         = 0;
@@ -283,10 +285,19 @@ Vec2 UIPhaseProgressUpdateFeature::GetConquestBackAnchorPx() const
 }
 
 
+Vec2 UIPhaseProgressUpdateFeature::GetConquestBackSizePx() const
+{
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+
+	const float heightPx = static_cast<float>(window.Height) * std::clamp(mConquestBackHeightRatio, 0.f, 1.f);
+	return Vec2(heightPx * kBackAspect, heightPx);
+}
+
+
 void UIPhaseProgressUpdateFeature::GetConquestArcGeometry(Vec2& outCenterPx, Vec2& outRadiusPx) const
 {
 	const Vec2 backAnchorPx = GetConquestBackAnchorPx();
-	const Vec2 backSizePx   = GetProgressSizePx(mConquestBackSizeRatio);
+	const Vec2 backSizePx   = GetConquestBackSizePx();
 
 
 	outCenterPx = Vec2(
@@ -494,12 +505,23 @@ void UIPhaseProgressUpdateFeature::DrawDebugPanel()
 		ImGui::Text("Background (최하단 레이어)");
 		ImGui::Text("Texture : %s", RESOURCEMANAGER.Get<Texture>(mConquestBackTextureName) ? "loaded" : "(없음 - 배경 스킵)");
 		ImGui::DragFloat2("BackAnchorRatio", &mConquestBackAnchorRatio.x, 0.001f, 0.f, 1.f, "%.4f");
-		ImGui::DragFloat2("BackSizeRatio", &mConquestBackSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+		ImGui::DragFloat("BackHeightRatio", &mConquestBackHeightRatio, 0.001f, 0.02f, 1.f, "%.5f");
+
+		const Vec2 backSizePx = GetConquestBackSizePx();
+		const WindowInfo& win = RENDERMANAGER.GetWindow();
+		ImGui::Text("BackSizePx : %.0f x %.0f  (aspect %.3f / native %.3f)",
+			backSizePx.x, backSizePx.y, backSizePx.y > 0.f ? backSizePx.x / backSizePx.y : 0.f, kBackAspect);
+		ImGui::Text("Screen : %d x %d  (aspect %.3f)",
+			win.Width, win.Height, win.Height > 0 ? static_cast<float>(win.Width) / win.Height : 0.f);
+
+		if (ImGui::Button("Snap Anchor To Top"))
+		{
+			mConquestBackAnchorRatio.y = mConquestBackHeightRatio * 0.5f;
+		}
 
 		mConquestBackAnchorRatio.x = std::clamp(mConquestBackAnchorRatio.x, 0.f, 1.f);
 		mConquestBackAnchorRatio.y = std::clamp(mConquestBackAnchorRatio.y, 0.f, 1.f);
-		mConquestBackSizeRatio.x   = std::clamp(mConquestBackSizeRatio.x, 0.f, 1.f);
-		mConquestBackSizeRatio.y   = std::clamp(mConquestBackSizeRatio.y, 0.f, 1.f);
+		mConquestBackHeightRatio   = std::clamp(mConquestBackHeightRatio, 0.02f, 1.f);
 
 		ImGui::Separator();
 		ImGui::Text("Roulette (하단 반원 배치)");

@@ -1295,9 +1295,9 @@ void RenderSystem::UpdateCascadeShadowMatrices(LightComponent *lightComponent) {
     mCascadeFrustumCenter[cascadeIndex] = frustumCenter;
     mCascadeFrustumRadius[cascadeIndex] = radius;
 
-    // Light 공간 XY 축 저장 — AABB 컬링에 사용 (행렬 Row 0/1 = Right/Up)
-    mCascadeLightRight[cascadeIndex] = Vec3(lightView._11, lightView._12, lightView._13);
-    mCascadeLightUp[cascadeIndex]    = Vec3(lightView._21, lightView._22, lightView._23);
+    // Light 공간 XY 축 저장 — AABB 컬링에 사용
+    mCascadeLightRight[cascadeIndex] = Vec3(lightView._11, lightView._21, lightView._31);
+    mCascadeLightUp[cascadeIndex]    = Vec3(lightView._12, lightView._22, lightView._32);
 
     // 프러스텀 중심을 (고정) 라이트공간으로 투영 → X/Y를 텍셀 그리드에 스냅
     Vec3 centerLS = Vec3::Transform(frustumCenter, lightView);
@@ -1499,9 +1499,9 @@ void RenderSystem::UpdateMapCascade(const Vec3& lightDir)
   mCascadeFrustumCenter[mapIdx] = center;
   mCascadeFrustumRadius[mapIdx] = radius * 1.05f;
   mCascadeLightRight[mapIdx] =
-    Vec3(lightView._11, lightView._12, lightView._13);
+    Vec3(lightView._11, lightView._21, lightView._31);
   mCascadeLightUp[mapIdx] =
-    Vec3(lightView._21, lightView._22, lightView._23);
+    Vec3(lightView._12, lightView._22, lightView._32);
   passParams.CascadeShadowVP[mapIdx] = mMapCascadeVP.Transpose();
 }
 

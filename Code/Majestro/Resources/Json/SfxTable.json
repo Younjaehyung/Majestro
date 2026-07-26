@@ -81,6 +81,23 @@
       "event": "event:/SFX/Monster/BrassBoss_Skill_04",
       "is3d": true
     },
+    "_comment_string_boss": "String 보스는 EnemyType::Dragon(Violagon, SM_StringDragon_*)이므로 키 접두사는 monster/Dragon 이다.",
+    "monster/Dragon/Skill1": {
+      "event": "event:/SFX/Monster/StringBoss_Skill_01",
+      "is3d": true
+    },
+    "monster/Dragon/Skill2": {
+      "event": "event:/SFX/Monster/StringBoss_Skill_02",
+      "is3d": true
+    },
+    "monster/Dragon/Skill3": {
+      "event": "event:/SFX/Monster/StringBoss_Skill_03",
+      "is3d": true
+    },
+    "monster/Dragon/Skill4": {
+      "event": "event:/SFX/Monster/StringBoss_Skill_04",
+      "is3d": true
+    },
     "monster/Fly/Attack": {
       "event": "event:/SFX/Monster/Fly",
       "is3d": true
@@ -121,22 +138,7 @@
       "event": "event:/SFX/Rudwig/SFX_Rudwig_Skill_02",
       "is3d": true
     },
-    "skill/DragonSkill1/Fire": {
-      "event": "event:/SFX/Monster/Bongoman",
-      "is3d": true
-    },
-    "skill/DragonSkill2/Fire": {
-      "event": "event:/SFX/Monster/Bongoman",
-      "is3d": true
-    },
-    "skill/DragonSkill3/Fire": {
-      "event": "event:/SFX/Monster/Bongoman",
-      "is3d": true
-    },
-    "skill/DragonSkill4/Fire": {
-      "event": "event:/SFX/Monster/Bongoman",
-      "is3d": true
-    },
+    "_comment_dragon_skill": "String 보스(Dragon) 스킬음은 애님 상태 기준 monster/Dragon/Skill1~4 로만 재생한다. Brass 와 같은 경로이며, skill/DragonSkillN/Fire 를 함께 매핑하면 스킬 1회에 소리가 두 번 난다.",
 
     "skill/BaseAttack/CollisionEntity": {
       "event": "event:/SFX/Hit_Impact",
@@ -170,17 +172,17 @@
       "is3d": true
     },
 
-    "_comment_special": "궁극기(Special) 진입 사운드. SfxSystem 이 상태 전환 시 action/<Char>/Special 로 자동 재생한다(3D, 전 플레이어). 아래 event 경로는 컨벤션 기준 자리표시자이니 실제 FMOD 이벤트로 교체할 것(뱅크에 없으면 1회 로그 후 무시). 인트로 컷인용 사운드가 따로 필요하면 action/<Char>/UltimateIntro 를 추가하면 된다.",
+    "_comment_special": "궁극기 본 동작인 Special 상태 진입 시 캐릭터별 Ultimate 이벤트를 3D 사운드로 한 번 재생한다.",
     "action/Ibanix/Special": {
-      "event": "event:/SFX/Ibanix/SFX_Ibanix_Special",
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Ultimate",
       "is3d": true
     },
     "action/Rudwig/Special": {
-      "event": "event:/SFX/Rudwig/SFX_Rudwig_Special",
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Ultimate",
       "is3d": true
     },
     "action/Fanthor/Special": {
-      "event": "event:/SFX/Fanthor/SFX_Fanthor_Special",
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Ultimate",
       "is3d": true
     },
 

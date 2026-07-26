@@ -7,6 +7,7 @@
 #include "InputManager.h"
 #include "BeatSystem.h"
 #include "PlayerComponent.h"
+#include "EnemyComponent.h"
 #include "Network.h"
 #include "NetEntityComponent.h"
 #include "TagComponent.h"
@@ -17,6 +18,15 @@
 namespace
 {
     constexpr float kRhythmCompareEpsilon = 0.001f;
+
+    // setTimelinePosition 이 FMOD 에 반영되기까지 기다리는 프레임 수.
+    constexpr int kBgmAlignSeekFrames = 5;
+
+    // 보스 음악 하드 시킹 기준
+    constexpr float kBossResyncSeconds = 0.06f;
+
+    // 하드 시킹이 반영될 때까지 재판정을 미루는 시간(초).
+    constexpr float kBossResyncCooldown = 0.5f;
 
     struct RhythmStemConfig
     {
@@ -40,6 +50,14 @@ namespace
     static_assert(
         kRhythmStemConfigs.size() == static_cast<size_t>(PlayerType::Count),
         "Rhythm stem config must cover every player type.");
+
+
+    constexpr std::array<BossMusicConfig, kBossMusicSlotCount> kBossMusicConfigs = {
+        BossMusicConfig{ static_cast<uint8>(EnemyType::Brass),  SOUNDNAME::BrassBoss,
+            "event:/OST/BrassBossMulti",  "StringParam" },
+        BossMusicConfig{ static_cast<uint8>(EnemyType::Dragon), SOUNDNAME::StringBoss,
+            "event:/OST/StringBossMulti", "StringParam" }
+    };
 
     const RhythmStemConfig* FindRhythmStemConfig(PlayerType playerType)
     {
@@ -120,17 +138,15 @@ void AudioSystem::Initialize()
                 "[BGM] rhythm stem initialization failed");
         }
 
-        // Brass 보스 음악: BrassParam=0 으로 시작, 보스 스킬 사용 시 파라미터로 연출 전환
-        AUDIOMANAGER.RequestBGM("event:/OST/BrassBossMulti", SOUNDNAME::BrassBoss);
-
-
+      
+        StopAllBossMusic();
     }
     else
     {
         AUDIOMANAGER.StopBGM(SOUNDNAME::Elec);
         AUDIOMANAGER.StopBGM(SOUNDNAME::Bass);
         AUDIOMANAGER.StopBGM(SOUNDNAME::Drum);
-        AUDIOMANAGER.StopBGM(SOUNDNAME::BrassBoss);
+        StopAllBossMusic();
     }
     
 
@@ -208,6 +224,9 @@ void AudioSystem::Update(float deltaTime)
             }
         }
     }
+
+    // 보스 전용 음악
+    UpdateBossMusic();
 
     if (!mWorld->HasComponentPool<MainPlayerComponent>())
         return;
@@ -339,9 +358,7 @@ void AudioSystem::AlignBgmToServerSongClock()
     // 일시정지 상태에서 박자 위치로 시킹 요청
     if (mAlignSeekFrame < 0)
     {
-        float targetPhase = fmodf(beatSystem->GetSongPosition(), mLoopLen);
-        if (targetPhase < 0.f)
-            targetPhase += mLoopLen;
+        const float targetPhase = WrapToLoop(beatSystem->GetSongPosition());
 
         AUDIOMANAGER.SeekBGM(SOUNDNAME::Drum, targetPhase);
         AUDIOMANAGER.SeekBGM(SOUNDNAME::Bass, targetPhase);
@@ -357,7 +374,7 @@ void AudioSystem::AlignBgmToServerSongClock()
     }
 
     // 시킹이 비동기로 반영될 시간 대기 후 정렬된 위치에서 재생 시작.
-    if (++mAlignSeekFrame < 5)
+    if (++mAlignSeekFrame < kBgmAlignSeekFrames)
         return;
 
     AUDIOMANAGER.SetBGMPaused(SOUNDNAME::Drum, false);
@@ -390,8 +407,8 @@ void AudioSystem::CorrectBgmDrift()
         return;
 
     // 위상 비교
-    const float fmodPhase = fmodf(fmodMs / 1000.f, mLoopLen);
-    const float beatPhase = fmodf(beatSystem->GetSongPosition(), mLoopLen);
+    const float fmodPhase = WrapToLoop(fmodMs / 1000.f);
+    const float beatPhase = WrapToLoop(beatSystem->GetSongPosition());
     float driftRaw = fmodPhase - beatPhase;
     // 최단 방향으로 보정(-loopLen/2 ~ +loopLen/2)
     if (driftRaw >  mLoopLen * 0.5f) driftRaw -= mLoopLen;
@@ -416,6 +433,9 @@ void AudioSystem::CorrectBgmDrift()
     AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Drum, pitch);
     AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Bass, pitch);
     AUDIOMANAGER.SetBGMPitch(SOUNDNAME::Elec, pitch);
+
+    // 보스 음악 피치 적용
+    CorrectBossMusicDrift(fmodPhase, pitch);
 
     // 런타임 오디오 추적이 활성화된 경우에만 로그 타이머도 갱신한다.
     if (EngineLog::Enabled(EngineLog::Domain::AudioRuntime))
@@ -512,10 +532,172 @@ void AudioSystem::UpdateSilenceMusicState()
     if (mSilenceMusicMuted == shouldMute)
         return;
 
-    // 수정사항: 재생 위치를 멈추지 않고 로컬 캐릭터에 대응하는 음악만 음소거한다.
-    // 개별 배율은 Ambient 버스 음량과 곱해지므로 설정 음량 비율이 그대로 유지된다.
+
     AUDIOMANAGER.SetBGMVolume(playerMusic, shouldMute ? 0.0f : 1.0f);
     mSilenceMusicMuted = shouldMute;
+}
+
+void AudioSystem::UpdateBossMusic()
+{
+    const bool hasEnemies = mWorld->HasComponentPool<EnemyComponent>();
+
+    for (size_t slot = 0; slot < kBossMusicConfigs.size(); ++slot)
+    {
+        const BossMusicConfig& config = kBossMusicConfigs[slot];
+        BossMusicState& state = mBossMusic[slot];
+
+
+        int skillIndex = state.skillIndex;
+        bool bossAlive = false;
+
+        if (hasEnemies)
+        {
+            for (Entity entity : mWorld->GetEntitiesWithComponent<EnemyComponent>())
+            {
+                const EnemyComponent* enemy = mWorld->GetComponent<EnemyComponent>(entity);
+                if (enemy == nullptr || enemy->mEnemyType != config.enemyType)
+                    continue;
+                if (enemy->mAnimState == static_cast<int>(EnemyAnimState::Dead))
+                    continue;
+
+                bossAlive = true;
+
+                // 스킬 상태일 때만 갱신
+                if (const int currentSkill = BossSkillIndexOf(enemy->mAnimState); currentSkill > 0)
+                    skillIndex = currentSkill;
+            }
+        }
+
+        if (!bossAlive)
+        {
+            if (state.playing)
+            {
+                AUDIOMANAGER.StopBGM(config.stem);
+                state = BossMusicState{};
+            }
+            continue;
+        }
+
+        if (!state.playing)
+        {
+
+            if (!mBgmStartAligned)
+                continue;
+
+
+            AUDIOMANAGER.RequestBGM( config.eventPath, config.stem, { { config.paramName, 0.0f } }, true);
+
+            state.playing = true;
+            state.aligned = false;
+            state.alignFrame = -1;
+            state.resyncCooldown = 0.f;
+            state.skillIndex = 0;
+        }
+
+        if (!state.aligned)
+            AlignBossMusicToReferenceStem(config, state);
+
+        if (state.skillIndex != skillIndex)
+        {
+            state.skillIndex = skillIndex;
+            AUDIOMANAGER.SetBGMParam(
+                config.paramName, config.stem, static_cast<float>(skillIndex), true);
+            EngineLog::Write(
+                EngineLog::Domain::AudioRuntime,
+                "[BGM] ",
+                config.paramName,
+                "=",
+                skillIndex);
+        }
+    }
+}
+
+void AudioSystem::StopAllBossMusic()
+{
+    for (size_t slot = 0; slot < kBossMusicConfigs.size(); ++slot)
+    {
+        AUDIOMANAGER.StopBGM(kBossMusicConfigs[slot].stem);
+        mBossMusic[slot] = BossMusicState{};
+    }
+}
+
+
+void AudioSystem::AlignBossMusicToReferenceStem(const BossMusicConfig& config, BossMusicState& state)
+{
+    // 타임라인 위상에 맞추기
+    int referenceMs = 0;
+    if (!AUDIOMANAGER.GetBGMTimelinePositionMs(SOUNDNAME::Elec, referenceMs))
+        return;
+
+    if (state.alignFrame < 0)
+    {
+        const float lead = kBgmAlignSeekFrames * DELTA_TIME;
+        AUDIOMANAGER.SeekBGM(config.stem, WrapToLoop(referenceMs / 1000.f + lead));
+        state.alignFrame = 0;
+        return;
+    }
+
+    if (++state.alignFrame < kBgmAlignSeekFrames)
+        return;
+
+    AUDIOMANAGER.SetBGMPaused(config.stem, false);
+    state.aligned = true;
+    EngineLog::Write(
+        EngineLog::Domain::AudioRuntime,
+        "[T0] boss music aligned and resumed ",
+        config.eventPath);
+}
+
+void AudioSystem::CorrectBossMusicDrift(float referencePhase, float pitch)
+{
+    for (size_t slot = 0; slot < kBossMusicConfigs.size(); ++slot)
+    {
+        const BossMusicConfig& config = kBossMusicConfigs[slot];
+        BossMusicState& state = mBossMusic[slot];
+
+        if (!state.playing || !state.aligned)
+            continue;
+
+
+        AUDIOMANAGER.SetBGMPitch(config.stem, pitch);
+
+        if (state.resyncCooldown > 0.f)
+        {
+            state.resyncCooldown -= DELTA_TIME;
+            continue;
+        }
+
+        int bossMs = 0;
+        if (!AUDIOMANAGER.GetBGMTimelinePositionMs(config.stem, bossMs))
+            continue;
+
+
+        float drift = WrapToLoop(bossMs / 1000.f) - referencePhase;
+        if (drift >  mLoopLen * 0.5f) drift -= mLoopLen;
+        if (drift < -mLoopLen * 0.5f) drift += mLoopLen;
+
+
+        if (fabsf(drift) <= kBossResyncSeconds)
+            continue;
+
+        AUDIOMANAGER.SeekBGM(config.stem, referencePhase);
+        state.resyncCooldown = kBossResyncCooldown;
+        EngineLog::Write(
+            EngineLog::Domain::AudioRuntime,
+            "[BGM] boss resync ",
+            config.eventPath,
+            " drift=",
+            drift,
+            "s");
+    }
+}
+
+float AudioSystem::WrapToLoop(float seconds) const
+{
+    float phase = fmodf(seconds, mLoopLen);
+    if (phase < 0.f)
+        phase += mLoopLen;
+    return phase;
 }
 
 void OnExplosion(float x, float y, float z) {

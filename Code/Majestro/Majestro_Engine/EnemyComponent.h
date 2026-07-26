@@ -39,7 +39,25 @@ enum class EnemyAnimState : uint8
 	DragonSkill2 = BrassAttack2,
 	DragonSkill3 = BrassAttack3,
 	DragonSkill4 = BrassAttack4,
+
+	BossSkill1 = BrassAttack1,
+	BossSkill2 = BrassAttack2,
+	BossSkill3 = BrassAttack3,
+	BossSkill4 = BrassAttack4,
 };
+
+
+inline int BossSkillIndexOf(int animState)
+{
+	switch (static_cast<EnemyAnimState>(animState))
+	{
+	case EnemyAnimState::BossSkill1: return 1;
+	case EnemyAnimState::BossSkill2: return 2;
+	case EnemyAnimState::BossSkill3: return 3;
+	case EnemyAnimState::BossSkill4: return 4;
+	default:                        return 0;
+	}
+}
 
 class EnemyComponent : public Component<EnemyComponent>
 {

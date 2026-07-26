@@ -7,6 +7,18 @@
 
 enum PlayerType : uint8;
 
+// 보스 타입별 전용 음악 설정
+struct BossMusicConfig
+{
+	uint8 enemyType;        // EnemyType
+	SOUNDNAME stem;         // 전용 BGM 슬롯
+	const char* eventPath;  // FMOD 이벤트 경로
+	const char* paramName;  // 스킬 연출 파라미터 (0 = 기본 테마, 1~4 = 스킬 번호)
+};
+
+// 전용 음악을 가진 보스 수. 설정 테이블과 런타임 상태 배열 크기를 함께 고정한다.
+constexpr size_t kBossMusicSlotCount = 2;
+
 class AudioSystem : public System
 {
 public:
@@ -36,6 +48,27 @@ private:
 
     void ApplyRhythmToStem(PlayerType playerType, Rhythm rhythm);
 	void UpdateSilenceMusicState();
+
+
+	float WrapToLoop(float seconds) const;
+
+	// 보스 전용 음악
+	struct BossMusicState
+	{
+		bool  playing = false;      // 이 슬롯의 음악을 재생 중인지
+		bool  aligned = false;      // 기준 스템 위상 정렬을 마치고 재생 중인지
+		int   alignFrame = -1;      // -1 = 시킹 전, 0~ = 시킹 후 경과 프레임
+		float resyncCooldown = 0.f; // 하드 시킹 반영 대기 시간(초)
+		int   skillIndex = 0;       // 마지막으로 파라미터에 반영한 스킬 번호 (0 = 기본 테마)
+	};
+	std::array<BossMusicState, kBossMusicSlotCount> mBossMusic{};
+
+	void UpdateBossMusic();
+	void StopAllBossMusic();
+
+
+	void AlignBossMusicToReferenceStem(const BossMusicConfig& config, BossMusicState& state);
+	void CorrectBossMusicDrift(float referencePhase, float pitch);
 
 	// 수정사항: Silence 상태가 바뀔 때만 로컬 플레이어 음악의 출력 배율을 변경한다.
 	bool mSilenceMusicMuted = false;

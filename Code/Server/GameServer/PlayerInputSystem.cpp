@@ -43,7 +43,7 @@ namespace
 	constexpr float kDrumUltimateDurationBeats = 8.0f;
 	constexpr float kDrumUltimateRadius = 1000.0f;
 	constexpr float kUltimateIntroDurationSeconds = 1.0f;
-	constexpr int32 kUltimateRequiredRhythmPoints = 200;
+	constexpr int32 kUltimateRequiredRhythmPoints = MainPlayerComponent::kMaxRhythmPoints;
 }
 
 

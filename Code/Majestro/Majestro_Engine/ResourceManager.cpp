@@ -3209,6 +3209,7 @@ void ResourceManager::CreateDefaultMaterial()
 			Load<Texture>(L"UI_Ingame_Conquest_Info_0", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_0.png");
 			Load<Texture>(L"UI_Ingame_Conquest_Info_1", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_1.png");
 			Load<Texture>(L"UI_Ingame_Conquest_Info_2", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Info_2.png");
+			Load<Texture>(L"UI_Ingame_Conquest_Back", L"..\\Resources\\Image\\UI\\UI_Ingame_Conquest_Back.png");
 
 			Load<Texture>(L"UI_Escort_Info_0", L"..\\Resources\\Image\\UI\\UI_Escort_Info_0.png");
 			Load<Texture>(L"UI_Escort_Info_1", L"..\\Resources\\Image\\UI\\UI_Escort_Info_1.png");

@@ -2,6 +2,7 @@
 #include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
+ConstantBuffer<WORLD_UI_HP_EFFECT_PARAMS> GlobalParams : register(b0, space0);
 
 // barycentric + fwidth로 삼각형 경계(엣지)를 검정으로 강조
 // VS에서 받은 alpha을 곱해 페이드아웃
@@ -30,12 +31,12 @@ float4 PS_Main(VS_OUT input) : SV_Target
     if (any(input.spriteUV < 0.0f) || any(input.spriteUV > 1.0f))
         discard;
     // alpha는 모양 마스크
-    float4 fillTexel = TextureMaps[GlobalParams.HpBarFillTexIdx].Sample(g_sam_0, input.spriteUV);
+    float4 fillTexel = TextureMaps[GlobalParams.FillTextureIndex].Sample(g_sam_0, input.spriteUV);
     if (fillTexel.a < 0.05f)
         discard;
 
     // Depth occlusion (HUD 모드는 스킵)
-    if ((GlobalParams.PassScalar0 & 1) == 0)
+    if ((GlobalParams.PassFlags & 1) == 0)
     {
         float2 screenUV = input.pos.xy / PassParams.ScreenSize;
         float sceneDepth = Gbuffer[0].SampleLevel(g_sam_0, screenUV, 0).r;

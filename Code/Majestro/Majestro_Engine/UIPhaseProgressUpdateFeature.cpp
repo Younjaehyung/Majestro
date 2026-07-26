@@ -13,19 +13,68 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "World.h"
-#include "UIHpBarUpdateFeature.h"
 
 namespace
 {
-	// 살짝 튀어 올랐다 정착하는 ease-out-back (포커스 pop 연출용)
-	float EaseOutBack(float t)
+	struct UIPhaseSpriteParamsLayout
 	{
-		t = std::clamp(t, 0.f, 1.f);
-		constexpr float c1 = 1.70158f;
-		constexpr float c3 = c1 + 1.f;
-		const float p = t - 1.f;
-		return 1.f + c3 * p * p * p + c1 * p * p;
+		uint32 BaseInstanceID = 0;
+		uint32 PassFlags = 0;
+		uint32 SpriteRole = 0;
+		uint32 ReservedHeader = 0;
+
+		float AnchorX = 0.f;
+		float AnchorY = 0.f;
+		float AnchorZ = 0.f;
+		float Progress = 1.f;
+
+		float SizePxX = 0.f;
+		float SizePxY = 0.f;
+		float PivotPxX = 0.f;
+		float PivotPxY = 0.f;
+
+		uint32 BackgroundTextureIndex = 0;
+		uint32 FillTextureIndex = 0;
+		uint32 Reserved0 = 0;
+		uint32 Reserved1 = 0;
+	};
+
+	// 점령 링 셰이더
+	struct UIConquestRingParamsLayout
+	{
+		uint32 BaseInstanceID = 0;
+		uint32 PassFlags = 0;
+		uint32 InnerRadiusEncoded = 0;
+		uint32 AlphaEncoded = 0;
+
+		float AnchorX = 0.f;
+		float AnchorY = 0.f;
+		float AnchorZ = 0.f;
+		float Progress = 0.f;
+
+		float SizePxX = 0.f;
+		float SizePxY = 0.f;
+		float PivotPxX = 0.f;
+		float PivotPxY = 0.f;
+
+		uint32 BackgroundTextureIndex = 0;
+		uint32 FillTextureIndex = 0;
+		uint32 Reserved0 = 0;
+		uint32 Reserved1 = 0;
+	};
+
+	static_assert(sizeof(UIPhaseSpriteParamsLayout) == 16 * 4, "UIPhaseSpriteParamsLayout must be 16 DWORDs");
+	static_assert(sizeof(UIConquestRingParamsLayout) == 16 * 4, "UIConquestRingParamsLayout must be 16 DWORDs");
+
+	uint32 EncodeAlpha(float alpha01)
+	{
+		return static_cast<uint32>(std::clamp(alpha01, 0.f, 1.f) * 1000.f);
 	}
+
+	constexpr float kBackRingCenterU  = 351.46f / 768.f;  //  0.4576
+	constexpr float kBackRingCenterV  = -60.59f / 256.f;  // -0.2367 (원 중심이 텍스처 위쪽 바깥)
+	constexpr float kBackRingRadiusU  = 148.46f / 768.f;  //  0.1933
+	constexpr float kBackRingRadiusV  = 148.46f / 256.f;  //  0.5799
 }
 
 void UIPhaseProgressUpdateFeature::Initialize(World* world)
@@ -38,8 +87,9 @@ void UIPhaseProgressUpdateFeature::Update(float dt)
 	Entity e = mWorld->GetSingletonEntity();
 
 	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
+	if (gameRuleComp == nullptr)
+		return;
 
-	// std::cout << "UIPhaseProgressUpdateFeature::Update - Game Phase: " << static_cast<int>(gameRuleComp->mGamePhase) << std::endl;
 	switch (gameRuleComp->mGamePhase)
 	{
 		case uint8(WavePhaseType::Prepare): // Prepare
@@ -60,25 +110,13 @@ void UIPhaseProgressUpdateFeature::Update(float dt)
 	}
 }
 
-void UIPhaseProgressUpdateFeature::WorldRender(CameraComponent* camera)
-{
-}
-
-void UIPhaseProgressUpdateFeature::SpriteRender(DirectX::SpriteBatch* spriteBatch)
-{
-}
-
-void UIPhaseProgressUpdateFeature::CustomSpriteRender(std::vector<UIInstanceData>& instances)
-{
-}
-
 void UIPhaseProgressUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>& /*instances*/)
 {
-
-
 	Entity e = mWorld->GetSingletonEntity();
 
 	GameRuleComponent* gameRuleComp = mWorld->GetComponent<GameRuleComponent>(e);
+	if (gameRuleComp == nullptr)
+		return;
 
 	switch (gameRuleComp->mGamePhase)
 	{
@@ -90,11 +128,8 @@ void UIPhaseProgressUpdateFeature::PostSpriteRender(std::vector<UIInstanceData>&
 		GameConquestComponent* gameConquestComp = mWorld->GetComponent<GameConquestComponent>(e);
 		if (gameConquestComp)
 		{
-			// SecondGame 만 3개 점령지 표시. 그 외(FirstGame 등)는 기존 단일 링 유지.
-			if (mWorld->GetSceneId() == SceneId::SecondGame)
-				DrawConquestRingMulti();
-			else
-				DrawConquestRing();
+			DrawConquestBackground();
+			DrawConquestRoulette();
 		}
 		break;
 	}
@@ -124,31 +159,38 @@ void UIPhaseProgressUpdateFeature::UpdateConquestProgress(float dt, GameConquest
 {
 	const float total = conquestComp->mRequiredConquestTime;
 	const float ratio = (total > 0.f) ? (conquestComp->mWaveTime / total) : 0.f;
-	mConquestProgress       = std::clamp(ratio, 0.f, 1.f);
-	mCachedConquestWaveCheckPoint = conquestComp->mWaveCheckPoint;
+	mConquestProgress = std::clamp(ratio, 0.f, 1.f);
 
-	// SecondGame 전용: 3개 점령지 포커스 이동 + 완료 연출 (FirstGame 등은 손대지 않음)
-	if (mWorld->GetSceneId() != SceneId::SecondGame)
-		return;
+	mConquestZoneCount = std::max(1, mConquestZoneCount);
 
-	const int32 wave = std::clamp(conquestComp->mWave, 1, GameConquestComponent::mMaxConquest);
-
-	// 점령지 완료 = 웨이브 번호 증가 감지
-	if (wave > mPrevWave)
+	if (!mDebugDriveRoulette)
 	{
-		mCompletedRingIdx = mPrevWave - 1; // 방금 채워진 링 (0-based)
-		mFocusAnimT       = 0.f;           // 포커스 이동/플래시 시작
+		const int32 zoneIdx = (conquestComp->mActiveZoneId > 0)
+			? std::clamp<int32>(conquestComp->mActiveZoneId - 1, 0, mConquestZoneCount - 1)
+			: std::clamp<int32>(conquestComp->mWave - 1, 0, mConquestZoneCount - 1);
 
+		// 점령지가 넘어감 = 룰렛 한 칸 회전 + 직전 슬롯 완료 플래시
+		if (zoneIdx > mCurrentZoneIdx)
+		{
+			mCompletedSlotIdx = mCurrentZoneIdx;
+			mRollT            = 0.f;
+			mCurrentZoneIdx   = zoneIdx;
+		}
+		else if (zoneIdx < mCurrentZoneIdx)
+		{
+			mCurrentZoneIdx   = zoneIdx;
+			mCompletedSlotIdx = -1;
+			mRollT            = 1.f;
+		}
 	}
-	mPrevWave = wave;
 
-	// 포커스 이동/플래시 애니메이션 진행
-	if (mFocusAnimT < 1.f)
+	// 회전 애니메이션 진행
+	if (mRollT < 1.f)
 	{
-		const float step = (mFocusAnimDuration > 0.f) ? (dt / mFocusAnimDuration) : 1.f;
-		mFocusAnimT = std::min(1.f, mFocusAnimT + step);
-		if (mFocusAnimT >= 1.f)
-			mCompletedRingIdx = -1; // 플래시 종료
+		const float step = (mRollDuration > 0.f) ? (dt / mRollDuration) : 1.f;
+		mRollT = std::min(1.f, mRollT + step);
+		if (mRollT >= 1.f)
+			mCompletedSlotIdx = -1; // 플래시 종료
 	}
 }
 
@@ -188,20 +230,18 @@ Vec2 UIPhaseProgressUpdateFeature::GetProgressSizePx(const Vec2& sizeRatio) cons
 		static_cast<float>(window.Height) * std::clamp(sizeRatio.y, 0.f, 1.f));
 }
 
-void UIPhaseProgressUpdateFeature::DrawConquestRing()
+
+void UIPhaseProgressUpdateFeature::DrawConquestBackground()
 {
-	auto ringShader = RESOURCEMANAGER.Get<Shader>(L"WorldUIConquestRing");
-	auto quadMesh   = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
-	if (ringShader == nullptr || quadMesh == nullptr)
+	shared_ptr<Texture> backTex = RESOURCEMANAGER.Get<Texture>(mConquestBackTextureName);
+	if (backTex == nullptr)
 		return;
 
-	shared_ptr<Texture> bgTex   = RESOURCEMANAGER.Get<Texture>(mConquestBgTextureName);
-	shared_ptr<Texture> fillTex = RESOURCEMANAGER.Get<Texture>(mConquestFillTextureName);
-	if (bgTex == nullptr)
-		return;
-	if (fillTex == nullptr)
-		fillTex = bgTex;
+	auto spriteShader = RESOURCEMANAGER.Get<Shader>(L"WorldUIHpSprite");
+	auto quadMesh     = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
 
+	if (spriteShader == nullptr || quadMesh == nullptr)
+		return;
 
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN))
@@ -209,56 +249,136 @@ void UIPhaseProgressUpdateFeature::DrawConquestRing()
 
 	RENDERMANAGER.SetGraphicsTable();
 
+	const Vec2 anchorPx = GetConquestBackAnchorPx();
+	const Vec2 sizePx   = GetProgressSizePx(mConquestBackSizeRatio);
 
-	GlobalParamsLayout gp{};
-	gp.BaseInstanceID = 0;
-	gp.PassScalar0            = 1; // HUD 모드
-	// PassScalar1 에 innerRadius * 1000 을 정수로 인코딩 (PS 에서 / 1000.0 으로 복원)
-	gp.PassScalar1        = static_cast<uint32>(std::clamp(mConquestInnerRadius, 0.f, 1.f) * 1000.f);
-	gp.PassCustomIndex = 0;
-
-	// 앵커 = 화면 픽셀, 피벗으로 좌상단을 (-w/2, -h/2) 만큼 옮겨 앵커가 정사각형 중심
-	const Vec2 anchorPx = GetProgressAnchorPx();
-	const Vec2 conquestSizePx = GetProgressSizePx(mConquestSizeRatio);
-	// 창 너비가 바뀌어도 중앙 정렬이 유지되도록 계산된 앵커 사용
-	gp.HpBarAnchorWorldX = anchorPx.x;
-	gp.HpBarAnchorWorldY = anchorPx.y;
-	gp.HpBarAnchorWorldZ = 0.f;
-	gp.HpBarFollowRatio  = std::clamp(mConquestProgress, 0.f, 1.f);
-
-	gp.HpBarSizePxX = conquestSizePx.x;
-	gp.HpBarSizePxY = conquestSizePx.y;
-	gp.HpBarPivotPxX = -conquestSizePx.x * 0.5f;
-	gp.HpBarPivotPxY = -conquestSizePx.y * 0.5f;
-
-	gp.HpBarBgTexIdx   = bgTex->GetImageIndex();
-	gp.HpBarFillTexIdx = fillTex->GetImageIndex();
-	gp.HpBarHitTexIdx  = 0;
-	gp.HpBarHitConfig  = 0;
+	UIPhaseSpriteParamsLayout gp{};
+	gp.BaseInstanceID         = 0;
+	gp.PassFlags              = 1;
+	gp.SpriteRole             = 0;
+	gp.ReservedHeader         = 0;
+	gp.AnchorX                = anchorPx.x;
+	gp.AnchorY                = anchorPx.y;
+	gp.AnchorZ                = 0.f;
+	gp.Progress               = 1.f;
+	gp.SizePxX                = sizePx.x;
+	gp.SizePxY                = sizePx.y;
+	gp.PivotPxX               = -sizePx.x * 0.5f;
+	gp.PivotPxY               = -sizePx.y * 0.5f;
+	gp.BackgroundTextureIndex = backTex->GetImageIndex();
+	gp.FillTextureIndex       = backTex->GetImageIndex();
 
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
-
-	ringShader->Update();
+	spriteShader->Update();
 	quadMesh->Render(1, 0, 0, 0);
-
-	const uint32 zero = 0;
-	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
-	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);
 }
 
-void UIPhaseProgressUpdateFeature::DrawConquestRingMulti()
+Vec2 UIPhaseProgressUpdateFeature::GetConquestBackAnchorPx() const
+{
+	const WindowInfo& window = RENDERMANAGER.GetWindow();
+
+	return Vec2(
+		static_cast<float>(window.Width)  * std::clamp(mConquestBackAnchorRatio.x, 0.f, 1.f),
+		static_cast<float>(window.Height) * std::clamp(mConquestBackAnchorRatio.y, 0.f, 1.f));
+}
+
+
+void UIPhaseProgressUpdateFeature::GetConquestArcGeometry(Vec2& outCenterPx, Vec2& outRadiusPx) const
+{
+	const Vec2 backAnchorPx = GetConquestBackAnchorPx();
+	const Vec2 backSizePx   = GetProgressSizePx(mConquestBackSizeRatio);
+
+
+	outCenterPx = Vec2(
+		backAnchorPx.x + (kBackRingCenterU - 0.5f) * backSizePx.x,
+		backAnchorPx.y + (kBackRingCenterV - 0.5f) * backSizePx.y);
+
+	outRadiusPx = Vec2(
+		kBackRingRadiusU * backSizePx.x,
+		kBackRingRadiusV * backSizePx.y);
+}
+
+
+Vec2 UIPhaseProgressUpdateFeature::GetConquestSlotPosPx(float slotOffset) const
+{
+	Vec2 centerPx, radiusPx;
+	GetConquestArcGeometry(centerPx, radiusPx);
+
+	constexpr float kDegToRad = 3.14159265f / 180.f;
+	// 아래쪽 반원만 쓰도록 각도를 ±90도로 제한 (넘어가면 위쪽 반원으로 감겨 올라간다)
+	const float theta = std::clamp(mConquestArcStepDegrees * slotOffset, -90.f, 90.f) * kDegToRad;
+
+	return Vec2(
+		centerPx.x + radiusPx.x * std::sin(theta),
+		centerPx.y + radiusPx.y * std::cos(theta));
+}
+
+
+float UIPhaseProgressUpdateFeature::GetConquestSlotScale(float slotOffset) const
+{
+	const float w = MathUtils::SmoothStep01(1.f - std::min(std::abs(slotOffset), 1.f));
+	return mConquestSideScale + (1.f - mConquestSideScale) * w;
+}
+
+
+float UIPhaseProgressUpdateFeature::GetConquestSlotBaseDiaPx() const
+{
+	Vec2 centerPx, radiusPx;
+	GetConquestArcGeometry(centerPx, radiusPx);
+
+	const float radiusAvgPx = (radiusPx.x + radiusPx.y) * 0.5f;
+	return radiusAvgPx * std::max(mConquestSlotDiaOverRadius, 0.01f);
+}
+
+void UIPhaseProgressUpdateFeature::DrawConquestSlot(float slotOffset, float progress, float alpha, bool glow, float extraScale)
 {
 	auto ringShader = RESOURCEMANAGER.Get<Shader>(L"WorldUIConquestRing");
 	auto quadMesh   = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
-	if (ringShader == nullptr || quadMesh == nullptr)
-		return;
-
 	shared_ptr<Texture> bgTex   = RESOURCEMANAGER.Get<Texture>(mConquestBgTextureName);
 	shared_ptr<Texture> fillTex = RESOURCEMANAGER.Get<Texture>(mConquestFillTextureName);
-	if (bgTex == nullptr)
+	if (ringShader == nullptr || quadMesh == nullptr || bgTex == nullptr)
 		return;
 	if (fillTex == nullptr)
 		fillTex = bgTex;
+
+	const Vec2 posPx = GetConquestSlotPosPx(slotOffset);
+	const float diaPx = GetConquestSlotBaseDiaPx() * GetConquestSlotScale(slotOffset) * extraScale;
+	const Vec2  sizePx = Vec2(diaPx, diaPx);
+
+	UIConquestRingParamsLayout gp{};
+	gp.BaseInstanceID     = 0;
+	gp.PassFlags          = 1u | (glow ? 2u : 0u);
+	gp.InnerRadiusEncoded = static_cast<uint32>(std::clamp(mConquestInnerRadius, 0.f, 1.f) * 1000.f);
+	gp.AlphaEncoded       = (alpha >= 0.999f) ? 0u : EncodeAlpha(alpha);
+
+	gp.AnchorX  = posPx.x;
+	gp.AnchorY  = posPx.y;
+	gp.AnchorZ  = 0.f;
+	gp.Progress = std::clamp(progress, 0.f, 1.f);
+
+	gp.SizePxX  = sizePx.x;
+	gp.SizePxY  = sizePx.y;
+	gp.PivotPxX = -sizePx.x * 0.5f;
+	gp.PivotPxY = -sizePx.y * 0.5f;
+
+	gp.BackgroundTextureIndex = bgTex->GetImageIndex();
+	gp.FillTextureIndex       = fillTex->GetImageIndex();
+
+	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
+	ringShader->Update();
+	quadMesh->Render(1, 0, 0, 0);
+}
+
+// 리볼버 실린더식 배치
+void UIPhaseProgressUpdateFeature::DrawConquestRoulette()
+{
+	auto ringShader = RESOURCEMANAGER.Get<Shader>(L"WorldUIConquestRing");
+	auto quadMesh   = RESOURCEMANAGER.Get<Mesh>(L"UIQuad");
+
+	if (ringShader == nullptr || quadMesh == nullptr)
+		return;
+	if (RESOURCEMANAGER.Get<Texture>(mConquestBgTextureName) == nullptr)
+		return;
 
 	int8 backIndex = RENDERMANAGER.GetSwapChain()->GetBackBufferIndex();
 	RENDERMANAGER.GetRenderTargetGroup(static_cast<uint32>(RENDER_TARGET_GROUP_TYPE::SWAP_CHAIN))
@@ -266,84 +386,65 @@ void UIPhaseProgressUpdateFeature::DrawConquestRingMulti()
 
 	RENDERMANAGER.SetGraphicsTable();
 
-	const WindowInfo& window = RENDERMANAGER.GetWindow();
-	const Vec2 anchorPx   = GetProgressAnchorPx();
-	const Vec2 baseSizePx = GetProgressSizePx(mConquestSizeRatio);
-	const float gapPx     = static_cast<float>(window.Width) * std::clamp(mConquestRingGapRatio, 0.f, 1.f);
+	const int32 zoneCount = std::max(1, mConquestZoneCount);
+	const int32 current   = std::clamp(mCurrentZoneIdx, 0, zoneCount - 1);
 
-	const int32 maxConquest = GameConquestComponent::mMaxConquest;
-	const int32 current     = std::clamp(mPrevWave - 1, 0, maxConquest - 1);
-	const float t           = std::clamp(mFocusAnimT, 0.f, 1.f);
 
-	const uint32 innerEnc = static_cast<uint32>(std::clamp(mConquestInnerRadius, 0.f, 1.f) * 1000.f);
+	// EaseOutBack
+	const float rollRemain = 1.f - MathUtils::EaseOutBack(mRollT);
+	const float fadeSpan   = std::max(mConquestSlotFadeSpan, 1.001f);
 
-	// 링 1개 그리기. flash01: 1=기본 불투명, 0..1=완료 플래시 알파.
-	auto drawRing = [&](float centerX, const Vec2& sizePx, float progress, float flash01)
+	// 점령지가 1개
+	if (zoneCount <= 1)
 	{
-		GlobalParamsLayout gp{};
-		gp.BaseInstanceID  = 0;
-		gp.PassScalar0             = 1; // HUD 모드
-		gp.PassScalar1         = innerEnc;
-		// PassCustomIndex: 0=기본(불투명). 1..1000 = 완료 플래시 알파*1000 (PS 에서 복원)
-		gp.PassCustomIndex = (flash01 >= 0.999f) ? 0u
-		                   : static_cast<uint32>(std::clamp(flash01, 0.f, 1.f) * 1000.f);
-
-		gp.HpBarAnchorWorldX = centerX;
-		gp.HpBarAnchorWorldY = anchorPx.y;
-		gp.HpBarAnchorWorldZ = 0.f;
-		gp.HpBarFollowRatio  = std::clamp(progress, 0.f, 1.f);
-
-		gp.HpBarSizePxX  = sizePx.x;
-		gp.HpBarSizePxY  = sizePx.y;
-		gp.HpBarPivotPxX = -sizePx.x * 0.5f;
-		gp.HpBarPivotPxY = -sizePx.y * 0.5f;
-
-		gp.HpBarBgTexIdx   = bgTex->GetImageIndex();
-		gp.HpBarFillTexIdx = fillTex->GetImageIndex();
-		gp.HpBarHitTexIdx  = 0;
-		gp.HpBarHitConfig  = 0;
-
-		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
-		ringShader->Update();
-		quadMesh->Render(1, 0, 0, 0);
-	};
-
-	for (int32 i = 0; i < maxConquest; ++i)
+		DrawConquestSlot(0.f, mConquestProgress, 1.f, false);
+	}
+	else
 	{
-		// 앵커(중앙) 기준 좌우 대칭 배치
-		const float centerX = anchorPx.x + (static_cast<float>(i) - (maxConquest - 1) * 0.5f) * gapPx;
+		struct Slot { float offset; float progress; float alpha; };
+		std::vector<Slot> slots;
+		slots.reserve(zoneCount);
 
-		float progress;
-		if      (i <  current) progress = 1.f;               // 완료된 점령지
-		else if (i == current) progress = mConquestProgress; // 진행중 점령지
-		else                   progress = 0.f;               // 대기중 점령지
+		for (int32 i = 0; i < zoneCount; ++i)
+		{
+			const float slotOffset = static_cast<float>(i - current) + rollRemain;
 
-		// 포커스 이동: 현재 링은 (대기/완료 배율 -> 활성 배율)로 pop, 직전 링은 반대로 빠짐
-		float scale = mConquestInactiveScale;
-		const float pop = ::EaseOutBack(t);
-		if (i == current)
-			scale = mConquestInactiveScale + (mConquestActiveScale - mConquestInactiveScale) * pop;
-		else if (i == current - 1 && t < 1.f)
-			scale = mConquestInactiveScale + (mConquestActiveScale - mConquestInactiveScale) * (1.f - t);
 
-		drawRing(centerX, baseSizePx * scale, progress, 1.f);
+			const float dist = std::abs(slotOffset);
+
+			if (dist >= fadeSpan)
+				continue;
+
+			const float alpha = 1.f - std::clamp((dist - 1.f) / (fadeSpan - 1.f), 0.f, 1.f);
+
+			float progress;
+			if      (i <  current) progress = 1.f;               // 점령 완료
+			else if (i == current) progress = mConquestProgress; // 점령 진행 중
+			else                   progress = 0.f;               // 점령 대기
+
+			slots.push_back({ slotOffset, progress, alpha });
+		}
+
+
+		std::sort(slots.begin(), slots.end(),
+			[](const Slot& a, const Slot& b) { return std::abs(a.offset) > std::abs(b.offset); });
+
+		for (const Slot& slot : slots)
+			DrawConquestSlot(slot.offset, slot.progress, slot.alpha, false);
 	}
 
-	// 완료 플래시: 방금 채워진 링 위에 확대 + 페이드 오버레이
-	if (mCompletedRingIdx >= 0 && mCompletedRingIdx < maxConquest && t < 1.f)
+	// 완료 플래시
+	if (mCompletedSlotIdx >= 0 && mCompletedSlotIdx < zoneCount && mRollT < 1.f)
 	{
-		const int32 i = mCompletedRingIdx;
-		const float centerX    = anchorPx.x + (static_cast<float>(i) - (maxConquest - 1) * 0.5f) * gapPx;
-		const float flashScale = mConquestActiveScale + 0.6f * t; // 점점 확대
-		const float flashAlpha = 1.f - t;                          // 점점 투명
-		drawRing(centerX, baseSizePx * flashScale, 1.f, flashAlpha);
+		const float slotOffset = static_cast<float>(mCompletedSlotIdx - current) + rollRemain;
+		const float flashAlpha = 1.f - mRollT;       // 점점 투명
+		const float flashScale = 1.f + 0.6f * mRollT; // 점점 확대
+		DrawConquestSlot(slotOffset, 1.f, flashAlpha, true, flashScale);
 	}
 
-	// 후속 패스 보호 — BaseInstanceID / PassScalar1 / PassCustomIndex 원복
-	const uint32 zero = 0;
-	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
-	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);
-	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 3);
+
+	const uint32 zeros[4] = { 0, 0, 0, 0 };
+	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 4, zeros, 0);
 }
 
 void UIPhaseProgressUpdateFeature::DrawDebugPanel()
@@ -357,7 +458,6 @@ void UIPhaseProgressUpdateFeature::DrawDebugPanel()
 
 	const WindowInfo& window = RENDERMANAGER.GetWindow();
 	const Vec2 anchorPx = GetProgressAnchorPx();
-	const Vec2 conquestSizePx = GetProgressSizePx(mConquestSizeRatio);
 	const Vec2 escortSizePx = GetProgressSizePx(mEscortSizeRatio);
 	const Vec2 escortCursorSizePx = GetProgressSizePx(mEscortCursorSizeRatio);
 
@@ -380,33 +480,60 @@ void UIPhaseProgressUpdateFeature::DrawDebugPanel()
 	// ImGui에서 수정한 값이 셰이더에 들어가기 전에 유효 범위로 보정
 	if (ImGui::CollapsingHeader("Conquest", ImGuiTreeNodeFlags_DefaultOpen))
 	{
-		ImGui::DragFloat2("ConquestSizeRatio", &mConquestSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
-		ImGui::Text("ConquestSizePx : %.1f, %.1f", conquestSizePx.x, conquestSizePx.y);
+		ImGui::DragFloat("SlotDiaOverRadius", &mConquestSlotDiaOverRadius, 0.005f, 0.05f, 2.f, "%.3f");
+		ImGui::DragFloat("SideScale", &mConquestSideScale, 0.005f, 0.1f, 1.f, "%.3f");
+		ImGui::Text("SlotDiaPx : center %.1f / side %.1f",
+			GetConquestSlotBaseDiaPx(), GetConquestSlotBaseDiaPx() * mConquestSideScale);
 		ImGui::SliderFloat("ConquestInnerRadius", &mConquestInnerRadius, 0.f, 1.f);
 
+		mConquestSlotDiaOverRadius = std::clamp(mConquestSlotDiaOverRadius, 0.05f, 2.f);
+		mConquestSideScale         = std::clamp(mConquestSideScale, 0.1f, 1.f);
+		mConquestInnerRadius       = std::clamp(mConquestInnerRadius, 0.f, 1.f);
 
-		mConquestSizeRatio.x = std::clamp(mConquestSizeRatio.x, 0.f, 1.f);
-		mConquestSizeRatio.y = std::clamp(mConquestSizeRatio.y, 0.f, 1.f);
-		mConquestInnerRadius = std::clamp(mConquestInnerRadius, 0.f, 1.f);
-
-		// SecondGame 3개 점령지 표시 전용 튜닝값
 		ImGui::Separator();
-		ImGui::Text("Conquest Multi (SecondGame)");
-		ImGui::DragFloat("RingGapRatio", &mConquestRingGapRatio, 0.001f, 0.f, 0.5f, "%.4f");
-		ImGui::DragFloat("ActiveScale", &mConquestActiveScale, 0.01f, 0.5f, 3.f, "%.2f");
-		ImGui::DragFloat("InactiveScale", &mConquestInactiveScale, 0.01f, 0.3f, 1.5f, "%.2f");
-		ImGui::DragFloat("FocusAnimDuration", &mFocusAnimDuration, 0.01f, 0.f, 2.f, "%.2f");
-		ImGui::Text("PrevWave : %d / %d  (focusT %.2f)", mPrevWave, GameConquestComponent::mMaxConquest, mFocusAnimT);
-		if (ImGui::Button("Test Focus Anim"))
+		ImGui::Text("Background (최하단 레이어)");
+		ImGui::Text("Texture : %s", RESOURCEMANAGER.Get<Texture>(mConquestBackTextureName) ? "loaded" : "(없음 - 배경 스킵)");
+		ImGui::DragFloat2("BackAnchorRatio", &mConquestBackAnchorRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+		ImGui::DragFloat2("BackSizeRatio", &mConquestBackSizeRatio.x, 0.001f, 0.f, 1.f, "%.4f");
+
+		mConquestBackAnchorRatio.x = std::clamp(mConquestBackAnchorRatio.x, 0.f, 1.f);
+		mConquestBackAnchorRatio.y = std::clamp(mConquestBackAnchorRatio.y, 0.f, 1.f);
+		mConquestBackSizeRatio.x   = std::clamp(mConquestBackSizeRatio.x, 0.f, 1.f);
+		mConquestBackSizeRatio.y   = std::clamp(mConquestBackSizeRatio.y, 0.f, 1.f);
+
+		ImGui::Separator();
+		ImGui::Text("Roulette (하단 반원 배치)");
+		ImGui::DragInt("ZoneCount", &mConquestZoneCount, 0.1f, 1, GameConquestComponent::mMaxConquest);
+		// 배경 호의 X 눈금이 ±33도에 있다
+		ImGui::DragFloat("ArcStepDegrees", &mConquestArcStepDegrees, 0.5f, 0.f, 90.f, "%.1f");
+
+		// 호는 배경 텍스처의 링에서 유도되므로 직접 편집하지 않고 결과만 보여준다
+		Vec2 arcCenterPx, arcRadiusPx;
+		GetConquestArcGeometry(arcCenterPx, arcRadiusPx);
+		ImGui::Text("ArcCenter(유도) : %.0f, %.0f   R : %.0f, %.0f",
+			arcCenterPx.x, arcCenterPx.y, arcRadiusPx.x, arcRadiusPx.y);
+		ImGui::Text("SlotPx  L:%.0f,%.0f  C:%.0f,%.0f  R:%.0f,%.0f",
+			GetConquestSlotPosPx(-1.f).x, GetConquestSlotPosPx(-1.f).y,
+			GetConquestSlotPosPx(0.f).x,  GetConquestSlotPosPx(0.f).y,
+			GetConquestSlotPosPx(1.f).x,  GetConquestSlotPosPx(1.f).y);
+		ImGui::DragFloat("SlotFadeSpan", &mConquestSlotFadeSpan, 0.01f, 1.01f, 4.f, "%.2f");
+		ImGui::DragFloat("RollDuration", &mRollDuration, 0.01f, 0.f, 2.f, "%.2f");
+		ImGui::Text("CurrentZone : %d / %d  (rollT %.2f)", mCurrentZoneIdx + 1, mConquestZoneCount, mRollT);
+		// 켜지 않으면 서버 mActiveZoneId 가 매 프레임 슬롯을 덮어써서 Test Roll 이 즉시 되돌아간다
+		ImGui::Checkbox("Debug Drive (서버 값 무시)", &mDebugDriveRoulette);
+		if (ImGui::Button("Test Roll"))
 		{
-			mCompletedRingIdx = std::clamp(mPrevWave - 1, 0, GameConquestComponent::mMaxConquest - 1);
-			mFocusAnimT = 0.f;
+			// 다음 슬롯으로 한 칸 회전 (마지막이면 처음으로 되돌려 반복 확인)
+			mCompletedSlotIdx = mCurrentZoneIdx;
+			mCurrentZoneIdx   = (mCurrentZoneIdx + 1) % std::max(1, mConquestZoneCount);
+			mRollT            = 0.f;
 		}
 
-		mConquestRingGapRatio  = std::clamp(mConquestRingGapRatio, 0.f, 0.5f);
-		mConquestActiveScale   = std::clamp(mConquestActiveScale, 0.5f, 3.f);
-		mConquestInactiveScale = std::clamp(mConquestInactiveScale, 0.3f, 1.5f);
-		mFocusAnimDuration     = std::clamp(mFocusAnimDuration, 0.f, 2.f);
+		mConquestZoneCount      = std::clamp(mConquestZoneCount, 1, GameConquestComponent::mMaxConquest);
+		mCurrentZoneIdx         = std::clamp(mCurrentZoneIdx, 0, mConquestZoneCount - 1);
+		mConquestArcStepDegrees = std::clamp(mConquestArcStepDegrees, 0.f, 90.f);
+		mConquestSlotFadeSpan   = std::clamp(mConquestSlotFadeSpan, 1.01f, 4.f);
+		mRollDuration           = std::clamp(mRollDuration, 0.f, 2.f);
 	}
 
 	if (ImGui::CollapsingHeader("Escort", ImGuiTreeNodeFlags_DefaultOpen))
@@ -461,39 +588,37 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	const Vec2 escortSizePx = GetProgressSizePx(mEscortSizeRatio);
 	const Vec2 escortCursorSizePx = GetProgressSizePx(mEscortCursorSizeRatio);
 
-	// 공통 GlobalParams (HUD 모드, 앵커는 바 정중앙)
-	GlobalParamsLayout gp{};
-	gp.BaseInstanceID    = 0;
-	gp.PassScalar0               = 1; // HUD 모드 (스크린 스페이스, depth occlusion 스킵)
-	gp.PassCustomIndex   = 0;
+	// 일반 진행도 스프라이트 파라미터
+	UIPhaseSpriteParamsLayout gp{};
+	gp.BaseInstanceID  = 0;
+	gp.PassFlags       = 1;
+	gp.ReservedHeader = 0;
 	const Vec2 anchorPx = GetProgressAnchorPx();
 	
-	gp.HpBarAnchorWorldX = anchorPx.x;
-	gp.HpBarAnchorWorldY = anchorPx.y;
-	gp.HpBarAnchorWorldZ = 0.f;
-	gp.HpBarSizePxX      = escortSizePx.x;
-	gp.HpBarSizePxY      = escortSizePx.y;
-	gp.HpBarPivotPxX     = -escortSizePx.x * 0.5f;
-	gp.HpBarPivotPxY     = -escortSizePx.y * 0.5f;
-	gp.HpBarFollowRatio  = fillCutU;
-	gp.HpBarHitTexIdx    = 0;
-	gp.HpBarHitConfig    = 0;
+	gp.AnchorX  = anchorPx.x;
+	gp.AnchorY  = anchorPx.y;
+	gp.AnchorZ  = 0.f;
+	gp.SizePxX  = escortSizePx.x;
+	gp.SizePxY  = escortSizePx.y;
+	gp.PivotPxX = -escortSizePx.x * 0.5f;
+	gp.PivotPxY = -escortSizePx.y * 0.5f;
+	gp.Progress = fillCutU;
 
-	// 1) BG (가장 뒤, 풀 출력) — role=0 → BgTexIdx 사용
+
 	if (bgTex != nullptr)
 	{
-		gp.PassScalar1         = 0;
-		gp.HpBarBgTexIdx   = bgTex->GetImageIndex();
-		gp.HpBarFillTexIdx = bgTex->GetImageIndex();
+		gp.SpriteRole             = 0;
+		gp.BackgroundTextureIndex = bgTex->GetImageIndex();
+		gp.FillTextureIndex       = bgTex->GetImageIndex();
 		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
 		spriteShader->Update();
 		quadMesh->Render(1, 0, 0, 0);
 	}
 
-	// 2) Line (빈 트랙) + 3) Check (채움) — 한 번의 GlobalParams 셋업으로 두 패스
-	gp.PassScalar1         = 0;
-	gp.HpBarBgTexIdx   = lineTex->GetImageIndex();
-	gp.HpBarFillTexIdx = checkTex->GetImageIndex();
+
+	gp.SpriteRole             = 0;
+	gp.BackgroundTextureIndex = lineTex->GetImageIndex();
+	gp.FillTextureIndex       = checkTex->GetImageIndex();
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
 	spriteShader->Update();
 	quadMesh->Render(1, 0, 0, 0);                     // line (role=0)
@@ -502,25 +627,25 @@ void UIPhaseProgressUpdateFeature::DrawEscortBar()
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &fillRole, 2);
 	quadMesh->Render(1, 0, 0, 0);                     // check (role=1, uv.x>fillCutU discard)
 
-	// 4) Cursor — 같은 앵커, Pivot 만 진행도 위치로 평행 이동
+	// 커서
 	if (cursorTex != nullptr)
 	{
-		gp.PassScalar1         = 0;
-		gp.HpBarSizePxX    = escortCursorSizePx.x;
-		gp.HpBarSizePxY    = escortCursorSizePx.y;
-		gp.HpBarPivotPxX   = -escortSizePx.x * 0.5f
+		gp.SpriteRole = 0;
+		gp.SizePxX    = escortCursorSizePx.x;
+		gp.SizePxY    = escortCursorSizePx.y;
+		gp.PivotPxX   = -escortSizePx.x * 0.5f
 		                   + fillCutU * escortSizePx.x
 		                   - escortCursorSizePx.x * 0.5f;
 		// 세로: 바와 같은 중앙선 정렬
-		gp.HpBarPivotPxY   = -escortCursorSizePx.y * 0.5f;
-		gp.HpBarBgTexIdx   = cursorTex->GetImageIndex();
-		gp.HpBarFillTexIdx = cursorTex->GetImageIndex();
+		gp.PivotPxY               = -escortCursorSizePx.y * 0.5f;
+		gp.BackgroundTextureIndex = cursorTex->GetImageIndex();
+		gp.FillTextureIndex       = cursorTex->GetImageIndex();
 		GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
 		spriteShader->Update();
 		quadMesh->Render(1, 0, 0, 0);
 	}
 
-	// 후속 패스 보호 — DrawConquestRing 과 동일하게 BaseInstanceID / PassScalar1 원복
+
 	const uint32 zero = 0;
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);
 	GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);

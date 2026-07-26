@@ -10,55 +10,73 @@ class UIPhaseProgressUpdateFeature : public UIFeature
 public:
 	void Initialize(World* world);
 	void Update(float dt);
-	void WorldRender(CameraComponent* camera);
-	void SpriteRender(DirectX::SpriteBatch* spriteBatch);
-	void CustomSpriteRender(std::vector<UIInstanceData>& instances);
 	void PostSpriteRender(std::vector<UIInstanceData>& instances);
 
 private:
 	void UpdateConquestProgress(float dt, GameConquestComponent* conquestComp);
 	void UpdateEscortProgress(float dt, GameEscortComponent* escortComp);
 
-	void DrawConquestRing();
-	void DrawConquestRingMulti(); // SecondGame 전용: 3개 점령지 링 + 포커스 이동/완료 연출
+	// 점령 UI
+	void DrawConquestBackground();
+	void DrawConquestRoulette();
+
+	// slotOffset: 0=현재 점령지(호의 정점), +1=다음(우측), -1=점령 완료(좌측).
+	void DrawConquestSlot(float slotOffset, float progress, float alpha, bool glow, float extraScale = 1.f);
+
 	void DrawEscortBar();
+
 	Vec2 GetProgressAnchorPx() const;
 	Vec2 GetProgressSizePx(const Vec2& sizeRatio) const;
+
+	Vec2 GetConquestBackAnchorPx() const;
+	void GetConquestArcGeometry(Vec2& outCenterPx, Vec2& outRadiusPx) const;
+
+
+	Vec2 GetConquestSlotPosPx(float slotOffset) const;
+	float GetConquestSlotScale(float slotOffset) const;
+	float GetConquestSlotBaseDiaPx() const;
+
 	void DrawDebugPanel();
 
 private:
 	// 페이즈 진행 UI 앵커.
-	// 위치와 크기는 비율값만 저장하고, 실제 픽셀값은 RENDERMANAGER.GetWindow()의 현재 해상도로 계산
 	Vec2  mProgressAnchorRatio = Vec2(0.5f, 0.1019f);
 
-	// Conquest UI.
-	Vec2  mConquestSizeRatio = Vec2(0.11f ,0.17f);
+	// --- Conquest 공통 ---
 	float mConquestInnerRadius = 0.0f;            // 도넛 두께 (0=원판, 1=링 없음)
 	std::wstring mConquestBgTextureName = L"UI_Ingame_Conquest_Info_0";
 	std::wstring mConquestFillTextureName = L"UI_Ingame_Conquest_Info_1";
 
 	float mConquestProgress = 0.f;
-	int32 mCachedConquestWaveCheckPoint = 0;
 
-	// --- SecondGame 다단계(3 점령지) 표시 ---
-	float mConquestRingGapRatio = 0.13f;  // 링 중심 간 가로 간격 (화면 너비 비율)
-	float mConquestActiveScale  = 1.30f;  // 현재 활성 링 확대 배율
-	float mConquestInactiveScale = 0.78f; // 완료/대기 링 축소 배율
+	// --- 배경 레이어 ---
+	std::wstring mConquestBackTextureName = L"UI_Ingame_Conquest_Back";
+	Vec2  mConquestBackAnchorRatio = Vec2(0.5f, 0.0889f);
+	Vec2  mConquestBackSizeRatio   = Vec2(0.30f, 0.17775f);
 
-	// 포커스 이동 애니메이션 + 완료 연출 상태
-	int32 mPrevWave          = 1;     // 직전 프레임의 점령지 번호 (1부터)
-	float mFocusAnimT        = 1.f;   // 0=완료 직후, 1=정착
-	float mFocusAnimDuration = 0.45f; // 포커스 이동/플래시 지속 시간 (초)
-	int32 mCompletedRingIdx  = -1;    // 방금 완료된 링 인덱스(플래시 대상), -1=없음
+	// --- 룰렛 ---
+	float mConquestArcStepDegrees = 33.f;		// 슬롯 간격 각도
+	float mConquestSlotDiaOverRadius = 0.62f;	// 슬롯 직경 / 도넛 반지름
+	float mConquestSideScale = 0.40f;		// 슬롯 측면 축소 비율 (0=측면 안보임, 1=측면 그대로)
+	float mConquestSlotFadeSpan = 2.0f;		// 슬롯 투명화 범위 (슬롯 간격 수)
 
-	// Escort UI.
+	// 룰렛 회전 + 완료 플래시 상태
+	int32 mConquestZoneCount   = 3;    // 총 점령지 수 (1이면 정점 슬롯만 표시)
+	int32 mCurrentZoneIdx      = 0;    // 현재 점령 중인 슬롯
+	float mRollT               = 1.f;  // 0=회전 시작, 1=정착
+	float mRollDuration        = 0.45f;// 한 칸 회전 시간 (초)
+	int32 mCompletedSlotIdx    = -1;   // 방금 점령 완료된 슬롯(플래시 대상), -1=없음
+
+	// [디버그] 켜면 서버 값으로 슬롯을 덮어쓰지 않아 ImGui로 회전 연출 확인 가능
+	bool  mDebugDriveRoulette  = false;
+
+	// --- Escort UI ---
 	Vec2  mEscortSizeRatio = Vec2(0.4f, 0.1185f);
 	Vec2  mEscortCursorSizeRatio = Vec2(0.0167f, 0.0296f);
 
 	float mEscortProgress = 0.f;
 
-	// 라인/체크 텍스처 캔버스 안에서 실제 트랙이 차지하는 가로 UV 구간
-	// UI_Escort_Info_1 (1536px):  픽셀 195~1385 이면 195/1536, 1385/1536
+
 	Vec2  mEscortFillUvRange = Vec2(195.f / 1536.f, 1385.f / 1536.f);
 
 	std::wstring mEscortBgTextureName = L"UI_Escort_Info_0";

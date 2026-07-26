@@ -2,14 +2,15 @@
 #include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
+ConstantBuffer<WORLD_UI_SPRITE_PARAMS> GlobalParams : register(b0, space0);
 
 
 // World 모드:
-//  UIQuad의 vertex.xy(0~1)에 픽셀 사이즈를 곱해 HpBarPivotPx만큼 이동
+//  UIQuad의 vertex.xy에 픽셀 크기를 곱하고 PivotPx만큼 이동
 //  NDC.xy에 픽셀 오프셋(스크린크기 정규화)을 더하면 거리 무관 일정 픽셀 크기 빌보드
 //  NDC.z = 앵커 깊이 (PS에서 Gbuffer와 비교용)
 // HUD 모드 (etc bit0 = 1):
-//   HpBarAnchorWorld.xy 를 화면 픽셀로 직접 해석
+//   Anchor.xy를 화면 픽셀로 직접 해석
 
 
 struct VS_IN
@@ -30,7 +31,7 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output;
 
-    const bool isHud = (GlobalParams.PassScalar0 & 1) != 0;
+    const bool isHud = (GlobalParams.PassFlags & 1) != 0;
 
     float2 anchorNDC;
     float anchorZNDC;
@@ -38,7 +39,7 @@ VS_OUT VS_Main(VS_IN input)
 
     if (isHud)
     {
-        float2 px = GlobalParams.HpBarAnchorWorld.xy;
+        float2 px = GlobalParams.Anchor.xy;
         anchorNDC.x =  (px.x / PassParams.ScreenSize.x) * 2.0f - 1.0f;
         anchorNDC.y = -(px.y / PassParams.ScreenSize.y) * 2.0f + 1.0f;
         anchorZNDC = 0.0f;
@@ -46,7 +47,7 @@ VS_OUT VS_Main(VS_IN input)
     }
     else
     {
-        float4 anchorClip = mul(float4(GlobalParams.HpBarAnchorWorld, 1.0f), PassParams.MatView);
+        float4 anchorClip = mul(float4(GlobalParams.Anchor, 1.0f), PassParams.MatView);
         anchorClip = mul(anchorClip, PassParams.MatProjection);
         if (anchorClip.w <= 0.0f)
         {
@@ -61,7 +62,7 @@ VS_OUT VS_Main(VS_IN input)
     }
 
 
-    float2 pixelOffset = GlobalParams.HpBarPivotPx + input.pos.xy * GlobalParams.HpBarSizePx;
+    float2 pixelOffset = GlobalParams.PivotPx + input.pos.xy * GlobalParams.SizePx;
 
     // 스크린 크기로 정규화, w 무관 = 거리 무관
     float2 ndcOffset;

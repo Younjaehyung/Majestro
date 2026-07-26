@@ -1,26 +1,65 @@
 #ifndef _WORLD_UI_PARAMS_HLSL_
 #define _WORLD_UI_PARAMS_HLSL_
 
-// WorldUIPass(HP 바 / 점령 링) 전용 b0/space0 오버라이드 레이아웃.
 
 #define MJ_OVERRIDE_GLOBAL_PARAMS
 #include "params.hlsl"
 
-struct WORLD_UI_PARAMS
+struct WORLD_UI_SPRITE_PARAMS
 {
-    MJ_GLOBAL_PARAMS_HEADER      // BaseInstanceID / PassScalar0 / PassScalar1 / PassCustomIndex
+    uint BaseInstanceID;
+    uint PassFlags;
+    uint SpriteRole;
+    uint ReservedHeader;
 
-    float3 HpBarAnchorWorld;     // 월드 공간 앵커 위치 (HUD 모드는 xy=화면 픽셀)
-    float  HpBarFollowRatio;     // 현재 비율 (0~1) — fill 크롭용 (r1.w 빈 lane 활용)
+    float3 Anchor;
+    float Progress;
 
-    float2 HpBarSizePx;          // 화면 픽셀 단위 바 크기
-    float2 HpBarPivotPx;         // 앵커 기준 좌상단 픽셀 오프셋 (보통 -size/2)
+    float2 SizePx;
+    float2 PivotPx;
 
-    uint   HpBarBgTexIdx;        // TextureMaps 배열 인덱스 (배경)
-    uint   HpBarFillTexIdx;      // TextureMaps 배열 인덱스 (채움)
-    uint   HpBarHitTexIdx;       // TextureMaps 배열 인덱스 (hit effect 시트, 0이면 비활성)
-    uint   HpBarHitConfig;       // packed: cols (bits 0-7) | rows (bits 8-15) | frameCount (bits 16-31)
+    uint BackgroundTextureIndex;
+    uint FillTextureIndex;
+    uint Reserved0;
+    uint Reserved1;
 };
-ConstantBuffer<WORLD_UI_PARAMS> GlobalParams : register(b0, space0);
+
+struct WORLD_UI_CONQUEST_PARAMS
+{
+    uint BaseInstanceID;
+    uint PassFlags;
+    uint InnerRadiusEncoded;
+    uint AlphaEncoded;
+
+    float3 Anchor;
+    float Progress;
+
+    float2 SizePx;
+    float2 PivotPx;
+
+    uint BackgroundTextureIndex;
+    uint FillTextureIndex;
+    uint Reserved0;
+    uint Reserved1;
+};
+
+struct WORLD_UI_HP_EFFECT_PARAMS
+{
+    uint BaseInstanceID;
+    uint PassFlags;
+    uint ReservedHeader0;
+    uint ReservedHeader1;
+
+    float3 Anchor;
+    float FollowRatio;
+
+    float2 SizePx;
+    float2 PivotPx;
+
+    uint BackgroundTextureIndex;
+    uint FillTextureIndex;
+    uint HitTextureIndex;
+    uint HitConfig;
+};
 
 #endif

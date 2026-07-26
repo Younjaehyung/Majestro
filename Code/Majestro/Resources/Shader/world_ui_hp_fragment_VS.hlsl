@@ -2,6 +2,7 @@
 #include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
+ConstantBuffer<WORLD_UI_HP_EFFECT_PARAMS> GlobalParams : register(b0, space0);
 
 // 인스턴스마다 UIInstanceData에 다음을 패킹:
 //   Position(xy) = V0 픽셀 오프셋 (앵커 기준)
@@ -11,7 +12,7 @@
 
 
 //  배경 sprite와 동일한 UV
-//  UV는 (정점 픽셀 오프셋 - HpBarPivotPx) / HpBarSizePx 로 산출
+//  UV는 정점 픽셀 오프셋과 PivotPx 및 SizePx를 사용해 계산한다
 //  barycentric은 각 vertex의 입력 uv가 그대로 가중치 분배 ((1,0,0)/(0,1,0)/(0,0,1))
 
 
@@ -50,13 +51,13 @@ VS_OUT VS_Main(VS_IN input)
     // NDC 계산 (World vs HUD)
     // NDC.z = 앵커 깊이 (PS occlusion 비교용)
    
-    const bool isHud = (GlobalParams.PassScalar0 & 1u) != 0u;
+    const bool isHud = (GlobalParams.PassFlags & 1u) != 0u;
     float2 anchorNDC;
     float anchorZNDC;
     float anchorW;
     if (isHud)
     {
-        float2 px = GlobalParams.HpBarAnchorWorld.xy;
+        float2 px = GlobalParams.Anchor.xy;
         anchorNDC.x =  (px.x / PassParams.ScreenSize.x) * 2.0f - 1.0f;
         anchorNDC.y = -(px.y / PassParams.ScreenSize.y) * 2.0f + 1.0f;
         anchorZNDC = 0.0f;
@@ -65,7 +66,7 @@ VS_OUT VS_Main(VS_IN input)
     else
     { // 거리 무관 빌보드
       // NDC에 픽셀 오프셋(스크린 정규화) 더함
-        float4 anchorClip = mul(float4(GlobalParams.HpBarAnchorWorld, 1.0f), PassParams.MatView);
+        float4 anchorClip = mul(float4(GlobalParams.Anchor, 1.0f), PassParams.MatView);
         anchorClip = mul(anchorClip, PassParams.MatProjection);
         if (anchorClip.w <= 0.0f)
         {
@@ -91,7 +92,7 @@ VS_OUT VS_Main(VS_IN input)
     output.bary = float3(w0, w1, w2);
 
     // 배경 sprite와 동일한 UV: (오프셋 - 바좌상단) / 바크기
-    output.spriteUV = (offsetPx - GlobalParams.HpBarPivotPx) / GlobalParams.HpBarSizePx;
+    output.spriteUV = (offsetPx - GlobalParams.PivotPx) / GlobalParams.SizePx;
 
     output.alpha = inst.ZOrder;
     output.anchorZNDC = anchorZNDC;

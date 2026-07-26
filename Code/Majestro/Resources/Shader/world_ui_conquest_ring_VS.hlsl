@@ -2,10 +2,11 @@
 #include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
-// 점령 진행률 원형 게이지 전용 VS.
+ConstantBuffer<WORLD_UI_CONQUEST_PARAMS> GlobalParams : register(b0, space0);
+// 점령 진행률 원형 게이지
 // world_ui_hp_sprite_VS.hlsl 와 동일한 앵커/오프셋 변환 (HUD/World 양쪽 지원).
-//   HUD 모드 (etc bit0 = 1): HpBarAnchorWorld.xy 를 화면 픽셀로 직접 사용.
-//   World 모드:             HpBarAnchorWorld.xyz 를 월드 좌표로 사용.
+//   HUD   :  Anchor.xy를 화면 픽셀로 직접 사용
+//   World : Anchor.xyz를 월드 좌표로 사용
 // quad의 (uv) 는 PS 에서 (0..1) 로 받아 라디얼 필 / 도넛 마스크 계산에 사용.
 
 struct VS_IN
@@ -25,7 +26,7 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output;
 
-    const bool isHud = (GlobalParams.PassScalar0 & 1) != 0;
+    const bool isHud = (GlobalParams.PassFlags & 1) != 0;
 
     float2 anchorNDC;
     float anchorZNDC;
@@ -33,7 +34,7 @@ VS_OUT VS_Main(VS_IN input)
 
     if (isHud)
     {
-        float2 px = GlobalParams.HpBarAnchorWorld.xy;
+        float2 px = GlobalParams.Anchor.xy;
         anchorNDC.x =  (px.x / PassParams.ScreenSize.x) * 2.0f - 1.0f;
         anchorNDC.y = -(px.y / PassParams.ScreenSize.y) * 2.0f + 1.0f;
         anchorZNDC = 0.0f;
@@ -41,7 +42,7 @@ VS_OUT VS_Main(VS_IN input)
     }
     else
     {
-        float4 anchorClip = mul(float4(GlobalParams.HpBarAnchorWorld, 1.0f), PassParams.MatView);
+        float4 anchorClip = mul(float4(GlobalParams.Anchor, 1.0f), PassParams.MatView);
         anchorClip = mul(anchorClip, PassParams.MatProjection);
         if (anchorClip.w <= 0.0f)
         {
@@ -55,7 +56,7 @@ VS_OUT VS_Main(VS_IN input)
         anchorW = anchorClip.w;
     }
 
-    float2 pixelOffset = GlobalParams.HpBarPivotPx + input.pos.xy * GlobalParams.HpBarSizePx;
+    float2 pixelOffset = GlobalParams.PivotPx + input.pos.xy * GlobalParams.SizePx;
 
     float2 ndcOffset;
     ndcOffset.x =  (pixelOffset.x / PassParams.ScreenSize.x) * 2.0f;

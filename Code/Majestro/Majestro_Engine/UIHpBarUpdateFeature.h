@@ -6,30 +6,30 @@ class World;
 class CameraComponent;
 class UIHpBarComponent;
 
-// HLSL WORLD_UI_PARAMS
-struct GlobalParamsLayout
+// HP 바 셰이더에 전달하는 16 DWORD 루트 상수 레이아웃
+struct UIHpBarParamsLayout
 {
     uint32 BaseInstanceID = 0;
-    uint32 PassScalar0 = 0;      // WorldUIPass: HUD 플래그 bit0 (1=screen-space)
-    uint32 PassScalar1 = 0;      // WorldUIHpSprite: 0=배경/1=채움, ConquestRing: innerRadius*1000
-    uint32 PassCustomIndex = 0;
+    uint32 PassFlags = 0;
+    uint32 SpriteRole = 0;
+    uint32 ReservedHeader = 0;
 
-    float HpBarAnchorWorldX = 0.f;
-    float HpBarAnchorWorldY = 0.f;
-    float HpBarAnchorWorldZ = 0.f;
-    float HpBarFollowRatio = 1.f; // r1.w — float3 뒤 빈 lane을 채워 패딩 제거
+    float AnchorWorldX = 0.f;
+    float AnchorWorldY = 0.f;
+    float AnchorWorldZ = 0.f;
+    float FollowRatio = 1.f;
 
-    float HpBarSizePxX = 0.f;
-    float HpBarSizePxY = 0.f;
-    float HpBarPivotPxX = 0.f;
-    float HpBarPivotPxY = 0.f;
+    float SizePxX = 0.f;
+    float SizePxY = 0.f;
+    float PivotPxX = 0.f;
+    float PivotPxY = 0.f;
 
-    uint32 HpBarBgTexIdx = 0;
-    uint32 HpBarFillTexIdx = 0;
-    uint32 HpBarHitTexIdx = 0;   // 0이면 hit effect 비활성
-    uint32 HpBarHitConfig = 0;   // packed: cols(0..7) | rows(8..15) | frameCount(16..31)
+    uint32 BackgroundTextureIndex = 0;
+    uint32 FillTextureIndex = 0;
+    uint32 HitTextureIndex = 0;
+    uint32 HitConfig = 0;
 };
-static_assert(sizeof(GlobalParamsLayout) == 16 * 4, "GlobalParamsLayout must be 16 DWORDs");
+static_assert(sizeof(UIHpBarParamsLayout) == 16 * 4, "UIHpBarParamsLayout must be 16 DWORDs");
 
 // 파편 1삼각형당 1 인스턴스 (UIInstanceData에 V0/V1/V2/alpha 패킹)
 

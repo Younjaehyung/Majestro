@@ -73,16 +73,16 @@ void UIHpBarUpdateFeature::DrawUI(CameraComponent* camera, WorldUIPassMode mode)
         DrawHpBar(hpBar, owner);
     }
 
-    // 후속 패스에 영향 가지 않게 GlobalParams 일부 원복
+
     const uint32 zero = 0;
     GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 0);  // BaseInstanceID
-    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);  // PassScalar1 (역할 플래그)
+    GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);  // 스프라이트 역할
 }
 
 void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
 {
     // 모드별 앵커 결정
-    // 두 모드 모두 셰이더 GlobalParams.HpBarAnchorWorld 의 (x,y,z) 슬롯을 재활용:
+    // 월드 모드와 HUD 모드가 같은 앵커 슬롯을 사용
     //   World: 월드 좌표 (xyz 모두 사용)
     //   HUD:   화면 픽셀 좌상단 + (mMaxWidth/2, 0) — 좌상단을 가운데-위로 보정해
     //          기존 pivot=(-w/2, 0) 수식을 모드 무관하게 그대로 통용 (z 미사용).
@@ -144,36 +144,34 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
         }
     }
 
-    // per-bar GlobalParams 구성
-    GlobalParamsLayout gp{};
+    // HP 바 셰이더 파라미터
+    UIHpBarParamsLayout gp{};
     gp.BaseInstanceID = 0;
-    gp.PassScalar0 = hpBar->mIsScreenSpace ? 1u : 0u; // bit0: 1=HUD(screen-space, no occlusion)
-    gp.PassScalar1 = 0;        // 0 = 배경 (DrawHpBar 시작 단계)
-    gp.PassCustomIndex = 0;
+    gp.PassFlags = hpBar->mIsScreenSpace ? 1u : 0u;
+    gp.SpriteRole = 0;
+    gp.ReservedHeader = 0;
 
-    gp.HpBarAnchorWorldX = anchorXYZ.x;
-    gp.HpBarAnchorWorldY = anchorXYZ.y;
-    gp.HpBarAnchorWorldZ = anchorXYZ.z;
+    gp.AnchorWorldX = anchorXYZ.x;
+    gp.AnchorWorldY = anchorXYZ.y;
+    gp.AnchorWorldZ = anchorXYZ.z;
 
-    gp.HpBarSizePxX = hpBar->mMaxWidth;
-    gp.HpBarSizePxY = hpBar->mHeight;
+    gp.SizePxX = hpBar->mMaxWidth;
+    gp.SizePxY = hpBar->mHeight;
 
-    // 바 좌상단을 앵커 기준 (-w/2, 0) 위치에 두는 피벗 (수평 중앙, 수직 위 정렬)
-    // 월드 좌표 투영 뒤 화면 픽셀 오프셋을 더해 거리와 무관한 HP바 위치를 유지
-    gp.HpBarPivotPxX = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x;
-    gp.HpBarPivotPxY = hpBar->mScreenOffsetPx.y;
+    gp.PivotPxX = -hpBar->mMaxWidth * 0.5f + hpBar->mScreenOffsetPx.x;
+    gp.PivotPxY = hpBar->mScreenOffsetPx.y;
 
     // 텍스처 여백 보정
-    gp.HpBarFollowRatio = RemapBarRatioToUv(std::clamp(hpBar->mPreviousHpRatio, 0.f, 1.f), hpBar->mFillUvRangeX);
-    gp.HpBarBgTexIdx = (bgTex != nullptr) ? bgTex->GetImageIndex() : 0u;
-    gp.HpBarFillTexIdx = (fillTex != nullptr) ? fillTex->GetImageIndex() : 0u;
-    gp.HpBarHitTexIdx = (hitTex != nullptr) ? hitTex->GetImageIndex() : 0u;
+    gp.FollowRatio = RemapBarRatioToUv(std::clamp(hpBar->mPreviousHpRatio, 0.f, 1.f), hpBar->mFillUvRangeX);
+    gp.BackgroundTextureIndex = (bgTex != nullptr) ? bgTex->GetImageIndex() : 0u;
+    gp.FillTextureIndex = (fillTex != nullptr) ? fillTex->GetImageIndex() : 0u;
+    gp.HitTextureIndex = (hitTex != nullptr) ? hitTex->GetImageIndex() : 0u;
 
     // packed: cols(0..7) | rows(8..15) | frameCount(16..31)
     const uint32 cols = static_cast<uint32>((std::max)(1, hpBar->mHitEffectCols)) & 0xFFu;
     const uint32 rows = static_cast<uint32>((std::max)(1, hpBar->mHitEffectRows)) & 0xFFu;
     const uint32 frameCount = static_cast<uint32>((std::max)(1, hpBar->mHitEffectFrameCount)) & 0xFFFFu;
-    gp.HpBarHitConfig = cols | (rows << 8u) | (frameCount << 16u);
+    gp.HitConfig = cols | (rows << 8u) | (frameCount << 16u);
 
     GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
 
@@ -200,24 +198,24 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
             const Vec2 sux = hpBar->mShieldUvRangeX;   // 쉴드 색 영역 X
             const Vec2 suy = hpBar->mShieldUvRangeY;   // 쉴드 색 영역 Y
 
-            GlobalParamsLayout gpS = gp;
-            gpS.HpBarFillTexIdx = shieldTex->GetImageIndex();
+            UIHpBarParamsLayout gpS = gp;
+            gpS.FillTextureIndex = shieldTex->GetImageIndex();
             // 쉴드 색 영역(sux/suy)이 HP 색 영역(hux/huy) 스크린 위치에 정확히 오도록 스케일/피벗 보정.
             const float sx = (hux.y - hux.x) / (std::max)(1e-4f, sux.y - sux.x) * hpBar->mMaxWidth;
             const float sy = (huy.y - huy.x) / (std::max)(1e-4f, suy.y - suy.x) * hpBar->mHeight;
-            gpS.HpBarSizePxX = sx;
-            gpS.HpBarSizePxY = sy;
-            gpS.HpBarPivotPxX = gp.HpBarPivotPxX + hux.x * hpBar->mMaxWidth - sux.x * sx;
-            gpS.HpBarPivotPxY = gp.HpBarPivotPxY + huy.x * hpBar->mHeight   - suy.x * sy;
+            gpS.SizePxX = sx;
+            gpS.SizePxY = sy;
+            gpS.PivotPxX = gp.PivotPxX + hux.x * hpBar->mMaxWidth - sux.x * sx;
+            gpS.PivotPxY = gp.PivotPxY + huy.x * hpBar->mHeight - suy.x * sy;
             // 우측 컷오프(셰이더 discard)는 쉴드 UV 공간에서: 하우징 분율 shieldEndRatio → 쉴드 UV
-            gpS.HpBarFollowRatio = RemapBarRatioToUv(std::clamp(shieldEndRatio, 0.f, 1.f), sux);
+            gpS.FollowRatio = RemapBarRatioToUv(std::clamp(shieldEndRatio, 0.f, 1.f), sux);
 
             GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gpS, 0);
             const uint32 shieldRole = 1;
             GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &shieldRole, 2);
             quadMesh->Render(1, 0, 0, 0);
 
-            // HP 채움/배경용 원본 GlobalParams 복원
+            // HP 채움과 배경에 사용할 원본 파라미터를 복원한다
             GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 16, &gp, 0);
         }
 

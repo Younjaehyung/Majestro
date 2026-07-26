@@ -2,6 +2,7 @@
 #include "world_ui_params.hlsl"
 #include "utils.hlsl"
 
+ConstantBuffer<WORLD_UI_HP_EFFECT_PARAMS> GlobalParams : register(b0, space0);
 // HP 바 hit effect 전용 VS (WorldUIPass).
 // 인스턴스마다 UIInstanceData에 다음을 패킹:
 //   Position(xy) = 앵커 기준 픽셀 오프셋 (피격 순간 남은 HP 우측 끝 고정)
@@ -38,13 +39,13 @@ VS_OUT VS_Main(VS_IN input)
 
     // 앵커 ->NDC (World vs HUD)
     // NDC.z = 앵커 깊이 (PS occlusion 비교용)
-    const bool isHud = (GlobalParams.PassScalar0 & 1u) != 0u;
+    const bool isHud = (GlobalParams.PassFlags & 1u) != 0u;
     float2 anchorNDC;
     float anchorZNDC;
     float anchorW;
     if (isHud)
     {
-        float2 px = GlobalParams.HpBarAnchorWorld.xy;
+        float2 px = GlobalParams.Anchor.xy;
         anchorNDC.x =  (px.x / PassParams.ScreenSize.x) * 2.0f - 1.0f;
         anchorNDC.y = -(px.y / PassParams.ScreenSize.y) * 2.0f + 1.0f;
         anchorZNDC = 0.0f;
@@ -52,7 +53,7 @@ VS_OUT VS_Main(VS_IN input)
     }
     else
     {
-        float4 anchorClip = mul(float4(GlobalParams.HpBarAnchorWorld, 1.0f), PassParams.MatView);
+        float4 anchorClip = mul(float4(GlobalParams.Anchor, 1.0f), PassParams.MatView);
         anchorClip = mul(anchorClip, PassParams.MatProjection);
         if (anchorClip.w <= 0.0f)
         {
@@ -80,9 +81,9 @@ VS_OUT VS_Main(VS_IN input)
     output.pos = float4(finalNDC * anchorW, anchorZNDC * anchorW, anchorW);
 
     // Sheet Sprite 프레임 UV 계산
-    uint cols       = GlobalParams.HpBarHitConfig & 0xFFu;
-    uint rows       = (GlobalParams.HpBarHitConfig >> 8u) & 0xFFu;
-    uint frameCount = (GlobalParams.HpBarHitConfig >> 16u) & 0xFFFFu;
+    uint cols       = GlobalParams.HitConfig & 0xFFu;
+    uint rows       = (GlobalParams.HitConfig >> 8u) & 0xFFu;
+    uint frameCount = (GlobalParams.HitConfig >> 16u) & 0xFFFFu;
     cols       = max(cols, 1u);
     rows       = max(rows, 1u);
     frameCount = max(frameCount, 1u);

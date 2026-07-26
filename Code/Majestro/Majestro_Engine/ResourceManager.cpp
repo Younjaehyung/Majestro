@@ -871,13 +871,15 @@ void ResourceManager::UnloadSceneResources(const std::vector<wstring>& prefixes)
 	}
 }
 
-shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path)
+shared_ptr<Vfx> ResourceManager::LoadEffect(const wstring& path, int32 startFrame, int32 loopEndFrame)
 {
 	shared_ptr<Vfx> effect = Get<Vfx>(s2ws(filesystem::path(path).filename().stem().string()));
 	if (effect)
 		return effect;
 	effect = make_shared<Vfx>();
 	effect->Load(path);
+	effect->mStartFrame = startFrame;
+	effect->mLoopEndFrame = loopEndFrame;
 	effect->SetName(s2ws(filesystem::path(path).filename().stem().string()));
 	Add(effect->GetName(), effect);
 
@@ -3384,10 +3386,10 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadFBX(L"..\\Resources\\FBX\\Monster\\Obelisk\\SM_Obelisk.fbx", L"JHToon");
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Noteboar_dissolve\\vfx_dissolve_NoteBoar.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk");
-	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk");
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Jump\\VFX_Sector_Jump.efk", 1, 100);
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Heal\\VFX_Sector_Heal.efk", 1, 100);
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Spawn\\VFX_Sector_Spawn.efk", 1, 100);
+	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk", 1, 100);
 
 
 	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");

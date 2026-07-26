@@ -72,7 +72,7 @@ public:
 	shared_ptr<FBXData>		LoadFBXModel(const wstring& path, const wstring& prefix);
 
 
-	shared_ptr<Vfx>			LoadEffect(const wstring& path);
+	shared_ptr<Vfx>			LoadEffect(const wstring& path, int32 startFrame = 0, int32 loopEndFrame = 0);
 	void LoadAllTexture(const wstring& path);
 	LevelImportData  LoadMapResourceJson(const wstring& path);
 

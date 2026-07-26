@@ -86,13 +86,22 @@ Effekseer::EffectRef EffectPass::LoadEffect(const shared_ptr<Vfx>& vfx)
 	return effect;
 }
 
+float EffectPass::GetLoopCycleSeconds(const shared_ptr<Vfx>& vfx)
+{
+	if (vfx == nullptr || vfx->mLoopEndFrame <= vfx->mStartFrame)
+		return 0.f;
+
+	constexpr float kEfkFramesPerSecond = 60.f;
+	return static_cast<float>(vfx->mLoopEndFrame - vfx->mStartFrame) / kEfkFramesPerSecond;
+}
+
 Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, float x, float y, float z)
 {
 	Effekseer::EffectRef effect = LoadEffect(comp ? comp->mVfx : nullptr);
 	if (effect == nullptr)
 		return -1;
 
-	Effekseer::Handle handle = mManager->Play(effect, x, y, z);
+	Effekseer::Handle handle = mManager->Play(effect, Effekseer::Vector3D(x, y, z), comp->mVfx->mStartFrame);
 
 	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
@@ -107,8 +116,8 @@ Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, const Effek
 	if (effect == nullptr)
 		return -1;
 
-	Effekseer::Handle handle = mManager->Play(effect, position);
-	
+	Effekseer::Handle handle = mManager->Play(effect, position, comp->mVfx->mStartFrame);
+
 	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
 	comp->efkHandle = handle;
@@ -167,7 +176,7 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 
 		TransformComponent* tr = mWorld->GetComponent<TransformComponent>(e);
 
-		
+
 		Vec3 vfxWorldPos = Vec3::Zero;
 		Quaternion attachRotation = Quaternion::Identity;	// 부착 대상(트럭 등)의 월드 회전
 		bool isAttached = false;							// 부착 오프셋이 지정된 VFX인지
@@ -207,6 +216,10 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			continue;
 		}
 
+
+		const float loopCycleSeconds = comp->mRestartWhenFinished
+			? GetLoopCycleSeconds(comp->mVfx) : 0.f;
+
 		if (!comp->mShouldPlay)
 		{
 			Stop(e, comp);
@@ -222,6 +235,24 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 		{
 			if (comp->efkHandle != -1)
 				Stop(e, comp, false);
+
+			Effekseer::Handle handle = -1;
+			if (tr != nullptr)
+				handle = Play(e, comp, vfxWorldPos.x, vfxWorldPos.y, vfxWorldPos.z);
+			else
+				handle = Play(e, comp, 0.f, 0.f, 0.f);
+			if (handle == -1)
+				continue;
+		}
+		else if (!comp->mIsPaused && loopCycleSeconds > 0.f && comp->mTotalTime >= loopCycleSeconds &&
+			!IsInvalidHandle(comp->efkHandle) && mManager->Exists(comp->efkHandle))
+		{
+			mManager->StopEffect(comp->efkHandle);
+
+			comp->efkHandle = -1;
+			comp->mIsPlaying = false;
+			comp->mTotalTime = 0.f;
+			comp->mRootStopped = false;
 
 			Effekseer::Handle handle = -1;
 			if (tr != nullptr)

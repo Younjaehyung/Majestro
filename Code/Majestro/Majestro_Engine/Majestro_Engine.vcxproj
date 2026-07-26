@@ -98,6 +98,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
+      <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -122,6 +123,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)..\;$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
+      <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -145,7 +147,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\;$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
     </ClCompile>
@@ -171,7 +173,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)..\;$(SolutionDir)Library\Include\Effekseer\EffekseerRendererDX12;$(SolutionDir)Library\Include\Effekseer\LLGI;$(SolutionDir)Library\Include\Effekseer\LLGI\DX12;$(SolutionDir)Library\Include\;$(SolutionDir)Library\Include\Effekseer\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /bigobj %(AdditionalOptions)</AdditionalOptions>
       <MaxFilesInUnityFile>16</MaxFilesInUnityFile>
     </ClCompile>
     <Link>

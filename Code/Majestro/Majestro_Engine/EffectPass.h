@@ -95,6 +95,8 @@ private:
 	Effekseer::Backend::TextureRef GetOrCreateEfkTexture(shared_ptr<Texture> texture,
 		ID3D12Resource*& cachedResource, Effekseer::Backend::TextureRef& cachedTexture);
 
+	static float GetLoopCycleSeconds(const shared_ptr<Vfx>& vfx);
+
 private:
 	World* mWorld = nullptr;
 	float mTotalTime = 0.0f;

@@ -2583,6 +2583,24 @@ namespace
 				if (idleAnim)
 				{
 					std::vector<shared_ptr<Animator>> animators{ idleAnim };
+					npc.mIdleClipIdx = 0;
+					npc.mWaveClipIdx = 0;
+
+					// 손 흔들기 클립
+					const std::string waveKey = GetOptionalString(it, "waveAnim", "");
+					if (!waveKey.empty())
+					{
+						if (shared_ptr<Animator> waveAnim = RESOURCEMANAGER.Get<Animator>(utfs2ws(waveKey)))
+						{
+							npc.mWaveClipIdx = static_cast<uint32>(animators.size());
+							animators.push_back(waveAnim);
+						}
+						else
+						{
+							std::cout << "[Plaza] NPC waveAnim 리소스 없음 — Idle 로 대체: " << waveKey << std::endl;
+						}
+					}
+
 					world->AddComponent<AnimationComponent>(e, animators);
 				}
 			}

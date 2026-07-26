@@ -24,6 +24,10 @@ public:
 	float mInteractRadius = 250.f;
 	float mHomeYaw = 0.f;                      // 배치 방향 (대화 종료 후 복귀할 yaw, 도 단위)
 	std::vector<std::wstring> mDialogueLines;  // 1단계: 선형 대사
+
+	
+	uint32 mIdleClipIdx = 0;
+	uint32 mWaveClipIdx = 0;            
 };
 
 // 대화 진행 상태 (월드 싱글톤)

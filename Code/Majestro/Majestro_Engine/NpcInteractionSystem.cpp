@@ -5,6 +5,8 @@
 #include "TagComponent.h"
 #include "TransformComponent.h"
 #include "MovementComponent.h"
+#include "AnimationComponent.h"
+#include "AirshipDepartureComponent.h"
 #include "InputManager.h"
 #include "Engine.h"
 #include "MathUtils.h"
@@ -127,7 +129,15 @@ void NpcInteractionSystem::Update(float deltaTime)
 	}
 	state->mNearbyNpc = nearest;
 
-	// NPC 몸통 회전: 대화 상대는 플레이어를, 나머지는 배치 방향을 바라본다
+	// 레벨 진입 시네마틱 재생 중인지
+	bool departing = false;
+	if (mWorld->HasComponentPool<AirshipDepartureComponent>())
+	{
+		const AirshipDepartureComponent* departure = mWorld->GetSingleton<AirshipDepartureComponent>();
+		departing = (departure != nullptr && departure->mPlaying);
+	}
+
+	// NPC 몸통 회전
 	{
 		const bool talking = state->IsBlockingUiActive();
 		const float turnAlpha = std::clamp(deltaTime * kNpcTurnSpeed, 0.f, 1.f);
@@ -145,6 +155,13 @@ void NpcInteractionSystem::Update(float deltaTime)
 					targetYaw = MathUtils::YawDegreesFromDir(toPlayer);
 			}
 			tr->mLocalRotationE.y = MathUtils::LerpAngleDegrees(tr->mLocalRotationE.y, targetYaw, turnAlpha);
+
+
+			if (AnimationComponent* anim = mWorld->GetComponent<AnimationComponent>(e))
+			{
+				const bool waving = (departing && npc->mRole == NpcRole::LevelSelect);
+				anim->mLowerAnimClipIdx = waving ? npc->mWaveClipIdx : npc->mIdleClipIdx;
+			}
 		}
 	}
 

@@ -9,8 +9,9 @@
       "mesh": "SM_LevelMan",
       "material": "Anim_LevelMan_Idle0",
       "anim": "Anim_LevelMan_Idle",
+      "waveAnim": "Anim_LevelMan_Wave",
       "position": [ 0.0, 1735.0, -1890.0 ],
-      "rotationY": -135.0,
+      "rotationY": 0.0,
       "scale": 1.5,
       "interactRadius": 300.0,
       "dialogue": [
@@ -29,7 +30,7 @@
       "material": "Anim_RhythmMan_Idle0",
       "anim": "Anim_RhythmMan_Idle",
       "position": [ -400.0, 1420.0, 520.0 ],
-      "rotationY": 135.0,
+      "rotationY": 60.0,
       "scale": 1.5,
       "interactRadius": 300.0,
       "dialogue": [
@@ -47,7 +48,7 @@
       "material": "Anim_NoteMan_Idle0",
       "anim": "Anim_NoteMan_Idle",
       "position": [ 40.0, 1420.0, 520.0 ],
-      "rotationY": 0.0,
+      "rotationY": 180.0,
       "scale": 3.0,
       "interactRadius": 300.0,
       "dialogue": [

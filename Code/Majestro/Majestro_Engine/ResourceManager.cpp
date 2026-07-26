@@ -3379,6 +3379,7 @@ void ResourceManager::CreateDefaultMaterial()
 
 	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_NoteMan_Idle.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_LevelMan_Idle.fbx", L"JHToon");
+	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_LevelMan_Wave.fbx", L"JHToon");
 	LoadFBX(L"..\\Resources\\FBX\\Npc\\Anim_RhythmMan_Idle.fbx", L"JHToon");
 
 	LoadFBX(L"..\\Resources\\FBX\\Object\\SM_Escort.fbx", L"Deferred");

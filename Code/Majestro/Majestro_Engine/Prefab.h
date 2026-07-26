@@ -81,7 +81,9 @@ private:
 class DirLightPrefab : public Prefab
 {
 public:
-	DirLightPrefab(World* world);
+	static constexpr Vec3 kDefaultDirection{ -0.0713f, -0.6448f, 0.7610f };
+
+	DirLightPrefab(World* world, const Vec3& direction = kDefaultDirection);
 	~DirLightPrefab();
 
 };

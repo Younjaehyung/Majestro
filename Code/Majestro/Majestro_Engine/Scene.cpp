@@ -2252,7 +2252,8 @@ void FirstScene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
-	DirLightPrefab light{ mWorld.get() };
+	// Map001 UE DirLight (Pitch=-23.347480, Yaw=-149.041757)
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.4723f, -0.3963f, -0.7873f) };
 
 	OceanPrefab ocean{ mWorld.get() };
 
@@ -2796,7 +2797,8 @@ void PlazaScene::Initialize()
 	AUDIOMANAGER.RequestBGM("event:/OST/Skyship", SOUNDNAME::Ambient);
 	PrefabFactory::RegisterAllPrefabs();
 	SkyBoxPrefab skybox{ mWorld.get() };
-	DirLightPrefab light{ mWorld.get() };
+	// MapShip UE DirLight (Pitch=-46.596500, Yaw=100.784872)
+	DirLightPrefab light{ mWorld.get(), Vec3(0.6750f, -0.7265f, -0.1286f) };
 
 	// OceanPrefab ocean{ mWorld.get() };
 
@@ -3003,7 +3005,8 @@ void SecondScene::Initialize()
 	//PlayerPrefab player{mWorld.get()};
 	PrefabFactory::RegisterAllPrefabs();
 	SkyBoxPrefab skybox{ mWorld.get() };
-	DirLightPrefab light{ mWorld.get() };
+	// MapDesert UE DirLight (Pitch=-30.774053, Yaw=215.797131)
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.5026f, -0.5117f, -0.6969f) };
 	//EnemyPrefab	enemys {mWorld.get() };
 
 
@@ -3162,7 +3165,8 @@ void ThirdScene::Initialize()
 
 
 	SkyBoxPrefab skybox{ mWorld.get() };
-	DirLightPrefab light{ mWorld.get() };
+	// Map003 UE DirLight (Pitch=-11.513998, Yaw=3.343121)
+	DirLightPrefab light{ mWorld.get(), Vec3(0.0571f, -0.1996f, 0.9782f) };
 
 #pragma region UI
 
@@ -3323,7 +3327,8 @@ void FourthScene::Initialize()
 
 
 	SkyBoxPrefab skybox{ mWorld.get() };
-	DirLightPrefab light{ mWorld.get() };
+	// MapDragon UE DirLight (Pitch=-65.086618, Yaw=187.635502)
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.0560f, -0.9069f, -0.4175f) };
 
 #pragma region UI
 

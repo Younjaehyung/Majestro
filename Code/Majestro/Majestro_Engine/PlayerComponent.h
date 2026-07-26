@@ -116,7 +116,7 @@ public:
 	int mNowBullet = 0;
 	int mMaxBullet = 0;
 
-	static constexpr int kMaxRhythmPoints = 200;
+	static constexpr int kMaxRhythmPoints = 100;
 	int mRhythmPoints = 0;
 
 	// 스킬 쿨타임 (UI 표시용). 인덱스 0=Attack,1=Skill1,2=Skill2,3=Reload

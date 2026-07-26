@@ -665,8 +665,6 @@ std::optional<VfxSpawnDesc> VfxSystem::ResolveVfxSpawn(SkillType skillType, uint
 		if (skillType == SkillType::BrassSkill3)
 			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_03", Vec3(0.f, 100.f, 0.f), Vec3(30.0f), /*followCaster*/ true };
 
-		if (skillType == SkillType::BrassSkill4)
-			return VfxSpawnDesc{ L"VFX_BrassBoss_Skill_04", Vec3::Zero, Vec3(1.0f) };
 
 		return std::nullopt;
 
@@ -740,7 +738,7 @@ BulletVfxDesc VfxSystem::ResolveBulletVfx(SkillType skillType)
 		case SkillType::BrassSkill2:
 			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_02", Vec3(150.0f, 150.0f, 150.0f) };
 		case SkillType::BrassSkill3:
-			return BulletVfxDesc{ L"VFX_Hornman_Bullet", Vec3(10.0f, 10.0f, 10.0f) };
+			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_04", Vec3(10.0f, 10.0f, 10.0f) };
 		case SkillType::BrassSkill4:
 			return BulletVfxDesc{ L"VFX_BrassBoss_Skill_02", Vec3(60.0f, 60.0f, 60.0f) };
 

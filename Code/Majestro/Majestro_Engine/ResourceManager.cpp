@@ -2889,6 +2889,7 @@ void ResourceManager::CreateDefaultMaterial()
 		Load<Texture>(L"UI_Boss_Cutin_Tubaitan_Img", L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Tubaitan_Img.png");
 		Load<Texture>(L"UI_Boss_Cutin_Violagon",     L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Violagon.png");
 		Load<Texture>(L"UI_Boss_Cutin_Violagon_Img", L"..\\Resources\\Image\\UI\\UI_Boss_Cutin_Violagon_Img.png");
+		Load<Texture>(L"UI_CutScene_Info_Sheet",     L"..\\Resources\\Image\\UI\\Ui_CutScene_Info_Sheet.png");
 	}
 
 	//Ibanix_Ammo
@@ -3394,7 +3395,7 @@ void ResourceManager::CreateDefaultMaterial()
 	LoadEffect(L"..\\Resources\\Effect\\Area\\Conquer\\VFX_Sector_Conquer.efk", 1, 100);
 
 
-	LoadEffect(L"..\\Resources\\Effect\\VFX\\VFX_Ibanix_Hit_01.efk");
+
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Ibanix_Attack_Hit_01\\VFX_Ibanix_Attack_Hit_01.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Fanthor_Attack_Hit\\VFX_Fanthor_Attack_Hit.efk");
 	LoadEffect(L"..\\Resources\\Effect\\VFX_Rudwig_Attack_Hit\\VFX_Rudwig_Attack_Hit.efk");

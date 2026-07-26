@@ -60,7 +60,7 @@
         "ComboAttack2State": {
             "time": 0.35,
             "animOnce": true,
-            "animEndTime": 1.16667
+            "animEndTime": 0.55
         },
         "Skill1State": {
             "time": 0.35,

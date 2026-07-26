@@ -234,7 +234,21 @@
       "is3d": true
     },
 
-
+    "action/Ibanix/UltimateIntro": {
+      "event": "event:/SFX/Ibanix/SFX_Ibanix_Ultimate_Intro",
+      "is3d": true,
+      "loop": false
+    },
+    "action/Rudwig/UltimateIntro": {
+      "event": "event:/SFX/Rudwig/SFX_Rudwig_Ultimate_Intro",
+      "is3d": true,
+      "loop": false
+    },
+    "action/Fanthor/UltimateIntro": {
+      "event": "event:/SFX/Fanthor/SFX_Fanthor_Ultimate_Intro",
+      "is3d": true,
+      "loop": false
+    },
 
 
 

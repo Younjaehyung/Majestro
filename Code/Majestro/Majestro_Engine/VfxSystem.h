@@ -83,6 +83,6 @@ private:
 	std::optional<BulletHoleDesc> ResolveMeleeWallMark(SkillType skillType, uint8 reason);
 
 private:
-	static constexpr uint32 kPoolSize = 128;
+	static constexpr uint32 kPoolSize = 256;
 	std::vector<Entity> mPool;
 };

@@ -38,7 +38,7 @@ void EffectPass::Initialize(World* world)
 	mSetting = Effekseer::Setting::Create();
 	mSetting->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
-	mManager = Effekseer::Manager::Create(8000);
+	mManager = Effekseer::Manager::Create(kInstanceMax);
 	// mManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
 	mManager->SetSpriteRenderer(renderer->CreateSpriteRenderer());
@@ -69,6 +69,7 @@ Effekseer::EffectRef EffectPass::LoadEffect(const shared_ptr<Vfx>& vfx)
 	if (vfx == nullptr || vfx->mEffectPath.empty())
 		return nullptr;
 
+
 	auto it = mEffectCache.find(vfx->mEffectPath);
 	if (it != mEffectCache.end())
 		return it->second;
@@ -79,6 +80,8 @@ Effekseer::EffectRef EffectPass::LoadEffect(const shared_ptr<Vfx>& vfx)
 #ifdef _DEBUG
 		OutputDebugStringW((L"EffectPass: failed to load Effekseer effect: " + vfx->mEffectPath + L"\n").c_str());
 #endif
+		
+		mEffectCache.emplace(vfx->mEffectPath, Effekseer::EffectRef{});
 		return nullptr;
 	}
 
@@ -102,6 +105,8 @@ Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, float x, fl
 		return -1;
 
 	Effekseer::Handle handle = mManager->Play(effect, Effekseer::Vector3D(x, y, z), comp->mVfx->mStartFrame);
+	if (IsInvalidHandle(handle))
+		return -1;	// 인스턴스 고갈.
 
 	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
@@ -117,12 +122,28 @@ Effekseer::Handle EffectPass::Play(Entity owner, VfxComponent* comp, const Effek
 		return -1;
 
 	Effekseer::Handle handle = mManager->Play(effect, position, comp->mVfx->mStartFrame);
+	if (IsInvalidHandle(handle))
+		return -1;	// 인스턴스 고갈.
 
 	mManager->SetUserData(handle, MakeOwnerToken(owner));
 	comp->mIsPlaying = true;
 	comp->efkHandle = handle;
 	comp->mRootStopped = false;
 	return handle;
+}
+
+void EffectPass::MarkPlayFailed(VfxComponent* comp)
+{
+	if (comp == nullptr)
+		return;
+
+	comp->efkHandle = -1;
+	comp->mIsPlaying = false;
+	comp->mShouldPlay = false;
+	comp->mTotalTime = 0.f;
+	comp->mRootStopped = false;
+	if (comp->mAutoReturn)
+		comp->mFinished = true;
 }
 
 void EffectPass::Stop(Entity owner, VfxComponent* comp, bool allowRootStop)
@@ -242,7 +263,10 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			else
 				handle = Play(e, comp, 0.f, 0.f, 0.f);
 			if (handle == -1)
+			{
+				MarkPlayFailed(comp);
 				continue;
+			}
 		}
 		else if (!comp->mIsPaused && loopCycleSeconds > 0.f && comp->mTotalTime >= loopCycleSeconds &&
 			!IsInvalidHandle(comp->efkHandle) && mManager->Exists(comp->efkHandle))
@@ -260,7 +284,10 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 			else
 				handle = Play(e, comp, 0.f, 0.f, 0.f);
 			if (handle == -1)
+			{
+				MarkPlayFailed(comp);
 				continue;
+			}
 		}
 		else if (!comp->mIsPaused && comp->efkHandle != -1 && !mManager->Exists(comp->efkHandle))
 		{
@@ -278,7 +305,10 @@ void EffectPass::Execute(float dt, const Effekseer::Matrix44& viewMat, const Eff
 				else
 					handle = Play(e, comp, 0.f, 0.f, 0.f);
 				if (handle == -1)
+				{
+					MarkPlayFailed(comp);
 					continue;
+				}
 			}
 			else
 			{

@@ -27,6 +27,9 @@ public:
 	Effekseer::Handle Play(Entity owner, VfxComponent* comp, const Effekseer::Vector3D& position);
 	void Stop(Entity owner, VfxComponent* comp, bool allowRootStop = true);
 
+
+	void MarkPlayFailed(VfxComponent* comp);		// 재생을 시작하지 못한 VFX를 끝난 것으로 표시
+
 	void LoadResources();
 
 	inline Effekseer::Matrix44 ToEfkMatrix(const DirectX::XMMATRIX& m)
@@ -98,6 +101,9 @@ private:
 	static float GetLoopCycleSeconds(const shared_ptr<Vfx>& vfx);
 
 private:
+	// Effekseer 매니저가 미리 확보하는 인스턴스 수.
+	static constexpr int32 kInstanceMax = 8000;
+
 	World* mWorld = nullptr;
 	float mTotalTime = 0.0f;
 	std::unordered_map<std::wstring, Effekseer::EffectRef> mEffectCache;

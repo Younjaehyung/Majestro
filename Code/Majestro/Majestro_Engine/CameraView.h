@@ -32,5 +32,9 @@ namespace Cinematic
     bool IsAnyCinematicPlaying(World* world);    // 어느 시네마틱이라도 재생 중인지
 
 
-    void RequestPlazaLevelEnter(World* world, SceneId target);      // 레벨 진입 요청
+    void RequestPlazaLevelEnter(World* world, SceneId target);      // 레벨 진입을 서버에 요청
+
+    // 서버 승인 후 광장 출발 연출을 시작한다. 재생을 시작했으면 true.
+    bool TryPlayPlazaDeparture(World* world);
+    bool IsPlazaDeparturePlaying(World* world);
 }

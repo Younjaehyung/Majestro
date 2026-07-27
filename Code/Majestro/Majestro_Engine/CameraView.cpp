@@ -148,22 +148,39 @@ bool IsAnyCinematicPlaying(World* world)
 	return false;
 }
 
+// 출발 연출은 여기서 재생하지 않는다. 서버 승인이 방원 전원에게 브로드캐스트된 뒤
+// 각 클라이언트가 TryPlayPlazaDeparture 로 동시에 재생한다.
 void RequestPlazaLevelEnter(World* world, SceneId target)
 {
 	if (world == nullptr)
 		return;
 
-	if (world->HasComponentPool<AirshipDepartureComponent>())
-	{
-		AirshipDepartureComponent* departure = world->GetSingleton<AirshipDepartureComponent>();
-		if (departure != nullptr && departure->HasSequence() && !departure->mPlaying)
-		{
-			departure->Arm(target);
-			return;
-		}
-	}
-
 	world->GetEventManager()->Enqueue(EvNetSceneChange{ target });
+}
+
+bool TryPlayPlazaDeparture(World* world)
+{
+	if (world == nullptr)
+		return false;
+
+	if (!world->HasComponentPool<AirshipDepartureComponent>())	// 광장 World 가 아니다
+		return false;
+
+	AirshipDepartureComponent* departure = world->GetSingleton<AirshipDepartureComponent>();
+	if (departure == nullptr || !departure->HasSequence() || departure->mPlaying)
+		return false;
+
+	departure->Arm();
+	return true;
+}
+
+bool IsPlazaDeparturePlaying(World* world)
+{
+	if (world == nullptr || !world->HasComponentPool<AirshipDepartureComponent>())
+		return false;
+
+	const AirshipDepartureComponent* departure = world->GetSingleton<AirshipDepartureComponent>();
+	return departure != nullptr && departure->mPlaying;
 }
 
 }

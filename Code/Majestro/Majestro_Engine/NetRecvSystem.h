@@ -62,8 +62,9 @@ private:
 
 	Entity CreateEntityFromArchetype(uint32_t archetypeId, const InputCommand& spawnCommand);
 
-	// 레벨 씬 진입
+	// 레벨 씬 진입 (광장 출발 연출이 있으면 연출 뒤로 미룬다)
 	void EnterLevelScene(SceneId target, const std::wstring& loadingMessage);
+	void EnterPendingLevelScene();
 
 private:
 	using Handler = std::function<void(const InputCommand&)>;
@@ -77,6 +78,11 @@ private:
 	SceneId mCurrentScene = SceneId::Lobby;
 
 	bool mStopProcessing = false;
+
+	// 광장 출발 연출이 끝나기를 기다리는 중인 씬 전환
+	bool         mAwaitingDeparture = false;
+	SceneId      mPendingLevelScene = SceneId::FirstGame;
+	std::wstring mPendingLoadingMessage;
 
 };
 

@@ -16,7 +16,4 @@ public:
 private:
 
     void Apply(AirshipDepartureComponent* dep, float dt);
-
-    // 재생 종료 + 예약된 씬 전환
-    void Finish(AirshipDepartureComponent* dep);
 };

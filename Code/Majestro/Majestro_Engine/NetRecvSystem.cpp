@@ -39,6 +39,7 @@
 #include "GameEvents.h"
 #include "BeatSystem.h"
 #include "Chat.h"
+#include "CameraView.h"
 
 NetRecvSystem::NetRecvSystem(World* world,  shared_ptr<NetIdMap>& netIdMap) : System::System(world)
 {
@@ -110,6 +111,18 @@ void NetRecvSystem::RegisterHandlers()
 
 void NetRecvSystem::Update(float deltaTime)
 {
+    // 광장 출발 연출 중에는 수신을 소비하지 않는다.
+    // 서버는 이미 다음 레벨 World 로 교체된 뒤라, 여기서 처리하면 광장 World 에 반영돼 버린다.
+    // 로딩 대기와 동일하게 gRecvBuffer 에 남겨두고 다음 씬의 NetRecvSystem 이 소비한다.
+    if (mAwaitingDeparture)
+    {
+        if (Cinematic::IsPlazaDeparturePlaying(mWorld))
+            return;
+
+        mAwaitingDeparture = false;
+        EnterPendingLevelScene();
+        return;
+    }
 
     constexpr int kMaxMsgsPerTick = 256; // 폭주 방지
     int processed = 0;
@@ -818,9 +831,25 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
 
 void NetRecvSystem::EnterLevelScene(SceneId target, const std::wstring& loadingMessage)
 {
+    mPendingLevelScene     = target;
+    mPendingLoadingMessage = loadingMessage;
+
+    // 광장에서 출발할 때는 방원 전원이 같은 연출을 본 뒤 로딩에 들어간다.
+    // (승인 브로드캐스트가 전원에게 오므로 각자 여기서 재생을 시작한다)
+    if (Cinematic::TryPlayPlazaDeparture(mWorld))
+    {
+        mAwaitingDeparture = true;
+        return;
+    }
+
+    EnterPendingLevelScene();
+}
+
+void NetRecvSystem::EnterPendingLevelScene()
+{
     if (auto sendSystem = mWorld->GetSystemManager()->GetSystem<NetSendSystem>())
         sendSystem->RequestPendingGameStart();
-    gEngine->GetSceneManager().RequestSceneWithLoading(target, loadingMessage);
+    gEngine->GetSceneManager().RequestSceneWithLoading(mPendingLevelScene, mPendingLoadingMessage);
 }
 
 void NetRecvSystem::HandleSceneState(const InputCommand& msg)

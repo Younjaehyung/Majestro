@@ -13,17 +13,13 @@ public:
     bool  mPlaying = false;   // 재생 중 — 입력 잠금
     float mElapsed = 0.f;     // 재생 경과 시간(초)
 
-    // 재생 완료 후 서버에 요청할 목적지 씬
-    SceneId mTargetScene = SceneId::FirstGame;
-
     bool  HasSequence() const { return !mKeys.empty(); }
     float Duration()    const { return mKeys.empty() ? 0.f : mKeys.back().seconds; }
 
-    // 연출 예약 + 재생 시작.
-    void Arm(SceneId target)
+    // 재생 시작. 목적지 씬 전환은 재생을 시작시킨 쪽(NetRecvSystem)이 관리한다.
+    void Arm()
     {
-        mTargetScene = target;
-        mElapsed     = 0.f;
-        mPlaying     = true;
+        mElapsed = 0.f;
+        mPlaying = true;
     }
 };

@@ -6,6 +6,7 @@
 #include "RenderSystem.h"
 #include "AudioVisualizerComponent.h"
 #include "CameraComponent.h"
+#include "LightComponent.h"
 #include "SystemManager.h"
 #include "WeaponTrailComponent.h"
 #include "SocketComponent.h"
@@ -83,6 +84,9 @@ void IMGUIRenderSystem::Update()
 
     // ── Camera Inspector ──────────────────────────────────────────────────────
     DrawCameraInspector();
+
+    // ── Light Inspector ───────────────────────────────────────────────────────
+    DrawLightInspector();
 
     // ── Weapon Trail Inspector ─────────────────────────────────────────────────
     DrawWeaponTrailInspector();
@@ -394,6 +398,124 @@ void IMGUIRenderSystem::DrawCameraInspector()
                 ImGui::DragFloat3("LookAtOffset##CamType",&camType->mLookAtOffset.x,     0.1f);
             }
         }
+    }
+
+    ImGui::End();
+#endif
+}
+
+void IMGUIRenderSystem::DrawLightInspector()
+{
+#ifdef _IMGUI
+    if (!ImGui::Begin("Light Inspector"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (!mWorld->HasComponentPool<LightComponent>())
+    {
+        ImGui::Text("LightComponent 없음");
+        ImGui::End();
+        return;
+    }
+
+    constexpr float kRad2Deg = 57.29577951f;
+    constexpr float kDeg2Rad = 0.01745329252f;
+
+    // UE 전방벡터 → DX 축 매핑(dx = ue.y, ue.z, ue.x) 을 적용한 결과.
+    // dir = ( cosP*sinY, sinP, cosP*cosY )  — Scene.cpp 의 DirLightPrefab 값과 같은 규칙이다.
+    auto dirFromPitchYaw = [](float pitchDeg, float yawDeg) -> Vec3
+    {
+        const float p = pitchDeg * kDeg2Rad;
+        const float y = yawDeg * kDeg2Rad;
+        const float cp = cosf(p);
+        return Vec3(cp * sinf(y), sinf(p), cp * cosf(y));
+    };
+
+    auto lights = mWorld->GetEntitiesWithComponent<LightComponent>();
+    int lightIdx = 0;
+
+    for (auto e : lights)
+    {
+        LightComponent* light = mWorld->GetComponent<LightComponent>(e);
+        if (!light) continue;
+
+        const LIGHT_TYPE type = light->GetLightType();
+        const char* typeNames[] = { "Directional", "Point", "Spot" };
+
+        char header[80];
+        snprintf(header, sizeof(header), "%s Light [%d] (Entity %u)",
+            typeNames[static_cast<int>(type)], lightIdx++, e.GetID());
+
+        if (!ImGui::CollapsingHeader(header, ImGuiTreeNodeFlags_DefaultOpen))
+            continue;
+
+        ImGui::PushID(static_cast<int>(e.GetID()));
+
+        if (type == LIGHT_TYPE::DIRECTIONAL_LIGHT)
+        {
+            const Vec4& d4 = light->mLightInfo.Direction;
+            Vec3 dir(d4.x, d4.y, d4.z);
+
+            // 슬라이더 상태를 따로 들지 않고 현재 방향에서 매 프레임 역산한다.
+            // (다른 경로가 방향을 바꿔도 UI 가 항상 실제 값을 보여준다)
+            float pitchDeg = asinf(max(-1.0f, min(1.0f, dir.y))) * kRad2Deg;
+            float yawDeg = atan2f(dir.x, dir.z) * kRad2Deg;
+
+            ImGui::Text("UE Rotation");
+            bool angleChanged = false;
+            angleChanged |= ImGui::SliderFloat("Pitch (deg)", &pitchDeg, -89.9f, 89.9f, "%.4f");
+            // atan2 결과와 범위를 맞춘다. UE 의 Yaw=326.235 는 여기서 -33.765 로 보이며 같은 방향이다.
+            angleChanged |= ImGui::SliderFloat("Yaw (deg)", &yawDeg, -180.0f, 180.0f, "%.4f");
+            if (angleChanged)
+                light->SetLightDirection(dirFromPitchYaw(pitchDeg, yawDeg));
+
+            ImGui::Separator();
+            ImGui::Text("Direction (DX, 정규화됨)");
+            if (ImGui::DragFloat3("Direction", &dir.x, 0.005f, -1.0f, 1.0f, "%.4f"))
+                light->SetLightDirection(dir);
+
+            // 현재 방향/색상을 Scene.cpp 에 그대로 붙여넣을 수 있는 형태로 복사한다.
+            if (ImGui::Button("Copy DirLightPrefab line"))
+            {
+                const Vec4& cur = light->mLightInfo.Direction;
+                const LightColor& c = light->mLightInfo.Color;
+                char buf[512];
+                snprintf(buf, sizeof(buf),
+                    "// UE DirLight (Pitch=%.6f, Yaw=%.6f)\n"
+                    "DirLightPrefab light{ mWorld.get(), Vec3(%.4ff, %.4ff, %.4ff),\n"
+                    "\t{ .diffuse  = { %.4ff, %.4ff, %.4ff },\n"
+                    "\t  .ambient  = { %.4ff, %.4ff, %.4ff },\n"
+                    "\t  .specular = { %.4ff, %.4ff, %.4ff } } };\n",
+                    pitchDeg, yawDeg, cur.x, cur.y, cur.z,
+                    c.Diffuse.x,  c.Diffuse.y,  c.Diffuse.z,
+                    c.Ambient.x,  c.Ambient.y,  c.Ambient.z,
+                    c.Specular.x, c.Specular.y, c.Specular.z);
+                ImGui::SetClipboardText(buf);
+            }
+
+            ImGui::Separator();
+            ImGui::DragFloat3("Position", &light->mLightInfo.Position.x, 1.0f);
+            ImGui::TextDisabled("방향광의 Position 은 렌더에 사용되지 않는다");
+        }
+        else
+        {
+            ImGui::DragFloat3("Position", &light->mLightInfo.Position.x, 1.0f);
+            ImGui::DragFloat("Range", &light->mLightInfo.Range, 1.0f, 0.0f, 100000.0f);
+            ImGui::DragFloat("Angle", &light->mLightInfo.Angle, 0.1f, 0.0f, 180.0f);
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Color");
+        ImGui::ColorEdit3("Diffuse", &light->mLightInfo.Color.Diffuse.x,
+            ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit3("Ambient", &light->mLightInfo.Color.Ambient.x,
+            ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+        ImGui::ColorEdit3("Specular", &light->mLightInfo.Color.Specular.x,
+            ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR);
+
+        ImGui::PopID();
     }
 
     ImGui::End();

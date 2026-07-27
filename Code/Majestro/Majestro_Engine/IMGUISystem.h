@@ -17,6 +17,7 @@ private:
     void UploadInstanceBuffer();
 	void DrawProperty(EditorProperty& prop);
     void DrawCameraInspector();
+    void DrawLightInspector();         // 방향광(태양) 방향/색상 — UE Pitch/Yaw 로 편집
     void DrawLobbyCharacterTransformInspector();
     void DrawLobbyRoomUIInspector();   // 로비 룸 UI
     

@@ -41,7 +41,7 @@ namespace
 	constexpr uint8 kBrassSkill4ExplosionCount = 3;
 	constexpr int32 kBrassSkill4ExplosionDamage = 50;
 	constexpr float kDragonSkill1FireDelayBeats = 1.0f;
-	constexpr float kDragonSkill123AnimDurationSeconds = 3.0f;
+	constexpr float kDragonSkill123AnimDurationSeconds = 2.0f;
 	constexpr uint8 kDragonSkill4ExplosionCount = 5;
 	constexpr float kDragonSkill4SpawnRadius = 2000.0f;
 	constexpr float kDragonSkill4ExplosionDelayBeats = 4.0f;

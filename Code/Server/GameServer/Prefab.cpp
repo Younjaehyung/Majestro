@@ -293,7 +293,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 			center = Vec3(0, 120, 0);
 			half = Vec3(180, 220, 180);
 			world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Dragon, 300);
-			world->AddComponent<HealthComponent>(mEntityID, 1200, 1200);
+			world->AddComponent<HealthComponent>(mEntityID, 2500, 2500);
 			break;
 	}
 

@@ -966,6 +966,7 @@ void SecondScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 주기/이벤트 기반 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복 처리
 	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();         // 사망/리스폰 처리
+	mWorld->GetSystemManager()->RegisterSystem<ScoreSystem>();         // 12-1. 점수 집계(처치/어시스트/최대콤보)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. Jolt 위치를 NavMesh 표면에 투영
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate (점령 판정)
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송
@@ -1028,6 +1029,7 @@ void ThirdScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복
 	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>();         // 사망/리스폰
+	mWorld->GetSystemManager()->RegisterSystem<ScoreSystem>();         // 12-1. 점수 집계(처치/어시스트/최대콤보)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. NavMesh 투영
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송
@@ -1086,6 +1088,7 @@ void FourthScene::Initialize()
 	mWorld->GetSystemManager()->RegisterSystem<SpawnerSystem>();       // 11-2. 몬스터 스폰
 	mWorld->GetSystemManager()->RegisterSystem<DamageSystem>();        // 12. 데미지/회복
 	mWorld->GetSystemManager()->RegisterSystem<DeathSystem>(-740.0f);  // 사망/리스폰 (map004 낙사선 -740)
+	mWorld->GetSystemManager()->RegisterSystem<ScoreSystem>();         // 12-1. 점수 집계(처치/어시스트/최대콤보)
 	mWorld->GetSystemManager()->RegisterSystem<PlayerNavValidationSystem>(); // 13. NavMesh 투영
 	mWorld->GetSystemManager()->RegisterSystem<GamePostRuleSystem>(mGameMode);  // 13-1. 게임 룰 PostUpdate
 	mWorld->GetSystemManager()->RegisterSystem<GameNetRuleSystem>(mGameMode);   // 13-2. 게임 룰 상태 방송

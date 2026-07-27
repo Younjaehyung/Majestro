@@ -48,6 +48,7 @@
 
 #include "RenderSystem.h"
 #include "GameRenderPipeline.h"
+#include "GodRayPass.h"		// 맵별 GodRay 파라미터 조정용
 #include "DecalSystem.h"
 #include "BuffAuraSystem.h"
 #include "LobbyRenderPipeline.h"
@@ -2254,7 +2255,7 @@ void FirstScene::Initialize()
 	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
 	// Map001 UE DirLight (Pitch=-48.727762, Yaw=-119.308029, Roll=239.747780)
-	DirLightPrefab light{ mWorld.get(), Vec3(-0.5752f, -0.7516f, -0.3229f) };
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.0569f, -0.6717f, -0.7386f) };
 
 	OceanPrefab ocean{ mWorld.get() };
 
@@ -3189,7 +3190,7 @@ void ThirdScene::Initialize()
 
 	SkyBoxPrefab skybox{ mWorld.get() };
 	// Map003 UE DirLight (Pitch=-24.749677, Yaw=35.720032, Roll=47.395767)
-	DirLightPrefab light{ mWorld.get(), Vec3(0.5302f, -0.4187f, 0.7373f) };
+	DirLightPrefab light{ mWorld.get(), Vec3(0.7263f, -0.3450f, 0.5946f) };
 
 #pragma region UI
 
@@ -3321,6 +3322,10 @@ void ThirdScene::Initialize()
 		gp->SetColorGrading(cg);
 	}
 
+	// Map003 은 GodRay 를 세게 쓴다 (공통 기본값 2.1)
+	if (auto* godRay = gp->GetGodRayPass())
+		godRay->SetIntensity(10.0f);
+
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);
 
@@ -3355,7 +3360,7 @@ void FourthScene::Initialize()
 
 	SkyBoxPrefab skybox{ mWorld.get() };
 	// MapDragon(Map004) UE DirLight (Pitch=-59.106321, Yaw=326.235345, Roll=-21.783178)
-	DirLightPrefab light{ mWorld.get(), Vec3(-0.2854f, -0.8581f, 0.4268f) };
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.5423f, -0.7269f, 0.4212f) };
 
 #pragma region UI
 
@@ -3481,6 +3486,10 @@ void FourthScene::Initialize()
 		cg.Exposure       = 0.7f;
 		gp->SetColorGrading(cg);
 	}
+
+	// Map004(MapDragon) 도 GodRay 를 세게 쓴다 (공통 기본값 2.1)
+	if (auto* godRay = gp->GetGodRayPass())
+		godRay->SetIntensity(10.0f);
 
 	auto* uiRenderSystem = mWorld->GetSystemManager()->RegisterSystem<UIRenderSystem>();
 	uiRenderSystem->SetFeatures(&mUIFeatures);

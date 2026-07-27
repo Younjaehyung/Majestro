@@ -551,11 +551,15 @@ void EnemySystem::Update(float dt)
                 ? EnemyAnimState::Idle
                 : EnemyAnimState::Attack;
         else if (enemyComp->mEnemyType == EnemyType::Brass)
-            currentState = (brassFacingReady && (now >= enemyComp->mNextAttackTime ||
+        {
+            const bool brassSkillInProgress =
                 enemyComp->mPendingSkillType != 0 ||
-                now <= enemyComp->mAttackAnimEndTime))
+                now <= enemyComp->mAttackAnimEndTime;
+            currentState = (brassSkillInProgress ||
+                (brassFacingReady && now >= enemyComp->mNextAttackTime))
                 ? EnemyAnimState::Attack
                 : EnemyAnimState::Run;
+        }
         else if (enemyComp->mEnemyType == EnemyType::Dragon &&
             !enemyComp->mBossEncounterActivated)
             currentState = EnemyAnimState::Idle;

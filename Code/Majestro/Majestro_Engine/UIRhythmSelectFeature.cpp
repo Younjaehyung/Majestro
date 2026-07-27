@@ -49,6 +49,7 @@ namespace
 	// UI_RhythmMan_Text_Sheet
 	constexpr RECT kBackTextRect   = { 10,  30,  122, 105 };
 	constexpr RECT kPlayTextRect   = { 126, 30,  248, 105 };
+	constexpr RECT kSaveTextRect   = { 252, 30,  393, 105 };
 	constexpr RECT kArrowLeftRect  = { 10,  143, 94,  237 };
 	constexpr RECT kArrowRightRect = { 160, 143, 246, 237 };
 
@@ -65,6 +66,7 @@ namespace
 	const Vec2 kPlayBtnPos    = { 430.f, 590.f };
 	const Vec2 kSaveBtnPos    = { 700.f, 590.f };
 	const Vec2 kTextBtnSize   = { 180.f, 110.f };
+	const Vec2 kSaveBtnSize   = { 208.f, 110.f };  // Save 는 글자 폭이 넓어 Play 와 같은 픽셀 배율로 확장
 
 	
 	constexpr float kSpinOutDuration = 0.16f;  // 스핀아웃 (가속 회전 + 축소 + 페이드)
@@ -97,9 +99,7 @@ namespace
 	constexpr float kIntroPopMinScale        = 0.85f;
 
 	const Vec4 kDiscSubTint  = { 0.82f, 0.82f, 0.82f, 1.f };
-	const Vec4 kSaveTint     = { 1.f, 0.84f, 0.35f, 1.f };  
-	const Vec4 kSaveHovered  = { 1.f, 0.93f, 0.6f, 1.f };
-	const Vec4 kPlayingTint  = { 0.5f, 1.f, 0.6f, 1.f };    
+	const Vec4 kPlayingTint  = { 0.5f, 1.f, 0.6f, 1.f };
 
 	Entity CreateFullscreenSprite(World* world, uint8 layer, const wchar_t* texKey)
 	{
@@ -207,11 +207,9 @@ void UIRhythmSelectFeature::Initialize(World* world)
 		desc.onClick = [this]() { OnPlayClicked(); };
 		mPlayButton = CreateUIButton(world, desc);
 
-		// Save 전용 이미지 제작 전까지 Play 텍스트 + 골드 틴트로 대체
 		desc.position = kSaveBtnPos;
-		desc.sourceRect = kPlayTextRect;
-		desc.normalColor = kSaveTint;
-		desc.hoveredColor = kSaveHovered;
+		desc.size = kSaveBtnSize;
+		desc.sourceRect = kSaveTextRect;
 		desc.onClick = [this]() { OnSaveClicked(); };
 		mSaveButton = CreateUIButton(world, desc);
 	}

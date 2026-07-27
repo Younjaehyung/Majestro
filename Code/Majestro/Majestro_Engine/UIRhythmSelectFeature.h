@@ -52,7 +52,7 @@ private:
     Entity mArrowRight{};
     Entity mBackButton{};
     Entity mPlayButton{};
-    Entity mSaveButton{};       // [임시] Save 전용 이미지 제작 전까지 Play 텍스트 + 골드 틴트
+    Entity mSaveButton{};       // 로컬 선택 저장
     Entity mVisualizer{};       // CircularVisualizerComponent (메인 디스크 링)
 
     // 선택 상태

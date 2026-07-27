@@ -726,7 +726,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		anmators.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_BrassBoss_Skill_04"));
 
 		t.mLocalScale = { 1.3f, 1.3f, 1.3f };
-		world->AddComponent<HealthComponent>(mEntityID, 5000, 5000);
+		world->AddComponent<HealthComponent>(mEntityID, 2500, 2500);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	case EnemyType::Dragon:
@@ -745,7 +745,7 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		//hp.mWorldOffset = Vec3(0.f, 420.f, 0.f);
 		center = Vec3(0, 120, 0);
 		half = Vec3(180, 220, 180);
-		world->AddComponent<HealthComponent>(mEntityID, 1200, 1200);
+		world->AddComponent<HealthComponent>(mEntityID, 2500, 2500);
 		world->AddComponent<EnemyComponent>(mEntityID, static_cast<uint8>(ctx.ViewAs<S2C_SpawnPacekt>()->Type));
 		break;
 	}

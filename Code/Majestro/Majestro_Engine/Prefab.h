@@ -78,12 +78,22 @@ private:
 	static inline std::array<BuildFn, static_cast<size_t>(PrefabType::COUNT)> sTable{};
 };
 
+// 맵별 태양 색상. 생략하면 기존 공통값이 그대로 쓰인다.
+struct DirLightColors
+{
+	Vec3 diffuse { 1.0f, 1.0f, 1.0f };
+	Vec3 ambient { 0.2f, 0.2f, 0.2f };
+	Vec3 specular{ 0.3f, 0.3f, 0.3f };
+};
+
 class DirLightPrefab : public Prefab
 {
 public:
 	static constexpr Vec3 kDefaultDirection{ -0.0713f, -0.6448f, 0.7610f };
 
-	DirLightPrefab(World* world, const Vec3& direction = kDefaultDirection);
+	DirLightPrefab(World* world,
+		const Vec3& direction = kDefaultDirection,
+		const DirLightColors& colors = DirLightColors{});
 	~DirLightPrefab();
 
 };

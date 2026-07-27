@@ -2,6 +2,9 @@
   "exporter": "UE5_Python_LevelExporter_To_DX12_NoFBXExport",
   "timestamp": "2026-07-21T01:51:56.929330",
   "level_name": "MapDragon",
+  "sky": {
+    "skybox": "Map003_Skybox"
+  },
   "units": "cm",
   "axis_convention": {
     "ue": "X forward, Y right, Z up",

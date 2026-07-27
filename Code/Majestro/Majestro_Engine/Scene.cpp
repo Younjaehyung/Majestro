@@ -2253,8 +2253,8 @@ void FirstScene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
-	// Map001 UE DirLight (Pitch=-23.347480, Yaw=-149.041757)
-	DirLightPrefab light{ mWorld.get(), Vec3(-0.4723f, -0.3963f, -0.7873f) };
+	// Map001 UE DirLight (Pitch=-48.727762, Yaw=-119.308029, Roll=239.747780)
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.5752f, -0.7516f, -0.3229f) };
 
 	OceanPrefab ocean{ mWorld.get() };
 
@@ -3188,8 +3188,8 @@ void ThirdScene::Initialize()
 
 
 	SkyBoxPrefab skybox{ mWorld.get() };
-	// Map003 UE DirLight (Pitch=-11.513998, Yaw=3.343121)
-	DirLightPrefab light{ mWorld.get(), Vec3(0.0571f, -0.1996f, 0.9782f) };
+	// Map003 UE DirLight (Pitch=-24.749677, Yaw=35.720032, Roll=47.395767)
+	DirLightPrefab light{ mWorld.get(), Vec3(0.5302f, -0.4187f, 0.7373f) };
 
 #pragma region UI
 
@@ -3354,8 +3354,8 @@ void FourthScene::Initialize()
 
 
 	SkyBoxPrefab skybox{ mWorld.get() };
-	// MapDragon UE DirLight (Pitch=-65.086618, Yaw=187.635502)
-	DirLightPrefab light{ mWorld.get(), Vec3(-0.0560f, -0.9069f, -0.4175f) };
+	// MapDragon(Map004) UE DirLight (Pitch=-59.106321, Yaw=326.235345, Roll=-21.783178)
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.2854f, -0.8581f, 0.4268f) };
 
 #pragma region UI
 

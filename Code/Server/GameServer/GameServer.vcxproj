@@ -310,6 +310,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClInclude Include="DeathSystem.h" />
     <ClInclude Include="EnemyComponent.h" />
     <ClInclude Include="EmoteComponent.h" />
+    <ClInclude Include="PrepareReadyComponent.h" />
     <ClInclude Include="EnemySystem.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EventManager.h" />

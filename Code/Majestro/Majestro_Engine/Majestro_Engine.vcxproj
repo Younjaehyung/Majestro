@@ -32,6 +32,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -40,6 +41,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -47,6 +49,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -55,6 +58,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -319,6 +323,7 @@
     <ClInclude Include="BossCinematicSystem.h" />
     <ClInclude Include="BossCutInComponent.h" />
     <ClInclude Include="BossCutInFeature.h" />
+    <ClInclude Include="CutSceneInfoFeature.h" />
     <ClInclude Include="AirshipDepartureComponent.h" />
     <ClInclude Include="AirshipDepartureSystem.h" />
     <ClInclude Include="CloudDriftComponent.h" />
@@ -510,6 +515,7 @@
     <ClCompile Include="IntroSequenceSystem.cpp" />
     <ClCompile Include="BossCinematicSystem.cpp" />
     <ClCompile Include="BossCutInFeature.cpp" />
+    <ClCompile Include="CutSceneInfoFeature.cpp" />
     <ClCompile Include="AirshipDepartureSystem.cpp" />
     <ClCompile Include="CloudDriftSystem.cpp" />
     <ClCompile Include="MainMenuCameraSystem.cpp" />

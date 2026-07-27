@@ -18,6 +18,7 @@ private:
 	void RecvEmote(uint32 sessionId, const C2S_EmotePacket& packet);
 	void RecvChat(uint32 sessionId, const C2S_ChatPacket& packet);
 	void RecvSync(uint32 sessionId, const C2S_SyncPacket& inputFrame);
+	void RecvIntroDone(uint32 sessionId);	// 씬 진입 연출 재생 완료 보고
 
 	void HandleGameStart(InputCommand& inputCommand);
 

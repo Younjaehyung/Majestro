@@ -52,7 +52,8 @@ private:
 	float mStartCountDown = 0.f; // 카운트다운 시작 후 남은 시간
 	bool mCountdownStarted = false; // 전원 준비 또는 제한 시간으로 카운트다운이 시작됐는지 여부
 
-	int32 mReadyPlayers = 0; // 현재 World에 플레이어 엔티티 생성이 완료된 방 인원 수
+	int32 mReadyPlayers = 0; // 현재 World에 플레이어 엔티티 생성이 완료된(=로딩 완료) 방 인원 수
+	int32 mIntroDonePlayers = 0; // 씬 진입 연출(시네마틱+컷인) 재생 완료를 보고한 방 인원 수
 	int32 mTotalPlayers = 0; // 현재 방에 소속된 전체 세션 수
 
 	bool mSkipKeyHeld = false; // [디버그] F10 즉시 시작 키 엣지 감지용

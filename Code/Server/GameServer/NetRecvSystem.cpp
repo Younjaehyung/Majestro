@@ -6,6 +6,7 @@
 #include "ChatComponent.h"
 #include "InputComponent.h"
 #include "EmoteComponent.h"
+#include "PrepareReadyComponent.h"
 #include "Prefab.h"
 #include "PlayerComponent.h"
 #include "MovementComponent.h"
@@ -113,6 +114,9 @@ void NetRecvSystem::RegisterHandlers()
 	reg(PKT_Type::C2S_PKT_SYNC, [this](InputCommand& c) {
 		if (const C2S_SyncPacket* pkt = c.ViewAs<C2S_SyncPacket>())
 			RecvSync(c.SessionId, *pkt);
+	});
+	reg(PKT_Type::C2S_PKT_INTRO_DONE, [this](InputCommand& c) {
+		RecvIntroDone(c.SessionId);
 	});
 	reg(PKT_Type::C2S_GAME_START, [this](InputCommand& c) {
 		HandleGameStart(c);
@@ -345,6 +349,25 @@ void NetRecvSystem::RecvEmote(uint32 sessionId, const C2S_EmotePacket& pkt)
 	{
 		eventManager->Enqueue(EvEmoteBroadcast{ playerEntity, pkt.emoteId });
 	}
+}
+
+// 클라가 씬 진입 연출(인트로 시네마틱 + 뒤따르는 컷인)을 끝까지 재생했다고 보고했다.
+// PreparePhase 가 이 플래그를 방 전원분 모아 시작 카운트다운을 연다.
+void NetRecvSystem::RecvIntroDone(uint32 sessionId)
+{
+	Entity playerEntity = FindEntityBySession(sessionId);
+	if (!playerEntity.IsValid())
+		return;
+
+	NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(playerEntity);
+	if (netComp == nullptr || netComp->mSessionId != sessionId)
+		return;
+
+	PrepareReadyComponent* readyComp = mWorld->GetComponent<PrepareReadyComponent>(playerEntity);
+	if (readyComp == nullptr)
+		readyComp = &mWorld->AddComponent<PrepareReadyComponent>(playerEntity);
+
+	readyComp->mIntroDone = true;
 }
 
 void NetRecvSystem::RecvChat(uint32 sessionId, const C2S_ChatPacket& pkt)

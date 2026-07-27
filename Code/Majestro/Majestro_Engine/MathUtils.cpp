@@ -178,6 +178,12 @@ float EaseOutBack(float t)
 	return 1.f + c3 * u * u * u + c1 * u * u;
 }
 
+float EaseOut(float x)
+{
+	x = MathUtils::Saturate(x);
+	return 1.f - (1.f - x) * (1.f - x);
+}
+
 // 처음엔 천천히 움직이다가 목적지에 다가갈수록 빠르게 가속
 float EaseInCubic(float t)
 {

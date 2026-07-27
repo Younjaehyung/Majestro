@@ -117,6 +117,7 @@
 #include "BossCutInComponent.h"
 #include "BossCinematicSystem.h"
 #include "BossCutInFeature.h"
+#include "CutSceneInfoFeature.h"
 #include "AirshipDepartureComponent.h"
 #include "AirshipDepartureSystem.h"
 #include "CloudDriftComponent.h"
@@ -2378,6 +2379,10 @@ void FirstScene::Initialize()
 	auto bossCutInModule = std::make_shared<BossCutInFeature>();
 	mUIFeatures.push_back(bossCutInModule);
 
+	// 씬 진입 시네마틱 중 좌하단 맵 소개 카드
+	auto cutSceneInfoModule = std::make_shared<CutSceneInfoFeature>();
+	mUIFeatures.push_back(cutSceneInfoModule);
+
 	// 콤보 랭크
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -2502,6 +2507,13 @@ void FirstScene::Initialize()
 //	}
 
 	mWorld->AddSingleton<GameRuleComponent>();
+
+
+	mWorld->GetSystemManager()->RegisterSystem<IntroSequenceSystem>();
+
+	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
+	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\Map001Camera.json");
 
 
 	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();
@@ -3062,6 +3074,10 @@ void SecondScene::Initialize()
 	auto bossCutInModule = std::make_shared<BossCutInFeature>();
 	mUIFeatures.push_back(bossCutInModule);
 
+	// 씬 진입 시네마틱 중 좌하단 맵 소개 카드
+	auto cutSceneInfoModule = std::make_shared<CutSceneInfoFeature>();
+	mUIFeatures.push_back(cutSceneInfoModule);
+
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
 
@@ -3149,6 +3165,13 @@ void SecondScene::Initialize()
 
 	mWorld->AddSingleton<GameRuleComponent>();
 
+
+	mWorld->GetSystemManager()->RegisterSystem<IntroSequenceSystem>();
+
+	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
+	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
+		L"..\\Resources\\Json\\MapDesertCamera.json");
+
 	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();
 	auto& bossCinematic = mWorld->AddSingleton<BossCinematicComponent>();
 	bossCinematic.mKeys = RESOURCEMANAGER.LoadCameraSequence(
@@ -3209,6 +3232,10 @@ void ThirdScene::Initialize()
 	// 보스 전시 시네마틱 완료 후 재생되는 컷인
 	auto bossCutInModule = std::make_shared<BossCutInFeature>();
 	mUIFeatures.push_back(bossCutInModule);
+
+	// 씬 진입 시네마틱 중 좌하단 맵 소개 카드
+	auto cutSceneInfoModule = std::make_shared<CutSceneInfoFeature>();
+	mUIFeatures.push_back(cutSceneInfoModule);
 
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
@@ -3368,6 +3395,10 @@ void FourthScene::Initialize()
 	auto bossCutInModule = std::make_shared<BossCutInFeature>();
 	mUIFeatures.push_back(bossCutInModule);
 
+	// 씬 진입 시네마틱 중 좌하단 맵 소개 카드
+	auto cutSceneInfoModule = std::make_shared<CutSceneInfoFeature>();
+	mUIFeatures.push_back(cutSceneInfoModule);
+
 	auto comboHudModule = std::make_shared<UIComboHudFeature>();
 	mUIFeatures.push_back(comboHudModule);
 
@@ -3461,7 +3492,7 @@ void FourthScene::Initialize()
 
 	auto& introSeq = mWorld->AddSingleton<IntroSequenceComponent>();
 	introSeq.mKeys = RESOURCEMANAGER.LoadCameraSequence(
-		L"..\\Resources\\Json\\Map003Camera.json");
+		L"..\\Resources\\Json\\MapDragonCamera.json");
 
 
 	mWorld->GetSystemManager()->RegisterSystem<BossCinematicSystem>();

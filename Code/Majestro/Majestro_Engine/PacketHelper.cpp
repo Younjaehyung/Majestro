@@ -22,6 +22,7 @@ bool SendRequestPacket::SerializePacket(SendRequest& pkt, SendBuffer* sendBuffer
 	case PKT_Type::C2S_PKT_STICKER:
 	case PKT_Type::C2S_PKT_EMOTE:
 	case PKT_Type::C2S_PKT_CHAT:
+	case PKT_Type::C2S_PKT_INTRO_DONE:
 	case PKT_Type::C2S_SCENE_CHANGE:
 	case PKT_Type::C2S_ROOM_READY:
 	case PKT_Type::C2S_ROOM_CHARACTER_SELECT:

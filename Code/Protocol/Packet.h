@@ -85,7 +85,9 @@ enum PKT_Type : uint32 {
 	// 서버 내부 신호. 네트워크 스레드에서 로직 스레드 세션에 종료 통지.
 	INTERNAL_SESSION_LEAVE,
 
-
+	// 씬 진입 연출(인트로 시네마틱 + 뒤따르는 컷인) 재생 완료 보고.
+	// C2S 블록이 아니라 맨 뒤에 추가한다 — 중간 삽입 시 뒤따르는 S2C 값이 전부 밀린다.
+	C2S_PKT_INTRO_DONE,
 
 	KMSG,
 };
@@ -1160,6 +1162,18 @@ struct C2S_EmotePacket : public PacketTcpHeader {
 
 static_assert(sizeof(C2S_EmotePacket) <= MAX_PACKET_SIZE,
 	"C2S_EmotePacket exceeds MAX_PACKET_SIZE");
+
+// 씬 진입 연출(인트로 시네마틱 + 뒤따르는 컷인)을 끝까지 재생한 클라이언트가 1회 보고한다.
+// 서버 PreparePhase 가 방 전원의 보고를 모아 시작 카운트다운을 연다.
+// 세션은 TCP 연결로 식별하므로 별도 페이로드가 필요 없다.
+struct C2S_IntroDonePacket : public PacketTcpHeader {
+	C2S_IntroDonePacket()
+		: PacketTcpHeader{ sizeof(C2S_IntroDonePacket), PKT_Type::C2S_PKT_INTRO_DONE, 0.0 } {
+	}
+};
+
+static_assert(sizeof(C2S_IntroDonePacket) <= MAX_PACKET_SIZE,
+	"C2S_IntroDonePacket exceeds MAX_PACKET_SIZE");
 
 struct C2S_ChatPacket : public PacketTcpHeader {
 	wchar_t text[CHAT_TEXT_CAPACITY]{};	// 널 종료 UTF-16

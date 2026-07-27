@@ -450,6 +450,9 @@
     <ClInclude Include="BossCutInFeature.h">
       <Filter>World\System\UI\Feature</Filter>
     </ClInclude>
+    <ClInclude Include="CutSceneInfoFeature.h">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClInclude>
     <ClInclude Include="AirshipDepartureSystem.h">
       <Filter>World\System\Logic</Filter>
     </ClInclude>
@@ -1149,6 +1152,9 @@
       <Filter>World\System\Logic</Filter>
     </ClCompile>
     <ClCompile Include="BossCutInFeature.cpp">
+      <Filter>World\System\UI\Feature</Filter>
+    </ClCompile>
+    <ClCompile Include="CutSceneInfoFeature.cpp">
       <Filter>World\System\UI\Feature</Filter>
     </ClCompile>
     <ClCompile Include="AirshipDepartureSystem.cpp">

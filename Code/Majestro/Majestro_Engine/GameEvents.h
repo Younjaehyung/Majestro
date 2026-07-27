@@ -209,8 +209,11 @@ struct EvResultBoardShow
     uint8 phase{}; // WavePhaseType (Clear 또는 Fail)
 };
 
+// 씬 진입 연출
+struct EvIntroFinished {};
+
 
 using GameEvent = std::variant<EvDamage, EvDespawn, EvSpawnRequest, EvNetRPC, EvBulletCountChanged,
     EvRhythmChanged, EvHpArmorChanged, EvHitMarker, EvVfxSpawnRequest, EvAttachBulletVfx, EvGamePhaseChanged,
     EvRoomReadyChanged, EvRoomCharacterChanged, EvRoomError,
-    EvRoomCreate, EvRoomJoin, EvRoomListRequest, EvRoomLeave, EvBeatJudgement>;
+    EvRoomCreate, EvRoomJoin, EvRoomListRequest, EvRoomLeave, EvBeatJudgement, EvIntroFinished>;

@@ -21,7 +21,12 @@ private:
     void Apply(IntroSequenceComponent* seq, float dt);
     // 재생 종료/해제 — 카메라/입력이 다음 프레임부터 정상 복귀한다.
     void Stop(IntroSequenceComponent* seq);
+    // 시퀀스와 뒤따르는 컷인이 모두 끝났으면 서버에 1회 보고한다.
+    void TryReportFinished(const IntroSequenceComponent* seq);
 
 private:
     uint8 mPrevPhase = 0;  // 직전 프레임 Phase (Prepare 진입 에지 감지용)
+
+    bool mDoneSeen  = false;  // mDone 을 최소 한 프레임 관측 — 뒤따르는 컷인이 켜질 틈을 준다
+    bool mReported  = false;  // 완료 보고 1회 전송 보장
 };

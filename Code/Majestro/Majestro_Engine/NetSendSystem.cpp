@@ -32,6 +32,7 @@ void NetSendSystem::Update(float deltaTime)
 	TrySendGameStart();
 	TrySendEmoteEvents();                        // 감정표현 선택 요청(TCP)
 	TrySendChatEvents();                         // 채팅 전송 (TCP)
+	TrySendIntroFinished();                      // 씬 진입 연출 완료 보고 (TCP)
 	TrySendScene();                              // 즉시 전송 (이벤트성, TCP)
 	TrySendActionEvents();                       // 즉시 전송 (이벤트성, TCP)
 	TrySendStickerEvents();                      // 벽 스티커 배치 요청 (TCP)
@@ -259,6 +260,21 @@ void NetSendSystem::TrySendEmoteEvents()
 
 			C2S_EmotePacket packet;
 			packet.emoteId = event.emoteId;
+			SendPacket(packet);
+		});
+}
+
+// 씬 진입 연출(인트로 시네마틱 + 뒤따르는 컷인)을 끝까지 본 뒤 서버에 한 번 보고한다.
+// 서버 PreparePhase 는 방 전원의 보고가 모여야 시작 카운트다운을 연다.
+void NetSendSystem::TrySendIntroFinished()
+{
+	auto eventManager = mWorld->GetEventManager();
+	if (!eventManager)
+		return;
+
+	eventManager->Consume<EvIntroFinished>([this](const EvIntroFinished&)
+		{
+			C2S_IntroDonePacket packet;
 			SendPacket(packet);
 		});
 }

@@ -72,6 +72,7 @@ private:
     void TrySendStickerEvents();  // 벽 스티커 배치 요청(EvStickerRequest)을 C2S로 전송
     void TrySendEmoteEvents();    // 감정표현 휠에서 확정한 항목을 전송
 	void TrySendChatEvents();     // 채팅 메시지 전송
+    void TrySendIntroFinished();  // 씬 진입 연출(시네마틱+컷인) 완료 보고 (TCP)
     void TrySendRoomEvents();          // 로비 Room : Ready/Character 변경 이벤트를 서버 패킷으로
     void TrySendRoomBrowserEvents();   // 로비 Room : 방 생성/입장/목록/나가기 이벤트
     uint32 GetCurrentRoomId() const;   // LobbyRoomListComponent.mCurrentRoomId (없으면 0)

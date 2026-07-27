@@ -10,8 +10,6 @@
 
 namespace
 {
-    inline float EaseOut(float x) { x = MathUtils::Saturate(x); return 1.f - (1.f - x) * (1.f - x); }
-
     const wchar_t* CharacterName(uint8_t playerType)
     {
         switch (playerType)
@@ -142,7 +140,7 @@ void UltimateCutInFeature::SpriteRender(DirectX::SpriteBatch* spriteBatch)
     // 배경 스피드라인/슬래시
     if (bg != nullptr)
     {
-        const float in = EaseOut(t / kBgSlide);
+        const float in = MathUtils::EaseOut(t / kBgSlide);
         const float slide = (1.f - in) * (-0.18f * W);
         const RECT dst{
             static_cast<LONG>(-osx + slide + sx), static_cast<LONG>(-osy + sy),

@@ -20,6 +20,7 @@
 #include "GravityComponent.h"
 #include "MovementComponent.h"
 #include "PlayerSpawnComponent.h"
+#include "PrepareReadyComponent.h"
 #include "NavMeshLoader.h"
 
 #include "Prefab.h"
@@ -93,6 +94,7 @@ void PreparePhase::Enter(WaveGameMode& mode)
 	mStartCountDown = 0.0f;
 	mCountdownStarted = false;
 	mReadyPlayers = 0;
+	mIntroDonePlayers = 0;
 	mTotalPlayers = 0;
 	mPositionedPlayers.clear();
 
@@ -157,20 +159,36 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 	mStartCount += max(0.0f, dt);
 
 	// 게임 Scene에는 별도 Ready 플래그가 없으므로 방 세션의 플레이어 엔티티가
-	// 현재 World에 모두 생성된 상태를 해당 플레이어의 준비 완료로 판단한다.
+	// 현재 World에 모두 생성된 상태를 해당 플레이어의 로딩 완료로 판단한다.
+	// 씬 진입 연출(시네마틱+컷인) 재생 완료는 클라가 C2S_PKT_INTRO_DONE 으로 따로 보고한다.
 	std::unordered_set<uint32> spawnedSessions;
+	std::unordered_set<uint32> introDoneSessions;
 	if (mWorld->HasComponentPool<NetEntityComponent>() &&
 		mWorld->HasComponentPool<MainPlayerComponent>())
 	{
+		// 첫 보고가 오기 전에는 풀 자체가 없다. 순회 중 지연 생성되지 않도록 미리 확인한다.
+		const bool hasReadyPool = mWorld->HasComponentPool<PrepareReadyComponent>();
+
 		for (Entity entity : mWorld->GetEntitiesWithComponents<NetEntityComponent, MainPlayerComponent>())
 		{
 			NetEntityComponent* netComp = mWorld->GetComponent<NetEntityComponent>(entity);
-			if (netComp && netComp->mSessionId != 0)
-				spawnedSessions.insert(netComp->mSessionId);
+			if (!netComp || netComp->mSessionId == 0)
+				continue;
+
+			spawnedSessions.insert(netComp->mSessionId);
+
+			if (!hasReadyPool)
+				continue;
+
+			const PrepareReadyComponent* readyComp =
+				mWorld->GetComponent<PrepareReadyComponent>(entity);
+			if (readyComp && readyComp->mIntroDone)
+				introDoneSessions.insert(netComp->mSessionId);
 		}
 	}
 
 	mReadyPlayers = static_cast<int32>(spawnedSessions.size());
+	mIntroDonePlayers = static_cast<int32>(introDoneSessions.size());
 	mTotalPlayers = 0;
 
 	if (gGameCore && !spawnedSessions.empty())
@@ -181,11 +199,14 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 			const std::vector<uint64> roomSessions = room->GetSessionIds();
 			mTotalPlayers = static_cast<int32>(roomSessions.size());
 			mReadyPlayers = 0;
+			mIntroDonePlayers = 0;
 
 			for (uint64 sessionId : roomSessions)
 			{
 				if (spawnedSessions.count(static_cast<uint32>(sessionId)) > 0)
 					++mReadyPlayers;
+				if (introDoneSessions.count(static_cast<uint32>(sessionId)) > 0)
+					++mIntroDonePlayers;
 			}
 		}
 	}
@@ -193,10 +214,15 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 	if (!mCountdownStarted)
 	{
 		const bool allPlayersReady = mTotalPlayers > 0 && mReadyPlayers >= mTotalPlayers;
+
+		// 방 전원이 로딩을 마치고 각자 씬 진입 연출까지 끝냈으면 즉시 카운트다운을 연다.
+		const bool allIntroDone = allPlayersReady && mIntroDonePlayers >= mTotalPlayers;
+		const bool readyStart = allIntroDone && mStartCount >= kRequiredReadyTime;
+
+		// 안전장치 — 보고가 유실되거나 클라가 응답하지 않아도 30초 뒤엔 무조건 시작한다.
 		const bool forcedStart = mStartCount >= kMaxReadyTime;
 
-		// 인원 준비 여부와 무관하게 입장 후 30초가 지나면 3초 카운트다운을 시작한다.
-		if (forcedStart)
+		if (readyStart || forcedStart)
 		{
 			mCountdownStarted = true;
 			mStartCountDown = kStartCountdownDuration;

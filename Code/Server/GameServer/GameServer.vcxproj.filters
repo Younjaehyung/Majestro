@@ -500,6 +500,9 @@
     <ClInclude Include="EmoteComponent.h">
       <Filter>Component\Gameplay</Filter>
     </ClInclude>
+    <ClInclude Include="PrepareReadyComponent.h">
+      <Filter>Component\Gameplay</Filter>
+    </ClInclude>
     <ClInclude Include="LightComponent.h">
       <Filter>Component\Gameplay</Filter>
     </ClInclude>

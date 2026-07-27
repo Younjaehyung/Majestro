@@ -34,6 +34,7 @@ namespace MathUtils
 
 	float EaseOutCubic(float t);
 	float EaseOutBack(float t);
+	float EaseOut(float x);
 	float EaseInCubic(float t);
 	float DampedSine(float t, float freq, float damp);
 

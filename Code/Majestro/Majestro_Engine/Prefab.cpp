@@ -315,8 +315,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Skill_02"));//dash
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//attack1
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//attack2
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_02"));//combo attack1
-		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_03"));//combo attack2
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//combo attack1
+		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Attack_01"));//combo attack2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Skill_01"));//skill1
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Skill_02"));//skill2
 		anmators0.push_back(RESOURCEMANAGER.Get<Animator>(L"Anim_Ibanix_Ultimate"));//special

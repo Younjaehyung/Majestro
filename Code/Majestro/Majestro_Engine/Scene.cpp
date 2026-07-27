@@ -3202,7 +3202,7 @@ void ThirdScene::Initialize()
 			if (fbxStem == "SM_CastlePlane")
 				mWorld->AddComponent<BossTileGlowComponent>(entity);
 		});
-
+	LoadCollisionJson(L"..\\Resources\\Json\\Map003_Nav_Export.json", "Map003");
 
 	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
 	mUIFeatures.push_back(audioVisualizerModule);
@@ -3364,7 +3364,7 @@ void FourthScene::Initialize()
 
 	LoadJsonLevelFBX(L"..\\Resources\\Json\\MapDragon_Export.json");
 	LoadJsonLevelData(L"..\\Resources\\Json\\MapDragon_Export.json");
-
+	LoadCollisionJson(L"..\\Resources\\Json\\MapDragon_Export.json", "MapDragon");
 
 	auto audioVisualizerModule = std::make_shared<UIAudioVisualizerFeature>();
 	mUIFeatures.push_back(audioVisualizerModule);

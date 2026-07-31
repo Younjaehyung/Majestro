@@ -39,6 +39,7 @@
 #include <cstdint>
 #include <utility>
 #include <bitset>
+#include <atomic>
 using namespace std;
 
 

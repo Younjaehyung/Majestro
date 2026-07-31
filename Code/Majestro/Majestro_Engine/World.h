@@ -96,7 +96,13 @@ public:
 
     // 디버그 정보
     size_t GetEntityCount() const { return mEntities.size(); }
-    size_t GetComponentPoolCount() const { return mComponentPools.size(); }
+    size_t GetComponentPoolCount() const {
+        size_t count = 0;
+        for (const auto& pool : mComponentPools) {
+            if (pool) ++count;
+        }
+        return count;
+    }
 
     // Network Entity ID
     shared_ptr<NetIdMap>& GetNetIdMap() { return mNetIdMap; }
@@ -128,7 +134,7 @@ private:
     SceneId mSceneId = SceneId::Lobby;
 
     // 타입별 컴포넌트 풀 (type erasure 사용)
-    std::unordered_map<ComponentTypeID, std::unique_ptr<BaseComponentPool>> mComponentPools;
+    std::vector<std::unique_ptr<BaseComponentPool>> mComponentPools;
 
     // System
     std::shared_ptr<SystemManager>		mSystemManager;
@@ -145,20 +151,14 @@ template<typename T>
 bool World::HasComponentPool() const
 {
     const ComponentTypeID typeID = T::GetTypeID();
-    return (mComponentPools.find(typeID) != mComponentPools.end());
+    return typeID < mComponentPools.size() && mComponentPools[typeID] != nullptr;
 }
 
 template<typename T, typename... Args>
 T& World::AddComponent(Entity entity, Args&&... args) {
     static_assert(std::is_base_of_v<Component<T>, T>, "T must inherit from Component<T>");
 
-    ComponentTypeID typeID = T::GetTypeID();
-
-    // 풀이 없으면 생성
-    if (mComponentPools.find(typeID) == mComponentPools.end()) {
-        mComponentPools[typeID] = std::make_unique<ComponentPool<T>>();
-    }
-
+    // GetComponentPool 이 없는 풀을 만들어 준다.
     auto& pool = GetComponentPool<T>();
     T component(std::forward<Args>(args)...);
     pool.AddComponent(entity.GetID(), std::move(component));
@@ -180,24 +180,29 @@ T* World::GetComponent(Entity entity) {
 
 template<typename T>
 const T* World::GetComponent(Entity entity) const {
-    ComponentTypeID typeID = T::GetTypeID();
-    auto it = mComponentPools.find(typeID);
-    if (it == mComponentPools.end()) return nullptr; // 안전하게 nullptr
-    const auto* pool = static_cast<const ComponentPool<T>*>(it->second.get());
+    const ComponentTypeID typeID = T::GetTypeID();
+    if (typeID >= mComponentPools.size()) return nullptr; // 안전하게 nullptr
+    const auto* pool = static_cast<const ComponentPool<T>*>(mComponentPools[typeID].get());
+    if (pool == nullptr) return nullptr;
     return pool->GetComponent(entity.GetID());
 }
 
 template<typename T>
 bool World::HasComponent(Entity entity) const {
-    ComponentTypeID typeID = T::GetTypeID();
-    auto it = mComponentPools.find(typeID);
-    if (it == mComponentPools.end()) return false; // 풀이 없으면 false
-    const auto* pool = static_cast<const ComponentPool<T>*>(it->second.get());
+    const ComponentTypeID typeID = T::GetTypeID();
+    if (typeID >= mComponentPools.size()) return false; // 풀이 없으면 false
+    const auto* pool = static_cast<const ComponentPool<T>*>(mComponentPools[typeID].get());
+    if (pool == nullptr) return false;
     return pool->HasComponent(entity.GetID());
 }
 
 template<typename T>
 std::vector<Entity> World::GetEntitiesWithComponent() const {
+    // 풀이 없으면 빈 목록. 가드가 없으면 아래 const GetComponentPool 의 assert 에 걸린다.
+    if (!HasComponentPool<T>()) {
+        return {};
+    }
+
     const auto& pool = GetComponentPool<T>();
     const auto& entityIDs = pool.GetEntities();
 
@@ -232,27 +237,24 @@ std::vector<Entity>  World::GetEntitiesWithComponents() const {
 
 template<typename T>
 ComponentPool<T>& World::GetComponentPool() {
-    ComponentTypeID typeID = T::GetTypeID();
-    auto it = mComponentPools.find(typeID);
+    const ComponentTypeID typeID = T::GetTypeID();
 
-    if (it == mComponentPools.end()) {
+    if (typeID >= mComponentPools.size())
+        mComponentPools.resize(typeID + 1);
+
+    if (mComponentPools[typeID] == nullptr)
         mComponentPools[typeID] = std::make_unique<ComponentPool<T>>();
-        it = mComponentPools.find(typeID);
-    }
 
-    return *static_cast<ComponentPool<T>*>(it->second.get());
+    return *static_cast<ComponentPool<T>*>(mComponentPools[typeID].get());
 }
 
 template<typename T>
 const ComponentPool<T>& World::GetComponentPool() const {
-    ComponentTypeID typeID = T::GetTypeID();
-    auto it = mComponentPools.find(typeID);
+    const ComponentTypeID typeID = T::GetTypeID();
 
-    // 없을시 assert가 아니라 생성
+    assert(typeID < mComponentPools.size() && mComponentPools[typeID] != nullptr && "Component pool not found");
 
-    
-    assert(it != mComponentPools.end() && "Component pool not found");
-    return *static_cast<const ComponentPool<T>*>(it->second.get());
+    return *static_cast<const ComponentPool<T>*>(mComponentPools[typeID].get());
 }
 
 

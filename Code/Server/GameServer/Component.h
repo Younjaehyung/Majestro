@@ -1,7 +1,10 @@
 #pragma once
 #include "Object.h"
 
-using ComponentTypeID = size_t;
+using ComponentTypeID = uint32;
+
+
+ComponentTypeID AllocateComponentTypeID();
 
 class BaseComponent{
 public:
@@ -19,7 +22,8 @@ public:
     }
 
     static ComponentTypeID GetTypeID() {
-        return typeid(T).hash_code();
+        static const ComponentTypeID sTypeID = AllocateComponentTypeID();
+        return sTypeID;
     }
 public:
 	bool			mIsActive = true;

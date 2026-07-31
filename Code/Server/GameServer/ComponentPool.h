@@ -8,73 +8,134 @@ public:
     virtual void RemoveComponent(EntityID id) = 0;
 };
 
+class EntityIndexMap {
+public:
+    static constexpr uint32 INVALID_INDEX = 0xFFFFFFFFu;
+
+
+    uint32 Find(EntityID entity) const {
+        const size_t pageIndex = entity / PAGE_SIZE;
+        if (pageIndex >= mPages.size()) return INVALID_INDEX;
+
+        const uint32* slots = mPages[pageIndex].slots.get();
+        if (slots == nullptr) return INVALID_INDEX;
+
+        return slots[entity % PAGE_SIZE];
+    }
+
+
+    void Set(EntityID entity, uint32 index) {
+        const size_t pageIndex = entity / PAGE_SIZE;
+        if (pageIndex >= mPages.size())
+            mPages.resize(pageIndex + 1);
+
+        Page& page = mPages[pageIndex];
+        if (page.slots == nullptr) {
+            page.slots = std::make_unique<uint32[]>(PAGE_SIZE);
+            std::fill_n(page.slots.get(), PAGE_SIZE, INVALID_INDEX);
+            page.usedCount = 0;
+        }
+
+        uint32& slot = page.slots[entity % PAGE_SIZE];
+        if (slot == INVALID_INDEX)
+            ++page.usedCount;
+        slot = index;
+    }
+
+    void Erase(EntityID entity) {
+        const size_t pageIndex = entity / PAGE_SIZE;
+        if (pageIndex >= mPages.size()) return;
+
+        Page& page = mPages[pageIndex];
+        if (page.slots == nullptr) return;
+
+        uint32& slot = page.slots[entity % PAGE_SIZE];
+        if (slot == INVALID_INDEX) return;
+
+        slot = INVALID_INDEX;
+        if (--page.usedCount == 0)
+            page.slots.reset();  
+    }
+
+    void Clear() { mPages.clear(); }
+
+private:
+    static constexpr uint32 PAGE_SIZE = 1024;   // 페이지당 엔티티 수 (4KB)
+
+    struct Page {
+        std::unique_ptr<uint32[]> slots;
+        uint32 usedCount = 0;
+    };
+
+    std::vector<Page> mPages;
+};
+
 
 template<typename T>
 class ComponentPool : public BaseComponentPool {
 public:
     ComponentPool() {
-        mComponents.reserve(100);  // 초기 용량 확보
-        mEntityToIndex.reserve(100);
+        mComponents.reserve(100);
+        mIndexToEntity.reserve(100);
     }
 
     // 컴포넌트 추가
     void AddComponent(EntityID entity, T&& component) {
-        if (mEntityToIndex.find(entity) != mEntityToIndex.end()) {
+        const uint32 existingIndex = mEntityToIndex.Find(entity);
+        if (existingIndex != EntityIndexMap::INVALID_INDEX) {
             // 이미 존재하면 업데이트
-            size_t index = mEntityToIndex[entity];
-            mComponents[index] = std::move(component);
+            mComponents[existingIndex] = std::move(component);
         }
         else {
             // 새로 추가
-            size_t index = mComponents.size();
+            const uint32 index = static_cast<uint32>(mComponents.size());
             mComponents.emplace_back(std::move(component));
-            mEntityToIndex[entity] = index;
             mIndexToEntity.emplace_back(entity);
+            mEntityToIndex.Set(entity, index);
         }
     }
 
     // 컴포넌트 제거
-    void RemoveComponent(EntityID entity) {
-        auto it = mEntityToIndex.find(entity);
-        if (it == mEntityToIndex.end()) return;
+    void RemoveComponent(EntityID entity) override {
+        const uint32 indexToRemove = mEntityToIndex.Find(entity);
+        if (indexToRemove == EntityIndexMap::INVALID_INDEX) return;
 
-        size_t indexToRemove = it->second;
-        size_t lastIndex = mComponents.size() - 1;
+        const uint32 lastIndex = static_cast<uint32>(mComponents.size()) - 1;
 
         if (indexToRemove != lastIndex) {
             // 마지막 요소를 제거할 위치로 이동
             mComponents[indexToRemove] = std::move(mComponents[lastIndex]);
-            EntityID lastEntity = mIndexToEntity[lastIndex];
-            mEntityToIndex[lastEntity] = indexToRemove;
+            const EntityID lastEntity = mIndexToEntity[lastIndex];
             mIndexToEntity[indexToRemove] = lastEntity;
+            mEntityToIndex.Set(lastEntity, indexToRemove);
         }
 
         // 마지막 요소 제거
         mComponents.pop_back();
         mIndexToEntity.pop_back();
-        mEntityToIndex.erase(entity);
+        mEntityToIndex.Erase(entity);
     }
 
     // 컴포넌트 가져오기
     T* GetComponent(EntityID entity) {
-        auto it = mEntityToIndex.find(entity);
-        if (it != mEntityToIndex.end()) {
-            return &mComponents[it->second];
+        const uint32 index = mEntityToIndex.Find(entity);
+        if (index != EntityIndexMap::INVALID_INDEX) {
+            return &mComponents[index];
         }
         return nullptr;
     }
 
     const T* GetComponent(EntityID entity) const {
-        auto it = mEntityToIndex.find(entity);
-        if (it != mEntityToIndex.end()) {
-            return &mComponents[it->second];
+        const uint32 index = mEntityToIndex.Find(entity);
+        if (index != EntityIndexMap::INVALID_INDEX) {
+            return &mComponents[index];
         }
         return nullptr;
     }
 
     // 컴포넌트 존재 여부 확인
     bool HasComponent(EntityID entity) const {
-        return mEntityToIndex.find(entity) != mEntityToIndex.end();
+        return mEntityToIndex.Find(entity) != EntityIndexMap::INVALID_INDEX;
     }
 
     // 모든 컴포넌트에 대한 반복자 지원
@@ -93,13 +154,13 @@ public:
     // 메모리 정리
     void Clear() {
         mComponents.clear();
-        mEntityToIndex.clear();
+        mEntityToIndex.Clear();
         mIndexToEntity.clear();
     }
 
 private:
-    std::vector<T> mComponents;                          // 실제 컴포넌트 데이터
-    std::unordered_map<EntityID, size_t> mEntityToIndex; // 엔티티 -> 인덱스
-    std::vector<EntityID> mIndexToEntity;                // 인덱스 -> 엔티티
+    std::vector<T> mComponents;             // 실제 컴포넌트 데이터
+    EntityIndexMap mEntityToIndex;          // 엔티티 -> 인덱스
+    std::vector<EntityID> mIndexToEntity;   // 인덱스 -> 엔티티
 };
 

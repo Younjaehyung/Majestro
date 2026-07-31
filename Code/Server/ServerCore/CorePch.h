@@ -37,6 +37,8 @@
 #include <cstdint> 
 #include <variant>
 #include <deque>
+#include <atomic>
+
 using namespace std;
 
 #include "Types.h"

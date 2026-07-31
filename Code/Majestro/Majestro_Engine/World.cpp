@@ -14,8 +14,9 @@ void World::DestroyEntity(Entity entity) {
     if (id == NULL_ENTITY) return;
 
     // 모든 컴포넌트 풀에서 해당 엔티티의 컴포넌트 제거
-    for (auto& [typeID, pool] : mComponentPools) {
-        RemoveComponentFromPool(id, typeID);
+    for (auto& pool : mComponentPools) {
+        if (pool)
+            pool->RemoveComponent(id);
     }
 
     // 엔티티 목록에서 제거
@@ -40,9 +41,8 @@ void World::Clear() {
 
 void World::RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID)
 {
-    auto it = mComponentPools.find(typeID);
-    if (it != mComponentPools.end()) {
-        it->second->RemoveComponent(entityID);
+    if (typeID < mComponentPools.size() && mComponentPools[typeID]) {
+        mComponentPools[typeID]->RemoveComponent(entityID);
 	}
 }
 

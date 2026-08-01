@@ -98,8 +98,6 @@ shared_ptr<Material> Material::Clone()
 void Material::CreateMaterial(FBXMaterialInfo& fbxMat, const wstring& prefix)
 {
 	bool test = true;
-	std::cout << "Create Materail ID" << GetID() << std::endl;
-
 
 	auto SanitizeColor = [](const Vec4& c)->Vec4    
 		{

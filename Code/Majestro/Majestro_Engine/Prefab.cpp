@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
+#include "EngineLog.h"
 #include "World.h"
 #include "Texture.h"
 #include "Component.h"
@@ -90,7 +91,6 @@ Entity PrefabFactory::BuildWorldMarkerPrefab(World* world, const InputCommand& c
 PlayerPrefab::PlayerPrefab(World* world)
 {
 	mEntityID = world->CreateEntity();
-	cout << "/////////////////////////////////////" << endl;
 	TransformComponent t{};
 	Entity testCamera = world->CreateEntity();
 	world->AddComponent<MainCameraComponent>(testCamera);
@@ -522,7 +522,6 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	netComp.mNetEntityId = ctx.ViewAs<S2C_SpawnPacekt>()->netEntityId;
 	world->NetIdBinding(netComp.mNetEntityId, mEntityID);
 
-	std::cout << "Create Prefab" << std::endl;
 	return mEntityID;
 }
 

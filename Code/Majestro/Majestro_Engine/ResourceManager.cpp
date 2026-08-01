@@ -142,7 +142,8 @@ shared_ptr<NavMesh> ResourceManager::LoadNavMesh(const wstring& path)
 	findMesh->Load(path);
 	findMesh->SetName(L"NavMesh");
 	if (findMesh->mDtNavMesh == nullptr) {
-		std::cerr << "Failed to load NavMesh from path: " << ws2s(path) << "\n";
+		EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+			"load-failed path=", ws2s(path));
 		return nullptr;
 	}
 	Add(L"NavMesh", findMesh);
@@ -602,21 +603,21 @@ shared_ptr<FBXData> ResourceManager::LoadFBXModel(const wstring& path, const wst
 
 void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
 {
-#ifdef _DEBUG
-	static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
-	auto pk = std::make_pair(objectType, key);
-	auto it = sKeyPath.find(pk);
-	if (it == sKeyPath.end())
-		sKeyPath.emplace(pk, path);
-	else if (it->second != path)
-		if (EngineLog::Enabled(EngineLog::Domain::ResourceLoad))
+	if constexpr (EngineLog::Enabled(EngineLog::Domain::ResourceLoad))
+	{
+		static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
+		auto pk = std::make_pair(objectType, key);
+		auto it = sKeyPath.find(pk);
+		if (it == sKeyPath.end())
+			sKeyPath.emplace(pk, path);
+		else if (it->second != path)
 		{
-			EngineLog::Prefix(EngineLog::Domain::ResourceLoad, "collision")
-				<< "key=" << ws2s(key)
-				<< " old=" << ws2s(it->second)
-				<< " new=" << ws2s(path) << "\n";
+			EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "collision",
+				"key=", ws2s(key),
+				" old=", ws2s(it->second),
+				" new=", ws2s(path));
 		}
-#endif
+	}
 }
 
 namespace
@@ -758,19 +759,18 @@ void ResourceManager::DumpTextureBudget(const char* label)
 		[](const std::pair<wstring, uint64>& a, const std::pair<wstring, uint64>& b) { return a.second > b.second; });
 
 	const double mb = 1024.0 * 1024.0;
-	EngineLog::Prefix(EngineLog::Domain::TextureBudget, label)
-		<< "loaded=" << sorted.size()
-		<< " total=" << static_cast<uint32>(mTextureBytesTotal / mb) << "MB"
-		<< " | dedup=" << mTextureDedupCount
-		<< " saved=" << static_cast<uint32>(mTextureBytesSaved / mb) << "MB\n";
+	EngineLog::WriteTagged(EngineLog::Domain::TextureBudget, label,
+		"loaded=", sorted.size(),
+		" total=", static_cast<uint32>(mTextureBytesTotal / mb), "MB",
+		" | dedup=", mTextureDedupCount,
+		" saved=", static_cast<uint32>(mTextureBytesSaved / mb), "MB");
 
 	const size_t topN = (std::min)(static_cast<size_t>(20), sorted.size());
 	for (size_t i = 0; i < topN; ++i)
 	{
-		EngineLog::Prefix(EngineLog::Domain::TextureBudget, label)
-			<< "resource=" << ws2s(sorted[i].first)
-			<< " size=" << static_cast<uint32>(sorted[i].second / mb)
-			<< "MB\n";
+		EngineLog::WriteTagged(EngineLog::Domain::TextureBudget, label,
+			"resource=", ws2s(sorted[i].first),
+			" size=", static_cast<uint32>(sorted[i].second / mb), "MB");
 	}
 }
 
@@ -861,13 +861,14 @@ void ResourceManager::UnloadSceneResources(const std::vector<wstring>& prefixes)
 	if (EngineLog::Enabled(EngineLog::Domain::SceneResource))
 	{
 		const double mb = 1024.0 * 1024.0;
-		EngineLog::Prefix(EngineLog::Domain::SceneResource, "unload")
-			<< "prefixes=";
+		std::string prefixText;
 		for (const wstring& prefix : prefixes)
-			std::cout << ws2s(prefix) << " ";
-		std::cout << "removedObjects=" << removedObjects
-			<< " removedTextureMB=" << static_cast<uint32>(removedTextureBytes / mb)
-			<< "\n";
+			prefixText += ws2s(prefix) + " ";
+
+		EngineLog::WriteTagged(EngineLog::Domain::SceneResource, "unload",
+			"prefixes=", prefixText,
+			"removedObjects=", removedObjects,
+			" removedTextureMB=", static_cast<uint32>(removedTextureBytes / mb));
 	}
 }
 
@@ -1083,7 +1084,8 @@ std::vector<Cinematic::CameraView> ResourceManager::LoadCameraViews(const std::w
 	std::ifstream ifs(ws2s(path));
 	if (!ifs.is_open())
 	{
-		std::cout << "[LoadCameraViews] open failed: " << ws2s(path) << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-views",
+			"open-failed path=", ws2s(path));
 		return views;
 	}
 
@@ -1091,7 +1093,8 @@ std::vector<Cinematic::CameraView> ResourceManager::LoadCameraViews(const std::w
 	try { ifs >> root; }
 	catch (const std::exception& e)
 	{
-		std::cout << "[LoadCameraViews] parse error: " << e.what() << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-views",
+			"parse-error path=", ws2s(path), " what=", e.what());
 		return views;
 	}
 
@@ -1116,12 +1119,14 @@ std::vector<Cinematic::CameraView> ResourceManager::LoadCameraViews(const std::w
 		views.push_back(staging);
 	}
 
-	std::cout << "[LoadCameraViews] loaded " << views.size() << " views" << std::endl;
+	EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-views",
+		"loaded views=", views.size(), " path=", ws2s(path));
 	for (size_t i = 0; i < views.size(); ++i)
 	{
 		const auto& v = views[i];
-		std::cout << "  view[" << i << "] pos=(" << v.position.x << ", "
-			<< v.position.y << ", " << v.position.z << ") fov=" << v.fovDeg << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-views",
+			"view[", i, "] pos=(", v.position.x, ", ", v.position.y, ", ", v.position.z,
+			") fov=", v.fovDeg);
 	}
 	return views;
 }
@@ -1134,8 +1139,8 @@ std::vector<Cinematic::CameraKeyframe> ResourceManager::LoadCameraSequence(const
 	std::ifstream ifs(ws2s(path));
 	if (!ifs.is_open())
 	{
-		// 골격 단계: JSON 미준비 시 빈 시퀀스 반환(재생 안 함) — 정상 동작.
-		std::cout << "[LoadCameraSequence] open failed: " << ws2s(path) << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-sequence",
+			"open-failed path=", ws2s(path));
 		return keys;
 	}
 
@@ -1143,7 +1148,8 @@ std::vector<Cinematic::CameraKeyframe> ResourceManager::LoadCameraSequence(const
 	try { ifs >> root; }
 	catch (const std::exception& e)
 	{
-		std::cout << "[LoadCameraSequence] parse error: " << e.what() << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-sequence",
+			"parse-error path=", ws2s(path), " what=", e.what());
 		return keys;
 	}
 
@@ -1168,8 +1174,10 @@ std::vector<Cinematic::CameraKeyframe> ResourceManager::LoadCameraSequence(const
 		keys.push_back(kf);
 	}
 
-	std::cout << "[LoadCameraSequence] loaded " << keys.size() << " keyframes, duration="
-		<< (keys.empty() ? 0.f : keys.back().seconds) << "s" << std::endl;
+	EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-sequence",
+		"loaded keyframes=", keys.size(),
+		" duration=", (keys.empty() ? 0.f : keys.back().seconds), "s",
+		" path=", ws2s(path));
 	return keys;
 }
 

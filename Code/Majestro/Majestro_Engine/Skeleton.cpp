@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Skeleton.h"
 #include "FBXData.h"
+#include "EngineLog.h"
 
 Skeleton::Skeleton() : Object(OBJECT_TYPE::SKELETON)
 {
@@ -64,16 +65,17 @@ void Skeleton::BuildAimBoneIndices()
 	}
 
 	
-	constexpr bool kDebugAimBones = false;
-	if constexpr (kDebugAimBones)
+
+	if constexpr (EngineLog::Enabled(EngineLog::Domain::SkeletonBones))
 	{
-		std::cout << "[AimBones] skel bones=" << mBones.size()
-			<< " spine1=" << mSpine1Idx
-			<< " spine2=" << mSpine2Idx
-			<< " spine3=" << mSpine3Idx
-			<< " neck=" << mNeckIdx << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::SkeletonBones, "aim-bones",
+			"bones=", mBones.size(),
+			" spine1=", mSpine1Idx, " spine2=", mSpine2Idx,
+			" spine3=", mSpine3Idx, " neck=", mNeckIdx);
+
 		for (uint32 i = 0; i < (uint32)mBones.size() && i < 20; ++i)
-			std::cout << "  bone[" << i << "] = " << mBones[i].boneName << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::SkeletonBones, "aim-bones",
+				"bone[", i, "] = ", mBones[i].boneName);
 	}
 }
 

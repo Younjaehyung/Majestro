@@ -11,6 +11,7 @@
 #include "CameraComponent.h"
 #include "CameraShakeTable.h"
 #include "CameraDollyTable.h"
+#include "EngineLog.h"
 #include "TagComponent.h"
 #include "TransformComponent.h"
 #include "SocketComponent.h"
@@ -182,16 +183,19 @@ void AnimNotifySystem::FireCameraShake(
 
 	if (entry.endFrame <= entry.startFrame)
 	{
-		std::cout << "[AnimNotify] invalid camera shake frame range: "
-			<< entry.startFrame << " to " << entry.endFrame << std::endl;
+		EngineLog::WriteTaggedOnce(EngineLog::Domain::DataTable, "anim-notify",
+			"shake-bad-range:" + entry.cameraShakePreset,
+			"camera shake frame range 오류 preset=", entry.cameraShakePreset,
+			" start=", entry.startFrame, " end=", entry.endFrame);
 		return;
 	}
 
 	const ShakePreset* preset = CameraShakeTable::Find(entry.cameraShakePreset);
 	if (preset == nullptr)
 	{
-		std::cout << "[AnimNotify] camera shake preset not found: "
-			<< entry.cameraShakePreset << std::endl;
+		EngineLog::WriteTaggedOnce(EngineLog::Domain::DataTable, "anim-notify",
+			"shake-preset-missing:" + entry.cameraShakePreset,
+			"camera shake preset 없음 preset=", entry.cameraShakePreset);
 		return;
 	}
 
@@ -218,16 +222,19 @@ void AnimNotifySystem::FireCameraDolly(
 
 	if (entry.endFrame <= entry.startFrame)
 	{
-		std::cout << "[AnimNotify] invalid camera dolly frame range: "
-			<< entry.startFrame << " to " << entry.endFrame << std::endl;
+		EngineLog::WriteTaggedOnce(EngineLog::Domain::DataTable, "anim-notify",
+			"dolly-bad-range:" + entry.cameraShakePreset,
+			"camera dolly frame range 오류 preset=", entry.cameraShakePreset,
+			" start=", entry.startFrame, " end=", entry.endFrame);
 		return;
 	}
 
 	const DollyPreset* preset = CameraDollyTable::Find(entry.cameraShakePreset);
 	if (preset == nullptr)
 	{
-		std::cout << "[AnimNotify] camera dolly preset not found: "
-			<< entry.cameraShakePreset << std::endl;
+		EngineLog::WriteTaggedOnce(EngineLog::Domain::DataTable, "anim-notify",
+			"dolly-preset-missing:" + entry.cameraShakePreset,
+			"camera dolly preset 없음 preset=", entry.cameraShakePreset);
 		return;
 	}
 
@@ -280,7 +287,8 @@ void AnimNotifySystem::LoadTable(const std::string& path)
 	std::ifstream ifs(path);
 	if (!ifs)
 	{
-		std::cout << "[AnimNotify] AnimNotifyTable.json not found: " << path << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "anim-notify",
+			"open-failed path=", path);
 		return;
 	}
 
@@ -342,5 +350,6 @@ void AnimNotifySystem::LoadTable(const std::string& path)
 			mTable.emplace(s2ws(clipIt.key()), std::move(entries));
 	}
 
-	std::cout << "[AnimNotify] loaded " << mTable.size() << " clip notify sets" << std::endl;
+	EngineLog::WriteTagged(EngineLog::Domain::DataTable, "anim-notify",
+		"loaded clip-notify-sets=", mTable.size(), " path=", path);
 }

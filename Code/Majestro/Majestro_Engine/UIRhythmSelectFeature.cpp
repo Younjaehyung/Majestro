@@ -10,6 +10,7 @@
 #include "UIButtonFactory.h"
 #include "CircularVisualizerComponent.h"
 #include "ResourceManager.h"
+#include "EngineLog.h"
 #include "AudioManager.h"
 #include "Texture.h"
 #include "Engine.h"
@@ -720,7 +721,9 @@ void UIRhythmSelectFeature::StartPreview()
 	const bool prepared = AUDIOMANAGER.RequestBGM(config.eventPath, config.stem);
 	if (!prepared)
 	{
-		std::cout << "[RhythmSelect] preview start failed: " << config.eventPath << std::endl;
+		EngineLog::WriteTaggedOnce(EngineLog::Domain::AudioDiagnostic, "rhythm-select",
+			std::string("preview-failed:") + config.eventPath,
+			"preview 재생 실패 event=", config.eventPath);
 		return;
 	}
 

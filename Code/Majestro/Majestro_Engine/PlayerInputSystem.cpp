@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "PlayerInputSystem.h"
+#include "EngineLog.h"
 
 #include "PlayerSystem.h"
 #include "Engine.h"
@@ -668,7 +669,7 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 			GetNextRhythm(SanitizeRhythm(ctx.player->mDesiredRhythm)));
 		ctx.player->mRhythmSettleTimer = MainPlayerComponent::kRhythmSettleTime;
 
-		cout << "desired rythm:" << static_cast<int>(ctx.player->mDesiredRhythm) << endl;
+		EngineLog::WriteTagged(EngineLog::Domain::PlayerInputRuntime, "rhythm", "리듬 전환 예약 desired=", static_cast<int>(ctx.player->mDesiredRhythm));
 
 		mWorld->GetEventManager()->Enqueue(EvRhythmChanged{ ctx.player->mDesiredRhythm });
 

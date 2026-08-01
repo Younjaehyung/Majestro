@@ -422,9 +422,9 @@ void AudioManager::SetBusVolume(const char* busPath, float v) {
     // FMOD 프로젝트에 해당 버스가 없으면 getBus 로그
     FMOD::Studio::Bus* bus = nullptr;
     if (mFMOD.GetStudio()->getBus(busPath, &bus) != FMOD_OK || !bus) {
-        static std::unordered_set<std::string> sWarned;
-        if (sWarned.insert(busPath).second)
-            OutputDebugStringA((std::string("[Audio] bus not found: ") + busPath + "\n").c_str());
+        EngineLog::WriteTaggedOnce(EngineLog::Domain::AudioDiagnostic, "bus",
+            std::string("not-found:") + busPath,
+            "버스를 찾을 수 없음 path=", busPath);
         return;
     }
     bus->setVolume(v);

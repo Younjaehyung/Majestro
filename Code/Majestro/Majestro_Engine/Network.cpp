@@ -1,7 +1,8 @@
 #include "pch.h"
 #include "Network.h"
 #include "PacketHelper.h"
-#include <fstream>
+#include "EngineLog.h"
+
 
 SpscRingQueue<SendRequest, 1024>		gSendBuffer;
 SpscRingQueue<InputCommand, 1024>	gRecvBuffer;
@@ -15,8 +16,8 @@ static void LoadNetworkConfig(std::string& outIp, int& outPort)
 		std::ifstream file(path);
 		if (!file.is_open())
 		{	// 파일이 없거나 파싱에 실패하면 인자값(기본 하드코딩값)을 그대로 유지
-			std::cout << "[Network] NetworkConfig.json 없음 -> 기본값 사용 ("
-				<< outIp << ":" << outPort << ")" << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "config",
+				"NetworkConfig.json 없음. 기본값 사용 ", outIp, ":", outPort);
 			return;
 		}
 
@@ -28,12 +29,13 @@ static void LoadNetworkConfig(std::string& outIp, int& outPort)
 		if (config.contains("port") && config["port"].is_number_integer())
 			outPort = config["port"].get<int>();
 
-		std::cout << "[Network] NetworkConfig 로드: " << outIp << ":" << outPort << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "config",
+			"로드 ", outIp, ":", outPort);
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "[Network] NetworkConfig 파싱 실패(" << e.what()
-			<< ") -> 기본값 사용 (" << outIp << ":" << outPort << ")" << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "config",
+			"파싱 실패(", e.what(), ") -> 기본값 사용 ", outIp, ":", outPort);
 	}
 }
 
@@ -64,7 +66,8 @@ void Network::Initialize() {
 
 
 	if (WSAStartup(MAKEWORD(2, 2), &mWsaData) != 0) {
-		cout << "WSA creation failed with error: " << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "startup",
+			"WSAStartup 실패 code=", ::WSAGetLastError());
 		return;
 	}
 }
@@ -77,12 +80,14 @@ bool Network::Awake()
 
 	if(ConnectToServer(ip.c_str(), port))
 	{
-		std::cout << "Connected to server successfully." << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "awake",
+			"connected ", ip, ":", port);
 		return true;
 	}
 	else
 	{
-		std::cout << "Failed to awake to server." << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "awake",
+			"connect-failed ", ip, ":", port);
 		return false;
 	}
 }
@@ -104,7 +109,9 @@ bool Network::ConnectToServer(const char* ipAddress, int port)
 
 	int r = connect(mTcpSocket, (sockaddr*)&mServerTcpAddr, sizeof(mServerTcpAddr));
 	if(r == SOCKET_ERROR) {
-		std::cout << "Failed to connect to server." << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "connect",
+			"tcp-connect-failed ", ipAddress, ":", port,
+			" err=", WSAGetLastError());
 		ReleaseServer();
 		return false;
 	}
@@ -117,7 +124,8 @@ bool Network::ConnectToServer(const char* ipAddress, int port)
 	if (::bind(mUdpSocket, (sockaddr*)&localUdp, sizeof(localUdp)) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		std::cout << "UDP bind failed: " << err << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "connect",
+			"udp-bind-failed err=", err);
 		ReleaseServer();
 		return false;
 	}
@@ -133,13 +141,15 @@ bool Network::ConnectToServer(const char* ipAddress, int port)
 
 	if (mTcpSocket == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
-		cout << "Socket creation failed with error: " << error << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "connect",
+			"TCP 소켓 생성 실패 code=", error);
 		ReleaseServer();
 		return false;
 	}
 	if (mUdpSocket == INVALID_SOCKET) {
 		int32_t error = WSAGetLastError();
-		cout << "Socket creation failed with error: " << error << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "connect",
+			"UDP 소켓 생성 실패 code=", error);
 		ReleaseServer();
 		return false;
 	}
@@ -188,13 +198,15 @@ void Network::NetworkUpdate()
 
 void Network::Shutdown()
 {
-	std::cout << "Network Shutdown called." << std::endl;
+	EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "shutdown",
+		"Shutdown 요청 — 수신 루프만 중단");
 	mIsRunning = false;
 }
 
 void Network::Stop()
 {
-	std::cout << "Network Shutdown called." << std::endl;
+	EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "shutdown",
+		"Stop 요청 — 스레드 join 대기");
 	mIsRunning = false;
 	if (mNetworkThread.joinable()) {
 		mNetworkThread.join();
@@ -449,7 +461,8 @@ void Network::OnUDPNetworkUpdate()
 			return;
 
 		// 그 외는 진짜 오류로 보고 종료
-		std::cout << "UDP recvfrom failed: " << err << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "udp",
+			"recvfrom-failed err=", err);
 		Shutdown();
 		return;
 	}

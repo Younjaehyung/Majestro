@@ -8,13 +8,15 @@
 #include "Engine.h"
 #include "InputManager.h"
 #include "GameMode.h"
+#include "EngineLog.h"
 
 void SceneCommandProcessor::Submit(SceneCommand cmd)
 {
 
 	if (mPending.IsValid())
 	{
-		std::cerr << "Warning: Overwriting pending scene command. Previous command will be lost." << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "scene-command",
+			"대기 중인 씬 명령 덮어씀(이전명령제거)");
 	}
 	mPending = std::move(cmd);
 }

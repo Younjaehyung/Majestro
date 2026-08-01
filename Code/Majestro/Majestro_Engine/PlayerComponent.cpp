@@ -5,8 +5,8 @@
 using json = nlohmann::json;
 #include "PlayerComponent.h"
 #include "StateMachine.h"
+#include "EngineLog.h"
 
-BOOL STATE_DEBUG = TRUE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 namespace
@@ -141,7 +141,9 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, vector<shared_
             continue;
 
         mStateList[i]->mAnimEndTime = static_cast<float>(anim[i]->mEndTime);
-        cout << "State[" << i << "] EndTime = " << static_cast<float>(anim[i]->mEndTime) << " : " << mStateList[i]->mAnimEndTime << endl;
+        EngineLog::WriteTagged(EngineLog::Domain::StateTiming, "anim-end",
+            "State[", i, "] EndTime=", static_cast<float>(anim[i]->mEndTime),
+            " applied=", mStateList[i]->mAnimEndTime);
     }
 
     AppendPlayerAnimationDurations(PlayerTypeToString(playerType), mStateList, anim);
@@ -172,7 +174,7 @@ void MainPlayerComponent::InitFSMOnce()
 
 void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 {
-    cout << "json input" << endl;
+    EngineLog::WriteTagged(EngineLog::Domain::DataTable, "fsm", "FSM JSON 로드 path=", path);
 
     // 1) 포인터→ID 변환기 주입 (상태 이름→StateId)
     mFsm.SetIdResolver([](State<MainPlayerComponent>* s)->StateId {
@@ -195,7 +197,8 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     // 2) JSON 열기
     std::ifstream ifs(path);
     if (!ifs) {
-        cout << "non json" << endl;
+        EngineLog::WriteTagged(EngineLog::Domain::DataTable, "fsm",
+            "FSM JSON 없음 — 기본 FSM 사용 path=", path);
         InitFSMOnce();
         return;
     }
@@ -266,7 +269,8 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 {
     std::ifstream ifs(path);
     if (!ifs) {
-        std::cout << "stateProps json not found\n";
+        EngineLog::WriteTagged(EngineLog::Domain::DataTable, "state-setting",
+            "open-failed path=", path);
         return;
     }
     json j;
@@ -289,10 +293,9 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();
 
-        std::cout << "[Player Config Loaded]\n";
-        std::cout << "  WalkSpeed : " << mWalkSpeed << "\n";
-        std::cout << "  RunSpeed  : " << mRunSpeed << "\n";
-        std::cout << "  DashSpeed : " << mDashSpeed << "\n";
+        EngineLog::WriteTagged(EngineLog::Domain::DataTable, "state-setting",
+            "player config loaded walk=", mWalkSpeed,
+            " run=", mRunSpeed, " dash=", mDashSpeed);
     }
     // 2) STATE PROPERTY 로딩
     if (!j.contains("stateProps"))
@@ -317,7 +320,8 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         
     }
 
-    std::cout << "[State Props Loaded]\n";
+    EngineLog::WriteTagged(EngineLog::Domain::DataTable, "state-setting",
+        "state props loaded path=", path);
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -325,7 +329,7 @@ void StateEnter(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
 {
     owner->mStateTime = 0.0f;
     owner->mNextState = S_Idle;
-    if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() <<"\n"; }
+    EngineLog::Write(EngineLog::Domain::PlayerStateRuntime, "Enter ", s->GetName());
     if(s->mAnimOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
@@ -339,7 +343,7 @@ void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
 
 void StateExit(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
 {
-    if (STATE_DEBUG) { std::cout << "Exit " << s->GetName() << "\n"; }
+    EngineLog::Write(EngineLog::Domain::PlayerStateRuntime, "Exit ", s->GetName());
 }
 
 

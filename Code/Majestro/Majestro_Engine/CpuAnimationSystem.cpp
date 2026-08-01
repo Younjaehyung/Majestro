@@ -417,14 +417,13 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 			c->mAnimInstanceID = static_cast<uint32_t>(i);
 		}
 	}
+
 	if (mAnimationPass.size() > MAX_ANIMATION_INSTANCE_COUNT)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::AnimationBudget))
-		{
-			EngineLog::Prefix(EngineLog::Domain::AnimationBudget, "overflow", std::cerr)
-				<< "type=instance count=" << mAnimationPass.size()
-				<< " limit=" << MAX_ANIMATION_INSTANCE_COUNT << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::AnimationBudget, "overflow", "cpu-instance",
+			"type=instance count=", mAnimationPass.size(),
+			" limit=", MAX_ANIMATION_INSTANCE_COUNT);
 		return;
 	}
 
@@ -453,12 +452,10 @@ void CpuAnimationSystem::AnimationPush(float deltaTime)
 	}
 	if (resultIndex > MAX_ANIMATION_RESULT_MATRIX_COUNT)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::AnimationBudget))
-		{
-			EngineLog::Prefix(EngineLog::Domain::AnimationBudget, "overflow", std::cerr)
-				<< "type=final-bone count=" << resultIndex
-				<< " limit=" << MAX_ANIMATION_RESULT_MATRIX_COUNT << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::AnimationBudget, "overflow", "cpu-final-bone",
+			"type=final-bone count=", resultIndex,
+			" limit=", MAX_ANIMATION_RESULT_MATRIX_COUNT);
 		return;
 	}
 

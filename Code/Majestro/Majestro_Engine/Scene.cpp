@@ -281,11 +281,13 @@ void Scene::LoadJsonLevelData(const wstring& path,
 		
 			if (!data)
 			{
-				std::cerr << "FBX load failed (null data): " << name << "\n";
+				EngineLog::WriteTaggedOnce(EngineLog::Domain::ResourceLoad, "level-import",
+					"fbx-null:" + name, "fbx-null name=", name);
 				break;
 			}
 			else if (data->GetMeshs().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << name << "\n";
+				EngineLog::WriteTaggedOnce(EngineLog::Domain::ResourceLoad, "level-import",
+					"fbx-no-mesh:" + name, "fbx-no-mesh name=", name);
 				continue;
 			}
 
@@ -314,7 +316,8 @@ void Scene::LoadJsonLevelData(const wstring& path,
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Load failed: " << e.what() << "\n";
+		EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "LoadJsonLevelData",
+			"failed path=", ws2s(path), " what=", e.what());
 	}
 }
 
@@ -340,11 +343,13 @@ void Scene::LoadJsonLevel(const wstring& path)
 			
 			if (!data)
 			{
-				std::cerr << "FBX load failed (null data): " << stem << "\n";
+				EngineLog::WriteTaggedOnce(EngineLog::Domain::ResourceLoad, "level-import",
+					"fbx-null:" + stem, "fbx-null name=", stem);
 				break;
 			}
 			else if (data->GetMeshs().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << stem << "\n";
+				EngineLog::WriteTaggedOnce(EngineLog::Domain::ResourceLoad, "level-import",
+					"fbx-no-mesh:" + stem, "fbx-no-mesh name=", stem);
 				continue;
 			}
 
@@ -371,7 +376,8 @@ void Scene::LoadJsonLevel(const wstring& path)
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Load failed: " << e.what() << "\n";
+		EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "LoadJsonLevel",
+			"failed path=", ws2s(path), " what=", e.what());
 	}
 }
 
@@ -440,13 +446,16 @@ void Scene::LoadCollisionJson(const wstring& path, const std::string& assetLevel
 		if (loadedMeshCount > 0)
 			physicsWorld->OptimizeJoltStaticCollision();
 
-		std::cout << "[Jolt] collision instances=" << loadedInstanceCount
-			<< " meshes=" << loadedMeshCount
-			<< " skipped=" << skippedCount << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "jolt-collision",
+			"instances=", loadedInstanceCount,
+			" meshes=", loadedMeshCount,
+			" skipped=", skippedCount,
+			" path=", ws2s(path));
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "LoadCollisionJson failed: " << e.what() << "\n";
+		EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "jolt-collision",
+			"failed path=", ws2s(path), " what=", e.what());
 	}
 }
 
@@ -1135,9 +1144,7 @@ void LoadingScene::ProcessTask()
 		if (!mLoadTaskLabels.empty())
 			label = mLoadTaskLabels.front();
 
-		if (EngineLog::Enabled(EngineLog::Domain::LoadingTask))
-			EngineLog::Prefix(EngineLog::Domain::LoadingTask, "begin")
-				<< "task=" << label << "\n";
+		EngineLog::WriteTagged(EngineLog::Domain::LoadingTask, "begin", "task=", label);
 
 		std::string beforeLabel = "loading-before-" + label;
 		GpuResourceBudget::DumpDxgi(beforeLabel.c_str(),
@@ -1158,9 +1165,7 @@ void LoadingScene::ProcessTask()
 			RENDERMANAGER.GetDevice()->GetAdapter().Get(),
 			RENDERMANAGER.GetGraphicsMemory().get());
 
-		if (EngineLog::Enabled(EngineLog::Domain::LoadingTask))
-			EngineLog::Prefix(EngineLog::Domain::LoadingTask, "end")
-				<< "task=" << label << "\n";
+		EngineLog::WriteTagged(EngineLog::Domain::LoadingTask, "end", "task=", label);
 	}
 }
 
@@ -2545,7 +2550,8 @@ namespace
 		std::ifstream ifs(path);
 		if (!ifs.is_open())
 		{
-			std::cout << "[Plaza] NPC json 을 열 수 없어 NPC 스폰을 건너뜁니다" << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "plaza-npc",
+				"json Open 실패 Skip path=", ws2s(path));
 			return;
 		}
 
@@ -2584,7 +2590,7 @@ namespace
 				for (const auto& lineJson : it["dialogue"])
 					npc.mDialogueLines.push_back(utfs2ws(GetOptionalString(lineJson, "line", "")));
 
-			// 표시용 메시. 지정 리소스가 없으면 Cube 폴백, 그래도 없으면 비표시로 스폰.
+
 			shared_ptr<Mesh> mesh = RESOURCEMANAGER.Get<Mesh>(utfs2ws(GetOptionalString(it, "mesh", "SM_Noteman")));
 			if (!mesh) mesh = RESOURCEMANAGER.Get<Mesh>(L"Cube");
 			shared_ptr<Material> material = RESOURCEMANAGER.Get<Material>(utfs2ws(GetOptionalString(it, "material", "Anim_NoteMan_Idle0")));
@@ -2611,7 +2617,9 @@ namespace
 						}
 						else
 						{
-							std::cout << "[Plaza] NPC waveAnim 리소스 없음 — Idle 로 대체: " << waveKey << std::endl;
+							EngineLog::WriteTaggedOnce(EngineLog::Domain::SceneDiagnostic, "plaza-npc",
+								"wave-anim-missing:" + waveKey,
+								"waveAnim 리소스 없음 — Idle 로 대체 key=", waveKey);
 						}
 					}
 
@@ -2620,8 +2628,9 @@ namespace
 			}
 			else
 			{
-				std::cout << "[Plaza] NPC 표시 리소스(mesh/material) 없음 — 비표시로 스폰: "
-					<< GetOptionalString(it, "id", "npc") << std::endl;
+				EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "plaza-npc",
+					"mesh/material 없음 스폰 X id=",
+					GetOptionalString(it, "id", "npc"));
 			}
 		}
 	}
@@ -2655,14 +2664,16 @@ namespace
 		}
 		if (!shipInst)
 		{
-			std::cout << "[Plaza] SM_Ship 인스턴스를 찾지 못해 배 애니메이션 스폰을 건너뜁니다" << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "plaza-ship",
+				"SM_Ship SKIP");
 			return;
 		}
 
 		shared_ptr<FBXData> animData = RESOURCEMANAGER.LoadFBX(L"..\\Resources\\Map\\MapShip\\Anim_Ship_Idle.fbx");
 		if (!animData || animData->GetMeshs().empty())
 		{
-			std::cout << "[Plaza] Anim_Ship_Idle 메시 로드 실패 — 배 애니메이션 스폰을 건너뜁니다" << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "plaza-ship",
+				"Anim_Ship_Idle mesh 로드 실패");
 			return;
 		}
 
@@ -2670,7 +2681,8 @@ namespace
 		if (!animData->GetAnimators().empty())
 			idleAnim = animData->GetAnimators().front();
 		if (!idleAnim)
-			std::cout << "[Plaza] Anim_Ship_Idle 애니메이터 없음 — 배를 정적으로만 스폰합니다" << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "plaza-ship",
+				"Anim_Ship_Idle anim Skip, mesh만 로드");
 
 		
 		shared_ptr<FBXData> fallbackMatData = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, L"SM_Ship"));
@@ -2708,99 +2720,10 @@ namespace
 				world->AddComponent<AnimationComponent>(e, animators);
 			}
 		}
-		std::cout << "[Plaza] 배(SM_Ship) 스키닝 애니메이션 스폰 완료" << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::SceneDiagnostic, "plaza-ship",
+			"SM_Ship 애니메이션 스폰 완료");
 	}
 
-	void SpawnPlazaClouds(World* world, const std::wstring& path)
-	{
-		// ── 튜닝값 ─────────────────────────────────────────────────────────
-		// 카드의 가장 큰 변을 이 절반크기(월드 유닛)에 맞춘다. 메시 원본 크기와 무관하게 일정 크기.
-		constexpr float kCloudTargetHalfSize = 700.f;
-
-		// 구름을 놓을 위치(배의 양옆 ±X, 배 고도 근처 Y, 전후 Z 레인 중심). 회전/크기는 코드가 정한다.
-		static const Vec3 kSpots[] = {
-			// 갑판 고도 좌우
-			{ -2600.f, 1100.f, -3000.f }, { -2400.f, 1600.f,   600.f },
-			{ -2800.f, 1300.f,  3600.f }, { -2500.f,  850.f,  -900.f },
-			{  2600.f, 1200.f, -3600.f }, {  2400.f, 1550.f,  1300.f },
-			{  2800.f, 1000.f,  3000.f }, {  2500.f, 1400.f,  -300.f },
-			// 바깥쪽 X 레인
-			{ -5000.f, 1450.f, -1800.f }, { -5400.f, 1050.f,  2400.f },
-			{  5000.f, 1500.f,  -600.f }, {  5400.f, 1150.f,  3000.f },
-			// 하단 -Y 레인
-			{ -3000.f,  -200.f, -2400.f }, { -3400.f,  200.f,  1800.f },
-			{  3000.f,  -150.f,  2700.f }, {  3400.f,  250.f, -1200.f },
-			{ -2600.f,  -900.f,   900.f }, {  2600.f,  -850.f, -2100.f },
-		};
-
-		LevelImportData level = RESOURCEMANAGER.LoadMapResourceJson(path);
-		const std::wstring prefix = s2ws(level.levelName);
-
-		// 레벨에 등장하는 구름 FBX 를 중복 없이 모은다(메시/머티리얼 재료로만 사용, 배치는 무시).
-		std::vector<shared_ptr<FBXData>> cloudAssets;
-		std::unordered_set<std::string> seen;
-		for (const auto& inst : level.instances)
-		{
-			const std::string stem = filesystem::path(inst.fbx).filename().stem().string();
-			if (!IsPlazaCloudMesh(stem) || !seen.insert(stem).second)
-				continue;
-			shared_ptr<FBXData> data = RESOURCEMANAGER.Get<FBXData>(ResourceManager::MakeKey(prefix, s2ws(stem)));
-			if (data && !data->GetMeshs().empty())
-				cloudAssets.push_back(data);
-		}
-		if (cloudAssets.empty())
-		{
-			std::cout << "[Plaza] 구름 FBX 를 찾지 못해 스폰을 건너뜁니다" << std::endl;
-			return;
-		}
-
-		constexpr size_t kSpotCount = sizeof(kSpots) / sizeof(kSpots[0]);
-		int spawned = 0;
-		for (size_t i = 0; i < kSpotCount; ++i)
-		{
-			const shared_ptr<FBXData>& data = cloudAssets[i % cloudAssets.size()];
-			const Vec3& basePos = kSpots[i];
-
-			// 개체별 드리프트 변주(같은 spot 의 모든 서브메시가 공유 → 함께 움직인다).
-			const float speedScale = 0.8f + (rand() / static_cast<float>(RAND_MAX)) * 0.4f;   // 0.8~1.2
-			const float travelled  = (rand() / static_cast<float>(RAND_MAX)) * CloudDriftSystem::kRecycleDist;
-
-			const auto& meshes   = data->GetMeshs();
-			const auto& meshMats = data->GetMeshMaterials();
-			for (size_t mi = 0; mi < meshes.size(); ++mi)
-			{
-				if (!meshes[mi]) continue;
-
-				// 메시 원본 크기(OBB) 로부터 목표 크기에 맞춘 균일 스케일 산출.
-				const auto& ext = meshes[mi]->GetLocalOBB().Extents;
-				float maxExt = ext.x;
-				if (ext.y > maxExt) maxExt = ext.y;
-				if (ext.z > maxExt) maxExt = ext.z;
-				const float s = (maxExt > 1e-3f) ? (kCloudTargetHalfSize / maxExt) : 1.f;
-
-				Entity e = world->CreateEntity();
-
-				TransformComponent transform{};
-				transform.mLocalPosition = basePos;
-				transform.mLocalScale    = Vec3(s, s, s);
-				transform.mIsStatic      = false;   // 움직여야 하므로 정적 아님(위치는 CloudDriftSystem 이 매 프레임 갱신)
-				world->AddComponent<TransformComponent>(e, transform);
-
-				RenderComponent& render = world->AddComponent<RenderComponent>(e);
-				if (mi < meshMats.size())
-					render.mMaterials = meshMats[mi];
-				render.mCheckFrustum = false;   // 카드가 얇아 프러스텀 판정이 불안정 → 항상 렌더
-				render.SetMesh(meshes[mi]);
-
-				CloudDriftComponent& cloud = world->AddComponent<CloudDriftComponent>(e);
-				cloud.mBasePos    = basePos;
-				cloud.mSpeedScale = speedScale;
-				cloud.mTravelled  = travelled;
-			}
-			spawned++;
-		}
-		std::cout << "[Plaza] 떠다니는 구름 빌보드 스폰: " << spawned << " 개" << std::endl;
-	}
 }
 
 void PlazaScene::Initialize()

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Device.h"
+#include "EngineLog.h"
 
 #ifndef ENABLE_D3D12_DEBUG_LAYER
 #define ENABLE_D3D12_DEBUG_LAYER 0
@@ -66,14 +67,13 @@ void Device::Initialize()
 	//UINT msaaQuality = msaaSupported ? (msaaInfo.NumQualityLevels - 1) : 0;
 
 
-#ifdef _DEBUG
 	// bindless check (Tier 2/3)
-	D3D12_FEATURE_DATA_D3D12_OPTIONS opt{};
-	if (SUCCEEDED(mDXDevice.Get()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &opt, sizeof(opt))))
-		cout << opt.ResourceBindingTier << "TIER" << '\n';
-
-
-
-#endif
+	if constexpr (EngineLog::Enabled(EngineLog::Domain::ResourceLoad))
+	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS opt{};
+		if (SUCCEEDED(mDXDevice.Get()->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &opt, sizeof(opt))))
+			EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "device",
+				"ResourceBindingTier=", static_cast<int>(opt.ResourceBindingTier));
+	}
 
 }

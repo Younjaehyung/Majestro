@@ -1,5 +1,6 @@
 #pragma once
 #include "Mesh.h"
+#include "EngineLog.h"
 
 	namespace JoltLayers
 	{
@@ -8,32 +9,29 @@
 		static constexpr JPH::BroadPhaseLayer TerrainBroadPhase(0);
 	}
 
+
 	static void JoltTraceImpl(const char* inFMT, ...)
 	{
+		if (!EngineLog::Enabled(EngineLog::Domain::Physics))
+			return;
+
 		va_list list;
 		va_start(list, inFMT);
 		char buffer[1024];
 		vsnprintf(buffer, sizeof(buffer), inFMT, list);
 		va_end(list);
-		OutputDebugStringA("[Jolt] ");
-		OutputDebugStringA(buffer);
-		OutputDebugStringA("\n");
+
+		EngineLog::WriteTagged(EngineLog::Domain::Physics, "trace", buffer);
 	}
 
 #ifdef JPH_ENABLE_ASSERTS
 	static bool JoltAssertFailedImpl(const char* inExpression, const char* inMessage, const char* inFile, JPH::uint inLine)
 	{
-		OutputDebugStringA(inFile);
-		char lineBuf[32];
-		snprintf(lineBuf, sizeof(lineBuf), ":%u: ", inLine);
-		OutputDebugStringA(lineBuf);
-		OutputDebugStringA(inExpression);
-		if (inMessage)
-		{
-			OutputDebugStringA(" - ");
-			OutputDebugStringA(inMessage);
-		}
-		OutputDebugStringA("\n");
+		char key[512];
+		snprintf(key, sizeof(key), "%s:%u", inFile ? inFile : "?", inLine);
+		EngineLog::WriteTaggedOnce(EngineLog::Domain::Physics, "assert", key,
+			inFile ? inFile : "?", ":", inLine, ": ", inExpression,
+			inMessage ? " - " : "", inMessage ? inMessage : "");
 		return true;
 	}
 #endif

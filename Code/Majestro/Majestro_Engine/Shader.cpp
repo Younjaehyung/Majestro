@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Shader.h"
+#include "EngineLog.h"
 #include "Engine.h"
 #include "ResourceManager.h"
 #include "RenderManager.h"
@@ -446,7 +447,8 @@ void Shader::CreateGraphicsShader(const ShaderPath& path, ShaderInfo info, int m
 	HRESULT hr = DEVICE->CreateGraphicsPipelineState(&mGraphicsPipelineDesc, IID_PPV_ARGS(&mPipelineState));
 	if (FAILED(hr) || !mPipelineState)
 	{
-		cout<<"CreateGraphicsPipelineState failed. -" << hr <<endl;
+		EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "pipeline",
+			"CreateGraphicsPipelineState 실패 hr=0x", std::hex, hr, std::dec);
 		assert(false); // 여기서 멈춰야 Update까지 안 감
 		return;
 	}

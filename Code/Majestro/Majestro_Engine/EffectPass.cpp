@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "EffectPass.h"
+#include "EngineLog.h"
 
 #include "World.h"
 #include "Engine.h"
@@ -77,9 +78,8 @@ Effekseer::EffectRef EffectPass::LoadEffect(const shared_ptr<Vfx>& vfx)
 	Effekseer::EffectRef effect = LoadEffect(ws2s(vfx->mEffectPath));
 	if (effect == nullptr)
 	{
-#ifdef _DEBUG
-		OutputDebugStringW((L"EffectPass: failed to load Effekseer effect: " + vfx->mEffectPath + L"\n").c_str());
-#endif
+		EngineLog::WriteWideOnce(EngineLog::Domain::VfxDiagnostic, vfx->mEffectPath,
+			L"Effekseer 이펙트 로드 실패 path=", vfx->mEffectPath);
 		
 		mEffectCache.emplace(vfx->mEffectPath, Effekseer::EffectRef{});
 		return nullptr;

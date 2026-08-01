@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "FBXData.h"
+#include "EngineLog.h"
 #include <fstream>
 #include "Engine.h"
 #include "RenderManager.h"
@@ -33,7 +34,6 @@ string ReadString(std::ifstream& file)
 
 	string utf8Str(length, '\0');
 	file.read(&utf8Str[0], length);
-	cout<< utf8Str <<endl;
 	return utf8Str; // 기존의 s2ws 함수 사용
 }
 
@@ -310,7 +310,7 @@ vector<shared_ptr<Mesh>>& FBXData::CreateMeshFromFBX(ifstream& loader, int isMes
 		}
 	}
 	loader.close();
-	cout << "Materials OVER" << endl;
+	EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "fbx", "머티리얼 파싱 완료 meshes=", mMeshs.size());
 
 	return mMeshs;
 }

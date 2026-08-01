@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CameraDollyTable.h"
 #include "JsonUtils.h"
+#include "EngineLog.h"
 
 namespace
 {
@@ -15,7 +16,8 @@ void CameraDollyTable::Load(const std::string& path)
 	std::ifstream ifs(path);
 	if (!ifs)
 	{
-		std::cout << "CameraDollySetting json not found: " << path << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-dolly",
+			"open-failed path=", path);
 		return;
 	}
 

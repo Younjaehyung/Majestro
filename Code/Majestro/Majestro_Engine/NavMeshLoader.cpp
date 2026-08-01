@@ -6,6 +6,7 @@
 #include "ResourceManager.h"
 #include "Mesh.h"
 #include "RenderSystem.h"
+#include "EngineLog.h"
 
 
 
@@ -54,7 +55,8 @@ void NavMesh::Load(const wstring& path)
     FILE* fp = _wfopen(path.c_str(), L"rb");
     if (!fp)
     {
-        std::cerr << "Failed to open NavMesh file: " << ws2s(path) << std::endl;
+        EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+            "open-failed path=", ws2s(path));
         return;
     }
 
@@ -62,21 +64,24 @@ void NavMesh::Load(const wstring& path)
     NavMeshSetHeader header{};
     if (fread(&header, sizeof(NavMeshSetHeader), 1, fp) != 1)
     {
-        std::cerr << "Failed to read NavMesh header: " << ws2s(path) << std::endl;
+        EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+            "header-read-failed path=", ws2s(path));
         fclose(fp);
         return;
     }
 
     if (header.magic != NAVMESHSET_MAGIC)
     {
-        std::cerr << "NavMesh file magic mismatch (expected MSET): " << ws2s(path) << std::endl;
+        EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+            "magic-mismatch expected=MSET path=", ws2s(path));
         fclose(fp);
         return;
     }
     if (header.version != NAVMESHSET_VERSION)
     {
-        std::cerr << "NavMesh file version mismatch (expected 1, got "
-                  << header.version << "): " << ws2s(path) << std::endl;
+        EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+            "version-mismatch expected=", NAVMESHSET_VERSION,
+            " got=", header.version, " path=", ws2s(path));
         fclose(fp);
         return;
     }
@@ -85,7 +90,8 @@ void NavMesh::Load(const wstring& path)
     mDtNavMesh = dtAllocNavMesh();
     if (!mDtNavMesh)
     {
-        std::cerr << "Failed to allocate dtNavMesh." << std::endl;
+        EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+            "dtAllocNavMesh-failed path=", ws2s(path));
         fclose(fp);
         return;
     }
@@ -95,7 +101,8 @@ void NavMesh::Load(const wstring& path)
     {
         dtFreeNavMesh(mDtNavMesh);
         mDtNavMesh = nullptr;
-        std::cerr << "Failed to initialize dtNavMesh: " << ws2s(path) << std::endl;
+        EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+            "dtNavMesh-init-failed path=", ws2s(path));
         fclose(fp);
         return;
     }
@@ -113,7 +120,8 @@ void NavMesh::Load(const wstring& path)
         unsigned char* data = static_cast<unsigned char*>(dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM));
         if (!data)
         {
-            std::cerr << "Failed to allocate tile data (tile " << i << ")." << std::endl;
+            EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+                "tile-alloc-failed tile=", i, " path=", ws2s(path));
             break;
         }
 
@@ -121,7 +129,8 @@ void NavMesh::Load(const wstring& path)
         if (fread(data, tileHeader.dataSize, 1, fp) != 1)
         {
             dtFree(data);
-            std::cerr << "Failed to read tile data (tile " << i << ")." << std::endl;
+            EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+                "tile-read-failed tile=", i, " path=", ws2s(path));
             break;
         }
 
@@ -135,7 +144,8 @@ void NavMesh::Load(const wstring& path)
     }
 
     fclose(fp);
-    std::cout << "NavMesh loaded: " << header.numTiles << " tiles — " << ws2s(path) << std::endl;
+    EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+        "loaded tiles=", header.numTiles, " path=", ws2s(path));
 }
 
 
@@ -215,7 +225,8 @@ bool NavigationSystem::LoadTiledNavMesh(const std::string& filepath)
         mNavMesh = RESOURCEMANAGER.LoadNavMesh(s2ws(filepath));
         if(mNavMesh == nullptr)
         {
-            std::cerr << "Failed to load NavMesh from path: " << filepath << "\n";
+            EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "navmesh",
+                "load-failed path=", filepath);
             return false;
 		}
 	}

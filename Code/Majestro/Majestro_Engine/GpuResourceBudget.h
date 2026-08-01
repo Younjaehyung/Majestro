@@ -51,11 +51,6 @@ namespace GpuResourceBudget
 		}
 	}
 
-	inline std::string Narrow(const std::wstring& text)
-	{
-		return std::string(text.begin(), text.end());
-	}
-
 	inline uint64 AllocationBytes(ID3D12Device* device, const D3D12_RESOURCE_DESC& desc)
 	{
 		if (device == nullptr)
@@ -72,12 +67,10 @@ namespace GpuResourceBudget
 	{
 		// GPU 리소스 생성 지점에서 실제 할당 크기를 기록한다
 		// TextureBudget에 잡히지 않는 렌더타겟 버퍼 업로드 힙을 확인하기 위한 진단 코드다
-		Entry entry{};
-
 		if (!EngineLog::Enabled(EngineLog::Domain::GpuBudget))
 			return;
 
-		//Entry entry{};
+		Entry entry{};
 		entry.group = group;
 		entry.name = name;
 		entry.heapType = heapType;
@@ -116,25 +109,23 @@ namespace GpuResourceBudget
 			if (SUCCEEDED(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &localInfo)) &&
 				SUCCEEDED(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &nonLocalInfo)))
 			{
-				EngineLog::Prefix(EngineLog::Domain::DxgiBudget, label)
-					<< "dedicated="
-					<< static_cast<uint32>(localInfo.CurrentUsage / mb) << "MB"
-					<< " dedicatedBudget=" << static_cast<uint32>(localInfo.Budget / mb) << "MB"
-					<< " shared=" << static_cast<uint32>(nonLocalInfo.CurrentUsage / mb) << "MB"
-					<< " sharedBudget=" << static_cast<uint32>(nonLocalInfo.Budget / mb) << "MB\n";
+				EngineLog::WriteTagged(EngineLog::Domain::DxgiBudget, label,
+					"dedicated=", static_cast<uint32>(localInfo.CurrentUsage / mb), "MB",
+					" dedicatedBudget=", static_cast<uint32>(localInfo.Budget / mb), "MB",
+					" shared=", static_cast<uint32>(nonLocalInfo.CurrentUsage / mb), "MB",
+					" sharedBudget=", static_cast<uint32>(nonLocalInfo.Budget / mb), "MB");
 			}
 		}
 
 		if (EngineLog::Enabled(EngineLog::Domain::GraphicsMemory) && graphicsMemory != nullptr)
 		{
 			const auto stats = graphicsMemory->GetStatistics();
-			EngineLog::Prefix(EngineLog::Domain::GraphicsMemory, label)
-				<< "committed="
-				<< static_cast<uint32>(stats.committedMemory / mb) << "MB"
-				<< " total=" << static_cast<uint32>(stats.totalMemory / mb) << "MB"
-				<< " pages=" << stats.totalPages
-				<< " peakCommitted=" << static_cast<uint32>(stats.peakCommitedMemory / mb) << "MB"
-				<< " peakTotal=" << static_cast<uint32>(stats.peakTotalMemory / mb) << "MB\n";
+			EngineLog::WriteTagged(EngineLog::Domain::GraphicsMemory, label,
+				"committed=", static_cast<uint32>(stats.committedMemory / mb), "MB",
+				" total=", static_cast<uint32>(stats.totalMemory / mb), "MB",
+				" pages=", stats.totalPages,
+				" peakCommitted=", static_cast<uint32>(stats.peakCommitedMemory / mb), "MB",
+				" peakTotal=", static_cast<uint32>(stats.peakTotalMemory / mb), "MB");
 		}
 	}
 
@@ -199,63 +190,35 @@ namespace GpuResourceBudget
 			[](const auto& a, const auto& b) { return a.second > b.second; });
 
 		const double mb = 1024.0 * 1024.0;
-		EngineLog::Prefix(EngineLog::Domain::GpuBudget, label)
-			<< "count=" << sorted.size()
-			<< " total=" << static_cast<uint32>(total / mb) << "MB"
-			<< " default=" << static_cast<uint32>(defaultTotal / mb) << "MB"
-			<< " upload=" << static_cast<uint32>(uploadTotal / mb) << "MB"
-			<< " readback=" << static_cast<uint32>(readbackTotal / mb) << "MB"
-			<< " custom=" << static_cast<uint32>(customTotal / mb) << "MB\n";
+		EngineLog::WriteTagged(EngineLog::Domain::GpuBudget, label,
+			"count=", sorted.size(),
+			" total=", static_cast<uint32>(total / mb), "MB",
+			" default=", static_cast<uint32>(defaultTotal / mb), "MB",
+			" upload=", static_cast<uint32>(uploadTotal / mb), "MB",
+			" readback=", static_cast<uint32>(readbackTotal / mb), "MB",
+			" custom=", static_cast<uint32>(customTotal / mb), "MB");
 
-	
-		if (EngineLog::Enabled(EngineLog::Domain::DxgiBudget) && adapter != nullptr)
-		{
-			DXGI_QUERY_VIDEO_MEMORY_INFO localInfo{};
-			DXGI_QUERY_VIDEO_MEMORY_INFO nonLocalInfo{};
-			if (SUCCEEDED(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &localInfo)) &&
-				SUCCEEDED(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &nonLocalInfo)))
-			{
-				EngineLog::Prefix(EngineLog::Domain::DxgiBudget, label)
-					<< "dedicated="
-					<< static_cast<uint32>(localInfo.CurrentUsage / mb) << "MB"
-					<< " dedicatedBudget=" << static_cast<uint32>(localInfo.Budget / mb) << "MB"
-					<< " shared=" << static_cast<uint32>(nonLocalInfo.CurrentUsage / mb) << "MB"
-					<< " sharedBudget=" << static_cast<uint32>(nonLocalInfo.Budget / mb) << "MB\n";
-			}
-		}
-
-		if (EngineLog::Enabled(EngineLog::Domain::GraphicsMemory) && graphicsMemory != nullptr)
-		{
-			const auto stats = graphicsMemory->GetStatistics();
-			EngineLog::Prefix(EngineLog::Domain::GraphicsMemory, label)
-				<< "committed="
-				<< static_cast<uint32>(stats.committedMemory / mb) << "MB"
-				<< " total=" << static_cast<uint32>(stats.totalMemory / mb) << "MB"
-				<< " pages=" << stats.totalPages
-				<< " peakCommitted=" << static_cast<uint32>(stats.peakCommitedMemory / mb) << "MB"
-				<< " peakTotal=" << static_cast<uint32>(stats.peakTotalMemory / mb) << "MB\n";
-		}
+		DumpDxgi(label, adapter, graphicsMemory);
 
 		const size_t groupN = (std::min)(static_cast<size_t>(12), groupTotals.size());
 		for (size_t i = 0; i < groupN; ++i)
 		{
-			EngineLog::Prefix(EngineLog::Domain::GpuBudget, label)
-				<< "group=" << Narrow(groupTotals[i].first)
-				<< " size=" << static_cast<uint32>(groupTotals[i].second / mb)
-				<< "MB\n";
+			EngineLog::WriteTagged(EngineLog::Domain::GpuBudget, label,
+				"group=", EngineLog::Narrow(groupTotals[i].first),
+				" size=", static_cast<uint32>(groupTotals[i].second / mb), "MB");
 		}
 
 		const size_t topN = (std::min)(static_cast<size_t>(30), sorted.size());
 		for (size_t i = 0; i < topN; ++i)
 		{
 			const Entry& entry = sorted[i];
-			EngineLog::Prefix(EngineLog::Domain::GpuBudget, label)
-				<< "resource=" << Narrow(entry.name)
-				<< " group=" << Narrow(entry.group)
-				<< " heap=" << HeapName(entry.heapType)
-				<< " size=" << static_cast<uint32>(entry.bytes / mb) << "MB"
-				<< " desc=" << entry.width << "x" << entry.height << "x"
-				<< entry.depthOrArraySize << "\n";
+			EngineLog::WriteTagged(EngineLog::Domain::GpuBudget, label,
+				"resource=", EngineLog::Narrow(entry.name),
+				" group=", EngineLog::Narrow(entry.group),
+				" heap=", HeapName(entry.heapType),
+				" size=", static_cast<uint32>(entry.bytes / mb), "MB",
+				" desc=", entry.width, "x", entry.height, "x",
+				entry.depthOrArraySize);
 		}
 	}
 }

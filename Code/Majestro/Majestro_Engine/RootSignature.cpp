@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "RootSignature.h"
+#include "EngineLog.h"
 #include "Engine.h"
 #include "RenderManager.h"
 
@@ -87,7 +88,10 @@ ComPtr<ID3D12RootSignature> RootSignature::CreateGraphicsRootSignature()
 	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &sigBlob, &errBlob);
 	if (FAILED(hr))
 	{
-		if (errBlob) ::OutputDebugStringA((char*)errBlob->GetBufferPointer());
+		if (errBlob)
+			EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "root-signature",
+				"직렬화 실패", std::hex, hr, std::dec,
+				" msg=", (const char*)errBlob->GetBufferPointer());
 		return nullptr;
 	}
 
@@ -114,7 +118,10 @@ ComPtr<ID3D12RootSignature> RootSignature::CreateComputeRootSignature()
 	HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &sigBlob, &errBlob);
 	if (FAILED(hr))
 	{
-		if (errBlob) ::OutputDebugStringA((char*)errBlob->GetBufferPointer());
+		if (errBlob)
+			EngineLog::WriteTagged(EngineLog::Domain::ResourceLoad, "root-signature",
+				"직렬화 실패", std::hex, hr, std::dec,
+				" msg=", (const char*)errBlob->GetBufferPointer());
 		return nullptr;
 	}
 

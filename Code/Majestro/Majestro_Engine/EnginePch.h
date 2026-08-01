@@ -275,13 +275,9 @@ struct WindowInfo {
 wstring s2ws(const string& s);
 string ws2s(const wstring& s);
 std::wstring utfs2ws(const std::string& utf8);
+
 void LogDebug(const std::string& msg);
 void LogDebugW(const std::wstring& msg);
-
-// network
-void err_quit(const char* msg);
-void err_display(const char* msg);
-void err_display(int errcode);
 
 #include "Protocol/Packet.h"
 #include "PacketHelper.h"

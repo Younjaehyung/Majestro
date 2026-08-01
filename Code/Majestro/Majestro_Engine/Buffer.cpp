@@ -14,7 +14,6 @@ ConstantBuffer::ConstantBuffer()
 
 ConstantBuffer::~ConstantBuffer()
 {
-	cout << "delete buffer" << endl;
 
 	if (mCbvBuffer)
 	{
@@ -125,12 +124,9 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 
 	if (buffer == nullptr || mBuffer == nullptr || size > mBufferSize)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
-		{
-			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "PushDefaultToData", std::cerr)
-				<< "invalid-input size=" << size
-				<< " bufferSize=" << mBufferSize << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::GpuUpload, "PushDefaultToData", "invalid-input",
+			"invalid-input size=", size, " bufferSize=", mBufferSize);
 		return;
 	}
 
@@ -148,12 +144,10 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 
 	if (FAILED(hr) || readBuffer == nullptr)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
-		{
-			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "PushDefaultToData", std::cerr)
-				<< "staging-allocation-failed size=" << size
-				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::GpuUpload, "PushDefaultToData", "staging-allocation-failed",
+			"staging-allocation-failed size=", size,
+			" hr=0x", std::hex, hr, std::dec);
 		return;
 	}
 
@@ -173,12 +167,9 @@ void StructuredBuffer::PushDefaultToData(void* buffer, uint32 size)
 
 	if (FAILED(hr) || dataBegin == nullptr)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
-		{
-			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "PushDefaultToData", std::cerr)
-				<< "map-failed size=" << size
-				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::GpuUpload, "PushDefaultToData", "map-failed",
+			"map-failed size=", size, " hr=0x", std::hex, hr, std::dec);
 		return;
 	}
 	memcpy(dataBegin, buffer, size);
@@ -214,12 +205,9 @@ void StructuredBuffer::UpdateDefaultFromCpu(const void* data, uint32 size)
 
 	if (data == nullptr || mBuffer == nullptr || size > mBufferSize)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
-		{
-			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "UpdateDefaultFromCpu", std::cerr)
-				<< "invalid-input size=" << size
-				<< " bufferSize=" << mBufferSize << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::GpuUpload, "UpdateDefaultFromCpu", "invalid-input",
+			"invalid-input size=", size, " bufferSize=", mBufferSize);
 		return;
 	}
 
@@ -369,13 +357,11 @@ bool StructuredBuffer::EnsureDummyUploadBuffer(uint64 size)
 
 	if (FAILED(hr) || mDummyBuffer == nullptr)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
-		{
-			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "EnsureDummyUploadBuffer", std::cerr)
-				<< "lazy-allocation-failed name=" << EngineLog::Narrow(mDebugName)
-				<< " size=" << mDummyBufferSize
-				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::GpuUpload, "EnsureDummyUploadBuffer",
+			"lazy-allocation-failed:" + EngineLog::Narrow(mDebugName),
+			"lazy-allocation-failed name=", EngineLog::Narrow(mDebugName),
+			" size=", mDummyBufferSize, " hr=0x", std::hex, hr, std::dec);
 		mDummyBufferSize = 0;
 		return false;
 	}
@@ -389,13 +375,11 @@ bool StructuredBuffer::EnsureDummyUploadBuffer(uint64 size)
 
 	if (FAILED(hr) || mDummyMappedBuffer == nullptr)
 	{
-		if (EngineLog::Enabled(EngineLog::Domain::GpuUpload))
-		{
-			EngineLog::Prefix(EngineLog::Domain::GpuUpload, "EnsureDummyUploadBuffer", std::cerr)
-				<< "lazy-map-failed name=" << EngineLog::Narrow(mDebugName)
-				<< " size=" << mDummyBufferSize
-				<< " hr=0x" << std::hex << hr << std::dec << std::endl;
-		}
+		EngineLog::WriteTaggedOnce(
+			EngineLog::Domain::GpuUpload, "EnsureDummyUploadBuffer",
+			"lazy-map-failed:" + EngineLog::Narrow(mDebugName),
+			"lazy-map-failed name=", EngineLog::Narrow(mDebugName),
+			" size=", mDummyBufferSize, " hr=0x", std::hex, hr, std::dec);
 		mDummyBuffer.Reset();
 		mDummyBufferSize = 0;
 		return false;

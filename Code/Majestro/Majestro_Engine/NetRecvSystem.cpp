@@ -769,7 +769,7 @@ void NetRecvSystem::HandleHitConfirm(const InputCommand& msg)
 
 void NetRecvSystem::HandleGameStart(const InputCommand& msg)
 {
-    cout << "GameStart" << endl;
+    EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "game-start", "게임 시작 수신 — Plaza 로 전환");
     mStopProcessing = true;
 	gEngine->GetSceneManager().RequestSceneWithLoading(SceneId::Plaza, L"광장 로딩 중...");
 }

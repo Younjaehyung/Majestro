@@ -2,6 +2,7 @@
 #include "CameraShakeTable.h"
 #include "PlayerComponent.h"
 #include "JsonUtils.h"
+#include "EngineLog.h"
 
 
 namespace
@@ -44,7 +45,8 @@ void CameraShakeTable::Load(const std::string& path)
 	std::ifstream ifs(path);
 	if (!ifs)
 	{
-		std::cout << "CameraShakeSetting json not found: " << path << std::endl;
+		EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-shake",
+			"open-failed path=", path);
 		return;
 	}
 
@@ -56,7 +58,8 @@ void CameraShakeTable::Load(const std::string& path)
 		auto typeIt = kPlayerTypeByName.find(characterName);
 		if (typeIt == kPlayerTypeByName.end())
 		{
-			std::cout << "CameraShakeSetting: 알 수 없는 캐릭터 키 " << characterName << std::endl;
+			EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-shake",
+				"알 수 없는 캐릭터 키 character=", characterName);
 			continue;
 		}
 
@@ -65,7 +68,8 @@ void CameraShakeTable::Load(const std::string& path)
 			auto stateIt = kActionStateByName.find(stateName);
 			if (stateIt == kActionStateByName.end())
 			{
-				std::cout << "CameraShakeSetting: 알 수 없는 상태 키 " << stateName << std::endl;
+				EngineLog::WriteTagged(EngineLog::Domain::DataTable, "camera-shake",
+					"알 수 없는 상태 키 character=", characterName, " state=", stateName);
 				continue;
 			}
 

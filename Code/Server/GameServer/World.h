@@ -157,6 +157,21 @@ private:
 
 	void RemoveComponentFromPool(EntityID entityID, ComponentTypeID typeID);
 
+    // 풀 조회
+    template<typename T>
+    ComponentPool<T>* FindComponentPool() {
+        const ComponentTypeID typeID = T::GetTypeID();
+        if (typeID >= mComponentPools.size()) return nullptr;
+        return static_cast<ComponentPool<T>*>(mComponentPools[typeID].get());
+    }
+
+    template<typename T>
+    const ComponentPool<T>* FindComponentPool() const {
+        const ComponentTypeID typeID = T::GetTypeID();
+        if (typeID >= mComponentPools.size()) return nullptr;
+        return static_cast<const ComponentPool<T>*>(mComponentPools[typeID].get());
+    }
+
     std::vector<EntityID> mActiveBulletEntityIds;
 
     
@@ -186,33 +201,29 @@ void World::RemoveComponent(Entity entity) {
 
 template<typename T>
 T* World::GetComponent(Entity entity) {
-    auto& pool = GetComponentPool<T>();
-    return pool.GetComponent(entity.GetID());
-}
-
-template<typename T>
-const T* World::GetComponent(Entity entity) const {
-    const ComponentTypeID typeID = T::GetTypeID();
-    if (typeID >= mComponentPools.size()) return nullptr; // 안전하게 nullptr
-    const auto* pool = static_cast<const ComponentPool<T>*>(mComponentPools[typeID].get());
+    auto* pool = FindComponentPool<T>();
     if (pool == nullptr) return nullptr;
     return pool->GetComponent(entity.GetID());
 }
 
 template<typename T>
+const T* World::GetComponent(Entity entity) const {
+    const auto* pool = FindComponentPool<T>();
+    if (pool == nullptr) return nullptr; // 안전하게 nullptr
+    return pool->GetComponent(entity.GetID());
+}
+
+template<typename T>
 bool World::HasComponent(Entity entity) const {
-    const ComponentTypeID typeID = T::GetTypeID();
-    if (typeID >= mComponentPools.size()) return false; // 풀이 없으면 false
-    const auto* pool = static_cast<const ComponentPool<T>*>(mComponentPools[typeID].get());
-    if (pool == nullptr) return false;
+    const auto* pool = FindComponentPool<T>();
+    if (pool == nullptr) return false; // 풀이 없으면 false
     return pool->HasComponent(entity.GetID());
 }
 
 template<typename T>
 bool World::HasComponentPool() const
 {
-    const ComponentTypeID typeID = T::GetTypeID();
-    return typeID < mComponentPools.size() && mComponentPools[typeID] != nullptr;
+    return FindComponentPool<T>() != nullptr;
 }
 
 template<typename T>

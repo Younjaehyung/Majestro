@@ -73,9 +73,7 @@ void AIManager::LoadDefaultModels()
     {
         if (!LoadModel(modelKey, modelPath, &errorMessage))
         {
-            std::wcerr << L"[AIManager] Failed to load model '" << modelKey
-                << L"' from " << modelPath
-                << L": " << errorMessage << std::endl;
+            MJLOG_ERROR(ResourceLoad, "ONNX 모델 로드 실패 key={} path={} err={}", ws2s(modelKey), ws2s(modelPath), ws2s(errorMessage));
         }
     }
 }

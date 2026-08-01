@@ -364,8 +364,8 @@ SceneChangeOutcome SceneManager::TryChangeScene(uint64 sessionId, SceneId reques
 			if (auto& gameMode = gIt->second->GetGameMode())
 			{
 				gameMode->DebugForceTransition(requestedScene);
-				cout << "[DEBUG] 강제 씬 전환: room=" << roomId
-					<< " scene=" << (int)currentScene << " -> " << (int)requestedScene << endl;
+				MJLOG_INFO(GameRule, "강제 씬 전환 room={} scene={} -> {}",
+					roomId, (int)currentScene, (int)requestedScene);
 			}
 		}
 		return outcome;

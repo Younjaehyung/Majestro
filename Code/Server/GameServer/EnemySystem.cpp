@@ -1581,11 +1581,7 @@ bool EnemySystem::HandleAttackState(
             enemyComp->mNextAttackTime = nowSeconds + beatSeconds * enemyComp->mAttackCool;
             enemyComp->mAttackAnimEndTime = nowSeconds + enemyComp->mAttackAnimTime;
             enemyComp->mPendingAttackTime = -1.0f;
-            std::cout << "[Bongo] attack queued enemy=" << entity.GetID()
-                << " now=" << nowSeconds
-                << " next=" << enemyComp->mNextAttackTime
-                << " pending=" << enemyComp->mPendingAttackTime
-                << std::endl;
+            MJLOG_INFO(CombatDetail, "봉고 공격 예약 enemy={} now={} next={} pending={}", entity.GetID(), nowSeconds, enemyComp->mNextAttackTime, enemyComp->mPendingAttackTime);
         }
         break;
     default:
@@ -1880,7 +1876,7 @@ void EnemySystem::UpdateOnnxToggle()
     if (pressed && !mOnnxToggleKeyHeld)
     {
         mUseOnnxBaseMove = !mUseOnnxBaseMove;
-        std::cout << "[EnemySystem] ONNX base_move " << (mUseOnnxBaseMove ? "enabled" : "disabled") << std::endl;
+        MJLOG_INFO(Ai, "ONNX base_move {}", mUseOnnxBaseMove ? "on" : "off");
     }
 
     mOnnxToggleKeyHeld = pressed;
@@ -1981,8 +1977,7 @@ bool EnemySystem::TrySelectBossOnnxAction(
     {
         if (!enemyComp->mBossPolicyErrorLogged)
         {
-            std::wcerr << L"[BossONNX] " << modelKey << L" inference failed: "
-                << (errorMessage.empty() ? L"invalid output shape" : errorMessage) << std::endl;
+            MJLOG_ERROR(Ai, "보스 ONNX 추론 실패 key={} err={}", ws2s(modelKey), ws2s(errorMessage.empty() ? std::wstring(L"invalid output shape") : errorMessage));
             enemyComp->mBossPolicyErrorLogged = true;
         }
         return false;
@@ -2100,10 +2095,7 @@ bool EnemySystem::TrySelectBossOnnxAction(
     ++enemyComp->mBossPolicyStepCount;
     enemyComp->mBossPolicyErrorLogged = false;
 
-    std::wcout << L"[BossONNX] " << modelKey
-        << L" entity=" << entity.GetID()
-        << L" target=" << static_cast<int>(outTargetIndex)
-        << L" choice=" << static_cast<int>(outChoice) << std::endl;
+    MJLOG_INFO(CombatDetail, "보스 ONNX 스텝 key={} entity={} target={} choice={}", ws2s(modelKey), entity.GetID(), static_cast<int>(outTargetIndex), static_cast<int>(outChoice));
     return true;
 }
 
@@ -2253,12 +2245,8 @@ bool EnemySystem::TryComputeOnnxModelTarget(
     std::wstring errorMessage;
     if (!AIMANAGER.RunModel(modelKey, input, output, &errorMessage))
     {
-        static bool loggedFailure = false;
-        if (!loggedFailure)
-        {
-            std::wcerr << L"[EnemySystem] ONNX " << modelKey << L" inference failed: " << errorMessage << std::endl;
-            loggedFailure = true;
-        }
+        MJLOG_ONCE(Ai, Error, "onnx-fail:" + ws2s(modelKey),
+            "ONNX 추론 실패 key={} err={}", ws2s(modelKey), ws2s(errorMessage));
         return false;
     }
 

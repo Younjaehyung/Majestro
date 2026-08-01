@@ -149,7 +149,7 @@ void PreparePhase::PostUpdate(float dt, WaveGameMode& mode)
 	const bool skipPressed = (GetAsyncKeyState(VK_F10) & 0x8000) != 0;
 	if (skipPressed && !mSkipKeyHeld)
 	{
-		std::cout << "[PreparePhase] F10 입력 - 준비 단계 즉시 전환" << std::endl;
+		MJLOG_INFO(GameRule, "F10 입력 — 준비 단계 즉시 전환");
 		mSkipKeyHeld = skipPressed;
 		mIsCompleted = true;
 		return;
@@ -374,7 +374,7 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 				* GameConquestComponent::mConquestProgressSpeedMultiplier * conquestSpeedMultiplier;
 		}
 		ruleComp->mWaveInterval = 0.f;
-		std::cout << "[ConquestZone] :  PlayerNum: " << playerNum << ", EnemyNum: " << enemyNum << ", WaveTime: " << ruleComp->mWaveTime << std::endl;
+		MJLOG_INFO(GameRule, "점령 구역 players={} enemies={} waveTime={}", playerNum, enemyNum, ruleComp->mWaveTime);
 	}
 	else {
 		// 웨이브 점령 감소 간격이 최대 간격보다 작으면 간격 증가, 

@@ -67,28 +67,28 @@ void NavMesh::Load(const std::string& path)
     FILE* fp = fopen(path.c_str(), "rb");
     if (!fp)
     {
-        std::cerr << "Failed to open NavMesh file: " << path << std::endl;
+        MJLOG_ERROR(ResourceLoad, "NavMesh 열기 실패 path={}", path);
         return;
     }
 
     NavMeshSetHeader header{};
     if (fread(&header, sizeof(NavMeshSetHeader), 1, fp) != 1)
     {
-        std::cerr << "Failed to read NavMesh header: " << path << std::endl;
+        MJLOG_ERROR(ResourceLoad, "NavMesh 헤더 읽기 실패 path={}", path);
         fclose(fp);
         return;
     }
 
     if (header.magic != NAVMESHSET_MAGIC)
     {
-        std::cerr << "NavMesh file magic mismatch (expected MSET): " << path << std::endl;
+        MJLOG_ERROR(ResourceLoad, "NavMesh magic 불일치(MSET 기대) path={}", path);
         fclose(fp);
         return;
     }
     if (header.version != NAVMESHSET_VERSION)
     {
-        std::cerr << "NavMesh file version mismatch (expected 1, got "
-                  << header.version << "): " << path << std::endl;
+        MJLOG_ERROR(ResourceLoad, "NavMesh 버전 불일치 expected={} got={} path={}",
+            NAVMESHSET_VERSION, header.version, path);
         fclose(fp);
         return;
     }
@@ -96,7 +96,7 @@ void NavMesh::Load(const std::string& path)
     mDtNavMesh = dtAllocNavMesh();
     if (!mDtNavMesh)
     {
-        std::cerr << "Failed to allocate dtNavMesh." << std::endl;
+        MJLOG_ERROR(ResourceLoad, "dtNavMesh 할당 실패 path={}", path);
         fclose(fp);
         return;
     }
@@ -106,7 +106,7 @@ void NavMesh::Load(const std::string& path)
     {
         dtFreeNavMesh(mDtNavMesh);
         mDtNavMesh = nullptr;
-        std::cerr << "Failed to initialize dtNavMesh: " << path << std::endl;
+        MJLOG_ERROR(ResourceLoad, "dtNavMesh 초기화 실패 path={}", path);
         fclose(fp);
         return;
     }
@@ -123,7 +123,7 @@ void NavMesh::Load(const std::string& path)
         unsigned char* data = static_cast<unsigned char*>(dtAlloc(tileHeader.dataSize, DT_ALLOC_PERM));
         if (!data)
         {
-            std::cerr << "Failed to allocate tile data (tile " << i << ")." << std::endl;
+            MJLOG_ERROR(ResourceLoad, "NavMesh 타일 할당 실패 tile={} path={}", i, path);
             break;
         }
 
@@ -131,7 +131,7 @@ void NavMesh::Load(const std::string& path)
         if (fread(data, tileHeader.dataSize, 1, fp) != 1)
         {
             dtFree(data);
-            std::cerr << "Failed to read tile data (tile " << i << ")." << std::endl;
+            MJLOG_ERROR(ResourceLoad, "NavMesh 타일 읽기 실패 tile={} path={}", i, path);
             break;
         }
 
@@ -141,7 +141,7 @@ void NavMesh::Load(const std::string& path)
     }
 
     fclose(fp);
-    std::cout << "NavMesh loaded: " << header.numTiles << " tiles — " << path << std::endl;
+    MJLOG_INFO(ResourceLoad, "NavMesh 로드 완료 tiles={} path={}", header.numTiles, path);
 }
 
 
@@ -208,7 +208,7 @@ bool Navigation::LoadTiledNavMesh(shared_ptr<NavMesh>& navMesh)
 
     if (!mNavMesh->mDtNavMesh)
     {
-        std::cerr << "Failed to load NavMesh: mDtNavMesh is null\n";
+        MJLOG_ERROR(ResourceLoad, "NavMesh 로드 실패 — mDtNavMesh 가 null");
         return false;
     }
 

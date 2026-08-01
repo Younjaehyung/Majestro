@@ -13,7 +13,6 @@ string ReadString(std::ifstream& file)
 
 	string utf8Str(length, '\0');
 	file.read(&utf8Str[0], length);
-	cout << utf8Str << endl;
 	return utf8Str; // 기존의 s2ws 함수 사용
 }
 

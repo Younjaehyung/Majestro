@@ -24,8 +24,9 @@ void SendBufferManager::Shutdown() {
 
 SendBuffer* SendBufferManager::Acquire() {
     if (mPool.empty()) {
-        // LOG_WARN("SendBufferPool Exhausted! Allocating new. All: [{}] \n", mTotalAllocated);
         mTotalAllocated++;
+        MJLOG_EVERY(Session, Warn, "sendbuffer-pool-grow", 5.0,
+            "SendBuffer 풀 고갈 — 신규 할당 누적={}", mTotalAllocated);
         return new SendBuffer();
     }
     // LIFO

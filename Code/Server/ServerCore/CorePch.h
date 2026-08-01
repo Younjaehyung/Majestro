@@ -9,7 +9,7 @@
 #include <WS2tcpip.h>
 #include <MSWSock.h>
 
-#include "CoreMacro.h"
+#include "ServerLog.h"
 
 #define NOMINMAX
 #include <windows.h>

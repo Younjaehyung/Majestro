@@ -21,10 +21,17 @@ ServerCore::~ServerCore()
 
 void ServerCore::Initialize()
 {
+
+	// 로그 초기화
+	ServerLog::Initialize();
+
 	// 윈속 초기화
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	{
+		MJLOG_ERROR(Startup, "WSAStartup 실패 code={}", ::WSAGetLastError());
 		return;
+	}
 	SendBufferManager::Initialize(1000);
 	mNetworkThread = make_shared<NetworkThread>();
 }
@@ -68,6 +75,7 @@ void ServerCore::Update()
 void ServerCore::Stop()
 {
 	mNetworkThread->Stop();
+	ServerLog::Shutdown();
 }
 
 void ServerCore::BroadcastPacket(SendRequest& pkt)

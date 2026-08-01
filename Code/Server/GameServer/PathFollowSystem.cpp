@@ -61,10 +61,7 @@ void PathFollowSystem::Update(float dt)
 				path->mFiredEvents.insert(ev->name);
 			}
 
-			std::cout << "[PathFollow] entity=" << entity.GetID()
-			          << " event=" << ev->name
-			          << " id=" << ev->eventId
-			          << " distance=" << ev->distance << std::endl;
+			MJLOG_INFO(CombatDetail, "경로 이벤트 entity={} event={} id={} distance={}", entity.GetID(), ev->name, ev->eventId, ev->distance);
 		}
 	}
 }

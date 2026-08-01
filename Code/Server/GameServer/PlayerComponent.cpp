@@ -3,7 +3,6 @@
 #include "StateMachine.h"
 #include "GameTimer.h"
 
-BOOL STATE_DEBUG = FALSE;
 std::vector<State<MainPlayerComponent>*> mStateList;
 
 const char* ResolveStateSettingJsonPath(uint8 playerType)
@@ -162,7 +161,7 @@ MainPlayerComponent::MainPlayerComponent(const std::string& path, PlayerType pla
 	};
     InitFSMFromJson(path);
 
-    cout << "playertype:" << (int)mPlayerType << endl;
+    MJLOG_INFO(DataTable, "플레이어 초기화 playerType={}", (int)mPlayerType);
     LoadStateSettingFromJson(ResolveStateSettingJsonPath(playerType));
 }
 
@@ -336,7 +335,7 @@ void MainPlayerComponent::InitFSMOnce()
 
 void MainPlayerComponent::InitFSMFromJson(const std::string& path)
 {
-    cout << "json input" << endl;
+    MJLOG_INFO(DataTable, "FSM JSON 로드 path={}", path);
 
     // 1) 포인터→ID 변환기 주입 (상태 이름→StateId)
     auto stateResolver = [](State<MainPlayerComponent>* s)->StateId {
@@ -371,7 +370,7 @@ void MainPlayerComponent::InitFSMFromJson(const std::string& path)
     // 2) JSON 열기
     std::ifstream ifs(path);
     if (!ifs) {
-        cout << "non json" << endl;
+        MJLOG_WARN(DataTable, "FSM JSON 없음 — 기본 FSM 사용 path={}", path);
         InitFSMOnce();
         return;
     }
@@ -448,7 +447,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 {
     std::ifstream ifs(path);
     if (!ifs) {
-        std::cout << "stateProps json not found\n";
+        MJLOG_WARN(DataTable, "StateSetting json 열기 실패 path={}", path);
         return;
     }
     json j;
@@ -492,16 +491,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();
 
-        std::cout << "[Player Config Loaded]\n";
-        //std::cout << "  WalkSpeed : " << mWalkSpeed << "\n";
-        std::cout << "  RunSpeed  : " << mRunSpeed << "\n";
-        std::cout << "  DashSpeed : " << mDashSpeed << "\n";
-        std::cout << "  DashTime : " << mDashTime << "\n";
-        std::cout << "  AttackCool : " << mAttackCool << "\n";
-        std::cout << "  Skill1Cool : " << mSkill1Cool << "\n";
-        std::cout << "  Skill2Cool : " << mSkill2Cool << "\n";
-        std::cout << "  ReloadCool : " << mReloadCool << "\n";
-        std::cout << "  RhythmEffectRadius : " << mRhythmEffectRadius << "\n";
+        MJLOG_INFO(DataTable, "플레이어 세팅 로드 run={} dash={} dashTime={} attackCool={} skill1Cool={} skill2Cool={} reloadCool={} rhythmRadius={}", mRunSpeed, mDashSpeed, mDashTime, mAttackCool, mSkill1Cool, mSkill2Cool, mReloadCool, mRhythmEffectRadius);
     }
     // 2) STATE PROPERTY 로딩
     if (!j.contains("stateProps"))
@@ -540,7 +530,7 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
 
     }
 
-    std::cout << "[State Props Loaded]\n";
+    MJLOG_INFO(DataTable, "상태 로드 완료 path={}", path);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -568,7 +558,7 @@ void StateEnter(State<MainPlayerComponent>*s, MainPlayerComponent * owner)
         else if (owner->mPlayerMovingDir.x > 0.0f) owner->mNextState = S_RunForward;
         else if (owner->mPlayerMovingDir.x < 0.0f) owner->mNextState = S_RunBackward;
         }
-    if (STATE_DEBUG) { std::cout << "Enter " << s->GetName() << "\n"; }
+    MJLOG_INFO(PlayerState, "Enter {}", s->GetName());
     if (timing.animOnce) SetFlag(owner->mFlags, FLAG_ANIM);
 }
 
@@ -582,7 +572,7 @@ void StateUpdate(State<MainPlayerComponent>* s, MainPlayerComponent* owner) {
 
 void StateExit(State<MainPlayerComponent>* s, MainPlayerComponent* owner)
 {
-    if (STATE_DEBUG) { std::cout << "Exit " << s->GetName() << "\n"; }
+    MJLOG_INFO(PlayerState, "Exit {}", s->GetName());
 }
 
 IdleState* IdleState::Instance() {

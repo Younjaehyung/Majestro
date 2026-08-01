@@ -252,7 +252,7 @@ namespace
 				ParseInteractableTarget(GetOptionalString(it, "targetMask", "Player")));
 			++loadedCount;
 		}
-		std::cout << "[Gimmick] interactables loaded: " << loadedCount << std::endl;
+		MJLOG_INFO(DataTable, "Gimmick interactables 로드 count={}", loadedCount);
 	}
 
 
@@ -426,11 +426,11 @@ void Scene::LoadJsonLevel(const wstring& path)
 
 			if (!data)
 			{
-				std::cerr << "FBX load failed (null data): " << stem << "\n";
+				MJLOG_ERROR(ResourceLoad, "FBX 로드 실패(null) name={}", stem);
 				break;
 			}
 			else if (data->GetColliders().empty()) {
-				std::cerr << "FBX load failed Mesh (null data): " << stem << "\n";
+				MJLOG_ERROR(ResourceLoad, "FBX 충돌체 없음 name={}", stem);
 				continue;
 			}
 
@@ -451,7 +451,7 @@ void Scene::LoadJsonLevel(const wstring& path)
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Load failed: " << e.what() << "\n";
+		MJLOG_ERROR(ResourceLoad, "레벨 FBX 임포트 실패 path={} what={}", ws2s(path), e.what());
 	}
 }
 
@@ -495,7 +495,7 @@ void Scene::LoadCollisionJson(const wstring& path)
 				if (colliders.empty())
 				{
 					++skippedCount;
-					std::cerr << "LoadCollisionJson skipped collision mesh without converted .mesh data: " << ws2s(fbxPath) << "\n";
+					MJLOG_WARN(ResourceLoad, "변환된 .mesh 가 없어 충돌 메시를 건너뜀 path={}", ws2s(fbxPath));
 					continue;
 				}
 
@@ -529,13 +529,11 @@ void Scene::LoadCollisionJson(const wstring& path)
 			if (loadedMeshCount > 0)
 				physicsWorld->OptimizeJoltStaticCollision();
 
-			std::cout << "Loaded Jolt collision instances: " << loadedInstanceCount
-				<< ", meshes: " << loadedMeshCount
-				<< ", skipped: " << skippedCount << std::endl;
+			MJLOG_INFO(ResourceLoad, "Jolt 정적 충돌 로드 instances={} meshes={} skipped={}", loadedInstanceCount, loadedMeshCount, skippedCount);
 		}
 		catch (const std::exception& e)
 		{
-			std::cerr << "Load failed: " << e.what() << "\n";
+			MJLOG_ERROR(ResourceLoad, "Jolt 충돌 로드 실패 path={} what={}", ws2s(path), e.what());
 		}
 	}
 	return;
@@ -623,11 +621,11 @@ void Scene::LoadCollisionJson(const wstring& path)
 			mWorld->GetPhysicsWorld()->SyncStaticBVHIfNeeded();
 		}
 
-		std::cout << "Loaded collision boxes: " << loadedCount << ", spheres: " << loadedSphereCount << std::endl;
+		MJLOG_INFO(ResourceLoad, "충돌체 로드 boxes={} spheres={}", loadedCount, loadedSphereCount);
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Load failed: " << e.what() << "\n";
+		MJLOG_ERROR(ResourceLoad, "충돌체 로드 실패 path={} what={}", ws2s(path), e.what());
 	}
 }
 
@@ -798,8 +796,7 @@ void Scene::ApplyPhaseSpawnerSet(const std::string& phaseKey)
 			em->Enqueue<EvInteractableStateChanged>(EvInteractableStateChanged{ e, sp->mActive });
 	}
 
-	std::cout << "[PhaseSpawner] phase=" << phaseKey << " active=" << activated
-		<< "/" << mPhaseManagedSpawnerIds.size() << std::endl;
+	MJLOG_INFO(GameRule, "Phase Spawner 적용 phase={} active={}/{}", phaseKey, activated, mPhaseManagedSpawnerIds.size());
 }
 
 void Scene::SetGameMode(shared_ptr<GameMode>& gameMode)

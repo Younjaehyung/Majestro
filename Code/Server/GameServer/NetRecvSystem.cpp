@@ -531,7 +531,7 @@ Entity NetRecvSystem::SpawnPlayer(InputCommand& inputCommand)
 	const C2S_StartGamePacket* startPacket = inputCommand.ViewAs<C2S_StartGamePacket>();
 	if (startPacket)
 	{
-		cout << "charactor: " << (int)startPacket->playerType << endl;
+		MJLOG_INFO(GameRule, "게임 시작 요청 playerType={}", (int)startPacket->playerType);
 	}
 
 	Entity playerEntity = PrefabFactory::Spawn(mWorld, PrefabType::PLAYER, inputCommand);

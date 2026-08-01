@@ -24,9 +24,9 @@ void GameCore::Initialize()
 
 void GameCore::Start()
 {
-	cout << "load gamedata" << endl;
+	MJLOG_INFO(Startup, "게임 데이터 로드 시작");
 	LoadGameData();
-	cout << "load gamedata2" << endl;
+	MJLOG_INFO(Startup, "게임 데이터 로드 완료");
 }
 
 void GameCore::Update(float deltaTime)

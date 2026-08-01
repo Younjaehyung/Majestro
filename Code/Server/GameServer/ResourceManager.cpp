@@ -203,17 +203,19 @@ shared_ptr<FBX> ResourceManager::LoadFBXMeshes(const wstring& path, const wstrin
 
 void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
 {
-#ifdef _DEBUG
-	
-	static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
-	auto pk = std::make_pair(objectType, key);
-	auto it = sKeyPath.find(pk);
-	if (it == sKeyPath.end())
-		sKeyPath.emplace(pk, path);
-	else if (it->second != path)
-		std::cout << "[ResLoad][COLLISION] key=" << ws2s(key)
-		<< " old=" << ws2s(it->second) << " new=" << ws2s(path) << "\n";
-#endif
+	if constexpr (ServerLog::Enabled(ServerLog::Domain::ResourceLoad))
+	{
+		static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
+		auto pk = std::make_pair(objectType, key);
+		auto it = sKeyPath.find(pk);
+		if (it == sKeyPath.end())
+			sKeyPath.emplace(pk, path);
+		else if (it->second != path)
+		{
+			MJLOG_WARN(ResourceLoad, "리소스 키 충돌 key={} old={} new={}",
+				ws2s(key), ws2s(it->second), ws2s(path));
+		}
+	}
 }
 
 shared_ptr<Mesh> ResourceManager::LoadMCubeMesh()

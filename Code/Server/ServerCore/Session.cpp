@@ -48,14 +48,12 @@ void Session::Disconnect(const std::string& cause)
 
 
 
-	LOG_INFO("Disconnect Req ID :[{}] Cause:{} ",
-		mPlayerId, cause);
+	MJLOG_INFO(Session, "접속 종료 요청 id={} cause={}", mPlayerId, cause);
 }
 
 void Session::Close()
 {
-	LOG_INFO("Disconnect ID :[{}] ",
-		mPlayerId);
+	MJLOG_INFO(Session, "접속 종료 id={}", mPlayerId);
 	SocketUtils::Close(mTcpSocket);
 	
 }
@@ -80,8 +78,8 @@ void Session::HandleError(int32 errorCode)
 		Disconnect("HandleError");
 		break;
 	default:
-		// TODO : Log
-		LOG_ERROR("Handle Error Code [{}]", errorCode);
+		MJLOG_EVERY(Session, Error, "handle-error:" + std::to_string(errorCode), 5.0,
+			"소켓 오류 id={} code={}", mPlayerId, errorCode);
 		break;
 	}
 }

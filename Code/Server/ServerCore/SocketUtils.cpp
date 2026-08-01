@@ -5,17 +5,6 @@
 	SocketUtils
 -----------------*/
 
-void SocketUtils::Init()
-{
-	WSADATA wsaData;
-
-	int result = ::WSAStartup(MAKEWORD(2, 2), OUT & wsaData);
-	ASSERT_CRASH(result == 0);
-	
-	/* 런타임에 주소 얻어오는 API */
-
-}
-
 void SocketUtils::Clear()
 {
 	::WSACleanup();

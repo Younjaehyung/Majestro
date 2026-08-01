@@ -326,12 +326,7 @@ void DamageSystem::Update(float deltaTime)
             eventManager->Enqueue<EvHitConfirm>(hit);
         }
 
-        std::cout << "[DamageSystem] target=" << e.target.GetID()
-            << " instigator=" << e.instigator.GetID()
-            << " amount=" << e.amount
-            << " armor=" << beforeArmor << "->" << afterArmor
-            << " hp=" << afterHp << "/" << health->mMaxHp
-            << " (" << beforeHp << "->" << afterHp << ")" << std::endl;
+        MJLOG_INFO(CombatDetail, "피해 target={} instigator={} amount={} armor={}->{} hp={}->{}/{}", e.target.GetID(), e.instigator.GetID(), e.amount, beforeArmor, afterArmor, beforeHp, afterHp, health->mMaxHp);
 
         if (!health->IsDead()) //         if (!killedNow)
             return;

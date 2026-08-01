@@ -56,11 +56,18 @@ shared_ptr<Session> SessionManager::FindSessionByAddr(sockaddr_in addr)
 
 void SessionManager::RegisterUdpAddress(sockaddr_in addr, uint64 sessionId)
 {
-	
+	auto it = mUdpMapper.find(addr);
+	if (it != mUdpMapper.end() && it->second == sessionId)
+		return;   // 이미 같은 매핑 — 매 패킷 반복되는 경로
+
 	mUdpMapper[addr] = sessionId;
-	LOG_INFO("Session {} UDP Address Registered!", sessionId);
-	LOG_INFO("Addr IP: {}, Port: {}", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-	
+
+	// 스레드 안전을 위해 inet_ntop 사용
+	char ip[INET_ADDRSTRLEN] = {};
+	::inet_ntop(AF_INET, &addr.sin_addr, ip, sizeof(ip));
+
+	MJLOG_INFO(Session, "UDP 주소 등록 session={} addr={}:{}",
+		sessionId, ip, ntohs(addr.sin_port));
 }
 
 

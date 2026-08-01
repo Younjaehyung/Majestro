@@ -330,9 +330,10 @@ void PlayerInputSystem::JudgeAndNotify(Entity e, MainPlayerComponent* mp, InputC
 	req.StoreAs<S2C_BeatJudgementPacket>(pkt);
 	gSendQueue.Push(req);
 
-	cout << "[BeatJudge] session " << netComp->mSessionId
-	     << " btn " << static_cast<int>(button) << " => " << static_cast<int>(judgement)
-	     << " (inputPos " << inputSongPos << ")" << endl;
+
+	MJLOG_INFO(CombatDetail, "박자 판정 session={} btn={} judge={} inputPos={}",
+		netComp->mSessionId, static_cast<int>(button),
+		static_cast<int>(judgement), inputSongPos);
 }
 
 bool PlayerInputSystem::IsComboAttackButton(InputButtons button)
@@ -692,10 +693,7 @@ bool PlayerInputSystem::TickBaseUltimate(
 				0.0f, 0.0f, 0.0f,
 				netEntity ? netEntity->mNetEntityId : 0 });
 		}
-#ifdef _DEBUG
-		std::cout << "[BaseUltimate] cancelled remainingRatio=" << remainingRatio
-			<< " refund=" << refund << std::endl;
-#endif
+		MJLOG_INFO(GameRule, "궁극기 취소 remainingRatio={} refund={}", remainingRatio, refund);
 		// 취소에 사용한 G 입력이 같은 프레임에 신규 궁극기 발동으로 다시 처리되지 않게 소비한다.
 		return true;
 	}
@@ -805,10 +803,7 @@ void PlayerInputSystem::StartGuitarUltimate(
 	playerComponent->mRhythmPoints = 0;
 	// 시전 애니메이션은 소환 시점까지만 1회 재생한다. 장판 피해는 이후 독립적으로 진행된다.
 	playerComponent->mStateEnd = playerComponent->mGuitarUltimateSummonTime;
-#ifdef _DEBUG
-	std::cout << "[GuitarUltimate] reserved summonIn=" << kGuitarUltimateWindupSeconds
-		<< " duration=" << activeDuration << std::endl;
-#endif
+	MJLOG_INFO(GameRule, "기타 궁극기 예약 summonIn={} duration={}", kGuitarUltimateWindupSeconds, activeDuration);
 }
 
 bool PlayerInputSystem::TickGuitarUltimate(
@@ -887,12 +882,7 @@ bool PlayerInputSystem::TickGuitarUltimate(
 			EffectSpawnReason::Fire,
 			0.0f, 0.0f, 0.0f,
 			netEntity ? netEntity->mNetEntityId : 0 });
-#ifdef _DEBUG
-		std::cout << "[GuitarUltimate] summoned center=("
-			<< playerComponent->mGuitarUltimateCenter.x << ", "
-			<< playerComponent->mGuitarUltimateCenter.y << ", "
-			<< playerComponent->mGuitarUltimateCenter.z << ")" << std::endl;
-#endif
+		MJLOG_INFO(GameRule, "기타 궁극기 소환 center=({}, {}, {})", playerComponent->mGuitarUltimateCenter.x, playerComponent->mGuitarUltimateCenter.y, playerComponent->mGuitarUltimateCenter.z);
 	}
 
 	const float tickInterval = (std::max)(0.01f, beatSeconds);
@@ -968,9 +958,7 @@ void PlayerInputSystem::StartDrumUltimate(
 			transform->mLocalRotationE.z,
 			netEntity ? netEntity->mNetEntityId : 0 });
 	}
-#ifdef _DEBUG
-	std::cout << "[DrumUltimate] started duration=" << duration << std::endl;
-#endif
+	MJLOG_INFO(GameRule, "드럼 궁극기 시작 duration={}", duration);
 }
 
 bool PlayerInputSystem::TickDrumUltimate(
@@ -1019,9 +1007,9 @@ bool PlayerInputSystem::TickDrumUltimate(
 	playerComponent->mDrumUltimateHitCount = 0;
 	if (playerComponent->mFsm.GetState() == S_Special)
 		playerComponent->mFsm.ChangeState(playerComponent, IdleState::Instance());
-#ifdef _DEBUG
-	std::cout << "[DrumUltimate] exploded hits=" << hitCount << std::endl;
-#endif
+
+	MJLOG_INFO(GameRule, "드럼 궁극기 폭발 hits={}", hitCount);
+
 	return false;
 }
 

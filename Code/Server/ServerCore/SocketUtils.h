@@ -8,7 +8,6 @@
 class SocketUtils
 {
 public:
-	static void Init();
 	static void Clear();
 
 	static bool BindWindowsFunction(SOCKET socket, GUID guid, LPVOID* fn);

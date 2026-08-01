@@ -17,7 +17,7 @@ static int LoadServerPort(int defaultPort)
         std::ifstream file(path);
         if (!file.is_open())
         {   // 파일이 없거나 파싱에 실패하면 기본 포트(9000)를 사용
-            LOG_INFO("NetworkConfig.json 없음 -> 기본 포트 {} 사용", defaultPort);
+            MJLOG_WARN(Startup, "NetworkConfig.json 없음 -> 기본 포트 {} 사용", defaultPort);
             return defaultPort;
         }
 
@@ -27,13 +27,13 @@ static int LoadServerPort(int defaultPort)
         if (config.contains("port") && config["port"].is_number_integer())
         {
             int port = config["port"].get<int>();
-            LOG_INFO("NetworkConfig 로드: TCP {}, UDP {}", port, port + 1);
+            MJLOG_INFO(Startup, "NetworkConfig 로드: TCP {}, UDP {}", port, port + 1);
             return port;
         }
     }
     catch (const std::exception& e)
     {
-        LOG_ERROR("NetworkConfig 파싱 실패({}) -> 기본 포트 {} 사용", e.what(), defaultPort);
+        MJLOG_ERROR(Startup, "NetworkConfig 파싱 실패({}) -> 기본 포트 {} 사용", e.what(), defaultPort);
     }
     return defaultPort;
 }
@@ -68,12 +68,13 @@ void NetworkThread::Initialize()
 
     // 소켓 생성
     mListenSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (mListenSocket == INVALID_SOCKET) LOG_ERROR("err(socket)");
+    if (mListenSocket == INVALID_SOCKET)
+        MJLOG_ERROR(Startup, "TCP listen 소켓 생성 실패 code={}", WSAGetLastError());
 
     mUdpSock = socket(AF_INET, SOCK_DGRAM, 0);
     if (mUdpSock == INVALID_SOCKET) {
         int32 error = WSAGetLastError();
-        LOG_ERROR("Accept Failed, error code : {}", error);
+        MJLOG_ERROR(Startup, "UDP 소켓 생성 실패 code={}", error);
         return;
     }
 
@@ -84,25 +85,25 @@ void NetworkThread::Initialize()
 
     if (::bind(mUdpSock, (sockaddr*)&udpAddr, sizeof(udpAddr)) == SOCKET_ERROR) {
         int32 error = WSAGetLastError();
-        LOG_ERROR("Accept Failed, error code : {}", error);
+        MJLOG_ERROR(Startup, "UDP bind 실패 port={} code={}", udpPort, error);
         return;
     }
     u_long on1 = 1;
     if (::ioctlsocket(mUdpSock, FIONBIO, &on1) == INVALID_SOCKET) {
-        LOG_ERROR("err(ioct)");
+        MJLOG_ERROR(Startup, "UDP 논블로킹 전환 실패 code={}", WSAGetLastError());
         return;
     }
 
     u_long on = 1;
     if (::ioctlsocket(mListenSocket, FIONBIO, &on) == INVALID_SOCKET) {
-        LOG_ERROR("err(ioct)");
+        MJLOG_ERROR(Startup, "TCP 논블로킹 전환 실패 code={}", WSAGetLastError());
         return;
     }
         
 
     // bind()
     if (false == SocketUtils::BindAnyAddress(mListenSocket, tcpPort)) {
-        LOG_ERROR("err(bind)");
+        MJLOG_ERROR(Startup, "TCP bind 실패 port={}", tcpPort);
         SocketUtils::Close(mListenSocket);
         SocketUtils::Clear();
         return;
@@ -111,13 +112,13 @@ void NetworkThread::Initialize()
 
     // listen()
     if (false == SocketUtils::Listen(mListenSocket, SOMAXCONN)) {
-        LOG_ERROR("err(listen)");
+        MJLOG_ERROR(Startup, "TCP listen 실패 port={}", tcpPort);
         SocketUtils::Close(mListenSocket);
         SocketUtils::Clear();
         return;
     }
 
-    LOG_INFO("START GAME SERVER");
+    MJLOG_INFO(Startup, "게임 서버 시작 TCP={} UDP={}", tcpPort, udpPort);
 }
 
 void NetworkThread::Start()
@@ -202,7 +203,8 @@ void NetworkThread::Update()
 
     }
 
-	LOG_ERROR("Network Thread Stopped");
+
+	MJLOG_INFO(Startup, "네트워크 스레드 종료");
 	static_assert(true);
 }
 
@@ -216,13 +218,14 @@ void NetworkThread::AcceptClient()
     if(tcpSock == INVALID_SOCKET)
     {
         int32 error = WSAGetLastError();
-        LOG_ERROR("Accept Failed, error code : {}", error);
+        MJLOG_EVERY(Session, Warn, "accept-failed", 5.0,
+            "accept 실패 code={}", error);
         return;
 	}
 
     shared_ptr<Session> session = mSessionMgr.CreateSessions(tcpSock, mUdpSock);
 
-	LOG_INFO("New Client Connected: [{}], Client IP : {}, Port : [{}]", 
+	MJLOG_INFO(Session, "접속 id={} addr={}:{}",
         session->GetPlayerId(), session->GetTcpAddress().GetIpAddressA(),
         session->GetTcpAddress().GetPort());
 
@@ -337,9 +340,10 @@ void NetworkThread::HandleUdpRecv()
                 targetIt->second->OnUdpRecv(mURecvBuffer, len);
             }
             else {
-                std::cout << "No session found for UDP packet from " << std::endl;
-                std::cout << "clientId=" << clientId << " sessionId=" << sessionId
-                    << " port=" << ntohs(fromAddr.sin_port) << std::endl;
+                MJLOG_EVERY(Session, Warn,
+                    std::to_string(clientId) + ":" + std::to_string(ntohs(fromAddr.sin_port)),
+                    5.0, "주인 없는 UDP 패킷 clientId={} sessionId={} port={}",
+                    clientId, sessionId, ntohs(fromAddr.sin_port));
             }
 
 
@@ -394,8 +398,9 @@ void NetworkThread::HandleTcpSend(std::shared_ptr<Session>& session)
             int err = WSAGetLastError();
             if (err == WSAEWOULDBLOCK)
             {
-                // 지금은 더 못 보냄 → 다음 select 때 재시도
-				LOG_INFO("WSAEWOULDBLOCK on Send, ID:[{}]", session->GetPlayerId());
+				MJLOG_EVERY(PacketFlow, Info,
+					"wouldblock:" + std::to_string(session->GetPlayerId()), 5.0,
+					"송신 대기(WSAEWOULDBLOCK) id={}", session->GetPlayerId());
                 break;
             }
 
@@ -406,7 +411,6 @@ void NetworkThread::HandleTcpSend(std::shared_ptr<Session>& session)
 
         if (len == 0)
         {
-            // TCP에서 send 0은 거의 없음 → 안전하게 종료
             session->Disconnect("Send 0");
             return;
         }
@@ -508,7 +512,8 @@ bool NetworkThread::PushSend()
                 SendBuffer* sendBuffer = SendBufferManager::Acquire();
                 if (sendBuffer == nullptr)
                 {
-                    LOG_ERROR("SendBuffer Acquire Failed");
+                    MJLOG_EVERY(Session, Error, "sendbuffer-exhausted-broadcast", 5.0,
+                        "SendBuffer 고갈 (브로드캐스트)");
                     continue;
                 }
 
@@ -538,7 +543,8 @@ bool NetworkThread::PushSend()
             SendBuffer* sendBuffer = SendBufferManager::Acquire();
             if (sendBuffer == nullptr)
             {
-                LOG_ERROR("SendBuffer Acquire Failed");
+                MJLOG_EVERY(Session, Error, "sendbuffer-exhausted-unicast", 5.0,
+                    "SendBuffer 고갈 (유니캐스트) session={}", mData.SessionId);
                 continue;
             }
 

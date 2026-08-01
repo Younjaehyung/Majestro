@@ -126,7 +126,9 @@ bool ProcessPacket::ProcessPackets(InputCommand& inputCommand, BYTE* buffer)
 		break;
 	}
 	default:
-		LOG_ERROR("Unknown Packet Type: {}", static_cast<uint32>(header.PacketType));
+		MJLOG_EVERY(Session, Warn,
+			"unknown-packet:" + std::to_string(static_cast<uint32>(header.PacketType)), 5.0,
+			"알 수 없는 패킷 타입 {}", static_cast<uint32>(header.PacketType));
 		return false;
 	}
 	return true;

@@ -47,9 +47,9 @@ void BeatSystem::Update(float dt)
 			// BeatSystem은 예약된 부모 리듬을 박자에 맞춰 확정하는 책임만 가짐
 			if (rhythmState->ApplyPendingChange(GetAbsoluteBeatIndex()))
 			{
-				cout << "Rhythm Changed @beat " << GetAbsoluteBeatIndex()
-					<< " : " << static_cast<int>(
-						ToRhythmValue(rhythmState->GetCurrentRhythm())) << endl;
+				MJLOG_INFO(GameRule, "리듬 변경 beat={} rhythm={}",
+					GetAbsoluteBeatIndex(),
+					static_cast<int>(ToRhythmValue(rhythmState->GetCurrentRhythm())));
 			}
 		}
 	}

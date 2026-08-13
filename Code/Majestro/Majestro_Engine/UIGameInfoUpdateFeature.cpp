@@ -61,12 +61,7 @@ void UIGameInfoUpdateFeature::Initialize(World* world)
 		s.mParams.mIntroDuration  = 0.6f;
 		s.mParams.mHoldDuration   = 3.0f;
 		s.mParams.mSettleDuration = 0.5f;
-		s.mParams.mTopAnchorPos   = Vec2(0.f, -580.f);
-		// MoveToTop 정착 후에도 펄스가 가능하도록 BeatPulse 와 합성하려면
-		// Hold 단계에서 별도 동작 필요 — 현 구조에선 Settled 가 MoveToTop 이면
-		// 정착 후 Hold 단계의 동작은 Static 이 된다.
-		// Conquest 에서 비트 펄스를 항시 원하면 mSettled = BeatPulse 로 두고
-		// mTopAnchorPos 대신 처음부터 상단에서 등장시키는 식으로 바꿀 수 있음.
+		s.mParams.mTopAnchorPos   = Vec2(0.f, -360.f);
 		mTable[WavePhaseType::Conquest] = s;
 	}
 

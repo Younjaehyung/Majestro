@@ -5,7 +5,6 @@
 #include "TransformComponent.h"
 #include "ColliderComponent.h"
 #include "MovementComponent.h"
-#include "InputComponent.h"
 #include "TagComponent.h"
 #include "PhysicsWorld.h"
 #include "BulletComponent.h"
@@ -812,6 +811,28 @@ void CollisionSystem::Bullet2StaticCCD(float deltaTime)
     }
 }
 
+static void ClampMoveIntoContact(World* world, Entity e, const Vec3& blockedDir)
+{
+    if (!world)
+        return;
+
+    const auto clampXZ = [&blockedDir](Vec3& v)
+        {
+            const float into = v.x * blockedDir.x + v.z * blockedDir.z;
+            if (into <= 0.0f)
+                return;
+
+            v.x -= blockedDir.x * into;
+            v.z -= blockedDir.z * into;
+        };
+
+
+    if (auto* tr = world->GetComponent<TransformComponent>(e))
+        clampXZ(tr->mMovingVector);
+
+    if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
+        clampXZ(enemyMove->mMovingDirection);
+}
 
 void CollisionSystem::AvoidCollisionByMovementState(
     World* world,
@@ -849,8 +870,7 @@ void CollisionSystem::AvoidCollisionByMovementState(
     const float invLen = 1.0f / centerDistance;
     const Vec3 normal(delta.x * invLen, 0.0f, delta.z * invLen); // A -> B
 
-    // --- penetration 계산(여전히 원형 근사: 빠르지만 정확도 한계 있음) ---
-    // [수정] 코너 8개 순회 제거. extents 기반 XZ 외접원 반경 근사.
+
     auto getRadiusXZ = [](const BoundingOrientedBox& obb)
         {
             const float ex = obb.Extents.x;
@@ -861,23 +881,19 @@ void CollisionSystem::AvoidCollisionByMovementState(
     const float radiusA = getRadiusXZ(colA->mWorldOBB);
     const float radiusB = getRadiusXZ(colB->mWorldOBB);
 
-    // 침투량(>0이면 겹침)
+
     const float penetration = (radiusA + radiusB) - centerDistance;
 
-    // ---------------------------
-    // [수정] 시간 기반(바움가르테) 보정량 계산
-    // push = beta/dt * (penetration - slop)
-    // ---------------------------
-    constexpr float kPenetrationSlop = 0.01f;   // [수정] 슬롭 감소(관통 방지에 유리)
-    constexpr float kBeta = 0.20f;              // [수정] 0.1~0.4 튜닝 (클수록 빨리 밀어냄)
-    constexpr float kMaxPushPerPair = 2.0f;     // [수정] 기존 0.8은 관통을 만들기 쉬움(상황 따라 1~5)
+
+    constexpr float kPenetrationSlop = 0.01f;
+    constexpr float kBeta = 0.20f;           
+    constexpr float kMaxPushPerPair = 2.0f;  
 
     const float effectivePenetration = (std::max)(0.0f, penetration - kPenetrationSlop);
 
-    // [수정] 시간 기반 보정량: dt가 커지면 더 많이 보정하여 누적 침투를 억제
     float pushMagnitude = effectivePenetration * (kBeta / deltaTime);
 
-    // [수정] 1쌍당 과도한 보정 제한
+
     pushMagnitude = (std::min)(pushMagnitude, kMaxPushPerPair);
 
     if (pushMagnitude > 0.0f)
@@ -903,7 +919,7 @@ void CollisionSystem::AvoidCollisionByMovementState(
         Vec3 correctionA = Vec3::Zero;
         Vec3 correctionB = Vec3::Zero;
 
-        // [수정] 둘 다 움직이면 반반, 하나만 움직이면 한쪽만
+
         if (canMoveA && canMoveB && wasMovingA && wasMovingB)
         {
             const float half = pushMagnitude * 0.5f;
@@ -919,14 +935,10 @@ void CollisionSystem::AvoidCollisionByMovementState(
             correctionB = Vec3(normal.x * pushMagnitude, 0.0f, normal.z * pushMagnitude);
         }
 
-        // [수정] Transform 변경 + OBB center 동기화
-        // 주의: mLocalPosition만 바꾸면 mWorldMatrix가 즉시 갱신되지 않을 수 있음.
-        // TransformSystem이 dirty를 기반으로 WorldMatrix를 재계산한다면 여기서 dirty를 세워야 한다.
+       
         if (canMoveA)
         {
             trA->mLocalPosition += correctionA;
-
-            // trA->MarkDirty(); // [수정] 네 엔진에 맞는 dirty 훅이 있으면 꼭 호출
 
             colA->mWorldOBB.Center.x += correctionA.x;
             colA->mWorldOBB.Center.z += correctionA.z;
@@ -936,44 +948,14 @@ void CollisionSystem::AvoidCollisionByMovementState(
         {
             trB->mLocalPosition += correctionB;
 
-            // trB->MarkDirty(); // [수정] 네 엔진에 맞는 dirty 훅이 있으면 꼭 호출
-
             colB->mWorldOBB.Center.x += correctionB.x;
             colB->mWorldOBB.Center.z += correctionB.z;
         }
     }
 
-    // ---------------------------
-    // 이동 중이던 엔티티만 정지 처리
-    // ---------------------------
-    auto stopIfMoving = [&](Entity e)
-        {
-            auto* tr = world->GetComponent<TransformComponent>(e);
-            if (!tr)
-                return;
-
-            const float v2 = tr->mMovingVector.x * tr->mMovingVector.x + tr->mMovingVector.z * tr->mMovingVector.z;
-            if (v2 <= 1e-6f)
-                return;
-
-            tr->mMovingVector.x = 0.0f;
-            tr->mMovingVector.z = 0.0f;
-
-            if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(e))
-                enemyMove->mMovingDirection = Vec3::Zero;
-
-            if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(e))
-                playerMove->mMovingDirection = Vec3::Zero;
-
-            if (auto* inputComp = world->GetComponent<InputComponent>(e))
-            {
-                inputComp->MoveX = 0.0f;
-                inputComp->MoveZ = 0.0f;
-            }
-        };
-
-    stopIfMoving(a);
-    stopIfMoving(b);
+    // 슬라이딩
+    ClampMoveIntoContact(world, a, normal);
+    ClampMoveIntoContact(world, b, Vec3(-normal.x, 0.0f, -normal.z));
 }
 
 void CollisionSystem::AvoidCollisionWithStaticSphere(
@@ -1046,18 +1028,5 @@ void CollisionSystem::AvoidCollisionWithStaticSphere(
         dynamicCollider->mWorldOBB.Center.z += correction.z;
     }
 
-    dynamicTransform->mMovingVector.x = 0.0f;
-    dynamicTransform->mMovingVector.z = 0.0f;
-
-    if (auto* enemyMove = world->GetComponent<EnemyMovementComponent>(dynamicEntity))
-        enemyMove->mMovingDirection = Vec3::Zero;
-
-    if (auto* playerMove = world->GetComponent<PlayerMovementComponent>(dynamicEntity))
-        playerMove->mMovingDirection = Vec3::Zero;
-
-    if (auto* inputComp = world->GetComponent<InputComponent>(dynamicEntity))
-    {
-        inputComp->MoveX = 0.0f;
-        inputComp->MoveZ = 0.0f;
-    }
+    ClampMoveIntoContact(world, dynamicEntity, Vec3(-normal.x, 0.0f, -normal.z));
 }

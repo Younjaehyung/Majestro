@@ -819,7 +819,7 @@ void FirstScene::Initialize()
 	const std::wstring gimmickPath = L"../Resources/Json/Map001_Gimmicks.json";
 
 	// 트럭 스폰 (위치는 JSON truckSpawn 에서)
-	Vec3 truckSpawn(-4902.f, 135.f, -9240.f);
+	Vec3 truckSpawn(-4902.f, 17.f, -9240.f);
 	ReadOptionalVec3(gimmickPath, "truckSpawn", truckSpawn);
 
 	InputCommand dummy{};
@@ -829,12 +829,27 @@ void FirstScene::Initialize()
 	PathLoadComponent* plc = mWorld->GetComponent<PathLoadComponent>(truck);
 	plc->mBaseOffset = truckSpawn;
 
+	Vec3 truckStart = truckSpawn;
+	if (auto pathData = RESOURCEMANAGER.Get<PayloadPathData>(L"BP_Payroad_path_C_2_PayloadPath"))
+	{
+		PayloadPathSample startSample{};
+		if (pathData->Evaluate(0.f, startSample))
+			truckStart = startSample.position + truckSpawn;
+	}
+
 	TransformComponent* trans = mWorld->GetComponent< TransformComponent>(truck);
-	trans->mLocalPosition = truckSpawn;
+	trans->mLocalPosition = truckStart;
 
 	
 	auto waveMode = make_shared<WaveGameMode>();
 	waveMode->SetCompletionScene(SceneId::Plaza); // 마지막 Conquest 클리어 후 광장으로 복귀 (다음 스테이지 해금)
+	{
+		std::deque<WaveGameMode::PhaseFactory> phases;
+		phases.push_back([] { return new PreparePhase(); });
+		phases.push_back([] { return new ConquestPhase(/*zoneId=*/1, /*requiredSeconds=*/30.f, /*waveIndex=*/1); });
+		phases.push_back([] { return new EscortPhase(/*routeId=*/0); });
+		waveMode->SetInitialPhases(std::move(phases));
+	}
 	shared_ptr<GameMode> gameMode = waveMode;
 	SetGameMode(gameMode);
 

@@ -2259,8 +2259,8 @@ void FirstScene::Initialize()
 	PrefabFactory::RegisterAllPrefabs();
 	//TerrainPrefab terrain{ mWorld.get() };
 	SkyBoxPrefab skybox{ mWorld.get() };
-	// Map001 UE DirLight (Pitch=-48.727762, Yaw=-119.308029, Roll=239.747780)
-	DirLightPrefab light{ mWorld.get(), Vec3(-0.0569f, -0.6717f, -0.7386f) };
+	// Map001 UE DirLight (Pitch=-38.4559, Yaw=-100.6531)
+	DirLightPrefab light{ mWorld.get(), Vec3(-0.7696f, -0.6219f, -0.1448f) };
 
 	OceanPrefab ocean{ mWorld.get() };
 

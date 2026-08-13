@@ -102,6 +102,8 @@ private:
 	float mStartDistance = 0.f;
 	int32 mNextStopIndex = 0;
 	bool mUseResumeDistance = false;
+
+	float mGoalDistance = 0.f;  	// 호위 완주로 치는 거리
 	// RailPathComponent* mRailPath = nullptr; // 호위 경로 정보 (예: 웨이브 점령과 달리, 호위는 특정 경로를 따라 이동해야 할 수 있음)
 };
 

@@ -857,7 +857,7 @@ MonsterSpawnerMarkerPrefab::~MonsterSpawnerMarkerPrefab()
 
 Entity MonsterSpawnerMarkerPrefab::Build(World* world, const InputCommand& ctx)
 {
-	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Spawn", Vec3(5.f, 5.f, 5.f));
+	return PrefabFactory::BuildWorldMarkerPrefab(world, ctx, L"VFX_Sector_Spawn", Vec3(4.f, 4.f, 4.f));
 }
 
 

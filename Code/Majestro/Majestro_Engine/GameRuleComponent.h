@@ -104,7 +104,7 @@ public:
 	uint8 mEscortStage = 0; // 현재 호위 stage (예: 1, 2, 3 등)
 	uint8 mMoveState = 0; // 호위 대상 이동 상태 (예: 정지, 이동 중, 도착 등)
 	uint8 mStageCount = 0; // 전체 호위 구간 수
-	float mEscortProgress = 0.f; // 호위 진행도 (전체 경로 거리 기준 0.0 ~ 1.0)
+	float mEscortProgress = 0.f; // 호위 진행도 (마지막 stopPoint 거리 기준 0.0 ~ 1.0)
 	float mStageProgress = 0.f; // 현재 구간 내 진행도 (0.0 ~ 1.0)
 	float mEscortTime = 0.f; // 호위 진행 시간
 };

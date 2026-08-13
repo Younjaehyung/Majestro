@@ -7,7 +7,8 @@
     "Ibanix": [ -7500.0, 1250, -12300.0 ],
     "Fanthor": [ -7500.0, 1250, -11900.0 ]
   },
-  "truckSpawn": [ -4902.0, 135.0, -9240.0 ],
+  "_comment_truckSpawn": "화물 경로(PayloadPath)의 base offset. Y 는 경로 전체를 수직 이동시킨다. 135 일 때 호위 구간 내내 지면 위 105~268cm 떠 있어 17 로 내림(하위 10% 기준).",
+  "truckSpawn": [ -4902.0, 17.0, -9240.0 ],
 
   "interactables": [
     {
@@ -51,8 +52,9 @@
       "targetMask": "Player"
     },
     {
+      "_comment": "오프닝 점령 — 호위 시작 지점(truckSpawn) 확보. Y=NavMesh 지면(390)",
       "kind": "ConquestZone",
-      "position": [ -3379.0, 128.0, 26.0 ],
+      "position": [ -4902.0, 390.0, -9240.0 ],
       "halfExtents": [ 500.0, 300.0, 500.0 ],
       "valueA": 1.0,
       "valueB": 30.0,
@@ -61,9 +63,10 @@
       "targetMask": "All"
     },
     {
+      "_comment": "최종 점령 — 호위 종료 거점(경로 stop_00, distance 11556.97). Y=NavMesh 지면(153)",
       "kind": "ConquestZone",
-      "position": [ 4639.0, -106.0, 14597.0 ],
-      "halfExtents": [ 1500.0, 300.0, 1500.0 ],
+      "position": [ -3379.0, 153.0, 26.0 ],
+      "halfExtents": [ 500.0, 300.0, 500.0 ],
       "valueA": 2.0,
       "valueB": 30.0,
       "cooldown": 0.0,
@@ -257,8 +260,9 @@
 
   "spawners": [
     {
+      "_comment": "2번 호위 — 스포너4 (UE -5570,-6120,120)",
       "id": "first_scene_spawner_a",
-      "position": [ -6030.0, 180.0, -5605.0 ],
+      "position": [ -6120.0, 180.0, -5570.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 4.0,
@@ -273,8 +277,9 @@
       "tablePool": [ "Horn_Intro" ]
     },
     {
+      "_comment": "2번 호위 — 스포너5 (UE -7170,-5380,120)",
       "id": "first_scene_spawner_b",
-      "position": [ -2205.0, 790.0, -4225.0 ],
+      "position": [ -5380.0, 180.0, -7170.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 4.0,
@@ -289,8 +294,9 @@
       "tablePool": [ "Horn_Intro" ]
     },
     {
+      "_comment": "2번 호위 — 스포너6 (UE -1600,-4430,120)",
       "id": "first_scene_spawner_c",
-      "position": [ -4995.0, 140.0, -7175.0 ],
+      "position": [ -4430.0, 180.0, -1600.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 4.0,
@@ -305,8 +311,9 @@
       "tablePool": [ "Horn_Intro" ]
     },
     {
+      "_comment": "3번 거점 — 스포너7 (UE -750,-730,-130)",
       "id": "first_scene_spawner_d",
-      "position": [ -4500.0, 140.0, -790.0 ],
+      "position": [ -730.0, -70.0, -750.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 2.0,
@@ -321,8 +328,9 @@
       "tablePool": [ "Horn_Intro", "Piano_Intro" ]
     },
     {
+      "_comment": "3번 거점 — 스포너8 (UE -650,-4370,130)",
       "id": "first_scene_spawner_e",
-      "position": [ -4500.0, 140.0, 695.0 ],
+      "position": [ -4370.0, 190.0, -650.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -337,8 +345,9 @@
       "tablePool": [ "Horn_Intro", "Piano_Intro" ]
     },
     {
+      "_comment": "3번 거점 — 스포너9 (UE 3520,-3410,130)",
       "id": "first_scene_spawner_f",
-      "position": [ -755.0, -115.0, -560.0 ],
+      "position": [ -3410.0, 190.0, 3520.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -353,8 +362,9 @@
       "tablePool": [ "Horn_Intro", "Piano_Intro" ]
     },
     {
+      "_comment": "3번 거점 — 스포너10 (UE 550,-4400,130)",
       "id": "first_scene_spawner_g",
-      "position": [ -1005.0, -115.0, 815.0 ],
+      "position": [ -4400.0, 190.0, 550.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 8.0,
@@ -369,8 +379,9 @@
       "tablePool": [ "Horn_Intro", "Piano_Intro" ]
     },
     {
+      "_comment": "1번 점령 — 스포너3 (UE -4420,-3470,140)",
       "id": "first_scene_spawner_h",
-      "position": [ -2370.0, 280.0, 3745.0 ],
+      "position": [ -3470.0, 200.0, -4420.0 ],
       "trigger": "Timed",
       "interval": 8.0,
       "tableSpawnInterval": 6.0,
@@ -479,13 +490,50 @@
       "startActive": true,
       "randomSpawnFromTable": false,
       "tablePool": [ "Horn_Intro", "Piano_Intro", "Bongo_Intro", "Fly_Intro", "Slime_Intro" ]
+    },
+    {
+      "_comment": "1번 점령 — 스포너1 (UE -9430,-3240,120)",
+      "id": "first_scene_spawner_o",
+      "position": [ -3240.0, 180.0, -9430.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 4.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 4,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "Horn_Intro" ]
+    },
+    {
+      "_comment": "1번 점령 — 스포너2 (UE -5380,-5980,140)",
+      "id": "first_scene_spawner_p",
+      "position": [ -5980.0, 200.0, -5380.0 ],
+      "trigger": "Timed",
+      "interval": 8.0,
+      "tableSpawnInterval": 4.0,
+      "nextTableInterval": 8.0,
+      "repeatPool": true,
+      "randomTableFromPool": true,
+      "maxAlive": 2,
+      "maxTotal": 4,
+      "spawnRadius": 150.0,
+      "startActive": true,
+      "randomSpawnFromTable": false,
+      "tablePool": [ "Slime_Intro" ]
     }
   ],
 
   "phaseSpawners": {
+    "Conquest:1": [ "first_scene_spawner_o", "first_scene_spawner_p", "first_scene_spawner_h" ],
     "Escort:0": [ "first_scene_spawner_a", "first_scene_spawner_b", "first_scene_spawner_c" ],
-    "Conquest:1": [ "first_scene_spawner_d", "first_scene_spawner_e", "first_scene_spawner_f", "first_scene_spawner_g" ],
-    "Escort:1": [ "first_scene_spawner_h", "first_scene_spawner_i", "first_scene_spawner_j", "first_scene_spawner_k" ],
-    "Conquest:2": [ "first_scene_spawner_l", "first_scene_spawner_n", "first_scene_spawner_m" ]
+    "Conquest:2": [ "first_scene_spawner_d", "first_scene_spawner_e", "first_scene_spawner_f", "first_scene_spawner_g" ],
+
+    "_comment_unused": "아래는 경로 2구간(stop_01 이후)을 되살릴 때 쓰는 세트. 현재 phase 로는 진입하지 않는다.",
+    "Escort:1": [ "first_scene_spawner_i", "first_scene_spawner_j", "first_scene_spawner_k" ],
+    "Conquest:3": [ "first_scene_spawner_l", "first_scene_spawner_n", "first_scene_spawner_m" ]
   }
 }

@@ -476,6 +476,16 @@ void EscortPhase::Enter(WaveGameMode& mode)
 	PathLoadComponent* pathComp = mWorld->GetComponent<PathLoadComponent>(escortComp->mEscortTarget);
 	pathComp->mPathData         = mEscortPath;
 	pathComp->mBaseSpeed        = escortComp->mTruckSpeed;
+
+
+	mGoalDistance = mEscortPath ? mEscortPath->GetLength() : 0.f;
+	if (mEscortPath)
+	{
+		const auto& goalStops = mEscortPath->GetStopPoints();
+		if (!goalStops.empty() && goalStops.back().distance > 0.f)
+			mGoalDistance = goalStops.back().distance;
+	}
+
 	const float startDistance = mUseResumeDistance ? mStartDistance : 0.f;
 	pathComp->mCurrentDistance  = startDistance;
 	pathComp->mTotalDistance = mEscortPath ? mEscortPath->GetLength() : 0.f;
@@ -581,8 +591,8 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 		pathComp->mBaseSpeed = ruleComp->mTruckSpeed * multiplier;
 	}
 
-	ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
-		? pathComp->mCurrentDistance / pathComp->mTotalDistance : 0.f;
+	ruleComp->mEscortProgress = (mGoalDistance > 0.f)
+		? std::clamp(pathComp->mCurrentDistance / mGoalDistance, 0.f, 1.f) : 0.f;
 
 	// 현재 구간 내 진행도(0~1)와 전체 구간 수를 계산해 UI 등분 리맵
 	auto computeStageProgress = [&](int32 stageIdx)
@@ -653,13 +663,14 @@ void EscortPhase::PostUpdate(float dt, WaveGameMode& mode)
 						return new EscortPhase(routeId, resumeDistance, nextStopIndex);
 					});
 				}
+
 				mode.InsertNextPhase([zoneId, requiredSeconds] {
-					return new ConquestPhase(zoneId, requiredSeconds);
+					return new ConquestPhase(zoneId, requiredSeconds, zoneId);
 				});
 
 				ruleComp->mEscortStage = static_cast<uint8>(nextStopIndex);
-				ruleComp->mEscortProgress = (pathComp->mTotalDistance > 0.f)
-					? pathComp->mCurrentDistance / pathComp->mTotalDistance : 0.f;
+				ruleComp->mEscortProgress = (mGoalDistance > 0.f)
+					? std::clamp(pathComp->mCurrentDistance / mGoalDistance, 0.f, 1.f) : 0.f;
 
 				// 거점 통과 순간
 				computeStageProgress(nextStopIndex);

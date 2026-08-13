@@ -338,8 +338,10 @@ vector<shared_ptr<Material>>& FBXData::CreateMaterialFromFBX(ifstream& loader, F
 			|| name.find(L"BabyBlueEyes") != std::wstring::npos
 			|| name.find(L"foliage") != std::wstring::npos
 			|| name.find(L"flags") != std::wstring::npos
-			|| name.find(L"vine") != std::wstring::npos
-			|| name.find(L"plants") != std::wstring::npos
+			|| name.find(L"_vine_") != std::wstring::npos
+			|| name.find(L"plant") != std::wstring::npos
+			|| name.find(L"Poppies") != std::wstring::npos
+			|| name.find(L"t_bm_window_planter") != std::wstring::npos
 			|| name.find(L"Dandelions") != std::wstring::npos);
 		if (isVegetation) {
 			// 풀

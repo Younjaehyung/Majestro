@@ -29,7 +29,7 @@ public:
 	void Shutdown();
 private:
 	float time{};
-	int mPrevEscortStage = -1;   // 호위 거점 변화 감지용 (-1 = 미초기화)
+	int mPrevEscortBgmStage = -1;   // 호위 진행도 BGM 단계(0~2) 변화 감지용 (-1 = 미초기화)
 
 	bool mBgmStartAligned = false;	// 시킹 완료 후 재생까지 대기 중인지
 	int  mAlignSeekFrame = -1;   // -1=시킹 전, 0~=시킹 후 경과 프레임

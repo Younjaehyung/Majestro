@@ -207,20 +207,25 @@ void AudioSystem::Update(float deltaTime)
         if (!escortEntities.empty())
         {
             GameEscortComponent* escort = mWorld->GetComponent<GameEscortComponent>(escortEntities[0]);
-            if (escort != nullptr && static_cast<int>(escort->mEscortStage) != mPrevEscortStage)
+            if (escort != nullptr)
             {
-                mPrevEscortStage = static_cast<int>(escort->mEscortStage);
 
-                // EscortParam: 0 = Prepare 재생, 1 = 첫 중간거점까지, 2 = 중간거점 점령 후 재생
-                float param = static_cast<float>(mPrevEscortStage);
-                if (param > 2.f) param = 2.f;
-                AUDIOMANAGER.SetBGMParam("EscortParam", SOUNDNAME::Ambient, param, true);
-                EngineLog::Write(
-                    EngineLog::Domain::AudioRuntime,
-                    "[BGM] EscortParam=",
-                    param,
-                    " escortStage=",
-                    mPrevEscortStage);
+                const float progress = std::clamp(escort->mEscortProgress, 0.f, 1.f);
+                const int stage = std::min(2, static_cast<int>(progress * 3.f));
+
+                if (stage != mPrevEscortBgmStage)
+                {
+                    mPrevEscortBgmStage = stage;
+
+                    // EscortParam: 0 = 초반, 1 = 중반, 2 = 종반
+                    AUDIOMANAGER.SetBGMParam("EscortParam", SOUNDNAME::Ambient, static_cast<float>(stage), true);
+                    EngineLog::Write(
+                        EngineLog::Domain::AudioRuntime,
+                        "[BGM] EscortParam=",
+                        stage,
+                        " escortProgress=",
+                        progress);
+                }
             }
         }
     }

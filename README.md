@@ -1,4 +1,5 @@
 # Majestro
+<img width="2555" height="1290" alt="Image" src="https://github.com/user-attachments/assets/8b360709-d62a-4ad8-9128-35fd30f6cb8b" />
 ## 제26회 한국공학대전 한국산업기술기획평가원 원장상
 ---
 ### **참여인원**

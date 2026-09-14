@@ -374,7 +374,6 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 				* GameConquestComponent::mConquestProgressSpeedMultiplier * conquestSpeedMultiplier;
 		}
 		ruleComp->mWaveInterval = 0.f;
-		MJLOG_INFO(GameRule, "점령 구역 players={} enemies={} waveTime={}", playerNum, enemyNum, ruleComp->mWaveTime);
 	}
 	else {
 		// 웨이브 점령 감소 간격이 최대 간격보다 작으면 간격 증가, 
@@ -396,7 +395,10 @@ void ConquestPhase::PostUpdate(float dt, WaveGameMode& mode)
 	
 
 
-	if (ruleComp->mWaveTime > ruleComp->mWaveCheckPointTime * float(ruleComp->mWaveCheckPoint) && ruleComp->mWaveCheckPoint < ruleComp->mMaxWaveCheckPoint) {
+	
+	const float checkPointStep =
+		ruleComp->mRequiredConquestTime / float(GameConquestComponent::mMaxWaveCheckPoint);
+	if (ruleComp->mWaveTime > checkPointStep * float(ruleComp->mWaveCheckPoint) && ruleComp->mWaveCheckPoint < ruleComp->mMaxWaveCheckPoint) {
 		ruleComp->mWaveCheckPoint += 1;
 	}
 

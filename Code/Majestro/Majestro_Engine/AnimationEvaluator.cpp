@@ -206,7 +206,7 @@ void AnimationEvaluator::Evaluate(
 			const int32 pIdx = boneBuffer[nowbone + boneIdxBase].parentIdx;
 			const bool hasParent = (pIdx >= 0 && static_cast<uint32>(pIdx) < boneCount);
 
-			// 두 레이어의 모델공간 회전 누적 (parent < nowbone 보장)
+			// 1) 하체/상체 레이어를 각각 모델(메쉬)공간까지 누적
 			const Vec4 baseMesh = hasParent ? MathUtils::HlslQuatMul(baseMeshRot[pIdx], baseLocalQ) : baseLocalQ;
 			Vec4 upperMesh = hasParent ? MathUtils::HlslQuatMul(upperMeshRot[pIdx], upperLocalQ) : upperLocalQ;
 			baseMeshRot[nowbone] = baseMesh;
@@ -227,16 +227,15 @@ void AnimationEvaluator::Evaluate(
 			}
 			else
 			{
-				// Override
-				float dot = baseMesh.x * upperMesh.x + baseMesh.y * upperMesh.y +
-					baseMesh.z * upperMesh.z + baseMesh.w * upperMesh.w;
+				// 2) 모델공간에서 최단경로 Slerp — 하체 골반 회전이 상체로 상속되지 않는다
+				float dots = baseMesh.Dot(upperMesh);
 				if (dot < 0.f)
 					upperMesh = Vec4(-upperMesh.x, -upperMesh.y, -upperMesh.z, -upperMesh.w);
 
 				const Vec4 Rm = MathUtils::HlslQuatSlerp(baseMesh, upperMesh, MathUtils::Saturate(finalUpperW));
 				blendMeshRot[nowbone] = Rm; // aim 적용 전 모델공간 회전(자식 변환 기준)
 
-				// 모델공간 회전을 (블렌드된)부모 기준 로컬 회전으로 환산.
+				// 3) 블렌드된 부모 기준 로컬 회전으로 환산해 계층에 되돌림
 				finalRotation = hasParent
 					? MathUtils::HlslQuatMul(MathUtils::HlslQuatConj(blendMeshRot[pIdx]), Rm)
 					: Rm;

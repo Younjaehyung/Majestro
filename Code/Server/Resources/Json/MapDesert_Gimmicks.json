@@ -59,7 +59,7 @@
       "position": [ -3930.0, 120.0, -5140.0 ],
       "halfExtents": [ 300.0, 600.0, 300.0 ],
       "valueA": 1.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"
@@ -70,7 +70,7 @@
       "position": [ 650.0, 120.0, -6510.0 ],
       "halfExtents": [ 300.0, 600.0, 300.0 ],
       "valueA": 2.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"
@@ -81,7 +81,7 @@
       "position": [ 950.0, 120.0, -9790.0 ],
       "halfExtents": [ 300.0, 600.0, 300.0 ],
       "valueA": 3.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"

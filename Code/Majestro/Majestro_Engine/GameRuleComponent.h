@@ -73,7 +73,7 @@ public:
 	static constexpr float mConquestCheckPointTime = 10.f; // 웨이브 체크포인트별 시간
 
 	static constexpr float mMaxConquestInterval = 3.f; // 웨이브 점령 감소 간격 시작 (초)
-	static constexpr float mMaxConquestTime = 30.f; // 최대 웨이브 수
+	static constexpr float mMaxConquestTime = 10.f; // 최대 웨이브 수
 
 	// 런타임
 	int32 mActiveZoneId = 0; // 현재 활성 점령 구역 번호 (0=없음). 배너/구역 VFX 식별용

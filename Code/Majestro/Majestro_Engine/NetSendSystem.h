@@ -55,10 +55,17 @@ public:
 	void Update(float deltaTime);
 
 
+
     void RequestPendingGameStart()
     {
-        mPendingGameStart = true;
-        mHasSentGameStart = false;
+        sPendingGameStart = true;
+        sRequesterInstanceId = mInstanceId;
+    }
+
+
+    static void CancelPendingGameStart()
+    {
+        sPendingGameStart = false;
     }
 
 public:
@@ -91,8 +98,12 @@ private:
         gSendBuffer.Push(req);
     }
 
-	bool mHasSentGameStart = false;     // 로컬 플레이어가 씬에 들어왔을 때 서버에 스폰 요청을 보냈는지 여부
-	bool mPendingGameStart = false;     // 로컬 플레이어가 씬에 들어왔을 때 서버에 스폰 요청을 보내기 위해 대기
+
+	static inline uint64 sNextInstanceId     = 1;
+	static inline bool   sPendingGameStart   = false;  // 게임 씬 입장 보고 대기 중인지
+	static inline uint64 sRequesterInstanceId = 0;     // 예약을 건 인스턴스 (전송 금지 대상)
+
+	const uint64 mInstanceId = sNextInstanceId++;
 
     RateLimiter mMovementRate{ 30.f };  // 이동 입력 30Hz
     RateLimiter mSyncRate{ 4.f };       // 시간 동기 ping 4Hz

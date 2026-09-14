@@ -1,12 +1,12 @@
 {
   "_comment": "MapDragon(map004) 기믹 위치. 엔진좌표 = (UE.y, UE.z, UE.x) (axis_convention: dx=(ue.y,ue.z,ue.x)). 단위 cm. ConquestZone: valueA=점령지 번호, valueB=점령 시간(초, 0이면 기본값).",
 
-    "playerSpawn": [ 1850.0, 0.0, 5.0 ],
-    "playerSpawns": {
-      "Rudwig": [ -10500.0, 1000.0, -3000.0 ],
-      "Ibanix": [ -10700.0, 1000.0, -3000.0 ],
-      "Fanthor": [ -10900.0, 1000.0, -3000.0 ]
-    },
+  "playerSpawn": [ 1850.0, 0.0, 5.0 ],
+  "playerSpawns": {
+    "Rudwig": [ -7600.0, 0.0, -3800.0 ],
+    "Ibanix": [ -7700.0, 0.0, -3800.0 ],
+    "Fanthor": [ -7800.0, 0.0, -3800.0 ]
+  },
 
   "interactables": [
     {
@@ -59,7 +59,7 @@
       "position": [ -3330.0, 103.0, -5251.0 ],
       "halfExtents": [ 500.0, 600.0, 500.0 ],
       "valueA": 1.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"
@@ -70,7 +70,7 @@
       "position": [ 0.0, 300.0, -6500.0 ],
       "halfExtents": [ 500.0, 600.0, 500.0 ],
       "valueA": 2.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"

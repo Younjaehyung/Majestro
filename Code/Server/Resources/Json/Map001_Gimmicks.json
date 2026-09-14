@@ -57,7 +57,7 @@
       "position": [ -4902.0, 390.0, -9240.0 ],
       "halfExtents": [ 500.0, 300.0, 500.0 ],
       "valueA": 1.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"
@@ -68,7 +68,7 @@
       "position": [ -3379.0, 153.0, 26.0 ],
       "halfExtents": [ 500.0, 300.0, 500.0 ],
       "valueA": 2.0,
-      "valueB": 30.0,
+      "valueB": 10.0,
       "cooldown": 0.0,
       "oneShot": false,
       "targetMask": "All"

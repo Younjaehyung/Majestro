@@ -147,7 +147,7 @@ void SystemManager::RunPhase(SysPhase phase, float deltaTime)
             continue;
         }
 
-        // 시스템 실행 코드와 계측 구현을 분리하고 공통 성능 타이머로 수집한다.
+
         EngineLog::CpuProfileSample& sample = mCpuProfileSamples[s];
         EngineLog::ScopedCpuProfile profile(
             EngineLog::Domain::SystemPerformance,

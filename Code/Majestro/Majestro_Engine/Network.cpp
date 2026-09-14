@@ -5,7 +5,22 @@
 
 
 SpscRingQueue<SendRequest, 1024>		gSendBuffer;
-SpscRingQueue<InputCommand, 1024>	gRecvBuffer;
+SpscRingQueue<InputCommand, RECV_QUEUE_CAPACITY>	gRecvBuffer;
+
+
+static void PushRecvOrWarn(const InputCommand& command)
+{
+	if (gRecvBuffer.Push(command))
+		return;
+
+	static bool overflowReported = false;
+	if (!overflowReported)
+	{
+		overflowReported = true;
+		EngineLog::WriteTagged(EngineLog::Domain::NetworkDiagnostic, "recv-queue",
+			"수신 큐 오버플로 — 패킷 유실 type=", static_cast<int>(command.Type));
+	}
+}
 
 // NetworkConfig.json 에서 서버 IP/포트를 읽기
 static void LoadNetworkConfig(std::string& outIp, int& outPort)
@@ -423,7 +438,7 @@ int32 Network::OnTcpRecv(BYTE* buffer, int32 len)
 		}
 
 		if(result == true)
-			gRecvBuffer.Push(mInputCommand);
+			PushRecvOrWarn(mInputCommand);
 
 
 		processLen += header.Header.Size;
@@ -446,7 +461,7 @@ void Network::OnUDPNetworkUpdate()
 	if (len > 0) {
 		// UDP 패킷 처리
 		ProcessPacket::ProcessPackets(mInputCommand, mURecvBuffer);
-		gRecvBuffer.Push(mInputCommand);
+		PushRecvOrWarn(mInputCommand);
 	}
 	else if (len == SOCKET_ERROR)
 	{

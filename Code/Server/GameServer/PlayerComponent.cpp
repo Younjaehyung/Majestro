@@ -488,6 +488,9 @@ void MainPlayerComponent::LoadStateSettingFromJson(const std::string& path)
         if (p.contains("maxBullet"))
             mMaxBullet = p["maxBullet"].get<int>();
 
+        // 스폰 시 탄창
+        mNowBullet = mMaxBullet;
+
         //if (p.contains("jumpForce"))
             //mJumpForce = p["jumpForce"].get<float>();
 

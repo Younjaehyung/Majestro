@@ -161,7 +161,7 @@ public:
 	uint8 mLastBeatJudgement = 0; // 마지막 행동의 박자 판정(BeatJudgement)
 	float mLastJudgedInputSongPos = -1.f; // 동일 입력 중복 판정 방지
 
-	static constexpr int32 kMaxRhythmPoints = 100;
+	static constexpr int32 kMaxRhythmPoints = 40;
 	int32 mRhythmPoints = 0;
 
 	bool mBaseUltimateActive = false;
@@ -224,8 +224,8 @@ public:
 	float mDt = 0.0f;
 	uint32 mStateSequence = 0;
 
-		int mMaxBullet;
-		int mNowBullet;
+		int mMaxBullet = 0;
+		int mNowBullet = 0;
 		int mLastReplicatedAmmo = -1;
 
 };

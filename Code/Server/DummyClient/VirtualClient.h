@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "RecvBuffer.h"
 #include "SendBuffer.h"
 #include <queue>
@@ -145,6 +145,9 @@ private:
 	bool   mReadySent = false;
 	bool   mRoomAllReady = false; // (Host) 방 전원 Ready 도달 여부
 	float  mRoomActionTimer = 0;  // 상태 진행 재시도/타임아웃 가드
+
+	bool   mIntroDoneSent = false;
+	float  mIntroPlayTimer = 0.f;
 
 	// LobbyChurn 진행 타이머
 	float  mChurnInterval = 1.0f; // 방에 머무는 시간(매니저가 설정)

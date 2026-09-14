@@ -247,6 +247,15 @@ void PlayerInputSystem::Update(float dt)
 				judgement != static_cast<uint8>(BeatJudgement::Miss)))
 				JudgeAndNotify(e, mainPlayerComponent, inputComp, beatSystem, InputButtons::RELOAD);
 		}
+		// 자동 재장전
+		if (mainPlayerComponent->mPlayerType == Ibanix &&
+			mainPlayerComponent->mNowBullet <= 0 &&
+			!mainPlayerComponent->mDash &&
+			(mainPlayerComponent->mFlags & FLAG_ANIM) == 0)
+		{
+			TryFireAction(e, mainPlayerComponent, *eventManager, InputButtons::RELOAD, now, Beat);
+		}
+
 		if (specialButtonPressed) {
 			const bool ultimateInactive =
 				!mainPlayerComponent->mBaseUltimateActive &&
@@ -660,7 +669,7 @@ bool PlayerInputSystem::TickBaseUltimate(
 			playerComponent->mBaseUltimateRemainingTime));
 		const float duration = (std::max)(0.01f, playerComponent->mBaseUltimateInitialDuration);
 		const float remainingRatio = std::clamp(remaining / duration, 0.0f, 1.0f);
-		constexpr int32 kRefundStep = 25;
+		constexpr int32 kRefundStep = 10;
 		const float rawRefund =
 			static_cast<float>(MainPlayerComponent::kMaxRhythmPoints) * remainingRatio;
 		const int32 refund = std::clamp(
@@ -1075,6 +1084,11 @@ bool PlayerInputSystem::TryFireAction(Entity e, MainPlayerComponent* mp, EventMa
 	                                  bool isCritical, bool isOnBeat)
 {
 	if (mp == nullptr) return false;
+
+
+	if (mp->GetState() == S_Reload && (mp->mFlags & FLAG_ANIM) != 0)
+		return false;
+
 	if (GravityComponent* gravityComp = mWorld->GetComponent<GravityComponent>(e))
 	{
 		if (gravityComp->mFalling && button != InputButtons::RELOAD)

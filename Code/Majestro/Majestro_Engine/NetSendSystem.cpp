@@ -73,10 +73,13 @@ uint32 NetSendSystem::GetCurrentRoomId() const
 
 void NetSendSystem::TrySendGameStart()
 {
-	if (!mPendingGameStart)
+	if (!sPendingGameStart)
 		return;
 
-	if (mHasSentGameStart)
+	// 예약을 건 인스턴스(= 전환 전 씬)에서는 보내지 않는다.
+	// 로딩을 마치고 새로 만들어진 이 시스템이 보내야, 서버가 곧바로 되쏘는
+	// 스폰 스냅샷이 gRecvBuffer 를 실제로 소비하는 시점에 도착한다.
+	if (mInstanceId == sRequesterInstanceId)
 		return;
 
 	const uint32 clientId = Network::GetInstance().mClientId;
@@ -87,8 +90,7 @@ void NetSendSystem::TrySendGameStart()
 	startPacket.SessionId   = clientId;
 
 	SendPacket(startPacket);
-	mHasSentGameStart = true;
-	mPendingGameStart = false;
+	sPendingGameStart = false;
 }
 
 
@@ -226,8 +228,13 @@ void NetSendSystem::TrySendMovement()
 void NetSendSystem::TrySendScene()
 {
 	mWorld->GetEventManager()->Consume<EvNetSceneChange>([this](const EvNetSceneChange& e) {
-		mHasSentGameStart = false;
-		mPendingGameStart = IsRoomScene(e.targetScene);
+		// 룸 씬(광장·레벨)으로 가는 경우에만 입장 보고를 예약한다.
+		// 여기서 예약해도 실제 전송은 로딩이 끝난 뒤 새 씬에서 일어난다.
+		if (IsRoomScene(e.targetScene))
+			RequestPendingGameStart();
+		else
+			CancelPendingGameStart();
+
 		SendPacket(C2S_SceneChangePacket(e.targetScene));
 	});
 }

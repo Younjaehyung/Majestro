@@ -639,7 +639,7 @@ struct S2C_PlayerStatusPacket : public PacketTcpHeader {
 	float stunRemaining = 0.0f;
 	float respawnRemaining = 0.0f;
 	uint16 rhythmPoints = 0;
-	uint16 maxRhythmPoints = 100;
+	uint16 maxRhythmPoints = 40;
 	uint8 buffCount = 0;
 	ReplicatedBuffState buffs[MAX_REPLICATED_BUFFS]{};
 

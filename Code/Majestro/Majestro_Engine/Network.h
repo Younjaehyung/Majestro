@@ -14,8 +14,11 @@ constexpr int TCPSERVERPORT = 9000;	//TCP
 constexpr int UDPSERVERPORT = 9001;	//UDP
 constexpr int BUFSIZE = 4096;
 
+
+constexpr size_t RECV_QUEUE_CAPACITY = 32768;
+
 extern SpscRingQueue<SendRequest, 1024>	gSendBuffer;	// Logic -> Network
-extern SpscRingQueue<InputCommand, 1024>	gRecvBuffer;	// Network -> Logic
+extern SpscRingQueue<InputCommand, RECV_QUEUE_CAPACITY>	gRecvBuffer;	// Network -> Logic
 
 class Network
 {

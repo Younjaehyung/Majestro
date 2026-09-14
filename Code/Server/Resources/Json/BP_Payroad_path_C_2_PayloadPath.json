@@ -15186,13 +15186,7 @@
     {
       "name": "stop_00",
       "distance": 11556.9697265625,
-      "waitSeconds": 3.0,
-      "resumeEvent": "CheckPoint1"
-    },
-    {
-      "name": "stop_01",
-      "distance": 42019.390625,
-      "waitSeconds": 3.0,
+      "waitSeconds": 10.0,
       "resumeEvent": "CheckPoint2"
     }
   ]

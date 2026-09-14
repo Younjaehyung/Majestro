@@ -53,8 +53,8 @@ public:
 	static constexpr float mWaveCheckPointTime = 10.f; // 웨이브 체크포인트별 시간
 
 	static constexpr float mMaxWaveInterval = 3.f; // 웨이브 점령 감소 간격 시작 (초)
-	static constexpr float mMaxWaveTime = 30.f; // 최대 웨이브 수
-	static constexpr float mConquestProgressSpeedMultiplier = 2.0f; // 점령 진행 속도 배율
+	static constexpr float mMaxWaveTime = 10.f; // 최대 웨이브 수
+	static constexpr float mConquestProgressSpeedMultiplier = 1.0f; // 점령 진행 속도 배율
 
 	std::array<std::vector<Entity>, mMaxWaves> mEnemeySpawners; // 웨이브별 적 스포너 엔티티 리스트
 	std::array<Entity, mMaxWaves> mPlayerSpawners;				// 웨이브별 플레이어 스포너 엔티티 리스트

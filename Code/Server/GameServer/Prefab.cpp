@@ -286,14 +286,14 @@ Entity EnemyPrefab::Build(World* world, const InputCommand& ctx)
 		break;
 	case EnemyType::Brass:
 		world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Brass, 150);
-		world->AddComponent<HealthComponent>(mEntityID, 5000, 5000);
+		world->AddComponent<HealthComponent>(mEntityID, 3000, 3000);
 		break;
 		case EnemyType::Dragon:
 			//t.mLocalScale = { 2.0f, 2.0f, 2.0f };
 			center = Vec3(0, 120, 0);
 			half = Vec3(180, 220, 180);
 			world->AddComponent<EnemyComponent>(mEntityID, EnemyType::Dragon, 300);
-			world->AddComponent<HealthComponent>(mEntityID, 2500, 2500);
+			world->AddComponent<HealthComponent>(mEntityID, 3000, 3000);
 			break;
 	}
 

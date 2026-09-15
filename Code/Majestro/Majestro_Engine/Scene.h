@@ -17,7 +17,7 @@ public:
 	virtual void Shudown();
 
 	
-	virtual void Enter() { mIsStarted = true; }
+	virtual void Enter();
 	virtual void Exit() { mIsStarted = false; }
 
 	// 맵 데이터 fbx로드, 맵 데이터 json로드

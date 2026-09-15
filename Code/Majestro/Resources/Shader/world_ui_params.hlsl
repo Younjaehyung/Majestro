@@ -10,7 +10,7 @@ struct WORLD_UI_SPRITE_PARAMS
     uint BaseInstanceID;
     uint PassFlags;
     uint SpriteRole;
-    uint ReservedHeader;
+    float DistanceScale; // 픽셀 오프셋 거리 비례 스케일 (HUD=1)
 
     float3 Anchor;
     float Progress;
@@ -48,7 +48,7 @@ struct WORLD_UI_HP_EFFECT_PARAMS
     uint BaseInstanceID;
     uint PassFlags;
     uint ReservedHeader0;
-    uint ReservedHeader1;
+    float DistanceScale; // 픽셀 오프셋 거리 비례 스케일 (HUD=1)
 
     float3 Anchor;
     float FollowRatio;

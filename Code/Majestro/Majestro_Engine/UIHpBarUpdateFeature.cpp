@@ -70,7 +70,7 @@ void UIHpBarUpdateFeature::DrawUI(CameraComponent* camera, WorldUIPassMode mode)
         if (hpBar->mTargetEntity == NULL_ENTITY)
             hpBar->mTargetEntity = owner;
 
-        DrawHpBar(hpBar, owner);
+        DrawHpBar(hpBar, owner, camera);
     }
 
 
@@ -79,7 +79,7 @@ void UIHpBarUpdateFeature::DrawUI(CameraComponent* camera, WorldUIPassMode mode)
     GRAPHICS_CMD_LIST->SetGraphicsRoot32BitConstants(0, 1, &zero, 2);  // 스프라이트 역할
 }
 
-void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
+void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner, CameraComponent* camera)
 {
     // 모드별 앵커 결정
     // 월드 모드와 HUD 모드가 같은 앵커 슬롯을 사용
@@ -87,6 +87,7 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     //   HUD:   화면 픽셀 좌상단 + (mMaxWidth/2, 0) — 좌상단을 가운데-위로 보정해
     //          기존 pivot=(-w/2, 0) 수식을 모드 무관하게 그대로 통용 (z 미사용).
     Vec3 anchorXYZ = Vec3::Zero;
+    float distanceScale = 1.f;
     if (hpBar->mIsScreenSpace)
     {
         UITransformComponent* uiTr = mWorld->GetComponent<UITransformComponent>(owner);
@@ -105,6 +106,12 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
             return;
         const Vec3 worldAnchor = targetTr->mLocalPosition + hpBar->mWorldOffset;
         anchorXYZ = worldAnchor;
+
+        // 거리 비례
+        const float viewDepth = Vec3::Transform(worldAnchor, camera->GetViewMatrix()).z;
+        distanceScale = std::clamp(
+            hpBar->mDistanceScaleRef / (std::max)(viewDepth, 1.f),
+            hpBar->mDistanceScaleMin, 1.f);
     }
 
     // 텍스처 인덱스 확보
@@ -149,7 +156,7 @@ void UIHpBarUpdateFeature::DrawHpBar(UIHpBarComponent* hpBar, Entity owner)
     gp.BaseInstanceID = 0;
     gp.PassFlags = hpBar->mIsScreenSpace ? 1u : 0u;
     gp.SpriteRole = 0;
-    gp.ReservedHeader = 0;
+    gp.DistanceScale = distanceScale;
 
     gp.AnchorWorldX = anchorXYZ.x;
     gp.AnchorWorldY = anchorXYZ.y;

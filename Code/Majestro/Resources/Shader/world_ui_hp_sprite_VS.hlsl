@@ -62,7 +62,7 @@ VS_OUT VS_Main(VS_IN input)
     }
 
 
-    float2 pixelOffset = GlobalParams.PivotPx + input.pos.xy * GlobalParams.SizePx;
+    float2 pixelOffset = (GlobalParams.PivotPx + input.pos.xy * GlobalParams.SizePx) * GlobalParams.DistanceScale;
 
     // 스크린 크기로 정규화, w 무관 = 거리 무관
     float2 ndcOffset;

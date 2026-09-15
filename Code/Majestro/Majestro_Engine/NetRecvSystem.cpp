@@ -814,16 +814,12 @@ void NetRecvSystem::HandleSceneChangeResult(const InputCommand& msg)
         EnterLevelScene(SceneId::FourthGame, L"보스전 로딩 중...");
         break;
     case SceneId::VGame: // 승리 화면
-        // 접속을 끊으므로 남아 있는 입장 보고 예약도 함께 버린다.
         NetSendSystem::CancelPendingGameStart();
         Network::GetInstance().Shutdown();
         gEngine->GetSceneManager().RequestScene(SceneId::VGame);
         break;
     case SceneId::MainMenu: // 게임 종료 신호
-        // 게임 중에는 마우스 룩으로 커서를 숨겨두므로, 메인 메뉴에서 다시 커서가 보이도록 복원한다.
-        INPUT.SetForceMouseLook(false);
         NetSendSystem::CancelPendingGameStart();
-        // 스스로 접속을 끊고 메인 메뉴로 복귀
         Network::GetInstance().Shutdown();
         gEngine->GetSceneManager().RequestScene(SceneId::MainMenu);
         break;

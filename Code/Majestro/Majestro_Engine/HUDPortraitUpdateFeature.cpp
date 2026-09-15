@@ -67,6 +67,17 @@ void HUDPortraitUpdateFeature::ApplyTextures(HUDPortraitSlotComponent& slot, uin
 	applyCell(slot.mBack1, 3);
 	applyCell(slot.mHead0, 0);
 	applyCell(slot.mHead1, 1);
+
+
+	if (slot.mHpFill == NULL_ENTITY)  
+		return;
+
+
+	const PlayerHpTextureNames hpNames = GetPlayerHpTextureNames(playerType);
+	if (auto* sp = mWorld->GetComponent<UISpriteComponent>(slot.mHpBack))
+		sp->mTexture = RESOURCEMANAGER.Get<Texture>(hpNames.Background);
+	if (auto* sp = mWorld->GetComponent<UISpriteComponent>(slot.mHpFill))
+		sp->mTexture = RESOURCEMANAGER.Get<Texture>(hpNames.Fill);
 }
 
 void HUDPortraitUpdateFeature::SetSlotVisible(HUDPortraitSlotComponent& slot, bool visible)

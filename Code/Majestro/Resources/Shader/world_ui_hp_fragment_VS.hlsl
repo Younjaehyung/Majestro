@@ -84,8 +84,9 @@ VS_OUT VS_Main(VS_IN input)
 
     //  NDC 오프셋
     float2 ndcOffset;
-    ndcOffset.x =  (offsetPx.x / PassParams.ScreenSize.x) * 2.0f;
-    ndcOffset.y = -(offsetPx.y / PassParams.ScreenSize.y) * 2.0f;
+    // 거리 비례 스케일은 위치에만 적용 (spriteUV 는 스케일 전 오프셋 기준 유지)
+    ndcOffset.x =  (offsetPx.x * GlobalParams.DistanceScale / PassParams.ScreenSize.x) * 2.0f;
+    ndcOffset.y = -(offsetPx.y * GlobalParams.DistanceScale / PassParams.ScreenSize.y) * 2.0f;
     float2 finalNDC = anchorNDC + ndcOffset;
 
     output.pos = float4(finalNDC * anchorW, anchorZNDC * anchorW, anchorW);

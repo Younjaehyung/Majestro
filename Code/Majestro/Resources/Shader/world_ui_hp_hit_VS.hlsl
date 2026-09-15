@@ -70,7 +70,7 @@ VS_OUT VS_Main(VS_IN input)
 
     //  픽셀 오프셋
     float2 quadOffsetPx = (input.pos.xy - 0.5f) * sizePx;
-    float2 totalOffsetPx = anchorPx + quadOffsetPx;
+    float2 totalOffsetPx = (anchorPx + quadOffsetPx) * GlobalParams.DistanceScale;
 
     // NDC 오프셋
     float2 ndcOffset;

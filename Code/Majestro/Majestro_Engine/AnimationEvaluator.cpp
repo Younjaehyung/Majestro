@@ -228,7 +228,7 @@ void AnimationEvaluator::Evaluate(
 			else
 			{
 				// 2) 모델공간에서 최단경로 Slerp — 하체 골반 회전이 상체로 상속되지 않는다
-				float dots = baseMesh.Dot(upperMesh);
+				float dot = baseMesh.Dot(upperMesh);
 				if (dot < 0.f)
 					upperMesh = Vec4(-upperMesh.x, -upperMesh.y, -upperMesh.z, -upperMesh.w);
 

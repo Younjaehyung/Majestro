@@ -186,6 +186,13 @@ void Scene::Initialize()
 
 }
 
+void Scene::Enter()
+{
+	mIsStarted = true;
+
+	INPUT.SetForceMouseLook(IsRoomScene(mSceneId));
+}
+
 void Scene::Release()
 {
 	Shudown();

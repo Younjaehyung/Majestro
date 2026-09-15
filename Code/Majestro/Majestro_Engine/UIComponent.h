@@ -66,6 +66,15 @@ inline float RemapBarRatioToUv(float ratio, const Vec2& uvRange)
 	return uvRange.x + ratio * (uvRange.y - uvRange.x);
 }
 
+
+struct PlayerHpTextureNames
+{
+	const wchar_t* Background;
+	const wchar_t* Fill;
+};
+
+PlayerHpTextureNames GetPlayerHpTextureNames(uint8 playerType);
+
 class UIHpBarComponent : public Component<UIHpBarComponent>
 {
 public:
@@ -115,6 +124,10 @@ public:
 	// HUD 모드: 월드 좌표 무시, 
 	// UITransformComponent::mFinalPixelPos를 화면 픽셀 앵커로 사용.
 	bool mIsScreenSpace = false;
+
+	// 월드 모드 거리 비례 크기
+	float mDistanceScaleRef = 800.f;
+	float mDistanceScaleMin = 0.5f;
 
 
 	// false 면 WorldUIPass 에서 배경/채움 sprite draw 를 스킵 

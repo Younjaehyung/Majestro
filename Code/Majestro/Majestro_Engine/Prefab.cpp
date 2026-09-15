@@ -478,19 +478,8 @@ Entity PlayerPrefab::Build(World* world, const InputCommand& ctx)
 	else 
 	{
 		// 캐릭터별 전용 HP 텍스처
-		std::wstring hpBgName  = L"UI_Fanthor_HP_0";
-		std::wstring hpBarName = L"UI_Fanthor_HP_1";
-		switch (static_cast<PlayerType>(ctx.ViewAs<S2C_SpawnPacekt>()->Type))
-		{
-		case PlayerType::Rudwig:
-			hpBgName = L"UI_Rudwig_HP_0";  hpBarName = L"UI_Rudwig_HP_1";  break;
-		case PlayerType::Ibanix:
-			hpBgName = L"UI_Ibanix_HP_0";  hpBarName = L"UI_Ibanix_HP_1";  break;
-		case PlayerType::Fanthor:
-			hpBgName = L"UI_Fanthor_HP_0"; hpBarName = L"UI_Fanthor_HP_1"; break;
-		}
-
-		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 3.f, hpBgName, hpBarName);
+		const PlayerHpTextureNames hpNames = GetPlayerHpTextureNames(ctx.ViewAs<S2C_SpawnPacekt>()->Type);
+		auto& hp = world->AddComponent<UIHpBarComponent>(mEntityID, 384.f, mEntityID, Vec3(0.f, 200.f, 0.f), 384.f / 3.f, hpNames.Background, hpNames.Fill);
 
 		// 텍스처 여백 보정: UI_<캐릭터>_HP_1 (768x256) 의 바 픽셀 영역
 		// X 118~718 / Y 116~140 — 세 캐릭터 공통 (알파 스캔 측정, ±1px)
@@ -1019,25 +1008,8 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 	const float BounceFrequency = 2.f;
 	const float BounceDamping   = 10.0f;
 
-	std::wstring hpBgName = L"UI_Fanthor_HP_0";
-	std::wstring hpBarName = L"UI_Fanthor_HP_1";
-
-
-	switch (playerType)
-	{
-	case PlayerType::Fanthor:
-		hpBgName = L"UI_Fanthor_HP_0";
-		hpBarName = L"UI_Fanthor_HP_1";
-		break;
-	case PlayerType::Rudwig:
-		hpBgName = L"UI_Rudwig_HP_0";
-		hpBarName = L"UI_Rudwig_HP_1";
-		break;
-	case PlayerType::Ibanix:
-		hpBgName = L"UI_Ibanix_HP_0";
-		hpBarName = L"UI_Ibanix_HP_1";
-		break;
-	}
+	// 미니 HP 바 초기 텍스처. 실제 캐릭터 색은 HUDPortraitUpdateFeature::ApplyTextures 가 슬롯 주인 기준으로 교체한다.
+	const PlayerHpTextureNames hpNames = GetPlayerHpTextureNames(playerType);
 
 	for (uint8 i = 0; i < kLayout.size(); ++i)
 	{
@@ -1101,7 +1073,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 				t.mSize = hpSize;
 				t.mPivot = Vec2(0.f, 0.f);
 				t.mUILayerIndex = 6;
-				auto& sp = world->AddComponent<UISpriteComponent>(hpBack, RESOURCEMANAGER.Get<Texture>(hpBgName));
+				auto& sp = world->AddComponent<UISpriteComponent>(hpBack, RESOURCEMANAGER.Get<Texture>(hpNames.Background));
 				sp.mVisible = false;
 			}
 
@@ -1114,7 +1086,7 @@ HUDPortraitPrefab::HUDPortraitPrefab(World* world, uint8 playerType)
 				t.mSize = hpSize;
 				t.mPivot = Vec2(0.f, 0.f);
 				t.mUILayerIndex = 5;
-				auto& sp = world->AddComponent<UISpriteComponent>(hpFill, RESOURCEMANAGER.Get<Texture>(hpBarName));
+				auto& sp = world->AddComponent<UISpriteComponent>(hpFill, RESOURCEMANAGER.Get<Texture>(hpNames.Fill));
 				sp.mVisible = false;
 			}
 
@@ -1345,6 +1317,7 @@ HUDSkillBarPrefab::~HUDSkillBarPrefab()
 
 HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntity)
 {
+	const PlayerHpTextureNames hpNames = GetPlayerHpTextureNames(playerType);
 	{
 
 #ifdef _IMGUI
@@ -1354,18 +1327,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 		{	// BACK 0
 			Entity back = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
-			switch (playerType) {
-			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_HP_0");
-				break;
-			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_HP_0");
-				break;
-			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_HP_0");
-				break;
-			}
+			shared_ptr<Texture> scorem = RESOURCEMANAGER.Get<Texture>(hpNames.Background);
 			auto& t = world->AddComponent<UITransformComponent>(back);
 			t.mAnchor = Anchor::Center;
 			t.mPosition = Vec2(0.f, 576.f);
@@ -1388,18 +1350,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 
 			Entity hp = world->CreateEntity();
 
-			shared_ptr<Texture> scorem;
-			switch (playerType) {
-			case 0:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Rudwig_HP_1");
-				break;
-			case 1:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Ibanix_HP_1");
-				break;
-			case 2:
-				scorem = RESOURCEMANAGER.Get<Texture>(L"UI_Fanthor_HP_1");
-				break;
-			}
+			shared_ptr<Texture> scorem = RESOURCEMANAGER.Get<Texture>(hpNames.Fill);
 			auto& t = world->AddComponent<UITransformComponent>(hp);
 			t.mAnchor = Anchor::Center;
 			t.mPosition = Vec2(-384.f, 448.f);
@@ -1444,27 +1395,7 @@ HUDHPBarPrefab::HUDHPBarPrefab(World* world, uint8 playerType, Entity ownerEntit
 			// HP 바 자체는 위 UISprite 가 그리고, 여기서 부착하는 UIHpBarComponent 는
 			// 파편 + hit effect 만 담당 (HUD 모드: 화면 픽셀 직접 좌표, depth 무시).
 			{
-				std::wstring hpBgName = L"UI_Fanthor_HP_0";
-				std::wstring hpBarName = L"UI_Fanthor_HP_1";
-
-
-				switch (playerType)
-				{
-				case PlayerType::Fanthor:
-					hpBgName = L"UI_Fanthor_HP_0";
-					hpBarName = L"UI_Fanthor_HP_1";
-					break;
-				case PlayerType::Rudwig:
-					hpBgName = L"UI_Rudwig_HP_0";
-					hpBarName = L"UI_Rudwig_HP_1";
-					break;
-				case PlayerType::Ibanix:
-					hpBgName = L"UI_Ibanix_HP_0";
-					hpBarName = L"UI_Ibanix_HP_1";
-					break;
-				}
-
-				auto& bar = world->AddComponent<UIHpBarComponent>( hp, t.mSize.x, ownerEntity, Vec3::Zero, t.mSize.y, hpBgName, hpBarName);
+				auto& bar = world->AddComponent<UIHpBarComponent>( hp, t.mSize.x, ownerEntity, Vec3::Zero, t.mSize.y, hpNames.Background, hpNames.Fill);
 				bar.mIsScreenSpace = true;
 				bar.mRenderBgFill = false;            // 위 UISprite 가 이미 그림
 				bar.mHitEffectTextureName = L"UI_Player_HP_3";

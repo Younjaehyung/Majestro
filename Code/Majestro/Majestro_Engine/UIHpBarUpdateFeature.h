@@ -12,7 +12,7 @@ struct UIHpBarParamsLayout
     uint32 BaseInstanceID = 0;
     uint32 PassFlags = 0;
     uint32 SpriteRole = 0;
-    uint32 ReservedHeader = 0;
+    float DistanceScale = 1.f;   // 픽셀 오프셋 전체에 곱하는 거리 비례 스케일
 
     float AnchorWorldX = 0.f;
     float AnchorWorldY = 0.f;
@@ -57,7 +57,7 @@ private:
     void SpawnHpLossFragments(UIHpBarComponent* hpBar, float oldRatio, float newRatio);
     void UpdateHpLossFragments(UIHpBarComponent* hpBar, float dt);
 
-    void DrawHpBar(UIHpBarComponent* hpBar, Entity owner);
+    void DrawHpBar(UIHpBarComponent* hpBar, Entity owner, CameraComponent* camera);
     void DrawUI(CameraComponent* camera, WorldUIPassMode mode = WorldUIPassMode::All);
     UIInstanceRanges UploadBarInstances(const UIHpBarComponent* hpBar);
 private:

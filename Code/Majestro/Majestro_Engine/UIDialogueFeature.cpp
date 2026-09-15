@@ -38,11 +38,12 @@ namespace
 		tr.mSize = size;
 		tr.mPivot = Vec2(0.5f, 0.5f);
 		tr.mUILayerIndex = 6;
+		tr.mScale = Vec2(1.25f, 1.25f);
 
 		auto& txt = world->AddComponent<UITextComponent>(e);
 		txt.mText = L"";
 		txt.mVisible = false;
-		txt.mFontType = UIFontType::Esamanru;
+		txt.mFontType = UIFontType::Pretendard;
 		txt.mOutlineThickness = outline;
 		txt.mColor.f[0] = color.x;
 		txt.mColor.f[1] = color.y;

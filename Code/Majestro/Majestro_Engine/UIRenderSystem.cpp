@@ -78,7 +78,8 @@ void UIRenderSystem::InitializeFont()
         return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpuHandle, static_cast<INT>(descriptorIndex), srvSize);
     };
 
-    auto loadFont = [this, &resourceUpload, &makeCpuDescriptor, &makeGpuDescriptor](UIFontType type, const wchar_t* path)
+
+    auto loadFont = [this, &resourceUpload, &makeCpuDescriptor, &makeGpuDescriptor](UIFontType type, const wchar_t* path, float bakedPoint = 16.f)
     {
         const size_t index = static_cast<size_t>(type);
         if (index >= mFonts.size())
@@ -87,11 +88,13 @@ void UIRenderSystem::InitializeFont()
         mFonts[index] = std::make_shared<SpriteFont>(
             DEVICE.Get(), resourceUpload, path, makeCpuDescriptor(type), makeGpuDescriptor(type));
         mFonts[index]->SetDefaultCharacter(L'?');
+        mFontScales[index] = 16.f / bakedPoint;
     };
 
     loadFont(UIFontType::Arial, L"..\\Resources\\Font\\myfile.spritefont");
     loadFont(UIFontType::Esamanru, L"..\\Resources\\Font\\OSWFont.spritefont");
     loadFont(UIFontType::Rivera, L"..\\Resources\\Font\\Rivera.spritefont");
+    loadFont(UIFontType::Pretendard, L"..\\Resources\\Font\\Pretendard-Medium.spritefont", 36.f);
 
     for (Entity a : mWorld->View<UITextComponent>()) {
         auto textComp = mWorld->GetComponent<UITextComponent>(a);
@@ -245,9 +248,10 @@ void UIRenderSystem::TextUpdate()
 
 
         // text마다 지정된 mFontType으로 폰트를 선택
-        std::shared_ptr<DirectX::SpriteFont> font = GetFont(textComp->mFontType);
+        UIFontType fontType = textComp->mFontType;
+        std::shared_ptr<DirectX::SpriteFont> font = GetFont(fontType);
         if (font == nullptr)
-            font = GetFont(UIFontType::Arial);
+            font = GetFont(fontType = UIFontType::Arial);
         if (font == nullptr)
             continue;
         textComp->mFont = font;
@@ -274,7 +278,7 @@ void UIRenderSystem::TextUpdate()
                 resolutionScale = std::min(screenSize.x / reference.x, screenSize.y / reference.y);
         }
 
-        const float scale = (posComp ? posComp->mScale.x : 1.f) * resolutionScale;
+        const float scale = (posComp ? posComp->mScale.x : 1.f) * resolutionScale * GetFontScale(fontType);
         XMVECTOR textSizeVec = font->MeasureString(output.c_str());
         XMFLOAT2 textSize;
         XMStoreFloat2(&textSize, textSizeVec);
@@ -314,6 +318,7 @@ void UIRenderSystem::TextUpdate()
         octx.batch = mSpriteBatch.get();
         octx.screenSize = screenSize;
         octx.getFont = [this](UIFontType type) { return GetFont(type); };
+        octx.getFontScale = [this](UIFontType type) { return GetFontScale(type); };
 
         for (const UITextOverlay& overlay : mTextOverlays)
             overlay(octx);
@@ -595,6 +600,15 @@ std::shared_ptr<DirectX::SpriteFont> UIRenderSystem::GetFont(UIFontType type) co
         return nullptr;
 
     return mFonts[index];
+}
+
+float UIRenderSystem::GetFontScale(UIFontType type) const
+{
+    const size_t index = static_cast<size_t>(type);
+    if (index >= mFontScales.size() || mFonts[index] == nullptr)
+        return 1.f;
+
+    return mFontScales[index];
 }
 
 void UIRenderSystem::SortSpriteLayer(std::vector<Entity>& entitys)

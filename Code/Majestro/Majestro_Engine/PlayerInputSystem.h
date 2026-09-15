@@ -34,6 +34,9 @@ private:
 		bool paused = false;
 	};
 
+	// 입력 잠금
+	bool mAttackBlockedUntilRelease = false;
+
 	bool IsPaused() const;
 	bool IsCinematicPlaying() const;	// 씬 진입 시네마틱(IntroSequence) 재생 중 여부
 	bool IsDialogueActive() const;		// NPC 대화 진행 중 여부
@@ -57,4 +60,6 @@ private:
 	void ResetEmoteWheelState();
 	void ClearActionInput(PlayerInputContext& ctx);
 	void ClearGameplayInput(PlayerInputContext& ctx);
+
+
 };

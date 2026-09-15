@@ -48,6 +48,7 @@ private:
 	bool IsGameplayGroupActive() const;
 	bool CanRenderEntity(Entity entity) const;
 	std::shared_ptr<DirectX::SpriteFont> GetFont(UIFontType type) const;
+	float GetFontScale(UIFontType type) const;
 	// void RenderText();
 	
 	
@@ -61,6 +62,7 @@ private:
 	shared_ptr<Mesh> mQuadMesh;
 	std::shared_ptr<DirectX::SpriteBatch> mSpriteBatch;
 	std::array<std::shared_ptr<DirectX::SpriteFont>, static_cast<size_t>(UIFontType::Count)> mFonts;
+	std::array<float, static_cast<size_t>(UIFontType::Count)> mFontScales{};
 	std::vector<UIInstanceData> mInstances;
 	std::vector<std::shared_ptr<UIFeature>>* mFeatures;
 	std::shared_ptr<UIEffectPass> mUIEffectPass;

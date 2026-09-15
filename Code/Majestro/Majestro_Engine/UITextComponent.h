@@ -6,6 +6,7 @@ enum class UIFontType
 	Arial,
 	Esamanru,
 	Rivera,
+	Pretendard,
 	Count
 };
 

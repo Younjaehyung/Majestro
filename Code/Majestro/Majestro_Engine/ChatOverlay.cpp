@@ -12,18 +12,19 @@ void DrawChatOverlay(const UITextOverlayContext& ctx)
         return;
 
 
-    std::shared_ptr<DirectX::SpriteFont> font = ctx.getFont(UIFontType::Esamanru);
+    UIFontType fontType = UIFontType::Pretendard;
+    std::shared_ptr<DirectX::SpriteFont> font = ctx.getFont(fontType);
     if (font == nullptr)
-        font = ctx.getFont(UIFontType::Arial);
+        font = ctx.getFont(fontType = UIFontType::Arial);
     if (font == nullptr)
         return;
 
     const Vec2 screenSize = ctx.screenSize;
 
- 
+
     const float s = std::min(screenSize.x / 2560.f, screenSize.y / 1440.f);
-    const float textScale = 1.05f * s;
-    const float lineHeight = (font->GetLineSpacing() + 8.f) * textScale;
+    const float textScale = 1.25f * s * ctx.getFontScale(fontType);
+    const float lineHeight = font->GetLineSpacing() * textScale + 8.f * s;
     const float baseX = 60.f * s;
     const float inputY = screenSize.y - 150.f * s;
 

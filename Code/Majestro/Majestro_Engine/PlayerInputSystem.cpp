@@ -133,6 +133,7 @@ void PlayerInputSystem::ClearGameplayInput(PlayerInputContext& ctx)
 	ctx.movement->mDash = false;
 	ClearActionInput(ctx);
 	ctx.player->mSpeed = 0.0f;
+	mAttackBlockedUntilRelease = true;
 }
 
 void PlayerInputSystem::ClearActionInput(PlayerInputContext& ctx)
@@ -640,7 +641,10 @@ void PlayerInputSystem::UpdateAliveInput(float dt, PlayerInputContext& ctx)
 	}
 
 	const bool mouseLook = INPUT.IsMouseLookActive();
-	ctx.movement->mAttack = mouseLook && INPUT.GetMouseState().LeftDown;
+	const bool leftDown = INPUT.GetMouseState().LeftDown;
+	if (!leftDown)
+		mAttackBlockedUntilRelease = false;
+	ctx.movement->mAttack = mouseLook && leftDown && !mAttackBlockedUntilRelease;
 	ctx.movement->mSkill1 = INPUT.GetKey(eKeyCode::E);
 	ctx.movement->mSkill2 = INPUT.GetKey(eKeyCode::SHIFT);
 	ctx.movement->mReload = INPUT.GetKey(eKeyCode::R);

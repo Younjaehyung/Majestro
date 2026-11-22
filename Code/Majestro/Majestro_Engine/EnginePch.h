@@ -623,6 +623,7 @@ extern unique_ptr<class Engine> gEngine;
 #if ENABLE_GPU_MARKERS
 #include "Engine.h"
 #include "RenderManager.h"
+#include "GpuProfiler.h"
 
 struct GpuScopedMarker
 {
@@ -630,8 +631,13 @@ struct GpuScopedMarker
 	{
 		GRAPHICS_CMD_LIST->BeginEvent(2 /* PIX_EVENT_UNICODE_VERSION */, name,
 			static_cast<UINT>((wcslen(name) + 1) * sizeof(wchar_t)));
+		GpuProfiler::Get().BeginScope(GRAPHICS_CMD_LIST.Get(), name);	// 마커 구간 = GPU 타임스탬프 구간
 	}
-	~GpuScopedMarker() { GRAPHICS_CMD_LIST->EndEvent(); }
+	~GpuScopedMarker()
+	{
+		GpuProfiler::Get().EndScope(GRAPHICS_CMD_LIST.Get());
+		GRAPHICS_CMD_LIST->EndEvent();
+	}
 };
 #define GPU_MARKER_CONCAT2(a, b) a##b
 #define GPU_MARKER_CONCAT(a, b) GPU_MARKER_CONCAT2(a, b)

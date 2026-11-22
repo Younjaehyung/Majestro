@@ -227,6 +227,14 @@ namespace EngineLog
 		StateTiming,          // 상태별 애니메이션 종료 시각 표
 	};
 
+	// 실행 인자 -statlog 가 있으면 재빌드 없이 성능 4개 도메인을 켜고 perf_log.txt 에 남긴다.
+	inline bool StatLogRequested()
+	{
+		static const bool requested =
+			::wcsstr(::GetCommandLineW(), L"-statlog") != nullptr;
+		return requested;
+	}
+
 	inline constexpr bool Enabled(Domain domain)
 	{
 		switch (domain)
@@ -262,13 +270,13 @@ namespace EngineLog
 		case Domain::VfxDiagnostic:
 			return MAJESTRO_LOG_VFX_DIAGNOSTIC != 0;
 		case Domain::FramePerformance:
-			return MAJESTRO_LOG_FRAME_PERFORMANCE != 0;
+			return MAJESTRO_LOG_FRAME_PERFORMANCE != 0 || StatLogRequested();
 		case Domain::SystemPerformance:
-			return MAJESTRO_LOG_SYSTEM_PERFORMANCE != 0;
+			return MAJESTRO_LOG_SYSTEM_PERFORMANCE != 0 || StatLogRequested();
 		case Domain::RenderPerformance:
-			return MAJESTRO_LOG_RENDER_PERFORMANCE != 0;
+			return MAJESTRO_LOG_RENDER_PERFORMANCE != 0 || StatLogRequested();
 		case Domain::RenderPassPerformance:
-			return MAJESTRO_LOG_RENDER_PASS_PERFORMANCE != 0;
+			return MAJESTRO_LOG_RENDER_PASS_PERFORMANCE != 0 || StatLogRequested();
 		case Domain::AudioRuntime:
 			return MAJESTRO_LOG_AUDIO_RUNTIME != 0;
 		case Domain::NetworkRuntime:
@@ -544,16 +552,41 @@ namespace EngineLog
 	};
 
 
+	// -statlog 실행 시 성능 로그를 작업 폴더의 perf_log.txt 에도 남긴다. 실행할 때마다 새로 쓴다.
+	inline FILE* StatLogFile()
+	{
+		static FILE* file = StatLogRequested()
+			? ::_fsopen("perf_log.txt", "w", _SH_DENYNO)
+			: nullptr;
+		return file;
+	}
+
 	inline void OutputPerformance(Domain domain, const char* text)
 	{
-		if (Enabled(domain) && text)
-			::OutputDebugStringA(text);
+		if (!Enabled(domain) || !text)
+			return;
+
+		::OutputDebugStringA(text);
+		if (FILE* file = StatLogFile())
+		{
+			::fputs(text, file);
+			::fflush(file);
+		}
 	}
 
 	inline void OutputPerformance(Domain domain, const wchar_t* text)
 	{
-		if (Enabled(domain) && text)
-			::OutputDebugStringW(text);
+		if (!Enabled(domain) || !text)
+			return;
+
+		::OutputDebugStringW(text);
+		if (FILE* file = StatLogFile())
+		{
+			char narrow[2048]{};
+			::WideCharToMultiByte(CP_UTF8, 0, text, -1, narrow, sizeof(narrow) - 1, nullptr, nullptr);
+			::fputs(narrow, file);
+			::fflush(file);
+		}
 	}
 
 	inline std::string Narrow(const std::wstring& text)

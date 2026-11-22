@@ -166,6 +166,9 @@ void Engine::Render()
 		EngineLog::OutputPerformance(
 			EngineLog::Domain::FramePerformance,
 			buffer);
+		EngineLog::OutputPerformance(
+			EngineLog::Domain::FramePerformance,
+			GpuProfiler::Get().FlushLine().c_str());	// 같은 60프레임 창의 GPU 패스별 평균
 		sFrameCpuProfile.ResetWindow();
 	}
 

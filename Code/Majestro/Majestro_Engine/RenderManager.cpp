@@ -226,6 +226,9 @@ void RenderManager::StartRender()
 	mGraphicsCommandQueue->WaitForFrame(mFrameResourceIndex);
 	mGraphicsCommandQueue->RenderBegin(mFrameResourceIndex);
 
+	// WaitForFrame 이후라 이 슬롯의 이전 타임스탬프 readback 이 안전하다.
+	GpuProfiler::Get().BeginFrame(GRAPHICS_CMD_LIST.Get(), mFrameResourceIndex);
+
 
 	// 수정: Effekseer command list는 각 pass의 draw 구간에서만 연다.
 	// 프레임 전체에서 BeginCommandList를 유지하면 SubmitIndependentWork의 GRAPHICS_CMD_LIST reset과 충돌할 수 있다.
@@ -249,6 +252,9 @@ void RenderManager::SubmitIndependentGraphics()
 void RenderManager::EndRender()
 {
 	const uint32 backIndex = mSwapChain->GetBackBufferIndex();
+
+	// 커맨드 리스트가 닫히기 전에 GPU 타임스탬프를 Resolve 한다.
+	GpuProfiler::Get().EndFrame(GRAPHICS_CMD_LIST.Get(), mFrameResourceIndex);
 
 	// 커맨드 리스트를 먼저 제출한다. ExecuteCommandLists와 Present를 포함한다.
 	mGraphicsCommandQueue->RenderEnd();

@@ -47,6 +47,15 @@ enum class eMouseButton
 	End
 };
 
+// 입력 소스가 한 프레임에 채우는 값. 하드웨어 폴링 결과와 같은 자리에 들어간다.
+struct InputFrame
+{
+	bool keys[static_cast<size_t>(eKeyCode::End)] = {};
+	bool mouseLeft = false;
+	bool mouseRight = false;
+	POINT mouseDelta = { 0, 0 };
+};
+
 class InputManager
 {
 public:
@@ -60,6 +69,10 @@ public:
 
 	// 게임 키 입력 억제자 등록 (하나라도 true 반환 시 이번 프레임 키 입력을 무시)
 	void AddKeyInputSuppressor(std::function<bool()> fn) { mKeyInputSuppressors.push_back(std::move(fn)); }
+
+	// 입력 소스 교체. 등록하면 키보드·마우스 하드웨어를 읽지 않고 매 프레임 이 함수가 채운 값만 쓴다.
+	// 창 포커스와 무관하게 동작하고 OS 커서를 잠그거나 숨기지 않는다. 첫 씬 로드 전에 등록해야 한다.
+	void SetInputSource(std::function<void(InputFrame&)> source) { mInputSource = std::move(source); }
 
 	bool GetKeyDown(eKeyCode code) {
 		return mKeys[(UINT)code].state == eKeyState::Down;
@@ -142,5 +155,6 @@ private:
 
 	std::vector<Key> mKeys;
 	std::vector<std::function<bool()>> mKeyInputSuppressors;	// 게임 키 억제자
+	std::function<void(InputFrame&)> mInputSource;				// 비어 있으면 하드웨어 입력
 };
 

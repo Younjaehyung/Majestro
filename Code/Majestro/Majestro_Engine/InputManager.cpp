@@ -35,20 +35,34 @@ void InputManager::Initialize(HWND _hWnd) {
 }
 
 void InputManager::Update() {
-	if (!mHasFocus)
-		return;
-
-	
-	RefreshCursorLock();
-
-
+	InputFrame frame;
+	const bool fromSource = static_cast<bool>(mInputSource);
 	bool suppressKeys = false;
-	for (const auto& suppress : mKeyInputSuppressors)
-		if (suppress()) { suppressKeys = true; break; }	// 프레임 키 입력을 무시
+
+	if (fromSource)
+	{
+		mInputSource(frame);
+		mMouseState.LeftDown = frame.mouseLeft;
+		mMouseState.RightDown = frame.mouseRight;
+		mMouseState.Delta = frame.mouseDelta;
+	}
+	else
+	{
+		if (!mHasFocus)
+			return;
+
+		RefreshCursorLock();
+
+		for (const auto& suppress : mKeyInputSuppressors)
+			if (suppress()) { suppressKeys = true; break; }	// 프레임 키 입력을 무시
+	}
 
 	for (size_t i = 0; i < mKeys.size(); i++) {
+		const bool pressed = fromSource
+			? frame.keys[i]
+			: (!suppressKeys && (GetAsyncKeyState(ASCII[i]) & 0x8000));
 		//눌렀는지
-		if (!suppressKeys && (GetAsyncKeyState(ASCII[i]) & 0x8000)) {
+		if (pressed) {
 			if (mKeys[i].bPressed == true) {
 				mKeys[i].state = eKeyState::Pressed;
 			}
@@ -199,6 +213,13 @@ void InputManager::RefreshCursorLock()
 void InputManager::SetForceMouseLook(bool enable)
 {
 	mForceMouseLookRequested = enable;
+	if (mInputSource)
+	{
+		// 입력 소스 모드: 게임 쪽 상태만 바꾸고 OS 커서는 건드리지 않는다.
+		mMouseLookControl = enable;
+		return;
+	}
+
 	if (mMouseLookControl == enable)
 	{
 		RefreshCursorLock();
@@ -241,6 +262,8 @@ void InputManager::SetForceMouseLook(bool enable)
 void InputManager::OnActivateApp(bool active)
 {
 	mHasFocus = active;
+	if (mInputSource)
+		return;	// 입력 소스 모드는 포커스와 무관하다
 
 	if (!mHasFocus)
 	{
@@ -314,6 +337,8 @@ void InputManager::MouseStateClear() {
 void InputManager::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
+	if (mInputSource)
+		return;
 
 	switch (message)
 	{
@@ -388,6 +413,8 @@ void InputManager::OnMouseWheel(WPARAM wParam)
 
 void InputManager::OnMouseButtonDown(WPARAM button)
 {
+	if (mInputSource)
+		return;
 	if (button == MK_LBUTTON) mMouseState.LeftDown = true;
 	if (button == MK_RBUTTON) mMouseState.RightDown = true;
 	if (button == MK_MBUTTON) mMouseState.MiddleDown = true;
@@ -395,6 +422,8 @@ void InputManager::OnMouseButtonDown(WPARAM button)
 
 void InputManager::OnMouseButtonUp(WPARAM button)
 {
+	if (mInputSource)
+		return;
 	switch (button)
 	{
 	case WM_LBUTTONUP:

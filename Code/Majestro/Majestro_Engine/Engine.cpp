@@ -9,6 +9,7 @@
 #include "Imgui.h"
 #include "Chat.h"
 #include "EngineLog.h"
+#include "QaBot.h"
 
 namespace
 {
@@ -63,6 +64,8 @@ void Engine::Initialize(const WindowInfo& info)
 
 	mInputManager->Initialize(info.Hwnd);
 	mInputManager->AddKeyInputSuppressor([] { return Chat::Get().ShouldBlockGameInput(); });
+	if (QaBot::Requested())	// -qa: 사람 대신 QA 봇이 입력을 공급한다
+		mInputManager->SetInputSource([](InputFrame& frame) { QaBot::Get().ProduceInput(frame); });
 
 	mTimer = make_unique<Timer>();
 	mTimer->Start();

@@ -127,6 +127,10 @@ void DamageSystem::Update(float deltaTime)
         }
 
 		MainPlayerComponent* player = mWorld->GetComponent<MainPlayerComponent>(e.target);
+		// -qagod 로 띄운 서버는 플레이어가 피해를 받지 않는다 (QA 봇이 죽지 않고 스테이지 흐름을 끝까지 돌도록)
+		static const bool sQaGod = (::wcsstr(::GetCommandLineW(), L"-qagod") != nullptr);
+		if (player && sQaGod)
+			return;
 		if (player && player->IsDeathActive())
 			return;
 		if (player && player->mUltimateIntroActive)

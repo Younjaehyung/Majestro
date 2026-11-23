@@ -379,6 +379,7 @@
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShadowPass.h" />
     <ClInclude Include="GpuProfiler.h" />
+    <ClInclude Include="QaBot.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Skeleton.h" />
     <ClInclude Include="SpscRingQueue.h" />
@@ -579,6 +580,7 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShadowPass.cpp" />
     <ClCompile Include="GpuProfiler.cpp" />
+    <ClCompile Include="QaBot.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
     <ClCompile Include="Skeleton.cpp" />
     <ClCompile Include="SpscRingQueue.cpp" />

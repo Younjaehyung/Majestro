@@ -38,6 +38,8 @@ ping -n 12 127.0.0.1 > /dev/null	# 서버 리소스 로딩 대기
 
 cd "$CODE/Majestro/Executable"
 rm -f qa_log.txt perf_log.txt
+# 화면 캡처: 게임 밖에서 창을 찍는다 (20초마다 + FAIL/WARN 이 새로 기록될 때). QA_SHOTS=0 으로 끈다.
+[ "${QA_SHOTS:-1}" = "1" ] && powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$HERE/capture.ps1")" -Dir "$(cygpath -w "$OUT/shots")" -Log "$(cygpath -w "$PWD/qa_log.txt")" > /dev/null 2>&1 &
 timeout "${QA_WALL_TIMEOUT:-2100}" ./Majestro.exe -qa -statlog "$@"
 CLIENT_EXIT=$?
 

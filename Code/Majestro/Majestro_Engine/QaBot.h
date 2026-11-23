@@ -17,6 +17,7 @@ class World;
 //   인자:  -qastages=N       진행할 스테이지 수 (기본 전체)
 //          -qafirst=N        N번째 스테이지부터 시작 (기본 1)
 //          -qachar=N         캐릭터 선택: 1 Rudwig, 2 Ibanix, 3 Fanthor (기본: 로비 기본값)
+//          -qagoto=x,y,z     첫 레벨에서 이 좌표(cm)까지 먼저 걸어간 뒤 평소 행동 시작
 //          -qaphasetimeout=S 한 페이즈가 이 시간 넘게 안 끝나면 그 스테이지를 포기하고 다음으로 (기본 300)
 //          -qatimeout=S      전체 실행 제한 (기본 1800)
 class QaBot
@@ -73,6 +74,8 @@ private:
 	int mStageIndex = 0;
 	int mFirstStage = 0;
 	int mCharacter = 0;		// -qachar: 1 Rudwig, 2 Ibanix, 3 Fanthor, 0 이면 로비 기본값 그대로
+	bool mGotoPending = false;	// -qagoto: 첫 레벨에서 이 좌표까지 먼저 걸어간다
+	Vec3 mGoto{};
 	int mStagesCleared = 0;
 	bool mStageCleared = false;
 	uint8 mPhase = 0;
@@ -127,4 +130,6 @@ private:
 	int mRhythmChanges = 0;
 	bool mRhythmClickPending = false;	// 우클릭 직후 한 프레임: 클라이언트가 클릭을 받았는지 확인 대기
 	float mUltimateHold = 0.f;			// 0 보다 크면 궁극기 진행 중으로 보고 Q 와 공격 무효 판정을 쉰다
+	float mHealHold = 0.f;				// 0 보다 크면 회복팩을 찾지 않는다
+	bool mHealSeeking = false;
 };

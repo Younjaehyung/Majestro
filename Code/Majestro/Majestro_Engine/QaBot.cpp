@@ -20,6 +20,8 @@
 #include "MainMenuController.h"
 #include "BeatSystem.h"
 #include "NavMeshLoader.h"
+#include "VfxComponent.h"
+#include "ResourceManager.h"
 
 namespace
 {
@@ -33,6 +35,12 @@ namespace
 	// Ibanix 는 궁극기 피해로 게이지가 다시 차고, 궁극기 중 Q 는 취소라서 누르면 취소-재발동만 반복한다.
 	constexpr float kUltimateHoldSec = 6.f;
 	constexpr float kUltimateBusySec = 5.f;			// 그중 실제로 궁극기에 묶여 있는 시간 (도입 1초 + 가장 긴 Ibanix 8박자)
+	constexpr float kGotoArriveDistance = 200.f;		// -qagoto 좌표에 이만큼 붙으면 도착 (cm)
+	constexpr float kGotoTimeoutSec = 150.f;		// 씬 진입 후 이 시간 안에 못 닿으면 포기하고 평소 행동으로
+	constexpr float kHealSeekRatio = 0.4f;			// 체력이 이 비율 아래면 회복팩을 찾는다
+	constexpr float kHealSeekDistance = 4000.f;		// 이 안의 회복팩만 찾아간다 (cm)
+	constexpr float kHealReachDistance = 100.f;		// 회복팩에 닿았다고 보는 거리 (cm)
+	constexpr float kHealHoldSec = 15.f;			// 닿은 뒤 이 시간은 다시 찾지 않는다
 	constexpr float kBlockerDistance = 400.f;		// 점령 중에도 이 안의 적은 먼저 상대한다 (cm)
 	constexpr float kPathReplanSec = 0.3f;
 	constexpr float kWaypointReachDistance = 80.f;	// 경로 지점에 이만큼 붙으면 다음 지점으로 (cm)
@@ -185,6 +193,8 @@ QaBot::QaBot()
 	mPhaseTimeout = ArgFloat(L"-qaphasetimeout=", 300.f);
 	mRunTimeout = ArgFloat(L"-qatimeout=", 1800.f);
 	mCharacter = std::clamp(static_cast<int>(ArgFloat(L"-qachar=", 0.f)), 0, 3);
+	if (const wchar_t* at = ::wcsstr(::GetCommandLineW(), L"-qagoto="))
+		mGotoPending = ::swscanf_s(at + 8, L"%f,%f,%f", &mGoto.x, &mGoto.y, &mGoto.z) == 3;
 	Info("START stages=%d phaseTimeout=%.0f runTimeout=%.0f character=%d", mStageLimit, mPhaseTimeout, mRunTimeout, mCharacter);
 }
 
@@ -606,7 +616,14 @@ void QaBot::TickLevel(World* world, InputFrame& frame, float dt, bool retry)
 	}
 	if (phaseType == WavePhaseType::Fail)
 	{
-		Fail("stage-failed", "스테이지 실패 (Fail 페이즈)");
+		// 혼자 플레이에서는 사망이 곧 전원 사망이라, 사망 관찰보다 Fail 페이즈가 먼저 보일 수 있다.
+		const Entity me = LocalPlayer(world);
+		const HealthComponent* health = me.IsValid() && world->HasComponentPool<HealthComponent>()
+			? world->GetComponent<HealthComponent>(me) : nullptr;
+		if (health && health->IsDead() && !mWasDead)
+			++mDeaths;
+		Fail("stage-failed", "스테이지 실패 (Fail 페이즈) playerHp=%d/%d",
+			health ? health->mCurrentHp : -1, health ? health->mMaxHp : -1);
 		AbandonStage(world);
 		return;
 	}
@@ -659,6 +676,59 @@ void QaBot::TickLevel(World* world, InputFrame& frame, float dt, bool retry)
 		mStuckWindow = 0.f;	// 조작할 수 없는 동안은 끼임으로 세지 않는다
 		mRhythmCheckTimer = -1.f;
 		return;
+	}
+
+	// ---- -qagoto: 지정 좌표까지 먼저 걸어간다 (문제 지점 재현용) ----
+	if (mGotoPending)
+	{
+		const float left = HorizontalDistance(position, mGoto);
+		if (left < kGotoArriveDistance)
+			Info("GOTO arrived in %.1fs pos=(%.0f,%.0f,%.0f)", mSceneTime, position.x, position.y, position.z);
+		else if (mSceneTime > kGotoTimeoutSec)
+			Warn("goto", "%.0fs 안에 (%.0f,%.0f,%.0f) 에 닿지 못함, 남은 거리 %.0f", kGotoTimeoutSec, mGoto.x, mGoto.y, mGoto.z, left);
+		else
+		{
+			Steer(world, frame, dt, position, mGoto, true);
+			return;
+		}
+		mGotoPending = false;
+	}
+
+	// ---- 체력이 낮으면 회복팩으로 (무적 없이 돌릴 때) ----
+	// 클라이언트의 회복팩은 전용 컴포넌트가 없는 표식 엔티티라 이펙트 리소스로 알아본다.
+	mHealHold -= dt;
+	if (playerHealth && playerHealth->mCurrentHp < playerHealth->mMaxHp * kHealSeekRatio && mHealHold <= 0.f
+		&& world->HasComponentPool<VfxComponent>())
+	{
+		const auto healVfx = RESOURCEMANAGER.Get<Vfx>(L"VFX_Sector_Heal");
+		float best = kHealSeekDistance;
+		Vec3 pack{};
+		for (Entity e : world->GetEntitiesWithComponents<TransformComponent, VfxComponent>())
+		{
+			if (world->GetComponent<VfxComponent>(e)->mVfx != healVfx)
+				continue;
+			const Vec3 at = world->GetComponent<TransformComponent>(e)->mWorldPosition;
+			if (const float distance = HorizontalDistance(position, at); distance < best)
+			{
+				best = distance;
+				pack = at;
+			}
+		}
+		if (best < kHealReachDistance)
+		{
+			// ponytail: 팩이 재사용 대기 중인지는 보지 않는다. 닿고 나면 일정 시간 다시 찾지 않을 뿐이다.
+			Info("HEAL reached pack hp=%d/%d", playerHealth->mCurrentHp, playerHealth->mMaxHp);
+			mHealHold = kHealHoldSec;
+			mHealSeeking = false;
+		}
+		else if (best < kHealSeekDistance)
+		{
+			if (!mHealSeeking)
+				Info("HEAL seeking pack dist=%.0f hp=%d/%d", best, playerHealth->mCurrentHp, playerHealth->mMaxHp);
+			mHealSeeking = true;
+			Steer(world, frame, dt, position, pack, true);
+			return;
+		}
 	}
 
 	// ---- 목표 지점 ----

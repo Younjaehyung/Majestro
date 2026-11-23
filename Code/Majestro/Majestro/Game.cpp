@@ -6,6 +6,7 @@
 #include "Network.h"
 #include "Scene.h"
 #include "SceneManager.h"
+#include "QaBot.h"
 
 #ifdef _IMGUI
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -19,6 +20,10 @@ void Game::Initialize(const WindowInfo& info)
 	mInitializeEnd = true;
 
 	gEngine->Initialize(info);
+
+	// -qa: 사람 대신 QA 봇이 입력을 공급한다. 엔진은 QA 를 모르고, 배선은 실행 파일이 한다.
+	if (QaBot::Requested())
+		gEngine->GetInputManager().SetInputSource([](InputFrame& frame) { QaBot::Get().ProduceInput(frame); });
 
 	Network::GetInstance().Initialize();
 	

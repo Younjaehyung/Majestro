@@ -1,0 +1,7 @@
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\SM_CineCam.FBX (Scene.cpp:N)
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\SM_MapNPlane.FBX (Scene.cpp:N)
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\SM_SM_Cloud_Big_N.FBX (Scene.cpp:N)
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\SM_SM_Cloud_Medium_N.FBX (Scene.cpp:N)
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\SM_SkySphereN.FBX (Scene.cpp:N)
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\SM_base_root.FBX (Scene.cpp:N)
+[WARN ] [resource-load] 변환된 .mesh 가 없어 충돌 메시를 건너뜀 path=..\Resources\FBX\dwarven_pillar.FBX (Scene.cpp:N)

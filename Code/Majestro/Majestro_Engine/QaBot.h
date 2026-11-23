@@ -17,6 +17,8 @@ class World;
 //   인자:  -qastages=N       진행할 스테이지 수 (기본 전체)
 //          -qafirst=N        N번째 스테이지부터 시작 (기본 1)
 //          -qachar=N         캐릭터 선택: 1 Rudwig, 2 Ibanix, 3 Fanthor (기본: 로비 기본값)
+//          -qajoin           방을 만들지 않고 열린 방에 입장 (로그는 qa_log_join<캐릭터>.txt)
+//          -qaplayers=N      방장이 N명이 준비할 때까지 로비에서 대기
 //          -qagoto=x,y,z     첫 레벨에서 이 좌표(cm)까지 먼저 걸어간 뒤 평소 행동 시작
 //          -qaphasetimeout=S 한 페이즈가 이 시간 넘게 안 끝나면 그 스테이지를 포기하고 다음으로 (기본 300)
 //          -qatimeout=S      전체 실행 제한 (기본 1800)
@@ -74,6 +76,8 @@ private:
 	int mStageIndex = 0;
 	int mFirstStage = 0;
 	int mCharacter = 0;		// -qachar: 1 Rudwig, 2 Ibanix, 3 Fanthor, 0 이면 로비 기본값 그대로
+	bool mJoin = false;		// -qajoin: 방을 만들지 않고 열려 있는 방에 들어간다. 씬 전환은 방장을 따라간다
+	int mPlayers = 1;		// -qaplayers: 방장이 로비에서 기다릴 인원
 	bool mGotoPending = false;	// -qagoto: 첫 레벨에서 이 좌표까지 먼저 걸어간다
 	Vec3 mGoto{};
 	int mStagesCleared = 0;

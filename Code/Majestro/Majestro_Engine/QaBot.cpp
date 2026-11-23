@@ -41,6 +41,7 @@ namespace
 	constexpr float kHealSeekDistance = 4000.f;		// 이 안의 회복팩만 찾아간다 (cm)
 	constexpr float kHealReachDistance = 100.f;		// 회복팩에 닿았다고 보는 거리 (cm)
 	constexpr float kHealHoldSec = 15.f;			// 닿은 뒤 이 시간은 다시 찾지 않는다
+	constexpr float kPlayersWaitSec = 90.f;			// -qaplayers: 로비에서 인원을 이만큼 기다린다
 	constexpr float kBlockerDistance = 400.f;		// 점령 중에도 이 안의 적은 먼저 상대한다 (cm)
 	constexpr float kPathReplanSec = 0.3f;
 	constexpr float kWaypointReachDistance = 80.f;	// 경로 지점에 이만큼 붙으면 다음 지점으로 (cm)
@@ -186,16 +187,23 @@ QaBot& QaBot::Get()
 
 QaBot::QaBot()
 {
-	mLog = ::_fsopen("qa_log.txt", "w", _SH_DENYNO);
 	mStageLimit = std::clamp(
 		static_cast<int>(ArgFloat(L"-qastages=", static_cast<float>(kStageCount))), 0, static_cast<int>(kStageCount));
 	mFirstStage = mStageIndex = std::clamp(static_cast<int>(ArgFloat(L"-qafirst=", 1.f)) - 1, 0, static_cast<int>(kStageCount) - 1);
 	mPhaseTimeout = ArgFloat(L"-qaphasetimeout=", 300.f);
 	mRunTimeout = ArgFloat(L"-qatimeout=", 1800.f);
 	mCharacter = std::clamp(static_cast<int>(ArgFloat(L"-qachar=", 0.f)), 0, 3);
+	mJoin = HasArg(L"-qajoin");
+	mPlayers = std::clamp(static_cast<int>(ArgFloat(L"-qaplayers=", 1.f)), 1, 3);
+	// 같은 폴더에서 클라이언트를 여러 개 띄우므로 입장하는 쪽은 로그 파일을 따로 쓴다 (캐릭터는 방 안에서 겹치지 않는다).
+	char logName[32] = "qa_log.txt";
+	if (mJoin)
+		::sprintf_s(logName, "qa_log_join%d.txt", mCharacter);
+	mLog = ::_fsopen(logName, "w", _SH_DENYNO);
 	if (const wchar_t* at = ::wcsstr(::GetCommandLineW(), L"-qagoto="))
 		mGotoPending = ::swscanf_s(at + 8, L"%f,%f,%f", &mGoto.x, &mGoto.y, &mGoto.z) == 3;
-	Info("START stages=%d phaseTimeout=%.0f runTimeout=%.0f character=%d", mStageLimit, mPhaseTimeout, mRunTimeout, mCharacter);
+	Info("START stages=%d phaseTimeout=%.0f runTimeout=%.0f character=%d join=%d players=%d",
+		mStageLimit, mPhaseTimeout, mRunTimeout, mCharacter, mJoin ? 1 : 0, mPlayers);
 }
 
 void QaBot::Write(const char* level, const char* format, va_list args)
@@ -353,6 +361,8 @@ void QaBot::OnSceneChanged(SceneId sceneId)
 		++mStagesCleared;
 		++mStageIndex;
 	}
+	else if (mJoin && IsLevelScene(mScene) && IsLevelScene(sceneId))
+		++mStageIndex;	// 방장이 스테이지를 포기하고 다음 레벨로 넘어갔다
 
 	const SceneId previous = mScene;
 	mScene = sceneId;
@@ -385,6 +395,8 @@ void QaBot::OnSceneChanged(SceneId sceneId)
 
 void QaBot::RequestScene(World* world, SceneId target, bool retry)
 {
+	if (mJoin)	// 씬 전환은 방장만 요청한다. 입장한 쪽은 따라간다.
+		return;
 	if (mRequestedScene != target)
 	{
 		mRequestedScene = target;
@@ -488,7 +500,14 @@ void QaBot::TickMainMenu(World* world, bool retry)
 
 	auto* list = First<LobbyRoomListComponent>(world);
 	if (!list || list->mCurrentRoomId == 0)
-		world->GetEventManager()->Enqueue(EvRoomCreate{});	// CREATE ROOM 버튼과 같은 이벤트
+	{
+		if (!mJoin)
+			world->GetEventManager()->Enqueue(EvRoomCreate{});	// CREATE ROOM 버튼과 같은 이벤트
+		else if (list && list->mHasList && list->mCount > 0 && list->mEntries[0].phase == 0)
+			world->GetEventManager()->Enqueue(EvRoomJoin{ list->mEntries[0].roomId });	// 방 목록에서 방을 누른 것과 같은 이벤트
+		else
+			world->GetEventManager()->Enqueue(EvRoomListRequest{});
+	}
 }
 
 void QaBot::TickLobby(World* world, bool retry)
@@ -517,7 +536,20 @@ void QaBot::TickLobby(World* world, bool retry)
 	else if (!meReady)
 		world->GetEventManager()->Enqueue(EvRoomReadyChanged{ true });
 	else
-		RequestScene(world, SceneId::Plaza, true);
+	{
+		// -qaplayers=N: 방장은 N명이 모두 준비할 때까지 기다린다.
+		int ready = 0;
+		for (const auto& slot : state->mSlots)
+			if (slot.sessionId != 0 && slot.ready)
+				++ready;
+		if (ready >= mPlayers)
+			RequestScene(world, SceneId::Plaza, true);
+		else if (mSceneTime > kPlayersWaitSec)
+		{
+			Fail("players-timeout", "%.0fs 동안 준비한 인원 %d/%d, 있는 인원으로 시작", kPlayersWaitSec, ready, mPlayers);
+			mPlayers = ready;
+		}
+	}
 }
 
 void QaBot::TickPlaza(World* world, InputFrame& frame, float dt, bool retry)

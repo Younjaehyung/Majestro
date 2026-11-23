@@ -14,26 +14,38 @@ public static class QaWin {
     [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr h, out RECT r);
     [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr dc, uint flags);
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int cx, int cy, uint flags);
 }
 "@
 [QaWin]::SetProcessDPIAware() | Out-Null
 New-Item -ItemType Directory -Force $Dir | Out-Null
 
 function Save-Shot([string]$name) {
-    $p = Get-Process $Process -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
-    if (-not $p) { return $false }
-    $r = New-Object QaWin+RECT
-    [QaWin]::GetClientRect($p.MainWindowHandle, [ref]$r) | Out-Null
-    if ($r.R -le 0 -or $r.B -le 0) { return $true }
-    $bmp = New-Object System.Drawing.Bitmap($r.R, $r.B)
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $dc = $g.GetHdc()
-    # 1 = 클라이언트 영역만, 2 = PW_RENDERFULLCONTENT (DX 스왑체인 내용까지)
-    [QaWin]::PrintWindow($p.MainWindowHandle, $dc, 3) | Out-Null
-    $g.ReleaseHdc($dc); $g.Dispose()
-    # ponytail: 원본 해상도 JPEG 그대로. 용량이 문제면 여기서 축소한다.
-    $bmp.Save((Join-Path $Dir $name), [System.Drawing.Imaging.ImageFormat]::Jpeg)
-    $bmp.Dispose()
+    # 멀티 실행이면 창이 여러 개다. 먼저 뜬 순서로 p1(방장), p2, p3.
+    $procs = @(Get-Process $Process -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Sort-Object StartTime)
+    if ($procs.Count -eq 0) { return $false }
+    for ($i = 0; $i -lt $procs.Count; $i++) {
+        $h = $procs[$i].MainWindowHandle
+        $r = New-Object QaWin+RECT
+        [QaWin]::GetClientRect($h, [ref]$r) | Out-Null
+        if ($r.R -le 0 -or $r.B -le 0) { continue }
+        if ($procs.Count -gt 1) {
+            # 다른 창에 가려진 창은 검게 찍힌다. 찍는 동안만 맨 위로 올린다 (-1 TOPMOST, -2 NOTOPMOST, 0x13 = 위치·크기 유지 + 활성화 안 함).
+            [QaWin]::SetWindowPos($h, [IntPtr](-1), 0, 0, 0, 0, 0x13) | Out-Null
+            Start-Sleep -Milliseconds 400
+        }
+        $bmp = New-Object System.Drawing.Bitmap($r.R, $r.B)
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $dc = $g.GetHdc()
+        # 1 = 클라이언트 영역만, 2 = PW_RENDERFULLCONTENT (DX 스왑체인 내용까지)
+        [QaWin]::PrintWindow($h, $dc, 3) | Out-Null
+        $g.ReleaseHdc($dc); $g.Dispose()
+        if ($procs.Count -gt 1) { [QaWin]::SetWindowPos($h, [IntPtr](-2), 0, 0, 0, 0, 0x13) | Out-Null }
+        $file = if ($procs.Count -gt 1) { $name -replace '\.jpg$', ("_p{0}.jpg" -f ($i + 1)) } else { $name }
+        # ponytail: 원본 해상도 JPEG 그대로. 용량이 문제면 여기서 축소한다.
+        $bmp.Save((Join-Path $Dir $file), [System.Drawing.Imaging.ImageFormat]::Jpeg)
+        $bmp.Dispose()
+    }
     return $true
 }
 

@@ -44,22 +44,7 @@ namespace
 	constexpr float kHealHoldSec = 15.f;			// 닿은 뒤 이 시간은 다시 찾지 않는다
 	constexpr float kPlayersWaitSec = 90.f;			// -qaplayers: 로비에서 인원을 이만큼 기다린다
 	constexpr float kBlockerDistance = 400.f;		// 점령 중에도 이 안의 적은 먼저 상대한다 (cm)
-	constexpr float kPathReplanSec = 0.3f;
-	constexpr float kWaypointReachDistance = 80.f;	// 경로 지점에 이만큼 붙으면 다음 지점으로 (cm)
 	constexpr float kStuckAbandonSec = 90.f;		// 한 스테이지에서 끼임 누적이 이만큼이면 포기
-
-	// 서버 ResourceManager 가 스테이지별로 여는 NavMesh 와 같은 파일
-	const wchar_t* NavFile(SceneId id)
-	{
-		switch (id)
-		{
-		case SceneId::FirstGame:  return L"all_tiles_navmesh.bin";
-		case SceneId::SecondGame: return L"MapDesert_navmesh.bin";
-		case SceneId::ThirdGame:  return L"Map003_navmesh.bin";
-		case SceneId::FourthGame: return L"MapDragon_navmesh.bin";
-		default:                  return nullptr;
-		}
-	}
 
 	constexpr float kRetrySec = 2.f;				// 같은 요청을 다시 보내는 간격
 	constexpr float kSceneChangeTimeoutSec = 40.f;	// 씬 전환 요청 후 이 시간 안에 안 바뀌면 실패
@@ -75,8 +60,6 @@ namespace
 	constexpr float kEngageDistance = 1500.f;		// 이 안의 적은 조준하고 공격한다 (cm)
 	constexpr float kMeleeDistance = 220.f;			// 적에게 이만큼 붙으면 멈춘다 (cm)
 	constexpr float kAimToleranceDeg = 20.f;		// 조준 오차가 이 안이면 공격 입력
-	constexpr float kMoveToleranceDeg = 60.f;		// 진행 방향 오차가 이 안이면 전진 입력
-	constexpr long  kMaxMousePixels = 40;			// 한 프레임에 주입하는 마우스 이동 한계
 
 	constexpr float kStuckWindowSec = 2.f;			// 이 시간 동안
 	constexpr float kStuckDistance = 30.f;			//   이만큼도 못 움직이면 끼인 것으로 본다 (cm)
@@ -245,71 +228,6 @@ void QaBot::Finish()
 	::PostQuitMessage(0);
 }
 
-void QaBot::LoadNav(SceneId sceneId)
-{
-	if (mNavQuery)
-	{
-		dtFreeNavMeshQuery(mNavQuery);
-		mNavQuery = nullptr;
-	}
-	mNavMesh.reset();
-
-	const wchar_t* file = NavFile(sceneId);
-	if (file == nullptr)
-		return;
-
-	// ponytail: 서버 리소스 폴더를 직접 읽는다 (클라이언트에는 스테이지별 NavMesh 가 없다).
-	//           배포본에서 QA 를 돌리려면 클라이언트 Resources 로 복사하고 경로를 바꾼다.
-	auto navMesh = std::make_shared<NavMesh>();
-	navMesh->Load(std::wstring(L"..\\..\\Server\\Resources\\NavMesh\\") + file);
-	dtNavMeshQuery* query = navMesh->mDtNavMesh ? dtAllocNavMeshQuery() : nullptr;
-	if (query == nullptr || dtStatusFailed(query->init(navMesh->mDtNavMesh, 2048)))
-	{
-		if (query)
-			dtFreeNavMeshQuery(query);
-		Warn("navmesh", "%ls 를 열지 못함, 직선 주행으로 진행", file);
-		return;
-	}
-	mNavMesh = navMesh;
-	mNavQuery = query;
-}
-
-Vec3 QaBot::PathStep(const Vec3& position, const Vec3& target)
-{
-	if (mNavQuery == nullptr)
-		return target;
-
-	// 엔진(cm) -> NavMesh(m), 축 교환 포함 (서버 NavMeshLoader 와 같은 규칙)
-	const float start[3] = { position.z * 0.01f, position.y * 0.01f, position.x * 0.01f };
-	const float end[3] = { target.z * 0.01f, target.y * 0.01f, target.x * 0.01f };
-	const float extents[3] = { 5.f, 10.f, 5.f };
-	const dtQueryFilter filter;
-
-	dtPolyRef startRef = 0, endRef = 0;
-	float startOnMesh[3], endOnMesh[3];
-	mNavQuery->findNearestPoly(start, extents, &filter, &startRef, startOnMesh);
-	mNavQuery->findNearestPoly(end, extents, &filter, &endRef, endOnMesh);
-	if (!startRef || !endRef)
-		return target;
-
-	dtPolyRef polys[256];
-	int polyCount = 0;
-	if (dtStatusFailed(mNavQuery->findPath(startRef, endRef, startOnMesh, endOnMesh, &filter, polys, &polyCount, 256))
-		|| polyCount == 0)
-		return target;
-
-	float corners[8 * 3];
-	int cornerCount = 0;
-	mNavQuery->findStraightPath(startOnMesh, endOnMesh, polys, polyCount, corners, nullptr, nullptr, &cornerCount, 8);
-	for (int i = 1; i < cornerCount; ++i)	// 0 번은 출발점
-	{
-		const Vec3 corner(corners[i * 3 + 2] * 100.f, corners[i * 3 + 1] * 100.f, corners[i * 3] * 100.f);
-		if (HorizontalDistance(position, corner) > kWaypointReachDistance)
-			return corner;
-	}
-	return target;
-}
-
 void QaBot::AbandonStage(World* world)
 {
 	Info("STAGE abandon %s after %.1fs", SceneName(mScene), mSceneTime);
@@ -354,12 +272,12 @@ void QaBot::OnSceneChanged(SceneId sceneId)
 	mUnstickTimer = 0.f;
 	mAttackTarget = Entity();
 	mAttackTime = 0.f;
-	mPathTimer = 0.f;
 	mStageStuckTime = 0.f;
 	mRhythmChangeTimer = 0.f;
 	mRhythmCheckTimer = -1.f;
 	mActionWasDown = false;
-	LoadNav(sceneId);
+	if (!mNav.Load(sceneId) && NavSteer::NavFile(sceneId) != nullptr)
+		Warn("navmesh", "%ls 를 열지 못함, 직선 주행으로 진행", NavSteer::NavFile(sceneId));
 }
 
 void QaBot::RequestScene(World* world, SceneId target, bool retry)
@@ -978,37 +896,14 @@ void QaBot::Steer(World* world, InputFrame& frame, float dt, const Vec3& positio
 	if (movement == nullptr)
 		return;
 
-	// 이동할 때는 NavMesh 경로의 다음 지점을 향한다 (제자리 조준은 대상을 직접 본다).
-	Vec3 aim = target;
-	if (move)
-	{
-		mPathTimer -= dt;
-		if (mPathTimer <= 0.f)
-		{
-			mPathTimer = kPathReplanSec;
-			mPathNext = PathStep(position, target);
-		}
-		aim = mPathNext;
-	}
-	else
-	{
-		mPathTimer = 0.f;
-	}
-
-	// 카메라 yaw 를 목표 방향으로, pitch 는 수평으로 맞춘다. 마우스 1픽셀이 0.5도라 오차가 매 프레임 절반씩 준다.
-	const float targetYaw = MathUtils::YawDegreesFromDir(aim - position);
-	const float yawError = MathUtils::Wrap180Degrees(targetYaw - movement->mTargetRotation.y);
-	frame.mouseDelta.x = std::clamp(std::lround(yawError), -kMaxMousePixels, kMaxMousePixels);
-	frame.mouseDelta.y = std::clamp(std::lround(-movement->mTargetRotation.x), -kMaxMousePixels, kMaxMousePixels);
+	// 경로 따라 조향 + 방향이 맞으면 W (NavSteer). 아래는 끼임 처리와 기록만.
+	mNav.Steer(frame, *movement, position, target, dt, move);
 
 	if (!move)
 	{
 		mStuckWindow = 0.f;
 		return;
 	}
-
-	if (std::fabs(yawError) < kMoveToleranceDeg)
-		frame.keys[static_cast<size_t>(eKeyCode::W)] = true;
 
 	// 경로를 따라가도 막히면 점프·옆걸음으로 빠져나온다.
 	if (mUnstickTimer > 0.f)

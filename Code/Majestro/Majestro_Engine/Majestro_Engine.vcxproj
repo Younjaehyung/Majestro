@@ -380,6 +380,7 @@
     <ClInclude Include="ShadowPass.h" />
     <ClInclude Include="GpuProfiler.h" />
     <ClInclude Include="QaBot.h" />
+    <ClInclude Include="NavSteer.h" />
     <ClInclude Include="GameNames.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Skeleton.h" />
@@ -582,6 +583,7 @@
     <ClCompile Include="ShadowPass.cpp" />
     <ClCompile Include="GpuProfiler.cpp" />
     <ClCompile Include="QaBot.cpp" />
+    <ClCompile Include="NavSteer.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
     <ClCompile Include="Skeleton.cpp" />
     <ClCompile Include="SpscRingQueue.cpp" />

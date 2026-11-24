@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include "InputManager.h"
+#include "NavSteer.h"
 
 class World;
 
@@ -43,10 +44,6 @@ private:
 	void RequestScene(World* world, SceneId target, bool retry);
 	// 목표 지점으로 조향한다. 정면으로 정렬되면 전진 키를 누르고, 막히면 점프·옆걸음으로 빠져나온다.
 	void Steer(World* world, InputFrame& frame, float dt, const Vec3& position, const Vec3& target, bool move);
-	// 스테이지 NavMesh 를 연다 (서버가 쓰는 것과 같은 파일). 없으면 직선 주행으로 남는다.
-	void LoadNav(SceneId sceneId);
-	// target 까지의 경로에서 다음으로 향할 지점. 경로가 없으면 target 그대로.
-	Vec3 PathStep(const Vec3& position, const Vec3& target);
 	// 지금 스테이지를 포기하고 다음 스테이지로 넘어간다 (마지막이면 종료).
 	void AbandonStage(World* world);
 	void Finish();
@@ -114,10 +111,7 @@ private:
 	float mStatusTimer = 0.f;
 
 	// 길찾기
-	std::shared_ptr<class NavMesh> mNavMesh;
-	dtNavMeshQuery* mNavQuery = nullptr;
-	float mPathTimer = 0.f;
-	Vec3 mPathNext{};
+	NavSteer mNav;
 	float mStageStuckTime = 0.f;	// 이 스테이지에서 끼여 있던 누적 시간
 
 	// 리듬

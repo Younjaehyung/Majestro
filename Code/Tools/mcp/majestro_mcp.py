@@ -15,6 +15,7 @@
 
 import itertools
 import json
+import math
 import os
 import shlex
 import shutil
@@ -159,6 +160,91 @@ def server_query_state(room: int | None = None, enemies: int = 20) -> dict:
 def server_set_log(domain: str, on: bool = True) -> dict:
     """서버 로그 도메인을 실행 중에 켜거나 끈다. 예: combat-detail, packet-flow, player-state, ai, perf."""
     return call("set_log", _port=SERVER_PORT, domain=domain, on=on)
+
+
+def _flat(a: list, b: list) -> float:
+    return math.hypot(a[0] - b[0], a[2] - b[2])
+
+
+def _compare(client: dict, server: dict, pos_tolerance: float, limit: int) -> dict:
+    """클라 query_state 와 서버 server_query_state 결과를 netId 로 짝지어 차이를 모은다 (통신 없는 순수 함수)."""
+    issues: list[str] = []
+    out: dict = {"ok": True, "scene": {"client": client.get("scene"), "server": server.get("scene")},
+                 "phase": {"client": client.get("phase"), "server": server.get("phase")}}
+    if client.get("scene") != server.get("scene"):
+        issues.append(f"씬 다름 client={client.get('scene')} server={server.get('scene')}")
+    if client.get("phase") != server.get("phase"):
+        issues.append(f"페이즈 다름 client={client.get('phase')} server={server.get('phase')}")
+
+    if "songPos" in client and "songPos" in server:
+        diff_ms = (client["songPos"] - server["songPos"]) * 1000
+        out["songPos"] = {"client": client["songPos"], "server": server["songPos"], "diff_ms": round(diff_ms, 1)}
+
+    for key, field in (("conquest", "time"), ("escort", "progress")):
+        if key in client and key in server:
+            out[key] = {"client": client[key][field], "server": server[key][field],
+                        "diff": round(client[key][field] - server[key][field], 3)}
+
+    # ---- 로컬 플레이어 ----
+    cp = client.get("player")
+    sp = next((p for p in server.get("players", []) if cp and p.get("netId") == cp.get("netId")), None)
+    if cp and sp:
+        player = {"netId": cp.get("netId"), "pos_diff_cm": round(_flat(cp["pos"], sp["pos"]), 1)}
+        for field in ("hp", "action", "movement", "rhythmPoints"):
+            player[field] = {"client": cp.get(field), "server": sp.get(field)}
+            if cp.get(field) != sp.get(field):
+                issues.append(f"플레이어 {field} 다름 client={cp.get(field)} server={sp.get(field)}")
+        if player["pos_diff_cm"] > pos_tolerance:
+            issues.append(f"플레이어 위치 차이 {player['pos_diff_cm']:.0f}cm (> {pos_tolerance:.0f})")
+        out["player"] = player
+    elif cp:
+        issues.append(f"클라 플레이어 netId={cp.get('netId')} 가 서버 방에 없음")
+
+    # ---- 적 ----
+    ce = {e["netId"]: e for e in client.get("enemies", {}).get("list", []) if "netId" in e}
+    se = {e["netId"]: e for e in server.get("enemies", {}).get("list", []) if "netId" in e}
+    only_server = sorted(set(se) - set(ce))
+    only_client = sorted(set(ce) - set(se))
+    far, hp = [], []
+    for net_id in set(ce) & set(se):
+        d = _flat(ce[net_id]["pos"], se[net_id]["pos"])
+        if d > pos_tolerance:
+            far.append({"netId": net_id, "type": se[net_id]["type"], "pos_diff_cm": round(d, 1)})
+        if ce[net_id].get("hp") != se[net_id].get("hp"):
+            hp.append({"netId": net_id, "client": ce[net_id].get("hp"), "server": se[net_id].get("hp")})
+    far.sort(key=lambda e: -e["pos_diff_cm"])
+    alive = {"client": client.get("enemies", {}).get("alive"), "server": server.get("enemies", {}).get("alive")}
+    if alive["client"] != alive["server"]:
+        issues.append(f"살아 있는 적 수 다름 client={alive['client']} server={alive['server']}")
+    if only_server:
+        issues.append(f"서버에만 있는 적 {len(only_server)}")
+    if only_client:
+        issues.append(f"클라에만 있는 적 {len(only_client)}")
+    if far:
+        issues.append(f"위치가 {pos_tolerance:.0f}cm 넘게 다른 적 {len(far)} (최대 {far[0]['pos_diff_cm']:.0f}cm)")
+    if hp:
+        issues.append(f"hp 가 다른 적 {len(hp)}")
+    out["enemies"] = {"alive": alive, "matched": len(set(ce) & set(se)), "only_server": only_server[:limit],
+                      "only_client": only_client[:limit], "pos_over_tolerance": far[:limit], "hp_mismatch": hp[:limit]}
+    out["issues"] = issues
+    return out
+
+
+@mcp.tool()
+def compare_state(room: int | None = None, pos_tolerance_cm: float = 100, limit: int = 10) -> dict:
+    """클라가 보는 상태와 서버(판정 기준) 상태를 netId 로 짝지어 차이만 보여준다. 동기화·판정 버그 추적용.
+    issues 에 사람이 읽을 요약, 나머지에 항목별 값. 위치는 pos_tolerance_cm 넘게 다를 때만 문제로 본다.
+    두 조회 사이 간격(between_ms)만큼은 움직이는 대상의 차이가 자연히 생긴다 (이동 5m/s 면 10ms 당 5cm)."""
+    started = time.monotonic()
+    client = call("query_state", enemies=100000)
+    args = {"enemies": 100000} if room is None else {"room": room, "enemies": 100000}
+    server = call("query_state", _port=SERVER_PORT, **args)
+    between_ms = round((time.monotonic() - started) * 1000, 1)
+    if not client.get("ok") or not server.get("ok"):
+        return {"ok": False, "client": client.get("error", "ok"), "server": server.get("error", "ok")}
+    result = _compare(client, server, pos_tolerance_cm, limit)
+    result["between_ms"] = between_ms
+    return result
 
 
 # ---- 입력 (게임을 -mcpinput 또는 -qa 로 띄웠을 때만. launch 는 기본으로 -mcpinput 을 붙인다) ----

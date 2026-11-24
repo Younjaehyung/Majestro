@@ -10,6 +10,8 @@
 #include "EnemyComponent.h"
 #include "HealthComponent.h"
 #include "GameRuleComponent.h"
+#include "NetEntityComponent.h"
+#include "BeatSystem.h"
 
 namespace
 {
@@ -33,7 +35,11 @@ namespace
 	json Health(World* world, Entity entity)
 	{
 		const HealthComponent* health = Find<HealthComponent>(world, entity);
-		return health ? json{ { "hp", health->mCurrentHp }, { "maxHp", health->mMaxHp } } : json::object();
+		json out = health ? json{ { "hp", health->mCurrentHp }, { "maxHp", health->mMaxHp } } : json::object();
+		// 서버 server_query_state 와 같은 엔티티를 짝짓는 id
+		if (const NetEntityComponent* net = Find<NetEntityComponent>(world, entity))
+			out["netId"] = net->mNetEntityId;
+		return out;
 	}
 }
 
@@ -49,6 +55,10 @@ json McpQueryState(const json& request)
 
 	const GameRuleComponent* rule = Singleton<GameRuleComponent>(world);
 	state["phase"] = PhaseName(rule ? rule->mGamePhase : 0);
+
+	// 클라 곡 위치 (서버 songPos 와 비교용)
+	if (BeatSystem* beat = world->GetSystemManager()->GetSystem<BeatSystem>())
+		state["songPos"] = beat->GetSongPosition();
 
 	if (const GameConquestComponent* conquest = Singleton<GameConquestComponent>(world))
 		state["conquest"] = { { "time", conquest->mWaveTime }, { "required", conquest->mRequiredConquestTime } };

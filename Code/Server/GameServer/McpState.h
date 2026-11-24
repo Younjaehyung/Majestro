@@ -8,3 +8,7 @@
 //     netId 는 클라·서버가 같은 엔티티를 가리키는 id (NetEntityComponent::mNetEntityId).
 json McpListRooms();
 json McpQueryRoomState(const json& request);
+
+// 요청의 room (생략 시 첫 방) 의 게임 씬. 없으면 nullptr 이고 outError 에 응답할 오류를 채운다. (McpCommands 도 쓴다)
+class Scene;
+Scene* McpFindRoom(const json& request, uint32& outRoomId, json& outError);

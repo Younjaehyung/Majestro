@@ -80,24 +80,40 @@ json McpListRooms()
 	return { { "ok", true }, { "rooms", std::move(rooms) } };
 }
 
+Scene* McpFindRoom(const json& request, uint32& outRoomId, json& outError)
+{
+	const auto& worlds = gGameCore->GetSceneManager().GetGameWorlds();
+	if (worlds.empty())
+	{
+		outError = { { "ok", false }, { "error", "no game world (아무 방도 광장·레벨에 없음)" } };
+		return nullptr;
+	}
+
+	// room 생략 시 roomId 가 가장 작은 방
+	outRoomId = request.contains("room") ? request["room"].get<uint32>() : UINT32_MAX;
+	if (outRoomId == UINT32_MAX)
+		for (const auto& [id, scene] : worlds)
+			outRoomId = (std::min)(outRoomId, id);
+	const auto it = worlds.find(outRoomId);
+	if (it == worlds.end() || !it->second || !it->second->GetWorld())
+	{
+		outError = { { "ok", false }, { "error", "no game world for room " + std::to_string(outRoomId) } };
+		return nullptr;
+	}
+	return it->second.get();
+}
+
 json McpQueryRoomState(const json& request)
 {
 	using namespace McpStateDetail;
-	const auto& worlds = gGameCore->GetSceneManager().GetGameWorlds();
-	if (worlds.empty())
-		return { { "ok", false }, { "error", "no game world (아무 방도 광장·레벨에 없음)" } };
+	uint32 roomId = 0;
+	json error;
+	Scene* scene = McpFindRoom(request, roomId, error);
+	if (scene == nullptr)
+		return error;
+	World* world = scene->GetWorld().get();
 
-	// room 생략 시 roomId 가 가장 작은 방
-	uint32 roomId = request.contains("room") ? request["room"].get<uint32>() : UINT32_MAX;
-	if (roomId == UINT32_MAX)
-		for (const auto& [id, scene] : worlds)
-			roomId = (std::min)(roomId, id);
-	const auto it = worlds.find(roomId);
-	World* world = (it != worlds.end() && it->second) ? it->second->GetWorld().get() : nullptr;
-	if (world == nullptr)
-		return { { "ok", false }, { "error", "no game world for room " + std::to_string(roomId) } };
-
-	json state = { { "ok", true }, { "room", roomId }, { "scene", SceneName(it->second->GetSceneId()) },
+	json state = { { "ok", true }, { "room", roomId }, { "scene", SceneName(scene->GetSceneId()) },
 		{ "phase", PhaseName(Phase(world)) }, { "entities", world->GetEntityCount() } };
 
 	if (BeatSystem* beat = world->GetSystemManager()->GetSystem<BeatSystem>())

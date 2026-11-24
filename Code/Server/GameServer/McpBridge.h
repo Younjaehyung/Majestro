@@ -9,6 +9,7 @@
 //          rooms                         게임 World 가 있는 방 목록 (roomId, scene, phase, players)
 //          query_state {room, enemies}   그 방 World 의 서버 상태 (McpState.h). room 생략 시 첫 방
 //          set_log {domain, on}          ServerLog::SetEnabled
+//          teleport / set_hp / kill_enemies / spawn_enemy / god   디버그 명령 (McpCommands.h)
 //          debug_crash                   일부러 접근 위반을 낸다 (크래시 덤프 확인용)
 //
 //   배선은 GameServer.cpp main. 게임 로직(GameCore)은 MCP 를 모른다.

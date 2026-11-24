@@ -159,6 +159,9 @@
     <ClCompile Include="McpState.cpp">
       <Filter>Application</Filter>
     </ClCompile>
+    <ClCompile Include="McpCommands.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
     <ClCompile Include="CrashHandler.cpp">
       <Filter>Application</Filter>
     </ClCompile>
@@ -399,6 +402,9 @@
       <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="McpState.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="McpCommands.h">
       <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="CrashHandler.h">

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "McpBridge.h"
 #include "McpState.h"
+#include "McpCommands.h"
 
 // Unity 빌드라 익명 namespace 가 다른 .cpp 와 합쳐진다. 이름이 겹치지 않게 따로 둔다.
 namespace McpBridgeDetail
@@ -151,6 +152,16 @@ std::string McpBridge::Handle(const std::string& line)
 			reply = McpListRooms();
 		else if (cmd == "query_state")
 			reply = McpQueryRoomState(request);
+		else if (cmd == "teleport")
+			reply = McpTeleport(request);
+		else if (cmd == "set_hp")
+			reply = McpSetHp(request);
+		else if (cmd == "kill_enemies")
+			reply = McpKillEnemies(request);
+		else if (cmd == "spawn_enemy")
+			reply = McpSpawnEnemy(request);
+		else if (cmd == "god")
+			reply = McpGod(request);
 		else if (cmd == "set_log")
 		{
 			const std::string domain = request.value("domain", "");

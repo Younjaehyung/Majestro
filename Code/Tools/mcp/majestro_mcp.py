@@ -182,6 +182,58 @@ def server_get_logs(contains: str = "", tail: int = 100, since: int = 0, file: s
     return {"ok": True, "file": str(path), "lines": lines[-keep:], "matched": len(lines), "next": end, "size": size}
 
 
+# 서버 디버그 명령: 버그 재현용으로 방의 판정 상태를 바꾼다. 모두 게임의 기존 경로를 타므로 클라 복제·사망 처리가 평소와 같다.
+# netId 생략 = 방의 첫 플레이어. room 생략 = 첫 방. netId 는 server_query_state / compare_state 에서 얻는다.
+
+def _room(args: dict, room: int | None) -> dict:
+    return args if room is None else {**args, "room": room}
+
+
+@mcp.tool()
+def server_teleport(x: float, y: float, z: float, net_id: int | None = None, room: int | None = None) -> dict:
+    """플레이어를 (x,y,z) cm 로 옮긴다 (스폰 배치와 같은 경로: NavMesh 위로 보정). 실제로 놓인 pos 를 돌려준다."""
+    args = {"pos": [x, y, z]} if net_id is None else {"pos": [x, y, z], "netId": net_id}
+    return call("teleport", _port=SERVER_PORT, **_room(args, room))
+
+
+@mcp.tool()
+def server_set_hp(hp: int, net_id: int | None = None, room: int | None = None) -> dict:
+    """체력을 hp 로 (0..maxHp). 0 이면 적은 처치, 플레이어는 평소 사망 처리. net_id 생략 = 첫 플레이어.
+    (무적 중이어도 직접 설정이라 적용된다)"""
+    args = {"hp": hp} if net_id is None else {"hp": hp, "netId": net_id}
+    return call("set_hp", _port=SERVER_PORT, **_room(args, room))
+
+
+@mcp.tool()
+def server_kill_enemies(net_id: int | None = None, radius_cm: float = 0, room: int | None = None) -> dict:
+    """적을 처치한다 (치명 피해로, 평소 처치와 같은 처리). net_id 를 주면 그 적만,
+    아니면 radius_cm 안(첫 플레이어 기준, 0 이면 전부)의 적 전부. 결과: killed 수."""
+    args = {"netId": net_id} if net_id is not None else ({"radius": radius_cm} if radius_cm > 0 else {})
+    return call("kill_enemies", _port=SERVER_PORT, **_room(args, room))
+
+
+@mcp.tool()
+def server_spawn_enemy(type: int, count: int = 1, x: float | None = None, y: float | None = None,
+                       z: float | None = None, offset_x: float = 0, offset_z: float = 500,
+                       room: int | None = None) -> dict:
+    """적을 만든다 (보스 소환과 같은 경로: 지면 보정 + 클라에 스폰 알림).
+    type: 0 HornMan, 1 Pianoman, 2 Bongoman, 3 Obelisk, 4 Fly, 5 Brass, 6 Slime, 7 Dragon.
+    위치: x,y,z 를 주면 그곳, 아니면 첫 플레이어 + (offset_x, 0, offset_z). count 마리는 x 로 150cm 씩 벌린다 (최대 20).
+    결과: spawned[{entity, netId}]."""
+    args: dict = {"type": type, "count": count}
+    if x is not None and y is not None and z is not None:
+        args["pos"] = [x, y, z]
+    else:
+        args["offset"] = [offset_x, 0, offset_z]
+    return call("spawn_enemy", _port=SERVER_PORT, **_room(args, room))
+
+
+@mcp.tool()
+def server_god(on: bool = True) -> dict:
+    """플레이어 무적을 켜고 끈다 (서버 전체, -qagod 와 같은 플래그). launch 기본은 god=True 로 켜져 있다."""
+    return call("god", _port=SERVER_PORT, on=on)
+
+
 @mcp.tool()
 def server_set_log(domain: str, on: bool = True) -> dict:
     """서버 로그 도메인을 실행 중에 켜거나 끈다. 예: combat-detail, packet-flow, player-state, ai, perf."""

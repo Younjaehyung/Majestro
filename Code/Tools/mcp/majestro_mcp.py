@@ -437,6 +437,122 @@ def _compare(client: dict, server: dict, pos_tolerance: float, limit: int) -> di
     return out
 
 
+RECORD_MAX_SKEW_MS = 50  # 클라·서버 조회 사이가 이보다 벌어진 샘플은 차이 통계·사건에서 믿지 않는다
+
+
+def _record_row(t: float, client: dict | None, server: dict | None, skew_ms: float | None = None) -> dict:
+    """한 시점의 클라·서버 상태를 시계열 한 줄로 줄인다 (통신 없는 순수 함수). 없는 쪽은 None.
+    skew_ms: 클라 조회와 서버 조회 사이 시간. 크면 그 사이 움직임이 차이로 보인다."""
+    row: dict = {"t": round(t, 3)}
+    if skew_ms is not None:
+        row["skew_ms"] = round(skew_ms, 1)
+    if client is not None:
+        p = client.get("player") or {}
+        row.update(c_ok=client.get("ok", False), c_scene=client.get("scene"), c_phase=client.get("phase"),
+                   c_pos=p.get("pos"), c_hp=p.get("hp"), c_action=p.get("action"), c_move=p.get("movement"),
+                   c_song=client.get("songPos"), c_enemies=(client.get("enemies") or {}).get("alive"))
+    if server is not None:
+        players = server.get("players") or []
+        cp = (client or {}).get("player") or {}
+        sp = next((x for x in players if cp and x.get("netId") == cp.get("netId")), players[0] if players else {})
+        row.update(s_ok=server.get("ok", False), s_scene=server.get("scene"), s_phase=server.get("phase"),
+                   s_pos=sp.get("pos"), s_hp=sp.get("hp"), s_action=sp.get("action"), s_move=sp.get("movement"),
+                   s_song=server.get("songPos"), s_enemies=(server.get("enemies") or {}).get("alive"),
+                   conquest=(server.get("conquest") or {}).get("time"),
+                   in_zone=[(server.get("conquest") or {}).get(k) for k in ("playersInZone", "enemiesInZone")])
+    if row.get("c_pos") and row.get("s_pos"):
+        row["pos_diff"] = round(_flat(row["c_pos"], row["s_pos"]), 1)
+    if row.get("c_song") is not None and row.get("s_song") is not None:
+        row["song_diff_ms"] = round((row["c_song"] - row["s_song"]) * 1000, 1)
+    return row
+
+
+def _record_events(rows: list[dict], pos_jump_cm: float, pos_tolerance_cm: float) -> list[dict]:
+    """시계열에서 변화 지점을 뽑는다 (통신 없는 순수 함수): 씬·페이즈 변화, 연결 끊김/복구, 위치 점프,
+    플레이어 hp 변화, 클라·서버 위치 차이가 허용치를 넘은 구간의 시작과 끝."""
+    events: list[dict] = []
+    desync_from = None
+    for prev, cur in zip(rows, rows[1:]):
+        t = cur["t"]
+        for side in ("c", "s"):
+            ok_key = f"{side}_ok"
+            if ok_key in cur and prev.get(ok_key) != cur[ok_key]:
+                events.append({"t": t, "event": f"{'클라' if side == 'c' else '서버'} {'응답 복구' if cur[ok_key] else '응답 없음'}"})
+            for key, label in (("scene", "씬"), ("phase", "페이즈")):
+                k = f"{side}_{key}"
+                if cur.get(k) and prev.get(k) and cur[k] != prev[k]:
+                    events.append({"t": t, "event": f"{'클라' if side == 'c' else '서버'} {label} {prev[k]} -> {cur[k]}"})
+            pk = f"{side}_pos"
+            if cur.get(pk) and prev.get(pk):
+                jump = _flat(prev[pk], cur[pk])
+                if jump > pos_jump_cm:
+                    events.append({"t": t, "event": f"{'클라' if side == 'c' else '서버'} 위치 점프 {jump:.0f}cm",
+                                   "from": prev[pk], "to": cur[pk]})
+        for side in ("s", "c"):  # hp 는 서버 기준, 서버를 안 보면 클라
+            hk = f"{side}_hp"
+            if hk in cur:
+                if cur.get(hk) is not None and prev.get(hk) is not None and cur[hk] != prev[hk]:
+                    events.append({"t": t, "event": f"플레이어 hp {prev[hk]} -> {cur[hk]}"})
+                break
+        diff = cur.get("pos_diff")
+        if cur.get("skew_ms", 0) > RECORD_MAX_SKEW_MS:
+            diff = None if desync_from is None else diff  # 조회 사이가 벌어진 샘플로는 구간을 시작하지 않는다
+        if diff is not None and diff > pos_tolerance_cm and desync_from is None:
+            desync_from = t
+            events.append({"t": t, "event": f"클라·서버 위치 차이 {diff:.0f}cm 시작 (> {pos_tolerance_cm:.0f})"})
+        elif desync_from is not None and (diff is None or diff <= pos_tolerance_cm):
+            events.append({"t": t, "event": f"클라·서버 위치 차이 끝 ({t - desync_from:.2f}s 동안)"})
+            desync_from = None
+    # 조회 사이가 벌어진 샘플에서 나온 사건은 표시해 둔다 (실제 지연이 아닐 수 있음)
+    skew_at = {r["t"]: r["skew_ms"] for r in rows if r.get("skew_ms", 0) > RECORD_MAX_SKEW_MS}
+    for e in events:
+        if e["t"] in skew_at:
+            e["skew_ms"] = skew_at[e["t"]]
+    return events
+
+
+@mcp.tool()
+def record(seconds: float = 10, interval: float = 0.25, source: str = "both", pos_jump_cm: float = 500,
+           pos_tolerance_cm: float = 150, max_events: int = 40) -> dict:
+    """seconds 동안 interval 초마다 상태를 찍어 시간에 따른 변화를 남긴다 (끝날 때까지 기다림, 최대 120초).
+    source: both(클라+서버, 기본) / client / server.
+    events: 씬·페이즈 변화, 응답 끊김/복구, 위치 점프(> pos_jump_cm, 대시 한 번 ≈ 300cm), 플레이어 hp 변화,
+            클라·서버 위치 차이가 pos_tolerance_cm 를 넘은 구간의 시작·끝.
+    stats: pos_diff / song_diff_ms 의 평균·최대, 실제 샘플 간격. file: 모든 샘플(JSONL) — 자세히 볼 때 연다.
+    녹화 중에는 다른 도구를 못 부르므로, 재현 동작이 필요하면 먼저 걸어 두거나(-qa 봇) 녹화를 짧게 나눈다.
+    해상도는 interval 만큼이다 (한두 프레임짜리 현상은 놓칠 수 있다)."""
+    seconds = min(max(seconds, interval), 120)
+    path = Path(tempfile.gettempdir()) / time.strftime("majestro_record_%Y%m%d_%H%M%S.jsonl")
+    rows: list[dict] = []
+    started = time.monotonic()
+    with open(path, "w", encoding="utf-8") as out:
+        while (now := time.monotonic() - started) <= seconds:
+            client = call("query_state", enemies=0) if source in ("both", "client") else None
+            client_done = time.monotonic()
+            server = call("query_state", _port=SERVER_PORT, enemies=0) if source in ("both", "server") else None
+            skew = (time.monotonic() - client_done) * 1000 if source == "both" else None
+            row = _record_row(now, client, server, skew)
+            rows.append(row)
+            out.write(json.dumps(row, ensure_ascii=False) + "\n")
+            time.sleep(max(0.0, interval - (time.monotonic() - started - now)))
+    events = _record_events(rows, pos_jump_cm, pos_tolerance_cm)
+
+    def stat(key: str, trusted_only: bool = True) -> dict | None:
+        values = [abs(r[key]) for r in rows if r.get(key) is not None
+                  and (not trusted_only or r.get("skew_ms", 0) <= RECORD_MAX_SKEW_MS)]
+        return {"avg": round(sum(values) / len(values), 1), "max": max(values)} if values else None
+
+    gaps = [b["t"] - a["t"] for a, b in zip(rows, rows[1:])]
+    skewed = sum(1 for r in rows if r.get("skew_ms", 0) > RECORD_MAX_SKEW_MS)
+    return {"ok": True, "samples": len(rows), "file": str(path),
+            "avg_interval_ms": round(1000 * sum(gaps) / len(gaps), 1) if gaps else None,
+            "stats": {"pos_diff_cm": stat("pos_diff"), "song_diff_ms": stat("song_diff_ms"),
+                      "skew_ms": stat("skew_ms", trusted_only=False),
+                      "skewed_samples": skewed},  # 클라·서버 조회 사이가 50ms 넘게 벌어져 차이 통계에서 뺀 샘플
+            "events": events[:max_events], "events_total": len(events),
+            "first": rows[0] if rows else None, "last": rows[-1] if rows else None}
+
+
 @mcp.tool()
 def compare_state(room: int | None = None, pos_tolerance_cm: float = 100, limit: int = 10) -> dict:
     """클라가 보는 상태와 서버(판정 기준) 상태를 netId 로 짝지어 차이만 보여준다. 동기화·판정 버그 추적용.

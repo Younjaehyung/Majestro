@@ -2,8 +2,11 @@
 #   -Dir   : 저장 폴더
 #   -Log   : qa_log.txt 경로. FAIL/WARN 줄이 새로 생기면 그때도 찍는다.
 #   -Every : 주기 캡처 간격(초)
+#   -Once  : 한 번만 찍고 끝낸다 (-Name 파일 이름). 찍을 창이 없으면 종료 코드 1. (MCP screenshot 도구용)
+#   -MaxWidth : 0 보다 크면 이 너비로 줄여 저장
 # Majestro 프로세스가 사라지면 끝난다.
-param([string]$Dir, [string]$Log, [int]$Every = 20, [string]$Process = "Majestro")
+param([string]$Dir, [string]$Log, [int]$Every = 20, [string]$Process = "Majestro",
+      [switch]$Once, [string]$Name = "shot.jpg", [int]$MaxWidth = 0)
 
 Add-Type -AssemblyName System.Drawing
 Add-Type @"
@@ -41,6 +44,10 @@ function Save-Shot([string]$name) {
         [QaWin]::PrintWindow($h, $dc, 3) | Out-Null
         $g.ReleaseHdc($dc); $g.Dispose()
         if ($procs.Count -gt 1) { [QaWin]::SetWindowPos($h, [IntPtr](-2), 0, 0, 0, 0, 0x13) | Out-Null }
+        if ($MaxWidth -gt 0 -and $bmp.Width -gt $MaxWidth) {
+            $small = New-Object System.Drawing.Bitmap($bmp, $MaxWidth, [int]($bmp.Height * $MaxWidth / $bmp.Width))
+            $bmp.Dispose(); $bmp = $small
+        }
         $file = if ($procs.Count -gt 1) { $name -replace '\.jpg$', ("_p{0}.jpg" -f ($i + 1)) } else { $name }
         # ponytail: 원본 해상도 JPEG 그대로. 용량이 문제면 여기서 축소한다.
         $bmp.Save((Join-Path $Dir $file), [System.Drawing.Imaging.ImageFormat]::Jpeg)
@@ -48,6 +55,8 @@ function Save-Shot([string]$name) {
     }
     return $true
 }
+
+if ($Once) { if (Save-Shot $Name) { exit 0 } else { exit 1 } }
 
 $start = Get-Date
 $nextPeriodic = 0

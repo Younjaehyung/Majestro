@@ -25,6 +25,7 @@ import time
 from pathlib import Path
 
 from mcp.server import MCPServer
+from mcp.server.mcpserver import Image
 
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("MAJESTRO_MCP_PORT", "9300"))
@@ -37,6 +38,8 @@ SERVER_EXE = CODE / "Server" / "Binary" / "Release" / "GameServer.exe"
 SERVER_STDOUT = Path(tempfile.gettempdir()) / "majestro_mcp_server.log"
 SERVER_READY = "게임 데이터 로드 완료"  # GameCore.cpp: 포트를 연 뒤 데이터 로드가 끝나면 찍힌다
 QA_SCRIPT = CODE / "Tools" / "qa" / "run_qa.sh"
+CAPTURE_SCRIPT = CODE / "Tools" / "qa" / "capture.ps1"
+SHOT_DIR = Path(tempfile.gettempdir()) / "majestro_shots"
 
 mcp = MCPServer("majestro")
 _ids = itertools.count(1)
@@ -93,6 +96,21 @@ def query_state(enemies: int = 20) -> dict:
     살아 있는 적 수와 가까운 순 목록(enemies 마리까지, 0 이면 개수만).
     action 은 Protocol ReplicatedActionState, movement 는 ReplicatedMovementMode, 적 type 은 EnemyComponent.h EnemyType 값."""
     return call("query_state", enemies=enemies)
+
+
+@mcp.tool()
+def screenshot(max_width: int = 1280) -> list:
+    """Majestro 창을 지금 찍어 이미지로 돌려준다 (Tools/qa/capture.ps1 -Once). 창이 여러 개면 먼저 뜬 순서로 전부.
+    max_width 로 줄인다 (0 = 원본). 파일은 임시 폴더 majestro_shots 에 남는다."""
+    SHOT_DIR.mkdir(exist_ok=True)
+    name = time.strftime("shot_%Y%m%d_%H%M%S") + f"_{int(time.time() * 1000) % 1000:03d}.jpg"  # 1초 안에 여러 번 찍어도 안 겹치게
+    run = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(CAPTURE_SCRIPT),
+                          "-Once", "-Dir", str(SHOT_DIR), "-Name", name, "-MaxWidth", str(max_width)],
+                         stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
+    shots = sorted(SHOT_DIR.glob(name.replace(".jpg", "*.jpg")))
+    if run.returncode != 0 or not shots:
+        return [f"찍을 Majestro 창이 없음 (exit={run.returncode}) {run.stderr.decode('cp949', 'replace')[-500:]}"]
+    return [Image(path=p) for p in shots] + ["\n".join(str(p) for p in shots)]
 
 
 # ---- 실행 제어 ----

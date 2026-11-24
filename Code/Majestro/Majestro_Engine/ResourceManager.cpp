@@ -603,7 +603,7 @@ shared_ptr<FBXData> ResourceManager::LoadFBXModel(const wstring& path, const wst
 
 void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
 {
-	if constexpr (EngineLog::Enabled(EngineLog::Domain::ResourceLoad))
+	if (EngineLog::Enabled(EngineLog::Domain::ResourceLoad))
 	{
 		static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
 		auto pk = std::make_pair(objectType, key);

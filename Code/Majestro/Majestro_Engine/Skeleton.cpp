@@ -66,7 +66,7 @@ void Skeleton::BuildAimBoneIndices()
 
 	
 
-	if constexpr (EngineLog::Enabled(EngineLog::Domain::SkeletonBones))
+	if (EngineLog::Enabled(EngineLog::Domain::SkeletonBones))
 	{
 		EngineLog::WriteTagged(EngineLog::Domain::SkeletonBones, "aim-bones",
 			"bones=", mBones.size(),

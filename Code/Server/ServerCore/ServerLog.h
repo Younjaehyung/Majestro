@@ -1,6 +1,9 @@
 #pragma once
 
+#include <atomic>
 #include <cstdint>
+#include <cstdio>
+#include <cwchar>
 #include <format>
 #include <source_location>
 #include <string>
@@ -14,6 +17,11 @@
 //   그룹째 켜기 : MJLOG_ENABLE_VERBOSE 를 1 로  -> 고빈도 도메인이 한꺼번에 켜짐
 //   하나만 켜기 : MJLOG_PACKET_FLOW 를 1 로     -> 그룹이 0 이어도 이것만 켜짐
 //   하나만 끄기 : MJLOG_AI 를 0 으로            -> 그룹이 1 이어도 이것만 꺼짐
+//
+// 여기 값은 기본값이다. 리빌드 없이 바꾸려면:
+//   실행 인자 : -log=combat-detail,packet-flow   -nolog=ai   (이름은 아래 Name() 표)
+//   실행 중   : ServerLog::SetEnabled(domain, on)  /  ServerLog::SetEnabled("combat-detail", on)
+// 우선순위: 실행 중 SetEnabled > -nolog= > -log= > 매크로
 
 // ==================== 실패했거나 상태가 바뀌었을 때만 ====================
 #ifndef MJLOG_ENABLE_DIAGNOSTIC
@@ -73,7 +81,7 @@
 #define MJLOG_PLAYER_STATE MJLOG_ENABLE_VERBOSE
 #endif
 
-// 인게임 전투 로그
+// 인게임 전투 로그 (박자 판정 포함)
 #ifndef MJLOG_COMBAT_DETAIL
 #define MJLOG_COMBAT_DETAIL MJLOG_ENABLE_VERBOSE
 #endif
@@ -105,6 +113,8 @@ namespace ServerLog
 
 		// 성능 (기본 OFF)
 		Perf,          // 구간 소요 시간
+
+		Count,         // 도메인 개수 (항상 마지막)
 	};
 
 	// 심각도 : 얼마나 급한가
@@ -115,7 +125,8 @@ namespace ServerLog
 		Error,	// 기능이 실패함. 파일에 즉시 flush
 	};
 
-	inline constexpr bool Enabled(Domain domain)
+	// 매크로로 정해지는 기본값. 실제 판정은 Enabled() 를 쓴다.
+	inline constexpr bool DefaultEnabled(Domain domain)
 	{
 		switch (domain)
 		{
@@ -149,6 +160,89 @@ namespace ServerLog
 		case Domain::Perf:         return "perf";
 		default:                   return "unknown";
 		}
+	}
+
+	inline bool FindDomain(std::string_view name, Domain& outDomain)
+	{
+		for (int i = 0; i < static_cast<int>(Domain::Count); ++i)
+		{
+			if (name == Name(static_cast<Domain>(i)))
+			{
+				outDomain = static_cast<Domain>(i);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	namespace Detail
+	{
+		// key= 뒤의 쉼표 목록을 읽어 table 에 value 를 쓴다. 예) -log=combat-detail,packet-flow
+		inline void ApplyLogArg(std::atomic<std::int8_t>* table, const wchar_t* key, std::int8_t value)
+		{
+			const wchar_t* p = ::wcsstr(::GetCommandLineW(), key);
+			if (p == nullptr)
+				return;
+
+			std::string name;
+			for (p += ::wcslen(key);; ++p)
+			{
+				const bool end = (*p == L'\0' || *p == L' ' || *p == L'\t' || *p == L'"');
+				if (!end && *p != L',')
+				{
+					name.push_back(static_cast<char>(*p));
+					continue;
+				}
+
+				Domain domain{};
+				if (FindDomain(name, domain))
+					table[static_cast<int>(domain)].store(value, std::memory_order_relaxed);
+				else if (!name.empty())
+					std::fprintf(stderr, "[Log] unknown log domain: %s\n", name.c_str());
+				name.clear();
+
+				if (end)
+					return;
+			}
+		}
+
+		// 도메인별 덮어쓰기: -1 = 기본값, 0 = 끔, 1 = 켬. 아무 스레드에서 읽고 써도 된다.
+		inline std::atomic<std::int8_t>* Overrides()
+		{
+			static std::atomic<std::int8_t> table[static_cast<int>(Domain::Count)];
+			static const bool initialized = []
+			{
+				for (auto& entry : table)
+					entry.store(-1, std::memory_order_relaxed);
+				ApplyLogArg(table, L"-log=", 1);
+				ApplyLogArg(table, L"-nolog=", 0);
+				return true;
+			}();
+			(void)initialized;
+			return table;
+		}
+	}
+
+	inline bool Enabled(Domain domain)
+	{
+		const std::int8_t value =
+			Detail::Overrides()[static_cast<int>(domain)].load(std::memory_order_relaxed);
+		return value >= 0 ? value != 0 : DefaultEnabled(domain);
+	}
+
+	inline void SetEnabled(Domain domain, bool on)
+	{
+		Detail::Overrides()[static_cast<int>(domain)].store(on ? 1 : 0, std::memory_order_relaxed);
+	}
+
+	// 이름으로 켜고 끈다 (MCP·콘솔용). 모르는 이름이면 false.
+	inline bool SetEnabled(std::string_view name, bool on)
+	{
+		Domain domain{};
+		if (!FindDomain(name, domain))
+			return false;
+		SetEnabled(domain, on);
+		return true;
 	}
 
 
@@ -232,7 +326,7 @@ namespace ServerLog
 
 #define MJLOG(domainName, levelName, fmt, ...)                                     \
 	do {                                                                          \
-		if constexpr (::ServerLog::Enabled(::ServerLog::Domain::domainName))      \
+		if (::ServerLog::Enabled(::ServerLog::Domain::domainName))                \
 		{                                                                         \
 			::ServerLog::Format(                                                  \
 				::ServerLog::Domain::domainName,                                  \
@@ -249,7 +343,7 @@ namespace ServerLog
 // 같은 key 는 한 번만. key 는 std::string 으로 만들 수 있는 값이면 된다.
 #define MJLOG_ONCE(domainName, levelName, key, fmt, ...)                           \
 	do {                                                                          \
-		if constexpr (::ServerLog::Enabled(::ServerLog::Domain::domainName))      \
+		if (::ServerLog::Enabled(::ServerLog::Domain::domainName))                \
 		{                                                                         \
 			if (::ServerLog::PassOnce(::ServerLog::Domain::domainName, key))      \
 			{                                                                     \
@@ -265,7 +359,7 @@ namespace ServerLog
 // 같은 key 는 seconds 마다 한 번만. 억제된 횟수를 뒤에 붙여준다.
 #define MJLOG_EVERY(domainName, levelName, key, seconds, fmt, ...)                 \
 	do {                                                                          \
-		if constexpr (::ServerLog::Enabled(::ServerLog::Domain::domainName))      \
+		if (::ServerLog::Enabled(::ServerLog::Domain::domainName))                \
 		{                                                                         \
 			std::uint64_t _mjlogSuppressed = 0;                                  \
 			if (::ServerLog::PassEvery(                                           \

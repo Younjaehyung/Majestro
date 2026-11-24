@@ -1,10 +1,12 @@
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 #include <utility>
 
@@ -17,6 +19,11 @@
 //   하나만 끄기   : MAJESTRO_LOG_DATA_TABLE 을 0 으로         -> 그룹이 1 이어도 이것만 꺼짐
 //
 // 개별(MAJESTRO_LOG_*)이 그룹(MAJESTRO_ENABLE_*)보다 항상 우선시 됨.
+//
+// 여기 값은 기본값이다. 리빌드 없이 바꾸려면:
+//   실행 인자 : -log=audio-runtime,network-runtime   -nolog=physics   (이름은 아래 Name() 표)
+//   실행 중   : EngineLog::SetEnabled(domain, on)  /  EngineLog::SetEnabled("audio-runtime", on)
+// 우선순위: 실행 중 SetEnabled > -nolog= > -log= > -statlog > 매크로
 
 
 // ===================== 그룹 스위치 =====================
@@ -156,7 +163,7 @@
 #define MAJESTRO_LOG_AUDIO_RUNTIME MAJESTRO_ENABLE_RUNTIME_LOGS
 #endif
 
-// 패킷 및 판정 관련 로그
+// 패킷 및 판정 관련 로그 (BeatJudge 포함)
 #ifndef MAJESTRO_LOG_NETWORK_RUNTIME
 #define MAJESTRO_LOG_NETWORK_RUNTIME MAJESTRO_ENABLE_RUNTIME_LOGS
 #endif
@@ -166,7 +173,7 @@
 #define MAJESTRO_LOG_PLAYER_STATE_RUNTIME MAJESTRO_ENABLE_RUNTIME_LOGS
 #endif
 
-// 플레이어 입력 처리 결과
+// 플레이어 입력 처리 결과 (리듬 전환 예약 포함)
 #ifndef MAJESTRO_LOG_PLAYER_INPUT_RUNTIME
 #define MAJESTRO_LOG_PLAYER_INPUT_RUNTIME MAJESTRO_ENABLE_RUNTIME_LOGS
 #endif
@@ -225,6 +232,8 @@ namespace EngineLog
 		//매 프레임,매 이벤트 (로드/초기화) (기본 OFF)
 		SkeletonBones,        // 스켈레톤 본 목록
 		StateTiming,          // 상태별 애니메이션 종료 시각 표
+
+		Count,                // 도메인 개수 (항상 마지막)
 	};
 
 	// 실행 인자 -statlog 가 있으면 재빌드 없이 성능 4개 도메인을 켜고 perf_log.txt 에 남긴다.
@@ -235,7 +244,8 @@ namespace EngineLog
 		return requested;
 	}
 
-	inline constexpr bool Enabled(Domain domain)
+	// 매크로 + -statlog 로 정해지는 기본값. 실제 판정은 Enabled() 를 쓴다.
+	inline bool DefaultEnabled(Domain domain)
 	{
 		switch (domain)
 		{
@@ -351,6 +361,89 @@ namespace EngineLog
 		default:
 			return "unknown";
 		}
+	}
+
+	inline bool FindDomain(std::string_view name, Domain& outDomain)
+	{
+		for (int i = 0; i < static_cast<int>(Domain::Count); ++i)
+		{
+			if (name == Name(static_cast<Domain>(i)))
+			{
+				outDomain = static_cast<Domain>(i);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	namespace Detail
+	{
+		// key= 뒤의 쉼표 목록을 읽어 table 에 value 를 쓴다. 예) -log=audio-runtime,network-runtime
+		inline void ApplyLogArg(std::atomic<std::int8_t>* table, const wchar_t* key, std::int8_t value)
+		{
+			const wchar_t* p = ::wcsstr(::GetCommandLineW(), key);
+			if (p == nullptr)
+				return;
+
+			std::string name;
+			for (p += ::wcslen(key);; ++p)
+			{
+				const bool end = (*p == L'\0' || *p == L' ' || *p == L'\t' || *p == L'"');
+				if (!end && *p != L',')
+				{
+					name.push_back(static_cast<char>(*p));
+					continue;
+				}
+
+				Domain domain{};
+				if (FindDomain(name, domain))
+					table[static_cast<int>(domain)].store(value, std::memory_order_relaxed);
+				else if (!name.empty())
+					::OutputDebugStringA(("[Log] unknown log domain: " + name + "\n").c_str());
+				name.clear();
+
+				if (end)
+					return;
+			}
+		}
+
+		// 도메인별 덮어쓰기: -1 = 기본값, 0 = 끔, 1 = 켬. 아무 스레드에서 읽고 써도 된다.
+		inline std::atomic<std::int8_t>* Overrides()
+		{
+			static std::atomic<std::int8_t> table[static_cast<int>(Domain::Count)];
+			static const bool initialized = []
+			{
+				for (auto& entry : table)
+					entry.store(-1, std::memory_order_relaxed);
+				ApplyLogArg(table, L"-log=", 1);
+				ApplyLogArg(table, L"-nolog=", 0);
+				return true;
+			}();
+			(void)initialized;
+			return table;
+		}
+	}
+
+	inline bool Enabled(Domain domain)
+	{
+		const std::int8_t value =
+			Detail::Overrides()[static_cast<int>(domain)].load(std::memory_order_relaxed);
+		return value >= 0 ? value != 0 : DefaultEnabled(domain);
+	}
+
+	inline void SetEnabled(Domain domain, bool on)
+	{
+		Detail::Overrides()[static_cast<int>(domain)].store(on ? 1 : 0, std::memory_order_relaxed);
+	}
+
+	// 이름으로 켜고 끈다 (MCP·콘솔용). 모르는 이름이면 false.
+	inline bool SetEnabled(std::string_view name, bool on)
+	{
+		Domain domain{};
+		if (!FindDomain(name, domain))
+			return false;
+		SetEnabled(domain, on);
+		return true;
 	}
 
 	namespace Detail

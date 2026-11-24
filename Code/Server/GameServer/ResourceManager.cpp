@@ -203,7 +203,7 @@ shared_ptr<FBX> ResourceManager::LoadFBXMeshes(const wstring& path, const wstrin
 
 void ResourceManager::DebugCheckKeyCollision(uint8 objectType, const wstring& key, const wstring& path)
 {
-	if constexpr (ServerLog::Enabled(ServerLog::Domain::ResourceLoad))
+	if (ServerLog::Enabled(ServerLog::Domain::ResourceLoad))
 	{
 		static std::map<std::pair<uint8, wstring>, wstring> sKeyPath;
 		auto pk = std::make_pair(objectType, key);

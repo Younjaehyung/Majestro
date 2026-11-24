@@ -110,7 +110,8 @@ McpBridge::McpBridge()
 	u_long nonBlocking = 1;
 	if (mListen == INVALID_SOCKET
 		|| ::bind(mListen, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR
-		|| ::listen(mListen, 1) == SOCKET_ERROR
+		// 처리는 한 접속씩이지만 대기열은 넉넉히: 1 이면 동시에 붙은 두 번째 접속이 거절되고 Windows 가 0.5초 뒤 재시도한다
+		|| ::listen(mListen, SOMAXCONN) == SOCKET_ERROR
 		|| ::ioctlsocket(mListen, FIONBIO, &nonBlocking) == SOCKET_ERROR)
 	{
 		EngineLog::Write(EngineLog::Domain::NetworkDiagnostic,

@@ -69,5 +69,13 @@ def get_logs(since: int = 0, max_bytes: int = 65536) -> dict:
     return call("get_logs", since=since, max_bytes=max_bytes)
 
 
+@mcp.tool()
+def query_state(enemies: int = 20) -> dict:
+    """지금 게임 상태: 씬, 웨이브 페이즈, 점령/호위 진행도, 로컬 플레이어(위치 cm·hp·action·movement·flags·리듬 포인트),
+    살아 있는 적 수와 가까운 순 목록(enemies 마리까지, 0 이면 개수만).
+    action 은 Protocol ReplicatedActionState, movement 는 ReplicatedMovementMode, 적 type 은 EnemyComponent.h EnemyType 값."""
+    return call("query_state", enemies=enemies)
+
+
 if __name__ == "__main__":
     mcp.run()

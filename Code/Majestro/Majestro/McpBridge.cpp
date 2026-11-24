@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "McpBridge.h"
 #include "EngineLog.h"
+#include "McpState.h"
 
 #include <cwchar>
 
@@ -205,6 +206,12 @@ std::string McpBridge::Handle(const std::string& line)
 			reply["ok"] = EngineLog::SetEnabled(domain, on);
 			if (!reply["ok"])
 				reply["error"] = "unknown domain: " + domain;
+		}
+		else if (cmd == "query_state")
+		{
+			json state = McpQueryState(request);
+			state["id"] = reply["id"];
+			reply = std::move(state);
 		}
 		else if (cmd == "get_logs")
 		{

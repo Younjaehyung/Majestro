@@ -11,6 +11,7 @@
 //          log_domains                       도메인 이름과 현재 켜짐 여부
 //          set_log   {domain, on}            EngineLog::SetEnabled
 //          get_logs  {since, max_bytes}      engine_log.txt 의 since 바이트부터. 응답의 next 를 다음 since 로 쓴다
+//          query_state {enemies}             씬·페이즈·플레이어·목표·적 상태 (McpState.h)
 //
 //   엔진은 MCP 를 모른다. 배선은 실행 파일(Game.cpp)이 한다.
 class McpBridge

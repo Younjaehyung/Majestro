@@ -205,6 +205,7 @@ std::string McpBridge::Handle(const std::string& line)
 		{
 			reply["ok"] = true;
 			reply["pid"] = ::GetCurrentProcessId();
+			reply["statlog"] = EngineLog::StatLogRequested();	// 켜져 있으면 성능 리포트는 perf_log.txt 로 간다
 		}
 		else if (cmd == "debug_crash")
 		{

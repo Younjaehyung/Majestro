@@ -17,6 +17,7 @@ import itertools
 import json
 import math
 import os
+import re
 import shlex
 import shutil
 import socket
@@ -238,6 +239,89 @@ def server_god(on: bool = True) -> dict:
 def server_set_log(domain: str, on: bool = True) -> dict:
     """서버 로그 도메인을 실행 중에 켜거나 끈다. 예: combat-detail, packet-flow, player-state, ai, perf."""
     return call("set_log", _port=SERVER_PORT, domain=domain, on=on)
+
+
+PERF_DOMAINS = ("frame-performance", "system-performance", "render-performance", "render-pass-performance")
+_NUMBER = re.compile(r"-?\d+(?:\.\d+)?")
+
+
+def _parse_perf_line(line: str) -> tuple[str, dict] | None:
+    """'[GPU] avg ms | Frame 2.767 | ShadowPass 0.537' -> ('GPU', {'Frame': 2.767, 'ShadowPass': 0.537}).
+    숫자가 여럿인 항목(avg/max, 122/154/158/2, 'Frame 3.46 ms (289 fps)')은 리스트로."""
+    m = re.match(r"\[([A-Z_]+)\]\s*(.*)", line.strip())
+    if not m:
+        return None
+    values: dict = {}
+    for segment in m.group(2).split(" | "):
+        # 이름 = 첫 숫자 앞까지 ('class X avg 0.07 max 0.23 ms' -> 'X', 'Depth 0.04/0.19' -> 'Depth')
+        name = re.split(r"\s-?\d", " " + segment, maxsplit=1)[0].strip()
+        name = re.sub(r"^(class|struct)\s+", "", name)
+        name = re.sub(r"\s+avg$", "", name)
+        numbers = [float(n) for n in _NUMBER.findall(segment.split(name, 1)[1])] if name else []
+        if name and numbers:
+            values[name] = numbers[0] if len(numbers) == 1 else numbers
+    return m.group(1), values
+
+
+def _average_perf(lines: list[str]) -> dict:
+    """태그별로 리포트 창들을 평균낸다. 첫 창은 켠 직후 이전 값이 섞일 수 있어 버린다."""
+    by_tag: dict[str, list[dict]] = {}
+    for line in lines:
+        parsed = _parse_perf_line(line)
+        if parsed:
+            by_tag.setdefault(parsed[0], []).append(parsed[1])
+    out: dict = {}
+    for tag, windows in by_tag.items():
+        use = windows[1:] if len(windows) > 1 else windows
+        merged: dict = {}
+        for key in use[-1]:
+            samples = [w[key] for w in use if key in w and type(w[key]) is type(use[-1][key])]
+            if isinstance(samples[0], list):
+                width = min(len(s) for s in samples)
+                merged[key] = [round(sum(s[i] for s in samples) / len(samples), 3) for i in range(width)]
+            else:
+                merged[key] = round(sum(samples) / len(samples), 3)
+        out[tag] = merged
+    out["windows"] = max((len(w) - 1 if len(w) > 1 else len(w)) for w in by_tag.values()) if by_tag else 0
+    return out
+
+
+@mcp.tool()
+def perf(seconds: float = 3) -> dict:
+    """지금 성능을 seconds 동안 재서 평균을 돌려준다 (재빌드·재실행 없음). 엔진의 -statlog 리포트를 잠깐 켰다가 원래대로 끈다.
+    CPU: Frame [ms, fps], Start/wait, Update/logic, Render/record, End/present
+    GPU: 렌더 패스별 ms (Frame 이 GPU 전체)
+    PASS_CPU: 패스별 명령 기록 [avg, max] / RENDER_CPU·RENDER_MAX: RenderSystem 구간 / RENDER_COUNT: 그리는 수
+    SYSTEM_CPU: ECS 시스템 상위 [avg, max] / windows: 평균낸 60프레임 창 수. scene·phase 도 함께."""
+    domains = call("log_domains")
+    if not domains.get("ok"):
+        return domains
+    # -statlog 로 띄웠으면 리포트는 이미 켜져 있고 perf_log.txt 로 간다. 아니면 잠깐 켜서 engine_log.txt 로 받는다.
+    statlog = bool(call("ping").get("statlog"))
+    perf_file = CLIENT_DIR / "perf_log.txt"
+    was_on = {d["name"]: d["on"] for d in domains["domains"] if d["name"] in PERF_DOMAINS}
+    start = perf_file.stat().st_size if statlog and perf_file.exists() else call("get_logs", since=0, max_bytes=0).get("size", 0)
+    for name, on in was_on.items():
+        if not on:
+            call("set_log", domain=name, on=True)
+    time.sleep(max(1.0, seconds))
+    for name, on in was_on.items():
+        if not on:
+            call("set_log", domain=name, on=False)
+    if statlog:
+        data = perf_file.read_bytes() if perf_file.exists() else b""
+        raw_lines = data[start:].decode("utf-8", "replace").splitlines()
+    else:
+        scan = _scan_logs(start, "", 100000)
+        if not scan.get("ok"):
+            return scan
+        raw_lines = scan["lines"]
+    lines = [line for line in raw_lines if re.match(r"\[(CPU|GPU|PASS_CPU|RENDER_CPU|RENDER_MAX|RENDER_COUNT|SYSTEM_CPU)\]", line)]
+    state = call("query_state", enemies=0)
+    result = {"ok": True, "scene": state.get("scene"), "phase": state.get("phase"), **_average_perf(lines)}
+    if result["windows"] == 0:
+        result["note"] = "리포트가 안 나옴 (게임이 로딩 중이거나 seconds 가 너무 짧음)"
+    return result
 
 
 @mcp.tool()

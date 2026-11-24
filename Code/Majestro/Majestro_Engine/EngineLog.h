@@ -708,11 +708,18 @@ namespace EngineLog
 		return file;
 	}
 
+	// 성능 리포트: -statlog 면 디버거 출력 + perf_log.txt, 아니면(MCP perf 가 실행 중에 켠 경우) 디버거 출력 + engine_log.txt.
+	// 한쪽에만 쓴다: -statlog QA 는 초당 수 KB 씩 나와 engine_log 를 불린다.
 	inline void OutputPerformance(Domain domain, const char* text)
 	{
 		if (!Enabled(domain) || !text)
 			return;
 
+		if (!StatLogRequested())
+		{
+			Detail::Output(text);
+			return;
+		}
 		::OutputDebugStringA(text);
 		if (FILE* file = StatLogFile())
 		{
@@ -726,6 +733,11 @@ namespace EngineLog
 		if (!Enabled(domain) || !text)
 			return;
 
+		if (!StatLogRequested())
+		{
+			Detail::Output(text);
+			return;
+		}
 		::OutputDebugStringW(text);
 		if (FILE* file = StatLogFile())
 		{

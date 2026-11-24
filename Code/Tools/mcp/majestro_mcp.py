@@ -7,6 +7,8 @@
 실행 중인 Majestro.exe(-mcp) 의 McpBridge(127.0.0.1:9300) 에 붙어 명령을 전달한다.
 호출마다 접속 -> 요청 한 줄 -> 응답 한 줄 -> 종료. 게임이 꺼져 있으면 오류를 돌려준다.
 
+실행 제어 도구(launch / stop / run_qa)는 게임과 서버 프로세스를 직접 띄우고 끈다 (Release 빌드 기준).
+
 등록:  claude mcp add majestro -- uv run <이 파일 경로>
 포트:  환경변수 MAJESTRO_MCP_PORT (기본 9300). 게임은 -mcp=포트 로 맞춘다.
 """
@@ -14,7 +16,13 @@
 import itertools
 import json
 import os
+import shlex
+import shutil
 import socket
+import subprocess
+import tempfile
+import time
+from pathlib import Path
 
 from mcp.server import MCPServer
 
@@ -22,8 +30,18 @@ HOST = "127.0.0.1"
 PORT = int(os.environ.get("MAJESTRO_MCP_PORT", "9300"))
 TIMEOUT = 10.0  # 게임 스레드가 프레임 시작에 처리한다. 로딩 중에는 몇 초 걸릴 수 있다.
 
+CODE = Path(__file__).resolve().parents[2]
+CLIENT_DIR = CODE / "Majestro" / "Executable"
+SERVER_DIR = CODE / "Server" / "GameServer"
+SERVER_EXE = CODE / "Server" / "Binary" / "Release" / "GameServer.exe"
+SERVER_STDOUT = Path(tempfile.gettempdir()) / "majestro_mcp_server.log"
+SERVER_READY = "게임 데이터 로드 완료"  # GameCore.cpp: 포트를 연 뒤 데이터 로드가 끝나면 찍힌다
+QA_SCRIPT = CODE / "Tools" / "qa" / "run_qa.sh"
+
 mcp = MCPServer("majestro")
 _ids = itertools.count(1)
+_server: subprocess.Popen | None = None
+_client: subprocess.Popen | None = None
 
 
 def call(cmd: str, **args) -> dict:
@@ -75,6 +93,101 @@ def query_state(enemies: int = 20) -> dict:
     살아 있는 적 수와 가까운 순 목록(enemies 마리까지, 0 이면 개수만).
     action 은 Protocol ReplicatedActionState, movement 는 ReplicatedMovementMode, 적 type 은 EnemyComponent.h EnemyType 값."""
     return call("query_state", enemies=enemies)
+
+
+# ---- 실행 제어 ----
+# 자식 프로세스는 이 MCP 서버의 stdin/stdout(=MCP 통신선)을 물려받으면 안 된다. 항상 DEVNULL 이나 파일로 돌린다.
+
+def _running(image: str) -> bool:
+    out = subprocess.run(["tasklist", "/FI", f"IMAGENAME eq {image}", "/NH"],
+                         capture_output=True, text=True, errors="replace").stdout
+    return image.lower() in out.lower()
+
+
+def _wait(check, seconds: float) -> bool:
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        if check():
+            return True
+        time.sleep(0.5)
+    return False
+
+
+@mcp.tool()
+def launch(client_args: str = "", server: bool = True, god: bool = True, wait_seconds: float = 90) -> dict:
+    """GameServer(Release) 와 Majestro.exe 를 -mcp 로 띄우고 ping 이 될 때까지 기다린다.
+    client_args: 클라 추가 인자 (예: "-qa -qastages=1 -log=audio-runtime"). server=False 면 서버는 띄우지 않는다.
+    god: 서버를 -qagod 로 (플레이어 무적). 이미 떠 있는 것은 다시 띄우지 않는다. 끌 때는 stop."""
+    global _server, _client
+    result: dict = {"ok": True}
+
+    if server:
+        if _running("GameServer.exe"):
+            result["server"] = "already running"
+        else:
+            SERVER_STDOUT.unlink(missing_ok=True)
+            with open(SERVER_STDOUT, "wb") as log:
+                _server = subprocess.Popen([str(SERVER_EXE)] + (["-qagod"] if god else []), cwd=SERVER_DIR,
+                                           stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
+            ready = _wait(lambda: SERVER_READY in SERVER_STDOUT.read_text("utf-8", "replace")
+                          or _server.poll() is not None, wait_seconds)
+            if not ready or _server.poll() is not None:
+                return {"ok": False, "error": "서버가 준비되지 않음", "server_log": str(SERVER_STDOUT),
+                        "tail": SERVER_STDOUT.read_text("utf-8", "replace")[-1500:]}
+            result["server"] = {"pid": _server.pid, "log": str(SERVER_STDOUT)}
+
+    if call("ping").get("ok"):
+        result["client"] = "already running (MCP 응답 중)"
+        return result
+
+    args = [str(CLIENT_DIR / "Majestro.exe"), f"-mcp={PORT}"] + shlex.split(client_args, posix=False)
+    _client = subprocess.Popen(args, cwd=CLIENT_DIR, stdin=subprocess.DEVNULL,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if not _wait(lambda: call("ping").get("ok") or _client.poll() is not None, wait_seconds) or _client.poll() is not None:
+        return {"ok": False, "error": f"클라가 MCP 에 응답하지 않음 (exit={_client.poll()})", **result}
+    result["client"] = {"pid": _client.pid, "args": args[1:], "log": str(CLIENT_DIR / "engine_log.txt")}
+    return result
+
+
+@mcp.tool()
+def stop(all_instances: bool = False) -> dict:
+    """launch 로 띄운 클라·서버를 끈다. all_instances=True 면 직접 띄운 것까지 Majestro.exe·GameServer.exe 전부 끈다."""
+    global _server, _client
+    stopped = []
+    for name, proc in (("client", _client), ("server", _server)):
+        if proc is not None and proc.poll() is None:
+            proc.kill()
+            proc.wait(10)
+            stopped.append(name)
+    _server = _client = None
+    if all_instances:
+        for image in ("Majestro.exe", "GameServer.exe"):
+            if _running(image):
+                subprocess.run(["taskkill", "/F", "/IM", image], capture_output=True)
+                stopped.append(image)
+    return {"ok": True, "stopped": stopped}
+
+
+@mcp.tool()
+def run_qa(args: str = "-qastages=1", players: int = 1, timeout_seconds: int = 2400) -> dict:
+    """Tools/qa/run_qa.sh 로 무인 QA 1회 (서버+클라 자동 실행·종료). 끝날 때까지 기다린다 (1스테이지 약 3~5분).
+    args: 클라 인자 (기본 1스테이지만). players: 봇 수 1~3. 실행 중인 Majestro.exe·GameServer.exe 는 스크립트가 끈다.
+    결과: passed, exit_code(0 PASS / 1 FAIL / 2 서버 기동 실패), results 폴더, 요약 출력 끝부분."""
+    bash = Path(r"C:\Program Files\Git\bin\bash.exe")
+    bash = str(bash) if bash.exists() else (shutil.which("bash") or "bash")
+    env = {**os.environ, "QA_PLAYERS": str(players)}
+    try:
+        run = subprocess.run([bash, str(QA_SCRIPT), *shlex.split(args)], cwd=QA_SCRIPT.parent, env=env,
+                             stdin=subprocess.DEVNULL, capture_output=True, timeout=timeout_seconds)
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "error": f"{timeout_seconds}s 안에 끝나지 않음"}
+    out = run.stdout.decode("utf-8", "replace")
+    # "==== QA 요약 (/c/.../results/<시각>) ====" -> "C:/.../results/<시각>"
+    results = next((line.split("(", 1)[1].split(")", 1)[0] for line in out.splitlines() if "QA 요약 (" in line), None)
+    if results and len(results) > 2 and results[0] == "/" and results[2] == "/":
+        results = f"{results[1].upper()}:{results[2:]}"
+    return {"ok": True, "passed": run.returncode == 0, "exit_code": run.returncode,
+            "results": results, "summary": "\n".join(out.splitlines()[-60:])}
 
 
 if __name__ == "__main__":

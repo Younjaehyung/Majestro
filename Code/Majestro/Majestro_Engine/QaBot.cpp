@@ -22,7 +22,7 @@
 #include "NavMeshLoader.h"
 #include "VfxComponent.h"
 #include "ResourceManager.h"
-#include "GameNames.h"
+#include "Protocol/GameNames.h"
 
 namespace
 {

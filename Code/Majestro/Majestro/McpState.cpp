@@ -3,7 +3,7 @@
 #include "Engine.h"
 #include "SceneManager.h"
 #include "Scene.h"
-#include "GameNames.h"
+#include "Protocol/GameNames.h"
 #include "TransformComponent.h"
 #include "TagComponent.h"
 #include "PlayerComponent.h"

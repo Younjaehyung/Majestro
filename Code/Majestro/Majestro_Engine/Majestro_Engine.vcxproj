@@ -381,7 +381,6 @@
     <ClInclude Include="GpuProfiler.h" />
     <ClInclude Include="QaBot.h" />
     <ClInclude Include="NavSteer.h" />
-    <ClInclude Include="GameNames.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Skeleton.h" />
     <ClInclude Include="SpscRingQueue.h" />

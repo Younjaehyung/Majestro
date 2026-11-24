@@ -1,6 +1,7 @@
 #pragma once
+#include "Packet.h"
 
-// Protocol enum 을 로그·QA·MCP 에 찍을 이름으로. (QaBot 에서 옮겨 왔다)
+// Protocol enum 을 로그·QA·MCP 에 찍을 이름으로. 클라(QaBot, MCP)와 서버(MCP)가 같이 쓴다.
 
 inline const char* SceneName(SceneId id)
 {

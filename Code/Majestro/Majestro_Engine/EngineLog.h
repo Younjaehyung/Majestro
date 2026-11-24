@@ -475,19 +475,27 @@ namespace EngineLog
 
 		// 로그 파일: 작업 폴더의 engine_log.txt (실행할 때마다 새로 쓴다).
 		// -logfile=경로 로 바꾸고, -logfile= (빈 값) 이면 파일을 쓰지 않는다.
-		inline FILE* LogFile()
+		inline const std::wstring& LogFilePath()
 		{
-			static FILE* file = []() -> FILE*
+			static const std::wstring path = []
 			{
-				std::wstring path = L"engine_log.txt";
+				std::wstring result = L"engine_log.txt";
 				if (const wchar_t* p = ::wcsstr(::GetCommandLineW(), L"-logfile="))
 				{
-					path.clear();
+					result.clear();
 					for (p += 9; *p != L'\0' && *p != L' ' && *p != L'\t' && *p != L'"'; ++p)
-						path.push_back(*p);
+						result.push_back(*p);
 				}
-				return path.empty() ? nullptr : ::_wfsopen(path.c_str(), L"w", _SH_DENYNO);
+				return result;
 			}();
+			return path;
+		}
+
+		inline FILE* LogFile()
+		{
+			static FILE* file = LogFilePath().empty()
+				? nullptr
+				: ::_wfsopen(LogFilePath().c_str(), L"w", _SH_DENYNO);
 			return file;
 		}
 

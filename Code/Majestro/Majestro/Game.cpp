@@ -7,6 +7,7 @@
 #include "Scene.h"
 #include "SceneManager.h"
 #include "QaBot.h"
+#include "McpBridge.h"
 
 #ifdef _IMGUI
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -31,6 +32,9 @@ void Game::Initialize(const WindowInfo& info)
 
 void Game::Update()
 {
+	// -mcp: 외부 MCP 명령을 프레임 시작에 게임 스레드에서 처리한다.
+	if (McpBridge::Requested())
+		McpBridge::Get().Poll();
 
 	gEngine->Update();
 

@@ -38,6 +38,9 @@
     <ClInclude Include="Game.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="McpBridge.h">
+      <Filter>Game</Filter>
+    </ClInclude>
     <ClInclude Include="Majestro.h">
       <Filter>Application</Filter>
     </ClInclude>
@@ -47,6 +50,9 @@
       <Filter>Infrastructure\PCH</Filter>
     </ClCompile>
     <ClCompile Include="Game.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="McpBridge.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Majestro.cpp">

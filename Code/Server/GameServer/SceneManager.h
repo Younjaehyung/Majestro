@@ -35,6 +35,8 @@ public:
 
 	shared_ptr<Scene> GetScene(uint64 sessionId) const;
 	shared_ptr<Scene> GetGameWorld(uint32 roomId) const;	// 룸별 게임 World 조회
+	// 지금 있는 룸별 게임 World 전부 (읽기 전용. MCP 상태 조회용)
+	const std::unordered_map<uint32, shared_ptr<Scene>>& GetGameWorlds() const { return mGameWorldsByRoom; }
 
 
 	void SetRoomManager(RoomManager* roomManager) { mRoomManager = roomManager; }

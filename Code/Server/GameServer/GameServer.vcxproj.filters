@@ -153,6 +153,12 @@
     <ClCompile Include="GameCore.cpp">
       <Filter>Application</Filter>
     </ClCompile>
+    <ClCompile Include="McpBridge.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="McpState.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
     <ClCompile Include="Prefab.cpp">
       <Filter>Script\Prefab</Filter>
     </ClCompile>
@@ -384,6 +390,12 @@
       <Filter>Utils\Math</Filter>
     </ClInclude>
     <ClInclude Include="GameCore.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="McpBridge.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="McpState.h">
       <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="Prefab.h">

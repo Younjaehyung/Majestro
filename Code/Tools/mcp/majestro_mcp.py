@@ -29,6 +29,7 @@ from mcp.server.mcpserver import Image
 
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("MAJESTRO_MCP_PORT", "9300"))
+SERVER_PORT = int(os.environ.get("MAJESTRO_SERVER_MCP_PORT", "9310"))  # GameServer -mcp=포트
 TIMEOUT = 10.0  # 게임 스레드가 프레임 시작에 처리한다. 로딩 중에는 몇 초 걸릴 수 있다.
 
 CODE = Path(__file__).resolve().parents[2]
@@ -47,10 +48,12 @@ _server: subprocess.Popen | None = None
 _client: subprocess.Popen | None = None
 
 
-def call(cmd: str, **args) -> dict:
+def call(cmd: str, _port: int = PORT, **args) -> dict:
+    """게임(기본) 또는 서버(_port=SERVER_PORT) McpBridge 에 명령 한 줄을 보내고 응답 한 줄을 받는다."""
     request = {"id": next(_ids), "cmd": cmd, **args}
+    target = "Majestro" if _port == PORT else "GameServer"
     try:
-        with socket.create_connection((HOST, PORT), timeout=TIMEOUT) as sock:
+        with socket.create_connection((HOST, _port), timeout=TIMEOUT) as sock:
             sock.sendall((json.dumps(request) + "\n").encode())
             data = b""
             while not data.endswith(b"\n"):
@@ -59,9 +62,9 @@ def call(cmd: str, **args) -> dict:
                     break
                 data += chunk
     except OSError as e:
-        return {"ok": False, "error": f"Majestro({HOST}:{PORT}) 에 연결 못함: {e}. 게임을 -mcp 로 실행했는지 확인"}
+        return {"ok": False, "error": f"{target}({HOST}:{_port}) 에 연결 못함: {e}. -mcp 로 실행했는지 확인"}
     if not data:
-        return {"ok": False, "error": "응답 없음 (게임이 접속을 닫음)"}
+        return {"ok": False, "error": f"응답 없음 ({target} 가 접속을 닫음)"}
     return json.loads(data)
 
 
@@ -132,6 +135,30 @@ def query_state(enemies: int = 20) -> dict:
     살아 있는 적 수와 가까운 순 목록(enemies 마리까지, 0 이면 개수만).
     action 은 Protocol ReplicatedActionState, movement 는 ReplicatedMovementMode, 적 type 은 EnemyComponent.h EnemyType 값."""
     return call("query_state", enemies=enemies)
+
+
+# ---- 서버 (GameServer -mcp. launch 로 띄운 서버는 자동으로 켜져 있다) ----
+
+@mcp.tool()
+def server_rooms() -> dict:
+    """서버에서 게임 World 가 있는 방 목록 (room, scene, phase, players). 광장·레벨에 들어간 방만 나온다."""
+    return call("rooms", _port=SERVER_PORT)
+
+
+@mcp.tool()
+def server_query_state(room: int | None = None, enemies: int = 20) -> dict:
+    """서버가 보는 방 상태 (판정 기준). room 생략 시 첫 방.
+    songPos(서버 곡 위치 초), conquest(playersInZone·enemiesInZone 포함), escort,
+    players[](pos·hp·action·movement·fsmState·rhythmPoints·lastJudgedSongPos·netId·session),
+    enemies{alive, list(netId 포함)}. action/movement 는 클라 query_state 의 값과 같은 체계라 바로 비교할 수 있다."""
+    args = {"enemies": enemies} if room is None else {"room": room, "enemies": enemies}
+    return call("query_state", _port=SERVER_PORT, **args)
+
+
+@mcp.tool()
+def server_set_log(domain: str, on: bool = True) -> dict:
+    """서버 로그 도메인을 실행 중에 켜거나 끈다. 예: combat-detail, packet-flow, player-state, ai, perf."""
+    return call("set_log", _port=SERVER_PORT, domain=domain, on=on)
 
 
 # ---- 입력 (게임을 -mcpinput 또는 -qa 로 띄웠을 때만. launch 는 기본으로 -mcpinput 을 붙인다) ----
@@ -222,7 +249,7 @@ def launch(client_args: str = "", server: bool = True, god: bool = True, input: 
         else:
             SERVER_STDOUT.unlink(missing_ok=True)
             with open(SERVER_STDOUT, "wb") as log:
-                _server = subprocess.Popen([str(SERVER_EXE)] + (["-qagod"] if god else []), cwd=SERVER_DIR,
+                _server = subprocess.Popen([str(SERVER_EXE), f"-mcp={SERVER_PORT}"] + (["-qagod"] if god else []), cwd=SERVER_DIR,
                                            stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
             ready = _wait(lambda: SERVER_READY in SERVER_STDOUT.read_text("utf-8", "replace")
                           or _server.poll() is not None, wait_seconds)

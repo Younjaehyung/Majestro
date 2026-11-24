@@ -14,7 +14,7 @@
 #   QA_ACCEPT_WARNINGS=1 이번에 나온 서버 경고 종류를 알려진 목록에 추가
 #   QA_WALL_TIMEOUT=초 클라이언트 강제 종료 시간 (기본 2100). 봇 자체 제한(-qatimeout, 기본 1800)보다 길게 둔다.
 #
-# 결과: results/<시각>/ 에 qa_log.txt, perf_log.txt, server.log
+# 결과: results/<시각>/ 에 qa_log.txt, perf_log.txt, engine_log.txt, server.log
 # 종료 코드: 0 = PASS, 1 = FAIL 또는 비정상 종료, 2 = 서버 기동 실패
 #
 # 사전 조건: Majestro.sln 과 Server.sln 을 Release x64 로 빌드해 둔다.
@@ -41,14 +41,14 @@ fi
 ping -n 12 127.0.0.1 > /dev/null	# 서버 리소스 로딩 대기
 
 cd "$CODE/Majestro/Executable"
-rm -f qa_log.txt qa_log_join*.txt perf_log.txt
+rm -f qa_log.txt qa_log_join*.txt perf_log.txt engine_log*.txt
 # 화면 캡처: 게임 밖에서 창을 찍는다 (20초마다 + FAIL/WARN 이 새로 기록될 때). QA_SHOTS=0 으로 끈다.
 [ "${QA_SHOTS:-1}" = "1" ] && powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$HERE/capture.ps1")" -Dir "$(cygpath -w "$OUT/shots")" -Log "$(cygpath -w "$PWD/qa_log.txt")" > /dev/null 2>&1 &
 # 멀티: 방장(캐릭터 1) + 입장하는 봇(캐릭터 2, 3). 입장하는 쪽은 방장이 방을 만든 뒤에 띄운다.
 PLAYERS=${QA_PLAYERS:-1}
 for i in $(seq 2 "$PLAYERS"); do
 	( ping -n $((4 + i * 2)) 127.0.0.1 > /dev/null
-	  timeout "${QA_WALL_TIMEOUT:-2100}" ./Majestro.exe -qa -qajoin -qachar=$i "$@" ) &
+	  timeout "${QA_WALL_TIMEOUT:-2100}" ./Majestro.exe -qa -qajoin -qachar=$i -logfile=engine_log_join$i.txt "$@" ) &
 done
 timeout "${QA_WALL_TIMEOUT:-2100}" ./Majestro.exe -qa -statlog -qaplayers=$PLAYERS "$@"
 CLIENT_EXIT=$?
@@ -61,7 +61,7 @@ SERVER_ALIVE=1
 tasklist | grep -qi "GameServer.exe" || SERVER_ALIVE=0
 taskkill //F //IM GameServer.exe > /dev/null 2>&1
 
-cp qa_log.txt qa_log_join*.txt perf_log.txt "$OUT/" 2> /dev/null
+cp qa_log.txt qa_log_join*.txt perf_log.txt engine_log*.txt "$OUT/" 2> /dev/null
 
 echo "==== QA 요약 ($OUT) ===="
 echo "client_exit=$CLIENT_EXIT server_alive_at_end=$SERVER_ALIVE"

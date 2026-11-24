@@ -159,6 +159,9 @@
     <ClCompile Include="McpState.cpp">
       <Filter>Application</Filter>
     </ClCompile>
+    <ClCompile Include="CrashHandler.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
     <ClCompile Include="Prefab.cpp">
       <Filter>Script\Prefab</Filter>
     </ClCompile>
@@ -396,6 +399,9 @@
       <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="McpState.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="CrashHandler.h">
       <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="Prefab.h">

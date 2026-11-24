@@ -5,11 +5,14 @@
 #include "ServerCore.h"
 #include "GameCore.h"
 #include "McpBridge.h"
+#include "CrashHandler.h"
 
 Timer                   gTimer;
 
 int main()
 {
+    // 처리되지 않은 예외로 죽으면 작업 폴더 Dumps/ 에 미니덤프와 호출 스택을 남긴다.
+    CrashHandler::Install(L"GameServer");
 
     gTimer.Start();
     gServerCore->Initialize();

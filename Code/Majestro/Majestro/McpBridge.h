@@ -15,6 +15,7 @@
 //          press {keys, seconds, mouse_left, mouse_right, mouse_dx, mouse_dy}   (McpInput.h, -mcpinput 또는 -qa 필요)
 //          move_to {pos:[x,y,z], arrive_cm, timeout}
 //          input_status / input_cancel
+//          debug_crash                       일부러 접근 위반을 낸다 (크래시 덤프 확인용)
 //
 //   엔진은 MCP 를 모른다. 배선은 실행 파일(Game.cpp)이 한다.
 class McpBridge

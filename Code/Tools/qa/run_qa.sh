@@ -23,6 +23,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 CODE="$(cd "$HERE/../.." && pwd)"
 OUT="$HERE/results/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUT"
+touch "$OUT/.start"	# 이 시각 이후에 생긴 크래시 기록만 이번 실행 것으로 본다
 
 SERVER_ARGS=""
 [ "${QA_GOD:-1}" = "1" ] && SERVER_ARGS="-qagod"
@@ -62,9 +63,17 @@ tasklist | grep -qi "GameServer.exe" || SERVER_ALIVE=0
 taskkill //F //IM GameServer.exe > /dev/null 2>&1
 
 cp qa_log.txt qa_log_join*.txt perf_log.txt engine_log*.txt "$OUT/" 2> /dev/null
+# 이번 실행 중 클라·서버가 남긴 크래시 기록(CrashHandler: Dumps/*.txt 호출 스택, *.dmp 미니덤프)을 모은다
+CRASHES=$(find "$CODE/Majestro/Executable/Dumps" "$CODE/Server/GameServer/Dumps" -type f -newer "$OUT/.start" 2> /dev/null)
+[ -n "$CRASHES" ] && mkdir -p "$OUT/dumps" && cp $CRASHES "$OUT/dumps/"
 
 echo "==== QA 요약 ($OUT) ===="
 echo "client_exit=$CLIENT_EXIT server_alive_at_end=$SERVER_ALIVE"
+for f in "$OUT"/dumps/*.txt; do
+	[ -f "$f" ] || continue
+	echo "QA: 크래시 기록 $(basename "$f") (스택 앞부분:)"
+	head -8 "$f"
+done
 grep -a -E " (FAIL|WARN) " "$OUT/qa_log.txt" 2> /dev/null | grep -v SUMMARY
 grep -a -E "SUMMARY|STAGE |MOVE" "$OUT/qa_log.txt" 2> /dev/null
 END_LINE="$(grep -a " END " "$OUT/qa_log.txt" 2> /dev/null)"

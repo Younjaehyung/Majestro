@@ -189,6 +189,27 @@ def server_set_log(domain: str, on: bool = True) -> dict:
 
 
 @mcp.tool()
+def crash_reports(limit: int = 3, stack_lines: int = 25) -> dict:
+    """클라·서버 크래시 기록 (CrashHandler 가 남긴 Dumps/<이름>_<시각>.txt/.dmp), 최근 것부터.
+    각 항목: 시각, 대상(client/server), 예외 코드·접근 위반 주소, 호출 스택 앞부분(stack_lines 줄), .dmp 경로.
+    .dmp 는 VS 에서 같은 빌드의 PDB 와 함께 열어 변수까지 본다."""
+    reports = []
+    for who, folder in (("client", CLIENT_DIR / "Dumps"), ("server", SERVER_DIR / "Dumps")):
+        for txt in folder.glob("*.txt") if folder.exists() else []:
+            reports.append((txt.stat().st_mtime, who, txt))
+    reports.sort(reverse=True)
+    out = []
+    for mtime, who, txt in reports[:limit]:
+        lines = txt.read_text("utf-8", "replace").splitlines()
+        dmp = txt.with_suffix(".dmp")
+        out.append({"time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(mtime)), "target": who,
+                    "header": [l for l in lines if not l.startswith("#")],
+                    "stack": [l for l in lines if l.startswith("#")][:stack_lines],
+                    "txt": str(txt), "dmp": str(dmp) if dmp.exists() else None})
+    return {"ok": True, "total": len(reports), "reports": out}
+
+
+@mcp.tool()
 def wait_until(scene: str | None = None, phase: str | None = None, player: bool = False,
                timeout_seconds: float = 120, server: bool = False) -> dict:
     """조건이 맞을 때까지 기다린다 (0.5초마다 query_state). 예: wait_until(scene="FirstGame", phase="Conquest").

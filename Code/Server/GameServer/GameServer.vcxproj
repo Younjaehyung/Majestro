@@ -230,6 +230,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClCompile Include="GameCore.cpp" />
     <ClCompile Include="McpBridge.cpp" />
     <ClCompile Include="McpState.cpp" />
+    <ClCompile Include="CrashHandler.cpp" />
     <ClCompile Include="GameEvents.cpp" />
     <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="GamePhase.cpp" />
@@ -320,6 +321,7 @@ copy /Y "$(SolutionDir)Libraries\Lib\onnxruntime\onnxruntime_providers_shared.dl
     <ClInclude Include="GameCore.h" />
     <ClInclude Include="McpBridge.h" />
     <ClInclude Include="McpState.h" />
+    <ClInclude Include="CrashHandler.h" />
     <ClInclude Include="GameEvents.h" />
     <ClInclude Include="GameMode.h" />
     <ClInclude Include="GamePhase.h" />

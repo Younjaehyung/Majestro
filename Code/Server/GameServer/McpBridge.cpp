@@ -145,6 +145,8 @@ std::string McpBridge::Handle(const std::string& line)
 
 		if (cmd == "ping")
 			reply = { { "ok", true }, { "pid", ::GetCurrentProcessId() } };
+		else if (cmd == "debug_crash")
+			*static_cast<volatile int*>(nullptr) = 0;	// 크래시 덤프 확인용 (CrashHandler 가 Dumps/ 에 남긴다)
 		else if (cmd == "rooms")
 			reply = McpListRooms();
 		else if (cmd == "query_state")

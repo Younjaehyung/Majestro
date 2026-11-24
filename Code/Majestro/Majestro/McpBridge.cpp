@@ -206,6 +206,11 @@ std::string McpBridge::Handle(const std::string& line)
 			reply["ok"] = true;
 			reply["pid"] = ::GetCurrentProcessId();
 		}
+		else if (cmd == "debug_crash")
+		{
+			// 크래시 덤프 경로 확인용. 응답 없이 접근 위반으로 죽는다 (CrashHandler 가 Dumps/ 에 남긴다).
+			*static_cast<volatile int*>(nullptr) = 0;
+		}
 		else if (cmd == "log_domains")
 		{
 			reply["ok"] = true;

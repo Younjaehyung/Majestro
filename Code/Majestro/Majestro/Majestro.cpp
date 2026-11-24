@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "SceneManager.h"
 #include "Chat.h"
+#include "CrashHandler.h"
 
 #include <gdiplus.h>
 #pragma comment(lib, "gdiplus.lib")
@@ -45,6 +46,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+    // 처리되지 않은 예외로 죽으면 작업 폴더 Dumps/ 에 미니덤프와 호출 스택을 남긴다.
+    CrashHandler::Install(L"Majestro");
 
     // borderless 풀스크린에서 실픽셀 = 모니터 픽셀이 되도록 DPI awareness 활성화
     ::SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);

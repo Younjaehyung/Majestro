@@ -95,6 +95,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+# CrashHandler 크래시 기록 (미니덤프 + 호출 스택)
+Dumps/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/

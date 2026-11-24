@@ -57,7 +57,8 @@ public:
         transitionGuards.erase({ from, to });
     }
 
-    StateId GetState() { return mIdOf(mState); };
+    // 변환기(SetIdResolver)가 없거나 상태가 없으면 255. CanTransition 과 같은 규칙이다.
+    StateId GetState() { return (mIdOf && mState) ? mIdOf(mState) : static_cast<StateId>(255); };
 
     std::unordered_map<std::pair<StateId, StateId>, GuardFunc, pair_hash8> transitionGuards;
 

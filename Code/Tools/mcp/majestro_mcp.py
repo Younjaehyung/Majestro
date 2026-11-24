@@ -83,11 +83,47 @@ def set_log(domain: str, on: bool = True) -> dict:
     return call("set_log", domain=domain, on=on)
 
 
+def _scan_logs(since: int, contains: str, keep: int) -> dict:
+    """since 부터 끝까지 256KB 씩 읽으며 contains 가 든 줄만 모아 마지막 keep 줄을 남긴다."""
+    lines: list[str] = []
+    matched = 0
+    first = True
+    while True:
+        chunk = call("get_logs", since=since, max_bytes=262144)
+        if not chunk.get("ok"):
+            return chunk
+        text = chunk["text"].replace("\r\n", "\n")
+        part = text.split("\n")[:-1]  # 마지막은 빈 문자열 (엔진이 줄 단위로 끊어 보낸다)
+        if first and since > 0 and part:
+            part = part[1:]  # since 가 줄 중간이면 첫 줄은 잘린 줄이라 버린다
+        first = False
+        for line in part:
+            if contains in line:
+                matched += 1
+                lines.append(line)
+        del lines[:-keep]
+        since = chunk["next"]
+        if not chunk.get("more") or not text:
+            return {"ok": True, "lines": lines, "matched": matched, "next": since, "size": chunk["size"]}
+
+
 @mcp.tool()
-def get_logs(since: int = 0, max_bytes: int = 65536) -> dict:
-    """engine_log.txt 를 since 바이트부터 읽는다. 응답의 next 를 다음 호출의 since 로 넘기면 새 줄만 받는다.
-    more 가 true 면 아직 남은 로그가 있다. max_bytes 상한은 256KB."""
-    return call("get_logs", since=since, max_bytes=max_bytes)
+def get_logs(since: int = 0, max_bytes: int = 65536, contains: str = "", tail: int = 0) -> dict:
+    """engine_log.txt 를 읽는다. 응답의 next 를 다음 호출의 since 로 넘기면 새 줄만 받는다.
+    - 그대로: since 바이트부터 max_bytes(상한 256KB) 만큼 원문. more 가 true 면 남은 로그가 있다.
+    - contains: 이 문자열이 든 줄만 (예: "audio-runtime", "[Drift]", "fail"). since 부터 끝까지 훑는다.
+    - tail: 마지막 N 줄만 (contains 와 같이 쓰면 걸러진 줄 중 마지막 N 줄).
+    contains/tail 을 쓰면 text 대신 lines(최대 tail 또는 200줄)와 matched(전체 일치 수)를 돌려준다."""
+    if not contains and tail <= 0:
+        return call("get_logs", since=since, max_bytes=max_bytes)
+    keep = tail if tail > 0 else 200
+    if tail > 0 and not contains:
+        # 끝부분만 읽는다. 줄 길이를 넉넉히 300바이트로 잡는다.
+        size = call("get_logs", since=0, max_bytes=0)
+        if not size.get("ok"):
+            return size
+        since = max(since, size["size"] - keep * 300)
+    return _scan_logs(since, contains, keep)
 
 
 @mcp.tool()

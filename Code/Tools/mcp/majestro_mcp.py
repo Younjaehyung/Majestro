@@ -157,9 +157,59 @@ def server_query_state(room: int | None = None, enemies: int = 20) -> dict:
 
 
 @mcp.tool()
+def server_get_logs(contains: str = "", tail: int = 100, since: int = 0, file: str = "") -> dict:
+    """서버 로그 파일을 읽는다. 기본은 가장 최근 GameServer/Logs/server_*.log (launch·run_qa·직접 실행 모두).
+    contains: 이 문자열이 든 줄만 (예: "[combat-detail]", "WARN", "ERROR"). tail: 마지막 N 줄 (0 이면 최대 200).
+    since: 이 바이트부터 (응답의 next 를 넘기면 새 줄만). file: 다른 로그 파일 경로를 직접 지정.
+    결과: file, lines, matched(전체 일치 수), next, size."""
+    log_dir = SERVER_DIR / "Logs"
+    path = Path(file) if file else max(log_dir.glob("server_*.log"), key=lambda p: p.stat().st_mtime, default=None)
+    if path is None or not path.exists():
+        return {"ok": False, "error": f"서버 로그 파일이 없음 ({file or log_dir})"}
+    data = path.read_bytes()
+    size = len(data)
+    if since > size:
+        since = 0  # 새 파일이면 처음부터
+    end = data.rfind(b"\n") + 1  # 쓰는 중인 마지막 줄은 다음 호출로 미룬다
+    if end <= since:
+        return {"ok": True, "file": str(path), "lines": [], "matched": 0, "next": since, "size": size}
+    lines = data[since:end].decode("utf-8", "replace").replace("\r\n", "\n").split("\n")[:-1]
+    if since > 0 and data[since - 1:since] != b"\n" and lines:
+        lines = lines[1:]  # since 가 줄 중간이면 잘린 첫 줄은 버린다
+    if contains:
+        lines = [line for line in lines if contains in line]
+    keep = tail if tail > 0 else 200
+    return {"ok": True, "file": str(path), "lines": lines[-keep:], "matched": len(lines), "next": end, "size": size}
+
+
+@mcp.tool()
 def server_set_log(domain: str, on: bool = True) -> dict:
     """서버 로그 도메인을 실행 중에 켜거나 끈다. 예: combat-detail, packet-flow, player-state, ai, perf."""
     return call("set_log", _port=SERVER_PORT, domain=domain, on=on)
+
+
+@mcp.tool()
+def wait_until(scene: str | None = None, phase: str | None = None, player: bool = False,
+               timeout_seconds: float = 120, server: bool = False) -> dict:
+    """조건이 맞을 때까지 기다린다 (0.5초마다 query_state). 예: wait_until(scene="FirstGame", phase="Conquest").
+    scene/phase: 이름이 같아야 함 (None 이면 보지 않음). player=True 면 플레이어가 생길 때까지.
+    server=True 면 서버 server_query_state 로 본다 (첫 방 기준). 로딩 중 응답이 없어도 timeout 까지 계속 기다린다.
+    결과: met(조건 충족 여부), elapsed, 마지막 scene/phase, 못 맞췄으면 마지막 오류."""
+    started = time.monotonic()
+    last: dict = {}
+    while True:
+        last = call("query_state", _port=SERVER_PORT, enemies=0) if server else call("query_state", enemies=0)
+        has_player = bool(last.get("players")) if server else "player" in last
+        met = (last.get("ok") and (scene is None or last.get("scene") == scene)
+               and (phase is None or last.get("phase") == phase) and (not player or has_player))
+        elapsed = round(time.monotonic() - started, 1)
+        if met or elapsed >= timeout_seconds:
+            result = {"ok": True, "met": bool(met), "elapsed": elapsed,
+                      "scene": last.get("scene"), "phase": last.get("phase")}
+            if not last.get("ok"):
+                result["last_error"] = last.get("error")
+            return result
+        time.sleep(0.5)
 
 
 def _flat(a: list, b: list) -> float:

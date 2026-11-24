@@ -9,6 +9,10 @@ class PayloadPathData;
 // 플레이어를 씬의 스폰 지점(PlayerSpawnComponent)으로 배치하고 NavMesh 보정/중력 초기화까지 수행.
 void ApplyPlayerSpawnPosition(World* world, Entity playerEntity);
 
+// 플레이어를 position 에 놓는다 (NavMesh 위로 보정, 이동·중력 상태 초기화). 실제로 놓인 위치를 돌려준다.
+// 스폰 지점(mSpawnPosition)은 바꾸지 않는다. 스폰 배치와 MCP teleport 가 같이 쓴다.
+Vec3 PlacePlayerAt(World* world, Entity playerEntity, Vec3 position);
+
 // Clear/Fail 결과 화면 유지 시간(초).
 constexpr float kResultDecisionHoldSeconds = 15.0f;
 

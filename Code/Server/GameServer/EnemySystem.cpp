@@ -227,6 +227,15 @@ namespace
         if (!ownerTransform)
             return;
 
+        SpawnEnemyAt(world, enemyType, ownerTransform->mLocalPosition + offset);
+    }
+}
+
+Entity SpawnEnemyAt(World* world, EnemyType enemyType, Vec3 spawnPos)
+{
+        if (!world)
+            return Entity();
+
         InputCommand spawnCmd{};
         spawnCmd.SessionId = 0;
         spawnCmd.Type = PKT_Type::S2C_PKT_SPAWN;
@@ -234,9 +243,8 @@ namespace
 
         Entity spawned = PrefabFactory::Spawn(world, PrefabType::ENEMY, spawnCmd);
         if (!spawned.IsValid())
-            return;
+            return Entity();
 
-        Vec3 spawnPos = ownerTransform->mLocalPosition + offset;
         if (auto& physicsWorld = world->GetPhysicsWorld())
         {
             float ground = 0.0f;
@@ -262,8 +270,11 @@ namespace
             fly->mGround = spawnPos.y;
 
         BroadcastEnemySpawn(world, spawned);
-    }
+        return spawned;
+}
 
+namespace
+{
     void SpawnEnemyGroupAroundAndBroadcast(
         World* world,
         Entity owner,

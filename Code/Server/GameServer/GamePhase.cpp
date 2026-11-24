@@ -48,40 +48,47 @@ void ApplyPlayerSpawnPosition(World* world, Entity playerEntity)
 		if (!spawn)
 			return;
 
-		Vec3 spawnPosition = spawn->mCharacterPositions[playerType];
+		player->mSpawnPosition = PlacePlayerAt(world, playerEntity, spawn->mCharacterPositions[playerType]);
+}
+
+Vec3 PlacePlayerAt(World* world, Entity playerEntity, Vec3 position)
+{
+		TransformComponent* transform = world ? world->GetComponent<TransformComponent>(playerEntity) : nullptr;
+		if (!transform)
+			return position;
 
 		// FirstScene처럼 지정 위치가 NavMesh에서 벗어난 경우 가장 가까운 이동 가능 지점으로 보정한다.
 		shared_ptr<Navigation>& navigation = world->GetNavSystem();
 		if (navigation && navigation->IsInitialized())
 		{
 			constexpr float spawnSearchRadius = 1000.0f;
-			if (navigation->IsPointOnNavMesh(spawnPosition, spawnSearchRadius))
-				spawnPosition = navigation->GetNearestPointOnNavMesh(spawnPosition, spawnSearchRadius);
+			if (navigation->IsPointOnNavMesh(position, spawnSearchRadius))
+				position = navigation->GetNearestPointOnNavMesh(position, spawnSearchRadius);
 		}
 
-		transform->mLocalPosition = spawnPosition;
-		transform->mWorldPosition = spawnPosition;
-		transform->mWorldMatrix = Matrix::CreateTranslation(spawnPosition);
+		transform->mLocalPosition = position;
+		transform->mWorldPosition = position;
+		transform->mWorldMatrix = Matrix::CreateTranslation(position);
 		transform->mMovingVector = Vec3::Zero;
-		player->mSpawnPosition = spawnPosition;
 
 		if (PlayerMovementComponent* movement =
 			world->GetComponent<PlayerMovementComponent>(playerEntity))
 		{
 			movement->mMovingDirection = Vec3::Zero;
-			movement->mNavPosition = spawnPosition;
+			movement->mNavPosition = position;
 			movement->mNavPositionValid = true;
 		}
 
 		if (GravityComponent* gravity = world->GetComponent<GravityComponent>(playerEntity))
 		{
-			gravity->mHight = spawnPosition.y;
-			gravity->mGround = spawnPosition.y;
+			gravity->mHight = position.y;
+			gravity->mGround = position.y;
 			gravity->mGravity = 0.0f;
 			gravity->mFalling = false;
 			gravity->mDropping = false;
 			gravity->mGroundGraceLeft = 0.0f;
 		}
+		return position;
 }
 
 void PreparePhase::Enter(WaveGameMode& mode)

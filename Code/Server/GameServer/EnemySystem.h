@@ -9,6 +9,10 @@ class NavMesh;
 class EventManager;
 class EnemyMovementComponent;
 
+// 적을 position 에 만들고 (지면 높이 보정) 방의 모든 클라에 스폰을 알린다. 실패하면 무효 엔티티.
+// 보스 소환(SpawnEnemyAroundAndBroadcast)과 MCP spawn_enemy 가 같이 쓴다.
+Entity SpawnEnemyAt(World* world, EnemyType enemyType, Vec3 position);
+
 class EnemySystem : public System
 {
 public:

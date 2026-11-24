@@ -44,6 +44,9 @@
     <ClInclude Include="McpState.h">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="McpInput.h">
+      <Filter>Game</Filter>
+    </ClInclude>
     <ClInclude Include="Majestro.h">
       <Filter>Application</Filter>
     </ClInclude>
@@ -59,6 +62,9 @@
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="McpState.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="McpInput.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="Majestro.cpp">

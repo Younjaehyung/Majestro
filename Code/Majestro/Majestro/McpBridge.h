@@ -12,12 +12,17 @@
 //          set_log   {domain, on}            EngineLog::SetEnabled
 //          get_logs  {since, max_bytes}      engine_log.txt 의 since 바이트부터. 응답의 next 를 다음 since 로 쓴다
 //          query_state {enemies}             씬·페이즈·플레이어·목표·적 상태 (McpState.h)
+//          press {keys, seconds, mouse_left, mouse_right, mouse_dx, mouse_dy}   (McpInput.h, -mcpinput 또는 -qa 필요)
+//          move_to {pos:[x,y,z], arrive_cm, timeout}
+//          input_status / input_cancel
 //
 //   엔진은 MCP 를 모른다. 배선은 실행 파일(Game.cpp)이 한다.
 class McpBridge
 {
 public:
 	static bool Requested();
+	// -mcpinput: MCP 가 입력 소스를 차지한다 (하드웨어 키보드·마우스 입력은 꺼진다).
+	static bool InputRequested();
 	static McpBridge& Get();
 
 	// 접속 수락, 수신, 명령 처리, 응답까지 한 번에. 매 프레임 1회 호출한다.

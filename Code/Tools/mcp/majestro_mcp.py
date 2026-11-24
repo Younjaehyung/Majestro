@@ -98,6 +98,44 @@ def query_state(enemies: int = 20) -> dict:
     return call("query_state", enemies=enemies)
 
 
+# ---- 입력 (게임을 -mcpinput 또는 -qa 로 띄웠을 때만. launch 는 기본으로 -mcpinput 을 붙인다) ----
+
+def _wait_input(timeout: float) -> dict:
+    """input_status 가 끝날 때까지 기다린다."""
+    deadline = time.monotonic() + timeout
+    status = call("input_status")
+    while status.get("ok") and status.get("active") and time.monotonic() < deadline:
+        time.sleep(0.2)
+        status = call("input_status")
+    return status
+
+
+@mcp.tool()
+def press(keys: list[str] | None = None, seconds: float = 0.1, mouse_left: bool = False, mouse_right: bool = False,
+          mouse_dx: int = 0, mouse_dy: int = 0) -> dict:
+    """키·마우스를 seconds 동안 누르고 있다가 뗀다 (끝날 때까지 기다림, 최대 30초).
+    keys: Q W E R ... A S D ... SPACE SHIFT ESC TAB 0-9 F1-F8 (InputManager eKeyCode 이름).
+    mouse_dx/dy: 매 프레임 넣을 마우스 이동(픽셀). 1픽셀 = 카메라 약 0.5도.
+    예) 앞으로 1초: keys=["W"], seconds=1 / 공격: mouse_left=True / 대시: keys=["SHIFT"]"""
+    started = call("press", keys=keys or [], seconds=seconds, mouse_left=mouse_left, mouse_right=mouse_right,
+                   mouse_dx=mouse_dx, mouse_dy=mouse_dy)
+    return started if not started.get("ok") else _wait_input(seconds + 5)
+
+
+@mcp.tool()
+def move_to(x: float, y: float, z: float, arrive_cm: float = 150, timeout_seconds: float = 30) -> dict:
+    """로컬 플레이어를 (x,y,z) cm 까지 걷게 한다. 스테이지는 NavMesh 경로, 광장 등은 직선. 끝날 때까지 기다린다.
+    result: arrived / timeout / cancelled / no player. distance 는 마지막 수평 거리(cm). 좌표는 query_state 의 pos 와 같은 계."""
+    started = call("move_to", pos=[x, y, z], arrive_cm=arrive_cm, timeout=timeout_seconds)
+    return started if not started.get("ok") else _wait_input(timeout_seconds + 5)
+
+
+@mcp.tool()
+def cancel_input() -> dict:
+    """진행 중인 press / move_to 를 멈춘다."""
+    return call("input_cancel")
+
+
 @mcp.tool()
 def screenshot(max_width: int = 1280) -> list:
     """Majestro 창을 지금 찍어 이미지로 돌려준다 (Tools/qa/capture.ps1 -Once). 창이 여러 개면 먼저 뜬 순서로 전부.
@@ -132,10 +170,13 @@ def _wait(check, seconds: float) -> bool:
 
 
 @mcp.tool()
-def launch(client_args: str = "", server: bool = True, god: bool = True, wait_seconds: float = 90) -> dict:
+def launch(client_args: str = "", server: bool = True, god: bool = True, input: bool = True,
+           wait_seconds: float = 90) -> dict:
     """GameServer(Release) 와 Majestro.exe 를 -mcp 로 띄우고 ping 이 될 때까지 기다린다.
     client_args: 클라 추가 인자 (예: "-qa -qastages=1 -log=audio-runtime"). server=False 면 서버는 띄우지 않는다.
-    god: 서버를 -qagod 로 (플레이어 무적). 이미 떠 있는 것은 다시 띄우지 않는다. 끌 때는 stop."""
+    god: 서버를 -qagod 로 (플레이어 무적). input: -mcpinput 을 붙여 press/move_to 를 쓸 수 있게 한다
+    (이때 하드웨어 키보드·마우스는 꺼진다. 사람이 직접 조작하려면 input=False).
+    이미 떠 있는 것은 다시 띄우지 않는다. 끌 때는 stop."""
     global _server, _client
     result: dict = {"ok": True}
 
@@ -158,7 +199,8 @@ def launch(client_args: str = "", server: bool = True, god: bool = True, wait_se
         result["client"] = "already running (MCP 응답 중)"
         return result
 
-    args = [str(CLIENT_DIR / "Majestro.exe"), f"-mcp={PORT}"] + shlex.split(client_args, posix=False)
+    args = ([str(CLIENT_DIR / "Majestro.exe"), f"-mcp={PORT}"] + (["-mcpinput"] if input else [])
+            + shlex.split(client_args, posix=False))
     _client = subprocess.Popen(args, cwd=CLIENT_DIR, stdin=subprocess.DEVNULL,
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if not _wait(lambda: call("ping").get("ok") or _client.poll() is not None, wait_seconds) or _client.poll() is not None:

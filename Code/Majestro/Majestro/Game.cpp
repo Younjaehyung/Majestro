@@ -8,6 +8,7 @@
 #include "SceneManager.h"
 #include "QaBot.h"
 #include "McpBridge.h"
+#include "McpInput.h"
 
 #ifdef _IMGUI
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -23,8 +24,21 @@ void Game::Initialize(const WindowInfo& info)
 	gEngine->Initialize(info);
 
 	// -qa: 사람 대신 QA 봇이 입력을 공급한다. 엔진은 QA 를 모르고, 배선은 실행 파일이 한다.
-	if (QaBot::Requested())
-		gEngine->GetInputManager().SetInputSource([](InputFrame& frame) { QaBot::Get().ProduceInput(frame); });
+	// -mcpinput (또는 -qa 와 -mcp 를 같이): MCP press/move_to 가 진행 중일 때 그 입력이 QaBot 입력을 덮어쓴다.
+	// 입력 소스를 등록하면 하드웨어 입력이 꺼지므로, 둘 다 아니면 등록하지 않는다.
+	const bool qa = QaBot::Requested();
+	const bool mcpInput = McpBridge::Requested() && (qa || McpBridge::InputRequested());
+	if (mcpInput)
+		McpInput::Get().Enable();
+	if (qa || mcpInput)
+	{
+		gEngine->GetInputManager().SetInputSource([qa, mcpInput](InputFrame& frame) {
+			if (qa)
+				QaBot::Get().ProduceInput(frame);
+			if (mcpInput)
+				McpInput::Get().Apply(frame);
+		});
+	}
 
 	Network::GetInstance().Initialize();
 	

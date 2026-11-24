@@ -2,6 +2,7 @@
 #include "McpBridge.h"
 #include "EngineLog.h"
 #include "McpState.h"
+#include "McpInput.h"
 
 #include <cwchar>
 
@@ -68,11 +69,22 @@ namespace
 
 bool McpBridge::Requested()
 {
-	// -mcp 와 -mcp=포트 모두 받는다.
+	// -mcp, -mcp=포트, -mcpinput(입력까지) 모두 MCP 를 켠다. 모든 등장 위치를 본다.
 	static const bool sRequested = [] {
-		const wchar_t* p = ::wcsstr(::GetCommandLineW(), L"-mcp");
-		return p != nullptr && (p[4] == L'\0' || p[4] == L' ' || p[4] == L'=' || p[4] == L'"');
+		for (const wchar_t* p = ::wcsstr(::GetCommandLineW(), L"-mcp"); p; p = ::wcsstr(p + 1, L"-mcp"))
+		{
+			const wchar_t next = p[4];
+			if (next == L'\0' || next == L' ' || next == L'\t' || next == L'=' || next == L'"' || ::wcsncmp(p, L"-mcpinput", 9) == 0)
+				return true;
+		}
+		return false;
 	}();
+	return sRequested;
+}
+
+bool McpBridge::InputRequested()
+{
+	static const bool sRequested = ::wcsstr(::GetCommandLineW(), L"-mcpinput") != nullptr;
 	return sRequested;
 }
 
@@ -206,6 +218,18 @@ std::string McpBridge::Handle(const std::string& line)
 			reply["ok"] = EngineLog::SetEnabled(domain, on);
 			if (!reply["ok"])
 				reply["error"] = "unknown domain: " + domain;
+		}
+		else if (cmd == "press" || cmd == "move_to" || cmd == "input_status" || cmd == "input_cancel")
+		{
+			McpInput& input = McpInput::Get();
+			json result = !input.Enabled()
+				? json{ { "ok", false }, { "error", "MCP input is off: start the game with -mcpinput (or -qa)" } }
+				: cmd == "press" ? input.Press(request)
+				: cmd == "move_to" ? input.MoveTo(request)
+				: cmd == "input_cancel" ? input.Cancel()
+				: input.Status();
+			result["id"] = reply["id"];
+			reply = std::move(result);
 		}
 		else if (cmd == "query_state")
 		{
